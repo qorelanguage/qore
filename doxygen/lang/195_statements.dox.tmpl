@@ -40,16 +40,16 @@
     @section if if and else Statements
 
     @par Synopsis
-    The \c \b if statement allows for conditional logic in a %Qore program's flow; the syntax is similar to that of C, C++, or Java.
+    The <tt><b>if</b></tt> statement allows for conditional logic in a %Qore program's flow; the syntax is similar to that of C, C++, or Java.
 
     @par Syntax
-    \b \c if <tt>(</tt><em>@ref expressions "expression"</em><tt>)</tt>\n
+    <tt><b>if</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>)</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>\n
     <tt>[\b else</tt> \n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em><tt>]</tt>
 
     @par Description
-    %Qore if statements work like if statements in C or Java. If the result of evaluating the expression converted to a @ref boolean value is \c True, then the first statement (which can also be a block) is executed. If the result is \c False, and there is an \c \b else keyword after the first statement, the following statement is executed.
+    %Qore if statements work like if statements in C or Java. If the result of evaluating the expression converted to a @ref boolean value is \c True, then the first statement (which can also be a block) is executed. If the result is \c False, and there is an <tt><b>else</b></tt> keyword after the first statement, the following statement is executed.
 
     @note Any expression that evaluates to a non-zero integer value will be converted to a @ref boolean \c True. Any expression that evaluates to zero value is interpreted as \c False. This is more like C and Java's behavior and not like Perl's (where any non-null string except "0" is \c True).
 
@@ -57,10 +57,10 @@
     @section for for Statements
 
     @par Synopsis
-    The %Qore \b \c for statement is most similar to the for statement in C and Java, or the non array iterator for statement in Perl. This statement is ideal for loops that should execute a given number of times, then complete. Each of the three expressions in the for statement is optional and may be omitted. To iterate through a list without directly referencing list index values, see the @ref foreach "foreach statement".
+    The %Qore <tt><b>for</b></tt> statement is most similar to the for statement in C and Java, or the non array iterator for statement in Perl. This statement is ideal for loops that should execute a given number of times, then complete. Each of the three expressions in the for statement is optional and may be omitted. To iterate through a list without directly referencing list index values, see the @ref foreach "foreach statement".
 
     @par Syntax
-    \b \c for <tt>(</tt> <em>@ref expressions "[initial_expression]"</em><tt>;</tt> <em>@ref expressions "[test_expression]"</em><tt>;</tt> <em>@ref expressions "[iterator_expression]"</em>)\n
+    <tt><b>for</b></tt> <tt>(</tt> <em>@ref expressions "[initial_expression]"</em><tt>;</tt> <em>@ref expressions "[test_expression]"</em><tt>;</tt> <em>@ref expressions "[iterator_expression]"</em>)\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
@@ -81,10 +81,10 @@ for (my int $i = 0; $i < 10; $i++)
     @section foreach foreach Statements
 
     @par Synopsis
-    The %Qore \b \c foreach statement is most similar to the for or foreach array iterator statement in Perl. To iterate an action until a condition is \c True, use the @ref for "for statement" instead.
+    The %Qore <tt><b>foreach</b></tt> statement is most similar to the for or foreach array iterator statement in Perl. To iterate an action until a condition is \c True, use the @ref for "for statement" instead.
 
     @par Syntax
-    \c \b foreach <tt>[\b my|\b our] [</tt><em>@ref data_type_declarations "type"</em><tt>]</tt> $variable \b \c in <tt>(</tt><em>@ref expressions "expression"</em><tt>)</tt>\n
+    <tt><b>foreach</b></tt> <tt>[\b my|\b our] [</tt><em>@ref data_type_declarations "type"</em><tt>]</tt> $variable <tt><b>in</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>)</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
@@ -100,7 +100,7 @@ for (my int $i = 0; $i < 10; $i++)
 foreach my string $str in (\$str_list)
     trim $str;@endcode
 
-    @note If a reference (<tt>\\$lvalue_expression</tt>) is used as the list expression, any changes made to the \b \c foreach iterator variable will be written back to the list.
+    @note If a reference (<tt>\\$lvalue_expression</tt>) is used as the list expression, any changes made to the <tt><b>foreach</b></tt> iterator variable will be written back to the list.
 
     <hr>
     @section switch switch Statements
@@ -109,8 +109,8 @@ foreach my string $str in (\$str_list)
     The %Qore switch statement is similar to the switch statement in C and C++, except that the case values can be any expression that does not need run-time evaluation and can also be expressions with simple relational operators or regular expressions using the switch value as an implied operand.
 
     @par Syntax
-    \b \c switch <tt>(</tt><em>@ref expressions "expression"</em><tt>) {</tt>\n 
-    &nbsp;&nbsp;\b \c case <em>case_expression</em><tt>:</tt>\n
+    <tt><b>switch</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>) {</tt>\n 
+    &nbsp;&nbsp;<tt><b>case</b></tt> <em>case_expression</em><tt>:</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "[statement(s)...]"</em>\n
     &nbsp;&nbsp;<tt>[\b default:</tt> \n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "[statement(s)...]"</em><tt>]</tt>\n
@@ -137,7 +137,7 @@ switch ($val) {
 }@endcode
 
     @par Description
-    The first \a expression is evaluated and then compared to the value of each \a case_expression in declaration order until one of the \a case_expressions matches or is evaluated to \c True. In this case all code up to a @ref break "break statement" is executed, at which time execution flow exits the \c \b switch statement.\n\n
+    The first \a expression is evaluated and then compared to the value of each \a case_expression in declaration order until one of the \a case_expressions matches or is evaluated to \c True. In this case all code up to a @ref break "break statement" is executed, at which time execution flow exits the <tt><b>switch</b></tt> statement.\n\n
     Unless relational operators are used, the comparisons are "hard" comparisons; no type conversions are done, so in order for a match to be made, both the value and types of the expressions must match exactly. When relational operators are used, the operators are executed exactly as they are in the rest of %Qore, so type conversions may be performed if nesessary.\n\n
     To use soft comparisons, you must explicitly specify the soft equals operator as follows:\n
     @code
@@ -146,7 +146,7 @@ switch (1) {
 }@endcode \n
     If no match is found and a default label has been given, then any statements after the default label will be executed. If a match is made, then the statements following that case label are executed.\n\n
     To break out of the switch statement, use the @ref break "break statement".\n\n
-    As with C and C++, if no @ref break "break" or @ref return "return" statement is encountered, program control will continue to execute through other \c \b case blocks until on of the previous statements is encountered or until the end of the \c \b switch statement.
+    As with C and C++, if no @ref break "break" or @ref return "return" statement is encountered, program control will continue to execute through other <tt><b>case</b></tt> blocks until on of the previous statements is encountered or until the end of the <tt><b>switch</b></tt> statement.
 
     @anchor case_expressions
     <b>Valid Case Expression Operators</b>
@@ -163,10 +163,10 @@ switch (1) {
     @section while while Statements
 
     @par Synopsis
-    \b \c while statements in %Qore are similar to while statements in Perl, C and Java. They are used to loop while a given condition is \c True.
+    <tt><b>while</b></tt> statements in %Qore are similar to while statements in Perl, C and Java. They are used to loop while a given condition is \c True.
 
     @par Syntax
-    \b \c while <tt>(</tt><em>@ref expressions "expression"</em><tt>)</tt>\n
+    <tt><b>while</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>)</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
@@ -182,16 +182,16 @@ while ($a < 10)
     @section do do while Statements
 
     @par Synopsis
-\c \b do \c \b while statements in %Qore are similar to do while statements in C. They are used to guarantee at least one iteration and loop until a given expression evaluates to \c False.
+<tt><b>do</b></tt> <tt><b>while</b></tt> statements in %Qore are similar to do while statements in C. They are used to guarantee at least one iteration and loop until a given expression evaluates to \c False.
 
     @par Syntax
     <b><tt>do</tt></b>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em> \n
-    \b \c while <tt>(</tt><em>@ref expressions "expression"</em><tt>);</tt>
+    <tt><b>while</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>);</tt>
 
     @par Description
     First, the \a statement will be executed, then the \a expression will be evaluated; if it evaluates to \c True, then the loop iterates again. If it evaluates to \c False, the loop terminates.\n\n
-    The difference between \c \b do \c \b while statements and @ref while "while statements" is that the \c \b do \c \bwhile statement evaluates its loop expression at the end of the loop, and therefore guarantees at least one iteration of the loop.
+    The difference between <tt><b>do</b></tt> <tt><b>while</b></tt> statements and @ref while "while statements" is that the <tt><b>do</b></tt> <tt><b>while</b></tt> statement evaluates its loop expression at the end of the loop, and therefore guarantees at least one iteration of the loop.
 
     @par Example
     @code 
@@ -210,7 +210,7 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     \b \c continue;
 
     @par Description
-    The \b \c continue statement affects loop processing; that is; it has an affect on @ref for "for", @ref foreach "foreach", @ref while "while", @ref do "do while", @ref context "context", @ref summarize "summarize", and @ref subcontext "subcontext" loop processing.\n\n
+    The <tt><b>continue</b></tt> statement affects loop processing; that is; it has an affect on @ref for "for", @ref foreach "foreach", @ref while "while", @ref do "do while", @ref context "context", @ref summarize "summarize", and @ref subcontext "subcontext" loop processing.\n\n
     When this statement is encountered while executing a loop, execution control jumps immediately to the evaluation of the iteration expression, skipping any other statements that might otherwise be executed.
 
     <hr>
@@ -223,20 +223,20 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     \b \c break;
 
     @par Description
-    The \b \c break statement affects loop processing; that is; it has an affect on @ref for "for", @ref foreach "foreach", @ref while "while", @ref do "do while", @ref context "context", @ref summarize "summarize", and @ref subcontext "subcontext" loop processing as well as on @ref switch "switch" block processing.\n\n
+    The <tt><b>break</b></tt> statement affects loop processing; that is; it has an affect on @ref for "for", @ref foreach "foreach", @ref while "while", @ref do "do while", @ref context "context", @ref summarize "summarize", and @ref subcontext "subcontext" loop processing as well as on @ref switch "switch" block processing.\n\n
     When this statement is encountered while executing a loop, the loop is immediately exited, and execution control passes to the next statement outside the loop.
 
     <hr>
     @section throw throw Statements
 
     @par Synopsis
-    In order to throw an exception explicitly, the \b \c throw statement must be used.
+    In order to throw an exception explicitly, the <tt><b>throw</b></tt> statement must be used.
 
     @par Syntax
-    \b \c throw expression;
+    <tt><b>throw</b></tt> expression;
 
     @par Description
-    The expression will be passed to the \b \c catch block of a @ref try "try/catch statement", if the \b \c throw is executed in a @ref try "try block". Otherwise the default system exception handler will be run and the currently running thread will terminate.\n\n
+    The expression will be passed to the <tt><b>catch</b></tt> block of a @ref try "try/catch statement", if the <tt><b>throw</b></tt> is executed in a @ref try "try block". Otherwise the default system exception handler will be run and the currently running thread will terminate.\n\n
     %Qore convention dictates that a direct list is thrown with at least two string elements, the error code and a description. All system exceptions have this format.\n\n
     See @ref try "try/catch statements" for information on how to handle exceptions, and see @ref exception_handling for information about how throw arguments are mapped to the exception hash.
 
@@ -244,7 +244,7 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     @section try try and catch Statements
 
     @par Synopsis
-    Some error conditions can only be detected and handled using exception handlers. To catch exceptions, \c \b try and \b \c catch statements have to be used. When an exception occurs while executing the \c \b try block, execution control will immediately be passed to the \b \c catch block, which can capture information about the exception.
+    Some error conditions can only be detected and handled using exception handlers. To catch exceptions, <tt><b>try</b></tt> and <tt><b>catch</b></tt> statements have to be used. When an exception occurs while executing the <tt><b>try</b></tt> block, execution control will immediately be passed to the <tt><b>catch</b></tt> block, which can capture information about the exception.
 
     @par Syntax
     <b><tt>try</tt></b>\n
@@ -254,27 +254,27 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
 
     @par Description
     A single variable can be specified in the catch block to be instantiated with the exception hash, giving information about the exception that has occurred. For detailed information about the exception hash, see @ref exception_handling.\n\n
-    If no variable is given in the \c \b catch declaration, it will not be possible to access any information about the exception in the <b><tt>catch</tt></b> block. However, the @ref rethrow "rethrow statement" can be used to rethrow exceptions at any time in a \c \b catch block.
+    If no variable is given in the <tt><b>catch</b></tt> declaration, it will not be possible to access any information about the exception in the <b><tt>catch</tt></b> block. However, the @ref rethrow "rethrow statement" can be used to rethrow exceptions at any time in a <tt><b>catch</b></tt> block.
 
     <hr>
     @section rethrow rethrow Statements
 
     @par Synopsis
-    A \c \b rethrow statement can be used to rethrow an exception in a \c \b catch block. In this case a entry tagged as a rethrow entry will be placed on the exception call stack.
+    A <tt><b>rethrow</b></tt> statement can be used to rethrow an exception in a <tt><b>catch</b></tt> block. In this case a entry tagged as a rethrow entry will be placed on the exception call stack.
 
     @par Syntax
     \b \c rethrow;
 
     @par Description
-    The rethrown exception will be either passed to the next higher-level \c \b catch block, or to the system default exception handler, as with a @ref throw "throw statement".\n\n
-    This statement can be used to maintain coherent call stacks even when exceptions are handled by more than one \c \b catch block (for detailed information about the exception hash and the format of call stacks, see @ref exception_handling).\n\n
-    Note that it is an error to use the \c \b rethrow statement outside of a \c \b catch block.
+    The rethrown exception will be either passed to the next higher-level <tt><b>catch</b></tt> block, or to the system default exception handler, as with a @ref throw "throw statement".\n\n
+    This statement can be used to maintain coherent call stacks even when exceptions are handled by more than one <tt><b>catch</b></tt> block (for detailed information about the exception hash and the format of call stacks, see @ref exception_handling).\n\n
+    Note that it is an error to use the <tt><b>rethrow</b></tt> statement outside of a <tt><b>catch</b></tt> block.
 
     <hr>
     @section thread_exit thread_exit Statements
 
     @par Synopsis
-    \c \b thread_exit statements cause the current thread to exit immediately. Use this statement instead of the exit() function when only the current thread should exit.
+    <tt><b>thread_exit</b></tt> statements cause the current thread to exit immediately. Use this statement instead of the exit() function when only the current thread should exit.
 
     @par Syntax
     \b \c thread_exit;
@@ -286,10 +286,10 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     @section context context Statements
 
     @par Synopsis
-    To easily iterate through multiple rows in a hash of arrays (such as a query result set returned by the Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() methods), the \c \b context statement can be used. Column names can be referred to directly in expressions in the scope of the context statement by preceding the name with a \c "%" character.
+    To easily iterate through multiple rows in a hash of arrays (such as a query result set returned by the Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() methods), the <tt><b>context</b></tt> statement can be used. Column names can be referred to directly in expressions in the scope of the context statement by preceding the name with a \c "%" character.
 
     @par Syntax
-    \b \c context <em>[name]</em> <tt>(</tt><em>@ref expressions "data_expression"</em><tt>)</tt>\n
+    <tt><b>context</b></tt> <em>[name]</em> <tt>(</tt><em>@ref expressions "data_expression"</em><tt>)</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b where (</tt><em>@ref expressions "where_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b sortBy (</tt><em>@ref expressions "sort_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b sortDescendingBy (</tt><em>@ref expressions "sort_descending_expression"</em><tt>)]</tt>\n
@@ -297,13 +297,13 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
 
     @par Description
     <em>@ref expressions "data_expression"</em>\n
-    This must evaluate to a hash of arrays in order for the \c \b context statement to execute.\n\n
+    This must evaluate to a hash of arrays in order for the <tt><b>context</b></tt> statement to execute.\n\n
     <em>@ref expressions "where_expression"</em>\n
     An optional \b\c where expression may be given, in which case for each row in the hash, the expression will be executed, and if the where expression evaluates to \c True, the row will be iterated in the context loop. If this expression evaluates to \c False, then the row will not be iterated. This option is given so the programmer can create multiple views of a single data structure (such as a query result set) in memory rather than build different data structures by hand (or retrieve the data multiple times from a database).\n\n
     <em>@ref expressions "sort_expression"</em>\n
-    An optional \c \b sortBy by expression may also be given. In this case, the expression will be evaluated for each row of the query given, and then the result set will be sorted in ascending order by the results of the expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer, then integer order is used, etc).\n\n
+    An optional <tt><b>sortBy</b></tt> by expression may also be given. In this case, the expression will be evaluated for each row of the query given, and then the result set will be sorted in ascending order by the results of the expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer, then integer order is used, etc).\n\n
     <em>@ref expressions "sort_descending_expression"</em>\n
-    Another optional modifier to the \c \b context statement that behaves the same as above except that the results are sorted in descending order.
+    Another optional modifier to the <tt><b>context</b></tt> statement that behaves the same as above except that the results are sorted in descending order.
 
     @par Example
     @code 
@@ -318,19 +318,19 @@ sortBy (%effective_start_date) {
     @section summarize summarize Statements
 
     @par Synopsis
-    \c \b summarize statements are like context statements with one important difference: results sets are grouped by a by expression, and the statement is executed only once per discrete by expression result. This statement is designed to be used with the @ref subcontext "subcontext statement".
+    <tt><b>summarize</b></tt> statements are like context statements with one important difference: results sets are grouped by a by expression, and the statement is executed only once per discrete by expression result. This statement is designed to be used with the @ref subcontext "subcontext statement".
 
     @par Syntax
-    \c \b summarize <tt>(</tt><em>@ref expressions "data_expression"</em><tt>) \b by (</tt><em>@ref expressions "by_expression"</em><tt>)</tt>\n
+    <tt><b>summarize</b></tt> <tt>(</tt><em>@ref expressions "data_expression"</em><tt>) \b by (</tt><em>@ref expressions "by_expression"</em><tt>)</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b where (</tt><em>@ref expressions "where_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b sortBy (</tt><em>@ref expressions "sort_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b sortDescendingBy (</tt><em>@ref expressions "sort_descending_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    \c \b summarize statements modifiers have the same effect as those for the @ref context "context statement", except for the following:\n\n
+    <tt><b>summarize</b></tt> statements modifiers have the same effect as those for the @ref context "context statement", except for the following:\n\n
     <tt>\b by (</tt><em>@ref expressions "by_expression"</em><tt>)</tt>\n
-    The \c \b by expression is executed for each row in the data structure indicated. The set of unique results defines groups of result rows. For each group of result rows, each row having an identical result of the evaluation of the by expression, the statement is executed only once.
+    The <tt><b>by</b></tt> expression is executed for each row in the data structure indicated. The set of unique results defines groups of result rows. For each group of result rows, each row having an identical result of the evaluation of the by expression, the statement is executed only once.
 
     @par Example
     @code 
@@ -352,14 +352,14 @@ summarize ($services)
     Statement used to loop through values within a @ref summarize "summarize statement".
 
     @par Syntax
-    \c \b subcontext \n
+    <tt><b>subcontext</b></tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b where (</tt><em>@ref expressions "where_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b sortBy (</tt><em>@ref expressions "sort_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b sortDescendingBy (</tt><em>@ref expressions "sort_descending_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The \c \b subcontext statement is used in conjunction with @ref summarize "summarize statements". When result rows of a query should be grouped, and then each row in the result set should be individually processed, the %Qore programmer should first use a @ref summarize "summarize statement", and then a \c \b subcontext statement. The @ref summarize "summarize statement" will group rows, and then the nested \c \b subcontext statement will iterate through each row in the current summary group.
+    The <tt><b>subcontext</b></tt> statement is used in conjunction with @ref summarize "summarize statements". When result rows of a query should be grouped, and then each row in the result set should be individually processed, the %Qore programmer should first use a @ref summarize "summarize statement", and then a <tt><b>subcontext</b></tt> statement. The @ref summarize "summarize statement" will group rows, and then the nested <tt><b>subcontext</b></tt> statement will iterate through each row in the current summary group.
 
     @par Example
     @code 
@@ -379,10 +379,10 @@ summarize ($services)
     @section return return Statements
 
     @par Synopsis
-    \c \b return statements causes the flow of execution of the function, method or program to stop immediately and return to the caller. This statement can take an optional expression to return a value to the caller as well.
+    <tt><b>return</b></tt> statements causes the flow of execution of the function, method or program to stop immediately and return to the caller. This statement can take an optional expression to return a value to the caller as well.
 
     @par Syntax
-    \c \b return <em>@ref expressions "[expression]"</em>;
+    <tt><b>return</b></tt> <em>@ref expressions "[expression]"</em>;
 
     @par Description
     This statement causes execution of the current function, method, or program to returns to the caller, optionally with a return value.
@@ -401,13 +401,13 @@ my string $name = getName();@endcode
     Queues a statement or statement block for unconditional execution when the block is exited, even in the case of exceptions or @ref return "return statements". For similar statement that queue code for execution depending on the exception status when the block exits, see @ref on_success "on_success statements" and @ref on_error "on_error statements".
 
     @par Syntax
-    \c \b on_exit \n
+    <tt><b>on_exit</b></tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The \c \b on_exit statement provides a clean way to do exception-safe cleanup within %Qore code. Any single statment (or statement block) after the \c \b on_exit keyword will be executed when the current block exits (as long as the statement itself is reached when executing - \c \b on_exit statements that are never reached when executing will have no effect).\n\n
-    The position of the \c \b on_exit statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited. Even if an exception is raised or a @ref return "return statement" is executed, any \c \b on_exit code that is queued will be executed. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.\n\n
-    Note that if this statement is reached when executing in a loop, the \c \b on_exit code will be executed for each iteration of the loop.\n\n
+    The <tt><b>on_exit</b></tt> statement provides a clean way to do exception-safe cleanup within %Qore code. Any single statment (or statement block) after the <tt><b>on_exit</b></tt> keyword will be executed when the current block exits (as long as the statement itself is reached when executing - <tt><b>on_exit</b></tt> statements that are never reached when executing will have no effect).\n\n
+    The position of the <tt><b>on_exit</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited. Even if an exception is raised or a @ref return "return statement" is executed, any <tt><b>on_exit</b></tt> code that is queued will be executed. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.\n\n
+    Note that if this statement is reached when executing in a loop, the <tt><b>on_exit</b></tt> code will be executed for each iteration of the loop.\n\n
     By using this statement, programmers ensure that necessary cleanup will be performed regardless of the exit status of the block (exception, @ref return "return", etc).
 
     @par Example
@@ -430,13 +430,13 @@ my string $name = getName();@endcode
     Queues a statement or statement block for execution when the block is exited in the case that no exception is active. Used often in conjunction with the @ref on_error "on_error statement" and related to the @ref on_exit "on_exit statement".
 
     @par Syntax
-    \c \b on_success \n
+    <tt><b>on_success</b></tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The \c \b on_success statement provides a clean way to do block-level cleanup within %Qore code in the case that no exception is thrown in the block. Any single statment (or statement block) after the \c \b on_success keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - \c \b on_success statements that are never reached when executing will have no effect).\n\n
-    The position of the \c \b on_success statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any \c \b on_success code that is queued will be executed as long as there is no active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner similar to \c \b on_success statements, except \c \b on_error statements are only executed when there is an active exception when the block is exited.\n\n
-    Note that if this statement is reached when executing in a loop, the \c \b on_success code will be executed for each iteration of the loop (as long as there is no active exception).
+    The <tt><b>on_success</b></tt> statement provides a clean way to do block-level cleanup within %Qore code in the case that no exception is thrown in the block. Any single statment (or statement block) after the <tt><b>on_success</b></tt> keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - <tt><b>on_success</b></tt> statements that are never reached when executing will have no effect).\n\n
+    The position of the <tt><b>on_success</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any <tt><b>on_success</b></tt> code that is queued will be executed as long as there is no active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner similar to <tt><b>on_success</b></tt> statements, except <tt><b>on_error</b></tt> statements are only executed when there is an active exception when the block is exited.\n\n
+    Note that if this statement is reached when executing in a loop, the <tt><b>on_success</b></tt> code will be executed for each iteration of the loop (as long as there is no active exception).
 
     @par Example
 @code
@@ -461,12 +461,12 @@ my string $name = getName();@endcode
     Queues a statement or statement block for execution when the block is exited in the case that no exception is active. Used often in conjunction with the @ref on_success "on_success statement" and related to the @ref on_exit "on_exit statement".
 
     @par Syntax
-    \c \b on_error \n
+    <tt><b>on_error</b></tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The \c \b on_error statement provides a clean way to do block-level cleanup within %Qore code in the case that an exception is thrown in the block. Any single statment (or statement block) after the \c \b on_error keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - \c \b on_error statements that are never reached when executing will have no effect).\n\n
-    The position of the \c \b on_error statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any \c \b on_error code that is queued will be executed as long as there is an active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar to \c \b on_error statements, except @ref on_success "on_success statements" are only executed when there is no active exception when the block is exited.\n\n
+    The <tt><b>on_error</b></tt> statement provides a clean way to do block-level cleanup within %Qore code in the case that an exception is thrown in the block. Any single statment (or statement block) after the <tt><b>on_error</b></tt> keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - <tt><b>on_error</b></tt> statements that are never reached when executing will have no effect).\n\n
+    The position of the <tt><b>on_error</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any <tt><b>on_error</b></tt> code that is queued will be executed as long as there is an active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar to <tt><b>on_error</b></tt> statements, except @ref on_success "on_success statements" are only executed when there is no active exception when the block is exited.\n\n
     Note that the code in this statement can only be executed once in any block, as a block (even a block within a loop) can only exit the loop once with an active exception (in contrast to @ref on_success "on_success" and @ref on_exit "on_exit statements", which are executed for every iteration of a loop).
 
     @par Example

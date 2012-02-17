@@ -51,7 +51,7 @@ my *string $v = getenv("PATH");
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getenv() [flags=NOOP] {
+nothing getenv() [flags=NOOP;dom=EXTERNAL_INFO] {
 }
 
 //! Sets an environment variable to a value
@@ -78,7 +78,7 @@ int setenv(string env, softstring val) [dom=PROCESS] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing setenv() [flags=NOOP] {
+nothing setenv() [flags=NOOP;dom=PROCESS] {
 }
 
 //! Unsets an environment variable
@@ -97,13 +97,13 @@ if (unsetenv("PATH"))
 
     @since %Qore 0.8.4 tagged with PO_NO_PROCESS
  */
-int unsetenv(string env) {
+int unsetenv(string env) [dom=PROCESS] {
    return SysEnv.unset(env->getBuffer());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing unsetenv() [flags=NOOP] {
+nothing unsetenv() [flags=NOOP;dom=EXTERNAL_INFO] {
 }
 //@}

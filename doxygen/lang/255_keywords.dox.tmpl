@@ -1,74 +1,76 @@
 /** @page keywords Keywords
 
-    Keyword Types
+    <b>Keyword Types</b>
     |!Type|!Description
     |Normal|Normal keywords cannot be used as function, method, or static variable names and also cannot be used as unquoted hash key or object member names with the @ref dot_operator ". operator"; at the moment there are only 2 normal keywords: @ref nothing "NOTHING" and @ref null "NULL"
     |Soft 1|Keywords of this type cannot be used as static variable names but can be used as function or method names if they are followed immediately by an open parenthesis (with no whitespace between the keyword and the open parenthesis), and they can be referenced as unquoted object or hash member names only if they are immediately preceded by the @ref dot_operator ". operator" (again with no whitespace between the "." and the keyword):
     |Soft 2|Keywords of this type cannot be used as static variable names but can be used as function or method names if they are followed by an open parenthesis (whitespace is allowed between the keyword and the open parenthesis), and they can be referenced as unquoted object or hash member names if they are immediately preceded by the @ref dot_operator ". operator" (again with no whitespace between the "." and the keyword):
     |Soft 3|Keywords of this type be referenced as unquoted object or hash member names if preceded immediately by the "." operator, however they may not be used as function or class method names or static variable names
 
+    <b>Keywords</b>
     |!Keywords|!Type|!Description
-    |@ref nothing "NOTHING"|Normal|
-    |@ref null "NULL"|Normal|
-    |@ref background "background"|Soft 1|
-    |@ref case "case"|Soft 1|
-    |@ref chomp "chomp"|Soft 1|
-    |@ref class "class"|Soft 1|
-    |@ref delete "delete"|Soft 1|
-    |@ref exists "exists"|Soft 1|
-    |@ref foldl "foldl"|Soft 1|
-    |@ref foldr "foldr"|Soft 1|
-    |@ref map "map"|Soft 1|
-    |@ref pop "pop"|Soft 1|
-    |@ref private "private"|Soft 1|
-    |@ref push "push"|Soft 1|
-    |@ref new "new"|Soft 1|
-    |@ref select "select"|Soft 1|
-    |@ref shift "shift"|Soft 1|
-    |@ref splice "splice"|Soft 1|
-    |@ref trim "trim"|Soft 1|
-    |@ref unshift "unshift"|Soft 1|
-    |@ref default "default"|Soft 2|
-    |@ref static "static"|Soft 2|
-    |@ref break "break"|Soft 3|
-    |@ref catch "catch"|Soft 3|
-    |@ref const "const"|Soft 3|
-    |@ref continue "continue"|Soft 3|
-    |@ref do "do"|Soft 3|
-    |@ref else "else"|Soft 3|
-    |@ref for "for"|Soft 3|
-    |@ref foreach "foreach"|Soft 3|
-    |@ref if "if"|Soft 3|
-    |@ref in "in"|Soft 3|
-    |@ref inherits "inherits"|Soft 3|
-    |@ref instanceof "instanceof"|Soft 3|
-    |@ref namespace "namespace"|Soft 3|
-    |@ref my "my"|Soft 3|
-    |@ref elements "elements"|Soft 3|
-    |@ref find "find"|Soft 3|
-    |@ref keys "keys"|Soft 3|
-    |@ref returns "returns"|Soft 3|
-    |abstract|Soft 3|This keyword is reserved for future implementation
-    |@ref deprecated "deprecated"|Soft 3|
-    |@ref context "context"|Soft 3|
-    |@ref summarize "summarize"|Soft 3|
-    |@ref subcontext "subcontext"|Soft 3|
-    |@ref sortBy "sortBy"|Soft 3|
-    |@ref sortDescendingBy "sortDescendingBy"|Soft 3|
-    |@ref by "by"|Soft 3|
-    |@ref switch "switch"|Soft 3|
-    |@ref return "return"|Soft 3|
-    |@ref rethrow "rethrow"|Soft 3|
-    |@ref on_error "on_error"|Soft 3|
-    |@ref on_exit "on_exit"|Soft 3|
-    |@ref on_success "on_success"|Soft 3|
-    |@ref our "our"|Soft 3|
-    |@ref sub "sub"|Soft 3|
-    |@ref synchronized "synchronized"|Soft 3|
-    |@ref thread_exit "thread_exit"|Soft 3|
-    |@ref throw "throw"|Soft 3|
-    |@ref try "try"|Soft 3|
-    |@ref where "where"|Soft 3|
-    |@ref while "while"|Soft 3|
-    |interface|Soft 3|This keyword is reserved for future implementation
+    |@ref nothing|Normal|gives a special data type designating the lack of a value (not equivalent to @ref null)
+    |@ref null|Normal|is a keyword for SQL NULL (not equivalent to @ref nothing)
+    |@ref background "background"|Soft 1|for the @ref background "background operator"
+    |@ref switch "case"|Soft 1|used in @ref switch "switch statements"
+    |@ref chomp "chomp"|Soft 1|for the @ref chomp "chomp operator"
+    |@ref qore_classes "class"|Soft 1|used when declaring @ref qore_classes "classes"
+    |@ref delete "delete"|Soft 1|for the @ref delete "delete operator"
+    |@ref exists "exists"|Soft 1|for the @ref exists "exists operator"
+    |@ref foldl "foldl"|Soft 1|for the @ref foldl "foldl operator"
+    |@ref foldr "foldr"|Soft 1|for the @ref foldr "foldr operator"
+    |@ref map "map"|Soft 1|for the @ref map "map operator"
+    |@ref pop "pop"|Soft 1|for the @ref pop "pop operator"
+    |\b private|Soft 1|@ref class_members "class members", @ref class_methods "class methods", and @ref static_class_variables "static class variables" can all be declared private to the class with this keyword, additionally classes can be privately @ref inheritance "inherited" using this keyword as well
+    |\b public|Soft 1|@ref class_members "class members", @ref class_methods "class methods", and @ref static_class_variables "static class variables" can all be declared public to the class with this keyword, additionally this keyword can be used when declaring a publically @ref inheritance "inherited" class as well
+    |@ref push "push"|Soft 1|for the @ref push "push operator"
+    |@ref new "new"|Soft 1|for the @ref new "new operator"
+    |@ref select "select"|Soft 1|for the @ref select "select operator"
+    |@ref shift "shift"|Soft 1|for the @ref shift "shift operator"
+    |@ref splice "splice"|Soft 1|for the @ref splice "splice operator"
+    |@ref trim "trim"|Soft 1|for the @ref trim "trim operator"
+    |@ref unshift "unshift"|Soft 1|for the @ref unshift "unshift operator"
+    |\b default|Soft 2|used in @ref switch "switch statements"
+    |\b static|Soft 2|used when declaring @ref static_methods "static methods" and @ref static_class_variables "static variables" in a class
+    |@ref break "break"|Soft 3|for the @ref break "break statement"
+    |@ref try "catch"|Soft 3|used with @ref try "try catch statements"
+    |@ref constants "const"|Soft 3|used to declare @ref constants "constants" and @ref class_constants "class constants"
+    |@ref continue "continue"|Soft 3|for the @ref continue "continue statement"
+    |@ref do "do"|Soft 3|for the @ref do "do statement"
+    |@ref if "else"|Soft 3|used with the @ref if "if statement"
+    |@ref for "for"|Soft 3|for the @ref for "for statement" (not to be confused with the @ref foreach "foreach list iterator statement")
+    |@ref foreach "foreach"|Soft 3|for the @ref foreach "foreach list iterator statement" (not to be confused with the @ref for "for statement")
+    |@ref if "if"|Soft 3|for the @ref if "if statement"
+    |\b in|Soft 3|used with the @ref foreach "foreach list iterator statement" and the @ref find "find expression"
+    |@ref inheritance "inherits"|Soft 3|used when declaring @ref inheritance "class inheritance"
+    |@ref instanceof "instanceof"|Soft 3|for the @ref instanceof "instanceof" operator
+    |@ref qore_namespaces "namespace"|Soft 3|used when declaring @ref qore_namespaces "namespaces"
+    |@ref my "my"|Soft 3|used when declaring @ref variable_declarations "local variables"
+    |@ref elements "elements"|Soft 3|for the @ref elements "elements operator"
+    |@ref find "find"|Soft 3|for the @ref find "find expression"
+    |@ref keys "keys"|Soft 3|for the @ref keys "keys operator"
+    |\b returns|Soft 3|used when using the deprecated syntax for declaring method or function return types
+    |\b abstract|Soft 3|This keyword is reserved for future implementation
+    |@ref deprecated "deprecated"|Soft 3|when declaring functions or methods as @ref deprecated "deprecated"
+    |@ref context "context"|Soft 3|for the @ref context "context statement"
+    |@ref summarize "summarize"|Soft 3|for the @ref summarize "summarize statement"
+    |@ref subcontext "subcontext"|Soft 3|for the @ref subcontext "subcontext statement"
+    |\b sortBy|Soft 3|used with @ref context "context", @ref summarize "summarize", and @ref subcontext "subcontext" statements
+    |\b sortDescendingBy|Soft 3|used with @ref context "context", @ref summarize "summarize", and @ref subcontext "subcontext" statements
+    |\b by|Soft 3|used with @ref summarize "summarize statements"
+    |@ref switch "switch"|Soft 3|for the @ref switch "switch statement"
+    |@ref return "return"|Soft 3|for the @ref return "return statement"
+    |@ref rethrow "rethrow"|Soft 3|for the @ref rethrow "rethrow statement"
+    |@ref on_error "on_error"|Soft 3|for the @ref on_error "on_error statement"
+    |@ref on_exit "on_exit"|Soft 3|for the @ref on_exit "on_exit statement"
+    |@ref on_success "on_success"|Soft 3|for the @ref on_success "on_success statement"
+    |@ref our "our"|Soft 3|used when declaring @ref variable_declarations "global variables"
+    |@ref function_declarations "sub"|Soft 3|used when declaring @ref function_declarations "functions"
+    |@ref synchronized "synchronized"|Soft 3|used when declaring @ref synchronized "synchronized" functions or methods
+    |@ref thread_exit "thread_exit"|Soft 3|for the @ref thread_exit "thread_exit statement"
+    |@ref throw "throw"|Soft 3|for the @ref throw "throw statements"
+    |@ref try "try"|Soft 3|for the @ref try "try statements"
+    |\b where|Soft 3|used with @ref context "context", @ref summarize "summarize", and @ref subcontext "subcontext" statements
+    |@ref while "while"|Soft 3|for the @ref while "while statement" and used with the @ref do "do statement"
+    |\b interface|Soft 3|This keyword is reserved for future implementation
 */

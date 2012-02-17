@@ -283,7 +283,7 @@
     This provides type information to the parser which allows more errors to be caught at parse time (instead of at run time), and furthermore allows %Qore to improve performance by performing more work once at parse time rather than for every time the object is accessed at run time (for example, method and variant resolution), and normally requires less typing.
 
     @par Syntax
-    \c \b new <em>class_identifier</em><tt>(</tt><em>constructor_args ...</em><tt>)</tt>
+    <tt><b>new</b></tt> <em>class_identifier</em><tt>(</tt><em>constructor_args ...</em><tt>)</tt>
 
     @par Return Type
     an object of the specific class given
@@ -310,7 +310,7 @@
     - it is not possible to pass local variables by reference anywhere in a background expression (a parse exception will be thrown)
 
     @par Syntax
-    \c \b background \a expression
+    <tt><b>background</b></tt> \a expression
 
     @par Return Type
     @ref int_type "int"
@@ -335,7 +335,7 @@
     For a similar operator that returns the value that is removed from the data structure, and does not delete objects, see the @ref remove "remove operator".
 
     @par Syntax
-    \c \b delete \a lvalue_expression
+    <tt><b>delete</b></tt> \a lvalue_expression
 
     @par Return Type
     Does not return any value
@@ -361,7 +361,7 @@ delete $h.("a", "b", "c");
     For a similar operator that deletes the value that is removed from the data structure, see the @ref delete "delete operator".
 
     @par Syntax
-    \c \b remove \a lvalue_expression
+    <tt><b>remove</b></tt> \a lvalue_expression
 
     @par Return Type
     @ref any_type "any"
@@ -472,7 +472,7 @@ if (!exists $error_code)
     Removes the first element from a list and returns that element.
 
     @par Syntax
-    \c \b shift \a lvalue
+    <tt><b>shift</b></tt> \a lvalue
 
     @par Return Type
     @ref any_type "any"
@@ -493,7 +493,7 @@ if (!exists $error_code)
     Removes the last element from a list and returns that element.
 
     @par Syntax
-    \c \b pop \a lvalue
+    <tt><b>pop</b></tt> \a lvalue
 
     @par Return Type
     @ref any_type "any"
@@ -515,7 +515,7 @@ if (!exists $error_code)
     To perform this operation on a non-lvalue expression, see the chomp() function.
 
     @par Syntax
-    \c \b chomp \a lvalue
+    <tt><b>chomp</b></tt> \a lvalue
 
     @par Return Type
     @ref int_type "int"
@@ -540,7 +540,7 @@ if (!exists $error_code)
     The following whitespace characters are removed from the beginning and end of strings: <tt>' '</tt> (blank spaces), \c '\\n', \c '\\r', \c '\\t', \c '\\v' (vertical tab, ASCII 11), and \c '\\0' (null character).
 
     @par Syntax
-    \c \b trim \a lvalue
+    <tt><b>trim</b></tt> \a lvalue
 
     @par Return Type
     @ref string_type "string", @ref list_type "list", or @ref hash_type "hash"
@@ -567,7 +567,7 @@ if (!exists $error_code)
     @ref any_type "any"
 
     @par Syntax
-    \c \b map \a map_expression, <em>list_expression [, select_expression]</em>
+    <tt><b>map</b></tt> \a map_expression, <em>list_expression [, select_expression]</em>
 
     @par Example
     @code
@@ -591,7 +591,7 @@ map $1 * 2, (1, 2, 3);
     If the \a list_expression does not evaluate to a list, then the evaluated argument is returned immediately with no processing by the fold expression.
 
     @par Syntax
-    \c \b foldl \a expression, \a list_expression
+    <tt><b>foldl</b></tt> \a expression, \a list_expression
 
     @par Return Type
     @ref any_type "any"
@@ -617,7 +617,7 @@ foldl $1 - $2, (10, 4, 1);
     If the \a list_expression does not evaluate to a list, then the evaluated argument is returned immediately with no processing by the fold expression.
 
     @par Syntax
-    \c \b foldr \a expression, \a list_expression
+    <tt><b>foldr</b></tt> \a expression, \a list_expression
 
     @par Return Type
     @ref any_type "any"
@@ -643,7 +643,7 @@ foldr $1 - $2, (10, 4, 1);
     If the list expression does not evaluate to a list, then the select expression is evaluated using the value of the list expression as an argument, if it evalutes to true, then the value is returned, otherwise, no value is returned.
 
     @par Syntax
-    \b \c select \a list_expression, \a expression
+    <tt><b>select</b></tt> \a list_expression, \a expression
 
     @par Return Type
     @ref any_type "any"
@@ -668,7 +668,7 @@ select (1, 2, 3, 4, 5, 6), !($1 % 2);
     Returns the number of elements in a list, the number of keys in a hash, the number of characters (not bytes) in a string, or the number of bytes in a binary object.
 
     @par Syntax
-    \b \c elements \a expression
+    <tt><b>elements</b></tt> \a expression
 
     @par Return Type
     @ref int_type "int"
@@ -692,7 +692,7 @@ select (1, 2, 3, 4, 5, 6), !($1 % 2);
     Returns a list representing the keys in a hash.
 
     @par Syntax
-    \b \c keys \a hash_expression
+    <tt><b>keys</b></tt> \a hash_expression
 
     @par Return Type
     @ref list_type "list" or @ref nothing
@@ -885,7 +885,7 @@ foreach my string $key in (keys $hash)
     Tests if an expression is an instance of a given class or not.
 
     @par Syntax
-    \a expression \c \b instanceof \a class_identifier
+    \a expression <tt><b>instanceof</b></tt> \a class_identifier
 
     @par Return Type
     @ref bool_type "bool"
@@ -909,7 +909,7 @@ if ($obj instanceof Qore::Mutex)
     Tests if an expression represents a value or not.
 
     @par Syntax
-    \c \b exists \a expression
+    <tt><b>exists</b></tt> \a expression
 
     @par Return Type
     @ref bool_type "bool"
@@ -1467,7 +1467,7 @@ if ($x || $y)
     Inserts an element into the first position of a list and moves all other elements up one position.
 
     @par Syntax
-    \c \b unshift \a lvalue, \a expression
+    <tt><b>unshift</b></tt> \a lvalue, \a expression
 
     @par Return Type
     @ref any_type "any"
@@ -1486,7 +1486,7 @@ if ($x || $y)
     Adds one element to the end of a list and returns the list processed (or @ref nothing if the \a lvalue is not a list).
 
     @par Syntax
-    \c \b push \a lvalue, \a expression
+    <tt><b>push</b></tt> \a lvalue, \a expression
 
     @par Return Type
     @ref list_type "list" or @ref nothing (if the lvalue is not a list)
@@ -1507,7 +1507,7 @@ if ($x || $y)
     Note that string splice takes character offsets, which may not be the same as byte offsets for multi-byte character encodings, such as \c UTF-8
 
     @par Syntax
-    \c \b splice \a lvalue, \a offset_expression<em>, [length_expression, [substitution_expression]]</em>
+    <tt><b>splice</b></tt> \a lvalue, \a offset_expression<em>, [length_expression, [substitution_expression]]</em>
 
     @par Return Type
     @ref list_type "list" or @ref string_type "string" (returns \a lvalue after processing)
@@ -1533,7 +1533,7 @@ if ($x || $y)
     Note that string extract takes character offsets, which may not be the same as byte offsets for multi-byte character encodings, such as \c UTF-8
 
     @par Syntax
-    \c \b extract \a lvalue, \a offset_expression<em>, [length_expression, [substitution_expression]]</em>
+    <tt><b>extract</b></tt> \a lvalue, \a offset_expression<em>, [length_expression, [substitution_expression]]</em>
 
     @par Return Type
     @ref list_type "list" or @ref string_type "string" (the value(s) removed from \a lvalue)

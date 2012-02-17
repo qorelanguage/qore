@@ -2,7 +2,7 @@
 
     Unless parse option @ref allow-bare-refs "%allow-bare-refs" or @ref new-style "%new-style" are set, variables are %Qore identifiers prefixed by a \c "$" sign, similar to <a href="http://www.perl.org">Perl</a>. If a variable is declared without any type restriction, then it is assumed to have type @ref any_type "any". In this case, variables so declared can hold any data type.
 
-    @section special_variables
+    @section special_variables Special Variables
 
     A few variables are set by the %Qore language during the execution of %Qore programs. These are normal variables that can be reassigned to other values by the user if necessary.
 
@@ -56,4 +56,14 @@ local a = 2@endverbatim
 global a = 1@endverbatim
 
     @note If parse option @ref allow-bare-refs "%allow-bare-refs" is set, then variable references <b>must</b> be made without the "$" character.
+
+    @section my The "my" Keyword
+    Variables declared with \b my have a scope local to the block they are declared in.  Local variables are also thread-local; each thread will have its own value of a local variable.  Local variables are generally accessed without any mutual-exclusion locking (with the exception of local variables bound in @ref closure "closures"); also note that declaring a variable with \b my at the top-level of a program creates a local variable with global scope; in effect this is a global thread-local variable; see @ref threading_and_variables for more information.
+
+    The \b my keyword is not required if the @ref assume-local "%assume-local" parse directive is set (note that this parse directive is also set by @ref new-style "%new-style").  In this case, all variables are assumed to be local unless explicitly declared with @erf our "our".
+
+    @section our The "our" Keyword
+    Variables declared with \b our have global scope and are subject to mutual exclusion locks with each access.  Therefore even in single-threaded programs, it's more efficient to use local variables if the value of the variable does not need to be shared among other threads.
+
+    Note that the \b our keyword is required if the parse option @ref require-our "%require-our" (\c -O or \c --require-our command-line option) is set for the parent program. See @ref parse_options for more information.    
 */

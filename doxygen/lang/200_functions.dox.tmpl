@@ -1,23 +1,38 @@
 /** @page qore_functions Functions
 
-    A function is declared in %Qore by using the key word \c \b sub (for subroutine) as follows.
+    @section function_declarations Function Declarations
+    A function is declared in %Qore by using the key word <tt><b>sub</b></tt> (for subroutine) as follows.
 
     @par Function Declaration Syntax
-    <tt>[synchronized]</tt> <em>@ref data_type_declarations "[return_type]"</em> \c \b sub <em>function_name</em><tt>(</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>var_name</em> ...<tt>]) {</tt>\n
+    <tt>[synchronized] [deprecated]</tt> <em>@ref data_type_declarations "[return_type]"</em> <tt><b>sub</b></tt> <em>function_name</em><tt>(</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>var_name</em> ...<tt>]) {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement(s)..."</em>\n
     }\n\n
-    or the deprecated alternate syntax with the \c \b returns keyword:\n
-    <tt>[synchronized]</tt> \c \b sub <em>function_name</em><tt>(</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>var_name</em> ...<tt>]) \b returns</tt> <em>@ref data_type_declarations "return_type"</em> <tt>{</tt>\n
+    or the deprecated alternate syntax with the <tt><b>returns</b></tt> keyword:\n
+    <tt>[synchronized] [deprecated]</tt> <tt><b>sub</b></tt> <em>function_name</em><tt>(</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>var_name</em> ...<tt>]) \b returns</tt> <em>@ref data_type_declarations "return_type"</em> <tt>{</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement(s)..."</em>\n
     }\n\n
 
-    @par Function Declarations
-    Variables listed in parentheses after the function name are the parameters to the function and automatically get local lexical scoping. In order to process a variable number of arguments to a function, the <tt>$argv</tt> variable (local variable) is instantiated as a list with the remaining arguments passed to the function. Type declarations optionally precede the parameter variable and will restrict any arguments passed to the type declared. The same function can be declared multiple times if each declaration has different parameter types; this is called @ref overloading "overloading" the function.\n\n
-    Functions use the @ref return "return statement" to provide a return value. Function names must be valid Qore identifiers.\n\n
-    The return type of the function can be given by placing a type declaration before the \c \b sub keyword (the older syntax with the \c \b returns keyword after the parameter list is still accepted as well).\n\n
-    Note that parameter and return types are required when the @ref Qore::PO_REQUIRE_TYPES or @ref Qore::PO_REQUIRE_PROTOTYPES parse options are set.\n\n
-    Functions can return values to the calling expression by using the @ref return "return statement".\n
-    Here is an example function declaration returning a value:\n
+    Function names must be valid Qore identifiers.
+
+    @subsection function_parameters Function Parameters
+    Variables listed in parentheses after the function name are the parameters to the function and automatically get local lexical scoping.
+
+    Type declarations optionally precede the parameter variable and will restrict any arguments passed to the type declared. The same function can be declared multiple times if each declaration has different parameter types; this is called @ref overloading "overloading" the function.
+
+    Variables passed as function arguments are passed by value by default, unless the caller places a \c "\" character before an lvalue in the argument list in the function call. In this case the function must have a parameter defined to accept the variable passed by reference. Any changes to the local variable will be reflected in the original variable for variables passed by reference. Also note that it is illegal to pass an argument by reference in a @ref background "background" expression.
+
+    @note In order to process a variable number of arguments to a function, use @ref implicit_arguments "implicit argument references" (<tt>$1</tt>) or the <tt>$argv</tt> variable (an automatic local variable); these are automatically instantiated at run time when additional arguments in excess of the declared parameters are passed to the function at run time.  No declaration needs to be made in the function signature to use the <tt>$argv</tt> variable.
+
+    @subsection function_return_types Function Return Type Declarations
+    The return type of the function can be given by placing a type declaration before the <tt><b>sub</b></tt> keyword (the older syntax with the <tt><b>returns</b></tt> keyword after the parameter list is still accepted as well).
+
+    @Note Parameter and return types are required when the @ref Qore::PO_REQUIRE_TYPES or @ref Qore::PO_REQUIRE_PROTOTYPES parse options are set.
+
+    Functions use the @ref return "return statement" to provide a return value to the caller.
+
+    @subsection function_examples Simple Example Functions
+
+    Here is an example function declaration returning a value:
     @code
 #!/usr/bin/qore
 # function declaration example
@@ -25,8 +40,9 @@
 int sub print_string(string $string) {
     print("%s\n", $string);
     return 1;
-}@endcode \n
-    Functions may also be recursive. Here is an example of a recursive Qore function implementing the Fibonacci function:\n
+}@endcode
+
+    Functions may also be recursive. Here is an example of a recursive Qore function implementing the Fibonacci function:
     @code
 #!/usr/bin/qore
 #
@@ -37,6 +53,20 @@ int sub fibonacci(int $num) {
         return 1;
     return $num * fibonacci($num - 1);
 }@endcode \n
-    @note Function names are resolved during the second parse pass; therefore functions do not need to be declared before being referenced. This allows an easy definition of 2 or more self-referencing functions.\n\n
-    Variables passed as function arguments are passed by value by default, unless the caller places a \c "\" character before an lvalue in the argument list in the function call. In this case the function must have a parameter defined to accept the variable passed by reference. Any changes to the local variable will be reflected in the original variable for variables passed by reference. Also note that it is illegal to pass an argument by reference in a @ref background "background" expression.
+
+    @note Function names are resolved during the second parse pass; therefore functions do not need to be declared before being referenced. This allows an easy definition of 2 or more self-referencing functions.
+
+    @subsection synchronized_functions "Synchronized" Functions
+    Functions declared with the <tt><b>synchronized</b></tt> keyword will only run in one thread at a time.
+
+    If another thread tries to call the function while the function is already being executed, any callers will block until the function has finished executing.
+
+    Note that the lock used is recursive, so that a single thread may call the function multiple times safely without fear of a deadlock.  The lock used also participates in %Qore's deadlock detection framework, therefore if a deadlock is detected, a \c THREAD-DEADLOCK exception is thrown.
+
+    @see @ref synchronized
+
+    @subsection deprecated "Deprecated" Functions
+    Functions declared with the <tt><b>deprecated</b></tt> keyword will cause a @ref deprecated-warning "deprecated warning" to be raised when the function is referenced (but not when it's declared).
+
+    In this way API functions (or methods) can be declared as <tt><b>deprecated</b></tt> before eventual removal from the API set.
 */

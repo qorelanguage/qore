@@ -11,9 +11,9 @@
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>static</b> [</tt><em>@ref data_type_declarations "static_member_type"</em><tt>] </tt><em>static_member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>const</b> </tt><em>constant_name</em> <tt>=</tt> <em>@ref expressions "initialization_expression"</em><tt>;]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>private</b>|<b>public</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>private</b>|<b>public</b>] [<b>@ref deprecated "deprecated"</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>static</b>] [<b>synchronized</b>] [<b>private</b>|<b>public</b>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>static</b>] [<b>@ref synchronized "synchronized"</b>] [<b>private</b>|<b>public</b>] [<b>@ref deprecated "deprecated"</b>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>...</tt>\n
     <tt>}</tt>
@@ -41,9 +41,9 @@ class MyClass inherits MyBaseClass {
     @par Out-Of-Line Class Declaration Syntax
     Alternatively class declarations and method declarations can be defined out of line as follows:\n
     <tt>\b class [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt> [<b>inherits</b> [<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]];</tt>\n\n
-    <tt>[[<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>::<b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    <tt>[[<b>private</b>|<b>public</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>::<b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
     <tt>}]</tt>\n\n
-    <tt>[[<b>static</b>] [<b>synchronized</b>] [<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
+    <tt>[[<b>static</b>] [<b>@ref synchronized "synchronized"</b>] [<b>private</b>|<b>public</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
     <tt>}]</tt>
 
     @par Out-Of-Line Class Declaration Example
@@ -68,16 +68,17 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
 
     @anchor private_methods
     @par Private Methods
-    Methods declared with the \c \b private keyword can only be called by other member functions of the same class. Any attempt to call these methods from outside the class will result in a run-time exception.
+    Methods declared with the <tt><b>private</b></tt> keyword can only be called by other member functions of the same class. Any attempt to call these methods from outside the class will result in a run-time exception.
 
     @anchor synchronized_methods
     @par Synchronized Methods
-    Methods declared with the \c \b synchronized keyword will only run in one thread at a time.
+    Methods declared with the <tt><b>synchronized</b></tt> keyword will only run in one thread at a time.\n\n
+    For more information, see the @ref synchronized "synchronized keyword".
 
     @anchor static_methods
     @par Static Methods
-    Methods declared with the \c \b static keyword are like regular functions that are attached to the class. These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods. Also, no reference to the special <tt>$self</tt> variable is allowed within static methods.\n\n
-    Static methods may be declared \c \b private or \c \b public or \c \b synchronized like non-static methods; static methods can also access private members of a class (through an object of the class for non-static members).\n\n
+    Methods declared with the <tt><b>static</b></tt> keyword are like regular functions that are attached to the class. These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods. Also, no reference to the special <tt>$self</tt> variable is allowed within static methods.\n\n
+    Static methods may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt> or <tt><b>synchronized</b></tt> like non-static methods; static methods can also access private members of a class (through an object of the class for non-static members).\n\n
     Static method calls take a special syntax as documented in @ref static_method_calls.\n
 
     @anchor class_special_methods
@@ -96,7 +97,7 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
     @par Class Constants
     Class constants, like non-class constants, allow programmers to refer to values with %Qore identifiers rather than using the value or the expression that generates the value.\n\n
     See @ref class_overview for a description of the syntax required to declare a class constant.\n\n
-    Like other attributes of classes, class constants may be declared \c \b private or \c \b public. The following is an example of a class constant definition:\n
+    Like other attributes of classes, class constants may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt>. The following is an example of a class constant definition:\n
     @code
 class Test {
     public {
@@ -115,7 +116,7 @@ class Test {
     @par Static Class Variables
     Static class variables are like global variables that belong to a class. They are not associated with any particular object.\n\n
     See @ref class_overview for a description of the syntax required to declare a static class variable.\n\n
-    Like other attributes of classes, static class variables may be declared \c \b private or \c \b public. The following is an example of a static class variable definition:\n
+    Like other attributes of classes, static class variables may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt>. The following is an example of a static class variable definition:\n
     @code
 class Test {
     public {
@@ -182,21 +183,24 @@ lock();
 
     Class inheritance is a powerful concept for easily extending and resuing object-oriented code, but is also subject to some limitations. This section will explain how class inheritance works in %Qore.
 
-    Classes inherit the methods of a parent class by using the inherits as specified above. Multiple inheritance is supported; a single %Qore class can inherit one or more classes. When a class is inherited by another class, it is called a base class. Private inheritance is speficied by including the keyword \c \b private before the inherited class name. When a class is privately inherited, it means that the inherited class' public members are treated as private members in the context of accesses outside the class.
+    Classes inherit the methods of a parent class by using the inherits as specified above. Multiple inheritance is supported; a single %Qore class can inherit one or more classes. When a class is inherited by another class, it is called a base class. Private inheritance is speficied by including the keyword <tt><b>private</b></tt> before the inherited class name. When a class is privately inherited, it means that the inherited class' public members are treated as private members in the context of accesses outside the class.
 
-    Inheritance is \c \b public by default, to inherit a class privately, use the \c \b private keyword before the class name or class path to inherit as follows:
+    Inheritance is <tt><b>public</b></tt> by default, to inherit a class privately, use the <tt><b>private</b></tt> keyword before the class name or class path to inherit as follows:
     @code
 class ChildClass inherits private ParentClass {
 }
     @endcode
 
-    It is not legal to directly inherit the same class directly more than once; that is; it is not legal to list the same class more than once after the \c \b inherits keyword. However, it is possible that a base class could appear more than once in the inheritance tree if that class is inherited separately by two or more classes in the tree. In this case, the base class will actually only be inherited once in the subclass, even though it appears in the inheritance tree more than once. This must be taken into consideration when designing class hierarchies, particularly if base class constructor parameters for that class are explicitly provided in a different way by the inheriting classes.
+    It is not legal to directly inherit the same class directly more than once; that is; it is not legal to list the same class more than once after the <tt><b>inherits</b></tt> keyword. However, it is possible that a base class could appear more than once in the inheritance tree if that class is inherited separately by two or more classes in the tree.
+
+    In this case, the base class will actually only be inherited once in the subclass, even though it appears in the inheritance tree more than once. This must be taken into consideration when designing class hierarchies, particularly if base class constructor parameters for that class are explicitly provided in a different way by the inheriting classes.
 
     @note Class members only exist once for each object; therefore if classes in an inheritance tree have different uses for members with the same name, then a class hierarchy built of such classes will probably not function properly.
 
     Subclasses can give explicit arguments to their base class constructors using a special syntax (only available to subclass constructors) similar to the C++ syntax for the same purpose as follows:\n
-    <tt>[[<b>private</b>|<b>public</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
-    <tt>}]</tt>\n\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>private</b>|<b>public</b>] [<b>@ref deprecated "deprecated"</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>
+
     Here is a concrete example of giving arguments to an inherited base class:
     @code
 class XmlRpcClient inherits Qore::HTTPClient {
