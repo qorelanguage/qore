@@ -8,63 +8,122 @@
     |@ref string|A sequence of characters with an encoding|\c "string"|Empty string (i.e. \c "")
     |@ref integer|A 64-bit signed integer|\c 1|\c 0
     |@ref float|A double-precision floating-point number|\c 1.00023|\c 0.0
-    |@ref date|A date/time value with an optional time zone component, with resolution to the microsecond|\c 2010-05-10T18:35:21.001456-07:00|\c 1970-01-01Z
+    |@ref date|@ref absolute_dates "absolute" or @ref relative_dates "relative" date/time values with resolution to the microsecond|\c 2010-05-10T18:35:21.001456-07:00|\c 1970-01-01Z
     |@ref binary|An opaque binary object|<tt><23deadbeef></tt>|an empty object of size 0
-    |@ref null|Corresponds to a \c NULL value in a database query (not equivalent to @ref nothing|\c NULL|\c NULL
-    |@ref nothing|Represents the state of a variable having no value or function returning no value (not equivalent to @ref null)|\c NOTHING|\c NOTHING
+    |@ref null|Corresponds to a \c NULL value in a database query (not equivalent to @ref nothing|@ref Qore::NULL|@ref Qore::NULL
+    |@ref nothing|Represents the state of a variable having no value or function returning no value (not equivalent to @ref null)|@ref Qore::NOTHING|@ref Qore::NOTHING
 
     <hr>
     @section boolean Boolean
 
-    The Boolean type can have two values, \c True and \c False.
+    @par Description:
+    The Boolean type can have two values, \c True and \c False.\n\n
+    When converting other types to a Boolean, any value that converts to a non-zero integer or floating-point value (in the case of @ref string "strings" and @ref float "floats") will be evaluated as \c True. Otherwise the result of the conversion will be \c False.
 
-    When converting other types to a Boolean, any value that converts to a non-zero integer will be evaluated as \c True. Otherwise the result of the conversion will be \c False.
+    @par Immediate Value Example:
+    @ref Qore::True
+
+    @par Pseudo Class for Type Boolean:
+    @ref Qore::zzz8valuezzz9
+
+    @par Type Code:
+    @ref Qore::NT_BOOLEAN
+
+    @par Type Name:
+    \c "bool"
 
     @see @ref bool_type, @ref softbool_type
 
     <hr>
     @section string String
 
-    String values are specified with text between double or single quotes. Text between double quotes is subject to interpretation of escape characters; text between single quotes is not with the exception of the single quote character, which may be escaped (ex: <tt>'hello \'there\''</tt>).
-
-    Strings are assumed by default to have the encoding given by the \c QORE_CHARSET or the \c LANG environment variable (see @ref environment_variables). If neither of these variables is set, then all strings will be assumed to have \c UTF-8 encoding.
-
-    For detailed information on %Qore character encoding handling, please see @ref character_encoding.
-
-    It is legal to specify a string literal with newline characters like the following:
-
+    @par Description:
+    String values are specified with text between double or single quotes. Text between double quotes is subject to interpretation of escape characters; text between single quotes is not with the exception of the single quote character, which may be escaped (ex: <tt>'hello \'there\''</tt>).\n\n
+    Strings are assumed by default to have the encoding given by the \c QORE_CHARSET or the \c LANG environment variable (see @ref environment_variables). If neither of these variables is set, then all strings will be assumed to have \c UTF-8 encoding.\n\n
+    For detailed information on %Qore character encoding handling, please see @ref character_encoding.\n\n
+    It is legal to specify a string literal with newline characters like the following:\n
     @code
-$str = "this string
+$str = "this string is
 on more than 1 line";
-    @endcode
-
+    @endcode \n
     Internally, strings are stored as a pointer to the string data, an unsigned integer giving the length of the string, and a pointer to an encoding object, giving the string's character encoding.
+
+    @par Immediate Value Example:
+    @ref "this is a string"
+
+    @par Pseudo Class for Type String:
+    @ref Qore::zzz8stringzzz9
+
+    @par Type Code:
+    @ref Qore::NT_STRING
+
+    @par Type Name:
+    \c "string"
 
     @see @ref string_type, @ref softstring_type
 
     <hr>
     @section integer Integer
 
+    @par Description:
     %Qore integers are 64-bit signed integers.
+
+    @par Immediate Value Example:
+    \c 100
+
+    @par Pseudo Class for Type Integer:
+    @ref Qore::zzz8valuezzz9
+
+    @par Type Code:
+    @ref Qore::NT_INT
+
+    @par Type Name:
+    \c "integer"
 
     @see @ref int_type, @ref softint_type
 
     <hr>
     @section float Float
 
+    @par Description:
     %Qore floats are double precision floating-point numbers (C/C++ type double), normally a 64-bit value.
+
+    @par Immediate Value Example:
+    \c -500.494
+
+    @par Pseudo Class for Type Float:
+    @ref Qore::zzz8valuezzz9
+
+    @par Type Code:
+    @ref Qore::NT_FLOAT
+
+    @par Type Name:
+    \c "float"
 
     @see @ref float_type, @ref softfloat_type
 
     <hr>
     @section date Date
 
-    %Qore dates have a time component supporting a resolution to the microsecond and can be either absolute or relative.
+    @par Description:
+    %Qore date/time values have date and time components supporting a resolution to the microsecond and can be either @ref absolute_dates "absolute" or @ref relative_dates "relative".
+
+    @par Immediate Value Examples:
+    - \c 2012-02-17T19:05:54+01:00
+
+    @par Pseudo Class for Type Date:
+    @ref Qore::zzz8datezzz9
+
+    @par Type Code:
+    @ref Qore::NT_DATE
+
+    @par Type Name:
+    \c "date"
 
     @see @ref date_and_time_functions for a list of functions related to date/time processing.
 
     @section absolute_dates Absolute Date/Time Values
-    Absolute date/time values specify a specific point in time in a certain time zone, such as January 1, 2005 10:35:00 +01:00. They are stored interally as a 64-bit signed offset from the %Qore epoch (\c 1970-01-01Z), a positive 4-byte integer for microseconds, and a pointer to a time zone description object that provides the UTC offset and daylight savings time information (see @ref time_zones for more information). Note that all absolute date/time values in %Qore are stored internally in UTC and are converted for display purposes to the representation of wall time in their tagged time zone.
+    Absolute date/time values specify a specific point in time in a certain time zone, such as January 1, 2005 10:35:00 +01:00. They are stored interally as a 64-bit signed offset from the %Qore epoch (\c 1970-01-01Z), a non-negative 4-byte integer for microseconds, and a pointer to a time zone description object that provides the UTC offset and daylight savings time information (see @ref time_zones for more information). Note that all absolute date/time values in %Qore are stored internally in UTC and are converted for display purposes to the representation of wall time in their tagged time zone.
 
     Absolute date/time values can be specified with a syntax based on ISO-8601 date formats as follows:
 
@@ -148,7 +207,7 @@ prompt% qore -X 'P3DT21H'
     The second ISO-8601-based format for specifing complex durations with multiple time units has the following syntax:
     - \c PYYYY-MM-DDTHH:mm:SS
 
-    This format is more limited than the first format, in that all values must be positive, and furthermore, all values must be present (although they may be zero).
+    This format is more limited than the first format, in that all values must be non-negative, and furthermore, all values must be present (although they may be zero).
 
     Here are some examples of the second format (equivalent to the first examples):
 
@@ -166,34 +225,66 @@ prompt% qore -X 'P0000-00-03T21:00:00'
     <hr>
     @section binary Binary
 
-    The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a pointer to a memory location for the data and a size indicator.
-
-    Binary data can be concatenated with the + and += operators.
-
-    This data can be manipulated by being written and read from @ref Qore::File, @ref Qore::Socket, @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, or @ref Qore::SQL::SQLStatement objects, or converted and parsed to/from base64 encoded strings using the makeBase64String() and parseBase64String() functions, or compressed and decompressed using the compress(), gzip(), bzip2(), etc. functions, and processed by most cryptographic funtions, among others.
-
-    Binary objects can be read from a @ref Qore::File object using the Qore::File::readBinary() method and can be written using the Qore::File::write() method. Please see the @ref Qore::File class for more information.
-
-    Binary objects can be read from a @ref Qore::Socket object using the Qore::Socket::recvBinary() method and can be written using the Qore::Socket::send() method. Please see the @ref Qore::Socket class for more information.
-
-    The @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, and @ref Qore::SQL::SQLStatement classes can also be used to read and write binary objects as BLOBs.
-
+    @par Description:
+    The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a pointer to a memory location for the data and a size indicator.\n\n
+    Binary data can be concatenated with the + and += operators.\n\n
+    This data can be manipulated by being written and read from @ref Qore::File, @ref Qore::Socket, @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, or @ref Qore::SQL::SQLStatement objects, or converted and parsed to/from base64 encoded strings using the makeBase64String() and parseBase64String() functions, or compressed and decompressed using the compress(), gzip(), bzip2(), etc. functions, and processed by most cryptographic funtions, among others.\n\n
+    Binary objects can be read from a @ref Qore::File object using the Qore::File::readBinary() method and can be written using the Qore::File::write() method. Please see the @ref Qore::File class for more information.\n\n
+    Binary objects can be read from a @ref Qore::Socket object using the Qore::Socket::recvBinary() method and can be written using the Qore::Socket::send() method. Please see the @ref Qore::Socket class for more information.\n\n
+    The @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, and @ref Qore::SQL::SQLStatement classes can also be used to read and write binary objects as BLOBs.\n\n
     Note that this is not an exhaustive list; see the function and class library documentation for more examples.
+
+    @par Immediate Value Example:
+    <tt>\<0feba023ffdca6291\></tt>
+
+    @par Pseudo Class for Type Binary:
+    @ref Qore::zzz8binaryzzz9
+
+    @par Type Code:
+    @ref Qore::NT_BINARY
+
+    @par Type Name:
+    \c "binary"
 
     @see @ref binary_type
 
     <hr>
     @section null NULL
 
-    This data type represents an SQL \c NULL value. Note that \c NULL is not equivalent to @ref nothing.
+    @par Description:
+    This data type represents an SQL \c NULL value and can only be accessed directly as an immediate value with the constant @ref Qore::NULL. Note that @ref Qore::NULL is not equivalent to @ref nothing.
+
+    @par Immediate Value Example:
+    @ref Qore::NULL
+
+    @par Pseudo Class for Type Null:
+    @ref Qore::zzz8valuezzz9
+
+    @par Type Code:
+    @ref Qore::NT_NULL
+
+    @par Type Name:
+    \c "NULL"
 
     <hr>
     @section nothing NOTHING
 
-    This special data type represents no value.
-
-    @note The exists operator will return \c False when given \c NOTHING as an argument; for example: @verbatim prompt% qore -X 'exists NOTHING'
+    @par Description:
+    This special data type represents no value and can only be accessed directly as an immediate value with the constant @ref Qore::NOTHING.  Note that @ref Qore::NOTHING is not equivalent to @ref null.\n
+    @note The exists operator will return \c False when given @ref Qore::NOTHING as an argument; for example: @verbatim prompt% qore -X 'exists NOTHING'
 False@endverbatim
+
+    @par Immediate Value Example:
+    @ref Qore::NOTHING
+
+    @par Pseudo Class for Type Nothing:
+    @ref Qore::zzz8valuezzz9
+
+    @par Type Code:
+    @ref Qore::NT_NOTHING
+
+    @par Type Name:
+    \c "nothing"
 
     @section conversions Data Conversions
 

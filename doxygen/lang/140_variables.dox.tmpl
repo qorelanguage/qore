@@ -8,12 +8,12 @@
 
     <b>Special %Qore Variables</b>
     |!Variable|!Scope|!Data Type|!Explanation
-    |\c $argv|Local|List|automatically assigned local variable containing the list of function or method arguments that were not assigned to parameter variables (see @ref functions_and_implicit_arguments for more information)
+    |\c $argv|Local|List|automatically assigned local variable containing the list of function or method arguments that were not assigned to parameter variables (see @ref implicit_arguments for more information)
     |\c $ARGV|Global|List|script command-line arguments (use the @ref Qore::GetOpt class to parse command-line arguments)
     |\c $QORE_ARGV|Global|List|complete qore command-line arguments
     |\c $ENV|Global|Hash|UNIX program environment
 
-    @note As of version 0.5.0, \c $STDERR and \c $STDOUT have been removed from %Qore. Use the I/O constants @ref stderr, @ref stdout, and @ref stdin constants of the @ref Qore::File class instead.
+    @note As of version 0.5.0, \c $STDERR and \c $STDOUT have been removed from %Qore. Use the I/O constants @ref Qore::stderr, @ref Qore::stdout, and @ref Qore::stdin constants of the @ref Qore::File class instead.
 
     @section variable_declarations Variable Declarations and Lexical Scope
 
@@ -60,7 +60,7 @@ global a = 1@endverbatim
     @section my The "my" Keyword
     Variables declared with \b my have a scope local to the block they are declared in.  Local variables are also thread-local; each thread will have its own value of a local variable.  Local variables are generally accessed without any mutual-exclusion locking (with the exception of local variables bound in @ref closure "closures"); also note that declaring a variable with \b my at the top-level of a program creates a local variable with global scope; in effect this is a global thread-local variable; see @ref threading_and_variables for more information.
 
-    The \b my keyword is not required if the @ref assume-local "%assume-local" parse directive is set (note that this parse directive is also set by @ref new-style "%new-style").  In this case, all variables are assumed to be local unless explicitly declared with @erf our "our".
+    The \b my keyword is not required if the @ref assume-local "%assume-local" parse directive is set (note that this parse directive is also set by @ref new-style "%new-style").  In this case, all variables are assumed to be local unless explicitly declared with @ref our "our".
 
     @section our The "our" Keyword
     Variables declared with \b our have global scope and are subject to mutual exclusion locks with each access.  Therefore even in single-threaded programs, it's more efficient to use local variables if the value of the variable does not need to be shared among other threads.

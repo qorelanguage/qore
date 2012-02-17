@@ -293,9 +293,6 @@ nothing FtpClient::cwd(string path) {
 /** @param local_path The path on the local system of the file to send
     @param remote_path If given, where to save the file on the server (otherwise the local path is used)
 
-    @par Restricted Functionality:
-    Not available with @ref PO_NO_FILESYSTEM
-
     @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
@@ -342,9 +339,6 @@ nothing FtpClient::rename(string from, string to) {
 /** @param remote_path The path on the server to the file to get
     @param local_path The optional local path for saving the file; if this parameter is not given in the call, then the server path is used for the local path as well
 
-    @par Restricted Functionality:
-    Not available with @ref PO_NO_FILESYSTEM
-
     @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
@@ -361,7 +355,7 @@ $ftp.get("file.txt", "/tmp/file-1.txt");
 
     @see FtpClient::getAsString(), FtpClient::getAsData()
  */
-FtpClient::get(string remote_path, *string local_path) [dom=FILESYSTEM] {
+nothing FtpClient::get(string remote_path, *string local_path) [dom=FILESYSTEM] {
    f->get(remote_path->getBuffer(), local_path ? local_path->getBuffer() : 0, xsink);
 }
 

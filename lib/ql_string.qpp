@@ -1563,7 +1563,7 @@ f_vprintf("%5s %3d", ("a long string", 5000)); # will print out "a lon 500"
 
     @since %Qore 0.8.4
  */
-string f_vprintf(string[doc] fmt, any[doc] argv) [dom=TERMINAL_IO] {
+string f_vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
    AbstractQoreNode *node;
    print_node(stdout, node = q_vsprintf(args, 1, 0, xsink));
    return node;
@@ -1574,7 +1574,7 @@ string f_vprintf(string[doc] fmt, any[doc] argv) [dom=TERMINAL_IO] {
     This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
 
     @param fmt the @ref string_formatting "format string"
-    @param varg the argument(s) corresponding to format specifiers in the format string
+    @param ... the argument(s) corresponding to format specifiers in the format string
 
     @return the formatted string output corresponding to the arguments given
 

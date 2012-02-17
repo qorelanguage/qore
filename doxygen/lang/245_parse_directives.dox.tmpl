@@ -50,8 +50,814 @@
     |@ref set-time-zone "%set-time-zone"|Sets the time zone for the current program from a UTC offset (with format \c "+/-[00[:00[:00]]"; \c ":" characters are optional) or a time zone region name (ex: \c "Europe/Prague") <br><br>Since %Qore 0.8.3
     |@ref strict-args "%strict-args"|Prohibits access to builtin functions and methods flagged with @ref RUNTIME_NOOP and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments <br><br>Since %Qore 0.8.0
 
-    
+    <hr>
+    @section allow-bare-refs %allow-bare-refs
 
+    @par Parse Directive:
+    <tt>%%allow-bare-refs</tt>
+
+    @par Command-Line:
+    <tt>--allow-bare-refs, -B</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_ALLOW_BARE_REFS
+
+    @par Description:
+    Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs. This parse option is set by default with @ref new-style "%new-style".\n\n
+    Name resolution is made in the following order when this option is set: 
+    - @ref variable_declarations "local variables"
+    - @ref class_constants "class constants" (when parsing in class code)
+    - @ref static_class_variables "static class variables" (when parsing in class code)
+    - @ref variable_declarations "global variables"
+    - (non-class) @ref constants "constants" \n\n
+    Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set.
+
+    @since %Qore 0.8.1
+
+    <hr>
+    @section assume-local %assume-local
+
+    @par Parse Directive:
+    <tt>%%assume-local</tt>
+
+    @par Command-Line:
+    <tt>--assume-local</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_ASSUME_LOCAL
+
+    @par Description:
+    Assume local variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present. When used with @ref allow-bare-refs "%allow-bare-refs", local variables without @ref my "my" must be declared with a data type restriction (can be any). This parse option is set by default with @ref new-style "%new-style"
+
+    @since %Qore 0.8.1
+
+    <hr>
+    @section define %define
+
+    @par Parse Directive:
+    <tt>%%define</tt>
+
+    @par Command-Line:
+    <tt>--define, -D</tt>
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Creates and optionally sets a value for a parse define
+
+    @since %Qore 0.8.3
+
+    <hr>
+    @section disable-all-warnings %disable-all-warnings
+
+    @par Parse Directive:
+    <tt>%%disable-all-warnings</tt>
+
+    @par Command-Line:
+    n/a, warnings are disabled by default
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Disables all warnings while parsing. See @ref warnings for more information.
+ 
+    <hr>
+    @section disable-warning %disable-warning
+
+    @par Parse Directive:
+    <tt>%%disable-warning</tt>
+
+    @par Command-Line:
+    n/a, warnings are disabled by default
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Disables the named warning while parsing. See @ref warnings for more information.
+
+    <hr>
+    @section else %else
+
+    @par Parse Directive:
+    <tt>%%else</tt>
+
+    @par Command-Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Allows for parsing an alternate block when used with the @ref ifdef "%ifdef" or @ref ifndef "%ifndef" parse directives (for @ref conditional_parsing "conditional parsing" based on parse defines)
+
+    @since %Qore 0.8.3
+
+    @section enable-all-warnings %enable-all-warnings
+
+    @par Parse Directive:
+    <tt>%%enable-all-warnings</tt>
+
+    @par Command-Line:
+    <tt>--enable-all-warnings, -W</tt>
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description
+    Enables all warnings while parsing. See @ref warnings for more information.
+
+    <hr>
+    @section enable-warning %enable-warning
+
+    @par Parse Directive:
+    <tt>%%enable-warning</tt>
+
+    @par Command-Line:
+    <tt>--enable-warning, -w</tt>
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Enables the named warning while parsing. See @ref warnings for more information.
+
+    <hr>
+    @section endif %endif
+
+    @par Parse Directive:
+    <tt>%%endif</tt>
+
+    @par Command-Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Closes a conditionally-parsed block started by the @ref ifdef "%ifdef" or @ref ifndef "%ifndef" parse directives (for @ref conditional_parsing "conditional parsing" based on parse defines)
+
+    @since %Qore 0.8.3
+
+    <hr>
+    @section exec-class %exec-class
+
+    @par Parse Directive:
+    <tt>%%exec-class</tt>
+
+    @par Command-Line:
+    <tt>--exec-class, -x</tt>
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Executes the named class as the application class and turns on @ref no-top-level "%no-top-level" as well.
+
+    <hr>
+    @section ifdef %ifdef
+
+    @par Parse Directive:
+    <tt>%%ifdef</tt>
+
+    @par Command-Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Opens a conditionally-parsed block; if the given parse define is defined, then the block after the <tt>%%ifdef</tt> is parsed until either an @ref else "%else" or an @ref endif "%endif"
+
+    @since %Qore 0.8.3
+
+    <hr>
+    @section ifndef %ifndef
+
+    @par Parse Directive:
+    <tt>%%ifndef</tt>
+
+    @par Command-Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Opens a conditionally-parsed block; if the given parse define is not defined, then the block after the <tt>%%ifndef</tt> is parsed until either an @ref else "%else" or an @ref endif "%endif"
+
+    @since %Qore 0.8.3
+
+    <hr>
+    @section include %include
+
+    @par Parse Directive:
+    <tt>%%include</tt>
+
+    @par Command-Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Includes a file to be parsed. If the path is not absolute (i.e. starting with \c ""/"), then files are searched first in the directory of the currently-executing script (if known), then in each path in the environment variable \c QORE_INCLUDE_DIR.
+
+    <hr>
+    @section lock-options %lock-options
+
+    @par Parse Directive:
+    <tt>%%lock-options</tt>
+
+    @par Command-Line:
+    <tt>--lock-options, -K</tt>
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Prohibits further changes to parse options.
+
+    <hr>
+    @section lock-warnings %lock-warnings
+
+    @par Parse Directive:
+    <tt>%%lock-warnings</tt>
+
+    @par Command-Line:
+    <tt>--lock-warnings, -A</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_LOCK_WARNINGS
+
+    @par Description:
+    Prohibits further changes to the warning mask.
+
+    <hr>
+    @section new-style %new-style
+
+    @par Parse Directive:
+    <tt>%%new-style</tt>
+
+    @par Command-Line:
+    <tt>--new-style, -n</tt>
+
+    @par Parse Option Constant:
+    @par Qore::PO_NEW_STYLE
+
+    @par Description:
+    Sets both @ref allow-bare-refs "%allow-bare-refs" andv @ref assume-local "%assume-local". These two options together make programming in %Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the \c "$" sign, for example.
+
+    @since %Qore 0.8.1
+
+    <hr>
+    @section no-child-restrictions %no-child-restrictions
+
+    @par Parse Directive:
+    <tt>%%no-child-restrictions</tt>
+
+    @par Command-Line:
+    <tt>--no-child-restrictions, -I</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_CHILD_PO_RESTRICTIONS
+
+    @par Description:
+    Allows child program objects to have parse option restrictions that are not a strict subset of the parents'.
+
+    <hr>
+    @section no-class-defs %no-class-defs
+
+    @par Parse Directive:
+    <tt>%%no-class-defs</tt>
+
+    @par Command-Line:
+    <tt>--no-class-defs</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_CLASS_DEFS
+
+    @par Description:
+    Disallows new class definitions. Any use of the reserved word \c class will result in a parse exception.
+
+    <hr>
+    @section no-constant-defs %no-constant-defs
+
+    @par Parse Directive:
+    <tt>%%no-constant-defs</tt>
+
+    @par Command-Line:
+    <tt>--no-constant-defs</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_CONSTANT_DEFS
+
+    @par Description:
+    Disallows new constant definitions. Any use of the reserved word \c const will result in a parse exception.
+
+    <hr>
+    @section no-database %no-database
+
+    @par Parse Directive:
+    <tt>%%no-database</tt>
+
+    @par Command-Line:
+    <tt>--no-database</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_DATABASE
+
+    @par Description:
+    Disallows access to database functionality. Currently this means that access to the following classes is restricted:
+    - @ref Qore::SQL::Datasource
+    - @ref Qore::SQL::DatasourcePool
+    - @ref Qore::SQL::SQLStatement
+
+    <hr>
+    @section no-external-info %no-external-info
+
+    @par Parse Directive:
+    <tt>%%no-external-info</tt>
+
+    @par Command-Line:
+    <tt>--no-external-info</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_EXTERNAL_INFO
+
+    @par Description:
+    Disallows any access to functionality that provides external information.  The following features are unavailable with this option:
+    - getaddrinfo()
+    - getegid()
+    - getenv()
+    - geteuid()
+    - getgid()
+    - getgrgid()
+    - getgrgid2()
+    - getgrnam()
+    - getgrnam2()
+    - gethostbyaddr()
+    - gethostbyaddr_long()
+    - gethostbyname()
+    - gethostbyname_long()
+    - gethostname()
+    - getpid()
+    - getppid()
+    - getpwnam()
+    - getpwnam2()
+    - getpwuid()
+    - getpwuid2()
+    - getuid()
+    - unsetenv()
+
+    <hr>
+    @section no-external-process %no-external-process
+
+    @par Parse Directive:
+    <tt>%%no-external-process</tt>
+
+    @par Command-Line:
+    <tt>--no-external-process, -E</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_EXTERNAL_PROCESS
+
+    @par Description:
+    Disallows any access to external processes. The following features are unavailable with this option:
+    - @ref backquote_operator "backquote operator"
+    - system()
+    - kill()
+    - exec()
+    - backquote()
+
+    <hr>
+    @section no-filesystem %no-filesystem
+
+    @par Parse Directive:
+    <tt>%%no-filesystem</tt>
+
+    @par Command-Line:
+    <tt>--no-filesystem, -F</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_FILESYSTEM
+
+    @par Description:
+    Disallows any access to the external filesystem. The following features are unavailable with this option:
+    - @ref Qore::Dir
+    - @ref Qore::File
+    - @ref Qore::File::hstat(string)
+    - @ref Qore::File::hlstat(string)
+    - @ref Qore::File::lstat(string)
+    - @ref Qore::File::stat(string)
+    - @ref Qore::File::statvfs(string)
+    - @ref Qore::FtpClient::get()
+    - @ref Qore::FtpClient::put()
+    - chdir()
+    - chmod()
+    - chown()
+    - getcwd()
+    - getcwd2()
+    - glob()
+    - hlstat()
+    - hstat()
+    - is_bdev()
+    - is_cdev()
+    - is_dev()
+    - is_dir()
+    - is_executable()
+    - is_file()
+    - is_link()
+    - is_pipe()
+    - is_readable()
+    - is_socket()
+    - is_writable()
+    - is_writeable()
+    - lchown()
+    - lstat()
+    - mkdir()
+    - mkfifo()
+    - readlink()
+    - rename()
+    - rmdir()
+    - stat()
+    - statvfs()
+    - unlink()
+
+    <hr>
+    @section no-global-vars %no-global-vars
+
+    @par Parse Directive:
+    <tt>%%no-global-vars</tt>
+
+    @par Command-Line:
+    <tt>--no-global-vars, -G</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_GLOBAL_VARS
+
+    @par Description:
+    Disallows the use of global variables.
+
+    <hr>
+    @section no-gui %no-gui
+
+    @par Parse Directive:
+    <tt>%%no-gui</tt>
+
+    @par Command-Line:
+    <tt>--no-gui, --set-parse-option=no-gui, -pno-gui</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_GUI
+
+    @par Description:
+    Disallows the use of functionality that draws graphics to the display (this functionality is not implemented in the qore library; only implemented in modules).
+
+    <hr>
+    @section no-locale-control %no-locale-control
+
+    @par Parse Directive:
+    <tt>%%no-locale-control</tt>
+
+    @par Command-Line:
+    <tt>--no-locale-control, -P</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_LOCALE_CONTROL
+
+    @par Description:
+    Disallows access to functions that would affect the locale settings of the current program. The following features are unavailable with this option:
+    - @ref Qore::TimeZone::set()
+    - @ref Qore::TimeZone::setUTCOffset()
+    - @ref Qore::TimeZone::setRegion()
+
+    <hr>
+    @section no-namespace-defs %no-namespace-defs
+
+    @par Parse Directive:
+    <tt>%%no-namespace-defs</tt>
+
+    @par Command-Line:
+    <tt>--no-namespace-defs, -M</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_NAMESPACE_DEFS
+
+    @par Description:
+    Disallows new @ref qore_namespaces "namespace definitions".
+
+    <hr>
+    @section no-network %no-network
+
+    @par Parse Directive:
+    <tt>%%no-network</tt>
+
+    @par Command-Line:
+    <tt>--no-network, -Y</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_NETWORK
+
+    @par Description:
+    Disallows any access to the network.  The following features are unavailable with this option:
+    - @ref Qore::FtpClient
+    - @ref Qore::HTTPClient
+    - @ref Qore::Socket
+
+    <hr>
+    @section no-new %no-new
+
+    @par Parse Directive:
+    <tt>%%no-new</tt>
+
+    @par Command-Line:
+    <tt>--no-new, -N</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_NEW
+
+    @par Description:
+    Disallows use of the @ref new "new operator".
+
+    <hr>
+    @section no-process-control %no-process-control
+
+    @par Parse Directive:
+    <tt>%%no-process-control</tt>
+
+    @par Command-Line:
+    <tt>--no-process-control, -P</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_PROCESS_CONTROL
+
+    @par Description:
+    Disallows access to functions that would affect the current process. The following features are unavailable with this option:
+    - abort()
+    - chdir()
+    - exit()
+    - fork()
+    - load_module()
+    - remove_signal_handler()
+    - setegid()
+    - setenv()
+    - seteuid()
+    - setgid()
+    - setsid()
+    - set_signal_handler()
+    - setuid()
+    - sleep()
+    - srand()
+    - umask()
+    - unsetenv()
+    - usleep()
+
+    <hr>
+    @section no-subroutine-defs %no-subroutine-defs
+
+    @par Parse Directive:
+    <tt>%%no-subroutine-defs</tt>
+
+    @par Command-Line:
+    <tt>--no-subroutine-defs, -S</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_SUBROUTINE_DEFS
+
+    @par Description:
+    Disallows subroutine (function) definitions.
+
+    <hr>
+    @section no-terminal-io %no-terminal-io
+
+    @par Parse Directive:
+    <tt>%%no-terminal-io</tt>
+
+    @par Command-Line:
+    <tt>--no-terminal-io,--set-parse-option=no-terminal-io, -pno-terminal-io</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_TERMINAL_IO
+
+    @par Description:
+    Disallows access to terminal input and output. The following features are unavailable with this option:
+    - @ref Qore::TermIOS
+    - @ref Qore::TermIOS::getWindowSize()
+    - @ref Qore::stdin
+    - @ref Qore::stdout
+    - @ref Qore::stderr
+    - f_printf()
+    - f_vprintf()
+    - flush()
+    - print()
+    - printf()
+    - vprintf()
+
+    <hr>
+    @section no-thread-classes %no-thread-classes
+
+    @par Parse Directive:
+    <tt>%%no-thread-classes</tt>
+
+    @par Command-Line:
+    <tt>--no-thread-classes</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_THREAD_CLASSES
+
+    @par Description:
+    Disallows access to thread classes. The following features are unavailable with this option:
+    - @ref Qore::Thread::AbstractSmartLock class
+    - @ref Qore::Thread::AutoGate class
+    - @ref Qore::Thread::AutoLock class
+    - @ref Qore::Thread::AutoReadLock class
+    - @ref Qore::Thread::AutoWriteLock class
+    - @ref Qore::Thread::Condition class
+    - @ref Qore::Thread::Counter class
+    - @ref Qore::Thread::Gate class
+    - @ref Qore::Thread::Mutex class
+    - @ref Qore::Thread::Queue class
+    - @ref Qore::Thread::RWLock class
+
+    <hr>
+    @section no-thread-control %no-thread-control
+
+    @par Parse Directive:
+    <tt>%%no-thread-control</tt>
+
+    @par Command-Line:
+    <tt>--no-thread-control, -R</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_THREAD_CONTROL
+
+    @par Description:
+    Disallows access to thread control operations.  The following features are unavailable with this option:
+    - @ref background "background operator"
+    - @ref thread_exit "thread_exit statement"
+    - delete_all_thread_data()
+    - delete_thread_data()
+    - getAllThreadCallStacks()
+    - get_all_thread_data()
+    - get_thread_data()
+    - mark_thread_resources()
+    - remove_thread_data()
+    - save_thread_data()
+    - throwThreadResourceExceptions()
+    - throw_thread_resource_exceptions_to_mark()
+
+    <hr>
+    @section no-thread-info %no-thread-info
+
+    @par Parse Directive:
+    <tt>%%no-thread-info</tt>
+
+    @par Command-Line:
+    <tt>--no-thread-info</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_THREAD_INFO
+
+    @par Description:
+    Disallows access to functionality that provides information about threading. The following features are unavailable with this option:
+    - get_all_thread_data() function
+    - get_thread_data() function
+    - gettid() function
+    - getAllThreadCallStacks() function
+    - num_threads() function
+    - thread_list() function
+
+    <hr>
+    @section no-threads %no-threads
+
+    @par Parse Directive:
+    <tt>%%no-threads</tt>
+
+    @par Command-Line:
+    <tt>--no-threads, -T</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_THREADS
+
+    @par Description:
+    Disallows access to all thread control operations and thread classes (equivalent to @ref no-thread-control "%no-thread-control" and @ref no-thread-classes "%no-thread-classes" together).
+
+    <hr>
+    @section no-top-level %no-top-level
+
+    @par Parse Directive:
+    <tt>%%no-top-level</tt>
+
+    @par Command-Line:
+    <tt>--no-top-level, -L</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS
+
+    @par Description:
+    Disallows top level code.
+
+    <hr>
+    @section require-our %require-our
+
+    @par Parse Directive:
+    <tt>%%require-our</tt>
+
+    @par Command-Line:
+    <tt>--require-our, -O</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_REQUIRE_OUR
+
+    @par Description:
+    Requires global variables to be declared with @ref our "our" prior to use (recommended to use for all larger scripts/programs).
+
+    <hr>
+    @section require-prototypes %require-prototypes
+
+    @par Parse Directive:
+    <tt>%%require-prototypes</tt>
+
+    @par Command-Line:
+    <tt>--require-prototypes</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_REQUIRE_PROTOTYPES
+
+    @par Description:
+    Requires type declarations for all function and method parameters and return types. Variables and object members do not need to have type declarations with this option.
+
+    @see @ref require-types "%require-types", which is a superset of this option.
+
+    <hr>
+    @section require-types %require-types
+
+    @par Parse Directive:
+    <tt>%%require-types</tt>
+
+    @par Command-Line:
+    <tt>--require-types</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_REQUIRE_TYPES
+
+    @par Description:
+    Requires type declarations for all function and method parameters, return types, variables, and object members.
+
+    @see @ref require-prototypes "%require-prototypes", which is a subset of this option.
+
+    <hr>
+    @section requires %requires
+
+    @par Parse Directive:
+    <tt>%%requires</tt>
+
+    @par Command-Line:
+    <tt>--load, -l</tt>
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Loads a %Qore module immediately. The parse directive can be used to load a module during parsing, and the command-line version can be used to load a module before parsing.\n\n
+    From %Qore 0.7.1, you can specify a comparison operator (one of <tt>\<, \<=, =, \>=, or \></tt>) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a \c ".". If one of the versions does not have as many elements as another, the missing elements are assumed to be \c "0" (i.e. version \c "1.0" compared with version \c "1.0.1" will be exteneded to \c "1.0.0").\n\n
+    For example:\n
+    @code
+%requires oracle >= 1.0.1
+    @endcode \n
+    This will load the oracle module if it is at least version 1.0.1.\n\n
+    Note that there is one special feature name: \c "qore". This pseudo-feature can be used to check the minimum %Qore version; if this feature is requested with version information, then the %Qore library's version information is used for the version number comparison.
+
+    <hr>
+    @section set-time-zone %set-time-zone
+
+    @par Parse Directive:
+    <tt>%%set-time-zone</tt>
+
+    @par Command-Line:
+    <tt>--time-zone, -z</tt>
+
+    @par Parse Option Constant:
+    none; this is set by calling @ref Qore::TimeZone::setRegion() or @ref Qore::TimeZone::setUTCOffset()
+
+    @par Description:
+    Sets the time zone for the current program from a UTC offset (with format \c "+/-00[:00[:00]]"; \c ":"" characters are optional) or a time zone region name (ex: \c "Europe/Prague").
+
+    <hr>
+    @section strict-args %strict-args
+
+    @par Parse Directive:
+    <tt>%%strict-args</tt>
+
+    @par Command-Line:
+    <tt>--strict-args</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_STRICT_ARGS
+
+    @par Description:
+    Prohibits access to builtin functions and methods flagged with @ref RUNTIME_NOOP and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments.
 */
-
-

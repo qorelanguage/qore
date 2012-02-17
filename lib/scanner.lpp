@@ -989,8 +989,6 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					   }
                                         }
 where					return TOK_WHERE;
-NULL					return TOK_NULL;
-NOTHING					return TOK_NOTHING;
 class                                   return TOK_CLASS;
 private                                 return TOK_PRIVATE;
 public                                  return TOK_PUBLIC;

@@ -869,7 +869,6 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_THROW "throw"
 %token TOK_CATCH "catch"
 %token TOK_WHERE "where"
-%token TOK_NULL "NULL"
 %token TOK_WHILE "while"
 %token TOK_IF "if"
 %token TOK_FOR "for"
@@ -877,7 +876,6 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_THREAD_EXIT "thread_exit" 
 %token TOK_BREAK "break"
 %token TOK_CONTINUE "continue"
-%token TOK_NOTHING "NOTHING"
 %token TOK_CONTEXT_ROW "%%"
 %token TOK_FIND "find"
 %token TOK_FOREACH "foreach"
@@ -2646,8 +2644,6 @@ scalar:
         | INTEGER     { $$ = new QoreBigIntNode($1); }
         | string      { $$ = $1; }
         | DATETIME    { $$ = $1; }
-        | TOK_NULL    { $$ = null(); }
-        | TOK_NOTHING { $$ = nothing(); }
 	;
 
 %%

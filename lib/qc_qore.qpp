@@ -80,6 +80,16 @@ const True = bool(true);
 const False = bool(false);
 //@}
 
+/** @defgroup null_and_nothing_constants NULL and NOTHING Constants
+ */
+//@{
+//! a constant representing the lack of a value
+const NOTHING = qore(&Nothing);
+
+//! logical \c False
+const NULL = qore(&Null);
+//@}
+
 /** @defgroup exception_type_constants Exception Type Constants
  */
 //@{
