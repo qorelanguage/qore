@@ -1642,7 +1642,7 @@ protected:
       if (t == NT_NOTHING)
          n = l;
       else {
-         l->push(n->refSelf());
+         l->push(n);
          n = l;
       }
 
@@ -1678,7 +1678,7 @@ protected:
          return true;
 
       QoreListNode *l = new QoreListNode;
-      l->push(n->refSelf());
+      l->push(n);
       n = l;
 
       return true;
