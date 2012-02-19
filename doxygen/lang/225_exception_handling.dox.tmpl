@@ -27,8 +27,8 @@
     |\c function|@ref string_type "string"|function name of the source where the exception was raised (if known)
     |\c line|@ref int_type "int"|line number of the source where the exception was raised (if known, for user exceptions only)
     |\c file|@ref string_type "string"|file name of the source where the exception was raised (if known, for user exceptions only)
-    |\c type|@ref string_type "string"|see @ref call_type_constants for possible values
-    |\c typecode|@ref int_type "int"|Call Type (\c CT_*) constants; see @ref exception_constants for values.
+    |\c type|@ref string_type "string"|\c "user", \c "builtin", or \c "rethrow"
+    |\c typecode|@ref int_type "int"|see @ref call_type_constants for possible values
 
     System exceptions always throw at least 2 values, populating the \c "err" and \c "desc" keys of the exception hash, giving the exception string code and the exception description string, respectively, and occassionally, depending on the function, the \c "arg" key may be populated with supporting information. User exceptions have no restrictions, any values given in the @ref throw "throw statement" will be mapped to exception keys as per the table above.
 

@@ -111,25 +111,25 @@ QC_SSLCertificate.cpp: QC_SSLCertificate.qpp qpp
 QC_SSLPrivateKey.cpp: QC_SSLPrivateKey.qpp qpp
 	$(QPP) $<
 
-Pseudo_QC_All.cpp: Pseudo_QC_All.qpp
+Pseudo_QC_All.cpp: Pseudo_QC_All.qpp qpp
 	$(QPP) $<
 
-Pseudo_QC_Date.cpp: Pseudo_QC_Date.qpp
+Pseudo_QC_Date.cpp: Pseudo_QC_Date.qpp qpp
 	$(QPP) $<
 
-Pseudo_QC_Object.cpp: Pseudo_QC_Object.qpp
+Pseudo_QC_Object.cpp: Pseudo_QC_Object.qpp qpp
 	$(QPP) $<
 
-Pseudo_QC_Hash.cpp: Pseudo_QC_Hash.qpp
+Pseudo_QC_Hash.cpp: Pseudo_QC_Hash.qpp qpp
 	$(QPP) $<
 
-Pseudo_QC_String.cpp: Pseudo_QC_String.qpp
+Pseudo_QC_String.cpp: Pseudo_QC_String.qpp qpp
 	$(QPP) $<
 
-Pseudo_QC_Binary.cpp: Pseudo_QC_Binary.qpp
+Pseudo_QC_Binary.cpp: Pseudo_QC_Binary.qpp qpp
 	$(QPP) $<
 
-Pseudo_QC_List.cpp: Pseudo_QC_List.qpp
+Pseudo_QC_List.cpp: Pseudo_QC_List.qpp qpp
 	$(QPP) $<
 
 ql_misc.cpp: ql_misc.qpp qpp

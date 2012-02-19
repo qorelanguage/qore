@@ -2270,6 +2270,10 @@ public:
          serializeQoreCppType(fp, p.type);
          fputc(' ' , fp);
          fputs(p.name.c_str(), fp);
+         if (!p.val.empty()) {
+            fputs(" = ", fp);
+            fputs(p.val.c_str(), fp);
+         }
       }
       fputs(");\n", fp);
       return 0;

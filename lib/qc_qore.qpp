@@ -68,6 +68,9 @@ const NT_OBJECT = NT_OBJECT;
 
 //! type code for @ref closure "closures"
 const NT_CLOSURE = NT_RUNTIME_CLOSURE;
+
+//! type code for @ref call_reference "call references"
+const NT_CALLREF = NT_FUNCREF;
 //@}
 
 /** @defgroup boolean_constants Boolean Constants

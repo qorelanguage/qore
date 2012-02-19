@@ -48,6 +48,8 @@ void ParseOptionMap::static_init() {
    DO_MAP("no-system-classes",        PO_NO_SYSTEM_CLASSES);
    DO_MAP("no-user-classes",          PO_NO_USER_CLASSES);
    DO_MAP("no-child-restrictions",    PO_NO_CHILD_PO_RESTRICTIONS);
+   DO_MAP("no-external-access",       PO_NO_EXTERNAL_ACCESS);
+   DO_MAP("no-external-info",         PO_NO_EXTERNAL_INFO);
    DO_MAP("no-external-process",      PO_NO_EXTERNAL_PROCESS);
    DO_MAP("require-our",              PO_REQUIRE_OUR);
    DO_MAP("no-process-control",       PO_NO_PROCESS_CONTROL);
@@ -57,9 +59,10 @@ void ParseOptionMap::static_init() {
    DO_MAP("no-gui",                   PO_NO_GUI);
    DO_MAP("no-terminal-io",           PO_NO_TERMINAL_IO);
    DO_MAP("require-types",            PO_REQUIRE_TYPES);
-   DO_MAP("no-external-info",         PO_NO_EXTERNAL_INFO);
    DO_MAP("no-thread-info",           PO_NO_THREAD_INFO);
    DO_MAP("no-locale-control",        PO_NO_LOCALE_CONTROL);
+   DO_MAP("no-io",                    PO_NO_IO);
+   DO_MAP("lockdown",                 PO_LOCKDOWN);   
 }
 
 int ParseOptionMap::find_code(const char *name) {

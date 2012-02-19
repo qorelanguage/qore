@@ -121,17 +121,22 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -p, --set-parse-option=arg   set parse option (ex: -pno-database)\n"
    "\n PARSE OPTIONS:\n"
    "  -A, --lock-warnings          do not allow changes in warning levels\n"
+   "      --lockdown               only allow single-threaded code execution with\n"
+   "                               no external access or terminal or GUI I/O\n"
    "  -B, --allow-bare-refs        allow refs to vars without '$' and refs to\n"
    "                               class members without '$.'\n"
    "      --assume-local           assume local scope for variables declared\n"
    "                               without 'my' or 'our'\n"
    "      --no-class-defs          make class definitions illegal\n"
    "      --no-database            disallow access to database functionality\n"
+   "      --no-external-access     disallow all external access (filesystem,\n"
+   "                               network, external processes, etc)\n"
    "      --no-external-info       disallow access to external info\n"
    "  -E, --no-external-process    make access to external processes illegal\n"
    "  -F, --no-filesystem          disallow access to the local filesystem\n"
    "  -G, --no-global-vars         make global variable definitions illegal\n"
    "      --no-gui                 do not allow access to GUI functionality\n"
+   "      --no-io                  do not allow any I/O of any sort,\n"
    "  -I, --no-child-restrictions  do not restrict subprograms' parse options\n"
    "      --no-constant-defs       make constant definitions illegal\n"
    "  -K, --lock-options           disable changes to parse options in program\n"
@@ -269,12 +274,20 @@ static void do_no_terminal_io(const char *arg) {
    parse_options |= PO_NO_TERMINAL_IO;
 }
 
+static void do_no_io(const char *arg) {
+   parse_options |= PO_NO_IO;
+}
+
 static void do_no_gui(const char *arg) {
    parse_options |= PO_NO_GUI;
 }
 
 static void do_no_database(const char *arg) {
    parse_options |= PO_NO_DATABASE;
+}
+
+static void do_lockdown(const char *arg) {
+   parse_options |= PO_LOCKDOWN;
 }
 
 static void do_lock_warnings(const char *arg) {
@@ -331,6 +344,10 @@ static void do_no_new(const char *arg) {
 
 static void do_no_child_po_restrictions(const char *arg) {
    parse_options |= PO_NO_CHILD_PO_RESTRICTIONS;
+}
+
+static void do_no_external_access(const char *arg) {
+   parse_options |= PO_NO_EXTERNAL_ACCESS;
 }
 
 static void do_no_external_info(const char *arg) {
@@ -538,6 +555,7 @@ static struct opt_struct_s {
    { 'r', "warnings-are-errors",   ARG_NONE, warn_to_err },
    { 'w', "enable-warning",        ARG_MAND, enable_warning },
    { 'x', "exec-class",            ARG_OPT,  do_exec_class },
+   { '\0', "lockdown",             ARG_NONE, do_lockdown },
    { 'A', "lock-warnings",         ARG_NONE, do_lock_warnings },
    { 'B', "allow-bare-refs",       ARG_NONE, allow_bare_refs },
    { '\0', "assume-local",         ARG_NONE, assume_local },
@@ -546,6 +564,7 @@ static struct opt_struct_s {
    { '\0', "no-database",          ARG_NONE, do_no_database },
    { 'D', "define",                ARG_MAND, set_define },
    { 'E', "no-external-process",   ARG_NONE, do_no_external_process },
+   { '\0', "no-external-access",   ARG_NONE, do_no_external_access },
    { '\0', "no-external-info",     ARG_NONE, do_no_external_info },
    { 'F', "no-filesystem",         ARG_NONE, do_no_filesystem },
    { 'G', "no-global-vars",        ARG_NONE, do_no_global_vars },
@@ -574,6 +593,7 @@ static struct opt_struct_s {
    { 'z', "time-zone",             ARG_MAND, set_time_zone },
    { '\0', "no-terminal-io",       ARG_NONE, do_no_terminal_io },
    { '\0', "no-gui",               ARG_NONE, do_no_gui },
+   { '\0', "no-io",                ARG_NONE, do_no_io },
    { '\0', "lgpl",                 ARG_NONE, set_lgpl },
    { '\0', "module-dir",           ARG_NONE, show_module_dir },
    { '\0', "short-version",        ARG_NONE, short_version },

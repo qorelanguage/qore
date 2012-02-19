@@ -1,0 +1,50 @@
+/** @page code_data_types Code Data Types
+
+    There are two types of code data types in Qore (see also @ref basic_data_types and @ref container_data_types):
+    - @ref closure_type
+    - @ref callref_type
+
+    <hr>
+    @section closure_type Closure Type
+
+    @par Description:
+    Closures are code used as values; see @ref closure for more information.
+
+    @par Immediate Value Example:
+    @code
+string sub (int $c) { return sprintf("temp=%d", $c); }
+    @endcode
+
+    @par Pseudo Class for Type Closure:
+    @ref Qore::zzz8valuezzz9
+
+    @par Type Code:
+    @ref Qore::NT_CLOSURE
+
+    @par Type Name:
+    \c "closure"
+
+    @see @ref closure, @ref code_type
+
+    <hr>
+    @section callref_type Call Reference Type
+
+    @par Description:
+    Call references are a value type that can be used like a @ref closure_type "closures"; see @ref callref_type for more information.
+
+    @par Immediate Value Example:
+    @code
+\function()
+    @endcode
+
+    @par Pseudo Class for Type Call Reference:
+    @ref Qore::zzz8valuezzz9
+
+    @par Type Code:
+    @ref Qore::NT_CALLREF
+
+    @par Type Name:
+    \c "call reference"
+
+    @see @ref closure, @ref code_type
+*/

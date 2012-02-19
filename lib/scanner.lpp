@@ -559,7 +559,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%no-namespace-defs{WS}*$               getProgram()->parseSetParseOptions(PO_NO_NAMESPACE_DEFS);
 ^%no-external-process{WS}*$             getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_PROCESS);
 ^%no-external-info{WS}*$                getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_INFO);
+^%no-external-access{WS}*$              getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_ACCESS);
 ^%no-filesystem{WS}*$                   getProgram()->parseSetParseOptions(PO_NO_FILESYSTEM);
+^%no-io{WS}*$                           getProgram()->parseSetParseOptions(PO_NO_IO);
+^%lockdown{WS}*$                        getProgram()->parseSetParseOptions(PO_LOCKDOWN);
 ^%lock-options{WS}*$                    getProgram()->lockOptions();
 ^%lock-warnings{WS}*$                   getProgram()->parseSetParseOptions(PO_LOCK_WARNINGS);
 ^%no-locale-control{WS}*$               getProgram()->parseSetParseOptions(PO_NO_LOCALE_CONTROL);

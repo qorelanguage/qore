@@ -96,8 +96,10 @@
     @code my code $c = \MyClass::method(); @endcode
     @code my code $c = \$obj.method(); @endcode
 
-    @note The backslash at the beginning and the empty parentheses at the end; these are required when specifying a call reference.
-
+    @note
+    - The backslash at the beginning and the empty parentheses at the end; these are required when specifying a call reference.
+    - call reference is a code data type; see @ref callref_type for more information
+    
     <hr>
     @section closure Closures
 
@@ -121,6 +123,8 @@
 my code $closure = int sub (int $a) { return $a + $b; };
     @endcode
 
+    @note closure is a code data type; see @ref closure_type for more information
+    
     <hr>
     @section implicit_arguments Implicit Argument References
 

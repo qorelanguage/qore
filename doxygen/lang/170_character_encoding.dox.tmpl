@@ -14,7 +14,7 @@
 
     Note that when %Qore matches an encoding name to a code or alias in the following table, the comparison is not case-sensitive.
 
-    @section known_encodings Character Encodings Known to Qore
+    @section known_encodings Character Encodings Known to %Qore
 
     |!Code|!Aliases|!Description
     |\c ISO-8859-1|\c ISO88591, \c ISO8859-1, \c ISO-88591, \c ISO8859P1, \c ISO81, \c LATIN1, \c LATIN-1|latin-1, Western European character set
@@ -46,7 +46,7 @@
 
     Character encodings are automatically converted by the %Qore language when necessary. Encoding conversion errors will cause a %Qore exception to be thrown. The character encoding conversions supported by %Qore depend on the operating system's \c iconv library function.
 
-    @note The get_default_encoding() function will return the default encoding for the Qore process.
+    @note The get_default_encoding() function will return the default encoding for the %Qore process.
 
     @section encoding_examples Character Encoding Usage Examples
 
@@ -54,7 +54,7 @@
 
     Character encodings can be explicitly performed with the convert_encoding() function, and the encoding attached to a string can be checked with the get_encoding() function. If you have a string with incorrect encoding and want to change the encoding tag of the string (without changing the actual bytes of the string), use the force_encoding() function.
 
-    get_default_encoding() returns the default encoding for the Qore process.
+    get_default_encoding() returns the default encoding for the %Qore process.
 
     The @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, and @ref Qore::SQL::SQLStatement classes will translate character encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).
 

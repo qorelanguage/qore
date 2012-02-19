@@ -68,7 +68,7 @@
 #define PO_NO_EXTERNAL_ACCESS        (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE|PO_NO_EXTERNAL_INFO|PO_NO_EXTERNAL_PROCESS)
 
 //! prohibits all terminal and file I/O and GUI operations
-#define PO_NO_IO                     (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM) 
+#define PO_NO_IO                     (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM|PO_NO_NETWORK|PO_NO_DATABASE) 
 
 //! most restrictive access - can just execute logic, no I/O, no threading, no external access
 #define PO_LOCKDOWN                  (PO_NO_EXTERNAL_ACCESS|PO_NO_THREADS|PO_NO_IO)

@@ -60,6 +60,8 @@ const PO_LOCK_WARNINGS = PO_LOCK_WARNINGS;
 
 //! Sets very restrictive access; this restriction is designed to allow code to only execute logic, no I/O, no threading, no external access
 /** made up of @ref PO_NO_EXTERNAL_ACCESS | @ref PO_NO_THREADS | @ref PO_NO_IO
+
+    @see @ref lockdown "%lockdown"
  */
 const PO_LOCKDOWN = PO_LOCKDOWN;
 
@@ -132,7 +134,9 @@ const PO_NO_GLOBAL_VARS = PO_NO_GLOBAL_VARS;
 const PO_NO_GUI = PO_NO_GUI;
 
 //! Prohibits all terminal and file I/O and GUI operations
-/** made up of @ref PO_NO_GUI | @ref PO_NO_TERMINAL_IO | @ref PO_NO_FILESYSTEM
+/** made up of @ref PO_NO_GUI | @ref PO_NO_TERMINAL_IO | @ref PO_NO_FILESYSTEM | @ref PO_NO_NETWORK | @ref PO_NO_DATABASE
+
+    @see @ref no-io "%no-io"
  */
 const PO_NO_IO = PO_NO_IO;
 

@@ -1,6 +1,6 @@
 /** @page container_data_types Container Data Types
 
-    %Qore supports three types of container types:
+    %Qore supports three types of container types (see also @ref basic_data_types and @ref code_data_types):
     - @ref list "lists"
     - @ref hash "hashes" (associative arrays)
     - @ref object "objects" (see @ref object and @ref qore_classes for more information)
@@ -52,7 +52,9 @@ $element3 = $list[2];
     @par Type Name:
     \c "list"
 
-    @see @ref list_type, @ref softlist_type
+    @see
+    - @ref list_type, @ref softlist_type
+    - @ref list_functions
 
     <hr>
     @section hash Hash
@@ -127,6 +129,12 @@ $element3 = $hash{"keys"};
 
     @par Type Name:
     \c "object"
+
+    @see
+    - @ref object_type
+    - @ref object_functions
+
+    @note each %Qore type has a "pseudo-class" associated with it (the default is @ref Qore::zzz8valuezzz9); methods from the data type's "pseudo-class" can be run on any value of that type; see "Pseudo Class for Type" headings in @ref basic_data_types for more information.
 
     @section object_overview Object Overview
     The recommend way to instantiate an object is to declare its type and give constructor arguments after the variable name in parentheses as follows:
