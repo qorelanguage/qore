@@ -312,7 +312,7 @@ any DatasourcePool::execRaw(string sql) {
 //! Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)
 /** The return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
 
-    Additionally, this format is more efficient format than that returned by the Datasource::selectRows() method, because the column names are not repeated for each row returned. Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of Datasource::selectRows().
+    Additionally, this format is a more efficient format than that returned by the Datasource::selectRows() method, because the column names are not repeated for each row returned. Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of Datasource::selectRows().
 
     This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
 
