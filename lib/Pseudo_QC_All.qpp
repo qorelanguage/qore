@@ -68,3 +68,19 @@ my string $t = $n.type();
 string <value>::type() [flags=CONSTANT] {
    return new QoreStringNode(node ? node->getTypeName() : "nothing");
 }
+
+//! Returns \c False; this method will be reimplemented in other types where it may return \c True
+/** 
+    @return \c False; this method will be reimplemented in other types where it may return \c True
+
+    @par Example:
+    @code
+my int $i = 100;
+if (!$i.empty())
+    printf("%y: is empty (probably because it's an %s)\n", $i, $i.type());
+    @endcode
+*/
+bool <value>::empty() [flags=CONSTANT] {
+   return false;
+}
+
