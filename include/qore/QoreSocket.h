@@ -984,7 +984,6 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param info the request-uri or response-uri is written to this hash if non-null; neither of these keys should be present in the hash before the call
        @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
-       @param prc output parameter: 0 or -2: remote end closed the connection, -1: receive error, -3: timeout
        @param source the event source code for socket events
 
        @return if 0, an exception was raised, if not 0, caller owns the reference count returned
