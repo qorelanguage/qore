@@ -77,10 +77,24 @@ string <value>::type() [flags=CONSTANT] {
     @code
 my int $i = 100;
 if ($i.empty())
-    printf("%y: is empty (probably because it's an %s)\n", $i, $i.type());
+    printf("%y: is empty (probably because it's a value of type %y)\n", $i, $i.type());
     @endcode
 */
 bool <value>::empty() [flags=CONSTANT] {
    return true;
 }
 
+//! Returns zero; this method will be reimplemented in other types where it may return a non-zero value
+/** 
+    @return zero; this method will be reimplemented in other types where it may return a non-zero value
+
+    @par Example:
+    @code
+my int $i = 100;
+if (!$i.size())
+    printf("%y: has size 0 (probably because it's a value of type %y)\n", $i, $i.type());
+    @endcode
+*/
+int <value>::size() [flags=CONSTANT] {
+   return 0;
+}
