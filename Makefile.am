@@ -10,6 +10,13 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
+# use native qpp for build when cross compiling
+if COND_MINGWCC
+QPP=lib/qpp_native
+else
+QPP=lib/qpp
+endif
+
 LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_AutoGate.qpp \
 	lib/QC_AutoLock.qpp \
@@ -154,109 +161,109 @@ doxygen/lang/Doxyfile: doxygen/lang/Doxyfile.tmpl
 	doxygen/dpp $< "$(top_srcdir)/doxygen/" > $@
 
 doxygen/lang/mainpage.dox: doxygen/lang/mainpage.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/000_intro.dox: doxygen/lang/000_intro.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/105_desc_overview.dox: doxygen/lang/105_desc_overview.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/110_environment_variables.dox: doxygen/lang/110_environment_variables.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/115_conditional_parsing.dox: doxygen/lang/115_conditional_parsing.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/120_modules.dox: doxygen/lang/120_modules.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/125_include_files.dox: doxygen/lang/125_include_files.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/130_identifiers.dox: doxygen/lang/130_identifiers.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/135_comments.dox: doxygen/lang/135_comments.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/140_variables.dox: doxygen/lang/140_variables.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/145_basic_data_types.dox: doxygen/lang/145_basic_data_types.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/150_container_data_types.dox: doxygen/lang/150_container_data_types.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/152_code_data_types.dox: doxygen/lang/152_code_data_types.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/155_data_type_declarations.dox: doxygen/lang/155_data_type_declarations.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/160_overloading.dox: doxygen/lang/160_overloading.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/165_time_zones.dox: doxygen/lang/165_time_zones.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/170_character_encoding.dox: doxygen/lang/170_character_encoding.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/175_expressions.dox: doxygen/lang/175_expressions.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/180_operators.dox: doxygen/lang/180_operators.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/185_qore_regex.dox: doxygen/lang/185_qore_regex.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/190_date_time_arithmetic.dox: doxygen/lang/190_date_time_arithmetic.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/195_statements.dox: doxygen/lang/195_statements.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/200_functions.dox: doxygen/lang/200_functions.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/202_code_flags.dox: doxygen/lang/202_code_flags.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/205_namespaces.dox: doxygen/lang/205_namespaces.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/210_constants.dox: doxygen/lang/210_constants.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/215_classes.dox: doxygen/lang/215_classes.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/220_threading.dox: doxygen/lang/220_threading.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/225_exception_handling.dox: doxygen/lang/225_exception_handling.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/230_signal_handling.dox: doxygen/lang/230_signal_handling.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/235_event_handling.dox: doxygen/lang/235_event_handling.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/240_command_line_processing.dox: doxygen/lang/240_command_line_processing.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/245_parse_directives.dox: doxygen/lang/245_parse_directives.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/250_warnings.dox: doxygen/lang/250_warnings.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 doxygen/lang/255_keywords.dox: doxygen/lang/255_keywords.dox.tmpl lib
-	lib/qpp -t $< -o $@
+	$(QPP) -t $< -o $@
 
 include_HEADERS = \
 	include/qore/ReferenceArgumentHelper.h \
