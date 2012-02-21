@@ -213,7 +213,7 @@ int <date>::microseconds() [flags=CONSTANT] {
 
     @par Example:
     @code
-my string $str = $d.toString("Day, Mon D, YYYY-MM-DD HH:mm:SS");
+my string $str = $d.format("Day, Mon D, YYYY-MM-DD HH:mm:SS");
     @endcode
 
     @bug there is no locale support; day and month names and abbreviations are only returned in English
