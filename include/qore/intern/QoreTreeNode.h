@@ -126,6 +126,7 @@ public:
       ExceptionSink xsink;
       AbstractQoreNode *rv = op->eval(left, right, true, &xsink);
       rtTypeInfo = rv ? getTypeInfoForType(rv->getType()) : nothingTypeInfo;
+      xsink.clear();
       return rv ? rv : nothing();
    }
 };
