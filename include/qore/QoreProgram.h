@@ -346,6 +346,9 @@ public:
    //! adds the parse options given to the parse option mask
    DLLEXPORT void parseSetParseOptions(int64 po);
 
+   //! disables the parse options given to the parse option mask
+   DLLEXPORT void parseDisableParseOptions(int64 po);
+
    //! this call blocks until the program's last thread terminates
    DLLEXPORT void waitForTermination();
 

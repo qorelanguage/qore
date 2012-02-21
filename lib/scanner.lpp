@@ -513,9 +513,9 @@ bool parse_is_defined(const char *pstr, bool def = true) {
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
       /* get last parse state */ YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing(); \
       if (yybs) { /* need to close file and switch to previous buffer */ \
-	 fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner);	\
-      } else yyterminate(); }
-
+	 fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner);	\	 
+      } else yyterminate();  \
+   }
 %}
 
 %option noyywrap nomain noyy_top_state warn
@@ -579,8 +579,12 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%require-prototypes{WS}*$              getProgram()->parseSetParseOptions(PO_REQUIRE_PROTOTYPES);
 ^%strict-args{WS}*$                     getProgram()->parseSetParseOptions(PO_STRICT_ARGS);
 ^%allow-bare-refs{WS}*$                 getProgram()->parseSetParseOptions(PO_ALLOW_BARE_REFS);
+^%require-dollar{WS}*$                  getProgram()->parseDisableParseOptions(PO_ALLOW_BARE_REFS);
 ^%assume-local{WS}*$                    getProgram()->parseSetParseOptions(PO_ASSUME_LOCAL);
+^%assume-global{WS}*$                   getProgram()->parseDisableParseOptions(PO_ASSUME_LOCAL);
 ^%new-style{WS}*$                       getProgram()->parseSetParseOptions(PO_NEW_STYLE);
+^%old-style{WS}*$                       getProgram()->parseDisableParseOptions(PO_NEW_STYLE);
+^%push-parse-options{WS}*$              push_parse_options();
 ^%append-include-path{WS}+              BEGIN(append_path_state);
 <append_path_state>[^\t\n\r]+           {
 					   setIncludePath(yytext);

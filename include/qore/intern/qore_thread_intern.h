@@ -115,6 +115,7 @@ DLLLOCAL void delete_thread_local_data();
 DLLLOCAL void parse_cond_push(bool mark = false);
 DLLLOCAL bool parse_cond_else();
 DLLLOCAL bool parse_cond_pop();
+DLLLOCAL void push_parse_options();
 
 // pushes a new argv reference counter
 DLLLOCAL void new_argv_ref();

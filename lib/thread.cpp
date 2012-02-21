@@ -790,6 +790,11 @@ bool parse_cond_pop() {
    return td->pcs.pop();
 }
 
+void push_parse_options() {
+   ThreadData *td = thread_data.get();
+   qore_program_private::pushParseOptions(td->current_pgm, td->parse_file);
+}
+
 // called when a StatementBlock has "on_exit" blocks
 void pushBlock(block_list_t::iterator i) {
    ThreadData *td = thread_data.get();
@@ -834,6 +839,9 @@ void beginParsing(char *file, void *ps) {
 
 void *endParsing() {
    ThreadData *td = thread_data.get();
+
+   qore_program_private::restoreParseOptions(td->current_pgm, td->parse_file);
+
    void *rv = td->parseState;
 
    // ensure there are no conditional blocks left open at EOF

@@ -274,6 +274,9 @@ typedef std::map<ThreadProgramData *, ThreadLocalProgramData *> pgm_data_map_t;
 // map for "defines" in programs
 typedef std::map<std::string, AbstractQoreNode *> dmap_t;
 
+// map for pushed parse options
+typedef std::map<const char*, int64> ppo_t;
+
 struct qore_program_private_base {
    UserFunctionList user_func_list;
    ImportedFunctionList imported_func_list;
@@ -324,6 +327,9 @@ struct qore_program_private_base {
 
    // define map
    dmap_t dmap;
+
+   // pushed parse option map
+   ppo_t ppo;
 
    QoreProgram *pgm;
 
@@ -963,11 +969,14 @@ public:
       pwo.parse_options |= po;
    }
    
-   DLLLOCAL void disableParseOptions(int64 po, ExceptionSink *xsink) {
+   DLLLOCAL void disableParseOptions(int64 po, ExceptionSink* xsink = 0) {
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so
       if (po_locked && (!po_allow_restrict || !(po & PO_POSITIVE_OPTIONS))) {
-         xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
+         if (xsink)
+            xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
+         else
+            parse_error("parse options have been locked on this program object");
          return;
       }
       pwo.parse_options &= ~po;
@@ -1248,6 +1257,29 @@ public:
 
    DLLLOCAL static void runTimeDefine(QoreProgram *pgm, const char *str, AbstractQoreNode *val, ExceptionSink *xsink) {
       pgm->priv->runTimeDefine(str, val, xsink);
+   }
+
+   DLLLOCAL void pushParseOptions(const char* pf) {
+      assert(ppo.find(pf) == ppo.end());
+      ppo[pf] = pwo.parse_options;
+      //printd(5, "pushParseOptions() %p (%s) saving %lld\n", pf, pf, pwo.parse_options);
+   }
+
+   DLLLOCAL void restoreParseOptions(const char* pf) {
+      ppo_t::iterator i = ppo.find(pf);
+      if (i != ppo.end()) {
+         //printd(5, "restoreParseOptions() %p (%s) restoring %lld\n", pf, pf, pwo.parse_options);         
+         pwo.parse_options = i->second;
+         ppo.erase(i);
+      }
+   }
+
+   DLLLOCAL static void pushParseOptions(QoreProgram* pgm, const char* pf) {
+      pgm->priv->pushParseOptions(pf);
+   }
+
+   DLLLOCAL static void restoreParseOptions(QoreProgram* pgm, const char* pf) {
+      pgm->priv->restoreParseOptions(pf);
    }
 };
 

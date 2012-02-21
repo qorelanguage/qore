@@ -6,8 +6,9 @@
 
     <b>Parse Directives</b>
     |!Directive|!Description
-    |@ref allow-bare-refs "%allow-bare-refs"|Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs. This parse option is set by default with @ref new-style "%new-style". <br><br>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants. <br><br>Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set. <br><br>Since %Qore 0.8.1
-    |@ref assume-local "%assume-local"|Assume local variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present. When used with @ref allow-bare-refs "%allow-bare-refs", local variables without @ref my "my" must be declared with a data type restriction (can be @ref any_type "any"). This parse option is set by default with @ref new-style "%new-style" <br><br>Since %Qore 0.8.1
+    |@ref allow-bare-refs "%allow-bare-refs"|Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs. This parse option is set by default with @ref new-style "%new-style". <br><br>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants. <br><br>Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set; see also @ref require-dollar "%require-dollar" <br><br>Since %Qore 0.8.1
+    |@ref assume-global "%assume-global"|Resets the default %Qore behavior of assuming global variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present; use after @ref assume-local "%assume-local" to reset the default parsing behavior. This parse option is also set with @ref old-style "%old-style" <br><br>Since %Qore 0.8.4
+    |@ref assume-local "%assume-local"|Assume local variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present. When used with @ref allow-bare-refs "%allow-bare-refs", local variables without @ref my "my" must be declared with a data type restriction (can be @ref any_type "any"). This parse option is set by default with @ref new-style "%new-style"; see also @ref assume-global "%assume-global" <br><br>Since %Qore 0.8.1
     |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
     |@ref disable-all-warnings "%disable-all-warnings"|Turns off all @ref warnings "warnings"
     |@ref disable-warning "%disable-warning" <em>@ref warnings "warning-code"</em>|Disables the named @ref warnings "warning" until @ref enable-warning "%enable-warning" is encountered with the same code or @ref enable-all-warnings "%enable-all-warnings" is encountered
@@ -16,13 +17,14 @@
     |@ref enable-warning "%enable-warning" <em>@ref warnings "warning-code"</em>|Enables the named @ref warnings "warning"
     |@ref endif "%endif"|Closes a @ref conditional_parsing "conditionally-parsed" block started by the @ref ifdef "%ifdef" or @ref ifndef "%ifndef" parse directives <br><br>Since %Qore 0.8.3
     |@ref exec-class "%exec-class" <em>@ref qore_classes "class_name"</em>|Instantiates the named class as the application class; also turns on @ref no-top-level "%no-top-level". If the program is read from stdin or from the command line, an argument must be given specifying the class name
-    |@ref ifdef "%ifdef"|Opens a @ref conditional_parsing "conditionally-parsed" block; if the given parse define is defined, then the block after the @ref ifdef "%ifdef" is parsed until either an @ref else "%else" or an @ref endif "%endif" <br><br>Since %Qore 0.8.3
-    |@ref ifndef "%ifndef"|Opens a @ref conditional_parsing "conditionally-parsed" block; if the given parse define is not defined, then the block after the @ref ifdef "%ifdef" is parsed until either an @ref else "%else" or an @ref endif "%endif" <br><br>Since %Qore 0.8.3
+    |@ref ifdef "%ifdef"|Opens a @ref conditional_parsing "conditionally-parsed" block; if the given @ref conditional_parsing "parse define" is defined, then the block after the @ref ifdef "%ifdef" is parsed until either an @ref else "%else" or an @ref endif "%endif" <br><br>Since %Qore 0.8.3
+    |@ref ifndef "%ifndef"|Opens a @ref conditional_parsing "conditionally-parsed" block; if the given @ref conditional_parsing "parse define" is not defined, then the block after the @ref ifdef "%ifdef" is parsed until either an @ref else "%else" or an @ref endif "%endif" <br><br>Since %Qore 0.8.3
     |@ref include "%include" <em>file_name</em>|Starts parsing \a file_name immediately. Parsing resumes with the current input after \a file_name has been completely parsed
     |@ref lockdown "%lockdown"|Made up of @ref no-external-access "%no-external-access", @ref no-threads "%no-threads", and @ref no-io "%no-io"; equivalent to parse option @ref Qore::PO_LOCKDOWN and the \c --lockdown command line option
     |@ref lock-options "%lock-options"|Prohibits further changes to parse options (equivalent to the <tt>--lock-options</tt> command line option)
     |@ref lock-warnings "%lock-warnings"|Prohibits further changes to the warning mask (equivalent to the <tt>--lock-warnings</tt> command line option)
-    |@ref new-style "%new-style"|Sets both @ref allow-bare-refs "%allow-bare-refs" and @ref assume-local "%assume-local". These two options together make programming in %Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the \c "$" sign, for example <br><br>Since %Qore 0.8.1
+    |@ref new-style "%new-style"|Sets both @ref allow-bare-refs "%allow-bare-refs" and @ref assume-local "%assume-local". These two options together make programming in %Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the \c "$" sign, for example; see also @ref old-style "%old-style" <br><br>Since %Qore 0.8.1
+    |@ref old-style "%old-style"|Resets default %Qore parsing behavior by setting @ref require-dollar "%require-dollar" and @ref assume-global "%assume-global"; this option is the opposite of @ref new-style "%new-style" <br><br>Since %Qore 0.8.4
     |@ref no-class-defs "%no-class-defs"|Disallows @ref qore_classes "class definitions"; equivalent to @ref Qore::PO_NO_CLASS_DEFS and the <tt>--no-class-defs</tt> command line option
     |@ref no-child-restrictions "%no-child-restrictions"|Allows child program objects to have parse option restrictions that are not a strict subset of the parents'; equivalent to parse option @ref Qore::PO_NO_CHILD_PO_RESTRICTIONS and the <tt>--no-child-restrictions</tt> command line option
     |@ref no-constant-defs "%no-constant-defs"|Disallows @ref constants "constant definitions"; equivalent to parse option @ref Qore::PO_NO_CONSTANT_DEFS and the <tt>--no-constant-defs</tt> command line option
@@ -33,7 +35,7 @@
     |@ref no-filesystem "%no-filesystem"|Disallows access to the local filesystem; equivalent to parse option @ref Qore::PO_NO_FILESYSTEM and the <tt>--no-filesystem</tt> command line option
     |@ref no-global-vars "%no-global-vars"|Disallows the use of global variables; equivalent to parse option @ref Qore::PO_NO_GLOBAL_VARS and the <tt>--no-global-vars</tt> command line option
     |@ref no-gui "%no-gui"|Disallows functionality that draws graphics to the display; equivalent to parse option @ref Qore::PO_NO_GUI and the <tt>-pno-gui</tt> command line option
-    |@ref no-io "%no-io"|Made up of @ref no-gui "%no-gui" | @ref no-terminal-io "%no-terminal-io" | @ref no-filesystem "%no-filesystem" | @ref no-network "%no-network" | @ref no-database "%no-database"; equivalent to parse option @ref Qore::PO_NO_IO and the \c --no-io command line option
+    |@ref no-io "%no-io"|Made up of @ref no-gui "%no-gui" \| @ref no-terminal-io "%no-terminal-io" \| @ref no-filesystem "%no-filesystem" \| @ref no-network "%no-network" \| @ref no-database "%no-database"; equivalent to parse option @ref Qore::PO_NO_IO and the \c --no-io command line option
     |@ref no-locale-control "%no-locale-control"|Disallows access to functionality that changes locale information (see %no-locale-control for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_LOCALE_CONTROL and the <tt>--no-locale-control</tt> command line option
     |@ref no-namespace-defs "%no-namespace-defs"|Disallows new @ref qore_namespaces "namespace definitions"; equivalent to @ref Qore::PO_NO_NAMESPACE_DEFS and the <tt>--no-namespace-defs</tt> command line option
     |@ref no-network "%no-network"|Disallows access to the network; equivalent to parse option @ref Qore::PO_NO_NETWORK and the <tt>--no-network</tt> command line option
@@ -46,6 +48,8 @@
     |@ref no-thread-info "%no-thread-info"|Disallows any access to functionality that provides threading information (see @ref no-thread-info "%no-thread-info" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_INFO and the <tt>--no-thread-info</tt> command line option
     |@ref no-threads "%no-threads"|Disallows access to all thread control operations and thread classes (equivalent to <tt>--no-thread-control</tt> and <tt>--no-thread-classes</tt> together); equivalent to parse option @ref Qore::PO_NO_THREADS and the <tt>--no-threads</tt> command line option
     |@ref no-top-level "%no-top-level"|Disallows top level code; equivalent to parse option @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS and the <tt>--no-top-level</tt> command line option
+    |@ref push-parse-options "%push-parse-options"|Stores parse options so that they will be restored when the current file is done parsing; use in include files to ensure parse options are set appropriately for the file being parsed
+    |@ref require-dollar "%require-dollar"|Resets the default %Qore behavior where the use of the \c "$" character in variable names, method calls, and object member references is required; use after @ref allow-bare-refs "%allow-bare-refs" to reset the default parsing behavior <br><br>Since %Qore 0.8.4
     |@ref require-our "%require-our"|Requires global variables to be declared with @ref our "our" prior to use (like perl's <tt>use strict vars</tt> pragma); equivalent to parse option @ref Qore::PO_REQUIRE_OUR and the <tt>--require-our</tt> command line option
     |@ref require-prototypes "%require-prototypes"|Requires type declarations for all function and method parameters and return types. Variables and object members do not need to have type declarations; equivalent to parse option @ref Qore::PO_REQUIRE_PROTOTYPES and the <tt>--require-prototypes</tt> command line option <br><br>Since %Qore 0.8.0
     |@ref require-types "%require-types"|Requires type declarations for all function and method parameters, return types, variables, and object members; equivalent to parse option @ref Qore::PO_REQUIRE_TYPES and the <tt>--require-types</tt> command line option; also implies @ref strict-args "%strict-args" <br><br>Since %Qore 0.8.0
@@ -66,7 +70,7 @@
     @ref Qore::PO_ALLOW_BARE_REFS
 
     @par Description:
-    Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs. This parse option is set by default with @ref new-style "%new-style".\n\n
+    Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs. This parse option is set by default with @ref new-style "%new-style" and is the opposite of @ref require-dollar "%require-dollar".\n\n
     Name resolution is made in the following order when this option is set: 
     - @ref variable_declarations "local variables"
     - @ref class_constants "class constants" (when parsing in class code)
@@ -76,6 +80,27 @@
     Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set.
 
     @since %Qore 0.8.1
+
+    @see @ref require-dollar "%require-dollar"
+
+    <hr>
+    @section assume-global %assume-global
+
+    @par Parse Directive:
+    <tt>%%assume-global</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Resets the default %Qore behavior of assuming global variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present; use after @ref assume-local "%assume-local" to reset the default parsing behavior. This parse option is also set with @ref old-style "%old-style"
+
+    @since %Qore 0.8.4
+
+    @see @ref assume-local "%assume-local"
 
     <hr>
     @section assume-local %assume-local
@@ -90,9 +115,11 @@
     @ref Qore::PO_ASSUME_LOCAL
 
     @par Description:
-    Assume local variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present. When used with @ref allow-bare-refs "%allow-bare-refs", local variables without @ref my "my" must be declared with a data type restriction (can be any). This parse option is set by default with @ref new-style "%new-style"
+    Assume local variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present. When used with @ref allow-bare-refs "%allow-bare-refs", local variables without @ref my "my" must be declared with a data type restriction (can be any). This parse option is set by default with @ref new-style "%new-style" and is the opposite of @ref assume-global "%assume-global"
 
     @since %Qore 0.8.1
+
+    @see @ref assume-global "%assume-global"
 
     <hr>
     @section define %define
@@ -107,7 +134,7 @@
     n/a
 
     @par Description:
-    Creates and optionally sets a value for a parse define
+    Creates and optionally sets a value for a @ref conditional_parsing "parse define"
 
     @since %Qore 0.8.3
 
@@ -158,6 +185,7 @@
 
     @since %Qore 0.8.3
 
+    <hr>
     @section enable-all-warnings %enable-all-warnings
 
     @par Parse Directive:
@@ -232,7 +260,7 @@
     n/a
 
     @par Description:
-    Opens a conditionally-parsed block; if the given parse define is defined, then the block after the <tt>%%ifdef</tt> is parsed until either an @ref else "%else" or an @ref endif "%endif"
+    Opens a conditionally-parsed block; if the given @ref conditional_parsing "parse define" is defined, then the block after the <tt>%%ifdef</tt> is parsed until either an @ref else "%else" or an @ref endif "%endif"
 
     @since %Qore 0.8.3
 
@@ -249,7 +277,7 @@
     n/a
 
     @par Description:
-    Opens a conditionally-parsed block; if the given parse define is not defined, then the block after the <tt>%%ifndef</tt> is parsed until either an @ref else "%else" or an @ref endif "%endif"
+    Opens a conditionally-parsed block; if the given @ref conditional_parsing "parse define" is not defined, then the block after the <tt>%%ifndef</tt> is parsed until either an @ref else "%else" or an @ref endif "%endif"
 
     @since %Qore 0.8.3
 
@@ -328,7 +356,28 @@
     @par Description:
     Sets both @ref allow-bare-refs "%allow-bare-refs" andv @ref assume-local "%assume-local". These two options together make programming in %Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the \c "$" sign, for example.
 
+    @see @ref old-style "%old-style"
+
     @since %Qore 0.8.1
+
+    <hr>
+    @section old-style %old-style
+
+    @par Parse Directive:
+    <tt>%%old-style</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Resets default %Qore parsing behavior by setting @ref require-dollar "%require-dollar" and @ref assume-global "%assume-global"; this option has the opposite effect of @ref new-style "%new-style"
+
+    @see @ref new-style "%new-style"
+
+    @since %Qore 0.8.4
 
     <hr>
     @section no-child-restrictions %no-child-restrictions
@@ -809,6 +858,43 @@
 
     @par Description:
     Disallows top level code.
+
+    <hr>
+    @section push-parse-options %push-parse-options
+
+    @par Parse Directive:
+    <tt>%%push-parse-options</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Stores parse options so that they will be restored when the current file is done parsing; use in include files to ensure parse options are set appropriately for the file being parsed.\n\n
+    For example:\n
+    @code
+%push-parse-options
+%new-style
+    @endcode
+
+    <hr>
+    @section require-dollar %require-dollar
+
+    @par Parse Directive:    
+    <tt>%%require-dollar</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Resets the default %Qore behavior where the use of the \c "$" character in variable names, method calls, and object member references is required; use after @ref allow-bare-refs "%allow-bare-refs" to reset the default parsing behavior
+
+    @since %Qore 0.8.4
 
     <hr>
     @section require-our %require-our

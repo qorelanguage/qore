@@ -612,6 +612,10 @@ void QoreProgram::parseSetParseOptions(int64 po) {
    priv->setParseOptions(po);
 }
 
+void QoreProgram::parseDisableParseOptions(int64 po) {
+   priv->disableParseOptions(po);
+}
+
 // DEPRECATED
 void QoreProgram::setParseOptions(int po, ExceptionSink *xsink) {
    priv->setParseOptions((int64)po, xsink);
