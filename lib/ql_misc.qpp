@@ -1824,7 +1824,7 @@ load_module("mysql");
 
     @since %Qore 0.8.4 this function is not available when @ref Qore::PO_NO_PROCESS_CONTROL is set
 */
-nothing load_module(string name) [flags=CONSTANT;dom=PROCESS] {
+nothing load_module(string name) [dom=PROCESS] {
    MM.runTimeLoadModule(name->getBuffer(), xsink);
 }
 
