@@ -787,13 +787,13 @@ void BCEAList::deref(ExceptionSink *xsink) {
 void BCANode::parseInit(BCList *bcl, const char *classname) {
    QoreClass *sclass = 0;
    if (ns) {
-      sclass = getRootNS()->parseFindScopedClass(ns);
+      sclass = qore_ns_private::parseFindScopedClass(*(getRootNS()), ns);
       printd(5, "BCANode::parseInit() this=%p resolved named scoped %s -> %p\n", this, ns->ostr, sclass);
       delete ns;
       ns = 0;
    }
    else {
-      sclass = getRootNS()->parseFindClass(name);
+      sclass = qore_ns_private::parseFindClass(*(getRootNS()), name);
       printd(5, "BCANode::parseInit() this=%p resolved %s -> %p\n", this, name, sclass);
       free(name);
       name = 0;
@@ -829,14 +829,14 @@ void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
    if (!sclass) {
       if (cname) {
 	 // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
-	 sclass = getRootNS()->parseFindScopedClass(cname);
+	 sclass = qore_ns_private::parseFindScopedClass(*(getRootNS()), cname);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
 	 delete cname;
 	 cname = 0;
       }
       else {
 	 // if the class cannot be found, RootQoreNamespace::parseFindClass() will throw the appropriate exception
-	 sclass = getRootNS()->parseFindClass(cstr);
+	 sclass = qore_ns_private::parseFindClass(*(getRootNS()), cstr);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
 	 free(cstr);
 	 cstr = 0;
@@ -2179,7 +2179,8 @@ const QoreMethod *QoreClass::parseResolveSelfMethod(const char *nme) {
 
 const QoreMethod *QoreClass::parseResolveSelfMethod(NamedScope *nme) {
    // first find class
-   QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(nme);
+
+   QoreClass *qc = qore_ns_private::parseFindScopedClassWithMethod(*(getRootNS()), nme);
    if (!qc)
       return 0;
 

@@ -21,6 +21,7 @@
  */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 ClassRefNode::ClassRefNode(char *str) : ParseNoEvalNode(NT_CLASSREF), cscope(new NamedScope(str)) {
 }
@@ -66,7 +67,7 @@ AbstractQoreNode *ClassRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &l
    // FIXME: implement a type for this
    typeInfo = 0;
    if (cscope) {
-      const QoreClass *qc = getRootNS()->parseFindScopedClass(cscope);
+      const QoreClass *qc = qore_ns_private::parseFindScopedClass(*(getRootNS()), cscope);
       if (qc)
 	 cid = qc->getID();
       delete cscope;

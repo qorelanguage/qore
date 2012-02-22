@@ -23,8 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/minitest.hpp>
 #include <qore/intern/QoreHashNodeIntern.h>
-
-// for non-single compilation unit
+#include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/ParserSupport.h>
 
 #include <string.h>
@@ -612,10 +611,10 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
          // currently type information is ignored
          const QoreTypeInfo *keyTypeInfo = 0;
          if (k[0] == HE_TAG_CONST)
-            rv = getRootNS()->findConstantValue(k + 1, keyTypeInfo);
+	    rv = qore_ns_private::findConstantValue(*(getRootNS()), k + 1, keyTypeInfo);
          else {
             NamedScope *nscope = new NamedScope(strdup(k + 1));
-            rv = getRootNS()->findConstantValue(nscope, keyTypeInfo);
+	    rv = qore_ns_private::findConstantValue(*(getRootNS()), nscope, keyTypeInfo);
             delete nscope;
          }
 

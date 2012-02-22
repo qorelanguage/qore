@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -555,7 +556,7 @@ UnresolvedStaticMethodCallReferenceNode::~UnresolvedStaticMethodCallReferenceNod
 AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = callReferenceTypeInfo;
 
-   QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(scope);
+   QoreClass *qc = qore_ns_private::parseFindScopedClassWithMethod(*(getRootNS()), scope);
    if (!qc)
       return this;
    

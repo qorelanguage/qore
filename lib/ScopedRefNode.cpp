@@ -70,7 +70,7 @@ AbstractQoreNode *ScopedRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &
    printd(5, "ScopedRefNode::parseInit() resolving scoped constant \"%s\"\n", scoped_ref->ostr);
    AbstractQoreNode *n = this;
    AbstractQoreNode **node = &n;
-   if (!getRootNS()->resolveScopedReference(node, typeInfo))
+   if (!qore_ns_private::resolveScopedReference(node, typeInfo))
       return (*node)->parseInit(oflag, pflag, lvids, typeInfo);
    return *node;
 }

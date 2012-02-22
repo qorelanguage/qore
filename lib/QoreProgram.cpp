@@ -78,7 +78,9 @@ void qore_program_private_base::newProgram() {
       featureList.push_back((*i).c_str());
 
    // setup namespaces
-   RootNS = new RootQoreNamespace(QoreNS, pwo.parse_options);
+   RootNS = qore_ns_private::copyRootNamespace(staticSystemNamespace, pwo.parse_options);
+   QoreNS = RootNS->rootGetQoreNamespace();
+   assert(QoreNS);
 
    // setup initial defines
    // add platform defines
@@ -142,7 +144,7 @@ void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_opti
       // grab program's parse lock
       AutoLocker al(p_pgm->priv->plock);
       // setup derived namespaces
-      RootNS = p_pgm->priv->RootNS->copy(n_parse_options);
+      RootNS = qore_ns_private::copyRootNamespace(*p_pgm->priv->RootNS, n_parse_options);
    }
    QoreNS = RootNS->rootGetQoreNamespace();
       
@@ -164,7 +166,7 @@ void qore_program_private::internParseRollback() {
    user_func_list.parseRollback();
 	 
    // delete pending changes to namespaces
-   RootNS->parseRollback();
+   qore_ns_private::parseRollback(*RootNS);
 
    // commit global variables
    global_var_list.parseRollback();
@@ -203,7 +205,7 @@ int qore_program_private::internParseCommit() {
       user_func_list.parseCommit();
 	    
       // merge pending namespace additions
-      RootNS->parseCommit();
+      qore_ns_private::parseCommit(*RootNS);
 	    
       // commit global variables
       global_var_list.parseCommit();
@@ -836,7 +838,7 @@ void QoreProgram::parseRollback() {
 
 void QoreProgram::runClass(const char *classname, ExceptionSink *xsink) {
    // find class
-   QoreClass *qc = priv->RootNS->rootFindClass(classname);
+   QoreClass *qc = qore_ns_private::rootFindClass(*priv->RootNS, classname);
    if (!qc) {
       xsink->raiseException("CLASS-NOT-FOUND", "cannot find any class '%s' in any namespace", classname);
       return;

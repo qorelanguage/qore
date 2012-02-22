@@ -39,7 +39,7 @@
     return holder->styleHint();
     @endcode
 */
-template<typename T>
+template<typename T = class AbstractQoreNode>
 class ReferenceHolder {
    private:
       DLLLOCAL ReferenceHolder(const ReferenceHolder&); // not implemented

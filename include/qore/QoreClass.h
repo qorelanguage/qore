@@ -73,6 +73,9 @@ class qore_method_private;
 class MethodFunctionBase;
 class QoreExternalMethodVariant;
 class QoreExternalStaticMethodVariant;
+class NamedScope;
+class ConstantList;
+class MethodVariantBase;
 
 //! a method in a QoreClass
 /** methods can be implemented in the Qore language (user methods) or in C++ (builtin methods)

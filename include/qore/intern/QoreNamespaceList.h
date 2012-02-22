@@ -37,6 +37,8 @@
 
 typedef std::map<std::string, QoreNamespace*> nsmap_t;
 
+class qore_ns_private;
+
 class QoreNamespaceList {
 private:
    DLLLOCAL void deleteAll();
@@ -60,7 +62,7 @@ public:
       return i == nsmap.end() ? 0 : i->second;
    }
    DLLLOCAL void add(QoreNamespace *ot);
-   DLLLOCAL QoreNamespaceList *copy(int64 po, const QoreNamespace *parent);
+   DLLLOCAL QoreNamespaceList *copy(int64 po, const qore_ns_private& parent);
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInitConstants();
    DLLLOCAL void parseInit();
@@ -75,7 +77,6 @@ public:
    DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *parseFindClass(const char *ocname);
-   DLLLOCAL QoreClass *parseFindChangeClass(const char *ocname);
    DLLLOCAL void deleteData(ExceptionSink *xsink);
 
    DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo) const;

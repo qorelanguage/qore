@@ -36,6 +36,8 @@
 
 typedef std::map<const char*, QoreClass *, ltstr> hm_qc_t;
 
+class QoreNamespaceList;
+
 class QoreClassList {
 private:
    hm_qc_t hm;        // hash_map for name lookups

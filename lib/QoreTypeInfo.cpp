@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreRWLock.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 // provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
 static BigIntTypeInfo staticBigIntTypeInfo;
@@ -486,7 +487,7 @@ const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
       return 0;
 
    // resolve class
-   const QoreClass *qc = getRootNS()->parseFindScopedClass(cscope);
+   const QoreClass *qc = qore_ns_private::parseFindScopedClass(*(getRootNS()), cscope);
 
    bool my_or_nothing = or_nothing;
    delete this;

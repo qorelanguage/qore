@@ -462,8 +462,8 @@ void TopLevelStatementBlock::parseInit(RootQoreNamespace *rns, UserFunctionList 
    save_global_vnode(vn);
    
    // now initialize root namespace and functions before local variables are popped off the stack
-   rns->parseInitConstants();
-   rns->parseInit();
+   qore_ns_private::parseInitConstants(*rns);
+   qore_ns_private::parseInit(*rns);
    ufl->parseInit();
 
    if (first) {

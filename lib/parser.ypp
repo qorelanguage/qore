@@ -45,6 +45,7 @@
 #include <qore/intern/OnBlockExitStatement.h>
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/GlobalVariableList.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #include "parser.h"
 
@@ -162,18 +163,18 @@ struct NSNode {
    DLLLOCAL NSNode(class QoreNamespace  *s) { type = NSN_NS; n.ns = s; }
 };
 
-static void addNSNode(class QoreNamespace *ns, struct NSNode *n) {
+static void addNSNode(QoreNamespace& ns, struct NSNode *n) {
    switch (n->type) {
       case NSN_OCD:
-	 ns->addClass(n->n.ocd->name, n->n.ocd->oc);
+         qore_ns_private::addClass(ns, n->n.ocd->name, n->n.ocd->oc);
 	 delete n->n.ocd;
 	 break;
       case NSN_CONST:
-	 ns->parseAddConstant(n->n.cn->name, n->n.cn->value);
+         qore_ns_private::parseAddConstant(ns, n->n.cn->name, n->n.cn->value);
 	 delete n->n.cn;
 	 break;
       case NSN_NS:
-	 ns->parseAddNamespace(n->n.ns);
+         qore_ns_private::parseAddNamespace(ns, n->n.ns);
 	 break;
    }
    delete n;
@@ -512,20 +513,12 @@ struct ParserScopedOrNothingTypeStruct : public ParserTypeStruct {
    }
 };
 
-static inline void parseAddConstant(const NamedScope &name, AbstractQoreNode *value) {
-   getRootNS()->rootAddConstant(name, value);
+static void parseAddConstant(const NamedScope &name, AbstractQoreNode *value) {
+   qore_ns_private::rootAddConstant(*(getRootNS()), name, value);
 }
 
-static inline void addClass(NamedScope *name, QoreClass *oc) {
-   getRootNS()->rootAddClass(name, oc);
-}
-
-static inline QoreClass *parseFindClass(char *name) {
-   QoreClass *c = getRootNS()->rootFindClass(name);
-   if (!c)
-      parse_error("reference to undefined class '%s'", name);
-
-   return c;
+static void addClass(NamedScope *name, QoreClass *oc) {
+   qore_ns_private::rootAddClass(*(getRootNS()), name, oc);
 }
 
 static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
@@ -708,7 +701,7 @@ static inline void tryAddMethod(int mod, char *n, int n_sig_first_line, int n_si
    else {
       MethodVariantBase *m = newMethodVariant(name->getIdentifier(), mod, n_sig_first_line, n_sig_last_line, params, bcal, returnTypeInfo, b, mod & OFM_DEPRECATED);
       // if there are any errors, the function below will delete memory
-      getRootNS()->addMethodToClass(name.get(), m, mod & OFM_STATIC);
+      qore_ns_private::addMethodToClass(name.get(), m, mod & OFM_STATIC);
    }
 }
 
@@ -1082,7 +1075,7 @@ top_level_command:
 	   delete $1;
 	}
         | unscoped_const_decl { 
-	   getRootNS()->parseAddConstant($1->name, $1->value); 
+           qore_ns_private::parseAddConstant(*(getRootNS()), $1->name, $1->value); 
 	   delete $1;
 	}
         | object_outofline_function_def  // registered directly
@@ -1101,7 +1094,7 @@ top_level_command:
 	   getProgram()->addStatement($2);
         }
         | top_namespace_decl {
-	   getRootNS()->parseAddNamespace($1); 
+           qore_ns_private::parseAddNamespace(*(getRootNS()), $1); 
 	   // see if ns declaration is legal
 	   if (checkParseOption(PO_NO_NAMESPACE_DEFS))
 	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
@@ -1110,19 +1103,19 @@ top_level_command:
 
 top_namespace_decl:
 	TOK_NAMESPACE IDENTIFIER '{' namespace_decls '}'
-	{ $4->setName($2); $$ = $4; free($2); }
+	{ qore_ns_private::setName(*($4), $2); $$ = $4; free($2); }
         | TOK_NAMESPACE IDENTIFIER ';'
         { $$ = new QoreNamespace($2); free($2); }
 	;
 
 namespace_decls:
 	namespace_decl {
-	   QoreNamespace *ns = new QoreNamespace;
-	   addNSNode(ns, $1);
+	   QoreNamespace *ns = new QoreNamespace("");
+	   addNSNode(*ns, $1);
 	   $$ = ns;
         }
         | namespace_decls namespace_decl { 
-	   addNSNode($1, $2);
+	   addNSNode(*($1), $2);
 	   $$ = $1;
 	}
 	;

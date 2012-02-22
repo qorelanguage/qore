@@ -21,6 +21,7 @@
  */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 // object takes over ownership of str
 BarewordNode::BarewordNode(char *c_str) : ParseNoEvalNode(NT_BAREWORD), str(c_str) {
@@ -78,7 +79,7 @@ AbstractQoreNode *BarewordNode::parseInitImpl(LocalVar *oflag, int pflag, int &l
    AbstractQoreNode *n = this;
    AbstractQoreNode **node = &n;
    printd(5, "BarewordNode::parseInitImpl() resolving bareword '%s'\n", reinterpret_cast<BarewordNode *>(*node)->str);
-   if (!getRootNS()->resolveBareword(node, typeInfo))
+   if (!qore_ns_private::resolveBareword(node, typeInfo))
       return (*node)->parseInit(oflag, pflag, lvids, typeInfo);
    return *node;
 }
