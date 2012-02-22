@@ -101,7 +101,7 @@ void qore_program_private_base::newProgram() {
 
    QoreNamespace *ns = QoreNS->findLocalNamespace("Option");
    assert(ns);
-   ConstantListIterator cli(*qore_ns_private::getConstantList(ns));
+   ConstantListIterator cli(qore_ns_private::getConstantList(ns));
    while (cli.next()) {
       AbstractQoreNode *v = cli.getValue();
       assert(v);

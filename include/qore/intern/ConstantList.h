@@ -76,9 +76,9 @@ public:
    DLLLOCAL bool inList(const std::string &name) const;
    //DLLLOCAL ConstantList *copy();
    // assimilate the list without any duplicate checking
-   DLLLOCAL void assimilate(ConstantList *n);
+   DLLLOCAL void assimilate(ConstantList& n);
    // assimilate a constant list in a namespace with duplicate checking (also in pending list)
-   DLLLOCAL void assimilate(ConstantList *n, ConstantList *otherlist, const char *nsname);
+   DLLLOCAL void assimilate(ConstantList& n, ConstantList& otherlist, const char *nsname);
 
    // assimilate a constant list in a class constant list with duplicate checking (pub & priv + pending)
    DLLLOCAL void assimilate(ConstantList &n, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
@@ -89,6 +89,7 @@ public:
    DLLLOCAL QoreHashNode *getInfo();
    DLLLOCAL void parseDeleteAll();
    DLLLOCAL void deleteAll(ExceptionSink *xsink);
+   DLLLOCAL void reset();
 
    DLLLOCAL bool empty() const {
       return hm.empty();

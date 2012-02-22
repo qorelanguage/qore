@@ -31,96 +31,67 @@
 struct qore_ns_private {
    std::string name;
 
-   QoreClassList      *classList;
-   ConstantList       *constant;
-   QoreNamespaceList  *nsl;
-
-   // pending lists
-   // FIXME: can be normal members
-   QoreClassList      *pendClassList;
-   ConstantList       *pendConstant;
-   QoreNamespaceList  *pendNSL;
+   QoreClassList classList, pendClassList;
+   ConstantList constant, pendConstant;
+   QoreNamespaceList nsl, pendNSL;
 
    const qore_ns_private* parent;
    q_ns_class_handler_t class_handler;   
    QoreNamespace *ns;
 
-   DLLLOCAL qore_ns_private(QoreNamespace* n_ns, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) 
-      : name(""), 
-        classList(ocl), constant(cl), nsl(nnsl), 
-        pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList),
-        parent(0), class_handler(0), ns(n_ns) {
-      assert(classList);
-      assert(constant);
-      assert(nsl);
-   }
-
    DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char *n) 
       : name(n),
-        classList(new QoreClassList), constant(new ConstantList), nsl(new QoreNamespaceList), 
-        pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList),
         parent(0), class_handler(0), ns(n_ns) {
    }
 
    DLLLOCAL qore_ns_private(const qore_ns_private &old, int64 po) 
-      : name(old.name), classList(old.classList->copy(po)), constant(new ConstantList(*old.constant)),
-        nsl(old.nsl->copy(po, *this)), 
-        pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList),
+      : name(old.name), 
+        classList(old.classList, po), 
+        constant(old.constant),
+        nsl(old.nsl, po, *this),
         parent(0), class_handler(old.class_handler), ns(0) {
    }		    
 
    DLLLOCAL ~qore_ns_private() {
       printd(5, "qore_ns_private::~qore_ns_private() this=%p '%s'\n", this, name.c_str());
-
-      if (nsl)
-         purge();
    }
 
    // destroys the object and frees all associated memory
    DLLLOCAL void purge() {
-      delete constant;
-      constant = 0;
+      constant.reset();
+      pendConstant.reset();
 
-      delete classList;
-      classList = 0;
+      classList.reset();
+      pendClassList.reset();
 
-      delete nsl;
-      nsl = 0;
-	 
-      delete pendConstant;
-      pendConstant = 0;
-
-      delete pendClassList;
-      pendClassList = 0;
-
-      delete pendNSL;
-      pendNSL = 0;
+      nsl.reset();
+      pendNSL.reset();
    }
 
    // finds a local class in the committed class list, if not found executes the class handler
    DLLLOCAL QoreClass *findLoadClass(QoreNamespace *cns, const char *cname) {
-      QoreClass *qc = classList->find(cname);
+      QoreClass *qc = classList.find(cname);
       if (!qc && class_handler)
 	 qc = class_handler(cns, cname);
       return qc;
    }
 
-   DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *bname, const QoreTypeInfo *&typeInfo) const {
-      AbstractQoreNode *rv = constant->find(bname, typeInfo);
+   DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *bname, const QoreTypeInfo *&typeInfo) {
+      AbstractQoreNode *rv = constant.find(bname, typeInfo);
       if (rv)
          return rv->refSelf();
 
-      rv = pendConstant->find(bname, typeInfo);
+      rv = pendConstant.find(bname, typeInfo);
       if (rv)
          return rv->refSelf();
 
-      rv = classList->parseResolveBareword(bname, typeInfo);
+      rv = classList.parseResolveBareword(bname, typeInfo);
       if (!rv) {
-         rv = pendClassList->parseResolveBareword(bname, typeInfo);
+         rv = pendClassList.parseResolveBareword(bname, typeInfo);
          if (!rv) {
-            rv = nsl->parseResolveBareword(bname, typeInfo);
+            rv = nsl.parseResolveBareword(bname, typeInfo);
             if (!rv)
-               rv = pendNSL->parseResolveBareword(bname, typeInfo);
+               rv = pendNSL.parseResolveBareword(bname, typeInfo);
          }
       }
       return rv;
@@ -131,15 +102,15 @@ struct qore_ns_private {
       name = nme;
    }
 
-   DLLLOCAL void assimilate(QoreNamespace *ns);
+   DLLLOCAL void assimilate(QoreNamespace* ns);
 
    DLLLOCAL void addClass(const NamedScope *n, QoreClass *oc);
    DLLLOCAL void addClass(QoreClass *oc);
 
    DLLLOCAL void parseAddConstant(const NamedScope &name, AbstractQoreNode *value);
 
-   DLLLOCAL AbstractQoreNode *getConstantValue(const char *name, const QoreTypeInfo *&typeInfo) const;
-   DLLLOCAL QoreClass *parseFindLocalClass(const char *name) const;
+   DLLLOCAL AbstractQoreNode *getConstantValue(const char *name, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL QoreClass *parseFindLocalClass(const char *name);
    DLLLOCAL void parseAddNamespace(QoreNamespace *nns);
    DLLLOCAL void parseInit();
    DLLLOCAL void parseInitConstants();
@@ -147,48 +118,48 @@ struct qore_ns_private {
    DLLLOCAL void parseCommit();
 
    DLLLOCAL QoreNamespace *resolveNameScope(const NamedScope *name) const;
-   DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope *nscope, unsigned *matched) const;
+   DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope *nscope, unsigned *matched);
    DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope *nscope, unsigned *matched);
-   DLLLOCAL AbstractQoreNode *parseCheckScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
-   DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
-   DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) const;
-   DLLLOCAL QoreNamespace *parseFindLocalNamespace(const char *nname) const;
+   DLLLOCAL AbstractQoreNode *parseCheckScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL QoreNamespace *parseFindLocalNamespace(const char *nname);
 
-   DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL QoreNamespace *rootResolveNamespace(const NamedScope *nscope);
    DLLLOCAL QoreClass *rootFindScopedClass(const NamedScope *name, unsigned *matched);
-   DLLLOCAL AbstractQoreNode *rootFindScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL AbstractQoreNode *rootFindScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo);
    DLLLOCAL RootQoreNamespace* copyRootNamespace(int64 po) {
       // should only be called on the root namespace
       assert(name.empty() && !parent);
 
       RootQoreNamespace* rv = new RootQoreNamespace(new qore_ns_private(*this, po));
-      rv->qoreNS = rv->priv->nsl->find("Qore");
+      rv->qoreNS = rv->priv->nsl.find("Qore");
       rv->priv->ns = rv;
       assert(rv->qoreNS);
       return rv;
    }
-   DLLLOCAL QoreClass *rootFindClass(const char *name) const;
+   DLLLOCAL QoreClass *rootFindClass(const char *name);
 
    DLLLOCAL void rootAddClass(const NamedScope *name, QoreClass *oc);
    DLLLOCAL void rootAddConstant(const NamedScope &name, AbstractQoreNode *value);
-   DLLLOCAL AbstractQoreNode *rootFindConstantValue(const char *name, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL AbstractQoreNode *rootFindConstantValue(const char *name, const QoreTypeInfo *&typeInfo);
    DLLLOCAL QoreClass *rootFindScopedClassWithMethod(const NamedScope *nscope, unsigned *matched);
 
-   DLLLOCAL AbstractQoreNode *findConstantValue(const NamedScope *name, const QoreTypeInfo *&typeInfo) const;
-   DLLLOCAL AbstractQoreNode *findConstantValue(const char *name, const QoreTypeInfo *&typeInfo) const;
-   DLLLOCAL QoreClass *parseFindClass(const char *name) const;
+   DLLLOCAL AbstractQoreNode *findConstantValue(const NamedScope *name, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL AbstractQoreNode *findConstantValue(const char *name, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL QoreClass *parseFindClass(const char *name);
    DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name);
    DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name);
 
    // returns 0 for success, non-zero for error
-   DLLLOCAL int rootResolveBareword(AbstractQoreNode **node, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL int rootResolveBareword(AbstractQoreNode **node, const QoreTypeInfo *&typeInfo);
    // returns 0 for success, non-zero for error (parse exception thrown)
-   DLLLOCAL int rootResolveScopedReference(AbstractQoreNode **node, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL int rootResolveScopedReference(AbstractQoreNode **node, const QoreTypeInfo *&typeInfo);
    // does not throw parse exceptions
-   DLLLOCAL AbstractQoreNode *rootResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL AbstractQoreNode *rootResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo);
    // returns 0 for success, non-zero for error
    DLLLOCAL int rootAddMethodToClass(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);
 
@@ -216,19 +187,19 @@ struct qore_ns_private {
       return rns.priv->rootFindScopedClassWithMethod(nscope, matched);
    }
 
-   DLLLOCAL static AbstractQoreNode *rootFindConstantValue(const RootQoreNamespace& rns, const char *name, const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL static AbstractQoreNode *rootFindConstantValue(RootQoreNamespace& rns, const char *name, const QoreTypeInfo *&typeInfo) {
       return rns.priv->rootFindConstantValue(name, typeInfo);
    }
 
-   DLLLOCAL static AbstractQoreNode *findConstantValue(const RootQoreNamespace& rns, const NamedScope *name, const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL static AbstractQoreNode *findConstantValue(RootQoreNamespace& rns, const NamedScope *name, const QoreTypeInfo *&typeInfo) {
       return rns.priv->findConstantValue(name, typeInfo);
    }
 
-   DLLLOCAL static AbstractQoreNode *findConstantValue(const RootQoreNamespace& rns, const char *name, const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL static AbstractQoreNode *findConstantValue(RootQoreNamespace& rns, const char *name, const QoreTypeInfo *&typeInfo) {
       return rns.priv->findConstantValue(name, typeInfo);
    }
 
-   DLLLOCAL static QoreClass *parseFindClass(const RootQoreNamespace& rns, const char *name) {
+   DLLLOCAL static QoreClass *parseFindClass(RootQoreNamespace& rns, const char *name) {
       return rns.priv->parseFindClass(name);
    }
 
@@ -248,7 +219,7 @@ struct qore_ns_private {
       rns.priv->rootAddConstant(name, value);
    }
 
-   DLLLOCAL static QoreClass *rootFindClass(const RootQoreNamespace& rns, const char *name) {
+   DLLLOCAL static QoreClass *rootFindClass(RootQoreNamespace& rns, const char *name) {
       return rns.priv->rootFindClass(name);
    }
 
@@ -260,11 +231,11 @@ struct qore_ns_private {
       ns.priv->setName(nme);
    }
 
-   DLLLOCAL static AbstractQoreNode *parseResolveBareword(const QoreNamespace *ns, const char *bname, const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL static AbstractQoreNode *parseResolveBareword(QoreNamespace *ns, const char *bname, const QoreTypeInfo *&typeInfo) {
       return ns->priv->parseResolveBareword(bname, typeInfo);
    }
 
-   DLLLOCAL static ConstantList *getConstantList(const QoreNamespace *ns) {
+   DLLLOCAL static ConstantList& getConstantList(const QoreNamespace *ns) {
       return ns->priv->constant;
    }
 

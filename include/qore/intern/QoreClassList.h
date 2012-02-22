@@ -43,7 +43,7 @@ private:
    hm_qc_t hm;        // hash_map for name lookups
       
    DLLLOCAL void deleteAll();
-   DLLLOCAL void assimilate(QoreClassList *n);
+   DLLLOCAL void assimilate(QoreClassList& n);
 
    DLLLOCAL void remove(hm_qc_t::iterator i) {
       QoreClass *qc = i->second;
@@ -51,19 +51,20 @@ private:
       hm.erase(i);
       delete qc;
    }
-   
+
 public:
    DLLLOCAL QoreClassList() {}
    DLLLOCAL ~QoreClassList();
+   DLLLOCAL QoreClassList(const QoreClassList& old, int64 po);
+   
    DLLLOCAL int add(QoreClass *ot);
    DLLLOCAL QoreClass *find(const char *name);
-   DLLLOCAL QoreClassList *copy(int64 po);
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInit();
    DLLLOCAL void parseRollback();
-   DLLLOCAL void parseCommit(QoreClassList *n);
+   DLLLOCAL void parseCommit(QoreClassList& n);
    DLLLOCAL void reset();
-   DLLLOCAL void assimilate(QoreClassList *n, QoreClassList *otherlist, QoreNamespaceList *nsl, QoreNamespaceList *pendNSL, const char *nsname);
+   DLLLOCAL void assimilate(QoreClassList& n, QoreClassList& otherlist, QoreNamespaceList& nsl, QoreNamespaceList& pendNSL, const char *nsname);
    DLLLOCAL QoreHashNode *getInfo();
 
    DLLLOCAL AbstractQoreNode *findConstant(const char *cname, const QoreTypeInfo *&typeInfo);

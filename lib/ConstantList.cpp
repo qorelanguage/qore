@@ -157,6 +157,10 @@ ConstantList::~ConstantList() {
    // for non-debug mode with old modules: clear constants here
    //fprintf(stderr, "XXX ConstantList::~ConstantList() this=%p size=%d\n", this, hm.size());
 
+   reset();
+}
+
+void ConstantList::reset() {
    if (!hm.empty())
       clearIntern(0);
 }
@@ -234,27 +238,27 @@ bool ConstantList::inList(const std::string &name) const {
 }
 
 // no duplicate checking is done here
-void ConstantList::assimilate(ConstantList *n) {
-   for (hm_qn_t::iterator i = n->hm.begin(), e = n->hm.end(); i != e; ++i) {
+void ConstantList::assimilate(ConstantList& n) {
+   for (hm_qn_t::iterator i = n.hm.begin(), e = n.hm.end(); i != e; ++i) {
       assert(!inList(i->first));
       // "move" data to new list
       hm[i->first] = i->second;
       i->second = 0;
    }
    
-   n->parseDeleteAll();
+   n.parseDeleteAll();
 }
 
 // duplicate checking is done here
-void ConstantList::assimilate(ConstantList *n, ConstantList *otherlist, const char *name) {
+void ConstantList::assimilate(ConstantList& n, ConstantList& otherlist, const char *name) {
    // assimilate target list
-   for (hm_qn_t::iterator i = n->hm.begin(), e = n->hm.end(); i != e; ++i) {
+   for (hm_qn_t::iterator i = n.hm.begin(), e = n.hm.end(); i != e; ++i) {
       if (inList(i->first)) {
 	 parse_error("constant \"%s\" is already pending in namespace \"%s\"", i->first.c_str(), name);
 	 continue;
       }
 
-      if (otherlist->inList(i->first)) {
+      if (otherlist.inList(i->first)) {
 	 parse_error("constant \"%s\" has already been defined in namespace \"%s\"", i->first.c_str(), name);
 	 continue;
       }
@@ -263,7 +267,7 @@ void ConstantList::assimilate(ConstantList *n, ConstantList *otherlist, const ch
       i->second = 0;
    }
 
-   n->parseDeleteAll();
+   n.parseDeleteAll();
 }
 
 int ConstantList::checkDup(const std::string &name, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname) {

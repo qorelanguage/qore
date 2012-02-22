@@ -605,8 +605,8 @@ void qore_class_private::parseCommit() {
       }
 
       // commit pending constants
-      priv_const.assimilate(&pend_priv_const);
-      pub_const.assimilate(&pend_pub_const);
+      priv_const.assimilate(pend_priv_const);
+      pub_const.assimilate(pend_pub_const);
 
       has_new_user_changes = false;
    }

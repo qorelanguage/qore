@@ -49,6 +49,8 @@ public:
    DLLLOCAL QoreNamespaceList() {
    }
 
+   DLLLOCAL QoreNamespaceList(const QoreNamespaceList& old, int64 po, const qore_ns_private& parent);
+
    DLLLOCAL ~QoreNamespaceList() {
       deleteAll();
    }
@@ -62,15 +64,14 @@ public:
       return i == nsmap.end() ? 0 : i->second;
    }
    DLLLOCAL void add(QoreNamespace *ot);
-   DLLLOCAL QoreNamespaceList *copy(int64 po, const qore_ns_private& parent);
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInitConstants();
    DLLLOCAL void parseInit();
-   DLLLOCAL void parseCommit(QoreNamespaceList *n);
+   DLLLOCAL void parseCommit(QoreNamespaceList& n);
    DLLLOCAL void parseRollback();
    DLLLOCAL void deleteAllConstants(ExceptionSink *xsink);
    DLLLOCAL void reset();
-   DLLLOCAL void assimilate(QoreNamespaceList *n);
+   DLLLOCAL void assimilate(QoreNamespaceList& n);
    DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope *name, unsigned *matched);
    DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
    DLLLOCAL AbstractQoreNode *parseFindScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo);
