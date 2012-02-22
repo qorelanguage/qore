@@ -28,9 +28,9 @@
  */
 qclass <string> [arg=QoreStringNode* str;vparent=<value>];
 
-//! Returns NT_STRING
+//! Returns Qore::NT_STRING
 /** 
-    @return NT_STRING
+    @return Qore::NT_STRING
     @code
 switch ($str.typeCode()) {
     case NT_STRING:

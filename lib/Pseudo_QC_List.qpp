@@ -28,9 +28,9 @@
  */
 qclass <list> [arg=QoreListNode* l;vparent=<value>];
 
-//! Returns NT_LIST
+//! Returns Qore::NT_LIST
 /** 
-    @return NT_LIST
+    @return Qore::NT_LIST
 
     @par Example:
     @code

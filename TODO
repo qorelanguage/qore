@@ -1,11 +1,10 @@
 * implement common initialization for global thead-local variables in all
   threads 
 * implement new calling convention for functions & methods with ignore rv param
-* implement parse options for pushing and restoring formatting options
-* make it so that a call ref/closure can be imported as a function in a
-  Program
 * fix class member initialization order to be same as declaration order
   (currently is alphabetic)
+* make it so that a call ref/closure can be imported as a function in a
+  Program
 * implement a way to tell if signal handling is enabled or not from qore code
 * implement warning for the case when an unquoted hash or object key is also a
   constant
@@ -60,6 +59,7 @@ done 0.8.4:
 * implement optimized foreach statement for hash key iteration
 * add warning for "." and {} operators where operand cannot be converted to a
   string
+* implement parse options for pushing and restoring formatting options
 
 done 0.8.3:
 * implement parse option for setting the time zone offset/region

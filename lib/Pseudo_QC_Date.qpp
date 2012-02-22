@@ -28,9 +28,9 @@
  */
 qclass <date> [arg=DateTimeNode *dt;vparent=<value>];
 
-//! Returns NT_DATE
+//! Returns Qore::NT_DATE
 /** 
-    @return NT_DATE
+    @return Qore::NT_DATE
 
     @par Example:
     @code

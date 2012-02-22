@@ -375,7 +375,7 @@ if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
 
     @return 0 = no error, -1 = see errno() and strerror() for the error message
 
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::open2() for a version of this method that throws an exception when errors occur opening the file
  */
@@ -417,7 +417,7 @@ catch (hash $ex) {
     @return 0 = no error, -1 = see errno() and strerror() for the error message
 
     @throw FILE-OPEN2-ERROR an error occured opening the file
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::open2() for a version of this method that throws an exception when errors occur opening the file
  */
@@ -439,7 +439,7 @@ nothing File::open2(string path, softint flags = O_RDONLY, softint mode = 0666, 
     @par Events:
     @ref EVENT_CHANNEL_CLOSED
 
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @return 0 for success, -1 for an error (see errno() and strerror() for the error information)
  */
@@ -459,7 +459,7 @@ if ($f.sync())
 
     @return 0 for success, -1 for error (see errno() and strerror() for the error information)
 
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::sync() {
    if (check_terminal_io(self, "sync", xsink))
@@ -484,11 +484,12 @@ int File::sync() {
     @param size the number of bytes to read of the file, -1 will read the entire file
     @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out and will only return when the data has been read
 
-    @return the data read from the file, returned as a string tagged with the File's character encoding.  \c NOTHING is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and \c NOTHING (signifying EOF) will be returned on the next call to this method.
+    @return the data read from the file, returned as a string tagged with the File's character encoding.  @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.
 
     @throw FILE-READ-PARAMETER-ERROR zero size argument passed
-    @throw FILE-READ-ERROR file is not open; timeout limit exceeded
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw FILE-READ-ERROR file is not open
+    @throw FILE-READ-TIMEOUT timeout limit exceeded
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::readBinary()
  */
@@ -514,7 +515,7 @@ int File::sync() {
     @return a 1-byte unsigned integer as read from the file in binary format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readu1() {
    if (check_terminal_io(self, "readu1", xsink))
@@ -536,7 +537,7 @@ int File::sync() {
     @return a 2-byte unsigned integer as read from the file in binary big-endian format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readu2() {
    if (check_terminal_io(self, "readu2", xsink))
@@ -558,7 +559,7 @@ int File::sync() {
     @return a 4-byte unsigned integer as read from the file in binary big-endian format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readu4() {
    if (check_terminal_io(self, "readu4", xsink))
@@ -580,7 +581,7 @@ int File::sync() {
     @return a 2-byte unsigned integer as read from the file in binary little-endian format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readu2LSB() {
    if (check_terminal_io(self, "readu2LSB", xsink))
@@ -603,7 +604,7 @@ int File::sync() {
     @return a 4-byte unsigned integer as read from the file in binary little-endian format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readu4LSB() {
    if (check_terminal_io(self, "readu4LSB", xsink))
@@ -626,7 +627,7 @@ int File::sync() {
     @return a 1-byte signed integer as read from the file in binary format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readi1() {
    if (check_terminal_io(self, "readi1", xsink))
@@ -648,7 +649,7 @@ int File::sync() {
     @return a 2-byte signed integer as read from the file in binary big-endian format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readi2() {
    if (check_terminal_io(self, "readi2", xsink))
@@ -670,7 +671,7 @@ int File::sync() {
     @return a 4-byte signed integer as read from the file in binary big-endian format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readi4() {
    if (check_terminal_io(self, "readi4", xsink))
@@ -692,7 +693,7 @@ int File::sync() {
     @return a 8-byte signed integer as read from the file in binary big-endian format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readi8() {
    if (check_terminal_io(self, "readi8", xsink))
@@ -715,7 +716,7 @@ int File::sync() {
     @return a 2-byte signed integer as read from the file in binary little-endian format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readi2LSB() {
    if (check_terminal_io(self, "readi2LSB", xsink))
@@ -738,7 +739,7 @@ int File::sync() {
     @return a 4-byte signed integer as read from the file in binary little-endian format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readi4LSB() {
    if (check_terminal_io(self, "readi4LSB", xsink))
@@ -760,7 +761,7 @@ int File::sync() {
     @return an 8-byte signed integer as read from the file in binary little-endian format or NOTHING if no data can be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *int File::readi8LSB() {
    if (check_terminal_io(self, "readi8LSB", xsink))
@@ -788,11 +789,12 @@ int File::sync() {
     @param size the number of bytes to read of the file, -1 will read the entire file
     @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out and will only return when the data has been read
 
-    @return the data read from the file, returned as a binary object.  \c NOTHING is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and \c NOTHING (signifying EOF) will be returned on the next call to this method.
+    @return the data read from the file, returned as a binary object.  @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.
 
     @throw FILE-READ-BINARY-PARAMETER-ERROR zero size argument passed
-    @throw FILE-READ-ERROR file is not open; timeout limit exceeded
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw FILE-READ-ERROR file is not open
+    @throw FILE-READ-TIMEOUT timeout limit exceeded
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::read()
  */
@@ -823,7 +825,7 @@ if ($f.write($data))
     @return the number of bytes written or -1 for error; if -1 is returned, the error can be checked with the errno() function
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::write(binary data) {
    if (check_terminal_io(self, "write", xsink))
@@ -848,7 +850,7 @@ if ($f.write($data))
 
     @throw FILE-WRITE-ERROR File is not open
     @throw ENCODING-CONVERSION-ERROR error converting from the string's encoding to the File's encoding
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @note this variant of this method is equivalent to File::print()
  */
@@ -875,7 +877,7 @@ if ($f.print($data))
 
     @throw FILE-WRITE-ERROR File is not open
     @throw ENCODING-CONVERSION-ERROR error converting from the string's encoding to the File's encoding
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @note this method is equivalent to File::write(string)
  */
@@ -901,7 +903,7 @@ if ($f.writei1($val))
     @return 0 for success, -1 for error
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei1(int c) {
    if (check_terminal_io(self, "writei1", xsink))
@@ -925,7 +927,7 @@ if ($f.writei2($val))
     @return 0 for success, -1 for error
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei2(int s) {
    if (check_terminal_io(self, "writei2", xsink))
@@ -949,7 +951,7 @@ if ($f.writei4($val))
     @return 0 for success, -1 for error
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei4(int i) {
    if (check_terminal_io(self, "writei4", xsink))
@@ -973,7 +975,7 @@ if ($f.writei8($val))
     @return 0 for success, -1 for error
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei8(int i) {
    if (check_terminal_io(self, "writei8", xsink))
@@ -997,7 +999,7 @@ if ($f.writei2LSB($val))
     @return 0 for success, -1 for error
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei2LSB(int s) {
    if (check_terminal_io(self, "writei2LSB", xsink))
@@ -1021,7 +1023,7 @@ if ($f.writei4LSB($val))
     @return 0 for success, -1 for error
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei4LSB(int i) {
    if (check_terminal_io(self, "writei4LSB", xsink))
@@ -1045,7 +1047,7 @@ if ($f.writei8LSB($val))
     @return 0 for success, -1 for error
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei8LSB(int i) {
    if (check_terminal_io(self, "writei8LSB", xsink))
@@ -1068,7 +1070,7 @@ int File::writei8LSB(int i) {
     @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::f_printf() for a similar method that enforces field widths
  */
@@ -1105,7 +1107,7 @@ int File::printf() [flags=RUNTIME_NOOP] {
     @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::f_vprintf() for a similar method that enforces field widths
  */
@@ -1141,7 +1143,7 @@ int File::vprintf() [flags=RUNTIME_NOOP] {
     @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::printf() for a similar method that does not enforce field widths
  */
@@ -1178,7 +1180,7 @@ int File::f_printf() [flags=RUNTIME_NOOP] {
     @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
 
     @throw FILE-WRITE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::vprintf() for a similar method that does not enforce field widths
  */
@@ -1219,7 +1221,7 @@ while (exists (my *string $line = $f.readLine())) {
     @return The line read from the file. NOTHING is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and NOTHING (signifying EOF) will be returned on the next call to this method.  Any string returned wiill be tagged with the File's character encoding.
 
     @throw FILE-READLINE-ERROR File is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *string File::readLine() {
    if (check_terminal_io(self, "readLine", xsink))
@@ -1234,7 +1236,7 @@ while (exists (my *string $line = $f.readLine())) {
 
     @param encoding the character encoding for the file; if called with no argument, the default encoding is set
 
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 nothing File::setEncoding(*string encoding) {
    if (check_terminal_io(self, "setEncoding", xsink))
@@ -1248,7 +1250,7 @@ nothing File::setEncoding(*string encoding) {
 /** A method synonym for Socket::setEncoding(), kept for backwards-compatibility
     @param encoding the character encoding for the file; if called with no argument, the default encoding is set
 
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 nothing File::setCharset(*string encoding) {
    if (check_terminal_io(self, "setCharset", xsink))
@@ -1288,7 +1290,7 @@ string File::getCharset() {
 
     @return the new offset in the file, -1 for error
 
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::setPos(int pos = 0) {
    if (check_terminal_io(self, "setPos", xsink))
@@ -1303,7 +1305,7 @@ int File::setPos(int pos = 0) {
 
     @return the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
 
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::getPos() {
    if (check_terminal_io(self, "getPos", xsink))
@@ -1322,7 +1324,7 @@ int File::getPos() {
 
     @throw FILE-READ-ERROR file is not open
     @throw FILE-GETCHAR-ERROR invalid multi-byte character read or EOF received while reading a multi-byte character
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *string File::getchar() {
    if (check_terminal_io(self, "getchar", xsink))
@@ -1358,7 +1360,7 @@ $f.lock(F_UNLCK);
 
     @throw FILE-LOCK-ERROR File is not open, lock length is negative, or the fcntl operation failed
     @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref Qore::Option::HAVE_FILE_LOCKING before calling this function.
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::lockBlocking() for a blocking version of this method
  */
@@ -1402,7 +1404,7 @@ $f.lockBlocking(F_UNLCK);
 
     @throw FILE-LOCK-ERROR File is not open, lock length is negative, or the fcntl operation failed
     @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref Qore::Option::HAVE_FILE_LOCKING before calling this function.
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::lockBlocking() for a blocking version of this method
  */
@@ -1439,7 +1441,7 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
 
     @throw FILE-LOCK-ERROR File is not open or the fcntl operation failed
     @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref Qore::Option::HAVE_FILE_LOCKING before calling this function.
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 hash File::getLockInfo() {
 #ifdef HAVE_STRUCT_FLOCK
@@ -1476,7 +1478,7 @@ hash File::getLockInfo() {
 
     @throw FILE-CHOWN-ERROR File is not open or the chown operation failed
     @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check \c Option::HAVE_UNIX_FILEMGT before calling this method to avoid this exception
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 nothing File::chown(softint uid, softint gid = -1) {
 #ifdef HAVE_CHOWN
@@ -1497,7 +1499,7 @@ nothing File::chown(softint uid, softint gid = -1) {
 
     @return \c True if data becomes available for reading from the file within the timeout period, \c False if not
 
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 bool File::isDataAvailable(timeout timeout_ms = 0) {
    if (check_terminal_io(self, "isDataAvailable", xsink))
@@ -1523,7 +1525,7 @@ stdin.getTerminalAttributes($termios);
     @throw FILE-OPERATION-ERROR the File is not open
     @throw TERMIOS-GET-ERROR error reading terminal attributes from the file descriptor
     @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check \c Option::HAVE_TERMIOS before calling this method to avoid this exception
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 nothing File::getTerminalAttributes(TermIOS[QoreTermIOS] termios) {
 #ifdef HAVE_TERMIOS_H
@@ -1570,7 +1572,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);
     @throw FILE-OPERATION-ERROR the File is not open
     @throw TERMIOS-SET-ERROR error setting terminal attributes on the file descriptor
     @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check \c Option::HAVE_TERMIOS before calling this method to avoid this exception
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 nothing File::setTerminalAttributes(softint action = TCSANOW, TermIOS[QoreTermIOS] termios) {
 #ifdef HAVE_TERMIOS_H
@@ -1591,7 +1593,7 @@ nothing File::setTerminalAttributes(softint action = TCSANOW, TermIOS[QoreTermIO
 
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref file_events "file events"
 
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see @ref event_handling for more information
  */
@@ -1608,7 +1610,7 @@ nothing File::setEventQueue(Qore::Thread::Queue[Queue] queue) {
 /** @par Example:
     @code $f.setEventQueue(); @endcode
 
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see @ref event_handling for more information
  */
@@ -1629,7 +1631,7 @@ nothing File::setEventQueue() {
     @return a @ref stat_list "list of file status values" for the current file (must be open).
 
     @throw FILE-STAT-ERROR stat() call failed or file not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see @ref file_stat_constants
  */
@@ -1649,7 +1651,7 @@ list File::stat() {
     @return a @ref stat_hash about the file's status
 
     @throw FILE-HSTAT-ERROR stat() call failed or file not open
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see @ref file_stat_constants
  */
@@ -1673,7 +1675,7 @@ hash File::hstat() {
 
     @throw FILE-STATVFS-ERROR statvfs() call failed or file is not open
     @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check \c Option::HAVE_STATVFS before calling this method to avoid this exception
-    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 hash File::statvfs() {
 #ifdef HAVE_SYS_STATVFS_H

@@ -28,9 +28,9 @@
  */
 qclass <hash> [arg=QoreHashNode* h;vparent=<value>];
 
-//! Returns NT_HASH
+//! Returns Qore::NT_HASH
 /** 
-    @return NT_HASH
+    @return Qore::NT_HASH
 
     @par Example:
     @code
@@ -126,7 +126,7 @@ my *string $n = $h.lastKey();
 my bool $b = $h.hasKey($key);
     @endcode
 
-    @see <hash>::hasKeyValue(string)
+    @see <hash>::hasKeyValue(softstring)
  */
 bool <hash>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {
    TempEncodingHelper str(key, QCS_DEFAULT, xsink);
@@ -147,7 +147,7 @@ bool <hash>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {
 my bool $b = $h.hasKeyValue($key);
     @endcode
 
-    @see <hash>::hasKey(string)
+    @see <hash>::hasKey(softstring)
  */
 bool <hash>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {
    TempEncodingHelper str(key, QCS_DEFAULT, xsink);

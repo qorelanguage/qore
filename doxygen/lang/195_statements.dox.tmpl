@@ -312,7 +312,14 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
 context ($service_history) where (%service_type == "voice")
 sortBy (%effective_start_date) {
    printf("%s: start date: %s\n", %msisdn, format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
-}@endcode
+}
+    @endcode
+
+    @see
+    - @ref context_functions
+    - @ref find
+    - @ref subcontext
+    - @ref summarize
 
     <hr>
     @section summarize summarize Statements
@@ -345,6 +352,12 @@ summarize ($services)
            format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
 }@endcode
 
+    @see
+    - @ref context_functions
+    - @ref find
+    - @ref context
+    - @ref subcontext
+
     <hr>
     @section subcontext subcontext Statements
 
@@ -374,6 +387,12 @@ summarize ($services)
         printf("\tservice %s: ends: %s\n", %msisdn, format_date("YYYY-MM-DD HH:mm:SS", %effective_end_date));
     }
 }@endcode
+
+    @see
+    - @ref context_functions
+    - @ref find
+    - @ref context
+    - @ref summarize
 
     <hr>
     @section return return Statements

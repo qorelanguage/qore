@@ -28,9 +28,9 @@
  */
 qclass <binary> [arg=BinaryNode* b;vparent=<value>];
 
-//! Returns NT_BINARY
+//! Returns Qore::NT_BINARY
 /** 
-    @return NT_BINARY
+    @return Qore::NT_BINARY
 
     @par Example:
     @code

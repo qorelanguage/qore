@@ -36,7 +36,7 @@ qclass <object> [arg=QoreObject* obj;vparent=<value>];
     @par Example:
     @code
 switch ($o.typeCode()) {
-    case NT_OBJECT:
+    case Qore::NT_OBJECT:
         printf("%y: is an object\n", $o);
         break;
 }

@@ -63,9 +63,9 @@ any cx_value(string key) [flags=RET_VALUE_ONLY] {
    return c->evalValue(tmp->getBuffer(), xsink);
 }
 
-//! Returns \c True if currently iterating the first element in a context statement, \c False if not
+//! Returns \c True if currently iterating the first element in a @ref context "context statement", \c False if not
 /** 
-    @return \c True if currently iterating the first element in a context statement, \c False if not
+    @return \c True if currently iterating the first element in a @ref context "context statement", \c False if not
 
     @par Example: 
     @code
@@ -89,9 +89,9 @@ bool cx_first() [flags=RET_VALUE_ONLY] {
    return c->isFirst();
 }
 
-//! Returns \c True if currently iterating the last element in a context statement, \c False if not
+//! Returns \c True if currently iterating the last element in a @ref context "context statement", \c False if not
 /** 
-    @return \c True if currently iterating the last element in a context statement, \c False if not
+    @return \c True if currently iterating the last element in a @ref context "context statement", \c False if not
 
     @par Example: 
     @code
