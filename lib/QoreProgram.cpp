@@ -162,9 +162,6 @@ void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_opti
 }
 
 void qore_program_private::internParseRollback() {
-   // delete pending user functions
-   user_func_list.parseRollback();
-	 
    // delete pending changes to namespaces
    qore_ns_private::parseRollback(*RootNS);
 
@@ -184,7 +181,7 @@ int qore_program_private::internParseCommit() {
    if (!parseSink->isEvent()) {
       // initialize new statements second (for "our" and "my" declarations)
       // also initializes namespaces, constants, etc
-      sb.parseInit(RootNS, &user_func_list);
+      sb.parseInit(*RootNS);
 
       // initialize all new global variables (resolve types)
       global_var_list.parseInit(pwo.parse_options);
@@ -201,9 +198,6 @@ int qore_program_private::internParseCommit() {
       rc = -1;
    }
    else { // otherwise commit them
-      // merge pending user functions
-      user_func_list.parseCommit();
-	    
       // merge pending namespace additions
       qore_ns_private::parseCommit(*RootNS);
 	    
@@ -220,24 +214,12 @@ int qore_program_private::internParseCommit() {
 
 void qore_program_private::importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink) {
    AutoLocker al(&plock);
-   // check if a user function already exists with this name
-   if (user_func_list.find(u->getName()))
-      xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->getName());
-   else if (imported_func_list.findNode(u->getName()))
-      xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->getName());
-   else
-      imported_func_list.add(p, u);
+   qore_ns_private::importUserFunction(*RootNS, p, u, xsink);
 }
 
 void qore_program_private::importUserFunction(QoreProgram *p, UserFunction *u, const char *new_name, ExceptionSink *xsink) {
    AutoLocker al(&plock);
-   // check if a user function already exists with this name
-   if (user_func_list.find(new_name))
-      xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->getName());
-   else if (imported_func_list.findNode(new_name))
-      xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->getName());
-   else
-      imported_func_list.add(p, new_name, u);
+   qore_ns_private::importUserFunction(*RootNS, p, u, new_name, xsink);
 }
 
 void qore_program_private::del(ExceptionSink *xsink) {
@@ -263,10 +245,6 @@ void qore_program_private::del(ExceptionSink *xsink) {
       discard(i->second, xsink);
    dmap.clear();
 
-   // delete user functions in case there are constant objects which are 
-   // instances of classes that may be deleted below (call can be repeated)
-   user_func_list.del();
-
    // method call can be repeated
    sb.del();
 
@@ -274,14 +252,6 @@ void qore_program_private::del(ExceptionSink *xsink) {
 
    delete RootNS;
    RootNS = 0;
-}
-
-UserFunction *qore_program_private::findUserImportedFunctionUnlocked(const char *name, QoreProgram *&ipgm) {
-   UserFunction *u = user_func_list.find(name);
-   if (!u)
-      u = imported_func_list.find(name, ipgm);
-   
-   return u;
 }
 
 QoreProgram::~QoreProgram() {
@@ -468,7 +438,7 @@ void QoreProgram::cannotProvideFeature(QoreStringNode *desc) {
 
 UserFunction *QoreProgram::findUserFunction(const char *name) {
    AutoLocker al(&priv->plock);
-   return priv->user_func_list.find(name);
+   return qore_ns_private::findUserFunction(*priv->RootNS, name);
 }
 
 void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, ExceptionSink *xsink) {
@@ -477,25 +447,6 @@ void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, Exception
 
 void QoreProgram::exportUserFunction(const char *name, const char *new_name, QoreProgram *p, ExceptionSink *xsink) {
    priv->exportUserFunction(name, new_name, p->priv, xsink);
-}
-
-// called during parsing (priv->plock already grabbed)
-void QoreProgram::registerUserFunctionVariant(char *name, UserFunctionVariant *v) {
-   // check if an imported function already exists with this name
-   if (priv->imported_func_list.findNode(name)) {
-      parse_error("function '%s' has already been imported into this program", name);
-      free(name);
-      return;
-   }
-   UserFunction *u = priv->user_func_list.find(name);
-   if (!u) {
-      u = new UserFunction(name);
-      u->parseAddVariant(v);
-      priv->user_func_list.add(u);
-      return;
-   }
-   free(name);
-   u->parseAddVariant(v);
 }
 
 void QoreProgram::importGlobalVariable(class Var *var, ExceptionSink *xsink, bool readonly) {
@@ -544,7 +495,7 @@ int64 QoreProgram::getParseOptions64() const {
 
 QoreListNode *QoreProgram::getUserFunctionList() {
    AutoLocker al(&priv->plock);
-   return priv->user_func_list.getList(); 
+   return qore_ns_private::getUserFunctionList(*priv->RootNS);
 }
 
 void QoreProgram::waitForTermination() {
@@ -602,7 +553,7 @@ void QoreProgram::addStatement(AbstractStatement *s) {
 bool QoreProgram::existsFunction(const char *name) {
    // need to grab the parse lock for safe access to the user function map
    AutoLocker al(&priv->plock);
-   return priv->user_func_list.find(name);
+   return qore_ns_private::findUserFunction(*priv->RootNS, name) ? true : false;
 }
 
 // DEPRECATED
@@ -669,69 +620,6 @@ QoreHashNode *QoreProgram::clearThreadData(ExceptionSink *xsink) {
    return priv->clearThreadData(xsink);
 }
 
-const AbstractQoreFunction *QoreProgram::resolveFunction(const char *fname, QoreProgram *&pgm) {
-   QORE_TRACE("QoreProgram::resolveFunction()");
-
-   const AbstractQoreFunction *f;
-   if ((f = priv->user_func_list.find(fname))) {
-      printd(5, "resolved user function call to %s\n", fname);
-      return f;
-   }
-
-   if ((f = priv->imported_func_list.find(fname, pgm))) {
-      printd(5, "resolved imported function call to %s\n", fname);
-      return f;
-   }
-
-   if ((f = builtinFunctions.find(fname))) {
-      printd(5, "resolved builtin function call to %s\n", fname);
-      return f;
-   }
-
-   // cannot find function, throw exception
-   parse_error("function '%s()' cannot be found", fname);
-
-   return 0;
-}
-
-// called during parsing (plock already grabbed)
-AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedProgramCallReferenceNode *fr) {
-   std::auto_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
-   char *fname = fr->str;
-
-   {   
-      UserFunction *ufc;
-      if ((ufc = priv->user_func_list.find(fname))) {
-	  printd(5, "QoreProgram::resolveCallReference() resolved function reference to user function %s (%p)\n", fname, ufc);
-	 return new LocalUserCallReferenceNode(ufc);
-      }
-   }
-   
-   {
-      ImportedFunctionEntry *ifn;
-      if ((ifn = priv->imported_func_list.findNode(fname))) {
-	 printd(5, "QoreProgram::resolveCallReference() resolved function reference to imported function %s (pgm=%p, func=%p)\n", fname, ifn->getProgram(), ifn->getFunction());
-	 return new UserCallReferenceNode(ifn->getFunction(), ifn->getProgram());
-      }
-   }
-   
-   const BuiltinFunction *bfc;
-   if ((bfc = builtinFunctions.find(fname))) {
-      printd(5, "QoreProgram::resolveCallReference() resolved function reference to builtin function to %s\n", fname);
-      
-      // check parse options to see if access is allowed
-      if (bfc->getUniqueFunctionality() & priv->pwo.parse_options)
-	 parse_error("parse options do not allow access to builtin function '%s'", fname);
-      else 
-	 return new BuiltinCallReferenceNode(bfc);
-   }
-   else
-      // cannot find function, throw exception
-      parse_error("reference to function '%s()' cannot be resolved", fname);
-
-   return fr_holder.release();
-}
-
 void QoreProgram::parse(FILE *fp, const char *name, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
    priv->parse(fp, name, xsink, wS, wm);
 }
@@ -760,37 +648,29 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   UserFunction *ufc;
+   UserFunction* ufc = 0;
+   QoreProgram *ipgm = this;
+   const BuiltinFunction* bfc = 0;
+
    SimpleRefHolder<FunctionCallNode> fc;
 
    printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
+
    // need to grab parse lock for safe access to the user function map and imported function map
    priv->plock.lock();
-   ufc = priv->user_func_list.find(name);
+
+   qore_ns_private::findCallFunction(*priv->RootNS, name, ufc, ipgm, bfc);
    if (ufc) {
       priv->plock.unlock();
       // we assign the args to 0 below so that they will not be deleted
       fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), this);
    }
+   else if (bfc) {
+      fc = new FunctionCallNode(bfc, const_cast<QoreListNode *>(args), this);
+   }
    else {
-      QoreProgram *ipgm = 0;
-      ufc = priv->imported_func_list.find(name, ipgm);
-      priv->plock.unlock();
-      if (ufc) {
-	 // we assign the args to 0 below so that they will not be deleted
-	 fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), ipgm);
-      }
-      else {
-	 const BuiltinFunction *bfc;
-	 if ((bfc = builtinFunctions.find(name))) {
-	    // we assign the args to 0 below so that they will not be deleted
-	    fc = new FunctionCallNode(bfc, const_cast<QoreListNode *>(args), this);
-	 }
-	 else {
-	    xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
-	    return 0;
-	 }
-      }
+      xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
+      return 0;
    }
 
    ProgramThreadCountHelper tch(this);

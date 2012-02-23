@@ -515,12 +515,6 @@ public:
 
    DLLLOCAL LocalVar *createLocalVar(const char *name, const QoreTypeInfo *typeInfo);
    
-   DLLLOCAL void registerUserFunctionVariant(char *name, UserFunctionVariant *variant);
-
-   // raises a parse exception if the function cannot be found
-   DLLLOCAL const AbstractQoreFunction *resolveFunction(const char *name, QoreProgram *&pgm);
-
-   DLLLOCAL AbstractCallReferenceNode *resolveCallReference(UnresolvedProgramCallReferenceNode *fr);      
    DLLLOCAL Var *addGlobalVarDef(const char *name, QoreParseTypeInfo *typeInfo);
    DLLLOCAL Var *addResolvedGlobalVarDef(const char *name, const QoreTypeInfo *typeInfo);
    DLLLOCAL void addStatement(AbstractStatement *s);

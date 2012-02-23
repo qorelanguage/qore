@@ -28,9 +28,7 @@ extern QoreListNode *ARGV, *QORE_ARGV;
 extern QoreHashNode *ENV;
 
 #include <qore/intern/ParserSupport.h>
-#include <qore/intern/UserFunctionList.h>
 #include <qore/intern/GlobalVariableList.h>
-#include <qore/intern/ImportedFunctionList.h>
 
 #include <stdarg.h>
 #include <errno.h>
@@ -278,8 +276,6 @@ typedef std::map<std::string, AbstractQoreNode *> dmap_t;
 typedef std::map<const char*, int64> ppo_t;
 
 struct qore_program_private_base {
-   UserFunctionList user_func_list;
-   ImportedFunctionList imported_func_list;
    GlobalVariableList global_var_list;
    LocalVariableList local_var_list;
 
@@ -291,7 +287,7 @@ struct qore_program_private_base {
    cstr_vector_t fileList;
    // features present in this Program object
    CharPtrList featureList;
-   
+
    // parse lock, making parsing actions atomic and thread-safe
    mutable QoreThreadLock plock;
 
@@ -909,8 +905,6 @@ public:
       TZ = n_TZ;
    }
 
-   DLLLOCAL UserFunction *findUserImportedFunctionUnlocked(const char *name, QoreProgram *&ipgm);
-
    DLLLOCAL void exportUserFunction(const char *name, qore_program_private *p, ExceptionSink *xsink) {
       if (this == p) {
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
@@ -922,11 +916,11 @@ public:
 
       {
 	 AutoLocker al(plock);
-	 u = findUserImportedFunctionUnlocked(name, ipgm);
+	 u = qore_ns_private::findUserImportedFunction(*RootNS, name, ipgm);
       }
 
       if (!u)
-	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function \"%s\" does not exist in the current program scope", name);
+	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
       else
 	 p->importUserFunction(ipgm, u, xsink);
    }
@@ -942,11 +936,11 @@ public:
 
       {
 	 AutoLocker al(plock);
-	 u = findUserImportedFunctionUnlocked(name, ipgm);
+	 u = qore_ns_private::findUserImportedFunction(*RootNS, name, ipgm);
       }
 
       if (!u)
-	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function \"%s\" does not exist in the current program scope", name);
+	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
       else
 	 p->importUserFunction(ipgm, u, new_name, xsink);
    }

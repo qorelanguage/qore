@@ -449,7 +449,7 @@ UnresolvedProgramCallReferenceNode::~UnresolvedProgramCallReferenceNode() {
 
 AbstractQoreNode *UnresolvedProgramCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = callReferenceTypeInfo;
-   return ::getProgram()->resolveCallReference(this);
+   return qore_ns_private::resolveCallReference(*(getRootNS()), this);
 }
 
 AbstractQoreNode *UnresolvedCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -467,7 +467,7 @@ AbstractQoreNode *UnresolvedCallReferenceNode::parseInit(LocalVar *oflag, int pf
       }
    }
 
-   return ::getProgram()->resolveCallReference(this);
+   return qore_ns_private::resolveCallReference(*(getRootNS()), this);
 }
 
 AbstractQoreNode *LocalStaticMethodCallReferenceNode::evalImpl(ExceptionSink *xsink) const {

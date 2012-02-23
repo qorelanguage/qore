@@ -432,12 +432,13 @@ void StatementBlock::parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *
 }
 
 // never called with this=0
-void TopLevelStatementBlock::parseInit(RootQoreNamespace *rns, UserFunctionList *ufl) {
+//xxx
+void TopLevelStatementBlock::parseInit(RootQoreNamespace& rns) {
    QORE_TRACE("TopLevelStatementBlock::parseInit");
 
    assert(this);
 
-   //printd(5, "TopLevelStatementBlock::parseInit(rns=%p, ufl=%p) first=%d\n", rns, ufl, first);
+   //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d\n", &rns, first);
 
    if (!first && lvars) {
       // push already-registered local variables on the stack
@@ -447,7 +448,7 @@ void TopLevelStatementBlock::parseInit(RootQoreNamespace *rns, UserFunctionList 
 
    int lvids = parseInitIntern(0, PF_TOP_LEVEL, hwm);
 
-   //printd(5, "TopLevelStatementBlock::parseInit(rns=%p, ufl=%p) first=%d, lvids=%d\n", rns, ufl, first, lvids);
+   //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d, lvids=%d\n", &rns, first, lvids);
 
    if (!first && lvids) {
       parseException("ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "local variables declared with 'my' in the top-level block of a Program object can only be declared in the very first code block parsed");
@@ -462,9 +463,7 @@ void TopLevelStatementBlock::parseInit(RootQoreNamespace *rns, UserFunctionList 
    save_global_vnode(vn);
    
    // now initialize root namespace and functions before local variables are popped off the stack
-   qore_ns_private::parseInitConstants(*rns);
-   qore_ns_private::parseInit(*rns);
-   ufl->parseInit();
+   qore_ns_private::rootParseInit(rns);
 
    if (first) {
       // this call will pop all local vars off the stack

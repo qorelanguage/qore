@@ -113,7 +113,7 @@ static AbstractQoreNode *makeErrorTree(AbstractQoreNode *left, AbstractQoreNode 
 }
 
 static void addUserFunctionVariant(char *name, UserFunctionVariant *variant) {
-   getProgram()->registerUserFunctionVariant(name, variant); 
+   qore_ns_private::registerUserFunctionVariant(*(getRootNS()), name, variant);
    // make sure definition was legal
    if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
       parse_error("function '%s()' defined (conflicts with parse option NO_SUBROUTINE_DEFS)", name);

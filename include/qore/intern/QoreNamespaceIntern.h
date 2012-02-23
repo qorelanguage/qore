@@ -27,6 +27,8 @@
 #include <qore/intern/QoreClassList.h>
 #include <qore/intern/QoreNamespaceList.h>
 #include <qore/intern/ConstantList.h>
+#include <qore/intern/UserFunctionList.h>
+#include <qore/intern/ImportedFunctionList.h>
 
 struct qore_ns_private {
    std::string name;
@@ -34,6 +36,8 @@ struct qore_ns_private {
    QoreClassList classList, pendClassList;
    ConstantList constant, pendConstant;
    QoreNamespaceList nsl, pendNSL;
+   UserFunctionList user_func_list;
+   ImportedFunctionList imported_func_list;
 
    const qore_ns_private* parent;
    q_ns_class_handler_t class_handler;   
@@ -104,14 +108,157 @@ struct qore_ns_private {
 
    DLLLOCAL void assimilate(QoreNamespace* ns);
 
-   DLLLOCAL void addClass(const NamedScope *n, QoreClass *oc);
+   DLLLOCAL void addClass(const NamedScope* n, QoreClass* oc);
    DLLLOCAL void addClass(QoreClass *oc);
 
-   DLLLOCAL void parseAddConstant(const NamedScope &name, AbstractQoreNode *value);
+   DLLLOCAL void parseAddConstant(const NamedScope& name, AbstractQoreNode* value);
+
+   DLLLOCAL int checkImportUserFunction(const char* name, ExceptionSink *xsink) {
+      if (user_func_list.find(name)) {
+         xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this namespace", name);
+         return -1;
+      }
+
+      if (imported_func_list.findNode(name)) {
+         xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this namespace", name);
+         return -1;
+      }
+
+      return 0;
+   }
+
+   DLLLOCAL int importUserFunction(QoreProgram* p, UserFunction* u, ExceptionSink* xsink) {
+      if (checkImportUserFunction(u->getName(), xsink))
+         return -1;
+
+      imported_func_list.add(p, u);
+      return 0;
+   }
+
+   DLLLOCAL int importUserFunction(QoreProgram* p, UserFunction* u, const char* new_name, ExceptionSink* xsink) {
+      if (checkImportUserFunction(new_name, xsink))
+         return -1;
+
+      imported_func_list.add(p, new_name, u);
+      return 0;
+   }
+
+   DLLLOCAL UserFunction* findUserImportedFunction(const char* name, QoreProgram*& ipgm) {
+      UserFunction* u = user_func_list.find(name);
+      if (!u)
+         u = imported_func_list.find(name, ipgm);
+
+      if (!u)
+         u = nsl.findUserImportedFunction(name, ipgm);
+
+      return u;
+   }
+
+   DLLLOCAL int registerUserFunctionVariant(char* name, UserFunctionVariant* v) {
+      // check if an imported function already exists with this name
+      if (imported_func_list.findNode(name)) {
+         parse_error("function '%s' was been imported into this namespace; new variants cannot be added to imported functions", name);
+         free(name);
+         return -1;
+      }
+
+      UserFunction* u = user_func_list.find(name);
+      if (!u) {
+         u = new UserFunction(name);
+         u->parseAddVariant(v);
+         user_func_list.add(u);
+         return 0;
+      }
+
+      free(name);
+      return u->parseAddVariant(v);
+   }
+
+   DLLLOCAL UserFunction* findUserFunction(const char* name) {
+      UserFunction* u = user_func_list.find(name);
+      if (!u)
+         u = nsl.findUserFunction(name);
+
+      return u;
+   }
+
+   DLLLOCAL const AbstractQoreFunction* resolveFunction(const char* fname, QoreProgram*& pgm) {
+      QORE_TRACE("qore_ns_private::resolveFunction()");
+
+      const AbstractQoreFunction *f;
+      if ((f = user_func_list.find(fname))) {
+         printd(5, "resolved user function call to %s\n", fname);
+         return f;
+      }
+
+      if ((f = imported_func_list.find(fname, pgm))) {
+         printd(5, "resolved imported function call to %s\n", fname);
+         return f;
+      }
+
+      if ((f = builtinFunctions.find(fname))) {
+         printd(5, "resolved builtin function call to %s\n", fname);
+         return f;
+      }
+
+      // cannot find function, throw exception
+      parse_error("function '%s()' cannot be found", fname);
+
+      return 0;
+   }
+
+   // called during parsing (plock already grabbed)
+   DLLLOCAL AbstractCallReferenceNode* resolveCallReference(UnresolvedProgramCallReferenceNode* fr) {
+      std::auto_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
+      char* fname = fr->str;
+
+      {   
+         UserFunction* ufc;
+         if ((ufc = user_func_list.find(fname))) {
+            printd(5, "qore_ns_private::resolveCallReference() resolved function reference to user function %s (%p)\n", fname, ufc);
+            return new LocalUserCallReferenceNode(ufc);
+         }
+      }
+   
+      {
+         ImportedFunctionEntry* ifn;
+         if ((ifn = imported_func_list.findNode(fname))) {
+            printd(5, "qore_ns_private::resolveCallReference() resolved function reference to imported function %s (pgm=%p, func=%p)\n", fname, ifn->getProgram(), ifn->getFunction());
+            return new UserCallReferenceNode(ifn->getFunction(), ifn->getProgram());
+         }
+      }
+   
+      const BuiltinFunction* bfc;
+      if ((bfc = builtinFunctions.find(fname))) {
+         printd(5, "qore_ns_private::resolveCallReference() resolved function reference to builtin function to %s\n", fname);
+      
+         // check parse options to see if access is allowed
+         if (bfc->getUniqueFunctionality() & getProgram()->getParseOptions64())
+            parse_error("parse options do not allow access to builtin function '%s'", fname);
+         else 
+            return new BuiltinCallReferenceNode(bfc);
+      }
+      else
+         // cannot find function, throw exception
+         parse_error("reference to function '%s()' cannot be resolved", fname);
+
+      return fr_holder.release();
+   }
+
+   DLLLOCAL void findCallFunction(const char* name, UserFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
+      assert(!ufc);
+      assert(!bfc);
+
+      ufc = findUserImportedFunction(name, ipgm);
+      if (!ufc)
+         bfc = builtinFunctions.find(name);
+   }
 
    DLLLOCAL AbstractQoreNode *getConstantValue(const char *name, const QoreTypeInfo *&typeInfo);
    DLLLOCAL QoreClass *parseFindLocalClass(const char *name);
    DLLLOCAL void parseAddNamespace(QoreNamespace *nns);
+
+   DLLLOCAL void rootParseInit();
    DLLLOCAL void parseInit();
    DLLLOCAL void parseInitConstants();
    DLLLOCAL void parseRollback();
@@ -227,6 +374,15 @@ struct qore_ns_private {
       return rns.priv->copyRootNamespace(po);
    }
 
+   DLLLOCAL static const AbstractQoreFunction* resolveFunction(QoreNamespace& ns, const char* fname, QoreProgram*& pgm) {
+      return ns.priv->resolveFunction(fname, pgm);
+   }
+
+   // called during parsing (plock already grabbed)
+   DLLLOCAL static AbstractCallReferenceNode* resolveCallReference(QoreNamespace& ns, UnresolvedProgramCallReferenceNode* fr) {
+      return ns.priv->resolveCallReference(fr);
+   }
+
    DLLLOCAL static void setName(const QoreNamespace& ns, const char *nme) {
       ns.priv->setName(nme);
    }
@@ -237,6 +393,34 @@ struct qore_ns_private {
 
    DLLLOCAL static ConstantList& getConstantList(const QoreNamespace *ns) {
       return ns->priv->constant;
+   }
+
+   DLLLOCAL static int importUserFunction(QoreNamespace& ns, QoreProgram* p, UserFunction* u, ExceptionSink* xsink) {
+      return ns.priv->importUserFunction(p, u, xsink);
+   }
+
+   DLLLOCAL static int importUserFunction(QoreNamespace& ns, QoreProgram *p, UserFunction *u, const char *new_name, ExceptionSink *xsink) {
+      return ns.priv->importUserFunction(p, u, new_name, xsink);
+   }
+
+   DLLLOCAL static UserFunction* findUserImportedFunction(QoreNamespace& ns, const char *name, QoreProgram*& ipgm) {
+      return ns.priv->findUserImportedFunction(name, ipgm);
+   }
+
+   DLLLOCAL static UserFunction* findUserFunction(QoreNamespace& ns, const char* name) {
+      return ns.priv->findUserFunction(name);
+   }
+
+   DLLLOCAL static void findCallFunction(QoreNamespace& ns, const char* name, UserFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
+      return ns.priv->findCallFunction(name, ufc, ipgm, bfc);
+   }
+
+   DLLLOCAL static int registerUserFunctionVariant(QoreNamespace& ns, char *name, UserFunctionVariant *v) {
+      return ns.priv->registerUserFunctionVariant(name, v);
+   }
+
+   DLLLOCAL static QoreListNode* getUserFunctionList(QoreNamespace& ns) {
+      return ns.priv->user_func_list.getList(); 
    }
 
    DLLLOCAL static QoreNamespace* newNamespace(const qore_ns_private& old, int64 po) {
@@ -262,12 +446,8 @@ struct qore_ns_private {
       ns.priv->parseAddNamespace(nns);
    }
 
-   DLLLOCAL static void parseInit(QoreNamespace& ns) {
-      ns.priv->parseInit();
-   }
-
-   DLLLOCAL static void parseInitConstants(QoreNamespace& ns) {
-      ns.priv->parseInitConstants();
+   DLLLOCAL static void rootParseInit(QoreNamespace& ns) {
+      ns.priv->rootParseInit();
    }
 
    DLLLOCAL static void parseRollback(QoreNamespace& ns) {

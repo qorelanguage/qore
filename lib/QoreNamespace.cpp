@@ -263,8 +263,31 @@ void QoreNamespace::deleteData(ExceptionSink *xsink) {
    priv->constant.deleteAll(xsink);
    // clear all constants and static class vars
    priv->classList.deleteClassData(xsink);
+   // clear all user functions
+   priv->user_func_list.del();
+
    // repeat for all subnamespaces
    priv->nsl.deleteData(xsink);
+}
+
+UserFunction* QoreNamespaceList::findUserImportedFunction(const char* name, QoreProgram*& ipgm) {
+   UserFunction* rv = 0;
+
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      if ((rv = i->second->priv->findUserImportedFunction(name, ipgm)))
+         return rv;
+
+   return 0;
+}
+
+UserFunction* QoreNamespaceList::findUserFunction(const char* name) {
+   UserFunction* rv = 0;
+
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      if ((rv = i->second->priv->findUserFunction(name)))
+         return rv;
+
+   return 0;
 }
 
 // QoreNamespaceList::parseResolveNamespace()
@@ -981,6 +1004,11 @@ void qore_ns_private::parseInitConstants() {
    pendNSL.parseInitConstants();
 }
 
+void qore_ns_private::rootParseInit() {
+   parseInitConstants();
+   parseInit();
+}
+
 void qore_ns_private::parseInit() {
    printd(5, "qore_ns_private::parseInit() this=%p ns=%s\n", this, ns);
 
@@ -990,6 +1018,9 @@ void qore_ns_private::parseInit() {
    // do 2nd stage parse initialization on pending classes
    pendClassList.parseInit();
 
+   // do 2nd stage parse initialization on user functions
+   user_func_list.parseInit();
+
    // do 2nd stage parse initialization on pending classes in pending lists of subnamespaces
    nsl.parseInit();
 
@@ -998,6 +1029,9 @@ void qore_ns_private::parseInit() {
 }
 
 void qore_ns_private::parseCommit() {
+   // merge pending user functions
+   user_func_list.parseCommit();
+
    // merge pending constant list
    constant.assimilate(pendConstant);
 
@@ -1011,6 +1045,9 @@ void qore_ns_private::parseCommit() {
 void qore_ns_private::parseRollback() {
    printd(5, "qore_ns_private::parseRollback() %s this=%p ns=%p\n", name.c_str(), this, ns);
 
+   // delete pending user functions
+   user_func_list.parseRollback();
+
    // delete pending constant list
    pendConstant.parseDeleteAll();
 
@@ -1019,6 +1056,9 @@ void qore_ns_private::parseRollback() {
 
    // delete pending classes
    pendClassList.reset();
+
+   // delete pending user functions
+   user_func_list.parseRollback();
 
    // delete pending namespaces
    pendNSL.reset();

@@ -30,8 +30,6 @@
   waiting on accept() will not exit)
 * document Datasource::getAutoCommit()
 * fix crash on exit() with running threads on Darwin <- CANNOT REPRODUCE
-* implement function class hierarchies for returning different types (bool,
-  int64, double, node)
 * optimize object method calls from the same object to avoid the reference and
   dereference
 * fix broken callstacks - only reports for calls since the try statement
@@ -60,6 +58,8 @@ done 0.8.4:
 * add warning for "." and {} operators where operand cannot be converted to a
   string
 * implement parse options for pushing and restoring formatting options
+* implement function class hierarchies for returning different types (bool,
+  int64, double, node)
 
 done 0.8.3:
 * implement parse option for setting the time zone offset/region
