@@ -56,7 +56,7 @@ make_version() {
 # see if svnversion is available
 which svnversion >/dev/null 2>/dev/null
 if [ $? -eq 0 ]; then
-    build=`svnversion|sed s/M//|sed s/:.*$//|sed 's/ .*$//'`
+    build=`svnversion|sed -e s/M// -e s/:.*$// -e 's/ .*$//'`
     if [ "$build" != "exported" -a "$build" != "Unversioned" ]; then
 	make_file $file
 	ok=1
