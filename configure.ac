@@ -312,7 +312,7 @@ if test "$enable_64bit" = "yes"; then
 		fi
 		;;
      *darwin*)	if test "$GXX" = "yes"; then
-		   CXXFLAGS="$CXXFLAGS -m64"
+		   xCXXFLAGS="$CXXFLAGS -m64" # TODO/FIXME: temp fix for universal builds. Needs to be solved correctly
 		fi
 		# set ARCH to x86_64 to be consistent with other intel 64-bit builds
 		if test "$host_cpu" = "i386"; then
