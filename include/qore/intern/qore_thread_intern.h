@@ -69,7 +69,7 @@ class CallStack;
 class LocalVarValue;
 class ClosureParseEnvironment;
 class ClosureRuntimeEnvironment;
-class ClosureVarValue;
+struct ClosureVarValue;
 class VLock;
 class ConstantEntry;
 

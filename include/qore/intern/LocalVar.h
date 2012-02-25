@@ -441,7 +441,6 @@ public:
             val.ref.uninstantiate(xsink);
             break;
 
-#ifdef DEBUG
          case VVT_Int:
          case VVT_Float:
          case VVT_Bool:
@@ -449,7 +448,6 @@ public:
 
          default:
             assert(false);
-#endif
       }
    }
 
@@ -468,8 +466,11 @@ public:
             return floatTypeInfo;
          case VVT_Bool:
             return boolTypeInfo;
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }
-      assert(false);
       return 0;
    }
 
@@ -491,8 +492,11 @@ public:
 
          case VVT_Bool:
             return NT_BOOLEAN;
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }
-      assert(false);
       return NT_NOTHING;
    }
 
@@ -514,8 +518,11 @@ public:
 
          case VVT_Bool:
             return QoreBoolNode::getStaticTypeName();
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }
-      assert(false);
       return "err";
    }
 
@@ -576,10 +583,8 @@ public:
             val.val_bool = value_holder ? value_holder->getAsBool() : false;
             break;
 
-#ifdef DEBUG
          default:
             assert(false);
-#endif
       }
    }
 
@@ -616,10 +621,9 @@ public:
             break;
          }
 
-#ifdef DEBUG
+         // to avoid warnings about missing enum values
          default:
             assert(false);
-#endif
       }      
    }
 
@@ -639,10 +643,9 @@ public:
             break;
          }
 
-#ifdef DEBUG
+         // to avoid warnings about missing enum values
          default:
             assert(false);
-#endif
       }      
    }
 
@@ -656,11 +659,12 @@ public:
 
          case VVT_Ref:
             return val.ref.plusEqualsBigInt<LocalVarValue>(v, this, xsink);
-      }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -674,11 +678,12 @@ public:
 
          case VVT_Ref:
             return val.ref.plusEqualsFloat<LocalVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }
 
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0.0;
    }
 
@@ -692,11 +697,12 @@ public:
 
          case VVT_Ref:
             return val.ref.minusEqualsBigInt<LocalVarValue>(v, this, xsink);
-      }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -710,11 +716,12 @@ public:
 
          case VVT_Ref:
             return val.ref.minusEqualsFloat<LocalVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }
 
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0.0;
    }
 
@@ -728,11 +735,12 @@ public:
 
          case VVT_Ref:
             return val.ref.orEqualsBigInt<LocalVarValue>(v, this, xsink);
-      }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -746,11 +754,12 @@ public:
 
          case VVT_Ref:
             return val.ref.andEqualsBigInt<LocalVarValue>(v, this, xsink);
-      }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -764,11 +773,12 @@ public:
 
          case VVT_Ref:
             return val.ref.modulaEqualsBigInt<LocalVarValue>(v, this, xsink);
-      }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -782,11 +792,12 @@ public:
 
          case VVT_Ref:
             return val.ref.multiplyEqualsBigInt<LocalVarValue>(v, this, xsink);
-      }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -801,11 +812,12 @@ public:
 
          case VVT_Ref:
             return val.ref.minusEqualsBigInt<LocalVarValue>(v, this, xsink);
-      }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -819,11 +831,12 @@ public:
 
          case VVT_Ref:
             return val.ref.minusEqualsBigInt<LocalVarValue>(v, this, xsink);
-      }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -837,11 +850,12 @@ public:
 
          case VVT_Ref:
             return val.ref.shiftLeftEqualsBigInt<LocalVarValue>(v, this, xsink);
-      }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -855,11 +869,12 @@ public:
 
          case VVT_Ref:
             return val.ref.shiftRightEqualsBigInt<LocalVarValue>(v, this, xsink);
-      }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -876,11 +891,12 @@ public:
 
          case VVT_Ref:
             return val.ref.postIncrement<LocalVarValue>(this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -894,11 +910,12 @@ public:
 
          case VVT_Ref:
             return val.ref.preIncrement<LocalVarValue>(this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -915,11 +932,12 @@ public:
 
          case VVT_Ref:
             return val.ref.postDecrement<LocalVarValue>(this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -933,11 +951,11 @@ public:
 
          case VVT_Ref:
             return val.ref.preDecrement<LocalVarValue>(this, xsink);
-      }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }      
       return 0;
    }
 
@@ -955,11 +973,8 @@ public:
             LocalRefHelper<LocalVarValue> helper(this);
             return val.ref.vexp->eval(xsink);
          }
-
-#ifdef DEBUG
          default:
             assert(false);
-#endif
       }
       return 0;
    }
@@ -983,11 +998,8 @@ public:
             LocalRefHelper<LocalVarValue> helper(this);
             return val.ref.vexp->eval(xsink);
          }
-
-#ifdef DEBUG
          default:
             assert(false);
-#endif
       }
       return 0;
    }
@@ -1006,11 +1018,8 @@ public:
             ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
             return rv ? rv->getAsBigInt() : 0;
          }
-
-#ifdef DEBUG
          default:
             assert(false);
-#endif
       }
       return 0;
    }
@@ -1029,11 +1038,8 @@ public:
             ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
             return rv ? rv->getAsBigInt() : 0;
          }
-
-#ifdef DEBUG
          default:
             assert(false);
-#endif
       }
       return 0;
    }
@@ -1051,12 +1057,9 @@ public:
          case VVT_Ref: {
             ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
             return rv ? rv->getAsBool() : false;
-         }
-
-#ifdef DEBUG
          default:
             assert(false);
-#endif
+         }
       }
       return false;
    }
@@ -1075,11 +1078,8 @@ public:
             ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
             return rv ? rv->getAsFloat() : 0.0;
          }
-
-#ifdef DEBUG
          default:
             assert(false);
-#endif
       }
       return 0.0;
    }
@@ -1094,11 +1094,12 @@ public:
 
          case VVT_Ref:
             return val.ref.multiplyEqualsFloat<LocalVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -1114,11 +1115,12 @@ public:
 
          case VVT_Ref:
             return val.ref.divideEqualsFloat<LocalVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
 
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -1297,10 +1299,12 @@ public:
 
          case VVT_Ref:
             return val.ref.plusEqualsBigInt<ClosureVarValue>(v, this, xsink);
-      }      
-#ifdef DEBUG
-      assert(false);
-#endif
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -1313,10 +1317,12 @@ public:
 
          case VVT_Ref:
             return val.ref.plusEqualsFloat<ClosureVarValue>(v, this, xsink);
-      }      
-#ifdef DEBUG
-      assert(false);
-#endif
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0.0;
    }
 
@@ -1329,10 +1335,12 @@ public:
 
          case VVT_Ref:
             return val.ref.minusEqualsBigInt<ClosureVarValue>(v, this, xsink);
-      }      
-#ifdef DEBUG
-      assert(false);
-#endif
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -1345,10 +1353,12 @@ public:
 
          case VVT_Ref:
             return val.ref.minusEqualsFloat<ClosureVarValue>(v, this, xsink);
-      }      
-#ifdef DEBUG
-      assert(false);
-#endif
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0.0;
    }
 
@@ -1361,10 +1371,12 @@ public:
 
          case VVT_Ref:
             return val.ref.orEqualsBigInt<ClosureVarValue>(v, this, xsink);
-      }      
-#ifdef DEBUG
-      assert(false);
-#endif
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -1377,10 +1389,12 @@ public:
 
          case VVT_Ref:
             return val.ref.andEqualsBigInt<ClosureVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
-#ifdef DEBUG
-      assert(false);
-#endif
+
       return 0;
    }
 
@@ -1393,10 +1407,12 @@ public:
 
          case VVT_Ref:
             return val.ref.modulaEqualsBigInt<ClosureVarValue>(v, this, xsink);
-      }      
-#ifdef DEBUG
-      assert(false);
-#endif
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+      }
+
       return 0;
    }
 
@@ -1409,10 +1425,11 @@ public:
 
          case VVT_Ref:
             return val.ref.multiplyEqualsBigInt<ClosureVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -1426,10 +1443,11 @@ public:
 
          case VVT_Ref:
             return val.ref.divideEqualsBigInt<ClosureVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -1442,10 +1460,11 @@ public:
 
          case VVT_Ref:
             return val.ref.xorEqualsBigInt<ClosureVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -1458,10 +1477,11 @@ public:
 
          case VVT_Ref:
             return val.ref.shiftLeftEqualsBigInt<ClosureVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -1474,10 +1494,11 @@ public:
 
          case VVT_Ref:
             return val.ref.shiftRightEqualsBigInt<ClosureVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -1490,10 +1511,11 @@ public:
 
          case VVT_Ref:
             return val.ref.postIncrement<ClosureVarValue>(this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -1506,10 +1528,11 @@ public:
 
          case VVT_Ref:
             return val.ref.preIncrement<ClosureVarValue>(this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -1522,10 +1545,11 @@ public:
 
          case VVT_Ref:
             return val.ref.postDecrement<ClosureVarValue>(this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -1538,10 +1562,11 @@ public:
 
          case VVT_Ref:
             return val.ref.preDecrement<ClosureVarValue>(this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }      
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0;
    }
 
@@ -1554,10 +1579,11 @@ public:
 
          case VVT_Ref:
             return val.ref.multiplyEqualsFloat<ClosureVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0.0;
    }
 
@@ -1570,10 +1596,11 @@ public:
 
          case VVT_Ref:
             return val.ref.divideEqualsFloat<ClosureVarValue>(v, this, xsink);
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
       }
-#ifdef DEBUG
-      assert(false);
-#endif
       return 0.0;
    }
 };

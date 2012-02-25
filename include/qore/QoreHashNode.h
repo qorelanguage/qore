@@ -56,7 +56,7 @@ private:
 
 protected:
    //! private implementation of the class
-   struct qore_hash_private *priv;
+   class qore_hash_private *priv;
 
    //! dereferences all elements of the hash
    /** The ExceptionSink argument is needed for those types that could throw
@@ -670,7 +670,7 @@ private:
 
 protected:
    //! private implementation
-   struct hash_assignment_priv *priv;
+   class hash_assignment_priv *priv;
 
 public:
    //! constructor taking a const char *

@@ -87,7 +87,7 @@ class DateTime {
 
 protected:
    //! private date data - most are ints so relative dates can hold a lot of data
-   struct qore_date_private *priv;
+   class qore_date_private *priv;
 
    DLLLOCAL void setDateLiteral(int64 date);
    DLLLOCAL void setRelativeDateLiteral(int64 date);

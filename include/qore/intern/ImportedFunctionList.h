@@ -44,13 +44,17 @@ public:
    }
    DLLLOCAL ImportedFunctionEntry(const ImportedFunctionEntry &ife) : pgm(ife.pgm), func(ife.func), name(ife.name) {
    }
-   DLLLOCAL QoreProgram *getProgram() {
+   DLLLOCAL QoreProgram* getProgram() {
       return pgm;
    }
-   DLLLOCAL UserFunction *getFunction() {
+   DLLLOCAL UserFunction* getFunction() {
       return func;
    }
-   DLLLOCAL const char *getName() {
+   DLLLOCAL UserFunction* getFunction(QoreProgram*& ipgm) {
+      ipgm = pgm;
+      return func;
+   }
+   DLLLOCAL const char* getName() {
       return name.empty() ? func->getName() : name.c_str();
    }
 };
@@ -61,8 +65,8 @@ class ImportedFunctionList : public ifn_map_t {
 public:
    DLLLOCAL ImportedFunctionList();
    DLLLOCAL ~ImportedFunctionList();
-   DLLLOCAL void add(QoreProgram *pgm, UserFunction *func);
-   DLLLOCAL void add(QoreProgram *pgm, const char *new_name, UserFunction *func);
+   DLLLOCAL ImportedFunctionEntry* add(QoreProgram *pgm, UserFunction *func);
+   DLLLOCAL ImportedFunctionEntry* add(QoreProgram *pgm, const char *new_name, UserFunction *func);
    DLLLOCAL UserFunction *find(const char *name, QoreProgram *&pgm) const;
    DLLLOCAL ImportedFunctionEntry *findNode(const char *name) const;
 };

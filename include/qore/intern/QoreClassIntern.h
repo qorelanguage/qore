@@ -1394,7 +1394,8 @@ struct SelfInstantiatorHelper {
 };
 
 // private QoreClass implementation
-struct qore_class_private {
+class qore_class_private {
+public:
    char *name;                   // the name of the class
    QoreClass *cls;               // parent class
    BCList *scl;                  // base class list

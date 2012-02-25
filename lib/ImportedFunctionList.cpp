@@ -37,18 +37,20 @@ ImportedFunctionList::~ImportedFunctionList() {
    }
 }
 
-void ImportedFunctionList::add(QoreProgram *pgm, UserFunction *func) {
+ImportedFunctionEntry* ImportedFunctionList::add(QoreProgram *pgm, UserFunction *func) {
    QORE_TRACE("ImportedFunctionList::add()");
    
    ImportedFunctionEntry *n = new ImportedFunctionEntry(pgm, func);
    insert(std::make_pair(func->getName(), n));
+   return n;
 }
 
-void ImportedFunctionList::add(QoreProgram *pgm, const char *new_name, UserFunction *func) {
+ImportedFunctionEntry* ImportedFunctionList::add(QoreProgram *pgm, const char *new_name, UserFunction *func) {
    QORE_TRACE("ImportedFunctionList::add()");
    
    ImportedFunctionEntry *n = new ImportedFunctionEntry(pgm, new_name, func);
    insert(std::make_pair(n->getName(), n));
+   return n;
 }
 
 ImportedFunctionEntry *ImportedFunctionList::findNode(const char *name) const {

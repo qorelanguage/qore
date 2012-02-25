@@ -29,7 +29,8 @@
 
 const char *QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "executed", "defined" };
 
-struct DBActionHelper {
+class DBActionHelper {
+public:
    QoreSQLStatement &stmt;
    ExceptionSink *xsink;
    bool valid;

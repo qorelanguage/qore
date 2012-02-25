@@ -628,7 +628,7 @@ DBIDriver *DBIDriverList::find(const char *name, ExceptionSink *xsink) const {
    return priv->find_intern(name);
 }
 
-DBIDriver *DBIDriverList::registerDriver(const char *name, const struct qore_dbi_method_list &methods, int caps) {
+DBIDriver *DBIDriverList::registerDriver(const char *name, const qore_dbi_method_list &methods, int caps) {
    assert(!priv->find_intern(name));
    
    DBIDriver *dd = new DBIDriver(name, *(methods.getMethods()), caps);

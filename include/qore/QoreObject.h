@@ -53,11 +53,11 @@ class QoreExternalStaticMethodVariant;
     @see QoreClass
 */
 class QoreObject : public AbstractQoreNode {
-   friend struct qore_object_private;
+   friend class qore_object_private;
 
 private:
    //! the private implementation of the class
-   struct qore_object_private *priv;
+   class qore_object_private *priv;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreObject(const QoreObject&);

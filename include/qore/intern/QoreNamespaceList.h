@@ -73,8 +73,8 @@ public:
    DLLLOCAL void reset();
    DLLLOCAL void assimilate(QoreNamespaceList& n);
 
-   DLLLOCAL UserFunction* findUserImportedFunction(const char* name, QoreProgram*& ipgm);
-   DLLLOCAL UserFunction* findUserFunction(const char* name);
+   //DLLLOCAL UserFunction* findUserImportedFunction(const char* name, QoreProgram*& ipgm);
+   //DLLLOCAL UserFunction* findUserFunction(const char* name);
 
    DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope *name, unsigned *matched);
    DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);

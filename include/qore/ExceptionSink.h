@@ -29,7 +29,7 @@
 #include <stdio.h>
 
 class QoreException;
-class QoreProgramLocation;
+struct QoreProgramLocation;
 
 //! container for holding Qore-language exception information and also for registering a "thread_exit" call
 class ExceptionSink {

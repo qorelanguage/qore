@@ -1921,7 +1921,7 @@ struct qore_socket_private {
 
       qore_size_t bs = 0;
       while (true) {
-	 qore_size_t rc;
+	 qore_offset_t rc;
 
 	 if (!ssl) {
 	    while (true) {
@@ -2641,7 +2641,7 @@ int QoreSocket::send(int fd, qore_offset_t size) {
 
    char *buf = (char *)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
 
-   qore_size_t rc = 0;
+   qore_offset_t rc = 0;
    qore_size_t bs = 0;
    while (true) {
       // calculate bytes needed

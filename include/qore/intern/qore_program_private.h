@@ -275,7 +275,8 @@ typedef std::map<std::string, AbstractQoreNode *> dmap_t;
 // map for pushed parse options
 typedef std::map<const char*, int64> ppo_t;
 
-struct qore_program_private_base {
+class qore_program_private_base {
+public:
    GlobalVariableList global_var_list;
    LocalVariableList local_var_list;
 
@@ -388,7 +389,7 @@ public:
    }
 };
 
-struct qore_program_private : public qore_program_private_base {
+class qore_program_private : public qore_program_private_base {
 private:
    DLLLOCAL void init(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
    }
@@ -916,7 +917,7 @@ public:
 
       {
 	 AutoLocker al(plock);
-	 u = qore_ns_private::findUserImportedFunction(*RootNS, name, ipgm);
+	 u = qore_root_ns_private::runtimeFindUserImportedFunction(*RootNS, name, ipgm);
       }
 
       if (!u)
@@ -936,7 +937,7 @@ public:
 
       {
 	 AutoLocker al(plock);
-	 u = qore_ns_private::findUserImportedFunction(*RootNS, name, ipgm);
+	 u = qore_root_ns_private::runtimeFindUserImportedFunction(*RootNS, name, ipgm);
       }
 
       if (!u)
@@ -962,7 +963,7 @@ public:
       }
       pwo.parse_options |= po;
    }
-   
+
    DLLLOCAL void disableParseOptions(int64 po, ExceptionSink* xsink = 0) {
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so

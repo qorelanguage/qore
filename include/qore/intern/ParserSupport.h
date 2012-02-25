@@ -47,7 +47,7 @@ public:
    }
 };
 
-#define YYLTYPE struct QoreParserLocation
+#define YYLTYPE class QoreParserLocation
 
 // private interface to bison/flex parser/scannertypedef void *yyscan_t;
 typedef void *yyscan_t;

@@ -62,7 +62,7 @@ struct QoreExceptionLocation : QoreProgramLineLocation {
 
 class QoreException : public QoreExceptionBase, public QoreExceptionLocation {
    friend class ExceptionSink;
-   friend class qore_es_private;
+   friend struct qore_es_private;
 
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used

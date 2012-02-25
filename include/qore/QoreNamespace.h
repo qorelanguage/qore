@@ -51,6 +51,8 @@ class QoreNamespace {
    friend class QoreNamespaceList;
    friend class RootQoreNamespace;
    friend class qore_ns_private;
+   friend class qore_root_ns_private;
+   friend struct NSOInfoBase;
 
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -60,7 +62,7 @@ private:
    DLLLOCAL QoreNamespace& operator=(const QoreNamespace&);
 
 protected:
-   struct qore_ns_private *priv; // private implementation
+   class qore_ns_private *priv; // private implementation
 
    // protected, function not exported in the API
    DLLLOCAL QoreNamespace(qore_ns_private* p);
@@ -200,13 +202,15 @@ public:
 */
 class RootQoreNamespace : public QoreNamespace {
    friend class qore_ns_private;
+   friend class qore_root_ns_private;
    friend class StaticSystemNamespace;
 
 private:
    DLLLOCAL RootQoreNamespace(qore_ns_private* p);
    
 protected:
-   QoreNamespace *qoreNS;
+   // private implementation
+   class qore_root_ns_private* rpriv;
 
 public:
    //! returns a pointer to the QoreNamespace for the "Qore" namespace

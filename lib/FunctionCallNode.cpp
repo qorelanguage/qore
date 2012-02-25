@@ -487,7 +487,7 @@ AbstractQoreNode *FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, in
    }
 
    // resolves the function and assigns pgm for imported code
-   func = qore_ns_private::resolveFunction(*(getRootNS()), c_str, pgm);
+   func = qore_root_ns_private::parseResolveFunction(c_str, pgm);
    free(c_str);
    c_str = 0;
    if (func) 

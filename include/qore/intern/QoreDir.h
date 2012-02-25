@@ -46,7 +46,7 @@
 class QoreDir {
 private:
    //! private implementation
-   struct qore_qd_private *priv;
+   class qore_qd_private *priv;
       
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreDir(const QoreDir&);

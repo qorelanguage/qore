@@ -183,7 +183,7 @@ public:
    }
 
    using StatementBlock::parseInit;
-   DLLLOCAL void parseInit(RootQoreNamespace& rns);
+   DLLLOCAL void parseInit();
 
    DLLLOCAL void parseCommit() {
       hwm = statement_list.last();

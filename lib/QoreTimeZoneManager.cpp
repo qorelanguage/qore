@@ -299,8 +299,6 @@ int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
    unsigned i = 0;
    if (first_pos > 0 && epoch_offset >= QoreDSTTransitions[first_pos - 1].time) {
       i = first_pos - 1;
-      if (i < 0)
-         i = 0;
       unsigned end = QoreDSTTransitions.size() - 1;
       while (i < end) {
          if (QoreDSTTransitions[i].time <= epoch_offset && QoreDSTTransitions[i + 1].time > epoch_offset) {

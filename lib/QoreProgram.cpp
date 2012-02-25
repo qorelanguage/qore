@@ -78,7 +78,7 @@ void qore_program_private_base::newProgram() {
       featureList.push_back((*i).c_str());
 
    // setup namespaces
-   RootNS = qore_ns_private::copyRootNamespace(staticSystemNamespace, pwo.parse_options);
+   RootNS = qore_root_ns_private::copy(staticSystemNamespace, pwo.parse_options);
    QoreNS = RootNS->rootGetQoreNamespace();
    assert(QoreNS);
 
@@ -144,7 +144,7 @@ void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_opti
       // grab program's parse lock
       AutoLocker al(p_pgm->priv->plock);
       // setup derived namespaces
-      RootNS = qore_ns_private::copyRootNamespace(*p_pgm->priv->RootNS, n_parse_options);
+      RootNS = qore_root_ns_private::copy(*p_pgm->priv->RootNS, n_parse_options);
    }
    QoreNS = RootNS->rootGetQoreNamespace();
       
@@ -163,7 +163,7 @@ void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_opti
 
 void qore_program_private::internParseRollback() {
    // delete pending changes to namespaces
-   qore_ns_private::parseRollback(*RootNS);
+   qore_root_ns_private::parseRollback(*RootNS);
 
    // commit global variables
    global_var_list.parseRollback();
@@ -181,7 +181,7 @@ int qore_program_private::internParseCommit() {
    if (!parseSink->isEvent()) {
       // initialize new statements second (for "our" and "my" declarations)
       // also initializes namespaces, constants, etc
-      sb.parseInit(*RootNS);
+      sb.parseInit();
 
       // initialize all new global variables (resolve types)
       global_var_list.parseInit(pwo.parse_options);
@@ -199,8 +199,8 @@ int qore_program_private::internParseCommit() {
    }
    else { // otherwise commit them
       // merge pending namespace additions
-      qore_ns_private::parseCommit(*RootNS);
-	    
+      qore_root_ns_private::parseCommit(*RootNS);
+
       // commit global variables
       global_var_list.parseCommit();
 
@@ -214,12 +214,12 @@ int qore_program_private::internParseCommit() {
 
 void qore_program_private::importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink) {
    AutoLocker al(&plock);
-   qore_ns_private::importUserFunction(*RootNS, p, u, xsink);
+   qore_root_ns_private::importUserFunction(*RootNS, *RootNS, p, u, xsink);
 }
 
 void qore_program_private::importUserFunction(QoreProgram *p, UserFunction *u, const char *new_name, ExceptionSink *xsink) {
    AutoLocker al(&plock);
-   qore_ns_private::importUserFunction(*RootNS, p, u, new_name, xsink);
+   qore_root_ns_private::importUserFunction(*RootNS, *RootNS, p, u, new_name, xsink);
 }
 
 void qore_program_private::del(ExceptionSink *xsink) {
@@ -438,7 +438,7 @@ void QoreProgram::cannotProvideFeature(QoreStringNode *desc) {
 
 UserFunction *QoreProgram::findUserFunction(const char *name) {
    AutoLocker al(&priv->plock);
-   return qore_ns_private::findUserFunction(*priv->RootNS, name);
+   return qore_root_ns_private::runtimeFindUserFunction(*priv->RootNS, name);
 }
 
 void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, ExceptionSink *xsink) {
@@ -553,7 +553,7 @@ void QoreProgram::addStatement(AbstractStatement *s) {
 bool QoreProgram::existsFunction(const char *name) {
    // need to grab the parse lock for safe access to the user function map
    AutoLocker al(&priv->plock);
-   return qore_ns_private::findUserFunction(*priv->RootNS, name) ? true : false;
+   return qore_root_ns_private::runtimeFindUserFunction(*priv->RootNS, name) ? true : false;
 }
 
 // DEPRECATED
@@ -659,7 +659,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    // need to grab parse lock for safe access to the user function map and imported function map
    priv->plock.lock();
 
-   qore_ns_private::findCallFunction(*priv->RootNS, name, ufc, ipgm, bfc);
+   qore_root_ns_private::findCallFunction(*priv->RootNS, name, ufc, ipgm, bfc);
    if (ufc) {
       priv->plock.unlock();
       // we assign the args to 0 below so that they will not be deleted

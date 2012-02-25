@@ -113,7 +113,7 @@ static AbstractQoreNode *makeErrorTree(AbstractQoreNode *left, AbstractQoreNode 
 }
 
 static void addUserFunctionVariant(char *name, UserFunctionVariant *variant) {
-   qore_ns_private::registerUserFunctionVariant(*(getRootNS()), name, variant);
+   qore_root_ns_private::addPendingVariant(*(getRootNS()), name, variant);
    // make sure definition was legal
    if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
       parse_error("function '%s()' defined (conflicts with parse option NO_SUBROUTINE_DEFS)", name);
@@ -809,19 +809,19 @@ AbstractQoreNode *get_static_call(NamedScope *ns, QoreListNode *args) {
    QoreHashNode *hash;
    QoreListNode *list;
    AbstractStatement *statement;
-   class MemberInfo *memberinfo;
-   class ClassVarInfo *classvarinfo;
+   struct MemberInfo *memberinfo;
+   struct ClassVarInfo *classvarinfo;
    StatementBlock *sblock;
    ContextModList *cmods;
    ContextMod *cmod;
    class HashElement *hashelement;
    UserFunction *userfunc;	
-   class MethodNode *methodnode;
+   struct MethodNode *methodnode;
    class MemberList *memberlist;
    QoreClass *qoreclass;
    class ConstNode *constnode;
    QoreNamespace *ns;
-   class NSNode *nsn;
+   struct NSNode *nsn;
    class ObjClassDef *classdef;
    DateTimeNode *datetime;
    RegexSubstNode *RegexSubst;

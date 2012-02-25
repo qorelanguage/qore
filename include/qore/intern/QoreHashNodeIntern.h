@@ -44,7 +44,8 @@ public:
 
 typedef std::map<const char*, HashMember *, ltstr> hm_hm_t;
 
-struct qore_hash_private {
+class qore_hash_private {
+public:
    HashMember *member_list, *tail;
    qore_size_t len;
    hm_hm_t hm;

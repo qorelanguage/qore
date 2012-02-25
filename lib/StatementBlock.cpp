@@ -27,6 +27,7 @@
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/UserFunctionList.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/minitest.hpp>
 
 #include <stdio.h>
@@ -432,8 +433,7 @@ void StatementBlock::parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *
 }
 
 // never called with this=0
-//xxx
-void TopLevelStatementBlock::parseInit(RootQoreNamespace& rns) {
+void TopLevelStatementBlock::parseInit() {
    QORE_TRACE("TopLevelStatementBlock::parseInit");
 
    assert(this);
@@ -463,7 +463,7 @@ void TopLevelStatementBlock::parseInit(RootQoreNamespace& rns) {
    save_global_vnode(vn);
    
    // now initialize root namespace and functions before local variables are popped off the stack
-   qore_ns_private::rootParseInit(rns);
+   qore_root_ns_private::parseInit();
 
    if (first) {
       // this call will pop all local vars off the stack

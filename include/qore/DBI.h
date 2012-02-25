@@ -384,7 +384,7 @@ public:
       @param caps the capabilities the driver supports
       @return the DBIDriver object created
    */
-   DLLEXPORT class DBIDriver *registerDriver(const char *name, const struct qore_dbi_method_list &methods, int caps);
+   DLLEXPORT class DBIDriver *registerDriver(const char *name, const qore_dbi_method_list &methods, int caps);
 
    //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
    /**
