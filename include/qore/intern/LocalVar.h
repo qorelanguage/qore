@@ -1057,9 +1057,9 @@ public:
          case VVT_Ref: {
             ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
             return rv ? rv->getAsBool() : false;
+         }
          default:
             assert(false);
-         }
       }
       return false;
    }
