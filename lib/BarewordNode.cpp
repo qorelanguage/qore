@@ -79,7 +79,7 @@ AbstractQoreNode *BarewordNode::parseInitImpl(LocalVar *oflag, int pflag, int &l
    AbstractQoreNode *n = this;
    AbstractQoreNode **node = &n;
    printd(5, "BarewordNode::parseInitImpl() resolving bareword '%s'\n", reinterpret_cast<BarewordNode *>(*node)->str);
-   if (!qore_ns_private::resolveBareword(node, typeInfo))
+   if (!qore_root_ns_private::parseResolveBareword(node, typeInfo))
       return (*node)->parseInit(oflag, pflag, lvids, typeInfo);
    return *node;
 }

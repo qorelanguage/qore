@@ -1,3 +1,4 @@
+* add domain to constant definitions
 * implement common initialization for global thead-local variables in all
   threads 
 * implement new calling convention for functions & methods with ignore rv param

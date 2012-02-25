@@ -446,7 +446,7 @@ AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, in
 
       // see if a constant can be resolved
       if (!n) {
-	 n = qore_ns_private::rootFindConstantValue(*(getRootNS()), c_str, returnTypeInfo);
+	 n = qore_root_ns_private::parseFindConstantValue(c_str, returnTypeInfo);
 	 if (n)
 	    n->ref();
       }

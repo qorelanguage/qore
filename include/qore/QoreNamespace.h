@@ -218,6 +218,9 @@ public:
        @return a pointer to the QoreNamespace for the "Qore" namespace; do not delete the object returned
    */
    DLLEXPORT QoreNamespace *rootGetQoreNamespace() const;
+
+   //! destructor is not exported in the library's public API
+   DLLLOCAL ~RootQoreNamespace();
 };
 
 #endif // QORE_NAMESPACE_H
