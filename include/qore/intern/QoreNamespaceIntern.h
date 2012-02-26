@@ -52,6 +52,9 @@ public:
    DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char *n) : name(n), depth(0), parent(0), class_handler(0), ns(n_ns) {
    }
 
+   DLLLOCAL qore_ns_private(QoreNamespace *n_ns) : depth(0), parent(0), class_handler(0), ns(n_ns) {
+   }
+
    DLLLOCAL qore_ns_private(const qore_ns_private &old, int64 po) 
       : name(old.name), 
         classList(old.classList, po), 
@@ -377,7 +380,6 @@ public:
    DLLLOCAL static QoreNamespace* newNamespace(const qore_ns_private& old, int64 po) {
       qore_ns_private* p = new qore_ns_private(old, po);
       QoreNamespace* rv = new QoreNamespace(p);
-      p->ns = rv;
       return rv;
    }
 
@@ -478,7 +480,7 @@ public:
 typedef RootMap<UserFunction> ufmap_t;
 typedef RootMap<ImportedFunctionEntry> ifmap_t;
 
-class qore_root_ns_private {
+class qore_root_ns_private : public qore_ns_private {
 protected:
    DLLLOCAL int addPendingVariant(qore_ns_private& ns, char* name, UserFunctionVariant* v) {
       // try to add function variant to given namespace
@@ -683,23 +685,22 @@ protected:
 
       //printd(0, "qore_root_ns_private::parseCommit() this: %p AFTER  newfunc: u: %d pend_u: %d\n", this, ufmap.find("newfunc") != ufmap.end(), pend_ufmap.find("newfunc") != pend_ufmap.end());
 
-      rns->priv->parseCommit();
+      qore_ns_private::parseCommit();
    }
 
    DLLLOCAL void parseRollback() {
       // roll back pending lookup entries
       pend_ufmap.clear();
 
-      rns->priv->parseRollback();
+      qore_ns_private::parseRollback();
    }
 
    AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo *&typeInfo) {
       AbstractQoreNode* rv;
-      qore_ns_private* p = rns->priv;
 
-      if (!(rv = p->getConstantValue(cname, typeInfo))
-          && (!(rv = p->nsl.parseFindConstantValue(cname, typeInfo))))
-         rv = p->pendNSL.parseFindConstantValue(cname, typeInfo);
+      if (!(rv = qore_ns_private::getConstantValue(cname, typeInfo))
+          && (!(rv = nsl.parseFindConstantValue(cname, typeInfo))))
+         rv = pendNSL.parseFindConstantValue(cname, typeInfo);
       
       return rv;
    }
@@ -717,14 +718,20 @@ public:
       pend_ufmap;  // pending lookup map (used only during parsing)
    ifmap_t ifmap;  // root imported function map
 
-   DLLLOCAL qore_root_ns_private(RootQoreNamespace* n_rns) : rns(n_rns), qoreNS(0) {
+   DLLLOCAL qore_root_ns_private(RootQoreNamespace* n_rns) : qore_ns_private(n_rns), rns(n_rns), qoreNS(0) {
+   }
+
+   DLLLOCAL qore_root_ns_private(const qore_root_ns_private& old, int64 po) : qore_ns_private(old, po) {
+      qoreNS = nsl.find("Qore");
+      assert(qoreNS);
+   }
+   
+   DLLLOCAL ~qore_root_ns_private() {
    }
 
    DLLLOCAL RootQoreNamespace* copy(int64 po) {
-      RootQoreNamespace* rv = new RootQoreNamespace(new qore_ns_private(*(rns->priv), po));
-      rv->rpriv->qoreNS = rv->priv->nsl.find("Qore");
-      rv->priv->ns = rv;
-      assert(rv->rpriv->qoreNS);
+      qore_root_ns_private* p = new qore_root_ns_private(*this, po);
+      RootQoreNamespace* rv = new RootQoreNamespace(p);
       return rv;
    }
 

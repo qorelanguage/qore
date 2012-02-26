@@ -94,6 +94,7 @@ QoreNamespace::QoreNamespace(const char* n) : priv(new qore_ns_private(this, n))
 }
 
 QoreNamespace::QoreNamespace(qore_ns_private* p) : priv(p) {
+   p->ns = this;
 }
 
 QoreNamespace::~QoreNamespace() {
@@ -478,18 +479,21 @@ QoreHashNode* QoreNamespace::getInfo() const {
    return h;
 }
 
-RootQoreNamespace::RootQoreNamespace(qore_ns_private* p) : QoreNamespace(p), rpriv(new qore_root_ns_private(this)) {
+RootQoreNamespace::RootQoreNamespace(qore_root_ns_private* p) : QoreNamespace(p), rpriv(p) {
+   p->rns = this;
 }
 
 RootQoreNamespace::~RootQoreNamespace() {
    delete rpriv;
+   // make sure priv is not deleted (again)
+   priv = 0;
 }
 
 QoreNamespace* RootQoreNamespace::rootGetQoreNamespace() const {
    return rpriv->qoreNS;
 }
 
-StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_ns_private(this, "")) {
+StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root_ns_private(this)) {
 }
 
 // sets up the root namespace

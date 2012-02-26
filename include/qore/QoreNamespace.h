@@ -206,7 +206,7 @@ class RootQoreNamespace : public QoreNamespace {
    friend class StaticSystemNamespace;
 
 private:
-   DLLLOCAL RootQoreNamespace(qore_ns_private* p);
+   DLLLOCAL RootQoreNamespace(class qore_root_ns_private* p);
    
 protected:
    // private implementation
