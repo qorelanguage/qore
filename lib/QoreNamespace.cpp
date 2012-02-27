@@ -893,11 +893,11 @@ void qore_ns_private::rootAddClass(const NamedScope *nscope, QoreClass* oc) {
    }
 }
 
-void qore_ns_private::rootAddConstant(const NamedScope &nscope, AbstractQoreNode* value) {
+void qore_root_ns_private::parseAddConstantIntern(const NamedScope& nscope, AbstractQoreNode* value) {
    QoreNamespace* sns = rootResolveNamespace(&nscope);
 
    if (sns) {
-      printd(5, "qore_ns_private::rootAddConstant() %s: adding %s to %s (value=%p type=%s)\n", nscope.ostr, 
+      printd(5, "qore_root_ns_private::parseAddConstantIntern() %s: adding %s to %s (value=%p type=%s)\n", nscope.ostr, 
 	     nscope.getIdentifier(), sns->priv->name.c_str(), value, value ? value->getTypeName() : "(none)");
       sns->priv->pendConstant.parseAdd(nscope.strlist[nscope.size() - 1].c_str(), value);
    }

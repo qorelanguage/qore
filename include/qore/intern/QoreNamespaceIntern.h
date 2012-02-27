@@ -126,21 +126,11 @@ public:
          
       if (user_func_list.find(name)) {
          xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this namespace", name);
-
-         //UserFunction* u = user_func_list.find(name);
-         //printd(0, "qore_ns_private::checkImportUserFunction(%s) this: %p u: %p\n", name, this, u);
-         //assert(false);
-
          return -1;
       }
 
       if (imported_func_list.findNode(name)) {
          xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this namespace", name);
-
-         //ImportedFunctionEntry* ifn = imported_func_list.findNode(name);
-         //printd(0, "qore_ns_private::checkImportUserFunction(%s) this: %p u: %p p: %p fn: %s()\n", name, this, ifn->getFunction(), ifn->getProgram(), ifn->getFunction()->getName());
-         //assert(false);
-
          return -1;
       }
 
@@ -266,7 +256,6 @@ public:
    DLLLOCAL QoreClass *rootFindClass(const char *name);
 
    DLLLOCAL void rootAddClass(const NamedScope *name, QoreClass *oc);
-   DLLLOCAL void rootAddConstant(const NamedScope &name, AbstractQoreNode *value);
    DLLLOCAL QoreClass *rootFindScopedClassWithMethod(const NamedScope *nscope, unsigned *matched);
 
    DLLLOCAL QoreClass *parseFindClass(const char *name);
@@ -334,10 +323,6 @@ public:
 
    DLLLOCAL static void rootAddClass(const RootQoreNamespace& rns, const NamedScope *name, QoreClass *oc) {
       rns.priv->rootAddClass(name, oc);
-   }
-
-   DLLLOCAL static void rootAddConstant(const RootQoreNamespace& rns, const NamedScope &name, AbstractQoreNode *value) {
-      rns.priv->rootAddConstant(name, value);
    }
 
    DLLLOCAL static QoreClass *rootFindClass(RootQoreNamespace& rns, const char *name) {
@@ -471,7 +456,7 @@ public:
       }
    }
 
-   UserFunction* findObj(const char* name) {
+   T* findObj(const char* name) {
       typename map_t::iterator i = this->find(name);
       return i == this->end() ? 0 : i->second.obj;
    }
@@ -710,6 +695,8 @@ protected:
    // returns 0 for success, non-zero for error
    DLLLOCAL int parseResolveBarewordIntern(AbstractQoreNode **node, const QoreTypeInfo *&typeInfo);
 
+   DLLLOCAL void parseAddConstantIntern(const NamedScope &name, AbstractQoreNode *value);
+
 public:
    RootQoreNamespace* rns;
    QoreNamespace* qoreNS;
@@ -796,6 +783,10 @@ public:
    // returns 0 for success, non-zero for error
    DLLLOCAL static int parseResolveBareword(AbstractQoreNode **node, const QoreTypeInfo *&typeInfo) {
       return getRootNS()->rpriv->parseResolveBarewordIntern(node, typeInfo);
+   }
+
+   DLLLOCAL static void parseAddConstant(const NamedScope &name, AbstractQoreNode *value) {
+      getRootNS()->rpriv->parseAddConstantIntern(name, value);
    }
 };
 

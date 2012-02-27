@@ -513,10 +513,6 @@ struct ParserScopedOrNothingTypeStruct : public ParserTypeStruct {
    }
 };
 
-static void parseAddConstant(const NamedScope &name, AbstractQoreNode *value) {
-   qore_ns_private::rootAddConstant(*(getRootNS()), name, value);
-}
-
 static void addClass(NamedScope *name, QoreClass *oc) {
    qore_ns_private::rootAddClass(*(getRootNS()), name, oc);
 }
@@ -1070,12 +1066,12 @@ top_level_command:
 	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
 	   delete $1;
 	}
-	| scoped_const_decl { 
-	   parseAddConstant($1->name, $1->value);
+	| scoped_const_decl {
+           qore_root_ns_private::parseAddConstant($1->name, $1->value);
 	   delete $1;
 	}
-        | unscoped_const_decl { 
-           qore_ns_private::parseAddConstant(*(getRootNS()), $1->name, $1->value); 
+        | unscoped_const_decl {
+           qore_root_ns_private::parseAddConstant($1->name, $1->value);
 	   delete $1;
 	}
         | object_outofline_function_def  // registered directly
