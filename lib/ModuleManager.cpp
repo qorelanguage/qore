@@ -79,7 +79,7 @@ static QoreThreadLock mutex;
 typedef std::deque<std::string> strdeque_t;
 
 static QoreStringNode *qore_load_module_from_path(const char *path, const char *feature = 0, ModuleInfo **mip = 0, QoreProgram *pgm = 0);
-QoreStringNode *qore_load_module_intern(const char *name, QoreProgram *pgm, mod_op_e op = MOD_OP_NONE, version_list_t *version = 0);
+QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgram *pgm, mod_op_e op = MOD_OP_NONE, version_list_t *version = 0);
 
 //! non-thread-safe list of strings of directory names
 /** a deque should require fewer memory allocations compared to a linked list
@@ -386,7 +386,7 @@ void ModuleManager::init(bool se) {
 static QoreStringNode *qore_parse_load_module_intern(const char *name, QoreProgram *pgm) {
    SafeLocker sl(&mutex); // make sure checking and loading are atomic
 
-   return qore_load_module_intern(name, pgm);
+   return qore_load_module_intern(true, name, pgm);
 }
 
 int ModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink) {
@@ -472,7 +472,7 @@ static QoreStringNode *check_module_version(ModuleInfo *mi, mod_op_e op, version
    return 0;
 }
 
-QoreStringNode *qore_load_module_intern(const char *name, QoreProgram *pgm, mod_op_e op, version_list_t *version) {
+QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgram *pgm, mod_op_e op, version_list_t *version) {
    assert(!version || (version && op != MOD_OP_NONE));
 
    // check for special "qore" feature
@@ -493,6 +493,15 @@ QoreStringNode *qore_load_module_intern(const char *name, QoreProgram *pgm, mod_
 	 return check_module_version(mi, op, version);
       }
       return 0;
+   }
+
+   if (parse) {
+      // check if PO_NO_BINARY_MODULES is set
+      if (getParseOptions() & PO_NO_BINARY_MODULES) {
+	 QoreStringNode* err = new QoreStringNode;
+	 err->sprintf("cannot load module '%s' while PO_NO_BINARY_MODULES is set", name);
+	 return err;
+      }
    }
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
@@ -625,12 +634,12 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
 	 return new QoreStringNode("empty version specification given in feature/module request");
 
       AutoLocker al(&mutex); // make sure checking and loading are atomic
-      return qore_load_module_intern(str.getBuffer(), pgm, mo, &iv);
+      return qore_load_module_intern(true, str.getBuffer(), pgm, mo, &iv);
    }
 
    AutoLocker sl(&mutex); // make sure checking and loading are atomic
 
-   return qore_load_module_intern(name, pgm);
+   return qore_load_module_intern(true, name, pgm);
 }
 
 static QoreStringNode *qore_load_module_from_path(const char *path, const char *feature, ModuleInfo **mip, QoreProgram *pgm) {
@@ -838,7 +847,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       //printd(5, "dep_list=%08p (0=%s)\n", dep_list, dep);
       for (int j = 0; dep; dep = dep_list[++j]) {
 	 //printd(5, "loading module dependency=%s\n", dep);
-	 str = qore_load_module_intern(dep, pgm);
+	 str = qore_load_module_intern(false, dep, pgm);
 	 if (str) {
 	    str->replace(0, 0, "': ");
 	    str->replace(0, 0, dep);

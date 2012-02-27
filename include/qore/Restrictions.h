@@ -59,13 +59,14 @@
 #define PO_STRICT_ARGS               (1 << 26)    //!< do not allow access to RT_NOOP code or excess args
 #define PO_ALLOW_BARE_REFS           (1 << 27)    //!< do not allow '$' for vars and '$.' for class member refs
 #define PO_ASSUME_LOCAL              (1 << 28)    //!< assume local variable scope if not declared (implicit "my")
+#define PO_NO_BINARY_MODULES         (1 << 29)    //!< do not allow external binary (compiled) modules to be loaded
 
 // combination options
 //! cannot access any thread functionality
 #define PO_NO_THREADS                (PO_NO_THREAD_CONTROL|PO_NO_THREAD_CLASSES|PO_NO_THREAD_INFO)
 
 //! prohibits any external access
-#define PO_NO_EXTERNAL_ACCESS        (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE|PO_NO_EXTERNAL_INFO|PO_NO_EXTERNAL_PROCESS)
+#define PO_NO_EXTERNAL_ACCESS        (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE|PO_NO_EXTERNAL_INFO|PO_NO_EXTERNAL_PROCESS|PO_NO_BINARY_MODULES)
 
 //! prohibits all terminal and file I/O and GUI operations
 #define PO_NO_IO                     (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM|PO_NO_NETWORK|PO_NO_DATABASE) 
@@ -95,5 +96,6 @@
 #define QDOM_EXTERNAL_INFO      PO_NO_EXTERNAL_INFO       //!< provides access to external information (ex: hostname, pid, process uid, etc)
 #define QDOM_THREAD_INFO        PO_NO_THREAD_INFO         //!< provides access to information regarding threading (tid, active threads, etc)
 #define QDOM_LOCALE_CONTROL     PO_NO_LOCALE_CONTROL      //!< provices access to functionality that changes locale information
+#define QDOM_BINARY_MODULES     PO_NO_BINARY_MODULES      //!< loads binary modules into the current Program
 
 #endif //_QORE_DOMAIN_H

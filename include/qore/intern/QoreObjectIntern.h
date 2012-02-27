@@ -178,6 +178,7 @@ public:
       privateData(0), data(n_data), pgm(p), system_object(!p), 
       delete_blocker_run(false), in_destructor(false), pgm_ref(true),
       obj(n_obj), rcount(0), rset(0) {
+
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj=%p, pgm=%p, class=%s, references 0->1\n", obj, p, oc->getName());
 #endif

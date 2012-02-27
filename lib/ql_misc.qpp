@@ -1822,9 +1822,9 @@ load_module("mysql");
 
     @see getModuleHash(), getFeatureList()
 
-    @since %Qore 0.8.4 this function is not available when @ref Qore::PO_NO_PROCESS_CONTROL is set
+    @since %Qore 0.8.4 this function is not available when @ref Qore::PO_NO_BINARY_MODULES is set
 */
-nothing load_module(string name) [dom=PROCESS] {
+nothing load_module(string name) [dom=BINARY_MODULES] {
    MM.runTimeLoadModule(name->getBuffer(), xsink);
 }
 

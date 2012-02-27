@@ -3123,6 +3123,7 @@ void init() {
    dmap["EXTERNAL_INFO"] = "PO_NO_EXTERNAL_INFO";
    dmap["THREAD_INFO"] = "PO_NO_THREAD_INFO";
    dmap["LOCALE_CONTROL"] = "PO_NO_LOCALE_CONTROL";
+   dmap["BINARY_MODULES"] = "PO_NO_BINARY_MODULES";
 
    // initialize code flag set
    fset.insert("NO_FLAGS");
