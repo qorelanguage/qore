@@ -33,6 +33,10 @@
 #include <map>
 
 class qore_ns_private {
+private:
+   // not implemented
+   DLLLOCAL qore_ns_private(const qore_ns_private&);
+
 public:
    std::string name;
 
@@ -52,7 +56,7 @@ public:
    DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char *n) : name(n), depth(0), parent(0), class_handler(0), ns(n_ns) {
    }
 
-   DLLLOCAL qore_ns_private(QoreNamespace *n_ns) : depth(0), parent(0), class_handler(0), ns(n_ns) {
+   DLLLOCAL qore_ns_private(QoreNamespace *n_ns) : depth(0), parent(0), class_handler(0), ns(n_ns) {      
    }
 
    DLLLOCAL qore_ns_private(const qore_ns_private &old, int64 po) 
@@ -62,10 +66,15 @@ public:
         nsl(old.nsl, po, *this),
         depth(old.depth),
         parent(0), class_handler(old.class_handler), ns(0) {
-   }		    
+   }
 
    DLLLOCAL ~qore_ns_private() {
       printd(5, "qore_ns_private::~qore_ns_private() this=%p '%s'\n", this, name.c_str());
+   }
+
+   DLLLOCAL static QoreNamespace* newNamespace(const qore_ns_private& old, int64 po) {
+      qore_ns_private* p = new qore_ns_private(old, po);
+      return new QoreNamespace(p);
    }
 
    // destroys the object and frees all associated memory
@@ -81,10 +90,10 @@ public:
    }
 
    // finds a local class in the committed class list, if not found executes the class handler
-   DLLLOCAL QoreClass *findLoadClass(QoreNamespace *cns, const char *cname) {
+   DLLLOCAL QoreClass *findLoadClass(const char *cname) {
       QoreClass *qc = classList.find(cname);
       if (!qc && class_handler)
-	 qc = class_handler(cns, cname);
+	 qc = class_handler(ns, cname);
       return qc;
    }
 
@@ -231,6 +240,8 @@ public:
          bfc = builtinFunctions.find(name);
    }
 
+   DLLLOCAL QoreNamespace* findCreateNamespacePath(const char* nspath);
+
    DLLLOCAL AbstractQoreNode *getConstantValue(const char *name, const QoreTypeInfo *&typeInfo);
    DLLLOCAL QoreClass *parseFindLocalClass(const char *name);
    DLLLOCAL void parseAddNamespace(QoreNamespace *nns);
@@ -360,12 +371,6 @@ public:
 
    DLLLOCAL static QoreListNode* getUserFunctionList(QoreNamespace& ns) {
       return ns.priv->user_func_list.getList(); 
-   }
-
-   DLLLOCAL static QoreNamespace* newNamespace(const qore_ns_private& old, int64 po) {
-      qore_ns_private* p = new qore_ns_private(old, po);
-      QoreNamespace* rv = new QoreNamespace(p);
-      return rv;
    }
 
    DLLLOCAL static void addClass(QoreNamespace& ns, const NamedScope *n, QoreClass *oc) {

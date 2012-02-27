@@ -43,6 +43,11 @@ class QoreNamespaceList {
 private:
    DLLLOCAL void deleteAll();
 
+   // not implemented
+   DLLLOCAL QoreNamespaceList(const QoreNamespaceList& old);
+   // not implemented
+   DLLLOCAL QoreNamespaceList& operator=(const QoreNamespaceList& nsl);
+
 public:
    nsmap_t nsmap;
 

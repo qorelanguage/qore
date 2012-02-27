@@ -130,6 +130,10 @@ void QoreNamespace::addNamespace(QoreNamespace* ns) {
    priv->nsl.add(ns);
 }
 
+void QoreNamespace::addInitialNamespace(QoreNamespace* ns) {
+   addNamespace(ns);
+}
+
 void QoreNamespaceList::deleteAll() {
    for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
       delete i->second;
@@ -222,33 +226,35 @@ void QoreNamespace::addConstant(const char* cname, AbstractQoreNode* val, const 
    priv->constant.add(cname, val, typeInfo);
 }
 
-void QoreNamespace::addInitialNamespace(QoreNamespace* ns) {
-   priv->nsl.add(ns);
-   ns->priv->depth = priv->depth + 1;
+QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
+   return priv->findCreateNamespacePath(nspath);
 }
 
-QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
+QoreNamespace* qore_ns_private::findCreateNamespacePath(const char* nspath) {
    assert(nspath);
    NamedScope ns(nspath);
 
    // iterate through each level of the namespace path and find/create namespaces as needed
-   QoreNamespaceList &nsl = priv->nsl;
-   QoreNamespace* parent = this;
-   QoreNamespace* tns = 0;
+   qore_ns_private* iparent = this;
+   qore_ns_private* itns = 0;
    for (unsigned i = 0; i < ns.size(); ++i) {
       const char* nsn = ns.strlist[i].c_str();
-      tns = nsl.find(nsn);
-      if (!tns) {
-	 tns = new QoreNamespace(nsn);
-	 tns->priv->parent = parent->priv;
-         tns->priv->depth = parent->priv->depth + 1;
-	 nsl.add(tns);
+      QoreNamespace* ns = iparent->nsl.find(nsn);
+      //printd(5, "qore_ns_private::findCreateNamespacePath() curr: %p (%s) nsn: %s (find: %p)\n", iparent, iparent->name.c_str(), nsn, ns);
+      if (ns)
+         itns = ns->priv;
+      else {
+         ns = new QoreNamespace(nsn);
+	 itns = ns->priv;
+	 itns->parent = iparent;
+         itns->depth = iparent->depth + 1;
+	 iparent->nsl.add(itns->ns);
+         //printd(5, "qore_ns_private::findCreateNamespacePath() curr: %p (%s) creating and adding: %s\n", iparent, iparent->name.c_str(), nsn);
       }
-      parent = tns;
-      nsl = tns->priv->nsl;
+      iparent = itns;
    }
 
-   return tns;
+   return itns ? itns->ns : 0;
 }
 
 QoreClass* QoreNamespace::findLocalClass(const char* cname) const {
@@ -260,7 +266,7 @@ QoreNamespace* QoreNamespace::findLocalNamespace(const char* cname) const {
 }
 
 const QoreNamespace* QoreNamespace::getParent() const {
-   return priv->parent->ns;
+   return priv->parent ? priv->parent->ns : 0;
 }
 
 void QoreNamespace::deleteData(ExceptionSink *xsink) {
@@ -406,7 +412,7 @@ QoreClass* QoreNamespaceList::parseFindClass(const char* ocname) {
 
    // see if a match can be found at the first level
    for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
-      if ((oc = i->second->priv->findLoadClass(i->second, ocname)))
+      if ((oc = i->second->priv->findLoadClass(ocname)))
 	 return oc;
       // check pending classes
       if ((oc = i->second->priv->pendClassList.find(ocname)))
@@ -1203,7 +1209,7 @@ QoreNamespace* qore_ns_private::parseMatchNamespace(const NamedScope *nscope, un
 }
 
 QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope *nscope, unsigned *matched) {
-   printd(5, "qore_ns_private::parseMatchScopedClass() this=%p ns=%p '%s' nscope='%s' matched=%d\n", ns, name.c_str(), nscope->ostr, *matched);
+   printd(5, "qore_ns_private::parseMatchScopedClass() this=%p ns=%p '%s' nscope='%s' matched=%d\n", this, ns, name.c_str(), nscope->ostr, *matched);
 
    if (nscope->strlist[0] != name) {
       QoreNamespace* fns = nsl.find(nscope->strlist[0]);
@@ -1230,7 +1236,7 @@ QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope *nscope, unsi
 	    (*matched) = i + 1;
       }
    }
-   QoreClass* rv = fns->priv->findLoadClass(ns, nscope->strlist[nscope->size() - 1].c_str());
+   QoreClass* rv = fns->priv->findLoadClass(nscope->strlist[nscope->size() - 1].c_str());
    if (!rv)
       rv = fns->priv->pendClassList.find(nscope->strlist[nscope->size() - 1].c_str());
    return rv;
@@ -1265,7 +1271,7 @@ QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope *ns
    }
 
    // check last namespaces
-   QoreClass* rv = fns->priv->findLoadClass(ns, nscope->strlist[nscope->size() - 2].c_str());
+   QoreClass* rv = fns->priv->findLoadClass(nscope->strlist[nscope->size() - 2].c_str());
    if (!rv)
       rv = fns->priv->pendClassList.find(nscope->strlist[nscope->size() - 2].c_str());
 
