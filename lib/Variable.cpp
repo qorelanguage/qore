@@ -41,6 +41,7 @@ VarValue::VarValue(Var *n_refptr, bool n_readonly) {
    ivar.refptr->ROreference();
 }
 
+/*
 ScopedObjectCallNode *Var::makeNewCall(AbstractQoreNode *args) const {
    if (type == GV_IMPORT)
       return v.ivar.refptr->makeNewCall(args);
@@ -52,6 +53,7 @@ ScopedObjectCallNode *Var::makeNewCall(AbstractQoreNode *args) const {
       return new ScopedObjectCallNode(parseTypeInfo->cscope->copy(), makeArgs(args));
    return 0;
 }
+*/
 
 void Var::del(ExceptionSink *xsink) {
    if (type == GV_IMPORT) {

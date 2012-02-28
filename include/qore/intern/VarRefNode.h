@@ -26,7 +26,7 @@
 
 #include <qore/intern/FunctionCallNode.h>
 
-class GlobalVarRefNewObjectNode;
+class VarRefNewObjectNode;
 class LocalVar;
 class LocalVarValue;
 class Var;
@@ -58,7 +58,7 @@ protected:
 
    DLLLOCAL void resolve(const QoreTypeInfo *typeInfo);
    DLLLOCAL AbstractQoreNode *parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new = false);
-   DLLLOCAL GlobalVarRefNewObjectNode *globalMakeNewCall(AbstractQoreNode *args);
+   DLLLOCAL VarRefNewObjectNode *globalMakeNewCall(AbstractQoreNode *args);
 
    // initializes during parsing
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
@@ -147,7 +147,7 @@ public:
    //FIXME: implemented evalImpl as getReferencedValue()
    //DLLLOCAL AbstractQoreNode *getReferencedValue() const;
 
-   //DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
+   DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink) const;
 
    //DLLLOCAL AbstractQoreNode *assign(const AbstractQoreNode *expr, bool ref_rv, ExceptionSink *xsink);
 
@@ -212,6 +212,9 @@ protected:
 
    DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo, bool n_has_effect) : VarRefNode(n, t, n_has_effect), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
+   }
+
+   DLLLOCAL VarRefDeclNode(char *n, Var *var, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo) : VarRefNode(n, var, true), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
    }
 
    // initializes during parsing
@@ -284,7 +287,7 @@ public:
    DLLLOCAL void parseInitConstructorCall(LocalVar *oflag, int pflag, int &lvids, const QoreClass *qc);
 };
 
-class LocalVarRefNewObjectNode : public VarRefDeclNode, public VarRefFunctionCallBase {
+class VarRefNewObjectNode : public VarRefDeclNode, public VarRefFunctionCallBase {
 protected:
    // evalImpl(): return value requires a deref(xsink)
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
@@ -299,10 +302,14 @@ protected:
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo);
 
 public:
-   DLLLOCAL LocalVarRefNewObjectNode(char *n, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo, QoreListNode *n_args) : VarRefDeclNode(n, VT_LOCAL, n_typeInfo, n_parseTypeInfo, true), VarRefFunctionCallBase(n_args) {
+   DLLLOCAL VarRefNewObjectNode(char *n, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo, QoreListNode *n_args, qore_var_t t) : VarRefDeclNode(n, t, n_typeInfo, n_parseTypeInfo, true), VarRefFunctionCallBase(n_args) {
    }
+
+   DLLLOCAL VarRefNewObjectNode(char *n, Var *var, QoreListNode *n_args, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo) : VarRefDeclNode(n, var, n_typeInfo, n_parseTypeInfo), VarRefFunctionCallBase(n_args) {
+   }
+
    /*
-   DLLLOCAL virtual ~LocalVarRefNewObjectNode() {
+   DLLLOCAL virtual ~VarRefNewObjectNode() {
       //printd(0, "VarRefNewObjectNode::~VarRefNewObjectNode() this=%p (%s)\n", this, getName());
    }
    */
@@ -318,35 +325,6 @@ public:
          return typeInfo->getUniqueReturnClass()->getName();
       }
       return parseTypeInfo->cscope->getIdentifier();
-   }
-};
-
-class GlobalVarRefNewObjectNode : public VarRefNode, public VarRefFunctionCallBase {
-protected:
-   // evalImpl(): return value requires a deref(xsink)
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-
-   //! optionally evaluates the argument
-   /** return value requires a deref(xsink) if needs_deref is true
-       @see AbstractQoreNode::eval()
-   */
-   DLLLOCAL AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
-
-   // initializes during parsing
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo);
-
-public:
-   // for making a reference to a global variable
-   DLLLOCAL GlobalVarRefNewObjectNode(char *n, Var *var, QoreListNode *n_args) : VarRefNode(n, var, true), VarRefFunctionCallBase(n_args) {
-   }
-
-   DLLLOCAL virtual bool stayInTree() const {
-      return true;
-   }
-
-   // will only be called on *VarRefNewObjectNode objects, but this is their common class
-   DLLLOCAL virtual const char *getNewObjectClassName() const {
-      return ref.var->getClassName();
    }
 };
 

@@ -116,7 +116,7 @@ public:
    DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *getReferencedValue() const;
-   DLLLOCAL ScopedObjectCallNode *makeNewCall(AbstractQoreNode *args) const;
+   //DLLLOCAL ScopedObjectCallNode *makeNewCall(AbstractQoreNode *args) const;
    DLLLOCAL void doDoubleDeclarationError() {
       // make sure types are identical or throw an exception
       if (parseTypeInfo) {
