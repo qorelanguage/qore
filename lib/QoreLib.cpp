@@ -1100,16 +1100,6 @@ int q_gname2gid(const char *name, gid_t &gid) {
 }
 #endif // HAVE_PWD_H
 
-ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink) {
-   QoreProgram *pgm = getProgram();
-   UserFunction *f = pgm->findUserFunction(str->getBuffer());
-   if (!f) {
-      xsink->raiseException("NO-SUCH-FUNCTION", "callback function '%s()' does not exist", str->getBuffer());
-      return 0;
-   }
-   return new UserCallReferenceNode(f, pgm);
-}
-
 qore_license_t qore_get_license() {
    return qore_license;
 }

@@ -23,6 +23,15 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ql_list.h>
+#include <qore/intern/qore_program_private.h>
+
+ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink) {
+   // ensure string is in default encoding                                                                                                                            
+   TempEncodingHelper tmp(str, QCS_DEFAULT, xsink);
+   if (!tmp)
+      return 0;
+   return qore_program_private::runtimeGetCallReference(getProgram(), tmp->getBuffer(), xsink);
+}
 
 /** @defgroup list_functions List Functions
     List functions

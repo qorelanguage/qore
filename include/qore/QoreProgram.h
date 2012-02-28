@@ -508,9 +508,6 @@ public:
    */
    DLLEXPORT void parseDefine(const char *str, const char *val);   
 
-   /// returns a pointed to the given user function if it exists (otherwise returns 0)
-   DLLLOCAL UserFunction *findUserFunction(const char *name);
-      
    DLLLOCAL QoreProgram(QoreProgram *pgm, int64 po, bool ec = false, const char *ecn = 0);
 
    DLLLOCAL LocalVar *createLocalVar(const char *name, const QoreTypeInfo *typeInfo);

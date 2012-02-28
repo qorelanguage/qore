@@ -32,8 +32,6 @@
 #include <vector>
 
 // all definitions in this file are private to the library and subject to change
-class RootQoreNamespace;
-class UserFunctionList;
 class BCAList;
 class BCList;
 

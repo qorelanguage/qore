@@ -355,7 +355,6 @@ noinst_HEADERS = \
 	include/qore/intern/LocalVar.h \
 	include/qore/intern/ModuleInfo.h \
 	include/qore/intern/QoreTimeZoneManager.h \
-	include/qore/intern/UserFunctionList.h \
 	include/qore/intern/QoreTreeNode.h \
 	include/qore/intern/BarewordNode.h \
 	include/qore/intern/StaticClassVarRefNode.h \
@@ -392,7 +391,7 @@ noinst_HEADERS = \
 	include/qore/intern/ManagedDatasource.h \
 	include/qore/intern/qore_ds_private.h \
 	include/qore/intern/QoreSQLStatement.h \
-	include/qore/intern/ImportedFunctionList.h \
+	include/qore/intern/FunctionList.h \
 	include/qore/intern/GlobalVariableList.h \
 	include/qore/intern/DatasourcePool.h \
 	include/qore/intern/Function.h \

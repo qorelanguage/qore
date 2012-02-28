@@ -246,9 +246,8 @@ libqore_la_SOURCES = \
 	Function.cpp \
 	BuiltinFunction.cpp \
 	BuiltinFunctionList.cpp \
-	UserFunctionList.cpp \
 	GlobalVariableList.cpp \
-	ImportedFunctionList.cpp \
+	FunctionList.cpp \
 	AbstractStatement.cpp \
 	OnBlockExitStatement.cpp \
 	ExpressionStatement.cpp \

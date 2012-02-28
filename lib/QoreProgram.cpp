@@ -436,11 +436,6 @@ void QoreProgram::cannotProvideFeature(QoreStringNode *desc) {
    priv->parseSink->raiseException(ne);
 }
 
-UserFunction *QoreProgram::findUserFunction(const char *name) {
-   AutoLocker al(&priv->plock);
-   return qore_root_ns_private::runtimeFindUserFunction(*priv->RootNS, name);
-}
-
 void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, ExceptionSink *xsink) {
    priv->exportUserFunction(name, p->priv, xsink);
 }
@@ -553,7 +548,7 @@ void QoreProgram::addStatement(AbstractStatement *s) {
 bool QoreProgram::existsFunction(const char *name) {
    // need to grab the parse lock for safe access to the user function map
    AutoLocker al(&priv->plock);
-   return qore_root_ns_private::runtimeFindUserFunction(*priv->RootNS, name) ? true : false;
+   return qore_root_ns_private::runtimeExistsFunction(*priv->RootNS, name) ? true : false;
 }
 
 // DEPRECATED
@@ -659,7 +654,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    // need to grab parse lock for safe access to the user function map and imported function map
    priv->plock.lock();
 
-   qore_root_ns_private::findCallFunction(*priv->RootNS, name, ufc, ipgm, bfc);
+   qore_root_ns_private::runtimeFindCallFunction(*priv->RootNS, name, ufc, ipgm, bfc);
    if (ufc) {
       priv->plock.unlock();
       // we assign the args to 0 below so that they will not be deleted

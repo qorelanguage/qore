@@ -432,7 +432,6 @@ DLLLOCAL BinaryNode *parseHex(const char *buf, int len);
 DLLLOCAL void print_node(FILE *fp, const AbstractQoreNode *node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void init_lib_intern(char *env[]);
-DLLLOCAL ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink);
 DLLLOCAL QoreListNode *makeArgs(AbstractQoreNode *arg);
 
 DLLLOCAL AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink);

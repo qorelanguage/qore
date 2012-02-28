@@ -917,7 +917,7 @@ public:
 
       {
 	 AutoLocker al(plock);
-	 u = qore_root_ns_private::runtimeFindUserImportedFunction(*RootNS, name, ipgm);
+	 u = qore_root_ns_private::runtimeFindFunction(*RootNS, name, ipgm);
       }
 
       if (!u)
@@ -937,7 +937,7 @@ public:
 
       {
 	 AutoLocker al(plock);
-	 u = qore_root_ns_private::runtimeFindUserImportedFunction(*RootNS, name, ipgm);
+	 u = qore_root_ns_private::runtimeFindFunction(*RootNS, name, ipgm);
       }
 
       if (!u)
@@ -1170,6 +1170,15 @@ public:
 
       AutoLocker al(plock);
       setDefine(str, val, xsink);
+   }
+
+   DLLLOCAL ResolvedCallReferenceNode* runtimeGetCallReference(const char *name, ExceptionSink* xsink) {
+      AutoLocker al(&plock);
+      return qore_root_ns_private::runtimeGetCallReference(*RootNS, name, xsink);
+   }
+
+   DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(QoreProgram* pgm, const char *name, ExceptionSink* xsink) {
+      return pgm->priv->runtimeGetCallReference(name, xsink);
    }
 
    DLLLOCAL static const ParseWarnOptions &getParseWarnOptions(const QoreProgram *pgm) {
