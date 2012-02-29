@@ -25,7 +25,6 @@
 #include <qore/intern/OnBlockExitStatement.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/UserFunctionList.h>
 #include <qore/intern/qore_program_private.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/minitest.hpp>
