@@ -48,19 +48,24 @@ public:
    DLLLOCAL ConstantEntry() : typeInfo(0), node(0), init(false) {}
    DLLLOCAL ConstantEntry(AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false) : typeInfo(ti), node(v), init(n_init) {}
    DLLLOCAL int parseInit(const char *name, QoreClass *class_context);
+   DLLLOCAL AbstractQoreNode* get(const QoreTypeInfo*& constantTypeInfo) {
+      constantTypeInfo = typeInfo;
+      return node;
+   }
 };
 
-typedef std::map<std::string, ConstantEntry> hm_qn_t;
+typedef std::map<std::string, ConstantEntry> clmap_t;
 
 class ConstantList {
    friend class ConstantListIterator;
-private:
-   hm_qn_t hm;
 
+private:
    DLLLOCAL void clearIntern(ExceptionSink *xsink);
    DLLLOCAL int checkDup(const std::string &name, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
 
 public:
+   clmap_t clmap;
+
    DLLLOCAL ~ConstantList();
 
    DLLLOCAL ConstantList() {
@@ -69,8 +74,11 @@ public:
 
    DLLLOCAL ConstantList(const ConstantList &old);
 
+   // do not delete the object returned by this function
    DLLLOCAL void add(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
-   DLLLOCAL void parseAdd(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
+
+   DLLLOCAL clmap_t::iterator parseAdd(const char* name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
+
    DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo, QoreClass *class_context = 0);
    DLLLOCAL bool inList(const char *name) const;
    DLLLOCAL bool inList(const std::string &name) const;
@@ -92,17 +100,17 @@ public:
    DLLLOCAL void reset();
 
    DLLLOCAL bool empty() const {
-      return hm.empty();
+      return clmap.empty();
    } 
 };
 
 class ConstantListIterator {
 protected:
-   hm_qn_t cl;
-   hm_qn_t::iterator i;
+   clmap_t& cl;
+   clmap_t::iterator i;
 
 public:
-   DLLLOCAL ConstantListIterator(ConstantList &n_cl) : cl(n_cl.hm), i(cl.end()) {
+   DLLLOCAL ConstantListIterator(ConstantList &n_cl) : cl(n_cl.clmap), i(cl.end()) {
    }
 
    DLLLOCAL bool next() {
@@ -113,12 +121,16 @@ public:
       return i != cl.end();
    }
 
-   DLLLOCAL std::string getName() {
+   DLLLOCAL const std::string& getName() const {
       return i->first;
    }
 
-   DLLLOCAL AbstractQoreNode *getValue() {
+   DLLLOCAL AbstractQoreNode *getValue() const {
       return i->second.node;
+   }
+
+   DLLLOCAL ConstantEntry* getEntry() const {
+      return &(i->second);
    }
 };
 

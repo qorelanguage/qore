@@ -186,6 +186,7 @@ int ModuleInfo::getAPIMinor() const {
 
 void ModuleInfo::ns_init(QoreNamespace *rns, QoreNamespace *qns) const {
    module_ns_init(rns, qns);
+   qore_root_ns_private::runtimeModuleRebuildIndexes(*((RootQoreNamespace*)rns));
 }
 
 bool ModuleInfo::isBuiltin() const {

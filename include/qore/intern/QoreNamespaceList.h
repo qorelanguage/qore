@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  Namespace.h
+  QoreNamespaceList.h
 
   Qore Programming Language
 
@@ -68,7 +68,10 @@ public:
       nsmap_t::iterator i = nsmap.find(name);
       return i == nsmap.end() ? 0 : i->second;
    }
-   DLLLOCAL void add(QoreNamespace *ot);
+
+   // do not delete the pointer returned from this function
+   DLLLOCAL qore_ns_private* add(QoreNamespace *ot, qore_ns_private* parent);
+
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInitConstants();
    DLLLOCAL void parseInit();
@@ -76,10 +79,7 @@ public:
    DLLLOCAL void parseRollback();
    DLLLOCAL void deleteAllConstants(ExceptionSink *xsink);
    DLLLOCAL void reset();
-   DLLLOCAL void assimilate(QoreNamespaceList& n);
-
-   //DLLLOCAL UserFunction* findUserImportedFunction(const char* name, QoreProgram*& ipgm);
-   //DLLLOCAL UserFunction* findUserFunction(const char* name);
+   DLLLOCAL void assimilate(QoreNamespaceList& n, qore_ns_private* parent);
 
    DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope *name, unsigned *matched);
    DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
@@ -89,12 +89,67 @@ public:
    DLLLOCAL QoreClass *parseFindClass(const char *ocname);
    DLLLOCAL void deleteData(ExceptionSink *xsink);
 
-   DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo) const;
-   DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
+   //DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo) const;
 
    DLLLOCAL bool empty() const {
       return nsmap.empty();
    }
+
+   DLLLOCAL qore_size_t size() const {
+      return nsmap.size();
+   }
 };
+
+/*
+class QoreNamespaceListIterator {
+protected:
+   nsmap_t& nsmap;
+   nsmap_t::iterator i;
+
+public:
+   DLLLOCAL QoreNamespaceListIterator(QoreNamespaceList* nsl) : nsmap(nsl->nsmap), i(nsmap.begin()) {
+   }
+
+   DLLLOCAL QoreNamespaceListIterator(QoreNamespaceList& nsl) : nsmap(nsl.nsmap), i(nsmap.begin()) {
+   }
+
+   DLLLOCAL bool next() {
+      if (i == nsmap.end())
+         i = nsmap.begin();
+      else
+         ++i;
+      return (i == nsmap.end()) ? false : true;
+   }
+
+   DLLLOCAL QoreNamespace* operator->() {
+      return i->second;
+   }
+};
+
+class QoreNamespaceListConstIterator {
+protected:
+   const nsmap_t& nsmap;
+   nsmap_t::const_iterator i;
+
+public:
+   DLLLOCAL QoreNamespaceListConstIterator(const QoreNamespaceList* nsl) : nsmap(nsl->nsmap), i(nsmap.end()) {
+   }
+
+   DLLLOCAL QoreNamespaceListConstIterator(const QoreNamespaceList& nsl) : nsmap(nsl.nsmap), i(nsmap.end()) {
+   }
+
+   DLLLOCAL bool next() {
+      if (i == nsmap.end())
+         i = nsmap.begin();
+      else
+         ++i;
+      return (i == nsmap.end()) ? false : true;
+   }
+
+   DLLLOCAL const QoreNamespace* operator->() const {
+      return i->second;
+   }
+};
+*/
 
 #endif

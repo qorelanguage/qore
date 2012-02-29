@@ -75,11 +75,11 @@ char *BarewordNode::takeString() {
 }
 
 AbstractQoreNode *BarewordNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   // resolve simple constant
-   AbstractQoreNode *n = this;
-   AbstractQoreNode **node = &n;
-   printd(5, "BarewordNode::parseInitImpl() resolving bareword '%s'\n", reinterpret_cast<BarewordNode *>(*node)->str);
-   if (!qore_root_ns_private::parseResolveBareword(node, typeInfo))
-      return (*node)->parseInit(oflag, pflag, lvids, typeInfo);
-   return *node;
+   AbstractQoreNode *n = qore_root_ns_private::parseResolveBareword(str, typeInfo);
+   if (!n)
+      return this;
+
+   deref(0);
+   n->ref();
+   return n->parseInit(oflag, pflag, lvids, typeInfo);
 }

@@ -436,6 +436,7 @@ AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, in
       }
    }
 
+   /*
    AbstractQoreNode *n = 0;
 
    // try to resolve a global var
@@ -446,7 +447,7 @@ AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, in
 
       // see if a constant can be resolved
       if (!n) {
-	 n = qore_root_ns_private::parseFindConstantValue(c_str, returnTypeInfo);
+	 n = qore_root_ns_private::parseFindConstantValue(c_str, returnTypeInfo, false);
 	 if (n)
 	    n->ref();
       }
@@ -457,6 +458,7 @@ AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, in
       deref();
       return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
    }
+   */
 
    return parseInitCall(oflag, pflag, lvids, returnTypeInfo);
 }
@@ -477,8 +479,12 @@ AbstractQoreNode *FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, in
    }
 
    // see if a constant can be resolved
-   if (!n)
-      n = qore_ns_private::parseResolveBareword(::getProgram()->getRootNS(), c_str, returnTypeInfo);
+   if (!n) {
+      n = qore_root_ns_private::parseFindConstantValue(c_str, returnTypeInfo, false);
+      if (n)
+	 n->ref();
+      //n = qore_root_ns_private::parseResolveBareword(c_str, returnTypeInfo);
+   }
 
    if (n) {
       CallReferenceCallNode *crcn = new CallReferenceCallNode(n, take_args());	 
@@ -598,10 +604,9 @@ AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag
 
    // see if a constant can be resolved
    if (!method) {
-      m = 0;
-      AbstractQoreNode *n = qore_ns_private::resolveScopedReference(*scope, m, typeInfo);
+      AbstractQoreNode* n = qore_root_ns_private::parseFindConstantValue(scope, typeInfo, false);
       if (n) {
-	 CallReferenceCallNode *crcn = new CallReferenceCallNode(n, takeArgs());	 
+	 CallReferenceCallNode *crcn = new CallReferenceCallNode(n->refSelf(), takeArgs());	 
 	 deref();
 	 return crcn->parseInit(oflag, pflag, lvids, typeInfo);
       }

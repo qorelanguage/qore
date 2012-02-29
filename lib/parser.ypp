@@ -1067,11 +1067,11 @@ top_level_command:
 	   delete $1;
 	}
 	| scoped_const_decl {
-           qore_root_ns_private::parseAddConstant($1->name, $1->value);
+           qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value);
 	   delete $1;
 	}
         | unscoped_const_decl {
-           qore_root_ns_private::parseAddConstant($1->name, $1->value);
+           qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value);
 	   delete $1;
 	}
         | object_outofline_function_def  // registered directly
@@ -1090,7 +1090,7 @@ top_level_command:
 	   getProgram()->addStatement($2);
         }
         | top_namespace_decl {
-           qore_ns_private::parseAddNamespace(*(getRootNS()), $1); 
+           qore_root_ns_private::parseAddNamespace($1); 
 	   // see if ns declaration is legal
 	   if (checkParseOption(PO_NO_NAMESPACE_DEFS))
 	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
