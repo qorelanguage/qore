@@ -310,6 +310,11 @@ void QoreNamespace::deleteData(ExceptionSink *xsink) {
    priv->nsl.deleteData(xsink);
 }
 
+void QoreNamespaceList::deleteData(ExceptionSink *xsink) {
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->deleteData(xsink);
+}
+
 // QoreNamespaceList::parseResolveNamespace()
 // does a recursive breadth-first search to resolve a namespace declaration
 QoreNamespace* QoreNamespaceList::parseResolveNamespace(const NamedScope *name, unsigned *matched) {
@@ -475,9 +480,13 @@ QoreClass* QoreNamespaceList::parseFindScopedClass(const NamedScope *name, unsig
    return oc;
 }
 
-void QoreNamespaceList::deleteData(ExceptionSink *xsink) {
-   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      i->second->deleteData(xsink);
+AbstractQoreNode *QoreNamespaceList::parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const {
+   AbstractQoreNode *rv;
+   for (nsmap_t::const_iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((rv = i->second->priv->parseResolveScopedReference(ns, m, typeInfo)))
+         return rv;
+   }
+   return 0;
 }
 
 QoreHashNode* QoreNamespace::getConstantInfo() const {
@@ -714,6 +723,48 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const char* b
    return 0;
 }
 
+AbstractQoreNode *qore_ns_private::parseResolveScopedReference(const NamedScope &nsc, unsigned &matched, const QoreTypeInfo *&typeInfo) const {
+   //printd(0, "qore_ns_private::parseResolveScopedReference() this=%p '%s' nsc=%s m=%d\n", this, name.c_str(), nsc.ostr, matched);
+   assert(nsc.size() > 1);
+
+   AbstractQoreNode *rv = parseCheckScopedReference(nsc, matched, typeInfo);
+   if (rv)
+      return rv;
+
+   rv = nsl.parseResolveScopedReference(nsc, matched, typeInfo);
+   return rv ? rv : pendNSL.parseResolveScopedReference(nsc, matched, typeInfo);
+}
+
+AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const NamedScope& nscope, const QoreTypeInfo *&typeInfo) {
+   unsigned m = 0;
+   AbstractQoreNode* rv = qore_ns_private::parseResolveScopedReference(nscope, m, typeInfo);
+   if (rv)
+      return rv;
+
+  if (nscope.size() == 1) {
+      parse_error("cannot resolve bareword '%s' to any reachable object", nscope.ostr);
+      return 0;
+   }
+
+   // raise parse exception
+   if (m != (nscope.size() - 1))
+      parse_error("cannot find any namespace or class '%s' in '%s' with a reference to constant or static class variable '%s'", nscope.strlist[m].c_str(), nscope.ostr, nscope.getIdentifier());
+   else {
+      QoreString err;
+      err.sprintf("cannot resolve bareword '%s' to any reachable object in any namespace '", nscope.getIdentifier());
+      for (unsigned i = 0; i < (nscope.size() - 1); i++) {
+         err.concat(nscope.strlist[i].c_str());
+         if (i != (nscope.size() - 2))
+            err.concat("::");
+      }
+      err.concat("'");
+      parse_error(err.getBuffer());
+   }
+
+   //printd(5, "RootQoreNamespace::resolveScopedReference(%s) not found\n", c->scoped_ref->ostr);
+   return 0;
+}
+
 // private
 QoreClass* qore_ns_private::rootFindScopedClassWithMethod(const NamedScope *nscope, unsigned *matched) {
    QoreClass* oc;
@@ -855,7 +906,7 @@ void qore_root_ns_private::parseAddConstantIntern(QoreNamespace& ns, const Named
    if (i == sns->priv->pendConstant.clmap.end())
       return;
 
-   pend_cmap.update(i->first.c_str(), sns->priv, &i->second);
+   pend_cmap.update(i->first.c_str(), sns->priv, i->second);
 }
 
 // public
@@ -1277,7 +1328,7 @@ AbstractQoreNode* qore_ns_private::parseMatchScopedConstantValue(const NamedScop
    return fns->priv->getConstantValue(nscope->getIdentifier(), typeInfo);
 }
 
-AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const NamedScope &nsc, unsigned &matched, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const NamedScope &nsc, unsigned &matched, const QoreTypeInfo *&typeInfo) const {
    const QoreNamespace* pns = ns;
 
    // follow the namespaces

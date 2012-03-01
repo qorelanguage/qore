@@ -80,6 +80,5 @@ AbstractQoreNode *BarewordNode::parseInitImpl(LocalVar *oflag, int pflag, int &l
       return this;
 
    deref(0);
-   n->ref();
    return n->parseInit(oflag, pflag, lvids, typeInfo);
 }

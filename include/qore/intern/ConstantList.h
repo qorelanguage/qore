@@ -47,6 +47,13 @@ public:
 
    DLLLOCAL ConstantEntry() : typeInfo(0), node(0), init(false) {}
    DLLLOCAL ConstantEntry(AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false) : typeInfo(ti), node(v), init(n_init) {}
+
+   DLLLOCAL ~ConstantEntry() {
+      assert(!node);
+   }
+
+   DLLLOCAL void del(ExceptionSink* xsink);
+
    DLLLOCAL int parseInit(const char *name, QoreClass *class_context);
    DLLLOCAL AbstractQoreNode* get(const QoreTypeInfo*& constantTypeInfo) {
       constantTypeInfo = typeInfo;
@@ -54,12 +61,15 @@ public:
    }
 };
 
-typedef std::map<std::string, ConstantEntry> clmap_t;
+typedef std::map<std::string, ConstantEntry*> clmap_t;
 
 class ConstantList {
    friend class ConstantListIterator;
 
 private:
+   // not implemented
+   DLLLOCAL ConstantList& operator=(const ConstantList&);
+
    DLLLOCAL void clearIntern(ExceptionSink *xsink);
    DLLLOCAL int checkDup(const std::string &name, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
 
@@ -126,11 +136,11 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode *getValue() const {
-      return i->second.node;
+      return i->second->node;
    }
 
    DLLLOCAL ConstantEntry* getEntry() const {
-      return &(i->second);
+      return i->second;
    }
 };
 

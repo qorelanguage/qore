@@ -70,6 +70,19 @@ static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
    }
 }
 
+void ConstantEntry::del(ExceptionSink* xsink) {
+   if (!node)
+      return;
+
+   // abort if an object is present and we are calling deref without an ExceptionSink object
+   assert(get_node_type(node) != NT_OBJECT || xsink);
+   node->deref(xsink);
+#ifdef DEBUG
+   node = 0;
+#endif
+   delete this;
+}
+
 int ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
    //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s) class context=%p (%s)\n", this, name, init, node, get_type_name(node), class_context, class_context ? class_context->getName() : "<none>");
 
@@ -141,14 +154,14 @@ ConstantList::ConstantList(const ConstantList &old) {
    // DEBUG
    //fprintf(stderr, "XXX ConstantList::ConstantList() this=%p copy constructor from %p called\n", this, &old);
    for (clmap_t::const_iterator i = old.clmap.begin(), e = old.clmap.end(); i != e; ++i) {
-      assert(i->second.init);
+      assert(i->second->init);
 
       // reference value for new constant definition
-      if (i->second.node)
-	 i->second.node->ref();
+      if (i->second->node)
+	 i->second->node->ref();
 
-      clmap[i->first] = ConstantEntry(i->second.node, i->second.typeInfo, true);
-      //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first.c_str(), i->second.node);
+      clmap[i->first] = new ConstantEntry(i->second->node, i->second->typeInfo, true);
+      //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first.c_str(), i->second->node);
    }
 }
 
@@ -167,12 +180,10 @@ void ConstantList::reset() {
 
 void ConstantList::clearIntern(ExceptionSink *xsink) {
    for (clmap_t::iterator i = clmap.begin(), e = clmap.end(); i != e; ++i) {
-      if (i->second.node) {
-	 // abort if an object is present and we are calling deref without an ExceptionSink object
-	 assert(get_node_type(i->second.node) != NT_OBJECT || xsink);
-	 printd(5, "ConstantList::clearIntern() this=%p clearing %s type %s refs %d\n", this, i->first.c_str(), get_type_name(i->second.node), i->second.node->reference_count());
-	 i->second.node->deref(xsink);
-      }
+      if (!i->second)
+	 continue;
+      printd(5, "ConstantList::clearIntern() this: %p clearing %s type %s refs %d\n", this, i->first.c_str(), get_type_name(i->second->node), i->second->node ? i->second->node->reference_count() : 0);
+      i->second->del(xsink);
    }
 
    clmap.clear();
@@ -199,7 +210,7 @@ clmap_t::iterator ConstantList::parseAdd(const char* name, AbstractQoreNode *val
       return clmap.end();
    }
    
-   return clmap.insert(clmap_t::value_type(name, ConstantEntry(value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value)))).first;
+   return clmap.insert(clmap_t::value_type(name, new ConstantEntry(value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value)))).first;
 }
 
 void ConstantList::add(const char *name, AbstractQoreNode *value, const QoreTypeInfo *typeInfo) {
@@ -209,15 +220,15 @@ void ConstantList::add(const char *name, AbstractQoreNode *value, const QoreType
       assert(false);
    }
 #endif
-   clmap[name] = ConstantEntry(value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), true);
+   clmap[name] = new ConstantEntry(value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), true);
 }
 
 AbstractQoreNode *ConstantList::find(const char *name, const QoreTypeInfo *&constantTypeInfo, QoreClass *class_context) {
    clmap_t::iterator i = clmap.find(name);
    if (i != clmap.end()) {
-      if (!i->second.parseInit(i->first.c_str(), class_context)) {
-	 constantTypeInfo = i->second.typeInfo;
-	 return i->second.node;
+      if (!i->second->parseInit(i->first.c_str(), class_context)) {
+	 constantTypeInfo = i->second->typeInfo;
+	 return i->second->node;
       }
       constantTypeInfo = nothingTypeInfo;
       return &Nothing;
@@ -301,7 +312,7 @@ void ConstantList::parseAdd(const std::string &name, AbstractQoreNode *val, Cons
    if (checkDup(name, committed, other, otherPend, priv, cname))
       val->deref(0);
    else
-      clmap[name] = ConstantEntry(val, getTypeInfoForValue(val));
+      clmap[name] = new ConstantEntry(val, getTypeInfoForValue(val));
 }
 
 void ConstantList::assimilate(ConstantList &n, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname) {
@@ -318,8 +329,8 @@ void ConstantList::assimilate(ConstantList &n, ConstantList &committed, Constant
 void ConstantList::parseInit(QoreClass *class_context) {
    //RootQoreNamespace *rns = getRootNS();
    for (clmap_t::iterator i = clmap.begin(), e = clmap.end(); i != e; ++i) {
-      printd(5, "ConstantList::parseInit() %s %p (class: %s)\n", i->first.c_str(), i->second.node, class_context ? class_context->getName() : "<none>");
-      i->second.parseInit(i->first.c_str(), class_context);
+      printd(5, "ConstantList::parseInit() %s %p (class: %s)\n", i->first.c_str(), i->second->node, class_context ? class_context->getName() : "<none>");
+      i->second->parseInit(i->first.c_str(), class_context);
    }
 }
 
@@ -327,7 +338,7 @@ QoreHashNode *ConstantList::getInfo() {
    QoreHashNode *h = new QoreHashNode;
 
    for (clmap_t::iterator i = clmap.begin(), e = clmap.end(); i != e; ++i)
-      h->setKeyValue(i->first.c_str(), i->second.node->refSelf(), 0);
+      h->setKeyValue(i->first.c_str(), i->second->node->refSelf(), 0);
 
    return h;
 }
