@@ -556,7 +556,7 @@ UnresolvedStaticMethodCallReferenceNode::~UnresolvedStaticMethodCallReferenceNod
 AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = callReferenceTypeInfo;
 
-   QoreClass *qc = qore_ns_private::parseFindScopedClassWithMethod(*(getRootNS()), scope);
+   QoreClass *qc = qore_root_ns_private::parseFindScopedClassWithMethod(scope, true);
    if (!qc)
       return this;
    

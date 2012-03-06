@@ -788,13 +788,13 @@ void BCEAList::deref(ExceptionSink *xsink) {
 void BCANode::parseInit(BCList *bcl, const char *classname) {
    QoreClass *sclass = 0;
    if (ns) {
-      sclass = qore_ns_private::parseFindScopedClass(*(getRootNS()), ns);
+      sclass = qore_root_ns_private::parseFindScopedClass(ns);
       printd(5, "BCANode::parseInit() this=%p resolved named scoped %s -> %p\n", this, ns->ostr, sclass);
       delete ns;
       ns = 0;
    }
    else {
-      sclass = qore_ns_private::parseFindClass(*(getRootNS()), name);
+      sclass = qore_root_ns_private::parseFindClass(name, true);
       printd(5, "BCANode::parseInit() this=%p resolved %s -> %p\n", this, name, sclass);
       free(name);
       name = 0;
@@ -830,14 +830,14 @@ void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
    if (!sclass) {
       if (cname) {
 	 // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
-	 sclass = qore_ns_private::parseFindScopedClass(*(getRootNS()), cname);
+	 sclass = qore_root_ns_private::parseFindScopedClass(cname);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
 	 delete cname;
 	 cname = 0;
       }
       else {
-	 // if the class cannot be found, RootQoreNamespace::parseFindClass() will throw the appropriate exception
-	 sclass = qore_ns_private::parseFindClass(*(getRootNS()), cstr);
+	 // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
+	 sclass = qore_root_ns_private::parseFindClass(cstr, true);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
 	 free(cstr);
 	 cstr = 0;
@@ -2180,8 +2180,7 @@ const QoreMethod *QoreClass::parseResolveSelfMethod(const char *nme) {
 
 const QoreMethod *QoreClass::parseResolveSelfMethod(NamedScope *nme) {
    // first find class
-
-   QoreClass *qc = qore_ns_private::parseFindScopedClassWithMethod(*(getRootNS()), nme);
+   QoreClass *qc = qore_root_ns_private::parseFindScopedClassWithMethod(nme, true);
    if (!qc)
       return 0;
 

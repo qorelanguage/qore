@@ -61,7 +61,7 @@ public:
    }
 };
 
-typedef std::map<std::string, ConstantEntry*> clmap_t;
+typedef std::map<std::string, ConstantEntry*> cnemap_t;
 
 class ConstantList {
    friend class ConstantListIterator;
@@ -74,7 +74,7 @@ private:
    DLLLOCAL int checkDup(const std::string &name, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
 
 public:
-   clmap_t clmap;
+   cnemap_t cnemap;
 
    DLLLOCAL ~ConstantList();
 
@@ -85,9 +85,9 @@ public:
    DLLLOCAL ConstantList(const ConstantList &old);
 
    // do not delete the object returned by this function
-   DLLLOCAL void add(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
+   DLLLOCAL cnemap_t::iterator add(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
 
-   DLLLOCAL clmap_t::iterator parseAdd(const char* name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
+   DLLLOCAL cnemap_t::iterator parseAdd(const char* name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
 
    DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo, QoreClass *class_context = 0);
    DLLLOCAL bool inList(const char *name) const;
@@ -110,17 +110,25 @@ public:
    DLLLOCAL void reset();
 
    DLLLOCAL bool empty() const {
-      return clmap.empty();
-   } 
+      return cnemap.empty();
+   }
+
+   DLLLOCAL cnemap_t::iterator end() {
+      return cnemap.end();
+   }
+
+   DLLLOCAL cnemap_t::const_iterator end() const {
+      return cnemap.end();
+   }
 };
 
 class ConstantListIterator {
 protected:
-   clmap_t& cl;
-   clmap_t::iterator i;
+   cnemap_t& cl;
+   cnemap_t::iterator i;
 
 public:
-   DLLLOCAL ConstantListIterator(ConstantList &n_cl) : cl(n_cl.clmap), i(cl.end()) {
+   DLLLOCAL ConstantListIterator(ConstantList &n_cl) : cl(n_cl.cnemap), i(cl.end()) {
    }
 
    DLLLOCAL bool next() {

@@ -713,7 +713,7 @@ void QoreProgram::parseRollback() {
 
 void QoreProgram::runClass(const char *classname, ExceptionSink *xsink) {
    // find class
-   QoreClass *qc = qore_ns_private::rootFindClass(*priv->RootNS, classname);
+   QoreClass *qc = qore_root_ns_private::runtimeFindClass(*priv->RootNS, classname);
    if (!qc) {
       xsink->raiseException("CLASS-NOT-FOUND", "cannot find any class '%s' in any namespace", classname);
       return;

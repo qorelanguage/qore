@@ -166,7 +166,7 @@ struct NSNode {
 static void addNSNode(QoreNamespace& ns, struct NSNode *n) {
    switch (n->type) {
       case NSN_OCD:
-         qore_ns_private::addClass(ns, n->n.ocd->name, n->n.ocd->oc);
+         qore_ns_private::parseAddPendingClass(ns, n->n.ocd->name, n->n.ocd->oc);
 	 delete n->n.ocd;
 	 break;
       case NSN_CONST:
@@ -513,10 +513,6 @@ struct ParserScopedOrNothingTypeStruct : public ParserTypeStruct {
    }
 };
 
-static void addClass(NamedScope *name, QoreClass *oc) {
-   qore_ns_private::rootAddClass(*(getRootNS()), name, oc);
-}
-
 static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
    qore_type_t rtype = r->getType();
    if (rtype == NT_BAREWORD) {
@@ -697,7 +693,7 @@ static inline void tryAddMethod(int mod, char *n, int n_sig_first_line, int n_si
    else {
       MethodVariantBase *m = newMethodVariant(name->getIdentifier(), mod, n_sig_first_line, n_sig_last_line, params, bcal, returnTypeInfo, b, mod & OFM_DEPRECATED);
       // if there are any errors, the function below will delete memory
-      qore_ns_private::addMethodToClass(name.get(), m, mod & OFM_STATIC);
+      qore_root_ns_private::parseAddMethodToClass(name.get(), m, mod & OFM_STATIC);
    }
 }
 
@@ -1060,7 +1056,13 @@ top_level_commands:
 top_level_command:
         sub_def                      // registered directly
         | class_def {
-	   addClass($1->name, $1->oc); 
+           qore_root_ns_private::parseAddClass($1->name, $1->oc);
+
+           //static void addClass(NamedScope *name, QoreClass *oc) {
+           //qore_ns_private::rootAddClass(*(getRootNS()), name, oc);
+           //}
+	   //addClass($1->name, $1->oc); 
+
 	   // see if class definitions are allowed
 	   if (checkParseOption(PO_NO_CLASS_DEFS))
 	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());

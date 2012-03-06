@@ -93,6 +93,14 @@ public:
       pendNSL.reset();
    }
 
+   DLLLOCAL qore_root_ns_private* getRoot() {
+      qore_ns_private* w = this;
+      while (w->parent)
+         w = (qore_ns_private*)w->parent;
+
+      return w->root ? reinterpret_cast<qore_root_ns_private*>(w) : 0;
+   }
+
    // finds a local class in the committed class list, if not found executes the class handler
    DLLLOCAL QoreClass *findLoadClass(const char *cname) {
       QoreClass *qc = classList.find(cname);
@@ -101,29 +109,6 @@ public:
       return qc;
    }
 
-/*
-   DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *bname, const QoreTypeInfo *&typeInfo) {
-      AbstractQoreNode *rv = constant.find(bname, typeInfo);
-      if (rv)
-         return rv->refSelf();
-
-      rv = pendConstant.find(bname, typeInfo);
-      if (rv)
-         return rv->refSelf();
-
-      rv = classList.parseResolveBareword(bname, typeInfo);
-      if (!rv) {
-         rv = pendClassList.parseResolveBareword(bname, typeInfo);
-         if (!rv) {
-            rv = nsl.parseResolveBareword(bname, typeInfo);
-            if (!rv)
-               rv = pendNSL.parseResolveBareword(bname, typeInfo);
-         }
-      }
-      return rv;
-   }
-*/
- 
    DLLLOCAL void setName(const char *nme) {
       assert(name.empty());
       name = nme;
@@ -133,10 +118,10 @@ public:
 
    DLLLOCAL void updateDepthRecursive(unsigned ndepth);
 
-   DLLLOCAL void addClass(const NamedScope* n, QoreClass* oc);
-   DLLLOCAL void addClass(QoreClass *oc);
+   DLLLOCAL int parseAddPendingClass(const NamedScope* n, QoreClass* oc);
+   DLLLOCAL int parseAddPendingClass(QoreClass* oc);
 
-   DLLLOCAL clmap_t::iterator parseAddConstant(const char* name, AbstractQoreNode* value);
+   DLLLOCAL cnemap_t::iterator parseAddConstant(const char* name, AbstractQoreNode* value);
 
    DLLLOCAL void parseAddConstant(const NamedScope& name, AbstractQoreNode* value);
 
@@ -255,17 +240,6 @@ public:
    DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL QoreNamespace *rootResolveNamespace(const NamedScope *nscope);
-   DLLLOCAL QoreClass *rootFindScopedClass(const NamedScope *name, unsigned *matched);
-   DLLLOCAL QoreClass *rootFindClass(const char *name);
-
-   DLLLOCAL void rootAddClass(const NamedScope *name, QoreClass *oc);
-   DLLLOCAL QoreClass *rootFindScopedClassWithMethod(const NamedScope *nscope, unsigned *matched);
-
-   DLLLOCAL QoreClass *parseFindClass(const char *name);
-   DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name);
-   DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name);
-
-   DLLLOCAL int rootAddMethodToClass(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);
 
    DLLLOCAL FunctionEntry* addPendingVariant(char* name, UserFunctionVariant* v, bool& new_func) {
       FunctionEntry* fe = func_list.findNode(name);
@@ -289,35 +263,6 @@ public:
       return fe->getFunction()->parseAddVariant(v) ? 0 : fe;
    }
 
-   // returns 0 for success, non-zero for error
-   DLLLOCAL static int addMethodToClass(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag) {
-      return getRootNS()->priv->rootAddMethodToClass(name, qcmethod, static_flag);
-   }
-
-   DLLLOCAL static QoreClass *rootFindScopedClassWithMethod(RootQoreNamespace& rns, const NamedScope *nscope, unsigned *matched) {
-      return rns.priv->rootFindScopedClassWithMethod(nscope, matched);
-   }
-
-   DLLLOCAL static QoreClass *parseFindClass(RootQoreNamespace& rns, const char *name) {
-      return rns.priv->parseFindClass(name);
-   }
-
-   DLLLOCAL static QoreClass *parseFindScopedClass(RootQoreNamespace& rns, const NamedScope *name) {
-      return rns.priv->parseFindScopedClass(name);
-   }
-
-   DLLLOCAL static QoreClass *parseFindScopedClassWithMethod(RootQoreNamespace& rns, const NamedScope *name) {
-      return rns.priv->parseFindScopedClassWithMethod(name);
-   }
-
-   DLLLOCAL static void rootAddClass(const RootQoreNamespace& rns, const NamedScope *name, QoreClass *oc) {
-      rns.priv->rootAddClass(name, oc);
-   }
-
-   DLLLOCAL static QoreClass *rootFindClass(RootQoreNamespace& rns, const char *name) {
-      return rns.priv->rootFindClass(name);
-   }
-
    DLLLOCAL static const AbstractQoreFunction* parseResolveFunction(QoreNamespace& ns, const char* fname, QoreProgram*& pgm) {
       return ns.priv->parseResolveFunction(fname, pgm);
    }
@@ -330,12 +275,6 @@ public:
    DLLLOCAL static void setName(const QoreNamespace& ns, const char *nme) {
       ns.priv->setName(nme);
    }
-
-/*
-   DLLLOCAL static AbstractQoreNode *parseResolveBareword(QoreNamespace *ns, const char *bname, const QoreTypeInfo *&typeInfo) {
-      return ns->priv->parseResolveBareword(bname, typeInfo);
-   }
-*/
 
    DLLLOCAL static ConstantList& getConstantList(const QoreNamespace *ns) {
       return ns->priv->constant;
@@ -353,12 +292,8 @@ public:
       return ns.priv->func_list.getList(); 
    }
 
-   DLLLOCAL static void addClass(QoreNamespace& ns, const NamedScope *n, QoreClass *oc) {
-      ns.priv->addClass(n, oc);
-   }
-
-   DLLLOCAL static void addClass(QoreNamespace& ns, QoreClass *oc) {
-      ns.priv->addClass(oc);
+   DLLLOCAL static void parseAddPendingClass(QoreNamespace& ns, const NamedScope *n, QoreClass *oc) {
+      ns.priv->parseAddPendingClass(n, oc);
    }
 
    DLLLOCAL static void parseAddNamespace(QoreNamespace& ns, QoreNamespace *nns) {
@@ -540,7 +475,9 @@ public:
 
 typedef RootMap<FunctionEntry> fmap_t;
 
-typedef RootMap<ConstantEntry> cmap_t;
+typedef RootMap<ConstantEntry> cnmap_t;
+
+typedef RootMap<QoreClass> clmap_t;
 
 class qore_root_ns_private : public qore_ns_private {
    friend class qore_ns_private;
@@ -688,28 +625,34 @@ protected:
       pend_fmap.clear();
 
       // commit pending constant lookup entries
-      for (cmap_t::iterator i = pend_cmap.begin(), e = pend_cmap.end(); i != e; ++i)
-         cmap.update(i);
-      pend_cmap.clear();
+      for (cnmap_t::iterator i = pend_cnmap.begin(), e = pend_cnmap.end(); i != e; ++i)
+         cnmap.update(i);
+      pend_cnmap.clear();
       
+      // commit pending class lookup entries
+      for (clmap_t::iterator i = pend_clmap.begin(), e = pend_clmap.end(); i != e; ++i)
+         clmap.update(i);
+      pend_clmap.clear();
+
       qore_ns_private::parseCommit();
    }
 
    DLLLOCAL void parseRollback() {
       // roll back pending lookup entries
       pend_fmap.clear();
-      pend_cmap.clear();
+      pend_cnmap.clear();
+      pend_clmap.clear();
 
       qore_ns_private::parseRollback();
    }
 
    AbstractQoreNode* parseFindOnlyConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo) {
       // look up in global constant map
-      cmap_t::iterator i = cmap.find(cname);
-      cmap_t::iterator ip = pend_cmap.find(cname);
+      cnmap_t::iterator i = cnmap.find(cname);
+      cnmap_t::iterator ip = pend_cnmap.find(cname);
 
-      if (i != cmap.end()) {
-         if (ip != pend_cmap.end()) {
+      if (i != cnmap.end()) {
+         if (ip != pend_cnmap.end()) {
             if (i->second.depth() < ip->second.depth())
                return i->second.obj->get(typeInfo);
             return ip->second.obj->get(typeInfo);
@@ -718,7 +661,7 @@ protected:
          return i->second.obj->get(typeInfo);
       }
 
-      if (ip != pend_cmap.end())
+      if (ip != pend_cnmap.end())
          return ip->second.obj->get(typeInfo);
 
       return 0;
@@ -743,15 +686,50 @@ protected:
       return 0;
    }
 
-   DLLLOCAL ResolvedCallReferenceNode* runtimeGetCallReference(const char *name, ExceptionSink* xsink) {
-      fmap_t::iterator i = fmap.find(name);
+   DLLLOCAL ResolvedCallReferenceNode* runtimeGetCallReference(const char *fname, ExceptionSink* xsink) {
+      fmap_t::iterator i = fmap.find(fname);
       if (i == fmap.end()) {
-         xsink->raiseException("NO-SUCH-FUNCTION", "callback function '%s()' does not exist", name);
+         xsink->raiseException("NO-SUCH-FUNCTION", "callback function '%s()' does not exist", fname);
          return 0;
       }
 
       return i->second.obj->makeCallReference();
    }
+
+   DLLLOCAL QoreClass *parseFindScopedClassIntern(const NamedScope* name);
+   DLLLOCAL QoreClass *parseFindScopedClassIntern(const NamedScope* name, unsigned& matched);
+   DLLLOCAL QoreClass *parseFindScopedClassWithMethodIntern(const NamedScope *name, bool error);
+   DLLLOCAL QoreClass *parseFindScopedClassWithMethodIntern(const NamedScope *name, unsigned& matched);
+
+   DLLLOCAL QoreClass* parseFindClassIntern(const char *cname, bool error) {
+      clmap_t::iterator i = clmap.find(cname);
+      clmap_t::iterator ip = pend_clmap.find(cname);
+
+      if (i != clmap.end()) {
+         if (ip != pend_clmap.end()) {
+            if (i->second.depth() < ip->second.depth())
+               return i->second.obj;
+            return ip->second.obj;
+         }
+
+         return i->second.obj;
+      }
+
+      if (ip != pend_clmap.end())
+         return ip->second.obj;
+
+      if (error)
+         parse_error("reference to undefined class '%s'", cname);
+
+      return 0;
+   }
+
+   DLLLOCAL QoreClass* runtimeFindClass(const char *name) {
+      clmap_t::iterator i = clmap.find(name);
+      return i != clmap.end() ? i->second.obj : 0;
+   }
+
+   DLLLOCAL void addConstant(qore_ns_private& ns, const char* cname, AbstractQoreNode *value, const QoreTypeInfo* typeInfo);
 
    DLLLOCAL AbstractQoreNode *parseFindConstantValueIntern(const NamedScope *name, const QoreTypeInfo*& typeInfo, bool error);
 
@@ -761,16 +739,33 @@ protected:
 
    DLLLOCAL void parseAddConstantIntern(QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value);
 
+   DLLLOCAL void parseAddClassIntern(const NamedScope *name, QoreClass *oc);
+
+   // returns 0 for success, non-zero for error
+   DLLLOCAL int parseAddMethodToClassIntern(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);
+
+   DLLLOCAL static void rebuildConstantIndexes(cnmap_t& cnmap, ConstantList& cl, qore_ns_private* ns) {
+      ConstantListIterator cli(cl);
+      while (cli.next())
+         cnmap.update(cli.getName().c_str(), ns, cli.getEntry());
+   }
+
+   DLLLOCAL static void rebuildClassIndexes(clmap_t& clmap, QoreClassList& cl, qore_ns_private* ns) {
+      ClassListIterator cli(cl);
+      while (cli.next())
+         clmap.update(cli.getName(), ns, cli.get());
+   }
+
    DLLLOCAL void rebuildIndexes(qore_ns_private* ns) {
       // process function indexes
       for (fl_map_t::iterator i = ns->func_list.begin(), e = ns->func_list.end(); i != e; ++i)
          fmap.update(i->first, ns, i->second);
 
       // process constant indexes
-      ConstantListIterator cli(ns->constant);
-      while (cli.next()) {
-         cmap.update(cli.getName().c_str(), ns, cli.getEntry());
-      }
+      rebuildConstantIndexes(cnmap, ns->constant, ns);
+
+      // process class indexes
+      rebuildClassIndexes(clmap, ns->classList, ns);
    }
 
    DLLLOCAL void parseRebuildIndexes(qore_ns_private* ns) {
@@ -781,22 +776,16 @@ protected:
          pend_fmap.update(i->first, ns, i->second);
 
       // process pending constant indexes
-      {
-         ConstantListIterator cli(ns->pendConstant);
-         while (cli.next()) {
-            //printd(5, "qore_root_ns_private::parseRebuildIndexes() this: %p processing constant %s depth %d\n", this, cli.getName().c_str(), ns->depth);
-            pend_cmap.update(cli.getName().c_str(), ns, cli.getEntry());
-         }
-      }
+      rebuildConstantIndexes(pend_cnmap, ns->pendConstant, ns);
 
       // process constant indexes
-      {
-         ConstantListIterator cli(ns->constant);
-         while (cli.next()) {
-            //printd(5, "qore_root_ns_private::parseRebuildIndexes() this: %p processing constant %s depth %d\n", this, cli.getName().c_str(), ns->depth);
-            cmap.update(cli.getName().c_str(), ns, cli.getEntry());
-         }
-      }
+      rebuildConstantIndexes(cnmap, ns->constant, ns);
+
+      // process pending class indexes
+      rebuildClassIndexes(pend_clmap, ns->pendClassList, ns);
+
+      // process class indexes
+      rebuildClassIndexes(clmap, ns->classList, ns);
    }
 
    DLLLOCAL void parseAddNamespaceIntern(QoreNamespace *nns) {
@@ -819,9 +808,12 @@ public:
    fmap_t fmap,    // root function map
       pend_fmap;   // root pending function map (only used during parsing)
 
-   cmap_t cmap,    // root constant map
-      pend_cmap;   // root pending constant map (used only during parsing)
+   cnmap_t cnmap,  // root constant map
+      pend_cnmap;  // root pending constant map (used only during parsing)
    
+   clmap_t clmap,  // root class map
+      pend_clmap;  // root pending class map (used only during parsing)
+
    DLLLOCAL qore_root_ns_private(RootQoreNamespace* n_rns) : qore_ns_private(n_rns), rns(n_rns), qoreNS(0) {
       root = true;
    }
@@ -873,6 +865,10 @@ public:
       return rns.rpriv->runtimeFindCallFunctionIntern(name, ufc, ipgm, bfc);
    }
 
+   DLLLOCAL static void addConstant(qore_root_ns_private& rns, qore_ns_private& ns, const char* cname, AbstractQoreNode *value, const QoreTypeInfo* typeInfo) {
+      rns.addConstant(ns, cname, value, typeInfo);
+   }
+
    DLLLOCAL static const AbstractQoreFunction* parseResolveFunction(const char* fname, QoreProgram*& pgm) {
       return getRootNS()->rpriv->parseResolveFunctionIntern(fname, pgm);
    }
@@ -912,8 +908,29 @@ public:
       return getRootNS()->rpriv->parseResolveScopedReferenceIntern(name, typeInfo);
    }
 
+   DLLLOCAL static QoreClass *parseFindClass(const char *name, bool error) {
+      return getRootNS()->rpriv->parseFindClassIntern(name, error);
+   }
+
+   DLLLOCAL static QoreClass *parseFindScopedClass(const NamedScope *name) {
+      return getRootNS()->rpriv->parseFindScopedClass(name);
+   }
+
+   DLLLOCAL static QoreClass *parseFindScopedClassWithMethod(const NamedScope *name, bool error) {
+      return getRootNS()->rpriv->parseFindScopedClassWithMethodIntern(name, error);
+   }
+
    DLLLOCAL static void parseAddConstant(QoreNamespace& ns, const NamedScope &name, AbstractQoreNode *value) {
       getRootNS()->rpriv->parseAddConstantIntern(ns, name, value);
+   }
+
+   // returns 0 for success, non-zero for error
+   DLLLOCAL static int parseAddMethodToClass(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag) {
+      return getRootNS()->rpriv->parseAddMethodToClassIntern(name, qcmethod, static_flag);
+   }
+
+   DLLLOCAL static void parseAddClass(const NamedScope *name, QoreClass *oc) {
+      getRootNS()->rpriv->parseAddClassIntern(name, oc);
    }
 
    DLLLOCAL static void parseAddNamespace(QoreNamespace *nns) {
@@ -929,6 +946,10 @@ public:
       QorePrivateNamespaceIterator qpni(rns.priv);
       while (qpni.next())
          rns.rpriv->rebuildIndexes(qpni.get());
+   }
+
+   DLLLOCAL static QoreClass *runtimeFindClass(RootQoreNamespace& rns, const char *name) {
+      return rns.rpriv->runtimeFindClass(name);
    }
 };
 

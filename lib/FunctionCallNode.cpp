@@ -513,7 +513,7 @@ AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag
    if (name) {
       assert(!oc);
       // find object class
-      if ((oc = qore_ns_private::parseFindScopedClass(*(getRootNS()), name))) {
+      if ((oc = qore_root_ns_private::parseFindScopedClass(name))) {
 	 // check if parse options allow access to this class
 	 if (oc->getDomain() & getProgram()->getParseOptions())
 	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
@@ -590,9 +590,7 @@ AbstractQoreNode *StaticMethodCallNode::makeReferenceNodeAndDeref() {
 AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    bool abr = checkParseOption(PO_ALLOW_BARE_REFS);
 
-   unsigned m = 0;
-
-   QoreClass* qc = qore_ns_private::rootFindScopedClassWithMethod(*(getRootNS()), scope, &m);
+   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(scope, false);
 
    // see if this is a call to a base class method if bare refs are allowed
    // and we're parsing in a class context and the class found is in the

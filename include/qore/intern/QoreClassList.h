@@ -39,6 +39,8 @@ typedef std::map<const char*, QoreClass *, ltstr> hm_qc_t;
 class QoreNamespaceList;
 
 class QoreClassList {
+   friend class ClassListIterator;
+
 private:
    hm_qc_t hm;        // hash_map for name lookups
       
@@ -76,6 +78,32 @@ public:
    }
 
    DLLLOCAL void deleteClassData(ExceptionSink *xsink);
+};
+
+class ClassListIterator {
+protected:
+   hm_qc_t& cl;
+   hm_qc_t::iterator i;
+
+public:
+   DLLLOCAL ClassListIterator(QoreClassList& n_cl) : cl(n_cl.hm), i(cl.end()) {
+   }
+
+   DLLLOCAL bool next() {
+      if (i == cl.end())
+         i = cl.begin();
+      else
+         ++i;
+      return i != cl.end();
+   }
+
+   DLLLOCAL const char* getName() const {
+      return i->first;
+   }
+
+   DLLLOCAL QoreClass* get() const {
+      return i->second;
+   }
 };
 
 #endif // _QORE_QORECLASSLIST_H
