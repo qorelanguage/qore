@@ -24,6 +24,19 @@
 #include <qore/intern/TryStatement.h>
 #include <qore/intern/StatementBlock.h>
 
+class CatchExceptionHelper {
+private:
+   QoreException* e;
+
+public:
+   DLLLOCAL CatchExceptionHelper(QoreException* n_e) : e(catchSwapException(n_e)) {
+   }
+
+   DLLLOCAL ~CatchExceptionHelper() {
+      catchSwapException(e);
+   }
+};
+
 TryStatement::TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p) : AbstractStatement(start_line, end_line) {
    try_block = t;
    catch_block = c;
@@ -50,19 +63,12 @@ int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
    if (try_block)
       rc = try_block->execImpl(&trv, xsink);
    
-   /*
-    // if thread_exit has been executed
-    if (except == (QoreException *)1)
-    return rc;
-    */
-   
-   class QoreException *except = xsink->catchException();
+   QoreException* except = xsink->catchException();
    if (except) {
       printd(5, "TryStatement::execImpl() entering catch handler, e=%p\n", except);
       
       if (catch_block) {
-	 // save exception
-	 catchSaveException(except);
+	 CatchExceptionHelper ceh(except);
 	 
 	 if (param)	 // instantiate exception information parameter
 	    id->instantiate(except->makeExceptionObject());
@@ -79,13 +85,7 @@ int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
       // delete exception chain
       except->del(xsink);
    }
-   /*
-    if (finally)
-    {
-       printd(5, "TryStatement::exec() now executing finally block...\n");
-       rc = finally->execImpl(return_value, xsink);
-    }
-    */
+
    if (trv) {
       if (*return_value) // NOTE: return value overridden in the catch block!
 	 trv->deref(xsink);

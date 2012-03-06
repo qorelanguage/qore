@@ -1214,10 +1214,11 @@ QoreClass *getParseClass() {
 }
 
 // to save the exception for "rethrow"
-void catchSaveException(QoreException *e) {
+QoreException* catchSwapException(QoreException *e) {
    ThreadData *td = thread_data.get();
-   //printd(5, "cSE() td=%p e=%p\n", td, e);
+   QoreException* old = td->catchException;
    td->catchException = e;
+   return old;
 }
 
 // for "rethrow"

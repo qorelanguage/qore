@@ -38,10 +38,13 @@ struct QoreExceptionBase {
    QoreListNode *callStack;
    AbstractQoreNode *err, *desc, *arg;
 
-   DLLLOCAL QoreExceptionBase(AbstractQoreNode *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0, int n_type = ET_SYSTEM) : type(n_type), callStack(new QoreListNode), err(n_err), desc(n_desc), arg(n_arg) {
+   DLLLOCAL QoreExceptionBase(AbstractQoreNode *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0, int n_type = ET_SYSTEM) 
+      : type(n_type), callStack(new QoreListNode), err(n_err), desc(n_desc), arg(n_arg) {
    }
 
-   DLLLOCAL QoreExceptionBase(const QoreExceptionBase &old) : type(old.type), callStack(old.callStack->copy()), err(old.err ? old.err->refSelf() : 0), desc(old.desc ? old.desc->refSelf() : 0), arg(old.arg ? old.arg->refSelf() : 0) {
+   DLLLOCAL QoreExceptionBase(const QoreExceptionBase &old) : type(old.type), callStack(old.callStack->copy()), 
+                                                              err(old.err ? old.err->refSelf() : 0), desc(old.desc ? old.desc->refSelf() : 0), 
+                                                              arg(old.arg ? old.arg->refSelf() : 0) {
    }
 };
 
