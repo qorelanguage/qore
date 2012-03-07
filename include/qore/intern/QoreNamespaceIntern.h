@@ -227,7 +227,7 @@ public:
    DLLLOCAL void parseCommit();
 
    DLLLOCAL QoreNamespace *resolveNameScope(const NamedScope *name) const;
-   DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope *nscope, unsigned *matched);
+   DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope* nscope, unsigned& matched);
    DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope *nscope, unsigned *matched);
    DLLLOCAL AbstractQoreNode *parseCheckScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
@@ -238,8 +238,6 @@ public:
    DLLLOCAL QoreNamespace *parseFindLocalNamespace(const char *nname);
 
    DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo);
-
-   DLLLOCAL QoreNamespace *rootResolveNamespace(const NamedScope *nscope);
 
    DLLLOCAL FunctionEntry* addPendingVariant(char* name, UserFunctionVariant* v, bool& new_func) {
       FunctionEntry* fe = func_list.findNode(name);
@@ -262,6 +260,8 @@ public:
       free(name);
       return fe->getFunction()->parseAddVariant(v) ? 0 : fe;
    }
+
+   DLLLOCAL static AbstractQoreNode* parseResolveClassConstant(QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL static const AbstractQoreFunction* parseResolveFunction(QoreNamespace& ns, const char* fname, QoreProgram*& pgm) {
       return ns.priv->parseResolveFunction(fname, pgm);
@@ -328,12 +328,15 @@ public:
 struct namespace_iterator_element {
    qore_ns_private* ns;
    nsmap_t::iterator i;
+   bool committed;        // use committed or pending namespace list
 
-   DLLLOCAL namespace_iterator_element(qore_ns_private* n_ns) : ns(n_ns), i(ns->nsl.nsmap.begin()) {
+   DLLLOCAL namespace_iterator_element(qore_ns_private* n_ns, bool n_committed) : 
+      ns(n_ns), i(n_committed ? ns->nsl.nsmap.begin() : ns->pendNSL.nsmap.begin()), committed(n_committed) {
+      assert(ns);
    }
 
    DLLLOCAL bool atEnd() const {
-      return i == ns->nsl.nsmap.end();
+      return i == (committed ? ns->nsl.nsmap.end() : ns->pendNSL.nsmap.end());
    }
 
    DLLLOCAL QoreNamespace* next() {
@@ -347,17 +350,18 @@ protected:
    typedef std::vector<namespace_iterator_element> nsv_t;
    nsv_t nsv; // stack of namespaces
    qore_ns_private* root; // for starting over when done
+   bool committed;        // use committed or pending namespace list
 
    DLLLOCAL void set(qore_ns_private* rns) {
-      nsv.push_back(rns);
-      while (!rns->nsl.empty()) {
-         rns = qore_ns_private::get(*(rns->nsl.nsmap.begin()->second));
-         nsv.push_back(rns);
+      nsv.push_back(namespace_iterator_element(rns, committed));
+      while (!(committed ? rns->nsl.empty() : rns->pendNSL.empty())) {
+         rns = qore_ns_private::get(*((committed ? rns->nsl.nsmap.begin()->second : rns->pendNSL.nsmap.begin()->second)));
+         nsv.push_back(namespace_iterator_element(rns, committed));
       }
    }
 
 public:
-   DLLLOCAL QorePrivateNamespaceIterator(qore_ns_private* rns) : root(rns) {
+   DLLLOCAL QorePrivateNamespaceIterator(qore_ns_private* rns, bool n_committed) : root(rns), committed(n_committed) {
       assert(rns);
    }
 
@@ -470,6 +474,119 @@ public:
    T* findObj(const char* name) {
       typename map_t::iterator i = this->find(name);
       return i == this->end() ? 0 : i->second.obj;
+   }
+};
+
+class NamespaceMap {
+   friend class NamespaceMapIterator;
+
+protected:
+   typedef std::map<unsigned, qore_ns_private*> nsdmap_t;
+   typedef std::map<const char*, nsdmap_t, ltstr> nsmap_t;
+   typedef std::map<qore_ns_private*, unsigned> nsrmap_t;
+
+   nsmap_t nsmap;   // name to depth to namespace map
+   nsrmap_t nsrmap; // namespace to depth map (for fast reindexing)
+
+   // not implemented
+   DLLLOCAL NamespaceMap(const NamespaceMap& old);
+   // not implemented
+   DLLLOCAL NamespaceMap& operator=(const NamespaceMap& m);
+
+public:
+   DLLLOCAL NamespaceMap() {
+   }
+
+   DLLLOCAL void update(qore_ns_private* ns) {
+      // if this namespace is already indexes, then reindex
+      nsrmap_t::iterator ri = nsrmap.find(ns);
+      if (ri != nsrmap.end()) {
+         // if the depth is the same, then do nothing
+         if (ns->depth == ri->second)
+            return;
+
+         // otherwise get the depth -> namespace map under thisname
+         nsmap_t::iterator i = nsmap.find(ns->name.c_str());
+         assert(i != nsmap.end());
+
+         // now get the namespace entry
+         nsdmap_t::iterator di = i->second.find(ri->second);
+         assert(di != i->second.end());
+
+         // remove from depth -> namespace map
+         i->second.erase(di);
+
+         // remove from reverse map
+         nsrmap.erase(ri);
+
+         // add new entry to depth -> namespace map
+         i->second.insert(nsdmap_t::value_type(ns->depth, ns));
+
+         return;
+      }
+      else {
+         // insert depth -> ns map entry
+         nsmap_t::iterator i = nsmap.find(ns->name.c_str());
+         if (i == nsmap.end())
+            i = nsmap.insert(nsmap_t::value_type(ns->name.c_str(), nsdmap_t())).first;
+
+         assert(i->second.find(ns->depth) == i->second.end());
+         i->second.insert(nsdmap_t::value_type(ns->depth, ns));
+      }
+
+      // add new entry to reverse map
+      nsrmap.insert(nsrmap_t::value_type(ns, ns->depth));
+   }
+
+   DLLLOCAL void commit(NamespaceMap& pend) {
+      // commit entries
+      for (nsrmap_t::iterator i = pend.nsrmap.begin(), e = pend.nsrmap.end(); i != e; ++i)
+         update(i->first);
+      pend.clear();
+   }
+
+   DLLLOCAL void clear() {
+      nsmap.clear();
+      nsrmap.clear();
+   }
+};
+
+class NamespaceMapIterator {
+protected:
+   NamespaceMap::nsmap_t::iterator mi;
+   NamespaceMap::nsdmap_t::iterator i;
+   bool valid;
+
+public:
+   DLLLOCAL NamespaceMapIterator(NamespaceMap& nsm, const char* name) : mi(nsm.nsmap.find(name)), valid(mi != nsm.nsmap.end()) {
+      if (valid)
+         i = mi->second.end();
+
+      /*
+      //printd(5, "NamespaceMapIterator::NamespaceMapIterator(%s) valid: %d\n", name, valid);
+      for (NamespaceMap::nsmap_t::iterator mmi = nsm.nsmap.begin(), mme = nsm.nsmap.end(); mmi != mme; ++mmi) {
+         //printd(5, "NamespaceMapIterator::NamespaceMapIterator(%s) size: %d\n", name, mmi->second.size());
+         for (NamespaceMap::nsdmap_t::iterator di = mmi->second.begin(), de = mmi->second.end(); di != de; ++di) {
+            //printd(5, "NamespaceMapIterator::NamespaceMapIterator(%s) ns: %p (%s) depth: %d\n", name, di->second, di->second->name.c_str(), di->second->depth);            
+         }
+      }
+      */
+   }
+
+   DLLLOCAL bool next() {
+      if (!valid)
+         return false;
+
+      if (i == mi->second.end())
+         i = mi->second.begin();
+      else
+         ++i;
+
+      return i != mi->second.end();      
+   }
+
+   DLLLOCAL qore_ns_private* get() {
+      return i->second;
    }
 };
 
@@ -634,6 +751,9 @@ protected:
          clmap.update(i);
       pend_clmap.clear();
 
+      // commit pending namespace entries
+      nsmap.commit(pend_nsmap);
+
       qore_ns_private::parseCommit();
    }
 
@@ -642,6 +762,7 @@ protected:
       pend_fmap.clear();
       pend_cnmap.clear();
       pend_clmap.clear();
+      pend_nsmap.clear();
 
       qore_ns_private::parseRollback();
    }
@@ -741,6 +862,8 @@ protected:
 
    DLLLOCAL void parseAddClassIntern(const NamedScope *name, QoreClass *oc);
 
+   DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope *nscope);
+
    // returns 0 for success, non-zero for error
    DLLLOCAL int parseAddMethodToClassIntern(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);
 
@@ -766,6 +889,9 @@ protected:
 
       // process class indexes
       rebuildClassIndexes(clmap, ns->classList, ns);
+
+      // reindex namespace
+      nsmap.update(ns);
    }
 
    DLLLOCAL void parseRebuildIndexes(qore_ns_private* ns) {
@@ -786,6 +912,9 @@ protected:
 
       // process class indexes
       rebuildClassIndexes(clmap, ns->classList, ns);
+
+      // reindex namespace
+      pend_nsmap.update(ns);
    }
 
    DLLLOCAL void parseAddNamespaceIntern(QoreNamespace *nns) {
@@ -795,7 +924,7 @@ protected:
 
       // add all objects to the new (or assimilated) namespace
       if (ns) {
-         QorePrivateNamespaceIterator qpni(ns);
+         QorePrivateNamespaceIterator qpni(ns, false);
          while (qpni.next())
             parseRebuildIndexes(qpni.get());
       }
@@ -814,6 +943,9 @@ public:
    clmap_t clmap,  // root class map
       pend_clmap;  // root pending class map (used only during parsing)
 
+   NamespaceMap nsmap,  // root namespace map
+      pend_nsmap;       // root pending namespace map (used only during parsing)
+
    DLLLOCAL qore_root_ns_private(RootQoreNamespace* n_rns) : qore_ns_private(n_rns), rns(n_rns), qoreNS(0) {
       root = true;
    }
@@ -822,8 +954,8 @@ public:
       qoreNS = nsl.find("Qore");
       assert(qoreNS);
 
-      // rebuild root indexes
-      QorePrivateNamespaceIterator qpni(this);
+      // rebuild root indexes - only for committed objects
+      QorePrivateNamespaceIterator qpni(this, true);
       while (qpni.next())
          rebuildIndexes(qpni.get());
    }
@@ -913,7 +1045,7 @@ public:
    }
 
    DLLLOCAL static QoreClass *parseFindScopedClass(const NamedScope *name) {
-      return getRootNS()->rpriv->parseFindScopedClass(name);
+      return getRootNS()->rpriv->parseFindScopedClassIntern(name);
    }
 
    DLLLOCAL static QoreClass *parseFindScopedClassWithMethod(const NamedScope *name, bool error) {
@@ -943,7 +1075,7 @@ public:
 
    DLLLOCAL static void runtimeModuleRebuildIndexes(RootQoreNamespace& rns) {
       // rebuild root indexes
-      QorePrivateNamespaceIterator qpni(rns.priv);
+      QorePrivateNamespaceIterator qpni(rns.priv, true);
       while (qpni.next())
          rns.rpriv->rebuildIndexes(qpni.get());
    }

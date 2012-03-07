@@ -81,16 +81,12 @@ public:
    DLLLOCAL void reset();
    DLLLOCAL void assimilate(QoreNamespaceList& n, qore_ns_private* parent);
 
-   DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope *name, unsigned *matched);
    DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
    DLLLOCAL AbstractQoreNode *parseFindScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo);
    DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *parseFindClass(const char *ocname);
    DLLLOCAL void deleteData(ExceptionSink *xsink);
-
-   //DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo) const;
-   DLLLOCAL AbstractQoreNode* parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
 
    DLLLOCAL bool empty() const {
       return nsmap.empty();
