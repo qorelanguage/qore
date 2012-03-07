@@ -154,26 +154,6 @@ public:
       return func_list.find(name, ipgm, true);
    }
 
-   DLLLOCAL const AbstractQoreFunction* parseResolveFunction(const char* fname, QoreProgram*& pgm) {
-      QORE_TRACE("qore_ns_private::parseResolveFunction()");
-
-      const AbstractQoreFunction *f;
-      if ((f = func_list.find(fname, pgm, false))) {
-         printd(5, "resolved function call to %s\n", fname);
-         return f;
-      }
-
-      if ((f = builtinFunctions.find(fname))) {
-         printd(5, "resolved builtin function call to %s\n", fname);
-         return f;
-      }
-
-      // cannot find function, throw exception
-      parse_error("function '%s()' cannot be found", fname);
-
-      return 0;
-   }
-
    DLLLOCAL void runtimeFindCallFunction(const char* name, UserFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
       assert(!ufc);
       assert(!bfc);
@@ -196,6 +176,7 @@ public:
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit();
 
+   DLLLOCAL const AbstractQoreFunction* parseMatchFunction(const NamedScope& nscope, QoreProgram*& pgm, unsigned& match) const;
    DLLLOCAL QoreNamespace *resolveNameScope(const NamedScope *name) const;
    DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope* nscope, unsigned& matched);
    DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope* name, unsigned& matched);
@@ -209,12 +190,14 @@ public:
 
    DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope* name, unsigned& matched, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL FunctionEntry* addPendingVariant(char* name, UserFunctionVariant* v, bool& new_func) {
+   DLLLOCAL FunctionEntry* addPendingVariant(const char* name, UserFunctionVariant* v, bool& new_func) {
+      SimpleRefHolder<UserFunctionVariant> vh(v);
+
       FunctionEntry* fe = func_list.findNode(name);
 
       if (!fe) {
          UserFunction* u = new UserFunction(name);
-         u->parseAddVariant(v);
+         u->parseAddVariant(vh.release());
          fe = func_list.add(u);
          new_func = true;
          return fe;
@@ -223,19 +206,13 @@ public:
       // see if the function was imported; cannot add variants to an imported function
       if (fe->getProgram()) {
          parse_error("function '%s' was been imported into this namespace; new variants cannot be added to imported functions", name);
-         free(name);
          return 0;
       }
 
-      free(name);
-      return fe->getFunction()->parseAddVariant(v) ? 0 : fe;
+      return fe->getFunction()->parseAddVariant(vh.release()) ? 0 : fe;
    }
 
    DLLLOCAL static AbstractQoreNode* parseResolveClassConstant(QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo);
-
-   DLLLOCAL static const AbstractQoreFunction* parseResolveFunction(QoreNamespace& ns, const char* fname, QoreProgram*& pgm) {
-      return ns.priv->parseResolveFunction(fname, pgm);
-   }
 
    DLLLOCAL static void setName(const QoreNamespace& ns, const char *nme) {
       ns.priv->setName(nme);
@@ -565,7 +542,7 @@ class qore_root_ns_private : public qore_ns_private {
    friend class qore_ns_private;
 
 protected:
-   DLLLOCAL int addPendingVariant(qore_ns_private& ns, char* name, UserFunctionVariant* v) {
+   DLLLOCAL int addPendingVariant(qore_ns_private& ns, const char* name, UserFunctionVariant* v) {
       // try to add function variant to given namespace
       bool new_func = false;
       FunctionEntry* fe = ns.addPendingVariant(name, v, new_func);
@@ -580,6 +557,22 @@ protected:
       }
 
       return 0;      
+   }
+
+   DLLLOCAL int addPendingVariant(qore_ns_private& ns, NamedScope& nscope, UserFunctionVariant* v) {
+      assert(nscope.size() > 1);
+      SimpleRefHolder<UserFunctionVariant> vh(v);
+
+      QoreNamespace* fns = ns.ns;
+      for (unsigned i = 0; i < nscope.size() - 1; ++i) {
+         fns = fns->priv->parseFindLocalNamespace(nscope[i]);
+         if (!fns) {
+            parse_error("cannot find namespace '%s' in '%s()' as a child of namespace '%s'\n", nscope[i], nscope.ostr, ns.name.c_str());
+            return -1;
+         }
+      }
+
+      return addPendingVariant(*fns->priv, nscope.getIdentifier(), vh.release());
    }
 
    // performed at runtime
@@ -829,6 +822,8 @@ protected:
 
    DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope *nscope);
 
+   DLLLOCAL const AbstractQoreFunction* parseResolveFunctionIntern(const NamedScope& nscope, QoreProgram*& pgm);
+
    // returns 0 for success, non-zero for error
    DLLLOCAL int parseAddMethodToClassIntern(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);
 
@@ -938,7 +933,11 @@ public:
       return rns.rpriv->copy(po);
    }
 
-   DLLLOCAL static int addPendingVariant(QoreNamespace& ns, char *name, UserFunctionVariant *v) {
+   DLLLOCAL static int addPendingVariant(QoreNamespace& ns, const char* name, UserFunctionVariant* v) {
+      return getRootNS()->rpriv->addPendingVariant(*ns.priv, name, v);
+   }
+
+   DLLLOCAL static int addPendingVariant(QoreNamespace& ns, NamedScope& name, UserFunctionVariant* v) {
       return getRootNS()->rpriv->addPendingVariant(*ns.priv, name, v);
    }
 
@@ -1032,6 +1031,10 @@ public:
 
    DLLLOCAL static void parseAddNamespace(QoreNamespace *nns) {
       getRootNS()->rpriv->parseAddNamespaceIntern(nns);
+   }
+
+   DLLLOCAL static const AbstractQoreFunction* parseResolveFunction(const NamedScope& nscope, QoreProgram*& pgm) {
+      return getRootNS()->rpriv->parseResolveFunctionIntern(nscope, pgm);
    }
 
    DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(RootQoreNamespace& rns, const char *name, ExceptionSink* xsink) {

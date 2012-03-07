@@ -152,6 +152,8 @@ public:
 
    DLLLOCAL AbstractQoreNode *parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
+   DLLLOCAL void parseInitFinalizedCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
    DLLLOCAL virtual const char *getName() const {
       return func ? func->getName() : c_str;
    }

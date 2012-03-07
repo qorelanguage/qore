@@ -86,6 +86,16 @@ public:
       return strlist[strlist.size() - 1];
    }
 
+   DLLLOCAL const char* get(unsigned i) const {
+      assert(i < strlist.size());
+      return strlist[i].c_str();
+   }
+
+   DLLLOCAL const char* operator[](unsigned i) const {
+      assert(i < strlist.size());
+      return strlist[i].c_str();
+   }         
+
    DLLLOCAL unsigned size() const {
       return strlist.size(); 
    }

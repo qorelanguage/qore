@@ -1312,14 +1312,8 @@ AbstractQoreNode *UserVariantBase::eval(const char *name, CodeEvaluationHelper *
    return evalIntern(uveh.getArgv(), self, xsink, class_name);
 }
 
-UserFunction::UserFunction(char *n_name) : name(n_name) {
-   printd(5, "UserFunction::UserFunction(%s)\n", n_name ? n_name : "(null)");
-}
-
-UserFunction::~UserFunction() {
-   printd(5, "UserFunction::~UserFunction() deleting %s\n", name);
-   if (name)
-      free(name);
+UserFunction::UserFunction(const char *n_name) : name(n_name ? n_name : "") {
+   printd(5, "UserFunction::UserFunction(%s)\n", name.c_str());
 }
 
 // returns 0 for OK, -1 for error
@@ -1639,7 +1633,7 @@ void UserFunction::parseInit() {
 
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       assert((*i)->getUserVariantBase());
-      UFV(*i)->parseInit(name);
+      UFV(*i)->parseInit(name.c_str());
 
       // recheck types against committed types if necessary
       if (UFV(*i)->getRecheck())

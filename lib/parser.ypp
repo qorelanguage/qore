@@ -112,13 +112,6 @@ static AbstractQoreNode *makeErrorTree(AbstractQoreNode *left, AbstractQoreNode 
    return &False;
 }
 
-static void addUserFunctionVariant(char *name, UserFunctionVariant *variant) {
-   qore_root_ns_private::addPendingVariant(*(getRootNS()), name, variant);
-   // make sure definition was legal
-   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
-      parse_error("function '%s()' defined (conflicts with parse option NO_SUBROUTINE_DEFS)", name);
-}
-
 // for constant definitions
 class ConstNode {
 public:
@@ -147,38 +140,109 @@ public:
    DLLLOCAL inline ~ObjClassDef() { delete name; }
 };
 
+class ParseUserFunction {
+public:
+   char* name;
+   UserFunctionVariant* variant;
+
+   DLLLOCAL ParseUserFunction(char* n_name, UserFunctionVariant* n_variant) : name(n_name), variant(n_variant) {
+   }
+
+   DLLLOCAL ~ParseUserFunction() {
+      if (name)
+         free(name);
+      if (variant)
+         variant->deref();
+   }
+
+   DLLLOCAL void add(QoreNamespace& ns) {
+      qore_root_ns_private::addPendingVariant(ns, name, variant);
+      variant = 0;
+      // make sure definition was legal
+      if (checkParseOption(PO_NO_SUBROUTINE_DEFS)) {
+         const char* nsn = ns.getName();
+         parse_error("function '%s%s%s()' cannot be defined (conflicts with parse option NO_SUBROUTINE_DEFS)", nsn[0] ? nsn : "", nsn[0] ? "::" : "", name);
+      }
+
+      delete this;
+   }
+};
+
+class ParseScopedUserFunction {
+public:
+   NamedScope name;
+   UserFunctionVariant* variant;
+
+   DLLLOCAL ParseScopedUserFunction(char* n_name, UserFunctionVariant* n_variant) : name(n_name), variant(n_variant) {
+   }
+
+   DLLLOCAL ~ParseScopedUserFunction() {
+      if (variant)
+         variant->deref();
+   }
+
+   DLLLOCAL void add(QoreNamespace& ns) {
+      qore_root_ns_private::addPendingVariant(ns, name, variant);
+      variant = 0;
+      // make sure definition was legal
+      if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
+         parse_error("function '%s()' cannot be defined (conflicts with parse option NO_SUBROUTINE_DEFS)", name.ostr);
+
+      delete this;
+   }
+};
+
 #define NSN_OCD   1
 #define NSN_CONST 2
 #define NSN_NS    3
+#define NSN_FUNC  4
+#define NSN_SFUNC 5
 
 struct NSNode {
    int type;
    union {
-      class ObjClassDef *ocd;
-      class ConstNode *cn;
-      class QoreNamespace *ns;
+      ObjClassDef *ocd;
+      ConstNode *cn;
+      QoreNamespace *ns;
+      ParseUserFunction* func;
+      ParseScopedUserFunction* sfunc;
    } n;
-   DLLLOCAL NSNode(class ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
-   DLLLOCAL NSNode(class ConstNode  *c) { type = NSN_CONST; n.cn = c; }
-   DLLLOCAL NSNode(class QoreNamespace  *s) { type = NSN_NS; n.ns = s; }
-};
 
-static void addNSNode(QoreNamespace& ns, struct NSNode *n) {
-   switch (n->type) {
-      case NSN_OCD:
-         qore_ns_private::parseAddPendingClass(ns, n->n.ocd->name, n->n.ocd->oc);
-	 delete n->n.ocd;
-	 break;
-      case NSN_CONST:
-         qore_ns_private::parseAddConstant(ns, n->n.cn->name, n->n.cn->value);
-	 delete n->n.cn;
-	 break;
-      case NSN_NS:
-         qore_ns_private::parseAddNamespace(ns, n->n.ns);
-	 break;
+   DLLLOCAL NSNode(ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
+   DLLLOCAL NSNode(ConstNode  *c) { type = NSN_CONST; n.cn = c; }
+   DLLLOCAL NSNode(QoreNamespace  *s) { type = NSN_NS; n.ns = s; }
+   DLLLOCAL NSNode(ParseUserFunction* f) : type(NSN_FUNC) {
+      n.func = f;
    }
-   delete n;
-}
+   DLLLOCAL NSNode(ParseScopedUserFunction* f) : type(NSN_SFUNC) {
+      n.sfunc = f;
+   }
+
+   DLLLOCAL void add(QoreNamespace& ns) {
+      switch (type) {
+         case NSN_OCD:
+            qore_ns_private::parseAddPendingClass(ns, n.ocd->name, n.ocd->oc);
+            delete n.ocd;
+            break;
+         case NSN_CONST:
+            qore_ns_private::parseAddConstant(ns, n.cn->name, n.cn->value);
+            delete n.cn;
+            break;
+         case NSN_NS:
+            qore_ns_private::parseAddNamespace(ns, n.ns);
+            break;
+         case NSN_FUNC: {
+            n.func->add(ns);
+            break;
+         }
+         case NSN_SFUNC: {
+            n.sfunc->add(ns);
+            break;
+         }
+      }
+      delete this;
+   }
+};
 
 static QoreListNode *make_list(AbstractQoreNode *a1, AbstractQoreNode *a2) {
    QoreListNode *l = new QoreListNode;
@@ -829,6 +893,8 @@ AbstractQoreNode *get_static_call(NamedScope *ns, QoreListNode *args) {
    QoreImplicitArgumentNode *implicit_arg;
    RetTypeInfo *returnTypeInfo;
    struct ParserTypeStruct *parsertype;
+   class ParseUserFunction* parsefunc;
+   class ParseScopedUserFunction* sparsefunc;
 }
 
 %{
@@ -1040,9 +1106,11 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <string>      ident_openparen
 %type <parsertype>  qtypedef
 %type <parsertype>  uncqtypedef
+%type <parsefunc>   sub_def
+%type <sparsefunc>  scoped_sub_def
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl
+%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def
 %destructor { if ($$) $$->deref(); } string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname ident_openparen
@@ -1054,7 +1122,12 @@ top_level_commands:
 	;
 
 top_level_command:
-        sub_def                      // registered directly
+        sub_def {
+           $1->add(*(getRootNS()));
+        }
+        | scoped_sub_def {
+           $1->add(*(getRootNS()));
+        }
         | class_def {
            qore_root_ns_private::parseAddClass($1->name, $1->oc);
 
@@ -1109,11 +1182,11 @@ top_namespace_decl:
 namespace_decls:
 	namespace_decl {
 	   QoreNamespace *ns = new QoreNamespace("");
-	   addNSNode(*ns, $1);
+           $1->add(*ns);
 	   $$ = ns;
         }
         | namespace_decls namespace_decl { 
-	   addNSNode(*($1), $2);
+           $2->add(*($1));
 	   $$ = $1;
 	}
 	;
@@ -1132,6 +1205,12 @@ namespace_decl:
 	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)",
 			  $1->oc->getName());
 	}
+        | sub_def {
+           $$ = new NSNode($1);
+        }
+        | scoped_sub_def {
+           $$ = new NSNode($1);
+        }
 	| top_namespace_decl { 
 	   $$ = new NSNode($1); 
 	   // see if ns declaration is legal
@@ -1898,7 +1977,7 @@ sub_def:
 	TOK_SUB ident_openparen myexp ')' return_value block { 
 	   int ar = get_pop_argv_ref();
 	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
-	   addUserFunctionVariant($2, new UserFunctionVariant($6, @3.first_line, @3.last_line, $3, $5, false, flags));
+           $$ = new ParseUserFunction($2, new UserFunctionVariant($6, @3.first_line, @3.last_line, $3, $5, false, flags));
 	}
         | uncqtypedef TOK_SUB ident_openparen myexp ')' block { 
 	   int ar = get_pop_argv_ref();
@@ -1907,7 +1986,7 @@ sub_def:
 	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
 	   delete $1;
 
-	   addUserFunctionVariant($3, new UserFunctionVariant($6, @4.first_line, @4.last_line, $4, rt, false, flags));
+	   $$ = new ParseUserFunction($3, new UserFunctionVariant($6, @4.first_line, @4.last_line, $4, rt, false, flags));
 	}
 	| method_modifiers TOK_SUB ident_openparen myexp ')' return_value block {
 	   check_funcmod($1);
@@ -1915,7 +1994,8 @@ sub_def:
 	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
 	   if ($1 & OFM_DEPRECATED)
 	      flags |= QC_DEPRECATED;
-	   addUserFunctionVariant($3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, $1 & OFM_SYNCED, flags)); 
+           
+	   $$ = new ParseUserFunction($3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, $1 & OFM_SYNCED, flags)); 
 	}
 	| method_modifiers uncqtypedef TOK_SUB ident_openparen myexp ')' block {
 	   check_funcmod($1);
@@ -1927,7 +2007,44 @@ sub_def:
 	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 
-	   addUserFunctionVariant($4, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, $1 & OFM_SYNCED, flags)); 
+	   $$ = new ParseUserFunction($4, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, $1 & OFM_SYNCED, flags)); 
+	}
+
+scoped_sub_def:
+	TOK_SUB SCOPED_REF '(' myexp ')' return_value block { 
+	   int ar = get_pop_argv_ref();
+	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+           $$ = new ParseScopedUserFunction($2, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, false, flags));
+	}
+        | uncqtypedef TOK_SUB SCOPED_REF '(' myexp ')' block { 
+	   int ar = get_pop_argv_ref();
+	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+	   
+	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
+	   delete $1;
+
+	   $$ = new ParseScopedUserFunction($3, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, false, flags));
+	}
+	| method_modifiers TOK_SUB SCOPED_REF '(' myexp ')' return_value block {
+	   check_funcmod($1);
+	   int ar = get_pop_argv_ref();
+	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+	   if ($1 & OFM_DEPRECATED)
+	      flags |= QC_DEPRECATED;
+           
+	   $$ = new ParseScopedUserFunction($3, new UserFunctionVariant($8, @5.first_line, @5.last_line, $5, $7, $1 & OFM_SYNCED, flags)); 
+	}
+	| method_modifiers uncqtypedef TOK_SUB SCOPED_REF '(' myexp ')' block {
+	   check_funcmod($1);
+	   int ar = get_pop_argv_ref();
+	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+	   if ($1 & OFM_DEPRECATED)
+	      flags |= QC_DEPRECATED;
+
+	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+	   delete $2;
+
+	   $$ = new ParseScopedUserFunction($4, new UserFunctionVariant($8, @6.first_line, @6.last_line, $6, rt, $1 & OFM_SYNCED, flags)); 
 	}
 	;
 

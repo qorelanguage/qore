@@ -835,16 +835,16 @@ public:
 
 class UserFunction : public AbstractReferencedFunction {
 protected:
-   char *name;
+   std::string name;
 
-   DLLLOCAL virtual ~UserFunction();
+   DLLLOCAL virtual ~UserFunction() {
+   }
 
 public:
-   // the object owns the memory for "n_name", name is 0 for anonymous closures
-   DLLLOCAL UserFunction(char *n_name);
+   DLLLOCAL UserFunction(const char *n_name);
 
    DLLLOCAL virtual const char *getName() const {
-      return name;
+      return name.c_str();
    }
 
    DLLLOCAL virtual void parseInit();

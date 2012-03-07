@@ -849,6 +849,32 @@ QoreNamespace* qore_root_ns_private::parseResolveNamespace(const NamedScope* nsc
    return 0;
 }
 
+const AbstractQoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const NamedScope& nscope, QoreProgram*& pgm) {
+   assert(nscope.size() > 1);
+
+   const AbstractQoreFunction* f = 0;
+   unsigned match = 0;
+
+   // iterate all namespaces with the initial name and look for the match
+   {
+      NamespaceMapIterator nmi(nsmap, nscope.strlist[0].c_str());
+      while (nmi.next()) {
+         if ((f = nmi.get()->parseMatchFunction(nscope, pgm, match)))
+            return f;
+      }
+   }
+
+   {
+      NamespaceMapIterator nmi(pend_nsmap, nscope.strlist[0].c_str());
+      while (nmi.next()) {
+         if ((f = nmi.get()->parseMatchFunction(nscope, pgm, match)))
+            return f;
+      }
+   }
+
+   return 0;   
+}
+
 void qore_ns_private::parseInitConstants() {
    printd(5, "qore_ns_private::parseInitConstants() %s\n", name.c_str());
    // do 2nd stage parse initialization on pending constants
@@ -1068,6 +1094,26 @@ QoreNamespace* qore_ns_private::resolveNameScope(const NamedScope *nscope) const
 	 return 0;
       }
    return (QoreNamespace* )sns;
+}
+
+const AbstractQoreFunction* qore_ns_private::parseMatchFunction(const NamedScope& nscope, QoreProgram*& pgm, unsigned& match) const {
+   assert(nscope.strlist[0] == name);
+   const QoreNamespace* fns = ns;
+
+   // mark first namespace as matched
+   if (!match)
+      match = 1;
+
+   // check for a match of the structure in this namespace
+   for (unsigned i = 1; i < (nscope.size() - 1); i++) {
+      fns = fns->priv->parseFindLocalNamespace(nscope.strlist[i].c_str());
+      if (!fns)
+         return 0;
+      if (i >= match)
+         match = i + 1;
+   }
+
+   return func_list.find(nscope.getIdentifier(), pgm, false);
 }
 
 // qore_ns_private::parseMatchNamespace()

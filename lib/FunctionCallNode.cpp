@@ -436,30 +436,6 @@ AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, in
       }
    }
 
-   /*
-   AbstractQoreNode *n = 0;
-
-   // try to resolve a global var
-   if (abr) {
-      Var *v = ::getProgram()->findGlobalVar(c_str);
-      if (v)
-	 n = new GlobalVarRefNode(takeName(), v);
-
-      // see if a constant can be resolved
-      if (!n) {
-	 n = qore_root_ns_private::parseFindConstantValue(c_str, returnTypeInfo, false);
-	 if (n)
-	    n->ref();
-      }
-   }
-
-   if (n) {
-      CallReferenceCallNode *crcn = new CallReferenceCallNode(n, take_args());	 
-      deref();
-      return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
-   }
-   */
-
    return parseInitCall(oflag, pflag, lvids, returnTypeInfo);
 }
 
@@ -483,7 +459,6 @@ AbstractQoreNode *FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, in
       n = qore_root_ns_private::parseFindConstantValue(c_str, returnTypeInfo, false);
       if (n)
 	 n->ref();
-      //n = qore_root_ns_private::parseResolveBareword(c_str, returnTypeInfo);
    }
 
    if (n) {
@@ -496,9 +471,16 @@ AbstractQoreNode *FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, in
    func = qore_root_ns_private::parseResolveFunction(c_str, pgm);
    free(c_str);
    c_str = 0;
-   if (func) 
-       lvids += parseArgs(oflag, pflag, const_cast<AbstractQoreFunction *>(func), returnTypeInfo);
+
+   if (func)
+      parseInitFinalizedCall(oflag, pflag, lvids, returnTypeInfo);
+      
    return this;
+}
+
+void FunctionCallNode::parseInitFinalizedCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+   assert(func);
+   lvids += parseArgs(oflag, pflag, const_cast<AbstractQoreFunction *>(func), returnTypeInfo);
 }
 
 AbstractQoreNode *FunctionCallNode::makeReferenceNodeAndDerefImpl() {
@@ -608,7 +590,18 @@ AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag
 	 deref();
 	 return crcn->parseInit(oflag, pflag, lvids, typeInfo);
       }
-      parse_error("cannot resolve call '%s()' to any reachable object", scope->ostr);
+      
+      // see if this is a function call to a function defined in a namespace
+      QoreProgram* pgm = 0;
+      const AbstractQoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope, pgm);
+      if (f) {
+	 FunctionCallNode* fcn = new FunctionCallNode(f, takeArgs(), pgm);
+	 deref();
+	 fcn->parseInitFinalizedCall(oflag, pflag, lvids, typeInfo);
+	 return fcn;
+      }
+
+      parse_error("cannot resolve call '%s()' to any reachable callable object", scope->ostr);
       return this;
    }
 
