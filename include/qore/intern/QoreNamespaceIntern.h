@@ -174,36 +174,6 @@ public:
       return 0;
    }
 
-   // called during parsing (plock already grabbed)
-   DLLLOCAL AbstractCallReferenceNode* parseResolveCallReference(UnresolvedProgramCallReferenceNode* fr) {
-      std::auto_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
-      char* fname = fr->str;
-
-      {
-         FunctionEntry* fn;
-         if ((fn = func_list.findNode(fname))) {
-            printd(5, "qore_ns_private::parseResolveCallReference() resolved function reference to function %s (pgm=%p, func=%p)\n", fname, fn->getProgram(), fn->getFunction());
-            return fn->makeCallReference();
-         }
-      }
-   
-      const BuiltinFunction* bfc;
-      if ((bfc = builtinFunctions.find(fname))) {
-         printd(5, "qore_ns_private::parseResolveCallReference() resolved function reference to builtin function to %s\n", fname);
-      
-         // check parse options to see if access is allowed
-         if (bfc->getUniqueFunctionality() & getProgram()->getParseOptions64())
-            parse_error("parse options do not allow access to builtin function '%s'", fname);
-         else 
-            return new BuiltinCallReferenceNode(bfc);
-      }
-      else
-         // cannot find function, throw exception
-         parse_error("reference to function '%s()' cannot be resolved", fname);
-
-      return fr_holder.release();
-   }
-
    DLLLOCAL void runtimeFindCallFunction(const char* name, UserFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
       assert(!ufc);
       assert(!bfc);
@@ -228,8 +198,8 @@ public:
 
    DLLLOCAL QoreNamespace *resolveNameScope(const NamedScope *name) const;
    DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope* nscope, unsigned& matched);
-   DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope *name, unsigned *matched);
-   DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope *nscope, unsigned *matched);
+   DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope* name, unsigned& matched);
+   DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope* nscope, unsigned& matched);
    DLLLOCAL AbstractQoreNode *parseCheckScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
 
    DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
@@ -265,11 +235,6 @@ public:
 
    DLLLOCAL static const AbstractQoreFunction* parseResolveFunction(QoreNamespace& ns, const char* fname, QoreProgram*& pgm) {
       return ns.priv->parseResolveFunction(fname, pgm);
-   }
-
-   // called during parsing (plock already grabbed)
-   DLLLOCAL static AbstractCallReferenceNode* parseResolveCallReference(QoreNamespace& ns, UnresolvedProgramCallReferenceNode* fr) {
-      return ns.priv->parseResolveCallReference(fr);
    }
 
    DLLLOCAL static void setName(const QoreNamespace& ns, const char *nme) {

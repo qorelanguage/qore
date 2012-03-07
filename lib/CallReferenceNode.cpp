@@ -467,7 +467,7 @@ AbstractQoreNode *UnresolvedCallReferenceNode::parseInit(LocalVar *oflag, int pf
       }
    }
 
-   return qore_ns_private::parseResolveCallReference(*(getRootNS()), this);
+   return qore_root_ns_private::parseResolveCallReference(this);
 }
 
 AbstractQoreNode *LocalStaticMethodCallReferenceNode::evalImpl(ExceptionSink *xsink) const {

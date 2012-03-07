@@ -336,75 +336,6 @@ static void showNSL(QoreNamespaceList *nsl) {
 }
 */
 
-// QoreNamespaceList::parseFindScopedClassWithMethod()
-// does a recursive breadth-first search to resolve a namespace containing the given class name
-// note: is only called with a namespace specifier
-QoreClass* QoreNamespaceList::parseFindScopedClassWithMethod(const NamedScope *name, unsigned *matched) {
-   QoreClass* oc = 0;
-
-   // see if a complete match can be found at the first level
-   for (nsmap_t::const_iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
-      if ((oc = i->second->priv->parseMatchScopedClassWithMethod(name, matched)))
-	 return oc;
-   }
-
-   // now search all sub namespaces
-   for (nsmap_t::const_iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
-      if ((oc = i->second->priv->pendNSL.parseFindScopedClassWithMethod(name, matched)))
-	 break;
-      if ((oc = i->second->priv->nsl.parseFindScopedClassWithMethod(name, matched)))
-	 break;
-   }
-
-   return oc;
-}
-
-QoreClass* QoreNamespaceList::parseFindClass(const char* ocname) {
-   QoreClass* oc = 0;
-
-   // see if a match can be found at the first level
-   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
-      if ((oc = i->second->priv->findLoadClass(ocname)))
-	 return oc;
-      // check pending classes
-      if ((oc = i->second->priv->pendClassList.find(ocname)))
-	 return oc;
-   }
-
-   // check all levels
-   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
-      if ((oc = i->second->priv->nsl.parseFindClass(ocname)))
-	 break;
-      if ((oc = i->second->priv->pendNSL.parseFindClass(ocname)))
-	 break;
-   }
-
-   return oc;
-}
-
-// QoreNamespaceList::parseFindScopedClass()
-// does a recursive breadth-first search to resolve a namespace with the given object type
-// note: is only called with a namespace specifier
-QoreClass* QoreNamespaceList::parseFindScopedClass(const NamedScope *name, unsigned *matched) {
-   QoreClass* oc = 0;
-
-   // see if a complete match can be found at the first level
-   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
-      if ((oc = i->second->priv->parseMatchScopedClass(name, matched)))
-	 return oc;
-   }
-
-   // now search all sub namespaces
-   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
-      if ((oc = i->second->priv->nsl.parseFindScopedClass(name, matched)))
-	 break;
-      if ((oc = i->second->priv->pendNSL.parseFindScopedClass(name, matched)))
-	 break;
-   }
-
-   return oc;
-}
-
 QoreHashNode* QoreNamespace::getConstantInfo() const {
    return priv->constant.getInfo();
 }
@@ -554,32 +485,11 @@ int qore_root_ns_private::parseAddMethodToClassIntern(const NamedScope *scname, 
    std::auto_ptr<MethodVariantBase> v(qcmethod);
 
    // find class
-   QoreClass* oc;
+   QoreClass* oc = parseFindScopedClassWithMethodInternError(scname, true);
+   if (!oc)
+      return -1;
 
-   const char* cname  = scname->strlist[scname->size() - 2].c_str();
-   const char* method = scname->strlist[scname->size() - 1].c_str();
-
-   // if there is no namespace specified, then just find class
-   if (scname->size() == 2) {
-      oc = parseFindClassIntern(cname, false);
-      if (!oc) {
-	 parse_error("reference to undefined class '%s' while trying to add method '%s'", cname, method);
-	 return -1;
-      }
-   }
-   else {
-      unsigned m = 0;
-      oc = parseFindScopedClassWithMethodIntern(scname, m);
-      if (!oc) {
-	 if (m != (scname->size() - 2))
-	    parse_error("cannot resolve namespace '%s' in '%s()'", scname->strlist[m].c_str(), scname->ostr);
-	 else
-	    parse_error("class '%s' does not exist", cname);
-	 return -1;
-      }
-   }
-
-   return oc->addUserMethod(method, v.release(), static_flag);
+   return oc->addUserMethod(scname->getIdentifier(), v.release(), static_flag);
 }
 
 // returns 0 for success, non-zero for error
@@ -695,27 +605,62 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
 
 // private
 QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodIntern(const NamedScope* nscope, unsigned& matched) {
+   assert(nscope->size() > 2);
+
    QoreClass* oc;
 
-   if (!(oc = parseMatchScopedClassWithMethod(nscope, &matched))
-       && !(oc = nsl.parseFindScopedClassWithMethod(nscope, &matched)))
-      oc = pendNSL.parseFindScopedClassWithMethod(nscope, &matched);
-   return oc;
+   // iterate all namespaces with the initial name and look for the match
+   {
+      NamespaceMapIterator nmi(nsmap, nscope->strlist[0].c_str());
+      while (nmi.next()) {
+         if ((oc = nmi.get()->parseMatchScopedClassWithMethod(nscope, matched)))
+            return oc;
+      }
+   }
+
+   {
+      NamespaceMapIterator nmi(pend_nsmap, nscope->strlist[0].c_str());
+      while (nmi.next()) {
+         if ((oc = nmi.get()->parseMatchScopedClassWithMethod(nscope, matched)))
+            return oc;
+      }
+   }
+
+   return 0;
 }
 
-// will always be called with a namespace (nscope->size() > 1)
 QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope* nscope, unsigned& matched) {
-   QoreClass* oc = parseMatchScopedClass(nscope, &matched);
-   if (!oc && !(oc = nsl.parseFindScopedClass(nscope, &matched)))
-      oc = pendNSL.parseFindScopedClass(nscope, &matched);
-   return oc;
+   assert(nscope->size() > 1);
+
+   // iterate all namespaces with the initial name and look for the match
+   {
+      NamespaceMapIterator nmi(nsmap, nscope->strlist[0].c_str());
+      while (nmi.next()) {
+         QoreClass* oc;
+         //printd(5, "qore_root_ns_private::parseResolveScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
+         if ((oc = nmi.get()->parseMatchScopedClass(nscope, matched)))
+            return oc;
+      }
+   }
+
+   {
+      NamespaceMapIterator nmi(pend_nsmap, nscope->strlist[0].c_str());
+      while (nmi.next()) {
+         QoreClass* oc;
+         //printd(5, "qore_root_ns_private::parseResolveScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
+         if ((oc = nmi.get()->parseMatchScopedClass(nscope, matched)))
+            return oc;
+      }
+   }
+
+   return 0;
 }
 
 QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope* nscope) {
    QoreClass* oc;
    // if there is no namespace specified, then just find class
    if (nscope->size() == 1)
-      return parseFindClassIntern(nscope->strlist[0].c_str(), true);
+      return parseFindClassIntern(nscope->getIdentifier(), true);
 
    unsigned m = 0;
    oc = parseFindScopedClassIntern(nscope, m);
@@ -745,6 +690,16 @@ QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodInternError(const
    assert(scname->size() > 1);
 
    QoreClass* oc;
+
+   if (scname->size() == 2) {
+      oc = parseFindClassIntern(scname->strlist[0].c_str(), false);
+      if (oc)
+         return oc;
+
+      if (error)
+         parse_error("reference to undefined class '%s' while trying to add method '%s'", scname->strlist[0].c_str(), scname->getIdentifier());
+      return 0;
+   }
 
    unsigned m = 0;
    oc = parseFindScopedClassWithMethodIntern(scname, m);
@@ -1138,8 +1093,8 @@ QoreNamespace* qore_ns_private::parseMatchNamespace(const NamedScope* nscope, un
    return (QoreNamespace* )fns;
 }
 
-QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope *nscope, unsigned *matched) {
-   printd(5, "qore_ns_private::parseMatchScopedClass() this=%p ns=%p '%s' nscope='%s' matched=%d\n", this, ns, name.c_str(), nscope->ostr, *matched);
+QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope* nscope, unsigned& matched) {
+   printd(5, "qore_ns_private::parseMatchScopedClass() this=%p ns=%p '%s' nscope='%s' matched=%d\n", this, ns, name.c_str(), nscope->ostr, matched);
 
    if (nscope->strlist[0] != name) {
       QoreNamespace* fns = nsl.find(nscope->strlist[0]);
@@ -1149,8 +1104,8 @@ QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope *nscope, unsi
    }
 
    // mark first namespace as matched
-   if (!(*matched))
-      *matched = 1;
+   if (!matched)
+      matched = 1;
 
    printd(5, "qore_ns_private::parseMatchScopedClass() matched %s in %s\n", name.c_str(), nscope->ostr);
 
@@ -1162,8 +1117,8 @@ QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope *nscope, unsi
 	 fns = fns->priv->parseFindLocalNamespace(nscope->strlist[i].c_str());
 	 if (!fns)
 	    return 0;
-	 if (i >= (*matched))
-	    (*matched) = i + 1;
+	 if (i >= matched)
+	    matched = i + 1;
       }
    }
    QoreClass* rv = fns->priv->findLoadClass(nscope->strlist[nscope->size() - 1].c_str());
@@ -1172,35 +1127,28 @@ QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope *nscope, unsi
    return rv;
 }
 
-QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope *nscope, unsigned *matched) {
+QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope* nscope, unsigned& matched) {
+   assert(nscope->size() > 2);
+   assert(nscope->strlist[0] == name);
+
    printd(5, "qore_ns_private::parseMatchScopedClassWithMethod() this=%p ns=%p '%s' class=%s (%s)\n", this, ns, name.c_str(), nscope->strlist[nscope->size() - 2].c_str(), nscope->ostr);
 
    QoreNamespace* fns = ns;
-   // if we need to follow the namespaces, then do so
-   if (nscope->size() > 2) {
-      // if first namespace doesn't match, then return 0
-      if (nscope->strlist[0] != name) {
-         fns = nsl.find(nscope->strlist[0]);
-         if (!fns)
-            fns = pendNSL.find(nscope->strlist[0]);
-	 return fns ? fns->priv->parseMatchScopedClassWithMethod(nscope, matched) : 0;
-      }
 
-      // mark first namespace as matched
-      if (!(*matched))
-	 *matched = 1;
+   // mark first namespace as matched
+   if (!matched)
+      matched = 1;
 
-      // otherwise search the rest of the namespaces
-      for (unsigned i = 1; i < (nscope->size() - 2); i++) {	 
-	 fns = fns->priv->parseFindLocalNamespace(nscope->strlist[i].c_str());
-	 if (!fns)
-	    return 0;
-	 if (i >= (*matched))
-	    (*matched) = i + 1;
-      }
+   // search the rest of the namespaces
+   for (unsigned i = 1; i < (nscope->size() - 2); i++) {	 
+      fns = fns->priv->parseFindLocalNamespace(nscope->strlist[i].c_str());
+      if (!fns)
+         return 0;
+      if (i >= matched)
+         matched = i + 1;
    }
 
-   // check last namespaces
+   // now get class from final namespace
    QoreClass* rv = fns->priv->findLoadClass(nscope->strlist[nscope->size() - 2].c_str());
    if (!rv)
       rv = fns->priv->pendClassList.find(nscope->strlist[nscope->size() - 2].c_str());
