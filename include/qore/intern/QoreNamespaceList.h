@@ -81,8 +81,6 @@ public:
    DLLLOCAL void reset();
    DLLLOCAL void assimilate(QoreNamespaceList& n, qore_ns_private* parent);
 
-   DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL AbstractQoreNode *parseFindScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo);
    DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *parseFindClass(const char *ocname);
