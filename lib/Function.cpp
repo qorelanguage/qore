@@ -32,13 +32,13 @@
 #include <math.h>
 
 // FIXME: xxx set parse location
-static inline void duplicateSignatureException(const char *name, UserVariantBase *uvb) {
-   parseException("DUPLICATE-SIGNATURE", "%s(%s) has already been declared", name, uvb->getUserSignature()->getSignatureText());
+static inline void duplicateSignatureException(const char *cname, const char *name, UserVariantBase *uvb) {
+   parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, uvb->getUserSignature()->getSignatureText());
 }
 
 // FIXME: xxx set parse location
-static inline void ambiguousDuplicateSignatureException(const char *name, AbstractQoreFunctionVariant *uvb1, UserVariantBase *uvb2) {
-   parseException("DUPLICATE-SIGNATURE", "%s(%s) matches already declared variant %s(%s)", name, uvb2->getUserSignature()->getSignatureText(), name, uvb1->getSignature()->getSignatureText());
+static inline void ambiguousDuplicateSignatureException(const char *cname, const char *name, AbstractQoreFunctionVariant *uvb1, UserVariantBase *uvb2) {
+   parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant %s(%s)", cname ? cname : "", cname ? "::" : "", name, uvb2->getUserSignature()->getSignatureText(), name, uvb1->getSignature()->getSignatureText());
 }
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink *n_xsink, const AbstractQoreFunction *func, const AbstractQoreFunctionVariant *&variant, const char *n_name, const QoreListNode *args, const char *n_class_name, qore_call_t n_ct)
@@ -1370,9 +1370,9 @@ int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase 
       }
       if (dup) {
 	 if (ambiguous)
-	    ambiguousDuplicateSignatureException(getName(), *i, variant);
+	    ambiguousDuplicateSignatureException(className(), getName(), *i, variant);
 	 else
-	    duplicateSignatureException(getName(), variant);
+	    duplicateSignatureException(className(), getName(), variant);
 	 return -1;
       }
    }
@@ -1405,7 +1405,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 
       // the 2 signatures have the same number of parameters with type information
       if (!tp) {
-	 duplicateSignatureException(getName(), variant);
+	 duplicateSignatureException(className(), getName(), variant);
 	 return -1;
       }
 
@@ -1476,9 +1476,9 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
       }
       if (dup) {
 	 if (ambiguous)
-	    ambiguousDuplicateSignatureException(getName(), *i, variant);
+	    ambiguousDuplicateSignatureException(className(), getName(), *i, variant);
 	 else
-	    duplicateSignatureException(getName(), variant);
+	    duplicateSignatureException(className(), getName(), variant);
 	 return -1;
       }
       if (recheck)
@@ -1499,7 +1499,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 
       // the 2 signatures have the same number of parameters with type information
       if (!tp) {
-	 duplicateSignatureException(getName(), variant);
+	 duplicateSignatureException(className(), getName(), variant);
 	 return -1;
       }
 
@@ -1543,9 +1543,9 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
       }
       if (dup) {
 	 if (ambiguous)
-	    ambiguousDuplicateSignatureException(getName(), *i, variant);
+	    ambiguousDuplicateSignatureException(className(), getName(), *i, variant);
 	 else
-	    duplicateSignatureException(getName(), variant);
+	    duplicateSignatureException(className(), getName(), variant);
 	 return -1;
       }
       if (recheck)

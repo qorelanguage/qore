@@ -997,7 +997,6 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					   }
                                         }
 where					return TOK_WHERE;
-class                                   return TOK_CLASS;
 private                                 return TOK_PRIVATE;
 public                                  return TOK_PUBLIC;
 interface                               return TOK_INTERFACE;
@@ -1018,7 +1017,6 @@ elements                                return TOK_ELEMENTS;
 keys                                    return TOK_KEYS;
 sub                                     { new_argv_ref(); return TOK_SUB; }
 const                                   return TOK_CONST;
-namespace				return TOK_NAMESPACE;
 return					return TOK_RETURN;
 returns                                 return TOK_RETURNS;
 my					return TOK_MY;
@@ -1186,6 +1184,10 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 {BINARY}                                yylval->binary = parseHex(yytext + 1, strlen(yytext + 1) - 1); return BINARY;
 \$\.{WORD}                              yylval->string = strdup(yytext + 2); return SELF_REF;
 \${WORD}				yylval->string = strdup(yytext + 1); return VAR_REF;
+class{WS}+({WORD}::)+{WORD}             { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_class_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
+class{WS}+(::{WORD})+                   { yylval->string = trim(yytext + 6); parse_push_class_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
+class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); parse_push_class_name(yylval->string); return CLASS_STRING; }
+namespace{WS}+{WORD}			{ yylval->string = trim(yytext + 10); parse_push_namespace_name(yylval->string); return NAMESPACE; }
 {WORD}					yylval->string = strdup(yytext); return IDENTIFIER;
 \%{WORD}                                yylval->string = strdup(yytext + 1); return CONTEXT_REF;
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;

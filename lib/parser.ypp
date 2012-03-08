@@ -911,7 +911,6 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %}
 
 // define string aliases for token names for more user-friendly error reporting
-%token TOK_CLASS "class"
 %token TOK_RETURN "return"
 %token TOK_RETURNS "returns"
 %token TOK_MY "my"
@@ -944,7 +943,6 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_CONST "const"
 %token TOK_SUMMARIZE "summarize"
 %token TOK_BY "by"
-%token TOK_NAMESPACE "namespace"
 %token TOK_OUR "our"
 %token TOK_RETHROW "rethrow"
 %token TOK_SWITCH "switch"
@@ -1021,17 +1019,20 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token <string> SCOPED_REF "namespace or class-scoped reference"
 %token <string> CONTEXT_REF "context reference"
 %token <string> COMPLEX_CONTEXT_REF "named context reference"
+%token <string> QORE_CAST "cast operator"
+%token <string> NAMESPACE "namespace"
+%token <string> CLASS_STRING "simple class declaration"
 %token <datetime> DATETIME "date/time value"
 %token <String> QUOTED_WORD "quoted string"
 %token <binary> BINARY "binary constant value"
 %token <RegexSubst> REGEX_SUBST "regular expression substitution expression"
 %token <RegexTrans> REGEX_TRANS "transliteration expression"
+%token <nscope> CLASS_SCOPED_REF "scoped class declaration"
 %token <nscope> BASE_CLASS_CALL "call to base class method"
 %token <Regex> REGEX "regular expression"
 %token <Regex> REGEX_EXTRACT "regular expression extraction expression"
 %token <implicit_arg> IMPLICIT_ARG_REF "implicit argument reference"
 %token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
-%token <string> QORE_CAST "cast operator"
 
 %nonassoc IFX SCOPED_REF
 %nonassoc TOK_ELSE
@@ -1060,60 +1061,60 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %nonassoc P_INCREMENT P_DECREMENT
 %left '{' '[' '.' '(' DOT_KW_IDENTIFIER  // list and object references, etc, defined for precedence
 
-%type <sblock>      block
-%type <sblock>      statement_or_block
-%type <sblock>      statements
-%type <statement>   statement
-%type <statement>   return_statement
-%type <statement>   try_statement
-%type <node>        exp
-%type <node>        myexp
-%type <node>        scalar
-%type <hash>        hash
-%type <list>        list
-%type <String>      string
-%type <hashelement> hash_element
-%type <cmods>       context_mods
-%type <cmod>        context_mod
-%type <methodnode>  method_definition
-%type <memberlist>  private_member_list
-%type <memberlist>  public_member_list
-%type <memberlist>  member_list
-%type <memberinfo>  member
-%type <memberlist>  member_list2
-%type <memberinfo>  member2
-%type <classvarinfo> classvardecl
-%type <qoreclass>   class_attributes
-%type <classdef>    class_def
-%type <ns>          top_namespace_decl
-%type <ns>          namespace_decls
-%type <nsn>         namespace_decl
-%type <constnode>   scoped_const_decl
-%type <constnode>   unscoped_const_decl
-%type <i4>          method_modifiers
-%type <i4>          method_modifier
+%type <sblock>         block
+%type <sblock>         statement_or_block
+%type <sblock>         statements
+%type <statement>      statement
+%type <statement>      return_statement
+%type <statement>      try_statement
+%type <node>           exp
+%type <node>           myexp
+%type <node>           scalar
+%type <hash>           hash
+%type <list>           list
+%type <String>         string
+%type <hashelement>    hash_element
+%type <cmods>          context_mods
+%type <cmod>           context_mod
+%type <methodnode>     method_definition
+%type <memberlist>     private_member_list
+%type <memberlist>     public_member_list
+%type <memberlist>     member_list
+%type <memberinfo>     member
+%type <memberlist>     member_list2
+%type <memberinfo>     member2
+%type <classvarinfo>   classvardecl
+%type <qoreclass>      class_attributes
+%type <classdef>       class_def
+%type <ns>             top_namespace_decl
+%type <ns>             namespace_decls
+%type <nsn>            namespace_decl
+%type <constnode>      scoped_const_decl
+%type <constnode>      unscoped_const_decl
+%type <i4>             method_modifiers
+%type <i4>             method_modifier
 %type <returnTypeInfo> return_value
-%type <string>      optname
-%type <statement>   switch_statement
-%type <switchstmt>  case_block
-%type <casenode>    case_code
-%type <sclist>      superclass_list
-%type <sclist>      inheritance_list
-%type <sclnode>     superclass
-%type <bcalist>     base_constructor_list
-%type <bcalist>     base_constructors
-%type <bcanode>     base_constructor
-%type <string>      ident_openparen
-%type <parsertype>  qtypedef
-%type <parsertype>  uncqtypedef
-%type <parsefunc>   sub_def
-%type <sparsefunc>  scoped_sub_def
+%type <string>         optname
+%type <statement>      switch_statement
+%type <switchstmt>     case_block
+%type <casenode>       case_code
+%type <sclist>         superclass_list
+%type <sclist>         inheritance_list
+%type <sclnode>        superclass
+%type <bcalist>        base_constructor_list
+%type <bcalist>        base_constructors
+%type <bcanode>        base_constructor
+%type <string>         ident_openparen
+%type <parsertype>     qtypedef
+%type <parsertype>     uncqtypedef
+%type <parsefunc>      sub_def
+%type <sparsefunc>     scoped_sub_def
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def
+%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def
 %destructor { if ($$) $$->deref(); } string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
-%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname ident_openparen
+%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN QORE_CAST NAMESPACE CLASS_STRING optname ident_openparen
 
 %%
 top_level_commands:
@@ -1173,37 +1174,41 @@ top_level_command:
 	;
 
 top_namespace_decl:
-	TOK_NAMESPACE IDENTIFIER '{' namespace_decls '}'
-	{ qore_ns_private::setName(*($4), $2); $$ = $4; free($2); }
-        | TOK_NAMESPACE IDENTIFIER ';'
-        { $$ = new QoreNamespace($2); free($2); }
+        NAMESPACE '{' namespace_decls '}' {
+           $$ = $3;
+           free($1);
+        }
+        | NAMESPACE ';' {
+           qore_ns_private* p = new qore_ns_private;
+           $$ = p->ns;
+           free($1);
+        }
 	;
 
 namespace_decls:
 	namespace_decl {
-	   QoreNamespace *ns = new QoreNamespace("");
-           $1->add(*ns);
-	   $$ = ns;
+           qore_ns_private* p = new qore_ns_private;
+           $1->add(*(p->ns));
+           $$ = p->ns;
         }
-        | namespace_decls namespace_decl { 
+        | namespace_decls namespace_decl {
            $2->add(*($1));
 	   $$ = $1;
 	}
 	;
 
 namespace_decl:
-	scoped_const_decl { 
-	   $$ = new NSNode($1); 
+	scoped_const_decl {
+	   $$ = new NSNode($1);
         }
-        | unscoped_const_decl { 
-	   $$ = new NSNode($1); 
+        | unscoped_const_decl {
+	   $$ = new NSNode($1);
 	}
-	| class_def { 
-	   $$ = new NSNode($1); 
+	| class_def {
+	   $$ = new NSNode($1);
 	   // see if class definitions are allowed
 	   if (checkParseOption(PO_NO_CLASS_DEFS))
-	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)",
-			  $1->oc->getName());
+	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
 	}
         | sub_def {
            $$ = new NSNode($1);
@@ -1535,37 +1540,37 @@ myexp:  /* empty */  { $$ = 0; }
         ;
 
 class_def:
-	TOK_CLASS IDENTIFIER inheritance_list '{' class_attributes '}' {
-	   $5->setName($2);
-	   $5->parseSetBaseClassList($3);
-	   $$ = new ObjClassDef($2, $5); 
+	CLASS_STRING inheritance_list '{' class_attributes '}' {
+	   $4->parseSetBaseClassList($2);
+	   $$ = new ObjClassDef($1, $4); 
 	}
-        | TOK_CLASS SCOPED_REF inheritance_list '{' class_attributes '}' { 
-	   $$ = new ObjClassDef($2, $5); 
-	   $5->setName($$->name->getIdentifier()); 
-	   $5->parseSetBaseClassList($3);
+        | CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' { 
+	   $$ = new ObjClassDef($1, $4); 
+	   $4->parseSetBaseClassList($2);
 	}
-	| TOK_CLASS IDENTIFIER inheritance_list ';' { 
-	   QoreClass *qc = new QoreClass($2);
-	   qc->parseSetBaseClassList($3);
-	   $$ = new ObjClassDef($2, qc); 	   
+	| CLASS_STRING inheritance_list ';' { 
+           // class name is set automatically from name saved in scanner
+	   QoreClass *qc = new QoreClass;
+	   qc->parseSetBaseClassList($2);
+	   $$ = new ObjClassDef($1, qc); 	   
 	}
-	| TOK_CLASS SCOPED_REF inheritance_list ';' { 
-	   NamedScope *ns = new NamedScope($2);
-	   QoreClass *qc = new QoreClass(ns->getIdentifier());
-	   $$ = new ObjClassDef(ns, qc);
-	   qc->parseSetBaseClassList($3);
+	| CLASS_SCOPED_REF inheritance_list ';' { 
+           // class name is set automatically from name saved in scanner
+	   QoreClass *qc = new QoreClass;
+	   $$ = new ObjClassDef($1, qc);
+	   qc->parseSetBaseClassList($2);
 	}
-	| TOK_CLASS IDENTIFIER inheritance_list '{' '}' { 
-	   QoreClass *qc = new QoreClass($2);
-	   qc->parseSetBaseClassList($3);
-	   $$ = new ObjClassDef($2, qc); 	   
+	| CLASS_STRING inheritance_list '{' '}' { 
+           // class name is set automatically from name saved in scanner
+	   QoreClass *qc = new QoreClass;
+	   qc->parseSetBaseClassList($2);
+	   $$ = new ObjClassDef($1, qc); 	   
 	}
-	| TOK_CLASS SCOPED_REF inheritance_list '{' '}' { 
-	   NamedScope *ns = new NamedScope($2);
-	   QoreClass *qc = new QoreClass(ns->getIdentifier());
-	   $$ = new ObjClassDef(ns, qc);
-	   qc->parseSetBaseClassList($3);
+	| CLASS_SCOPED_REF inheritance_list '{' '}' { 
+           // class name is set automatically from name saved in scanner
+	   QoreClass *qc = new QoreClass;
+	   $$ = new ObjClassDef($1, qc);
+	   qc->parseSetBaseClassList($2);
 	}
 	;
 

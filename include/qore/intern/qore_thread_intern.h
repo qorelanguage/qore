@@ -116,6 +116,10 @@ DLLLOCAL void parse_cond_push(bool mark = false);
 DLLLOCAL bool parse_cond_else();
 DLLLOCAL bool parse_cond_pop();
 DLLLOCAL void push_parse_options();
+DLLLOCAL void parse_push_namespace_name(const char* name);
+DLLLOCAL const char* parse_pop_namespace_name();
+DLLLOCAL void parse_push_class_name(const char* name);
+DLLLOCAL const char* parse_pop_class_name();
 
 // pushes a new argv reference counter
 DLLLOCAL void new_argv_ref();

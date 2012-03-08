@@ -62,6 +62,13 @@ public:
    DLLLOCAL qore_ns_private(QoreNamespace *n_ns) : depth(0), root(false), parent(0), class_handler(0), ns(n_ns) {      
    }
 
+   // called when parsing
+   DLLLOCAL qore_ns_private() : depth(0), root(false), parent(0), class_handler(0), ns(0) {
+      // attaches to the ns attribute in the constructor
+      new QoreNamespace(this);
+      name = parse_pop_namespace_name();
+   }
+
    DLLLOCAL qore_ns_private(const qore_ns_private &old, int64 po) 
       : name(old.name), 
         classList(old.classList, po), 
@@ -107,11 +114,6 @@ public:
       if (!qc && class_handler)
 	 qc = class_handler(ns, cname);
       return qc;
-   }
-
-   DLLLOCAL void setName(const char *nme) {
-      assert(name.empty());
-      name = nme;
    }
 
    DLLLOCAL void assimilate(QoreNamespace* ns);
@@ -213,10 +215,6 @@ public:
    }
 
    DLLLOCAL static AbstractQoreNode* parseResolveClassConstant(QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo);
-
-   DLLLOCAL static void setName(const QoreNamespace& ns, const char *nme) {
-      ns.priv->setName(nme);
-   }
 
    DLLLOCAL static ConstantList& getConstantList(const QoreNamespace *ns) {
       return ns->priv->constant;

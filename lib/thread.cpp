@@ -345,6 +345,10 @@ public:
    // Maintaining the conditional parse block count for each file parsed
    ParseConditionalStack pcs;
 
+   // for capturing namespace and class names while parsing
+   typedef std::vector<const char*> psvec_t;
+   psvec_t ns_vec, class_vec;
+
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
       parse_line_start(0), parse_line_end(0), parse_file(0), 
@@ -394,6 +398,33 @@ public:
 #ifdef DEBUG
       tpd = 0;
 #endif
+   }
+
+   DLLLOCAL void pushClassName(const char* name) {
+      class_vec.push_back(name);
+   }
+
+   DLLLOCAL const char* popClassName() {
+      assert(!class_vec.empty());
+      const char* rv = class_vec.back();
+      class_vec.pop_back();
+      return rv;
+   }
+
+   DLLLOCAL void pushNamespaceName(const char* name) {
+      ns_vec.push_back(name);
+   }
+
+   DLLLOCAL const char* popNamespaceName() {
+      assert(!ns_vec.empty());
+      const char* rv = ns_vec.back();
+      ns_vec.pop_back();
+      return rv;
+   }
+
+   DLLLOCAL void parseRollback() {
+      ns_vec.clear();
+      class_vec.clear();
    }
 };
 
@@ -716,6 +747,26 @@ ClosureVarValue *thread_get_runtime_closure_var(const LocalVar *id) {
 
 ClosureParseEnvironment *thread_get_closure_parse_env() {
    return thread_data.get()->closure_parse_env;
+}
+
+void parse_push_namespace_name(const char* name) {
+   ThreadData *td = thread_data.get();
+   td->pushNamespaceName(name);
+}
+
+const char* parse_pop_namespace_name() {
+   ThreadData *td = thread_data.get();
+   return td->popNamespaceName();
+}
+
+void parse_push_class_name(const char* name) {
+   ThreadData *td = thread_data.get();
+   td->pushClassName(name);
+}
+
+const char* parse_pop_class_name() {
+   ThreadData *td = thread_data.get();
+   return td->popClassName();
 }
 
 void set_thread_resource(AbstractThreadResource *atr) {

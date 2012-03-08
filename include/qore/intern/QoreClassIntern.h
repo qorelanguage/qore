@@ -1396,7 +1396,7 @@ struct SelfInstantiatorHelper {
 // private QoreClass implementation
 class qore_class_private {
 public:
-   char *name;                   // the name of the class
+   std::string name;             // the name of the class
    QoreClass *cls;               // parent class
    BCList *scl;                  // base class list
    hm_method_t hm,               // "normal" (non-static) method map
@@ -1564,7 +1564,7 @@ public:
 	       rc = -1;
 	    }
 	    if (parseHasPublicMembersInHierarchy()) {
-	       //printd(5, "qore_class_private::parseCheckMemberAccess() %s %%.%s memberGate=%d pflag=%d\n", name, mem, parseHasMemberGate(), pflag);
+	       //printd(5, "qore_class_private::parseCheckMemberAccess() %s %%.%s memberGate=%d pflag=%d\n", name.c_str(), mem, parseHasMemberGate(), pflag);
 	       parse_error("illegal access to unknown member '%s' in a class with a public member list (or inherited public member list)", mem);
 	       rc = -1;
 	    }
@@ -1575,8 +1575,8 @@ public:
       // only raise a parse error for illegal access to private members if there is not memberGate function
       if (priv && !parseHasMemberGate() && !parseCheckPrivateClassAccess(cls)) {
 	 memberTypeInfo = 0;
-	 if (name)
-	    parse_error("illegal access to private member '%s' of class '%s'", mem, name);
+	 if (!name.empty())
+	    parse_error("illegal access to private member '%s' of class '%s'", mem, name.c_str());
 	 else
 	    parse_error("illegal access to private member '%s'", mem);
 	 return -1;
@@ -1748,7 +1748,7 @@ public:
 	 if (!has_new_user_changes)
 	    has_new_user_changes = true;
 
-	 //printd(5, "qore_class_private::parseAddPrivateMember() this=%p %s adding %p %s\n", this, name, mem, mem);
+	 //printd(5, "qore_class_private::parseAddPrivateMember() this=%p %s adding %p %s\n", this, name.c_str(), mem, mem);
 	 pending_private_members[mem] = memberInfo;
 	 return;
       }
@@ -1762,7 +1762,7 @@ public:
 	 if (!has_new_user_changes)
 	    has_new_user_changes = true;
 
-	 //printd(5, "qore_class_private::parseAddPrivateStaticVar() this=%p %s adding %p %s\n", this, name, mem, mem);
+	 //printd(5, "qore_class_private::parseAddPrivateStaticVar() this=%p %s adding %p %s\n", this, name.c_str(), mem, mem);
 	 pending_private_vars[dname] = varInfo;
 	 return;
       }
@@ -1776,7 +1776,7 @@ public:
 	 if (!has_new_user_changes)
 	    has_new_user_changes = true;
 
-	 //printd(5, "QoreClass::parseAddPublicStaticVar() this=%p %s adding %p %s\n", this, name, mem, mem);
+	 //printd(5, "QoreClass::parseAddPublicStaticVar() this=%p %s adding %p %s\n", this, name.c_str(), mem, mem);
 	 pending_public_vars[dname] = varInfo;
 	 return;
       }
@@ -1807,11 +1807,11 @@ public:
    }
 
    DLLLOCAL void parseAssimilatePublicConstants(ConstantList &cmap) {
-      pend_pub_const.assimilate(cmap, pub_const, priv_const, pend_priv_const, false, name);
+      pend_pub_const.assimilate(cmap, pub_const, priv_const, pend_priv_const, false, name.c_str());
    }
 
    DLLLOCAL void parseAssimilatePrivateConstants(ConstantList &cmap) {
-      pend_priv_const.assimilate(cmap, priv_const, pub_const, pend_pub_const, true, name);
+      pend_priv_const.assimilate(cmap, priv_const, pub_const, pend_pub_const, true, name.c_str());
    }
 
    DLLLOCAL void parseAddPublicConstant(const std::string &cname, AbstractQoreNode *val) {
@@ -1822,7 +1822,7 @@ public:
       }
       //printd(0, "parseAddPublicConstant() this=%p cls=%p const=%s\n", this, cls, cname.c_str());
       
-      pend_pub_const.parseAdd(cname, val, pub_const, priv_const, pend_priv_const, false, name);
+      pend_pub_const.parseAdd(cname, val, pub_const, priv_const, pend_priv_const, false, name.c_str());
    }
 
    DLLLOCAL bool parseHasVar(const char *vn) {
@@ -1858,7 +1858,7 @@ public:
 	 }
       }
 
-      //printd(0, "qore_class_private::parseFindLocalConstantValue(%s) this=%p (cls=%p %s) rv=%p\n", cname, this, cls, name, rv);      
+      //printd(0, "qore_class_private::parseFindLocalConstantValue(%s) this=%p (cls=%p %s) rv=%p\n", cname, this, cls, name.c_str(), rv);      
       return rv;
    }
 
@@ -1943,7 +1943,7 @@ public:
 	 if (!has_new_user_changes)
 	    has_new_user_changes = true;
 
-	 //printd(5, "QoreClass::parseAddPublicMember() this=%p %s adding %p %s\n", this, name, mem, mem);
+	 //printd(5, "QoreClass::parseAddPublicMember() this=%p %s adding %p %s\n", this, name.c_str(), mem, mem);
 	 pending_public_members[mem] = memberInfo;
 	 if (!pending_has_public_memdecl)
 	    pending_has_public_memdecl = true;
@@ -1955,20 +1955,20 @@ public:
    }
 
    DLLLOCAL void addPublicMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value) {
-      assert(public_members.find(name) == public_members.end());
+      assert(public_members.find((char*)name.c_str()) == public_members.end());
       public_members[strdup(mem)] = new QoreMemberInfo(0, 0, n_typeInfo, 0, initial_value);
       if (!has_public_memdecl)
 	 has_public_memdecl = true;
    }
 
    DLLLOCAL void addPrivateMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value) {
-      assert(private_members.find(name) == private_members.end());
+      assert(private_members.find((char*)name.c_str()) == private_members.end());
       private_members[strdup(mem)] = new QoreMemberInfo(0, 0, n_typeInfo, 0, initial_value);
    }
 
    DLLLOCAL void insertBuiltinStaticMethod(QoreMethod *m) {
       assert(m->isStatic());
-      //printd(5, "QoreClass::insertBuiltinStaticMethod() %s::%s() size=%d\n", name, m->getName(), numMethods());
+      //printd(5, "QoreClass::insertBuiltinStaticMethod() %s::%s() size=%d\n", name.c_str(), m->getName(), numMethods());
       shm[m->getName()] = m;
       // maintain method counts (safely inside parse lock)
       ++num_static_methods;
@@ -1981,7 +1981,7 @@ public:
 
    DLLLOCAL void insertBuiltinMethod(QoreMethod *m, bool special_method = false) {
       assert(!m->isStatic());
-      //printd(5, "QoreClass::insertBuiltinMethod() %s::%s() size=%d\n", name, m->getName(), numMethods());
+      //printd(5, "QoreClass::insertBuiltinMethod() %s::%s() size=%d\n", name.c_str(), m->getName(), numMethods());
       hm[m->getName()] = m;      
       // maintain method counts (safely inside parse lock)
       ++num_methods;
@@ -2032,7 +2032,7 @@ public:
    }
 
    DLLLOCAL void parseAddAncestors(QoreMethod *m) {
-      //printd(5, "qore_class_private::parseAddAncestors(%p %s) this=%p cls=%p %s scl=%p\n", m, m->getName(), this, cls, name, scl);
+      //printd(5, "qore_class_private::parseAddAncestors(%p %s) this=%p cls=%p %s scl=%p\n", m, m->getName(), this, cls, name.c_str(), scl);
       assert(strcmp(m->getName(), "constructor"));
 
       if (!scl)
@@ -2291,7 +2291,7 @@ public:
          qore_type_t t = get_node_type(n);
          // throw an exception
          if (t == NT_OBJECT)
-            xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method with this name is available", name, nme);
+            xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method with this name is available", name.c_str(), nme);
          else
             xsink->raiseException("PSEUDO-METHOD-DOES-NOT-EXIST", "no pseudo method <%s>::%s() has been defined", get_type_name(n), nme);
          return 0;
