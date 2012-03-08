@@ -684,7 +684,7 @@ protected:
          if (bfc->getUniqueFunctionality() & getProgram()->getParseOptions64())
             parse_error("parse options do not allow access to builtin function '%s'", fname);
          else 
-            return new BuiltinCallReferenceNode(bfc);
+            return new LocalFunctionCallReferenceNode(bfc);
       }
       else
          // cannot find function, throw exception

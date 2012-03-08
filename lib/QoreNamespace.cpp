@@ -697,7 +697,7 @@ QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodInternError(const
          return oc;
 
       if (error)
-         parse_error("reference to undefined class '%s' while trying to add method '%s'", scname->strlist[0].c_str(), scname->getIdentifier());
+         parse_error("reference to undefined class '%s' in '%s()'", scname->get(0), scname->ostr);
       return 0;
    }
 

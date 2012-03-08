@@ -106,7 +106,6 @@ protected:
    QoreProgram *pgm;
    char *c_str;
 
-   // eval(): return value requires a deref(xsink)
    using AbstractFunctionCallNode::evalImpl;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const;
 

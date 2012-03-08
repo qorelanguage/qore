@@ -115,6 +115,6 @@ void FunctionList::parseRollback() {
 
 ResolvedCallReferenceNode* FunctionEntry::makeCallReference() const {
    return pgm
-      ? new UserCallReferenceNode(func, pgm)
-      : new LocalUserCallReferenceNode(func);
+      ? new FunctionCallReferenceNode(func, pgm)
+      : new LocalFunctionCallReferenceNode(func);
 }
