@@ -863,7 +863,7 @@ my hash $wh = $termios.getWindowSize();
 
     @endcode
  */
-hash TermIOS::getWindowSize() [flags=RET_VALUE_ONLY] {
+static hash TermIOS::getWindowSize() [flags=RET_VALUE_ONLY; dom=TERMINAL_IO] {
 #ifdef HAVE_TERMIOS_H
    int rows, columns;
 

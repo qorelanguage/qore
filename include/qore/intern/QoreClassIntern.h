@@ -1575,10 +1575,7 @@ public:
       // only raise a parse error for illegal access to private members if there is not memberGate function
       if (priv && !parseHasMemberGate() && !parseCheckPrivateClassAccess(cls)) {
 	 memberTypeInfo = 0;
-	 if (!name.empty())
-	    parse_error("illegal access to private member '%s' of class '%s'", mem, name.c_str());
-	 else
-	    parse_error("illegal access to private member '%s'", mem);
+         parse_error("illegal access to private member '%s' of class '%s'", mem, name.c_str());
 	 return -1;
       }
       return 0;
@@ -1926,7 +1923,6 @@ public:
       }
 
       if (vi) {
-
          // check accessibility to private data
          if (check && priv && vi && !parseCheckPrivateClassAccess(cls)) {
             return 0;
