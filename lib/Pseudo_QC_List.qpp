@@ -23,7 +23,7 @@
 
 #include <qore/Qore.h>
 
-//! Methods in this pseudo-class can be executed on @ref binary "binary values"
+//! Methods in this pseudo-class can be executed on @ref list "lists"
 /** 
  */
 qclass <list> [arg=QoreListNode* l;vparent=<value>];
