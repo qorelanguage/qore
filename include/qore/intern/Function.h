@@ -475,6 +475,8 @@ public:
 
 class AbstractQoreFunction {
 protected:
+   std::string name;
+
    // inheritance list type
    typedef std::vector<AbstractQoreFunction *> ilist_t;
 
@@ -597,13 +599,13 @@ protected:
    }
 
 public:
-   DLLLOCAL AbstractQoreFunction() : same_return_type(true), parse_same_return_type(true), unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
+   DLLLOCAL AbstractQoreFunction(const char* n_name) : name(n_name), same_return_type(true), parse_same_return_type(true), unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
                                      nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT), nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true), parse_init_done(true), nn_uniqueReturnType(0) {
       ilist.push_back(this);
    }
 
    // copy constructor (used by method functions when copied)
-   DLLLOCAL AbstractQoreFunction(const AbstractQoreFunction &old) : same_return_type(old.same_return_type), 
+   DLLLOCAL AbstractQoreFunction(const AbstractQoreFunction &old) : name(old.name), same_return_type(old.same_return_type), 
                                                                     parse_same_return_type(true), 
                                                                     unique_functionality(old.unique_functionality),
                                                                     unique_flags(old.unique_flags),
@@ -626,7 +628,9 @@ public:
 
    DLLLOCAL virtual void parseInit() = 0;
 
-   DLLLOCAL virtual const char *getName() const = 0;
+   DLLLOCAL const char *getName() const {
+      return name.c_str();
+   }
 
    DLLLOCAL virtual const QoreClass *getClass() const = 0;
 
@@ -745,6 +749,9 @@ public:
 
 class AbstractReferencedFunction : public AbstractQoreFunction, protected QoreReferenceCounter {
 public:
+   DLLLOCAL AbstractReferencedFunction(const char* nme) : AbstractQoreFunction(nme) {
+   }
+
    DLLLOCAL virtual void ref() {
       ROreference();
    }
@@ -768,7 +775,7 @@ protected:
    mutable MethodFunctionBase *new_copy;
 
 public:
-   DLLLOCAL MethodFunctionBase(const QoreClass *n_qc) : all_private(true), pending_all_private(true), qc(n_qc), new_copy(0) {
+   DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass *n_qc) : AbstractQoreFunction(nme), all_private(true), pending_all_private(true), qc(n_qc), new_copy(0) {
    }
 
    // copy constructor, only copies comitted variants
@@ -835,16 +842,12 @@ public:
 
 class UserFunction : public AbstractReferencedFunction {
 protected:
-   std::string name;
-
    DLLLOCAL virtual ~UserFunction() {
    }
 
 public:
-   DLLLOCAL UserFunction(const char *n_name);
-
-   DLLLOCAL virtual const char *getName() const {
-      return name.c_str();
+   DLLLOCAL UserFunction(const char *n_name) : AbstractReferencedFunction(n_name) {
+      printd(5, "UserFunction::UserFunction(%s)\n", name.c_str());
    }
 
    DLLLOCAL virtual void parseInit();
@@ -884,12 +887,8 @@ class UserClosureFunction : public AbstractQoreFunction {
 protected:
 
 public:
-   DLLLOCAL UserClosureFunction(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) {
+   DLLLOCAL UserClosureFunction(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : AbstractQoreFunction("<anonymous closure>") {
       parseAddVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags));
-   }
-
-   DLLLOCAL virtual const char *getName() const {
-      return "<anonymous closure>";
    }
 
    DLLLOCAL virtual const QoreClass *getClass() const {
@@ -913,6 +912,7 @@ public:
    DLLLOCAL virtual void ref() {
       assert(false);
    }
+
    DLLLOCAL virtual void deref() {
       assert(false);
    }

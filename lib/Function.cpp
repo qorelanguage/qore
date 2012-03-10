@@ -1312,10 +1312,6 @@ AbstractQoreNode *UserVariantBase::eval(const char *name, CodeEvaluationHelper *
    return evalIntern(uveh.getArgv(), self, xsink, class_name);
 }
 
-UserFunction::UserFunction(const char *n_name) : name(n_name ? n_name : "") {
-   printd(5, "UserFunction::UserFunction(%s)\n", name.c_str());
-}
-
 // returns 0 for OK, -1 for error
 // this is called after types have been resolved and the types must be rechecked
 int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase *variant) {
