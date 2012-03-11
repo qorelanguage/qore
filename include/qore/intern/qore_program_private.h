@@ -803,10 +803,10 @@ public:
    }
 
    // called during run time (not during parsing)
-   DLLLOCAL void importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink);
+   DLLLOCAL void importUserFunction(QoreProgram *p, QoreFunction *u, ExceptionSink *xsink);
 
    // called during run time (not during parsing)
-   DLLLOCAL void importUserFunction(QoreProgram *p, UserFunction *u, const char *new_name, ExceptionSink *xsink);
+   DLLLOCAL void importUserFunction(QoreProgram *p, QoreFunction *u, const char *new_name, ExceptionSink *xsink);
 
    DLLLOCAL void del(ExceptionSink *xsink);
 
@@ -912,7 +912,7 @@ public:
 	 return;
       }
 
-      UserFunction *u;
+      QoreFunction *u;
       QoreProgram *ipgm = pgm;
 
       {
@@ -932,7 +932,7 @@ public:
 	 return;
       }
 
-      UserFunction *u;
+      QoreFunction *u;
       QoreProgram *ipgm = pgm;
 
       {

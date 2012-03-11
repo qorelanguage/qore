@@ -871,7 +871,7 @@ AbstractQoreNode *get_static_call(NamedScope *ns, QoreListNode *args) {
    ContextModList *cmods;
    ContextMod *cmod;
    class HashElement *hashelement;
-   UserFunction *userfunc;	
+   QoreFunction *userfunc;	
    struct MethodNode *methodnode;
    class MemberList *memberlist;
    QoreClass *qoreclass;

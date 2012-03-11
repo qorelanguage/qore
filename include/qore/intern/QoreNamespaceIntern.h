@@ -138,25 +138,25 @@ public:
       return 0;
    }
 
-   DLLLOCAL FunctionEntry* importUserFunction(QoreProgram* p, UserFunction* u, ExceptionSink* xsink) {
+   DLLLOCAL FunctionEntry* importUserFunction(QoreProgram* p, QoreFunction* u, ExceptionSink* xsink) {
       if (checkImportUserFunction(u->getName(), xsink))
          return 0;
 
       return func_list.add(p, u);
    }
 
-   DLLLOCAL FunctionEntry* importUserFunction(QoreProgram* p, UserFunction* u, const char* new_name, ExceptionSink* xsink) {
+   DLLLOCAL FunctionEntry* importUserFunction(QoreProgram* p, QoreFunction* u, const char* new_name, ExceptionSink* xsink) {
       if (checkImportUserFunction(new_name, xsink))
          return 0;
 
       return func_list.add(p, new_name, u);
    }
 
-   DLLLOCAL UserFunction* runtimeFindFunction(const char* name, QoreProgram*& ipgm) {
+   DLLLOCAL QoreFunction* runtimeFindFunction(const char* name, QoreProgram*& ipgm) {
       return func_list.find(name, ipgm, true);
    }
 
-   DLLLOCAL void runtimeFindCallFunction(const char* name, UserFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
+   DLLLOCAL void runtimeFindCallFunction(const char* name, QoreFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
       assert(!ufc);
       assert(!bfc);
 
@@ -198,7 +198,7 @@ public:
       FunctionEntry* fe = func_list.findNode(name);
 
       if (!fe) {
-         UserFunction* u = new UserFunction(name);
+         QoreFunction* u = new QoreFunction(name);
          u->parseAddVariant(vh.release());
          fe = func_list.add(u);
          new_func = true;
@@ -220,11 +220,11 @@ public:
       return ns->priv->constant;
    }
 
-   DLLLOCAL static UserFunction* runtimeFindFunction(QoreNamespace& ns, const char *name, QoreProgram*& ipgm) {
+   DLLLOCAL static QoreFunction* runtimeFindFunction(QoreNamespace& ns, const char *name, QoreProgram*& ipgm) {
       return ns.priv->runtimeFindFunction(name, ipgm);
    }
 
-   DLLLOCAL static void runtimeFindCallFunction(QoreNamespace& ns, const char* name, UserFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
+   DLLLOCAL static void runtimeFindCallFunction(QoreNamespace& ns, const char* name, QoreFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
       return ns.priv->runtimeFindCallFunction(name, ufc, ipgm, bfc);
    }
 
@@ -574,7 +574,7 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int importUserFunction(qore_ns_private& ns, QoreProgram* p, UserFunction* u, ExceptionSink* xsink) {
+   DLLLOCAL int importUserFunction(qore_ns_private& ns, QoreProgram* p, QoreFunction* u, ExceptionSink* xsink) {
       FunctionEntry* fe = ns.importUserFunction(p, u, xsink);
       if (!fe)
          return -1;
@@ -584,7 +584,7 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int importUserFunction(qore_ns_private& ns, QoreProgram *p, UserFunction *u, const char *new_name, ExceptionSink *xsink) {
+   DLLLOCAL int importUserFunction(qore_ns_private& ns, QoreProgram *p, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
       FunctionEntry* fe = ns.importUserFunction(p, u, new_name, xsink);
       if (!fe)
          return -1;
@@ -597,7 +597,7 @@ protected:
       return fmap.find(name) != fmap.end();
    }
 
-   DLLLOCAL UserFunction* runtimeFindFunctionIntern(const char* name, QoreProgram*& ipgm) {
+   DLLLOCAL QoreFunction* runtimeFindFunctionIntern(const char* name, QoreProgram*& ipgm) {
       fmap_t::iterator i = fmap.find(name);
 
       if (i != fmap.end())
@@ -607,7 +607,7 @@ protected:
       return 0;
    }
 
-   DLLLOCAL UserFunction* parseFindFunctionIntern(const char* name, QoreProgram*& ipgm) {
+   DLLLOCAL QoreFunction* parseFindFunctionIntern(const char* name, QoreProgram*& ipgm) {
       fmap_t::iterator i = fmap.find(name);
       fmap_t::iterator ip = pend_fmap.find(name);
 
@@ -628,7 +628,7 @@ protected:
       return 0;
    }
 
-   DLLLOCAL void runtimeFindCallFunctionIntern(const char* name, UserFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
+   DLLLOCAL void runtimeFindCallFunctionIntern(const char* name, QoreFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
       assert(!ufc);
       assert(!bfc);
 
@@ -939,15 +939,15 @@ public:
       return getRootNS()->rpriv->addPendingVariant(*ns.priv, name, v);
    }
 
-   DLLLOCAL static int importUserFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreProgram* p, UserFunction* u, ExceptionSink* xsink) {
+   DLLLOCAL static int importUserFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreProgram* p, QoreFunction* u, ExceptionSink* xsink) {
       return rns.rpriv->importUserFunction(*ns.priv, p, u, xsink);
    }
 
-   DLLLOCAL static int importUserFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreProgram *p, UserFunction *u, const char *new_name, ExceptionSink *xsink) {
+   DLLLOCAL static int importUserFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreProgram *p, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
       return rns.rpriv->importUserFunction(*ns.priv, p, u, new_name, xsink);
    }
 
-   DLLLOCAL static UserFunction* runtimeFindFunction(RootQoreNamespace& rns, const char *name, QoreProgram*& ipgm) {
+   DLLLOCAL static QoreFunction* runtimeFindFunction(RootQoreNamespace& rns, const char *name, QoreProgram*& ipgm) {
       return rns.rpriv->runtimeFindFunctionIntern(name, ipgm);
    }
 
@@ -955,7 +955,7 @@ public:
       return rns.rpriv->runtimeExistsFunctionIntern(name);
    }
 
-   DLLLOCAL static void runtimeFindCallFunction(RootQoreNamespace& rns, const char* name, UserFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
+   DLLLOCAL static void runtimeFindCallFunction(RootQoreNamespace& rns, const char* name, QoreFunction*& ufc, QoreProgram*& ipgm, const BuiltinFunction*& bfc) {
       return rns.rpriv->runtimeFindCallFunctionIntern(name, ufc, ipgm, bfc);
    }
 

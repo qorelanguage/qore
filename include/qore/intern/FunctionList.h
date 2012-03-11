@@ -36,17 +36,17 @@ class FunctionEntry {
 
 protected:
    QoreProgram* pgm;
-   UserFunction* func;
+   QoreFunction* func;
    std::string name;
 
 public:
-   DLLLOCAL FunctionEntry(UserFunction* u) : pgm(0), func(u) {
+   DLLLOCAL FunctionEntry(QoreFunction* u) : pgm(0), func(u) {
    }
 
-   DLLLOCAL FunctionEntry(QoreProgram* p, UserFunction* u) : pgm(p), func(u) {
+   DLLLOCAL FunctionEntry(QoreProgram* p, QoreFunction* u) : pgm(p), func(u) {
    }
 
-   DLLLOCAL FunctionEntry(QoreProgram* p, const char* new_name, UserFunction* u) : pgm(p), func(u), name(new_name) {
+   DLLLOCAL FunctionEntry(QoreProgram* p, const char* new_name, QoreFunction* u) : pgm(p), func(u), name(new_name) {
    }
 
    DLLLOCAL FunctionEntry(const FunctionEntry &ife) : pgm(ife.pgm), func(ife.func), name(ife.name) {
@@ -62,17 +62,17 @@ public:
       return pgm;
    }
 
-   DLLLOCAL UserFunction* getFunction() {
+   DLLLOCAL QoreFunction* getFunction() {
       return func;
    }
 
-   DLLLOCAL UserFunction* getFunction(QoreProgram*& ipgm) {
+   DLLLOCAL QoreFunction* getFunction(QoreProgram*& ipgm) {
       if (pgm)
          ipgm = pgm;
       return func;
    }
 
-   DLLLOCAL UserFunction* getFunction(QoreProgram*& ipgm, bool runtime) {
+   DLLLOCAL QoreFunction* getFunction(QoreProgram*& ipgm, bool runtime) {
       if (runtime && func->committedEmpty())
 	 return 0;
       if (pgm)
@@ -125,10 +125,10 @@ public:
       del();
    }
 
-   DLLLOCAL FunctionEntry* add(UserFunction* func);
-   DLLLOCAL FunctionEntry* add(QoreProgram* pgm, UserFunction* func);
-   DLLLOCAL FunctionEntry* add(QoreProgram* pgm, const char* new_name, UserFunction* func);
-   DLLLOCAL UserFunction* find(const char* name, QoreProgram* &pgm, bool runtime) const;
+   DLLLOCAL FunctionEntry* add(QoreFunction* func);
+   DLLLOCAL FunctionEntry* add(QoreProgram* pgm, QoreFunction* func);
+   DLLLOCAL FunctionEntry* add(QoreProgram* pgm, const char* new_name, QoreFunction* func);
+   DLLLOCAL QoreFunction* find(const char* name, QoreProgram* &pgm, bool runtime) const;
    DLLLOCAL FunctionEntry* findNode(const char* name) const;
    DLLLOCAL void del();
    DLLLOCAL void parseInit();

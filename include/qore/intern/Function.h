@@ -632,7 +632,9 @@ public:
       return name.c_str();
    }
 
-   DLLLOCAL virtual const QoreClass *getClass() const = 0;
+   DLLLOCAL virtual const QoreClass *getClass() const {
+      return 0;
+   }
 
    DLLLOCAL virtual void ref() = 0;
    DLLLOCAL virtual void deref() = 0;
@@ -821,6 +823,7 @@ public:
    DLLLOCAL bool parseIsUniquelyPrivate() const {
       return all_private && pending_all_private;
    }
+
    DLLLOCAL virtual const QoreClass *getClass() const {
       return qc;
    }
@@ -840,20 +843,17 @@ public:
    }
 };
 
-class UserFunction : public AbstractReferencedFunction {
+class QoreFunction : public AbstractReferencedFunction {
 protected:
-   DLLLOCAL virtual ~UserFunction() {
+   DLLLOCAL virtual ~QoreFunction() {
    }
 
 public:
-   DLLLOCAL UserFunction(const char *n_name) : AbstractReferencedFunction(n_name) {
-      printd(5, "UserFunction::UserFunction(%s)\n", name.c_str());
+   DLLLOCAL QoreFunction(const char *n_name) : AbstractReferencedFunction(n_name) {
+      printd(5, "QoreFunction::QoreFunction(%s)\n", name.c_str());
    }
 
    DLLLOCAL virtual void parseInit();
-   DLLLOCAL virtual const QoreClass *getClass() const {
-      return 0;
-   }
 };
 
 class UserParamListLocalVarHelper {
@@ -889,10 +889,6 @@ protected:
 public:
    DLLLOCAL UserClosureFunction(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : AbstractQoreFunction("<anonymous closure>") {
       parseAddVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags));
-   }
-
-   DLLLOCAL virtual const QoreClass *getClass() const {
-      return 0;
    }
 
    DLLLOCAL bool parseStage1HasReturnTypeInfo() const {

@@ -31,7 +31,7 @@ void FunctionList::del() {
    clear();
 }
 
-FunctionEntry* FunctionList::add(UserFunction* func) {
+FunctionEntry* FunctionList::add(QoreFunction* func) {
    QORE_TRACE("FunctionList::add()");
 
    assert(!findNode(func->getName()));
@@ -41,7 +41,7 @@ FunctionEntry* FunctionList::add(UserFunction* func) {
    return n;
 }
 
-FunctionEntry* FunctionList::add(QoreProgram* pgm, UserFunction* func) {
+FunctionEntry* FunctionList::add(QoreProgram* pgm, QoreFunction* func) {
    QORE_TRACE("FunctionList::add()");
 
    assert(!findNode(func->getName()));
@@ -51,7 +51,7 @@ FunctionEntry* FunctionList::add(QoreProgram* pgm, UserFunction* func) {
    return n;
 }
 
-FunctionEntry* FunctionList::add(QoreProgram* pgm, const char* new_name, UserFunction* func) {
+FunctionEntry* FunctionList::add(QoreProgram* pgm, const char* new_name, QoreFunction* func) {
    QORE_TRACE("FunctionList::add()");
 
    assert(!findNode(new_name));
@@ -71,8 +71,8 @@ FunctionEntry* FunctionList::findNode(const char* name) const {
    return 0;
 }
 
-UserFunction* FunctionList::find(const char* name, QoreProgram* &pgm, bool runtime) const {
-   printd(5, "FunctionList::findFunction(%s) (UserFunction)\n", name);
+QoreFunction* FunctionList::find(const char* name, QoreProgram* &pgm, bool runtime) const {
+   printd(5, "FunctionList::findFunction(%s) (QoreFunction)\n", name);
 
    fl_map_t::const_iterator i = fl_map_t::find(name);
    if (i != end())

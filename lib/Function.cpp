@@ -1620,7 +1620,7 @@ void AbstractQoreFunction::parseRollback() {
    parse_init_done = true;
 }
 
-void UserFunction::parseInit() {
+void QoreFunction::parseInit() {
    if (parse_init_done)
       return;
    parse_init_done = true;

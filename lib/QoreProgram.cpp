@@ -212,12 +212,12 @@ int qore_program_private::internParseCommit() {
    return rc;
 }
 
-void qore_program_private::importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink) {
+void qore_program_private::importUserFunction(QoreProgram *p, QoreFunction *u, ExceptionSink *xsink) {
    AutoLocker al(&plock);
    qore_root_ns_private::importUserFunction(*RootNS, *RootNS, p, u, xsink);
 }
 
-void qore_program_private::importUserFunction(QoreProgram *p, UserFunction *u, const char *new_name, ExceptionSink *xsink) {
+void qore_program_private::importUserFunction(QoreProgram *p, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
    AutoLocker al(&plock);
    qore_root_ns_private::importUserFunction(*RootNS, *RootNS, p, u, new_name, xsink);
 }
@@ -643,7 +643,7 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   UserFunction* ufc = 0;
+   QoreFunction* ufc = 0;
    QoreProgram *ipgm = this;
    const BuiltinFunction* bfc = 0;
 
@@ -680,7 +680,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
 }
 
 /*
-AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreListNode *args, ExceptionSink *xsink) {
+AbstractQoreNode *QoreProgram::callFunction(const QoreFunction *ufc, const QoreListNode *args, ExceptionSink *xsink) {
    // we assign the args to 0 below so that they will not be deleted
    SimpleRefHolder<FunctionCallNode> fc(new FunctionCallNode(ufc, const_cast<QoreListNode *>(args)), 0);
 
