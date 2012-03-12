@@ -78,7 +78,6 @@ class UserFunctionVariant;
 class QoreTypeInfo;
 class QoreParseTypeInfo;
 class ParamList;
-class AbstractQoreFunction;
 class AbstractQoreZoneInfo;
 class qore_program_private;
 

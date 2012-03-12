@@ -63,7 +63,6 @@ class QoreObjectClosureNode;
 class QoreClosureParseNode : public ParseNode {
 private:
    UserClosureFunction *uf;
-   lvar_set_t vlist;       // closure local variable environment
    bool lambda, in_method;
 
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
@@ -101,7 +100,7 @@ public:
    DLLLOCAL AbstractQoreNode *exec(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const;
 
    DLLLOCAL const lvar_set_t *getVList() const {
-      return &vlist;
+      return uf->getVList();
    }
 
    DLLLOCAL UserClosureFunction *getFunction() const {

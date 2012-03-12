@@ -560,7 +560,7 @@ AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *o
    if (!qc) {
       // see if this is a function call to a function defined in a namespace
       QoreProgram* pgm = 0;
-      const AbstractQoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope, pgm);
+      const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope, pgm);
       if (f) {
 	 LocalFunctionCallReferenceNode* fr = pgm ? new FunctionCallReferenceNode(f, pgm) : new LocalFunctionCallReferenceNode(f);
          deref();
@@ -597,10 +597,10 @@ AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *o
    return rv;
 }
 
-LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const AbstractQoreFunction *n_uf, bool n_needs_eval) : ResolvedCallReferenceNode(n_needs_eval), uf(n_uf) {
+LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const QoreFunction *n_uf, bool n_needs_eval) : ResolvedCallReferenceNode(n_needs_eval), uf(n_uf) {
 }
 
-LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const AbstractQoreFunction *n_uf) : ResolvedCallReferenceNode(true), uf(n_uf) {
+LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const QoreFunction *n_uf) : ResolvedCallReferenceNode(true), uf(n_uf) {
 }
 
 AbstractQoreNode *LocalFunctionCallReferenceNode::evalImpl(ExceptionSink *xsink) const {

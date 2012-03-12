@@ -47,7 +47,7 @@ public:
 	 args->deref(0);
    }
    DLLLOCAL const QoreListNode *getArgs() const { return args; }
-   DLLLOCAL int parseArgsVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const QoreTypeInfo *&returnTypeInfo);
+   DLLLOCAL int parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo);
    DLLLOCAL const AbstractQoreFunctionVariant *getVariant() const {
       return variant;
    }
@@ -87,7 +87,7 @@ public:
       }
    }
 
-   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
+   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
       int lvids = parseArgsVariant(oflag, pflag, func, returnTypeInfo);
       // clear "effect" flag if possible, only if QC_CONSTANT is set on the variant or function
       if (variant)
@@ -102,7 +102,7 @@ public:
 
 class FunctionCallNode : public AbstractFunctionCallNode {
 protected:
-   const AbstractQoreFunction *func;
+   const QoreFunction *func;
    QoreProgram *pgm;
    char *c_str;
 
@@ -120,11 +120,11 @@ protected:
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-      return variant ? variant->parseGetReturnTypeInfo() : (func ? const_cast<AbstractQoreFunction*>(func)->parseGetUniqueReturnTypeInfo() : 0);
+      return variant ? variant->parseGetReturnTypeInfo() : (func ? const_cast<QoreFunction*>(func)->parseGetUniqueReturnTypeInfo() : 0);
    }
 
 public:
-   DLLLOCAL FunctionCallNode(const AbstractQoreFunction *f, QoreListNode *a, QoreProgram *n_pgm) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(f), pgm(n_pgm), c_str(0) {
+   DLLLOCAL FunctionCallNode(const QoreFunction *f, QoreListNode *a, QoreProgram *n_pgm) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(f), pgm(n_pgm), c_str(0) {
    }
 
    // normal function call constructor
@@ -157,7 +157,7 @@ public:
       return func ? func->getName() : c_str;
    }
 
-   DLLLOCAL const AbstractQoreFunction *getFunction() const {
+   DLLLOCAL const QoreFunction *getFunction() const {
       return func;
    }
 

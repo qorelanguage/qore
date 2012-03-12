@@ -54,7 +54,7 @@ protected:
    const QoreMethod *qmethod;
 
 public:
-   DLLLOCAL MethodVariantBase(bool n_priv_flag) : priv_flag(n_priv_flag), qmethod(0) {
+   DLLLOCAL MethodVariantBase(bool n_priv_flag, int64 n_flags, bool n_is_user = false) : AbstractQoreFunctionVariant(n_flags, n_is_user), priv_flag(n_priv_flag), qmethod(0) {
    }
    DLLLOCAL bool isPrivate() const {
       return priv_flag;
@@ -76,7 +76,7 @@ public:
 
 class MethodVariant : public MethodVariantBase {
 public:
-   DLLLOCAL MethodVariant(bool n_priv_flag) : MethodVariantBase(n_priv_flag) {
+   DLLLOCAL MethodVariant(bool n_priv_flag, int64 n_flags, bool n_is_user = false) : MethodVariantBase(n_priv_flag, n_flags, n_is_user) {
    }
    DLLLOCAL virtual AbstractQoreNode *evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const = 0;
    DLLLOCAL virtual int64 bigIntEvalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
@@ -126,7 +126,7 @@ protected:
    DLLLOCAL int constructorPrelude(const QoreClass &thisclass, CodeEvaluationHelper &ceh, QoreObject *self, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL ConstructorMethodVariant(bool n_priv_flag) : MethodVariantBase(n_priv_flag) {
+   DLLLOCAL ConstructorMethodVariant(bool n_priv_flag, int64 n_flags, bool n_is_user = false) : MethodVariantBase(n_priv_flag, n_flags, n_is_user) {
    }
    DLLLOCAL virtual const BCAList *getBaseClassArgumentList() const = 0;
    DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, CodeEvaluationHelper &ceh, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const = 0;
@@ -138,8 +138,9 @@ public:
 class DestructorMethodVariant : public MethodVariantBase {
 protected:
 public:
-   DLLLOCAL DestructorMethodVariant() : MethodVariantBase(false) {
+   DLLLOCAL DestructorMethodVariant(bool n_is_user = false) : MethodVariantBase(false, QC_NO_FLAGS, n_is_user) {
    }
+
    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const = 0;
 };
 
@@ -149,8 +150,9 @@ public:
 class CopyMethodVariant : public MethodVariantBase {
 protected:
 public:
-   DLLLOCAL CopyMethodVariant(bool n_priv_flag) : MethodVariantBase(n_priv_flag) {
+   DLLLOCAL CopyMethodVariant(bool n_priv_flag, bool n_is_user = false) : MethodVariantBase(n_priv_flag, QC_NO_FLAGS, n_is_user) {
    }
+
    DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink *xsink) const = 0;
 };
 
@@ -166,23 +168,30 @@ struct UserMethodVariantBase {
 
 class UserMethodVariant : public MethodVariant, public UserVariantBase, public UserMethodVariantBase {
 public:
-   DLLLOCAL UserMethodVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced, int64 n_flags) : MethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
+   DLLLOCAL UserMethodVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced, int64 n_flags) : MethodVariant(n_priv_flag, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
    COMMON_USER_VARIANT_FUNCTIONS
 
-   DLLLOCAL void parseInitMethod(const QoreClass &parent_class, bool static_flag) {
+   DLLLOCAL virtual void parseInit(QoreFunction* f) {
+      MethodFunctionBase* mf = static_cast<MethodFunctionBase*>(f);
+
       signature.resolve();
       // resolve and push current return type on stack
-      ParseCodeInfoHelper rtih(qmethod->getName(), signature.getReturnTypeInfo());
+      ParseCodeInfoHelper rtih(mf->getName(), signature.getReturnTypeInfo());
       
-      // must be called even if statements is NULL
-      if (!static_flag)
-	 statements->parseInitMethod(parent_class.getTypeInfo(), this);
+      // must be called even if "statements" is NULL
+      if (!mf->isStatic())
+	 statements->parseInitMethod(mf->MethodFunctionBase::getClass()->getTypeInfo(), this);
       else
 	 statements->parseInit(this);
+
+      // recheck types against committed types if necessary
+      if (recheck)
+         f->parseCheckDuplicateSignatureCommitted(this);
    }
+
    DLLLOCAL virtual AbstractQoreNode *evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
       // in case this method is called from a subclass, switch to the program where the class was created
       ProgramContextHelper pch(pgm);
@@ -201,7 +210,7 @@ protected:
    DLLLOCAL virtual ~UserConstructorVariant();
 
 public:
-   DLLLOCAL UserConstructorVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *n_bcal, int64 n_flags = QC_NO_FLAGS) : ConstructorMethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, 0, false, n_flags), bcal(n_bcal) {
+   DLLLOCAL UserConstructorVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *n_bcal, int64 n_flags = QC_NO_FLAGS) : ConstructorMethodVariant(n_priv_flag, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, 0, false), bcal(n_bcal) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -231,7 +240,7 @@ public:
       discard(evalIntern(uveh.getArgv(), self, xsink, thisclass.getName()), xsink);
    }
 
-   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
+   DLLLOCAL virtual void parseInit(QoreFunction* f);
 };
 
 #define UCONV(f) (reinterpret_cast<UserConstructorVariant *>(f))
@@ -240,13 +249,15 @@ public:
 class UserDestructorVariant : public DestructorMethodVariant, public UserVariantBase, public UserMethodVariantBase {
 protected:
 public:
-   DLLLOCAL UserDestructorVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line) : DestructorMethodVariant(), UserVariantBase(b, n_sig_first_line, n_sig_last_line, 0, 0, false) {
+   DLLLOCAL UserDestructorVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line) : DestructorMethodVariant(true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, 0, 0, false) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
    COMMON_USER_VARIANT_FUNCTIONS
 
-   DLLLOCAL void parseInitDestructor(const QoreClass &parent_class) {
+   DLLLOCAL virtual void parseInit(QoreFunction* f) {
+      MethodFunctionBase* mf = static_cast<MethodFunctionBase*>(f);
+
       signature.resolve();
       assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
 
@@ -254,7 +265,9 @@ public:
       ParseCodeInfoHelper rtih("destructor", nothingTypeInfo);
 
       // must be called even if statements is NULL
-      statements->parseInitMethod(parent_class.getTypeInfo(), this);
+      statements->parseInitMethod(mf->MethodFunctionBase::getClass()->getTypeInfo(), this);
+
+      // only 1 variant is possible, no need to recheck types
    }
 
    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
@@ -272,13 +285,14 @@ public:
 class UserCopyVariant : public CopyMethodVariant, public UserVariantBase, public UserMethodVariantBase {
 protected:
 public:
-   DLLLOCAL UserCopyVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) : CopyMethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserCopyVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) : CopyMethodVariant(n_priv_flag, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
    COMMON_USER_VARIANT_FUNCTIONS
 
-   DLLLOCAL void parseInitCopy(const QoreClass &parent_class);
+   DLLLOCAL virtual void parseInit(QoreFunction* f);
+
    DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink *xsink) const;
 };
 
@@ -286,7 +300,7 @@ public:
 
 class BuiltinMethodVariant : public MethodVariant, public BuiltinFunctionVariantBase {
 public:
-   DLLLOCAL BuiltinMethodVariant(bool n_priv_flag, int64 n_flags, int64 n_functionality, const QoreTypeInfo *n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) : MethodVariant(n_priv_flag), BuiltinFunctionVariantBase(n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList) {}
+   DLLLOCAL BuiltinMethodVariant(bool n_priv_flag, int64 n_flags, int64 n_functionality, const QoreTypeInfo *n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) : MethodVariant(n_priv_flag, n_flags), BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList) {}
 
    // the following defines the pure virtual functions that are common to all builtin variants
    COMMON_BUILTIN_VARIANT_FUNCTIONS
@@ -489,7 +503,7 @@ public:
 class BuiltinConstructorVariantBase : public ConstructorMethodVariant, public BuiltinFunctionVariantBase {
 public:
    // return type info is set to 0 because the new operator actually returns the new object, not the constructor
-   DLLLOCAL BuiltinConstructorVariantBase(bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) : ConstructorMethodVariant(n_priv_flag), BuiltinFunctionVariantBase(n_flags, n_functionality, 0, n_typeList, n_defaultArgList) {
+   DLLLOCAL BuiltinConstructorVariantBase(bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) : ConstructorMethodVariant(n_priv_flag, n_flags), BuiltinFunctionVariantBase(n_functionality, 0, n_typeList, n_defaultArgList) {
    }
 
    // the following defines the pure virtual functions that are common to all builtin variants
@@ -629,7 +643,7 @@ public:
 class BuiltinCopyVariantBase : public CopyMethodVariant, public BuiltinFunctionVariantBase {
 protected:
 public:
-   DLLLOCAL BuiltinCopyVariantBase(const QoreClass *c) : CopyMethodVariant(false), BuiltinFunctionVariantBase(QC_NO_FLAGS, QDOM_DEFAULT, c->getTypeInfo()) {
+   DLLLOCAL BuiltinCopyVariantBase(const QoreClass *c) : CopyMethodVariant(false), BuiltinFunctionVariantBase(QDOM_DEFAULT, c->getTypeInfo()) {
    }
 
    // the following defines the pure virtual functions that are common to all builtin variants
@@ -679,13 +693,14 @@ public:
 // abstract class for method functions (static and non-static)
 class NormalMethodFunction : public MethodFunctionBase {
 public:
-   DLLLOCAL NormalMethodFunction(const char* nme, const QoreClass *n_qc) : MethodFunctionBase(nme, n_qc) {
+   DLLLOCAL NormalMethodFunction(const char* nme, const QoreClass *n_qc) : MethodFunctionBase(nme, n_qc, false) {
    }
+
    DLLLOCAL NormalMethodFunction(const NormalMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
    }
+
    DLLLOCAL virtual ~NormalMethodFunction() {
    }
-   DLLLOCAL virtual void parseInit();
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
    DLLLOCAL AbstractQoreNode *evalMethod(const AbstractQoreFunctionVariant *variant, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
@@ -707,14 +722,12 @@ public:
 // abstract class for method functions (static and non-static)
 class StaticMethodFunction : public MethodFunctionBase {
 public:
-   DLLLOCAL StaticMethodFunction(const char* nme, const QoreClass *n_qc) : MethodFunctionBase(nme, n_qc) {
+   DLLLOCAL StaticMethodFunction(const char* nme, const QoreClass *n_qc) : MethodFunctionBase(nme, n_qc, true) {
    }
    DLLLOCAL StaticMethodFunction(const StaticMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
    }
    DLLLOCAL virtual ~StaticMethodFunction() {
    }
-   DLLLOCAL virtual void parseInit();
-
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
    DLLLOCAL AbstractQoreNode *evalMethod(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const;
    DLLLOCAL int64 bigIntEvalMethod(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const;
@@ -728,11 +741,10 @@ public:
 // abstract class for constructor method functions
 class ConstructorMethodFunction : public MethodFunctionBase {
 public:
-   DLLLOCAL ConstructorMethodFunction(const QoreClass *n_qc) : MethodFunctionBase("constructor", n_qc) {
+   DLLLOCAL ConstructorMethodFunction(const QoreClass *n_qc) : MethodFunctionBase("constructor", n_qc, false) {
    }
    DLLLOCAL ConstructorMethodFunction(const ConstructorMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
    }
-   DLLLOCAL virtual void parseInit();
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
    DLLLOCAL void evalConstructor(const AbstractQoreFunctionVariant *variant, const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
 
@@ -746,11 +758,10 @@ public:
 // abstract class for destructor method functions
 class DestructorMethodFunction : public MethodFunctionBase {
 public:
-   DLLLOCAL DestructorMethodFunction(const QoreClass *n_qc) : MethodFunctionBase("destructor", n_qc) {
+   DLLLOCAL DestructorMethodFunction(const QoreClass *n_qc) : MethodFunctionBase("destructor", n_qc, false) {
    }
    DLLLOCAL DestructorMethodFunction(const DestructorMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
    }
-   DLLLOCAL virtual void parseInit();
    DLLLOCAL void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const;
 
    DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
@@ -763,11 +774,10 @@ public:
 // abstract class for copy method functions
 class CopyMethodFunction : public MethodFunctionBase {
 public:
-   DLLLOCAL CopyMethodFunction(const QoreClass *n_qc) : MethodFunctionBase("copy", n_qc) {
+   DLLLOCAL CopyMethodFunction(const QoreClass *n_qc) : MethodFunctionBase("copy", n_qc, false) {
    }
    DLLLOCAL CopyMethodFunction(const CopyMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
    }
-   DLLLOCAL virtual void parseInit();
    DLLLOCAL void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, BCList *scl, ExceptionSink *xsink) const;
 
    DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
@@ -779,7 +789,7 @@ public:
 
 class BuiltinSystemConstructorBase : public MethodFunctionBase {
 public:
-   DLLLOCAL BuiltinSystemConstructorBase(const QoreClass *n_qc) : MethodFunctionBase("constructor", n_qc) {
+   DLLLOCAL BuiltinSystemConstructorBase(const QoreClass *n_qc) : MethodFunctionBase("constructor", n_qc, false) {
    }
    DLLLOCAL BuiltinSystemConstructorBase(const BuiltinSystemConstructorBase &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
    }
@@ -810,9 +820,6 @@ public:
    DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
       return new BuiltinSystemConstructor(*this, n_qc);
    }
-
-   // cannot add user variants to a builtin constructor
-   DLLLOCAL virtual void parseInit() {}
 };
 
 class BuiltinSystemConstructor2 : public BuiltinSystemConstructorBase {
@@ -833,9 +840,6 @@ public:
    DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
       return new BuiltinSystemConstructor2(*this, n_qc);
    }
-
-   // cannot add user variants to a builtin constructor
-   DLLLOCAL virtual void parseInit() {}
 };
 
 class BuiltinNormalMethod : public NormalMethodFunction {
@@ -2261,6 +2265,10 @@ public:
 
    // static methods
    //DLLLOCAL void 
+   DLLLOCAL static BCList* getBaseClassList(const QoreClass& qc) {
+      return qc.priv->scl;
+   }
+
    DLLLOCAL static const QoreClass *parseFindPublicPrivateVar(const QoreClass *qc, const char *name, const QoreTypeInfo *&varTypeInfo, bool &has_type_info, bool &priv) {
       return qc->priv->parseFindPublicPrivateVar(name, varTypeInfo, has_type_info, priv);
    }

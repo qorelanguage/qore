@@ -912,8 +912,8 @@ public:
 	 return;
       }
 
-      QoreFunction *u;
-      QoreProgram *ipgm = pgm;
+      const QoreFunction* u;
+      QoreProgram* ipgm = pgm;
 
       {
 	 AutoLocker al(plock);
@@ -923,7 +923,7 @@ public:
       if (!u)
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
       else
-	 p->importUserFunction(ipgm, u, xsink);
+	 p->importUserFunction(ipgm, const_cast<QoreFunction*>(u), xsink);
    }
 
    DLLLOCAL void exportUserFunction(const char *name, const char *new_name, qore_program_private *p, ExceptionSink *xsink) {
@@ -932,8 +932,8 @@ public:
 	 return;
       }
 
-      QoreFunction *u;
-      QoreProgram *ipgm = pgm;
+      const QoreFunction* u;
+      QoreProgram* ipgm = pgm;
 
       {
 	 AutoLocker al(plock);
@@ -943,7 +943,7 @@ public:
       if (!u)
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
       else
-	 p->importUserFunction(ipgm, u, new_name, xsink);
+	 p->importUserFunction(ipgm, const_cast<QoreFunction*>(u), new_name, xsink);
    }
 
    DLLLOCAL bool parseExceptionRaised() const {

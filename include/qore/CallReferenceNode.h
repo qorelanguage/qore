@@ -151,7 +151,7 @@ public:
    */
    DLLLOCAL virtual QoreProgram *getProgram() const;
 
-   DLLLOCAL virtual AbstractQoreFunction *getFunction() = 0;
+   DLLLOCAL virtual class QoreFunction *getFunction() = 0;
 
    DLLLOCAL ResolvedCallReferenceNode *refRefSelf() const {
       ref();

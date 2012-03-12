@@ -61,7 +61,7 @@ public:
       return "closure";
    }      
 
-   DLLLOCAL virtual AbstractQoreFunction *getFunction() {
+   DLLLOCAL virtual QoreFunction *getFunction() {
       return closure->getFunction();
    }
 

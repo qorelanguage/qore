@@ -643,9 +643,8 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   QoreFunction* ufc = 0;
+   const QoreFunction* ufc = 0;
    QoreProgram *ipgm = this;
-   const BuiltinFunction* bfc = 0;
 
    SimpleRefHolder<FunctionCallNode> fc;
 
@@ -654,14 +653,11 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    // need to grab parse lock for safe access to the user function map and imported function map
    priv->plock.lock();
 
-   qore_root_ns_private::runtimeFindCallFunction(*priv->RootNS, name, ufc, ipgm, bfc);
+   qore_root_ns_private::runtimeFindCallFunction(*priv->RootNS, name, ufc, ipgm);
    if (ufc) {
       priv->plock.unlock();
       // we assign the args to 0 below so that they will not be deleted
       fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), this);
-   }
-   else if (bfc) {
-      fc = new FunctionCallNode(bfc, const_cast<QoreListNode *>(args), this);
    }
    else {
       xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);

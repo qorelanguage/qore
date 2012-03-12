@@ -50,7 +50,7 @@ static bool library_init_done = false;
 
 BuiltinFunctionList builtinFunctions;
 
-typedef std::map<const char*, BuiltinFunction *, class ltstr> hm_bf_t;
+typedef std::map<const char*, QoreFunction*, class ltstr> hm_bf_t;
 
 void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, va_list args) {
    typeList.reserve(num_params);
@@ -81,9 +81,9 @@ protected:
       BFLAutoLocker al(library_init_done ? &mutex : 0);
 
       hm_bf_t::iterator i = hm.find(name);
-      BuiltinFunction *bf;
+      QoreFunction *bf;
       if (i == hm.end()) {
-	 bf = new BuiltinFunction(name);
+	 bf = new QoreFunction(name);
 	 hm[bf->getName()] = bf;
       }
       else 
@@ -140,8 +140,8 @@ public:
       while (i != hm.end()) {
 	 //printd(5, "BuiltinFunctionListPrivate::~BuiltinFunctionListPrivate() deleting '%s()'\n", i->first);
 	 
-	 // delete function
-	 delete i->second;
+	 // deref function
+	 i->second->deref();
 	 
 	 // erase hash entry
 	 hm.erase(i);
@@ -150,7 +150,7 @@ public:
       }
    }
 
-   DLLLOCAL const BuiltinFunction *find(const char *name) const;
+   DLLLOCAL const QoreFunction* find(const char *name) const;
    DLLLOCAL int size() const;
 };
 
@@ -170,7 +170,7 @@ public:
 
 static BuiltinFunctionListPrivate bfl;
 
-const BuiltinFunction *BuiltinFunctionListPrivate::find(const char *name) const {
+const QoreFunction *BuiltinFunctionListPrivate::find(const char *name) const {
    BuiltinFunctionListOptionalLockHelper ol(this);
    hm_bf_t::const_iterator i = hm.find(name);
    return i != hm.end() ? i->second : 0;
@@ -228,7 +228,7 @@ void BuiltinFunctionList::clear() {
    bfl.clear();
 }
 
-const BuiltinFunction *BuiltinFunctionList::find(const char *name) {
+const QoreFunction *BuiltinFunctionList::find(const char *name) {
    return bfl.find(name);
 }
 

@@ -849,10 +849,10 @@ QoreNamespace* qore_root_ns_private::parseResolveNamespace(const NamedScope* nsc
    return 0;
 }
 
-const AbstractQoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const NamedScope& nscope, QoreProgram*& pgm) {
+const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const NamedScope& nscope, QoreProgram*& pgm) {
    assert(nscope.size() > 1);
 
-   const AbstractQoreFunction* f = 0;
+   const QoreFunction* f = 0;
    unsigned match = 0;
 
    // iterate all namespaces with the initial name and look for the match
@@ -1096,7 +1096,7 @@ QoreNamespace* qore_ns_private::resolveNameScope(const NamedScope *nscope) const
    return (QoreNamespace* )sns;
 }
 
-const AbstractQoreFunction* qore_ns_private::parseMatchFunction(const NamedScope& nscope, QoreProgram*& pgm, unsigned& match) const {
+const QoreFunction* qore_ns_private::parseMatchFunction(const NamedScope& nscope, QoreProgram*& pgm, unsigned& match) const {
    assert(nscope.strlist[0] == name);
    const QoreNamespace* fns = ns;
 

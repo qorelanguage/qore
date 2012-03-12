@@ -29,8 +29,8 @@
 #include <time.h>
 #include <errno.h>
 
-static const BuiltinFunction *get_builtin_func(const QoreStringNode *str, ExceptionSink *xsink) {
-   const BuiltinFunction *f = BuiltinFunctionList::find(str->getBuffer());
+static const QoreFunction *get_builtin_func(const QoreStringNode *str, ExceptionSink *xsink) {
+   const QoreFunction *f = BuiltinFunctionList::find(str->getBuffer());
    if (!f)
       xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", str->getBuffer());
    return f;
@@ -541,7 +541,7 @@ my any $result = call_builtin_function("func_name", $arg1, $arg2);
     @note The function called could also throw other exceptions
 */
 any call_builtin_function(string name, ...) {
-   const BuiltinFunction *f = get_builtin_func(name, xsink);
+   const QoreFunction *f = get_builtin_func(name, xsink);
    if (!f)
       return 0;
 
@@ -572,7 +572,7 @@ my any $result = call_builtin_function_args("func_name", ($arg1, $arg2));
     @note The function called could also throw other exceptions
 */
 any call_builtin_function_args(string name, *softlist vargs) {
-   const BuiltinFunction *f = get_builtin_func(name, xsink);
+   const QoreFunction *f = get_builtin_func(name, xsink);
    if (!f)
       return 0;
 

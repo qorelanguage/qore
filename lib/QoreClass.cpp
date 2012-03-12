@@ -1075,7 +1075,7 @@ bool BCList::parseCheckHierarchy(const QoreClass *cls) const {
 }
 
 void BCList::addNewAncestors(QoreMethod *m) {
-   AbstractQoreFunction *f = m->getFunction();
+   QoreFunction *f = m->getFunction();
    const char *name = m->getName();
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       QoreClass *qc = (*i)->sclass;
@@ -1089,7 +1089,7 @@ void BCList::addNewAncestors(QoreMethod *m) {
 }
 
 void BCList::addNewStaticAncestors(QoreMethod *m) {
-   AbstractQoreFunction *f = m->getFunction();
+   QoreFunction *f = m->getFunction();
    const char *name = m->getName();
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       QoreClass *qc = (*i)->sclass;
@@ -2973,85 +2973,6 @@ void MethodFunctionBase::parseRollbackMethod() {
    pending_all_private = true;
 }
 
-void NormalMethodFunction::parseInit() {
-   if (parse_init_done)
-      return;
-   parse_init_done = true;
-
-   //printd(5, "NormalUserMethod::parseInitMethod() this=%p %s::%s() static_flag=%d\n", this, getClassName(), getName(), static_flag);
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-      UserMethodVariant *v = UMV(*i);
-      v->parseInitMethod(*qc, false);
-
-      // recheck types against committed types if necessary
-      if (v->getRecheck())
-	 parseCheckDuplicateSignatureCommitted(v);
-   }
-}
-
-void StaticMethodFunction::parseInit() {
-   if (parse_init_done)
-      return;
-   parse_init_done = true;
-
-   //printd(5, "StaticUserMethod::parseInitMethod() this=%p %s::%s() static_flag=%d\n", this, getClassName(), getName(), static_flag);
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-      UserMethodVariant *v = UMV(*i);
-      v->parseInitMethod(*qc, true);
-
-      // recheck types against committed types if necessary
-      if (v->getRecheck())
-	 parseCheckDuplicateSignatureCommitted(v);
-   }
-}
-
-void ConstructorMethodFunction::parseInit() {
-   if (parse_init_done)
-      return;
-   parse_init_done = true;
-
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-      UserConstructorVariant *v = UCONV(*i);
-      v->parseInitConstructor(*qc, qc->priv->scl);
-
-      // recheck types against committed types if necessary
-      if (v->getRecheck())
-	 parseCheckDuplicateSignatureCommitted(v);
-   }
-}
-
-void DestructorMethodFunction::parseInit() {
-   if (parse_init_done)
-      return;
-   parse_init_done = true;
-
-   // there can be only one destructor variant
-   assert(!pending_vlist.plural());
-
-   if (pending_vlist.empty())
-      return;
-
-   UserDestructorVariant *v = UDESV(pending_first());
-   assert(!v->getRecheck());
-   v->parseInitDestructor(*qc);
-}
-
-void CopyMethodFunction::parseInit() {
-   if (parse_init_done)
-      return;
-   parse_init_done = true;
-
-   // there can be only one copy method variant
-   assert(!pending_vlist.plural());
-
-   if (pending_vlist.empty())
-      return;
-
-   UserCopyVariant *v = UCOPYV(pending_first());
-   assert(!v->getRecheck());
-   v->parseInitCopy(*qc);
-}
-
 int ConstructorMethodVariant::constructorPrelude(const QoreClass &thisclass, CodeEvaluationHelper &ceh, QoreObject *self, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
    if (bcl) {
       const BCAList *bcal = getBaseClassArgumentList();
@@ -3077,7 +2998,10 @@ UserConstructorVariant::~UserConstructorVariant() {
    delete bcal;
 }
 
-void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class, BCList *bcl) {
+void UserConstructorVariant::parseInit(QoreFunction* f) {
+   MethodFunctionBase* mf = static_cast<MethodFunctionBase*>(f);
+   const QoreClass& parent_class = *(mf->MethodFunctionBase::getClass());
+
    signature.resolve();
    assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
 
@@ -3092,7 +3016,11 @@ void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class,
 
    //printd(5, "UserConstructorVariant::parseInitConstructor() this=%p %s::constructor() params=%d\n", this, parent_class.getName(), signature.numParams());
    // must be called even if statements is NULL
-   statements->parseInitConstructor(parent_class.getTypeInfo(), this, bcal, bcl);
+   statements->parseInitConstructor(parent_class.getTypeInfo(), this, bcal, qore_class_private::getBaseClassList(parent_class));
+
+   // recheck types against committed types if necessary
+   if (recheck)
+      f->parseCheckDuplicateSignatureCommitted(this);
 }
 
 void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink *xsink) const {
@@ -3120,7 +3048,10 @@ void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, Qor
    discard(evalIntern(uveh.getArgv(), self, xsink, thisclass.getName()), xsink);
 }
 
-void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {
+void UserCopyVariant::parseInit(QoreFunction* f) {
+   MethodFunctionBase* mf = static_cast<MethodFunctionBase*>(f);
+   const QoreClass& parent_class = *(mf->MethodFunctionBase::getClass());
+
    signature.resolve();
 
    // make sure there is max one parameter in the copy method      
@@ -3153,6 +3084,8 @@ void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {
 	 signature.setFirstParamType(parent_class.getTypeInfo());
       }
    }
+
+   // only 1 variant is possible, no need to recheck types
 }
 
 void BuiltinCopyVariantBase::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink *xsink) const {

@@ -99,30 +99,30 @@ double AbstractMethodCallNode::floatExec(QoreObject *o, const char *c_str, Excep
    return o->floatEvalMethod(c_str, args, xsink);
 }
 
-static void invalid_access(AbstractQoreFunction *func) {
+static void invalid_access(QoreFunction *func) {
    // func will always be non-zero with builtin functions
    const char *class_name = func->className();
    parse_error("parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void warn_retval_ignored(AbstractQoreFunction *func) {
+static void warn_retval_ignored(QoreFunction *func) {
    const char *class_name = func->className();
    getProgram()->makeParseWarning(QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void warn_deprecated(AbstractQoreFunction *func) {
+static void warn_deprecated(QoreFunction *func) {
    const char *class_name = func->className();
    getProgram()->makeParseWarning(QP_WARN_DEPRECATED, "DEPRECATED", "call to deprecated %s %s%s%s(); to disable this warning, use '%%disable-warning deprecated' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void check_flags(AbstractQoreFunction *func, int64 flags, int64 pflag) {
+static void check_flags(QoreFunction *func, int64 flags, int64 pflag) {
    if ((pflag & PF_RETURN_VALUE_IGNORED) && ((flags & QC_CONSTANT) == QC_CONSTANT))
       warn_retval_ignored(func);
    if (flags & QC_DEPRECATED)
       warn_deprecated(func);
 }
 
-int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
+int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
    // number of local variables declared in arguments
    int lvids = 0;
 
@@ -480,7 +480,7 @@ AbstractQoreNode *FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, in
 
 void FunctionCallNode::parseInitFinalizedCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
    assert(func);
-   lvids += parseArgs(oflag, pflag, const_cast<AbstractQoreFunction *>(func), returnTypeInfo);
+   lvids += parseArgs(oflag, pflag, const_cast<QoreFunction *>(func), returnTypeInfo);
 }
 
 AbstractQoreNode *FunctionCallNode::makeReferenceNodeAndDerefImpl() {
@@ -593,7 +593,7 @@ AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag
       
       // see if this is a function call to a function defined in a namespace
       QoreProgram* pgm = 0;
-      const AbstractQoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope, pgm);
+      const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope, pgm);
       if (f) {
 	 FunctionCallNode* fcn = new FunctionCallNode(f, takeArgs(), pgm);
 	 deref();

@@ -37,7 +37,7 @@
 
 DLLLOCAL void init_builtin_functions();
 
-class BuiltinFunction;
+class QoreFunction;
 
 //! the interface to the global list of all builtin functions in the library
 /** The object is thread-safe; a hash or hash-map is used for lookups.
@@ -138,7 +138,7 @@ public:
    /**
       @return a pointer to the function found
    */
-   DLLEXPORT static const BuiltinFunction *find(const char *name);
+   DLLEXPORT static const QoreFunction* find(const char *name);
 
    // internal functions
    DLLLOCAL void clear();

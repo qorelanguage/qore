@@ -64,7 +64,6 @@ class BCEAList;
 class ParamList;
 class QoreMemberInfo;
 class BuiltinMethod;
-class AbstractQoreFunction;
 class AbstractQoreFunctionVariant;
 class AbstractFunctionSignature;
 class UserMethod;
