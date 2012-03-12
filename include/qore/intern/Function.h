@@ -867,17 +867,28 @@ public:
 class UserClosureFunction : public QoreFunction {
 protected:
    lvar_set_t varlist;  // closure local variable environment
+   const QoreTypeInfo* classTypeInfo;
 
 public:
-   DLLLOCAL UserClosureFunction(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : QoreFunction("<anonymous closure>") {
+   DLLLOCAL UserClosureFunction(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : QoreFunction("<anonymous closure>"), classTypeInfo(0) {
       parseAddVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags));
    }
 
    DLLLOCAL bool parseStage1HasReturnTypeInfo() const {
       return reinterpret_cast<const UserClosureVariant* >(pending_first())->getUserSignature()->hasReturnTypeInfo();
    }
+
+   DLLLOCAL void parseInitClosure(const QoreTypeInfo* classTypeInfo);
    
    DLLLOCAL AbstractQoreNode* evalClosure(const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
+
+   DLLLOCAL void setClassType(const QoreTypeInfo* cti) {
+      classTypeInfo = cti;
+   }
+
+   DLLLOCAL const QoreTypeInfo* getClassType() const {
+      return classTypeInfo;
+   }
 
    DLLLOCAL lvar_set_t* getVList() {
       return &varlist;

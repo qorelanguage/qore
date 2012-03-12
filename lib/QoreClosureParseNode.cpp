@@ -71,9 +71,11 @@ QoreString *QoreClosureParseNode::getAsString(bool &del, int foff, ExceptionSink
 }
 
 AbstractQoreNode *QoreClosureParseNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   in_method = (bool)oflag;
+   if (oflag) {
+      in_method = true;
+      uf->setClassType(oflag->getTypeInfo());
+   }
    uf->parseInit();
-   // we have to commit the variant immediately (if there is a parse error, the entire function will be deleted anyway)
    uf->parseCommit();
    typeInfo = runTimeClosureTypeInfo;
    return this;

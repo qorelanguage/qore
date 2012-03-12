@@ -1666,10 +1666,9 @@ void UserClosureVariant::parseInit(QoreFunction* f) {
    signature.resolve();
 
    // resolve and push current return type on stack
-   ParseCodeInfoHelper rtih("<anonymous closure>", signature.getReturnTypeInfo());
+   ParseCodeInfoHelper rtih(f->getName(), signature.getReturnTypeInfo());
 
-   QoreClass* qc = getParseClass();
-   statements->parseInitClosure(this, qc ? qc->getTypeInfo() : 0, cf->getVList());
+   statements->parseInitClosure(this, cf->getClassType(), cf->getVList());
 
    // only one variant is possible, no need to recheck types
 }
