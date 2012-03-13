@@ -299,10 +299,6 @@ double QoreHashNode::floatEvalImpl(ExceptionSink *xsink) const {
    return 0.0;
 }
 
-AbstractQoreNode *QoreHashNode::getFirstKeyValue() const {
-   return priv->member_list && priv->member_list->node ? priv->member_list->node : 0;
-}
-
 AbstractQoreNode *QoreHashNode::evalKeyValue(const QoreString *key, ExceptionSink *xsink) const {
    TempEncodingHelper k(key, QCS_DEFAULT, xsink);
    if (*xsink)

@@ -22,6 +22,8 @@
 
 #include <qore/Qore.h>
 
+#include <qore/intern/QoreHashNodeIntern.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -123,7 +125,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
       if (!value)
 	 return;
 
-      AbstractQoreNode *fkv = value->getFirstKeyValue();
+      AbstractQoreNode *fkv = qore_hash_private::getFirstKeyValue(value);
 
       QoreListNode *l = dynamic_cast<QoreListNode *>(fkv);
       if (l) {

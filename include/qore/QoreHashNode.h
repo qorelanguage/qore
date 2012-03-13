@@ -46,6 +46,7 @@ class QoreHashNode : public AbstractQoreNode {
    friend class HashAssignmentHelper;
    friend class hash_assignment_priv;
    friend class qore_object_private;
+   friend class qore_hash_private;
 
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -460,8 +461,6 @@ public:
 
    // "key" is always passed in the default character encoding
    DLLLOCAL AbstractQoreNode *getReferencedKeyValue(const char *key, bool &exists) const;
-
-   DLLLOCAL AbstractQoreNode *getFirstKeyValue() const;
 
    DLLLOCAL static void doDuplicateKeyWarning(const char *key);
 };

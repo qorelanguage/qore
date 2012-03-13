@@ -211,6 +211,14 @@ public:
       
       return rv;
    }
+
+   DLLLOCAL static AbstractQoreNode* getFirstKeyValue(const QoreHashNode* h) { 
+      return h->priv->member_list ? h->priv->member_list->node : 0;
+   }  
+   
+   DLLLOCAL static AbstractQoreNode* getLastKeyValue(const QoreHashNode* h) {
+      return h->priv->tail ? h->priv->tail->node : 0;
+   }
 };
 
 #endif

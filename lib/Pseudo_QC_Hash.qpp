@@ -23,6 +23,8 @@
 
 #include <qore/Qore.h>
 
+#include <qore/intern/QoreHashNodeIntern.h>
+
 //! Methods in this pseudo-class can be executed on @ref hash "hash values"
 /** 
  */
@@ -99,6 +101,22 @@ my *string $n = $h.firstKey();
    return key ? new QoreStringNode(key) : 0;
 }
 
+//! Returns the value assigned to the first key in the hash if any or @ref nothing if the hash has no keys
+/** 
+    @return the value assigned to the first key in the hash if any or @ref nothing if the hash has no keys
+
+    @par Example:
+    @code
+my any $v = $h.firstValue();
+    @endcode
+
+    @see <hash>::lastValue()
+ */
+any <hash>::firstValue() [flags=CONSTANT] {
+   AbstractQoreNode* rv = qore_hash_private::getFirstKeyValue(h);
+   return rv ? rv->refSelf() : 0;
+}
+
 //! Returns the last key name in the hash or @ref nothing if the hash has no keys
 /** 
     @return the last key name in the hash or @ref nothing if the hash has no keys
@@ -113,6 +131,22 @@ my *string $n = $h.lastKey();
 *string <hash>::lastKey() [flags=CONSTANT] {
    const char *key = h->getLastKey();
    return key ? new QoreStringNode(key) : 0;
+}
+
+//! Returns the value assigned to the last key in the hash if any or @ref nothing if the hash has no keys
+/** 
+    @return the value assigned to the last key in the hash if any or @ref nothing if the hash has no keys
+
+    @par Example:
+    @code
+my any $v = $h.lastValue();
+    @endcode
+
+    @see <hash>::firstValue()
+ */
+any <hash>::lastValue() [flags=CONSTANT] {
+   AbstractQoreNode* rv = qore_hash_private::getLastKeyValue(h);
+   return rv ? rv->refSelf() : 0;
 }
 
 //! Returns \c True if the key exists in the hash (may or may not be assigned a value), \c False if not
