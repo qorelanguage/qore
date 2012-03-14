@@ -2253,8 +2253,10 @@ public:
       if (!(w = findMethod(nme, priv_flag))) {
          qore_type_t t = get_node_type(n);
          // throw an exception
-         if (t == NT_OBJECT)
-            xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method with this name is available", name.c_str(), nme);
+         if (t == NT_OBJECT) {
+            const char* cname = reinterpret_cast<const QoreObject*>(n)->getClassName();
+            xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method %s::%s() is available", cname, nme, name.c_str(), nme);
+         }
          else
             xsink->raiseException("PSEUDO-METHOD-DOES-NOT-EXIST", "no pseudo method <%s>::%s() has been defined", get_type_name(n), nme);
          return 0;
