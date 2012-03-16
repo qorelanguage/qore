@@ -630,7 +630,7 @@ public:
    DLLLOCAL void assignFloat(double v, ExceptionSink *xsink) {
       switch (vvt) {
          case VVT_Int:
-            val.val_int = v;
+            val.val_int = (int64)v;
             break;
 
          case VVT_Float:
@@ -1011,7 +1011,7 @@ public:
          case VVT_Int:
             return val.val_int;
          case VVT_Float:
-            return val.val_float;
+            return (int64)val.val_float;
          case VVT_Bool:
             return val.val_bool;
          case VVT_Ref: {
@@ -1031,7 +1031,7 @@ public:
          case VVT_Int:
             return val.val_int;
          case VVT_Float:
-            return val.val_float;
+            return (int)val.val_float;
          case VVT_Bool:
             return val.val_bool;
          case VVT_Ref: {
@@ -1090,7 +1090,7 @@ public:
             return val.value_multiplyEqualsFloat(v, xsink);
 
          case VVT_Int:
-            return val.val_int *= v;
+            return val.val_int *= (int64)v;
 
          case VVT_Ref:
             return val.ref.multiplyEqualsFloat<LocalVarValue>(v, this, xsink);
@@ -1111,7 +1111,7 @@ public:
             return val.value_divideEqualsFloat(v, xsink);
 
          case VVT_Int:
-            return val.val_int /= v;
+            return val.val_int /= (int64)v;
 
          case VVT_Ref:
             return val.ref.divideEqualsFloat<LocalVarValue>(v, this, xsink);
