@@ -657,7 +657,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    if (ufc) {
       priv->plock.unlock();
       // we assign the args to 0 below so that they will not be deleted
-      fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), this);
+      fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), ipgm);
    }
    else {
       xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
