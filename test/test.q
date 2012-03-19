@@ -890,6 +890,8 @@ sub date_time_tests() {
     test_date(9999-12-31,              9999, 52, 5, 365, \$i);
     test_date(9999-12-31T23:59:59.999, 9999, 52, 5, 365, \$i);
 
+    test_value(date("2012-03-02", "YYYY-MM-DD"), 2012-03-02, "date() format parsing test");
+
     # absolute date difference tests
     test_value(2006-01-02T11:34:28.344 - 2006-01-01,              35h + 34m + 28s +344ms,       "date difference 1");
     test_value(2099-04-21T19:20:02.106 - 1804-03-04T20:45:19.956, 2587078h + 34m + 42s + 150ms, "date difference 2");

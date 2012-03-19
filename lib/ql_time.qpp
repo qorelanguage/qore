@@ -1427,7 +1427,7 @@ date date(string dtstr, string mask) [flags=RET_VALUE_ONLY] {
 
          case 'M':
             if (s[1] == 'M') {
-               dt.month = parse_int_2(d) - 1;
+               dt.month = parse_int_2(d);
                s++;
                d++;
                break;
