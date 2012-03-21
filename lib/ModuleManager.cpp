@@ -25,6 +25,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ModuleInfo.h>
 #include <qore/intern/AutoNamespaceList.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #ifdef NEED_DLFCN_WRAPPER
 extern "C" {

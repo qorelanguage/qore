@@ -23,6 +23,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QC_RWLock.h>
+#include <qore/intern/QC_AbstractSmartLock.h>
 
 //! The RWLock class implements a read-write thread lock
 /** This class inherits AbstractSmartLock, so it can be used by @ref Qore::Thread::Condition "Condition" objects, while using either the read lock or the write lock.

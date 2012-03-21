@@ -84,32 +84,6 @@ static int do_system(const QoreString &str) {
 }
 #endif
 
-static QoreStringNode *f_getcwd_intern(ExceptionSink *xsink = 0) {
-   int bs = 512;
-   char *buf = (char *)malloc(sizeof(char) * bs);
- 
-   while (true) {
-      char *b = getcwd(buf, bs);
-      if (!b) {
-	  if (errno == ERANGE) {
-	      bs *= 2;
-	      buf = (char *)q_realloc(buf, sizeof(char) * bs);
-	      if (!buf) {
-		  xsink->outOfMemory();
-		  return 0;
-	      }	  
-	      continue;
-	  }
-	  if (xsink)
-	     xsink->raiseErrnoException("GETCWD2-ERROR", errno, "getcwd() failed");
-	  return 0;
-      }
-      break;
-   }
-
-   return new QoreStringNode(buf, strlen(buf), bs, QCS_DEFAULT);
-}
-
 #ifdef DEBUG_X
 static AbstractQoreNode *runQoreTests(const QoreListNode *args, ExceptionSink *xsink) {
    minitest::result res = minitest::execute_all_tests();

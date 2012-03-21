@@ -29,6 +29,7 @@ extern QoreHashNode *ENV;
 
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/GlobalVariableList.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #include <stdarg.h>
 #include <errno.h>

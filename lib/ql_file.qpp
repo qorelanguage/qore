@@ -29,6 +29,13 @@
 #include <unistd.h>
 #include <errno.h>
 
+#ifdef HAVE_GLOB_H
+#include <glob.h>
+#else
+#include <qore/intern/glob.h>
+#endif
+
+
 bool check_stat(unsigned code, const QoreStringNode* path) {
    struct stat sbuf;
    int rc;
@@ -726,6 +733,32 @@ if (chdir($dir))
  */
 int chdir(string path) [dom=PROCESS,FILESYSTEM] {
    return chdir(path->getBuffer());
+}
+
+static QoreStringNode *f_getcwd_intern(ExceptionSink *xsink = 0) {
+   int bs = 512;
+   char *buf = (char *)malloc(sizeof(char) * bs);
+
+   while (true) {
+      char *b = getcwd(buf, bs);
+      if (!b) {
+          if (errno == ERANGE) {
+              bs *= 2;
+              buf = (char *)q_realloc(buf, sizeof(char) * bs);
+              if (!buf) {
+                  xsink->outOfMemory();
+                  return 0;
+              }
+              continue;
+          }
+          if (xsink)
+             xsink->raiseErrnoException("GETCWD2-ERROR", errno, "getcwd() failed");
+          return 0;
+      }
+      break;
+   }
+
+   return new QoreStringNode(buf, strlen(buf), bs, QCS_DEFAULT);
 }
 
 //! Returns a string giving the current working directory or @ref nothing if the current working directory could not be read

@@ -29,6 +29,8 @@
 
 #include <bzlib.h>
 
+#include <errno.h>
+
 #ifndef QORE_BZ2_WORK_FACTOR
 #define QORE_BZ2_WORK_FACTOR 30
 #endif

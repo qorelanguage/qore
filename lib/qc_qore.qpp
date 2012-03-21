@@ -22,6 +22,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/QC_File.h>
 
 #ifdef WORDS_BIGENDIAN
 #define Q_MACHINE_MSB 1
