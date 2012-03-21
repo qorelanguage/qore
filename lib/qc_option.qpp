@@ -23,6 +23,8 @@
 
 #include <qore/Qore.h>
 
+#include <openssl/evp.h>
+
 #ifdef HAVE_ATOMIC_MACROS
 #define QORE_CONST_HAVE_ATOMIC_MACROS 1
 #else

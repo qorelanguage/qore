@@ -649,315 +649,37 @@ public:
       }      
    }
 
-   DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_plusEqualsBigInt(v, xsink);
+   DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         case VVT_Int:
-            return val.val_int += v;
+   DLLLOCAL double plusEqualsFloat(double v, ExceptionSink *xsink);
 
-         case VVT_Ref:
-            return val.ref.plusEqualsBigInt<LocalVarValue>(v, this, xsink);
+   DLLLOCAL int64 minusEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
+   DLLLOCAL double minusEqualsFloat(double v, ExceptionSink *xsink);
 
-      return 0;
-   }
+   DLLLOCAL int64 orEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-   DLLLOCAL double plusEqualsFloat(double v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_plusEqualsFloat(v, xsink);
+   DLLLOCAL int64 andEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         case VVT_Float:
-            return val.val_float += v;
+   DLLLOCAL int64 modulaEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         case VVT_Ref:
-            return val.ref.plusEqualsFloat<LocalVarValue>(v, this, xsink);
+   DLLLOCAL int64 multiplyEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
+   DLLLOCAL int64 divideEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-      return 0.0;
-   }
+   DLLLOCAL int64 xorEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-   DLLLOCAL int64 minusEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_minusEqualsBigInt(v, xsink);
+   DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         case VVT_Int:
-            return val.val_int -= v;
+   DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         case VVT_Ref:
-            return val.ref.minusEqualsBigInt<LocalVarValue>(v, this, xsink);
+   DLLLOCAL int64 postIncrement(ExceptionSink *xsink);
 
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
+   DLLLOCAL int64 preIncrement(ExceptionSink *xsink);
 
-      return 0;
-   }
+   DLLLOCAL int64 postDecrement(ExceptionSink *xsink);
 
-   DLLLOCAL double minusEqualsFloat(double v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_minusEqualsFloat(v, xsink);
-
-         case VVT_Float:
-            return val.val_float += v;
-
-         case VVT_Ref:
-            return val.ref.minusEqualsFloat<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-
-      return 0.0;
-   }
-
-   DLLLOCAL int64 orEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_orEqualsBigInt(v, xsink);
-
-         case VVT_Int:
-            return val.val_int |= v;
-
-         case VVT_Ref:
-            return val.ref.orEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 andEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_andEqualsBigInt(v, xsink);
-
-         case VVT_Int:
-            return val.val_int &= v;
-
-         case VVT_Ref:
-            return val.ref.andEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 modulaEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_modulaEqualsBigInt(v, xsink);
-
-         case VVT_Int:
-            return val.val_int %= v;
-
-         case VVT_Ref:
-            return val.ref.modulaEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 multiplyEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_multiplyEqualsBigInt(v, xsink);
-
-         case VVT_Int:
-            return val.val_int *= v;
-
-         case VVT_Ref:
-            return val.ref.multiplyEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 divideEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      assert(v);
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_minusEqualsBigInt(v, xsink);
-
-         case VVT_Int:
-            return val.val_int /= v;
-
-         case VVT_Ref:
-            return val.ref.minusEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 xorEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_minusEqualsBigInt(v, xsink);
-
-         case VVT_Int:
-            return val.val_int ^= v;
-
-         case VVT_Ref:
-            return val.ref.minusEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_shiftLeftEqualsBigInt(v, xsink);
-
-         case VVT_Int:
-            return val.val_int <<= v;
-
-         case VVT_Ref:
-            return val.ref.shiftLeftEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_shiftRightEqualsBigInt(v, xsink);
-
-         case VVT_Int:
-            return val.val_int >>= v;
-
-         case VVT_Ref:
-            return val.ref.shiftRightEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 postIncrement(ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_postIncrement(xsink);
-
-         case VVT_Int: {
-            int64 rv = val.val_int;
-            ++val.val_int;
-            return rv;
-         }
-
-         case VVT_Ref:
-            return val.ref.postIncrement<LocalVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-
-      return 0;
-   }
-
-   DLLLOCAL int64 preIncrement(ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_preIncrement(xsink);
-
-         case VVT_Int:
-            return ++val.val_int;
-
-         case VVT_Ref:
-            return val.ref.preIncrement<LocalVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-
-      return 0;
-   }
-
-   DLLLOCAL int64 postDecrement(ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_postDecrement(xsink);
-
-         case VVT_Int: {
-            int64 rv = val.val_int;
-            --val.val_int;
-            return rv;
-         }
-
-         case VVT_Ref:
-            return val.ref.postDecrement<LocalVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-
-      return 0;
-   }
-
-   DLLLOCAL int64 preDecrement(ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_preDecrement(xsink);
-
-         case VVT_Int:
-            return --val.val_int;
-
-         case VVT_Ref:
-            return val.ref.preDecrement<LocalVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-      return 0;
-   }
+   DLLLOCAL int64 preDecrement(ExceptionSink *xsink);
 
    DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink) {
       switch (vvt) {
@@ -1084,45 +806,9 @@ public:
       return 0.0;
    }
 
-   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_multiplyEqualsFloat(v, xsink);
+   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink);
 
-         case VVT_Int:
-            return val.val_int *= (int64)v;
-
-         case VVT_Ref:
-            return val.ref.multiplyEqualsFloat<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-
-      return 0;
-   }
-
-   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink) {
-      assert(v);
-
-      switch (vvt) {
-         case VVT_Normal:
-            return val.value_divideEqualsFloat(v, xsink);
-
-         case VVT_Int:
-            return val.val_int /= (int64)v;
-
-         case VVT_Ref:
-            return val.ref.divideEqualsFloat<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-
-      return 0;
-   }
+   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink);
 
    DLLLOCAL bool isRef() const {
       return vvt == VVT_Ref;
@@ -1290,319 +976,41 @@ public:
       return rv ? rv->getAsFloat() : 0.0;
    }
 
-   DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_plusEqualsBigInt(v, xsink);
-         }
+   DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         case VVT_Ref:
-            return val.ref.plusEqualsBigInt<ClosureVarValue>(v, this, xsink);
+   DLLLOCAL double plusEqualsFloat(double v, ExceptionSink *xsink);
 
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
+   DLLLOCAL int64 minusEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-      return 0;
-   }
+   DLLLOCAL double minusEqualsFloat(double v, ExceptionSink *xsink);
 
-   DLLLOCAL double plusEqualsFloat(double v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_plusEqualsFloat(v, xsink);
-         }
+   DLLLOCAL int64 orEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         case VVT_Ref:
-            return val.ref.plusEqualsFloat<ClosureVarValue>(v, this, xsink);
+   DLLLOCAL int64 andEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
+   DLLLOCAL int64 modulaEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-      return 0.0;
-   }
+   DLLLOCAL int64 multiplyEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-   DLLLOCAL int64 minusEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_minusEqualsBigInt(v, xsink);
-         }
+   DLLLOCAL int64 divideEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         case VVT_Ref:
-            return val.ref.minusEqualsBigInt<ClosureVarValue>(v, this, xsink);
+   DLLLOCAL int64 xorEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
+   DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-      return 0;
-   }
+   DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink);
 
-   DLLLOCAL double minusEqualsFloat(double v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_minusEqualsFloat(v, xsink);
-         }
+   DLLLOCAL int64 postIncrement(ExceptionSink *xsink);
 
-         case VVT_Ref:
-            return val.ref.minusEqualsFloat<ClosureVarValue>(v, this, xsink);
+   DLLLOCAL int64 preIncrement(ExceptionSink *xsink);
 
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
+   DLLLOCAL int64 postDecrement(ExceptionSink *xsink);
 
-      return 0.0;
-   }
+   DLLLOCAL int64 preDecrement(ExceptionSink *xsink);
 
-   DLLLOCAL int64 orEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_orEqualsBigInt(v, xsink);
-         }
+   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink);
 
-         case VVT_Ref:
-            return val.ref.orEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 andEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_andEqualsBigInt(v, xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.andEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-
-      return 0;
-   }
-
-   DLLLOCAL int64 modulaEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_modulaEqualsBigInt(v, xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.modulaEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 multiplyEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_multiplyEqualsBigInt(v, xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.multiplyEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-      return 0;
-   }
-
-   DLLLOCAL int64 divideEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      assert(v);
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_divideEqualsBigInt(v, xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.divideEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-      return 0;
-   }
-
-   DLLLOCAL int64 xorEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_xorEqualsBigInt(v, xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.xorEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-      return 0;
-   }
-
-   DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_shiftLeftEqualsBigInt(v, xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.shiftLeftEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-      return 0;
-   }
-
-   DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_shiftRightEqualsBigInt(v, xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.shiftRightEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-      return 0;
-   }
-
-   DLLLOCAL int64 postIncrement(ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_postIncrement(xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.postIncrement<ClosureVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-      return 0;
-   }
-
-   DLLLOCAL int64 preIncrement(ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_preIncrement(xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.preIncrement<ClosureVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-      return 0;
-   }
-
-   DLLLOCAL int64 postDecrement(ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_postDecrement(xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.postDecrement<ClosureVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-      return 0;
-   }
-
-   DLLLOCAL int64 preDecrement(ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_preDecrement(xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.preDecrement<ClosureVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }      
-      return 0;
-   }
-
-   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_multiplyEqualsFloat(v, xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.multiplyEqualsFloat<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-      return 0.0;
-   }
-
-   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink) {
-      switch (vvt) {
-         case VVT_Normal: {
-            AutoLocker al(this);
-            return val.value_divideEqualsFloat(v, xsink);
-         }
-
-         case VVT_Ref:
-            return val.ref.divideEqualsFloat<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-      }
-      return 0.0;
-   }
+   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink);
 };
 
 // now shared between parent and child Program objects for top-level local variables with global scope

@@ -189,20 +189,25 @@ qc_errno.cpp: qc_errno.qpp qpp
 qc_qore.cpp: qc_qore.qpp qpp
 	$(QPP) $<
 
+QORE_PSEUDO_SRC = Pseudo_QC_All.cpp Pseudo_QC_Date.cpp Pseudo_QC_Object.cpp Pseudo_QC_Hash.cpp \
+	Pseudo_QC_String.cpp Pseudo_QC_Binary.cpp Pseudo_QC_List.cpp
+
+QorePseudoMethods.cpp: $(QORE_PSEUDO_SRC)
+
 QORE_GENERATED_SOURCES = \
 	QC_Queue.cpp QC_Socket.cpp QC_File.cpp QC_AbstractSmartLock.cpp QC_Mutex.cpp QC_AutoLock.cpp \
 	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp QC_AutoReadLock.cpp QC_AutoWriteLock.cpp \
 	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp QC_HTTPClient.cpp QC_FtpClient.cpp \
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
-	Pseudo_QC_All.cpp Pseudo_QC_Date.cpp Pseudo_QC_Object.cpp Pseudo_QC_Hash.cpp \
-	Pseudo_QC_String.cpp Pseudo_QC_Binary.cpp Pseudo_QC_List.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_type.cpp ql_pwd.cpp ql_object.cpp \
 	ql_env.cpp ql_dbi.cpp ql_context.cpp \
 	qc_option.cpp qc_errno.cpp qc_qore.cpp
 
-CLEANFILES = $(QORE_GENERATED_SOURCES)
+QORE_ALL_SRC = $(QORE_GENERATED_SOURCES) $(QORE_PSEUDO_SRC)
+
+CLEANFILES = $(QORE_ALL_SRC)
 
 if COND_SINGLE_COMPILATION_UNIT
 libqore_la_SOURCES = \
@@ -210,7 +215,7 @@ libqore_la_SOURCES = \
 
 parser.cpp: parser.ypp
 scanner.cpp: scanner.lpp
-single-compilation-unit.cpp: parser.cpp scanner.cpp $(QORE_GENERATED_SOURCES)
+single-compilation-unit.cpp: parser.cpp scanner.cpp $(QORE_ALL_SRC)
 
 else
 nodist_libqore_la_SOURCES = $(QORE_GENERATED_SOURCES)
@@ -363,51 +368,12 @@ libqore_la_SOURCES = \
 	QorePostDecrementOperatorNode.cpp \
 	QorePreIncrementOperatorNode.cpp \
 	QorePreDecrementOperatorNode.cpp \
+	QoreIntPostIncrementOperatorNode.cpp \
+	QoreIntPostDecrementOperatorNode.cpp \
+	QoreIntPreIncrementOperatorNode.cpp \
+	QoreIntPreDecrementOperatorNode.cpp \
 	QoreLogicalLessThanOperatorNode.cpp \
 	QoreLogicalGreaterThanOperatorNode.cpp \
-	ql_time.cpp \
-	ql_lib.cpp \
-	ql_math.cpp \
-	ql_type.cpp \
-	ql_env.cpp \
-	ql_string.cpp \
-	ql_misc.cpp \
-	ql_list.cpp \
-	ql_crypto.cpp \
-	ql_object.cpp \
-	ql_file.cpp \
-	ql_compression.cpp \
-	ql_pwd.cpp \
-	ql_dbi.cpp \
-	ql_context.cpp \
-	qc_option.cpp \
-	qc_errno.cpp \
-	qc_qore.cpp \
-	QC_Socket.cpp \
-	QC_Program.cpp \
-	QC_File.cpp \
-	QC_Dir.cpp \
-	QC_GetOpt.cpp \
-	QC_FtpClient.cpp \
-	QC_Datasource.cpp \
-	QC_DatasourcePool.cpp \
-	QC_SQLStatement.cpp \
-	QC_Mutex.cpp \
-	QC_Condition.cpp \
-	QC_RWLock.cpp \
-	QC_Gate.cpp \
-	QC_Sequence.cpp \
-	QC_Counter.cpp \
-	QC_SSLCertificate.cpp \
-	QC_SSLPrivateKey.cpp \
-	QC_HTTPClient.cpp \
-	QC_AutoLock.cpp \
-	QC_AutoGate.cpp \
-	QC_AutoReadLock.cpp \
-	QC_AutoWriteLock.cpp \
-	QC_AbstractSmartLock.cpp \
-	QC_TimeZone.cpp \
-	QC_TermIOS.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	minitest.cpp
