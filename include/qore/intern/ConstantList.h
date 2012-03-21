@@ -41,6 +41,7 @@ class LocalVar;
 
 class ConstantEntry {
 public:
+   QoreProgramLocation loc;
    const QoreTypeInfo *typeInfo;
    AbstractQoreNode *node;
    bool init;

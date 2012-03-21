@@ -102,6 +102,9 @@ int ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
 
    int lvids = 0;
 
+   // set parse location in case of errors
+   loc.parseSet();
+
    // push parse class context
    QoreParseClassHelper qpch(class_context);
    

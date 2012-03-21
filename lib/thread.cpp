@@ -872,18 +872,12 @@ void beginParsing(char *file, void *ps) {
    
    //printd(5, "beginParsing() of %p (%s), (stack=%s)\n", file, file ? file : "null", (td->plStack ? td->plStack->file : "NONE"));
    
-   // if current position exists, then save
-   if (td->parse_file) {
-      ProgramLocation *pl = new ProgramLocation(td->parse_file, td->parseState);
-      if (!td->plStack) {
-	 pl->next = 0;
-	 td->plStack = pl;
-      }
-      else {
-	 pl->next = td->plStack;
-	 td->plStack = pl;
-      }
-   }
+   // store current position
+   ProgramLocation *pl = new ProgramLocation(td->parse_file, td->parseState);
+   pl->next = td->plStack;
+   td->plStack = pl;
+
+   // set new position
    td->parse_file = file;
    td->parseState = ps;
 }
@@ -899,17 +893,14 @@ void *endParsing() {
    td->pcs.purge();
    
    printd(5, "endParsing() ending parsing of \"%s\", returning %p\n", td->parse_file, rv);
-   if (td->plStack) {
-      ProgramLocation *pl = td->plStack->next;
-      td->parse_file  = td->plStack->file;
-      td->parseState  = td->plStack->parseState;
-      delete td->plStack;
-      td->plStack = pl;
-   }
-   else {
-      td->parse_file = 0;
-      td->parseState = 0;
-   }
+   assert(td->plStack);
+
+   ProgramLocation *pl = td->plStack->next;
+   td->parse_file  = td->plStack->file;
+   td->parseState  = td->plStack->parseState;
+   delete td->plStack;
+   td->plStack = pl;
+
    return rv;
 }
 

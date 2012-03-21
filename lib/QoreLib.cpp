@@ -1632,3 +1632,7 @@ QoreProgramLocation::QoreProgramLocation(prog_loc_e loc) {
    else
       file = get_pgm_counter(start_line, end_line);
 }
+
+void QoreProgramLocation::parseSet() const {
+   update_parse_location(start_line, end_line, file);
+}

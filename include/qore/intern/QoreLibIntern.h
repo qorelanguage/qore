@@ -153,6 +153,8 @@ struct QoreProgramLocation : QoreProgramLineLocation {
 
    DLLLOCAL QoreProgramLocation(const QoreProgramLocation& old) : QoreProgramLineLocation(old), file(old.file) {
    }
+
+   DLLLOCAL void parseSet() const;
 };
 
 struct QoreCommandLineLocation : public QoreProgramLocation {
