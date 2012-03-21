@@ -238,6 +238,7 @@ public:
 qore_class_private::qore_class_private(QoreClass *n_cls, const char *nme, int64 dom, QoreTypeInfo *n_typeInfo) 
    : name(nme ? nme : parse_pop_class_name()), 
      cls(n_cls),
+     ns(0),
      scl(0), 
      system_constructor(0),
      constructor(0),
@@ -278,6 +279,7 @@ qore_class_private::qore_class_private(QoreClass *n_cls, const char *nme, int64 
 qore_class_private::qore_class_private(const qore_class_private &old, QoreClass *n_cls) 
    : name(old.name), 
      cls(n_cls),
+     ns(0),
      scl(0), // parent class list must be copied after new_copy set in old
      pub_const(old.pub_const),
      priv_const(old.priv_const),
@@ -2546,6 +2548,13 @@ void qore_class_private::parseInitPartial() {
    if (parse_init_partial_called)
       return;
 
+   NamespaceParseContextHelper nspch(ns);
+   
+   parseInitPartialIntern();
+}
+
+void qore_class_private::parseInitPartialIntern() {
+   assert(!parse_init_partial_called);
    parse_init_partial_called = true;
 
    QoreParseClassHelper qpch(cls);
@@ -2616,7 +2625,10 @@ void qore_class_private::parseInit() {
    if (!has_new_user_changes)
       return;
 
-   parseInitPartial();
+   NamespaceParseContextHelper nspch(ns);
+
+   if (!parse_init_partial_called)
+      parseInitPartialIntern();
 
    QoreParseClassHelper qpch(cls);
 

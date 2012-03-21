@@ -57,7 +57,7 @@ private:
 public:
    DLLLOCAL QoreClassList() {}
    DLLLOCAL ~QoreClassList();
-   DLLLOCAL QoreClassList(const QoreClassList& old, int64 po);
+   DLLLOCAL QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns);
    
    DLLLOCAL int add(QoreClass *ot);
    DLLLOCAL QoreClass *find(const char *name);
@@ -66,7 +66,7 @@ public:
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit(QoreClassList& n);
    DLLLOCAL void reset();
-   DLLLOCAL void assimilate(QoreClassList& n, QoreClassList& otherlist, QoreNamespaceList& nsl, QoreNamespaceList& pendNSL, const char *nsname);
+   DLLLOCAL void assimilate(QoreClassList& n, qore_ns_private& ns);
    DLLLOCAL QoreHashNode *getInfo();
 
    DLLLOCAL AbstractQoreNode *findConstant(const char *cname, const QoreTypeInfo *&typeInfo);

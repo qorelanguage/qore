@@ -1365,9 +1365,12 @@ class qore_class_private {
 public:
    std::string name;             // the name of the class
    QoreClass *cls;               // parent class
+   qore_ns_private* ns;          // parent namespace
    BCList *scl;                  // base class list
+
    hm_method_t hm,               // "normal" (non-static) method map
       shm;                       // static method map
+
    ConstantList pend_pub_const,  // pending public constants
       pend_priv_const,           // pending private constants
       pub_const,                 // committed public constants
@@ -1386,6 +1389,7 @@ public:
    qore_classid_t classID,          // class ID
       methodID;                     // for subclasses of builtin classes that will not have their own private data,
                                     // instead they will get the private data from this class
+
    bool sys,                        // system class?
       initialized,                  // is initialized? (only performed once)
       parse_init_called,            // has parseInit() been called? (performed once for each parseCommit())
@@ -1398,17 +1402,23 @@ public:
       has_new_user_changes,         // does the class have new user code that needs to be processed?
       owns_ornothingtypeinfo        // do we own the "or nothing" type info
       ;
-   int64 domain;                      // capabilities of builtin class to use in the context of parse restrictions
+
+   int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
    QoreReferenceCounter nref;       // namespace references
+
    int num_methods, num_user_methods, num_static_methods, num_static_user_methods;
+
    // type information for the class, may not have a pointer to the same QoreClass
    // as the actual owning class in case of a copy
-   QoreTypeInfo *typeInfo;
-   QoreTypeInfo *orNothingTypeInfo;
+   QoreTypeInfo *typeInfo,
+      *orNothingTypeInfo;
+
    // common "self" local variable for all constructors
    mutable LocalVar selfid;
+
    // user-specific data
    const void *ptr;
+
    // pointer to new class when copying
    mutable QoreClass *new_copy;
 
@@ -1418,6 +1428,10 @@ public:
    DLLLOCAL qore_class_private(const qore_class_private &old, QoreClass *n_cls);
 
    DLLLOCAL ~qore_class_private();
+
+   DLLLOCAL void setNamespace(qore_ns_private* n) {
+      ns = n;
+   }
 
    DLLLOCAL void resolveCopy();
 
@@ -1513,6 +1527,7 @@ public:
    DLLLOCAL void initialize();
 
    DLLLOCAL void parseInitPartial();
+   DLLLOCAL void parseInitPartialIntern();
 
    DLLLOCAL const QoreExternalMethodVariant *findUserMethodVariant(const char *name, const QoreMethod *&method, const type_vec_t &argTypeList) const;
 
@@ -2376,6 +2391,10 @@ public:
 
    DLLLOCAL static double floatEvalPseudoMethod(const QoreClass *qc, const QoreMethod *m, const AbstractQoreFunctionVariant *variant, const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) {
       return qc->priv->floatEvalPseudoMethod(m, variant, n, args, xsink);
+   }
+
+   DLLLOCAL static void setNamespace(QoreClass* qc, qore_ns_private* n) {
+      qc->priv->setNamespace(n);
    }
 };
 

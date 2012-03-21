@@ -71,7 +71,7 @@ public:
 
    DLLLOCAL qore_ns_private(const qore_ns_private &old, int64 po) 
       : name(old.name), 
-        classList(old.classList, po), 
+        classList(old.classList, po, this), 
         constant(old.constant),        
         nsl(old.nsl, po, *this),
         depth(old.depth),
@@ -420,7 +420,7 @@ class NamespaceMap {
    friend class NamespaceMapIterator;
 
 protected:
-   // map from depth to namespaces
+   // map from depth to namespace
    typedef std::multimap<unsigned, qore_ns_private*> nsdmap_t;
    // map from name to depth map
    typedef std::map<const char*, nsdmap_t, ltstr> nsmap_t;
@@ -608,25 +608,40 @@ protected:
       return 0;
    }
 
-   DLLLOCAL QoreFunction* parseFindFunctionIntern(const char* name, QoreProgram*& ipgm) {
+   DLLLOCAL FunctionEntry* parseFindFunctionEntryIntern(const char* name) {
+      {
+         // try to check in current namespace first
+         qore_ns_private* nscx = parse_get_ns();
+         if (nscx) {
+            FunctionEntry* fe = nscx->func_list.findNode(name);
+            if (fe)
+               return fe;
+         }
+      }
+
       fmap_t::iterator i = fmap.find(name);
       fmap_t::iterator ip = pend_fmap.find(name);
 
       if (i != fmap.end()) {
          if (ip != pend_fmap.end()) {
             if (i->second.depth() < ip->second.depth())
-               return i->second.obj->getFunction(ipgm);
+               return i->second.obj;
 
-            return ip->second.obj->getFunction(ipgm);
+            return ip->second.obj;
          }
  
-         return i->second.obj->getFunction(ipgm);
+         return i->second.obj;
       }
 
       if (ip != pend_fmap.end())
-         return ip->second.obj->getFunction(ipgm);
+         return ip->second.obj;
 
       return 0;
+   }
+
+   DLLLOCAL QoreFunction* parseFindFunctionIntern(const char* name, QoreProgram*& ipgm) {
+      FunctionEntry* fe = parseFindFunctionEntryIntern(name);
+      return !fe ? 0 : fe->getFunction(ipgm);
    }
 
    DLLLOCAL void runtimeFindCallFunctionIntern(const char* name, const QoreFunction*& ufc, QoreProgram*& ipgm) {
@@ -657,22 +672,9 @@ protected:
       std::auto_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
       char* fname = fr->str;
 
-      fmap_t::iterator i = fmap.find(fname);
-      fmap_t::iterator ip = pend_fmap.find(fname);
-
-      if (i != fmap.end()) {
-         if (ip != pend_fmap.end()) {
-            if (i->second.depth() < ip->second.depth())
-               return i->second.obj->makeCallReference();
-
-            return ip->second.obj->makeCallReference();
-         }
-
-         return i->second.obj->makeCallReference();
-      }
-
-      if (ip != pend_fmap.end())
-         return ip->second.obj->makeCallReference();
+      FunctionEntry* fe = parseFindFunctionEntryIntern(fname);
+      if (fe)
+         return fe->makeCallReference();
    
       const QoreFunction* bfc;
       if ((bfc = builtinFunctions.find(fname))) {
@@ -723,25 +725,58 @@ protected:
       qore_ns_private::parseRollback();
    }
 
-   AbstractQoreNode* parseFindOnlyConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo) {
+   ConstantEntry* parseFindOnlyConstantEntryIntern(const char* cname, qore_ns_private*& ns) {
+      {
+         // first try to look in current namespace context
+         qore_ns_private* nscx = parse_get_ns();
+         if (nscx) {
+            ConstantEntry* ce = nscx->constant.findEntry(cname);
+            if (!ce)
+               ce = nscx->pendConstant.findEntry(cname);
+            if (ce) {
+               ns = nscx;
+               return ce;
+            }
+         }
+      }
+
       // look up in global constant map
       cnmap_t::iterator i = cnmap.find(cname);
       cnmap_t::iterator ip = pend_cnmap.find(cname);
 
       if (i != cnmap.end()) {
          if (ip != pend_cnmap.end()) {
-            if (i->second.depth() < ip->second.depth())
-               return i->second.obj->get(typeInfo);
-            return ip->second.obj->get(typeInfo);
+            if (i->second.depth() < ip->second.depth()) {
+               ns = i->second.ns;
+               return i->second.obj;
+            }
+
+            ns = ip->second.ns;
+            return ip->second.obj;;
          }
 
-         return i->second.obj->get(typeInfo);
+         ns = i->second.ns;
+         return i->second.obj;;
       }
 
-      if (ip != pend_cnmap.end())
-         return ip->second.obj->get(typeInfo);
+      if (ip != pend_cnmap.end()) {
+         ns = ip->second.ns;
+         return ip->second.obj;;
+      }
 
       return 0;
+   }
+
+   AbstractQoreNode* parseFindOnlyConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo) {
+      qore_ns_private* ns;
+      ConstantEntry *ce = parseFindOnlyConstantEntryIntern(cname, ns);
+      if (!ce)
+         return 0;
+
+      //printd(5, "qore_root_ns_private::parseFindOnlyConstantValueIntern() const: %s ns: %p %s\n", cname, ns, ns->name.c_str());
+
+      NamespaceParseContextHelper nspch(ns);
+      return ce->get(typeInfo);
    }
 
    AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo, bool error) {
@@ -754,6 +789,7 @@ protected:
       }
 
       AbstractQoreNode* rv = parseFindOnlyConstantValueIntern(cname, typeInfo);
+
       if (rv)
          return rv;
 
@@ -779,6 +815,16 @@ protected:
    DLLLOCAL QoreClass *parseFindScopedClassWithMethodIntern(const NamedScope *name, unsigned& matched);
 
    DLLLOCAL QoreClass* parseFindClassIntern(const char *cname, bool error) {
+      {
+         // try to check in current namespace first
+         qore_ns_private* nscx = parse_get_ns();
+         if (nscx) {
+            QoreClass* qc = nscx->parseFindLocalClass(cname);
+            if (qc)
+               return qc;
+         }
+      }
+
       clmap_t::iterator i = clmap.find(cname);
       clmap_t::iterator ip = pend_clmap.find(cname);
 

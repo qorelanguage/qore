@@ -40,14 +40,17 @@
 class LocalVar;
 
 class ConstantEntry {
+   friend class ConstantEntryInitHelper;
+
 public:
    QoreProgramLocation loc;
+   std::string name;
    const QoreTypeInfo *typeInfo;
    AbstractQoreNode *node;
-   bool init;
+   bool in_init, init;
 
-   DLLLOCAL ConstantEntry() : typeInfo(0), node(0), init(false) {}
-   DLLLOCAL ConstantEntry(AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false) : typeInfo(ti), node(v), init(n_init) {}
+   DLLLOCAL ConstantEntry() : typeInfo(0), node(0), in_init(false), init(false) {}
+   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init) {}
 
    DLLLOCAL ~ConstantEntry() {
       assert(!node);
@@ -55,14 +58,50 @@ public:
 
    DLLLOCAL void del(ExceptionSink* xsink);
 
-   DLLLOCAL int parseInit(const char *name, QoreClass *class_context);
+   DLLLOCAL int parseInit(QoreClass *class_context = 0);
    DLLLOCAL AbstractQoreNode* get(const QoreTypeInfo*& constantTypeInfo) {
+      if (in_init) {
+         parse_error("recursive constant reference found to constant '%s'", name.c_str());
+         constantTypeInfo = nothingTypeInfo;
+         return 0;
+      }
+
+      if (!init && parseInit()) {
+         constantTypeInfo = nothingTypeInfo;
+         return 0;
+      }
+
       constantTypeInfo = typeInfo;
       return node;
    }
+
+   DLLLOCAL const char* getName() const {
+      return name.c_str();
+   }
+
+   DLLLOCAL const std::string& getNameStr() const {
+      return name;
+   }
 };
 
-typedef std::map<std::string, ConstantEntry*> cnemap_t;
+class ConstantEntryInitHelper {
+protected:
+   ConstantEntry &ce;
+
+public:
+   DLLLOCAL ConstantEntryInitHelper(ConstantEntry& n_ce) : ce(n_ce) {
+      assert(!ce.in_init);
+      assert(!ce.init);
+      ce.in_init = true;
+   }
+
+   DLLLOCAL ~ConstantEntryInitHelper() {
+      ce.in_init = false;
+      ce.init = true;
+   }
+};
+
+typedef std::map<const char*, ConstantEntry*, ltstr> cnemap_t;
 
 class ConstantList {
    friend class ConstantListIterator;
@@ -72,7 +111,7 @@ private:
    DLLLOCAL ConstantList& operator=(const ConstantList&);
 
    DLLLOCAL void clearIntern(ExceptionSink *xsink);
-   DLLLOCAL int checkDup(const std::string &name, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
+   DLLLOCAL int checkDup(const char* name, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
 
 public:
    cnemap_t cnemap;
@@ -90,6 +129,7 @@ public:
 
    DLLLOCAL cnemap_t::iterator parseAdd(const char* name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
 
+   DLLLOCAL ConstantEntry* findEntry(const char* name);
    DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo, QoreClass *class_context = 0);
    DLLLOCAL bool inList(const char *name) const;
    DLLLOCAL bool inList(const std::string &name) const;
@@ -141,7 +181,7 @@ public:
    }
 
    DLLLOCAL const std::string& getName() const {
-      return i->first;
+      return i->second->getNameStr();
    }
 
    DLLLOCAL AbstractQoreNode *getValue() const {

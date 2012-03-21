@@ -28,16 +28,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-ConstantCycleHelper::ConstantCycleHelper(ConstantEntry *n_ce, const char *name) : ce(n_ce) {
-   if (set_constant(n_ce)) {
-      //printd(5, "ConstantCycleHelper::ConstantCycleHelper(%p, %s) already present\n", ce, name);
-      parse_error("recursive constant reference found to constant '%s'", name);
-      ce = 0;
-      return;
-   }
-   //printd(5, "ConstantCycleHelper::ConstantCycleHelper(%p, %s) OK\n", ce, name);
-}
-
 /* the following functions find all objects that are directly reachable by a resolved
    constant value and dereference the QoreProgram object that the object has 
    referenced (as long as its the same QoreProgram object that owns the constant)
@@ -84,19 +74,18 @@ void ConstantEntry::del(ExceptionSink* xsink) {
    delete this;
 }
 
-int ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
-   //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s) class context=%p (%s)\n", this, name, init, node, get_type_name(node), class_context, class_context ? class_context->getName() : "<none>");
-
-   ConstantCycleHelper cch(this, name);
-   if (!cch) {
-      printd(5, "ConstantEntry::parseInit() cycle found in %s\n", name);
-      assert(init);
-      return -1;
-   }
+int ConstantEntry::parseInit(QoreClass *class_context) {
+   //printd(5, "ConstantEntry::parseInit() this: %p %s init: %d node: %p (%s) class context: %p (%s)\n", this, name.c_str(), init, node, get_type_name(node), class_context, class_context ? class_context->getName() : "<none>");
 
    if (init)
       return 0;
-   init = true;
+
+   if (in_init) {
+      parse_error("recursive constant reference found to constant '%s'", name.c_str());
+      return 0;
+   }
+
+   ConstantEntryInitHelper ceih(*this);
 
    if (!node)
       return 0;
@@ -109,18 +98,13 @@ int ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
 
       // push parse class context
       QoreParseClassHelper qpch(class_context);
+
+      //printd(5, "ConstantEntry::parseInit() this: %p %s about to init node: %p %s\n", this, name.c_str(), node, get_type_name(node));
    
       node = node->parseInit((LocalVar *)0, PF_CONST_EXPRESSION, lvids, typeInfo);
    }
 
-   //printd(5, "ConstantEntry::parseInit() this=%p %s initialized to node=%p (%s)\n", this, name, node, get_type_name(node));
-
-   if (lvids) {
-      parse_error("illegal local variable declaration in assignment expression for constant '%s'", name);
-      while (lvids--)
-	 pop_local_var();
-      return -1;
-   }
+   //printd(5, "ConstantEntry::parseInit() this=%p %s initialized to node=%p (%s)\n", this, name.c_str(), node, get_type_name(node));
 
    if (node->is_value())
       return 0;
@@ -135,7 +119,7 @@ int ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
    {
       ReferenceHolder<AbstractQoreNode> v(node->eval(&xsink), &xsink);
 
-      //printd(5, "ConstantEntry::parseInit() this=%p %s evaluated to node=%p (%s)\n", this, name, *v, get_type_name(*v));
+      //printd(5, "ConstantEntry::parseInit() this=%p %s evaluated to node=%p (%s)\n", this, name.c_str(), *v, get_type_name(*v));
 
       if (!xsink) {
 	 node->deref(&xsink);
@@ -165,8 +149,9 @@ ConstantList::ConstantList(const ConstantList &old) {
       if (i->second->node)
 	 i->second->node->ref();
 
-      cnemap[i->first] = new ConstantEntry(i->second->node, i->second->typeInfo, true);
-      //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first.c_str(), i->second->node);
+      ConstantEntry* ce = new ConstantEntry(i->first, i->second->node, i->second->typeInfo, true);
+      cnemap[ce->getName()] = ce;
+      //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first, i->second->node);
    }
 }
 
@@ -187,7 +172,7 @@ void ConstantList::clearIntern(ExceptionSink *xsink) {
    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
       if (!i->second)
 	 continue;
-      printd(5, "ConstantList::clearIntern() this: %p clearing %s type %s refs %d\n", this, i->first.c_str(), get_type_name(i->second->node), i->second->node ? i->second->node->reference_count() : 0);
+      printd(5, "ConstantList::clearIntern() this: %p clearing %s type %s refs %d\n", this, i->first, get_type_name(i->second->node), i->second->node ? i->second->node->reference_count() : 0);
       i->second->del(xsink);
    }
 
@@ -215,7 +200,8 @@ cnemap_t::iterator ConstantList::parseAdd(const char* name, AbstractQoreNode *va
       return cnemap.end();
    }
    
-   return cnemap.insert(cnemap_t::value_type(name, new ConstantEntry(value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value)))).first;
+   ConstantEntry* ce = new ConstantEntry(name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value));
+   return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 
 cnemap_t::iterator ConstantList::add(const char *name, AbstractQoreNode *value, const QoreTypeInfo *typeInfo) {
@@ -225,13 +211,19 @@ cnemap_t::iterator ConstantList::add(const char *name, AbstractQoreNode *value, 
       assert(false);
    }
 #endif
-   return cnemap.insert(cnemap_t::value_type(name, new ConstantEntry(value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), true))).first;
+   ConstantEntry* ce = new ConstantEntry(name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), true);
+   return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
+}
+
+ConstantEntry *ConstantList::findEntry(const char *name) {
+   cnemap_t::iterator i = cnemap.find(name);
+   return i == cnemap.end() ? 0 : i->second;
 }
 
 AbstractQoreNode *ConstantList::find(const char *name, const QoreTypeInfo *&constantTypeInfo, QoreClass *class_context) {
    cnemap_t::iterator i = cnemap.find(name);
    if (i != cnemap.end()) {
-      if (!i->second->parseInit(i->first.c_str(), class_context)) {
+      if (!i->second->parseInit(class_context)) {
 	 constantTypeInfo = i->second->typeInfo;
 	 return i->second->node;
       }
@@ -249,7 +241,7 @@ bool ConstantList::inList(const char *name) const {
 }
 
 bool ConstantList::inList(const std::string &name) const {
-   cnemap_t::const_iterator i = cnemap.find(name);
+   cnemap_t::const_iterator i = cnemap.find(name.c_str());
    return i != cnemap.end() ? true : false;
 }
 
@@ -270,12 +262,12 @@ void ConstantList::assimilate(ConstantList& n, ConstantList& otherlist, const ch
    // assimilate target list
    for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
       if (inList(i->first)) {
-	 parse_error("constant \"%s\" is already pending in namespace \"%s\"", i->first.c_str(), name);
+	 parse_error("constant \"%s\" is already pending in namespace \"%s\"", i->first, name);
 	 continue;
       }
 
       if (otherlist.inList(i->first)) {
-	 parse_error("constant \"%s\" has already been defined in namespace \"%s\"", i->first.c_str(), name);
+	 parse_error("constant \"%s\" has already been defined in namespace \"%s\"", i->first, name);
 	 continue;
       }
 
@@ -286,27 +278,27 @@ void ConstantList::assimilate(ConstantList& n, ConstantList& otherlist, const ch
    n.parseDeleteAll();
 }
 
-int ConstantList::checkDup(const std::string &name, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname) {
+int ConstantList::checkDup(const char* name, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname) {
    if (inList(name)) {
-      parse_error("%s constant \"%s\" is already pending in class \"%s\"", privpub(priv), name.c_str(), cname);
+      parse_error("%s constant \"%s\" is already pending in class \"%s\"", privpub(priv), name, cname);
       return -1;
    }
 
    // see if constant already exists in committed list
    if (committed.inList(name)) {
-      parse_error("%s constant \"%s\" has already been added to class \"%s\"", privpub(priv), name.c_str(), cname);
+      parse_error("%s constant \"%s\" has already been added to class \"%s\"", privpub(priv), name, cname);
       return -1;
    }
 
    // see if constant is in the other pending list
    if (otherPend.inList(name)) {
-      parse_error("%s constant \"%s\" is already pending in class \"%s\" as a %s constant", privpub(priv), name.c_str(), cname, privpub(!priv));
+      parse_error("%s constant \"%s\" is already pending in class \"%s\" as a %s constant", privpub(priv), name, cname, privpub(!priv));
       return -1;
    }
 
    // see if constant is in the other committed list
    if (other.inList(name)) {
-      parse_error("%s constant \"%s\" has already been added to class \"%s\" as a %s constant", privpub(priv), name.c_str(), cname, privpub(!priv));
+      parse_error("%s constant \"%s\" has already been added to class \"%s\" as a %s constant", privpub(priv), name, cname, privpub(!priv));
       return -1;
    }
    
@@ -314,10 +306,14 @@ int ConstantList::checkDup(const std::string &name, ConstantList &committed, Con
 }
 
 void ConstantList::parseAdd(const std::string &name, AbstractQoreNode *val, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname) {
-   if (checkDup(name, committed, other, otherPend, priv, cname))
-      val->deref(0);
-   else
-      cnemap[name] = new ConstantEntry(val, getTypeInfoForValue(val));
+   if (checkDup(name.c_str(), committed, other, otherPend, priv, cname)) {
+      if (val)
+	 val->deref(0);
+   }
+   else {
+      ConstantEntry* ce = new ConstantEntry(name.c_str(), val, getTypeInfoForValue(val));
+      cnemap[ce->getName()] = ce;
+   }
 }
 
 void ConstantList::assimilate(ConstantList &n, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname) {
@@ -334,8 +330,8 @@ void ConstantList::assimilate(ConstantList &n, ConstantList &committed, Constant
 void ConstantList::parseInit(QoreClass *class_context) {
    //RootQoreNamespace *rns = getRootNS();
    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
-      printd(5, "ConstantList::parseInit() %s %p (class: %s)\n", i->first.c_str(), i->second->node, class_context ? class_context->getName() : "<none>");
-      i->second->parseInit(i->first.c_str(), class_context);
+      printd(5, "ConstantList::parseInit() %s %p (class: %s)\n", i->first, i->second->node, class_context ? class_context->getName() : "<none>");
+      i->second->parseInit(class_context);
    }
 }
 
@@ -343,7 +339,7 @@ QoreHashNode *ConstantList::getInfo() {
    QoreHashNode *h = new QoreHashNode;
 
    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i)
-      h->setKeyValue(i->first.c_str(), i->second->node->refSelf(), 0);
+      h->setKeyValue(i->first, i->second->node->refSelf(), 0);
 
    return h;
 }

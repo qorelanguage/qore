@@ -1385,7 +1385,7 @@ sub class_test_Program() {
     try
 	$a.callFunction("deleteException");
     catch ($ex)
-	test_value($ex.err, "ACCESS-ERROR", "Program::importGlobalVariable() readonly");    
+	test_value($ex.err, "ACCESS-ERROR", "Program::importGlobalVariable() readonly");
     my Queue $o = $a.callFunction("getObject");
     delete $a;
     test_value(getClassName($o), "Queue", "class returned from deleted subprogram object");
@@ -1395,6 +1395,14 @@ sub class_test_Program() {
     $a.parse("sub x() {}", "lib");
     my *hash $h = $a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
     test_value($h.file, "<run-time-loaded: warn>", "constant parse location");
+
+    # make sure recursive constant definitions are handled
+    try {
+        $a.parse("const A = B; const B = A; any a = A;", "rec");
+    }
+    catch (hash $ex) {
+        test_value($ex.err, "PARSE-EXCEPTION", "recursive constant ref");
+    }
 }
 
 sub class_test_File() {
@@ -1574,26 +1582,56 @@ const exp   = elements l;
 const hexp2 = chash{b};
 const t1 = "goodbye";
 
+class C {
+    const a = 2;
+    static int t1() { return 2; }
+    static int t2() { return Type::i; }
+}
+
+int sub d1() { return 2; }
+int sub d2() { return Type::i; }
+const K1 = "b";
+const K2 = "a";
+
 namespace Type {
-    const i = 1;
-    const hithere = 5.0;
+    const i = 2;
+    const hithere = 2;
 }
 
 namespace NTest {
     const t1 = "hello";
 
     namespace Type {
-        const i = 2;
+        const i = 1;
     }
 
-    const Type::hithere = 4.0;
+    const Type::hithere = 1;
+
+    class C {
+	const a = 1;
+	static int t1() { return 1; }
+	static int t2() { return Type::i; }
+    }
+
+    int sub d1() { return 1; }
+    int sub d2() { return Type::i; }
+
+    const K1 = "a";
+    const K2 = "b";
+    const H = (K1: 1, K2: 2);
 
     class T1;
 
     sub test() {
         test_value(t1, "hello", "1st namespace constant resolution");
-        test_value(Type::i, 2, "2nd namespace constant resolution");
-        test_value(Type::hithere, 4.0, "3rd namespace constant resolution");
+        test_value(Type::i, 1, "2nd namespace constant resolution");
+        test_value(Type::hithere, 1, "3rd namespace constant resolution");
+        test_value(C::a, 1, "class constant resolution in namespace context");
+        test_value(C::t1(), 1, "static method resolution in namespace context");
+        test_value(C::t2(), 1, "constant resolution in namespace context in class code");
+        test_value(d1(), 1, "first function resolution in namespace context");
+        test_value(d2(), 1, "second function resolution in namespace context");
+        test_value(H.a, 1, "hash key constant resolution in namespace context");
     }
 }
 
@@ -1609,7 +1647,7 @@ sub constant_tests() {
     test_value(i, 1, "simple constant");
     test_value(type(Type::val1), "integer", "first namespace constant");
     test_value(Qore::myconst, NTest::Type::val1, "second namespace constant");
-    test_value(NTest::Type::i, 2, "third namespace constant"); 
+    test_value(NTest::Type::i, 1, "third namespace constant"); 
     test_value(chash{b}, (1, 2, 3), "indirect constant");
     test_value(exp, 3, "evaluated constant");
     test_value(hexp2, (1, 2, 3), "evaluated constant hash");

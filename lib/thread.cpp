@@ -120,9 +120,6 @@ public:
 
 static tid_node *tid_head = 0, *tid_tail = 0;
  
-// for recursive constant reference detection while parsing
-typedef std::set<ConstantEntry *> constant_set_t;
-
 // this structure holds all thread data that can be addressed with the qore tid
 class ThreadEntry {
 public:
@@ -301,6 +298,9 @@ public:
    // current program context
    QoreProgram *current_pgm;
 
+   // current namespace context for parsing
+   qore_ns_private* current_ns;
+
    // current implicit argument
    QoreListNode *current_implicit_arg;
 
@@ -330,9 +330,6 @@ public:
    // used to detect output of recursive data structures at runtime
    const_node_set_t node_set;
 
-   // for recursive constant reference detection while parsing
-   constant_set_t cset;
-
    // currently-executing/parsing block's return type
    const QoreTypeInfo *returnTypeInfo;
 
@@ -355,7 +352,7 @@ public:
       pgm_counter_start(0), pgm_counter_end(0), pgm_file(0), 
       parse_code(0), parseState(0), vstack(0), cvarstack(0),
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
-      current_obj(0), current_pgm(p), current_implicit_arg(0), tpd(new ThreadProgramData(this)), //lvstack(0), cvstack(0),
+      current_obj(0), current_pgm(p), current_ns(0), current_implicit_arg(0), tpd(new ThreadProgramData(this)),
       closure_parse_env(0), closure_rt_env(0), 
       returnTypeInfo(0), element(0), global_vnode(0) {
  
@@ -425,6 +422,15 @@ public:
    DLLLOCAL void parseRollback() {
       ns_vec.clear();
       class_vec.clear();
+   }
+
+   DLLLOCAL qore_ns_private* set_ns(qore_ns_private* ns) {
+      if (ns == current_ns)
+         return ns;
+
+      qore_ns_private* rv = current_ns;
+      current_ns = ns;
+      return rv;
    }
 };
 
@@ -1043,21 +1049,6 @@ void clear_argv_ref() {
    thread_data.get()->argv_refs.clear();
 }
 
-int set_constant(ConstantEntry *ce) {
-   ThreadData *td  = thread_data.get();
-   if (td->cset.find(ce) != td->cset.end())
-      return -1;
-
-   td->cset.insert(ce);
-   return 0;
-}
-
-void remove_constant(ConstantEntry *ce) {
-   ThreadData *td  = thread_data.get();
-   assert(td->cset.find(ce) != td->cset.end());
-   td->cset.erase(ce);
-}
-
 int get_implicit_element() {
    return thread_data.get()->getElement();
 }
@@ -1068,6 +1059,14 @@ int save_implicit_element(int n_element) {
 
 void end_signal_thread(ExceptionSink *xsink) {
    thread_data.get()->tpd->del(xsink);
+}
+
+qore_ns_private* parse_set_ns(qore_ns_private* ns) {
+   return thread_data.get()->set_ns(ns);
+}
+
+qore_ns_private* parse_get_ns() {
+   return thread_data.get()->current_ns;
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {

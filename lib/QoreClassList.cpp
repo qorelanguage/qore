@@ -24,6 +24,7 @@
 #include <qore/intern/QoreClassList.h>
 #include <qore/intern/QoreNamespaceList.h>
 #include <qore/intern/QoreClassIntern.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/minitest.hpp>
 
 #include <assert.h>
@@ -60,11 +61,14 @@ QoreClass *QoreClassList::find(const char *name) {
    return 0;
 }
 
-QoreClassList::QoreClassList(const QoreClassList& old, int64 po) {
+QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns) {
    for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i)
       if ((!(po & PO_NO_SYSTEM_CLASSES) && i->second->isSystem())
-	  || (!(po & PO_NO_USER_CLASSES) && !i->second->isSystem()))
-	 add(new QoreClass(*i->second));
+	  || (!(po & PO_NO_USER_CLASSES) && !i->second->isSystem())) {
+	 QoreClass* qc = new QoreClass(*i->second);
+	 qore_class_private::setNamespace(qc, ns);
+	 add(qc);
+      }
 }
 
 void QoreClassList::resolveCopy() {
@@ -105,28 +109,29 @@ void QoreClassList::assimilate(QoreClassList& n) {
    }
 }
 
-void QoreClassList::assimilate(QoreClassList& n, QoreClassList& otherlist, QoreNamespaceList& nsl, QoreNamespaceList& pendNSL, const char *nsname) {
+void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
    hm_qc_t::iterator i = n.hm.begin();
    while (i != n.hm.end()) {
-      if (otherlist.find(i->first)) {
-	 parse_error("class '%s' has already been defined in namespace '%s'", i->first, nsname);
+      if (ns.classList.find(i->first)) {
+	 parse_error("class '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
 	 n.remove(i);
       }
       else if (find(i->first)) {
-	 parse_error("class '%s' is already pending in namespace '%s'", i->first, nsname);
+	 parse_error("class '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
 	 n.remove(i);
       }
-      else if (nsl.find(i->first)) {
-	 parse_error("cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", i->first, nsname);
+      else if (ns.nsl.find(i->first)) {
+	 parse_error("cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", i->first, ns.name.c_str());
 	 n.remove(i);
       }
-      else if (pendNSL.find(i->first)) {
-	 parse_error("cannot add class '%s' to existing namespace '%s' because a pending subnamespace is already pending with this name", i->first, nsname);
+      else if (ns.pendNSL.find(i->first)) {
+	 parse_error("cannot add class '%s' to existing namespace '%s' because a pending subnamespace is already pending with this name", i->first, ns.name.c_str());
 	 n.remove(i);
       }
       else {
 	 // "move" data to new list
 	 hm[i->first] = i->second;
+	 qore_class_private::setNamespace(i->second, &ns);
 	 n.hm.erase(i);
       }
       i = n.hm.begin();

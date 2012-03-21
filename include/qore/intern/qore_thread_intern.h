@@ -72,6 +72,7 @@ class ClosureRuntimeEnvironment;
 struct ClosureVarValue;
 class VLock;
 class ConstantEntry;
+class qore_ns_private;
 
 DLLLOCAL extern Operator *OP_BACKGROUND;
 
@@ -120,6 +121,8 @@ DLLLOCAL void parse_push_namespace_name(const char* name);
 DLLLOCAL const char* parse_pop_namespace_name();
 DLLLOCAL void parse_push_class_name(const char* name);
 DLLLOCAL const char* parse_pop_class_name();
+DLLLOCAL qore_ns_private* parse_set_ns(qore_ns_private* ns);
+DLLLOCAL qore_ns_private* parse_get_ns();
 
 // pushes a new argv reference counter
 DLLLOCAL void new_argv_ref();
@@ -447,18 +450,17 @@ public:
    }
 };
 
-class ConstantCycleHelper {
-protected:
-   ConstantEntry *ce;
+class NamespaceParseContextHelper {
+private:
+   qore_ns_private* ns;
+   bool restore;
 
 public:
-   DLLLOCAL ConstantCycleHelper(ConstantEntry *n_ce, const char *name);
-   DLLLOCAL ~ConstantCycleHelper() {
-      if (ce)
-         remove_constant(ce);
+   DLLLOCAL NamespaceParseContextHelper(qore_ns_private* n_ns) : ns(parse_set_ns(n_ns)), restore(ns != n_ns) {
    }
-   DLLLOCAL operator bool() const {
-      return ce;
+   DLLLOCAL ~NamespaceParseContextHelper() {
+      if (restore)
+         parse_set_ns(ns);
    }
 };
 
