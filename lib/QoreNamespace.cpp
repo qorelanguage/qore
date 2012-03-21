@@ -599,7 +599,7 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
       parse_error(err.getBuffer());
    }
 
-   //printd(5, "RootQoreNamespace::resolveScopedReference(%s) not found\n", c->scoped_ref->ostr);
+   //printd(5, "RootQoreNamespace::resolveScopedReference(%s) not found\n", nscope.ostr);
    return 0;
 }
 
@@ -990,7 +990,7 @@ void qore_ns_private::parseAddConstant(const NamedScope& nscope, AbstractQoreNod
    if (!sns)
       return;
 
-   parseAddConstant(nscope.strlist[nscope.size() - 1].c_str(), vh.release());
+   sns->priv->parseAddConstant(nscope.strlist[nscope.size() - 1].c_str(), vh.release());
 }
 
 // public, only called either in single-threaded initialization or
@@ -1202,6 +1202,19 @@ QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope* ns
    return rv;
 }
 
+AbstractQoreNode* qore_ns_private::parseResolveClassConstant(QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo) {
+   AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(qc, name, typeInfo, true);
+   if (rv)
+      return rv->refSelf();
+   const QoreClass* aqc;
+   QoreVarInfo *vi = qore_class_private::parseFindStaticVar(qc, name, aqc, typeInfo, true);
+   if (vi) {
+      typeInfo = vi->getTypeInfo();
+      return new StaticClassVarRefNode(name, *qc, *vi);
+   }
+   return 0;
+}
+
 AbstractQoreNode* qore_ns_private::parseMatchScopedConstantValue(const NamedScope* nscope, unsigned& matched, const QoreTypeInfo*& typeInfo) {
    printd(5, "qore_ns_private::parseMatchScopedConstantValue) trying to find %s in %s (%p) typeInfo=%p\n", nscope->getIdentifier(), name.c_str(), getConstantValue(nscope->getIdentifier(), typeInfo));
 
@@ -1235,19 +1248,6 @@ AbstractQoreNode* qore_ns_private::parseMatchScopedConstantValue(const NamedScop
    }
 
    return fns->priv->getConstantValue(nscope->getIdentifier(), typeInfo);
-}
-
-AbstractQoreNode* qore_ns_private::parseResolveClassConstant(QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo) {
-   AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(qc, name, typeInfo, true);
-   if (rv)
-      return rv->refSelf();
-   const QoreClass* aqc;
-   QoreVarInfo *vi = qore_class_private::parseFindStaticVar(qc, name, aqc, typeInfo, true);
-   if (vi) {
-      typeInfo = vi->getTypeInfo();
-      return new StaticClassVarRefNode(name, *qc, *vi);
-   }
-   return 0;
 }
 
 AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const NamedScope &nsc, unsigned &matched, const QoreTypeInfo *&typeInfo) const {

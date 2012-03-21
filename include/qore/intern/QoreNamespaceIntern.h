@@ -420,8 +420,11 @@ class NamespaceMap {
    friend class NamespaceMapIterator;
 
 protected:
+   // map from depth to namespaces
    typedef std::multimap<unsigned, qore_ns_private*> nsdmap_t;
+   // map from name to depth map
    typedef std::map<const char*, nsdmap_t, ltstr> nsmap_t;
+   // map from namespace to depth for reindexing
    typedef std::map<qore_ns_private*, unsigned> nsrmap_t;
 
    nsmap_t nsmap;   // name to depth to namespace map

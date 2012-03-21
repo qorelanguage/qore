@@ -118,7 +118,7 @@ public:
    NamedScope name;
    AbstractQoreNode *value;
 
-   DLLLOCAL inline ConstNode(char *n, AbstractQoreNode *v) : name(n), value(v) {
+   DLLLOCAL ConstNode(char *n, AbstractQoreNode *v) : name(n), value(v) {
    }
    DLLLOCAL AbstractQoreNode *takeValue() {
       AbstractQoreNode *rv = value;
