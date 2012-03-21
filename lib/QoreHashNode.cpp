@@ -145,7 +145,8 @@ const AbstractQoreNode *QoreHashNode::getKeyValueExistence(const QoreString *key
 void QoreHashNode::setKeyValue(const QoreString *key, AbstractQoreNode *val, ExceptionSink *xsink) {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink) {
-      val->deref(xsink);
+      if (val)
+	 val->deref(xsink);
       return;
    }
 
