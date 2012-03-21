@@ -166,7 +166,8 @@ void QoreHashNode::setKeyValue(const char *key, AbstractQoreNode *val, Exception
 AbstractQoreNode *QoreHashNode::swapKeyValue(const QoreString *key, AbstractQoreNode *val, ExceptionSink *xsink) {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink) {
-      val->deref(xsink);
+      if (val)
+	 val->deref(xsink);
       return 0;
    }
 
