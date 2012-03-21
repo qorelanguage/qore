@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/CallStack.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <qore/safe_dslist>
 
@@ -350,4 +351,9 @@ QoreHashNode *QoreException::getStackHash(int type, const char *class_name, cons
    }
    h->setKeyValue("type",  new QoreStringNode(tstr), 0);
    return h;
+}
+
+DLLLOCAL ParseExceptionSink::~ParseExceptionSink() {
+   if (xsink)
+      qore_program_private::addParseException(getProgram(), xsink);
 }

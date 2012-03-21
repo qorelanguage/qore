@@ -518,10 +518,6 @@ public:
    DLLLOCAL Var *checkGlobalVar(const char *name, const QoreTypeInfo *typeInfo);
    DLLLOCAL void importGlobalVariable(Var *var, ExceptionSink *xsink, bool readonly);
 
-   // takes over ownership of the xsink arg (and deletes it)
-   DLLLOCAL void addParseException(ExceptionSink *xsink);
-   // clears xsink arg
-   DLLLOCAL void addParseException(ExceptionSink &xsink);
    // returns 0 if a "requires" exception has already occurred
    DLLLOCAL ExceptionSink *getParseExceptionSink();
    DLLLOCAL void makeParseWarning(int sline, int eline, const char *file, int code, const char *warn, const char *fmt, ...);

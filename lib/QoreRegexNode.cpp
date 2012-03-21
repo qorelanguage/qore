@@ -19,6 +19,7 @@
  */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_program_private.h>
 
 QoreRegexNode::QoreRegexNode() : ParseNoEvalNode(NT_REGEX) {
    init();
@@ -107,7 +108,7 @@ void QoreRegexNode::parse() {
    delete str;
    str = 0;
    if (xsink.isEvent())
-      getProgram()->addParseException(xsink);
+      qore_program_private::addParseException(getProgram(), xsink);
 }
 
 #define OVECCOUNT 30

@@ -1389,6 +1389,12 @@ sub class_test_Program() {
     my Queue $o = $a.callFunction("getObject");
     delete $a;
     test_value(getClassName($o), "Queue", "class returned from deleted subprogram object");
+
+    # test for incorrect parse location when processing constants after a commit
+    $a = new Program();
+    $a.parse("sub x() {}", "lib");
+    my *hash $h = $a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
+    test_value($h.file, "<run-time-loaded: warn>", "constant parse location");
 }
 
 sub class_test_File() {
@@ -1566,17 +1572,29 @@ const chash = ( a : "one", b : l );
 
 const exp   = elements l;
 const hexp2 = chash{b};
+const t1 = "goodbye";
+
+namespace Type {
+    const i = 1;
+    const hithere = 5.0;
+}
 
 namespace NTest {
     const t1 = "hello";
 
-    namespace Type{
+    namespace Type {
         const i = 2;
     }
 
     const Type::hithere = 4.0;
 
     class T1;
+
+    sub test() {
+        test_value(t1, "hello", "1st namespace constant resolution");
+        test_value(Type::i, 2, "2nd namespace constant resolution");
+        test_value(Type::hithere, 4.0, "3rd namespace constant resolution");
+    }
 }
 
 namespace NTest {
@@ -1595,6 +1613,7 @@ sub constant_tests() {
     test_value(chash{b}, (1, 2, 3), "indirect constant");
     test_value(exp, 3, "evaluated constant");
     test_value(hexp2, (1, 2, 3), "evaluated constant hash");
+    NTest::test();
 }
 
 sub digest_tests() {

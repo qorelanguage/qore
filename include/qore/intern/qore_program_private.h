@@ -1177,6 +1177,39 @@ public:
       return qore_root_ns_private::runtimeGetCallReference(*RootNS, name, xsink);
    }
 
+   DLLLOCAL void pushParseOptions(const char* pf) {
+      assert(ppo.find(pf) == ppo.end());
+      ppo[pf] = pwo.parse_options;
+      //printd(5, "pushParseOptions() %p (%s) saving %lld\n", pf, pf, pwo.parse_options);
+   }
+
+   DLLLOCAL void restoreParseOptions(const char* pf) {
+      ppo_t::iterator i = ppo.find(pf);
+      if (i != ppo.end()) {
+         //printd(5, "restoreParseOptions() %p (%s) restoring %lld\n", pf, pf, pwo.parse_options);         
+         pwo.parse_options = i->second;
+         ppo.erase(i);
+      }
+   }
+
+   DLLLOCAL void addParseException(ExceptionSink& xsink, QoreProgramLocation* loc = 0) {
+      if (requires_exception) {
+         xsink.clear();
+         return;
+      }
+
+      // ensure that all exceptions reflect the current parse location
+      if (!loc) {
+         int sline, eline;
+         get_parse_location(sline, eline);
+         xsink.overrideLocation(sline, eline, get_parse_file());
+      }
+      else
+         xsink.overrideLocation(loc->start_line, loc->end_line, loc->file);
+
+      parseSink->assimilate(xsink);
+   }
+
    DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(QoreProgram* pgm, const char *name, ExceptionSink* xsink) {
       return pgm->priv->runtimeGetCallReference(name, xsink);
    }
@@ -1263,27 +1296,21 @@ public:
       pgm->priv->runTimeDefine(str, val, xsink);
    }
 
-   DLLLOCAL void pushParseOptions(const char* pf) {
-      assert(ppo.find(pf) == ppo.end());
-      ppo[pf] = pwo.parse_options;
-      //printd(5, "pushParseOptions() %p (%s) saving %lld\n", pf, pf, pwo.parse_options);
-   }
-
-   DLLLOCAL void restoreParseOptions(const char* pf) {
-      ppo_t::iterator i = ppo.find(pf);
-      if (i != ppo.end()) {
-         //printd(5, "restoreParseOptions() %p (%s) restoring %lld\n", pf, pf, pwo.parse_options);         
-         pwo.parse_options = i->second;
-         ppo.erase(i);
-      }
-   }
-
    DLLLOCAL static void pushParseOptions(QoreProgram* pgm, const char* pf) {
       pgm->priv->pushParseOptions(pf);
    }
 
    DLLLOCAL static void restoreParseOptions(QoreProgram* pgm, const char* pf) {
       pgm->priv->restoreParseOptions(pf);
+   }
+   
+   DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink* xsink, QoreProgramLocation* loc = 0) {
+      pgm->priv->addParseException(*xsink, loc);
+      delete xsink;
+   }
+
+   DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink& xsink, QoreProgramLocation* loc = 0) {
+      pgm->priv->addParseException(xsink, loc);
    }
 };
 

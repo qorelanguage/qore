@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/QoreClassIntern.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -102,13 +103,15 @@ int ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
 
    int lvids = 0;
 
-   // set parse location in case of errors
-   loc.parseSet();
+   {
+      // set parse location in case of errors
+      ParseLocationHelper plh(loc);
 
-   // push parse class context
-   QoreParseClassHelper qpch(class_context);
+      // push parse class context
+      QoreParseClassHelper qpch(class_context);
    
-   node = node->parseInit((LocalVar *)0, PF_CONST_EXPRESSION, lvids, typeInfo);
+      node = node->parseInit((LocalVar *)0, PF_CONST_EXPRESSION, lvids, typeInfo);
+   }
 
    //printd(5, "ConstantEntry::parseInit() this=%p %s initialized to node=%p (%s)\n", this, name, node, get_type_name(node));
 
@@ -130,7 +133,6 @@ int ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
    // evaluate expression
    ExceptionSink xsink;
    {
-      // FIXME: set location?
       ReferenceHolder<AbstractQoreNode> v(node->eval(&xsink), &xsink);
 
       //printd(5, "ConstantEntry::parseInit() this=%p %s evaluated to node=%p (%s)\n", this, name, *v, get_type_name(*v));
@@ -148,7 +150,7 @@ int ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
    }
 
    if (xsink.isEvent())
-      pgm->addParseException(xsink);
+      qore_program_private::addParseException(pgm, xsink, &loc);
 
    return 0;
 }
@@ -202,7 +204,7 @@ void ConstantList::parseDeleteAll() {
    clearIntern(&xsink);
 
    if (xsink.isEvent())
-      getProgram()->addParseException(xsink);
+      qore_program_private::addParseException(getProgram(), xsink);
 }
 
 cnemap_t::iterator ConstantList::parseAdd(const char* name, AbstractQoreNode *value, const QoreTypeInfo *typeInfo) {

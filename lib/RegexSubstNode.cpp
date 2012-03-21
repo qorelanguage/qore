@@ -24,6 +24,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/RegexSubstNode.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <stdlib.h>
 #include <strings.h>
@@ -120,7 +121,7 @@ void RegexSubstNode::parse() {
    ExceptionSink xsink;
    parseRT(str, &xsink);
    if (xsink.isEvent())
-      getProgram()->addParseException(xsink);
+      qore_program_private::addParseException(getProgram(), xsink);
    
    //printd(5, "RegexSubstNode::parse() this=%p: pstr=%s, newstr=%s, global=%s\n", this, pstr->getBuffer(), newstr->getBuffer(), global ? "true" : "false"); 
    

@@ -818,6 +818,16 @@ public:
    }
 };
 
+class ParseLocationHelper : private QoreProgramLocation {
+public:
+   DLLLOCAL ParseLocationHelper(const QoreProgramLocation& loc) {
+      loc.parseSet();
+   }
+   DLLLOCAL ~ParseLocationHelper() {
+      parseSet();
+   }
+};
+
 DLLLOCAL extern QoreString YamlNullString;
 
 DLLLOCAL AbstractQoreNode *qore_parse_get_define_value(const char *str, QoreString &arg, bool &ok);

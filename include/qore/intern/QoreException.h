@@ -186,10 +186,7 @@ protected:
    ExceptionSink xsink;
 
 public:
-   DLLLOCAL ~ParseExceptionSink() {
-      if (xsink)
-         getProgram()->addParseException(xsink);
-   }
+   DLLLOCAL ~ParseExceptionSink();
 
    DLLLOCAL ExceptionSink *operator*() {
       return &xsink;

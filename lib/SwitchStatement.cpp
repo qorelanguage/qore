@@ -25,6 +25,7 @@
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/CaseNodeWithOperator.h>
 #include <qore/intern/CaseNodeRegex.h>
+#include <qore/intern/qore_program_private.h>
 #include <qore/minitest.hpp>
 
 #ifdef DEBUG_TESTS
@@ -161,7 +162,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 		  w->val = nothing();
 	    }
 	    else
-	       pgm->addParseException(xsink);
+	       qore_program_private::addParseException(pgm, xsink);
 	 }
 	 //printd(5, "SwitchStatement::parseInit() this=%p case exp: %p %s\n", this, w->val, get_type_name(w->val));
 

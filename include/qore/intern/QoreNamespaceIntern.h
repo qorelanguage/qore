@@ -420,7 +420,7 @@ class NamespaceMap {
    friend class NamespaceMapIterator;
 
 protected:
-   typedef std::map<unsigned, qore_ns_private*> nsdmap_t;
+   typedef std::multimap<unsigned, qore_ns_private*> nsdmap_t;
    typedef std::map<const char*, nsdmap_t, ltstr> nsmap_t;
    typedef std::map<qore_ns_private*, unsigned> nsrmap_t;
 
@@ -469,7 +469,6 @@ public:
          if (i == nsmap.end())
             i = nsmap.insert(nsmap_t::value_type(ns->name.c_str(), nsdmap_t())).first;
 
-         assert(i->second.find(ns->depth) == i->second.end());
          i->second.insert(nsdmap_t::value_type(ns->depth, ns));
       }
 
