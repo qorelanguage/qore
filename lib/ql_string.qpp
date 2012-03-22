@@ -146,7 +146,6 @@ const RE_Global = QRE_GLOBAL;
 //@}
 
 /** @defgroup string_functions String Functions
-    String functions
 
     @section string_formatting String Formatting
     String formatting in %Qore is based on c-style "printf" string formatting.
@@ -160,7 +159,7 @@ const RE_Global = QRE_GLOBAL;
 
     @subsection format_specification 
 
-    After the "%" sign, there can be zero or more formatting flags as in the following table:
+    After the \c "%" sign, there can be zero or more formatting flags as in the following table:
 
     <b>Printf Formatting Flags</b>
     |!Flag|!Description
