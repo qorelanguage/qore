@@ -212,14 +212,14 @@ int qore_program_private::internParseCommit() {
    return rc;
 }
 
-void qore_program_private::importUserFunction(QoreProgram *p, QoreFunction *u, ExceptionSink *xsink) {
+void qore_program_private::importUserFunction(QoreFunction *u, ExceptionSink *xsink) {
    AutoLocker al(&plock);
-   qore_root_ns_private::importUserFunction(*RootNS, *RootNS, p, u, xsink);
+   qore_root_ns_private::importUserFunction(*RootNS, *RootNS, u, xsink);
 }
 
-void qore_program_private::importUserFunction(QoreProgram *p, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
+void qore_program_private::importUserFunction(QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
    AutoLocker al(&plock);
-   qore_root_ns_private::importUserFunction(*RootNS, *RootNS, p, u, new_name, xsink);
+   qore_root_ns_private::importUserFunction(*RootNS, *RootNS, u, new_name, xsink);
 }
 
 void qore_program_private::del(ExceptionSink *xsink) {
@@ -626,7 +626,6 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
 
 AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreFunction* ufc = 0;
-   QoreProgram *ipgm = this;
 
    SimpleRefHolder<FunctionCallNode> fc;
 
@@ -635,11 +634,11 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    // need to grab parse lock for safe access to the user function map and imported function map
    priv->plock.lock();
 
-   qore_root_ns_private::runtimeFindCallFunction(*priv->RootNS, name, ufc, ipgm);
+   qore_root_ns_private::runtimeFindCallFunction(*priv->RootNS, name, ufc);
    if (ufc) {
       priv->plock.unlock();
       // we assign the args to 0 below so that they will not be deleted
-      fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), ipgm);
+      fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), this);
    }
    else {
       xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);

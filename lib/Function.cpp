@@ -1174,7 +1174,7 @@ UserVariantExecHelper::~UserVariantExecHelper() {
 
 UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) 
    : signature(n_sig_first_line, n_sig_last_line, params, rv), statements(b), gate(synced ? new VRMutex() : 0),
-     recheck(false), init(false) {
+     pgm(getProgram()), recheck(false), init(false) {
    printd(5, "UserVariantBase::UserVariantBase() params=%p rv=%p b=%p synced=%d\n", params, rv, b, synced);
 }
 
@@ -1300,8 +1300,8 @@ AbstractQoreNode *UserVariantBase::eval(const char *name, CodeEvaluationHelper *
    QORE_TRACE("UserVariantBase::eval()");
    printd(5, "UserVariantBase::eval() this=%p name=%s() args=%p (size=%d) self=%p\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self);
 
-   // if pgm is 0, then ProgramContextHelper does nothing
-   ProgramContextHelper pch(self ? self->getProgram() : 0);
+   // if pgm is 0 or == the current pgm, then ProgramContextHelper does nothing
+   ProgramContextHelper pch(self ? self->getProgram() : pgm);
 
    UserVariantExecHelper uveh(this, ceh, xsink);
    if (!uveh)

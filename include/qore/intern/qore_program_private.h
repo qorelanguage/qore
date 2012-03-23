@@ -804,10 +804,10 @@ public:
    }
 
    // called during run time (not during parsing)
-   DLLLOCAL void importUserFunction(QoreProgram *p, QoreFunction *u, ExceptionSink *xsink);
+   DLLLOCAL void importUserFunction(QoreFunction *u, ExceptionSink *xsink);
 
    // called during run time (not during parsing)
-   DLLLOCAL void importUserFunction(QoreProgram *p, QoreFunction *u, const char *new_name, ExceptionSink *xsink);
+   DLLLOCAL void importUserFunction(QoreFunction *u, const char *new_name, ExceptionSink *xsink);
 
    DLLLOCAL void del(ExceptionSink *xsink);
 
@@ -914,17 +914,16 @@ public:
       }
 
       const QoreFunction* u;
-      QoreProgram* ipgm = pgm;
 
       {
 	 AutoLocker al(plock);
-	 u = qore_root_ns_private::runtimeFindFunction(*RootNS, name, ipgm);
+	 u = qore_root_ns_private::runtimeFindFunction(*RootNS, name);
       }
 
       if (!u)
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
       else
-	 p->importUserFunction(ipgm, const_cast<QoreFunction*>(u), xsink);
+	 p->importUserFunction(const_cast<QoreFunction*>(u), xsink);
    }
 
    DLLLOCAL void exportUserFunction(const char *name, const char *new_name, qore_program_private *p, ExceptionSink *xsink) {
@@ -934,17 +933,16 @@ public:
       }
 
       const QoreFunction* u;
-      QoreProgram* ipgm = pgm;
 
       {
 	 AutoLocker al(plock);
-	 u = qore_root_ns_private::runtimeFindFunction(*RootNS, name, ipgm);
+	 u = qore_root_ns_private::runtimeFindFunction(*RootNS, name);
       }
 
       if (!u)
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
       else
-	 p->importUserFunction(ipgm, const_cast<QoreFunction*>(u), new_name, xsink);
+	 p->importUserFunction(const_cast<QoreFunction*>(u), new_name, xsink);
    }
 
    DLLLOCAL bool parseExceptionRaised() const {

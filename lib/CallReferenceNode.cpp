@@ -559,10 +559,9 @@ AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *o
    QoreClass *qc = qore_root_ns_private::parseFindScopedClassWithMethod(scope, false);
    if (!qc) {
       // see if this is a function call to a function defined in a namespace
-      QoreProgram* pgm = 0;
-      const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope, pgm);
+      const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope);
       if (f) {
-	 LocalFunctionCallReferenceNode* fr = pgm ? new FunctionCallReferenceNode(f, pgm) : new LocalFunctionCallReferenceNode(f);
+	 LocalFunctionCallReferenceNode* fr = new LocalFunctionCallReferenceNode(f);
          deref();
          return fr->parseInit(oflag, pflag, lvids, typeInfo);
       }

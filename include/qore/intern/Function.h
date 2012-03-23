@@ -375,6 +375,9 @@ protected:
    StatementBlock* statements;
    // for "synchronized" functions
    VRMutex* gate;
+public:
+   QoreProgram* pgm;
+protected:
    // flag to recheck params against committed after type resolution
    bool recheck;
    // flag to tell if variant has been initialized or not (still in pending list)
@@ -385,6 +388,7 @@ protected:
    DLLLOCAL int setupCall(CodeEvaluationHelper* ceh, ReferenceHolder<QoreListNode>& argv, ExceptionSink* xsink) const;
 
 public:
+
    DLLLOCAL UserVariantBase(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced);
    DLLLOCAL virtual ~UserVariantBase();
    DLLLOCAL UserSignature* getUserSignature() const {
@@ -566,7 +570,7 @@ protected:
       int64 vf = variant->getFunctionality();
       int64 vflags = variant->getFlags();
 
-      bool rtn = (bool)(vflags&  QC_RUNTIME_NOOP);
+      bool rtn = (bool)(vflags & QC_RUNTIME_NOOP);
 
       if (vlist.empty()) {
 	 unique_functionality = vf;
@@ -620,8 +624,14 @@ public:
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i)
          vlist.push_back((*i)->ref());
 
+      assert(!old.ilist.empty());
+      assert(old.ilist.front() == &old);
+
+      // resolve initial ilist entry to this function
+      ilist.push_back(this);
+
+      // the rest of ilist is copied in method base class
       // do not copy pending variants
-      // ilist is copied in method base class
    }
 
    // returns 0 for OK, -1 for error
@@ -670,13 +680,13 @@ public:
    DLLLOCAL AbstractFunctionSignature* parseGetUniqueSignature() const;
 
    DLLLOCAL int64 getUniqueFunctionality() const {
-      if (getProgram()->getParseOptions64()&  PO_REQUIRE_TYPES)
+      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
          return nn_unique_functionality;
       return unique_functionality;
    }
 
    DLLLOCAL int64 getUniqueFlags() const {
-      if (getProgram()->getParseOptions64()&  PO_REQUIRE_TYPES)
+      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
          return nn_unique_flags;
       return unique_flags;
    }
@@ -689,7 +699,7 @@ public:
    DLLLOCAL void parseRollback();
 
    DLLLOCAL const QoreTypeInfo* getUniqueReturnTypeInfo() const {
-      if (getProgram()->getParseOptions64()&  PO_REQUIRE_TYPES)
+      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
          return nn_uniqueReturnType;
 
       return same_return_type && !vlist.empty() ? first()->getReturnTypeInfo() : 0;
@@ -698,7 +708,7 @@ public:
    DLLLOCAL const QoreTypeInfo* parseGetUniqueReturnTypeInfo() {
       parseCheckReturnType();
 
-      if (getProgram()->getParseOptions64()&  PO_REQUIRE_TYPES) {
+      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES) {
          if (!nn_same_return_type || !parse_same_return_type)
             return 0;
 
@@ -787,12 +797,16 @@ public:
 
       // copy ilist, will be adjusted for new class pointers after all classes have been copied
       ilist.reserve(old.ilist.size());
-      for (ilist_t::const_iterator i = old.ilist.begin(), e = old.ilist.end(); i != e; ++i)
+      ilist_t::const_iterator i = old.ilist.begin(), e = old.ilist.end();
+      ++i;
+      for (; i != e; ++i)
          ilist.push_back(*i);
    }
 
    DLLLOCAL void resolveCopy() {
-      for (ilist_t::iterator i = ilist.begin(), e = ilist.end(); i != e; ++i) {
+      ilist_t::iterator i = ilist.begin(), e = ilist.end(); 
+      ++i;
+      for (; i != e; ++i) {
          MethodFunctionBase* mfb = METHFB(*i);
 #ifdef DEBUG
          if (!mfb->new_copy)
@@ -800,7 +814,7 @@ public:
          assert(mfb->new_copy);
          //printd(5, "resolving %p %s::%s() base method %p %s::%s() from %p -> %p\n", qc, qc->getName(), getName(), mfb->qc, mfb->qc->getName(), getName(), mfb, mfb->new_copy);
 #endif
-        * i = mfb->new_copy;         
+        *i = mfb->new_copy;
       }
    }
 

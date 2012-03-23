@@ -467,8 +467,8 @@ AbstractQoreNode *FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, in
       return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
    }
 
-   // resolves the function and assigns pgm for imported code
-   func = qore_root_ns_private::parseResolveFunction(c_str, pgm);
+   // resolves the function
+   func = qore_root_ns_private::parseResolveFunction(c_str);
    free(c_str);
    c_str = 0;
 
@@ -592,10 +592,9 @@ AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag
       }
       
       // see if this is a function call to a function defined in a namespace
-      QoreProgram* pgm = 0;
-      const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope, pgm);
+      const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope);
       if (f) {
-	 FunctionCallNode* fcn = new FunctionCallNode(f, takeArgs(), pgm);
+	 FunctionCallNode* fcn = new FunctionCallNode(f, takeArgs(), 0);
 	 deref();
 	 fcn->parseInitFinalizedCall(oflag, pflag, lvids, typeInfo);
 	 return fcn;

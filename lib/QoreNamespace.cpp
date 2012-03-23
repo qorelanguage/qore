@@ -84,8 +84,6 @@ DLLLOCAL void init_errno_constants(QoreNamespace& ns);
 DLLLOCAL void init_dbi_functions(QoreNamespace& ns);
 DLLLOCAL void init_dbi_constants(QoreNamespace& ns);
 
-#define MAX_RECURSION_DEPTH 20
-
 StaticSystemNamespace staticSystemNamespace;
 
 AutoNamespaceList ANSL;
@@ -871,7 +869,7 @@ QoreNamespace* qore_root_ns_private::parseResolveNamespace(const NamedScope* nsc
    return 0;
 }
 
-const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const NamedScope& nscope, QoreProgram*& pgm) {
+const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const NamedScope& nscope) {
    assert(nscope.size() > 1);
 
    const QoreFunction* f = 0;
@@ -882,7 +880,7 @@ const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const Named
       qore_ns_private* nscx = parse_get_ns();
       if (nscx) {
          QoreNamespace* ns = nscx->parseFindLocalNamespace(nscope[0]);
-         if (ns && (f = ns->priv->parseMatchFunction(nscope, pgm, match)))
+         if (ns && (f = ns->priv->parseMatchFunction(nscope, match)))
             return f;
       }
    }
@@ -891,7 +889,7 @@ const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const Named
    {
       NamespaceMapIterator nmi(nsmap, nscope.strlist[0].c_str());
       while (nmi.next()) {
-         if ((f = nmi.get()->parseMatchFunction(nscope, pgm, match)))
+         if ((f = nmi.get()->parseMatchFunction(nscope, match)))
             return f;
       }
    }
@@ -899,7 +897,7 @@ const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const Named
    {
       NamespaceMapIterator nmi(pend_nsmap, nscope.strlist[0].c_str());
       while (nmi.next()) {
-         if ((f = nmi.get()->parseMatchFunction(nscope, pgm, match)))
+         if ((f = nmi.get()->parseMatchFunction(nscope, match)))
             return f;
       }
    }
@@ -919,7 +917,7 @@ void qore_ns_private::parseInitConstants() {
 }
 
 void qore_ns_private::parseInit() {
-   printd(5, "qore_ns_private::parseInit() this=%p ns=%s\n", this, ns);
+   printd(5, "qore_ns_private::parseInit() this=%p ns=%p\n", this, ns);
 
    // do 2nd stage parse initialization on committed classes
    classList.parseInit();
@@ -1138,7 +1136,7 @@ QoreNamespace* qore_ns_private::resolveNameScope(const NamedScope *nscope) const
    return (QoreNamespace* )sns;
 }
 
-const QoreFunction* qore_ns_private::parseMatchFunction(const NamedScope& nscope, QoreProgram*& pgm, unsigned& match) const {
+const QoreFunction* qore_ns_private::parseMatchFunction(const NamedScope& nscope, unsigned& match) const {
    assert(nscope.strlist[0] == name);
    const QoreNamespace* fns = ns;
 
@@ -1155,7 +1153,7 @@ const QoreFunction* qore_ns_private::parseMatchFunction(const NamedScope& nscope
          match = i + 1;
    }
 
-   return func_list.find(nscope.getIdentifier(), pgm, false);
+   return func_list.find(nscope.getIdentifier(), false);
 }
 
 // qore_ns_private::parseMatchNamespace()

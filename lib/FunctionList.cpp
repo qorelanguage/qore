@@ -41,24 +41,26 @@ FunctionEntry* FunctionList::add(QoreFunction* func) {
    return n;
 }
 
-FunctionEntry* FunctionList::add(QoreProgram* pgm, QoreFunction* func) {
-   QORE_TRACE("FunctionList::add()");
+FunctionEntry* FunctionList::import(QoreFunction* func) {
+   QORE_TRACE("FunctionList::import()");
 
    assert(!findNode(func->getName()));
-   
-   FunctionEntry* n = new FunctionEntry(pgm, func);
-   insert(std::make_pair(func->getName(), n));
-   return n;
+
+   // copy function entry for import and insert into map
+   FunctionEntry* fe = new FunctionEntry(new QoreFunction(*func));
+   insert(std::make_pair(fe->getName(), fe));
+   return fe;
 }
 
-FunctionEntry* FunctionList::add(QoreProgram* pgm, const char* new_name, QoreFunction* func) {
+FunctionEntry* FunctionList::import(const char* new_name, QoreFunction* func) {
    QORE_TRACE("FunctionList::add()");
 
    assert(!findNode(new_name));
-   
-   FunctionEntry* n = new FunctionEntry(pgm, new_name, func);
-   insert(std::make_pair(new_name, n));
-   return n;
+
+   // copy function entry for import and insert into map
+   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func));
+   insert(std::make_pair(fe->getName(), fe));
+   return fe;
 }
 
 FunctionEntry* FunctionList::findNode(const char* name) const {
@@ -71,12 +73,12 @@ FunctionEntry* FunctionList::findNode(const char* name) const {
    return 0;
 }
 
-QoreFunction* FunctionList::find(const char* name, QoreProgram* &pgm, bool runtime) const {
+QoreFunction* FunctionList::find(const char* name, bool runtime) const {
    printd(5, "FunctionList::findFunction(%s) (QoreFunction)\n", name);
 
    fl_map_t::const_iterator i = fl_map_t::find(name);
    if (i != end())
-      return i->second->getFunction(pgm, runtime);
+      return i->second->getFunction(runtime);
 
    return 0;
 }
@@ -114,7 +116,5 @@ void FunctionList::parseRollback() {
 }
 
 ResolvedCallReferenceNode* FunctionEntry::makeCallReference() const {
-   return pgm
-      ? new FunctionCallReferenceNode(func, pgm)
-      : new LocalFunctionCallReferenceNode(func);
+   return new LocalFunctionCallReferenceNode(func);
 }

@@ -138,28 +138,28 @@ public:
       return 0;
    }
 
-   DLLLOCAL FunctionEntry* importUserFunction(QoreProgram* p, QoreFunction* u, ExceptionSink* xsink) {
+   DLLLOCAL FunctionEntry* importUserFunction(QoreFunction* u, ExceptionSink* xsink) {
       if (checkImportUserFunction(u->getName(), xsink))
          return 0;
 
-      return func_list.add(p, u);
+      return func_list.import(u);
    }
 
-   DLLLOCAL FunctionEntry* importUserFunction(QoreProgram* p, QoreFunction* u, const char* new_name, ExceptionSink* xsink) {
+   DLLLOCAL FunctionEntry* importUserFunction(QoreFunction* u, const char* new_name, ExceptionSink* xsink) {
       if (checkImportUserFunction(new_name, xsink))
          return 0;
 
-      return func_list.add(p, new_name, u);
+      return func_list.import(new_name, u);
    }
 
-   DLLLOCAL const QoreFunction* runtimeFindFunction(const char* name, QoreProgram*& ipgm) {
-      return func_list.find(name, ipgm, true);
+   DLLLOCAL const QoreFunction* runtimeFindFunction(const char* name) {
+      return func_list.find(name, true);
    }
 
-   DLLLOCAL void runtimeFindCallFunction(const char* name, const QoreFunction*& ufc, QoreProgram*& ipgm) {
+   DLLLOCAL void runtimeFindCallFunction(const char* name, const QoreFunction*& ufc) {
       assert(!ufc);
 
-      ufc = runtimeFindFunction(name, ipgm);
+      ufc = runtimeFindFunction(name);
       if (!ufc)
          ufc = builtinFunctions.find(name);
    }
@@ -177,7 +177,7 @@ public:
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit();
 
-   DLLLOCAL const QoreFunction* parseMatchFunction(const NamedScope& nscope, QoreProgram*& pgm, unsigned& match) const;
+   DLLLOCAL const QoreFunction* parseMatchFunction(const NamedScope& nscope, unsigned& match) const;
    DLLLOCAL QoreNamespace *resolveNameScope(const NamedScope *name) const;
    DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope* nscope, unsigned& matched);
    DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope* name, unsigned& matched);
@@ -204,12 +204,6 @@ public:
          return fe;
       }
 
-      // see if the function was imported; cannot add variants to an imported function
-      if (fe->getProgram()) {
-         parse_error("function '%s' was been imported into this namespace; new variants cannot be added to imported functions", name);
-         return 0;
-      }
-
       return fe->getFunction()->parseAddVariant(vh.release()) ? 0 : fe;
    }
 
@@ -219,12 +213,12 @@ public:
       return ns->priv->constant;
    }
 
-   DLLLOCAL static const QoreFunction* runtimeFindFunction(QoreNamespace& ns, const char *name, QoreProgram*& ipgm) {
-      return ns.priv->runtimeFindFunction(name, ipgm);
+   DLLLOCAL static const QoreFunction* runtimeFindFunction(QoreNamespace& ns, const char *name) {
+      return ns.priv->runtimeFindFunction(name);
    }
 
-   DLLLOCAL static void runtimeFindCallFunction(QoreNamespace& ns, const char* name, const QoreFunction*& ufc, QoreProgram*& ipgm) {
-      return ns.priv->runtimeFindCallFunction(name, ufc, ipgm);
+   DLLLOCAL static void runtimeFindCallFunction(QoreNamespace& ns, const char* name, const QoreFunction*& ufc) {
+      return ns.priv->runtimeFindCallFunction(name, ufc);
    }
 
    DLLLOCAL static QoreListNode* getUserFunctionList(QoreNamespace& ns) {
@@ -575,8 +569,8 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int importUserFunction(qore_ns_private& ns, QoreProgram* p, QoreFunction* u, ExceptionSink* xsink) {
-      FunctionEntry* fe = ns.importUserFunction(p, u, xsink);
+   DLLLOCAL int importUserFunction(qore_ns_private& ns, QoreFunction* u, ExceptionSink* xsink) {
+      FunctionEntry* fe = ns.importUserFunction(u, xsink);
       if (!fe)
          return -1;
 
@@ -585,8 +579,8 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int importUserFunction(qore_ns_private& ns, QoreProgram *p, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
-      FunctionEntry* fe = ns.importUserFunction(p, u, new_name, xsink);
+   DLLLOCAL int importUserFunction(qore_ns_private& ns, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
+      FunctionEntry* fe = ns.importUserFunction(u, new_name, xsink);
       if (!fe)
          return -1;
 
@@ -598,11 +592,11 @@ protected:
       return fmap.find(name) != fmap.end();
    }
 
-   DLLLOCAL const QoreFunction* runtimeFindFunctionIntern(const char* name, QoreProgram*& ipgm) {
+   DLLLOCAL const QoreFunction* runtimeFindFunctionIntern(const char* name) {
       fmap_t::iterator i = fmap.find(name);
 
       if (i != fmap.end())
-         return i->second.obj->getFunction(ipgm);
+         return i->second.obj->getFunction();
 
       //printd(0, "qore_root_ns_private::runtimeFindFunctionIntern() this: %p %s not found i: %d\n", this, name, i != fmap.end());
       return 0;
@@ -639,23 +633,23 @@ protected:
       return 0;
    }
 
-   DLLLOCAL QoreFunction* parseFindFunctionIntern(const char* name, QoreProgram*& ipgm) {
+   DLLLOCAL QoreFunction* parseFindFunctionIntern(const char* name) {
       FunctionEntry* fe = parseFindFunctionEntryIntern(name);
-      return !fe ? 0 : fe->getFunction(ipgm);
+      return !fe ? 0 : fe->getFunction();
    }
 
-   DLLLOCAL void runtimeFindCallFunctionIntern(const char* name, const QoreFunction*& ufc, QoreProgram*& ipgm) {
+   DLLLOCAL void runtimeFindCallFunctionIntern(const char* name, const QoreFunction*& ufc) {
       assert(!ufc);
 
-      ufc = runtimeFindFunctionIntern(name, ipgm);
+      ufc = runtimeFindFunctionIntern(name);
       if (!ufc)
          ufc = builtinFunctions.find(name);
    }
 
-   DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const char* fname, QoreProgram*& ipgm) {
+   DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const char* fname) {
       QORE_TRACE("qore_root_ns_private::parseResolveFunctionIntern()");
 
-      const QoreFunction* f = parseFindFunctionIntern(fname, ipgm);
+      const QoreFunction* f = parseFindFunctionIntern(fname);
       if (!f) {
          f = builtinFunctions.find(fname);
 
@@ -673,9 +667,23 @@ protected:
       char* fname = fr->str;
 
       FunctionEntry* fe = parseFindFunctionEntryIntern(fname);
-      if (fe)
-         return fe->makeCallReference();
-   
+      if (fe) {
+         // check parse options to see if access is allowed
+         /*
+         if (fe->getFunction()->getUniqueFunctionality() & getProgram()->getParseOptions64()) 
+            parse_error("parse options do not allow access to function '%s'", fname);
+         else 
+         */
+            return fe->makeCallReference();
+      }
+      /*
+      else
+         // cannot find function, throw exception
+         parse_error("reference to function '%s()' cannot be resolved", fname);
+
+      return fr_holder.release();
+      */
+
       const QoreFunction* bfc;
       if ((bfc = builtinFunctions.find(fname))) {
          printd(5, "qore_root_ns_private::parseResolveCallReference() resolved function reference to builtin function to %s\n", fname);
@@ -866,7 +874,7 @@ protected:
 
    DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope *nscope);
 
-   DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const NamedScope& nscope, QoreProgram*& pgm);
+   DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const NamedScope& nscope);
 
    // returns 0 for success, non-zero for error
    DLLLOCAL int parseAddMethodToClassIntern(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);
@@ -985,32 +993,32 @@ public:
       return getRootNS()->rpriv->addPendingVariant(*ns.priv, name, v);
    }
 
-   DLLLOCAL static int importUserFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreProgram* p, QoreFunction* u, ExceptionSink* xsink) {
-      return rns.rpriv->importUserFunction(*ns.priv, p, u, xsink);
+   DLLLOCAL static int importUserFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreFunction* u, ExceptionSink* xsink) {
+      return rns.rpriv->importUserFunction(*ns.priv, u, xsink);
    }
 
-   DLLLOCAL static int importUserFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreProgram *p, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
-      return rns.rpriv->importUserFunction(*ns.priv, p, u, new_name, xsink);
+   DLLLOCAL static int importUserFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
+      return rns.rpriv->importUserFunction(*ns.priv, u, new_name, xsink);
    }
 
-   DLLLOCAL static const QoreFunction* runtimeFindFunction(RootQoreNamespace& rns, const char *name, QoreProgram*& ipgm) {
-      return rns.rpriv->runtimeFindFunctionIntern(name, ipgm);
+   DLLLOCAL static const QoreFunction* runtimeFindFunction(RootQoreNamespace& rns, const char *name) {
+      return rns.rpriv->runtimeFindFunctionIntern(name);
    }
 
    DLLLOCAL static bool runtimeExistsFunction(RootQoreNamespace& rns, const char *name) {
       return rns.rpriv->runtimeExistsFunctionIntern(name);
    }
 
-   DLLLOCAL static void runtimeFindCallFunction(RootQoreNamespace& rns, const char* name, const QoreFunction*& ufc, QoreProgram*& ipgm) {
-      return rns.rpriv->runtimeFindCallFunctionIntern(name, ufc, ipgm);
+   DLLLOCAL static void runtimeFindCallFunction(RootQoreNamespace& rns, const char* name, const QoreFunction*& ufc) {
+      return rns.rpriv->runtimeFindCallFunctionIntern(name, ufc);
    }
 
    DLLLOCAL static void addConstant(qore_root_ns_private& rns, qore_ns_private& ns, const char* cname, AbstractQoreNode *value, const QoreTypeInfo* typeInfo) {
       rns.addConstant(ns, cname, value, typeInfo);
    }
 
-   DLLLOCAL static const QoreFunction* parseResolveFunction(const char* fname, QoreProgram*& pgm) {
-      return getRootNS()->rpriv->parseResolveFunctionIntern(fname, pgm);
+   DLLLOCAL static const QoreFunction* parseResolveFunction(const char* fname) {
+      return getRootNS()->rpriv->parseResolveFunctionIntern(fname);
    }
 
    // called during parsing (plock already grabbed)
@@ -1077,8 +1085,8 @@ public:
       getRootNS()->rpriv->parseAddNamespaceIntern(nns);
    }
 
-   DLLLOCAL static const QoreFunction* parseResolveFunction(const NamedScope& nscope, QoreProgram*& pgm) {
-      return getRootNS()->rpriv->parseResolveFunctionIntern(nscope, pgm);
+   DLLLOCAL static const QoreFunction* parseResolveFunction(const NamedScope& nscope) {
+      return getRootNS()->rpriv->parseResolveFunctionIntern(nscope);
    }
 
    DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(RootQoreNamespace& rns, const char *name, ExceptionSink* xsink) {
