@@ -669,7 +669,7 @@ any Program::run() {
    return p->run(xsink);
 }
 
-//! Imports a user function into the program object's space; any calls to the imported function will run with the parent Program object's permissions
+//! Imports a function into the program object's space; any calls to the imported function will run with the parent Program object's permissions
 /** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
 
     @param func the name of the function to import into the Program object
@@ -683,10 +683,10 @@ $pgm.importFunction("log");
     @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
  */
 nothing Program::importFunction(string func) {
-   getProgram()->exportUserFunction(func->getBuffer(), p, xsink);
+   qore_program_private::exportFunction(getProgram(), func->getBuffer(), p, xsink);
 }
 
-//! Imports a user function into the program object's space and gives it a new name; any calls to the imported function will run with the parent Program object's permissions
+//! Imports a function into the program object's space and gives it a new name; any calls to the imported function will run with the parent Program object's permissions
 /** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
 
     @param func the name of the function to import into the Program object
@@ -701,7 +701,7 @@ $pgm.importFunction("service_log", "log");
     @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
  */
 nothing Program::importFunction(string func, string new_name) {
-   getProgram()->exportUserFunction(func->getBuffer(), new_name->getBuffer(), p, xsink);
+   qore_program_private::exportFunction(getProgram(), func->getBuffer(), new_name->getBuffer(), p, xsink);
 }
 
 //! Imports a global variable into the program object's space

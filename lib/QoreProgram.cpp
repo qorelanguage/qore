@@ -212,14 +212,14 @@ int qore_program_private::internParseCommit() {
    return rc;
 }
 
-void qore_program_private::importUserFunction(QoreFunction *u, ExceptionSink *xsink) {
+void qore_program_private::importFunction(QoreFunction *u, ExceptionSink *xsink) {
    AutoLocker al(&plock);
-   qore_root_ns_private::importUserFunction(*RootNS, *RootNS, u, xsink);
+   qore_root_ns_private::importFunction(*RootNS, *RootNS, u, xsink);
 }
 
-void qore_program_private::importUserFunction(QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
+void qore_program_private::importFunction(QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
    AutoLocker al(&plock);
-   qore_root_ns_private::importUserFunction(*RootNS, *RootNS, u, new_name, xsink);
+   qore_root_ns_private::importFunction(*RootNS, *RootNS, u, new_name, xsink);
 }
 
 void qore_program_private::del(ExceptionSink *xsink) {
@@ -416,14 +416,6 @@ void QoreProgram::cannotProvideFeature(QoreStringNode *desc) {
 
    QoreException *ne = new ParseException("CANNOT-PROVIDE-FEATURE", desc);
    priv->parseSink->raiseException(ne);
-}
-
-void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, ExceptionSink *xsink) {
-   priv->exportUserFunction(name, p->priv, xsink);
-}
-
-void QoreProgram::exportUserFunction(const char *name, const char *new_name, QoreProgram *p, ExceptionSink *xsink) {
-   priv->exportUserFunction(name, new_name, p->priv, xsink);
 }
 
 void QoreProgram::importGlobalVariable(class Var *var, ExceptionSink *xsink, bool readonly) {

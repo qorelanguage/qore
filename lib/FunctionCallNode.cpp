@@ -600,7 +600,7 @@ AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag
 	 return fcn;
       }
 
-      parse_error("cannot resolve call '%s()' to any reachable callable object", scope->ostr);
+      parse_error("cannot resolve call '%s()' to any reachable and callable object", scope->ostr);
       return this;
    }
 

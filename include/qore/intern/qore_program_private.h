@@ -804,10 +804,10 @@ public:
    }
 
    // called during run time (not during parsing)
-   DLLLOCAL void importUserFunction(QoreFunction *u, ExceptionSink *xsink);
+   DLLLOCAL void importFunction(QoreFunction *u, ExceptionSink *xsink);
 
    // called during run time (not during parsing)
-   DLLLOCAL void importUserFunction(QoreFunction *u, const char *new_name, ExceptionSink *xsink);
+   DLLLOCAL void importFunction(QoreFunction *u, const char *new_name, ExceptionSink *xsink);
 
    DLLLOCAL void del(ExceptionSink *xsink);
 
@@ -907,7 +907,7 @@ public:
       TZ = n_TZ;
    }
 
-   DLLLOCAL void exportUserFunction(const char *name, qore_program_private *p, ExceptionSink *xsink) {
+   DLLLOCAL void exportFunction(const char *name, qore_program_private *p, ExceptionSink *xsink) {
       if (this == p) {
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
 	 return;
@@ -923,10 +923,10 @@ public:
       if (!u)
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
       else
-	 p->importUserFunction(const_cast<QoreFunction*>(u), xsink);
+	 p->importFunction(const_cast<QoreFunction*>(u), xsink);
    }
 
-   DLLLOCAL void exportUserFunction(const char *name, const char *new_name, qore_program_private *p, ExceptionSink *xsink) {
+   DLLLOCAL void exportFunction(const char *name, const char *new_name, qore_program_private *p, ExceptionSink *xsink) {
       if (this == p) {
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
 	 return;
@@ -942,7 +942,7 @@ public:
       if (!u)
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
       else
-	 p->importUserFunction(const_cast<QoreFunction*>(u), new_name, xsink);
+	 p->importFunction(const_cast<QoreFunction*>(u), new_name, xsink);
    }
 
    DLLLOCAL bool parseExceptionRaised() const {
@@ -1310,6 +1310,14 @@ public:
 
    DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink& xsink, QoreProgramLocation* loc = 0) {
       pgm->priv->addParseException(xsink, loc);
+   }
+
+   DLLLOCAL static void exportFunction(QoreProgram* srcpgm, const char *name, QoreProgram *trgpgm, ExceptionSink *xsink) {
+      srcpgm->priv->exportFunction(name, trgpgm->priv, xsink);
+   }
+
+   DLLLOCAL static void exportFunction(QoreProgram* srcpgm, const char *name, const char *new_name, QoreProgram *trgpgm, ExceptionSink *xsink) {
+      srcpgm->priv->exportFunction(name, new_name, trgpgm->priv, xsink);
    }
 };
 

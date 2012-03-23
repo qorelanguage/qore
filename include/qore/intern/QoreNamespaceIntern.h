@@ -127,8 +127,8 @@ public:
 
    DLLLOCAL void parseAddConstant(const NamedScope& name, AbstractQoreNode* value);
 
-   DLLLOCAL int checkImportUserFunction(const char* name, ExceptionSink *xsink) {
-      //printd(0, "qore_ns_private::checkImportUserFunction(%s) this: %p\n", name, this);
+   DLLLOCAL int checkImportFunction(const char* name, ExceptionSink *xsink) {
+      //printd(0, "qore_ns_private::checkImportFunction(%s) this: %p\n", name, this);
 
       if (func_list.findNode(name)) {
          xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' already exists in this namespace", name);
@@ -138,15 +138,15 @@ public:
       return 0;
    }
 
-   DLLLOCAL FunctionEntry* importUserFunction(QoreFunction* u, ExceptionSink* xsink) {
-      if (checkImportUserFunction(u->getName(), xsink))
+   DLLLOCAL FunctionEntry* importFunction(QoreFunction* u, ExceptionSink* xsink) {
+      if (checkImportFunction(u->getName(), xsink))
          return 0;
 
       return func_list.import(u);
    }
 
-   DLLLOCAL FunctionEntry* importUserFunction(QoreFunction* u, const char* new_name, ExceptionSink* xsink) {
-      if (checkImportUserFunction(new_name, xsink))
+   DLLLOCAL FunctionEntry* importFunction(QoreFunction* u, const char* new_name, ExceptionSink* xsink) {
+      if (checkImportFunction(new_name, xsink))
          return 0;
 
       return func_list.import(new_name, u);
@@ -569,8 +569,8 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int importUserFunction(qore_ns_private& ns, QoreFunction* u, ExceptionSink* xsink) {
-      FunctionEntry* fe = ns.importUserFunction(u, xsink);
+   DLLLOCAL int importFunction(qore_ns_private& ns, QoreFunction* u, ExceptionSink* xsink) {
+      FunctionEntry* fe = ns.importFunction(u, xsink);
       if (!fe)
          return -1;
 
@@ -579,8 +579,8 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int importUserFunction(qore_ns_private& ns, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
-      FunctionEntry* fe = ns.importUserFunction(u, new_name, xsink);
+   DLLLOCAL int importFunction(qore_ns_private& ns, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
+      FunctionEntry* fe = ns.importFunction(u, new_name, xsink);
       if (!fe)
          return -1;
 
@@ -993,12 +993,12 @@ public:
       return getRootNS()->rpriv->addPendingVariant(*ns.priv, name, v);
    }
 
-   DLLLOCAL static int importUserFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreFunction* u, ExceptionSink* xsink) {
-      return rns.rpriv->importUserFunction(*ns.priv, u, xsink);
+   DLLLOCAL static int importFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreFunction* u, ExceptionSink* xsink) {
+      return rns.rpriv->importFunction(*ns.priv, u, xsink);
    }
 
-   DLLLOCAL static int importUserFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
-      return rns.rpriv->importUserFunction(*ns.priv, u, new_name, xsink);
+   DLLLOCAL static int importFunction(RootQoreNamespace& rns, QoreNamespace& ns, QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
+      return rns.rpriv->importFunction(*ns.priv, u, new_name, xsink);
    }
 
    DLLLOCAL static const QoreFunction* runtimeFindFunction(RootQoreNamespace& rns, const char *name) {
