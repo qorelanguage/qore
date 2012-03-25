@@ -212,14 +212,15 @@ int qore_program_private::internParseCommit() {
    return rc;
 }
 
-void qore_program_private::importFunction(QoreFunction *u, ExceptionSink *xsink) {
+void qore_program_private::importFunction(ExceptionSink *xsink, QoreFunction *u, const qore_ns_private& oldns, const char *new_name) {
    AutoLocker al(&plock);
-   qore_root_ns_private::importFunction(*RootNS, *RootNS, u, xsink);
-}
-
-void qore_program_private::importFunction(QoreFunction *u, const char *new_name, ExceptionSink *xsink) {
-   AutoLocker al(&plock);
-   qore_root_ns_private::importFunction(*RootNS, *RootNS, u, new_name, xsink);
+   
+   std::string nspath;
+   oldns.getPath(nspath);
+   // find/create target namespace based on source namespace
+   QoreNamespace* tns = RootNS->findCreateNamespacePath(nspath.c_str());
+   //printd(5, "qore_program_private::importFunction() this: %p nspath: %s tns: %p %s RootNS: %p %s\n", this, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+   qore_root_ns_private::importFunction(*RootNS, xsink, *tns, u, new_name);
 }
 
 void qore_program_private::del(ExceptionSink *xsink) {

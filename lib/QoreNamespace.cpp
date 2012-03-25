@@ -159,11 +159,15 @@ void QoreNamespaceList::deleteAll() {
 }
 
 void qore_ns_private::updateDepthRecursive(unsigned ndepth) {
+   //printd(5, "qore_ns_private::updateDepthRecursive(ndepth: %d) this: %p '%s' curr depth: %d\n", ndepth, this, name.c_str(), depth);
    assert(depth <= ndepth);
    if (depth < ndepth) {
       depth = ndepth;
 
       for (nsmap_t::iterator i = nsl.nsmap.begin(), e = nsl.nsmap.end(); i != e; ++i)
+         i->second->priv->updateDepthRecursive(ndepth + 1);
+
+      for (nsmap_t::iterator i = pendNSL.nsmap.begin(), e = pendNSL.nsmap.end(); i != e; ++i)
          i->second->priv->updateDepthRecursive(ndepth + 1);
    }
 }
@@ -282,14 +286,16 @@ QoreNamespace* qore_ns_private::findCreateNamespacePath(const char* nspath) {
    for (unsigned i = 0; i < ns.size(); ++i) {
       const char* nsn = ns.strlist[i].c_str();
       QoreNamespace* ns = iparent->nsl.find(nsn);
-      //printd(5, "qore_ns_private::findCreateNamespacePath() curr: %p (%s) nsn: %s (find: %p)\n", iparent, iparent->name.c_str(), nsn, ns);
-      if (ns)
+      //printd(5, "qore_ns_private::findCreateNamespacePath() curr: %p ('%s') nsn: '%s' (find: %p) parent depth: %d\n", iparent, iparent->name.c_str(), nsn, ns, iparent->depth);
+      if (ns) {
+         //printd(5, "qore_ns_private::findCreateNamespacePath() curr: %p ('%s') nsn: '%s' found depth: %d\n", iparent, iparent->name.c_str(), nsn, ns->priv->depth);
          itns = ns->priv;
+      }
       else {
          ns = new QoreNamespace(nsn);
 	 itns = ns->priv;
 	 iparent->nsl.add(itns->ns, iparent);
-         //printd(5, "qore_ns_private::findCreateNamespacePath() curr: %p (%s) creating and adding: %s\n", iparent, iparent->name.c_str(), nsn);
+         //printd(5, "qore_ns_private::findCreateNamespacePath() curr: %p ('%s') nsn: '%s' added depth: %d\n", iparent, iparent->name.c_str(), nsn, itns->depth);
       }
       iparent = itns;
    }
@@ -852,7 +858,7 @@ QoreNamespace* qore_root_ns_private::parseResolveNamespace(const NamedScope* nsc
    {
       NamespaceMapIterator nmi(nsmap, nscope->strlist[0].c_str());
       while (nmi.next()) {
-         if ((fns = nmi.get()->parseMatchNamespace(nscope, match)))
+         if ((fns = nmi.get()->parseMatchNamespace(*nscope, match)))
             return fns;
       }
    }
@@ -860,7 +866,7 @@ QoreNamespace* qore_root_ns_private::parseResolveNamespace(const NamedScope* nsc
    {
       NamespaceMapIterator nmi(pend_nsmap, nscope->strlist[0].c_str());
       while (nmi.next()) {
-         if ((fns = nmi.get()->parseMatchNamespace(nscope, match)))
+         if ((fns = nmi.get()->parseMatchNamespace(*nscope, match)))
             return fns;
       }
    }
@@ -1140,28 +1146,31 @@ const QoreFunction* qore_ns_private::parseMatchFunction(const NamedScope& nscope
    assert(nscope.strlist[0] == name);
    const QoreNamespace* fns = ns;
 
+   assert(name == nscope[0]);
+
    // mark first namespace as matched
    if (!match)
       match = 1;
 
    // check for a match of the structure in this namespace
    for (unsigned i = 1; i < (nscope.size() - 1); i++) {
-      fns = fns->priv->parseFindLocalNamespace(nscope.strlist[i].c_str());
+      //printd(5, "qore_ns_private::parseMatchFunction('%s') curr: %p '%s' element %d %s found: %p\n", nscope.ostr, fns, fns->getName(), i, nscope[i], fns->priv->parseFindLocalNamespace(nscope[i]));
+      fns = fns->priv->parseFindLocalNamespace(nscope[i]);
       if (!fns)
          return 0;
       if (i >= match)
          match = i + 1;
    }
 
-   return func_list.find(nscope.getIdentifier(), false);
+   return fns->priv->func_list.find(nscope.getIdentifier(), false);
 }
 
 // qore_ns_private::parseMatchNamespace()
 // will only be called if there is a match with the name and nscope->size() > 1
-QoreNamespace* qore_ns_private::parseMatchNamespace(const NamedScope* nscope, unsigned& matched) {
-   printd(5, "qore_ns_private::parseMatchNamespace() this=%p ns=%p '%s' ns=%s matched=%d\n", this, ns, name.c_str(), nscope->ostr, matched);
+QoreNamespace* qore_ns_private::parseMatchNamespace(const NamedScope& nscope, unsigned& matched) {
+   printd(5, "qore_ns_private::parseMatchNamespace() this=%p ns=%p '%s' ns=%s matched=%d\n", this, ns, name.c_str(), nscope.ostr, matched);
 
-   assert(nscope->strlist[0] == name);
+   assert(nscope[0] == name);
    const QoreNamespace* fns = ns;
 
    // mark first namespace as matched
@@ -1169,8 +1178,8 @@ QoreNamespace* qore_ns_private::parseMatchNamespace(const NamedScope* nscope, un
       matched = 1;
 
    // check for a match of the structure in this namespace
-   for (unsigned i = 1; i < (nscope->size() - 1); i++) {
-      fns = fns->priv->parseFindLocalNamespace(nscope->strlist[i].c_str());
+   for (unsigned i = 1; i < (nscope.size() - 1); i++) {
+      fns = fns->priv->parseFindLocalNamespace(nscope[i]);
       if (!fns)
          break;
       if (i >= matched)
@@ -1306,7 +1315,7 @@ AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const NamedScope &n
          if (i == (last - 1)) {
             const char* cname = nsc.strlist[last - 1].c_str();
             QoreClass* qc = pns->priv->parseFindLocalClass(cname);
-            //printd(0, "qore_ns_private::parseCheckScopedReference() this=%p '%s' nsc=%s checking for class '%s' qc=%p\n", this, name.c_str(), nsc.ostr, cname, qc);
+            //printd(5, "qore_ns_private::parseCheckScopedReference() this=%p '%s' nsc=%s checking for class '%s' qc=%p\n", this, name.c_str(), nsc.ostr, cname, qc);
             if (qc) 
                return parseResolveClassConstant(qc, nsc.getIdentifier(), typeInfo);
          }

@@ -804,10 +804,7 @@ public:
    }
 
    // called during run time (not during parsing)
-   DLLLOCAL void importFunction(QoreFunction *u, ExceptionSink *xsink);
-
-   // called during run time (not during parsing)
-   DLLLOCAL void importFunction(QoreFunction *u, const char *new_name, ExceptionSink *xsink);
+   DLLLOCAL void importFunction(ExceptionSink *xsink, QoreFunction *u, const qore_ns_private& oldns, const char *new_name = 0);
 
    DLLLOCAL void del(ExceptionSink *xsink);
 
@@ -907,42 +904,26 @@ public:
       TZ = n_TZ;
    }
 
-   DLLLOCAL void exportFunction(const char *name, qore_program_private *p, ExceptionSink *xsink) {
+   DLLLOCAL void exportFunction(ExceptionSink *xsink, qore_program_private *p, const char *name, const char *new_name = 0) {
       if (this == p) {
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
 	 return;
       }
 
       const QoreFunction* u;
+      const qore_ns_private* ns;
 
       {
 	 AutoLocker al(plock);
-	 u = qore_root_ns_private::runtimeFindFunction(*RootNS, name);
+	 u = qore_root_ns_private::runtimeFindFunction(*RootNS, name, ns);
       }
 
       if (!u)
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
-      else
-	 p->importFunction(const_cast<QoreFunction*>(u), xsink);
-   }
-
-   DLLLOCAL void exportFunction(const char *name, const char *new_name, qore_program_private *p, ExceptionSink *xsink) {
-      if (this == p) {
-	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
-	 return;
+      else {
+         assert(ns);
+	 p->importFunction(xsink, const_cast<QoreFunction*>(u), *ns, new_name);
       }
-
-      const QoreFunction* u;
-
-      {
-	 AutoLocker al(plock);
-	 u = qore_root_ns_private::runtimeFindFunction(*RootNS, name);
-      }
-
-      if (!u)
-	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
-      else
-	 p->importFunction(const_cast<QoreFunction*>(u), new_name, xsink);
    }
 
    DLLLOCAL bool parseExceptionRaised() const {
@@ -1312,12 +1293,8 @@ public:
       pgm->priv->addParseException(xsink, loc);
    }
 
-   DLLLOCAL static void exportFunction(QoreProgram* srcpgm, const char *name, QoreProgram *trgpgm, ExceptionSink *xsink) {
-      srcpgm->priv->exportFunction(name, trgpgm->priv, xsink);
-   }
-
-   DLLLOCAL static void exportFunction(QoreProgram* srcpgm, const char *name, const char *new_name, QoreProgram *trgpgm, ExceptionSink *xsink) {
-      srcpgm->priv->exportFunction(name, new_name, trgpgm->priv, xsink);
+   DLLLOCAL static void exportFunction(QoreProgram* srcpgm, ExceptionSink *xsink, QoreProgram *trgpgm, const char *name, const char* new_name = 0) {
+      srcpgm->priv->exportFunction(xsink, trgpgm->priv, name, new_name);
    }
 };
 
