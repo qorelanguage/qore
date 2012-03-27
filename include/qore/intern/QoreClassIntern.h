@@ -182,7 +182,7 @@ public:
 
       // recheck types against committed types if necessary
       if (recheck)
-         f->parseCheckDuplicateSignatureCommitted(this);
+         f->parseCheckDuplicateSignatureCommitted(&signature);
    }
 
    DLLLOCAL virtual AbstractQoreNode *evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {

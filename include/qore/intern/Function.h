@@ -43,8 +43,14 @@ class QoreOperatorNode;
 class BarewordNode;
 class QoreFunction;
 
+typedef std::vector<QoreParseTypeInfo* > ptype_vec_t;
+typedef std::vector<std::string> name_vec_t;
+typedef std::vector<LocalVar* > lvar_vec_t;
+
 class AbstractFunctionSignature {
 protected:
+   name_vec_t names;
+
    unsigned short num_param_types,    // number of parameters that have type information
       min_param_types;                // minimum number of parameters with type info (without default args)
 
@@ -68,6 +74,8 @@ public:
    }
    // called at parse time to include optional type resolution
    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const = 0;
+
+   DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const = 0;
 
    DLLLOCAL const QoreTypeInfo* getReturnTypeInfo() const {
       return returnTypeInfo;
@@ -114,7 +122,9 @@ public:
    // adds a description of the given default argument to the signature string
    DLLLOCAL void addDefaultArgument(const AbstractQoreNode* arg);
 
-   DLLLOCAL virtual const char* getName(unsigned i) const = 0;
+   DLLLOCAL const char* getName(unsigned i) const {
+      return i < names.size() ? names[i].c_str() : 0;
+   }
 };
 
 // used to store return type info during parsing for user code
@@ -139,15 +149,10 @@ public:
    }
 };
 
-typedef std::vector<QoreParseTypeInfo* > ptype_vec_t;
-typedef std::vector<std::string> name_vec_t;
-typedef std::vector<LocalVar* > lvar_vec_t;
-
 class UserSignature : public AbstractFunctionSignature {
 protected:
    ptype_vec_t parseTypeList;
    QoreParseTypeInfo* parseReturnTypeInfo;
-   name_vec_t names;
 
    int first_line, last_line;
    const char* parse_file;
@@ -174,11 +179,6 @@ public:
       delete parseReturnTypeInfo;
    }
 
-   DLLLOCAL virtual const char* getName(unsigned i) const {
-      assert(i < names.size());
-      return names[i].c_str();
-   }
-
    DLLLOCAL void setFirstParamType(const QoreTypeInfo* typeInfo) {
       assert(!typeList.empty());
       typeList[0] = typeInfo;
@@ -189,7 +189,7 @@ public:
       selfid = n_selfid;
    }
 
-   DLLLOCAL const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const {
+   DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const {
       return num < parseTypeList.size() ? parseTypeList[num] : 0;
    }
       
@@ -309,6 +309,11 @@ public:
 
    DLLLOCAL virtual int64 getFunctionality() const = 0;
 
+   // set flag to recheck params against committed variants in stage 2 parsing after type resolution (only for user variants); should never be called with builtin variants
+   DLLLOCAL virtual void setRecheck() {
+      assert(false);
+   }
+
    DLLLOCAL virtual UserVariantBase* getUserVariantBase() {
       return 0;
    }
@@ -394,10 +399,6 @@ public:
    DLLLOCAL UserSignature* getUserSignature() const {
       return const_cast<UserSignature* >(&signature);
    }
-   // set flag to recheck params against committed variants in stage 2 parsing after type resolution
-   DLLLOCAL void setRecheck() {
-      recheck = true;
-   }
 
    DLLLOCAL void setInit() {
       init = true;
@@ -417,7 +418,8 @@ public:
    using AbstractQoreFunctionVariant::getUserVariantBase; \
    DLLLOCAL virtual UserVariantBase* getUserVariantBase() { return static_cast<UserVariantBase* >(this); } \
    DLLLOCAL virtual AbstractFunctionSignature* getSignature() const { return const_cast<UserSignature* >(&signature); } \
-   DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const { return signature.parseGetReturnTypeInfo(); }
+   DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const { return signature.parseGetReturnTypeInfo(); } \
+   DLLLOCAL virtual void setRecheck() { recheck = true; }
 
 // this class ensures that instantiated variables in user code are uninstantiated, even if an exception occurs
 class UserVariantExecHelper {
@@ -507,6 +509,8 @@ protected:
    int nn_count;
    bool parse_rt_done;
    bool parse_init_done;
+   bool has_user;                   // has at least 1 committed user variant
+   bool has_builtin;                // has at least 1 committed builtin variant
 
    const QoreTypeInfo* nn_uniqueReturnType;
 
@@ -559,7 +563,7 @@ protected:
    }
 
    // returns 0 for OK, -1 for error
-   DLLLOCAL int parseCheckDuplicateSignature(UserVariantBase* variant);
+   DLLLOCAL int parseCheckDuplicateSignature(AbstractQoreFunctionVariant* variant);
 
    // FIXME: does not check unparsed types properly
    DLLLOCAL void addVariant(AbstractQoreFunctionVariant* variant) {
@@ -605,7 +609,8 @@ protected:
 
 public:
    DLLLOCAL QoreFunction(const char* n_name) : name(n_name), same_return_type(true), parse_same_return_type(true), unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
-                                     nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT), nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true), parse_init_done(true), nn_uniqueReturnType(0) {
+                                               nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT), nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true), 
+                                               parse_init_done(true), has_user(false), has_builtin(false), nn_uniqueReturnType(0) {
       ilist.push_back(this);
    }
 
@@ -619,6 +624,7 @@ public:
                                                     nn_unique_flags(old.nn_unique_flags),
                                                     nn_count(old.nn_count),
                                                     parse_rt_done(true), parse_init_done(true),
+                                                    has_user(old.has_user), has_builtin(old.has_builtin),
                                                     nn_uniqueReturnType(old.nn_uniqueReturnType) {
       // copy variants by reference
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i)
@@ -635,7 +641,7 @@ public:
    }
 
    // returns 0 for OK, -1 for error
-   DLLLOCAL int parseCheckDuplicateSignatureCommitted(UserVariantBase* variant);
+   DLLLOCAL int parseCheckDuplicateSignatureCommitted(AbstractFunctionSignature* sig);
 
    DLLLOCAL const char* getName() const {
       return name.c_str();
@@ -694,6 +700,8 @@ public:
    // object takes ownership of variant or deletes it if it can't be added
    DLLLOCAL int parseAddVariant(AbstractQoreFunctionVariant* variant);
 
+   DLLLOCAL void addBuiltinVariant(AbstractQoreFunctionVariant* variant);
+
    DLLLOCAL void parseInit();
    DLLLOCAL void parseCommit();
    DLLLOCAL void parseRollback();
@@ -747,8 +755,6 @@ public:
    DLLLOCAL bool pendingEmpty() const {
       return pending_vlist.empty();
    }
-
-   DLLLOCAL void addBuiltinVariant(AbstractQoreFunctionVariant* variant);
 
    DLLLOCAL bool existsVariant(const type_vec_t& paramTypeInfo) const;
 

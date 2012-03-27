@@ -3032,7 +3032,7 @@ void UserConstructorVariant::parseInit(QoreFunction* f) {
 
    // recheck types against committed types if necessary
    if (recheck)
-      f->parseCheckDuplicateSignatureCommitted(this);
+      f->parseCheckDuplicateSignatureCommitted(&signature);
 }
 
 void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink *xsink) const {

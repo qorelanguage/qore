@@ -29,7 +29,6 @@
     defines parse restrictions and functional domains for builtin functions and qore class methods
 */
 
-#define PO_DEFAULT                   0            //!< no restrictions (except parse option inheritance restrictions)
 #define PO_NO_GLOBAL_VARS            (1 <<  0)    //!< cannot define new global variables
 #define PO_NO_SUBROUTINE_DEFS        (1 <<  1)    //!< cannot define new user subroutines
 #define PO_NO_THREAD_CONTROL         (1 <<  2)    //!< cannot launch new threads) use thread_exit) or access thread data
@@ -57,9 +56,16 @@
 #define PO_NO_LOCALE_CONTROL         (1 << 24)    //!< do not allow changes to program locale
 #define PO_REQUIRE_PROTOTYPES        (1 << 25)    //!< require types in method and function declarations
 #define PO_STRICT_ARGS               (1 << 26)    //!< do not allow access to RT_NOOP code or excess args
-#define PO_ALLOW_BARE_REFS           (1 << 27)    //!< do not allow '$' for vars and '$.' for class member refs
+#define PO_REQUIRE_BARE_REFS         (1 << 27)    //!< do not allow '$' for vars and '$.' for class member refs
 #define PO_ASSUME_LOCAL              (1 << 28)    //!< assume local variable scope if not declared (implicit "my")
 #define PO_NO_BINARY_MODULES         (1 << 29)    //!< do not allow external binary (compiled) modules to be loaded
+#define PO_NO_USER_FUNC_VARIANTS     (1 << 30)    //!< do not inherit any user function variants to this program's space
+#define PO_NO_SYSTEM_FUNC_VARIANTS   (1 << 31)    //!< do not inherit any builtin function variants to this program's space
+
+#define PO_DEFAULT                   PO_NO_USER_FUNC_VARIANTS    //!< do not inherit user function variants for backwards-compatibility with earlier versions of Qore
+
+//! synonym for PO_REQUIRE_BARE_REFS
+#define PO_ALLOW_BARE_REFS PO_REQUIRE_BARE_REFS
 
 // combination options
 //! cannot access any thread functionality
@@ -83,7 +89,7 @@
 //! mask of options that have no effect on code access or code safety
 #define PO_FREE_OPTIONS              (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL)
 
-#define QDOM_DEFAULT            PO_DEFAULT                //!< the default domain (no domain)
+#define QDOM_DEFAULT            0                         //!< the default domain (no domain)
 #define QDOM_PROCESS            PO_NO_PROCESS_CONTROL     //!< provides process control functionality (can affect or stop the current process)
 #define QDOM_NETWORK            PO_NO_NETWORK             //!< provides network functionality
 #define QDOM_EXTERNAL_PROCESS   PO_NO_EXTERNAL_PROCESS    //!< provides external process control functionality (can affect) start) or stop external processes)

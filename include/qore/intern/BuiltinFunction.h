@@ -54,12 +54,15 @@ public:
       if (!typeList.size())
          str = NO_TYPE_INFO;
    }
+
    DLLLOCAL virtual ~BuiltinSignature() {
    }
+
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const {
       return returnTypeInfo;
    }
-   DLLLOCAL virtual const char *getName(unsigned i) const {
+
+   DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const {
       return 0;
    }
 };

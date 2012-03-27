@@ -32,13 +32,13 @@
 #include <math.h>
 
 // FIXME: xxx set parse location
-static inline void duplicateSignatureException(const char *cname, const char *name, UserVariantBase *uvb) {
-   parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, uvb->getUserSignature()->getSignatureText());
+static inline void duplicateSignatureException(const char *cname, const char *name, AbstractFunctionSignature *sig) {
+   parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());
 }
 
 // FIXME: xxx set parse location
-static inline void ambiguousDuplicateSignatureException(const char *cname, const char *name, AbstractQoreFunctionVariant *uvb1, UserVariantBase *uvb2) {
-   parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant %s(%s)", cname ? cname : "", cname ? "::" : "", name, uvb2->getUserSignature()->getSignatureText(), name, uvb1->getSignature()->getSignatureText());
+static inline void ambiguousDuplicateSignatureException(const char *cname, const char *name, AbstractFunctionSignature *sig1, AbstractFunctionSignature *sig2) {
+   parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant %s(%s)", cname ? cname : "", cname ? "::" : "", name, sig2->getSignatureText(), name, sig1->getSignatureText());
 }
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink *n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant *&variant, const char *n_name, const QoreListNode *args, const char *n_class_name, qore_call_t n_ct)
@@ -1314,9 +1314,7 @@ AbstractQoreNode *UserVariantBase::eval(const char *name, CodeEvaluationHelper *
 
 // returns 0 for OK, -1 for error
 // this is called after types have been resolved and the types must be rechecked
-int QoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase *variant) {
-   UserSignature *sig = variant->getUserSignature();
-
+int QoreFunction::parseCheckDuplicateSignatureCommitted(AbstractFunctionSignature* sig) {
    unsigned vp = sig->getParamTypes();
 
    // now check already-committed variants
@@ -1366,20 +1364,19 @@ int QoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase *variant
       }
       if (dup) {
 	 if (ambiguous)
-	    ambiguousDuplicateSignatureException(className(), getName(), *i, variant);
+	    ambiguousDuplicateSignatureException(className(), getName(), (*i)->getSignature(), sig);
 	 else
-	    duplicateSignatureException(className(), getName(), variant);
+	    duplicateSignatureException(className(), getName(), sig);
 	 return -1;
       }
    }
    return 0;
 }
 
-int QoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant) {
-   // check for duplicate parameter signatures
-   UserSignature *sig = variant->getUserSignature();
-   assert(!sig->resolved);
+int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* variant) {
+   AbstractFunctionSignature* sig = variant->getSignature();
 
+   // check for duplicate parameter signatures
    unsigned vnp = sig->numParams();
    unsigned vtp = sig->getParamTypes();
    unsigned vmp = sig->getMinParamTypes();
@@ -1401,7 +1398,7 @@ int QoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant) {
 
       // the 2 signatures have the same number of parameters with type information
       if (!tp) {
-	 duplicateSignatureException(className(), getName(), variant);
+	 duplicateSignatureException(className(), getName(), sig);
 	 return -1;
       }
 
@@ -1413,11 +1410,11 @@ int QoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant) {
       unsigned max = QORE_MAX(np, vnp);
       for (unsigned pi = 0; pi < max; ++pi) {
 	 const QoreTypeInfo *variantTypeInfo = vs->getParamTypeInfo(pi);
-	 const QoreParseTypeInfo *variantParseTypeInfo = vs->getParseParamTypeInfo(pi);
+	 const QoreParseTypeInfo *variantParseTypeInfo = variantTypeInfo ? 0 : vs->getParseParamTypeInfo(pi);
 	 bool variantHasDefaultArg = vs->hasDefaultArg(pi);
 
 	 const QoreTypeInfo *typeInfo = sig->getParamTypeInfo(pi);
-	 const QoreParseTypeInfo *parseTypeInfo = sig->getParseParamTypeInfo(pi);
+	 const QoreParseTypeInfo *parseTypeInfo = typeInfo ? 0 : sig->getParseParamTypeInfo(pi);
 	 bool thisHasDefaultArg = sig->hasDefaultArg(pi);
 
 	 // FIXME: this is a horribly-complicated if/then/else structure
@@ -1472,9 +1469,9 @@ int QoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant) {
       }
       if (dup) {
 	 if (ambiguous)
-	    ambiguousDuplicateSignatureException(className(), getName(), *i, variant);
+	    ambiguousDuplicateSignatureException(className(), getName(), (*i)->getSignature(), sig);
 	 else
-	    duplicateSignatureException(className(), getName(), variant);
+	    duplicateSignatureException(className(), getName(), sig);
 	 return -1;
       }
       if (recheck)
@@ -1495,7 +1492,7 @@ int QoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant) {
 
       // the 2 signatures have the same number of parameters with type information
       if (!tp) {
-	 duplicateSignatureException(className(), getName(), variant);
+	 duplicateSignatureException(className(), getName(), sig);
 	 return -1;
       }
 
@@ -1510,7 +1507,7 @@ int QoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant) {
 	 bool variantHasDefaultArg = uvsig->hasDefaultArg(pi);
 
 	 const QoreTypeInfo *typeInfo = sig->getParamTypeInfo(pi);
-	 const QoreParseTypeInfo *parseTypeInfo = sig->getParseParamTypeInfo(pi);
+	 const QoreParseTypeInfo *parseTypeInfo = typeInfo ? 0 : sig->getParseParamTypeInfo(pi);
 	 bool thisHasDefaultArg = sig->hasDefaultArg(pi);
 
 	 // compare the to-be-committed types with resolved types in committed variants
@@ -1539,9 +1536,9 @@ int QoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant) {
       }
       if (dup) {
 	 if (ambiguous)
-	    ambiguousDuplicateSignatureException(className(), getName(), *i, variant);
+	    ambiguousDuplicateSignatureException(className(), getName(), (*i)->getSignature(), sig);
 	 else
-	    duplicateSignatureException(className(), getName(), variant);
+	    duplicateSignatureException(className(), getName(), sig);
 	 return -1;
       }
       if (recheck)
@@ -1587,7 +1584,7 @@ int QoreFunction::parseAddVariant(AbstractQoreFunctionVariant *variant) {
    parse_init_done = false;
 
    // check for duplicate signature with existing variants
-   if (parseCheckDuplicateSignature(variant->getUserVariantBase())) {
+   if (parseCheckDuplicateSignature(variant)) {
       variant->deref();
       return -1;
    }
@@ -1657,7 +1654,7 @@ void UserFunctionVariant::parseInit(QoreFunction* f) {
 
    // recheck types against committed types if necessary
    if (recheck)
-      f->parseCheckDuplicateSignatureCommitted(this);
+      f->parseCheckDuplicateSignatureCommitted(&signature);
 }
 
 void UserClosureVariant::parseInit(QoreFunction* f) {
