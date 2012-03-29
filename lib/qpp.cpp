@@ -924,13 +924,29 @@ static void doRow(strlist_t &sl, std::string &tstr) {
    tstr += "   </tr>\n";
 }
 
-static size_t find_start(const std::string& str) {
+static size_t find_start(std::string& str) {
    // find start of long comment
    size_t start = str.find("/**");
    if (start == std::string::npos)
       return start;
 
    start += 3;
+
+   // erase all whitespace between the open comment marker and the content of the comment
+   if (str[start] == ' ')
+      ++start;
+   size_t be = start;
+   while (true) {
+      char c = str[be];
+      if (c == ' ' || c == '\n' || c == '\t') {
+         ++be;
+         continue;
+      }
+      break;
+   }
+   if (be != start)
+      str.erase(start, be - start);
+
    size_t lc_start = start;
 
    size_t i = str.find("@par Platform Availability", start);
@@ -945,14 +961,20 @@ static size_t find_start(const std::string& str) {
          error("Error: cannot find end of Platform Availability data\n");
          return lc_start;
       }
-      return start + 1;
+      str.insert(start + 1, "\n   ");
+      return start + 5;
    }
    i = str.find("@", start);
    if (i == std::string::npos)
       return start;
    // find the beginning of the line if possible
    i = str.find_last_of('\n', i);
-   return i == std::string::npos || i < lc_start ? lc_start : i + 1;
+   if (i == std::string::npos || i < lc_start) {
+      str.insert(lc_start, "    ");
+      return lc_start;
+   }
+   str.insert(i + 1, "\n   ");
+   return i + 5;
 }
 
 static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& dom = strlist_t(), const strlist_t& flags = strlist_t()) {
@@ -1035,7 +1057,7 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
          error("cannot insert code flags: missing long comment\n");
       }
       else {
-         std::string fbuf = "\n    @par Code Flags:\n    ";
+         std::string fbuf = "@par Code Flags:\n    ";
          for (strlist_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
             if (i != flags.begin())
                fbuf += ", ";
@@ -1053,7 +1075,7 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
          error("cannot insert domain flags: missing long comment\n");
       }
       else {
-         std::string fbuf = "\n    @par Restrictions:\n    ";
+         std::string fbuf = "@par Restrictions:\n    ";
          for (strlist_t::const_iterator i = dom.begin(), e = dom.end(); i != e; ++i) {
             strmap_t::const_iterator di = dmap.find(*i);
             assert(di != dmap.end());
