@@ -25,6 +25,20 @@
 
 #include <string.h>
 
+FunctionList::FunctionList(const FunctionList& old, int64 po) {
+   for (fl_map_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
+      QoreFunction* f = i->second->getFunction();
+      if ((po & PO_NO_USER_FUNC_VARIANTS) && !f->hasBuiltin())
+	 continue;
+      if ((po & PO_NO_SYSTEM_FUNC_VARIANTS) && !f->hasUser())
+	 continue;
+
+      FunctionEntry* fe = new FunctionEntry(i->first, new QoreFunction(*f, po));
+      insert(std::make_pair(fe->getName(), fe));
+      //printd(0, "FunctionList::FunctionList() this: %p copying function %s user: %d builtin: %d\n", this, i->first, f->hasUser(), f->hasBuiltin());
+   }
+}
+
 void FunctionList::del() {
    for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
       delete i->second;

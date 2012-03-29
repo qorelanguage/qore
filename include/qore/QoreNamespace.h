@@ -193,6 +193,14 @@ public:
 
    //! this function must be called before the QoreNamespace object is deleted or a crash could result due if constants and/or class static vars contain objects
    DLLEXPORT void deleteData(ExceptionSink *xsink);
+
+   DLLEXPORT void addBuiltinVariant(const char* name, q_func_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   DLLEXPORT void addBuiltinVariant(const char* name, q_func_int64_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   DLLEXPORT void addBuiltinVariant(const char* name, q_func_double_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   DLLEXPORT void addBuiltinVariant(const char* name, q_func_bool_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
 };
 
 //! the root namespace of a QoreProgram object

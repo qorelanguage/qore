@@ -1276,7 +1276,7 @@ protected:
       }
    }
 
-   int serializeBindingArgs(FILE *fp) const {
+   int serializeBindingArgs(FILE *fp, bool with_names = false) const {
       size_t size = params.size();
       if (size && params[size - 1].type == "...")
          --size;
@@ -1296,6 +1296,8 @@ protected:
                   return -1;
                fputs(vs.c_str(), fp);
             }
+            if (with_names)
+               fprintf(fp, ", \"%s\"", params[i].name.c_str());
          }
       }
       return 0;
@@ -1467,7 +1469,13 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
+/*
       fprintf(fp, "   builtinFunctions.add2(\"%s\", (%s)f_%s, ", 
+              name.c_str(),
+              getFunctionType(), 
+              vname.c_str());
+*/
+      fprintf(fp, "   ns.addBuiltinVariant(\"%s\", (%s)f_%s, ", 
               name.c_str(),
               getFunctionType(), 
               vname.c_str());
@@ -1477,7 +1485,7 @@ public:
       dom_output_cpp(fp, dom);
       fprintf(fp, ", %s", cppt.c_str());
 
-      if (serializeBindingArgs(fp))
+      if (serializeBindingArgs(fp, true))
          return -1;
 
       fputs(");\n", fp);

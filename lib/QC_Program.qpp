@@ -192,6 +192,12 @@ const PO_NO_SUBROUTINE_DEFS = PO_NO_SUBROUTINE_DEFS;
 */
 const PO_NO_SYSTEM_CLASSES = PO_NO_SYSTEM_CLASSES;
 
+//! Prohibits builtin/system function variants from being imported into the new Program object
+/** 
+    @see @ref no-system-func-variants "%no-system-func-variants"
+*/
+const PO_NO_SYSTEM_FUNC_VARIANTS = PO_NO_SYSTEM_FUNC_VARIANTS;
+
 //! Disallows access to reading from and/or writing to the terminal
 /** 
     @see @ref no-terminal-io "%no-terminal-io"
@@ -227,6 +233,12 @@ const PO_NO_TOP_LEVEL_STATEMENTS = PO_NO_TOP_LEVEL_STATEMENTS;
     @see @ref no-user-classes "%no-user-classes"
 */
 const PO_NO_USER_CLASSES = PO_NO_USER_CLASSES;
+
+//! Prohibits user function variants from being imported into the new Program object
+/** 
+    @see @ref no-user-func-variants "%no-user-func-variants"
+*/
+const PO_NO_USER_FUNC_VARIANTS = PO_NO_USER_FUNC_VARIANTS;
 
 //! Prohibits access to all threading information
 /** made up of @ref PO_NO_THREAD_CONTROL | @ref PO_NO_THREAD_CLASSES | @ref PO_NO_THREAD_INFO

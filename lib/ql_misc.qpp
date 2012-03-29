@@ -24,13 +24,19 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_misc.h>
 #include <qore/intern/QoreSignal.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #include <string.h>
 #include <time.h>
 #include <errno.h>
 
 static const QoreFunction *get_builtin_func(const QoreStringNode *str, ExceptionSink *xsink) {
-   const QoreFunction *f = BuiltinFunctionList::find(str->getBuffer());
+   const qore_ns_private* ns;
+   const QoreFunction *f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), str->getBuffer(), ns);
+   if (f)
+      return f;
+
+   f = BuiltinFunctionList::find(str->getBuffer());
    if (!f)
       xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", str->getBuffer());
    return f;
@@ -522,9 +528,8 @@ any call_function_args(code f, *softlist vargs) {
    return f->exec(vargs, xsink);
 }
 
-//! Calls a builtin function and returns the return value, passing the remaining arguments after the function name to the builtin function
-/** This function can be used to call a builtin function even though there is a user function with the same name as the builtin funciton
-
+//! Calls a function and returns the return value, passing the remaining arguments after the function name to the builtin function
+/** 
     @param name The name of the builtin function to call
     @param ... Any optional arguments to the function
 
@@ -539,6 +544,8 @@ my any $result = call_builtin_function("func_name", $arg1, $arg2);
     @throw NO-FUNCTION The function does not exist
 
     @note The function called could also throw other exceptions
+
+    @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
 any call_builtin_function(string name, ...) {
    const QoreFunction *f = get_builtin_func(name, xsink);
@@ -553,9 +560,8 @@ any call_builtin_function(string name, ...) {
    return f->evalDynamic(*vargs, xsink);
 }
 
-//! Calls a builtin function and returns the return value, using the optional second argument as a list of arguments for the function
-/** This function can be used to call a builtin function even though there is a user function with the same name as the builtin funciton
-
+//! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
+/** 
     @param name The name of the builtin function to call
     @param vargs Optionally a single argument to the function or a list of arguments to the function
 
@@ -570,6 +576,8 @@ my any $result = call_builtin_function_args("func_name", ($arg1, $arg2));
     @throw NO-FUNCTION The function does not exist
 
     @note The function called could also throw other exceptions
+
+    @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
 any call_builtin_function_args(string name, *softlist vargs) {
    const QoreFunction *f = get_builtin_func(name, xsink);
@@ -642,12 +650,14 @@ my *string $type = functionType("print");
     @endcode
 */
 *string functionType(string name) {
-   const char *str = name->getBuffer();
+   const qore_ns_private* ns;
+   const QoreFunction *f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
+   if (!f) {
+      f = BuiltinFunctionList::find(name->getBuffer());
+      return f ? new QoreStringNode("builtin") : 0;
+   }
 
-   if (getProgram()->existsFunction(str))
-      return new QoreStringNode("user");
-
-   return builtinFunctions.find(str) ? new QoreStringNode("builtin") : 0;
+   return new QoreStringNode(f->hasBuiltin() ? "builtin" : "user");
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

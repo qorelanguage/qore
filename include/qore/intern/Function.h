@@ -44,19 +44,17 @@ class BarewordNode;
 class QoreFunction;
 
 typedef std::vector<QoreParseTypeInfo* > ptype_vec_t;
-typedef std::vector<std::string> name_vec_t;
 typedef std::vector<LocalVar* > lvar_vec_t;
 
 class AbstractFunctionSignature {
 protected:
-   name_vec_t names;
-
    unsigned short num_param_types,    // number of parameters that have type information
       min_param_types;                // minimum number of parameters with type info (without default args)
 
    const QoreTypeInfo* returnTypeInfo;
    type_vec_t typeList;
    arg_vec_t defaultArgList;
+   name_vec_t names;
 
    // parameter signature string
    std::string str;
@@ -64,7 +62,7 @@ protected:
 public:
    DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo = 0) : num_param_types(0), min_param_types(0), returnTypeInfo(n_returnTypeInfo) {
    }
-   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& n_defaultArgList) : num_param_types(0), min_param_types(0), returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList) {
+   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& n_defaultArgList, const name_vec_t& n_names) : num_param_types(0), min_param_types(0), returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList), names(n_names) {
    }
    DLLLOCAL virtual ~AbstractFunctionSignature() {
       // delete all default argument expressions
@@ -615,20 +613,28 @@ public:
    }
 
    // copy constructor (used by method functions when copied)
-   DLLLOCAL QoreFunction(const QoreFunction& old) : name(old.name), same_return_type(old.same_return_type), 
-                                                    parse_same_return_type(true), 
-                                                    unique_functionality(old.unique_functionality),
-                                                    unique_flags(old.unique_flags),
-                                                    nn_same_return_type(old.nn_same_return_type), 
-                                                    nn_unique_functionality(old.nn_unique_functionality),
-                                                    nn_unique_flags(old.nn_unique_flags),
-                                                    nn_count(old.nn_count),
-                                                    parse_rt_done(true), parse_init_done(true),
-                                                    has_user(old.has_user), has_builtin(old.has_builtin),
-                                                    nn_uniqueReturnType(old.nn_uniqueReturnType) {
+   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = 0) : name(old.name), same_return_type(old.same_return_type), 
+                                                                  parse_same_return_type(true), 
+                                                                  unique_functionality(old.unique_functionality),
+                                                                  unique_flags(old.unique_flags),
+                                                                  nn_same_return_type(old.nn_same_return_type), 
+                                                                  nn_unique_functionality(old.nn_unique_functionality),
+                                                                  nn_unique_flags(old.nn_unique_flags),
+                                                                  nn_count(old.nn_count),
+                                                                  parse_rt_done(true), parse_init_done(true),
+                                                                  has_user(old.has_user), has_builtin(old.has_builtin),
+                                                                  nn_uniqueReturnType(old.nn_uniqueReturnType) {
       // copy variants by reference
-      for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i)
+      for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
+         if ((po & PO_NO_USER_FUNC_VARIANTS) && (*i)->isUser())
+            continue;
+         if ((po & PO_NO_SYSTEM_FUNC_VARIANTS) && !(*i)->isUser())
+            continue;
          vlist.push_back((*i)->ref());
+      }
+
+      // make sure the new variant list is not empty if the parent also wasn't
+      assert(old.vlist.empty() || !vlist.empty());
 
       assert(!old.ilist.empty());
       assert(old.ilist.front() == &old);
@@ -768,6 +774,14 @@ public:
    DLLLOCAL AbstractQoreFunctionVariant* pending_first() {
       assert(!pending_vlist.empty());
       return *(pending_vlist.begin());
+   }
+
+   DLLLOCAL bool hasUser() const {
+      return has_user;
+   }
+
+   DLLLOCAL bool hasBuiltin() const {
+      return has_builtin;
    }
 };
 

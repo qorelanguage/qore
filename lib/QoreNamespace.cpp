@@ -161,6 +161,8 @@ void QoreNamespaceList::deleteAll() {
 void qore_ns_private::updateDepthRecursive(unsigned ndepth) {
    //printd(5, "qore_ns_private::updateDepthRecursive(ndepth: %d) this: %p '%s' curr depth: %d\n", ndepth, this, name.c_str(), depth);
    assert(depth <= ndepth);
+   assert(!ndepth || !name.empty());
+
    if (depth < ndepth) {
       depth = ndepth;
 
@@ -170,6 +172,28 @@ void qore_ns_private::updateDepthRecursive(unsigned ndepth) {
       for (nsmap_t::iterator i = pendNSL.nsmap.begin(), e = pendNSL.nsmap.end(); i != e; ++i)
          i->second->priv->updateDepthRecursive(ndepth + 1);
    }
+}
+
+void qore_ns_private::addBuiltinVariant(const char* name, AbstractQoreFunctionVariant* v) {
+   SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
+
+   FunctionEntry* fe = func_list.findNode(name);
+   
+   if (fe) {
+      fe->getFunction()->addBuiltinVariant(vh.release());
+      return;
+   }
+
+   QoreFunction* u = new QoreFunction(name);
+   u->addBuiltinVariant(vh.release());
+   fe = func_list.add(u);
+
+   // add to root function map if attached
+   qore_root_ns_private* rns = getRoot();
+   if (!rns)
+      return;
+   
+   rns->fmap.update(fe->getName(), this, fe);
 }
 
 void QoreNamespaceList::assimilate(QoreNamespaceList& n, qore_ns_private* parent) {
@@ -365,6 +389,34 @@ QoreHashNode* QoreNamespace::getInfo() const {
    }
 
    return h;
+}
+
+void QoreNamespace::addBuiltinVariant(const char* name, q_func_t f, int64 code_flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   va_list args;
+   va_start(args, num_params);
+   priv->addBuiltinVariant<q_func_t, BuiltinFunctionVariant>(name, f, code_flags, functional_domain, returnTypeInfo, num_params, args);
+   va_end(args);
+}
+
+void QoreNamespace::addBuiltinVariant(const char* name, q_func_int64_t f, int64 code_flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   va_list args;
+   va_start(args, num_params);
+   priv->addBuiltinVariant<q_func_int64_t, BuiltinFunctionBigIntVariant>(name, f, code_flags, functional_domain, returnTypeInfo, num_params, args);
+   va_end(args);
+}
+
+void QoreNamespace::addBuiltinVariant(const char* name, q_func_double_t f, int64 code_flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   va_list args;
+   va_start(args, num_params);
+   priv->addBuiltinVariant<q_func_double_t, BuiltinFunctionFloatVariant>(name, f, code_flags, functional_domain, returnTypeInfo, num_params, args);
+   va_end(args);
+}
+
+void QoreNamespace::addBuiltinVariant(const char* name, q_func_bool_t f, int64 code_flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   va_list args;
+   va_start(args, num_params);
+   priv->addBuiltinVariant<q_func_bool_t, BuiltinFunctionBoolVariant>(name, f, code_flags, functional_domain, returnTypeInfo, num_params, args);
+   va_end(args);
 }
 
 RootQoreNamespace::RootQoreNamespace(qore_root_ns_private* p) : QoreNamespace(p), rpriv(p) {

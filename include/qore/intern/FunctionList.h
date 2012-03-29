@@ -95,6 +95,8 @@ public:
    DLLLOCAL FunctionList() {
    }
 
+   DLLLOCAL FunctionList(const FunctionList& old, int64 po);
+
    DLLLOCAL ~FunctionList() {
       del();
    }
