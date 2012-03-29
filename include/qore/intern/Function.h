@@ -698,7 +698,7 @@ public:
    }
 
    // object takes ownership of variant or deletes it if it can't be added
-   DLLLOCAL int parseAddVariant(AbstractQoreFunctionVariant* variant);
+   DLLLOCAL int addPendingVariant(AbstractQoreFunctionVariant* variant);
 
    DLLLOCAL void addBuiltinVariant(AbstractQoreFunctionVariant* variant);
 
@@ -891,7 +891,7 @@ protected:
 
 public:
    DLLLOCAL UserClosureFunction(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : QoreFunction("<anonymous closure>"), classTypeInfo(0) {
-      parseAddVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags));
+      addPendingVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags));
    }
 
    DLLLOCAL bool parseStage1HasReturnTypeInfo() const {

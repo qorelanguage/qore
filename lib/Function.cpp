@@ -1160,6 +1160,8 @@ void QoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant *variant) {
       }
    }
 #endif
+   if (!has_builtin)
+      has_builtin = true;
    addVariant(variant);
 }
 
@@ -1579,7 +1581,7 @@ void QoreFunction::resolvePendingSignatures() {
    }
 }
 
-int QoreFunction::parseAddVariant(AbstractQoreFunctionVariant *variant) {
+int QoreFunction::addPendingVariant(AbstractQoreFunctionVariant *variant) {
    parse_rt_done = false;
    parse_init_done = false;
 
@@ -1597,6 +1599,15 @@ int QoreFunction::parseAddVariant(AbstractQoreFunctionVariant *variant) {
 void QoreFunction::parseCommit() {
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       vlist.push_back(*i);
+
+      if (!has_user) {
+	 if ((*i)->isUser())
+	    has_user = true;
+      }
+      else if (!has_builtin) {
+	 if (!(*i)->isUser())
+	    has_builtin = true;
+      }
    }
    pending_vlist.clear();
 

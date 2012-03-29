@@ -197,20 +197,20 @@ public:
 
    DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope* name, unsigned& matched, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL FunctionEntry* addPendingVariant(const char* name, UserFunctionVariant* v, bool& new_func) {
-      SimpleRefHolder<UserFunctionVariant> vh(v);
+   DLLLOCAL FunctionEntry* addPendingVariantIntern(const char* name, AbstractQoreFunctionVariant* v, bool& new_func) {
+      SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
 
       FunctionEntry* fe = func_list.findNode(name);
 
       if (!fe) {
          QoreFunction* u = new QoreFunction(name);
-         u->parseAddVariant(vh.release());
+         u->addPendingVariant(vh.release());
          fe = func_list.add(u);
          new_func = true;
          return fe;
       }
 
-      return fe->getFunction()->parseAddVariant(vh.release()) ? 0 : fe;
+      return fe->getFunction()->addPendingVariant(vh.release()) ? 0 : fe;
    }
 
    DLLLOCAL static AbstractQoreNode* parseResolveClassConstant(QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo);
@@ -262,6 +262,7 @@ public:
    DLLLOCAL static const qore_ns_private* get(const QoreNamespace& ns) {
       return ns.priv;
    }
+
 };
 
 struct namespace_iterator_element {
@@ -541,10 +542,10 @@ class qore_root_ns_private : public qore_ns_private {
    friend class qore_ns_private;
 
 protected:
-   DLLLOCAL int addPendingVariant(qore_ns_private& ns, const char* name, UserFunctionVariant* v) {
+   DLLLOCAL int addPendingVariant(qore_ns_private& ns, const char* name, AbstractQoreFunctionVariant* v) {
       // try to add function variant to given namespace
       bool new_func = false;
-      FunctionEntry* fe = ns.addPendingVariant(name, v, new_func);
+      FunctionEntry* fe = ns.addPendingVariantIntern(name, v, new_func);
       if (!fe)
          return -1;
 
@@ -558,9 +559,9 @@ protected:
       return 0;      
    }
 
-   DLLLOCAL int addPendingVariant(qore_ns_private& ns, NamedScope& nscope, UserFunctionVariant* v) {
+   DLLLOCAL int addPendingVariant(qore_ns_private& ns, const NamedScope& nscope, AbstractQoreFunctionVariant* v) {
       assert(nscope.size() > 1);
-      SimpleRefHolder<UserFunctionVariant> vh(v);
+      SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
 
       QoreNamespace* fns = ns.ns;
       for (unsigned i = 0; i < nscope.size() - 1; ++i) {
@@ -990,11 +991,11 @@ public:
       return rns.rpriv->copy(po);
    }
 
-   DLLLOCAL static int addPendingVariant(QoreNamespace& ns, const char* name, UserFunctionVariant* v) {
+   DLLLOCAL static int addPendingVariant(QoreNamespace& ns, const char* name, AbstractQoreFunctionVariant* v) {
       return getRootNS()->rpriv->addPendingVariant(*ns.priv, name, v);
    }
 
-   DLLLOCAL static int addPendingVariant(QoreNamespace& ns, NamedScope& name, UserFunctionVariant* v) {
+   DLLLOCAL static int addPendingVariant(QoreNamespace& ns, const NamedScope& name, AbstractQoreFunctionVariant* v) {
       return getRootNS()->rpriv->addPendingVariant(*ns.priv, name, v);
    }
 

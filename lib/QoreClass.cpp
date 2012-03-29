@@ -2967,7 +2967,7 @@ void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase *variant) {
 }
 
 int MethodFunctionBase::parseAddUserMethodVariant(MethodVariantBase *variant) {
-   int rc = parseAddVariant(variant);
+   int rc = addPendingVariant(variant);
    if (!rc && pending_all_private && !variant->isPrivate())
       pending_all_private = false;
    return rc;
