@@ -101,14 +101,6 @@ public:
    */
    DLLEXPORT void addSystemClass(QoreClass *oc);
 
-   //! adds a subnamespace to the namespace
-   /** use this function when the QoreNamespace can be added directly to the tree
-       (does not need to be merged with another namespace of the same name and does
-       not contain user code)
-       @param ns the subnamespace to add to the namespace
-   */
-   DLLEXPORT void addInitialNamespace(QoreNamespace *ns);
-
    //! returns a deep copy of the namespace; DEPRECATED: use copy(int64) instead
    /** @param po parse options to use when copying the namespace
        @return a deep copy of the namespace
@@ -157,6 +149,14 @@ public:
        @param ns the namespace to add, memory is now owned by parent namespace
     */
    DLLEXPORT void addNamespace(QoreNamespace *ns);
+
+   //! adds a subnamespace to the namespace
+   /** use this function when the QoreNamespace can be added directly to the tree
+       (does not need to be merged with another namespace of the same name and does
+       not contain user code)
+       @param ns the subnamespace to add to the namespace
+   */
+   DLLEXPORT void addInitialNamespace(QoreNamespace *ns);
 
    //! finds a Namespace based on the argument; creates it (or the whole path) if necessary
    /** can only be called in the parse lock

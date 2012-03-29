@@ -80,7 +80,7 @@ static QoreThreadLock mutex;
 typedef std::deque<std::string> strdeque_t;
 
 static QoreStringNode *qore_load_module_from_path(const char *path, const char *feature = 0, ModuleInfo **mip = 0, QoreProgram *pgm = 0);
-QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgram *pgm, mod_op_e op = MOD_OP_NONE, version_list_t *version = 0);
+static QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgram *pgm, mod_op_e op = MOD_OP_NONE, version_list_t *version = 0);
 
 //! non-thread-safe list of strings of directory names
 /** a deque should require fewer memory allocations compared to a linked list
@@ -474,7 +474,25 @@ static QoreStringNode *check_module_version(ModuleInfo *mi, mod_op_e op, version
    return 0;
 }
 
-QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgram *pgm, mod_op_e op, version_list_t *version) {
+static QoreStringNode* qore_check_load_module_intern(ModuleInfo *mi, mod_op_e op, version_list_t* version, QoreProgram* pgm) {
+   // check version if necessary
+   if (version) {
+      QoreStringNode *err = check_module_version(mi, op, version);
+      if (err)
+	 return err;
+   }
+
+   if (pgm) {
+      // FIXME: set module data in thread-local data to handle errors merging data from modules
+      // also to commit changes afterwards if there were no errors
+
+      mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
+      pgm->addFeature(mi->getName());
+   }
+   return 0;
+}
+
+static QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgram *pgm, mod_op_e op, version_list_t *version) {
    assert(!version || (version && op != MOD_OP_NONE));
 
    // check for special "qore" feature
@@ -508,20 +526,9 @@ QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgra
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
    ModuleInfo *mi = qore_find_module_unlocked(name);
-   if (mi) {
-      // check version if necessary
-      if (version) {
-	 QoreStringNode *err = check_module_version(mi, op, version);
-	 if (err)
-	    return err;
-      }
 
-      if (pgm) {
-	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
-	 pgm->addFeature(mi->getName());
-      }
-      return 0;
-   }
+   if (mi)
+      return qore_check_load_module_intern(mi, op, version, pgm);
 
    QoreStringNode *errstr;
 
@@ -530,18 +537,7 @@ QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgra
       if ((errstr = qore_load_module_from_path(name, 0, &mi, pgm)))
 	 return errstr;
 
-      // check version if necessary
-      if (version) {
-	 QoreStringNode *err = check_module_version(mi, op, version);
-	 if (err)
-	    return err;
-      }
-      
-      if (pgm) {
-	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
-	 pgm->addFeature(mi->getName());
-      }
-      return 0;
+      return qore_check_load_module_intern(mi, op, version, pgm);
    }
 
    // otherwise, try to find module in the module path
@@ -567,19 +563,7 @@ QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgra
 	    if ((errstr = qore_load_module_from_path(str.getBuffer(), name, &mi, pgm)))
 	       return errstr;
 
-	    // check version if necessary
-	    if (version) {
-	       QoreStringNode *err = check_module_version(mi, op, version);
-	       if (err)
-		  return err;
-	    }
-
-	    //printd(5, "ModuleManager::loadModuleIntern() %s pgm=%p\n", mi->getName(), pgm);
-	    if (pgm) {
-	       mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
-	       pgm->addFeature(mi->getName());
-	    }
-	    return 0;
+	    return qore_check_load_module_intern(mi, op, version, pgm);
 	 }
       }
       w++;

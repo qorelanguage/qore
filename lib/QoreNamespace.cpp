@@ -128,6 +128,12 @@ void QoreNamespace::addSystemClass(QoreClass* oc) {
 }
 
 void QoreNamespace::addNamespace(QoreNamespace* ns) {
+   // FIXME: check for namespaces being merged from modules here and process accordingly
+   priv->addNamespace(ns->priv);
+}
+
+void QoreNamespace::addInitialNamespace(QoreNamespace* ns) {
+   // FIXME: check for namespaces being merged from modules here and process accordingly
    priv->addNamespace(ns->priv);
 }
 
@@ -146,10 +152,6 @@ void qore_ns_private::addNamespace(qore_ns_private* nns) {
    QorePrivateNamespaceIterator qpni(nns, true);
    while (qpni.next())
       rns->rebuildIndexes(qpni.get());
-}
-
-void QoreNamespace::addInitialNamespace(QoreNamespace* ns) {
-   priv->addNamespace(ns->priv);
 }
 
 void QoreNamespaceList::deleteAll() {
@@ -443,7 +445,7 @@ void StaticSystemNamespace::init() {
    rpriv->qoreNS = new QoreNamespace("Qore");
    QoreNamespace& qns = *rpriv->qoreNS;
 
-   qns.addInitialNamespace(get_thread_ns(qns));
+   qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
    // add system object types
    qns.addSystemClass(initTimeZoneClass(qns));
@@ -489,7 +491,7 @@ void StaticSystemNamespace::init() {
    // set up Option namespace for Qore options
    QoreNamespace* option = new QoreNamespace("Option");
    init_option_constants(*option);
-   qns.addInitialNamespace(option);
+   qore_ns_private::addNamespace(qns, option);
 
    // create Qore::SQL namespace
    QoreNamespace* sqlns = new QoreNamespace("SQL");
@@ -500,16 +502,16 @@ void StaticSystemNamespace::init() {
 
    init_dbi_functions(*sqlns);
    init_dbi_constants(*sqlns);
-   qns.addInitialNamespace(sqlns);
+   qore_ns_private::addNamespace(qns, sqlns);
 
    // create get Qore::Err namespace with ERRNO constants
    QoreNamespace* Err = new QoreNamespace("Err");
    init_errno_constants(*Err);
-   qns.addInitialNamespace(Err);
-
+   qore_ns_private::addNamespace(qns, Err);
+   
    QoreNamespace* tns = new QoreNamespace("Type");
    init_type_constants(*tns);
-   qns.addInitialNamespace(tns);
+   qore_ns_private::addNamespace(qns, tns);
 
    init_Datasource_constants(qns);
    init_File_constants(qns);
@@ -525,7 +527,7 @@ void StaticSystemNamespace::init() {
 
    builtinFunctions.init(qns);
 
-   addInitialNamespace(rpriv->qoreNS);
+   qore_ns_private::addNamespace(*this, rpriv->qoreNS);
 
    // add all changes in loaded modules
    ANSL.init(this, rpriv->qoreNS);
@@ -927,6 +929,20 @@ QoreNamespace* qore_root_ns_private::parseResolveNamespace(const NamedScope* nsc
    return 0;
 }
 
+const QoreFunction* qore_root_ns_private::runtimeFindFunctionIntern(const NamedScope& name, const qore_ns_private*& ns) {
+   assert(name.size() > 1);
+
+   // iterate all namespaces with the initial name and look for the match
+   const QoreFunction* f = 0;
+   NamespaceMapIterator nmi(nsmap, name.strlist[0].c_str());
+   while (nmi.next()) {
+      if ((f = nmi.get()->runtimeMatchFunction(name, ns)))
+         return f;
+   }
+
+   return 0;
+}
+
 const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const NamedScope& nscope) {
    assert(nscope.size() > 1);
 
@@ -1215,6 +1231,20 @@ const QoreFunction* qore_ns_private::parseMatchFunction(const NamedScope& nscope
    }
 
    return fns->priv->func_list.find(nscope.getIdentifier(), false);
+}
+
+const QoreFunction* qore_ns_private::runtimeMatchFunction(const NamedScope& nscope, const qore_ns_private*& rns) const {
+   assert(name == nscope[0]);
+
+   const QoreNamespace* fns = ns;
+   // check for a match of the structure in this namespace
+   for (unsigned i = 1; i < (nscope.size() - 1); i++) {
+      fns = fns->priv->nsl.find(nscope[i]);
+      if (!fns)
+         return 0;
+   }
+   rns = fns->priv;
+   return rns->func_list.find(nscope.getIdentifier(), true);
 }
 
 // qore_ns_private::parseMatchNamespace()

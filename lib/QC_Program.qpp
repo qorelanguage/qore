@@ -691,7 +691,7 @@ any Program::run() {
 $pgm.importFunction("log");
     @endcode
 
-    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists.
+    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists
     @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
  */
 nothing Program::importFunction(string func) {
@@ -709,7 +709,7 @@ nothing Program::importFunction(string func) {
 $pgm.importFunction("service_log", "log");
     @endcode
 
-    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists.
+    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists; target namespace does not exist
     @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
  */
 nothing Program::importFunction(string func, string new_name) {

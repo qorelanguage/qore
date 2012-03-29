@@ -215,6 +215,18 @@ int qore_program_private::internParseCommit() {
 void qore_program_private::importFunction(ExceptionSink *xsink, QoreFunction *u, const qore_ns_private& oldns, const char *new_name) {
    AutoLocker al(&plock);
 
+   if (new_name && strstr(new_name, "::")) {
+      NamedScope nscope(new_name);
+      QoreNamespace* tns = qore_root_ns_private::runtimeFindNamespaceForFunction(*RootNS, nscope);
+      if (!tns) {
+	 xsink->raiseException("FUNCTION-IMPORT-ERROR", "target namespace in '%s' does not exist", new_name);
+	 return;
+      }
+
+      qore_root_ns_private::importFunction(*RootNS, xsink, *tns, u, nscope.getIdentifier());
+      return;
+   }
+
    std::string nspath;
    oldns.getPath(nspath);
    
