@@ -138,7 +138,11 @@ example programs
 %package devel
 Summary: The header files needed to compile programs using the qore library
 Group: Development/Languages
+%if 0%{?suse_version}
 Requires: libqore5 = %{version}-%{release}
+%else
+Requires: %{name}-libs = %{version}-%{release}
+%endif
 
 %description devel
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
