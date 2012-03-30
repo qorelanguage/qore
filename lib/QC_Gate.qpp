@@ -42,7 +42,7 @@
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
  */
-qclass Gate [dom=THREAD_CLASS; arg=QoreGate* g; ns=Thread];
+qclass Gate [dom=THREAD_CLASS; arg=QoreGate* g; ns=Qore::Thread];
 
 //! Creates a new Gate object
 /** 

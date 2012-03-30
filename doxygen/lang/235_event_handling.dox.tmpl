@@ -297,7 +297,7 @@
     @par Description
     This event is raised immediately after chunk information is received providing the size of the next chunk.\n\n The event hash contains the following keys:\n
     |!Key|!Value
-    |\c event|@ref Qore::EVENT_HTTP_CHUNK_SIZE_RECEIVED
+    |\c event|@ref Qore::EVENT_HTTP_CHUNK_SIZE
     |\c source|@ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
     |\c size|An integer giving the number of bytes in the next chunk.
     |\c total_read|An integer giving the total number of bytes of chunked data read in the current message.

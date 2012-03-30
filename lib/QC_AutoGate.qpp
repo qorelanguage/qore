@@ -48,7 +48,7 @@ sub check_error($error) {
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
  */
-qclass AutoGate [dom=THREAD_CLASS; arg=QoreAutoGate* ag; ns=Thread];
+qclass AutoGate [dom=THREAD_CLASS; arg=QoreAutoGate* ag; ns=Qore::Thread];
 
 //! Creates the AutoGate object based on the Gate argument passed and immediately calls Gate::enter()
 /** @param gate the @ref Qore::Thread::Gate "Gate" object to enter for the lifetime of the AutoGate object

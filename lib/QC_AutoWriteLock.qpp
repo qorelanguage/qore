@@ -48,7 +48,7 @@ sub check_error($error) {
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option
  */
-qclass AutoWriteLock [dom=THREAD_CLASS; arg=QoreAutoWriteLock* arwl; ns=Thread];
+qclass AutoWriteLock [dom=THREAD_CLASS; arg=QoreAutoWriteLock* arwl; ns=Qore::Thread];
 
 //! Creates the AutoWriteLock object based on the RWLock argument passed and immediately calls RWLock::writeLock()
 /** The AutoReadLock object immediately calls RWLock::writeLock() on the RWLock object passed, and saves it so it can be released when the AutoReadLock object is destroyed.

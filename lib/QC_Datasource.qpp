@@ -138,7 +138,7 @@ my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col
 
     @note This class is not available with the @ref PO_NO_DATABASE parse option
  */
-qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=SQL];
+qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=Qore::SQL];
 
 //! Creates the Datasource object; attempts to load a DBI driver if the driver is not already present in %Qore
 /** @param driver The name of the DBI driver for the Datasource. See @ref sql_constants for builtin constants for DBI drivers shipped with %Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)

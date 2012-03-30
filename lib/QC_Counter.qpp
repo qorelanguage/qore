@@ -29,7 +29,7 @@
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
  */
-qclass Counter [dom=THREAD_CLASS; arg=Counter* c; ns=Thread];
+qclass Counter [dom=THREAD_CLASS; arg=Counter* c; ns=Qore::Thread];
 
 //! Creates the Counter object
 /** @param c an argument is supplied here, then the Counter will be initialized with this value, otherwise the Counter is initialized with 0

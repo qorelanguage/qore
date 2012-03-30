@@ -50,7 +50,7 @@
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
  */
-qclass RWLock [dom=THREAD_CLASS; arg=RWLock* rwl; ns=Thread; vparent=AbstractSmartLock];
+qclass RWLock [dom=THREAD_CLASS; arg=RWLock* rwl; ns=Qore::Thread; vparent=AbstractSmartLock];
 
 //! Creates the RWLock object
 /** 

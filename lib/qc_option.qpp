@@ -187,7 +187,7 @@ const HAVE_STACK_GUARD = bool(QORE_CONST_HAVE_CHECK_STACK_POS);
 
     @note This constant is always \c False on native Windows ports
 
-    @see signal_handling
+    @see @ref signal_handling
  */
 const HAVE_SIGNAL_HANDLING = bool(QORE_CONST_HAVE_SIGNAL_HANDLING);
 

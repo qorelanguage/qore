@@ -52,7 +52,7 @@ sub check_error($error) {
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
  */
-qclass AutoLock [dom=THREAD_CLASS; arg=QoreAutoLock* al; ns=Thread];
+qclass AutoLock [dom=THREAD_CLASS; arg=QoreAutoLock* al; ns=Qore::Thread];
 
 //! Creates the AutoLock object based on the @ref Qore::Thread::Mutex "Mutex" argument passed and immediately calls Mutex::lock()
 /** The AutoLock object immediately calls Mutex::lock() on the @ref Qore::Thread::Mutex "Mutex" object passed, and saves it; Mutex::unlock() is called in the destructor if the lock is still held by the current thread.

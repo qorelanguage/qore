@@ -27,7 +27,7 @@
 //! The Sequence class implements a thread-safe increment-only object
 /** This class does not block therefore is not tagged with @ref Qore::PO_NO_THREAD_CLASSES
  */
-qclass Sequence [arg=QoreSequence* s; ns=Thread];
+qclass Sequence [arg=QoreSequence* s; ns=Qore::Thread];
 
 //! Creates a new Sequence object
 /** 

@@ -77,7 +77,7 @@
 
     @note This class is not available with the @ref PO_NO_DATABASE parse option
  */
-qclass SQLStatement [dom=DATABASE; arg=QoreSQLStatement* stmt; ns=SQL];
+qclass SQLStatement [dom=DATABASE; arg=QoreSQLStatement* stmt; ns=Qore::SQL];
 
 //! Creates the SQLStatement object based on the given Datasource object that provides the connection to the database
 /** This method will throw an exception only if the object passed as an argument uses a driver that does not support the prepared statement interface added in %Qore version 0.8.1.

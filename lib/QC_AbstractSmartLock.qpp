@@ -31,7 +31,7 @@
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
  */
-qclass AbstractSmartLock [dom=THREAD_CLASS; arg=AbstractSmartLock* asl; ns=Thread];
+qclass AbstractSmartLock [dom=THREAD_CLASS; arg=AbstractSmartLock* asl; ns=Qore::Thread];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
 /** @throw ABSTRACTSMARTLOCK-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
