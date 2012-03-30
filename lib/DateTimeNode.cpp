@@ -46,6 +46,9 @@ DateTimeNode::DateTimeNode(int64 seconds, int ms) : SimpleValueQoreNode(NT_DATE)
 DateTimeNode::DateTimeNode(const char *date) : SimpleValueQoreNode(NT_DATE), DateTime(date) {
 }
 
+DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo *zone, const char *date) : SimpleValueQoreNode(NT_DATE), DateTime(zone, date) {
+}
+
 DateTimeNode::DateTimeNode(struct tm *tms) : SimpleValueQoreNode(NT_DATE), DateTime(tms) {
 }
 

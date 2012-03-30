@@ -131,11 +131,16 @@ public:
    */
    DLLEXPORT DateTime(int64 seconds, int ms);
 
-   //! constructor for setting the date from a string in the format YYYYMMDDHHmmSS
-   /** additionally a milliseconds value can be appended with a period and 3 integers in the format [.xxx]
-       @param date the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
+   //! constructor for setting the date from a string
+   /** @param date the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
    */
    DLLEXPORT DateTime(const char *date);
+
+   //! constructor for setting the date from a string with a flexible format
+   /** @param zone the time zone for the time
+       @param date the string to use to set the date
+   */
+   DLLEXPORT DateTime(const AbstractQoreZoneInfo *zone, const char *date);
 
    //! constructor for setting an absolute date based on a "struct tm"
    /**
@@ -182,12 +187,18 @@ public:
    //! sets the date to an absolute date/time as given
    DLLEXPORT void setDate(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
 
-   //! sets an absolute date value from a string in the format YYYYMMDDHHmmSS
-   /** additionally a milliseconds value can be appended with a period and 3 integers in the format [.xxx]
-       note that the local time zone will be assumed
-       @param str the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
+   //! sets an absolute date value from a string with a flexible format
+   /** note that the local time zone will be assumed
+       @param str the string to use to set the date
    */
    DLLEXPORT void setDate(const char *str);
+
+   //! sets an absolute date value from a time zone pointer and a string with a flexible format
+   /** 
+       @param zone the time zone for the time
+       @param str the string to use to set the date with a flexible format
+   */
+   DLLEXPORT void setDate(const AbstractQoreZoneInfo *zone, const char *str);
 
    //! sets a relative date from a string in the format YYYYMMDDHHmmSS
    DLLEXPORT void setRelativeDate(const char *str);

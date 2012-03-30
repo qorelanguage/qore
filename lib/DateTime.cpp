@@ -55,6 +55,10 @@ DateTime::DateTime(const char *str) : priv(new qore_date_private) {
    setDate(str);
 }
 
+DateTime::DateTime(const AbstractQoreZoneInfo *zone, const char *str) : priv(new qore_date_private) {
+   priv->setAbsoluteDate(str, zone);
+}
+
 DateTime::~DateTime() {
    delete priv;
 }
@@ -227,6 +231,10 @@ void DateTime::setDate(const struct tm *tms, short ms) {
 
 void DateTime::setDate(const char *str) {
    priv->setDate(str);
+}
+
+void DateTime::setDate(const AbstractQoreZoneInfo *zone, const char *str) {
+   priv->setAbsoluteDate(str, zone);
 }
 
 void DateTime::setRelativeDate(const char *str) {

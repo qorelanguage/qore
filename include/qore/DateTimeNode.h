@@ -106,11 +106,16 @@ public:
    */
    DLLEXPORT DateTimeNode(int64 seconds, int ms);
 
-   //! constructor for setting the date from a string in the format YYYYMMDDHHmmSS
-   /** additionally a milliseconds value can be appended with a period and 3 integers in the format [.xxx]
-       @param date the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
+   //! constructor for setting the date from a string with a flexible format
+   /** @param date the string to use to set the date
    */
    DLLEXPORT DateTimeNode(const char *date);
+
+   //! constructor for setting the date from a string with a flexible format
+   /** @param zone the time zone for the time
+       @param date the string to use to set the date
+   */
+   DLLEXPORT DateTimeNode(const AbstractQoreZoneInfo *zone, const char *date);
 
    //! constructor for setting an absolute date based on a "struct tm"
    /**
