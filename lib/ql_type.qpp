@@ -31,7 +31,7 @@
     String type constants as returned by type() and typename()
 */
 //@{
-namespace Type;
+namespace Qore::Type;
 
 //! Gives the type for @ref boolean "boolean" values
 const Boolean = "bool";

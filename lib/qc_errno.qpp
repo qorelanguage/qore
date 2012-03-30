@@ -283,7 +283,7 @@
     The constants in this group reflect the value of the host system's errno constant of the same name.  If any of these constants are not defined on the current system, then they will have the value -1 in %Qore.
 */
 //@{
-namespace Err;
+namespace Qore::Err;
 
 //! Argument list too long
 const E2BIG = E2BIG;

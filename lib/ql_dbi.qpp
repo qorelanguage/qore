@@ -38,10 +38,13 @@
     |\c options|A hash of options given in the string, if present. Currently-supported options are \c "min" and \c "max", which are respected by the DatasourcePool::constructor(hash) variant for setting the minimum and maximum connections in the pool, respectively    
  */
 //@{
+namespace Qore::SQL;
 
 //! Returns a @ref datasource_hash "datasource hash" of the components of a datasource string
 /** 
-    @param ds a string describing the datasource with the following syntax: <tt>[<em>driver</em><tt>:][</tt><em>user</em><tt>]:[/</tt><em>pass</em><tt>]@</tt><em>db</em><tt>[(</tt><em>charset</em><tt>)][%</tt><em>host</em><tt>[:</tt><em>port</em><tt>][{</tt><em>option</em><tt>=</tt><em>val</em><tt>[,...]}]</tt>, where all elements except <tt>@</tt><em>db</em> are optional
+    @param ds a string describing the datasource with the following syntax:\n
+    <tt>[</tt><em>driver</em><tt>:][</tt><em>user</em><tt>]:[/</tt><em>pass</em><tt>]\@</tt><em>db</em><tt>[(</tt><em>charset</em><tt>)][%</tt><em>host</em><tt>[:</tt><em>port</em><tt>][{</tt><em>option</em><tt>=</tt><em>val</em><tt>[,...]}]</tt> \n
+    where all elements except <tt>\@</tt><em>db</em> are optional
 
     @return a @ref datasource_hash "datasource hash" of the components of a datasource string
 
@@ -124,7 +127,7 @@ nothing getDBIDriverCapabilities() [flags=NOOP] {
     SQL constants
  */
 //@{
-namespace SQL;
+namespace Qore::SQL;
 
 //! for binding string values
 const VARCHAR = "string";

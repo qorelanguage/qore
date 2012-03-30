@@ -173,7 +173,7 @@
     Option constants
 */
 //@{
-namespace Option;
+namespace Qore::Option;
 //! Indicates if the %Qore library supports fast atomic reference counting
 /** Note that if this constant is \c False, atomic operations are supported by mutexes and are therefore slower than with native atomic reference counting operations
  */

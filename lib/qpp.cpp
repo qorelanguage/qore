@@ -1858,7 +1858,7 @@ public:
       if (ns.empty())
          fputs("\n//! main Qore-language namespace\nnamespace Qore {\n", fp);
       else
-         fprintf(fp, "//! %s namespace\nnamespace Qore::%s {\n", ns.c_str(), ns.c_str());
+         fprintf(fp, "//! %s namespace\nnamespace %s {\n", ns.c_str(), ns.c_str());
 
       // serialize group header doc
       serialize_dox_comment(fp, doc);
@@ -1884,7 +1884,7 @@ public:
          if (ns.empty())
             fputs("\n//! main Qore-language namespace\nnamespace Qore {\n", fp);
          else
-            fprintf(fp, "//! %s namespace\nnamespace Qore::%s {\n", ns.c_str(), ns.c_str());
+            fprintf(fp, "//! %s namespace\nnamespace %s {\n", ns.c_str(), ns.c_str());
       }
 
       // serialize group header doc
@@ -2581,7 +2581,7 @@ public:
       if (ns.empty())
          fputs("//! main Qore-language namespace\nnamespace Qore {\n", fp);
       else
-         fprintf(fp, "//! %s namespace\nnamespace Qore::%s {\n", ns.c_str(), ns.c_str());
+         fprintf(fp, "//! %s namespace\nnamespace %s {\n", ns.c_str(), ns.c_str());
 
       serialize_dox_comment(fp, doc);
       
