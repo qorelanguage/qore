@@ -924,7 +924,7 @@ static void doRow(strlist_t &sl, std::string &tstr) {
    tstr += "   </tr>\n";
 }
 
-static size_t find_start(std::string& str) {
+static size_t justify_start(std::string& str) {
    // find start of long comment
    size_t start = str.find("/**");
    if (start == std::string::npos)
@@ -946,6 +946,15 @@ static size_t find_start(std::string& str) {
    }
    if (be != start)
       str.erase(start, be - start);
+
+   return start;
+}
+
+static size_t find_start(std::string& str) {
+   // find start of long comment and justify text in comment
+   size_t start = justify_start(str);
+   if (start == std::string::npos)
+      return start;
 
    size_t lc_start = start;
 
@@ -1018,7 +1027,7 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
 
       end = j;
 
-      std::string tstr = "@htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly\n<table>";
+      std::string tstr = "@htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly\n    <table>";
 
       std::string str(buf, i + 1, j - i - 1);
 
@@ -1045,12 +1054,12 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
          end = j;
       }
 
-      tstr += "</table>\n";
+      tstr += "    </table>\n";
 
       buf.replace(start, end - start, tstr);
    }
 
-   start = 0;
+   start = 0;   
    if (!flags.empty()) {
       start = find_start(buf);
       if (start == std::string::npos) {
@@ -1068,6 +1077,9 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
          buf.insert(start, fbuf);
       }
    }
+   else if (dom.empty())
+      justify_start(buf);
+
    if (!dom.empty()) {
       if (!start)
          start = find_start(buf);
