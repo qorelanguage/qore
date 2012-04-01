@@ -58,7 +58,7 @@ static int64 PSEUDOBOOLEAN_typeCode(QoreObject *ignored, AbstractQoreNode *node,
 static QoreClass *do_type_code(const char *name, q_method_int64_t f) {
    QoreClass *qc = new QoreClass(name);
    qc->addBuiltinVirtualBaseClass(QC_PSEUDOVALUE);
-   qc->addMethodExtended("typeCode", f, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
+   qc->addMethodExtended3("typeCode", f, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
    return qc;
 }
 

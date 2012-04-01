@@ -217,18 +217,6 @@ public:
 
    DLLLOCAL void addBuiltinVariant(const char* name, AbstractQoreFunctionVariant* v);
 
-   static void getParams(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, name_vec_t& nameList, va_list args) {
-      typeList.reserve(num_params);
-      defaultArgList.reserve(num_params);
-      nameList.reserve(num_params);
-      for (unsigned i = 0; i < num_params; ++i) {
-         typeList.push_back(va_arg(args, const QoreTypeInfo *));
-         defaultArgList.push_back(va_arg(args, AbstractQoreNode *));
-         nameList.push_back(va_arg(args, const char*));
-         //printd(0, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
-      }
-   }
-
    template <typename T, class B>
    DLLLOCAL void addBuiltinVariant(const char *name, T f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
       //printd(0, "add2('%s', %p, flags=%lld) BEFORE\n", name, f, flags);
@@ -236,7 +224,7 @@ public:
       arg_vec_t defaultArgList;
       name_vec_t nameList;
       if (num_params)
-         getParams(num_params, typeList, defaultArgList, nameList, args);
+         qore_process_params(num_params, typeList, defaultArgList, nameList, args);
 
       //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, returnTypeInfo->getName(), num_params);
       addBuiltinVariant(name, new B(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList, nameList));

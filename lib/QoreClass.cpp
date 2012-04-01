@@ -2295,56 +2295,60 @@ void QoreClass::addMethodExtended(const char *nme, q_method_t m, bool priv_flag,
    priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList));
 }
 
-void QoreClass::addMethodExtended(const char *nme, q_method_int64_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+void QoreClass::addMethodExtended3(const char *nme, q_method_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
    type_vec_t typeList;
    arg_vec_t defaultArgList;
+   name_vec_t nameList;
    if (num_params) {
       va_list args;
       va_start(args, num_params);
-      qore_process_params(num_params, typeList, defaultArgList, args);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodBigIntVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
-void QoreClass::addMethodExtended(const char *nme, q_method_int_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+void QoreClass::addMethodExtended3(const char *nme, q_method_int64_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
    type_vec_t typeList;
    arg_vec_t defaultArgList;
+   name_vec_t nameList;
    if (num_params) {
       va_list args;
       va_start(args, num_params);
-      qore_process_params(num_params, typeList, defaultArgList, args);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodIntVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodBigIntVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
-void QoreClass::addMethodExtended(const char *nme, q_method_bool_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+void QoreClass::addMethodExtended3(const char *nme, q_method_bool_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
    type_vec_t typeList;
    arg_vec_t defaultArgList;
+   name_vec_t nameList;
    if (num_params) {
       va_list args;
       va_start(args, num_params);
-      qore_process_params(num_params, typeList, defaultArgList, args);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodBoolVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodBoolVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
-void QoreClass::addMethodExtended(const char *nme, q_method_double_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+void QoreClass::addMethodExtended3(const char *nme, q_method_double_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
    type_vec_t typeList;
    arg_vec_t defaultArgList;
+   name_vec_t nameList;
    if (num_params) {
       va_list args;
       va_start(args, num_params);
-      qore_process_params(num_params, typeList, defaultArgList, args);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodFloatVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodFloatVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 void QoreClass::addMethodExtendedList(const char *nme, q_method_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
@@ -2421,6 +2425,62 @@ void QoreClass::addStaticMethodExtended(const char *nme, q_func_t m, bool priv_f
    priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList));
 }
 
+void QoreClass::addStaticMethodExtended3(const char *nme, q_func_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   name_vec_t nameList;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+      va_end(args);
+   }
+
+   priv->addBuiltinMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+}
+
+void QoreClass::addStaticMethodExtended3(const char *nme, q_func_int64_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   name_vec_t nameList;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+      va_end(args);
+   }
+
+   priv->addBuiltinMethod(nme, new BuiltinStaticMethodBigIntVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+}
+
+void QoreClass::addStaticMethodExtended3(const char *nme, q_func_bool_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   name_vec_t nameList;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+      va_end(args);
+   }
+
+   priv->addBuiltinMethod(nme, new BuiltinStaticMethodBoolVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+}
+
+void QoreClass::addStaticMethodExtended3(const char *nme, q_func_double_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   name_vec_t nameList;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+      va_end(args);
+   }
+
+   priv->addBuiltinMethod(nme, new BuiltinStaticMethodFloatVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+}
+
 void QoreClass::addStaticMethodExtendedList(const char *nme, q_func_t m, bool priv_flag, int64 n_flags, int64 n_domain, const QoreTypeInfo *n_returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
    priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, n_flags, n_domain, n_returnTypeInfo, n_typeList, n_defaultArgList));
 }
@@ -2440,6 +2500,19 @@ void QoreClass::setConstructorExtended(q_constructor_t m, bool priv_flag, int64 
       va_end(args);
    }
    priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_flags, n_domain, typeList, defaultArgList));
+}
+
+void QoreClass::setConstructorExtended3(q_constructor_t m, bool priv_flag, int64 n_flags, int64 n_domain, unsigned num_params, ...) {
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   name_vec_t nameList;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+      va_end(args);
+   }
+   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_flags, n_domain, typeList, defaultArgList, nameList));
 }
 
 void QoreClass::setConstructorExtendedList(q_constructor_t m, bool priv_flag, int64 n_flags, int64 n_domain, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {

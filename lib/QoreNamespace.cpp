@@ -66,11 +66,6 @@
 #  include "tests/builtin_inheritance_tests.cpp"
 #endif
 
-DLLLOCAL void init_Datasource_constants(QoreNamespace& ns);
-DLLLOCAL void init_File_constants(QoreNamespace& ns);
-DLLLOCAL void init_Program_constants(QoreNamespace& ns);
-DLLLOCAL void init_Socket_constants(QoreNamespace& ns);
-DLLLOCAL void init_TermIOS_constants(QoreNamespace& ns);
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
 DLLLOCAL void init_compression_constants(QoreNamespace& ns);
 DLLLOCAL void init_crypto_constants(QoreNamespace& ns);
@@ -513,11 +508,6 @@ void StaticSystemNamespace::init() {
    init_type_constants(*tns);
    qore_ns_private::addNamespace(qns, tns);
 
-   init_Datasource_constants(qns);
-   init_File_constants(qns);
-   init_Program_constants(qns);
-   init_Socket_constants(qns);
-   init_TermIOS_constants(qns);
    init_type_constants(qns);
    init_compression_constants(qns);
    init_crypto_constants(qns);

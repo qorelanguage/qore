@@ -32,11 +32,11 @@
 static const char *DSPC_ERR = "DATASOURCEPOOL-CONSTRUCTOR-ERROR";
 
 //! Provides transparent per-thread, per-transaction datasource connection pooling
-/** In most cases, the DatasourcePool class can be used as a drop-in replacement for the Datasource class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object. If no datasource is available, the calling thread will block until a datasource comes available.
+/** In most cases, the %DatasourcePool class can be used as a drop-in replacement for the Datasource class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object. If no datasource is available, the calling thread will block until a datasource comes available.
 
-    Note that the same principles apply to SQL and database driver usage as with the Datasource class, see the Datasource class documentation for more information.
+    Note that the same principles apply to %SQL and database driver usage as with the Datasource class, see the Datasource class documentation for more information.
 
-    The DatasourcePool class uses Qore's thread resource tracking infrastructure to raise an exception if a thread terminates while a connection is allocated to it. If %Qore user code enters a transaction with a DatasourcePool object and the thread terminates without closing the transaction (via DatasourcePool::commit() or DatasourcePool::rollback()), an exception will automatically be raised, the transaction will be rolled back, and the Datasource connection will be freed to the pool.
+    The %DatasourcePool class uses Qore's thread resource tracking infrastructure to raise an exception if a thread terminates while a connection is allocated to it. If %Qore user code enters a transaction with a %DatasourcePool object and the thread terminates without closing the transaction (via DatasourcePool::commit() or DatasourcePool::rollback()), an exception will automatically be raised, the transaction will be rolled back, and the Datasource connection will be freed to the pool.
 
     @anchor datasourcepool_connection_allocations
     <b>%DatasourcePool Connection Allocations</b>
@@ -51,9 +51,9 @@ static const char *DSPC_ERR = "DATASOURCEPOOL-CONSTRUCTOR-ERROR";
 
     To begin a transaction with one of the select methods (for example, with \c "select for update"), call DatasourcePool::beginTransaction() first to manually dedicate a Datasource to the thread before calling the select method. Otherwise statements that should be in the same transaction may be executed in different connections.
 
-    Executing a DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns. No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling DatasourcePool::exec(), DatasourcePool::vexec(), DatasourcePool::execRaw(), or DatasourcePool::beginTransaction().
+    Executing a %DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns. No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling DatasourcePool::exec(), DatasourcePool::vexec(), DatasourcePool::execRaw(), or DatasourcePool::beginTransaction().
 
-    Note that the SQLStatement class also grabs allocates a persistent connection to the calling thread when executing if it is created using a DatasourcePool object in the constructor; for more information see the SQLStatement class.
+    Note that the SQLStatement class also grabs allocates a persistent connection to the calling thread when executing if it is created using a %DatasourcePool object in the constructor; for more information see the SQLStatement class.
 
     @note This class is not available with the @ref PO_NO_DATABASE parse option
  */
@@ -250,11 +250,11 @@ nothing DatasourcePool::rollback() {
    ds->rollback(xsink);
 }
 
-//! Allocates a persistent connection to the current thread from the pool (if one has not already been allocated) and executes an SQL command on the server and returns either the integer row count (for example, for updates, inserts, and deletes) or the data retrieved (for example, if a stored procedure is executed that returns values)
-/** @param sql The SQL command to execute on the server
+//! Allocates a persistent connection to the current thread from the pool (if one has not already been allocated) and executes an %SQL command on the server and returns either the integer row count (for example, for updates, inserts, and deletes) or the data retrieved (for example, if a stored procedure is executed that returns values)
+/** @param sql The %SQL command to execute on the server
     @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
     @code
@@ -268,13 +268,13 @@ any DatasourcePool::exec(string sql, ...) {
    return ds->exec(sql, *vargs, xsink);
 }
 
-//! Allocates a persistent connection to the current thread from the pool (if one has not already been allocated) and executes SQL code on the DB connection, taking a list for all bind arguments
+//! Allocates a persistent connection to the current thread from the pool (if one has not already been allocated) and executes %SQL code on the DB connection, taking a list for all bind arguments
 /** Same as DatasourcePool::exec() except takes an explicit list for bind arguments
 
-    @param sql The SQL command to execute on the server
+    @param sql The %SQL command to execute on the server
     @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
     @code
@@ -287,15 +287,15 @@ any DatasourcePool::vexec(string sql, *softlist vargs) {
    return ds->exec(sql, vargs, xsink);
 }
 
-//! Allocates a persistent connection to the current thread from the pool (if one has not already been allocated) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
+//! Allocates a persistent connection to the current thread from the pool (if one has not already been allocated) and executes an %SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
 /** This method does not do any variable binding, so it's useful for example for DDL statements etc
     
     @par Warning:
-    Using this method to execute pure dynamic SQL many times with different SQL strings (as opposed to using the same string and binding by value instead of dynamic SQL) can affect application performance by prohibiting the efficient usage of the DB server's statement cache. See DB server documentation for variable binding and the SQL statement cache for more information.
+    Using this method to execute pure dynamic %SQL many times with different %SQL strings (as opposed to using the same string and binding by value instead of dynamic SQL) can affect application performance by prohibiting the efficient usage of the DB server's statement cache. See DB server documentation for variable binding and the %SQL statement cache for more information.
 
-    @param sql The SQL command to execute on the server; this string will not be subjected to any transformations for variable binding
+    @param sql The %SQL command to execute on the server; this string will not be subjected to any transformations for variable binding
 
-    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
     @code
@@ -309,17 +309,17 @@ any DatasourcePool::execRaw(string sql) {
    return ds->execRaw(sql, xsink);
 }
 
-//! Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)
+//! Executes an %SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)
 /** The return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
 
     Additionally, this format is a more efficient format than that returned by the Datasource::selectRows() method, because the column names are not repeated for each row returned. Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of Datasource::selectRows().
 
     This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
 
-    @param sql The SQL command to execute on the server
+    @param sql The %SQL command to execute on the server
     @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an SQL select statement, however some DBI drivers allow any SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
+    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
 
     @par Example:
     @code
@@ -334,17 +334,17 @@ any DatasourcePool::select(string sql, ...) {
    return ds->select(sql, *vargs, xsink);
 }
 
-//! Executes an SQL select statement on the server and returns the first row as a hash (the column values)
+//! Executes an %SQL select statement on the server and returns the first row as a hash (the column values)
 /** If more than one row is returned, then it is treated as an error and a \c DBI-SELECT-ROW-ERROR is returned (however the DBI driver should raise its own exception here to avoid retrieving more than one row from the server). For a similar method taking a list for all bind arguments, see DatasourcePool::vselectRow().
 
     This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
 
-    @param sql The SQL command to execute on the server
+    @param sql The %SQL command to execute on the server
     @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an SQL select statement, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
     @code
@@ -360,17 +360,17 @@ any DatasourcePool::selectRow(string sql, ...) {
    return ds->selectRow(sql, *vargs, xsink);
 }
 
-//! Executes an SQL select statement on the server and returns the result as a list (rows) of hashes (the column values)
+//! Executes an %SQL select statement on the server and returns the result as a list (rows) of hashes (the column values)
 /** The return format of this method is not as memory efficient as that returned by the DatasourcePool::select() method, therefore for larger amounts of data, it is recommended to use DatasourcePool::select().
 
     This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
 
-    @param sql The SQL command to execute on the server
+    @param sql The %SQL command to execute on the server
     @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+    @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
     @code
@@ -391,10 +391,10 @@ any DatasourcePool::selectRows(string sql, ...) {
 
     This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
 
-    @param sql The SQL command to execute on the server
+    @param sql The %SQL command to execute on the server
     @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
     @code
@@ -410,16 +410,16 @@ any DatasourcePool::vselect(string sql, *softlist vargs) {
 }
 
 //! Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments
-/** This method is the same as the DatasourcePool::selectRow() method, except this method takes a single argument after the SQL command giving the list of bind value parameters
+/** This method is the same as the DatasourcePool::selectRow() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters
 
     This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
 
-    @param sql The SQL command to execute on the server
+    @param sql The %SQL command to execute on the server
     @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an SQL select statement, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
     @code
@@ -435,7 +435,7 @@ any DatasourcePool::vselectRow(string sql, *softlist vargs) {
 }
 
 //! Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments
-/** Same as the Datasource::selectRows() method, except this method takes a single argument after the SQL command giving the list of bind value parameters.
+/** Same as the Datasource::selectRows() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters.
 
     The return format of this method is not as memory efficient as that returned by the DatasourcePool::select() method, therefore for larger amounts of data, it is recommended to use DatasourcePool::select().
 
@@ -443,10 +443,10 @@ any DatasourcePool::vselectRow(string sql, *softlist vargs) {
 
     This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
 
-    @param sql The SQL command to execute on the server
+    @param sql The %SQL command to execute on the server
     @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+    @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
     @code

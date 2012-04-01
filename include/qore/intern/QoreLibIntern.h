@@ -191,6 +191,7 @@ DLLLOCAL bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const Qo
 
 // processes parameter information
 DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, va_list args);
+DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, name_vec_t& nameList, va_list args);
 
 // call to get a node with reference count 1 (copy on write)
 void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink);

@@ -2,15 +2,12 @@
 
     <b>Keyword Types</b>
     |!Type|!Description
-    |Normal|Normal keywords cannot be used as function, method, or static variable names or constant names and also cannot be used as unquoted hash key or object member names with the @ref dot_operator ". operator"; at the moment there are only 2 normal keywords: @ref nothing "NOTHING" and @ref null "NULL"
     |Soft 1|Keywords of this type cannot be used as static variable names or constant names but can be used as function or method names if they are followed immediately by an open parenthesis (with no whitespace between the keyword and the open parenthesis), and they can be referenced as unquoted object or hash member names only if they are immediately preceded by the @ref dot_operator ". operator" (again with no whitespace between the "." and the keyword):
     |Soft 2|Keywords of this type cannot be used as static variable names or constant names but can be used as function or method names if they are followed by an open parenthesis (whitespace is allowed between the keyword and the open parenthesis), and they can be referenced as unquoted object or hash member names if they are immediately preceded by the @ref dot_operator ". operator" (again with no whitespace between the "." and the keyword):
     |Soft 3|Keywords of this type be referenced as unquoted object or hash member names if preceded immediately by the "." operator, however they may not be used as function or class method names or static variable names or constant names
 
     <b>Keywords</b>
     |!Keywords|!Type|!Description
-    |@ref nothing|Normal|gives a special data type designating the lack of a value (not equivalent to @ref null)
-    |@ref null|Normal|is a keyword for SQL NULL (not equivalent to @ref nothing)
     |@ref background "background"|Soft 1|for the @ref background "background operator"
     |@ref switch "case"|Soft 1|used in @ref switch "switch statements"
     |@ref chomp "chomp"|Soft 1|for the @ref chomp "chomp operator"

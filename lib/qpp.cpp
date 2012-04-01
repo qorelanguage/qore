@@ -226,15 +226,19 @@ static bool whitespace(int c) {
    return c == ' ' || c == '\n' || c == '\t';
 }
 
-static void trim(std::string &str) {
-   while (whitespace(str[0]))
-      str.erase(0, 1);
+static void trim_end(std::string& str) {
    while (true) {
       size_t len = str.size();
       if (!len || !whitespace(str[len - 1]))
          break;
       str.erase(len - 1);
    }
+}
+
+static void trim(std::string &str) {
+   while (whitespace(str[0]))
+      str.erase(0, 1);
+   trim_end(str);
 }
 
 static int read_line(unsigned& lineNumber, std::string &str, FILE *fp) {
@@ -307,6 +311,32 @@ static void get_string_list(strlist_t &l, const std::string &str, char separator
 
    //for (unsigned i = 0; i < l.size(); ++i)
    //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
+}
+
+static void output_file(FILE* fp, const std::string& text) {
+   unsigned e = text.size();
+   while (e && whitespace(text[e - 1]))
+      --e;
+
+   unsigned i = 0;
+   while (i < e && text[i] == '\n')
+      ++i;
+
+   unsigned nc = 0;
+   for (; i != e; ++i) {
+      char c = text[i];
+      if (c == '\n') {
+         ++nc;
+         if (nc > 2)
+            continue;
+      }
+      else
+         nc = 0;
+      fputc(c, fp);
+   }
+
+   if (e && e != text.size())
+      fputc('\n', fp);
 }
 
 int parse_attributes(const char* fileName, unsigned& lineNumber, attr_t& attr, std::string& return_type, std::string& sc, size_t i) {
@@ -1101,7 +1131,7 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
       }
    }
 
-   fputs(buf.c_str(), fp);
+   output_file(fp, buf);
    return 0;
 }
 
@@ -1134,7 +1164,7 @@ public:
    }
 
    int serializeDox(FILE *fp) {
-      fputs(doc.c_str(), fp);
+      output_file(fp, doc);
       fprintf(fp, "   const %s = %s;\n", name.c_str(), value.c_str());
       return 0;
    }
@@ -1149,17 +1179,17 @@ public:
    }
 
    int serializeCpp(FILE *fp) const {
-      fputs(text.c_str(), fp);
+      output_file(fp, text);
       return 0;
    }
 
    int serializeCppBinding(FILE *fp) const {
-      fputs(text.c_str(), fp);
+      output_file(fp, text);
       return 0;
    }
 
    int serializeDox(FILE *fp) const {
-      fputs(text.c_str(), fp);
+      output_file(fp, text);
       return 0;
    }
 };
@@ -1310,7 +1340,7 @@ protected:
       }
    }
 
-   int serializeBindingArgs(FILE *fp, bool with_names = false) const {
+   int serializeBindingArgs(FILE *fp) const {
       size_t size = params.size();
       if (size && params[size - 1].type == "...")
          --size;
@@ -1330,8 +1360,7 @@ protected:
                   return -1;
                fputs(vs.c_str(), fp);
             }
-            if (with_names)
-               fprintf(fp, ", \"%s\"", params[i].name.c_str());
+            fprintf(fp, ", \"%s\"", params[i].name.c_str());
          }
       }
       return 0;
@@ -1482,7 +1511,7 @@ public:
 
       fprintf(fp, "static %s f_%s(const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), vname.c_str());
       serializeArgs(fp);
-      fputs(code.c_str(), fp);
+      output_file(fp, code);
 
       if (!has_return)
          fprintf(fp, "\n   return 0;");
@@ -1495,7 +1524,6 @@ public:
       if (doconly)
          return 0;
 
-      fputc('\n', fp);
       serializeQorePrototypeComment(fp, 3);
 
       // get return type
@@ -1503,12 +1531,6 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-/*
-      fprintf(fp, "   builtinFunctions.add2(\"%s\", (%s)f_%s, ", 
-              name.c_str(),
-              getFunctionType(), 
-              vname.c_str());
-*/
       fprintf(fp, "   ns.addBuiltinVariant(\"%s\", (%s)f_%s, ", 
               name.c_str(),
               getFunctionType(), 
@@ -1519,7 +1541,7 @@ public:
       dom_output_cpp(fp, dom);
       fprintf(fp, ", %s", cppt.c_str());
 
-      if (serializeBindingArgs(fp, true))
+      if (serializeBindingArgs(fp))
          return -1;
 
       fputs(");\n", fp);
@@ -1831,7 +1853,7 @@ public:
          tlist[i]->serializeCpp(fp);
 
       // now serialize function group members
-      fputc('\n', fp);
+      //fputc('\n', fp);
       for (fmap_t::const_iterator i = fmap.begin(), e = fmap.end(); i != e; ++i)
          if (i->second->serializeCpp(fp))
             return -1;
@@ -1845,7 +1867,7 @@ public:
          tlist[i]->serializeCpp(fp);
 
       if (!cmap.empty()) {
-         fputc('\n', fp);
+         //fputc('\n', fp);
          for (cmap_t::const_iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
             if (i->second->serializeCppBinding(fp))
                return -1;
@@ -1855,7 +1877,7 @@ public:
 
    int serializeCppFunctionBindings(FILE *fp) const {
       if (!fmap.empty()) {
-         fputc('\n', fp);
+         //fputc('\n', fp);
          for (fmap_t::const_iterator i = fmap.begin(), e = fmap.end(); i != e; ++i)
             if (i->second->serializeCppBinding(fp))
                return -1;
@@ -1980,7 +2002,7 @@ public:
 
    int serializeConstantCpp(FILE *fp, const char *rootName) {
       log(LL_DEBUG, "Groups::serializeConstantCpp() has_constants=%d\n", has_constants);
-      if (!has_constants)
+      if (!has_constants || cccp_done || !has_constants)
          return 0;
 
       // now serialize constant bindings
@@ -2060,7 +2082,7 @@ public:
    }
 
    virtual int serializeCpp(FILE *fp) {
-      fputs(buf.c_str(), fp);
+      output_file(fp, buf);
       return 0;
    }
 
@@ -2076,21 +2098,21 @@ protected:
       serializeQoreConstructorPrototypeComment(fp, cname);
       fprintf(fp, "static void %s_%s(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {\n", cname, vname.c_str());
       serializeArgs(fp, cname, false);
-      fputs(code.c_str(), fp);
+      output_file(fp, code);
       fputs("\n}\n\n", fp);
    }
 
    void serializeCppDestructor(FILE *fp, const char *cname, const char *arg) const {
       serializeQoreDestructorCopyPrototypeComment(fp, cname);
       fprintf(fp, "static void %s_destructor(QoreObject* self, %s, ExceptionSink* xsink) {\n", cname, arg);
-      fputs(code.c_str(), fp);
+      output_file(fp, code);
       fputs("\n}\n\n", fp);
    }
 
    void serializeCppCopy(FILE *fp, const char *cname, const char *arg) const {
       serializeQoreDestructorCopyPrototypeComment(fp, cname);
       fprintf(fp, "static void %s_copy(QoreObject* self, QoreObject* old, %s, ExceptionSink* xsink) {\n", cname, arg);
-      fputs(code.c_str(), fp);
+      output_file(fp, code);
       fputs("\n}\n\n", fp);
    }
 
@@ -2098,7 +2120,7 @@ protected:
       fputc('\n', fp);
       serializeQoreConstructorPrototypeComment(fp, cname, 3);
 
-      fprintf(fp, "   QC_%s->setConstructorExtended(%s_%s, %s, ", 
+      fprintf(fp, "   QC_%s->setConstructorExtended3(%s_%s, %s, ", 
               UC, 
               cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false");
@@ -2194,7 +2216,7 @@ public:
 
       fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
       serializeArgs(fp, cname);
-      fputs(code.c_str(), fp);
+      output_file(fp, code);
 
       if (!has_return)
          fprintf(fp, "\n   return 0;");
@@ -2223,7 +2245,7 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   QC_%s->addMethodExtended(\"%s\", (%s)%s_%s, %s, ", UC, 
+      fprintf(fp, "   QC_%s->addMethodExtended3(\"%s\", (%s)%s_%s, %s, ", UC, 
               name.c_str(),
               getMethodType(), cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false");
@@ -2250,7 +2272,7 @@ public:
 
       fprintf(fp, "static %s static_%s_%s(const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str());
       serializeArgs(fp, cname);
-      fputs(code.c_str(), fp);
+      output_file(fp, code);
 
       if (!has_return)
          fprintf(fp, "\n   return 0;");
@@ -2272,7 +2294,7 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   QC_%s->addStaticMethodExtended(\"%s\", (%s)static_%s_%s, %s, ", UC, 
+      fprintf(fp, "   QC_%s->addStaticMethodExtended3(\"%s\", (%s)static_%s_%s, %s, ", UC, 
               name.c_str(),
               getFunctionType(), 
               cname, vname.c_str(),
