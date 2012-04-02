@@ -123,19 +123,49 @@ void QoreNamespace::addSystemClass(QoreClass* oc) {
 }
 
 void QoreNamespace::addNamespace(QoreNamespace* ns) {
-   // FIXME: check for namespaces being merged from modules here and process accordingly
    priv->addNamespace(ns->priv);
 }
 
 void QoreNamespace::addInitialNamespace(QoreNamespace* ns) {
-   // FIXME: check for namespaces being merged from modules here and process accordingly
    priv->addNamespace(ns->priv);
 }
 
-void qore_ns_private::addNamespace(qore_ns_private* nns) {
+void qore_ns_private::addModuleNamespace(qore_ns_private* nns, QoreModuleContext& qmc) {
+   if (nsl.find(nns->name)) {
+      std::string path;
+      getPath(path, true);
+      qmc.error("cannot load module into current program because namespace '%s' already exists in '%s'", nns->name.c_str(), path.c_str());
+      return;
+   }
+
+   if (pendNSL.find(nns->name)) {
+      std::string path;
+      getPath(path, true);
+      qmc.error("cannot load module into current program because namespace '%s' is already pending in '%s'", nns->name.c_str(), path.c_str());
+      return;
+   }
+
+   if (classList.find(nns->name.c_str())) {
+      std::string path;
+      getPath(path, true);
+      qmc.error("cannot load module into current program because a class with the same name as the namespace ('%s') already exists in '%s'", nns->name.c_str(), path.c_str());
+      return;
+   }
+
+   if (pendClassList.find(nns->name.c_str())) {
+      std::string path;
+      getPath(path, true);
+      qmc.error("cannot load module into current program because a class with the same name as the namespace ('%s') is already pending in '%s'", nns->name.c_str(), path.c_str());
+      return;
+   }
+
+   qmc.mcl.push_back(ModuleContextCommit(this, nns));
+}
+
+void qore_ns_private::addCommitNamespaceIntern(qore_ns_private* nns) {
    assert(!classList.find(nns->name.c_str()));
    assert(!pendClassList.find(nns->name.c_str()));
-   
+
    nsl.add(nns->ns, this);
 
    // see if namespace is attached to the root
@@ -147,6 +177,14 @@ void qore_ns_private::addNamespace(qore_ns_private* nns) {
    QorePrivateNamespaceIterator qpni(nns, true);
    while (qpni.next())
       rns->rebuildIndexes(qpni.get());
+}
+
+void qore_ns_private::addNamespace(qore_ns_private* nns) {
+   QoreModuleContext* qmc = get_module_context();
+   if (qmc)
+      addModuleNamespace(nns, *qmc);
+   else
+      addCommitNamespaceIntern(nns);
 }
 
 void QoreNamespaceList::deleteAll() {
@@ -1075,8 +1113,9 @@ cnemap_t::iterator qore_ns_private::parseAddConstant(const char* cname, Abstract
    ReferenceHolder<> vh(value, 0);
 
    if (constant.inList(cname)) {
-      // FIXME: improve error message -give namesapce name or denote root namespace
-      parse_error("constant '%s' has already been defined in the given namespace", cname);
+      std::string path;
+      getPath(path, true);
+      parse_error("constant '%s' has already been defined in '%s'", cname, path.c_str());
       return pendConstant.end();
    }
 

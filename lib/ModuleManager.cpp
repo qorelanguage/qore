@@ -26,6 +26,7 @@
 #include <qore/intern/ModuleInfo.h>
 #include <qore/intern/AutoNamespaceList.h>
 #include <qore/intern/QoreNamespaceIntern.h>
+#include <qore/intern/QoreException.h>
 
 #ifdef NEED_DLFCN_WRAPPER
 extern "C" {
@@ -49,6 +50,7 @@ extern "C" {
 #include <sys/stat.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 #include <deque>
 #include <string>
@@ -81,6 +83,33 @@ typedef std::deque<std::string> strdeque_t;
 
 static QoreStringNode *qore_load_module_from_path(const char *path, const char *feature = 0, ModuleInfo **mip = 0, QoreProgram *pgm = 0);
 static QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgram *pgm, mod_op_e op = MOD_OP_NONE, version_list_t *version = 0);
+
+void QoreModuleContext::error(const char* fmt, ...) {
+   va_list args;
+   if (!err)
+      err = new QoreStringNode;
+   else
+      err->concat("; ");
+
+   while (true) {
+      va_start(args, fmt);
+      int rc = err->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+}
+
+class QoreModuleContextHelper : public QoreModuleContext{
+public:
+   DLLLOCAL QoreModuleContextHelper() {
+      set_module_context(this);
+   }
+   
+   DLLLOCAL ~QoreModuleContextHelper() {
+      set_module_context(0);
+   }
+};
 
 //! non-thread-safe list of strings of directory names
 /** a deque should require fewer memory allocations compared to a linked list
@@ -474,6 +503,13 @@ static QoreStringNode *check_module_version(ModuleInfo *mi, mod_op_e op, version
    return 0;
 }
 
+static void add_prefix(QoreStringNode* err, const char* name) {
+   // add "error loading module 'module-name': " to beginning of the string
+   err->prepend("': ");
+   err->prepend(name);
+   err->prepend("error loading module '");
+}
+
 static QoreStringNode* qore_check_load_module_intern(ModuleInfo *mi, mod_op_e op, version_list_t* version, QoreProgram* pgm) {
    // check version if necessary
    if (version) {
@@ -483,10 +519,20 @@ static QoreStringNode* qore_check_load_module_intern(ModuleInfo *mi, mod_op_e op
    }
 
    if (pgm) {
-      // FIXME: set module data in thread-local data to handle errors merging data from modules
-      // also to commit changes afterwards if there were no errors
+      QoreModuleContextHelper qmc;
 
       mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
+
+      QoreStringNode* err = qmc.takeError();
+      if (err) {
+	 // rollback all module changes
+	 qore_root_ns_private::rollbackModule(*(pgm->getRootNS()), qmc);
+	 add_prefix(err, mi->getName());
+	 return err;
+      }
+
+      // commit all module changes
+      qore_root_ns_private::commitModule(*(pgm->getRootNS()), qmc);
       pgm->addFeature(mi->getName());
    }
    return 0;

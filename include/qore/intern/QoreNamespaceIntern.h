@@ -84,9 +84,9 @@ public:
       printd(5, "qore_ns_private::~qore_ns_private() this=%p '%s'\n", this, name.c_str());
    }
 
-   DLLLOCAL void getPath(std::string& str) const {
+   DLLLOCAL void getPath(std::string& str, bool anchored = false) const {
       const qore_ns_private* w = parent;
-      while (w && w->parent) {
+      while (w && (anchored || w->parent)) {
          str.insert(0, "::");
          str.insert(0, w->name);
          w = w->parent;
@@ -177,6 +177,8 @@ public:
    DLLLOCAL QoreClass *parseFindLocalClass(const char *name);
    DLLLOCAL qore_ns_private* parseAddNamespace(QoreNamespace *nns);
 
+   DLLLOCAL void addModuleNamespace(qore_ns_private* nns, QoreModuleContext& qmc);
+   DLLLOCAL void addCommitNamespaceIntern(qore_ns_private* nns);
    DLLLOCAL void addNamespace(qore_ns_private* nns);
 
    DLLLOCAL void parseInit();
@@ -934,6 +936,19 @@ protected:
          clmap.update(cli.getName(), ns, cli.get());
    }
 
+   DLLLOCAL void rollbackModule(QoreModuleContext& qmc) {
+      for (unsigned i = 0; i < qmc.mcl.size(); ++i)
+         delete qmc.mcl[i].nns;
+   }
+
+   DLLLOCAL void commitModule(QoreModuleContext& qmc) {
+      for (unsigned j = 0; j < qmc.mcl.size(); ++j) {
+         ModuleContextCommit& mc = qmc.mcl[j];
+
+         mc.parent->addCommitNamespaceIntern(mc.nns);
+      }
+   }
+
    DLLLOCAL void rebuildIndexes(qore_ns_private* ns) {
       // process function indexes
       for (fl_map_t::iterator i = ns->func_list.begin(), e = ns->func_list.end(); i != e; ++i) {
@@ -1083,6 +1098,14 @@ public:
 
    DLLLOCAL static void parseRollback(RootQoreNamespace& rns) {
       rns.rpriv->parseRollback();
+   }
+
+   DLLLOCAL static void rollbackModule(RootQoreNamespace& rns, QoreModuleContext& qmc) {
+      rns.rpriv->rollbackModule(qmc);
+   }
+
+   DLLLOCAL static void commitModule(RootQoreNamespace& rns, QoreModuleContext& qmc) {
+      rns.rpriv->commitModule(qmc);
    }
 
    DLLLOCAL static AbstractQoreNode *parseFindConstantValue(const char *name, const QoreTypeInfo *&typeInfo, bool error) {

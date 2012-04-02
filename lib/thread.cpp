@@ -346,6 +346,9 @@ public:
    typedef std::vector<const char*> psvec_t;
    psvec_t ns_vec, class_vec;
 
+   // used for error handling when merging module code into a Program object
+   QoreModuleContext* qmc;
+
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
       parse_line_start(0), parse_line_end(0), parse_file(0), 
@@ -354,7 +357,7 @@ public:
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
       current_obj(0), current_pgm(p), current_ns(0), current_implicit_arg(0), tpd(new ThreadProgramData(this)),
       closure_parse_env(0), closure_rt_env(0), 
-      returnTypeInfo(0), element(0), global_vnode(0) {
+      returnTypeInfo(0), element(0), global_vnode(0), qmc(0) {
  
 #ifdef QORE_MANAGE_STACK
 
@@ -1067,6 +1070,14 @@ qore_ns_private* parse_set_ns(qore_ns_private* ns) {
 
 qore_ns_private* parse_get_ns() {
    return thread_data.get()->current_ns;
+}
+
+void set_module_context(QoreModuleContext* qmc) {
+   thread_data.get()->qmc = qmc;
+}
+
+QoreModuleContext* get_module_context() {
+   return thread_data.get()->qmc;
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {

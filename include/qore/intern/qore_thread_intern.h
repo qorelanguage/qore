@@ -26,6 +26,8 @@
 #ifndef _QORE_QORE_THREAD_INTERN_H
 #define _QORE_QORE_THREAD_INTERN_H
 
+#include <vector>
+
 // FIXME: move to config.h or something like that
 // not more than this number of threads can be running at the same time
 #ifndef MAX_QORE_THREADS
@@ -80,6 +82,39 @@ class VNode;
 class AbstractQoreZoneInfo;
 class ThreadData;
 
+struct ModuleContextCommit {
+   class qore_ns_private* parent;
+   class qore_ns_private* nns;
+
+   DLLLOCAL ModuleContextCommit(class qore_ns_private* n_parent, class qore_ns_private* n_nns) : parent(n_parent), nns(n_nns) {
+   }
+};
+
+typedef std::vector<ModuleContextCommit> mcl_t;
+
+class QoreModuleContext {
+protected:
+   QoreStringNode* err;
+
+public:
+   mcl_t mcl;
+
+   DLLLOCAL QoreModuleContext() : err(0) {
+   }
+
+   DLLLOCAL ~QoreModuleContext() {
+      assert(!err);
+   }
+
+   DLLLOCAL void error(const char* fmt, ...);
+
+   DLLLOCAL QoreStringNode* takeError() {
+      QoreStringNode* rv = err;
+      err = 0;
+      return rv;
+   }
+};
+
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink *xsink);
 DLLLOCAL void purge_thread_resources(ExceptionSink *xsink);
@@ -123,6 +158,8 @@ DLLLOCAL void parse_push_class_name(const char* name);
 DLLLOCAL const char* parse_pop_class_name();
 DLLLOCAL qore_ns_private* parse_set_ns(qore_ns_private* ns);
 DLLLOCAL qore_ns_private* parse_get_ns();
+DLLLOCAL void set_module_context(QoreModuleContext* qmc);
+DLLLOCAL QoreModuleContext* get_module_context();
 
 // pushes a new argv reference counter
 DLLLOCAL void new_argv_ref();

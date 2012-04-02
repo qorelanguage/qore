@@ -72,8 +72,6 @@ private:
    DLLLOCAL QoreException& operator=(const QoreException&);
 
 protected:
-   QoreException *next;
-
    DLLLOCAL ~QoreException() {
       assert(!callStack);
       assert(!err);
@@ -85,6 +83,8 @@ protected:
    DLLLOCAL static QoreHashNode *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
 
 public:
+   QoreException *next;
+
    // called for generic exceptions
    DLLLOCAL QoreHashNode *makeExceptionObjectAndDelete(ExceptionSink *xsink);
    DLLLOCAL QoreHashNode *makeExceptionObject();
