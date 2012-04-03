@@ -2436,7 +2436,7 @@ void QoreClass::addStaticMethodExtended3(const char *nme, q_func_t m, bool priv_
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 void QoreClass::addStaticMethodExtended3(const char *nme, q_func_int64_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {

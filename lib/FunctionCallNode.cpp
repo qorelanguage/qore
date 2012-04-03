@@ -582,22 +582,26 @@ AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag
 	 ? qore_class_private::parseFindAnyMethodIntern(qc, scope->getIdentifier())
 	 : qc->parseFindStaticMethodTree(scope->getIdentifier());
 
+   //printd(5, "StaticMethodCallNode::parseInitImpl() %s qc: %p method: %p %s\n", scope->ostr, qc, method, scope->getIdentifier());
+
    // see if a constant can be resolved
    if (!method) {
+      {
+	 // see if this is a function call to a function defined in a namespace
+	 const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope);
+	 if (f) {
+	    FunctionCallNode* fcn = new FunctionCallNode(f, takeArgs(), 0);
+	    deref();
+	    fcn->parseInitFinalizedCall(oflag, pflag, lvids, typeInfo);
+	    return fcn;
+	 }
+      }
+
       AbstractQoreNode* n = qore_root_ns_private::parseFindConstantValue(scope, typeInfo, false);
       if (n) {
 	 CallReferenceCallNode *crcn = new CallReferenceCallNode(n->refSelf(), takeArgs());	 
 	 deref();
 	 return crcn->parseInit(oflag, pflag, lvids, typeInfo);
-      }
-      
-      // see if this is a function call to a function defined in a namespace
-      const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope);
-      if (f) {
-	 FunctionCallNode* fcn = new FunctionCallNode(f, takeArgs(), 0);
-	 deref();
-	 fcn->parseInitFinalizedCall(oflag, pflag, lvids, typeInfo);
-	 return fcn;
       }
 
       parse_error("cannot resolve call '%s()' to any reachable and callable object", scope->ostr);
