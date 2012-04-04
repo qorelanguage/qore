@@ -121,6 +121,8 @@ protected:
    }
 
    DLLLOCAL qore_type_result_e runtimeAcceptsClass(const QoreClass *n_qc) const {
+      assert(n_qc);
+
       if (!hasType() || accepts_all)
          return QTI_AMBIGUOUS;
 
@@ -285,44 +287,8 @@ protected:
       return QTI_NOT_EQUAL;
    }
 
-   DLLLOCAL qore_type_result_e matchClassIntern(const QoreClass *n_qc) const {
-      if (qt == NT_ALL)
-	 return QTI_AMBIGUOUS;
-
-      if (qt != NT_OBJECT)
-	 return QTI_NOT_EQUAL;
-
-      if (!qc)
-	 return QTI_AMBIGUOUS;
-
-      if (qc->getID() == n_qc->getID())
-	 return exact_return ? QTI_IDENT : QTI_AMBIGUOUS;
-
-      return parseCheckCompatibleClass(qc, n_qc) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-   }
-
-   DLLLOCAL qore_type_result_e runtimeMatchClassIntern(const QoreClass *n_qc) const {
-      if (qt == NT_ALL)
-	 return QTI_AMBIGUOUS;
-
-      if (qt != NT_OBJECT)
-	 return QTI_NOT_EQUAL;
-
-      if (!qc)
-	 return QTI_AMBIGUOUS;
-
-      if (qc->getID() == n_qc->getID())
-	 return exact_return ? QTI_IDENT : QTI_AMBIGUOUS;
-
-      bool priv;
-      if (!n_qc->getClass(qc->getID(), priv))
-         return QTI_NOT_EQUAL;
-
-      if (!priv)
-         return QTI_AMBIGUOUS;
-
-      return runtimeCheckPrivateClassAccess(qc) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-   }
+   DLLLOCAL qore_type_result_e matchClassIntern(const QoreClass *n_qc) const;
+   DLLLOCAL qore_type_result_e runtimeMatchClassIntern(const QoreClass *n_qc) const;
 
    DLLLOCAL int doTypeException(int param_num, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
       // xsink may be null in case parse exceptions have been disabled in the QoreProgram object

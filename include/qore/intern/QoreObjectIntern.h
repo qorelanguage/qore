@@ -329,7 +329,7 @@ public:
          return 0;
       }
 
-      if (runtimeCheckPrivateClassAccess(theclass)) {
+      if (qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
          const char *str = data->getFirstKey();
          printd(0, "qore_object_private::firstKey() got %p (%s)\n", str, str ? str : "<null>");
          return !str ? 0 : new QoreStringNode(str);
@@ -355,7 +355,7 @@ public:
          return 0;
       }
 
-      if (runtimeCheckPrivateClassAccess(theclass)) {
+      if (qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
          const char *str = data->getLastKey();
          return !str ? 0 : new QoreStringNode(str);
       }
@@ -379,7 +379,7 @@ public:
       }
 
       bool has_public_members = theclass->runtimeHasPublicMembersInHierarchy();
-      bool private_access_ok = runtimeCheckPrivateClassAccess(theclass);
+      bool private_access_ok = qore_class_private::runtimeCheckPrivateClassAccess(*theclass);
 
       // check key list if necessary
       if (has_public_members || !private_access_ok) {
@@ -427,14 +427,14 @@ public:
 	 if (!theclass->isPublicOrPrivateMember(mem, priv_member))
 	    return QOA_PUB_ERROR;
 
-	 if (priv_member && !runtimeCheckPrivateClassAccess(theclass))
+	 if (priv_member && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass))
 	    return QOA_PRIV_ERROR;
 
 	 return QOA_OK;
       }
 
       // if accessed outside the class and the member is a private member
-      return (!runtimeCheckPrivateClassAccess(theclass) && theclass->isPrivateMember(mem)) ? QOA_PRIV_ERROR : QOA_OK;
+      return (!qore_class_private::runtimeCheckPrivateClassAccess(*theclass) && theclass->isPrivateMember(mem)) ? QOA_PRIV_ERROR : QOA_OK;
    }
 
    DLLLOCAL int checkMemberAccess(const char *mem, ExceptionSink *xsink) const {
@@ -452,7 +452,7 @@ public:
    DLLLOCAL int checkMemberAccessGetTypeInfo(const char *mem, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const {
       bool priv;
       if (theclass->runtimeGetMemberInfo(mem, typeInfo, priv)) {
-	 if (priv && !runtimeCheckPrivateClassAccess(theclass)) {
+	 if (priv && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
 	    doPrivateException(mem, xsink);
 	    return -1;
 	 }

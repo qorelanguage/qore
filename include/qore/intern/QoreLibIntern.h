@@ -179,16 +179,6 @@ DLLLOCAL const QoreTypeInfo *getBuiltinUserOrNothingTypeInfo(const char *str);
 //DLLLOCAL qore_type_t getBuiltinType(const char *str);
 DLLLOCAL const char *getBuiltinTypeName(qore_type_t type);
 
-// tests to see if the private implementation of the given class ID can be accessed at run time
-DLLLOCAL bool runtimeCheckPrivateClassAccess(const QoreClass *testClass);
-
-// tests to see if the private implementation of the given class can be accessed at run time
-DLLLOCAL bool parseCheckPrivateClassAccess(const QoreClass *testClass);
-
-// tests to see if testClass is equal to or a public subclass of shouldBeClass, or
-// if we are currently parsing inside the class, it can be private too
-DLLLOCAL bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *testClass);
-
 // processes parameter information
 DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, va_list args);
 DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, name_vec_t& nameList, va_list args);

@@ -856,7 +856,6 @@ public:
    DLLLOCAL bool runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const;
    DLLLOCAL bool runtimeHasPublicMembersInHierarchy() const;
    DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const;
-   DLLLOCAL const QoreClass *parseGetClass(qore_classid_t cid, bool &priv) const;
    DLLLOCAL int addUserMethod(const char *mname, MethodVariantBase *f, bool n_static);
    // returns true if the class has one or more parent classes
    DLLLOCAL bool hasParentClass() const;

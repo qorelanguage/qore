@@ -843,7 +843,7 @@ public:
    // maintains all_private flag and commits the builtin variant
    DLLLOCAL void addBuiltinMethodVariant(MethodVariantBase* variant);
    // maintains all_private flag and commits user variants
-   DLLLOCAL void parseCommitMethod();
+   DLLLOCAL void parseCommitMethod(QoreString& csig, bool is_static);
    DLLLOCAL void parseRollbackMethod();
    DLLLOCAL bool isUniquelyPrivate() const {
       return all_private;

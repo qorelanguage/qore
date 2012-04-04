@@ -28,6 +28,8 @@
 #include <qore/safe_dslist>
 #include <qore/intern/ConstantList.h>
 
+#include <string.h>
+
 #include <list>
 #include <map>
 #include <string>
@@ -36,6 +38,8 @@
 #define OTF_BUILTIN CT_BUILTIN
 
 typedef std::map<std::string, QoreMethod *> hm_method_t;
+
+class SignatureHash;
 
 static inline const char *privpub(bool priv) { return priv ? "private" : "public"; }
 
@@ -1270,6 +1274,8 @@ public:
 	 n_priv = true;
       return qc;
    }
+
+   DLLLOCAL const QoreClass *getClass(qore_classid_t cid, const std::string& cname, const SignatureHash& chash, bool &n_priv) const;
 };
 
 //typedef safe_dslist<BCNode *> bclist_t;
@@ -1340,6 +1346,9 @@ public:
 	 
       return 0;
    }
+
+   DLLLOCAL const QoreClass *getClass(qore_classid_t cid, const std::string& cname, const SignatureHash& chash, bool &priv) const;
+
    DLLLOCAL void addNewAncestors(QoreMethod *m);
    DLLLOCAL void addAncestors(QoreMethod *m);
    DLLLOCAL void addNewStaticAncestors(QoreMethod *m);
@@ -1400,6 +1409,50 @@ struct SelfInstantiatorHelper {
    }
 };
 
+// signature hash size - we use SHA1 for performance reasons (and because we don't necessarily need the best crytographic security)
+#define SH_SIZE 20
+
+// class "signature" hash for comparing classes with the same name from different program objects at runtime
+class SignatureHash {
+private:
+   // not implemented
+   SignatureHash& operator=(const SignatureHash&);
+
+protected:
+   unsigned char buf[SH_SIZE];
+   bool is_set;
+
+   DLLLOCAL void set(const QoreString& str);
+
+public:
+   DLLLOCAL SignatureHash() : is_set(false) {
+      memset(buf, 0, SH_SIZE);
+   }
+
+   DLLLOCAL SignatureHash(const SignatureHash& old) {
+   }
+
+   DLLLOCAL void update(const QoreString& str);
+
+   DLLLOCAL bool operator==(const SignatureHash& other) const {
+      // if either one of the hashes is not set, then the comparison always fails
+      if (!is_set || !other.is_set)
+         return false;
+      return !memcmp(buf, other.buf, SH_SIZE);
+   }
+
+   DLLLOCAL operator bool() const {
+      return is_set;
+   }
+
+#ifdef DEBUG
+   DLLLOCAL void toString(QoreString& str) const {
+      for (unsigned i = 0; i < SH_SIZE; ++i) 
+         str.sprintf("%02x", buf[i]);
+   }
+#endif
+};
+
 // private QoreClass implementation
 class qore_class_private {
 public:
@@ -1455,6 +1508,9 @@ public:
 
    // common "self" local variable for all constructors
    mutable LocalVar selfid;
+
+   // class "signature" hash for comparing classes with the same name from different program objects at runtime
+   SignatureHash hash;
 
    // user-specific data
    const void *ptr;
@@ -1595,7 +1651,7 @@ public:
       }
 
       // only raise a parse error for illegal access to private members if there is not memberGate function
-      if (priv && !parseHasMemberGate() && !parseCheckPrivateClassAccess(cls)) {
+      if (priv && !parseHasMemberGate() && !parseCheckPrivateClassAccess()) {
 	 memberTypeInfo = 0;
          parse_error("illegal access to private member '%s' of class '%s'", mem, name.c_str());
 	 return -1;
@@ -1870,7 +1926,7 @@ public:
 	       rv = pend_priv_const.find(cname, cTypeInfo, cls);
 	 
 	    // check for accessibility to private constants
-	    if (rv && !parseCheckPrivateClassAccess(cls)) {
+	    if (rv && !parseCheckPrivateClassAccess()) {
 	       rv = 0;
 	       typeInfo = 0;
 	    }
@@ -1901,7 +1957,7 @@ public:
 
       // check for accessibility to private constants
       if (rv) {
-         if (check && priv && !parseCheckPrivateClassAccess(cls)) {
+         if (check && priv && !parseCheckPrivateClassAccess()) {
             cTypeInfo = 0;
             return 0;
          }
@@ -1920,7 +1976,7 @@ public:
             vi = private_vars.find(vname);
             if (!vi)
                vi = pending_private_vars.find(vname);
-            if (vi && !parseCheckPrivateClassAccess(cls))
+            if (vi && !parseCheckPrivateClassAccess())
                vi = 0;
          }
       }
@@ -1946,7 +2002,7 @@ public:
 
       if (vi) {
          // check accessibility to private data
-         if (check && priv && vi && !parseCheckPrivateClassAccess(cls)) {
+         if (check && priv && vi && !parseCheckPrivateClassAccess()) {
             return 0;
          }
          qc = cls;
@@ -2320,6 +2376,37 @@ public:
       return w;
    }
 
+   DLLLOCAL bool parseCheckPrivateClassAccess() const;
+   DLLLOCAL bool runtimeCheckPrivateClassAccess() const;
+   DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc) const;
+   DLLLOCAL qore_type_result_e runtimeCheckCompatibleClass(const qore_class_private& oc) const;
+
+   DLLLOCAL const QoreClass* getClassIntern(qore_classid_t cid, const std::string& cname, const SignatureHash& chash, bool &priv) {
+      if (cid == classID)
+         return cls;
+
+      // check hash names are the same
+      if (cname == name && hash == chash)
+         return cls;
+
+#ifdef DEBUG
+      if (cname == name) {
+         printd(0, "qore_class_private::getClassIntern() cname == name == %s (hash == chash: %d)\n", cname.c_str(), hash == chash);
+
+         QoreString str;
+         hash.toString(str);
+         printd(0, "qore_class_private::getClassIntern() hash: %s\n", str.getBuffer());
+         str.clear();
+         chash.toString(str);
+         printd(0, "qore_class_private::getClassIntern() chash: %s\n", str.getBuffer());
+      }
+#endif
+
+      return scl ? scl->getClass(cid, cname, chash, priv) : 0;
+   }
+
+   DLLLOCAL const QoreClass *parseGetClass(qore_classid_t cid, bool &cpriv) const;
+
    // static methods
    //DLLLOCAL void 
    DLLLOCAL static BCList* getBaseClassList(const QoreClass& qc) {
@@ -2435,6 +2522,28 @@ public:
 
    DLLLOCAL static void setNamespace(QoreClass* qc, qore_ns_private* n) {
       qc->priv->setNamespace(n);
+   }
+
+   DLLLOCAL static bool parseCheckPrivateClassAccess(const QoreClass& qc) {
+      return qc.priv->parseCheckPrivateClassAccess();
+   }
+
+   DLLLOCAL static bool runtimeCheckPrivateClassAccess(const QoreClass& qc) {
+      return qc.priv->runtimeCheckPrivateClassAccess();
+   }
+
+   DLLLOCAL static qore_type_result_e parseCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {
+      if (!&oc)
+         return QTI_NOT_EQUAL;
+      return qc.priv->parseCheckCompatibleClass(*oc.priv);
+   }
+
+   DLLLOCAL static qore_type_result_e runtimeCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {
+      return qc.priv->runtimeCheckCompatibleClass(*oc.priv);
+   }
+
+   DLLLOCAL static const QoreClass* getClassIntern(const QoreClass& qc, qore_classid_t cid, const std::string& cname, const SignatureHash& chash, bool &priv) {
+      return qc.priv->getClassIntern(cid, cname, chash, priv);
    }
 };
 
