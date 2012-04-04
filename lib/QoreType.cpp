@@ -22,6 +22,8 @@
 
 #include <qore/Qore.h>
 
+#include <qore/intern/QoreClassIntern.h>
+
 #include <string.h>
 #include <assert.h>
 
@@ -145,18 +147,7 @@ bool AbstractQoreClassTypeInfoHelper::hasClass() const {
 }
 
 int testObjectClassAccess(const QoreObject *obj, const QoreClass *shouldbeclass) {
-   const QoreClass *objectclass = obj->getClass();
-   if (shouldbeclass == objectclass)
-      return QTI_IDENT;
-
-   bool priv;
-   if (!objectclass->getClass(shouldbeclass->getID(), priv))
-      return QTI_NOT_EQUAL;
-
-   if (!priv)
-      return QTI_AMBIGUOUS;
-
-   return runtimeCheckPrivateClassAccess(shouldbeclass) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   return qore_class_private::runtimeCheckCompatibleClass(*shouldbeclass, *(obj->getClass()));
 }
 
 const QoreClass *typeInfoGetUniqueReturnClass(const QoreTypeInfo *typeInfo) {

@@ -1170,55 +1170,6 @@ int64 q_epoch_ns(int &ns) {
    return ts.tv_sec;
 }
 
-// tests to see if the private implementation of the given class can be accessed at run time
-bool parseCheckPrivateClassAccess(const QoreClass *testClass) {
-   assert(testClass);
-
-   // see if shouldBeClass is a parent class of the class currently being parsed
-   QoreClass *pc = getParseClass();
-
-   //printd(5, "parseCheckPrivateClassAccess(%p %s) pc=%p %s\n", testClass, testClass->getName(), pc, pc->getName());
-
-   if (!pc)
-      return false;
-
-   if (pc->getID() == testClass->getID())
-      return true;
-
-   return pc->getClass(testClass->getID()) || testClass->getClass(pc->getID());
-}
-
-// tests to see if testClass is equal to or a public subclass of shouldBeClass, or
-// if we are currently parsing inside the class, it can be private too
-bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *testClass) {
-   assert(shouldBeClass);
-
-   if (!testClass)
-      return false;
-
-   if (testClass->getID() == shouldBeClass->getID())
-      return true;
-
-   bool priv;
-   if (!testClass->parseGetClass(shouldBeClass->getID(), priv))
-      return false;
-
-   if (!priv)
-      return true;
-
-   // here we know that testClass inherits shouldBeClass with private inheritance
-   return parseCheckPrivateClassAccess(testClass);
-}
-
-// tests to see if the private implementation of the given class ID can be accessed at run time
-bool runtimeCheckPrivateClassAccess(const QoreClass *testClass) {
-   QoreObject *obj = getStackObject();
-   //printd(5, "runtimeCheckPrivateClassAccess() stack=%p (%s) test=%p (%s) okl=%d okr=%d\n", obj, obj ? obj->getClassName() : 0, testClass, testClass->getName(), obj ? obj->getClass(testClass->getID()) : 0, obj ? testClass->getClass(obj->getClass()->getID()) : 0);
-   if (!obj)
-      return false;
-   return obj->getClass(testClass->getID()) || testClass->getClass(obj->getClass()->getID());
-}
-
 QoreListNode *makeArgs(AbstractQoreNode *arg) {
    if (!arg)
       return 0;

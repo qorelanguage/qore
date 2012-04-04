@@ -24,9 +24,6 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_crypto.h>
 
-#include <openssl/evp.h>
-#include <openssl/des.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -51,66 +48,6 @@ static const char SHA512_ERR[] = "SHA512-DIGEST-ERROR";
 #define DSS1_ERR "DSS1-DIGEST-ERROR"
 static const char MDC2_ERR[] = "MDC2-DIGEST-ERROR";
 #define RIPEMD160_ERR "RIPEMD160-DIGEST-ERROR"
-
-class BaseHelper {
-protected:
-   unsigned char *input;
-   int input_len;
-
-   DLLLOCAL void setInput(const AbstractQoreNode *pt) {
-      if (pt->getType() == NT_STRING) {
-	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(pt);
-	 input = (unsigned char *)str->getBuffer();
-	 input_len = str->strlen();
-	 return;
-      }
-
-      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(pt);
-      input = (unsigned char *)b->getPtr();
-      input_len = b->size();
-   }
-};
-
-class DigestHelper : public BaseHelper {
-private:
-   unsigned char md_value[EVP_MAX_MD_SIZE];
-   unsigned int md_len;
-
-public:
-   DLLLOCAL DigestHelper(const QoreListNode *params) {
-      setInput(get_param(params, 0));
-   }
-
-   DLLLOCAL int doDigest(const char *err, const EVP_MD *md, ExceptionSink *xsink) {
-      EVP_MD_CTX mdctx;
-      EVP_MD_CTX_init(&mdctx);
-	 
-      EVP_DigestInit_ex(&mdctx, md, 0);
-
-      if (!EVP_DigestUpdate(&mdctx, input, input_len) || !EVP_DigestFinal_ex(&mdctx, md_value, &md_len)) {
-	 EVP_MD_CTX_cleanup(&mdctx);
-	 xsink->raiseException(err, "error calculating digest");
-	 return -1;
-      }
-
-      EVP_MD_CTX_cleanup(&mdctx);
-      return 0;
-   }
-
-   DLLLOCAL QoreStringNode *getString() const {
-      QoreStringNode *str = new QoreStringNode();
-      for (unsigned i = 0; i < md_len; i++)
-	 str->sprintf("%02x", md_value[i]);
-
-      return str;
-   }
-
-   DLLLOCAL BinaryNode *getBinary() const {
-      BinaryNode *b = new BinaryNode();
-      b->append(md_value, md_len);
-      return b;
-   }      
-};
 
 class CryptoHelper : public BaseHelper {
 private:

@@ -710,7 +710,7 @@ QoreHashNode *QoreObject::copyData(ExceptionSink *xsink) const {
 }
 
 QoreHashNode *QoreObject::getRuntimeMemberHash(ExceptionSink *xsink) const {
-   bool inclass = runtimeCheckPrivateClassAccess(priv->theclass);
+   bool inclass = qore_class_private::runtimeCheckPrivateClassAccess(*(priv->theclass));
 
    AutoLocker al(priv->mutex);
 
@@ -887,7 +887,7 @@ int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
       if (foff != FMT_NONE)
          str.sprintf("%d member%s)\n", h->size(), h->size() == 1 ? "" : "s");
 
-      //bool private_access_ok = runtimeCheckPrivateClassAccess(priv->theclass);
+      //bool private_access_ok = qore_class_private::runtimeCheckPrivateClassAccess(*(priv->theclass));
 
       ConstHashIterator hi(*h);
       while (hi.next()) {

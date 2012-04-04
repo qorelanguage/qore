@@ -521,7 +521,7 @@ AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag
 
    //printd(5, "ScopedObjectCallNode::parseInitImpl() this=%p constructor=%p variant=%p\n", this, constructor, variant);
 
-   if (((constructor && constructor->parseIsPrivate()) || (variant && CONMV_const(variant)->isPrivate())) && !parseCheckPrivateClassAccess(oc)) {
+   if (((constructor && constructor->parseIsPrivate()) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*oc)) {
       if (variant)
 	 parse_error("illegal external access to private constructor %s::constructor(%s)", oc->getName(), variant->getSignature()->getSignatureText());
       else

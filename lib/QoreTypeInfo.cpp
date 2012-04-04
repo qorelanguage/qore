@@ -363,7 +363,7 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode *n
 
       // check private access if required class is privately
       // inherited in the input argument's class
-      if (runtimeCheckPrivateClassAccess(qc))
+      if (qore_class_private::runtimeCheckPrivateClassAccess(*qc))
 	 return 0;
       
       priv_error = true;
@@ -480,6 +480,38 @@ bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo *typeInfo) const {
    }
 
    return true;
+}
+
+qore_type_result_e QoreTypeInfo::matchClassIntern(const QoreClass *n_qc) const {
+   if (qt == NT_ALL)
+      return QTI_AMBIGUOUS;
+   
+   if (qt != NT_OBJECT)
+      return QTI_NOT_EQUAL;
+
+   if (!qc)
+      return QTI_AMBIGUOUS;
+
+   qore_type_result_e rc = qore_class_private::parseCheckCompatibleClass(*qc, *n_qc);
+   if (rc == QTI_IDENT && !exact_return)
+      return QTI_AMBIGUOUS;
+   return rc;
+}
+
+qore_type_result_e QoreTypeInfo::runtimeMatchClassIntern(const QoreClass *n_qc) const {
+   if (qt == NT_ALL)
+      return QTI_AMBIGUOUS;
+
+   if (qt != NT_OBJECT)
+      return QTI_NOT_EQUAL;
+
+   if (!qc)
+      return QTI_AMBIGUOUS;
+
+   qore_type_result_e rc = qore_class_private::runtimeCheckCompatibleClass(*qc, *n_qc);
+   if (rc == QTI_IDENT && !exact_return)
+      return QTI_AMBIGUOUS;
+   return rc;
 }
 
 const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
