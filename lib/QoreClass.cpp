@@ -912,16 +912,16 @@ void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
    }
 }
 
-const QoreClass *BCNode::getClass(qore_classid_t cid, const std::string& cname, const SignatureHash& chash, bool &n_priv) const {
+const QoreClass *BCNode::getClass(const qore_class_private& qc, bool &n_priv) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
    
-   const QoreClass *qc = qore_class_private::getClassIntern(*sclass, cid, cname, chash, n_priv);
+   const QoreClass *rv = sclass->priv->getClassIntern(qc, n_priv);
    
-   if (qc && !n_priv && priv)
+   if (rv && !n_priv && priv)
       n_priv = true;
-   return qc;
+   return rv;
 }
 
 void BCList::parseInit(QoreClass *cls, bool &has_delete_blocker) {
@@ -1270,11 +1270,11 @@ QoreVarInfo *BCList::parseFindStaticVar(const char *vname, const QoreClass *&qc,
    return 0;
 }
 
-const QoreClass *BCList::getClass(qore_classid_t cid, const std::string& cname, const SignatureHash& chash, bool &priv) const {
+const QoreClass *BCList::getClass(const qore_class_private& qc, bool &priv) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
-      const QoreClass *qc = (*i)->getClass(cid, cname, chash, priv);
-      if (qc)
-	 return qc;
+      const QoreClass* rv = (*i)->getClass(qc, priv);
+      if (rv)
+	 return rv;
    }
 	 
    return 0;
@@ -1725,6 +1725,11 @@ const QoreClass *QoreClass::getClassIntern(qore_classid_t cid, bool &cpriv) cons
 const QoreClass *QoreClass::getClass(qore_classid_t cid, bool &cpriv) const {
    cpriv = false;
    return getClassIntern(cid, cpriv);
+}
+
+const QoreClass *QoreClass::getClass(const QoreClass& qc, bool &cpriv) const {
+   cpriv = false;
+   return priv->getClassIntern(*(qc.priv), cpriv);
 }
 
 AbstractQoreNode *QoreMethod::evalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const {   
@@ -3018,7 +3023,7 @@ qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_cl
       return QTI_IDENT;
 
    bool priv; 
-   if (!oc.scl || !oc.scl->getClass(classID, name, hash, priv))
+   if (!oc.scl || !oc.scl->getClass(oc, priv))
       return QTI_NOT_EQUAL;
 
    if (!priv)

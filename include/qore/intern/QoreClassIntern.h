@@ -1275,7 +1275,7 @@ public:
       return qc;
    }
 
-   DLLLOCAL const QoreClass *getClass(qore_classid_t cid, const std::string& cname, const SignatureHash& chash, bool &n_priv) const;
+   DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, bool& n_priv) const;
 };
 
 //typedef safe_dslist<BCNode *> bclist_t;
@@ -1347,7 +1347,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL const QoreClass *getClass(qore_classid_t cid, const std::string& cname, const SignatureHash& chash, bool &priv) const;
+   DLLLOCAL const QoreClass *getClass(const qore_class_private& qc, bool &priv) const;
 
    DLLLOCAL void addNewAncestors(QoreMethod *m);
    DLLLOCAL void addAncestors(QoreMethod *m);
@@ -2381,28 +2381,16 @@ public:
    DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc) const;
    DLLLOCAL qore_type_result_e runtimeCheckCompatibleClass(const qore_class_private& oc) const;
 
-   DLLLOCAL const QoreClass* getClassIntern(qore_classid_t cid, const std::string& cname, const SignatureHash& chash, bool &priv) {
-      if (cid == classID)
+   DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, bool &priv) {
+      if (qc.classID == classID)
          return cls;
 
-      // check hash names are the same
-      if (cname == name && hash == chash)
+      // check hashes if names are the same
+      // FIXME: check fully-qualified namespace name
+      if (qc.name == name && qc.hash == hash)
          return cls;
 
-#ifdef DEBUG
-      if (cname == name) {
-         printd(0, "qore_class_private::getClassIntern() cname == name == %s (hash == chash: %d)\n", cname.c_str(), hash == chash);
-
-         QoreString str;
-         hash.toString(str);
-         printd(0, "qore_class_private::getClassIntern() hash: %s\n", str.getBuffer());
-         str.clear();
-         chash.toString(str);
-         printd(0, "qore_class_private::getClassIntern() chash: %s\n", str.getBuffer());
-      }
-#endif
-
-      return scl ? scl->getClass(cid, cname, chash, priv) : 0;
+      return scl ? scl->getClass(qc, priv) : 0;
    }
 
    DLLLOCAL const QoreClass *parseGetClass(qore_classid_t cid, bool &cpriv) const;
@@ -2540,10 +2528,6 @@ public:
 
    DLLLOCAL static qore_type_result_e runtimeCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {
       return qc.priv->runtimeCheckCompatibleClass(*oc.priv);
-   }
-
-   DLLLOCAL static const QoreClass* getClassIntern(const QoreClass& qc, qore_classid_t cid, const std::string& cname, const SignatureHash& chash, bool &priv) {
-      return qc.priv->getClassIntern(cid, cname, chash, priv);
    }
 };
 

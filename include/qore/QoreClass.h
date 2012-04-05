@@ -619,6 +619,16 @@ public:
    */
    DLLEXPORT const QoreClass *getClass(qore_classid_t cid, bool &priv) const;
 
+   //! returns a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy and sets a flag indicating if it's privately inherited or not
+   /** if the class ID is equal to the current class or is a base class
+       of the current class, the appropriate QoreClass pointer will be
+       returned.
+       @param qc the class to check the hierarchy for
+       @param priv a flag indicating if the class is privately inherited or not
+       @return a pointer to the QoreClass object corresponding to the class passed if it exists in the class hierarchy; in the case that the passed class if from a different QoreProgram object, the value returned could be a different pointer to the qc parameter passed
+   */
+   DLLEXPORT const QoreClass *getClass(const QoreClass& qc, bool &priv) const;
+
    //! returns the number of non-static methods in this class (user and builtin)
    DLLEXPORT int numMethods() const;
 
