@@ -1179,20 +1179,24 @@ int qore_ns_private::parseAddPendingClass(const NamedScope *n, QoreClass* oc) {
 }
 
 void qore_ns_private::assimilate(QoreNamespace* ans) {
+   qore_ns_private* pns = ans->priv;
    // make sure there are no objects in the committed lists
-   assert(ans->priv->nsl.empty());
-   assert(ans->priv->constant.empty());
-   assert(ans->priv->classList.empty());
+   assert(pns->nsl.empty());
+   assert(pns->constant.empty());
+   assert(pns->classList.empty());
 
    // assimilate pending constants
    // assimilate target list - if there were errors then the list will be deleted anyway
-   pendConstant.assimilate(ans->priv->pendConstant, constant, name.c_str());
+   pendConstant.assimilate(pns->pendConstant, constant, name.c_str());
 
    // assimilate classes
-   pendClassList.assimilate(ans->priv->pendClassList, *this);
+   pendClassList.assimilate(pns->pendClassList, *this);
+
+   // assimilate pending functions
+   func_list.assimilate(pns->func_list);
 
    // assimilate sub namespaces
-   for (nsmap_t::iterator i = ans->priv->pendNSL.nsmap.begin(), e = ans->priv->pendNSL.nsmap.end(); i != e; ++i) {
+   for (nsmap_t::iterator i = pns->pendNSL.nsmap.begin(), e = pns->pendNSL.nsmap.end(); i != e; ++i) {
       // throw parse exception if name is already defined as a namespace or class
       if (nsl.find(i->second->priv->name.c_str()))
 	 parse_error("subnamespace '%s' has already been defined in namespace '%s'", i->second->priv->name.c_str(), name.c_str());
@@ -1207,7 +1211,7 @@ void qore_ns_private::assimilate(QoreNamespace* ans) {
    }
 
    // assimilate target namespace list
-   pendNSL.assimilate(ans->priv->pendNSL, this);
+   pendNSL.assimilate(pns->pendNSL, this);
 
    // delete source namespace
    delete ans;

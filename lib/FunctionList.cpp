@@ -25,6 +25,10 @@
 
 #include <string.h>
 
+ResolvedCallReferenceNode* FunctionEntry::makeCallReference() const {
+   return new LocalFunctionCallReferenceNode(func);
+}
+
 FunctionList::FunctionList(const FunctionList& old, int64 po) {
    bool no_user = !(po & PO_INHERIT_USER_FUNC_VARIANTS);
    bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
@@ -83,10 +87,7 @@ FunctionEntry* FunctionList::findNode(const char* name) const {
    printd(5, "FunctionList::findNode(%s)\n", name);
 
    fl_map_t::const_iterator i = fl_map_t::find(name);
-   if (i != end())
-      return i->second;
-
-   return 0;
+   return i != end() ? i->second : 0;
 }
 
 QoreFunction* FunctionList::find(const char* name, bool runtime) const {
@@ -131,6 +132,16 @@ void FunctionList::parseRollback() {
    }
 }
 
-ResolvedCallReferenceNode* FunctionEntry::makeCallReference() const {
-   return new LocalFunctionCallReferenceNode(func);
+void FunctionList::assimilate(FunctionList& fl) {
+   for (fl_map_t::iterator i = fl.begin(), e = fl.end(); i != e;) {
+      fl_map_t::const_iterator li = fl_map_t::find(i->first);
+      if (li == end())
+	 insert(fl_map_t::value_type(i->first, i->second));
+      else {
+	 li->second->getFunction()->parseAssimilate(i->second->takeFunction());
+	 delete i->second;
+      }
+
+      fl.erase(i++);
+   }   
 }

@@ -232,7 +232,9 @@ public:
    DLLLOCAL void pop_front() {
       if (!tail)
          return;
+      node_t* n = head;
       head = head->next;
+      delete n;
       if (!head)
          tail = 0;
    }

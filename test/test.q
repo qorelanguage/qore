@@ -1403,6 +1403,18 @@ sub class_test_Program() {
     catch (hash $ex) {
         test_value($ex.err, "PARSE-EXCEPTION", "recursive constant ref");
     }
+
+    my string $pstr = "class T { private { int i = 1; static *int j = 4; const X = 2; } int get() { return i; } static other (int x) {} } T sub getT() { return new T(); } int sub checkT(T t) { return t.get(); }";
+
+    my Program $p1(PO_NEW_STYLE);
+    my Program $p2(PO_NEW_STYLE);
+
+    $p1.parse($pstr, "p");
+    $p2.parse($pstr, "p");
+
+    my object $o2 = $p1.callFunction("getT");
+    test_value(1, $p1.callFunction("checkT", $o2), "first cross-Program class");
+    test_value(1, $p2.callFunction("checkT", $o2), "second cross-Program class");
 }
 
 sub class_test_File() {

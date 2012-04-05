@@ -1041,6 +1041,9 @@ public:
       return rv;
    }
 
+   DLLLOCAL void scanMergeCommittedNamespace() const {
+   }
+
    DLLLOCAL static RootQoreNamespace* copy(const RootQoreNamespace& rns, int64 po) {
       return rns.rpriv->copy(po);
    }
@@ -1174,6 +1177,10 @@ public:
 
    DLLLOCAL static QoreNamespace* runtimeFindNamespaceForFunction(RootQoreNamespace& rns, const NamedScope& name) {
       return rns.rpriv->runtimeFindNamespaceForFunction(name);
+   }
+
+   DLLLOCAL static void scanMergeCommittedNamespace(const RootQoreNamespace& rns) {
+      rns.rpriv->scanMergeCommittedNamespace();
    }
 };
 

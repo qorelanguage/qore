@@ -49,7 +49,8 @@ public:
    }
 
    DLLLOCAL ~FunctionEntry() {
-      func->deref();
+      if (func)
+         func->deref();
    }
 
    DLLLOCAL QoreFunction* getFunction() {
@@ -60,6 +61,12 @@ public:
       if (runtime && func->committedEmpty())
 	 return 0;
       return func;
+   }
+
+   DLLLOCAL QoreFunction* takeFunction() {
+      QoreFunction* rv = func;
+      func = 0;
+      return rv;
    }
 
    DLLLOCAL const char* getName() const {
@@ -111,6 +118,7 @@ public:
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit();
    DLLLOCAL QoreListNode* getList();
+   DLLLOCAL void assimilate(FunctionList& fl);
 };
 
 #endif
