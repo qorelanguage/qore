@@ -2378,7 +2378,10 @@ public:
 
    DLLLOCAL bool parseCheckPrivateClassAccess() const;
    DLLLOCAL bool runtimeCheckPrivateClassAccess() const;
+
+   // this = class to find in "oc"
    DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc) const;
+   // this = class to find in "oc"
    DLLLOCAL qore_type_result_e runtimeCheckCompatibleClass(const qore_class_private& oc) const;
 
    DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, bool &priv) {
@@ -2389,6 +2392,8 @@ public:
       // FIXME: check fully-qualified namespace name
       if (qc.name == name && qc.hash == hash)
          return cls;
+
+      //printd(5, "qore_class_private::getClassIntern() this: %p '%s' != '%s' scl: %p\n", this, name.c_str(), qc.name.c_str(), scl);
 
       return scl ? scl->getClass(qc, priv) : 0;
    }

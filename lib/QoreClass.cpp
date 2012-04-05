@@ -3022,8 +3022,8 @@ qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_cl
    if (classID == oc.classID || (oc.name == name && oc.hash == hash))
       return QTI_IDENT;
 
-   bool priv; 
-   if (!oc.scl || !oc.scl->getClass(oc, priv))
+   bool priv;
+   if (!oc.scl || !oc.scl->getClass(*this, priv))
       return QTI_NOT_EQUAL;
 
    if (!priv)

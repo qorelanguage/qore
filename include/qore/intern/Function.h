@@ -613,22 +613,25 @@ public:
    }
 
    // copy constructor (used by method functions when copied)
-   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = 0) : name(old.name), same_return_type(old.same_return_type), 
-                                                                  parse_same_return_type(true), 
-                                                                  unique_functionality(old.unique_functionality),
-                                                                  unique_flags(old.unique_flags),
-                                                                  nn_same_return_type(old.nn_same_return_type), 
-                                                                  nn_unique_functionality(old.nn_unique_functionality),
-                                                                  nn_unique_flags(old.nn_unique_flags),
-                                                                  nn_count(old.nn_count),
-                                                                  parse_rt_done(true), parse_init_done(true),
-                                                                  has_user(old.has_user), has_builtin(old.has_builtin),
-                                                                  nn_uniqueReturnType(old.nn_uniqueReturnType) {
+   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = PO_INHERIT_USER_FUNC_VARIANTS) 
+      : name(old.name), same_return_type(old.same_return_type), 
+        parse_same_return_type(true), 
+        unique_functionality(old.unique_functionality),
+        unique_flags(old.unique_flags),
+        nn_same_return_type(old.nn_same_return_type), 
+        nn_unique_functionality(old.nn_unique_functionality),
+        nn_unique_flags(old.nn_unique_flags),
+        nn_count(old.nn_count),
+        parse_rt_done(true), parse_init_done(true),
+        has_user(old.has_user), has_builtin(old.has_builtin),
+        nn_uniqueReturnType(old.nn_uniqueReturnType) {
+      bool no_user = !(po & PO_INHERIT_USER_FUNC_VARIANTS);
+      bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
       // copy variants by reference
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
-         if ((po & PO_NO_USER_FUNC_VARIANTS) && (*i)->isUser())
+         if (no_user && (*i)->isUser())
             continue;
-         if ((po & PO_NO_SYSTEM_FUNC_VARIANTS) && !(*i)->isUser())
+         if (no_builtin && !(*i)->isUser())
             continue;
          vlist.push_back((*i)->ref());
       }

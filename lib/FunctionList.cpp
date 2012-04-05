@@ -26,11 +26,13 @@
 #include <string.h>
 
 FunctionList::FunctionList(const FunctionList& old, int64 po) {
+   bool no_user = !(po & PO_INHERIT_USER_FUNC_VARIANTS);
+   bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
    for (fl_map_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
       QoreFunction* f = i->second->getFunction();
-      if ((po & PO_NO_USER_FUNC_VARIANTS) && !f->hasBuiltin())
+      if (no_user && !f->hasBuiltin())
 	 continue;
-      if ((po & PO_NO_SYSTEM_FUNC_VARIANTS) && !f->hasUser())
+      if (no_builtin && !f->hasUser())
 	 continue;
 
       FunctionEntry* fe = new FunctionEntry(i->first, new QoreFunction(*f, po));
