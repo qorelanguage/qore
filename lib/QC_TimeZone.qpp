@@ -143,6 +143,8 @@ date TimeZone::date(date d) [flags=CONSTANT] {
     @code
 my date $dt = $tz.date("2012-01-01T13:56:23");
     @endcode
+
+    @since %Qore 0.8.4
  */
 date TimeZone::date(string d) [flags=CONSTANT] {
    return new DateTimeNode(z->get(), d->getBuffer());

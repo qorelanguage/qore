@@ -681,6 +681,8 @@ $pgm.importFunction("log");
 
     @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists
     @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
+
+    @since %Qore 0.8.4 the function name can include a namespace path (ex \c "Namespace::func")
  */
 nothing Program::importFunction(string func) {
    qore_program_private::exportFunction(getProgram(), xsink, p, func->getBuffer());
@@ -699,6 +701,8 @@ $pgm.importFunction("service_log", "log");
 
     @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists; target namespace does not exist
     @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
+
+    @since %Qore 0.8.4 the function name can include a namespace path (ex \c "Namespace::func")
  */
 nothing Program::importFunction(string func, string new_name) {
    qore_program_private::exportFunction(getProgram(), xsink, p, func->getBuffer(), new_name->getBuffer());
