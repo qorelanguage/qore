@@ -51,6 +51,7 @@ public:
 
    DLLLOCAL ConstantEntry() : typeInfo(0), node(0), in_init(false), init(false) {}
    DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init) {}
+   DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
    DLLLOCAL ~ConstantEntry() {
       assert(!node);
@@ -105,6 +106,7 @@ typedef std::map<const char*, ConstantEntry*, ltstr> cnemap_t;
 
 class ConstantList {
    friend class ConstantListIterator;
+   friend class ConstConstantListIterator;
 
 private:
    // not implemented
@@ -189,6 +191,36 @@ public:
    }
 
    DLLLOCAL ConstantEntry* getEntry() const {
+      return i->second;
+   }
+};
+
+class ConstConstantListIterator {
+protected:
+   const cnemap_t& cl;
+   cnemap_t::const_iterator i;
+
+public:
+   DLLLOCAL ConstConstantListIterator(const ConstantList& n_cl) : cl(n_cl.cnemap), i(cl.end()) {
+   }
+
+   DLLLOCAL bool next() {
+      if (i == cl.end())
+         i = cl.begin();
+      else
+         ++i;
+      return i != cl.end();
+   }
+
+   DLLLOCAL const std::string& getName() const {
+      return i->second->getNameStr();
+   }
+
+   DLLLOCAL const AbstractQoreNode *getValue() const {
+      return i->second->node;
+   }
+
+   DLLLOCAL const ConstantEntry* getEntry() const {
       return i->second;
    }
 };

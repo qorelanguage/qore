@@ -61,6 +61,12 @@ static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
    }
 }
 
+ConstantEntry::ConstantEntry(const ConstantEntry& old) : loc(old.loc), name(old.name), typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : 0), 
+							 in_init(false), init(true) {
+   assert(!old.in_init);
+   assert(old.init);
+}
+
 void ConstantEntry::del(ExceptionSink* xsink) {
    if (!node)
       return;

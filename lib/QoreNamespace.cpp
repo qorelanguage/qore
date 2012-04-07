@@ -335,31 +335,23 @@ QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
    return priv->findCreateNamespacePath(nspath);
 }
 
+QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn) {
+   QoreNamespace* ns = nsl.find(nsn);
+   if (!ns)
+      nsl.add((ns = new QoreNamespace(nsn)), this);
+   return ns;
+}
+
 QoreNamespace* qore_ns_private::findCreateNamespacePath(const char* nspath) {
    assert(nspath);
-   NamedScope ns(nspath);
+   NamedScope nscope(nspath);
 
    // iterate through each level of the namespace path and find/create namespaces as needed
-   qore_ns_private* iparent = this;
-   qore_ns_private* itns = 0;
-   for (unsigned i = 0; i < ns.size(); ++i) {
-      const char* nsn = ns.strlist[i].c_str();
-      QoreNamespace* ns = iparent->nsl.find(nsn);
-      //printd(5, "qore_ns_private::findCreateNamespacePath() curr: %p ('%s') nsn: '%s' (find: %p) parent depth: %d\n", iparent, iparent->name.c_str(), nsn, ns, iparent->depth);
-      if (ns) {
-         //printd(5, "qore_ns_private::findCreateNamespacePath() curr: %p ('%s') nsn: '%s' found depth: %d\n", iparent, iparent->name.c_str(), nsn, ns->priv->depth);
-         itns = ns->priv;
-      }
-      else {
-         ns = new QoreNamespace(nsn);
-	 itns = ns->priv;
-	 iparent->nsl.add(itns->ns, iparent);
-         //printd(5, "qore_ns_private::findCreateNamespacePath() curr: %p ('%s') nsn: '%s' added depth: %d\n", iparent, iparent->name.c_str(), nsn, itns->depth);
-      }
-      iparent = itns;
-   }
+   QoreNamespace* nns = ns;
+   for (unsigned i = 0; i < nscope.size(); ++i)
+      nns = nns->priv->findCreateNamespace(nscope[i]);
 
-   return itns ? itns->ns : 0;
+   return nns;
 }
 
 QoreClass* QoreNamespace::findLocalClass(const char* cname) const {
@@ -567,7 +559,7 @@ void StaticSystemNamespace::init() {
 #endif
 
 // returns 0 for success, non-zero return value means error
-int qore_root_ns_private::parseAddMethodToClassIntern(const NamedScope *scname, MethodVariantBase *qcmethod, bool static_flag) {
+int qore_root_ns_private::parseAddMethodToClassIntern(const NamedScope& scname, MethodVariantBase *qcmethod, bool static_flag) {
    std::auto_ptr<MethodVariantBase> v(qcmethod);
 
    // find class
@@ -575,7 +567,7 @@ int qore_root_ns_private::parseAddMethodToClassIntern(const NamedScope *scname, 
    if (!oc)
       return -1;
 
-   return oc->addUserMethod(scname->getIdentifier(), v.release(), static_flag);
+   return oc->addUserMethod(scname.getIdentifier(), v.release(), static_flag);
 }
 
 // returns 0 for success, non-zero for error
@@ -665,7 +657,7 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
 
    // iterate all namespaces with the initial name and look for the match
    {
-      NamespaceMapIterator nmi(nsmap, nscope.strlist[0].c_str());
+      NamespaceMapIterator nmi(nsmap, nscope[0]);
       while (nmi.next()) {
          //printd(5, "qore_root_ns_private::parseResolveScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
          if ((rv = nmi.get()->parseCheckScopedReference(nscope, m, typeInfo)))
@@ -674,7 +666,7 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
    }
 
    {
-      NamespaceMapIterator nmi(pend_nsmap, nscope.strlist[0].c_str());
+      NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
       while (nmi.next()) {
          //printd(5, "qore_root_ns_private::parseResolveScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
          if ((rv = nmi.get()->parseCheckScopedReference(nscope, m, typeInfo)))
@@ -684,7 +676,7 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
 
    // now look for class constants if there is only a single namespace or class name in the beginning
    if (nscope.size() == 2) {
-      QoreClass* qc = parseFindClassIntern(nscope.strlist[0].c_str(), false);
+      QoreClass* qc = parseFindClassIntern(nscope[0], false);
       if (qc) {
          rv = parseResolveClassConstant(qc, nscope.getIdentifier(), typeInfo);
          if (rv)
@@ -694,12 +686,12 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
 
    // raise parse exception
    if (m != (nscope.size() - 1))
-      parse_error("cannot find any namespace or class '%s' in '%s' providing a constant or static class variable '%s'", nscope.strlist[m].c_str(), nscope.ostr, nscope.getIdentifier());
+      parse_error("cannot find any namespace or class '%s' in '%s' providing a constant or static class variable '%s'", nscope[m], nscope.ostr, nscope.getIdentifier());
    else {
       QoreString err;
       err.sprintf("cannot resolve bareword '%s' to any reachable object in any namespace '", nscope.getIdentifier());
       for (unsigned i = 0; i < (nscope.size() - 1); i++) {
-         err.concat(nscope.strlist[i].c_str());
+         err.concat(nscope[i]);
          if (i != (nscope.size() - 2))
             err.concat("::");
       }
@@ -712,14 +704,14 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
 }
 
 // private
-QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodIntern(const NamedScope* nscope, unsigned& matched) {
-   assert(nscope->size() > 2);
+QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodIntern(const NamedScope& nscope, unsigned& matched) {
+   assert(nscope.size() > 2);
 
    QoreClass* oc;
 
    // iterate all namespaces with the initial name and look for the match
    {
-      NamespaceMapIterator nmi(nsmap, nscope->strlist[0].c_str());
+      NamespaceMapIterator nmi(nsmap, nscope[0]);
       while (nmi.next()) {
          if ((oc = nmi.get()->parseMatchScopedClassWithMethod(nscope, matched)))
             return oc;
@@ -727,7 +719,7 @@ QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodIntern(const Name
    }
 
    {
-      NamespaceMapIterator nmi(pend_nsmap, nscope->strlist[0].c_str());
+      NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
       while (nmi.next()) {
          if ((oc = nmi.get()->parseMatchScopedClassWithMethod(nscope, matched)))
             return oc;
@@ -737,12 +729,12 @@ QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodIntern(const Name
    return 0;
 }
 
-QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope* nscope, unsigned& matched) {
-   assert(nscope->size() > 1);
+QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& nscope, unsigned& matched) {
+   assert(nscope.size() > 1);
 
    // iterate all namespaces with the initial name and look for the match
    {
-      NamespaceMapIterator nmi(nsmap, nscope->strlist[0].c_str());
+      NamespaceMapIterator nmi(nsmap, nscope[0]);
       while (nmi.next()) {
          QoreClass* oc;
          //printd(5, "qore_root_ns_private::parseResolveScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
@@ -752,7 +744,7 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope* ns
    }
 
    {
-      NamespaceMapIterator nmi(pend_nsmap, nscope->strlist[0].c_str());
+      NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
       while (nmi.next()) {
          QoreClass* oc;
          //printd(5, "qore_root_ns_private::parseResolveScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
@@ -764,24 +756,24 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope* ns
    return 0;
 }
 
-QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope* nscope) {
+QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& nscope) {
    QoreClass* oc;
    // if there is no namespace specified, then just find class
-   if (nscope->size() == 1)
-      return parseFindClassIntern(nscope->getIdentifier(), true);
+   if (nscope.size() == 1)
+      return parseFindClassIntern(nscope.getIdentifier(), true);
 
    unsigned m = 0;
    oc = parseFindScopedClassIntern(nscope, m);
 
    if (!oc) {
-      if (m != (nscope->size() - 1))
-         parse_error("cannot resolve namespace '%s' in '%s'", nscope->strlist[m].c_str(), nscope->ostr);
+      if (m != (nscope.size() - 1))
+         parse_error("cannot resolve namespace '%s' in '%s'", nscope[m], nscope.ostr);
       else {
          QoreString err;
-         err.sprintf("cannot find class '%s' in any namespace '", nscope->getIdentifier());
-         for (unsigned i = 0; i < (nscope->size() - 1); i++) {
-            err.concat(nscope->strlist[i].c_str());
-            if (i != (nscope->size() - 2))
+         err.sprintf("cannot find class '%s' in any namespace '", nscope.getIdentifier());
+         for (unsigned i = 0; i < (nscope.size() - 1); i++) {
+            err.concat(nscope[i]);
+            if (i != (nscope.size() - 2))
                err.concat("::");
          }
          err.concat("'");
@@ -789,37 +781,37 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope* ns
       }
    }
 
-   printd(5, "qore_root_ns_private::parseFindScopedClassIntern('%s') returning %p\n", nscope->ostr, oc);
+   printd(5, "qore_root_ns_private::parseFindScopedClassIntern('%s') returning %p\n", nscope.ostr, oc);
    return oc;
 }
 
-QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodInternError(const NamedScope *scname, bool error) {
+QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodInternError(const NamedScope& scname, bool error) {
    // must have at least 2 elements
-   assert(scname->size() > 1);
+   assert(scname.size() > 1);
 
    QoreClass* oc;
 
-   if (scname->size() == 2) {
-      oc = parseFindClassIntern(scname->strlist[0].c_str(), false);
+   if (scname.size() == 2) {
+      oc = parseFindClassIntern(scname[0], false);
       if (oc)
          return oc;
 
       if (error)
-         parse_error("reference to undefined class '%s' in '%s()'", scname->get(0), scname->ostr);
+         parse_error("reference to undefined class '%s' in '%s()'", scname[0], scname.ostr);
       return 0;
    }
 
    unsigned m = 0;
    oc = parseFindScopedClassWithMethodIntern(scname, m);
    if (!oc && error) {
-      if (m >= (scname->size() - 2))
-         parse_error("cannot resolve class '%s' in '%s()'", scname->strlist[m].c_str(), scname->ostr);
+      if (m >= (scname.size() - 2))
+         parse_error("cannot resolve class '%s' in '%s()'", scname[m], scname.ostr);
       else  {	 
          QoreString err;
-         err.sprintf("cannot find class '%s' in any namespace '", scname->strlist[scname->size() - 2].c_str());
-         for (unsigned i = 0; i < (scname->size() - 2); i++) {
-            err.concat(scname->strlist[i].c_str());
-            if (i != (scname->size() - 3))
+         err.sprintf("cannot find class '%s' in any namespace '", scname[scname.size() - 2]);
+         for (unsigned i = 0; i < (scname.size() - 2); i++) {
+            err.concat(scname.strlist[i].c_str());
+            if (i != (scname.size() - 3))
                err.concat("::");
          }
          err.concat("'");
@@ -827,21 +819,21 @@ QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodInternError(const
       }
    }
 
-   printd(5, "qore_ns_private::parseFindScopedClassWithMethodIntern('%s') returning %p\n", scname->ostr, oc);
+   printd(5, "qore_ns_private::parseFindScopedClassWithMethodIntern('%s') returning %p\n", scname.ostr, oc);
    return oc;
 }
 
 // called in 2nd stage of parsing to resolve constant references
-AbstractQoreNode* qore_root_ns_private::parseFindConstantValueIntern(const NamedScope *scname, const QoreTypeInfo *&typeInfo, bool error) {
-   if (scname->size() == 1)
-      return parseFindConstantValueIntern(scname->ostr, typeInfo, error);
+AbstractQoreNode* qore_root_ns_private::parseFindConstantValueIntern(const NamedScope& scname, const QoreTypeInfo *&typeInfo, bool error) {
+   if (scname.size() == 1)
+      return parseFindConstantValueIntern(scname.ostr, typeInfo, error);
 
    AbstractQoreNode* rv;
    unsigned m = 0;
 
    // iterate all namespaces with the initial name and look for the match
    {
-      NamespaceMapIterator nmi(nsmap, scname->strlist[0].c_str());
+      NamespaceMapIterator nmi(nsmap, scname[0]);
       while (nmi.next()) {
          //printd(5, "qore_root_ns_private::parseResolveScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
          if ((rv = nmi.get()->parseMatchScopedConstantValue(scname, m, typeInfo)))
@@ -850,7 +842,7 @@ AbstractQoreNode* qore_root_ns_private::parseFindConstantValueIntern(const Named
    }
 
    {
-      NamespaceMapIterator nmi(pend_nsmap, scname->strlist[0].c_str());
+      NamespaceMapIterator nmi(pend_nsmap, scname[0]);
       while (nmi.next()) {
          //printd(5, "qore_root_ns_private::parseResolveScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
          if ((rv = nmi.get()->parseMatchScopedConstantValue(scname, m, typeInfo)))
@@ -859,10 +851,10 @@ AbstractQoreNode* qore_root_ns_private::parseFindConstantValueIntern(const Named
    }
 
    // look for a class constant if there are only 2 elements in the scope list
-   if (scname->size() == 2) {
-      QoreClass* qc = parseFindClassIntern(scname->strlist[0].c_str(), false);
+   if (scname.size() == 2) {
+      QoreClass* qc = parseFindClassIntern(scname[0], false);
       if (qc) {
-         rv = parseResolveClassConstant(qc, scname->getIdentifier(), typeInfo);
+         rv = parseResolveClassConstant(qc, scname.getIdentifier(), typeInfo);
          if (rv)
             return rv;
       }
@@ -871,14 +863,14 @@ AbstractQoreNode* qore_root_ns_private::parseFindConstantValueIntern(const Named
    if (!error)
       return 0;
 
-   if (m != (scname->size() - 1))
-      parse_error("cannot resolve namespace '%s' in constant reference '%s'", scname->strlist[m].c_str(), scname->ostr);
+   if (m != (scname.size() - 1))
+      parse_error("cannot resolve namespace '%s' in constant reference '%s'", scname[m], scname.ostr);
    else {
       QoreString err;
-      err.sprintf("cannot find constant '%s' in any namespace '", scname->getIdentifier());
-      for (unsigned i = 0; i < (scname->size() - 1); i++) {
-	 err.concat(scname->strlist[i].c_str());
-	 if (i != (scname->size() - 2))
+      err.sprintf("cannot find constant '%s' in any namespace '", scname.getIdentifier());
+      for (unsigned i = 0; i < (scname.size() - 1); i++) {
+	 err.concat(scname[i]);
+	 if (i != (scname.size() - 2))
 	    err.concat("::");
       }
       err.concat("'");
@@ -889,19 +881,19 @@ AbstractQoreNode* qore_root_ns_private::parseFindConstantValueIntern(const Named
 }
 
 // only called with RootNS
-void qore_root_ns_private::parseAddClassIntern(const NamedScope* nscope, QoreClass* oc) {
+void qore_root_ns_private::parseAddClassIntern(const NamedScope& nscope, QoreClass* oc) {
    QORE_TRACE("qore_root_ns_private::parseAddClassIntern()");
 
    QoreNamespace* sns = parseResolveNamespace(nscope);
 
    if (sns) {
-      //printd(5, "qore_root_ns_private::parseAddClassIntern() '%s' adding %s:%p to %s:%p\n", nscope->ostr, oc->getName(), oc, sns->priv->name.c_str(), sns);
+      //printd(5, "qore_root_ns_private::parseAddClassIntern() '%s' adding %s:%p to %s:%p\n", nscope.ostr, oc->getName(), oc, sns->priv->name.c_str(), sns);
       // add to pending class map if add was successful
       if (!sns->priv->parseAddPendingClass(oc))
          pend_clmap.update(oc->getName(), sns->priv, oc);
    }
    else {
-      //printd(5, "qore_root_ns_private::parseAddClassIntern() class '%s' not added: '%s' namespace not found\n", oc->getName(), nscope->ostr);
+      //printd(5, "qore_root_ns_private::parseAddClassIntern() class '%s' not added: '%s' namespace not found\n", oc->getName(), nscope.ostr);
       delete oc;
    }
 }
@@ -917,7 +909,7 @@ void qore_root_ns_private::addConstant(qore_ns_private& ns, const char* cname, A
 void qore_root_ns_private::parseAddConstantIntern(QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value) {
    ReferenceHolder<> vh(value, 0);
 
-   QoreNamespace* sns = ns.priv->resolveNameScope(&name);
+   QoreNamespace* sns = ns.priv->resolveNameScope(name);
    if (!sns)
       return;
 
@@ -929,8 +921,8 @@ void qore_root_ns_private::parseAddConstantIntern(QoreNamespace& ns, const Named
    pend_cnmap.update(i->first, sns->priv, i->second);
 }
 
-QoreNamespace* qore_root_ns_private::parseResolveNamespace(const NamedScope* nscope) {
-   if (nscope->size() == 1)
+QoreNamespace* qore_root_ns_private::parseResolveNamespace(const NamedScope& nscope) {
+   if (nscope.size() == 1)
       return ns;
 
    QoreNamespace* fns = 0;
@@ -938,22 +930,22 @@ QoreNamespace* qore_root_ns_private::parseResolveNamespace(const NamedScope* nsc
 
    // iterate all namespaces with the initial name and look for the match
    {
-      NamespaceMapIterator nmi(nsmap, nscope->strlist[0].c_str());
+      NamespaceMapIterator nmi(nsmap, nscope[0]);
       while (nmi.next()) {
-         if ((fns = nmi.get()->parseMatchNamespace(*nscope, match)))
+         if ((fns = nmi.get()->parseMatchNamespace(nscope, match)))
             return fns;
       }
    }
 
    {
-      NamespaceMapIterator nmi(pend_nsmap, nscope->strlist[0].c_str());
+      NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
       while (nmi.next()) {
-         if ((fns = nmi.get()->parseMatchNamespace(*nscope, match)))
+         if ((fns = nmi.get()->parseMatchNamespace(nscope, match)))
             return fns;
       }
    }
 
-   parse_error("cannot resolve namespace '%s' in '%s'", nscope->strlist[match].c_str(), nscope->ostr);
+   parse_error("cannot resolve namespace '%s' in '%s'", nscope[match], nscope.ostr);
    return 0;
 }
 
@@ -989,7 +981,7 @@ const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const Named
 
    // iterate all namespaces with the initial name and look for the match
    {
-      NamespaceMapIterator nmi(nsmap, nscope.strlist[0].c_str());
+      NamespaceMapIterator nmi(nsmap, nscope[0]);
       while (nmi.next()) {
          if ((f = nmi.get()->parseMatchFunction(nscope, match)))
             return f;
@@ -997,7 +989,7 @@ const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const Named
    }
 
    {
-      NamespaceMapIterator nmi(pend_nsmap, nscope.strlist[0].c_str());
+      NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
       while (nmi.next()) {
          if ((f = nmi.get()->parseMatchFunction(nscope, match)))
             return f;
@@ -1126,11 +1118,11 @@ cnemap_t::iterator qore_ns_private::parseAddConstant(const char* cname, Abstract
 void qore_ns_private::parseAddConstant(const NamedScope& nscope, AbstractQoreNode* value) {
    ReferenceHolder<> vh(value, 0);
 
-   QoreNamespace *sns = resolveNameScope(&nscope);
+   QoreNamespace *sns = resolveNameScope(nscope);
    if (!sns)
       return;
 
-   sns->priv->parseAddConstant(nscope.strlist[nscope.size() - 1].c_str(), vh.release());
+   sns->priv->parseAddConstant(nscope[nscope.size() - 1], vh.release());
 }
 
 // public, only called either in single-threaded initialization or
@@ -1167,16 +1159,101 @@ int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
 }
 
 // public, only called when parsing unattached namespaces
-int qore_ns_private::parseAddPendingClass(const NamedScope *n, QoreClass* oc) {
+int qore_ns_private::parseAddPendingClass(const NamedScope& n, QoreClass* oc) {
    std::auto_ptr<QoreClass> och(oc);
 
-   //printd(5, "qore_ns_private::parseAddPendingClass() adding ns=%s (%s, %p)\n", n->ostr, oc->getName(), oc);
+   //printd(5, "qore_ns_private::parseAddPendingClass() adding ns=%s (%s, %p)\n", n.ostr, oc->getName(), oc);
    QoreNamespace* sns = resolveNameScope(n);
    if (!sns)
       return -1;
 
    return sns->priv->parseAddPendingClass(och.release());
 }
+
+/*
+void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const {
+   // make sure there are no objects in the pending lists
+   assert(mns.pendNSL.empty());
+   assert(mns.pendConstant.empty());
+   assert(mns.pendClassList.empty());
+   
+   // check constants
+   {
+      ConstConstantListIterator cli(mns.constant);
+      while (cli.next()) {
+         if (constant.inList(cli.getName()))
+            qmc.error("duplicate constant %s::%s", name.c_str(), cli.getName().c_str());
+         if (pendConstant.inList(cli.getName()))
+            qmc.error("duplicate pending constant %s::%s", name.c_str(), cli.getName().c_str());
+      }
+   }
+
+   // check classes
+   {
+      ConstClassListIterator cli(mns.classList);
+      while (cli.next()) {
+         if (classList.find(cli.getName()))
+            qmc.error("duplicate class %s::%s", name.c_str(), cli.getName());
+         if (pendClassList.find(cli.getName()))
+            qmc.error("duplicate pending class %s::%s", name.c_str(), cli.getName());            
+      }
+   }
+
+   // check functions
+   for (fl_map_t::const_iterator i = mns.func_list.begin(), e = mns.func_list.end(); i != e; ++i) {
+      if (func_list.findNode(i->first))
+         qmc.error("duplicate function %s::%s()", name.c_str(), i->first);
+   }
+
+   // check subnamespaces
+   for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
+      // see if a class with the same name is present
+      if (classList.find(i->first.c_str())) {
+         qmc.error("namespace '%s::%s' clashes with an existing class of the same name", name.c_str(), i->first.c_str());
+         continue;
+      }
+      // see if a pending class with the same name is present
+      if (pendClassList.find(i->first.c_str())) {
+         qmc.error("namespace '%s::%s' clashes with a pending class of the same name", name.c_str(), i->first.c_str());
+         continue;
+      }
+      // see if a subnamespace with the same name exists
+      const QoreNamespace* cns = nsl.find(i->first);
+      if (!cns)
+         cns = pendNSL.find(i->first);
+      if (cns) {
+         cns->priv->scanMergeCommittedNamespace(*(i->second->priv), qmc);
+         continue;
+      }
+   }
+}
+
+void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
+   // add constants
+   {
+      ConstConstantListIterator cli(mns.constant);
+      while (cli.next()) {
+      }
+   }
+
+   // add classes
+   {
+      ConstClassListIterator cli(mns.classList);
+      while (cli.next()) {
+      }
+   }
+
+   // add functions
+   for (fl_map_t::const_iterator i = mns.func_list.begin(), e = mns.func_list.end(); i != e; ++i) {
+   }
+
+   // add sub namespaces
+   for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
+      QoreNamespace* nns = findCreateNamespace(i->first.c_str());
+      i->second->priv->scanMergeCommittedNamespace(*(i->second->priv));
+   }
+}
+*/
 
 void qore_ns_private::assimilate(QoreNamespace* ans) {
    qore_ns_private* pns = ans->priv;
@@ -1230,14 +1307,13 @@ AbstractQoreNode* qore_ns_private::getConstantValue(const char* cname, const Qor
    return pendConstant.find(cname, typeInfo);
 }
 
-QoreNamespace* qore_ns_private::resolveNameScope(const NamedScope *nscope) const {
+QoreNamespace* qore_ns_private::resolveNameScope(const NamedScope& nscope) const {
    const QoreNamespace* sns = ns;
 
    // find namespace
-   for (unsigned i = 0; i < (nscope->size() - 1); i++)
-      if (!(sns = sns->priv->parseFindLocalNamespace(nscope->strlist[i].c_str()))) {
-	 parse_error("namespace '%s' cannot be resolved while evaluating '%s' in constant declaration",
-		     nscope->strlist[i].c_str(), nscope->ostr);
+   for (unsigned i = 0; i < (nscope.size() - 1); i++)
+      if (!(sns = sns->priv->parseFindLocalNamespace(nscope[i]))) {
+	 parse_error("namespace '%s' cannot be resolved while evaluating '%s' in constant declaration", nscope[i], nscope.ostr);
 	 return 0;
       }
    return (QoreNamespace* )sns;
@@ -1281,7 +1357,7 @@ const QoreFunction* qore_ns_private::runtimeMatchFunction(const NamedScope& nsco
 }
 
 // qore_ns_private::parseMatchNamespace()
-// will only be called if there is a match with the name and nscope->size() > 1
+// will only be called if there is a match with the name and nscope.size() > 1
 QoreNamespace* qore_ns_private::parseMatchNamespace(const NamedScope& nscope, unsigned& matched) {
    printd(5, "qore_ns_private::parseMatchNamespace() this=%p ns=%p '%s' ns=%s matched=%d\n", this, ns, name.c_str(), nscope.ostr, matched);
 
@@ -1303,13 +1379,13 @@ QoreNamespace* qore_ns_private::parseMatchNamespace(const NamedScope& nscope, un
    return (QoreNamespace* )fns;
 }
 
-QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope* nscope, unsigned& matched) {
-   printd(5, "qore_ns_private::parseMatchScopedClass() this=%p ns=%p '%s' nscope='%s' matched=%d\n", this, ns, name.c_str(), nscope->ostr, matched);
+QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope& nscope, unsigned& matched) {
+   printd(5, "qore_ns_private::parseMatchScopedClass() this=%p ns=%p '%s' nscope='%s' matched=%d\n", this, ns, name.c_str(), nscope.ostr, matched);
 
-   if (nscope->strlist[0] != name) {
-      QoreNamespace* fns = nsl.find(nscope->strlist[0]);
+   if (nscope[0] != name) {
+      QoreNamespace* fns = nsl.find(nscope[0]);
       if (!fns)
-         fns = pendNSL.find(nscope->strlist[0]);      
+         fns = pendNSL.find(nscope[0]);      
       return fns ? fns->priv->parseMatchScopedClass(nscope, matched) : 0;
    }
 
@@ -1317,31 +1393,31 @@ QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope* nscope, unsi
    if (!matched)
       matched = 1;
 
-   printd(5, "qore_ns_private::parseMatchScopedClass() matched %s in %s\n", name.c_str(), nscope->ostr);
+   printd(5, "qore_ns_private::parseMatchScopedClass() matched %s in %s\n", name.c_str(), nscope.ostr);
 
    QoreNamespace* fns = ns;
    
    // if we need to follow the namespaces, then do so
-   if (nscope->size() > 2) {
-      for (unsigned i = 1; i < (nscope->size() - 1); i++) {
-	 fns = fns->priv->parseFindLocalNamespace(nscope->strlist[i].c_str());
+   if (nscope.size() > 2) {
+      for (unsigned i = 1; i < (nscope.size() - 1); i++) {
+	 fns = fns->priv->parseFindLocalNamespace(nscope[i]);
 	 if (!fns)
 	    return 0;
 	 if (i >= matched)
 	    matched = i + 1;
       }
    }
-   QoreClass* rv = fns->priv->findLoadClass(nscope->strlist[nscope->size() - 1].c_str());
+   QoreClass* rv = fns->priv->findLoadClass(nscope[nscope.size() - 1]);
    if (!rv)
-      rv = fns->priv->pendClassList.find(nscope->strlist[nscope->size() - 1].c_str());
+      rv = fns->priv->pendClassList.find(nscope[nscope.size() - 1]);
    return rv;
 }
 
-QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope* nscope, unsigned& matched) {
-   assert(nscope->size() > 2);
-   assert(nscope->strlist[0] == name);
+QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched) {
+   assert(nscope.size() > 2);
+   assert(nscope.strlist[0] == name);
 
-   printd(5, "qore_ns_private::parseMatchScopedClassWithMethod() this=%p ns=%p '%s' class=%s (%s)\n", this, ns, name.c_str(), nscope->strlist[nscope->size() - 2].c_str(), nscope->ostr);
+   printd(5, "qore_ns_private::parseMatchScopedClassWithMethod() this=%p ns=%p '%s' class=%s (%s)\n", this, ns, name.c_str(), nscope[nscope.size() - 2], nscope.ostr);
 
    QoreNamespace* fns = ns;
 
@@ -1350,8 +1426,8 @@ QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope* ns
       matched = 1;
 
    // search the rest of the namespaces
-   for (unsigned i = 1; i < (nscope->size() - 2); i++) {	 
-      fns = fns->priv->parseFindLocalNamespace(nscope->strlist[i].c_str());
+   for (unsigned i = 1; i < (nscope.size() - 2); i++) {	 
+      fns = fns->priv->parseFindLocalNamespace(nscope[i]);
       if (!fns)
          return 0;
       if (i >= matched)
@@ -1359,9 +1435,9 @@ QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope* ns
    }
 
    // now get class from final namespace
-   QoreClass* rv = fns->priv->findLoadClass(nscope->strlist[nscope->size() - 2].c_str());
+   QoreClass* rv = fns->priv->findLoadClass(nscope[nscope.size() - 2]);
    if (!rv)
-      rv = fns->priv->pendClassList.find(nscope->strlist[nscope->size() - 2].c_str());
+      rv = fns->priv->pendClassList.find(nscope[nscope.size() - 2]);
 
    return rv;
 }
@@ -1379,10 +1455,10 @@ AbstractQoreNode* qore_ns_private::parseResolveClassConstant(QoreClass* qc, cons
    return 0;
 }
 
-AbstractQoreNode* qore_ns_private::parseMatchScopedConstantValue(const NamedScope* nscope, unsigned& matched, const QoreTypeInfo*& typeInfo) {
-   printd(5, "qore_ns_private::parseMatchScopedConstantValue) trying to find %s in %s (%p) typeInfo=%p\n", nscope->getIdentifier(), name.c_str(), getConstantValue(nscope->getIdentifier(), typeInfo));
+AbstractQoreNode* qore_ns_private::parseMatchScopedConstantValue(const NamedScope& nscope, unsigned& matched, const QoreTypeInfo*& typeInfo) {
+   printd(5, "qore_ns_private::parseMatchScopedConstantValue) trying to find %s in %s (%p) typeInfo=%p\n", nscope.getIdentifier(), name.c_str(), getConstantValue(nscope.getIdentifier(), typeInfo));
 
-   assert(nscope->strlist[0] == name);
+   assert(nscope[0] == name);
 
    // mark first namespace as matched
    if (!matched)
@@ -1391,17 +1467,17 @@ AbstractQoreNode* qore_ns_private::parseMatchScopedConstantValue(const NamedScop
    const QoreNamespace* fns = ns;
 
    // if we need to follow the namespaces, then do so
-   if (nscope->size() > 2) {
-      unsigned last = nscope->size() - 1;
+   if (nscope.size() > 2) {
+      unsigned last = nscope.size() - 1;
       for (unsigned i = 1; i < last; i++) {
-	 const char* oname = nscope->strlist[i].c_str();
+	 const char* oname = nscope[i];
          const QoreNamespace* nns = fns->priv->parseFindLocalNamespace(oname);
 	 if (!nns) {
 	    // if we are on the last element before the constant in the namespace path list,
 	    // then check for a class constant
 	    if (i == (last - 1)) {
 	       QoreClass* qc = fns->priv->parseFindLocalClass(oname);
-	       return qc ? qore_class_private::parseFindLocalConstantValue(qc, nscope->getIdentifier(), typeInfo) : 0;
+	       return qc ? qore_class_private::parseFindLocalConstantValue(qc, nscope.getIdentifier(), typeInfo) : 0;
 	    }
 	    return 0;
 	 }
@@ -1411,10 +1487,10 @@ AbstractQoreNode* qore_ns_private::parseMatchScopedConstantValue(const NamedScop
       }
    }
 
-   return fns->priv->getConstantValue(nscope->getIdentifier(), typeInfo);
+   return fns->priv->getConstantValue(nscope.getIdentifier(), typeInfo);
 }
 
-AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const NamedScope &nsc, unsigned &matched, const QoreTypeInfo *&typeInfo) const {
+AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const NamedScope& nsc, unsigned& matched, const QoreTypeInfo*& typeInfo) const {
    const QoreNamespace* pns = ns;
 
    matched = 1;

@@ -68,6 +68,10 @@ public:
       nsmap_t::iterator i = nsmap.find(name);
       return i == nsmap.end() ? 0 : i->second;
    }
+   DLLLOCAL const QoreNamespace* find(const std::string &name) const {
+      nsmap_t::const_iterator i = nsmap.find(name);
+      return i == nsmap.end() ? 0 : i->second;
+   }
 
    // do not delete the pointer returned from this function
    DLLLOCAL qore_ns_private* add(QoreNamespace *ot, qore_ns_private* parent);

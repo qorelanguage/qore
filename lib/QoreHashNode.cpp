@@ -611,10 +611,9 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
          if (k[0] == HE_TAG_CONST)
 	    rv = qore_root_ns_private::parseFindConstantValue(k + 1, keyTypeInfo, true);
          else {
-            NamedScope *nscope = new NamedScope(strdup(k + 1));
+            NamedScope nscope(k + 1);
 	    rv = qore_root_ns_private::parseFindConstantValue(nscope, keyTypeInfo, true);
-            delete nscope;
-         }
+          }
 
 	 //printd(5, "QoreHashNode::parseInit() resolved constant '%s': %p\n", k + 1, rv);
 

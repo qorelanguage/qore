@@ -40,7 +40,8 @@ class QoreNamespaceList;
 
 class QoreClassList {
    friend class ClassListIterator;
-
+   friend class ConstClassListIterator;
+      
 private:
    hm_qc_t hm;        // hash_map for name lookups
       
@@ -61,6 +62,7 @@ public:
    
    DLLLOCAL int add(QoreClass *ot);
    DLLLOCAL QoreClass *find(const char *name);
+   DLLLOCAL const QoreClass *find(const char *name) const;
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInit();
    DLLLOCAL void parseRollback();
@@ -102,6 +104,32 @@ public:
    }
 
    DLLLOCAL QoreClass* get() const {
+      return i->second;
+   }
+};
+
+class ConstClassListIterator {
+protected:
+   const hm_qc_t& cl;
+   hm_qc_t::const_iterator i;
+
+public:
+   DLLLOCAL ConstClassListIterator(const QoreClassList& n_cl) : cl(n_cl.hm), i(cl.end()) {
+   }
+
+   DLLLOCAL bool next() {
+      if (i == cl.end())
+         i = cl.begin();
+      else
+         ++i;
+      return i != cl.end();
+   }
+
+   DLLLOCAL const char* getName() const {
+      return i->first;
+   }
+
+   DLLLOCAL const QoreClass* get() const {
       return i->second;
    }
 };

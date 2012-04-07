@@ -54,11 +54,14 @@ int QoreClassList::add(QoreClass *oc) {
    return 0;
 }
 
-QoreClass *QoreClassList::find(const char *name) {
+QoreClass* QoreClassList::find(const char *name) {
    hm_qc_t::iterator i = hm.find(name);
-   if (i != hm.end())
-      return i->second;
-   return 0;
+   return i != hm.end() ? i->second : 0;
+}
+
+const QoreClass* QoreClassList::find(const char *name) const {
+   hm_qc_t::const_iterator i = hm.find(name);
+   return i != hm.end() ? i->second : 0;
 }
 
 QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns) {

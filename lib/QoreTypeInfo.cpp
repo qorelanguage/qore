@@ -519,7 +519,7 @@ const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
       return 0;
 
    // resolve class
-   const QoreClass *qc = qore_root_ns_private::parseFindScopedClass(cscope);
+   const QoreClass *qc = qore_root_ns_private::parseFindScopedClass(*cscope);
 
    bool my_or_nothing = or_nothing;
    delete this;

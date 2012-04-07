@@ -85,7 +85,7 @@ AbstractQoreNode *QoreCastOperatorNode::parseInitImpl(LocalVar *oflag, int pflag
       qc = !strcmp(id, "object") ? 0 : qore_root_ns_private::parseFindClass(path->getIdentifier(), true);
    }
    else {
-      qc = qore_root_ns_private::parseFindScopedClass(path);
+      qc = qore_root_ns_private::parseFindScopedClass(*path);
    }
 
    //printd(5, "QoreCastOperatorNode::parseInit() this=%p resolved %s->%s\n", this, path->getIdentifier(), qc ? qc->getName() : "<generic object cast>");

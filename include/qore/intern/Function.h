@@ -773,16 +773,14 @@ public:
 
    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(const type_vec_t& argTypeList, bool only_user = false) const;
 
-   DLLLOCAL void parseAssimilate(QoreFunction* other) {
+   DLLLOCAL void parseAssimilate(QoreFunction& other) {
       // ensure there are no committed variants
-      assert(other->vlist.empty());
+      assert(other.vlist.empty());
 
-      while (!other->pending_vlist.empty()) {
-         addPendingVariant(*(other->pending_vlist.begin()));
-         other->pending_vlist.pop_front();
+      while (!other.pending_vlist.empty()) {
+         addPendingVariant(*(other.pending_vlist.begin()));
+         other.pending_vlist.pop_front();
       }
-
-      delete other;
    }
 
    // convenience function for returning the first variant in the list

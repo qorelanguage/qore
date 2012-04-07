@@ -67,7 +67,7 @@ AbstractQoreNode *ClassRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &l
    // FIXME: implement a type for this
    typeInfo = 0;
    if (cscope) {
-      const QoreClass *qc = qore_root_ns_private::parseFindScopedClass(cscope);
+      const QoreClass *qc = qore_root_ns_private::parseFindScopedClass(*cscope);
       if (qc)
 	 cid = qc->getID();
       delete cscope;

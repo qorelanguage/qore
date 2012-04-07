@@ -1303,7 +1303,8 @@ AbstractQoreNode *UserVariantBase::eval(const char *name, CodeEvaluationHelper *
    printd(5, "UserVariantBase::eval() this=%p name=%s() args=%p (size=%d) self=%p\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self);
 
    // if pgm is 0 or == the current pgm, then ProgramContextHelper does nothing
-   ProgramContextHelper pch(self ? self->getProgram() : pgm);
+   //ProgramContextHelper pch(self ? self->getProgram() : pgm);
+   ProgramContextHelper pch(pgm);
 
    UserVariantExecHelper uveh(this, ceh, xsink);
    if (!uveh)

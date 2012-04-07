@@ -133,7 +133,7 @@ public:
 
    DLLLOCAL void updateDepthRecursive(unsigned ndepth);
 
-   DLLLOCAL int parseAddPendingClass(const NamedScope* n, QoreClass* oc);
+   DLLLOCAL int parseAddPendingClass(const NamedScope& n, QoreClass* oc);
    DLLLOCAL int parseAddPendingClass(QoreClass* oc);
 
    DLLLOCAL cnemap_t::iterator parseAddConstant(const char* name, AbstractQoreNode* value);
@@ -171,6 +171,7 @@ public:
          ufc = builtinFunctions.find(name);
    }
 
+   DLLLOCAL QoreNamespace* findCreateNamespace(const char* nme);
    DLLLOCAL QoreNamespace* findCreateNamespacePath(const char* nspath);
 
    DLLLOCAL AbstractQoreNode *getConstantValue(const char *name, const QoreTypeInfo *&typeInfo);
@@ -188,10 +189,10 @@ public:
 
    DLLLOCAL const QoreFunction* parseMatchFunction(const NamedScope& nscope, unsigned& match) const;
    DLLLOCAL const QoreFunction* runtimeMatchFunction(const NamedScope& nscope, const qore_ns_private*& rns) const;
-   DLLLOCAL QoreNamespace *resolveNameScope(const NamedScope *name) const;
+   DLLLOCAL QoreNamespace *resolveNameScope(const NamedScope& name) const;
    DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope& nscope, unsigned& matched);
-   DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope* name, unsigned& matched);
-   DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope* nscope, unsigned& matched);
+   DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope& name, unsigned& matched);
+   DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched);
    DLLLOCAL AbstractQoreNode *parseCheckScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
 
    DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
@@ -199,7 +200,7 @@ public:
    DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
    DLLLOCAL QoreNamespace *parseFindLocalNamespace(const char *nname);
 
-   DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope* name, unsigned& matched, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope& name, unsigned& matched, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL FunctionEntry* addPendingVariantIntern(const char* name, AbstractQoreFunctionVariant* v, bool& new_func) {
       SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
@@ -232,6 +233,9 @@ public:
       addBuiltinVariant(name, new B(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList, nameList));
    }
    
+   //DLLLOCAL void scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const;
+   //DLLLOCAL void copyMergeCommittedNamespace(const qore_ns_private& mns);
+
    DLLLOCAL static void addNamespace(QoreNamespace& ns, QoreNamespace* nns) {
       ns.priv->addNamespace(nns->priv);
    }
@@ -254,7 +258,7 @@ public:
       return ns.priv->func_list.getList(); 
    }
 
-   DLLLOCAL static void parseAddPendingClass(QoreNamespace& ns, const NamedScope *n, QoreClass *oc) {
+   DLLLOCAL static void parseAddPendingClass(QoreNamespace& ns, const NamedScope& n, QoreClass* oc) {
       ns.priv->parseAddPendingClass(n, oc);
    }
 
@@ -285,6 +289,16 @@ public:
    DLLLOCAL static const qore_ns_private* get(const QoreNamespace& ns) {
       return ns.priv;
    }
+
+   /*
+   DLLLOCAL static void scanMergeCommittedNamespace(const QoreNamespace& ns, const QoreNamespace& mns, QoreModuleContext& qmc) {
+      ns.priv->scanMergeCommittedNamespace(*(mns.priv), qmc);
+   }
+
+   DLLLOCAL static void copyMergeCommittedNamespace(QoreNamespace& ns, const QoreNamespace& mns) {
+      ns.priv->copyMergeCommittedNamespace(*(mns.priv));
+   }
+   */
 };
 
 struct namespace_iterator_element {
@@ -848,10 +862,10 @@ protected:
       return i->second.obj->makeCallReference();
    }
 
-   DLLLOCAL QoreClass *parseFindScopedClassIntern(const NamedScope* name);
-   DLLLOCAL QoreClass *parseFindScopedClassIntern(const NamedScope* name, unsigned& matched);
-   DLLLOCAL QoreClass *parseFindScopedClassWithMethodInternError(const NamedScope *name, bool error);
-   DLLLOCAL QoreClass *parseFindScopedClassWithMethodIntern(const NamedScope *name, unsigned& matched);
+   DLLLOCAL QoreClass *parseFindScopedClassIntern(const NamedScope& name);
+   DLLLOCAL QoreClass *parseFindScopedClassIntern(const NamedScope& name, unsigned& matched);
+   DLLLOCAL QoreClass *parseFindScopedClassWithMethodInternError(const NamedScope& name, bool error);
+   DLLLOCAL QoreClass *parseFindScopedClassWithMethodIntern(const NamedScope& name, unsigned& matched);
 
    DLLLOCAL QoreClass* parseFindClassIntern(const char *cname, bool error) {
       {
@@ -907,7 +921,7 @@ protected:
 
    DLLLOCAL void addConstant(qore_ns_private& ns, const char* cname, AbstractQoreNode *value, const QoreTypeInfo* typeInfo);
 
-   DLLLOCAL AbstractQoreNode *parseFindConstantValueIntern(const NamedScope *name, const QoreTypeInfo*& typeInfo, bool error);
+   DLLLOCAL AbstractQoreNode *parseFindConstantValueIntern(const NamedScope& name, const QoreTypeInfo*& typeInfo, bool error);
 
    DLLLOCAL AbstractQoreNode* parseResolveBarewordIntern(const char* bword, const QoreTypeInfo*& typeInfo);
 
@@ -915,14 +929,14 @@ protected:
 
    DLLLOCAL void parseAddConstantIntern(QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value);
 
-   DLLLOCAL void parseAddClassIntern(const NamedScope *name, QoreClass *oc);
+   DLLLOCAL void parseAddClassIntern(const NamedScope& name, QoreClass *oc);
 
-   DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope *nscope);
+   DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope& nscope);
 
    DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const NamedScope& nscope);
 
    // returns 0 for success, non-zero for error
-   DLLLOCAL int parseAddMethodToClassIntern(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);
+   DLLLOCAL int parseAddMethodToClassIntern(const NamedScope& name, MethodVariantBase *qcmethod, bool static_flag);
 
    DLLLOCAL static void rebuildConstantIndexes(cnmap_t& cnmap, ConstantList& cl, qore_ns_private* ns) {
       ConstantListIterator cli(cl);
@@ -1041,9 +1055,6 @@ public:
       return rv;
    }
 
-   DLLLOCAL void scanMergeCommittedNamespace() const {
-   }
-
    DLLLOCAL static RootQoreNamespace* copy(const RootQoreNamespace& rns, int64 po) {
       return rns.rpriv->copy(po);
    }
@@ -1115,7 +1126,7 @@ public:
       return getRootNS()->rpriv->parseFindConstantValueIntern(name, typeInfo, error);
    }
 
-   DLLLOCAL static AbstractQoreNode *parseFindConstantValue(const NamedScope *name, const QoreTypeInfo *&typeInfo, bool error) {
+   DLLLOCAL static AbstractQoreNode *parseFindConstantValue(const NamedScope& name, const QoreTypeInfo *&typeInfo, bool error) {
       return getRootNS()->rpriv->parseFindConstantValueIntern(name, typeInfo, error);
    }
 
@@ -1131,11 +1142,11 @@ public:
       return getRootNS()->rpriv->parseFindClassIntern(name, error);
    }
 
-   DLLLOCAL static QoreClass *parseFindScopedClass(const NamedScope *name) {
+   DLLLOCAL static QoreClass *parseFindScopedClass(const NamedScope& name) {
       return getRootNS()->rpriv->parseFindScopedClassIntern(name);
    }
 
-   DLLLOCAL static QoreClass *parseFindScopedClassWithMethod(const NamedScope *name, bool error) {
+   DLLLOCAL static QoreClass *parseFindScopedClassWithMethod(const NamedScope& name, bool error) {
       return getRootNS()->rpriv->parseFindScopedClassWithMethodInternError(name, error);
    }
 
@@ -1144,11 +1155,11 @@ public:
    }
 
    // returns 0 for success, non-zero for error
-   DLLLOCAL static int parseAddMethodToClass(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag) {
+   DLLLOCAL static int parseAddMethodToClass(const NamedScope& name, MethodVariantBase *qcmethod, bool static_flag) {
       return getRootNS()->rpriv->parseAddMethodToClassIntern(name, qcmethod, static_flag);
    }
 
-   DLLLOCAL static void parseAddClass(const NamedScope *name, QoreClass *oc) {
+   DLLLOCAL static void parseAddClass(const NamedScope& name, QoreClass *oc) {
       getRootNS()->rpriv->parseAddClassIntern(name, oc);
    }
 
@@ -1177,10 +1188,6 @@ public:
 
    DLLLOCAL static QoreNamespace* runtimeFindNamespaceForFunction(RootQoreNamespace& rns, const NamedScope& name) {
       return rns.rpriv->runtimeFindNamespaceForFunction(name);
-   }
-
-   DLLLOCAL static void scanMergeCommittedNamespace(const RootQoreNamespace& rns) {
-      rns.rpriv->scanMergeCommittedNamespace();
    }
 };
 

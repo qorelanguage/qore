@@ -138,7 +138,7 @@ void FunctionList::assimilate(FunctionList& fl) {
       if (li == end())
 	 insert(fl_map_t::value_type(i->first, i->second));
       else {
-	 li->second->getFunction()->parseAssimilate(i->second->takeFunction());
+	 li->second->getFunction()->parseAssimilate(*(i->second->getFunction()));
 	 delete i->second;
       }
 
