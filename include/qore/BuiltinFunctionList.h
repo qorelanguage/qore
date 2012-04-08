@@ -32,10 +32,11 @@
 #include <stdarg.h>
 
 /** @file BuiltinFunctionList.h
-    defines the BuiltinFunctionList class for the Qore library
- */
+    This header file is completely deprecated as of Qore 0.8.4.  All functions are now stored in namespaces (QoreNamespace).
 
-DLLLOCAL void init_builtin_functions();
+    The functions defined in this header have been modified to try to add functions to the current "Qore" namespace - if no
+    program is available, then the functions will be added to the staticSystemNamespace
+ */
 
 class QoreFunction;
 
@@ -52,17 +53,18 @@ private:
 
 public:
    DLLLOCAL BuiltinFunctionList();
-   DLLLOCAL ~BuiltinFunctionList();
 
-   //! adds a new builtin function to the list
+   //! adds a new builtin function variant to the "Qore" namespace
    /**
       @param name the name of the function
       @param f a pointer to the actual C++ function to be executed when the function is called
       @param functional_domain a capability mask of the function so that access to the function can be restricted if necessary; use QDOM_DEFAULT for none
+
+      @deprecated use QoreNamespace::addBuiltinVariant() instead
    */
    DLLEXPORT static void add(const char *name, q_func_t f, int functional_domain = QDOM_DEFAULT);
 
-   //! adds a new builtin function to the list and allows for the return type and parameter types to be set
+   //! adds a new builtin function variant to the "Qore" namespace and allows for the return type and parameter types to be set
    /** 
        @param name the name of the function
        @param f a pointer to the actual C++ function to be executed when the function is called
@@ -72,49 +74,12 @@ public:
        @param num_params the number of parameters specified for the function, there must be 2 arguments for each parameter, first, a const QoreTypeInfo *, giving the type information for the parameter, and second a const AbstractQoreNode * giving the default value if no argument is supplied by the caller
 
        @since qore 0.8
+
+       @deprecated use QoreNamespace::addBuiltinVariant() instead
    */
    DLLEXPORT static void add2(const char *name, q_func_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
 
-   //! adds a new builtin function to the list and allows for the return type and parameter types to be set
-   /** 
-       @param name the name of the function
-       @param f a pointer to the actual C++ function to be executed when the function is called
-       @param code_flags flags for the function being added
-       @param functional_domain a capability mask of the function so that access to the function can be restricted if necessary; use QDOM_DEFAULT for none
-       @param returnTypeInfo the type information for the return value of this function
-       @param num_params the number of parameters specified for the function, there must be 2 arguments for each parameter, first, a const QoreTypeInfo *, giving the type information for the parameter, and second a const AbstractQoreNode * giving the default value if no argument is supplied by the caller
-
-       @since qore 0.8.4
-   */
-   DLLEXPORT static void add2(const char *name, q_func_int64_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
-
-   //! adds a new builtin function to the list and allows for the return type and parameter types to be set
-   /** 
-       @param name the name of the function
-       @param f a pointer to the actual C++ function to be executed when the function is called
-       @param code_flags flags for the function being added
-       @param functional_domain a capability mask of the function so that access to the function can be restricted if necessary; use QDOM_DEFAULT for none
-       @param returnTypeInfo the type information for the return value of this function
-       @param num_params the number of parameters specified for the function, there must be 2 arguments for each parameter, first, a const QoreTypeInfo *, giving the type information for the parameter, and second a const AbstractQoreNode * giving the default value if no argument is supplied by the caller
-
-       @since qore 0.8.4
-   */
-   DLLEXPORT static void add2(const char *name, q_func_double_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
-
-   //! adds a new builtin function to the list and allows for the return type and parameter types to be set
-   /** 
-       @param name the name of the function
-       @param f a pointer to the actual C++ function to be executed when the function is called
-       @param code_flags flags for the function being added
-       @param functional_domain a capability mask of the function so that access to the function can be restricted if necessary; use QDOM_DEFAULT for none
-       @param returnTypeInfo the type information for the return value of this function
-       @param num_params the number of parameters specified for the function, there must be 2 arguments for each parameter, first, a const QoreTypeInfo *, giving the type information for the parameter, and second a const AbstractQoreNode * giving the default value if no argument is supplied by the caller
-
-       @since qore 0.8.4
-   */
-   DLLEXPORT static void add2(const char *name, q_func_bool_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
-
-   //! adds a new builtin function to the list and allows for the return type and parameter types to be set from lists
+   //! adds a new builtin function variant to the "Qore" and allows for the return type and parameter types to be set from lists
    /** 
        @param name the name of the function
        @param f a pointer to the actual C++ function to be executed when the function is called
@@ -125,27 +90,27 @@ public:
        @param defaultArgList a list of default argument values for each parameter if no argument is supplied by the caller
 
        @since qore 0.8
+
+       @deprecated use QoreNamespace::addBuiltinVariant() instead
    */
    DLLEXPORT static void add3(const char *name, q_func_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, const type_vec_t &typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
 
-   //! returns the number of functions in the hash
-   /**
-      @return the number of functions in the hash
+   //! always returns 0
+   /** @return 0
    */
    DLLEXPORT static int size();
 
-   //! finds a function by its name
-   /**
-      @return a pointer to the function found
+   //! finds a function by its name in the current QoreProgram object; if there is none, then returns 0
+   /** @return a pointer to the function found or 0 if not found or no current QoreProgram object
+
+       @deprecated as of Qore 0.8.4
    */
    DLLEXPORT static const QoreFunction* find(const char *name);
-
-   // internal functions
-   DLLLOCAL void clear();
-   DLLLOCAL static void init(QoreNamespace& ns);
 };
 
-//! interface to the global list of builtin functions in the qore library
+//! old interface to the compeltely-removed builtin function list; now functions are stored in namespaces
+/** @deprecated use QoreNamespace functions instead
+ */
 DLLEXPORT extern BuiltinFunctionList builtinFunctions;
 
 #endif // _QORE_BUILTINFUNCTIONLIST_H

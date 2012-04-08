@@ -156,9 +156,8 @@ AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsi
    return s.release();
 }
 
-AbstractQoreNode *f_dbg_node_addr(const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = get_param(params, 0);
-   return new QoreBigIntNode((int64)p);
+int64 f_dbg_node_addr(const QoreListNode *params, ExceptionSink *xsink) {
+   return (int64)get_param(params, 0);
 }
 
 // returns a hash of all namespace information
@@ -170,10 +169,10 @@ static AbstractQoreNode *f_dbg_global_vars(const QoreListNode *params, Exception
    return getProgram()->getVarList();
 }
 
-void init_debug_functions() {
-   builtinFunctions.add2("dbg_node_info", f_dbg_node_info, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("dbg_node_addr", f_dbg_node_addr, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("dbg_global_vars", f_dbg_global_vars, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
-   builtinFunctions.add2("dbg_get_ns_info", f_dbg_get_ns_info, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
+void init_debug_functions(QoreNamespace& qns) {
+   qns.addBuiltinVariant("dbg_node_info", f_dbg_node_info, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG, "node");
+   qns.addBuiltinVariant("dbg_node_addr", f_dbg_node_addr, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG, "node");
+   qns.addBuiltinVariant("dbg_global_vars", f_dbg_global_vars, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
+   qns.addBuiltinVariant("dbg_get_ns_info", f_dbg_get_ns_info, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
 }
 

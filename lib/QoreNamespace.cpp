@@ -54,6 +54,26 @@
 #include <qore/intern/QC_DatasourcePool.h>
 #include <qore/intern/QC_SQLStatement.h>
 
+// functions
+#include <qore/intern/ql_time.h>
+#include <qore/intern/ql_lib.h>
+#include <qore/intern/ql_math.h>
+#include <qore/intern/ql_type.h>
+#include <qore/intern/ql_env.h>
+#include <qore/intern/ql_string.h>
+#include <qore/intern/ql_pwd.h>
+#include <qore/intern/ql_misc.h>
+#include <qore/intern/ql_list.h>
+#include <qore/intern/ql_thread.h>
+#include <qore/intern/ql_crypto.h>
+#include <qore/intern/ql_object.h>
+#include <qore/intern/ql_file.h>
+#include <qore/intern/ql_compression.h>
+
+#ifdef DEBUG
+#include <qore/intern/ql_debug.h>
+#endif // DEBUG
+
 #include <string.h>
 #include <stdlib.h>
 #include <pcre.h>
@@ -82,6 +102,8 @@ DLLLOCAL void init_dbi_constants(QoreNamespace& ns);
 StaticSystemNamespace staticSystemNamespace;
 
 AutoNamespaceList ANSL;
+
+DLLLOCAL void init_context_functions(QoreNamespace& ns);
 
 QoreNamespace::QoreNamespace(const char* n) : priv(new qore_ns_private(this, n)) {
 }
@@ -134,32 +156,32 @@ void qore_ns_private::addModuleNamespace(qore_ns_private* nns, QoreModuleContext
    if (nsl.find(nns->name)) {
       std::string path;
       getPath(path, true);
-      qmc.error("cannot load module into current program because namespace '%s' already exists in '%s'", nns->name.c_str(), path.c_str());
+      qmc.error("namespace '%s' already exists in '%s'", nns->name.c_str(), path.c_str());
       return;
    }
 
    if (pendNSL.find(nns->name)) {
       std::string path;
       getPath(path, true);
-      qmc.error("cannot load module into current program because namespace '%s' is already pending in '%s'", nns->name.c_str(), path.c_str());
+      qmc.error("namespace '%s' is already pending in '%s'", nns->name.c_str(), path.c_str());
       return;
    }
 
    if (classList.find(nns->name.c_str())) {
       std::string path;
       getPath(path, true);
-      qmc.error("cannot load module into current program because a class with the same name as the namespace ('%s') already exists in '%s'", nns->name.c_str(), path.c_str());
+      qmc.error("a class with the same name as the namespace ('%s') already exists in '%s'", nns->name.c_str(), path.c_str());
       return;
    }
 
    if (pendClassList.find(nns->name.c_str())) {
       std::string path;
       getPath(path, true);
-      qmc.error("cannot load module into current program because a class with the same name as the namespace ('%s') is already pending in '%s'", nns->name.c_str(), path.c_str());
+      qmc.error("a class with the same name as the namespace ('%s') is already pending in '%s'", nns->name.c_str(), path.c_str());
       return;
    }
 
-   qmc.mcl.push_back(ModuleContextCommit(this, nns));
+   qmc.mcnl.push_back(ModuleContextNamespaceCommit(this, nns));
 }
 
 void qore_ns_private::addCommitNamespaceIntern(qore_ns_private* nns) {
@@ -209,17 +231,36 @@ void qore_ns_private::updateDepthRecursive(unsigned ndepth) {
    }
 }
 
-void qore_ns_private::addBuiltinVariant(const char* name, AbstractQoreFunctionVariant* v) {
+void qore_ns_private::addBuiltinModuleVariant(const char* fname, AbstractQoreFunctionVariant* v, QoreModuleContext& qmc) {
    SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
 
-   FunctionEntry* fe = func_list.findNode(name);
-   
+   FunctionEntry* fe = func_list.findNode(fname);
+
+   if (fe)
+      qmc.error("function '%s()' has already been declared in namespace '%s'", fname, name.c_str());
+   else
+      qmc.mcfl.push_back(ModuleContextFunctionCommit(this, fname, v));
+}
+
+void qore_ns_private::addBuiltinVariant(const char* fname, AbstractQoreFunctionVariant* v) {
+   QoreModuleContext* qmc = get_module_context();
+   if (qmc)
+      addBuiltinModuleVariant(fname, v, *qmc);
+   else
+      addBuiltinVariantIntern(fname, v);
+}
+
+void qore_ns_private::addBuiltinVariantIntern(const char* fname, AbstractQoreFunctionVariant* v) {
+   SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
+
+   FunctionEntry* fe = func_list.findNode(fname);
+
    if (fe) {
       fe->getFunction()->addBuiltinVariant(vh.release());
       return;
    }
 
-   QoreFunction* u = new QoreFunction(name);
+   QoreFunction* u = new QoreFunction(fname);
    u->addBuiltinVariant(vh.release());
    fe = func_list.add(u);
 
@@ -545,7 +586,24 @@ void StaticSystemNamespace::init() {
    init_string_constants(qns);
    init_math_constants(qns);
 
-   builtinFunctions.init(qns);
+   init_string_functions(qns);
+   init_time_functions(qns);
+   init_lib_functions(qns);
+   init_misc_functions(qns);
+   init_list_functions(qns);
+   init_type_functions(qns);
+   init_pwd_functions(qns);
+   init_math_functions(qns);
+   init_env_functions(qns);
+   init_thread_functions(qns);
+   init_crypto_functions(qns);
+   init_object_functions(qns);
+   init_file_functions(qns);
+   init_compression_functions(qns);
+   init_context_functions(qns);
+#ifdef DEBUG
+   init_debug_functions(qns);
+#endif
 
    qore_ns_private::addNamespace(*this, rpriv->qoreNS);
 
@@ -1006,31 +1064,11 @@ AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern
    FunctionEntry* fe = parseFindFunctionEntryIntern(fname);
    if (fe) {
       // check parse options to see if access is allowed
-      if (qore_program_private::parseAddDomain(getProgram(), fe->getFunction()->getUniqueFunctionality())) 
-         parse_error("parse options do not allow access to function '%s'", fname);
-      else 
+      if (!qore_program_private::parseAddDomain(getProgram(), fe->getFunction()->getUniqueFunctionality())) 
          return fe->makeCallReference();
+      parse_error("parse options do not allow access to function '%s'", fname);
    }
-   /*
-     else
-     // cannot find function, throw exception
-     parse_error("reference to function '%s()' cannot be resolved", fname);
-
-     return fr_holder.release();
-   */
-
-   const QoreFunction* bfc;
-   if ((bfc = builtinFunctions.find(fname))) {
-      printd(5, "qore_root_ns_private::parseResolveCallReference() resolved function reference to builtin function to %s\n", fname);
-      
-      // check parse options to see if access is allowed
-      if (qore_program_private::parseAddDomain(getProgram(), bfc->getUniqueFunctionality()))
-         parse_error("parse options do not allow access to builtin function '%s()'", fname);
-      else 
-         return new LocalFunctionCallReferenceNode(bfc);
-   }
-   else
-      // cannot find function, throw exception
+   else // cannot find function, throw exception
       parse_error("reference to function '%s()' cannot be resolved", fname);
 
    return fr_holder.release();

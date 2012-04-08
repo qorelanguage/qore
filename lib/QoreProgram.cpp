@@ -638,8 +638,6 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreFunction* ufc = 0;
-
    SimpleRefHolder<FunctionCallNode> fc;
 
    printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
@@ -647,16 +645,16 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    // need to grab parse lock for safe access to the user function map and imported function map
    priv->plock.lock();
 
-   qore_root_ns_private::runtimeFindCallFunction(*priv->RootNS, name, ufc);
-   if (ufc) {
-      priv->plock.unlock();
-      // we assign the args to 0 below so that they will not be deleted
-      fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), this);
-   }
-   else {
+   const qore_ns_private* ns = 0;
+   const QoreFunction* qf = qore_root_ns_private::runtimeFindFunction(*priv->RootNS, name, ns);
+   if (!qf) {
       xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
       return 0;
    }
+
+   priv->plock.unlock();
+   // we assign the args to 0 below so that they will not be deleted
+   fc = new FunctionCallNode(qf, const_cast<QoreListNode *>(args), this);
 
    ProgramThreadCountHelper tch(this);
    ProgramContextHelper pch(this);
@@ -668,27 +666,6 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
 
    return rv;
 }
-
-/*
-AbstractQoreNode *QoreProgram::callFunction(const QoreFunction *ufc, const QoreListNode *args, ExceptionSink *xsink) {
-   // we assign the args to 0 below so that they will not be deleted
-   SimpleRefHolder<FunctionCallNode> fc(new FunctionCallNode(ufc, const_cast<QoreListNode *>(args)), 0);
-
-   AbstractQoreNode *rv;
-
-   ProgramThreadCountHelper tch(this);
-
-   {
-      ProgramContextHelper pch(this);
-      rv = fc->eval(xsink);
-   }
-   
-   // let caller delete function arguments if necessary
-   fc->take_args();
-
-   return rv;
-}
-*/
 
 void QoreProgram::parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm) {
    ProgramContextHelper pch(this, false);

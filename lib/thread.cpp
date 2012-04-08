@@ -1080,6 +1080,16 @@ QoreModuleContext* get_module_context() {
    return thread_data.get()->qmc;
 }
 
+void ModuleContextNamespaceList::clear() {
+   for (mcnl_t::iterator i = begin(), e = end(); i != e; ++i)
+      delete (*i).nns;      
+}
+
+void ModuleContextFunctionList::clear() {
+   for (mcfl_t::iterator i = begin(), e = end(); i != e; ++i)
+      (*i).v->deref();
+}
+
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {
    ThreadData *td  = thread_data.get();
    old_obj = td->current_obj;

@@ -121,9 +121,6 @@ void qore_cleanup() {
    // now free memory (like ARGV, QORE_ARGV, ENV, etc)
    delete_global_variables();
 
-   // clear the list before modules are unloaded
-   builtinFunctions.clear();
-
    // delete pseudo-methods
    pseudo_classes_del();
 

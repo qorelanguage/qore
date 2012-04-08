@@ -25,6 +25,6 @@
 
 #define QORE_LIB_DEBUG_H
 
-DLLLOCAL void init_debug_functions();
+DLLLOCAL void init_debug_functions(QoreNamespace& qns);
 
 #endif

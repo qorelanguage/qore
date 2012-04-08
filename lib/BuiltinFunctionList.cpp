@@ -46,11 +46,11 @@
 
 void init_context_functions(QoreNamespace& ns);
 
-static bool library_init_done = false;
+//static bool library_init_done = false;
 
 BuiltinFunctionList builtinFunctions;
 
-typedef std::map<const char*, QoreFunction*, class ltstr> hm_bf_t;
+//typedef std::map<const char*, QoreFunction*, class ltstr> hm_bf_t;
 
 void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, va_list args) {
    typeList.reserve(num_params);
@@ -74,201 +74,89 @@ void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &d
    }
 }
 
-class BFLAutoLocker {
-protected:
-   QoreThreadLock *mutex;
-public:
-   DLLLOCAL BFLAutoLocker(QoreThreadLock *n_mutex) : mutex(n_mutex) { if (mutex) mutex->lock(); }
-   DLLLOCAL ~BFLAutoLocker() { if (mutex) mutex->unlock(); }
-};
-
-class BuiltinFunctionListPrivate {
-   friend class BuiltinFunctionListOptionalLockHelper;
-protected:
-   hm_bf_t hm;
-   // the mutex is needed because the list is global and also searched at runtime
-   mutable QoreThreadLock mutex;
-
-   DLLLOCAL int add_intern(const char *name, AbstractQoreFunctionVariant *bfv) {
-      BFLAutoLocker al(library_init_done ? &mutex : 0);
-
-      hm_bf_t::iterator i = hm.find(name);
-      QoreFunction *bf;
-      if (i == hm.end()) {
-	 bf = new QoreFunction(name);
-	 hm[bf->getName()] = bf;
-      }
-      else 
-	 bf = i->second;
-      bf->addBuiltinVariant(bfv);
-      
-      //printd(0, "BuiltinFunctionListPrivate::add_intern('%s', %p) flags=%lld\n", name, bfv, bfv->getFlags());
-      return 0;
+static int check_dup(QoreModuleContext& qmc, const char* name) {
+   if (qmc.getRootNS()->getQore()->findAnyFunction(name)) {
+      qmc.error("function '%s()' has already been declared in namespace 'Qore'", name);
+      return -1;
    }
-
-public:
-   DLLLOCAL BuiltinFunctionListPrivate() {
-   }
-
-   DLLLOCAL void add(const char *name, q_func_t f, int64 functional_domain) {
-      add_intern(name, new BuiltinFunctionVariant(f, QC_USES_EXTRA_ARGS, functional_domain));
-   }
-
-   template <typename T, class B>
-   void add2_t(const char *name, T f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
-      //printd(0, "add2('%s', %p, flags=%lld) BEFORE\n", name, f, flags);
-      type_vec_t typeList;
-      arg_vec_t defaultArgList;
-      if (num_params)
-	 qore_process_params(num_params, typeList, defaultArgList, args);
-
-      //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, returnTypeInfo->getName(), num_params);
-      add_intern(name, new B(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList));
-   }
-
-   void add2(const char *name, q_func_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
-      add2_t<q_func_t, BuiltinFunctionVariant>(name, f, flags, functional_domain, returnTypeInfo, num_params, args);
-   }
-
-   void add2(const char *name, q_func_int64_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
-      add2_t<q_func_int64_t, BuiltinFunctionBigIntVariant>(name, f, flags, functional_domain, returnTypeInfo, num_params, args);
-   }
-
-   void add2(const char *name, q_func_bool_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
-      add2_t<q_func_bool_t, BuiltinFunctionBoolVariant>(name, f, flags, functional_domain, returnTypeInfo, num_params, args);
-   }
-
-   void add2(const char *name, q_func_double_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
-      add2_t<q_func_double_t, BuiltinFunctionFloatVariant>(name, f, flags, functional_domain, returnTypeInfo, num_params, args);
-   }
-
-   void add3(const char *name, q_func_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &typeList, const arg_vec_t &defaultArgList) {
-      add_intern(name, new BuiltinFunctionVariant(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList));
-   }
-
-   DLLLOCAL void clear() {
-      //printd(5, "BuiltinFunctionListPrivate::~BuiltinFunctionListPrivate() this=%08p\n", this);
-      hm_bf_t::iterator i = hm.begin();
-      while (i != hm.end()) {
-	 //printd(5, "BuiltinFunctionListPrivate::~BuiltinFunctionListPrivate() deleting '%s()'\n", i->first);
-	 
-	 // deref function
-	 i->second->deref();
-	 
-	 // erase hash entry
-	 hm.erase(i);
-	 
-	 i = hm.begin();
-      }
-   }
-
-   DLLLOCAL const QoreFunction* find(const char *name) const;
-   DLLLOCAL int size() const;
-};
-
-class BuiltinFunctionListOptionalLockHelper {
-protected:
-   const BuiltinFunctionListPrivate *l;
-public:
-   DLLLOCAL BuiltinFunctionListOptionalLockHelper(const BuiltinFunctionListPrivate *n_l) : l(n_l) {
-      if (library_init_done)
-	 l->mutex.lock();
-   }
-   DLLLOCAL ~BuiltinFunctionListOptionalLockHelper() {
-      if (library_init_done)
-	 l->mutex.unlock();
-   }
-};
-
-static BuiltinFunctionListPrivate bfl;
-
-const QoreFunction *BuiltinFunctionListPrivate::find(const char *name) const {
-   BuiltinFunctionListOptionalLockHelper ol(this);
-   hm_bf_t::const_iterator i = hm.find(name);
-   return i != hm.end() ? i->second : 0;
-}
-
-int BuiltinFunctionListPrivate::size() const {
-   BuiltinFunctionListOptionalLockHelper ol(this);
-   return hm.size();
+   return 0;
 }
 
 BuiltinFunctionList::BuiltinFunctionList() {
 }
 
-BuiltinFunctionList::~BuiltinFunctionList() {
-//   assert(hm.empty());
+int BuiltinFunctionList::size() {
+   return 0;
+}
+
+const QoreFunction* BuiltinFunctionList::find(const char *name) {
+   QoreProgram* pgm = getProgram();
+   if (!pgm)
+      return 0;
+
+   const qore_ns_private* ns = 0;
+   return qore_root_ns_private::runtimeFindFunction(*(pgm->getRootNS()), name, ns);
 }
 
 void BuiltinFunctionList::add(const char *name, q_func_t f, int functional_domain) {
-   bfl.add(name, f, functional_domain);
+   QoreModuleContext* qmc = get_module_context();
+   if (qmc && check_dup(*qmc, name))
+      return;
+
+   // qmc will be NULL when called from program initialization and not in a module
+   // for backwards compatibility we load directly into the Qore namespace of the static system namespace
+   BuiltinFunctionVariant* v = new BuiltinFunctionVariant(f, QC_USES_EXTRA_ARGS, functional_domain);
+   if (!qmc)
+      qore_root_ns_private::getQore(staticSystemNamespace)->addBuiltinVariantIntern(name, v);
+   else
+      qmc->mcfl.push_back(ModuleContextFunctionCommit(qmc->getRootNS()->getQore(), name, v));
+
+   //bfl.add(name, f, functional_domain);
 }
 
 void BuiltinFunctionList::add2(const char *name, q_func_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
-   va_list args;
-   va_start(args, num_params);
-   bfl.add2(name, f, flags, functional_domain, returnTypeInfo, num_params, args);
-   va_end(args);
-}
+   QoreModuleContext* qmc = get_module_context();
+   if (qmc && check_dup(*qmc, name))
+      return;
 
-void BuiltinFunctionList::add2(const char *name, q_func_int64_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
-   va_list args;
-   va_start(args, num_params);
-   bfl.add2(name, f, flags, functional_domain, returnTypeInfo, num_params, args);
-   va_end(args);
-}
+   // qmc will be NULL when called from program initialization and not in a module
+   // for backwards compatibility we load directly into the Qore namespace of the static system namespace
 
-void BuiltinFunctionList::add2(const char *name, q_func_bool_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
    va_list args;
    va_start(args, num_params);
-   bfl.add2(name, f, flags, functional_domain, returnTypeInfo, num_params, args);
-   va_end(args);
-}
 
-void BuiltinFunctionList::add2(const char *name, q_func_double_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
-   va_list args;
-   va_start(args, num_params);
-   bfl.add2(name, f, flags, functional_domain, returnTypeInfo, num_params, args);
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   if (num_params)
+      qore_process_params(num_params, typeList, defaultArgList, args);
+
+   // qmc will be NULL when called from program initialization and not in a module
+   // for backwards compatibility we load directly into the Qore namespace of the static system namespace
+   BuiltinFunctionVariant* v = new BuiltinFunctionVariant(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList);
+   //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, returnTypeInfo->getName(), num_params);
+   if (!qmc)
+      qore_root_ns_private::getQore(staticSystemNamespace)->addBuiltinVariantIntern(name, v);
+   else
+      qmc->mcfl.push_back(ModuleContextFunctionCommit(qmc->getRootNS()->getQore(), name, v));
+
+   //add_intern(name, new B(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList));
+   //bfl.add2(name, f, flags, functional_domain, returnTypeInfo, num_params, args);
    va_end(args);
 }
 
 void BuiltinFunctionList::add3(const char *name, q_func_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &typeList, const arg_vec_t &defaultArgList) {
-   bfl.add3(name, f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList);
-}
+   QoreModuleContext* qmc = get_module_context();
+   if (qmc && check_dup(*qmc, name))
+      return;
 
-void BuiltinFunctionList::clear() {
-   bfl.clear();
-}
+   // qmc will be NULL when called from program initialization and not in a module
+   // for backwards compatibility we load directly into the Qore namespace of the static system namespace
+   BuiltinFunctionVariant* v = new BuiltinFunctionVariant(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList);
+   //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, returnTypeInfo->getName(), num_params);
+   if (!qmc)
+      qore_root_ns_private::getQore(staticSystemNamespace)->addBuiltinVariantIntern(name, v);
+   else
+      qmc->mcfl.push_back(ModuleContextFunctionCommit(qmc->getRootNS()->getQore(), name, v));
 
-const QoreFunction *BuiltinFunctionList::find(const char *name) {
-   return bfl.find(name);
-}
-
-inline int BuiltinFunctionList::size() {
-   return bfl.size();
-}
-
-void BuiltinFunctionList::init(QoreNamespace& qns) {
-   QORE_TRACE("BuiltinFunctionList::init()");
-
-   init_string_functions(qns);
-   init_time_functions(qns);
-   init_lib_functions(qns);
-   init_misc_functions(qns);
-   init_list_functions(qns);
-   init_type_functions(qns);
-   init_pwd_functions(qns);
-   init_math_functions(qns);
-   init_env_functions(qns);
-   init_thread_functions(qns);
-   init_crypto_functions(qns);
-   init_object_functions(qns);
-   init_file_functions(qns);
-   init_compression_functions(qns);
-   init_context_functions(qns);
-#ifdef DEBUG
-   init_debug_functions();
-#endif
-
-   library_init_done = true;
+   //bfl.add3(name, f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList);
 }

@@ -100,9 +100,16 @@ void QoreModuleContext::error(const char* fmt, ...) {
    }
 }
 
-class QoreModuleContextHelper : public QoreModuleContext{
+void QoreModuleContext::commit() {
+   rns->commitModule(*this);
+
+   mcfl.mcfl_t::clear();
+   mcnl.mcnl_t::clear();
+}
+
+class QoreModuleContextHelper : public QoreModuleContext {
 public:
-   DLLLOCAL QoreModuleContextHelper() {
+   DLLLOCAL QoreModuleContextHelper(qore_root_ns_private* rns) : QoreModuleContext(rns) {
       set_module_context(this);
    }
    
@@ -519,20 +526,20 @@ static QoreStringNode* qore_check_load_module_intern(ModuleInfo *mi, mod_op_e op
    }
 
    if (pgm) {
-      QoreModuleContextHelper qmc;
+      QoreModuleContextHelper qmc(qore_root_ns_private::get(*(pgm->getRootNS())));
 
       mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 
       QoreStringNode* err = qmc.takeError();
       if (err) {
 	 // rollback all module changes
-	 qore_root_ns_private::rollbackModule(*(pgm->getRootNS()), qmc);
+	 qmc.rollback();
 	 add_prefix(err, mi->getName());
 	 return err;
       }
 
       // commit all module changes
-      qore_root_ns_private::commitModule(*(pgm->getRootNS()), qmc);
+      qmc.commit();
       pgm->addFeature(mi->getName());
    }
    return 0;
@@ -893,7 +900,29 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
 
    printd(5, "qore_load_module_from_path(%s) %s: calling module_init@%08p\n", path, name, *module_init);
 
+   QoreModuleContextHelper qmc(qore_root_ns_private::get(pgm ? *(pgm->getRootNS()) : staticSystemNamespace));
    str = (*module_init)();
+   QoreStringNode* err = qmc.takeError();
+   if (err) {
+      if (str) {
+	 str->concat("; ");
+	 str->concat(err->getBuffer(), err->size());
+	 err->deref();
+      }
+      else
+	 str = err;
+   }
+   
+   if (str) {
+      // rollback all module changes
+      qmc.rollback();
+      add_prefix(str, mi->getName());
+      return str;
+   }
+
+   // commit all module changes - to the current program or to the static namespace
+   qmc.commit();
+
    // run initialization
    if (str) {
       printd(5, "qore_load_module_from_path(%s): '%s': qore_module_init returned error: %s", path, name, str->getBuffer());

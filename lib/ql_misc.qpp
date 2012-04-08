@@ -36,10 +36,8 @@ static const QoreFunction *get_builtin_func(const QoreStringNode *str, Exception
    if (f)
       return f;
 
-   f = BuiltinFunctionList::find(str->getBuffer());
-   if (!f)
-      xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", str->getBuffer());
-   return f;
+   xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", str->getBuffer());
+   return 0;
 }
 
 static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
@@ -616,10 +614,7 @@ my bool $b = existsFunction("func_name");
 bool existsFunction(string name) [flags=CONSTANT] {
    const char *str = name->getBuffer();
    
-   if (getProgram()->existsFunction(str))
-      return true;
-
-   return builtinFunctions.find(str);
+   return getProgram()->existsFunction(str);
 }
 
 //! Always returns \c True
@@ -652,10 +647,8 @@ my *string $type = functionType("print");
 *string functionType(string name) {
    const qore_ns_private* ns;
    const QoreFunction *f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
-   if (!f) {
-      f = BuiltinFunctionList::find(name->getBuffer());
-      return f ? new QoreStringNode("builtin") : 0;
-   }
+   if (!f)
+      return 0;
 
    return new QoreStringNode(f->hasBuiltin() ? "builtin" : "user");
 }

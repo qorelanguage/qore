@@ -163,12 +163,8 @@ public:
       return func_list.find(name, true);
    }
 
-   DLLLOCAL void runtimeFindCallFunction(const char* name, const QoreFunction*& ufc) {
-      assert(!ufc);
-
-      ufc = runtimeFindFunction(name);
-      if (!ufc)
-         ufc = builtinFunctions.find(name);
+   DLLLOCAL const QoreFunction* findAnyFunction(const char* name) {
+      return func_list.find(name, false);
    }
 
    DLLLOCAL QoreNamespace* findCreateNamespace(const char* nme);
@@ -219,17 +215,19 @@ public:
    }
 
    DLLLOCAL void addBuiltinVariant(const char* name, AbstractQoreFunctionVariant* v);
+   DLLLOCAL void addBuiltinModuleVariant(const char* name, AbstractQoreFunctionVariant* v, QoreModuleContext& qmc);
+   DLLLOCAL void addBuiltinVariantIntern(const char* name, AbstractQoreFunctionVariant* v);
 
    template <typename T, class B>
    DLLLOCAL void addBuiltinVariant(const char *name, T f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
-      //printd(0, "add2('%s', %p, flags=%lld) BEFORE\n", name, f, flags);
+      //printd(0, "qore_ns_private::addBuiltinVariant('%s', %p, flags=%lld) BEFORE\n", name, f, flags);
       type_vec_t typeList;
       arg_vec_t defaultArgList;
       name_vec_t nameList;
       if (num_params)
          qore_process_params(num_params, typeList, defaultArgList, nameList, args);
 
-      //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, returnTypeInfo->getName(), num_params);
+      //printd(0, "qore_ns_private::addBuiltinVariant('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, returnTypeInfo->getName(), num_params);
       addBuiltinVariant(name, new B(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList, nameList));
    }
    
@@ -248,10 +246,6 @@ public:
 
    DLLLOCAL static const QoreFunction* runtimeFindFunction(QoreNamespace& ns, const char *name) {
       return ns.priv->runtimeFindFunction(name);
-   }
-
-   DLLLOCAL static void runtimeFindCallFunction(QoreNamespace& ns, const char* name, const QoreFunction*& ufc) {
-      return ns.priv->runtimeFindCallFunction(name, ufc);
    }
 
    DLLLOCAL static QoreListNode* getUserFunctionList(QoreNamespace& ns) {
@@ -678,30 +672,13 @@ protected:
       return !fe ? 0 : fe->getFunction();
    }
 
-   DLLLOCAL void runtimeFindCallFunctionIntern(const char* name, const QoreFunction*& ufc) {
-      assert(!ufc);
-
-      fmap_t::iterator i = fmap.find(name);
-      
-      if (i != fmap.end()) {
-         ufc = i->second.obj->getFunction();
-         return;
-      }
-
-      ufc = builtinFunctions.find(name);
-   }
-
    DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const char* fname) {
       QORE_TRACE("qore_root_ns_private::parseResolveFunctionIntern()");
 
       const QoreFunction* f = parseFindFunctionIntern(fname);
-      if (!f) {
-         f = builtinFunctions.find(fname);
-
+      if (!f)
          // cannot find function, throw exception
-         if (!f)
-            parse_error("function '%s()' cannot be found", fname);
-      }
+         parse_error("function '%s()' cannot be found", fname);
 
       return f;
    }
@@ -913,19 +890,6 @@ protected:
          clmap.update(cli.getName(), ns, cli.get());
    }
 
-   DLLLOCAL void rollbackModule(QoreModuleContext& qmc) {
-      for (unsigned i = 0; i < qmc.mcl.size(); ++i)
-         delete qmc.mcl[i].nns;
-   }
-
-   DLLLOCAL void commitModule(QoreModuleContext& qmc) {
-      for (unsigned j = 0; j < qmc.mcl.size(); ++j) {
-         ModuleContextCommit& mc = qmc.mcl[j];
-
-         mc.parent->addCommitNamespaceIntern(mc.nns);
-      }
-   }
-
    DLLLOCAL void rebuildIndexes(qore_ns_private* ns) {
       // process function indexes
       for (fl_map_t::iterator i = ns->func_list.begin(), e = ns->func_list.end(); i != e; ++i) {
@@ -1018,6 +982,26 @@ public:
       return rv;
    }
 
+   DLLLOCAL qore_ns_private* getQore() {
+      return qoreNS->priv;
+   }
+
+   DLLLOCAL const qore_ns_private* getQore() const {
+      return qoreNS->priv;
+   }
+
+   DLLLOCAL void commitModule(QoreModuleContext& qmc) {
+      for (unsigned j = 0; j < qmc.mcnl.size(); ++j) {
+         ModuleContextNamespaceCommit& mc = qmc.mcnl[j];
+         mc.parent->addCommitNamespaceIntern(mc.nns);
+      }
+
+      for (unsigned j = 0; j < qmc.mcfl.size(); ++j) {
+         ModuleContextFunctionCommit& mc = qmc.mcfl[j];
+         mc.parent->addBuiltinVariantIntern(mc.name, mc.v);
+      }
+   }
+
    DLLLOCAL static RootQoreNamespace* copy(const RootQoreNamespace& rns, int64 po) {
       return rns.rpriv->copy(po);
    }
@@ -1046,10 +1030,6 @@ public:
       return rns.rpriv->runtimeExistsFunctionIntern(name);
    }
 
-   DLLLOCAL static void runtimeFindCallFunction(RootQoreNamespace& rns, const char* name, const QoreFunction*& ufc) {
-      return rns.rpriv->runtimeFindCallFunctionIntern(name, ufc);
-   }
-
    DLLLOCAL static void addConstant(qore_root_ns_private& rns, qore_ns_private& ns, const char* cname, AbstractQoreNode *value, const QoreTypeInfo* typeInfo) {
       rns.addConstant(ns, cname, value, typeInfo);
    }
@@ -1075,14 +1055,6 @@ public:
 
    DLLLOCAL static void parseRollback(RootQoreNamespace& rns) {
       rns.rpriv->parseRollback();
-   }
-
-   DLLLOCAL static void rollbackModule(RootQoreNamespace& rns, QoreModuleContext& qmc) {
-      rns.rpriv->rollbackModule(qmc);
-   }
-
-   DLLLOCAL static void commitModule(RootQoreNamespace& rns, QoreModuleContext& qmc) {
-      rns.rpriv->commitModule(qmc);
    }
 
    DLLLOCAL static AbstractQoreNode *parseFindConstantValue(const char *name, const QoreTypeInfo *&typeInfo, bool error) {
@@ -1151,6 +1123,22 @@ public:
 
    DLLLOCAL static QoreNamespace* runtimeFindNamespaceForFunction(RootQoreNamespace& rns, const NamedScope& name) {
       return rns.rpriv->runtimeFindNamespaceForFunction(name);
+   }
+
+   DLLLOCAL static qore_root_ns_private* get(RootQoreNamespace& rns) {
+      return rns.rpriv;
+   }
+
+   DLLLOCAL static const qore_root_ns_private* get(const RootQoreNamespace& rns) {
+      return rns.rpriv;
+   }
+
+   DLLLOCAL static qore_ns_private* getQore(RootQoreNamespace& rns) {
+      return rns.rpriv->qoreNS->priv;
+   }
+
+   DLLLOCAL static const qore_ns_private* getQore(const RootQoreNamespace& rns) {
+      return rns.rpriv->qoreNS->priv;
    }
 };
 

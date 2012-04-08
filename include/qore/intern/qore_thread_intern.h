@@ -75,6 +75,8 @@ struct ClosureVarValue;
 class VLock;
 class ConstantEntry;
 class qore_ns_private;
+class qore_root_ns_private;
+class AbstractQoreFunctionVariant;
 
 DLLLOCAL extern Operator *OP_BACKGROUND;
 
@@ -82,24 +84,69 @@ class VNode;
 class AbstractQoreZoneInfo;
 class ThreadData;
 
-struct ModuleContextCommit {
-   class qore_ns_private* parent;
-   class qore_ns_private* nns;
+struct ModuleContextNamespaceCommit {
+   qore_ns_private* parent;
+   qore_ns_private* nns;
 
-   DLLLOCAL ModuleContextCommit(class qore_ns_private* n_parent, class qore_ns_private* n_nns) : parent(n_parent), nns(n_nns) {
+   DLLLOCAL ModuleContextNamespaceCommit(qore_ns_private* n_parent, qore_ns_private* n_nns) : parent(n_parent), nns(n_nns) {
    }
 };
 
-typedef std::vector<ModuleContextCommit> mcl_t;
+typedef std::vector<ModuleContextNamespaceCommit> mcnl_t;
+
+class ModuleContextNamespaceList : public mcnl_t {
+private:
+   // not implemented
+   DLLLOCAL ModuleContextNamespaceList(const ModuleContextNamespaceList&);
+   
+public:
+   DLLLOCAL ModuleContextNamespaceList() {
+   }
+
+   DLLLOCAL ~ModuleContextNamespaceList() {
+      assert(empty());
+   }
+
+   DLLLOCAL void clear();
+};
+
+struct ModuleContextFunctionCommit {
+   qore_ns_private* parent;
+   const char* name;
+   AbstractQoreFunctionVariant* v;
+
+   DLLLOCAL ModuleContextFunctionCommit(qore_ns_private* n_parent, const char* n_name, AbstractQoreFunctionVariant* n_v) : parent(n_parent), name(n_name), v(n_v) {
+   }
+};
+
+typedef std::vector<ModuleContextFunctionCommit> mcfl_t;
+
+class ModuleContextFunctionList : public mcfl_t {
+private:
+   // not implemented
+   DLLLOCAL ModuleContextFunctionList(const ModuleContextFunctionList&);
+   
+public:
+   DLLLOCAL ModuleContextFunctionList() {
+   }
+
+   DLLLOCAL ~ModuleContextFunctionList() {
+      assert(empty());
+   }
+
+   DLLLOCAL void clear();
+};
 
 class QoreModuleContext {
 protected:
+   qore_root_ns_private* rns;
    QoreStringNode* err;
 
 public:
-   mcl_t mcl;
+   ModuleContextNamespaceList mcnl;
+   ModuleContextFunctionList mcfl;
 
-   DLLLOCAL QoreModuleContext() : err(0) {
+   DLLLOCAL QoreModuleContext(qore_root_ns_private* n_rns) : rns(n_rns), err(0) {
    }
 
    DLLLOCAL ~QoreModuleContext() {
@@ -112,6 +159,17 @@ public:
       QoreStringNode* rv = err;
       err = 0;
       return rv;
+   }
+
+   DLLLOCAL void commit();
+
+   DLLLOCAL void rollback() {
+      mcnl.clear();
+      mcfl.clear();
+   }
+
+   DLLLOCAL qore_root_ns_private *getRootNS() {
+      return rns;
    }
 };
 
