@@ -1083,7 +1083,7 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
     @endcode
 
     @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator operates on characters\n\n
-    Furthermore this function is identical to getByte(), except this function has no QC_RUNTIME_NOOP variant
+    Furthermore this function is identical to getByte(), except this function has no @ref RUNTIME_NOOP variant
 */
 *int get_byte(string str, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
@@ -1108,7 +1108,7 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
     @endcode
 
     @note this function is equivalent to the more efficient @ref list_element_operator "[] operator" when used with a binary argument\n\n
-    Furthermore this function is identical to getByte(), except this function has no QC_RUNTIME_NOOP variant
+    Furthermore this function is identical to getByte(), except this function has no @ref RUNTIME_NOOP variant
 */
 *int get_byte(binary b, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
@@ -1133,7 +1133,7 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
     @endcode
 
     @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator operates on characters\n\n
-    Furthermore this function is identical to get_byte(), except this function has a QC_RUNTIME_NOOP variant
+    Furthermore this function is identical to get_byte(), except this function has a @ref RUNTIME_NOOP variant
 
     @since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
 */
@@ -1166,7 +1166,7 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
     @endcode
 
     @note this function is equivalent to the more efficient @ref list_element_operator "[] operator" when used with a binary argument\n\n
-    Furthermore this function is identical to get_byte(), except this function has a QC_RUNTIME_NOOP variant
+    Furthermore this function is identical to get_byte(), except this function has a @ref RUNTIME_NOOP variant
 
     @since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
 */
@@ -1246,7 +1246,7 @@ my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value i
 my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
 
-    @note This function is identical to getWord32(), except this function has no QC_RUNTIME_NOOP variant
+    @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
 
     @see get_word_32_lsb()
 */
@@ -1274,7 +1274,7 @@ my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value i
 my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
 
-    @note This function is identical to getWord32(), except this function has no QC_RUNTIME_NOOP variant
+    @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
 
     @see get_word_32_lsb()
 */
@@ -1303,7 +1303,7 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
 my *int $val = getWord32($str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
 
-    @note This function is identical to get_word_32(), except this function has a QC_RUNTIME_NOOP variant
+    @note This function is identical to get_word_32(), except this function has a @ref RUNTIME_NOOP variant
 
     @since %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
 */
@@ -1331,7 +1331,7 @@ my *int $val = getWord32($str, 4); # returns the third 4-byte (32-bit) value in 
 my *int $val = getWord32($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
 
-    @note This function is identical to get_word_32(), except this function has a QC_RUNTIME_NOOP variant
+    @note This function is identical to get_word_32(), except this function has a @ref RUNTIME_NOOP variant
 
     @since %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
 */
@@ -1471,7 +1471,7 @@ my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) val
 my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
 
-    @note This function is identical to getWord32(), except this function has no QC_RUNTIME_NOOP variant
+    @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
 
     @see get_word_32()
 */
