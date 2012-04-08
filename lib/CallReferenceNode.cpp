@@ -586,7 +586,7 @@ AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *o
    }
 
    // check class capabilities against parse options
-   if (qc->getDomain() & getProgram()->getParseOptions()) {
+   if (qore_program_private::parseAddDomain(getProgram(), qc->getDomain())) {
       parseException("class '%s' implements capabilities that are not allowed by current parse options", qc->getName());
       return this;
    }

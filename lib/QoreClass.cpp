@@ -455,8 +455,8 @@ void qore_class_private::initialize() {
       if (scl)
 	 scl->parseInit(cls, has_delete_blocker);
 
-      const QoreProgram *pgm = getProgram();
-      if (pgm && !sys && domain & pgm->getParseOptions())
+      QoreProgram *pgm = getProgram();
+      if (pgm && !sys && (qore_program_private::parseAddDomain(pgm, domain)))
 	 parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name.c_str());
    }
 }

@@ -750,7 +750,7 @@ my int $mask = $pgm.getParseOptions();
     @endcode
  */
 int Program::getParseOptions() {
-   return p->getParseOptions();
+   return p->getParseOptions64();
 }
 
 //! Sets parse options in the parse option mask for the Program object

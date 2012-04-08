@@ -563,7 +563,7 @@ static QoreStringNode *qore_load_module_intern(bool parse, const char *name, Qor
 
    if (parse && pgm) {
       // check if PO_NO_BINARY_MODULES is set
-      if (pgm->getParseOptions() & PO_NO_BINARY_MODULES) {
+      if (pgm->getParseOptions64() & PO_NO_BINARY_MODULES) {
 	 QoreStringNode* err = new QoreStringNode;
 	 err->sprintf("cannot load module '%s' while PO_NO_BINARY_MODULES is set", name);
 	 return err;

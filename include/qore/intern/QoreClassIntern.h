@@ -1637,7 +1637,7 @@ public:
       if (!sclass) {
 	 int rc = 0;
 	 if (!parseHasMemberGate() || pflag & PF_FOR_ASSIGNMENT) {
-	    if (getProgram()->getParseOptions() & PO_REQUIRE_TYPES) {
+	    if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES) {
 	       parse_error("member $.%s referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem);
 	       rc = -1;
 	    }
@@ -1675,7 +1675,7 @@ public:
       const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, has_type_info, priv);
       int rc = 0;
       if (!sclass) {
-	 if (getProgram()->getParseOptions() & PO_REQUIRE_TYPES) {
+	 if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES) {
 	    parse_error("member $.%s referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem);
 	    rc = -1;
 	 }

@@ -308,6 +308,9 @@ public:
 
    ParseWarnOptions pwo;
 
+   int64 dom,    // a mask of functional domains used in this Program
+      pend_dom;  // a mask of pending function domains used in this Program
+
    std::string exec_class_name, script_dir, script_path, script_name, include_path;
    bool po_locked, po_allow_restrict, exec_class, base_object, requires_exception;
 
@@ -333,7 +336,7 @@ public:
 
    DLLLOCAL qore_program_private_base(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm = 0) 
       : thread_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0), only_first_except(false),
-        exceptions_raised(0), pwo(n_parse_options), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
+        exceptions_raised(0), pwo(n_parse_options), dom(0), pend_dom(0), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
         requires_exception(false), thread_local_storage(0), pgm(n_pgm) {
       printd(5, "qore_program_private::init() this=%p pgm=%p\n", this, pgm);
 	 
@@ -1190,6 +1193,13 @@ public:
       parseSink->assimilate(xsink);
    }
 
+   DLLLOCAL int parseAddDomain(int64 n_dom) {
+      if (n_dom & pwo.parse_options)
+         return -1;
+      pend_dom |= n_dom;
+      return 0;
+   }
+
    DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(QoreProgram* pgm, const char *name, ExceptionSink* xsink) {
       return pgm->priv->runtimeGetCallReference(name, xsink);
    }
@@ -1295,6 +1305,10 @@ public:
 
    DLLLOCAL static void exportFunction(QoreProgram* srcpgm, ExceptionSink *xsink, QoreProgram *trgpgm, const char *name, const char* new_name = 0) {
       srcpgm->priv->exportFunction(xsink, trgpgm->priv, name, new_name);
+   }
+
+   DLLLOCAL static int parseAddDomain(QoreProgram* pgm, int64 n_dom) {
+      return pgm->priv->parseAddDomain(n_dom);
    }
 };
 

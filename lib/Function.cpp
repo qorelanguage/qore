@@ -205,8 +205,9 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
    parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0), 
    first_line(n_first_line), last_line(n_last_line), parse_file(get_parse_file()),
    lv(0), argvid(0), selfid(0), resolved(false) {
+   int64 po = getProgram()->getParseOptions64();
    // assign no return type if return type declaration is missing and PO_REQUIRE_TYPES or PO_REQUIRE_PROTOTYPES is set
-   if (!retTypeInfo && (getProgram()->getParseOptions() & (PO_REQUIRE_TYPES | PO_REQUIRE_PROTOTYPES)))
+   if (!retTypeInfo && (po & (PO_REQUIRE_TYPES | PO_REQUIRE_PROTOTYPES)))
       returnTypeInfo = nothingTypeInfo;
    delete retTypeInfo;
 
@@ -215,7 +216,7 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
       return;
    }
 
-   int needs_types = getProgram()->getParseOptions() & (PO_REQUIRE_TYPES | PO_REQUIRE_PROTOTYPES);
+   int needs_types = po & (PO_REQUIRE_TYPES | PO_REQUIRE_PROTOTYPES);
 
    ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
 
@@ -592,11 +593,11 @@ const AbstractQoreFunctionVariant *QoreFunction::findVariant(const QoreListNode 
       xsink->raiseException("RUNTIME-OVERLOAD-ERROR", desc);
    }
    else if (variant) {
-      int64 po = getProgram()->getParseOptions64();
+      QoreProgram* pgm = getProgram();
 
       // check parse options
-      if (variant->getFunctionality() & po) {
-	 //printd(5, "QoreFunction::findVariant() this=%p %s(%s) getProgram()=%p getProgram()->getParseOptions()=%x variant->getFunctionality()=%x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions(), variant->getFunctionality());
+      if (qore_program_private::parseAddDomain(pgm, variant->getFunctionality())) {
+	 //printd(5, "QoreFunction::findVariant() this=%p %s(%s) getProgram()=%p getProgram()->getParseOptions64()=%x variant->getFunctionality()=%x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions64(), variant->getFunctionality());
 	 if (!only_user) {
 	    const char *class_name = className();
 	    xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin %s '%s%s%s(%s)'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", getName(), variant->getSignature()->getSignatureText());
@@ -604,6 +605,7 @@ const AbstractQoreFunctionVariant *QoreFunction::findVariant(const QoreListNode 
 	 return 0;
       }
 
+      int64 po = pgm->getParseOptions64();
       if (po & (PO_REQUIRE_TYPES | PO_STRICT_ARGS) && variant->getFlags() & QC_RUNTIME_NOOP) {
 	 QoreStringNode *desc = getNoopError(this, aqf, variant);
 	 desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");

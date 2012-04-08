@@ -999,6 +999,43 @@ const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const Named
    return 0;   
 }
 
+AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern(UnresolvedProgramCallReferenceNode* fr) {
+   std::auto_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
+   char* fname = fr->str;
+
+   FunctionEntry* fe = parseFindFunctionEntryIntern(fname);
+   if (fe) {
+      // check parse options to see if access is allowed
+      if (qore_program_private::parseAddDomain(getProgram(), fe->getFunction()->getUniqueFunctionality())) 
+         parse_error("parse options do not allow access to function '%s'", fname);
+      else 
+         return fe->makeCallReference();
+   }
+   /*
+     else
+     // cannot find function, throw exception
+     parse_error("reference to function '%s()' cannot be resolved", fname);
+
+     return fr_holder.release();
+   */
+
+   const QoreFunction* bfc;
+   if ((bfc = builtinFunctions.find(fname))) {
+      printd(5, "qore_root_ns_private::parseResolveCallReference() resolved function reference to builtin function to %s\n", fname);
+      
+      // check parse options to see if access is allowed
+      if (qore_program_private::parseAddDomain(getProgram(), bfc->getUniqueFunctionality()))
+         parse_error("parse options do not allow access to builtin function '%s()'", fname);
+      else 
+         return new LocalFunctionCallReferenceNode(bfc);
+   }
+   else
+      // cannot find function, throw exception
+      parse_error("reference to function '%s()' cannot be resolved", fname);
+
+   return fr_holder.release();
+}
+
 void qore_ns_private::parseInitConstants() {
    printd(5, "qore_ns_private::parseInitConstants() %s\n", name.c_str());
 

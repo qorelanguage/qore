@@ -179,14 +179,14 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction 
    //variant = func && have_arg_type_info ? func->parseFindVariant(argTypeInfo) : 0;
    variant = func ? func->parseFindVariant(argTypeInfo) : 0;
 
-   int64 po = getProgram()->getParseOptions64();
+   QoreProgram* pgm = getProgram();
 
    //printd(5, "FunctionCallBase::parseArgsVariant() this=%p po=%lld, ign=%d func=%p have_arg_type_info=%d variant=%p\n", this, po, pflag & PF_RETURN_VALUE_IGNORED, func, have_arg_type_info, variant);
 
    if (variant) {
       //printd(5, "FunctionCallBase::parseArgsVariant() this=%p variant=%p f=%lld (%lld) c=%lld (%lld)\n", this, variant, variant->getFunctionality(), variant->getFunctionality() & po, variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY);
 
-      if (variant->getFunctionality() & po)
+      if (qore_program_private::parseAddDomain(pgm, variant->getFunctionality()))
 	 invalid_access(func);
       int64 flags = variant->getFlags();
       check_flags(func, flags, pflag);
@@ -194,6 +194,7 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction 
    else if (func) {
       //printd(5, "FunctionCallBase::parseArgsVariant() this=%p func=%p f=%lld (%lld) c=%lld (%lld)\n", this, func, func->getUniqueFunctionality(), func->getUniqueFunctionality() & po, func->getUniqueFlags(), func->getUniqueFlags() & QC_RET_VALUE_ONLY);
 
+      int64 po = pgm->getParseOptions64();
       if (func->getUniqueFunctionality() & po)
 	 invalid_access(func);
       check_flags(func, func->getUniqueFlags(), pflag);
@@ -497,7 +498,7 @@ AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag
       // find object class
       if ((oc = qore_root_ns_private::parseFindScopedClass(*name))) {
 	 // check if parse options allow access to this class
-	 if (oc->getDomain() & getProgram()->getParseOptions())
+	 if (qore_program_private::parseAddDomain(getProgram(), oc->getDomain()))
 	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
       }
       delete name;
@@ -609,7 +610,7 @@ AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag
    }
 
    // check class capabilities against parse options
-   if (qc->getDomain() & getProgram()->getParseOptions()) {
+   if (qore_program_private::parseAddDomain(getProgram(), qc->getDomain())) {
       parseException("INVALID-METHOD", "class '%s' implements capabilities that are not allowed by current parse options", qc->getName());
       return this;
    }

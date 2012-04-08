@@ -443,7 +443,7 @@ AbstractQoreNode *VarRefDeclNode::makeNewCall(AbstractQoreNode *args) {
 
 void VarRefFunctionCallBase::parseInitConstructorCall(LocalVar *oflag, int pflag, int &lvids, const QoreClass *qc) {
    if (qc) {
-      if (qc->getDomain() & getProgram()->getParseOptions())
+      if (qore_program_private::parseAddDomain(getProgram(), qc->getDomain()))
 	 parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", qc->getName());
 
       // FIXME: make common code with ScopedObjectCallNode

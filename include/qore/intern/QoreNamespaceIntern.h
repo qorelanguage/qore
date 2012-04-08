@@ -707,44 +707,7 @@ protected:
    }
 
    // called during parsing (plock already grabbed)
-   DLLLOCAL AbstractCallReferenceNode* parseResolveCallReferenceIntern(UnresolvedProgramCallReferenceNode* fr) {
-      std::auto_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
-      char* fname = fr->str;
-
-      FunctionEntry* fe = parseFindFunctionEntryIntern(fname);
-      if (fe) {
-         // check parse options to see if access is allowed
-         /*
-         if (fe->getFunction()->getUniqueFunctionality() & getProgram()->getParseOptions64()) 
-            parse_error("parse options do not allow access to function '%s'", fname);
-         else 
-         */
-            return fe->makeCallReference();
-      }
-      /*
-      else
-         // cannot find function, throw exception
-         parse_error("reference to function '%s()' cannot be resolved", fname);
-
-      return fr_holder.release();
-      */
-
-      const QoreFunction* bfc;
-      if ((bfc = builtinFunctions.find(fname))) {
-         printd(5, "qore_root_ns_private::parseResolveCallReference() resolved function reference to builtin function to %s\n", fname);
-      
-         // check parse options to see if access is allowed
-         if (bfc->getUniqueFunctionality() & getProgram()->getParseOptions64())
-            parse_error("parse options do not allow access to builtin function '%s()'", fname);
-         else 
-            return new LocalFunctionCallReferenceNode(bfc);
-      }
-      else
-         // cannot find function, throw exception
-         parse_error("reference to function '%s()' cannot be resolved", fname);
-
-      return fr_holder.release();
-   }
+   DLLLOCAL AbstractCallReferenceNode* parseResolveCallReferenceIntern(UnresolvedProgramCallReferenceNode* fr);
 
    DLLLOCAL void parseCommit() {
       // commit pending function lookup entries

@@ -165,11 +165,14 @@ void qore_program_private::internParseRollback() {
    // delete pending changes to namespaces
    qore_root_ns_private::parseRollback(*RootNS);
 
-   // commit global variables
+   // roll back pending global variables
    global_var_list.parseRollback();
 	 
    // delete pending statements 
    sb.parseRollback();
+
+   // roll back pending domain
+   pend_dom = 0;
 }
 
 int qore_program_private::internParseCommit() {
@@ -206,6 +209,10 @@ int qore_program_private::internParseCommit() {
 
       // commit pending statements
       sb.parseCommit();
+
+      // commit pending domain
+      dom |= pend_dom;
+      pend_dom = 0;
 
       rc = 0;
    }
