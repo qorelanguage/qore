@@ -192,7 +192,7 @@ public:
    DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope& nscope, unsigned& matched) const;
    DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope& name, unsigned& matched);
    DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched);
-   DLLLOCAL AbstractQoreNode *parseCheckScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo* &typeInfo) const;
+   DLLLOCAL AbstractQoreNode *parseCheckScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo* &typeInfo, bool abr) const;
 
    DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo* &typeInfo) const;
 

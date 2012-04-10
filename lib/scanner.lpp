@@ -65,6 +65,19 @@ void QoreParserLocation::updatePosition(int f) {
 
 int yyparse(yyscan_t yyscanner);
 
+static char* make_scoped_vref(const char* str) {
+   size_t len = strlen(str);
+   char* rv = (char*)malloc(sizeof(char) * len);
+   size_t i = 0;
+   while (*str) {
+      if (*str != '$')
+	 rv[i++] = *str;
+      ++str;
+   }
+   rv[i] = '\0';
+   return rv;
+}
+
 // the return value of this function must be freed if non-0
 static char *trim(const char *str) {
    while ((*str) == ' ' || (*str) == '\t')
@@ -1166,6 +1179,8 @@ P{D2}:{D2}(:{D2}(\.{US})?)?             yylval->datetime = makeRelativeTime(yyte
 {RTIME}                                 yylval->datetime = new DateTimeNode(yytext); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
 (::{WORD})+                             yylval->string = strdup(yytext); return SCOPED_REF;
+({WORD}::)+\${WORD}                     yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;
+(::{WORD})+::\${WORD}                   yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;
 cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     yylval->string = make_cast(yytext); return QORE_CAST;
 cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); return QORE_CAST;
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;

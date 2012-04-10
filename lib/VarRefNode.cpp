@@ -51,7 +51,7 @@ void VarRefNode::resolve(const QoreTypeInfo *typeInfo) {
    LocalVar *id;
 
    bool in_closure;
-   if ((id = find_local_var(name.ostr, in_closure))) {
+   if (name.size() == 1 && (id = find_local_var(name.ostr, in_closure))) {
       if (typeInfo)
 	 parse_error("type definition given for existing local variable '%s'", id->getName());
 

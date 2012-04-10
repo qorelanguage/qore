@@ -719,13 +719,15 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
    unsigned m = 0;
    AbstractQoreNode* rv = 0;
 
+   bool abr = (bool)(getParseOptions() & PO_ALLOW_BARE_REFS);
+
    {
       // try to check in current namespace first
       qore_ns_private* nscx = parse_get_ns();
       //printd(5, "qore_root_ns_private::parseResolveScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nscx, nscx ? nscx->name.c_str() : "n/a");
       if (nscx) {
          QoreNamespace* ns = nscx->parseFindLocalNamespace(nscope[0]);
-         if (ns && (rv = ns->priv->parseCheckScopedReference(nscope, m, typeInfo)))
+         if (ns && (rv = ns->priv->parseCheckScopedReference(nscope, m, typeInfo, abr)))
             return rv;
       }
    }
@@ -735,7 +737,7 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
       NamespaceMapIterator nmi(nsmap, nscope[0]);
       while (nmi.next()) {
          //printd(5, "qore_root_ns_private::parseResolveScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
-         if ((rv = nmi.get()->parseCheckScopedReference(nscope, m, typeInfo)))
+         if ((rv = nmi.get()->parseCheckScopedReference(nscope, m, typeInfo, abr)))
             return rv;
       }
    }
@@ -744,7 +746,7 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
       NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
       while (nmi.next()) {
          //printd(5, "qore_root_ns_private::parseResolveScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
-         if ((rv = nmi.get()->parseCheckScopedReference(nscope, m, typeInfo)))
+         if ((rv = nmi.get()->parseCheckScopedReference(nscope, m, typeInfo, abr)))
             return rv;
       }
    }
@@ -1112,6 +1114,8 @@ Var* qore_root_ns_private::parseAddResolvedGlobalVarDefIntern(const NamedScope& 
          tns = rns->priv;
    }
 
+   //printd(5, "qore_root_ns_private::parseAddResolvedGlobalVarDefIntern() this: %p vname: '%s' resolved ns to %p '%s::'\n", this, vname.ostr, tns, tns->name.c_str());
+
    Var* v = tns->var_list.parseFindCreateVar(vname.getIdentifier(), typeInfo, new_var);
    
    if (!new_var)
@@ -1155,19 +1159,20 @@ Var *qore_root_ns_private::parseAddGlobalVarDefIntern(const NamedScope& vname, Q
 }
 
 Var *qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const NamedScope& vname, const QoreTypeInfo *typeInfo) {
-   Var *rv;
+   Var* rv;
 
    qore_ns_private* tns;
    // assume the root namespace for all unscoped global variables
-   if (vname.size() == 1) {
+   if (vname.size() == 1) {      
       rv = parseFindGlobalVarIntern(vname.ostr);
       tns = this;
    }
    else {
       QoreNamespace* rns = parseResolveNamespace(vname);
-      if (rns)
-         tns = rns->priv;
+      tns = rns ? rns->priv : this;
+      rv = tns->var_list.parseFindVar(vname.getIdentifier());
    }
+
    //printd(5, "qore_root_ns_private::parseCheckImplicitGlobalVar() this: %p '%s' rv: %p (omq: %p)\n", this, vname.ostr, rv, parseFindGlobalVarIntern("omq"));
    if (!rv) {
       // check for errors & warnings for implicit global variables
@@ -1687,7 +1692,7 @@ AbstractQoreNode* qore_ns_private::parseMatchScopedConstantValue(const NamedScop
    return fns->priv->getConstantValue(nscope.getIdentifier(), typeInfo);
 }
 
-AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const NamedScope& nsc, unsigned& matched, const QoreTypeInfo*& typeInfo) const {
+AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const NamedScope& nsc, unsigned& matched, const QoreTypeInfo*& typeInfo, bool abr) const {
    const QoreNamespace* pns = ns;
 
    matched = 1;
@@ -1717,6 +1722,14 @@ AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const NamedScope& n
 
    // matched all namespaces, now try to find a constant
    AbstractQoreNode* rv = pns->priv->parseFindLocalConstantValue(nsc.getIdentifier(), typeInfo);
+   if (!rv && abr) {
+      Var* v = pns->priv->var_list.parseFindVar(nsc.getIdentifier());
+      if (v) {
+         typeInfo = v->getTypeInfo();
+         return new GlobalVarRefNode(strdup(nsc.ostr), v);
+      }
+   }
+      
    return rv ? rv->refSelf() : 0;
 }
 

@@ -1017,6 +1017,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token <string> SELF_REF "in-object member reference"
 %token <string> KW_IDENTIFIER_OPENPAREN "identifier or keyword used as function or method identifier"
 %token <string> SCOPED_REF "namespace or class-scoped reference"
+%token <string> SCOPED_VREF "namespace-scoped global variable reference"
 %token <string> CONTEXT_REF "context reference"
 %token <string> COMPLEX_CONTEXT_REF "named context reference"
 %token <string> QORE_CAST "cast operator"
@@ -1034,7 +1035,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token <implicit_arg> IMPLICIT_ARG_REF "implicit argument reference"
 %token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
 
-%nonassoc IFX SCOPED_REF
+%nonassoc IFX SCOPED_REF SCOPED_VREF
 %nonassoc TOK_ELSE
 
 // FIXME: check precedence
@@ -1114,7 +1115,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def
 %destructor { if ($$) $$->deref(); } string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
-%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN QORE_CAST NAMESPACE CLASS_STRING optname ident_openparen
+%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST NAMESPACE CLASS_STRING optname ident_openparen
 
 %%
 top_level_commands:
@@ -2112,7 +2113,20 @@ exp:    scalar
 
 	   delete $1;
 	   if (checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
+	      parse_error("reference to variable '%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
+	}
+        | qtypedef SCOPED_VREF {
+	   if (!$1 && !strcmp($2, "argv"))
+	      inc_argv_ref();
+
+	   if ($1)
+	      $$ = new VarRefDeclNode($2, get_var_type(), $1->getTypeInfo(), $1->getParseTypeInfo());
+	   else
+	      $$ = new VarRefNode($2, get_var_type());
+
+	   delete $1;
+	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	      parse_error("reference to variable '%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
 	}
         | uncqtypedef IDENTIFIER {
 	   $$ = new VarRefDeclNode($2, get_var_type(), $1->getTypeInfo(), $1->getParseTypeInfo());
@@ -2191,7 +2205,6 @@ exp:    scalar
 	   }
 	   $$ = $3;
         }
-/*
         | TOK_OUR uncqtypedef SCOPED_REF {
 	   const QoreTypeInfo *t = $2->getTypeInfo();
 	   $$ = t
@@ -2206,7 +2219,6 @@ exp:    scalar
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $2);
         }
-*/
         | TOK_OUR uncqtypedef IDENTIFIER {
 	   const QoreTypeInfo *t = $2->getTypeInfo();
 	   $$ = t
@@ -2220,6 +2232,15 @@ exp:    scalar
            $$ = new GlobalVarRefNode($2);
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $2);
+	}
+        | TOK_OUR qtypedef SCOPED_VREF {
+	   const QoreTypeInfo *t = $2->getTypeInfo();
+	   $$ = t
+              ? new GlobalVarRefNode($3, t)
+              : new GlobalVarRefNode($3, $2->getParseTypeInfo());
+	   delete $2;
+	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $3);
 	}
         | TOK_OUR qtypedef VAR_REF {
 	   const QoreTypeInfo *t = $2->getTypeInfo();
