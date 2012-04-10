@@ -654,7 +654,7 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
 void QoreHashNode::doDuplicateKeyWarning(const char *key) {
    if (key[0] < 32)
       ++key;
-   getProgram()->makeParseWarning(QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
+   qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
 }
 
 HashIterator::HashIterator(QoreHashNode *qh) : h(qh), ptr(0) {

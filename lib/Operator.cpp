@@ -2947,7 +2947,7 @@ static AbstractQoreNode *check_op_list_ref(QoreTreeNode *tree, LocalVar *oflag, 
 	 QoreStringNode *edesc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
 	 leftTypeInfo->getThisType(*edesc);
 	 edesc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
-	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
 	 returnTypeInfo = nothingTypeInfo;
       }
    }
@@ -3010,7 +3010,7 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
 	 QoreStringNode *edesc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
 	 leftTypeInfo->getThisType(*edesc);
 	 edesc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
-	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
 	 returnTypeInfo = nothingTypeInfo;
       }
    }
@@ -3043,7 +3043,7 @@ static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int 
 	 QoreStringNode *edesc = new QoreStringNode("the expression with the 'keys' operator is ");
 	 leftTypeInfo->getThisType(*edesc);
 	 edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
-	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
 	 returnTypeInfo = nothingTypeInfo;
       }
       else
@@ -3083,7 +3083,7 @@ static AbstractQoreNode *check_op_list_op(QoreTreeNode *tree, LocalVar *oflag, i
       edesc->sprintf("'%s' operator is ", name);
       leftTypeInfo->getThisType(*edesc);
       edesc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only operate on lists", name);
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
       returnTypeInfo = nothingTypeInfo;
    }
 
@@ -3126,7 +3126,7 @@ static AbstractQoreNode *check_op_lvalue_string(QoreTreeNode *tree, LocalVar *of
       desc->sprintf("%s operator is ", descr);
       leftTypeInfo->getThisType(*desc);
       desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings");
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       returnTypeInfo = nothingTypeInfo;
    }
    else
@@ -3149,7 +3149,7 @@ static AbstractQoreNode *check_op_chomp_trim(QoreTreeNode *tree, LocalVar *oflag
       desc->sprintf("%s operator is ", name);
       leftTypeInfo->getThisType(*desc);
       desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       returnTypeInfo = nothingTypeInfo;
    }
    else

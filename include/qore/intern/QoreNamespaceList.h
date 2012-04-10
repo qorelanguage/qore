@@ -78,6 +78,11 @@ public:
 
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInitConstants();
+
+   DLLLOCAL void parseInitGlobalVars(int64 po);
+   DLLLOCAL void clearGlobalVars(ExceptionSink* sink);
+   DLLLOCAL void deleteGlobalVars(ExceptionSink* sink);
+
    DLLLOCAL void parseInit();
    DLLLOCAL void parseCommit(QoreNamespaceList& n);
    DLLLOCAL void parseRollback();

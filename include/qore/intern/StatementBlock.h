@@ -181,7 +181,7 @@ public:
    }
 
    using StatementBlock::parseInit;
-   DLLLOCAL void parseInit();
+   DLLLOCAL void parseInit(int64 po);
 
    DLLLOCAL void parseCommit() {
       hwm = statement_list.last();

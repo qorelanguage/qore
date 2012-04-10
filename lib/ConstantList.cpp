@@ -148,6 +148,7 @@ int ConstantEntry::parseInit(QoreClass *class_context) {
 ConstantList::ConstantList(const ConstantList &old) {
    // DEBUG
    //fprintf(stderr, "XXX ConstantList::ConstantList() this=%p copy constructor from %p called\n", this, &old);
+   cnemap_t::iterator last = cnemap.begin();
    for (cnemap_t::const_iterator i = old.cnemap.begin(), e = old.cnemap.end(); i != e; ++i) {
       assert(i->second->init);
 
@@ -156,7 +157,7 @@ ConstantList::ConstantList(const ConstantList &old) {
 	 i->second->node->ref();
 
       ConstantEntry* ce = new ConstantEntry(i->first, i->second->node, i->second->typeInfo, true);
-      cnemap[ce->getName()] = ce;
+      last = cnemap.insert(last, cnemap_t::value_type(ce->getName(), ce));
       //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first, i->second->node);
    }
 }

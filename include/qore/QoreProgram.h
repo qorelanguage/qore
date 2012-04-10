@@ -509,22 +509,17 @@ public:
    DLLLOCAL QoreProgram(QoreProgram *pgm, int64 po, bool ec = false, const char *ecn = 0);
 
    DLLLOCAL LocalVar *createLocalVar(const char *name, const QoreTypeInfo *typeInfo);
-   
-   DLLLOCAL Var *addGlobalVarDef(const char *name, QoreParseTypeInfo *typeInfo);
-   DLLLOCAL Var *addResolvedGlobalVarDef(const char *name, const QoreTypeInfo *typeInfo);
+
    DLLLOCAL void addStatement(AbstractStatement *s);
-   DLLLOCAL Var *findGlobalVar(const char *name);
-   DLLLOCAL const Var *findGlobalVar(const char *name) const;
-   DLLLOCAL Var *checkGlobalVar(const char *name, const QoreTypeInfo *typeInfo);
-   DLLLOCAL void importGlobalVariable(Var *var, ExceptionSink *xsink, bool readonly);
+   
+   //DLLLOCAL Var *addGlobalVarDef(const char *name, QoreParseTypeInfo *typeInfo);
+   //DLLLOCAL Var *addResolvedGlobalVarDef(const char *name, const QoreTypeInfo *typeInfo);
+   //DLLLOCAL Var *parseCheckImplicitGlobalVar(const char *name, const QoreTypeInfo *typeInfo);
+
+   //DLLLOCAL void importGlobalVariable(Var *var, ExceptionSink *xsink, bool readonly);
 
    // returns 0 if a "requires" exception has already occurred
    DLLLOCAL ExceptionSink *getParseExceptionSink();
-   DLLLOCAL void makeParseWarning(int sline, int eline, const char *file, int code, const char *warn, const char *fmt, ...);
-   DLLLOCAL void makeParseWarning(int code, const char *warn, const char *fmt, ...);
-   // takes over ownership of "desc"
-   DLLLOCAL void makeParseWarning(int code, const char *warn, QoreStringNode *desc);
-   DLLLOCAL void addParseWarning(int code, ExceptionSink *xsink);
 
    DLLLOCAL void cannotProvideFeature(QoreStringNode *desc);
    DLLLOCAL void startThread();

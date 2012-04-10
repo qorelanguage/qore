@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/QoreNamespaceIntern.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <vector>
 
@@ -107,12 +108,12 @@ static void invalid_access(QoreFunction *func) {
 
 static void warn_retval_ignored(QoreFunction *func) {
    const char *class_name = func->className();
-   getProgram()->makeParseWarning(QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+   qore_program_private::makeParseWarning(getProgram(), QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
 static void warn_deprecated(QoreFunction *func) {
    const char *class_name = func->className();
-   getProgram()->makeParseWarning(QP_WARN_DEPRECATED, "DEPRECATED", "call to deprecated %s %s%s%s(); to disable this warning, use '%%disable-warning deprecated' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+   qore_program_private::makeParseWarning(getProgram(), QP_WARN_DEPRECATED, "DEPRECATED", "call to deprecated %s %s%s%s(); to disable this warning, use '%%disable-warning deprecated' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
 static void check_flags(QoreFunction *func, int64 flags, int64 pflag) {
@@ -450,7 +451,7 @@ AbstractQoreNode *FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, in
 
    // try to resolve a global var
    if (abr) {
-      Var *v = ::getProgram()->findGlobalVar(c_str);
+      Var *v = qore_root_ns_private::parseFindGlobalVar(c_str);
       if (v)
 	 n = new GlobalVarRefNode(takeName(), v);
    }

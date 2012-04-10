@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/ParserSupport.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 VarRefNode::~VarRefNode() {
    if (name) {
@@ -73,7 +74,7 @@ void VarRefNode::resolve(const QoreTypeInfo *typeInfo) {
       printd(5, "VarRefNode::resolve(): local var %s resolved (id=%p, in_closure=%d)\n", name, ref.id, in_closure);
    }
    else {
-      ref.var = getProgram()->checkGlobalVar(name, typeInfo);
+      ref.var = qore_root_ns_private::parseCheckImplicitGlobalVar(*(getRootNS()), name, typeInfo);
       type = VT_GLOBAL;
       printd(5, "VarRefNode::resolve(): global var %s resolved (var=%p)\n", name, ref.var);
    }
@@ -406,6 +407,15 @@ AbstractQoreNode *VarRefNode::makeNewCall(AbstractQoreNode *args) {
    return type == VT_GLOBAL && new_decl ? globalMakeNewCall(args) : 0;
 }
 
+void VarRefNode::makeGlobal() {
+   assert(type != VT_GLOBAL);
+   assert(type == VT_UNRESOLVED || !ref.id);
+
+   type = VT_GLOBAL;
+   ref.var = qore_root_ns_private::parseAddGlobalVarDef(*(getRootNS()), *(getRootNS()), name, 0);      
+   new_decl = true;
+}
+
 void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, bool is_new) {
    if (!typeInfo) {
       typeInfo = parseTypeInfo->resolveAndDelete();
@@ -439,6 +449,17 @@ AbstractQoreNode *VarRefDeclNode::makeNewCall(AbstractQoreNode *args) {
    VarRefNewObjectNode *rv = new VarRefNewObjectNode(takeName(), typeInfo, takeParseTypeInfo(), makeArgs(args), type);
    deref();
    return rv;
+}
+
+void VarRefDeclNode::makeGlobal() {
+   assert(type == VT_UNRESOLVED); 
+
+   type = VT_GLOBAL;
+   if (parseTypeInfo)
+      ref.var = qore_root_ns_private::parseAddGlobalVarDef(*(getRootNS()), *(getRootNS()), name, takeParseTypeInfo());
+   else
+      ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(*(getRootNS()), *(getRootNS()), name, typeInfo);
+   new_decl = true;
 }
 
 void VarRefFunctionCallBase::parseInitConstructorCall(LocalVar *oflag, int pflag, int &lvids, const QoreClass *qc) {

@@ -685,19 +685,8 @@ public:
       return is_int || qt == NT_FLOAT || qt == NT_STRING || qt == NT_BOOLEAN || qt == NT_DATE ? false : true;
    }
 
-   DLLLOCAL void doNonNumericWarning(const char *preface) const {
-      QoreStringNode *desc = new QoreStringNode(preface);
-      getThisType(*desc);
-      desc->sprintf(", which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime");
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-   }
-
-   DLLLOCAL void doNonBooleanWarning(const char *preface) const {
-      QoreStringNode *desc = new QoreStringNode(preface);
-      getThisType(*desc);
-      desc->sprintf(", which does not evaluate to a numeric or boolean type, therefore will always evaluate to False at runtime");
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-   }
+   DLLLOCAL void doNonNumericWarning(const char *preface) const;
+   DLLLOCAL void doNonBooleanWarning(const char *preface) const;
 
    // returns false if there is no type or if the type can be converted to a string value, true if otherwise
    DLLLOCAL bool nonStringValue() const {
@@ -718,12 +707,7 @@ public:
       return is_int || qt == NT_FLOAT || qt == NT_STRING || qt == NT_BOOLEAN || qt == NT_DATE ? false : true;
    }
 
-   DLLLOCAL void doNonStringWarning(const char *preface) const {
-      QoreStringNode *desc = new QoreStringNode(preface);
-      getThisType(*desc);
-      desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-   }
+   DLLLOCAL void doNonStringWarning(const char *preface) const;
 
    DLLLOCAL void concatName(std::string &str) const {
       if (!hasType()) {

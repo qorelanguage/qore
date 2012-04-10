@@ -92,6 +92,9 @@ private:
    }
 */
 
+   // not implemented
+   DLLLOCAL Var(const Var&);
+
 protected:
    DLLLOCAL ~Var() { delete parseTypeInfo; }
 
@@ -105,12 +108,11 @@ public:
    DLLLOCAL Var(const char *n_name, const QoreTypeInfo *n_typeInfo) : type(GV_VALUE), v(0), name(n_name), parseTypeInfo(0), typeInfo(n_typeInfo) {
    }
 
-   DLLLOCAL Var(Var *ref, bool ro = false) : type(GV_IMPORT), v(ref, ro), name(ref->name), parseTypeInfo(0), typeInfo(0) {
+   DLLLOCAL Var(Var *ref, bool ro = false) : type(GV_IMPORT), v(ref, ro), name(ref->name), parseTypeInfo(0), typeInfo(ref->typeInfo) {
    }
 
    DLLLOCAL const char *getName() const;
    DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
-   DLLLOCAL void makeReference(Var *v, ExceptionSink *xsink, bool ro = false);
    DLLLOCAL bool isImported() const;
    DLLLOCAL void deref(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink);

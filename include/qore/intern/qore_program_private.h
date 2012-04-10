@@ -28,7 +28,6 @@ extern QoreListNode *ARGV, *QORE_ARGV;
 extern QoreHashNode *ENV;
 
 #include <qore/intern/ParserSupport.h>
-#include <qore/intern/GlobalVariableList.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 
 #include <stdarg.h>
@@ -278,7 +277,6 @@ typedef std::map<const char*, int64> ppo_t;
 
 class qore_program_private_base {
 public:
-   GlobalVariableList global_var_list;
    LocalVariableList local_var_list;
 
    // for the thread counter
@@ -340,24 +338,25 @@ public:
         requires_exception(false), thread_local_storage(0), pgm(n_pgm) {
       printd(5, "qore_program_private::init() this=%p pgm=%p\n", this, pgm);
 	 
-      // initialize global vars
-      Var *var = global_var_list.newVar("ARGV", listTypeInfo);
-      if (ARGV)
-	 var->setValue(ARGV->copy(), 0);
-	 
-      var = global_var_list.newVar("QORE_ARGV", listTypeInfo);
-      if (QORE_ARGV)
-	 var->setValue(QORE_ARGV->copy(), 0);
-	 
-      var = global_var_list.newVar("ENV", hashTypeInfo);
-      var->setValue(ENV->copy(), 0);
-
       if (p_pgm)
 	 setParent(p_pgm, n_parse_options);
       else {
 	 TZ = QTZM.getLocalZoneInfo();
 	 newProgram();
       }
+
+      // initialize global vars
+      Var *var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ARGV", listTypeInfo);
+      if (var && ARGV)
+	 var->setValue(ARGV->copy(), 0);
+	 
+      var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "QORE_ARGV", listTypeInfo);
+      if (var && QORE_ARGV)
+	 var->setValue(QORE_ARGV->copy(), 0);
+	 
+      var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ENV", hashTypeInfo);
+      if (var)
+         var->setValue(ENV->copy(), 0);
    }
 
    DLLLOCAL void start_thread() {
@@ -460,7 +459,8 @@ public:
       }
 
       // delete all global variables
-      global_var_list.clear_all(xsink);
+      qore_root_ns_private::clearGlobalVars(*RootNS, xsink);
+
       // clear thread data if base object
       if (base_object)
          clearThreadData(xsink);
@@ -552,7 +552,9 @@ public:
 
    DLLLOCAL QoreListNode *getVarList() {
       AutoLocker al(&plock);
-      return global_var_list.getVarList();
+      // FIXME: implement
+      return new QoreListNode;
+      //return global_var_list.getVarList();
    }
 
    DLLLOCAL QoreListNode *getFeatureList() const {
@@ -1200,6 +1202,8 @@ public:
       return 0;
    }
 
+   DLLLOCAL void exportGlobalVariable(const char* name, bool readonly, qore_program_private& tpgm, ExceptionSink* xsink);
+
    DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(QoreProgram* pgm, const char *name, ExceptionSink* xsink) {
       return pgm->priv->runtimeGetCallReference(name, xsink);
    }
@@ -1309,6 +1313,57 @@ public:
 
    DLLLOCAL static int parseAddDomain(QoreProgram* pgm, int64 n_dom) {
       return pgm->priv->parseAddDomain(n_dom);
+   }
+
+   DLLLOCAL static void makeParseWarning(QoreProgram* pgm, int code, const char *warn, const char *fmt, ...) {
+      //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->pwo.warn_mask=%d priv->warnSink=%p %s\n", code, warn, fmt, priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
+      if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask))
+         return;
+
+      QoreStringNode *desc = new QoreStringNode;
+      while (true) {
+         va_list args;
+         va_start(args, fmt);
+         int rc = desc->vsprintf(fmt, args);
+         va_end(args);
+         if (!rc)
+            break;
+      }
+      QoreException *ne = new ParseException(warn, desc);
+      pgm->priv->warnSink->raiseException(ne);
+   }
+
+   DLLLOCAL static void makeParseWarning(QoreProgram* pgm, int sline, int eline, const char *file, int code, const char *warn, const char *fmt, ...) {
+      //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->pwo.warn_mask=%d priv->warnSink=%p %s\n", code, warn, fmt, priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
+      if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask))
+         return;
+      
+      QoreStringNode *desc = new QoreStringNode;
+      while (true) {
+         va_list args;
+         va_start(args, fmt);
+         int rc = desc->vsprintf(fmt, args);
+         va_end(args);
+         if (!rc)
+            break;
+      }
+      QoreException *ne = new ParseException(sline, eline, file, warn, desc);
+      pgm->priv->warnSink->raiseException(ne);
+   }
+
+   DLLLOCAL static void makeParseWarning(QoreProgram* pgm, int code, const char *warn, QoreStringNode *desc) {
+      //printd(5, "QoreProgram::makeParseWarning(code=%d, warn='%s', desc='%s') priv->pwo.warn_mask=%d priv->warnSink=%p %s\n", code, warn, desc->getBuffer(), priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
+      if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask)) {
+         desc->deref();
+         return;
+      }
+      
+      QoreException *ne = new ParseException(warn, desc);
+      pgm->priv->warnSink->raiseException(ne);
+   }
+
+   DLLLOCAL static void exportGlobalVariable(QoreProgram* pgm, const char* name, bool readonly, QoreProgram* tpgm, ExceptionSink* xsink) {
+      pgm->priv->exportGlobalVariable(name, readonly, *(tpgm->priv), xsink);
    }
 };
 

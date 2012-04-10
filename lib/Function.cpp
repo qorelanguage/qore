@@ -741,7 +741,7 @@ static void warn_excess_args(QoreFunction *func, const type_vec_t &argTypeInfo, 
    else {
       // raise warning
       desc->concat("; excess arguments will be ignored; to disable this warning, use '%%disable-warning excess-args' in your code");
-      getProgram()->makeParseWarning(QP_WARN_EXCESS_ARGS, "EXCESS-ARGS", desc);
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_EXCESS_ARGS, "EXCESS-ARGS", desc);
    }
 }
 
@@ -1063,7 +1063,7 @@ const AbstractQoreFunctionVariant *QoreFunction::parseFindVariant(const type_vec
 	 }
 	 else {
 	    desc->concat("; to disable this warning, use '%disable-warning invalid-operation' in your code");
-	    getProgram()->makeParseWarning(QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
+	    qore_program_private::makeParseWarning(getProgram(), QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
 	 }
       }
 

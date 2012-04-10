@@ -59,8 +59,9 @@
 #define PO_REQUIRE_BARE_REFS           (1 << 27)    //!< do not allow '$' for vars and '$.' for class member refs
 #define PO_ASSUME_LOCAL                (1 << 28)    //!< assume local variable scope if not declared (implicit "my")
 #define PO_NO_BINARY_MODULES           (1 << 29)    //!< do not allow external binary (compiled) modules to be loaded
-#define PO_INHERIT_USER_FUNC_VARIANTS  (1 << 30)    //!< inherit all user function variants from the parent into this program's space
-#define PO_NO_SYSTEM_FUNC_VARIANTS     (1 << 31)    //!< do not inherit any builtin function variants to this program's space
+#define PO_INHERIT_USER_FUNC_VARIANTS  (1 << 30)    //!< inherit all user function variants from the parent into the new program's space
+#define PO_NO_SYSTEM_FUNC_VARIANTS     (1 << 31)    //!< do not inherit any builtin function variants to the new program's space
+#define PO_INHERIT_GLOBAL_VARS         (1LL << 32)    //!< inherit global variables from the parent into the new program's space
 
 #define PO_DEFAULT                     0            //!< do not inherit user function variants for backwards-compatibility with earlier versions of Qore
 
@@ -90,7 +91,7 @@
 #define PO_FREE_OPTIONS              (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL)
 
 //! mask of options that only take effect when a Program object is created by affecting objects that are inherited from the parent
-#define PO_INHERITANCE_OPTIONS       (PO_NO_SYSTEM_CLASSES|PO_NO_USER_CLASSES|PO_INHERIT_USER_FUNC_VARIANTS|PO_NO_SYSTEM_FUNC_VARIANTS)
+#define PO_INHERITANCE_OPTIONS       (PO_NO_SYSTEM_CLASSES|PO_NO_USER_CLASSES|PO_INHERIT_USER_FUNC_VARIANTS|PO_NO_SYSTEM_FUNC_VARIANTS|PO_INHERIT_GLOBAL_VARS)
 
 #define QDOM_DEFAULT            0                         //!< the default domain (no domain)
 #define QDOM_PROCESS            PO_NO_PROCESS_CONTROL     //!< provides process control functionality (can affect or stop the current process)

@@ -63,7 +63,7 @@ public:
    DLLLOCAL ~VNode() {
       //printd(5, "VNode::~VNode() id=%p %s\n", lvar, lvar ? lvar->getName() : "n/a");
       if (lvar && !refs)
-	 getProgram()->makeParseWarning(first_line, last_line, file, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
+	 qore_program_private::makeParseWarning(getProgram(), first_line, last_line, file, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
    }
 
    DLLLOCAL void setRef() {
@@ -253,10 +253,10 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool ch
 	    }
 	    else {
 	       if (!found_block)
-		  getProgram()->makeParseWarning(QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", "local variable '%s' was already declared in the same block", name);
+		  qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", "local variable '%s' was already declared in the same block", name);
 	       else {
 		  if (top_level || !vnode->isTopLevel())
-		     getProgram()->makeParseWarning(QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '%s' was already declared in this lexical scope", name);
+		     qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '%s' was already declared in this lexical scope", name);
 	       }
 	       break;
 	    }
@@ -323,7 +323,7 @@ int StatementBlock::parseInitIntern(LocalVar *oflag, int pflag, statement_list_t
       lvids += (*i)->parseInit(oflag, pflag);
       if (!ret && i != l && (*i)->endsBlock()) {
 	 // unreachable code found
-	 getProgram()->makeParseWarning(QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
+	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
 	 ret = *i;
       }
    }
@@ -432,7 +432,7 @@ void StatementBlock::parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *
 }
 
 // never called with this=0
-void TopLevelStatementBlock::parseInit() {
+void TopLevelStatementBlock::parseInit(int64 po) {
    QORE_TRACE("TopLevelStatementBlock::parseInit");
 
    assert(this);
@@ -462,7 +462,7 @@ void TopLevelStatementBlock::parseInit() {
    save_global_vnode(vn);
    
    // now initialize root namespace and functions before local variables are popped off the stack
-   qore_root_ns_private::parseInit();
+   qore_root_ns_private::parseInit(po);
 
    if (first) {
       // this call will pop all local vars off the stack

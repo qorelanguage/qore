@@ -185,13 +185,7 @@ public:
       ref.id = 0;
    }
    // called when a list of variables is declared
-   DLLLOCAL virtual void makeGlobal() {
-      assert(type != VT_GLOBAL);
-      assert(type == VT_UNRESOLVED || !ref.id);
-      type = VT_GLOBAL;
-      ref.var = getProgram()->addGlobalVarDef(name, 0);      
-      new_decl = true;
-   }
+   DLLLOCAL virtual void makeGlobal();
 
    // takes the name - caller owns the memory
    DLLLOCAL char *takeName();
@@ -265,15 +259,7 @@ public:
       assert(!parseTypeInfo);
       return typeInfo;
    }
-   DLLLOCAL virtual void makeGlobal() {
-      assert(type == VT_UNRESOLVED); 
-      type = VT_GLOBAL;
-      if (parseTypeInfo)
-         ref.var = getProgram()->addGlobalVarDef(name, takeParseTypeInfo());
-      else
-         ref.var = getProgram()->addResolvedGlobalVarDef(name, typeInfo);
-      new_decl = true;
-   }
+   DLLLOCAL virtual void makeGlobal();
 
    void parseInitCommon(LocalVar *oflag, int pflag, int &lvids, bool is_new = false);
 };

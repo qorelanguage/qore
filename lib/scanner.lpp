@@ -598,11 +598,11 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
 ^%enable-all-warnings{WS}*$             { 
                                            if (getProgram()->setWarningMask(-1))
-					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
+					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
 			                }
 ^%disable-all-warnings{WS}*$            { 
                                            if (getProgram()->setWarningMask(0))
-					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable all warnings");
+					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable all warnings");
 			                }
 ^%disable-warning{WS}*$                 { parse_error("missing argument to %%disable-warning"); }
 ^%disable-warning{WS}+                  BEGIN(disable_warning);
@@ -611,9 +611,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					   //printd(5, "scanner: disable warning '%s'\n", cn);
 					   int code = get_warning_code(cn);
 					   if (!code)
-					      getProgram()->makeParseWarning(QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot disable unknown warning '%s'", cn);
+					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot disable unknown warning '%s'", cn);
 					   else if (getProgram()->disableWarning(code))
-					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable warning '%s'", cn);
+					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable warning '%s'", cn);
 					   //printd(5, "scanner: disable warning '%s' code=%d\n", cn, code);
 					   free(cn);
 					   BEGIN(INITIAL);
@@ -625,9 +625,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					   //printd(5, "scanner: enable warning '%s'\n", cn);
 					   int code = get_warning_code(cn);
 					   if (!code)
-					      getProgram()->makeParseWarning(QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot enable unknown warning '%s'", cn);
+					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot enable unknown warning '%s'", cn);
 					   else if (getProgram()->enableWarning(code))
-					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable warning '%s'", cn);
+					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable warning '%s'", cn);
 					   free(cn);
 					   BEGIN(INITIAL);
                                         }

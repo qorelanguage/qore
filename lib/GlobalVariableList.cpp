@@ -27,40 +27,32 @@
 
 #include <assert.h>
 
-GlobalVariableList::GlobalVariableList() {
-}
-
-GlobalVariableList::~GlobalVariableList() {
-   assert(vmap.empty());
-}
-
 // adds directly to committed list
-void GlobalVariableList::import(Var *var, ExceptionSink *xsink, bool readonly) {
-   map_var_t::iterator i = vmap.find(var->getName());
-   if (i == vmap.end())
-      newVar(var, readonly);
-   else {
-      Var *v = i->second;
-      vmap.erase(i);
-      v->makeReference(var, xsink, readonly);
-      vmap[v->getName()] = v;
+Var* GlobalVariableList::import(Var *v, ExceptionSink *xsink, bool readonly) {
+   map_var_t::iterator i = vmap.find(v->getName());
+   if (i != vmap.end()) {
+      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "'%s' already exists in the target namespace", v->getName());
+      return 0;
    }
+
+   Var *var = new Var(v, readonly);
+   pending_vmap[var->getName()] = var;
+   
+   printd(5, "GlobalVariableList::import(): reference to %s (%p) added\n", v->getName(), var);
+   return var;
 }
 
 // sets all non-imported variables to NULL (dereferences contents if any)
 void GlobalVariableList::clear_all(ExceptionSink *xsink) {
-   //printd(5, "GlobalVariableList::clear_all() this=%08p (size=%d)\n", this, vmap.size());
-   map_var_t::reverse_iterator i = vmap.rbegin();
-   
-   while (i != vmap.rend()) {
+   //printd(5, "GlobalVariableList::clear_all() this=%p (size=%d)\n", this, vmap.size());
+   for (map_var_t::reverse_iterator i = vmap.rbegin(), e = vmap.rend(); i != e; ++i) {
       if (!i->second->isImported()) {
-	 printd(5, "GlobalVariableList::clear_all() clearing '%s' (%08p)\n", i->first, i->second);
+	 printd(5, "GlobalVariableList::clear_all() clearing '%s' (%p)\n", i->first, i->second);
 	 i->second->setValue(0, xsink);
       }
 #ifdef DEBUG
-      else printd(5, "GlobalVariableList::clear_all() skipping imported var '%s' (%08p)\n", i->first, i->second);
+      else printd(5, "GlobalVariableList::clear_all() skipping imported var '%s' (%p)\n", i->first, i->second);
 #endif
-      ++i;
    }
 }
 
@@ -72,31 +64,38 @@ void GlobalVariableList::delete_all(ExceptionSink *xsink) {
    vmap.clear();
 }
 
-Var *GlobalVariableList::newVar(const char *name, QoreParseTypeInfo *typeInfo) {
+Var *GlobalVariableList::runtimeCreateVar(const char *name, const QoreTypeInfo *typeInfo) {
+   if (parseFindVar(name))
+      return 0;
+
+   Var *var = new Var(name, typeInfo);
+   vmap[var->getName()] = var;
+   
+   printd(5, "GlobalVariableList::runtimeCreateVar(): %s (%p) added (resolved type %s)\n", name, var, typeInfo->getName());
+   return var;
+}
+
+Var *GlobalVariableList::parseCreatePendingVar(const char *name, QoreParseTypeInfo *typeInfo) {
+   assert(!parseFindVar(name));
+
    Var *var = new Var(name, typeInfo);
    pending_vmap[var->getName()] = var;
    
-   printd(5, "GlobalVariableList::newVar(): %s (%08p) added (parseType %s)\n", name, var, typeInfo->getName());
+   printd(5, "GlobalVariableList::parseCreatePendingVar(): %s (%p) added (parseType %s)\n", name, var, typeInfo->getName());
    return var;
 }
 
-Var *GlobalVariableList::newVar(const char *name, const QoreTypeInfo *typeInfo) {
+Var *GlobalVariableList::parseCreatePendingVar(const char *name, const QoreTypeInfo *typeInfo) {
+   assert(!parseFindVar(name));
+
    Var *var = new Var(name, typeInfo);
    pending_vmap[var->getName()] = var;
    
-   printd(5, "GlobalVariableList::newVar(): %s (%08p) added (resolved type %s)\n", name, var, typeInfo->getName());
+   printd(5, "GlobalVariableList::parseCreatePendingVar(): %s (%p) added (resolved type %s)\n", name, var, typeInfo->getName());
    return var;
 }
 
-Var *GlobalVariableList::newVar(Var *v, bool readonly) {
-   Var *var = new Var(v, readonly);
-   pending_vmap[var->getName()] = var;
-   
-   printd(5, "GlobalVariableList::newVar(): reference to %s (%08p) added\n", v->getName(), var);
-   return var;
-}
-
-Var *GlobalVariableList::findVar(const char *name) {
+Var *GlobalVariableList::parseFindVar(const char *name) {
    map_var_t::iterator i = vmap.find(name);
    if (i != vmap.end())
       return i->second;
@@ -105,7 +104,7 @@ Var *GlobalVariableList::findVar(const char *name) {
    return i != pending_vmap.end() ? i->second : 0;
 }
 
-const Var *GlobalVariableList::findVar(const char *name) const {
+const Var *GlobalVariableList::parseFindVar(const char *name) const {
    map_var_t::const_iterator i = vmap.find(name);
    if (i != vmap.end())
       return i->second;
@@ -115,13 +114,15 @@ const Var *GlobalVariableList::findVar(const char *name) const {
 }
 
 // used for resolving unflagged global variables
-Var *GlobalVariableList::checkVar(const char *name, QoreParseTypeInfo *typeInfo, int *new_var) {
+Var *GlobalVariableList::parseFindCreateVar(const char *name, QoreParseTypeInfo *typeInfo, bool& new_var) {   
    QORE_TRACE("GlobalVariableList::checkVar()");
-   Var *var;
+   assert(!new_var);
+
+   Var* var = parseFindVar(name);
    
-   if (!(var = findVar(name))) {
-      *new_var = 1;
-      var = newVar(name, typeInfo);
+   if (!var) {
+      new_var = true;
+      var = parseCreatePendingVar(name, typeInfo);
    }
    else // check if a new type has been declared for this global variable
       var->parseCheckAssignType(typeInfo);
@@ -130,13 +131,15 @@ Var *GlobalVariableList::checkVar(const char *name, QoreParseTypeInfo *typeInfo,
 }
 
 // used for resolving unflagged global variables
-Var *GlobalVariableList::checkVar(const char *name, const QoreTypeInfo *typeInfo, int *new_var) {
+Var *GlobalVariableList::parseFindCreateVar(const char *name, const QoreTypeInfo *typeInfo, bool& new_var) {
    QORE_TRACE("GlobalVariableList::checkVar()");
-   Var *var;
+   assert(!new_var);
 
-   if (!(var = findVar(name))) {
-      *new_var = 1;
-      var = newVar(name, typeInfo);
+   Var* var = parseFindVar(name);
+
+   if (!var) {
+      new_var = true;
+      var = parseCreatePendingVar(name, typeInfo);
    }
    else // check if a new type has been declared for this global variable
       var->checkAssignType(typeInfo);

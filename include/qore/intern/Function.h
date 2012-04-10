@@ -627,6 +627,7 @@ public:
         nn_uniqueReturnType(old.nn_uniqueReturnType) {
       bool no_user = !(po & PO_INHERIT_USER_FUNC_VARIANTS);
       bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
+
       // copy variants by reference
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
          if (no_user && (*i)->isUser())

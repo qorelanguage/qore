@@ -34,6 +34,7 @@
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/QoreSignal.h>
 #include <qore/intern/QoreNamespaceIntern.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <qore/minitest.hpp>
 
@@ -314,17 +315,33 @@ QoreNamespace* QoreNamespace::copy(int64 po) const {
 
 QoreNamespaceList::QoreNamespaceList(const QoreNamespaceList& old, int64 po, const qore_ns_private& parent) {
    //printd(5, "QoreNamespaceList::QoreNamespaceList(old=%p) this=%p po=%lld size=%d\n", &old, this, po, nsmap.size());
+   nsmap_t::iterator last = nsmap.begin();
    for (nsmap_t::const_iterator i = old.nsmap.begin(), e = old.nsmap.end(); i != e; ++i) {
       QoreNamespace* ns = i->second->copy(po);
       ns->priv->parent = &parent;
       assert(ns->priv->depth);
-      nsmap[i->first] = ns;
+      last = nsmap.insert(last, nsmap_t::value_type(i->first, ns));
    }
 }
 
 void QoreNamespaceList::resolveCopy() {
    for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
       i->second->priv->classList.resolveCopy();
+}
+
+void QoreNamespaceList::parseInitGlobalVars(int64 po) {
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->priv->parseInitGlobalVars(po);
+}
+
+void QoreNamespaceList::clearGlobalVars(ExceptionSink* xsink) {
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->priv->clearGlobalVars(xsink);
+}
+
+void QoreNamespaceList::deleteGlobalVars(ExceptionSink* xsink) {
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->priv->deleteGlobalVars(xsink);
 }
 
 void QoreNamespaceList::parseInitConstants() {
@@ -669,7 +686,7 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const char* b
 
    // try to resolve a global variable
    if (abr) {
-      Var *v = pgm->findGlobalVar(bword);
+      Var* v = parseFindGlobalVar(bword);
       if (v)
          return new GlobalVarRefNode(strdup(bword), v);
    }
@@ -1074,6 +1091,67 @@ AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern
    return fr_holder.release();
 }
 
+Var* qore_root_ns_private::parseAddResolvedGlobalVarDef(qore_ns_private& ns, const char *vname, const QoreTypeInfo *typeInfo) {
+   bool new_var = false;
+   Var* v = ns.var_list.parseFindCreateVar(vname, typeInfo, new_var);
+   
+   if (!new_var)
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", vname);
+   else {
+      if (checkParseOption(PO_NO_GLOBAL_VARS))
+         parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname);
+
+      pend_varmap.update(v->getName(), &ns, v);
+      //printd(5, "qore_root_ns_private::parseAddResolvedGlobalVarDef() this: %p adding %p '%s' (%s) to '%s::'\n", this, v, vname, typeInfo->getName(), name.c_str());
+   }
+   
+   return v;
+}
+
+Var *qore_root_ns_private::parseAddGlobalVarDef(qore_ns_private& ns, const char *vname, QoreParseTypeInfo *typeInfo) {
+   bool new_var = false;
+   Var* v = ns.var_list.parseFindCreateVar(vname, typeInfo, new_var);
+
+   if (!new_var)
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", vname);
+   else {
+      if (checkParseOption(PO_NO_GLOBAL_VARS))
+         parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname);
+
+      pend_varmap.update(v->getName(), &ns, v);
+      //printd(5, "qore_root_ns_private::parseAddGlobalVarDef() this: %p adding %p '%s' (%s) to '%s::' (find: %p)\n", this, v, vname, typeInfo->getName(), name.c_str(), parseFindGlobalVarIntern(vname));
+   }
+
+   return v;
+}
+
+Var *qore_root_ns_private::parseCheckImplicitGlobalVar(const char *vname, const QoreTypeInfo *typeInfo) {
+   Var *rv = parseFindGlobalVarIntern(vname);
+   //printd(5, "qore_root_ns_private::parseCheckImplicitGlobalVar() this: %p '%s' rv: %p (omq: %p)\n", this, vname, rv, parseFindGlobalVarIntern("omq"));
+   if (!rv) {
+      // check for errors & warnings for implicit global variables
+      QoreProgram* pgm = getProgram();
+      int64 po = pgm->getParseOptions64();
+
+      // check if unflagged global vars are allowed
+      if (po & PO_REQUIRE_OUR)
+	 parseException("UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' must first be declared with 'our' (conflicts with parse option REQUIRE_OUR)", vname);
+      else if (po & PO_NO_GLOBAL_VARS) // check if new global variables are allowed to be created at all
+	 parseException("ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname);
+      else
+	 qore_program_private::makeParseWarning(pgm, QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be explicitly declared with 'our'", vname);
+
+      // always create implicit global variables in the root namespace
+      assert(!var_list.parseFindVar(vname));
+      rv = var_list.parseCreatePendingVar(vname, typeInfo);
+      pend_varmap.update(rv->getName(), this, rv);
+   }
+   else
+      rv->checkAssignType(typeInfo);
+
+   return rv;
+}
+
 void qore_ns_private::parseInitConstants() {
    printd(5, "qore_ns_private::parseInitConstants() %s\n", name.c_str());
 
@@ -1082,6 +1160,7 @@ void qore_ns_private::parseInitConstants() {
    // do 2nd stage parse initialization on pending constants
    pendConstant.parseInit();
 
+   nsl.parseInitConstants();
    pendNSL.parseInitConstants();
 }
 
@@ -1109,6 +1188,9 @@ void qore_ns_private::parseInit() {
 }
 
 void qore_ns_private::parseCommit() {
+   // commit pending global vars
+   var_list.parseCommit();
+
    // merge pending user functions
    func_list.parseCommit();
 
@@ -1125,6 +1207,9 @@ void qore_ns_private::parseCommit() {
 void qore_ns_private::parseRollback() {
    printd(5, "qore_ns_private::parseRollback() %s this=%p ns=%p\n", name.c_str(), this, ns);
 
+   // delete pending global variables
+   var_list.parseRollback();
+
    // delete pending user functions
    func_list.parseRollback();
 
@@ -1136,9 +1221,6 @@ void qore_ns_private::parseRollback() {
 
    // delete pending classes
    pendClassList.reset();
-
-   // delete pending user functions
-   func_list.parseRollback();
 
    // delete pending namespaces
    pendNSL.reset();
@@ -1433,7 +1515,7 @@ const QoreFunction* qore_ns_private::runtimeMatchFunction(const NamedScope& nsco
 
 // qore_ns_private::parseMatchNamespace()
 // will only be called if there is a match with the name and nscope.size() > 1
-QoreNamespace* qore_ns_private::parseMatchNamespace(const NamedScope& nscope, unsigned& matched) {
+QoreNamespace* qore_ns_private::parseMatchNamespace(const NamedScope& nscope, unsigned& matched) const {
    printd(5, "qore_ns_private::parseMatchNamespace() this=%p ns=%p '%s' ns=%s matched=%d\n", this, ns, name.c_str(), nscope.ostr, matched);
 
    assert(nscope[0] == name);

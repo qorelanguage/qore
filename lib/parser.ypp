@@ -2195,9 +2195,9 @@ exp:    scalar
 	   const QoreTypeInfo *t = $2->getTypeInfo();
 	   VarRefNode *v;
 	   if (t)
-	      v = new VarRefNode($3, getProgram()->addResolvedGlobalVarDef($3, t));
+	      v = new VarRefNode($3, qore_root_ns_private::parseAddResolvedGlobalVarDef(*(getRootNS()), *(getRootNS()), $3, t));
 	   else	
-	      v = new VarRefNode($3, getProgram()->addGlobalVarDef($3, $2->getParseTypeInfo()));
+	      v = new VarRefNode($3, qore_root_ns_private::parseAddGlobalVarDef(*(getRootNS()), *(getRootNS()), $3, $2->getParseTypeInfo()));
 	   v->setExplicitScope();
 	   $$ = v;
 	   delete $2;
@@ -2205,7 +2205,7 @@ exp:    scalar
 	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $3);
 	}
         | TOK_OUR IDENTIFIER {
-	   VarRefNode *v = new VarRefNode($2, getProgram()->addGlobalVarDef($2, 0));
+	   VarRefNode *v = new VarRefNode($2, qore_root_ns_private::parseAddGlobalVarDef(*(getRootNS()), *(getRootNS()), $2, 0));
 	   v->setExplicitScope();
 	   $$ = v;
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
@@ -2215,9 +2215,9 @@ exp:    scalar
 	   const QoreTypeInfo *t = $2->getTypeInfo();
 	   VarRefNode *v;
 	   if (t)
-	      v = new VarRefNode($3, getProgram()->addResolvedGlobalVarDef($3, t));
+	      v = new VarRefNode($3, qore_root_ns_private::parseAddResolvedGlobalVarDef(*(getRootNS()), *(getRootNS()), $3, t));
 	   else
-	      v = new VarRefNode($3, getProgram()->addGlobalVarDef($3, $2->getParseTypeInfo()));
+	      v = new VarRefNode($3, qore_root_ns_private::parseAddGlobalVarDef(*(getRootNS()), *(getRootNS()), $3, $2->getParseTypeInfo()));
 	   v->setExplicitScope();
 	   $$ = v;
 	   delete $2;
@@ -2237,7 +2237,7 @@ exp:    scalar
 		 if (!checkParseOption(PO_ALLOW_BARE_REFS))
 		    parse_error("global variable '%s' in global variable declaration list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", b->str);
 		 char *name = b->takeString();
-		 GlobalVarRefNode *v = new GlobalVarRefNode(name, getProgram()->checkGlobalVar(name, 0));
+		 GlobalVarRefNode *v = new GlobalVarRefNode(name, qore_root_ns_private::parseCheckImplicitGlobalVar(*(getRootNS()), name, 0));
 		 b->deref();
 		 AbstractQoreNode **p = li.getValuePtr();
 		 *p = v;

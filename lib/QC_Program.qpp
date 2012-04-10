@@ -719,14 +719,10 @@ nothing Program::importFunction(string func, string new_name) {
 $pgm.importGlobalVariable("var");
     @endcode
 
-    @throw PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION The global variable does not exist
+    @throw PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION The global variable does not exist in the source program, or the target variable already exists
  */
 nothing Program::importGlobalVariable(string varname, bool readonly = False) {
-   class Var *var = getProgram()->findGlobalVar(varname->getBuffer());
-   if (var)
-      p->importGlobalVariable(var, xsink, readonly);
-   else
-      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "there is no global variable \"%s\"", varname->getBuffer());
+   qore_program_private::exportGlobalVariable(getProgram(), varname->getBuffer(), readonly, p, xsink);
 }
 
 //! Returns a list of strings of all user functions defined in the program object

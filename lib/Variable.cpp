@@ -201,25 +201,6 @@ void Var::setValue(AbstractQoreNode *val, ExceptionSink *xsink) {
    setValueIntern(val, xsink);
 }
 
-void Var::makeReference(Var *pvar, ExceptionSink *xsink, bool ro) {
-   assert(name == pvar->name);
-
-   AutoLocker al(m);
-
-   if (type == GV_IMPORT)
-      v.ivar.refptr->deref(xsink);
-   else {
-      if (v.val.value)
-	 v.val.value->deref(xsink);
-
-      type = GV_IMPORT;
-   }
-
-   v.ivar.refptr = pvar;
-   v.ivar.readonly = ro;
-   pvar->ROreference();
-}
-
 void Var::deref(ExceptionSink *xsink) {
    if (ROdereference()) {
       del(xsink);

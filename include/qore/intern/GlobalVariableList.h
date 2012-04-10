@@ -31,28 +31,58 @@
 
 class Var;
 
-typedef std::map<const char*, Var *, ltstr> map_var_t;
+typedef std::map<const char*, Var*, ltstr> map_var_t;
 
 // this is a "grow-only" container
 // all reading and writing is done within the parse lock on the containing program object
 class GlobalVariableList {
-private:
-   map_var_t vmap, pending_vmap;
-   
+protected:
+   DLLLOCAL Var* parseCreatePendingVar(const char* name, QoreParseTypeInfo* typeInfo);
+
 public:
-   DLLLOCAL GlobalVariableList();
-   DLLLOCAL ~GlobalVariableList();
-   DLLLOCAL void delete_all(ExceptionSink *xsink);
-   DLLLOCAL void clear_all(ExceptionSink *xsink);
-   DLLLOCAL void import(Var *var, ExceptionSink *xsink, bool readonly = false);
-   DLLLOCAL Var *newVar(const char *name, QoreParseTypeInfo *typeInfo);
-   DLLLOCAL Var *newVar(const char *name, const QoreTypeInfo *typeInfo = 0);
-   DLLLOCAL Var *newVar(Var *v, bool readonly);
-   DLLLOCAL Var *findVar(const char *name);
-   DLLLOCAL const Var *findVar(const char *name) const;
-   DLLLOCAL Var *checkVar(const char *name, QoreParseTypeInfo *typeInfo, int *new_vars);
-   DLLLOCAL Var *checkVar(const char *name, const QoreTypeInfo *typeInfo, int *new_vars);
-   DLLLOCAL QoreListNode *getVarList() const;
+   map_var_t vmap, pending_vmap;
+
+   DLLLOCAL GlobalVariableList() {
+   }
+
+   DLLLOCAL GlobalVariableList(const GlobalVariableList& old, int64 po) {
+      // don't inherit any global vars if the appropriate flag is not already set
+      if (!(po & PO_INHERIT_GLOBAL_VARS))
+         return;
+
+      map_var_t::iterator last = vmap.begin();
+      for (map_var_t::const_iterator i = old.vmap.begin(), e = old.vmap.end(); i != e; ++i) {
+         Var* v = new Var(const_cast<Var*>(i->second));
+         last = vmap.insert(last, map_var_t::value_type(v->getName(), v));
+      }
+   }
+
+   DLLLOCAL ~GlobalVariableList() {
+      assert(vmap.empty());
+   }
+
+   DLLLOCAL void delete_all(ExceptionSink* xsink);
+   DLLLOCAL void clear_all(ExceptionSink* xsink);
+
+   // called at runtime
+   // returns a non-0 Var* if a new variable was created, 0 if not (because it already existed - exception raised)
+   DLLLOCAL Var* import(Var* var, ExceptionSink* xsink, bool readonly = false);
+
+   DLLLOCAL Var* runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo);
+
+   DLLLOCAL Var* parseFindVar(const char* name);
+   DLLLOCAL Var* parseCreatePendingVar(const char* name, const QoreTypeInfo* typeInfo);
+   DLLLOCAL const Var* parseFindVar(const char* name) const;
+   DLLLOCAL Var* parseFindCreateVar(const char* name, QoreParseTypeInfo* typeInfo, bool& new_var);
+   DLLLOCAL Var* parseFindCreateVar(const char* name, const QoreTypeInfo* typeInfo, bool& new_var);
+
+   DLLLOCAL Var* runtimeFindVar(const char* name) {
+      map_var_t::iterator i = vmap.find(name);
+      return i != vmap.end() ? i->second : 0;
+   }
+
+   DLLLOCAL QoreListNode* getVarList() const;
+
    DLLLOCAL void parseInit(int64 parse_options);
    DLLLOCAL void parseCommit();
    DLLLOCAL void parseRollback();

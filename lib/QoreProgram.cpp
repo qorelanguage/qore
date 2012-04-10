@@ -165,9 +165,6 @@ void qore_program_private::internParseRollback() {
    // delete pending changes to namespaces
    qore_root_ns_private::parseRollback(*RootNS);
 
-   // roll back pending global variables
-   global_var_list.parseRollback();
-	 
    // delete pending statements 
    sb.parseRollback();
 
@@ -184,10 +181,7 @@ int qore_program_private::internParseCommit() {
    if (!parseSink->isEvent()) {
       // initialize new statements second (for "our" and "my" declarations)
       // also initializes namespaces, constants, etc
-      sb.parseInit();
-
-      // initialize all new global variables (resolve types)
-      global_var_list.parseInit(pwo.parse_options);
+      sb.parseInit(pwo.parse_options);
 
       printd(5, "QoreProgram::internParseCommit() this=%p RootNS=%p\n", pgm, RootNS);
    }
@@ -203,9 +197,6 @@ int qore_program_private::internParseCommit() {
    else { // otherwise commit them
       // merge pending namespace additions
       qore_root_ns_private::parseCommit(*RootNS);
-
-      // commit global variables
-      global_var_list.parseCommit();
 
       // commit pending statements
       sb.parseCommit();
@@ -243,6 +234,34 @@ void qore_program_private::importFunction(ExceptionSink *xsink, QoreFunction *u,
    qore_root_ns_private::importFunction(*RootNS, xsink, *tns, u, new_name);
 }
 
+void qore_program_private::exportGlobalVariable(const char* vname, bool readonly, qore_program_private& tpgm, ExceptionSink* xsink) {
+   if (&tpgm == this) {
+      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "cannot import global variable \"%s\" with the same source and target Program objects", vname);
+      return;
+   }
+
+   const qore_ns_private* vns = 0;
+   Var* v;
+   {
+      AutoLocker al(&plock);
+      v = qore_root_ns_private::runtimeFindGlobalVar(*RootNS, vname, vns);
+   }
+
+   if (!v) {
+      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "there is no global variable \"%s\"", vname);
+      return;
+   }
+
+   std::string nspath;
+   vns->getPath(nspath);
+
+   // find/create target namespace based on source namespace
+   QoreNamespace* tns = nspath.empty() ? tpgm.RootNS : tpgm.RootNS->findCreateNamespacePath(nspath.c_str());
+   //printd(5, "qore_program_private::importFunction() this: %p nspath: %s tns: %p %s RootNS: %p %s\n", this, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+   AutoLocker al(tpgm.plock);
+   qore_root_ns_private::importGlobalVariable(*tpgm.RootNS, *tns, v, readonly, xsink);
+}
+
 void qore_program_private::del(ExceptionSink *xsink) {
    printd(5, "QoreProgram::del() pgm=%p (base_object=%d)\n", pgm, base_object);
 
@@ -256,7 +275,7 @@ void qore_program_private::del(ExceptionSink *xsink) {
 
    // have to delete global variables first because of destructors.
    // method call can be repeated
-   global_var_list.delete_all(xsink);
+   qore_ns_private::deleteGlobalVars(*RootNS, xsink);
 
    // delete all class static vars and constants
    RootNS->deleteData(xsink);
@@ -304,61 +323,10 @@ void QoreProgram::deref(ExceptionSink *xsink) {
       priv->clear(xsink);
 }
 
-Var *QoreProgram::findGlobalVar(const char *name) {
-   return priv->global_var_list.findVar(name);
-}
-
-const Var *QoreProgram::findGlobalVar(const char *name) const {
-   return priv->global_var_list.findVar(name);
-}
-
-Var *QoreProgram::checkGlobalVar(const char *name, const QoreTypeInfo *typeInfo) {
-   int new_var = 0;
-   Var *rv = priv->global_var_list.checkVar(name, typeInfo, &new_var);
-   if (new_var) {
-      printd(5, "QoreProgram::checkVar() new global var \"%s\" found\n", name);
-      // check if unflagged global vars are allowed
-      if (priv->pwo.parse_options & PO_REQUIRE_OUR)
-	 parseException("UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' must first be declared with 'our' (conflicts with parse option REQUIRE_OUR)", name);
-      // check if new global variables are allowed to be created at all
-      else if (priv->pwo.parse_options & PO_NO_GLOBAL_VARS)
-	 parseException("ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", name);
-      else if (new_var)
-	 makeParseWarning(QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be declared with 'our'", name);
-   }
-   return rv;
-}
-
 LocalVar *QoreProgram::createLocalVar(const char *name, const QoreTypeInfo *typeInfo) {
    LocalVar *lv = new LocalVar(name, typeInfo);
    priv->local_var_list.push_back(lv);
    return lv;
-}
-
-// if this global variable definition is illegal, then
-// it will be flagged in the parseCommit stage
-Var *QoreProgram::addGlobalVarDef(const char *name, QoreParseTypeInfo *typeInfo) {
-   int new_var = 0;
-   Var *v = priv->global_var_list.checkVar(name, typeInfo, &new_var);
-   if (!new_var)
-      makeParseWarning(QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", name);
-   else if ((priv->pwo.parse_options & PO_NO_GLOBAL_VARS))
-      parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", name);
-
-   return v;
-}
-
-// if this global variable definition is illegal, then
-// it will be flagged in the parseCommit stage
-Var *QoreProgram::addResolvedGlobalVarDef(const char *name, const QoreTypeInfo *typeInfo) {
-   int new_var = 0;
-   Var *v = priv->global_var_list.checkVar(name, typeInfo, &new_var);
-   if (!new_var)
-      makeParseWarning(QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", name);
-   else if ((priv->pwo.parse_options & PO_NO_GLOBAL_VARS))
-      parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", name);
-
-   return v;
 }
 
 ExceptionSink *QoreProgram::getParseExceptionSink() {
@@ -366,65 +334,6 @@ ExceptionSink *QoreProgram::getParseExceptionSink() {
       return 0;
 
    return priv->parseSink;
-}
-
-void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, ...) {
-   QORE_TRACE("QoreProgram::makeParseWarning()");
-
-   //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->pwo.warn_mask=%d priv->warnSink=%p %s\n", code, warn, fmt, priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
-   if (!priv->warnSink || !(code & priv->pwo.warn_mask))
-      return;
-
-   QoreStringNode *desc = new QoreStringNode();
-   while (true) {
-      va_list args;
-      va_start(args, fmt);
-      int rc = desc->vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-         break;
-   }
-   QoreException *ne = new ParseException(warn, desc);
-   priv->warnSink->raiseException(ne);
-}
-
-void QoreProgram::makeParseWarning(int sline, int eline, const char *file, int code, const char *warn, const char *fmt, ...) {
-   QORE_TRACE("QoreProgram::makeParseWarning()");
-
-   //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->pwo.warn_mask=%d priv->warnSink=%p %s\n", code, warn, fmt, priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
-   if (!priv->warnSink || !(code & priv->pwo.warn_mask))
-      return;
-
-   QoreStringNode *desc = new QoreStringNode();
-   while (true) {
-      va_list args;
-      va_start(args, fmt);
-      int rc = desc->vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-         break;
-   }
-   QoreException *ne = new ParseException(sline, eline, file, warn, desc);
-   priv->warnSink->raiseException(ne);
-}
-
-void QoreProgram::makeParseWarning(int code, const char *warn, QoreStringNode *desc) {
-   QORE_TRACE("QoreProgram::makeParseWarning()");
-
-   //printd(5, "QoreProgram::makeParseWarning(code=%d, warn='%s', desc='%s') priv->pwo.warn_mask=%d priv->warnSink=%p %s\n", code, warn, desc->getBuffer(), priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
-   if (!priv->warnSink || !(code & priv->pwo.warn_mask)) {
-      desc->deref();
-      return;
-   }
-
-   QoreException *ne = new ParseException(warn, desc);
-   priv->warnSink->raiseException(ne);
-}
-
-void QoreProgram::addParseWarning(int code, ExceptionSink *xsink) {
-   if (!priv->warnSink || !(code & priv->pwo.warn_mask))
-      return;
-   priv->warnSink->assimilate(xsink);
 }
 
 void QoreProgram::cannotProvideFeature(QoreStringNode *desc) {
@@ -439,11 +348,13 @@ void QoreProgram::cannotProvideFeature(QoreStringNode *desc) {
    priv->parseSink->raiseException(ne);
 }
 
+/*
 void QoreProgram::importGlobalVariable(class Var *var, ExceptionSink *xsink, bool readonly) {
    priv->plock.lock();
    priv->global_var_list.import(var, xsink, readonly);
    priv->plock.unlock();
 }
+*/
 
 int QoreProgram::setWarningMask(int wm) {
    if (!(priv->pwo.parse_options & PO_LOCK_WARNINGS)) { 
@@ -827,13 +738,13 @@ const LVList *QoreProgram::getTopLevelLVList() const {
 }
 
 AbstractQoreNode *QoreProgram::getGlobalVariableValue(const char *var, bool &found) const {
-   const Var *v = findGlobalVar(var);
+   const qore_ns_private* vns = 0;
+   Var *v = qore_root_ns_private::runtimeFindGlobalVar(*(priv->RootNS), var, vns);
    if (!v) {
       found = false;
       return 0;
    }
-   found = true;
-   
+   found = true;   
    return v->getReferencedValue();
 }
 
