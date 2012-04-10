@@ -49,9 +49,9 @@
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em><tt>]</tt>
 
     @par Description
-    %Qore if statements work like if statements in C or Java. If the result of evaluating the expression converted to a @ref boolean value is \c True, then the first statement (which can also be a block) is executed. If the result is \c False, and there is an <tt><b>else</b></tt> keyword after the first statement, the following statement is executed.
+    %Qore if statements work like if statements in C or Java. If the result of evaluating the expression converted to a @ref boolean value is @ref True, then the first statement (which can also be a block) is executed. If the result is @ref False, and there is an <tt><b>else</b></tt> keyword after the first statement, the following statement is executed.
 
-    @note Any expression that evaluates to a non-zero integer value will be converted to a @ref boolean \c True. Any expression that evaluates to zero value is interpreted as \c False. This is more like C and Java's behavior and not like Perl's (where any non-null string except "0" is \c True).
+    @note Any expression that evaluates to a non-zero integer value will be converted to a @ref boolean @ref True. Any expression that evaluates to zero value is interpreted as @ref False. This is more like C and Java's behavior and not like Perl's (where any non-null string except "0" is @ref True).
 
     <hr>
     @section for for Statements
@@ -67,7 +67,7 @@
     <em>@ref expressions "[initial_expression]"</em>\n
     The \a initial_expression is executed only once at the start of each for loop. It is typically used to initialize a loop variable.\n\n
     <em>@ref expressions "[test_expression]"</em>\n
-    The \a test_expression is executed at the start of each for loop iteration. If this expression evaluates to @ref boolean \c False, the loop will terminate.\n\n
+    The \a test_expression is executed at the start of each for loop iteration. If this expression evaluates to @ref boolean @ref False, the loop will terminate.\n\n
     <em>@ref expressions "[iterator_expression]"</em>\n
     The \a iterator_expression is executed at the end of each for loop iteration. It is typically used to increment or decrement a loop variable that will be used in the test_expression.
 
@@ -81,7 +81,7 @@ for (my int $i = 0; $i < 10; $i++)
     @section foreach foreach Statements
 
     @par Synopsis
-    The %Qore <tt><b>foreach</b></tt> statement is most similar to the for or foreach array iterator statement in Perl. To iterate an action until a condition is \c True, use the @ref for "for statement" instead.
+    The %Qore <tt><b>foreach</b></tt> statement is most similar to the for or foreach array iterator statement in Perl. To iterate an action until a condition is @ref True, use the @ref for "for statement" instead.
 
     @par Syntax
     <tt><b>foreach</b></tt> <tt>[\b my|\b our] [</tt><em>@ref data_type_declarations "type"</em><tt>]</tt> $variable <tt><b>in</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>)</tt>\n
@@ -137,7 +137,7 @@ switch ($val) {
 }@endcode
 
     @par Description
-    The first \a expression is evaluated and then compared to the value of each \a case_expression in declaration order until one of the \a case_expressions matches or is evaluated to \c True. In this case all code up to a @ref break "break statement" is executed, at which time execution flow exits the <tt><b>switch</b></tt> statement.\n\n
+    The first \a expression is evaluated and then compared to the value of each \a case_expression in declaration order until one of the \a case_expressions matches or is evaluated to @ref True. In this case all code up to a @ref break "break statement" is executed, at which time execution flow exits the <tt><b>switch</b></tt> statement.\n\n
     Unless relational operators are used, the comparisons are "hard" comparisons; no type conversions are done, so in order for a match to be made, both the value and types of the expressions must match exactly. When relational operators are used, the operators are executed exactly as they are in the rest of %Qore, so type conversions may be performed if nesessary.\n\n
     To use soft comparisons, you must explicitly specify the soft equals operator as follows:\n
     @code
@@ -163,14 +163,14 @@ switch (1) {
     @section while while Statements
 
     @par Synopsis
-    <tt><b>while</b></tt> statements in %Qore are similar to while statements in Perl, C and Java. They are used to loop while a given condition is \c True.
+    <tt><b>while</b></tt> statements in %Qore are similar to while statements in Perl, C and Java. They are used to loop while a given condition is @ref True.
 
     @par Syntax
     <tt><b>while</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>)</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-First the expression will be evaluated; if it evaluates to \c True, then statement will be executed. If it evaluates to \c False, the loop terminates.
+First the expression will be evaluated; if it evaluates to @ref True, then statement will be executed. If it evaluates to @ref False, the loop terminates.
 
     @par Example
     @code 
@@ -182,7 +182,7 @@ while ($a < 10)
     @section do do while Statements
 
     @par Synopsis
-<tt><b>do</b></tt> <tt><b>while</b></tt> statements in %Qore are similar to do while statements in C. They are used to guarantee at least one iteration and loop until a given expression evaluates to \c False.
+<tt><b>do</b></tt> <tt><b>while</b></tt> statements in %Qore are similar to do while statements in C. They are used to guarantee at least one iteration and loop until a given expression evaluates to @ref False.
 
     @par Syntax
     <b><tt>do</tt></b>\n
@@ -190,7 +190,7 @@ while ($a < 10)
     <tt><b>while</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>);</tt>
 
     @par Description
-    First, the \a statement will be executed, then the \a expression will be evaluated; if it evaluates to \c True, then the loop iterates again. If it evaluates to \c False, the loop terminates.\n\n
+    First, the \a statement will be executed, then the \a expression will be evaluated; if it evaluates to @ref True, then the loop iterates again. If it evaluates to @ref False, the loop terminates.\n\n
     The difference between <tt><b>do</b></tt> <tt><b>while</b></tt> statements and @ref while "while statements" is that the <tt><b>do</b></tt> <tt><b>while</b></tt> statement evaluates its loop expression at the end of the loop, and therefore guarantees at least one iteration of the loop.
 
     @par Example
@@ -299,7 +299,7 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     <em>@ref expressions "data_expression"</em>\n
     This must evaluate to a hash of arrays in order for the <tt><b>context</b></tt> statement to execute.\n\n
     <em>@ref expressions "where_expression"</em>\n
-    An optional \b\c where expression may be given, in which case for each row in the hash, the expression will be executed, and if the where expression evaluates to \c True, the row will be iterated in the context loop. If this expression evaluates to \c False, then the row will not be iterated. This option is given so the programmer can create multiple views of a single data structure (such as a query result set) in memory rather than build different data structures by hand (or retrieve the data multiple times from a database).\n\n
+    An optional \b\c where expression may be given, in which case for each row in the hash, the expression will be executed, and if the where expression evaluates to @ref True, the row will be iterated in the context loop. If this expression evaluates to @ref False, then the row will not be iterated. This option is given so the programmer can create multiple views of a single data structure (such as a query result set) in memory rather than build different data structures by hand (or retrieve the data multiple times from a database).\n\n
     <em>@ref expressions "sort_expression"</em>\n
     An optional <tt><b>sortBy</b></tt> by expression may also be given. In this case, the expression will be evaluated for each row of the query given, and then the result set will be sorted in ascending order by the results of the expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer, then integer order is used, etc).\n\n
     <em>@ref expressions "sort_descending_expression"</em>\n

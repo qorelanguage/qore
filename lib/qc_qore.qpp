@@ -77,10 +77,10 @@ const NT_CALLREF = NT_FUNCREF;
 /** @defgroup boolean_constants Boolean Constants
  */
 //@{
-//! logical \c True
+//! logical @ref True
 const True = bool(true);
 
-//! logical \c False
+//! logical @ref False
 const False = bool(false);
 //@}
 
@@ -90,7 +90,7 @@ const False = bool(false);
 //! a constant representing the lack of a value
 const NOTHING = qore(&Nothing);
 
-//! logical \c False
+//! logical @ref False
 const NULL = qore(&Null);
 //@}
 
@@ -156,7 +156,7 @@ const CFLAGS =        qore(new QoreStringNode(qore_cflags));
 //! A string giving the linker flags used to build %Qore
 const LDFLAGS =       qore(new QoreStringNode(qore_ldflags));
 
-//! \c True if the current machine uses <a href="http://en.wikipedia.org/wiki/Most_significant_bit">big-endian or MSB byte order</a> or \c False if the current machine uses <a href="http://en.wikipedia.org/wiki/Least_significant_bit">little-endian or LSB byte order</a>
+//! @ref True if the current machine uses <a href="http://en.wikipedia.org/wiki/Most_significant_bit">big-endian or MSB byte order</a> or @ref False if the current machine uses <a href="http://en.wikipedia.org/wiki/Least_significant_bit">little-endian or LSB byte order</a>
 const MACHINE_MSB =   bool(Q_MACHINE_MSB);
 //@}
 

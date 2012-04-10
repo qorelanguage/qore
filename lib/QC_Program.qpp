@@ -645,7 +645,7 @@ any Program::callFunctionArgs(string name, *softlist vargs) {
 //! Checks if a user function exists in the program object
 /** @param name The name of the function to check
 
-    @return \c True if the function exists, \c False if not
+    @return @ref True if the function exists, @ref False if not
 
     @par Example:
     @code
@@ -712,7 +712,7 @@ nothing Program::importFunction(string func, string new_name) {
 /** If the variable is an object, then any methods called from the subprogram will run in the parent's space
 
     @param varname The name of the global variable without the \c "$"
-    @param readonly If this argument is \c True, then the variable will be imported read-only, and cannot be changed by the subprogram (note that if the imported 
+    @param readonly If this argument is @ref True, then the variable will be imported read-only, and cannot be changed by the subprogram (note that if the imported 
 
     @par Example:
     @code
@@ -1001,10 +1001,10 @@ nothing Program::undefine(string def) {
       qore_program_private::runTimeUnDefine(p, t->getBuffer(), xsink);
 }
 
-//! Returns \c True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return \c True), \c False if not
+//! Returns @ref True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return @ref True), @ref False if not
 /** @param def The name of the define to check
 
-    @return \c True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return \c True), \c False if not
+    @return @ref True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return @ref True), @ref False if not
 
     @par Example:
     @code

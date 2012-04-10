@@ -179,12 +179,12 @@ string HTTPClient::getHTTPVersion() [flags=CONSTANT] {
    return new QoreStringNode(client->getHTTPVersion());
 }
 
-//! Sets the object to make a secure SSL/TLS connection on the next connect if the passed argument is \c True, or an unencrypted cleartext connection if it is \c False
+//! Sets the object to make a secure SSL/TLS connection on the next connect if the passed argument is @ref True, or an unencrypted cleartext connection if it is @ref False
 /** This method overrides the default behaviour for the protocol set for the object
 
     Note that the behavior of this method when called with no argument changed in version 0.8.0; prior to version 0.8.0 calling this method with no argument would turn off secure mode; the behavior was changed to the current functionality in order to make the usage of this method consistent with other methods of the same name and to make it more logical.
 
-    @param secure if \c True, a SSL/TLS connection will be attempted on the next connection. If \c False, an unencrypted cleartext connection will be established
+    @param secure if @ref True, a SSL/TLS connection will be attempted on the next connection. If @ref False, an unencrypted cleartext connection will be established
 
     @par Example:
     @code
@@ -195,8 +195,8 @@ nothing HTTPClient::setSecure(softbool secure = True) {
    client->setSecure(secure);
 }
 
-//! Returns \c True if the current connection is encrypted, \c False if not
-/** @return \c True if the current connection is encrypted, \c False if not
+//! Returns @ref True if the current connection is encrypted, @ref False if not
+/** @return @ref True if the current connection is encrypted, @ref False if not
 
     @par Example:
     @code
@@ -287,7 +287,7 @@ nothing HTTPClient::disconnect() {
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
-    @param getbody If this argument is \c True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send messages bodies without a \c "Content-Length" header.
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send messages bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key.
 
@@ -323,7 +323,7 @@ hash HTTPClient::send(string body, string method, *string path, *hash headers, s
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
-    @param getbody If this argument is \c True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send messages bodies without a \c "Content-Length" header.
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send messages bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key.
 
@@ -740,11 +740,11 @@ int HTTPClient::getConnectTimeout() [flags=CONSTANT] {
 }
 
 //! Sets the \c TCP_NODELAY setting for the object
-/** When this setting is True, then data will be immediately sent out over the HTTPClient object's socket, when it is \c False, then data transmission may be delayed to be packaged with other data for the same target.
+/** When this setting is True, then data will be immediately sent out over the HTTPClient object's socket, when it is @ref False, then data transmission may be delayed to be packaged with other data for the same target.
 
     Delayed data transmissions may cause problems when the sender immediately closes the socket after sending data; in this case the receiver may not get the data even though the send succeeded.
 
-    Note that if no value is given to the method, the argument will be assumed to be \c True, and output buffering will be turned off for the HTTPClient object.
+    Note that if no value is given to the method, the argument will be assumed to be @ref True, and output buffering will be turned off for the HTTPClient object.
 
     If the socket is not connected when this call is made, then an internal flag is set and the \c TCP_NODELAY option is enabled when the next connection is established. If the socket is connected, then if an error occurs setting the \c TCP_NODELAY option on the socket, this method will return a non-zero error code; the actual error can be checked with the errno() function.
 
@@ -774,8 +774,8 @@ bool HTTPClient::getNoDelay() [flags=CONSTANT] {
     return client->getNoDelay();
 }
 
-//! Returns \c True or \c False giving the current connection state
-/** @return \c True or \c False giving the current connection state
+//! Returns @ref True or @ref False giving the current connection state
+/** @return @ref True or @ref False giving the current connection state
 
     @par Example:
     @code

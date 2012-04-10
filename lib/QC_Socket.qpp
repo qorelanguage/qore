@@ -536,7 +536,7 @@ nothing Socket::connectUNIXSSL(string path, softint socktype = SOCK_STREAM, soft
 }
 
 //! Opens and binds the socket to a port, interface and port (if the $bind_to string has a format "host:port"), or UNIX domain socket file. 
-/** If the second parameter is \c True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state). 
+/** If the second parameter is @ref True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state). 
 
     If any errors occur a non-zero error code is returned.
 
@@ -545,7 +545,7 @@ nothing Socket::connectUNIXSSL(string path, softint socktype = SOCK_STREAM, soft
     Internally, the getaddrinfo() function is used to look up bind addresses; internal \c bind() operations are tried in sequence for each address returned; as soon as a bind operation is successful, the method returns. If none of the addresses can be bound, then an error code is returned.
 
     @param str If a colon appears in the string, the string will be assumed to be a \c "bind_address:port" specification, and the port on the named IP address will be bound, otherwise, if the string contains no colon, the socket will be bound to a UNIX domain socket file on the local filesystem with the given name.  Note that a hostname or address in square brackets (ex: \c "[localhost]") will be looked up and bound as an IPv6 address; additionally, the method recognizes ipv6 addresses by embedded colons (:) in the address string (if surrounded by square brackets) and binds them as such.
-    @param reuseaddr If this optional argument evaluates to \c True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state); note that this only applies to IPv4 (@ref AF_INET) and IPv6 (@ref AF_INET6) sockets; this option is ignored for UNIX (@ref AF_UNIX) sockets.
+    @param reuseaddr If this optional argument evaluates to @ref True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state); note that this only applies to IPv4 (@ref AF_INET) and IPv6 (@ref AF_INET6) sockets; this option is ignored for UNIX (@ref AF_UNIX) sockets.
     
     @see Socket::bindINET() and Socket::bindUNIX()
 
@@ -556,7 +556,7 @@ int Socket::bind(string str, softbool reuseaddr = False) {
 }
 
 //! Opens and binds the socket to an INET port on all interfaces 
-/** If the second parameter is \c True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state). 
+/** If the second parameter is @ref True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state). 
 
     If any errors occur a non-zero error code is returned.
 
@@ -566,7 +566,7 @@ if ($sock.bind(80, True))
     throw "BIND-ERROR", strerror(errno()); @endcode
     
     @param port A port number to bind to on all interfaces
-    @param reuseaddr If this optional argument evaluates to \c True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state)
+    @param reuseaddr If this optional argument evaluates to @ref True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state)
     
     @see Socket::bindINET() and Socket::bindUNIX()
 */
@@ -596,7 +596,7 @@ nothing Socket::bindUNIX(string path, softint socktype = SOCK_STREAM, softint pr
 }
 
 //! Opens and binds the socket to the given IPv4 or IPv6 interface (or if no interface is given, then to all interfaces on the local system) and port (the port number will be derived from the service name if a numeric port number is not given)
-/** Opens and binds the socket to a port, interface and port (if the interface string has a format \c "host:port"), or UNIX domain socket file (if no port or service name appears in the bind string). If the second parameter is \c True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state).
+/** Opens and binds the socket to a port, interface and port (if the interface string has a format \c "host:port"), or UNIX domain socket file (if no port or service name appears in the bind string). If the second parameter is @ref True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state).
 
     Internally, the getaddrinfo() function is used to look up bind addresses; internal bind() operations are tried in sequence for each address returned; as soon as a bind operation is successful, the method returns. If none of the addresses can be bound, then an error code is returned.
 
@@ -1849,7 +1849,7 @@ nothing Socket::setCharset(string encoding) {
    s->setEncoding(QEM.findCreate(encoding));
 }
 
-//! Returns \c True or \c False depending on whether there is data to be read on the socket
+//! Returns @ref True or @ref False depending on whether there is data to be read on the socket
 /** With a timeout of zero this method returns immediately and can be used for non-blocking polling the socket for data (can also be used to poll for new connections before Socket::accept()).
 
     @par Example:
@@ -1857,13 +1857,13 @@ nothing Socket::setCharset(string encoding) {
 
     @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately
 
-    @return \c True if data is available on the Socket within the timeout period, \c False if not
+    @return @ref True if data is available on the Socket within the timeout period, @ref False if not
  */
 bool Socket::isDataAvailable(timeout timeout_ms = 0) {
    return s->isDataAvailable((int)timeout_ms);
 }
 
-//! Returns \c True or \c False depending on whether all the data has been written to the socket
+//! Returns @ref True or @ref False depending on whether all the data has been written to the socket
 /** With a timeout of zero this method returns immediately.
 
     @par Example:
@@ -1871,17 +1871,17 @@ bool Socket::isDataAvailable(timeout timeout_ms = 0) {
 
     @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately
 
-    @return \c True if the send action completes within the timeout period, \c False if not
+    @return @ref True if the send action completes within the timeout period, @ref False if not
  */
 bool Socket::isWriteFinished(timeout timeout_ms = 0) {
    return s->isWriteFinished((int)timeout_ms);
 }
 
-//! Returns \c True if the socket is open
+//! Returns @ref True if the socket is open
 /** @par Example:
     @code my bool $b = $sock.isOpen(); @endcode
 
-    @return \c True if the socket is open, \c False if not
+    @return @ref True if the socket is open, @ref False if not
  */
 bool Socket::isOpen() [flags=CONSTANT] {
    return s->isOpen();
@@ -1909,11 +1909,11 @@ bool Socket::isOpen() [flags=CONSTANT] {
    return str ? new QoreStringNode(str) : 0;
 }
 
-//! Returns \c True if the connection is a secure TLS/SSL connection
+//! Returns @ref True if the connection is a secure TLS/SSL connection
 /** @par Example:
     @code my bool $b = $sock.isSecure(); @endcode
 
-    @return \c True if the connection is encrypted, \c False if not
+    @return @ref True if the connection is encrypted, @ref False if not
  */
 bool Socket::isSecure() [flags=CONSTANT] {
    return s->isSecure();
@@ -2035,11 +2035,11 @@ nothing Socket::setEventQueue(Queue[Queue] queue) {
 }
 
 //! Sets the boolean \c TCP_NODELAY setting for the socket
-/** When this setting is \c True, then data will be immediately sent out over the socket, when it is \c False, then data transmission may be delayed to be packaged with other data for the same target.
+/** When this setting is @ref True, then data will be immediately sent out over the socket, when it is @ref False, then data transmission may be delayed to be packaged with other data for the same target.
 
     Delayed data transmissions may cause problems when the sender immediately closes the socket after sending data; in this case the receiver may not get the data even though the send succeeded.
 
-    Note that if no value is given to the method, the argument will be assumed to be \c True, and output buffering will be turned off for the socket.
+    Note that if no value is given to the method, the argument will be assumed to be @ref True, and output buffering will be turned off for the socket.
 
     @par Example:
     @code if ($sock.setNoDelay(True))

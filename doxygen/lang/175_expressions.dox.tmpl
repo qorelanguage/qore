@@ -49,8 +49,8 @@
     @section find Find Expressions
 
     @par Synopsis
-    The find expression can be used to quickly find data in a hash of lists (such as a query result set returned by the Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() methods). The find expression will loop through a data structure, and for each element in the structure where the \c where expression is \c True, it will evaluate and return a result expression.\n\n
-    If the \a where_expression only is \c True for one element in the list, it will return the result of evaluating the result expression directly, otherwise if the \a where_expression is \c True more than once, then a list of the results of evaluting the result expression for each element is returned.\n\n
+    The find expression can be used to quickly find data in a hash of lists (such as a query result set returned by the Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() methods). The find expression will loop through a data structure, and for each element in the structure where the \c where expression is @ref True, it will evaluate and return a result expression.\n\n
+    If the \a where_expression only is @ref True for one element in the list, it will return the result of evaluating the result expression directly, otherwise if the \a where_expression is @ref True more than once, then a list of the results of evaluting the result expression for each element is returned.\n\n
     In each expression in the find expression, column values can be referred to by preceding the name with a \c "%" character (as with @ref context "context statements").
 
     @par Syntax
@@ -58,11 +58,11 @@
 
     @par Description
     \a result_expression \n
-    This expression will be evaluated and returned when the \a where_expression evaluates to \c True.\n\n
+    This expression will be evaluated and returned when the \a where_expression evaluates to @ref True.\n\n
     \a data_expression \n
     This expression must evaluate to a hash of lists, so that the internal context can be set up for the find loop.\n\n
     \a where_expression \n
-    This expression will be evaluated for each row in the \a data_expression. Each time it evaluates to \c True, the \a result_expression will be evaulated and used for the return value for the find expression.
+    This expression will be evaluated for each row in the \a data_expression. Each time it evaluates to @ref True, the \a result_expression will be evaulated and used for the return value for the find expression.
 
     @par Example
     @code $rlist = find %fname, %id in $data where (%lname =~ /^Smith/);@endcode

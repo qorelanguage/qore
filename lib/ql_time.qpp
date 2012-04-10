@@ -156,7 +156,7 @@ static QoreHashNode *date_info(const DateTime &d) {
 
     @section date_info_hash Date/Time Information Hash
     |!Key|!Type|!Absolute/Relative|!Description
-    |\c relative|@ref bool_type|Both|\c True if the date is a relative date, \c False if it is absolute
+    |\c relative|@ref bool_type|Both|@ref True if the date is a relative date, @ref False if it is absolute
     |\c year|@ref int_type|Both|The year value of the date
     |\c month|@ref int_type|Both|The month value of the date
     |\c day|@ref int_type|Both|The day value of the date (day of the month for absolute dates)
@@ -1226,11 +1226,11 @@ hash date_info() [flags=CONSTANT] {
    return date_info(d);
 }
 
-//! Returns \c True if the argument is an @ref relative_dates "relative date/time value", \c False if not
+//! Returns @ref True if the argument is an @ref relative_dates "relative date/time value", @ref False if not
 /** 
     @param dt the date to check
 
-    @return \c True if the argument is an @ref relative_dates "relative date/time value", \c False if not
+    @return @ref True if the argument is an @ref relative_dates "relative date/time value", @ref False if not
 
     @par Example:
     @code
@@ -1250,11 +1250,11 @@ bool is_date_relative() [flags=NOOP] {
    return false;
 }
 
-//! Returns \c True if the argument is an @ref absolute_dates "absolute date/time value", \c False if not
+//! Returns @ref True if the argument is an @ref absolute_dates "absolute date/time value", @ref False if not
 /** 
     @param dt the date to check
 
-    @return \c True if the argument is an @ref absolute_dates "absolute date/time value", \c False if not
+    @return @ref True if the argument is an @ref absolute_dates "absolute date/time value", @ref False if not
 
     @par Example:
     @code

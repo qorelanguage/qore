@@ -69,9 +69,11 @@ string <value>::type() [flags=CONSTANT] {
    return new QoreStringNode(node ? node->getTypeName() : "nothing");
 }
 
-//! Returns \c True; this method will be reimplemented in other types where it may return \c False
-/** 
-    @return \c True; this method will be reimplemented in other types where it may return \c False
+//! Returns @ref True; this method will be reimplemented in container types where it may return @ref False
+/** This pseudo-method will return @ref False in all non-container types; use <value>::val() to check if a generic
+    expression that might not be a container type has a value instead.
+
+    @return @ref True; this method will be reimplemented in container types where it may return @ref False
 
     @par Example:
     @code
@@ -79,14 +81,18 @@ my int $i = 100;
 if ($i.empty())
     printf("%y: is empty (probably because it's a value of type %y)\n", $i, $i.type());
     @endcode
+
+    @see <value>::val()
 */
 bool <value>::empty() [flags=CONSTANT] {
    return true;
 }
 
-//! Returns zero; this method will be reimplemented in other types where it may return a non-zero value
-/** 
-    @return zero; this method will be reimplemented in other types where it may return a non-zero value
+//! Returns zero; this method will be reimplemented in container types where it may return a non-zero value
+/** This pseudo-method will return 0 in all non-container types; use <value>::val() to check if a generic
+    expression that might not be a container type has a value instead.
+
+    @return zero; this method will be reimplemented in container types where it may return a non-zero value
 
     @par Example:
     @code
@@ -94,7 +100,26 @@ my int $i = 100;
 if (!$i.size())
     printf("%y: has size 0 (probably because it's a value of type %y)\n", $i, $i.type());
     @endcode
+
+    @see <value>::val()
 */
 int <value>::size() [flags=CONSTANT] {
    return 0;
+}
+
+//! Returns @ref False; this method is reimplemented in all other types and will return @ref True if the given expression has a value
+/** This pseudo-method can be used to mimic perl's boolean evaluation; unfortunately it was a design error in Qore to
+    implement strict mathematical boolean evaluation (where any value must evaluate to a non-zero integer or floating-point
+    value to be @ref True), however this pseudo-method solves the problem in an intuitive manner.
+
+    @return @ref False; this method is reimplemented in all other types and will return @ref True if the given expression has a value
+
+    @par Example:
+    @code
+if ($n.val())
+    printf("%y: has a value\n", $n);
+    @endcode
+*/
+bool <value>::val() [flags=CONSTANT] {
+   return false;
 }

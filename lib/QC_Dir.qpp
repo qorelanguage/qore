@@ -71,11 +71,11 @@ Dir::copy() {
 }
 
 //! Changes the current directory of the Dir object to the path given
-/** If this method returns \c False then the directory can be created by calling Dir::create()
+/** If this method returns @ref False then the directory can be created by calling Dir::create()
 
     @param path The path can be either an absolute path (leading with '/') or a directory realtive to the actual path
 
-    @return \c True if the new path is openable as directory (see Dir::exists())
+    @return @ref True if the new path is openable as directory (see Dir::exists())
 
     @par Example:
     @code
@@ -104,8 +104,8 @@ my *string $mypath = $d.path();
    return d->dirname();
 }
 
-//! Returns \c True if the path in the Dir object points to a directory that already exists and is openable by the current user, \c False otherwise
-/** @return \c True if the path in the Dir object points to a directory that already exists and is openable by the current user, \c False otherwise
+//! Returns @ref True if the path in the Dir object points to a directory that already exists and is openable by the current user, @ref False otherwise
+/** @return @ref True if the path in the Dir object points to a directory that already exists and is openable by the current user, @ref False otherwise
 
     @par Example:
     @code
@@ -597,7 +597,7 @@ Dir Dir::openDir(string subdir, *string encoding) {
 
     @param file Remove the file with the given name in the Dir object's directory
 
-    @return \c True if the file was present and could be removed, \c False if the file did not exist
+    @return @ref True if the file was present and could be removed, @ref False if the file did not exist
 
     @par Example:
     @code

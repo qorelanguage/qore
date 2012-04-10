@@ -46,9 +46,9 @@ int <date>::typeCode() {
    return NT_DATE;
 }
 
-//! Returns \c True if the date is an @ref absolute_dates "absolute date/time value"
+//! Returns @ref True if the date is an @ref absolute_dates "absolute date/time value"
 /** 
-    @return \c True if the date is an @ref absolute_dates "absolute date/time value"
+    @return @ref True if the date is an @ref absolute_dates "absolute date/time value"
 
     @par Example:
     @code
@@ -59,9 +59,9 @@ bool <date>::absolute() {
    return dt->isAbsolute();
 }
 
-//! Returns \c True if the date is a @ref relative_dates "relative date/time value"
+//! Returns @ref True if the date is a @ref relative_dates "relative date/time value"
 /** 
-    @return \c True if the date is a @ref relative_dates "relative date/time value"
+    @return @ref True if the date is a @ref relative_dates "relative date/time value"
 
     @par Example:
     @code
@@ -227,9 +227,9 @@ string <date>::format(string format) [flags=CONSTANT] {
    return rv;
 }
 
-//! Returns \c True if the current date/time value is currently in daylight savings time
+//! Returns @ref True if the current date/time value is currently in daylight savings time
 /** 
-    @return \c True if the current date/time value is currently in daylight savings time; always returns \c False for @ref relative_dates "relative date/time values"
+    @return @ref True if the current date/time value is currently in daylight savings time; always returns @ref False for @ref relative_dates "relative date/time values"
 
     @par Example:
     @code
@@ -287,4 +287,16 @@ my int $utcoffset = $d.getUtcOffset();
  */
 int <date>::getUtcOffset() [flags=CONSTANT] {
    return dt->getZone()->getUTCOffset();
+}
+
+//! Returns @ref False if the date value is all zeros, @ref True if not
+/** @return @ref False if the date value is all zeros, @ref True if not
+
+    @par Example:
+    @code
+my bool $b = $d.val();
+    @endcode
+*/
+bool <date>::val() [flags=CONSTANT] {
+   return dt->hasValue();
 }

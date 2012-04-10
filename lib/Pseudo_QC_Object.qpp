@@ -89,9 +89,10 @@ my *string $n = $o.lastKey();
    return qore_object_private::lastKey(obj, xsink);
 }
 
-//! Returns \c True if the object has no public or private members, \c False if it does
-/** 
-    @return \c True if the object has no public or private members, \c False if it does
+//! Returns @ref True if the object has no public or private members, @ref False if it does
+/** The opposite of <object>::val()
+
+    @return @ref True if the object has no public or private members, @ref False if it does
 
     @par Example:
     @code
@@ -128,10 +129,9 @@ string <object>::className() [flags=CONSTANT] {
    return new QoreStringNode(obj->getClassName());
 }
 
-//! Returns \c True if the object is a system object (ie a constant object like @ref stdin, etc), \c False if not
+//! Returns @ref True if the object is a system object (ie a constant object like @ref stdin, etc), @ref False if not
 /** 
-
-    @return \c True if the object is a system object (ie a constant object like @ref stdin, etc), \c False if not
+    @return @ref True if the object is a system object (ie a constant object like @ref stdin, etc), @ref False if not
 
     @par Example:
     @code
@@ -140,6 +140,20 @@ my bool $b = $i.isSystem();
  */
 bool <object>::isSystem() [flags=CONSTANT] {
    return get_bool_node(obj->isSystemObject());
+}
+
+//! Returns @ref False if the object has no public or private members, @ref True if it does
+/** The opposite of <object>::empty()
+
+    @return @ref False if the object has no public or private members, @ref True if it does
+
+    @par Example:
+    @code
+my bool $b = $o.val();
+    @endcode
+ */
+bool <object>::val() [flags=RET_VALUE_ONLY] {
+   return (bool)obj->size(xsink);
 }
 
 // bool <object>::hasKey(softstring $key) [flags=RET_VALUE_ONLY] {}

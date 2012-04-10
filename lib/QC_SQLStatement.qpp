@@ -555,10 +555,10 @@ nothing SQLStatement::beginTransaction() {
    stmt->beginTransaction(xsink);
 }
 
-//! Increments the row pointer when retrieving rows from a select statement; returns \c True if there is a row to retrieve, \c False if not
+//! Increments the row pointer when retrieving rows from a select statement; returns @ref True if there is a row to retrieve, @ref False if not
 /** If this method returns True, then call SQLStatement::fetchRow() afterwards to retrieve the row
 
-    @return \c True if there is a row to retrieve, \c False if not (no more rows to be retrieved)
+    @return @ref True if there is a row to retrieve, @ref False if not (no more rows to be retrieved)
 
     @par Example:
     @code
@@ -647,8 +647,8 @@ my *string $sql = $stmt.getSQL();
    return stmt->getSQL(xsink);
 }
 
-//! Returns \c True if the object is currently active and has a connection or transaction lock allocated to it, or \c False if not
-/** @return \c True if the object is currently active and has a connection or transaction lock allocated to it, or \c False if not
+//! Returns @ref True if the object is currently active and has a connection or transaction lock allocated to it, or @ref False if not
+/** @return @ref True if the object is currently active and has a connection or transaction lock allocated to it, or @ref False if not
 
     @par Example:
     @code

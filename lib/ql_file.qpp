@@ -139,11 +139,11 @@ bool is_writable_intern(const QoreStringNode* path) {
     |\c perm|@ref string_type|a string giving UNIX-style permissions for the file (ex: \c "-rwxr-xr-x")
 */
 //@{
-//! Returns \c True if the string passed identifies a regular file on the filesystem, \c False if not
+//! Returns @ref True if the string passed identifies a regular file on the filesystem, @ref False if not
 /**
     @param path the path to check
 
-    @return \c True if the string passed identifies a regular file on the filesystem, \c False if not
+    @return @ref True if the string passed identifies a regular file on the filesystem, @ref False if not
 
     @par Example:
     @code
@@ -154,11 +154,11 @@ bool is_file(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return check_stat(S_IFREG, path);
 }
 
-//! Returns \c True if the string passed identifies a directory on the filesystem, \c False if not
+//! Returns @ref True if the string passed identifies a directory on the filesystem, @ref False if not
 /**
     @param path the path to check
 
-    @return \c True if the string passed identifies a directory on the filesystem, \c False if not
+    @return @ref True if the string passed identifies a directory on the filesystem, @ref False if not
 
     @par Example:
     @code
@@ -169,13 +169,13 @@ bool is_dir(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return check_stat(S_IFDIR, path);
 }
 
-//! Returns \c True if the string passed identifies a socket on the filesystem, \c False if not
+//! Returns @ref True if the string passed identifies a socket on the filesystem, @ref False if not
 /** @par Platform Availability
     @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @param path the path to check
 
-    @return \c True if the string passed identifies a socket on the filesystem, \c False if not
+    @return @ref True if the string passed identifies a socket on the filesystem, @ref False if not
 
     @par Example:
     @code
@@ -191,11 +191,11 @@ bool is_socket(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #endif
 }
 
-//! Returns \c True if the string passed identifies a pipe (FIFO) on the filesystem, \c False if not
+//! Returns @ref True if the string passed identifies a pipe (FIFO) on the filesystem, @ref False if not
 /**
     @param path the path to check
 
-    @return \c True if the string passed identifies a pipe (FIFO) on the filesystem, \c False if not
+    @return @ref True if the string passed identifies a pipe (FIFO) on the filesystem, @ref False if not
 
     @par Example:
     @code
@@ -206,11 +206,11 @@ bool is_pipe(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return check_stat(S_IFIFO, path);
 }
 
-//! Returns \c True if the string passed identifies a character device on the filesystem, \c False if not
+//! Returns @ref True if the string passed identifies a character device on the filesystem, @ref False if not
 /**
     @param path the path to check
 
-    @return \c True if the string passed identifies a character device on the filesystem, \c False if not
+    @return @ref True if the string passed identifies a character device on the filesystem, @ref False if not
 
     @par Example:
     @code
@@ -221,11 +221,11 @@ bool is_cdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return check_stat(S_IFCHR, path);
 }
 
-//! Returns \c True if the string passed identifies a block device on the filesystem, \c False if not
+//! Returns @ref True if the string passed identifies a block device on the filesystem, @ref False if not
 /**
     @param path the path to check
 
-    @return \c True if the string passed identifies a block device on the filesystem, \c False if not
+    @return @ref True if the string passed identifies a block device on the filesystem, @ref False if not
 
     @par Example:
     @code
@@ -236,11 +236,11 @@ bool is_bdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return check_stat(S_IFBLK, path);
 }
 
-//! Returns \c True if the string passed identifies a device (either block or character) on the filesystem, \c False if not
+//! Returns @ref True if the string passed identifies a device (either block or character) on the filesystem, @ref False if not
 /**
     @param path the path to check
 
-    @return \c True if the string passed identifies a device (either block or character) on the filesystem, \c False if not
+    @return @ref True if the string passed identifies a device (either block or character) on the filesystem, @ref False if not
 
     @par Example:
     @code
@@ -261,13 +261,13 @@ bool is_dev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return ((sbuf.st_mode & S_IFMT) == S_IFCHR) || ((sbuf.st_mode & S_IFMT) == S_IFBLK);
 }
 
-//! Returns \c True if the string passed identifies a symbolic link on the filesystem, \c False if not
+//! Returns @ref True if the string passed identifies a symbolic link on the filesystem, @ref False if not
 /** @par Platform Availability
     @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @param path the path to check
 
-    @return \c True if the string passed identifies a symbolic link on the filesystem, \c False if not
+    @return @ref True if the string passed identifies a symbolic link on the filesystem, @ref False if not
 
     @par Example:
     @code
@@ -283,18 +283,18 @@ bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #endif
 }
 
-//! Returns \c True if the string passed identifies a file readable by the current user, \c False if not
+//! Returns @ref True if the string passed identifies a file readable by the current user, @ref False if not
 /** 
     @param path the path to check
 
-    @return \c True if the string passed identifies a file readable by the current user, \c False if not
+    @return @ref True if the string passed identifies a file readable by the current user, @ref False if not
 
     @par Example:
     @code
 my bool $b = is_readable("/etc/hosts");
     @endcode
 
-    @bug on Windows this function always returns \c True for directories; this will be fixed in a later version of Qore
+    @bug on Windows this function always returns @ref True for directories; this will be fixed in a later version of Qore
  */
 bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #ifdef HAVE_PWD_H
@@ -334,28 +334,28 @@ bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #endif
 }
 
-//! Returns \c True if the string passed identifies a file writable by the current user, \c False if not
+//! Returns @ref True if the string passed identifies a file writable by the current user, @ref False if not
 /** 
     @param path the path to check
 
-    @return \c True if the string passed identifies a file writable by the current user, \c False if not
+    @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
 
     @par Example:
     @code
 my bool $b = is_writable("/etc/hosts");
     @endcode
 
-    @bug on Windows this function always returns \c False for directories; this will be fixed in a later version of Qore
+    @bug on Windows this function always returns @ref False for directories; this will be fixed in a later version of Qore
  */
 bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return is_writable_intern(path);
 }
 
-//! Returns \c True if the string passed identifies a file writable by the current user (backwards-compatible misspelling of is_writable())
+//! Returns @ref True if the string passed identifies a file writable by the current user (backwards-compatible misspelling of is_writable())
 /** 
     @param path the path to check
 
-    @return \c True if the string passed identifies a file writable by the current user, \c False if not
+    @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
 
     @par Example:
     @code
@@ -366,13 +366,13 @@ bool is_writeable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return is_writable_intern(path);
 }
 
-//! Returns \c True if the string passed identifies an executable on the filesystem, \c False if not
+//! Returns @ref True if the string passed identifies an executable on the filesystem, @ref False if not
 /** @par Platform Availability
     @ref Qore::Option::HAVE_IS_EXECUTABLE
 
     @param path the path to check
 
-    @return \c True if the string passed identifies an executable on the filesystem, \c False if not
+    @return @ref True if the string passed identifies an executable on the filesystem, @ref False if not
 
     @par Example:
     @code

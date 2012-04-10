@@ -4,7 +4,7 @@
 
     <b>Basic Data Types</b>
     |!Type|!Description|!Example|!Default Value
-    |@ref boolean|\c True or \c False value|\c True|\c False
+    |@ref boolean|@ref True or @ref False value|@ref True|@ref False
     |@ref string|A sequence of characters with an encoding|\c "string"|Empty string (i.e. \c "")
     |@ref integer|A 64-bit signed integer|\c 1|\c 0
     |@ref float|A double-precision floating-point number|\c 1.00023|\c 0.0
@@ -17,14 +17,14 @@
     @section boolean Boolean
 
     @par Description:
-    The Boolean type can have two values, \c True and \c False.\n\n
-    When converting other types to a Boolean, any value that converts to a non-zero integer or floating-point value (in the case of @ref string "strings" and @ref float "floats") will be evaluated as \c True. Otherwise the result of the conversion will be \c False.
+    The Boolean type can have two values, @ref True and @ref False.\n\n
+    When converting other types to a Boolean, any value that converts to a non-zero integer or floating-point value (in the case of @ref string "strings" and @ref float "floats") will be evaluated as @ref True. Otherwise the result of the conversion will be @ref False.
 
     @par Immediate Value Example:
     @ref Qore::True
 
     @par Pseudo Class for Type Boolean:
-    @ref Qore::zzz8valuezzz9
+    @ref Qore::zzz8boolzzz9
 
     @par Type Code:
     @ref Qore::NT_BOOLEAN
@@ -74,7 +74,7 @@ on more than 1 line";
     \c 100
 
     @par Pseudo Class for Type Integer:
-    @ref Qore::zzz8valuezzz9
+    @ref Qore::zzz8intzzz9
 
     @par Type Code:
     @ref Qore::NT_INT
@@ -94,7 +94,7 @@ on more than 1 line";
     \c -500.494
 
     @par Pseudo Class for Type Float:
-    @ref Qore::zzz8valuezzz9
+    @ref Qore::zzz8floatzzz9
 
     @par Type Code:
     @ref Qore::NT_FLOAT
@@ -284,7 +284,7 @@ prompt% qore -X 'P0000-00-03T21:00:00'
 
     @par Description:
     This special data type represents no value and can only be accessed directly as an immediate value with the constant @ref Qore::NOTHING.  Note that @ref Qore::NOTHING is not equivalent to @ref null.\n
-    @note The exists operator will return \c False when given @ref Qore::NOTHING as an argument; for example: @verbatim prompt% qore -X 'exists NOTHING'
+    @note The exists operator will return @ref False when given @ref Qore::NOTHING as an argument; for example: @verbatim prompt% qore -X 'exists NOTHING'
 False@endverbatim
 
     @par Immediate Value Example:

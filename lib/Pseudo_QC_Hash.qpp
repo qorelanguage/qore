@@ -149,11 +149,11 @@ any <hash>::lastValue() [flags=CONSTANT] {
    return rv ? rv->refSelf() : 0;
 }
 
-//! Returns \c True if the key exists in the hash (may or may not be assigned a value), \c False if not
+//! Returns @ref True if the key exists in the hash (may or may not be assigned a value), @ref False if not
 /** 
     @param key the key name to check
 
-    @return \c True if the key exists in the hash (may or may not be assigned a value), \c False if not
+    @return @ref True if the key exists in the hash (may or may not be assigned a value), @ref False if not
 
     @par Example:
     @code
@@ -170,11 +170,11 @@ bool <hash>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {
    return h->existsKey(str->getBuffer());
 }
 
-//! Returns \c True if the key exists and is assigned to a value, \c False if not
+//! Returns @ref True if the key exists and is assigned to a value, @ref False if not
 /** 
     @param key the key name to check
 
-    @return \c True if the key exists and is assigned to a value, \c False if not
+    @return @ref True if the key exists and is assigned to a value, @ref False if not
 
     @par Example:
     @code
@@ -191,9 +191,9 @@ bool <hash>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {
    return h->existsKeyValue(str->getBuffer());
 }
 
-//! Returns \c True if the hash has no keys, \c False if it does
+//! Returns @ref True if the hash has no keys, @ref False if it does
 /** 
-    @return \c True if the hash has no keys, \c False if it does
+    @return @ref True if the hash has no keys, @ref False if it does
 
     @par Example:
     @code
@@ -205,7 +205,8 @@ bool <hash>::empty() [flags=CONSTANT] {
 }
 
 //! Returns the number of keys in the hash
-/** 
+/** The opposite of <hash>::val()
+
     @return the number of keys in the hash
 
     @par Example:
@@ -215,4 +216,18 @@ my int $num = $h.size();
  */
 int <hash>::size() [flags=CONSTANT] {
    return h->size();
+}
+
+//! Returns @ref False if the hash has no keys, @ref True if it does
+/** The opposite of <hash>::empty()
+
+    @return @ref False if the hash has no keys, @ref True if it does
+
+    @par Example:
+    @code
+my bool $b = $h.val();
+    @endcode
+ */
+bool <hash>::val() [flags=CONSTANT] {
+   return !h->empty();
 }

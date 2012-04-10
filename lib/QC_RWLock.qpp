@@ -247,8 +247,8 @@ int RWLock::getWriteWaiting() [flags=CONSTANT] {
    return rwl->getWriteWaiting();
 }
 
-//! Returns \c True if the current thread is holding either the read lock or the write lock, \c False if not
-/** @return \c True if the current thread is holding either the read lock or the write lock, \c False if not
+//! Returns @ref True if the current thread is holding either the read lock or the write lock, @ref False if not
+/** @return @ref True if the current thread is holding either the read lock or the write lock, @ref False if not
 
     @par Example:
     @code
@@ -260,8 +260,8 @@ bool RWLock::lockOwner() [flags=CONSTANT] {
    return rwl->lockOwner();
 }
 
-//! Returns \c True if the current thread is holding the read lock, \c False if not
-/** @return \c True if the current thread is holding the read lock, \c False if not
+//! Returns @ref True if the current thread is holding the read lock, @ref False if not
+/** @return @ref True if the current thread is holding the read lock, @ref False if not
 
     @par Example:
     @code
@@ -273,8 +273,8 @@ bool RWLock::readLockOwner() [flags=CONSTANT] {
    return rwl->readLockOwner();
 }
 
-//! Returns \c True if the current thread is holding the write lock, \c False if not
-/** @return \c True if the current thread is holding the write lock, \c False if not
+//! Returns @ref True if the current thread is holding the write lock, @ref False if not
+/** @return @ref True if the current thread is holding the write lock, @ref False if not
 
     @par Example:
     @code

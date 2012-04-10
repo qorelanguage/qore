@@ -25,6 +25,9 @@
 #include <map>
 
 #include "Pseudo_QC_All.cpp"
+#include "Pseudo_QC_Bool.cpp"
+#include "Pseudo_QC_Int.cpp"
+#include "Pseudo_QC_Float.cpp"
 #include "Pseudo_QC_String.cpp"
 #include "Pseudo_QC_List.cpp"
 #include "Pseudo_QC_Hash.cpp"
@@ -44,15 +47,6 @@ static int64 PSEUDONOTHING_typeCode(QoreObject *ignored, AbstractQoreNode *node,
 static int64 PSEUDONULL_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
    return NT_NULL;
 }
-static int64 PSEUDOINT_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
-   return NT_INT;
-}
-static int64 PSEUDOFLOAT_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
-   return NT_FLOAT;
-}
-static int64 PSEUDOBOOLEAN_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
-   return NT_BOOLEAN;
-}
 
 // create pseudo-class for type
 static QoreClass *do_type_code(const char *name, q_method_int64_t f) {
@@ -70,10 +64,10 @@ void pseudo_classes_init() {
    // initialize list of pseudo-classes for basic types
    po_list[NT_NOTHING] = do_type_code("<nothing>", (q_method_int64_t)PSEUDONOTHING_typeCode);
    po_list[NT_NULL] = do_type_code("<null>", (q_method_int64_t)PSEUDONULL_typeCode);
-   po_list[NT_INT] = do_type_code("<int>", (q_method_int64_t)PSEUDOINT_typeCode);
-   po_list[NT_FLOAT] = do_type_code("<float>", (q_method_int64_t)PSEUDOFLOAT_typeCode);
-   po_list[NT_BOOLEAN] = do_type_code("<boolean>", (q_method_int64_t)PSEUDOBOOLEAN_typeCode);
 
+   po_list[NT_INT] = initPseudoIntClass();
+   po_list[NT_FLOAT] = initPseudoFloatClass();
+   po_list[NT_BOOLEAN] = initPseudoBoolClass();
    po_list[NT_STRING] = initPseudoStringClass();
    po_list[NT_DATE] = initPseudoDateClass();
    po_list[NT_BINARY] = initPseudoBinaryClass();

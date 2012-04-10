@@ -274,7 +274,7 @@ const S_ISVTX = S_ISVTX;
 /** @defgroup file_locking_constants File Locking Constants
     These are the possible values for the File::lock() or File::lockBlocking() methods.
 
-    @note These contants are set to 0 on platforms where HAVE_FILE_LOCKING is \c False (such as native Windows ports)
+    @note These contants are set to 0 on platforms where HAVE_FILE_LOCKING is @ref False (such as native Windows ports)
 */
 //@{ 
 //! Use for read-only locking
@@ -1497,7 +1497,7 @@ nothing File::chown(softint uid, softint gid = -1) {
 
     @param timeout_ms An optional timeout in milliseconds (1/1000 second)
 
-    @return \c True if data becomes available for reading from the file within the timeout period, \c False if not
+    @return @ref True if data becomes available for reading from the file within the timeout period, @ref False if not
 
     @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */

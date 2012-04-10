@@ -594,7 +594,7 @@ nothing chr() [flags=RUNTIME_NOOP] {
     @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned
     @param with_separator include the separator string in every element
 
-    @return a list of each component of a string separated by a separator string, with the separator removed; the separator pattern will not be included in the elements of the list returned unless the \a with_separator argument is \c True
+    @return a list of each component of a string separated by a separator string, with the separator removed; the separator pattern will not be included in the elements of the list returned unless the \a with_separator argument is @ref True
     
     @par Example:
     @code
@@ -804,14 +804,14 @@ string force_encoding(string str, string encoding) [flags=CONSTANT] {
 nothing force_encoding() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns \c True if the regular expression matches the string passed, otherwise returns \c False
+//! Returns @ref True if the regular expression matches the string passed, otherwise returns @ref False
 /** Strings are converted to UTF-8 for pattern-matching; if any invalid encodings are encountered, an ENCODING-CONVERSION-ERROR is raised
 
     @param str the string to test
     @param regex the regular expression pattern
     @param options regular expression options; see @ref regex_constants for possible values
 
-    @return \c True if the regular expression matches the string passed, otherwise returns \c False
+    @return @ref True if the regular expression matches the string passed, otherwise returns @ref False
 
     @par Example:
     @code

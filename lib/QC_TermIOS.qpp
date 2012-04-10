@@ -829,8 +829,8 @@ nothing TermIOS::setCC(softint offset, softint value) {
 #endif
 }
 
-//! Returns \c True if the TermIOS object passed as an argument is equal to the current object; \c False if not
-/** @return \c True if the TermIOS object passed as an argument is equal to the current object; \c False if not
+//! Returns @ref True if the TermIOS object passed as an argument is equal to the current object; @ref False if not
+/** @return @ref True if the TermIOS object passed as an argument is equal to the current object; @ref False if not
 
     @par Platform Availability:
     @ref Qore::Option::HAVE_TERMIOS

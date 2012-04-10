@@ -650,8 +650,8 @@ string FtpClient::getURL() {
    return f->getURL();
 }
 
-//! Make an FTPS connection to the server on the next connect if the argument is \c True
-/** @param secure Make an FTPS connection to the server on the next connect if the argument is \c True; make a cleartext connection if the argument is \c False
+//! Make an FTPS connection to the server on the next connect if the argument is @ref True
+/** @param secure Make an FTPS connection to the server on the next connect if the argument is @ref True; make a cleartext connection if the argument is @ref False
 
     @par Example:
     @code
@@ -694,8 +694,8 @@ nothing FtpClient::setInsecureData() {
       xsink->raiseException("SET-INSECUREDATA-ERROR", "this method cannot be called while the control connection is established");
 }
 
-//! Returns \c True if the control connection is a secure TLS/SSL connection, \c False if not
-/** @return \c True if the control connection is a secure TLS/SSL connection, \c False if not
+//! Returns @ref True if the control connection is a secure TLS/SSL connection, @ref False if not
+/** @return @ref True if the control connection is a secure TLS/SSL connection, @ref False if not
 
     @par Example:
     @code
@@ -706,9 +706,9 @@ bool FtpClient::isSecure() [flags=CONSTANT] {
    return get_bool_node(f->isSecure());
 }
 
-//! Returns \c True if the data connections are secure TLS/SSL connections, \c False if not
+//! Returns @ref True if the data connections are secure TLS/SSL connections, @ref False if not
 /** 
-    @return \c True if the data connections are secure TLS/SSL connections, \c False if not
+    @return @ref True if the data connections are secure TLS/SSL connections, @ref False if not
 
     @par Example:
     @code

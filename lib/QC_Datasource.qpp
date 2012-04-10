@@ -351,7 +351,7 @@ nothing Datasource::rollback() {
 }
 
 //! Turns autocommit on or off for this object
-/** @param ac \c True to turn on autocommit (a commit will be executed after every %SQL call to the server), \c False to turn off autocommit (commits must be manually triggered)
+/** @param ac @ref True to turn on autocommit (a commit will be executed after every %SQL call to the server), @ref False to turn off autocommit (commits must be manually triggered)
     @par Example:
     @code
 $db.setAutoCommit(False);
@@ -945,8 +945,8 @@ any Datasource::getClientVersion() {
    return ds->getClientVersion(xsink);
 }
 
-//! Returns \c True if a transaction is currently in progress, \c False if not
-/** @return \c True if a transaction is currently in progress, \c False if not
+//! Returns @ref True if a transaction is currently in progress, @ref False if not
+/** @return @ref True if a transaction is currently in progress, @ref False if not
 
     @par Example:
     @code

@@ -28,8 +28,8 @@
 
 #include <errno.h>
 
-//! The Condition class can be used For blocking a thread until a condition becomes \c True
-/** Condition objects, when used along with an AbstractSmartLock object (such as RWLock and Mutex objects), allow %Qore threads to sleep until a certain condition becomes \c True.
+//! The Condition class can be used For blocking a thread until a condition becomes @ref True
+/** Condition objects, when used along with an AbstractSmartLock object (such as RWLock and Mutex objects), allow %Qore threads to sleep until a certain condition becomes @ref True.
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
  */

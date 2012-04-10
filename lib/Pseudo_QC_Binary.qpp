@@ -58,9 +58,10 @@ int <binary>::size() [flags=CONSTANT] {
    return b->size();
 }
 
-//! Returns \c True if the binary object is empty (size = 0), \c False if not
-/** 
-    @return \c True if the binary object is empty (size = 0), \c False if not
+//! Returns @ref True if the binary object is empty (size = 0), @ref False if not
+/** The opposite of <binary>::val()
+
+    @return @ref True if the binary object is empty (size = 0), @ref False if not
 
     @par Example:
     @code
@@ -69,4 +70,18 @@ my bool $b = $bin.empty();
 */
 bool <binary>::empty() [flags=CONSTANT] {
    return b->empty();
+}
+
+//! Returns @ref False if the binary object is empty (size = 0), @ref True if not
+/** The opposite of <binary>::empty()
+
+    @return @ref False if the binary object is empty (size = 0), @ref True if not
+
+    @par Example:
+    @code
+my bool $b = $bin.val();
+    @endcode
+*/
+bool <binary>::val() [flags=CONSTANT] {
+   return !b->empty();
 }

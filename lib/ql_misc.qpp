@@ -586,9 +586,9 @@ any call_builtin_function_args(string name, *softlist vargs) {
 }
 
 //! A function performing the same role as the @ref exists "exists operator"
-/** @param ... if only a single argument is passed, then this function returns \c True if the single argument exists, \c False if not; otherwise is multiple arguments are passed to the function, it always returns \c True; this is to emulate the behavior of the @ref exists "exists operator"
+/** @param ... if only a single argument is passed, then this function returns @ref True if the single argument exists, @ref False if not; otherwise is multiple arguments are passed to the function, it always returns @ref True; this is to emulate the behavior of the @ref exists "exists operator"
 
-    @return if only a single argument is passed, then this function returns \c True if the single argument exists, \c False if not; otherwise is multiple arguments are passed to the function, it always returns \c True; this is to emulate the behavior of the @ref exists "exists operator"
+    @return if only a single argument is passed, then this function returns @ref True if the single argument exists, @ref False if not; otherwise is multiple arguments are passed to the function, it always returns @ref True; this is to emulate the behavior of the @ref exists "exists operator"
 
     @par Example:
     @code
@@ -601,10 +601,10 @@ bool exists(...) [flags=CONSTANT] {
    return (num_args(args) <= 1) ? !is_nothing(get_param(args, 0)) : true;
 }
 
-//! Returns \c True if the function exists in the current program's function name space
+//! Returns @ref True if the function exists in the current program's function name space
 /** @param name the name of the function to check
 
-    @return \c True if the function exists in the current program's function name space, \c False if not
+    @return @ref True if the function exists in the current program's function name space, @ref False if not
 
     @par Example:
     @code
@@ -617,12 +617,12 @@ bool existsFunction(string name) [flags=CONSTANT] {
    return getProgram()->existsFunction(str);
 }
 
-//! Always returns \c True
+//! Always returns @ref True
 /** This function variant is included for backwards-compatibility
 
     @param c a @ref call_reference "call reference" or @ref closure "closure":
 
-    @return always returns \c True
+    @return always returns @ref True
 */
 bool existsFunction(code[doc] c) [flags=NOOP] {
    return true;
@@ -1033,12 +1033,12 @@ list hash_values(hash h) [flags=CONSTANT] {
 nothing hash_values() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns \c True if the given key exists in the hash (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered
+//! Returns @ref True if the given key exists in the hash (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered
 /** 
     @param h the hash to check
     @param key the key name to check; this value will be converted to the @ref default_encoding "default character encoding" to check the hash
 
-    @return \c True if the given key exists in the hash (does not necessarily have to have a value assigned), \c False if the key is not present at all
+    @return @ref True if the given key exists in the hash (does not necessarily have to have a value assigned), @ref False if the key is not present at all
 
     @par Example:
     @code
@@ -1053,7 +1053,7 @@ bool has_key(hash h, string key) {
    return exists;
 }
 
-//! Returns \c True if the given key exists in the object (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered or in case of object access errors.
+//! Returns @ref True if the given key exists in the object (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered or in case of object access errors.
 /** 
     @par Example:
     @code

@@ -175,7 +175,7 @@
 //@{
 namespace Qore::Option;
 //! Indicates if the %Qore library supports fast atomic reference counting
-/** Note that if this constant is \c False, atomic operations are supported by mutexes and are therefore slower than with native atomic reference counting operations
+/** Note that if this constant is @ref False, atomic operations are supported by mutexes and are therefore slower than with native atomic reference counting operations
  */
 const HAVE_ATOMIC_OPERATIONS = bool(QORE_CONST_HAVE_ATOMIC_MACROS);
 
@@ -183,9 +183,9 @@ const HAVE_ATOMIC_OPERATIONS = bool(QORE_CONST_HAVE_ATOMIC_MACROS);
 const HAVE_STACK_GUARD = bool(QORE_CONST_HAVE_CHECK_STACK_POS);
 
 //! Indicates if UNIX-style signal handling is available
-/** If this constant is \c False, then the set_signal_handler() and remove_signal_handler() functions are not available.
+/** If this constant is @ref False, then the set_signal_handler() and remove_signal_handler() functions are not available.
 
-    @note This constant is always \c False on native Windows ports
+    @note This constant is always @ref False on native Windows ports
 
     @see @ref signal_handling
  */
@@ -201,12 +201,12 @@ const HAVE_RUNTIME_THREAD_STACK_TRACE = bool(QORE_CONST_QORE_RUNTIME_THREAD_STAC
 const HAVE_ROUND = bool(QORE_CONST_HAVE_ROUND);
 
 //! Indicates if the seteuid() function is available; the availabilty of this function depends on the system's underlying C-library
-/** @note This constant is always \c False on native Windows ports
+/** @note This constant is always @ref False on native Windows ports
  */
 const HAVE_SETEUID = bool(QORE_CONST_HAVE_SETEUID);
 
 //! Indicates if the setegid() function is available; the availabilty of this function depends on the system's underlying C-library
-/** @note This constant is always \c False on native Windows ports
+/** @note This constant is always @ref False on native Windows ports
  */
 const HAVE_SETEGID = bool(QORE_CONST_HAVE_SETEGID);
 
@@ -214,27 +214,27 @@ const HAVE_SETEGID = bool(QORE_CONST_HAVE_SETEGID);
 const HAVE_SYSTEM = bool(QORE_CONST_HAVE_SYSTEM);
 
 //! Indicates if the kill() function is available
-/** @note This constant is always \c False on native Windows ports
+/** @note This constant is always @ref False on native Windows ports
  */
 const HAVE_KILL = bool(QORE_CONST_HAVE_KILL);
 
 //! Indicates if the fork() function is available
-/** @note This constant is always \c False on native Windows ports
+/** @note This constant is always @ref False on native Windows ports
  */
 const HAVE_FORK = bool(QORE_CONST_HAVE_FORK);
 
 //! Indicates if the getppid() function is available
-/** @note This constant is always \c False on native Windows ports
+/** @note This constant is always @ref False on native Windows ports
  */
 const HAVE_GETPPID = bool(QORE_CONST_HAVE_GETPPID);
 
 //! Indicates if the statvfs() function is available
-/** @note This constant is always \c False on native Windows ports
+/** @note This constant is always @ref False on native Windows ports
  */
 const HAVE_STATVFS = bool(QORE_CONST_HAVE_SYS_STATVFS_H);
 
 //! Indicates if the setsid() function is available
-/** @note This constant is always \c False on native Windows ports
+/** @note This constant is always @ref False on native Windows ports
  */
 const HAVE_SETSID = bool(QORE_CONST_HAVE_SETSID);
 
@@ -244,17 +244,17 @@ const HAVE_SETSID = bool(QORE_CONST_HAVE_SETSID);
 const HAVE_IS_EXECUTABLE = bool(QORE_CONST_HAVE_PWD_H);
 
 //! Indicates if the TermIOS class is available
-/** @note This constant is always \c False on native Windows ports
+/** @note This constant is always @ref False on native Windows ports
  */
 const HAVE_TERMIOS = bool(QORE_CONST_HAVE_TERMIOS_H);
 
 //! Indicates if UNIX-style user management functionality is available (ex: getuid(), setuid(), getgid(), setgid(), etc)
-/** @note This constant is always \c False on native Windows ports
+/** @note This constant is always @ref False on native Windows ports
  */
 const HAVE_UNIX_USERMGT = bool(QORE_CONST_HAVE_GETUID);
 
 //! Indicates if UNIX-style file management functionality is available (ex: chown(), Dir::chgrp(), etc)
-/** @note This constant is always \c False on native Windows ports
+/** @note This constant is always @ref False on native Windows ports
  */
 const HAVE_UNIX_FILEMGT = bool(QORE_CONST_HAVE_CHOWN);
 

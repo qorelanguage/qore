@@ -85,10 +85,10 @@ int TimeZone::UTCOffset() [flags=CONSTANT] {
    return (*z)->getUTCOffset();
 }
 
-//! Returns \c True if the zone has daylight saving's time rules, \c False if not
+//! Returns @ref True if the zone has daylight saving's time rules, @ref False if not
 /** TimeZone objects based on zoneinfo region files (on UNIX) or registry information (on Windows) can have (but do not necessarily have) daylight savings time information; those based on UTC offsets have none
 
-    @return \c True if the current zone has daylight saving's time rules, \c False if not
+    @return @ref True if the current zone has daylight saving's time rules, @ref False if not
 
     @par Example:
     @code

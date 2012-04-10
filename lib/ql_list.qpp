@@ -510,12 +510,12 @@ bool inlist(any[doc] arg, nothing[doc] x) [flags=NOOP] {
    return false;
 }
 
-//! Returns \c True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), \c False if not
+//! Returns @ref True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), @ref False if not
 /** 
     @param arg the argument to look for in the list
     @param l the list to search for the first argument \a arg
 
-    @return \c True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), \c False if not
+    @return @ref True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), @ref False if not
 
     @par Example:
     @code
@@ -551,12 +551,12 @@ bool inlist_hard(any[doc] arg, nothing[doc] x) [flags=NOOP] {
    return false;
 }
 
-//! Returns \c True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), \c False if not
+//! Returns @ref True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), @ref False if not
 /** 
     @param arg the argument to look for in the list
     @param l the list to search for the first argument \a arg
 
-    @return \c True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), \c False if not
+    @return @ref True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), @ref False if not
 
     @par Example:
     @code

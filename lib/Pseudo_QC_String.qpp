@@ -91,9 +91,10 @@ int <string>::length() [flags=CONSTANT] {
    return str->length();
 }
 
-//! Returns \c True if the string is empty, \c False if not
-/** 
-    @return \c True if the string is empty, \c False if not
+//! Returns @ref True if the string is empty, @ref False if not
+/** The opposite of <string>::val()
+
+    @return @ref True if the string is empty, @ref False if not
 
     @code
 my bool $b = $str.empty();
@@ -176,3 +177,17 @@ if ($i == -1)
 int <string>::rfind(softstring substr, softint pos = -1) [flags=RET_VALUE_ONLY] {
    return str->rindex(*substr, (qore_offset_t)pos, xsink);
 }
+
+//! Returns @ref False if the string is empty, @ref True if not
+/** The opposite of <string>::empty()
+
+    @return @ref False if the string is empty, @ref True if not
+
+    @code
+my bool $b = $str.val();
+    @endcode
+*/
+bool <string>::val() [flags=CONSTANT] {
+   return !str->empty();
+}
+

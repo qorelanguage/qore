@@ -92,7 +92,7 @@ bool boolean(softbool b) [flags=CONSTANT] {
    return b;
 }
 
-//! Always returns \c False
+//! Always returns @ref False
 /** The boolean() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
 
     @see boolean(softbool)

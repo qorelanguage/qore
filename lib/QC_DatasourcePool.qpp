@@ -675,8 +675,8 @@ any DatasourcePool::getClientVersion() {
    return ds->getClientVersion(xsink);
 }
 
-//! Returns \c True if a transaction is currently in progress (meaning in this case that a datasource form the pool is dedicated to the calling thread), \c False if not
-/** @return \c True if a transaction is currently in progress (meaning in this case that a datasource form the pool is dedicated to the calling thread), \c False if not
+//! Returns @ref True if a transaction is currently in progress (meaning in this case that a datasource form the pool is dedicated to the calling thread), @ref False if not
+/** @return @ref True if a transaction is currently in progress (meaning in this case that a datasource form the pool is dedicated to the calling thread), @ref False if not
 
     @par Example:
     @code
