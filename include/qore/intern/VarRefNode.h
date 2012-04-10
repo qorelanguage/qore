@@ -35,12 +35,14 @@ class VarRefNode : public ParseNode {
    friend class VarRefNodeEvalOptionalRefHolder;
 
 protected:
-   char *name;
+   NamedScope name;
    qore_var_t type : 4;
    bool new_decl : 1;       // is this a new variable declaration
    bool explicit_scope : 1; // scope was explicitly provided
 
-   DLLLOCAL ~VarRefNode();
+   DLLLOCAL ~VarRefNode() {
+      printd(3, "VarRefNode::~VarRefNode() deleting variable reference %p %s\n", this, name.ostr ? name.ostr : "<taken>");
+   }
 
    // evalImpl(): return value requires a deref(xsink)
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
@@ -176,7 +178,7 @@ public:
 
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const;
    DLLLOCAL qore_var_t getType() const { return type; }
-   DLLLOCAL const char *getName() const { return name; }
+   DLLLOCAL const char *getName() const { return name.ostr; }
    // called when a list of variables is declared
    DLLLOCAL void makeLocal() {
       assert(type != VT_GLOBAL); 
@@ -188,7 +190,10 @@ public:
    DLLLOCAL virtual void makeGlobal();
 
    // takes the name - caller owns the memory
-   DLLLOCAL char *takeName();
+   DLLLOCAL char *takeName() {
+      assert(name.ostr);
+      return name.takeName();
+   }
 };
 
 class GlobalVarRefNode : public VarRefNode {
@@ -197,6 +202,9 @@ public:
    DLLLOCAL GlobalVarRefNode(char *n, Var *v) : VarRefNode(n, v, false, false) {
       explicit_scope = true;
    }
+
+   DLLLOCAL GlobalVarRefNode(char *n, const QoreTypeInfo* typeInfo = 0);
+   DLLLOCAL GlobalVarRefNode(char *n, QoreParseTypeInfo* parseTypeInfo);
 };
 
 class VarRefDeclNode : public VarRefNode {

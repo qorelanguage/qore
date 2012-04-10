@@ -104,7 +104,7 @@ public:
    DLLLOCAL void fixBCCall();
 
    DLLLOCAL char *takeName() {
-      char *rv = ostr;
+      char *rv = del ? ostr : strdup(ostr);
       ostr = 0;
       clear();
       return rv;

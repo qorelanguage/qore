@@ -58,7 +58,7 @@ public:
    q_ns_class_handler_t class_handler;   
    QoreNamespace *ns;
 
-   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char *n) : name(n), depth(0), root(false), parent(0), class_handler(0), ns(n_ns) {
+   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char* n) : name(n), depth(0), root(false), parent(0), class_handler(0), ns(n_ns) {
    }
 
    DLLLOCAL qore_ns_private(QoreNamespace *n_ns) : depth(0), root(false), parent(0), class_handler(0), ns(n_ns) {      
@@ -125,7 +125,7 @@ public:
    }
 
    // finds a local class in the committed class list, if not found executes the class handler
-   DLLLOCAL QoreClass *findLoadClass(const char *cname) {
+   DLLLOCAL QoreClass *findLoadClass(const char* cname) {
       QoreClass *qc = classList.find(cname);
       if (!qc && class_handler)
 	 qc = class_handler(ns, cname);
@@ -173,8 +173,8 @@ public:
    DLLLOCAL QoreNamespace* findCreateNamespace(const char* nme);
    DLLLOCAL QoreNamespace* findCreateNamespacePath(const char* nspath);
 
-   DLLLOCAL AbstractQoreNode *getConstantValue(const char *name, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL QoreClass *parseFindLocalClass(const char *name);
+   DLLLOCAL AbstractQoreNode *getConstantValue(const char* name, const QoreTypeInfo* &typeInfo);
+   DLLLOCAL QoreClass *parseFindLocalClass(const char* name);
    DLLLOCAL qore_ns_private* parseAddNamespace(QoreNamespace *nns);
 
    DLLLOCAL void addModuleNamespace(qore_ns_private* nns, QoreModuleContext& qmc);
@@ -192,12 +192,12 @@ public:
    DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope& nscope, unsigned& matched) const;
    DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope& name, unsigned& matched);
    DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched);
-   DLLLOCAL AbstractQoreNode *parseCheckScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL AbstractQoreNode *parseCheckScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo* &typeInfo) const;
 
-   DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo* &typeInfo) const;
 
-   DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL QoreNamespace *parseFindLocalNamespace(const char *nname);
+   DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char* cname, const QoreTypeInfo* &typeInfo);
+   DLLLOCAL QoreNamespace *parseFindLocalNamespace(const char* nname);
 
    DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope& name, unsigned& matched, const QoreTypeInfo*& typeInfo);
 
@@ -222,7 +222,7 @@ public:
    DLLLOCAL void addBuiltinVariantIntern(const char* name, AbstractQoreFunctionVariant* v);
 
    template <typename T, class B>
-   DLLLOCAL void addBuiltinVariant(const char *name, T f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
+   DLLLOCAL void addBuiltinVariant(const char* name, T f, int64 flags, int64 functional_domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, va_list args) {
       //printd(5, "qore_ns_private::addBuiltinVariant('%s', %p, flags=%lld) BEFORE\n", name, f, flags);
       type_vec_t typeList;
       arg_vec_t defaultArgList;
@@ -247,7 +247,7 @@ public:
       return ns->priv->constant;
    }
 
-   DLLLOCAL static const QoreFunction* runtimeFindFunction(QoreNamespace& ns, const char *name) {
+   DLLLOCAL static const QoreFunction* runtimeFindFunction(QoreNamespace& ns, const char* name) {
       return ns.priv->runtimeFindFunction(name);
    }
 
@@ -658,7 +658,7 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int importFunction(ExceptionSink *xsink, qore_ns_private& ns, QoreFunction *u, const char *new_name = 0) {
+   DLLLOCAL int importFunction(ExceptionSink *xsink, qore_ns_private& ns, QoreFunction *u, const char* new_name = 0) {
       FunctionEntry* fe = ns.importFunction(xsink, u, new_name);
       if (!fe)
          return -1;
@@ -850,7 +850,7 @@ protected:
       return 0;
    }
 
-   DLLLOCAL ResolvedCallReferenceNode* runtimeGetCallReference(const char *fname, ExceptionSink* xsink) {
+   DLLLOCAL ResolvedCallReferenceNode* runtimeGetCallReference(const char* fname, ExceptionSink* xsink) {
       fmap_t::iterator i = fmap.find(fname);
       if (i == fmap.end()) {
          xsink->raiseException("NO-SUCH-FUNCTION", "callback function '%s()' does not exist", fname);
@@ -865,7 +865,7 @@ protected:
    DLLLOCAL QoreClass *parseFindScopedClassWithMethodInternError(const NamedScope& name, bool error);
    DLLLOCAL QoreClass *parseFindScopedClassWithMethodIntern(const NamedScope& name, unsigned& matched);
 
-   DLLLOCAL QoreClass* parseFindClassIntern(const char *cname, bool error) {
+   DLLLOCAL QoreClass* parseFindClassIntern(const char* cname, bool error) {
       {
          // try to check in current namespace first
          qore_ns_private* nscx = parse_get_ns();
@@ -898,7 +898,7 @@ protected:
       return 0;
    }
 
-   DLLLOCAL QoreClass* runtimeFindClass(const char *name) {
+   DLLLOCAL QoreClass* runtimeFindClass(const char* name) {
       clmap_t::iterator i = clmap.find(name);
       return i != clmap.end() ? i->second.obj : 0;
    }
@@ -923,7 +923,7 @@ protected:
 
    DLLLOCAL AbstractQoreNode* parseResolveBarewordIntern(const char* bword, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL AbstractQoreNode *parseResolveScopedReferenceIntern(const NamedScope& name, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL AbstractQoreNode *parseResolveScopedReferenceIntern(const NamedScope& name, const QoreTypeInfo* &typeInfo);
 
    DLLLOCAL void parseAddConstantIntern(QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value);
 
@@ -933,11 +933,11 @@ protected:
 
    DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const NamedScope& nscope);
 
-   DLLLOCAL Var* parseAddResolvedGlobalVarDef(qore_ns_private& ns, const char *name, const QoreTypeInfo *typeInfo);
+   DLLLOCAL Var* parseAddResolvedGlobalVarDefIntern(const NamedScope& name, const QoreTypeInfo* typeInfo);
 
-   DLLLOCAL Var *parseAddGlobalVarDef(qore_ns_private& ns, const char *name, QoreParseTypeInfo *typeInfo);
+   DLLLOCAL Var *parseAddGlobalVarDefIntern(const NamedScope& name, QoreParseTypeInfo* typeInfo);
 
-   DLLLOCAL Var *parseCheckImplicitGlobalVar(const char *name, const QoreTypeInfo *typeInfo);
+   DLLLOCAL Var *parseCheckImplicitGlobalVarIntern(const NamedScope& name, const QoreTypeInfo* typeInfo);
 
    DLLLOCAL Var* parseFindGlobalVarIntern(const NamedScope& vname) {
       assert(vname.size() > 1);
@@ -977,7 +977,7 @@ protected:
       return rv;
    }
 
-   DLLLOCAL Var* parseFindGlobalVarIntern(const char *vname) {
+   DLLLOCAL Var* parseFindGlobalVarIntern(const char* vname) {
       {
          // try to check in current namespace first
          qore_ns_private* nscx = parse_get_ns();
@@ -1009,7 +1009,7 @@ protected:
       return 0;
    }
 
-   DLLLOCAL Var* runtimeFindGlobalVar(const char *vname, const qore_ns_private*& vns) const {
+   DLLLOCAL Var* runtimeFindGlobalVar(const char* vname, const qore_ns_private*& vns) const {
       varmap_t::const_iterator i = varmap.find(vname);
       if (i != varmap.end()) {
          assert(i->second.ns);
@@ -1027,7 +1027,7 @@ protected:
       varmap.update(var->getName(), &tns, var);
    }
 
-   DLLLOCAL Var* runtimeCreateVar(qore_ns_private& vns, const char *vname, const QoreTypeInfo* typeInfo) {
+   DLLLOCAL Var* runtimeCreateVar(qore_ns_private& vns, const char* vname, const QoreTypeInfo* typeInfo) {
       Var* v = vns.var_list.runtimeCreateVar(vname, typeInfo);
 
       if (v)
@@ -1189,11 +1189,11 @@ public:
       return getRootNS()->rpriv->addPendingVariant(*ns.priv, name, v);
    }
 
-   DLLLOCAL static int importFunction(RootQoreNamespace& rns, ExceptionSink *xsink, QoreNamespace& ns, QoreFunction *u, const char *new_name = 0) {
+   DLLLOCAL static int importFunction(RootQoreNamespace& rns, ExceptionSink *xsink, QoreNamespace& ns, QoreFunction *u, const char* new_name = 0) {
       return rns.rpriv->importFunction(xsink, *ns.priv, u, new_name);
    }
 
-   DLLLOCAL static const QoreFunction* runtimeFindFunction(RootQoreNamespace& rns, const char *name, const qore_ns_private*& ns) {
+   DLLLOCAL static const QoreFunction* runtimeFindFunction(RootQoreNamespace& rns, const char* name, const qore_ns_private*& ns) {
       if (strstr(name, "::")) {
          NamedScope nscope(name);
          return rns.rpriv->runtimeFindFunctionIntern(nscope, ns); 
@@ -1201,7 +1201,7 @@ public:
       return rns.rpriv->runtimeFindFunctionIntern(name, ns);
    }
 
-   DLLLOCAL static bool runtimeExistsFunction(RootQoreNamespace& rns, const char *name) {
+   DLLLOCAL static bool runtimeExistsFunction(RootQoreNamespace& rns, const char* name) {
       return rns.rpriv->runtimeExistsFunctionIntern(name);
    }
 
@@ -1233,15 +1233,15 @@ public:
       rns.rpriv->parseRollback();
    }
 
-   DLLLOCAL static AbstractQoreNode *parseFindConstantValue(const char *name, const QoreTypeInfo *&typeInfo, bool error) {
+   DLLLOCAL static AbstractQoreNode *parseFindConstantValue(const char* name, const QoreTypeInfo* &typeInfo, bool error) {
       return getRootNS()->rpriv->parseFindConstantValueIntern(name, typeInfo, error);
    }
 
-   DLLLOCAL static AbstractQoreNode *parseFindConstantValue(const NamedScope& name, const QoreTypeInfo *&typeInfo, bool error) {
+   DLLLOCAL static AbstractQoreNode *parseFindConstantValue(const NamedScope& name, const QoreTypeInfo* &typeInfo, bool error) {
       return getRootNS()->rpriv->parseFindConstantValueIntern(name, typeInfo, error);
    }
 
-   DLLLOCAL static AbstractQoreNode* parseResolveBareword(const char* bword, const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL static AbstractQoreNode* parseResolveBareword(const char* bword, const QoreTypeInfo* &typeInfo) {
       return getRootNS()->rpriv->parseResolveBarewordIntern(bword, typeInfo);
    }
 
@@ -1249,7 +1249,7 @@ public:
       return getRootNS()->rpriv->parseResolveScopedReferenceIntern(name, typeInfo);
    }
 
-   DLLLOCAL static QoreClass *parseFindClass(const char *name, bool error) {
+   DLLLOCAL static QoreClass *parseFindClass(const char* name, bool error) {
       return getRootNS()->rpriv->parseFindClassIntern(name, error);
    }
 
@@ -1282,31 +1282,31 @@ public:
       return getRootNS()->rpriv->parseResolveFunctionIntern(nscope);
    }
 
-   DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(RootQoreNamespace& rns, const char *name, ExceptionSink* xsink) {
+   DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(RootQoreNamespace& rns, const char* name, ExceptionSink* xsink) {
       return rns.rpriv->runtimeGetCallReference(name, xsink);
    }
 
-   DLLLOCAL static Var* parseAddResolvedGlobalVarDef(RootQoreNamespace& rns, QoreNamespace& ns, const char *name, const QoreTypeInfo *typeInfo) {
-      return rns.rpriv->parseAddResolvedGlobalVarDef(*ns.priv, name, typeInfo);
+   DLLLOCAL static Var* parseAddResolvedGlobalVarDef(const NamedScope& vname, const QoreTypeInfo* typeInfo) {
+      return getRootNS()->rpriv->parseAddResolvedGlobalVarDefIntern(vname, typeInfo);
    }
 
-   DLLLOCAL static Var *parseAddGlobalVarDef(RootQoreNamespace& rns, QoreNamespace& ns, const char *name, QoreParseTypeInfo *typeInfo) {
-      return rns.rpriv->parseAddGlobalVarDef(*ns.priv, name, typeInfo);
+   DLLLOCAL static Var *parseAddGlobalVarDef(const NamedScope& vname, QoreParseTypeInfo* typeInfo) {
+      return getRootNS()->rpriv->parseAddGlobalVarDefIntern(vname, typeInfo);
    }
 
-   DLLLOCAL static Var *parseCheckImplicitGlobalVar(RootQoreNamespace& rns, const char *name, const QoreTypeInfo *typeInfo) {
-      return rns.rpriv->parseCheckImplicitGlobalVar(name, typeInfo);
+   DLLLOCAL static Var *parseCheckImplicitGlobalVar(const NamedScope& name, const QoreTypeInfo* typeInfo) {
+      return getRootNS()->rpriv->parseCheckImplicitGlobalVarIntern(name, typeInfo);
    }
 
-   DLLLOCAL static Var* parseFindGlobalVar(const char *vname) {
+   DLLLOCAL static Var* parseFindGlobalVar(const char* vname) {
       return getRootNS()->rpriv->parseFindGlobalVarIntern(vname);
    }
 
-   DLLLOCAL static Var* runtimeFindGlobalVar(const RootQoreNamespace& rns, const char *vname, const qore_ns_private*& vns) {
+   DLLLOCAL static Var* runtimeFindGlobalVar(const RootQoreNamespace& rns, const char* vname, const qore_ns_private*& vns) {
       return rns.rpriv->runtimeFindGlobalVar(vname, vns);
    }
 
-   DLLLOCAL static Var* runtimeCreateVar(RootQoreNamespace& rns, QoreNamespace& vns, const char *vname, const QoreTypeInfo* typeInfo) {
+   DLLLOCAL static Var* runtimeCreateVar(RootQoreNamespace& rns, QoreNamespace& vns, const char* vname, const QoreTypeInfo* typeInfo) {
       return rns.rpriv->runtimeCreateVar(*vns.priv, vname, typeInfo);
    } 
 
@@ -1321,7 +1321,7 @@ public:
          rns.rpriv->rebuildIndexes(qpni.get());
    }
 
-   DLLLOCAL static QoreClass* runtimeFindClass(RootQoreNamespace& rns, const char *name) {
+   DLLLOCAL static QoreClass* runtimeFindClass(RootQoreNamespace& rns, const char* name) {
       return rns.rpriv->runtimeFindClass(name);
    }
 

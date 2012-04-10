@@ -52,7 +52,10 @@ const PO_DEFAULT = PO_DEFAULT;
  */
 const PO_FREE_OPTIONS = PO_FREE_OPTIONS;
 
-//! Allows user function variants to be imported into the new Program object
+//! Allows global variables to be inherited into the new Program object
+const PO_INHERIT_GLOBAL_VARS = PO_INHERIT_GLOBAL_VARS;
+
+//! Allows user function variants to be inherited into the new Program object
 const PO_INHERIT_USER_FUNC_VARIANTS = PO_INHERIT_USER_FUNC_VARIANTS;
 
 //! Disallows changes to the warning mask

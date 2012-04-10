@@ -25,19 +25,12 @@
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 
-VarRefNode::~VarRefNode() {
-   if (name) {
-      printd(3, "VarRefNode::~VarRefNode() deleting variable reference %p %s\n", name, name);
-      free(name);
-   }
-}
-
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int VarRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("variable reference '%s' %s (0x%p)", name, type == VT_GLOBAL ? "global" : type == VT_LOCAL ? "local" : "unresolved", this);
+   str.sprintf("variable reference '%s' %s (0x%p)", name.ostr, type == VT_GLOBAL ? "global" : type == VT_LOCAL ? "local" : "unresolved", this);
    return 0;
 }
 
@@ -58,7 +51,7 @@ void VarRefNode::resolve(const QoreTypeInfo *typeInfo) {
    LocalVar *id;
 
    bool in_closure;
-   if ((id = find_local_var(name, in_closure))) {
+   if ((id = find_local_var(name.ostr, in_closure))) {
       if (typeInfo)
 	 parse_error("type definition given for existing local variable '%s'", id->getName());
 
@@ -71,12 +64,12 @@ void VarRefNode::resolve(const QoreTypeInfo *typeInfo) {
 	 type = VT_LOCAL;
 	 ref.id = id;
       }
-      printd(5, "VarRefNode::resolve(): local var %s resolved (id=%p, in_closure=%d)\n", name, ref.id, in_closure);
+      printd(5, "VarRefNode::resolve(): local var %s resolved (id=%p, in_closure=%d)\n", name.ostr, ref.id, in_closure);
    }
    else {
-      ref.var = qore_root_ns_private::parseCheckImplicitGlobalVar(*(getRootNS()), name, typeInfo);
+      ref.var = qore_root_ns_private::parseCheckImplicitGlobalVar(name, typeInfo);
       type = VT_GLOBAL;
-      printd(5, "VarRefNode::resolve(): global var %s resolved (var=%p)\n", name, ref.var);
+      printd(5, "VarRefNode::resolve(): global var %s resolved (var=%p)\n", name.ostr, ref.var);
    }
 }
 
@@ -344,25 +337,18 @@ double VarRefNode::divideEqualsFloat(double v, ExceptionSink *xsink) {
    return val->divideEqualsFloat(v, xsink);
 }
 
-char *VarRefNode::takeName() {
-   assert(name);
-   char *p = name;
-   name = 0;
-   return p;
-}
-
 AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {
    if (pflag & PF_CONST_EXPRESSION)
-      parseException("ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name);
+      parseException("ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name.ostr);
 
-   //printd(5, "VarRefNode::parseInitIntern() this=%p '%s' type=%d\n", this, name, type);
+   //printd(5, "VarRefNode::parseInitIntern() this=%p '%s' type=%d\n", this, name.ostr, type);
    // if it is a new variable being declared
    if (type == VT_LOCAL || type == VT_CLOSURE) {
       if (!ref.id) {
-	 ref.id = push_local_var(name, typeInfo, true, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
+	 ref.id = push_local_var(name.ostr, typeInfo, true, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
 	 ++lvids;
       }
-      //printd(5, "VarRefNode::parseInitIntern() this=%p local var '%s' declared (id=%p)\n", this, name, ref.id);
+      //printd(5, "VarRefNode::parseInitIntern() this=%p local var '%s' declared (id=%p)\n", this, name.ostr, ref.id);
    }
    else if (type != VT_GLOBAL) {
       assert(type == VT_UNRESOLVED);
@@ -412,8 +398,18 @@ void VarRefNode::makeGlobal() {
    assert(type == VT_UNRESOLVED || !ref.id);
 
    type = VT_GLOBAL;
-   ref.var = qore_root_ns_private::parseAddGlobalVarDef(*(getRootNS()), *(getRootNS()), name, 0);      
+   ref.var = qore_root_ns_private::parseAddGlobalVarDef(name, 0);
    new_decl = true;
+}
+
+GlobalVarRefNode::GlobalVarRefNode(char *n, const QoreTypeInfo* typeInfo) : VarRefNode(n, 0, false, true) {
+   explicit_scope = true;
+   ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(name, typeInfo);
+}
+
+GlobalVarRefNode::GlobalVarRefNode(char *n, QoreParseTypeInfo* parseTypeInfo) : VarRefNode(n, 0, false, true) {
+   explicit_scope = true;
+   ref.var = qore_root_ns_private::parseAddGlobalVarDef(name, parseTypeInfo);
 }
 
 void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, bool is_new) {
@@ -456,9 +452,9 @@ void VarRefDeclNode::makeGlobal() {
 
    type = VT_GLOBAL;
    if (parseTypeInfo)
-      ref.var = qore_root_ns_private::parseAddGlobalVarDef(*(getRootNS()), *(getRootNS()), name, takeParseTypeInfo());
+      ref.var = qore_root_ns_private::parseAddGlobalVarDef(name, takeParseTypeInfo());
    else
-      ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(*(getRootNS()), *(getRootNS()), name, typeInfo);
+      ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(name, typeInfo);
    new_decl = true;
 }
 

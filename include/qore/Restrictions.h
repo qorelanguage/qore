@@ -61,7 +61,7 @@
 #define PO_NO_BINARY_MODULES           (1 << 29)    //!< do not allow external binary (compiled) modules to be loaded
 #define PO_INHERIT_USER_FUNC_VARIANTS  (1 << 30)    //!< inherit all user function variants from the parent into the new program's space
 #define PO_NO_SYSTEM_FUNC_VARIANTS     (1 << 31)    //!< do not inherit any builtin function variants to the new program's space
-#define PO_INHERIT_GLOBAL_VARS         (1LL << 32)    //!< inherit global variables from the parent into the new program's space
+#define PO_INHERIT_GLOBAL_VARS         (1LL << 32)  //!< inherit global variables from the parent into the new program's space
 
 #define PO_DEFAULT                     0            //!< do not inherit user function variants for backwards-compatibility with earlier versions of Qore
 

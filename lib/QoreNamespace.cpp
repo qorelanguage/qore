@@ -1003,6 +1003,14 @@ QoreNamespace* qore_root_ns_private::parseResolveNamespace(const NamedScope& nsc
    QoreNamespace* fns = 0;
    unsigned match = 0;
 
+   // try to check in current namespace first
+   qore_ns_private* nscx = parse_get_ns();
+   if (nscx) {
+      fns = nscx->parseFindLocalNamespace(nscope[0]);
+      if (ns && (fns = ns->priv->parseMatchNamespace(nscope, match)))
+         return fns;
+   }
+
    // iterate all namespaces with the initial name and look for the match
    {
       NamespaceMapIterator nmi(nsmap, nscope[0]);
@@ -1091,43 +1099,76 @@ AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern
    return fr_holder.release();
 }
 
-Var* qore_root_ns_private::parseAddResolvedGlobalVarDef(qore_ns_private& ns, const char *vname, const QoreTypeInfo *typeInfo) {
+Var* qore_root_ns_private::parseAddResolvedGlobalVarDefIntern(const NamedScope& vname, const QoreTypeInfo *typeInfo) {
    bool new_var = false;
-   Var* v = ns.var_list.parseFindCreateVar(vname, typeInfo, new_var);
+
+   qore_ns_private* tns;
+   // assume the root namespace for all unscoped global variables
+   if (vname.size() == 1)
+      tns = this;
+   else {
+      QoreNamespace* rns = parseResolveNamespace(vname);
+      if (rns)
+         tns = rns->priv;
+   }
+
+   Var* v = tns->var_list.parseFindCreateVar(vname.getIdentifier(), typeInfo, new_var);
    
    if (!new_var)
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", vname);
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", vname.ostr);
    else {
       if (checkParseOption(PO_NO_GLOBAL_VARS))
-         parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname);
+         parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
 
-      pend_varmap.update(v->getName(), &ns, v);
-      //printd(5, "qore_root_ns_private::parseAddResolvedGlobalVarDef() this: %p adding %p '%s' (%s) to '%s::'\n", this, v, vname, typeInfo->getName(), name.c_str());
+      pend_varmap.update(v->getName(), tns, v);
+      //printd(5, "qore_root_ns_private::parseAddResolvedGlobalVarDef() this: %p adding %p '%s' (%s) to '%s::'\n", this, v, vname.ostr, typeInfo->getName(), name.c_str());
    }
    
    return v;
 }
 
-Var *qore_root_ns_private::parseAddGlobalVarDef(qore_ns_private& ns, const char *vname, QoreParseTypeInfo *typeInfo) {
+Var *qore_root_ns_private::parseAddGlobalVarDefIntern(const NamedScope& vname, QoreParseTypeInfo *typeInfo) {
    bool new_var = false;
-   Var* v = ns.var_list.parseFindCreateVar(vname, typeInfo, new_var);
+
+   qore_ns_private* tns;
+   // assume the root namespace for all unscoped global variables
+   if (vname.size() == 1)
+      tns = this;
+   else {
+      QoreNamespace* rns = parseResolveNamespace(vname);
+      if (rns)
+         tns = rns->priv;
+   }
+
+   Var* v = tns->var_list.parseFindCreateVar(vname.getIdentifier(), typeInfo, new_var);
 
    if (!new_var)
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", vname);
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", vname.ostr);
    else {
       if (checkParseOption(PO_NO_GLOBAL_VARS))
-         parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname);
+         parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
 
-      pend_varmap.update(v->getName(), &ns, v);
-      //printd(5, "qore_root_ns_private::parseAddGlobalVarDef() this: %p adding %p '%s' (%s) to '%s::' (find: %p)\n", this, v, vname, typeInfo->getName(), name.c_str(), parseFindGlobalVarIntern(vname));
+      pend_varmap.update(v->getName(), tns, v);
    }
 
    return v;
 }
 
-Var *qore_root_ns_private::parseCheckImplicitGlobalVar(const char *vname, const QoreTypeInfo *typeInfo) {
-   Var *rv = parseFindGlobalVarIntern(vname);
-   //printd(5, "qore_root_ns_private::parseCheckImplicitGlobalVar() this: %p '%s' rv: %p (omq: %p)\n", this, vname, rv, parseFindGlobalVarIntern("omq"));
+Var *qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const NamedScope& vname, const QoreTypeInfo *typeInfo) {
+   Var *rv;
+
+   qore_ns_private* tns;
+   // assume the root namespace for all unscoped global variables
+   if (vname.size() == 1) {
+      rv = parseFindGlobalVarIntern(vname.ostr);
+      tns = this;
+   }
+   else {
+      QoreNamespace* rns = parseResolveNamespace(vname);
+      if (rns)
+         tns = rns->priv;
+   }
+   //printd(5, "qore_root_ns_private::parseCheckImplicitGlobalVar() this: %p '%s' rv: %p (omq: %p)\n", this, vname.ostr, rv, parseFindGlobalVarIntern("omq"));
    if (!rv) {
       // check for errors & warnings for implicit global variables
       QoreProgram* pgm = getProgram();
@@ -1135,15 +1176,14 @@ Var *qore_root_ns_private::parseCheckImplicitGlobalVar(const char *vname, const 
 
       // check if unflagged global vars are allowed
       if (po & PO_REQUIRE_OUR)
-	 parseException("UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' must first be declared with 'our' (conflicts with parse option REQUIRE_OUR)", vname);
+	 parseException("UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' must first be declared with 'our' (conflicts with parse option REQUIRE_OUR)", vname.ostr);
       else if (po & PO_NO_GLOBAL_VARS) // check if new global variables are allowed to be created at all
-	 parseException("ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname);
+	 parseException("ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
       else
-	 qore_program_private::makeParseWarning(pgm, QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be explicitly declared with 'our'", vname);
+	 qore_program_private::makeParseWarning(pgm, QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be explicitly declared with 'our'", vname.ostr);
 
-      // always create implicit global variables in the root namespace
-      assert(!var_list.parseFindVar(vname));
-      rv = var_list.parseCreatePendingVar(vname, typeInfo);
+      assert(!tns->var_list.parseFindVar(vname.getIdentifier()));
+      rv = tns->var_list.parseCreatePendingVar(vname.getIdentifier(), typeInfo);
       pend_varmap.update(rv->getName(), this, rv);
    }
    else
