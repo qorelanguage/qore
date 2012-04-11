@@ -54,6 +54,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <string>
 
 #if defined(DARWIN) && MAX_QORE_THREADS > 2560
 // testing has revealed that darwin's pthread_create will not return an error when more than 2560 threads
@@ -343,7 +344,7 @@ public:
    ParseConditionalStack pcs;
 
    // for capturing namespace and class names while parsing
-   typedef std::vector<const char*> psvec_t;
+   typedef std::vector<std::string> psvec_t;
    psvec_t ns_vec, class_vec;
 
    // used for error handling when merging module code into a Program object
@@ -404,9 +405,9 @@ public:
       class_vec.push_back(name);
    }
 
-   DLLLOCAL const char* popClassName() {
+   DLLLOCAL std::string popClassName() {
       assert(!class_vec.empty());
-      const char* rv = class_vec.back();
+      std::string rv = class_vec.back();
       class_vec.pop_back();
       return rv;
    }
@@ -415,9 +416,9 @@ public:
       ns_vec.push_back(name);
    }
 
-   DLLLOCAL const char* popNamespaceName() {
+   DLLLOCAL std::string popNamespaceName() {
       assert(!ns_vec.empty());
-      const char* rv = ns_vec.back();
+      std::string rv = ns_vec.back();
       ns_vec.pop_back();
       return rv;
    }
@@ -763,7 +764,7 @@ void parse_push_namespace_name(const char* name) {
    td->pushNamespaceName(name);
 }
 
-const char* parse_pop_namespace_name() {
+std::string parse_pop_namespace_name() {
    ThreadData *td = thread_data.get();
    return td->popNamespaceName();
 }
@@ -773,7 +774,7 @@ void parse_push_class_name(const char* name) {
    td->pushClassName(name);
 }
 
-const char* parse_pop_class_name() {
+std::string parse_pop_class_name() {
    ThreadData *td = thread_data.get();
    return td->popClassName();
 }

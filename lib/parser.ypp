@@ -1001,6 +1001,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_ON_SUCCESS "on_success"
 %token TOK_ON_ERROR "on_error"
 %token TOK_MAP "map"
+%token TOK_NAMESPACE "namespace"
 %token TOK_FOLDR "foldr"
 %token TOK_FOLDL "foldl"
 %token TOK_SELECT "select"
@@ -1021,7 +1022,6 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token <string> CONTEXT_REF "context reference"
 %token <string> COMPLEX_CONTEXT_REF "named context reference"
 %token <string> QORE_CAST "cast operator"
-%token <string> NAMESPACE "namespace"
 %token <string> CLASS_STRING "simple class declaration"
 %token <datetime> DATETIME "date/time value"
 %token <String> QUOTED_WORD "quoted string"
@@ -1115,7 +1115,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def
 %destructor { if ($$) $$->deref(); } string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
-%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST NAMESPACE CLASS_STRING optname ident_openparen
+%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
 
 %%
 top_level_commands:
@@ -1170,14 +1170,16 @@ top_level_command:
 	;
 
 top_namespace_decl:
-        NAMESPACE '{' namespace_decls '}' {
+        TOK_NAMESPACE '{' namespace_decls '}' {
            $$ = $3;
-           free($1);
         }
-        | NAMESPACE ';' {
+        | TOK_NAMESPACE ';' {
            qore_ns_private* p = new qore_ns_private;
            $$ = p->ns;
-           free($1);
+        }
+        | TOK_NAMESPACE '{' '}' {
+           qore_ns_private* p = new qore_ns_private;
+           $$ = p->ns;
         }
 	;
 
