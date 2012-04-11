@@ -9,9 +9,9 @@
     <b>Special %Qore Variables</b>
     |!Variable|!Scope|!Data Type|!Explanation
     |\c $argv|Local|List|automatically assigned local variable containing the list of function or method arguments that were not assigned to parameter variables (see @ref implicit_arguments for more information)
-    |\c $ARGV|Global|List|script command-line arguments (use the @ref Qore::GetOpt class to parse command-line arguments)
-    |\c $QORE_ARGV|Global|List|complete qore command-line arguments
-    |\c $ENV|Global|Hash|UNIX program environment
+    |\c Qore::$ARGV|Global|List|script command-line arguments (use the @ref Qore::GetOpt class to parse command-line arguments)
+    |\c Qore::$QORE_ARGV|Global|List|complete qore command-line arguments
+    |\c Qore::$ENV|Global|Hash|UNIX program environment
 
     @note As of version 0.5.0, \c $STDERR and \c $STDOUT have been removed from %Qore. Use the I/O constants @ref Qore::stderr, @ref Qore::stdout, and @ref Qore::stdin constants of the @ref Qore::File class instead.
 
@@ -25,7 +25,9 @@
 
     Local variables are not shared between threads (local variables have a distinct value in each thread), however global variables are. See @ref threading (and in particular @ref threading_and_variables) for more information.
 
-    For example (in the following script, the @ref our keyword is optional):
+    Global variables are members of @ref qore_namespaces "namespaces"; if a namespace path is not given, then the global variable will be assumed to be in the root namespace.
+
+    For example (in the following script, the @ref our keyword is optional unless @ref require-our "%require-our" is set):
 
     @code
 #!/usr/bin/qore

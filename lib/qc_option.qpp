@@ -185,11 +185,11 @@ const HAVE_STACK_GUARD = bool(QORE_CONST_HAVE_CHECK_STACK_POS);
 //! Indicates if UNIX-style signal handling is available
 /** If this constant is @ref False, then the set_signal_handler() and remove_signal_handler() functions are not available.
 
-    @note This constant is always @ref False on native Windows ports
+    @note This constant is always @ref False on native Windows ports and is also @ref False if the qore library was initialized with signals disabled (such as with <tt>qore -b</tt> or <tt>qore --disable-signals</tt>)
 
     @see @ref signal_handling
  */
-const HAVE_SIGNAL_HANDLING = bool(QORE_CONST_HAVE_SIGNAL_HANDLING);
+const HAVE_SIGNAL_HANDLING = qore(get_bool_node(QORE_CONST_HAVE_SIGNAL_HANDLING && !(qore_library_options & QLO_DISABLE_SIGNAL_HANDLING)));
 
 //! Indicates if the %Qore library has been built with debugging enabled
 const HAVE_LIBRARY_DEBUGGING = bool(QORE_CONST_DEBUG);

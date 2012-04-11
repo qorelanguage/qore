@@ -4,7 +4,7 @@
 
     <b>Basic Data Types</b>
     |!Type|!Description|!Example|!Default Value
-    |@ref boolean|@ref True or @ref False value|@ref True|@ref False
+    |@ref boolean|@ref Qore::True "True" or @ref Qore::False "False" value|@ref Qore::True "True"|@ref Qore::False "False"
     |@ref string|A sequence of characters with an encoding|\c "string"|Empty string (i.e. \c "")
     |@ref integer|A 64-bit signed integer|\c 1|\c 0
     |@ref float|A double-precision floating-point number|\c 1.00023|\c 0.0
@@ -17,8 +17,8 @@
     @section boolean Boolean
 
     @par Description:
-    The Boolean type can have two values, @ref True and @ref False.\n\n
-    When converting other types to a Boolean, any value that converts to a non-zero integer or floating-point value (in the case of @ref string "strings" and @ref float "floats") will be evaluated as @ref True. Otherwise the result of the conversion will be @ref False.
+    The Boolean type can have two values, @ref Qore::True "True" and @ref Qore::False "False".\n\n
+    When converting other types to a Boolean, any value that converts to a non-zero integer or floating-point value (in the case of @ref string "strings" and @ref float "floats") will be evaluated as @ref Qore::True "True". Otherwise the result of the conversion will be @ref Qore::False "False".
 
     @par Immediate Value Example:
     @ref Qore::True
@@ -284,7 +284,7 @@ prompt% qore -X 'P0000-00-03T21:00:00'
 
     @par Description:
     This special data type represents no value and can only be accessed directly as an immediate value with the constant @ref Qore::NOTHING.  Note that @ref Qore::NOTHING is not equivalent to @ref null.\n
-    @note The exists operator will return @ref False when given @ref Qore::NOTHING as an argument; for example: @verbatim prompt% qore -X 'exists NOTHING'
+    @note The exists operator will return @ref Qore::False "False" when given @ref Qore::NOTHING as an argument; for example: @verbatim prompt% qore -X 'exists NOTHING'
 False@endverbatim
 
     @par Immediate Value Example:

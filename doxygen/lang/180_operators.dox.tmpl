@@ -129,9 +129,9 @@
     Retrieves the value of a hash key or object member using a literal identifier or an expression.
 
     @par Syntax
-    \a hash_or_object_expression <tt>.</tt> \a identifier \n
+    \a hash_or_object_expression <tt>.</tt> <i>identifier</i> \n
     \a object_expression <tt>.</tt> \a method_name<tt>(</tt><em>[args ...]</em><tt>)</tt>\n
-    \a hash_or_object_expression <tt>.</tt> \a expression\n
+    \a hash_or_object_expression <tt>.</tt> <i>expression</i> \n
 
     @par Return Type
     @ref any_type "any"
@@ -402,7 +402,7 @@ my hash $nh = remove $h.("a", "b", "c");
     @section logical_negation_operator Logical Not Operator (!)
 
     @par Synopsis
-    Reverses the logical sense of an expression (@ref True becomes @ref False and @ref False becomes @ref True).
+    Reverses the logical sense of an expression (@ref Qore::True "True" becomes @ref Qore::False "False" and @ref Qore::False "False" becomes @ref Qore::True "True").
 
     @par Syntax
     <tt>!</tt><em>expression</em>
@@ -418,7 +418,7 @@ if (!exists $error_code)
 
     <b>Arguments Processed by !</b>
     |!Argument|!Processing
-    |\a expression|The expression is evaluated and converted to a @ref boolean "bool", if necessary. Then the value is logically reversed (@ref True becomes @ref False, @ref False becomes @ref True)
+    |\a expression|The expression is evaluated and converted to a @ref boolean "bool", if necessary. Then the value is logically reversed (@ref Qore::True "True" becomes @ref Qore::False "False", @ref Qore::False "False" becomes @ref Qore::True "True")
 
     This operator does not throw any exceptions.
 
@@ -515,7 +515,7 @@ if (!exists $error_code)
     To perform this operation on a non-lvalue expression, see the chomp() function.
 
     @par Syntax
-    <tt><b>chomp</b></tt> \a lvalue
+    <tt><b>chomp</b></tt><i>lvalue</i>
 
     @par Return Type
     @ref int_type "int"
@@ -579,7 +579,7 @@ map $1 * 2, (1, 2, 3);
     |!Argument|!Processing
     |\a map_expression|The expression to map on the list; the implicit argument <tt>$1</tt> represents the current element being processed.
     |\a list_expression|The data to process; if this is not a list then the \a map_expression is run on the single argument passed
-    |<em>[select_expression]</em>|An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to @ref False on an element, then the element will be skipped and the \a map_expression will not be applied on that element.
+    |<em>[select_expression]</em>|An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to @ref Qore::False "False" on an element, then the element will be skipped and the \a map_expression will not be applied on that element.
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
 
@@ -657,7 +657,7 @@ select (1, 2, 3, 4, 5, 6), !($1 % 2);
     <b>Arguments Processed by select</b>
     |!Argument|!Processing
     |\a list_expression|The list to process
-    |\a expression|The expression will be evaluated on each element of the list, the implicit argument <tt>$1</tt> represents current element of the list; only if the expression evaluates to @ref True will the element appear in the result list
+    |\a expression|The expression will be evaluated on each element of the list, the implicit argument <tt>$1</tt> represents current element of the list; only if the expression evaluates to @ref Qore::True "True" will the element appear in the result list
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by the expression executed by this operator).
 
@@ -898,7 +898,7 @@ if ($obj instanceof Qore::Mutex)
 
     <b>Arguments Processed by instanceof</b>
     |!Argument|!Processing
-    |\a expression|If expression is an instance of the named class, then the operator returns @ref True, otherwise returns @ref False. The operator will return @ref True if the class is a base class, also even if it is privately inherited.
+    |\a expression|If expression is an instance of the named class, then the operator returns @ref Qore::True "True", otherwise returns @ref Qore::False "False". The operator will return @ref Qore::True "True" if the class is a base class, also even if it is privately inherited.
 
     This operator does not throw any exceptions.
 
@@ -922,7 +922,7 @@ if (exists $a)
 
     <b>Arguments Processed by exists</b>
     |!Argument|!Processing
-    |\a expression|If \a expression evaluates to a value, then the operator returns @ref True, otherwise returns @ref False.
+    |\a expression|If \a expression evaluates to a value, then the operator returns @ref Qore::True "True", otherwise returns @ref Qore::False "False".
 
     This operator does not throw any exceptions.
 
@@ -930,7 +930,7 @@ if (exists $a)
     @section logical_less_than_operator Less Than Operator (<)
 
     @par Synopsis
-    Tests if a value is less than another; types are converted if necessary (ex: <tt>("1" < 2)</tt> is @ref True).
+    Tests if a value is less than another; types are converted if necessary (ex: <tt>("1" < 2)</tt> is @ref Qore::True "True").
 
     @par Syntax
     \a expression1 < \a expression2
@@ -946,10 +946,10 @@ if ($x < $y)
 
     <b>Arguments Processed by < (in order of precedence)</b>
     |!Argument|!Processing
-    |@ref float_type "float"|If \a expression1 is numerically less than \a expression2, returns @ref True, otherwise returns @ref False
-    |@ref int_type "int"|If \a expression1 is numerically less than \a expression2, returns @ref True, otherwise returns @ref False
-    |@ref string_type "string"|If \a expression1 comes before \a expression2 in string sort order, returns @ref True, otherwise returns @ref False
-    |@ref date_type "date"|If \a expression1 is before (or a shorter amount of time than of the arguments are @ref relative_dates) \a expression2, returns @ref True, otherwise returns @ref False
+    |@ref float_type "float"|If \a expression1 is numerically less than \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref int_type "int"|If \a expression1 is numerically less than \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref string_type "string"|If \a expression1 comes before \a expression2 in string sort order, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref date_type "date"|If \a expression1 is before (or a shorter amount of time than of the arguments are @ref relative_dates) \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
 
     This operator does not throw any exceptions.
 
@@ -957,7 +957,7 @@ if ($x < $y)
     @section logical_greater_than_operator Greater Than Operator (>)
 
     @par Synopsis
-    Tests if a value is greater than another; types are converted if necessary (ex: <tt>("2" > 1)</tt> is @ref True).
+    Tests if a value is greater than another; types are converted if necessary (ex: <tt>("2" > 1)</tt> is @ref Qore::True "True").
 
     @par Syntax
     \a expression1 > \a expression2
@@ -973,10 +973,10 @@ if ($x > $y)
 
     <b>Arguments Processed by > (in order of precedence)</b>
     |!Argument|!Processing
-    |@ref float_type "float"|If \a expression1 is numerically greater than \a expression2, returns @ref True, otherwise returns @ref False
-    |@ref int_type "int"|If \a expression1 is numerically greater than \a expression2, returns @ref True, otherwise returns @ref False
-    |@ref string_type "string"|If \a expression1 comes after \a expression2 in string sort order, returns @ref True, otherwise returns @ref False
-    |@ref date_type "date"|If \a expression1 is after \a expression2, returns @ref True, otherwise returns @ref False
+    |@ref float_type "float"|If \a expression1 is numerically greater than \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref int_type "int"|If \a expression1 is numerically greater than \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref string_type "string"|If \a expression1 comes after \a expression2 in string sort order, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref date_type "date"|If \a expression1 is after \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
 
     This operator does not throw any exceptions.
 
@@ -984,7 +984,7 @@ if ($x > $y)
     @section logical_equality_operator Equals Operator (==)
 
     @par Synopsis
-    Tests if a value is equal to another; types are converted if necessary (ex: <tt>("1" == 1)</tt> is @ref True). For absolute equals, where types must also be equal to return true, see the @ref logical_absolute_equality_operator.
+    Tests if a value is equal to another; types are converted if necessary (ex: <tt>("1" == 1)</tt> is @ref Qore::True "True"). For absolute equals, where types must also be equal to return true, see the @ref logical_absolute_equality_operator.
 
     @par Syntax
     \a expression1 == \a expression2
@@ -1000,16 +1000,16 @@ if ($x == $y)
 
     <b>Arguments Processed by == (in order of precedence)</b>
     |!Argument|!Processing
-    |@ref string_type "string"|If \a expression1 is equal to \a expression2, returns @ref True, otherwise @ref False
-    |@ref float_type "float"|If \a expression1 is equal to \a expression2, returns @ref True, otherwise @ref False
-    |@ref int_type "int"|If \a expression1 is equal to \a expression2, returns @ref True, otherwise @ref False
-    |@ref date_type "date"|If \a expression1 is equal to \a expression2, returns @ref True, otherwise @ref False
-    |@ref list_type "list"|If each element in the each list where order is relevant satisfies this operator, the operator returns @ref True, otherwise it returns @ref False
-    |@ref hash_type "hash"|If each hash has the same keys and the value of each equal key in each hash satisfies this operator, the operator returns @ref True, otherwise it returns @ref False
-    |@ref binary_type "binary"|If \a expression1's memory contents and size are equal to \a expression2's, then returns @ref True, otherwise @ref False
-    |@ref object_type "object"|If \a expression1 is a reference to the same object as \a expression2, then returns @ref True, otherwise @ref False
-    |@ref null|If both expressions are @ref null, returns @ref True, otherwise returns @ref False
-    |@ref nothing|If neither expression has a value, returns @ref True, otherwise returns @ref False
+    |@ref string_type "string"|If \a expression1 is equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref float_type "float"|If \a expression1 is equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref int_type "int"|If \a expression1 is equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref date_type "date"|If \a expression1 is equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref list_type "list"|If each element in the each list where order is relevant satisfies this operator, the operator returns @ref Qore::True "True", otherwise it returns @ref Qore::False "False"
+    |@ref hash_type "hash"|If each hash has the same keys and the value of each equal key in each hash satisfies this operator, the operator returns @ref Qore::True "True", otherwise it returns @ref Qore::False "False"
+    |@ref binary_type "binary"|If \a expression1's memory contents and size are equal to \a expression2's, then returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref object_type "object"|If \a expression1 is a reference to the same object as \a expression2, then returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref null|If both expressions are @ref null, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref nothing|If neither expression has a value, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
 
     This operator does not throw any exceptions.
 
@@ -1017,7 +1017,7 @@ if ($x == $y)
     @section logical_inequality_operator Not Equals Operator (!=)
 
     @par Synopsis
-    Tests if a value is not equal to another; types are converted if necessary (ex: <tt>("1" != 1)</tt> is @ref False).
+    Tests if a value is not equal to another; types are converted if necessary (ex: <tt>("1" != 1)</tt> is @ref Qore::False "False").
 
     @par Syntax
     \a expression1 != \a expression2
@@ -1033,16 +1033,16 @@ if ($x != $y)
 
     <b>Arguments Processed by != (in order of precedence)</b>
     |!Argument|!Processing
-    |@ref string_type "string"|If \a expression1 is not equal to \a expression2, returns @ref True, otherwise @ref False
-    |@ref float_type "float"|If \a expression1 is not equal to \a expression2, returns @ref True, otherwise @ref False
-    |@ref int_type "int"|If \a expression1 is not equal to \a expression2, returns @ref True, otherwise @ref False
-    |@ref date_type "date"|If \a expression1 is not equal to \a expression2, returns @ref True, otherwise @ref False
-    |@ref list_type "list"|If each element in the each list where order is relevant satisfies this operator, the operator returns @ref True, otherwise it returns @ref False
-    |@ref hash_type "hash"|If the hashes have different keys or the value of each equal key in each hash satisfies this operator, the operator returns @ref True, otherwise it returns @ref False
-    |@ref binary_type "binary"|If \a expression1's memory contents or size are not equal to \a expression2's, then returns @ref True, otherwise @ref False
-    |@ref object_type "object"|If \a expression1 is not a reference to the same object as \a expression2, then returns @ref True, otherwise @ref False
-    |@ref null|If either expressions is not @ref null, returns @ref True, otherwise returns @ref False
-    |@ref nothing|If one of the expressions has a value, returns @ref True, otherwise returns @ref False
+    |@ref string_type "string"|If \a expression1 is not equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref float_type "float"|If \a expression1 is not equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref int_type "int"|If \a expression1 is not equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref date_type "date"|If \a expression1 is not equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref list_type "list"|If each element in the each list where order is relevant satisfies this operator, the operator returns @ref Qore::True "True", otherwise it returns @ref Qore::False "False"
+    |@ref hash_type "hash"|If the hashes have different keys or the value of each equal key in each hash satisfies this operator, the operator returns @ref Qore::True "True", otherwise it returns @ref Qore::False "False"
+    |@ref binary_type "binary"|If \a expression1's memory contents or size are not equal to \a expression2's, then returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref object_type "object"|If \a expression1 is not a reference to the same object as \a expression2, then returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref null|If either expressions is not @ref null, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref nothing|If one of the expressions has a value, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
 
     This operator does not throw any exceptions.
 
@@ -1050,7 +1050,7 @@ if ($x != $y)
     @section logical_less_than_or_equals_operator Less Than Or Equals Operator (<=)
 
     @par Synopsis
-    Tests if a value is less than or equals to another value; types are converted if necessary (ex: <tt>("1" <= 2)</tt> is @ref True).
+    Tests if a value is less than or equals to another value; types are converted if necessary (ex: <tt>("1" <= 2)</tt> is @ref Qore::True "True").
 
     @par Syntax
     \a expression1 <= \a expression2
@@ -1066,10 +1066,10 @@ if ($x <= $y)
 
     <b>Arguments Processed by <= (in order of precedence)</b>
     |!Argument|!Processing
-    |@ref float_type "float"|If \a expression1 is numerically less than or equal to \a expression2, returns @ref True, otherwise returns @ref False
-    |@ref int_type "int"|If \a expression1 is numerically less than or equal to \a expression2, returns @ref True, otherwise returns @ref False
-    |@ref string_type "string"|If \a expression1 comes before in string sort order or is the same as \a expression2, returns @ref True, otherwise returns @ref False
-    |@ref date_type "date"|If \a expression1 is before or is the same exact date and time as \a expression2, returns @ref True, otherwise returns @ref False
+    |@ref float_type "float"|If \a expression1 is numerically less than or equal to \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref int_type "int"|If \a expression1 is numerically less than or equal to \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref string_type "string"|If \a expression1 comes before in string sort order or is the same as \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref date_type "date"|If \a expression1 is before or is the same exact date and time as \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
 
     This operator does not throw any exceptions.
 
@@ -1077,7 +1077,7 @@ if ($x <= $y)
     @section logical_greater_than_or_equals_operator Greater Than Or Equals Operator (>=)
 
     @par Synopsis
-    Tests if a value is greater than or equals to another value; types are converted if necessary (ex: <tt>("2" >= 1)</tt> is @ref True).
+    Tests if a value is greater than or equals to another value; types are converted if necessary (ex: <tt>("2" >= 1)</tt> is @ref Qore::True "True").
 
     @par Syntax
     \a expression1 >= \a expression2
@@ -1093,10 +1093,10 @@ if ($x >= $y)
 
     <b>Arguments Processed by >= (in order of precedence)</b>
     |!Argument|!Processing
-    |@ref float_type "float"|If \a expression1 is numerically greater than or equal to \a expression2, returns @ref True, otherwise returns @ref False
-    |@ref int_type "int"|If \a expression1 is numerically greater than or equal to \a expression2, returns @ref True, otherwise returns @ref False
-    |@ref string_type "string"|If \a expression1 comes after in string sort order or is the same as \a expression2, returns @ref True, otherwise returns @ref False
-    |@ref date_type "date"|If \a expression1 is after or is the same exact date and time as \a expression2, returns @ref True, otherwise returns @ref False
+    |@ref float_type "float"|If \a expression1 is numerically greater than or equal to \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref int_type "int"|If \a expression1 is numerically greater than or equal to \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref string_type "string"|If \a expression1 comes after in string sort order or is the same as \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
+    |@ref date_type "date"|If \a expression1 is after or is the same exact date and time as \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
 
     This operator does not throw any exceptions.
 
@@ -1142,7 +1142,7 @@ switch ($x <=> $y) {
     @section logical_absolute_equality_operator Absolute Equals Operator (===)
 
     @par Synopsis
-    Checks two values for equality without doing any data type conversions; if the types do not match, then the result is @ref False.
+    Checks two values for equality without doing any data type conversions; if the types do not match, then the result is @ref Qore::False "False".
 
     @par Syntax
     \a expression1 === \a expression2
@@ -1158,7 +1158,7 @@ if ($x === $y)
 
     <b>Arguments Processed by ===</b>
     |!Argument|!Processing
-    |All|This operator returns @ref True only if the types and values of both sides of the operator are exactly equal, otherwise returns @ref False. No type conversions are done.
+    |All|This operator returns @ref Qore::True "True" only if the types and values of both sides of the operator are exactly equal, otherwise returns @ref Qore::False "False". No type conversions are done.
 
     This operator does not throw any exceptions.
 
@@ -1166,7 +1166,7 @@ if ($x === $y)
     @section logical_absolute_inequality_operator Absolute Not Equals Operator (!==)
 
     @par Synopsis
-    Checks two values for inequality without doing any data type conversions. If the data types do not match, then returns @ref True.
+    Checks two values for inequality without doing any data type conversions. If the data types do not match, then returns @ref Qore::True "True".
 
     @par Syntax
     \a expression1 !== \a expression2
@@ -1182,7 +1182,7 @@ if ($x !== $y)
 
     <b>Arguments Processed by !==</b>
     |!Argument|!Processing
-    |All|This operator returns @ref True if either the types or the values of the arguments are different, otherwise it retuns @ref False. No type conversions are done.
+    |All|This operator returns @ref Qore::True "True" if either the types or the values of the arguments are different, otherwise it retuns @ref Qore::False "False". No type conversions are done.
 
     This operator does not throw any exceptions.
 
@@ -1190,7 +1190,7 @@ if ($x !== $y)
     @section regex_match_operator Regular Expression Match Operator (=~)
 
     @par Synopsis
-    Checks for a regular expression match; returns @ref True if the expression matches the string, @ref False if not. See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
+    Checks for a regular expression match; returns @ref Qore::True "True" if the expression matches the string, @ref Qore::False "False" if not. See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
     See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
@@ -1207,7 +1207,7 @@ if ($str =~ /hello/)
 
     <b>Arguments Processed by =~</b>
     |!Argument|!Processing
-    |@ref string_type "string"|This operator returns @ref True if the regular expression in \a regex matches the string in \a expression.
+    |@ref string_type "string"|This operator returns @ref Qore::True "True" if the regular expression in \a regex matches the string in \a expression.
 
     This operator does not throw any exceptions.
 
@@ -1215,7 +1215,7 @@ if ($str =~ /hello/)
     @section regex_no_match_operator Regular Expression No Match Operator (!~)
 
     @par Synopsis
-    Checks for a regular expression non match; returns @ref True if the expression does not match the string, @ref False if it does. See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
+    Checks for a regular expression non match; returns @ref Qore::True "True" if the expression does not match the string, @ref Qore::False "False" if it does. See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
     See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
@@ -1232,7 +1232,7 @@ if ($str !~ /hello/)
 
     <b>Arguments Processed by !~</b>
     |!Argument|!Processing
-    |@ref string_type "string"|This operator returns @ref True if the regular expression in \a regex does not match the string in \a expression.
+    |@ref string_type "string"|This operator returns @ref Qore::True "True" if the regular expression in \a regex does not match the string in \a expression.
 
     This operator does not throw any exceptions.
 
@@ -1374,7 +1374,7 @@ $list =~ x/(.*)\.(.*)/;
     @section logical_and_operator Logical And Operator (&&)
 
     @par Synopsis
-    Checks to see if two expressions are @ref True with logical short-circuiting.
+    Checks to see if two expressions are @ref Qore::True "True" with logical short-circuiting.
 
     @par Syntax
     \a expression1 && \a expression2
@@ -1390,7 +1390,7 @@ if ($x && $y)
 
     <b>Arguments Processed by &&</b>
     |!Argument|!Processing
-    |@ref bool_type "bool"|Returns @ref True if both expressions are @ref True, @ref False if otherwise. Logical short-circuiting is implemented; if \a expression1 is @ref False, then \a expression2 is not evaluated, and the operator returns @ref False.
+    |@ref bool_type "bool"|Returns @ref Qore::True "True" if both expressions are @ref Qore::True "True", @ref Qore::False "False" if otherwise. Logical short-circuiting is implemented; if \a expression1 is @ref Qore::False "False", then \a expression2 is not evaluated, and the operator returns @ref Qore::False "False".
 
     This operator does not throw any exceptions.
 
@@ -1398,7 +1398,7 @@ if ($x && $y)
     @section logical_or_operator Logical Or Operator (||)
 
     @par Synopsis
-    Returns @ref True if either of the arguments are @ref True with logical short-circuiting.
+    Returns @ref Qore::True "True" if either of the arguments are @ref Qore::True "True" with logical short-circuiting.
 
     @par Syntax
     \a expression1 || \a expression2
@@ -1414,7 +1414,7 @@ if ($x || $y)
 
     <b>Arguments Processed by ||</b>
     |!Argument|!Processing
-    |@ref bool_type "bool"|Returns @ref True if either or both expressions evaluate to @ref True, @ref False if otherwise. Logical short-circuiting is implemented; if \a expression1 is @ref True, then \a expression2 is not evaluated, and the operator returns @ref True.
+    |@ref bool_type "bool"|Returns @ref Qore::True "True" if either or both expressions evaluate to @ref Qore::True "True", @ref Qore::False "False" if otherwise. Logical short-circuiting is implemented; if \a expression1 is @ref Qore::True "True", then \a expression2 is not evaluated, and the operator returns @ref Qore::True "True".
 
     This operator does not throw any exceptions.
 
@@ -1435,7 +1435,7 @@ if ($x || $y)
 
     <b>Arguments Processed by ? :</b>
     |!Argument|!Processing
-    |All|If \a expression is evaluated to be @ref True, then the \a if_true_expression is evaluated and returned. Otherwise the \a if_false_expression is evaluated and returned.
+    |All|If \a expression is evaluated to be @ref Qore::True "True", then the \a if_true_expression is evaluated and returned. Otherwise the \a if_false_expression is evaluated and returned.
 
     This operator does not throw any exceptions.
 

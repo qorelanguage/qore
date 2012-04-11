@@ -193,7 +193,7 @@ const RE_Global = QRE_GLOBAL;
     |\c \\b|a backspace character
     |\c \\f|a form-feed character
     |\c \\<em>num</em>|an 8-bit character whose value is the 1, 2, or 3 digit octal number num
-    |\c \\\"a double-quote character (\c \")
+    |\c \\\"|a double-quote character (\c \")
  */
 //@{
 

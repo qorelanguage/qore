@@ -1110,8 +1110,7 @@ Var* qore_root_ns_private::parseAddResolvedGlobalVarDefIntern(const NamedScope& 
       tns = this;
    else {
       QoreNamespace* rns = parseResolveNamespace(vname);
-      if (rns)
-         tns = rns->priv;
+      tns = rns ? rns->priv : this;
    }
 
    //printd(5, "qore_root_ns_private::parseAddResolvedGlobalVarDefIntern() this: %p vname: '%s' resolved ns to %p '%s::'\n", this, vname.ostr, tns, tns->name.c_str());
