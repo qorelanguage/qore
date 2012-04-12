@@ -1,4 +1,4 @@
-/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/* -*- mode: c++; indent-tabs-mode: nil -*- */  
 /*
   QoreString.h
 
@@ -42,25 +42,25 @@ class BinaryNode;
 class QoreString {
 protected:
    //! the private implementation of QoreString
-   struct qore_string_private *priv;
+   struct qore_string_private* priv;
 
-   DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length, QoreString *extract = 0);
-   DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length, const char *str, qore_size_t str_len, QoreString *extract = 0);
-   DLLLOCAL void splice_complex(qore_offset_t offset, ExceptionSink *xsink, QoreString *extract = 0);
-   DLLLOCAL void splice_complex(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink, QoreString *extract = 0);
-   DLLLOCAL void splice_complex(qore_offset_t offset, qore_offset_t length, const QoreString *str, ExceptionSink *xsink, QoreString *extract = 0);
-   DLLLOCAL int substr_simple(QoreString *str, qore_offset_t offset) const;
-   DLLLOCAL int substr_simple(QoreString *str, qore_offset_t offset, qore_offset_t length) const;
-   DLLLOCAL int substr_complex(QoreString *str, qore_offset_t offset, ExceptionSink *xsink) const;
-   DLLLOCAL int substr_complex(QoreString *str, qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const;
+   DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length, QoreString* extract = 0);
+   DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length, const char* str, qore_size_t str_len, QoreString* extract = 0);
+   DLLLOCAL void splice_complex(qore_offset_t offset, ExceptionSink* xsink, QoreString* extract = 0);
+   DLLLOCAL void splice_complex(qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink, QoreString* extract = 0);
+   DLLLOCAL void splice_complex(qore_offset_t offset, qore_offset_t length, const QoreString* str, ExceptionSink* xsink, QoreString* extract = 0);
+   DLLLOCAL int substr_simple(QoreString* str, qore_offset_t offset) const;
+   DLLLOCAL int substr_simple(QoreString* str, qore_offset_t offset, qore_offset_t length) const;
+   DLLLOCAL int substr_complex(QoreString* str, qore_offset_t offset, ExceptionSink* xsink) const;
+   DLLLOCAL int substr_complex(QoreString* str, qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink) const;
 
    // writes a new QoreString with the characters reversed of the "this" QoreString
    // assumes the encoding is the same and the length is 0
-   DLLLOCAL void concat_reverse(QoreString *targ) const;
+   DLLLOCAL void concat_reverse(QoreString* targ) const;
 
-   DLLLOCAL int snprintf(size_t size, const char *fmt, ...);
-   DLLLOCAL int vsnprintf(size_t size, const char *fmt, va_list args);
-   DLLLOCAL static int convert_encoding_intern(const char *src, qore_size_t src_len, const QoreEncoding *from, QoreString &targ, const QoreEncoding *to, ExceptionSink *xsink);
+   DLLLOCAL int snprintf(size_t size, const char* fmt, ...);
+   DLLLOCAL int vsnprintf(size_t size, const char* fmt, va_list args);
+   DLLLOCAL static int convert_encoding_intern(const char* src, qore_size_t src_len, const QoreEncoding* from, QoreString& targ, const QoreEncoding* to, ExceptionSink* xsink);
 
 public:
    //! creates an empty string and assigns the default encoding QCS_DEFAULT
@@ -70,31 +70,31 @@ public:
    DLLEXPORT QoreString(bool b);
 
    //! copies the c-string passed and assigns the default encoding QCS_DEFAULT
-   DLLEXPORT QoreString(const char *str);
+   DLLEXPORT QoreString(const char* str);
 
    //! copies the c-string passed and assigns the encoding passed
-   DLLEXPORT QoreString(const char *str, const QoreEncoding *new_qorecharset);
+   DLLEXPORT QoreString(const char* str, const QoreEncoding* new_qorecharset);
 
    //! creates an empty string and assigns the encoding passed
-   DLLEXPORT QoreString(const QoreEncoding *new_qorecharset);
+   DLLEXPORT QoreString(const QoreEncoding* new_qorecharset);
 
    //! copies the c-string passed and assigns the length and encoding passed
-   DLLEXPORT QoreString(const char *str, qore_size_t len, const QoreEncoding *new_qorecharset = QCS_DEFAULT);
+   DLLEXPORT QoreString(const char* str, qore_size_t len, const QoreEncoding* new_qorecharset = QCS_DEFAULT);
 
    //! copies the std::string passed and assigns the encoding passed
-   DLLEXPORT QoreString(const std::string &str, const QoreEncoding *new_encoding = QCS_DEFAULT);
+   DLLEXPORT QoreString(const std::string& str, const QoreEncoding* new_encoding = QCS_DEFAULT);
 
    //! creates a single-character string from the argument and assigns the default encoding QCS_DEFAULT
    DLLEXPORT QoreString(char c);
 
    //! creates a copy of the QoreString argument passed
-   DLLEXPORT QoreString(const QoreString &str);
+   DLLEXPORT QoreString(const QoreString& str);
 
    //! creates a copy of the QoreString argument passed
-   DLLEXPORT QoreString(const QoreString *str);
+   DLLEXPORT QoreString(const QoreString* str);
 
    //! creates a copy of the QoreString argument passed up to byte "len" and assigns "len" as the byte length of the new string
-   DLLEXPORT QoreString(const QoreString *str, qore_size_t len);
+   DLLEXPORT QoreString(const QoreString* str, qore_size_t len);
 
    //! creates a new string with the string representation of the integer passed and assigns the default encoding QCS_DEFAULT
    DLLEXPORT QoreString(int64 i);
@@ -103,16 +103,16 @@ public:
    DLLEXPORT QoreString(double f);
 
    //! creates a new string from the DateTime value passed in the format YYYYMMDDHHmmSS
-   DLLEXPORT QoreString(const DateTime *date);
+   DLLEXPORT QoreString(const DateTime* date);
 
    //! creates a new string as the base64-encoded value of the binary object passed
-   DLLEXPORT QoreString(const BinaryNode *bin);
+   DLLEXPORT QoreString(const BinaryNode* bin);
 
    //! creates a new string as the base64-encoded value of the binary object passed and ensures the maximum line length for the base64-encoded output
-   DLLEXPORT QoreString(const BinaryNode *bin, qore_size_t maxlinelen);
+   DLLEXPORT QoreString(const BinaryNode* bin, qore_size_t maxlinelen);
 
-   //! takes ownership of the char * passed
-   DLLEXPORT QoreString(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc);
+   //! takes ownership of the char*  passed
+   DLLEXPORT QoreString(char* nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding* enc);
 
    //! frees any memory allocated by the string
    DLLEXPORT ~QoreString();
@@ -123,34 +123,37 @@ public:
    DLLEXPORT qore_size_t length() const;
 
    //! copies the c-string passed and sets the value of the string and its encoding
-   DLLEXPORT void set(const char *str, const QoreEncoding *new_qorecharset = QCS_DEFAULT);
+   DLLEXPORT void set(const char* str, const QoreEncoding* new_qorecharset = QCS_DEFAULT);
+
+   //! copies the string passed and sets the value of the string and its encoding
+   DLLEXPORT void set(const std::string& str, const QoreEncoding* new_qorecharset = QCS_DEFAULT);
 
    //! sets the value to the copy of the QoreString passed
-   DLLEXPORT void set(const QoreString *str);
+   DLLEXPORT void set(const QoreString* str);
 
    //! sets the value to the copy of the QoreString passed
-   DLLEXPORT void set(const QoreString &str);
+   DLLEXPORT void set(const QoreString& str);
 
    //! changes the tagged encoding to the given encoding; does not affect the actual string buffer, only changes the tagged encoding value
-   DLLEXPORT void setEncoding(const QoreEncoding *new_encoding);
+   DLLEXPORT void setEncoding(const QoreEncoding* new_encoding);
 
    //! concatenates HTML-encoded version of the c-string passed
-   DLLEXPORT void concatAndHTMLEncode(const char *str);
+   DLLEXPORT void concatAndHTMLEncode(const char* str);
 
    //! concatenates HTML-decoded version of the c-string passed
-   DLLEXPORT void concatAndHTMLDecode(const QoreString *str);
+   DLLEXPORT void concatAndHTMLDecode(const QoreString* str);
 
    //! concatenates a string and escapes character c with esc_char (converts encodings if necessary)
-   DLLEXPORT void concatEscape(const QoreString *str, char c, char esc_char, ExceptionSink *xsink);
+   DLLEXPORT void concatEscape(const QoreString* str, char c, char esc_char, ExceptionSink* xsink);
 
    //! concatenates a string and escapes character c with esc_char
-   DLLEXPORT void concatEscape(const char *str, char c, char esc_char = '\\');
+   DLLEXPORT void concatEscape(const char* str, char c, char esc_char = '\\');
 
    //! concatenation with character set conversion
-   DLLEXPORT void concatAndHTMLEncode(const QoreString *, ExceptionSink *xsink);
+   DLLEXPORT void concatAndHTMLEncode(const QoreString* , ExceptionSink* xsink);
 
    //! concatenates a string and converts encodings if necessary
-   DLLEXPORT void concat(const QoreString *str, ExceptionSink *xsink);
+   DLLEXPORT void concat(const QoreString* str, ExceptionSink* xsink);
 
    //! concatenates a QoreString up to character "len"
    /** An exception could be thrown if the string to concatenate requires character set encoding conversion and the conversion fails
@@ -158,39 +161,39 @@ public:
        @param size the number of characters to copy (not bytes)
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void concat(const QoreString *str, qore_size_t size, ExceptionSink *xsink);
+   DLLEXPORT void concat(const QoreString* str, qore_size_t size, ExceptionSink* xsink);
 
    //! concatenates the base64-encoded version of the binary data passed
-   DLLEXPORT void concatBase64(const char *buf, qore_size_t size);
+   DLLEXPORT void concatBase64(const char* buf, qore_size_t size);
 
    //! concatenates the base64-encoded version of the binary data passed
-   DLLEXPORT void concatBase64(const BinaryNode *bin);
+   DLLEXPORT void concatBase64(const BinaryNode* bin);
 
    //! concatenates the base64-encoded version of the binary data passed (does not make any character encoding conversions)
-   DLLEXPORT void concatBase64(const QoreString *str);
+   DLLEXPORT void concatBase64(const QoreString* str);
 
    //! concatenates the base64-encoded version of the binary data passed and ensures the maximum line length for the base64-encoded output
-   DLLEXPORT void concatBase64(const char *buf, qore_size_t size, qore_size_t maxlinelen);
+   DLLEXPORT void concatBase64(const char* buf, qore_size_t size, qore_size_t maxlinelen);
 
    //! concatenates the base64-encoded version of the binary data passed and ensures the maximum line length for the base64-encoded output
-   DLLEXPORT void concatBase64(const BinaryNode *bin, qore_size_t maxlinelen);
+   DLLEXPORT void concatBase64(const BinaryNode* bin, qore_size_t maxlinelen);
 
    //! concatenates the base64-encoded version of the binary data passed (does not make any character encoding conversions) and ensures the maximum line length for the base64-encoded output
-   DLLEXPORT void concatBase64(const QoreString *str, qore_size_t maxlinelen);
+   DLLEXPORT void concatBase64(const QoreString* str, qore_size_t maxlinelen);
 
    //! parses the current string data as base64-encoded data and returns it as a BinaryNode pointer (caller owns the reference count), throws a qore-language exception if any errors are encountered
    /**
       @param xsink if an error occurs, the Qore-language exception information will be added here
       @return a pointer to a BinaryNode object of the decoded data, the caller owns the reference count of the object returned (0 if an exception occurs)
    */
-   DLLEXPORT BinaryNode *parseBase64(ExceptionSink *xsink) const;
+   DLLEXPORT BinaryNode* parseBase64(ExceptionSink* xsink) const;
 
    //! parses the current string data as base64-encoded data and returns it as a QoreString pointer owned by the caller
    /**
       @param xsink if an error occurs, the Qore-language exception information will be added here
       @return a QoreString of the decoded data tagged with the default encoding (0 if an exception occurs), the QoreString pointer is owned by the caller
    */
-   DLLEXPORT QoreString *parseBase64ToString(ExceptionSink *xsink) const;
+   DLLEXPORT QoreString* parseBase64ToString(ExceptionSink* xsink) const;
 
    //! parses the current string data as base64-encoded data and returns it as a QoreString pointer owned by the caller
    /** 
@@ -198,38 +201,38 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return a QoreString of the decoded data (0 if an exception occurs), the QoreString pointer is owned by the caller
    */
-   DLLEXPORT QoreString *parseBase64ToString(const QoreEncoding* enc, ExceptionSink* xsink) const;
+   DLLEXPORT QoreString* parseBase64ToString(const QoreEncoding* enc, ExceptionSink* xsink) const;
 
    //! concatenates hexidecimal digits corresponding to the binary data passed up to byte "len"
-   DLLEXPORT void concatHex(const char *buf, qore_size_t size);
+   DLLEXPORT void concatHex(const char* buf, qore_size_t size);
 
    //! concatenates hexidecimal digits corresponding to the binary data passed
-   DLLEXPORT void concatHex(const BinaryNode *bin);
+   DLLEXPORT void concatHex(const BinaryNode* bin);
 
    //! concatenates hexidecimal digits corresponding to the QoreString data passed interpreted as binary data
-   DLLEXPORT void concatHex(const QoreString *str);
+   DLLEXPORT void concatHex(const QoreString* str);
 
    //! parses the current string data as hexadecimal-encoded data and returns it as a BinaryNode pointer (caller owns the reference count), throws a qore-language exception if any errors are encountered
    /**
       @param xsink if an error occurs, the Qore-language exception information will be added here
       @return a pointer to a BinaryNode object of the decoded data, the caller owns the reference count of the object returned (0 if an exception occurs)
    */
-   DLLEXPORT BinaryNode *parseHex(ExceptionSink *xsink) const;
+   DLLEXPORT BinaryNode* parseHex(ExceptionSink* xsink) const;
 
    //! concatenates a DateTime value to a string in the format YYYYMMDDHHmmSS
-   DLLEXPORT void concat(const DateTime *d);
+   DLLEXPORT void concat(const DateTime* d);
 
    //! concatenates a DateTime value to a string in the format YYYYMMDDTHH:mm:SS <- where the "T" is a literal "T"
-   DLLEXPORT void concatISO8601DateTime(const DateTime *d);
+   DLLEXPORT void concatISO8601DateTime(const DateTime* d);
 
    //! concatenates a c-string to the existing string
-   DLLEXPORT void concat(const char *str);
+   DLLEXPORT void concat(const char* str);
 
    //! concatenates an stl string to the existing string
-   DLLEXPORT void concat(const std::string &str);
+   DLLEXPORT void concat(const std::string& str);
 
    //! concatenates a c-string to the existing string, up to byte "size"
-   DLLEXPORT void concat(const char *str, qore_size_t size);
+   DLLEXPORT void concat(const char* str, qore_size_t size);
 
    //! concatenates a single character to the string
    DLLEXPORT void concat(const char c);
@@ -240,21 +243,21 @@ public:
       @param xsink if an error occurs, the Qore-language exception information will be added here	 
       @return -1, 0, or 1 if "this" is less than, equal to, or greater than "str" respectively
    */
-   DLLEXPORT int compareSoft(const QoreString *str, ExceptionSink *xsink) const;
+   DLLEXPORT int compareSoft(const QoreString* str, ExceptionSink* xsink) const;
 
    //! compares two strings without converting encodings (if the encodings do not match then "this" is deemed automatically less than the argument)
    /**
       @param str the string to compare
       @return -1, 0, or 1 if "this" is less than, equal to, or greater than "str" respectively
    */
-   DLLEXPORT int compare(const QoreString *str) const;
+   DLLEXPORT int compare(const QoreString* str) const;
 
    //! compares the string with a c-string, which is assumed to be in the same encoding as the string
    /**
       @param str the string to compare
       @return -1, 0, or 1 if "this" is less than, equal to, or greater than "str" respectively
    */
-   DLLEXPORT int compare(const char *str) const;
+   DLLEXPORT int compare(const char* str) const;
 
    //! terminates the string at byte position "size", the string is reallocated if necessary
    DLLEXPORT void terminate(qore_size_t size);
@@ -267,32 +270,32 @@ public:
    //! this will concatentate a formatted string to the existing string according to the format string and the arguments
    /** NOTE that the formatted string is concatenated to the end of the current string!
     */
-   DLLEXPORT int sprintf(const char *fmt, ...);
+   DLLEXPORT int sprintf(const char* fmt, ...);
 
    //! this will concatentate a formatted string to the existing string according to the format string and the arguments
    /** NOTE that the formatted string is concatenated to the end of the current string!
     */
-   DLLEXPORT int vsprintf(const char *fmt, va_list args);
+   DLLEXPORT int vsprintf(const char* fmt, va_list args);
 
    //! takes ownership of the character pointer passed and assigns it to the string (frees memory previously allocated)
    /** the encoding marker is not changed by this call, it remains the same as the previous encoding
     */
-   DLLEXPORT void take(char *str);
+   DLLEXPORT void take(char* str);
 
    //! takes ownership of the character pointer passed and assigns it to the string (frees memory previously allocated), sets the encoding to the encoding passed
-   DLLEXPORT void take(char *str, const QoreEncoding *enc);
+   DLLEXPORT void take(char* str, const QoreEncoding* enc);
    //! takes ownership of the character pointer passed and assigns it to the string (frees memory previously allocated) and sets the string byte lentgh to "size"
 
-   DLLEXPORT void take(char *str, qore_size_t size);
+   DLLEXPORT void take(char* str, qore_size_t size);
 
    //! takes ownership of the character pointer passed and assigns it to the string (frees memory previously allocated), sets the string byte lentgh to "size", and sets the encoding to the encoding passed
-   DLLEXPORT void take(char *str, qore_size_t size, const QoreEncoding *enc);
+   DLLEXPORT void take(char* str, qore_size_t size, const QoreEncoding* enc);
 
    //! takes ownership of the character pointer passed and assigns it to the string (frees memory previously allocated), sets the string byte length to "size", and sets the amount of member allocated to size + 1
-   DLLEXPORT void takeAndTerminate(char *str, qore_size_t size);
+   DLLEXPORT void takeAndTerminate(char* str, qore_size_t size);
 
    //! takes ownership of the character pointer passed and assigns it to the string (frees memory previously allocated), sets the string byte length to "size", and sets the amount of member allocated to size + 1, and sets the new encoding
-   DLLEXPORT void takeAndTerminate(char *str, qore_size_t size, const QoreEncoding *enc);
+   DLLEXPORT void takeAndTerminate(char* str, qore_size_t size, const QoreEncoding* enc);
 
    //! converts the encoding of the string to the specified encoding, returns 0 if an error occurs, the caller owns the pointer returned
    /** if the encoding is the same as the current encoding, a copy of the string is returned
@@ -300,13 +303,13 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the new string with the desired encoding or 0 if an error occured
    */
-   DLLEXPORT QoreString *convertEncoding(const QoreEncoding *nccs, ExceptionSink *xsink) const;
+   DLLEXPORT QoreString* convertEncoding(const QoreEncoding* nccs, ExceptionSink* xsink) const;
 
    //! returns the character buffer and leaves the QoreString empty, the caller owns the memory returned (must be manually freed)
    /** note that after this call the string buffer memory is 0 (i.e. QoreString::getBuffer() will return NULL)
       @return the character buffer for the string, the caller owns the memory returned (must be manually freed)
    */
-   DLLEXPORT char *giveBuffer();
+   DLLEXPORT char* giveBuffer();
 
    //! reset string to zero length; memory is not deallocated; string encoding does not change
    DLLEXPORT void clear();
@@ -319,12 +322,12 @@ public:
    //! replaces all occurences of the first string with the second string
    /** both of the new strings must be in the same encoding as the QoreString
     */
-   DLLEXPORT void replaceAll(const char *old_str, const char *new_str);
+   DLLEXPORT void replaceAll(const char* old_str, const char* new_str);
 
    //! replaces bytes with the string passed
    /** offsets and size are in bytes, not characters
     */
-   DLLEXPORT void replace(qore_size_t offset, qore_size_t len, const char *str);
+   DLLEXPORT void replace(qore_size_t offset, qore_size_t len, const char* str);
 
    //! replaces bytes with the string passed
    /** offsets and size are in bytes, not characters
@@ -332,19 +335,19 @@ public:
        DEPRECATED: do not use
        FIXME: this function should take an ExceptionSink argument and convert encodings
    */
-   DLLEXPORT void replace(qore_size_t offset, qore_size_t len, const QoreString *str);
+   DLLEXPORT void replace(qore_size_t offset, qore_size_t len, const QoreString* str);
 
    //! replaces bytes with the string passed
    /** offsets and size are in bytes, not characters
     */
-   DLLEXPORT void replace(qore_size_t offset, qore_size_t len, const QoreString *str, ExceptionSink *xsink);
+   DLLEXPORT void replace(qore_size_t offset, qore_size_t len, const QoreString* str, ExceptionSink* xsink);
 
    //! removes characters from the string starting at position "offset"
    /** values are for characters, not bytes
        @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
        @param xsink is ignored
    */
-   DLLEXPORT void splice(qore_offset_t offset, ExceptionSink *xsink);
+   DLLEXPORT void splice(qore_offset_t offset, ExceptionSink* xsink);
 
    //! removes "length" characters from the string starting at position "offset"
    /** values are for characters, not bytes
@@ -352,7 +355,7 @@ public:
        @param length the number of characters (not bytes) to remove (negative length means all but that many characters from the end of the string)
        @param xsink invalid multi-byte encodings can cause an exception to be thrown
    */
-   DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink);
+   DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink);
 
    //! removes "length" characters from the string starting at position "offset" and replaces them with the string passed
    /** values are for characters, not bytes
@@ -361,7 +364,7 @@ public:
        @param strn the string to insert at character position "offset" after "length" characters are removed
        @param xsink invalid multi-byte encodings can cause an exception to be thrown
    */
-   DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const AbstractQoreNode *strn, ExceptionSink *xsink);
+   DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const AbstractQoreNode* strn, ExceptionSink* xsink);
 
    //! removes "length" characters from the string starting at position "offset" and replaces them with the string passed
    /** values are for characters, not bytes
@@ -370,7 +373,7 @@ public:
        @param str the string to insert at character position "offset" after "length" characters are removed
        @param xsink invalid multi-byte encodings can cause an exception to be thrown
    */
-   DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const QoreString &str, ExceptionSink *xsink);
+   DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const QoreString& str, ExceptionSink* xsink);
 
    //! removes characters from the string starting at position "offset" and returns a string of the characters removed
    /** values are for characters, not bytes.  If no characters a removed, an empty string is returned
@@ -378,7 +381,7 @@ public:
        @param xsink is ignored
        @return a string of the characters removed; if no characters a removed, an empty string is returned
    */
-   DLLEXPORT QoreString *extract(qore_offset_t offset, ExceptionSink *xsink);
+   DLLEXPORT QoreString* extract(qore_offset_t offset, ExceptionSink* xsink);
 
    //! removes "length" characters from the string starting at position "offset" and returns a string of the characters removed
    /** values are for characters, not bytes.  If no characters a removed, an empty string is returned
@@ -387,7 +390,7 @@ public:
        @param xsink invalid multi-byte encodings can cause an exception to be thrown
        @return a string of the characters removed; if no characters a removed, an empty string is returned, however if an exception is raised converting encodings, then 0 is returned
    */
-   DLLEXPORT QoreString *extract(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink);
+   DLLEXPORT QoreString* extract(qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink);
 
    //! removes "length" characters from the string starting at position "offset" and replaces them with the string passed, then returns a string of the characters removed
    /** values are for characters, not bytes.  If no characters a removed, an empty string is returned
@@ -397,7 +400,7 @@ public:
        @param xsink invalid multi-byte encodings can cause an exception to be thrown
        @return a string of the characters removed; if no characters a removed, an empty string is returned, however if an exception is raised converting encodings, then 0 is returned
    */
-   DLLEXPORT QoreString *extract(qore_offset_t offset, qore_offset_t length, const AbstractQoreNode *strn, ExceptionSink *xsink);
+   DLLEXPORT QoreString* extract(qore_offset_t offset, qore_offset_t length, const AbstractQoreNode* strn, ExceptionSink* xsink);
 
    //! returns a new string consisting of all the characters from the current string starting with character position "offset"
    /** offset is a character offset (not a byte offset)
@@ -405,7 +408,7 @@ public:
        @param xsink invalid multi-byte encodings can cause an exception to be thrown
        @return the new string
    */
-   DLLEXPORT QoreString *substr(qore_offset_t offset, ExceptionSink *xsink) const;
+   DLLEXPORT QoreString* substr(qore_offset_t offset, ExceptionSink* xsink) const;
 
    //! returns a new string consisting of "length" characters from the current string starting with character position "offset"
    /** offset and length spoecify characters, not bytes
@@ -414,16 +417,16 @@ public:
        @param xsink invalid multi-byte encodings can cause an exception to be thrown
        @return the new string
    */
-   DLLEXPORT QoreString *substr(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const;
+   DLLEXPORT QoreString* substr(qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink) const;
 
    //! removes a single \\n\\r or \\n from the end of the string and returns the number of characters removed
    DLLEXPORT qore_size_t chomp();
 
    //! returns the encoding for the string
-   DLLEXPORT const QoreEncoding *getEncoding() const;
+   DLLEXPORT const QoreEncoding* getEncoding() const;
 
    //! returns an exact copy of the string
-   DLLEXPORT QoreString *copy() const;
+   DLLEXPORT QoreString* copy() const;
 
    //! converts the string to lower-case in place
    /** WARNING: only works with ASCII characters!
@@ -445,7 +448,7 @@ public:
    DLLEXPORT qore_size_t capacity() const;
 
    //! returns the string's buffer; this data should not be changed
-   DLLEXPORT const char *getBuffer() const;
+   DLLEXPORT const char* getBuffer() const;
 
    // Make sure the internal buffer has at least expected size in bytes. 
    // Useful to eliminate repeated reallocate() when data are appended in a loop.
@@ -468,7 +471,7 @@ public:
        @param code the Unicode code point to append to the string
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT int concatUnicode(unsigned code, ExceptionSink *xsink);
+   DLLEXPORT int concatUnicode(unsigned code, ExceptionSink* xsink);
 
    //! append a character sequence from a unicode code point (returns 0 for OK, -1 for error)
    /**
@@ -481,16 +484,16 @@ public:
    /**
       @return a Qorestring with the characters reversed
    */
-   DLLEXPORT QoreString *reverse() const;
+   DLLEXPORT QoreString* reverse() const;
 
    //! remove trailing whitespace or other characters
-   DLLEXPORT void trim_trailing(const char *chars = 0);
+   DLLEXPORT void trim_trailing(const char* chars = 0);
 
    //! remove leading whitespace or other characters
-   DLLEXPORT void trim_leading(const char *chars = 0);
+   DLLEXPORT void trim_leading(const char* chars = 0);
 
    //! remove leading and trailing whitespace or other characters
-   DLLEXPORT void trim(const char *chars = 0);
+   DLLEXPORT void trim(const char* chars = 0);
 
    //! remove trailing characters if present
    DLLEXPORT void trim_trailing(char c);
@@ -520,25 +523,31 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the unicode code for the character
    */
-   DLLEXPORT unsigned int getUnicodePoint(qore_offset_t offset, ExceptionSink *xsink) const;
+   DLLEXPORT unsigned int getUnicodePoint(qore_offset_t offset, ExceptionSink* xsink) const;
 
    //! prepends the string given to the string, assumes character encoding is the same as the string's
-   DLLEXPORT void prepend(const char *str);
+   DLLEXPORT void prepend(const char* str);
 
    //! prepends the string given to the string, assumes character encoding is the same as the string's
-   DLLEXPORT void prepend(const char *str, qore_size_t size);
+   DLLEXPORT void prepend(const char* str, qore_size_t size);
 
    //! assigns the value of one string to another
-   DLLEXPORT QoreString & operator=(const QoreString &other);
+   DLLEXPORT QoreString&  operator=(const QoreString& other);
+
+   //! assigns the value of one string to another; note that in this case the string is assigned the default envcoding (QCS_DEFAULT)
+   DLLEXPORT QoreString&  operator=(const char* other);
+
+   //! assigns the value of one string to another; note that in this case the string is assigned the default envcoding (QCS_DEFAULT)
+   DLLEXPORT QoreString&  operator=(const std::string& other);
 
    //! returns true if the other string is equal to this string (encodings also must be equal)
-   DLLEXPORT bool operator==(const QoreString &other) const;
+   DLLEXPORT bool operator==(const QoreString& other) const;
 
    //! returns true if the other string is equal to this string (encodings also must be equal)
-   DLLEXPORT bool operator==(const std::string &other) const;
+   DLLEXPORT bool operator==(const std::string& other) const;
 
    //! returns true if the other string is equal to this string (encodings also must be equal)
-   DLLEXPORT bool operator==(const char *other) const;
+   DLLEXPORT bool operator==(const char* other) const;
 
    //! returns the byte (not character) at the given location; if the location is invalid, returns 0
    /** @param pos offset in string, negative offsets are form the end of the string
@@ -549,46 +558,46 @@ public:
    DLLEXPORT char operator[](qore_offset_t pos) const;
 
    //! concatenates the characters to the string; assumes the string to be concantenated is already in the character encoding of the "this" string
-   DLLEXPORT QoreString &operator+=(const char *str);
+   DLLEXPORT QoreString& operator+=(const char* str);
 
    //! concatenates the characters to the string; assumes the string to be concantenated is already in the character encoding of the "this" string
-   DLLEXPORT QoreString &operator+=(const std::string &str);
+   DLLEXPORT QoreString& operator+=(const std::string& str);
 
    //! returns true if the string is empty, false if not
    DLLEXPORT bool empty() const;
 
    //! returns the character position of a substring within the string
-   DLLEXPORT qore_offset_t index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const;
+   DLLEXPORT qore_offset_t index(const QoreString& needle, qore_offset_t pos, ExceptionSink* xsink) const;
 
    //! returns the byte position of a substring within the string
-   DLLEXPORT qore_offset_t bindex(const QoreString &needle, qore_offset_t pos) const;
+   DLLEXPORT qore_offset_t bindex(const QoreString& needle, qore_offset_t pos) const;
 
    //! returns the byte position of a substring within the string
-   DLLEXPORT qore_offset_t bindex(const char *needle, qore_offset_t pos) const;
+   DLLEXPORT qore_offset_t bindex(const char* needle, qore_offset_t pos) const;
 
    //! returns the byte position of a substring within the string
-   DLLEXPORT qore_offset_t bindex(const std::string &needle, qore_offset_t pos) const;
+   DLLEXPORT qore_offset_t bindex(const std::string& needle, qore_offset_t pos) const;
 
    //! returns the character position of a substring from the end of the string
-   DLLEXPORT qore_offset_t rindex(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const;
+   DLLEXPORT qore_offset_t rindex(const QoreString& needle, qore_offset_t pos, ExceptionSink* xsink) const;
 
    //! returns the byte position of a substring within the string
-   DLLEXPORT qore_offset_t brindex(const QoreString &needle, qore_offset_t pos) const;
+   DLLEXPORT qore_offset_t brindex(const QoreString& needle, qore_offset_t pos) const;
 
    //! returns the byte position of a substring within the string
-   DLLEXPORT qore_offset_t brindex(const char *needle, qore_offset_t pos) const;
+   DLLEXPORT qore_offset_t brindex(const char* needle, qore_offset_t pos) const;
 
    //! returns the byte position of a substring within the string
-   DLLEXPORT qore_offset_t brindex(const std::string &needle, qore_offset_t pos) const;
+   DLLEXPORT qore_offset_t brindex(const std::string& needle, qore_offset_t pos) const;
 
    // concatenates a qorestring without converting encodings - internal only
-   DLLLOCAL void concat(const QoreString *str);
+   DLLLOCAL void concat(const QoreString* str);
 
    // private constructor
-   DLLLOCAL QoreString(struct qore_string_private *p);
+   DLLLOCAL QoreString(struct qore_string_private* p);
 };
 
-DLLEXPORT QoreString *checkEncoding(const QoreString *str, const QoreEncoding *enc, ExceptionSink *xsink);
+DLLEXPORT QoreString* checkEncoding(const QoreString* str, const QoreEncoding* enc, ExceptionSink* xsink);
 
 //! class used to hold a possibly temporary QoreString pointer, stack only, cannot be dynamically allocated
 /**
@@ -602,16 +611,16 @@ DLLEXPORT QoreString *checkEncoding(const QoreString *str, const QoreEncoding *e
 */
 class TempString {
 private:
-   QoreString *str;
+   QoreString* str;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   TempString(const TempString &);
+   TempString(const TempString& );
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   TempString & operator=(const TempString &);
+   TempString&  operator=(const TempString& );
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   void *operator new(size_t);
+   void* operator new(size_t);
 
 public:
    //! populates the object with a new QoreString that this object will manage
@@ -619,11 +628,11 @@ public:
    }
 
    //! populates the object with a new QoreString in a specific encoding that this object will manage
-   DLLLOCAL TempString(const QoreEncoding *enc) : str(new QoreString(enc)) {
+   DLLLOCAL TempString(const QoreEncoding* enc) : str(new QoreString(enc)) {
    }
 
    //! populates the object with the QoreString pointer to be managed
-   DLLLOCAL TempString(QoreString *s) {
+   DLLLOCAL TempString(QoreString* s) {
       str = s;
    }
 
@@ -633,16 +642,16 @@ public:
    }
 
    //! returns the QoreString pointer being managed
-   DLLLOCAL QoreString *operator->(){ return str; };
+   DLLLOCAL QoreString* operator->(){ return str; };
 
    //! returns the QoreString pointer being managed
-   DLLLOCAL QoreString *operator*() { return str; };
+   DLLLOCAL QoreString* operator*() { return str; };
 
    //! returns true if a QoreString pointer is being managed
    DLLLOCAL operator bool() const { return str != 0; }
 
    //! releases the QoreString pointer being managed and sets the internal pointer to 0
-   DLLLOCAL QoreString *release() { QoreString *rv = str; str = 0; return rv; }
+   DLLLOCAL QoreString* release() { QoreString* rv = str; str = 0; return rv; }
 };
 
 //! use this class to manage strings where the character encoding must be specified and may be different than the actual encoding in the string
@@ -660,17 +669,17 @@ public:
 */
 class TempEncodingHelper {
 private:
-   QoreString *str;
+   QoreString* str;
    bool temp;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL TempEncodingHelper(const TempEncodingHelper &);
+   DLLLOCAL TempEncodingHelper(const TempEncodingHelper& );
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL TempEncodingHelper& operator=(const TempEncodingHelper &);
+   DLLLOCAL TempEncodingHelper& operator=(const TempEncodingHelper& );
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void *operator new(size_t);
+   DLLLOCAL void* operator new(size_t);
 
    //! discards the internal state
    DLLLOCAL void discard_intern() {
@@ -684,13 +693,13 @@ private:
       @param qe the QoreEncoding required
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLLOCAL void set_intern(const QoreString *s, const QoreEncoding *qe, ExceptionSink *xsink) {
+   DLLLOCAL void set_intern(const QoreString* s, const QoreEncoding* qe, ExceptionSink* xsink) {
       if (s->getEncoding() != qe) {
          str = s->convertEncoding(qe, xsink);
          temp = true;
       }
       else {
-         str = const_cast<QoreString *>(s);
+         str = const_cast<QoreString* >(s);
          temp = false;
       }
    }
@@ -702,7 +711,7 @@ public:
       @param qe the QoreEncoding required
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLLOCAL TempEncodingHelper(const QoreString &s, const QoreEncoding *qe, ExceptionSink *xsink) {
+   DLLLOCAL TempEncodingHelper(const QoreString& s, const QoreEncoding* qe, ExceptionSink* xsink) {
       set_intern(&s, qe, xsink);
    }
 
@@ -712,7 +721,7 @@ public:
       @param qe the QoreEncoding required
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLLOCAL TempEncodingHelper(const QoreString *s, const QoreEncoding *qe, ExceptionSink *xsink) {
+   DLLLOCAL TempEncodingHelper(const QoreString* s, const QoreEncoding* qe, ExceptionSink* xsink) {
       set_intern(s, qe, xsink);
    }
 
@@ -735,7 +744,7 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return 1=OK, 0=an error occurred and a Qore-language exception was raised
    */
-   DLLLOCAL int set(const QoreString *s, const QoreEncoding *qe, ExceptionSink *xsink) {
+   DLLLOCAL int set(const QoreString* s, const QoreEncoding* qe, ExceptionSink* xsink) {
       discard_intern();
 
       set_intern(s, qe, xsink);
@@ -748,10 +757,10 @@ public:
    }
 
    //! returns the string being managed
-   DLLLOCAL const QoreString *operator->(){ return str; };
+   DLLLOCAL const QoreString* operator->(){ return str; };
 
    //! returns the string being managed
-   DLLLOCAL const QoreString *operator*() { return str; };
+   DLLLOCAL const QoreString* operator*() { return str; };
 
    //! returns false if the object is empty (for example, if a Qore-language exception was thrown in the constructor), true if not
    /**
@@ -763,7 +772,7 @@ public:
    /**
       @return a char pointer of the string, the caller owns the pointer returned
    */
-   DLLLOCAL char *giveBuffer() {
+   DLLLOCAL char* giveBuffer() {
       if (!str)
          return 0;
       if (temp)

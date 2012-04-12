@@ -23,8 +23,10 @@
 #include <qore/Qore.h>
 
 #include <qore/DBI.h>
-#include <qore/intern/QoreSignal.h>
 #include <qore/QoreHTTPClient.h>
+
+#include <qore/intern/QoreSignal.h>
+#include <qore/intern/ModuleInfo.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -76,7 +78,7 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    oplist.init();
 
    // init module subsystem
-   MM.init(show_module_errors);
+   QMM.init(show_module_errors);
 
 #ifdef HAVE_SIGNAL_HANDLING
    // init signals
@@ -131,7 +133,7 @@ void qore_cleanup() {
    }
 
    // delete all loadable modules
-   MM.cleanup();
+   QMM.cleanup();
 
    // delete default type values
    delete_qore_types();

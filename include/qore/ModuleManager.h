@@ -69,17 +69,6 @@ typedef void (*qore_module_delete_t)();
 //! signature of the module parse command function
 typedef void (*qore_module_parse_cmd_t)(const QoreString &cmd, ExceptionSink *xsink);
 
-//! list of version numbers in order of importance (i.e. 1.2.3 = 1, 2, 3)
-class version_list_t : public std::vector<int> {
-private:
-   QoreString ver;
-public:
-   DLLLOCAL char set(const char *v);
-   DLLLOCAL const char *getString() const { return ver.getBuffer(); }
-};
-
-class ModuleInfo;
-
 enum mod_op_e { MOD_OP_NONE, MOD_OP_EQ, MOD_OP_GT, 
 		MOD_OP_GE, MOD_OP_LT, MOD_OP_LE };
 
@@ -147,25 +136,8 @@ public:
    */
    DLLEXPORT static QoreStringNode *parseLoadModule(const char *name, QoreProgram *pgm = 0);
 
-   //! creates the ModuleManager object (private)
-   /** private interface; not exported in the library's public API
-    */
+   // not exported in the public API
    DLLLOCAL ModuleManager();
-
-   //! explicit initialization and autoloading (private)
-   /** private interface; not exported in the library's public API
-    */
-   DLLLOCAL static void init(bool se);      
-
-   //! explicit cleanup (private)
-   /** private interface; not exported in the library's public API
-    */
-   DLLLOCAL static void cleanup();
-
-   //! explicit cleanup (private)
-   /** private interface; not exported in the library's public API
-    */
-   DLLLOCAL static void issue_parse_cmd(const char *mname, QoreProgram *pgm, QoreString &cmd);
 };
 
 //! the global ModuleManager object

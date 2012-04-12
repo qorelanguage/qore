@@ -34,6 +34,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/ModuleInfo.h>
 
 #include "parser.h"
 
@@ -682,7 +683,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 						 if (!str.strlen())
 						    parse_error("%%module-cmd not in format %%module-cmd(<module-name>) <command>; missing command; text given: '%%module-cmd %s'", str.getBuffer());
 						 else {
-						    ModuleManager::issue_parse_cmd(module.getBuffer(), 0, str);
+						    QMM.issueParseCmd(module.getBuffer(), 0, str);
 						 }
 					      }
 					   }

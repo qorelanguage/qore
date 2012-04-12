@@ -71,9 +71,10 @@ static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 12}, {0, 11}, {
 const qore_mod_api_compat_s *qore_mod_api_list = qore_mod_api_list_l;
 const unsigned qore_mod_api_list_len = QORE_MOD_API_LEN;
 
+QoreModuleManager QMM;
 ModuleManager MM;
 
-typedef std::map<const char *, ModuleInfo *, ltstr> module_map_t;
+typedef std::map<const char*, QoreAbstractModule*, ltstr> module_map_t;
 static module_map_t map;
 
 static bool show_errors = false;
@@ -81,7 +82,7 @@ static QoreThreadLock mutex;
 
 typedef std::deque<std::string> strdeque_t;
 
-static QoreStringNode *qore_load_module_from_path(const char *path, const char *feature = 0, ModuleInfo **mip = 0, QoreProgram *pgm = 0);
+static QoreStringNode *qore_load_module_from_path(const char *path, const char *feature = 0, QoreAbstractModule **mip = 0, QoreProgram *pgm = 0);
 static QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgram *pgm, mod_op_e op = MOD_OP_NONE, version_list_t *version = 0);
 
 void QoreModuleContext::error(const char* fmt, ...) {
@@ -159,94 +160,39 @@ void DirectoryList::addDirList(const char *str) {
       push_back(str);
 }
 
-ModuleInfo::ModuleInfo(const char *fn, const char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const char *d, const char *v, const char *a, const char *u, const void *p) 
-   : filename(fn), name(n), desc(d), version(v), author(a), url(u), api_major(major), api_minor(minor),
-     module_init(init), module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), dlptr(p) {
-   version_list.set(version);
+static void add_prefix(QoreStringNode* err, const char* name) {
+   // add "error loading module 'module-name': " to beginning of the string
+   err->prepend("': ");
+   err->prepend(name);
+   err->prepend("error loading module '");
 }
 
-/*
-// builtin module info node - when modules are compiled into the library
-ModuleInfo::ModuleInfo(const char *fn, qore_module_delete_t del) {
-   filename = "<builtin>";
-   name = fn;
-   api_major = QORE_MODULE_API_MAJOR;
-   api_minor = QORE_MODULE_API_MINOR;
-   module_init = 0;
-   module_ns_init = 0;
-   module_delete = del;
-   module_parse_cmd = 0;
-   version = desc = author = url = "<builtin>";
-   dlptr = 0;
-}
-*/
+QoreStringNode* QoreBuiltinModule::addToProgram(QoreProgram* pgm) const {
+   QoreModuleContextHelper qmc(qore_root_ns_private::get(*(pgm->getRootNS())));
 
-ModuleInfo::~ModuleInfo() {
-   printd(5, "ModuleInfo::~ModuleInfo() '%s': %s calling module_delete=%08p\n", name, filename.c_str(), module_delete);
-   module_delete();
-   if (dlptr) {
-      printd(5, "calling dlclose(%08p)\n", dlptr);
-#ifndef DEBUG
-      // do not close modules when debugging
-      dlclose((void *)dlptr);
-#endif
-   }
-}
+   RootQoreNamespace *rns = pgm->getRootNS();
+   QoreNamespace *qns = pgm->getQoreNS();
 
-const char *ModuleInfo::getName() const {
-   return name;
-}
-
-const char *ModuleInfo::getFileName() const {
-   return filename.c_str();
-}
-
-const char *ModuleInfo::getDesc() const {
-   return desc;
-}
-
-const char *ModuleInfo::getVersion() const {
-   return version;
-}
-
-const char *ModuleInfo::getURL() const {
-   return url;
-}
-
-int ModuleInfo::getAPIMajor() const {
-   return api_major;
-}
-
-int ModuleInfo::getAPIMinor() const {
-   return api_minor;
-}
-
-void ModuleInfo::ns_init(QoreNamespace *rns, QoreNamespace *qns) const {
    module_ns_init(rns, qns);
-   qore_root_ns_private::runtimeModuleRebuildIndexes(*((RootQoreNamespace*)rns));
+
+   QoreStringNode* err = qmc.takeError();
+   if (err) {
+      // rollback all module changes
+      qmc.rollback();
+      add_prefix(err, name.getBuffer());
+      return err;
+   }
+
+   // commit all module changes
+   qmc.commit();
+   pgm->addFeature(name.getBuffer());
+
+   return 0;
 }
 
-bool ModuleInfo::isBuiltin() const {
-   return !dlptr;
-}
-
-QoreHashNode *ModuleInfo::getHash() const {
-   QoreHashNode *h = new QoreHashNode();
-   h->setKeyValue("filename", new QoreStringNode(filename), 0);
-   h->setKeyValue("name", new QoreStringNode(name), 0);
-   h->setKeyValue("desc", new QoreStringNode(desc), 0);
-   h->setKeyValue("version", new QoreStringNode(version), 0);
-   h->setKeyValue("author", new QoreStringNode(author), 0);
-   h->setKeyValue("api_major", new QoreBigIntNode(api_major), 0);
-   h->setKeyValue("api_minor", new QoreBigIntNode(api_minor), 0);
-   if (url)
-      h->setKeyValue("url", new QoreStringNode(url), 0);
-   return h;
-}
-
-void ModuleInfo::issue_parse_cmd(QoreString &cmd) {
+void QoreBuiltinModule::issueParseCmd(QoreString &cmd) {
    if (!module_parse_cmd) {
-      parseException("PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' has not registered a parse command handler", name, filename.c_str());
+      parseException("PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' has not registered a parse command handler", name.getBuffer(), filename.getBuffer());
       return;
    }
 
@@ -258,20 +204,17 @@ void ModuleInfo::issue_parse_cmd(QoreString &cmd) {
    module_parse_cmd(cmd, pxsink);
 }
 
-ModuleManager::ModuleManager() {
-}
-
-static void qore_add_module(ModuleInfo *m) {
+static void qore_add_module(QoreAbstractModule *m) {
    map.insert(std::make_pair(m->getName(), m));
 }
 
-static ModuleInfo *qore_add_module(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, char *d, char *v, char *a, char *u, void *p) {
-   ModuleInfo *m = new ModuleInfo(fn, n, major, minor, init, ns_init, del, pcmd, d, v, a, u, p);
+static QoreAbstractModule *qore_add_module(const char *fn, const char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, char *d, char *v, char *a, char *u, void *p) {
+   QoreAbstractModule* m = new QoreBuiltinModule(fn, n, d, v, a, u, major, minor, init, ns_init, del, pcmd, p);
    qore_add_module(m);
    return m;
 }
 
-ModuleInfo *qore_find_module_unlocked(const char *name) {
+QoreAbstractModule* qore_find_module_unlocked(const char *name) {
    module_map_t::iterator i = map.find(name);
    if (i == map.end())
       return 0;
@@ -279,23 +222,13 @@ ModuleInfo *qore_find_module_unlocked(const char *name) {
    return i->second;
 }
 
-ModuleInfo *qore_find_module(const char *name) {
+QoreAbstractModule* qore_find_module(const char *name) {
    AutoLocker al(&mutex);
    return qore_find_module_unlocked(name);
 }
 
-/*
-void ModuleManager::addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del) {
-   QoreStringNodeHolder str(init());
-   if (str) {
-      fprintf(stderr, "WARNING! cannot initialize builtin feature '%s': %s\n", fn, str->getBuffer());
-      return;
-   }
-   // "num" is not incremented here - only incremented for real modules
-   add(new ModuleInfo(fn, del));
-   ANSL.add(ns_init);
+ModuleManager::ModuleManager() {
 }
-*/
 
 // to add a directory to the module directory search list, can only be called before init()
 void ModuleManager::addModuleDir(const char *dir) {
@@ -349,12 +282,13 @@ static void qore_module_glob_dir(const char *dir) {
       if (!glob(gstr.getBuffer(), 0, 0, &globbuf)) {
 	 for (int i = 0; i < (int)globbuf.gl_pathc; i++) {
 	    char *name = q_basename(globbuf.gl_pathv[i]);
+	    ON_BLOCK_EXIT(free, name);
+
 	    // see if the name has an api in it (if on the generic case)
 	    // and skip it if it does
 	    if (mi == qore_mod_api_list_len && has_extension(name))
 	       continue;
 
-	    ON_BLOCK_EXIT(free, name);
 	    // delete extension from module name for feature matching
 	    unsigned len = strlen(name);
 	    if (len == ext.strlen()) {
@@ -374,7 +308,7 @@ static void qore_module_glob_dir(const char *dir) {
    }
 }
 
-void ModuleManager::init(bool se) {
+void QoreModuleManager::init(bool se) {
    static const char *qt_blacklist_string = "because it was implemented with faulty namespace handling that does not work with newer versions of Qore; use the 'qt4' module based in libsmoke instead; it is much more complete";
 
    // initialize blacklist
@@ -473,17 +407,17 @@ int check_component(mod_op_e op, int mod_ver, int req_ver, bool last) {
    return mod_ver > req_ver ? MVC_FINAL_OK : MVC_FAIL;
 }
 
-static QoreStringNode *check_qore_version(const char *name, mod_op_e op, version_list_t *version) {
-   unsigned max = version->size() > 3 ? version->size() : 3;
+static QoreStringNode *check_qore_version(const char *name, mod_op_e op, version_list_t& version) {
+   unsigned max = version.size() > 3 ? version.size() : 3;
    for (unsigned i = 0; i < max; ++i) {
       int mv = (!i ? QORE_VERSION_MAJOR : 
 		(i == 1 ? QORE_VERSION_MINOR : 
 		 (i == 2 ? QORE_VERSION_SUB : 0)));
-      int rv = (i >= version->size() ? 0 : (*version)[i]);
+      int rv = (i >= version.size() ? 0 : version[i]);
       int res = check_component(op, mv, rv, i == (max - 1));
       if (res == MVC_FAIL) {
 	 QoreStringNode *err = new QoreStringNode;
-	 err->sprintf("feature '%s' is built in, but the following version requirement is not satisfied: Qore library %s %s %s", name, QORE_VERSION, get_op_string(op), version->getString());
+	 err->sprintf("feature '%s' is built in, but the following version requirement is not satisfied: Qore library %s %s %s", name, QORE_VERSION, get_op_string(op), *version);
 	 return err;
       }
       if (res == MVC_FINAL_OK)
@@ -492,16 +426,16 @@ static QoreStringNode *check_qore_version(const char *name, mod_op_e op, version
    return 0;
 }
 
-static QoreStringNode *check_module_version(ModuleInfo *mi, mod_op_e op, version_list_t *version) {
-   unsigned max = version->size() > mi->version_list.size() ? version->size() : mi->version_list.size();
+static QoreStringNode *check_module_version(QoreAbstractModule* mi, mod_op_e op, version_list_t& version) {
+   unsigned max = version.size() > mi->version_list.size() ? version.size() : mi->version_list.size();
    //printd(5, "check_module_version(%s %s %s) max=%d vs=%d ms=%d\n", mi->getVersion(), get_op_string(op), version->getString(), max, version->size(), mi->version_list.size());
    for (unsigned i = 0; i < max; ++i) {
       int mv = (i >= mi->version_list.size() ? 0 : mi->version_list[i]);
-      int rv = (i >= version->size() ? 0 : (*version)[i]);
+      int rv = (i >= version.size() ? 0 : version[i]);
       int res = check_component(op, mv, rv, i == (max - 1));
       if (res == MVC_FAIL) {
 	 QoreStringNode *err = new QoreStringNode;
-	 err->sprintf("loaded module '%s' does not satisfy the following requirement: %s %s %s", mi->getName(), mi->getVersion(), get_op_string(op), version->getString());
+	 err->sprintf("loaded module '%s' does not satisfy the following requirement: %s %s %s", mi->getName(), mi->getVersion(), get_op_string(op), *version);
 	 return err;
       }
       if (res == MVC_FINAL_OK)
@@ -510,38 +444,16 @@ static QoreStringNode *check_module_version(ModuleInfo *mi, mod_op_e op, version
    return 0;
 }
 
-static void add_prefix(QoreStringNode* err, const char* name) {
-   // add "error loading module 'module-name': " to beginning of the string
-   err->prepend("': ");
-   err->prepend(name);
-   err->prepend("error loading module '");
-}
-
-static QoreStringNode* qore_check_load_module_intern(ModuleInfo *mi, mod_op_e op, version_list_t* version, QoreProgram* pgm) {
+static QoreStringNode* qore_check_load_module_intern(QoreAbstractModule *mi, mod_op_e op, version_list_t* version, QoreProgram* pgm) {
    // check version if necessary
    if (version) {
-      QoreStringNode *err = check_module_version(mi, op, version);
+      QoreStringNode *err = check_module_version(mi, op, *version);
       if (err)
 	 return err;
    }
 
-   if (pgm) {
-      QoreModuleContextHelper qmc(qore_root_ns_private::get(*(pgm->getRootNS())));
-
-      mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
-
-      QoreStringNode* err = qmc.takeError();
-      if (err) {
-	 // rollback all module changes
-	 qmc.rollback();
-	 add_prefix(err, mi->getName());
-	 return err;
-      }
-
-      // commit all module changes
-      qmc.commit();
-      pgm->addFeature(mi->getName());
-   }
+   if (pgm)
+      mi->addToProgram(pgm);
    return 0;
 }
 
@@ -551,7 +463,7 @@ static QoreStringNode *qore_load_module_intern(bool parse, const char *name, Qor
    // check for special "qore" feature
    if (!strcmp(name, "qore")) {
       if (version)
-	 return check_qore_version(name, op, version); 
+	 return check_qore_version(name, op, *version); 
       return 0;
    }
 
@@ -559,11 +471,11 @@ static QoreStringNode *qore_load_module_intern(bool parse, const char *name, Qor
    if (pgm && pgm->checkFeature(name)) {
       // check version if necessary
       if (version) {
-	 ModuleInfo *mi = qore_find_module_unlocked(name);
+	 QoreAbstractModule* mi = qore_find_module_unlocked(name);
 	 // if no module is found, then this is a builtin feature
 	 if (!mi)
-	    return check_qore_version(name, op, version);
-	 return check_module_version(mi, op, version);
+	    return check_qore_version(name, op, *version);
+	 return check_module_version(mi, op, *version);
       }
       return 0;
    }
@@ -578,7 +490,7 @@ static QoreStringNode *qore_load_module_intern(bool parse, const char *name, Qor
    }
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
-   ModuleInfo *mi = qore_find_module_unlocked(name);
+   QoreAbstractModule* mi = qore_find_module_unlocked(name);
 
    if (mi)
       return qore_check_load_module_intern(mi, op, version, pgm);
@@ -681,8 +593,8 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
    return qore_load_module_intern(true, name, pgm);
 }
 
-static QoreStringNode *qore_load_module_from_path(const char *path, const char *feature, ModuleInfo **mip, QoreProgram *pgm) {
-   ModuleInfo *mi = 0;
+static QoreStringNode *qore_load_module_from_path(const char *path, const char *feature, QoreAbstractModule **mip, QoreProgram *pgm) {
+   QoreAbstractModule *mi = 0;
    if (mip)
       *mip = 0;
 
@@ -696,7 +608,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
    }
 
    // get module name
-   char *name = (char *)dlsym(ptr, "qore_module_name");
+   const char *name = (const char *)dlsym(ptr, "qore_module_name");
    if (!name) {
       str = new QoreStringNode;
       str->sprintf("module '%s': no feature name present in module", path);
@@ -944,36 +856,35 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
    return 0;
 }
 
-void ModuleManager::cleanup() {
+void QoreModuleManager::cleanup() {
    QORE_TRACE("ModuleManager::cleanup()");
 
    module_map_t::iterator i;
    while ((i = map.begin()) != map.end()) {
-      ModuleInfo *m = i->second;
+      QoreAbstractModule* m = i->second;
       map.erase(i);
       delete m;
    }
 }
 
-void ModuleManager::issue_parse_cmd(const char *mname, QoreProgram *pgm, QoreString &cmd) {
+void QoreModuleManager::issueParseCmd(const char *mname, QoreProgram *pgm, QoreString &cmd) {
    QoreStringNode *err = ModuleManager::parseLoadModule(mname, pgm);
    if (err) {
       parseException("PARSE-COMMAND-ERROR", err);
       return;
    }
    
-   ModuleInfo *mi = qore_find_module(mname);
+   QoreAbstractModule* mi = qore_find_module(mname);
    assert(mi);
 
-   mi->issue_parse_cmd(cmd);
+   mi->issueParseCmd(cmd);
 }
 
 QoreHashNode *ModuleManager::getModuleHash() {
    QoreHashNode *h = new QoreHashNode;
    AutoLocker al(&mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); i++)
-      if (!i->second->isBuiltin())
-	 h->setKeyValue(i->second->getName(), i->second->getHash(), 0);
+      h->setKeyValue(i->second->getName(), i->second->getHash(), 0);
    return h;   
 }
 
@@ -981,13 +892,14 @@ QoreListNode *ModuleManager::getModuleList() {
    QoreListNode *l = new QoreListNode;
    AutoLocker al(&mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); i++)
-      if (!i->second->isBuiltin())
-	 l->push(i->second->getHash());
+      l->push(i->second->getHash());
    return l;
 }
 
 char version_list_t::set(const char *v) {
-   ver.set(v);
+   ver = v;
+
+   // set version list
    ver.trim();
 
    char *a;

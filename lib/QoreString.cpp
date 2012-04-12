@@ -370,6 +370,15 @@ void QoreString::set(const QoreString &str) {
    set(&str);
 }
 
+void QoreString::set(const std::string& str, const QoreEncoding *ne) {
+   priv->len = str.size();
+   priv->charset = ne;
+   allocate(priv->len + 1);
+   // copy string and trailing null
+   memcpy(priv->buf, str.c_str(), priv->len + 1);
+}
+
+
 void QoreString::setEncoding(const QoreEncoding *new_encoding) {
    priv->charset = new_encoding;
 }
@@ -1844,6 +1853,16 @@ void QoreString::concat_reverse(QoreString *str) const {
 }
 
 QoreString &QoreString::operator=(const QoreString &other) {
+   set(other);
+   return *this;
+}
+
+QoreString &QoreString::operator=(const char* other) {
+   set(other);
+   return *this;
+}
+
+QoreString &QoreString::operator=(const std::string& other) {
    set(other);
    return *this;
 }
