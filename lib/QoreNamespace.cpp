@@ -1139,8 +1139,9 @@ Var *qore_root_ns_private::parseAddGlobalVarDefIntern(const NamedScope& vname, Q
       tns = this;
    else {
       QoreNamespace* rns = parseResolveNamespace(vname);
-      if (rns)
-         tns = rns->priv;
+      // if the name cannot be resolved, then the above function raises a parse exception
+      // and we use the root namespace
+      tns = rns ? rns->priv : this;
    }
 
    Var* v = tns->var_list.parseFindCreateVar(vname.getIdentifier(), typeInfo, new_var);

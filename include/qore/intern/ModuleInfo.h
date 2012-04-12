@@ -25,6 +25,8 @@
 
 #define _QORE_MODULEINFO_H
 
+#include <dlfcn.h>
+
 #include <string>
 #include <map>
 
