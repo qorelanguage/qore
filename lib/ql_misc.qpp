@@ -1823,6 +1823,8 @@ nothing strtoint() [flags=RUNTIME_NOOP] {
 load_module("mysql");
     @endcode
 
+    @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
+
     @see getModuleHash(), getFeatureList()
 
     @since %Qore 0.8.4 this function is not available when @ref Qore::PO_NO_BINARY_MODULES is set
