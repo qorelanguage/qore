@@ -63,6 +63,7 @@ void ParseOptionMap::static_init() {
    DO_MAP("no-locale-control",        PO_NO_LOCALE_CONTROL);
    DO_MAP("no-io",                    PO_NO_IO);
    DO_MAP("no-binary-modules",        PO_NO_BINARY_MODULES);
+   DO_MAP("no-user-modules",          PO_NO_USER_MODULES);
    DO_MAP("lockdown",                 PO_LOCKDOWN);   
 }
 

@@ -58,11 +58,9 @@ extern "C" {
 #include <vector>
 #include <set>
 
-typedef std::map<const char *, const char *, ltstr> bl_map_t;
-
-static bl_map_t mod_blacklist;
-
 #define AUTO_MODULE_DIR MODULE_DIR "/auto"
+
+#define PO_MASK (PO_NO_BINARY_MODULES | PO_NO_USER_MODULES)
 
 static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 12}, {0, 11}, {0, 10}, {0, 9}, {0, 8}, {0, 7}, {0, 6}, {0, 5} };
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
@@ -74,16 +72,9 @@ const unsigned qore_mod_api_list_len = QORE_MOD_API_LEN;
 QoreModuleManager QMM;
 ModuleManager MM;
 
-typedef std::map<const char*, QoreAbstractModule*, ltstr> module_map_t;
-static module_map_t map;
-
 static bool show_errors = false;
-static QoreThreadLock mutex;
 
 typedef std::deque<std::string> strdeque_t;
-
-static QoreStringNode *qore_load_module_from_path(const char *path, const char *feature = 0, QoreAbstractModule **mip = 0, QoreProgram *pgm = 0);
-static QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgram *pgm, mod_op_e op = MOD_OP_NONE, version_list_t *version = 0);
 
 void QoreModuleContext::error(const char* fmt, ...) {
    va_list args;
@@ -204,27 +195,16 @@ void QoreBuiltinModule::issueParseCmd(QoreString &cmd) {
    module_parse_cmd(cmd, pxsink);
 }
 
+/*
 static void qore_add_module(QoreAbstractModule *m) {
    map.insert(std::make_pair(m->getName(), m));
 }
+*/
 
 static QoreAbstractModule *qore_add_module(const char *fn, const char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, char *d, char *v, char *a, char *u, void *p) {
    QoreAbstractModule* m = new QoreBuiltinModule(fn, n, d, v, a, u, major, minor, init, ns_init, del, pcmd, p);
-   qore_add_module(m);
+   QMM.addModule(m);
    return m;
-}
-
-QoreAbstractModule* qore_find_module_unlocked(const char *name) {
-   module_map_t::iterator i = map.find(name);
-   if (i == map.end())
-      return 0;
-
-   return i->second;
-}
-
-QoreAbstractModule* qore_find_module(const char *name) {
-   AutoLocker al(&mutex);
-   return qore_find_module_unlocked(name);
 }
 
 ModuleManager::ModuleManager() {
@@ -262,7 +242,7 @@ static bool has_extension(const char *name) {
    return isdigit(*(p + 1));
 }
 
-static void qore_module_glob_dir(const char *dir) {
+void QoreModuleManager::globDir(const char *dir) {
    // first check modules with extensions indicating compatible apis
    for (unsigned mi = 0; mi <= qore_mod_api_list_len; ++mi) {
       QoreString gstr(dir);
@@ -270,8 +250,7 @@ static void qore_module_glob_dir(const char *dir) {
 
       // make new string for glob
       if (mi < qore_mod_api_list_len)
-	 ext.sprintf("-api-%d.%d.qmod", qore_mod_api_list[mi].major,
-	             qore_mod_api_list[mi].minor);
+	 ext.sprintf("-api-%d.%d.qmod", qore_mod_api_list[mi].major, qore_mod_api_list[mi].minor);
       else
 	 ext.concat(".qmod");
 
@@ -292,18 +271,18 @@ static void qore_module_glob_dir(const char *dir) {
 	    // delete extension from module name for feature matching
 	    unsigned len = strlen(name);
 	    if (len == ext.strlen()) {
-	       printd(5, "qore_module_glob_dir() %s has no name, just an extension\n", name);
+	       printd(5, "QoreModuleManager::globDir() %s has no name, just an extension\n", name);
 	       continue;
 	    }
 	    name[len - ext.strlen()] = '\0';
-	    printd(5, "qore_module_glob_dir() found %s (%s)\n", globbuf.gl_pathv[i], name);
-	    QoreStringNodeHolder errstr(qore_load_module_from_path(globbuf.gl_pathv[i], name));
+	    printd(5, "QoreModuleManager::globDir() found %s (%s)\n", globbuf.gl_pathv[i], name);
+	    QoreStringNodeHolder errstr(loadBinaryModuleFromPath(globbuf.gl_pathv[i], name));
 	    if (errstr && show_errors)
 	       fprintf(stderr, "error loading %s\n", errstr->getBuffer());
 	 }
       }
       else
-	 printd(5, "qore_module_glob_dir(): glob(%s) returned an error: %s\n", gstr.getBuffer(), strerror(errno));
+	 printd(5, "QoreModuleManager::globDir(): glob(%s) returned an error: %s\n", gstr.getBuffer(), strerror(errno));
       globfree(&globbuf);
    }
 }
@@ -350,24 +329,22 @@ void QoreModuleManager::init(bool se) {
 
    DirectoryList::iterator w = autoDirList.begin();
    while (w != autoDirList.end()) {
-      qore_module_glob_dir((*w).c_str());
+      globDir((*w).c_str());
       ++w;
    }
 }
 
-static QoreStringNode *qore_parse_load_module_intern(const char *name, QoreProgram *pgm) {
-   SafeLocker sl(&mutex); // make sure checking and loading are atomic
-
-   return qore_load_module_intern(true, name, pgm);
+int ModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink) {
+   return QMM.runTimeLoadModule(name, xsink);
 }
 
-int ModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink) {
+int QoreModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink) {
    QoreProgram *pgm = getProgram();
 
    // grab the parse lock
    SafeLocker sl(pgm->getParseLock());
 
-   QoreStringNode *err = qore_parse_load_module_intern(name, pgm);
+   QoreStringNode *err = parseLoadModuleIntern(name, pgm);
    sl.unlock();
    if (err) {
       xsink->raiseException("LOAD-MODULE-ERROR", err);
@@ -444,7 +421,24 @@ static QoreStringNode *check_module_version(QoreAbstractModule* mi, mod_op_e op,
    return 0;
 }
 
-static QoreStringNode* qore_check_load_module_intern(QoreAbstractModule *mi, mod_op_e op, version_list_t* version, QoreProgram* pgm) {
+static QoreStringNode* qore_check_load_module_intern(QoreAbstractModule *mi, mod_op_e op, version_list_t* version, QoreProgram* pgm, int64 po) {
+   // first check if module can be loaded into the current program object
+   if (po) {
+      if (mi->isBuiltin()) {
+	 if (po & PO_NO_BINARY_MODULES) {
+	    QoreStringNode* err = new QoreStringNode;
+	    err->sprintf("cannot load binary module '%s' while PO_NO_BINARY_MODULES is set", mi->getName());
+	    return err;
+	 }
+      }
+      else 
+	 if (po & PO_NO_USER_MODULES) {
+	    QoreStringNode* err = new QoreStringNode;
+	    err->sprintf("cannot load user module '%s' while PO_NO_USER_MODULES is set", mi->getName());
+	    return err;
+	 }
+   }
+
    // check version if necessary
    if (version) {
       QoreStringNode *err = check_module_version(mi, op, *version);
@@ -454,10 +448,11 @@ static QoreStringNode* qore_check_load_module_intern(QoreAbstractModule *mi, mod
 
    if (pgm)
       mi->addToProgram(pgm);
+
    return 0;
 }
 
-static QoreStringNode *qore_load_module_intern(bool parse, const char *name, QoreProgram *pgm, mod_op_e op, version_list_t *version) {
+QoreStringNode* QoreModuleManager::loadModuleIntern(const char *name, QoreProgram *pgm, mod_op_e op, version_list_t *version) {
    assert(!version || (version && op != MOD_OP_NONE));
 
    // check for special "qore" feature
@@ -471,7 +466,7 @@ static QoreStringNode *qore_load_module_intern(bool parse, const char *name, Qor
    if (pgm && pgm->checkFeature(name)) {
       // check version if necessary
       if (version) {
-	 QoreAbstractModule* mi = qore_find_module_unlocked(name);
+	 QoreAbstractModule* mi = findModuleUnlocked(name);
 	 // if no module is found, then this is a builtin feature
 	 if (!mi)
 	    return check_qore_version(name, op, *version);
@@ -480,29 +475,29 @@ static QoreStringNode *qore_load_module_intern(bool parse, const char *name, Qor
       return 0;
    }
 
-   if (parse && pgm) {
-      // check if PO_NO_BINARY_MODULES is set
-      if (pgm->getParseOptions64() & PO_NO_BINARY_MODULES) {
-	 QoreStringNode* err = new QoreStringNode;
-	 err->sprintf("cannot load module '%s' while PO_NO_BINARY_MODULES is set", name);
-	 return err;
-      }
+   // check if parse options allow loading any modules at all
+   int64 po = pgm ? (pgm->getParseOptions64() & PO_MASK) : 0;
+   if (po == PO_MASK) {
+      QoreStringNode* err = new QoreStringNode;
+      err->sprintf("cannot load any modules ('%s' requested) into the current Program object because both PO_NO_USER_MODULES and PO_NO_BINARY_MODULES are set", name);
+      return err;
    }
+   
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
-   QoreAbstractModule* mi = qore_find_module_unlocked(name);
+   QoreAbstractModule* mi = findModuleUnlocked(name);
 
    if (mi)
-      return qore_check_load_module_intern(mi, op, version, pgm);
+      return qore_check_load_module_intern(mi, op, version, pgm, po);
 
    QoreStringNode *errstr;
 
    // see if this is actually a path
    if (strchr(name, QORE_DIR_SEP)) {
-      if ((errstr = qore_load_module_from_path(name, 0, &mi, pgm)))
+      if ((errstr = loadBinaryModuleFromPath(name, 0, &mi, pgm)))
 	 return errstr;
 
-      return qore_check_load_module_intern(mi, op, version, pgm);
+      return qore_check_load_module_intern(mi, op, version, pgm, po);
    }
 
    // otherwise, try to find module in the module path
@@ -516,30 +511,42 @@ static QoreStringNode *qore_load_module_intern(bool parse, const char *name, Qor
 	 str.clear();
 	 str.sprintf("%s" QORE_DIR_SEP_STR "%s", (*w).c_str(), name);
 
-	 // make new extension string
-	 if (ai < qore_mod_api_list_len)
-	    str.sprintf("-api-%d.%d.qmod", qore_mod_api_list[ai].major, qore_mod_api_list[ai].minor);
-	 else
-	    str.concat(".qmod");
-
-	 //printd(0, "ModuleManager::loadModule(%s) trying %s\n", name, str.getBuffer());
-	 if (!stat(str.getBuffer(), &sb)) {
-	    printd(5, "ModuleManager::loadModule(%s) found %s\n", name, str.getBuffer());
-	    if ((errstr = qore_load_module_from_path(str.getBuffer(), name, &mi, pgm)))
-	       return errstr;
-
-	    return qore_check_load_module_intern(mi, op, version, pgm);
+	 if (!(po & PO_NO_BINARY_MODULES)) {
+	    // make new extension string
+	    if (ai < qore_mod_api_list_len)
+	       str.sprintf("-api-%d.%d.qmod", qore_mod_api_list[ai].major, qore_mod_api_list[ai].minor);
+	    else
+	       str.concat(".qmod");
+	    
+	    //printd(0, "ModuleManager::loadModule(%s) trying %s\n", name, str.getBuffer());
+	    if (!stat(str.getBuffer(), &sb)) {
+	       printd(5, "ModuleManager::loadModule(%s) found %s\n", name, str.getBuffer());
+	       if ((errstr = loadBinaryModuleFromPath(str.getBuffer(), name, &mi, pgm)))
+		  return errstr;
+	    }
 	 }
+
+	 if (!mi && !(po & PO_NO_USER_MODULES)) {
+	    // xxx try to load user module here
+	 }
+
+	 if (mi)
+	    return qore_check_load_module_intern(mi, op, version, pgm, po);
       }
       w++;
    }
    
    errstr = new QoreStringNode;
-   errstr->sprintf("feature '%s' is not builtin and no module with this name could be found in the module path", name);
+   const char* mt = po ? (po & PO_NO_BINARY_MODULES ? "user " : "binary ") : 0;
+   errstr->sprintf("feature '%s' is not builtin and no %smodule with this name could be found in the module path", name, mt);
    return errstr;
 }
 
 QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pgm) {
+   return QMM.parseLoadModule(name, pgm);
+}
+
+QoreStringNode *QoreModuleManager::parseLoadModule(const char *name, QoreProgram *pgm) {
    //printd(5, "ModuleManager::parseLoadModule(name=%s, pgm=%p)\n", name, pgm);
 
    char *p = strchrs(name, "<>=");
@@ -585,15 +592,15 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
 	 return new QoreStringNode("empty version specification given in feature/module request");
 
       AutoLocker al(&mutex); // make sure checking and loading are atomic
-      return qore_load_module_intern(true, str.getBuffer(), pgm, mo, &iv);
+      return loadModuleIntern(str.getBuffer(), pgm, mo, &iv);
    }
 
    AutoLocker sl(&mutex); // make sure checking and loading are atomic
-
-   return qore_load_module_intern(true, name, pgm);
+   return loadModuleIntern(name, pgm);
 }
 
-static QoreStringNode *qore_load_module_from_path(const char *path, const char *feature, QoreAbstractModule **mip, QoreProgram *pgm) {
+
+QoreStringNode *QoreModuleManager::loadBinaryModuleFromPath(const char *path, const char *feature, QoreAbstractModule **mip, QoreProgram *pgm) {
    QoreAbstractModule *mi = 0;
    if (mip)
       *mip = 0;
@@ -622,16 +629,16 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': provides feature '%s', expecting feature '%s', skipping, rename module to %s.qmod to load", path, name, feature, name);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
    // see if a module with this name is already registered
-   if ((mi = qore_find_module_unlocked(name))) {
+   if ((mi = findModuleUnlocked(name))) {
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s' already registered by '%s'", path, name, mi->getFileName());
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -641,7 +648,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': '%s' is blacklisted %s", path, name, i->second);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -651,7 +658,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s': no qore module API major number", path, name);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -661,7 +668,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s': no qore module API minor number", path, name);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -695,7 +702,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       }
 
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -705,7 +712,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s': missing qore_module_license symbol", path, name);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -714,7 +721,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode();
       str->sprintf("module '%s': feature '%s': invalid qore_module_license symbol (%d)", path, name, license);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -722,7 +729,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s': qore library initialized with LGPL license, but module requires GPL", path, name);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -732,7 +739,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s': claims API major=%d, %d required", path, name, *api_major, QORE_MODULE_API_MAJOR);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -742,7 +749,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s': missing namespace init method", path, name);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -752,7 +759,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s': missing delete method", path, name);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -765,7 +772,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s': missing description", path, name);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -775,7 +782,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s': missing version", path, name);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -785,7 +792,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s': missing author", path, name);
       dlclose(ptr);
-      printd(5, "qore_load_module_from_path() error: %s\n", str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
 
@@ -798,7 +805,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       //printd(5, "dep_list=%08p (0=%s)\n", dep_list, dep);
       for (int j = 0; dep; dep = dep_list[++j]) {
 	 //printd(5, "loading module dependency=%s\n", dep);
-	 str = qore_load_module_intern(false, dep, pgm);
+	 str = loadModuleIntern(dep, pgm);
 	 if (str) {
 	    str->replace(0, 0, "': ");
 	    str->replace(0, 0, dep);
@@ -810,7 +817,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       }
    }
 
-   printd(5, "qore_load_module_from_path(%s) %s: calling module_init@%08p\n", path, name, *module_init);
+   printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%08p\n", path, name, *module_init);
 
    QoreModuleContextHelper qmc(qore_root_ns_private::get(pgm ? *(pgm->getRootNS()) : staticSystemNamespace));
    str = (*module_init)();
@@ -837,7 +844,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
 
    // run initialization
    if (str) {
-      printd(5, "qore_load_module_from_path(%s): '%s': qore_module_init returned error: %s", path, name, str->getBuffer());
+      printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s): '%s': qore_module_init returned error: %s", path, name, str->getBuffer());
       QoreString edesc;
       edesc.sprintf("module '%s': feature '%s': ", path, name);
       dlclose(ptr);
@@ -850,7 +857,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
    // add to auto namespace list
    ANSL.add(*module_ns_init);
    qoreFeatureList.push_back(name);
-   printd(5, "qore_load_module_from_path(%s) registered '%s'\n", path, name);
+   printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) registered '%s'\n", path, name);
    if (mip)
       *mip = mi;
    return 0;
@@ -874,13 +881,17 @@ void QoreModuleManager::issueParseCmd(const char *mname, QoreProgram *pgm, QoreS
       return;
    }
    
-   QoreAbstractModule* mi = qore_find_module(mname);
+   QoreAbstractModule* mi = findModule(mname);
    assert(mi);
 
    mi->issueParseCmd(cmd);
 }
 
 QoreHashNode *ModuleManager::getModuleHash() {
+   return QMM.getModuleHash();
+}
+
+QoreHashNode *QoreModuleManager::getModuleHash() {
    QoreHashNode *h = new QoreHashNode;
    AutoLocker al(&mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); i++)
@@ -889,6 +900,10 @@ QoreHashNode *ModuleManager::getModuleHash() {
 }
 
 QoreListNode *ModuleManager::getModuleList() {
+   return QMM.getModuleList();
+}
+
+QoreListNode *QoreModuleManager::getModuleList() {
    QoreListNode *l = new QoreListNode;
    AutoLocker al(&mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); i++)

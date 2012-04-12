@@ -589,6 +589,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%no-gui{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_GUI);
 ^%no-terminal-io{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO);
 ^%no-binary-modules{WS}*$               getProgram()->parseSetParseOptions(PO_NO_BINARY_MODULES);
+^%no-user-modules{WS}*$                 getProgram()->parseSetParseOptions(PO_NO_USER_MODULES);
 ^%require-our{WS}*$                     getProgram()->parseSetParseOptions(PO_REQUIRE_OUR);
 ^%require-types{WS}*$                   getProgram()->parseSetParseOptions(PO_REQUIRE_TYPES);
 ^%require-prototypes{WS}*$              getProgram()->parseSetParseOptions(PO_REQUIRE_PROTOTYPES);

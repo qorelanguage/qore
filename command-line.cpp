@@ -216,7 +216,7 @@ static void show_latest_module_api(const char *arg) {
 static void set_parse_option(const char *arg) {
    int code = ParseOptionMap::find_code(arg);
    if (code == -1) {
-      fprintf(stderr, "unknown parse option '%s', use -L or --list-parse-options\n", arg);
+      fprintf(stderr, "unknown parse option '%s', use -o or --list-parse-options\n", arg);
       exit(1);
    }
    parse_options |= code;
