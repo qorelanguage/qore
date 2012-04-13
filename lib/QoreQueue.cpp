@@ -247,17 +247,33 @@ AbstractQoreNode *QoreQueue::pop(ExceptionSink *xsink, int timeout_ms, bool *to)
    return rv;
 }
 
+void QoreQueue::clear(ExceptionSink* xsink) {
+   AutoLocker al(&l);
+   if (waiting) {
+      // the queue must be empty
+      assert(!head);
+      return;
+   }
+
+   while (head) {
+      printd(5, "QoreQueue::clear() this: %p deleting %p (node %p type %s)\n", this, head, head->node, get_node_type(head->node));
+      QoreQueueNode *w = head->next;
+      head->del(xsink);
+      head = w;
+   }
+   head = 0;
+   tail = 0;
+}
+
 void QoreQueue::destructor(ExceptionSink *xsink) {
    AutoLocker al(&l);
    if (waiting) {
-      xsink->raiseException("QUEUE-ERROR", "Queue deleted while there %s %d waiting thread%s",
-                            waiting == 1 ? "is" : "are", waiting, waiting == 1 ? "" : "s");
+      xsink->raiseException("QUEUE-ERROR", "Queue deleted while there %s %d waiting thread%s", waiting == 1 ? "is" : "are", waiting, waiting == 1 ? "" : "s");
       cond.broadcast();
    }
 
    while (head) {
-      printd(5, "QoreQueue::~QoreQueue() this=%p deleting %p (node %p type %s)\n", this,
-	     head, head->node, head->node ? head->node->getTypeName() : "(null)");
+      printd(5, "QoreQueue::~QoreQueue() this=%p deleting %p (node %p type %s)\n", this, head, head->node, get_node_type(head->node));
       QoreQueueNode *w = head->next;
       head->del(xsink);
       head = w;

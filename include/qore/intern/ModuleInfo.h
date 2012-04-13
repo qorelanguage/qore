@@ -151,6 +151,7 @@ protected:
    DLLLOCAL void globDir(const char* dir);
 
    DLLLOCAL QoreStringNode* loadBinaryModuleFromPath(const char* path, const char* feature = 0, QoreAbstractModule** mip = 0, QoreProgram* pgm = 0);
+   DLLLOCAL QoreStringNode* loadUserModuleFromPath(const char* path, const char* feature = 0, QoreAbstractModule** mip = 0, QoreProgram* pgm = 0);
 
 public:
    DLLLOCAL QoreModuleManager() {

@@ -29,53 +29,54 @@
 #include <qore/QoreCondition.h>
 
 class QoreQueueNode {
-   public:
-      AbstractQoreNode *node;
-      QoreQueueNode *next;
-      QoreQueueNode *prev;
+public:
+   AbstractQoreNode *node;
+   QoreQueueNode *next;
+   QoreQueueNode *prev;
 
-      DLLLOCAL QoreQueueNode(AbstractQoreNode *n);
-      DLLLOCAL void del(ExceptionSink *xsink);
+   DLLLOCAL QoreQueueNode(AbstractQoreNode *n);
+   DLLLOCAL void del(ExceptionSink *xsink);
 };
 
 class QoreQueue {
-   private:
-      enum queue_status_e { Queue_Deleted = -1 };
+private:
+   enum queue_status_e { Queue_Deleted = -1 };
 
-      mutable QoreThreadLock l;
-      QoreCondition cond;
-      QoreQueueNode *head, *tail;
-      int len;
-      int waiting;
+   mutable QoreThreadLock l;
+   QoreCondition cond;
+   QoreQueueNode *head, *tail;
+   int len;
+   int waiting;
 
-      DLLLOCAL void push_internal(AbstractQoreNode *v);
-      DLLLOCAL void insert_internal(AbstractQoreNode *v);
+   DLLLOCAL void push_internal(AbstractQoreNode *v);
+   DLLLOCAL void insert_internal(AbstractQoreNode *v);
 
-   public:
-      DLLLOCAL QoreQueue();
-      DLLLOCAL QoreQueue(const QoreQueue &orig);
-      DLLLOCAL ~QoreQueue();
+public:
+   DLLLOCAL QoreQueue();
+   DLLLOCAL QoreQueue(const QoreQueue &orig);
+   DLLLOCAL ~QoreQueue();
 
-      // push at the end of the queue and take the reference
-      DLLLOCAL void push_and_take_ref(AbstractQoreNode *n);
+   // push at the end of the queue and take the reference
+   DLLLOCAL void push_and_take_ref(AbstractQoreNode *n);
 
-      // push at the end of the queue
-      DLLLOCAL void push(const AbstractQoreNode *n);
+   // push at the end of the queue
+   DLLLOCAL void push(const AbstractQoreNode *n);
 
-      // insert at the beginning of the queue and take the reference
-      DLLLOCAL void insert_and_take_ref(AbstractQoreNode *n);
+   // insert at the beginning of the queue and take the reference
+   DLLLOCAL void insert_and_take_ref(AbstractQoreNode *n);
 
-      // insert at the beginning of the queue
-      DLLLOCAL void insert(const AbstractQoreNode *n);
-      DLLLOCAL AbstractQoreNode *shift(ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
-      DLLLOCAL AbstractQoreNode *pop(ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
-      DLLLOCAL int size() const {
-	 return len;
-      }
-      DLLLOCAL int getWaiting() const {
-	 return waiting;
-      }
-      DLLLOCAL void destructor(ExceptionSink *xsink);
+   // insert at the beginning of the queue
+   DLLLOCAL void insert(const AbstractQoreNode *n);
+   DLLLOCAL AbstractQoreNode *shift(ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
+   DLLLOCAL AbstractQoreNode *pop(ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
+   DLLLOCAL int size() const {
+      return len;
+   }
+   DLLLOCAL int getWaiting() const {
+      return waiting;
+   }
+   DLLLOCAL void clear(ExceptionSink* xsink);
+   DLLLOCAL void destructor(ExceptionSink *xsink);
 };
 
 #endif // _QORE_QOREQUEUE_H

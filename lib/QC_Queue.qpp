@@ -131,6 +131,16 @@ any Queue::pop(timeout timeout_ms = 0) {
    return rv;
 }
 
+//! Clears the Queue of all data
+/** @par Example:
+    <code>$queue.clear();</code>
+
+    @note This method does not throw any exceptions, but exceptions could be thrown by in destructors of objects that go out of scope by being removed from the Queue
+ */
+nothing Queue::clear() {
+   q->clear(xsink);
+}
+
 //! Returns the number of elements in the queue
 /** @par Example:
     <code>my int $size = $queue.size();</code>

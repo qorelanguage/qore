@@ -508,28 +508,39 @@ QoreStringNode* QoreModuleManager::loadModuleIntern(const char *name, QoreProgra
    while (w != moduleDirList.end()) {
       // try to find module with supported api tags
       for (unsigned ai = 0; ai <= qore_mod_api_list_len; ++ai) {
-	 str.clear();
-	 str.sprintf("%s" QORE_DIR_SEP_STR "%s", (*w).c_str(), name);
-
 	 if (!(po & PO_NO_BINARY_MODULES)) {
+	    // build path to binary module
+	    str.clear();
+	    str.sprintf("%s" QORE_DIR_SEP_STR "%s", (*w).c_str(), name);
+
 	    // make new extension string
 	    if (ai < qore_mod_api_list_len)
 	       str.sprintf("-api-%d.%d.qmod", qore_mod_api_list[ai].major, qore_mod_api_list[ai].minor);
 	    else
 	       str.concat(".qmod");
 	    
-	    //printd(0, "ModuleManager::loadModule(%s) trying %s\n", name, str.getBuffer());
+	    //printd(0, "ModuleManager::loadModule(%s) trying binary module: %s\n", name, str.getBuffer());
 	    if (!stat(str.getBuffer(), &sb)) {
-	       printd(5, "ModuleManager::loadModule(%s) found %s\n", name, str.getBuffer());
+	       printd(5, "ModuleManager::loadModule(%s) found binary module: %s\n", name, str.getBuffer());
 	       if ((errstr = loadBinaryModuleFromPath(str.getBuffer(), name, &mi, pgm)))
 		  return errstr;
 	    }
 	 }
 
+/*
 	 if (!mi && !(po & PO_NO_USER_MODULES)) {
-	    // xxx try to load user module here
-	 }
+	    // build path to user module
+	    str.clear();
+	    str.sprintf("%s" QORE_DIR_SEP_STR "%s.qm", (*w).c_str(), name);
 
+	    //printd(0, "ModuleManager::loadModule(%s) trying user module: %s\n", name, str.getBuffer());
+	    if (!stat(str.getBuffer(), &sb)) {
+	       printd(0, "ModuleManager::loadModule(%s) found user module: %s\n", name, str.getBuffer());
+	       if ((errstr = loadUserModuleFromPath(str.getBuffer(), name, &mi, pgm)))
+		  return errstr;
+	    }
+	 }
+*/
 	 if (mi)
 	    return qore_check_load_module_intern(mi, op, version, pgm, po);
       }

@@ -369,7 +369,28 @@ nothing sleep() [flags=RUNTIME_NOOP;dom=PROCESS] {
 }
 
 //! Causes the current thread to sleep for a certain number of microseconds
-/** @param usecs The amount of time in microseconds to sleep; integer arguments are interpreted literally as a number of microseconds to sleep, however a @ref relative_dates "relative date/time value" can be given instead of an integer to make the source more readable (ex: \c 250ms)
+/** @param usecs The amount of time in microseconds to sleep; integer arguments are interpreted literally as a number of microseconds to sleep
+
+    @return should always return 0 for success
+
+    @par Example:
+    @code
+usleep(5000);
+    @endcode
+
+    @see sleep() for a similar function supporting second resolution
+
+    @note both sleep() and usleep() are implemented internally by calls to nanosleep() (2) of available on the current platform, otherwise both are implemented by calls to usleep() (3)
+ */
+int usleep(softint usecs) [dom=PROCESS] {
+   if (!usecs)
+      return 0;
+
+   return qore_usleep(usecs);
+}
+
+//! Causes the current thread to sleep for a certain number of microseconds
+/** @param d A time value giving the amount of time in microseconds to sleep; this should be a @ref relative_dates "relative date/time value" to make the source more readable (ex: \c 250ms)
 
     @return should always return 0 for success
 
@@ -382,11 +403,8 @@ usleep(250ms);
 
     @note both sleep() and usleep() are implemented internally by calls to nanosleep() (2) of available on the current platform, otherwise both are implemented by calls to usleep() (3)
  */
-int usleep(softint usecs) [dom=PROCESS] {
-   if (!usecs)
-      return 0;
-
-   return qore_usleep(usecs);
+int usleep(date d) [dom=PROCESS] {
+   return qore_usleep(d->getRelativeMicroseconds());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
