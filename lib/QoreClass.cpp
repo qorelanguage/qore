@@ -3000,7 +3000,7 @@ bool qore_class_private::runtimeCheckPrivateClassAccess() const {
    //printd(5, "runtimeCheckPrivateClassAccess() stack=%p (%s) test=%p (%s) okl=%d okr=%d\n", obj, obj ? obj->getClassName() : 0, testClass, testClass->getName(), obj ? obj->getClass(testClass->getID()) : 0, obj ? testClass->getClass(obj->getClass()->getID()) : 0);
    if (!obj)
       return QTI_NOT_EQUAL;
-   bool priv;
+   bool priv = false;
    return obj->getClass(classID) || (scl && scl->getClass(obj->getClass()->getID(), priv)) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
 
@@ -3008,7 +3008,7 @@ qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_clas
    if (classID == oc.classID)
       return QTI_IDENT;
 
-   bool priv;
+   bool priv = false;
    if (!oc.parseGetClass(classID, priv))
       return QTI_NOT_EQUAL;
 
@@ -3022,7 +3022,7 @@ qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_cl
    if (classID == oc.classID || (oc.name == name && oc.hash == hash))
       return QTI_IDENT;
 
-   bool priv;
+   bool priv = false;
    if (!oc.scl || !oc.scl->getClass(*this, priv))
       return QTI_NOT_EQUAL;
 
