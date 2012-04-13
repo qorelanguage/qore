@@ -1419,50 +1419,52 @@ namespace {
       // set program counter for new thread
       update_pgm_counter_pgm_file(btp->s_line, btp->e_line, btp->file);
 
-      ExceptionSink xsink;
-      AbstractQoreNode *rv;
       {
-	 CodeContextHelper cch(0, btp->getCallObject(), &xsink);
+         ExceptionSink xsink;
+         AbstractQoreNode *rv;
+         {
+            CodeContextHelper cch(0, btp->getCallObject(), &xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-	 // push this call on the thread stack
-	 CallStackHelper csh("background operator", CT_NEWTHREAD, btp->getCallObject(), &xsink);
+            // push this call on the thread stack
+            CallStackHelper csh("background operator", CT_NEWTHREAD, btp->getCallObject(), &xsink);
 #endif
+            
+            // dereference call object if present
+            btp->derefCallObj();
+            
+            // run thread expression
+            rv = btp->exec(&xsink);
+            
+            // if there is an object, we dereference the extra reference here
+            btp->derefObj(&xsink);
+         }
+         
+         // dereference any return value from the background expression
+         if (rv)
+            rv->deref(&xsink);
+         
+         // delete any thread data
+         thread_data.get()->del(&xsink);
+         
+         // cleanup thread resources
+         purge_thread_resources(&xsink);
+         
+         xsink.handleExceptions();
+         
+         printd(4, "thread terminating");
 
-	 // dereference call object if present
-	 btp->derefCallObj();
-
-	 // run thread expression
-	 rv = btp->exec(&xsink);
-
-	 // if there is an object, we dereference the extra reference here
-	 btp->derefObj(&xsink);
+         // delete internal thread data structure
+         delete_thread_data();
+         
+         // deregister_thread
+         deregister_thread(btp->tid);
+         
+         // run any cleanup functions
+         tclist.exec();
+         
+         //printd(5, "deleting thread params %p\n", btp);
+         delete btp;
       }
-
-      // dereference any return value from the background expression
-      if (rv)
-	 rv->deref(&xsink);
-
-      // delete any thread data
-      thread_data.get()->del(&xsink);
-      
-      // cleanup thread resources
-      purge_thread_resources(&xsink);
-      
-      xsink.handleExceptions();
-
-      printd(4, "thread terminating");
-
-      // delete internal thread data structure
-      delete_thread_data();
-
-      // deregister_thread
-      deregister_thread(btp->tid);
-
-      // run any cleanup functions
-      tclist.exec();
-
-      //printd(5, "deleting thread params %p\n", btp);
-      delete btp;
 
       pthread_exit(0);
       return 0;
