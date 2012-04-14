@@ -586,7 +586,10 @@ void qore_class_private::parseCommit() {
 	 member_map_t::iterator i = pending_private_members.begin();  
 	 while (i != pending_private_members.end()) { 
 	    //printd(5, "QoreClass::parseCommit() %s committing private member %p %s\n", name.c_str(), j->first, j->first);
-	    csig.sprintf("priv mem %s %s %s\n", i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+	    if (i->second)
+	       csig.sprintf("priv mem %s %s %s\n", i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+	    else
+	       csig.sprintf("priv mem %s\n", i->first);
 	    private_members[i->first] = i->second;
 	    pending_private_members.erase(i);
 	    i = pending_private_members.begin();
@@ -598,7 +601,10 @@ void qore_class_private::parseCommit() {
 	 member_map_t::iterator i = pending_public_members.begin();  
 	 while (i != pending_public_members.end()) { 
 	    //printd(5, "QoreClass::parseCommit() %s committing public member %p %s\n", name.c_str(), j->first, j->first);
-	    csig.sprintf("pub mem %s %s %s\n", i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+	    if (i->second)
+	       csig.sprintf("pub mem %s %s %s\n", i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+	    else
+	       csig.sprintf("pub mem %s\n", i->first);
 	    public_members[i->first] = i->second;
 	    pending_public_members.erase(i);
 	    i = pending_public_members.begin();
@@ -613,7 +619,10 @@ void qore_class_private::parseCommit() {
 	 var_map_t::iterator i = pending_private_vars.begin();  
 	 while (i != pending_private_vars.end()) { 
 	    //printd(5, "QoreClass::parseCommit() %s committing private var %p %s\n", name.c_str(), l->first, l->first);
-	    csig.sprintf("priv var %s %s %s\n", i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+	    if (i->second)
+	       csig.sprintf("priv var %s %s %s\n", i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+	    else
+	       csig.sprintf("priv var %s\n", i->first);
 	    private_vars[i->first] = i->second;
 	    // initialize variable
 	    initVar(i->first, *(i->second), &xsink);
@@ -628,7 +637,10 @@ void qore_class_private::parseCommit() {
 	 var_map_t::iterator i = pending_public_vars.begin();  
 	 while (i != pending_public_vars.end()) { 
 	    //printd(5, "QoreClass::parseCommit() %s committing public var %p %s\n", name.c_str(), j->first, j->first);
-	    csig.sprintf("pub var %s %s %s\n", i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+	    if (i->second)
+	       csig.sprintf("pub var %s %s %s\n", i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+	    else
+	       csig.sprintf("pub var %s\n", i->first);
 	    public_vars[i->first] = i->second;
 	    // initialize variable
 	    initVar(i->first, *(i->second), &xsink);
