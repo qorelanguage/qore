@@ -1415,6 +1415,9 @@ sub class_test_Program() {
     my object $o2 = $p1.callFunction("getT");
     test_value(1, $p1.callFunction("checkT", $o2), "first cross-Program class");
     test_value(1, $p2.callFunction("checkT", $o2), "second cross-Program class");
+
+    my Program $p3();
+    $p3.parse("class X { private $.a; }", "p");
 }
 
 sub class_test_File() {

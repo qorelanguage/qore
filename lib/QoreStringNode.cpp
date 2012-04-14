@@ -23,7 +23,22 @@
 */
 
 #include <qore/Qore.h>
+
 #include <qore/intern/qore_string_private.h>
+
+#include <stdarg.h>
+
+QoreStringNodeMaker::QoreStringNodeMaker(const char* fmt, ...) {
+   va_list args;
+
+   while (true) {
+      va_start(args, fmt);
+      int rc = vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+}
 
 QoreStringNode::QoreStringNode() : SimpleValueQoreNode(NT_STRING) {
 }

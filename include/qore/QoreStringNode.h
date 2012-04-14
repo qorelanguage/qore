@@ -260,6 +260,18 @@ public:
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
+class QoreStringNodeMaker : public QoreStringNode {
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreStringNodeMaker(const QoreStringNodeMaker& str);
+
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreStringNodeMaker& operator=(const QoreStringNodeMaker&);
+
+public:
+   DLLLOCAL QoreStringNodeMaker(const char* fmt, ...);
+};
+
 extern QoreStringNode *NullString;
 
 //! this class is used to safely manage calls to AbstractQoreNode::getStringRepresentation() when a simple QoreString value is needed, stack only, may not be dynamically allocated

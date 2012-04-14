@@ -78,17 +78,11 @@ const PO_LOCKDOWN = PO_LOCKDOWN;
  */
 const PO_NEW_STYLE = PO_NEW_STYLE;
 
-//! Disallows loading @ref qore_modules "binary modules" with the @ref requires "%requires" directive or at runtime with load_module()
+//! Disallows loading @ref qore_modules "modules" with the @ref requires "%requires" directive or at runtime with load_module()
 /** 
-    @see @ref no-binary-modules "%no-binary-modules"
+    @see @ref no-modules "%no-modules"
 */
-const PO_NO_BINARY_MODULES = PO_NO_BINARY_MODULES;
-
-//! Disallows loading @ref qore_modules "user modules" with the @ref requires "%requires" directive or at runtime with load_module()
-/** 
-    @see @ref no-user-modules "%no-user-modules"
-*/
-const PO_NO_USER_MODULES = PO_NO_USER_MODULES;
+const PO_NO_MODULES = PO_NO_MODULES;
 
 //! Allows child program objects to have fewer parse restrictions (i.e. more capabilies) than the parent object
 /** 

@@ -58,11 +58,10 @@
 #define PO_STRICT_ARGS                 (1 << 26)    //!< do not allow access to RT_NOOP code or excess args
 #define PO_REQUIRE_BARE_REFS           (1 << 27)    //!< do not allow '$' for vars and '$.' for class member refs
 #define PO_ASSUME_LOCAL                (1 << 28)    //!< assume local variable scope if not declared (implicit "my")
-#define PO_NO_BINARY_MODULES           (1 << 29)    //!< do not allow external binary (compiled) modules to be loaded
-#define PO_NO_USER_MODULES             (1 << 30)    //!< do not allow external user modules to be loaded
-#define PO_INHERIT_USER_FUNC_VARIANTS  (1LL << 31)  //!< inherit all user function variants from the parent into the new program's space
-#define PO_NO_SYSTEM_FUNC_VARIANTS     (1LL << 32)  //!< do not inherit any builtin function variants to the new program's space
-#define PO_INHERIT_GLOBAL_VARS         (1LL << 33)  //!< inherit global variables from the parent into the new program's space
+#define PO_NO_MODULES                  (1 << 29)    //!< do not allow external modules to be loaded
+#define PO_INHERIT_USER_FUNC_VARIANTS  (1 << 30)    //!< inherit all user function variants from the parent into the new program's space
+#define PO_NO_SYSTEM_FUNC_VARIANTS     (1LL << 31)  //!< do not inherit any builtin function variants to the new program's space
+#define PO_INHERIT_GLOBAL_VARS         (1LL << 32)  //!< inherit global variables from the parent into the new program's space
 
 #define PO_DEFAULT                     0            //!< no parse options set by default
 
@@ -74,7 +73,7 @@
 #define PO_NO_THREADS                (PO_NO_THREAD_CONTROL|PO_NO_THREAD_CLASSES|PO_NO_THREAD_INFO)
 
 //! prohibits any external access
-#define PO_NO_EXTERNAL_ACCESS        (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE|PO_NO_EXTERNAL_INFO|PO_NO_EXTERNAL_PROCESS|PO_NO_BINARY_MODULES|PO_NO_USER_MODULES)
+#define PO_NO_EXTERNAL_ACCESS        (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE|PO_NO_EXTERNAL_INFO|PO_NO_EXTERNAL_PROCESS|PO_NO_MODULES)
 
 //! prohibits all terminal and file I/O and GUI operations
 #define PO_NO_IO                     (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM|PO_NO_NETWORK|PO_NO_DATABASE) 
@@ -107,5 +106,6 @@
 #define QDOM_EXTERNAL_INFO      PO_NO_EXTERNAL_INFO       //!< provides access to external information (ex: hostname, pid, process uid, etc)
 #define QDOM_THREAD_INFO        PO_NO_THREAD_INFO         //!< provides access to information regarding threading (tid, active threads, etc)
 #define QDOM_LOCALE_CONTROL     PO_NO_LOCALE_CONTROL      //!< provices access to functionality that changes locale information
+#define QDOM_MODULES            PO_NO_MODULES             //!< provides access to external modules
 
 #endif //_QORE_DOMAIN_H

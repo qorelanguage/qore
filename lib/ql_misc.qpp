@@ -1823,11 +1823,11 @@ nothing strtoint() [flags=RUNTIME_NOOP] {
 load_module("mysql");
     @endcode
 
-    @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, module cannot be loaded due to PO_NO_BINARY_MODULES or PO_NO_USER_MODULES being set, etc
+    @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
 
     @see getModuleHash(), getFeatureList()
 */
-nothing load_module(string name) {
+nothing load_module(string name) [dom=MODULES] {
    MM.runTimeLoadModule(name->getBuffer(), xsink);
 }
 
