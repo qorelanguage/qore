@@ -463,6 +463,8 @@ QoreStringNode* QoreModuleManager::loadModuleIntern(const char *name, QoreProgra
    if (mi)
       return qore_check_load_module_intern(mi, op, version, pgm);
 
+   //printd(5, "QoreModuleManager::loadModuleIntern() this: %p name: %s not found\n", this, name);
+
    QoreStringNode *errstr;
 
    // see if this is actually a path
@@ -476,6 +478,7 @@ QoreStringNode* QoreModuleManager::loadModuleIntern(const char *name, QoreProgra
       if (errstr)
 	 return errstr;
 
+      assert(mi);
       return qore_check_load_module_intern(mi, op, version, pgm);
    }
 
@@ -502,23 +505,24 @@ QoreStringNode* QoreModuleManager::loadModuleIntern(const char *name, QoreProgra
 	    printd(5, "ModuleManager::loadModule(%s) found binary module: %s\n", name, str.getBuffer());
 	    if ((errstr = loadBinaryModuleFromPath(str.getBuffer(), name, &mi, pgm)))
 	       return errstr;
-	 }
-      }
 
-      if (!mi) {
+	    return qore_check_load_module_intern(mi, op, version, pgm);
+	 }
+
 	 // build path to user module
 	 str.clear();
 	 str.sprintf("%s" QORE_DIR_SEP_STR "%s.qm", (*w).c_str(), name);
-
+	    
 	 //printd(0, "ModuleManager::loadModule(%s) trying user module: %s\n", name, str.getBuffer());
 	 if (!stat(str.getBuffer(), &sb)) {
 	    printd(0, "ModuleManager::loadModule(%s) found user module: %s\n", name, str.getBuffer());
 	    if ((errstr = loadUserModuleFromPath(str.getBuffer(), name, &mi, pgm)))
 	       return errstr;
+
+	    assert(mi);
+	    return qore_check_load_module_intern(mi, op, version, pgm);
 	 }
       }
-      if (mi)
-	 return qore_check_load_module_intern(mi, op, version, pgm);
 
       w++;
    }
