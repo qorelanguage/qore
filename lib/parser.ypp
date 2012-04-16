@@ -2717,9 +2717,11 @@ exp:    scalar
 	   if ($2) {
               switch ($2->getType()) {
                  case NT_LIST:
-                    reinterpret_cast<QoreListNode *>($2)->setFinalized(); 
+                    reinterpret_cast<QoreListNode *>($2)->setFinalized();
+                    break;
                  case NT_FUNCTION_CALL:
                     reinterpret_cast<FunctionCallNode *>($2)->setFinalized(); 
+                    break;
               }
            }
 	}
