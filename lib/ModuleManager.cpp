@@ -556,7 +556,7 @@ QoreStringNode* QoreModuleManager::loadModuleIntern(const char *name, QoreProgra
 	    
 	 //printd(0, "ModuleManager::loadModule(%s) trying user module: %s\n", name, str.getBuffer());
 	 if (!stat(str.getBuffer(), &sb)) {
-	    printd(0, "ModuleManager::loadModule(%s) found user module: %s\n", name, str.getBuffer());
+	    printd(5, "ModuleManager::loadModule(%s) found user module: %s\n", name, str.getBuffer());
 	    if ((errstr = loadUserModuleFromPath(str.getBuffer(), name, &mi)))
 	       return errstr;
 
