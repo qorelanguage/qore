@@ -589,10 +589,12 @@ static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
    if (rtype == NT_FUNCTION_CALL) {
       FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(r);
       assert(!f->getFunction());
-      MethodCallNode *m = new MethodCallNode(f->takeName(), f->take_args());
-      f->deref();
+      if (!f->isFinalized()) {
+         MethodCallNode *m = new MethodCallNode(f->takeName(), f->take_args());
+         f->deref();
 
-      return new QoreDotEvalOperatorNode(l, m);
+         return new QoreDotEvalOperatorNode(l, m);
+      }
    }
 
    return new QoreTreeNode(l, OP_OBJECT_REF, r);
@@ -2712,8 +2714,14 @@ exp:    scalar
 	}
 	| '(' exp ')' { 
 	   $$ = $2;
-	   if ($2 && $2->getType() == NT_LIST)
-	      reinterpret_cast<QoreListNode *>($2)->setFinalized(); 
+	   if ($2) {
+              switch ($2->getType()) {
+                 case NT_LIST:
+                    reinterpret_cast<QoreListNode *>($2)->setFinalized(); 
+                 case NT_FUNCTION_CALL:
+                    reinterpret_cast<FunctionCallNode *>($2)->setFinalized(); 
+              }
+           }
 	}
         | '(' ')' { QoreListNode *l = new QoreListNode; l->setFinalized(); $$ = l; }
         | TOK_SUB '(' myexp ')' return_value block {

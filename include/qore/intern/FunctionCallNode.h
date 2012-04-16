@@ -105,6 +105,8 @@ protected:
    const QoreFunction *func;
    QoreProgram *pgm;
    char *c_str;
+   // was this call enclosed in parentheses (in which case it will not be converted to a method call)
+   bool finalized;
 
    using AbstractFunctionCallNode::evalImpl;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const;
@@ -115,7 +117,7 @@ protected:
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
-   DLLLOCAL FunctionCallNode(char *name, QoreListNode *a, qore_type_t n_type) : AbstractFunctionCallNode(n_type, a), func(0), pgm(0), c_str(name) {
+   DLLLOCAL FunctionCallNode(char *name, QoreListNode *a, qore_type_t n_type) : AbstractFunctionCallNode(n_type, a), func(0), pgm(0), c_str(name), finalized(false) {
    }
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
@@ -188,6 +190,15 @@ public:
    }
 
    DLLLOCAL virtual AbstractQoreNode *makeReferenceNodeAndDerefImpl();
+
+   DLLLOCAL bool isFinalized() const {
+      return finalized;
+   }
+
+   DLLLOCAL void setFinalized() {
+      assert(!finalized);
+      finalized = true;
+   }
 };
 
 class ProgramFunctionCallNode : public FunctionCallNode {
