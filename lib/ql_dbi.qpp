@@ -50,7 +50,7 @@ namespace Qore::SQL;
 
     @par Example:
     @code
-my hash $h = parseDatasource("pgsql:user/pass@dbname(al32utf8)%dbhost.internal:1521{min=4,max=10}");
+my hash $h = parseDatasource("pgsql:user/pass@dbname(utf8)%dbhost.internal:1521{min=4,max=10}");
     @endcode
 
     @throw DATASOURCE-PARSE-ERROR a syntax error occurred parsing the datasource string (missing field, unexpected character, etc)
