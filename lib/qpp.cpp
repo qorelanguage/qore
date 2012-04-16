@@ -718,6 +718,8 @@ static int get_val_type(const std::string &str) {
          return T_BOOL;
       if (!str.compare(0, 5, "qore(") && str[lc] == ')')
          return T_QORE;
+      if (!str.compare(0, 2, "0x"))
+         return T_INT;
    }
 
    bool pint = false,  // has integers
@@ -3188,6 +3190,7 @@ void init() {
    dmap["THREAD_INFO"] = "PO_NO_THREAD_INFO";
    dmap["LOCALE_CONTROL"] = "PO_NO_LOCALE_CONTROL";
    dmap["MODULES"] = "PO_NO_MODULES";
+   dmap["IN_MODULE"] = "PO_IN_MODULE";
 
    // initialize code flag set
    fset.insert("NO_FLAGS");
