@@ -1603,14 +1603,14 @@ void QoreFunction::parseCommit() {
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       vlist.push_back(*i);
 
-      if (!has_user) {
-	 if ((*i)->isUser())
+      if ((*i)->isUser()) {
+	 if (!has_mod_pub && (*i)->isModulePublic())
+	    has_mod_pub = true;
+	 if (!has_user)
 	    has_user = true;
       }
-      else if (!has_builtin) {
-	 if (!(*i)->isUser())
-	    has_builtin = true;
-      }
+      else if (!has_builtin)
+	 has_builtin = true;
    }
    pending_vlist.clear();
 

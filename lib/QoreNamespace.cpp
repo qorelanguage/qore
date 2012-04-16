@@ -1372,20 +1372,20 @@ int qore_ns_private::parseAddPendingClass(const NamedScope& n, QoreClass* oc) {
    return sns->priv->parseAddPendingClass(och.release());
 }
 
-/*
 void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const {
    // make sure there are no objects in the pending lists
    assert(mns.pendNSL.empty());
    assert(mns.pendConstant.empty());
    assert(mns.pendClassList.empty());
+   assert(mns.var_list.pending_vmap.empty());
    
    // check constants
    {
       ConstConstantListIterator cli(mns.constant);
-      while (cli.next()) {
+      while (cli.next() && cli.isPublic()) {
          if (constant.inList(cli.getName()))
             qmc.error("duplicate constant %s::%s", name.c_str(), cli.getName().c_str());
-         if (pendConstant.inList(cli.getName()))
+         else if (pendConstant.inList(cli.getName()))
             qmc.error("duplicate pending constant %s::%s", name.c_str(), cli.getName().c_str());
       }
    }
@@ -1393,22 +1393,39 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
    // check classes
    {
       ConstClassListIterator cli(mns.classList);
-      while (cli.next()) {
+      while (cli.next() && cli.isPublic()) {
          if (classList.find(cli.getName()))
             qmc.error("duplicate class %s::%s", name.c_str(), cli.getName());
-         if (pendClassList.find(cli.getName()))
+         else if (pendClassList.find(cli.getName()))
             qmc.error("duplicate pending class %s::%s", name.c_str(), cli.getName());            
       }
    }
 
    // check functions
    for (fl_map_t::const_iterator i = mns.func_list.begin(), e = mns.func_list.end(); i != e; ++i) {
+      if (!i->second->isPublic())
+         continue;
+      //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' looking for function '%s' (%d)\n", this, name.c_str(), i->first, func_list.findNode(i->first));
       if (func_list.findNode(i->first))
          qmc.error("duplicate function %s::%s()", name.c_str(), i->first);
    }
 
+   // check variables
+   for (map_var_t::const_iterator i = mns.var_list.vmap.begin(), e = mns.var_list.vmap.end(); i != e; ++i) {
+      if (!i->second->isPublic())
+         continue;
+      if (var_list.vmap.find(i->first) != var_list.vmap.end())
+         qmc.error("duplicate global variable %s::%s", name.c_str(), i->first);
+      else if (var_list.pending_vmap.find(i->first) != var_list.pending_vmap.end())
+         qmc.error("duplicate pending global variable %s::%s", name.c_str(), i->first);
+   }
+
    // check subnamespaces
    for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
+      //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' checking %p '%s::' (pub: %d)\n", this, name.c_str(), i->second, i->second->getName(), qore_ns_private::isPublic(*i->second));
+      if (!qore_ns_private::isPublic(*i->second))
+         continue;
+      
       // see if a class with the same name is present
       if (classList.find(i->first.c_str())) {
          qmc.error("namespace '%s::%s' clashes with an existing class of the same name", name.c_str(), i->first.c_str());
@@ -1431,31 +1448,35 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
 }
 
 void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
-   // add constants
-   {
-      ConstConstantListIterator cli(mns.constant);
-      while (cli.next()) {
-      }
-   }
+   // merge in source constants
+   constant.mergePublic(mns.constant);
 
-   // add classes
-   {
-      ConstClassListIterator cli(mns.classList);
-      while (cli.next()) {
-      }
-   }
+   // merge in source classes
+   classList.mergePublic(mns.classList, this);
 
-   // add functions
-   for (fl_map_t::const_iterator i = mns.func_list.begin(), e = mns.func_list.end(); i != e; ++i) {
-   }
+   // merge in source functions
+   func_list.mergePublic(mns.func_list);
+
+   // merge in global variables
+   var_list.mergePublic(mns.var_list);
 
    // add sub namespaces
    for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
-      QoreNamespace* nns = findCreateNamespace(i->first.c_str());
-      i->second->priv->scanMergeCommittedNamespace(*(i->second->priv));
+      if (!qore_ns_private::isPublic(*i->second)) {
+         //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' skipping %p '%s::'\n", this, name.c_str(), i->second, i->second->getName());
+         continue;
+      }
+
+      QoreNamespace* nns = nsl.find(i->first);
+      if (!nns) {
+         nns = new QoreNamespace(i->first.c_str());
+         nsl.add(nns, this);
+      }
+      
+      nns->priv->copyMergeCommittedNamespace(*i->second->priv);
+      //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::'\n", this, name.c_str(), ns, ns->getName());
    }
 }
-*/
 
 void qore_ns_private::assimilate(QoreNamespace* ans) {
    qore_ns_private* pns = ans->priv;

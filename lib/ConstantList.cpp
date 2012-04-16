@@ -62,7 +62,7 @@ static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
 }
 
 ConstantEntry::ConstantEntry(const ConstantEntry& old) : loc(old.loc), name(old.name), typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : 0), 
-							 in_init(false), init(true) {
+							 in_init(false), init(true), pub(false) {
    assert(!old.in_init);
    assert(old.init);
 }
@@ -250,6 +250,18 @@ bool ConstantList::inList(const char *name) const {
 bool ConstantList::inList(const std::string &name) const {
    cnemap_t::const_iterator i = cnemap.find(name.c_str());
    return i != cnemap.end() ? true : false;
+}
+
+void ConstantList::mergePublic(const ConstantList& src) {
+   for (cnemap_t::const_iterator i = src.cnemap.begin(), e = src.cnemap.end(); i != e; ++i) {
+      if (!i->second->isPublic())
+	 continue;
+
+      assert(!inList(i->first));
+
+      ConstantEntry* n = new ConstantEntry(*i->second);
+      cnemap[n->getName()] = n;
+   }
 }
 
 // no duplicate checking is done here

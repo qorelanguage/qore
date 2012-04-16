@@ -27,6 +27,8 @@
 #define _QORE_QORE_THREAD_INTERN_H
 
 #include <vector>
+#include <set>
+#include <map>
 
 // FIXME: move to config.h or something like that
 // not more than this number of threads can be running at the same time
@@ -173,6 +175,36 @@ public:
    }
 };
 
+#define QMD_NO_KEY    -1
+#define QMD_HAVE_KEY  -2
+
+class QoreModuleDefContext {
+public:
+   typedef std::set<std::string> strset_t;
+   typedef std::map<std::string, std::string> strmap_t;
+
+   // set of valid tags
+   static strset_t vset;
+
+   // set of tag definitions
+   strmap_t vmap;
+
+   DLLLOCAL int set(const char* key, const char* val) {
+      if (vset.find(key) == vset.end())
+         return QMD_NO_KEY;
+      if (vmap.find(key) != vmap.end())
+         return QMD_HAVE_KEY;
+
+      vmap[key] = val;
+      return 0;
+   }
+
+   DLLLOCAL const char* get(const char* str) const {
+      strmap_t::const_iterator i = vmap.find(str);
+      return i == vmap.end() || i->second.empty() ? 0 : i->second.c_str();
+   }
+};
+
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink *xsink);
 DLLLOCAL void purge_thread_resources(ExceptionSink *xsink);
@@ -218,6 +250,8 @@ DLLLOCAL qore_ns_private* parse_set_ns(qore_ns_private* ns);
 DLLLOCAL qore_ns_private* parse_get_ns();
 DLLLOCAL void set_module_context(QoreModuleContext* qmc);
 DLLLOCAL QoreModuleContext* get_module_context();
+DLLLOCAL QoreModuleDefContext* set_module_def_context(QoreModuleDefContext* qmd);
+DLLLOCAL QoreModuleDefContext* get_module_def_context();
 
 // pushes a new argv reference counter
 DLLLOCAL void new_argv_ref();

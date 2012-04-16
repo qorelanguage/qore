@@ -205,6 +205,10 @@ public:
 
    DLLLOCAL GlobalVarRefNode(char *n, const QoreTypeInfo* typeInfo = 0);
    DLLLOCAL GlobalVarRefNode(char *n, QoreParseTypeInfo* parseTypeInfo);
+
+   DLLLOCAL void setPublic() {
+      ref.var->setPublic();
+   }
 };
 
 class VarRefDeclNode : public VarRefNode {

@@ -392,14 +392,22 @@ qclass Program [arg=QoreProgram* p];
 
     However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor will be applied literally to the child object.
 
+    The Program constructor cannot be executed in user modules as it would work around Program security.
+
     @param po A binary OR'ed product of @ref parse_options "parse options"
 
     @par Example:
     @code
 my Program $pgm();
     @endcode
+
+    @throw PROGRAM-OPTION-ERROR invalid parse options used
  */
-Program::constructor(softint po = PO_DEFAULT) {
+Program::constructor(softint po = PO_DEFAULT) [dom=IN_MODULE] {
+   if (po & PO_SYSTEM_OPS) {
+      xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", po);
+      return;
+   }
    self->setPrivate(CID_PROGRAM, new QoreProgram(getProgram(), po));
 }
 
@@ -764,10 +772,16 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @endcode
 
     @throw OPTIONS-LOCKED Parse options have been locked and cannot be changed
+    @throw PROGRAM-OPTION-ERROR invalid parse options used
 
     @see Program::disableParseOptions() for a reciprocal method that disables parse options; also see Program::replaceParseOptions()
  */
 nothing Program::setParseOptions(softint opt = PO_DEFAULT) {
+   if (opt & PO_SYSTEM_OPS) {
+      xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", opt);
+      return 0;
+   }
+
    p->setParseOptions(opt, xsink);
 }
 
@@ -783,10 +797,16 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @endcode
 
     @throw OPTIONS-LOCKED Parse options have been locked and cannot be changed
+    @throw PROGRAM-OPTION-ERROR invalid parse options used
 
     @see Program::setParseOptions() for a reciprocal method that enables parse options; also see Program::replaceParseOptions()
  */
 nothing Program::disableParseOptions(softint opt) {
+   if (opt & PO_SYSTEM_OPS) {
+      xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", opt);
+      return 0;
+   }
+
    p->disableParseOptions(opt, xsink);
 }
 

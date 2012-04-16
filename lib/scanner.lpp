@@ -1075,6 +1075,7 @@ trim					return TOK_TRIM;
 on_exit 		 		return TOK_ON_EXIT;
 on_success				return TOK_ON_SUCCESS;
 on_error 				return TOK_ON_ERROR;
+module                                  return TOK_MODULE;
 map                                     { push_ignore_numeric_argv_ref(); return TOK_MAP; }
 foldr                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDR; }
 foldl                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDL; }
@@ -1105,6 +1106,7 @@ static{WS}*\(                           yylval->string = strdup("static"); retur
 returns{WS}*\(                          yylval->string = strdup("returns"); return KW_IDENTIFIER_OPENPAREN;
 public{WS}*\(                           yylval->string = strdup("public"); return KW_IDENTIFIER_OPENPAREN;
 deprecated{WS}*\(                       yylval->string = strdup("deprecated"); return KW_IDENTIFIER_OPENPAREN;
+module{WS}*\(                           yylval->string = strdup("module"); return KW_IDENTIFIER_OPENPAREN;
 \.returns[^A-Za-z_0-9]                  DO_DOT_KW_IDENTIFIER("returns")
 \.new[^A-Za-z_0-9]                      DO_DOT_KW_IDENTIFIER("new")
 \.private[^A-Za-z_0-9]                  DO_DOT_KW_IDENTIFIER("private")
@@ -1167,6 +1169,7 @@ deprecated{WS}*\(                       yylval->string = strdup("deprecated"); r
 \.where[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("where")
 \.while[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("while")
 \.interface[^A-Za-z_0-9]                DO_DOT_KW_IDENTIFIER("interface")
+\.module[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("module")
 
 {YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeDateTime(yytext, true); return DATETIME;
 {YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{US})?{TZ}?      yylval->datetime = makeDateTime(yytext, true); return DATETIME;

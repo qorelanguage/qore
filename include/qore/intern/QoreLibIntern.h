@@ -77,11 +77,13 @@
 // printf format for 64-bit integers
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
 #define QLLD "%I64d"
+#define QLLX "%I64x"
 #define QLLDx(a) "%" #a "I64d"
 #define QORE_DIR_SEP '\\'
 #define QORE_DIR_SEP_STR "\\"
 #else
 #define QLLD "%lld"
+#define QLLX "%llx"
 #define QLLDx(a) "%" #a "lld"
 #define QORE_DIR_SEP '/'
 #define QORE_DIR_SEP_STR "/"

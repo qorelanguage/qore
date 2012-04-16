@@ -52,20 +52,21 @@ public:
    // 0 = root namespace, ...
    unsigned depth;
 
-   bool root;
+   bool root,  // is this the root namespace?
+      pub;     // is this namespace public (for modules only)
 
    const qore_ns_private* parent;       // pointer to parent namespace (0 if this is the root namespace or an unattached namespace)
    q_ns_class_handler_t class_handler;   
    QoreNamespace *ns;
 
-   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char* n) : name(n), depth(0), root(false), parent(0), class_handler(0), ns(n_ns) {
+   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char* n) : name(n), depth(0), root(false), pub(false), parent(0), class_handler(0), ns(n_ns) {
    }
 
-   DLLLOCAL qore_ns_private(QoreNamespace *n_ns) : depth(0), root(false), parent(0), class_handler(0), ns(n_ns) {      
+   DLLLOCAL qore_ns_private(QoreNamespace *n_ns) : depth(0), root(false), pub(false), parent(0), class_handler(0), ns(n_ns) {      
    }
 
    // called when parsing
-   DLLLOCAL qore_ns_private() : depth(0), root(false), parent(0), class_handler(0), ns(0) {
+   DLLLOCAL qore_ns_private() : depth(0), root(false), pub(false), parent(0), class_handler(0), ns(0) {
       // attaches to the ns attribute in the constructor
       new QoreNamespace(this);
       name = parse_pop_namespace_name();
@@ -80,6 +81,7 @@ public:
         var_list(old.var_list, po),
         depth(old.depth),
         root(old.root),
+        pub(false),
         parent(0), class_handler(old.class_handler), ns(0) {
    }
 
@@ -234,8 +236,27 @@ public:
       addBuiltinVariant(name, new B(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList, nameList));
    }
    
-   //DLLLOCAL void scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const;
-   //DLLLOCAL void copyMergeCommittedNamespace(const qore_ns_private& mns);
+   DLLLOCAL void scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const;
+   DLLLOCAL void copyMergeCommittedNamespace(const qore_ns_private& mns);
+
+   DLLLOCAL void parseInitGlobalVars(int64 po) {
+      var_list.parseInit(po);
+
+      nsl.parseInitGlobalVars(po);
+      pendNSL.parseInitGlobalVars(po);
+   }
+
+   DLLLOCAL void clearGlobalVars(ExceptionSink* xsink) {
+      var_list.clear_all(xsink);
+
+      nsl.clearGlobalVars(xsink);
+   }
+
+   DLLLOCAL void deleteGlobalVars(ExceptionSink* xsink) {
+      var_list.delete_all(xsink);
+
+      nsl.deleteGlobalVars(xsink);
+   }
 
    DLLLOCAL static void addNamespace(QoreNamespace& ns, QoreNamespace* nns) {
       ns.priv->addNamespace(nns->priv);
@@ -287,25 +308,6 @@ public:
       return ns.priv;
    }
 
-   DLLLOCAL void parseInitGlobalVars(int64 po) {
-      var_list.parseInit(po);
-
-      nsl.parseInitGlobalVars(po);
-      pendNSL.parseInitGlobalVars(po);
-   }
-
-   DLLLOCAL void clearGlobalVars(ExceptionSink* xsink) {
-      var_list.clear_all(xsink);
-
-      nsl.clearGlobalVars(xsink);
-   }
-
-   DLLLOCAL void deleteGlobalVars(ExceptionSink* xsink) {
-      var_list.delete_all(xsink);
-
-      nsl.deleteGlobalVars(xsink);
-   }
-
    DLLLOCAL static void clearGlobalVars(QoreNamespace& ns, ExceptionSink* xsink) {
       ns.priv->clearGlobalVars(xsink);
    }
@@ -314,15 +316,14 @@ public:
       ns.priv->deleteGlobalVars(xsink);
    }
 
-   /*
-   DLLLOCAL static void scanMergeCommittedNamespace(const QoreNamespace& ns, const QoreNamespace& mns, QoreModuleContext& qmc) {
-      ns.priv->scanMergeCommittedNamespace(*(mns.priv), qmc);
+   DLLLOCAL static bool isPublic(const QoreNamespace& ns) {
+      return ns.priv->pub;
    }
 
-   DLLLOCAL static void copyMergeCommittedNamespace(QoreNamespace& ns, const QoreNamespace& mns) {
-      ns.priv->copyMergeCommittedNamespace(*(mns.priv));
+   DLLLOCAL static void setPublic(QoreNamespace& ns) {
+      assert(!ns.priv->pub);
+      ns.priv->pub = true;
    }
-   */
 };
 
 struct namespace_iterator_element {
@@ -1115,6 +1116,13 @@ protected:
       }
    }
 
+   DLLLOCAL void rebuildAllIndexes() {
+      // rebuild root indexes - only for committed objects
+      QorePrivateNamespaceIterator qpni(this, true);
+      while (qpni.next())
+         rebuildIndexes(qpni.get());
+   }
+
 public:
    RootQoreNamespace* rns;
    QoreNamespace* qoreNS;
@@ -1143,9 +1151,7 @@ public:
       assert(qoreNS);
 
       // rebuild root indexes - only for committed objects
-      QorePrivateNamespaceIterator qpni(this, true);
-      while (qpni.next())
-         rebuildIndexes(qpni.get());
+      rebuildAllIndexes();
    }
 
    DLLLOCAL ~qore_root_ns_private() {
@@ -1300,6 +1306,17 @@ public:
 
    DLLLOCAL static Var* parseFindGlobalVar(const char* vname) {
       return getRootNS()->rpriv->parseFindGlobalVarIntern(vname);
+   }
+
+   DLLLOCAL static void scanMergeCommittedNamespace(const RootQoreNamespace& ns, const RootQoreNamespace& mns, QoreModuleContext& qmc) {
+      ns.priv->scanMergeCommittedNamespace(*(mns.priv), qmc);
+   }
+
+   DLLLOCAL static void copyMergeCommittedNamespace(RootQoreNamespace& ns, const RootQoreNamespace& mns) {
+      ns.priv->copyMergeCommittedNamespace(*(mns.priv));
+
+      // rebuild root indexes - only for committed objects
+      ns.rpriv->rebuildAllIndexes();
    }
 
    DLLLOCAL static Var* runtimeFindGlobalVar(const RootQoreNamespace& rns, const char* vname, const qore_ns_private*& vns) {

@@ -350,6 +350,9 @@ public:
    // used for error handling when merging module code into a Program object
    QoreModuleContext* qmc;
 
+   // used to capture the module defnition in user modules
+   QoreModuleDefContext* qmd;
+
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
       parse_line_start(0), parse_line_end(0), parse_file(0), 
@@ -358,7 +361,7 @@ public:
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
       current_obj(0), current_pgm(p), current_ns(0), current_implicit_arg(0), tpd(new ThreadProgramData(this)),
       closure_parse_env(0), closure_rt_env(0), 
-      returnTypeInfo(0), element(0), global_vnode(0), qmc(0) {
+      returnTypeInfo(0), element(0), global_vnode(0), qmc(0), qmd(0) {
  
 #ifdef QORE_MANAGE_STACK
 
@@ -1079,6 +1082,17 @@ void set_module_context(QoreModuleContext* qmc) {
 
 QoreModuleContext* get_module_context() {
    return thread_data.get()->qmc;
+}
+
+QoreModuleDefContext* set_module_def_context(QoreModuleDefContext* qmd) {
+   ThreadData* td = thread_data.get();
+   QoreModuleDefContext* rv = td->qmd;
+   td->qmd = qmd;
+   return rv;
+}
+
+QoreModuleDefContext* get_module_def_context() {
+   return thread_data.get()->qmd;
 }
 
 void ModuleContextNamespaceList::clear() {

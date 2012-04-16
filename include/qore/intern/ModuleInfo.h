@@ -31,7 +31,7 @@
 #include <map>
 
 // user module parse options
-#define USER_MOD_PO (PO_NO_TOP_LEVEL_STATEMENTS | PO_REQUIRE_PROTOTYPES | PO_REQUIRE_OUR)
+#define USER_MOD_PO (PO_NO_TOP_LEVEL_STATEMENTS | PO_REQUIRE_PROTOTYPES | PO_REQUIRE_OUR | PO_IN_MODULE)
 
 //! list of version numbers in order of importance (i.e. 1.2.3 = 1, 2, 3)
 struct version_list_t : public std::vector<int> {
@@ -128,7 +128,8 @@ private:
    DLLLOCAL QoreModuleManager& operator=(const QoreModuleManager&);
 
 protected:
-   QoreThreadLock mutex;
+   // recursive mutex; initialized in init()
+   QoreThreadLock* mutex;
 
    // module blacklist
    typedef std::map<const char* , const char* , ltstr> bl_map_t;
@@ -144,7 +145,7 @@ protected:
    }
 
    DLLLOCAL QoreStringNode* parseLoadModuleIntern(const char* name, QoreProgram* pgm) {
-      SafeLocker sl(&mutex); // make sure checking and loading are atomic
+      SafeLocker sl(mutex); // make sure checking and loading are atomic
 
       return loadModuleIntern(name, pgm);
    }
@@ -154,10 +155,14 @@ protected:
    DLLLOCAL void globDir(const char* dir);
 
    DLLLOCAL QoreStringNode* loadBinaryModuleFromPath(const char* path, const char* feature = 0, QoreAbstractModule** mip = 0, QoreProgram* pgm = 0);
-   DLLLOCAL QoreStringNode* loadUserModuleFromPath(const char* path, const char* feature = 0, QoreAbstractModule** mip = 0, QoreProgram* pgm = 0);
+   DLLLOCAL QoreStringNode* loadUserModuleFromPath(const char* path, const char* feature = 0, QoreAbstractModule** mip = 0);
 
 public:
-   DLLLOCAL QoreModuleManager() {
+   DLLLOCAL QoreModuleManager() : mutex(0) {
+   }
+
+   DLLLOCAL ~QoreModuleManager() {
+      delete mutex;
    }
 
    DLLLOCAL void init(bool se);      
@@ -169,7 +174,7 @@ public:
    }
 
    DLLLOCAL QoreAbstractModule* findModule(const char* name) {
-      AutoLocker al(&mutex);
+      AutoLocker al(mutex);
       return findModuleUnlocked(name);
    }
 

@@ -74,6 +74,17 @@ QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private
       }
 }
 
+void QoreClassList::mergePublic(const QoreClassList& old, qore_ns_private* ns) {
+   for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
+      if (!qore_class_private::isPublic(*i->second))
+	 continue;
+
+      QoreClass* qc = new QoreClass(*i->second);
+      qore_class_private::setNamespace(qc, ns);
+      add(qc);
+   }
+}
+
 void QoreClassList::resolveCopy() {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
       i->second->resolveCopy();
@@ -176,4 +187,12 @@ void QoreClassList::deleteClassData(ExceptionSink *xsink) {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
       qore_class_private::deleteClassData(i->second, xsink);
    }
+}
+
+bool ClassListIterator::isPublic() const {
+   return qore_class_private::isPublic(*i->second);
+}
+
+bool ConstClassListIterator::isPublic() const {
+   return qore_class_private::isPublic(*i->second);
 }

@@ -47,10 +47,12 @@ public:
    std::string name;
    const QoreTypeInfo *typeInfo;
    AbstractQoreNode *node;
-   bool in_init, init;
+   bool in_init,  // being initialized
+      init,       // already initialized
+      pub;        // public constant (modules only)
 
-   DLLLOCAL ConstantEntry() : typeInfo(0), node(0), in_init(false), init(false) {}
-   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init) {}
+   DLLLOCAL ConstantEntry() : typeInfo(0), node(0), in_init(false), init(false), pub(false) {}
+   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init), pub(false) {}
    DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
    DLLLOCAL ~ConstantEntry() {
@@ -82,6 +84,10 @@ public:
 
    DLLLOCAL const std::string& getNameStr() const {
       return name;
+   }
+
+   DLLLOCAL const bool isPublic() const {
+      return pub;
    }
 };
 
@@ -141,6 +147,9 @@ public:
    // assimilate a constant list in a namespace with duplicate checking (also in pending list)
    DLLLOCAL void assimilate(ConstantList& n, ConstantList& otherlist, const char *nsname);
 
+   // copy all elements of the source list to the target, assuming no duplicates
+   DLLLOCAL void mergePublic(const ConstantList& src);
+
    // assimilate a constant list in a class constant list with duplicate checking (pub & priv + pending)
    DLLLOCAL void assimilate(ConstantList &n, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
    // add a constant to a list with duplicate checking (pub & priv + pending)
@@ -193,6 +202,10 @@ public:
    DLLLOCAL ConstantEntry* getEntry() const {
       return i->second;
    }
+
+   DLLLOCAL const bool isPublic() const {
+      return i->second->isPublic();
+   }
 };
 
 class ConstConstantListIterator {
@@ -222,6 +235,10 @@ public:
 
    DLLLOCAL const ConstantEntry* getEntry() const {
       return i->second;
+   }
+
+   DLLLOCAL const bool isPublic() const {
+      return i->second->isPublic();
    }
 };
 

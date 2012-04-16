@@ -1493,7 +1493,8 @@ public:
       owns_typeinfo,                // do we own the typeinfo data or not?
       resolve_copy_done,            // has the copy already been resolved
       has_new_user_changes,         // does the class have new user code that needs to be processed?
-      owns_ornothingtypeinfo        // do we own the "or nothing" type info
+      owns_ornothingtypeinfo,       // do we own the "or nothing" type info
+      pub                           // is a public class (modules only)
       ;
 
    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
@@ -2534,6 +2535,16 @@ public:
    DLLLOCAL static qore_type_result_e runtimeCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {
       return qc.priv->runtimeCheckCompatibleClass(*oc.priv);
    }
+
+   DLLLOCAL static bool isPublic(const QoreClass& qc) {
+      return qc.priv->pub;
+   }
+
+   DLLLOCAL static void setPublic(QoreClass& qc) {
+      assert(!qc.priv->pub);
+      qc.priv->pub = true;
+   }
+
 };
 
 #endif

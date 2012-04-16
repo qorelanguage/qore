@@ -57,6 +57,16 @@ public:
       }
    }
 
+   DLLLOCAL void mergePublic(const GlobalVariableList& old) {
+      map_var_t::iterator last = vmap.begin();
+      for (map_var_t::const_iterator i = old.vmap.begin(), e = old.vmap.end(); i != e; ++i) {
+         if (!i->second->isPublic())
+            continue;
+         Var* v = new Var(const_cast<Var*>(i->second));
+         last = vmap.insert(last, map_var_t::value_type(v->getName(), v));
+      }
+   }
+
    DLLLOCAL ~GlobalVariableList() {
       assert(vmap.empty());
    }

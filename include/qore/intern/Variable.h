@@ -77,6 +77,7 @@ private:
    mutable QoreThreadLock m;
    QoreParseTypeInfo *parseTypeInfo;
    const QoreTypeInfo *typeInfo;
+   bool pub; // is this global var public (modules only)
 
    DLLLOCAL void del(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *evalIntern(ExceptionSink *xsink);
@@ -99,16 +100,16 @@ protected:
    DLLLOCAL ~Var() { delete parseTypeInfo; }
 
 public:
-   DLLLOCAL Var(const char *n_name) : type(GV_VALUE), v(0), name(n_name), parseTypeInfo(0), typeInfo(0) {
+   DLLLOCAL Var(const char *n_name) : type(GV_VALUE), v(0), name(n_name), parseTypeInfo(0), typeInfo(0), pub(false) {
    }
 
-   DLLLOCAL Var(const char *n_name, QoreParseTypeInfo *n_parseTypeInfo) : type(GV_VALUE), v(0), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0) {
+   DLLLOCAL Var(const char *n_name, QoreParseTypeInfo *n_parseTypeInfo) : type(GV_VALUE), v(0), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0), pub(false) {
    }
 
-   DLLLOCAL Var(const char *n_name, const QoreTypeInfo *n_typeInfo) : type(GV_VALUE), v(0), name(n_name), parseTypeInfo(0), typeInfo(n_typeInfo) {
+   DLLLOCAL Var(const char *n_name, const QoreTypeInfo *n_typeInfo) : type(GV_VALUE), v(0), name(n_name), parseTypeInfo(0), typeInfo(n_typeInfo), pub(false) {
    }
 
-   DLLLOCAL Var(Var *ref, bool ro = false) : type(GV_IMPORT), v(ref, ro), name(ref->name), parseTypeInfo(0), typeInfo(ref->typeInfo) {
+   DLLLOCAL Var(Var *ref, bool ro = false) : type(GV_IMPORT), v(ref, ro), name(ref->name), parseTypeInfo(0), typeInfo(ref->typeInfo), pub(false) {
    }
 
    DLLLOCAL const char *getName() const;
@@ -230,6 +231,15 @@ public:
       assert(parseTypeInfo);
       assert(parseTypeInfo->cscope);
       return parseTypeInfo->cscope->getIdentifier();
+   }
+
+   DLLLOCAL bool isPublic() const {
+      return pub;
+   }
+
+   DLLLOCAL void setPublic() {
+      assert(!pub);
+      pub = true;
    }
 };
 

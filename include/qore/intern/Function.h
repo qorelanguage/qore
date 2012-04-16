@@ -361,6 +361,10 @@ public:
       return is_user;
    }
 
+   DLLLOCAL virtual bool isModulePublic() const {
+      return false;
+   }
+
    // the default implementation of this function does nothing
    DLLLOCAL virtual void parseInit(QoreFunction* f) {
    }
@@ -442,11 +446,13 @@ public:
 
 class UserFunctionVariant : public AbstractQoreFunctionVariant, public UserVariantBase {
 protected:
+   bool mod_pub; // is public in module
+
    DLLLOCAL virtual ~UserFunctionVariant() {
    }
 
 public:
-   DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags = QC_NO_FLAGS) : AbstractQoreFunctionVariant(n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags = QC_NO_FLAGS) : AbstractQoreFunctionVariant(n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced), mod_pub(false) {
    }
 
    // the following defines the virtual functions that are common to all user variants
@@ -457,6 +463,15 @@ public:
    }
 
    DLLLOCAL virtual void parseInit(QoreFunction* f);
+
+   DLLLOCAL virtual bool isModulePublic() const {
+      return mod_pub;
+   }
+
+   DLLLOCAL void setModulePublic() {
+      assert(!mod_pub);
+      mod_pub = true;
+   }
 };
 
 #define UFV(f) (reinterpret_cast<UserFunctionVariant* >(f))
@@ -509,6 +524,7 @@ protected:
    bool parse_init_done;
    bool has_user;                   // has at least 1 committed user variant
    bool has_builtin;                // has at least 1 committed builtin variant
+   bool has_mod_pub;                // has at least 1 committed user variant with public visibility
 
    const QoreTypeInfo* nn_uniqueReturnType;
 
@@ -606,9 +622,11 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreFunction(const char* n_name) : name(n_name), same_return_type(true), parse_same_return_type(true), unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
-                                               nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT), nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true), 
-                                               parse_init_done(true), has_user(false), has_builtin(false), nn_uniqueReturnType(0) {
+   DLLLOCAL QoreFunction(const char* n_name) : name(n_name), same_return_type(true), parse_same_return_type(true),
+                                               unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
+                                               nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT),
+                                               nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true), 
+                                               parse_init_done(true), has_user(false), has_builtin(false), has_mod_pub(false), nn_uniqueReturnType(0) {
       ilist.push_back(this);
    }
 
@@ -623,7 +641,7 @@ public:
         nn_unique_flags(old.nn_unique_flags),
         nn_count(old.nn_count),
         parse_rt_done(true), parse_init_done(true),
-        has_user(old.has_user), has_builtin(old.has_builtin),
+        has_user(old.has_user), has_builtin(old.has_builtin), has_mod_pub(old.has_mod_pub),
         nn_uniqueReturnType(old.nn_uniqueReturnType) {
       bool no_user = !(po & PO_INHERIT_USER_FUNC_VARIANTS);
       bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
@@ -633,6 +651,47 @@ public:
          if (no_user && (*i)->isUser())
             continue;
          if (no_builtin && !(*i)->isUser())
+            continue;
+         vlist.push_back((*i)->ref());
+      }
+
+      if (no_user && has_user)
+         has_user = false;
+      if (no_builtin && has_builtin)
+         has_builtin = false;
+
+      // make sure the new variant list is not empty if the parent also wasn't
+      assert(old.vlist.empty() || !vlist.empty());
+
+      assert(!old.ilist.empty());
+      assert(old.ilist.front() == &old);
+
+      // resolve initial ilist entry to this function
+      ilist.push_back(this);
+
+      // the rest of ilist is copied in method base class
+      // do not copy pending variants
+   }
+
+   // copy constructor when importing public user variants from user modules into Program objects
+   DLLLOCAL QoreFunction(bool ignore, const QoreFunction& old) 
+      : name(old.name), same_return_type(old.same_return_type), 
+        parse_same_return_type(true), 
+        unique_functionality(old.unique_functionality),
+        unique_flags(old.unique_flags),
+        nn_same_return_type(old.nn_same_return_type), 
+        nn_unique_functionality(old.nn_unique_functionality),
+        nn_unique_flags(old.nn_unique_flags),
+        nn_count(old.nn_count),
+        parse_rt_done(true), parse_init_done(true),
+        has_user(true), has_builtin(false), has_mod_pub(old.has_mod_pub),
+        nn_uniqueReturnType(old.nn_uniqueReturnType) {
+      assert(!ignore);
+      assert(has_mod_pub);
+
+      // copy variants by reference
+      for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
+         if (!(*i)->isModulePublic())
             continue;
          vlist.push_back((*i)->ref());
       }
@@ -796,6 +855,10 @@ public:
 
    DLLLOCAL bool hasBuiltin() const {
       return has_builtin;
+   }
+
+   DLLLOCAL bool hasModulePublic() const {
+      return has_mod_pub;
    }
 };
 

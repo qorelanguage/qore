@@ -62,8 +62,12 @@
 #define PO_INHERIT_USER_FUNC_VARIANTS  (1 << 30)    //!< inherit all user function variants from the parent into the new program's space
 #define PO_NO_SYSTEM_FUNC_VARIANTS     (1LL << 31)  //!< do not inherit any builtin function variants to the new program's space
 #define PO_INHERIT_GLOBAL_VARS         (1LL << 32)  //!< inherit global variables from the parent into the new program's space
+#define PO_IN_MODULE                   (1LL << 33)  //!< do not use directly, this is set automatically in user module programs
 
 #define PO_DEFAULT                     0            //!< no parse options set by default
+
+//! all options that are set by the system
+#define PO_SYSTEM_OPS (PO_IN_MODULE)
 
 //! synonym for PO_REQUIRE_BARE_REFS
 #define PO_ALLOW_BARE_REFS PO_REQUIRE_BARE_REFS
@@ -107,5 +111,6 @@
 #define QDOM_THREAD_INFO        PO_NO_THREAD_INFO         //!< provides access to information regarding threading (tid, active threads, etc)
 #define QDOM_LOCALE_CONTROL     PO_NO_LOCALE_CONTROL      //!< provices access to functionality that changes locale information
 #define QDOM_MODULES            PO_NO_MODULES             //!< provides access to external modules
+#define QDOM_IN_MODULE          PO_IN_MODULE              //!< tagged with code that is restricted in user modules
 
 #endif //_QORE_DOMAIN_H

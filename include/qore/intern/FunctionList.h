@@ -45,18 +45,19 @@ public:
    DLLLOCAL FunctionEntry(const char* new_name, QoreFunction* u) : func(u), name(new_name) {
    }
 
-   DLLLOCAL FunctionEntry(const FunctionEntry &ife) : func(ife.func), name(ife.name) {
+   DLLLOCAL FunctionEntry(const FunctionEntry& old) : func(old.func), name(old.name) {
+      func->ref();
    }
 
    DLLLOCAL ~FunctionEntry() {
       func->deref();
    }
 
-   DLLLOCAL QoreFunction* getFunction() {
+   DLLLOCAL QoreFunction* getFunction() const {
       return func;
    }
 
-   DLLLOCAL QoreFunction* getFunction(bool runtime) {
+   DLLLOCAL QoreFunction* getFunction(bool runtime) const {
       if (runtime && func->committedEmpty())
 	 return 0;
       return func;
@@ -85,7 +86,17 @@ public:
       return 0;
    }
 
-   ResolvedCallReferenceNode* makeCallReference() const;
+   DLLLOCAL ResolvedCallReferenceNode* makeCallReference() const;
+
+   DLLLOCAL bool isPublic() const {
+      return func->hasModulePublic();
+   }
+};
+
+class ModuleImportedFunctionEntry : public FunctionEntry {
+public:
+   DLLLOCAL ModuleImportedFunctionEntry(const FunctionEntry& old) : FunctionEntry(old.getName(), new QoreFunction(false, *(old.getFunction()))) {
+   }
 };
 
 typedef std::map<const char* , FunctionEntry* , class ltstr> fl_map_t;
@@ -106,6 +117,19 @@ public:
    DLLLOCAL FunctionEntry* import(const char* new_name, QoreFunction* func);
    DLLLOCAL QoreFunction* find(const char* name, bool runtime) const;
    DLLLOCAL FunctionEntry* findNode(const char* name) const;
+
+   DLLLOCAL void mergePublic(const FunctionList& src) {
+      for (fl_map_t::const_iterator i = src.begin(), e = src.end(); i != e; ++i) {
+         if (!i->second->isPublic())
+            continue;
+
+         assert(!findNode(i->first));
+         //printd(5, "FunctionList::mergePublic() this: %p merging in %s (%p)\n", this, i->first, i->second);
+         FunctionEntry* fe = new ModuleImportedFunctionEntry(*i->second);
+         insert(fl_map_t::value_type(fe->getName(), fe));         
+      }
+   }
+
    DLLLOCAL void del();
    DLLLOCAL void parseInit();
    DLLLOCAL void parseRollback();

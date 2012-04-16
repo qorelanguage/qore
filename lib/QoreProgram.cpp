@@ -54,7 +54,8 @@ static const char *qore_warnings_l[] = {
    "excess-args",
    "duplicate-hash-key",
    "unreferenced-variable",
-   "duplicate-local-var-scope",
+   "duplicate-block-vars",
+   "module-only",
 };
 #define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char *))
 
