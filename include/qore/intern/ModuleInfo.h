@@ -116,7 +116,7 @@ public:
    DLLLOCAL virtual bool isBuiltin() const = 0;
    DLLLOCAL virtual bool isUser() const = 0;
    DLLLOCAL virtual QoreHashNode* getHash() const = 0;
-   DLLLOCAL virtual QoreStringNode* addToProgram(QoreProgram* pgm) const = 0;
+   DLLLOCAL virtual void addToProgram(QoreProgram* pgm, ExceptionSink& xsink) const = 0;
    DLLLOCAL virtual void issueParseCmd(QoreString &cmd) = 0;
 };
 
@@ -144,18 +144,18 @@ protected:
       return i == map.end() ? 0 : i->second;
    }
 
-   DLLLOCAL QoreStringNode* parseLoadModuleIntern(const char* name, QoreProgram* pgm) {
-      SafeLocker sl(mutex); // make sure checking and loading are atomic
+   DLLLOCAL void loadModuleIntern(const char* name, QoreProgram* pgm, ExceptionSink& xsink) {
+      AutoLocker sl(mutex); // make sure checking and loading are atomic
 
-      return loadModuleIntern(name, pgm);
+      return loadModuleIntern(xsink, name, pgm);
    }
 
-   DLLLOCAL QoreStringNode* loadModuleIntern(const char* name, QoreProgram* pgm, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0);
+   DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0);
 
    DLLLOCAL void globDir(const char* dir);
 
-   DLLLOCAL QoreStringNode* loadBinaryModuleFromPath(const char* path, const char* feature = 0, QoreAbstractModule** mip = 0, QoreProgram* pgm = 0);
-   DLLLOCAL QoreStringNode* loadUserModuleFromPath(const char* path, const char* feature = 0, QoreAbstractModule** mip = 0);
+   DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0);
+   DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0);
 
 public:
    DLLLOCAL QoreModuleManager() : mutex(0) {
@@ -165,7 +165,7 @@ public:
       delete mutex;
    }
 
-   DLLLOCAL void init(bool se);      
+   DLLLOCAL void init(bool se);
    DLLLOCAL void cleanup();
    DLLLOCAL void issueParseCmd(const char* mname, QoreProgram* pgm, QoreString &cmd);
 
@@ -178,8 +178,8 @@ public:
       return findModuleUnlocked(name);
    }
 
-   DLLLOCAL QoreStringNode* parseLoadModule(const char* name, QoreProgram* pgm);
-   DLLLOCAL int runTimeLoadModule(const char* name, ExceptionSink* xsink);
+   DLLLOCAL void parseLoadModule(const char* name, QoreProgram* pgm, ExceptionSink& xsink);
+   DLLLOCAL int runTimeLoadModule(const char* name, ExceptionSink& xsink);
 
    DLLLOCAL QoreHashNode* getModuleHash();
    DLLLOCAL QoreListNode* getModuleList();
@@ -244,7 +244,7 @@ public:
       return dlptr;
    }
 
-   DLLLOCAL virtual QoreStringNode* addToProgram(QoreProgram* pgm) const;
+   DLLLOCAL virtual void addToProgram(QoreProgram* pgm, ExceptionSink& xsink) const;
    DLLLOCAL virtual void issueParseCmd(QoreString &cmd);
 };
 
@@ -271,7 +271,7 @@ public:
       return getHashIntern();
    }
 
-   DLLLOCAL virtual QoreStringNode* addToProgram(QoreProgram* pgm) const;
+   DLLLOCAL virtual void addToProgram(QoreProgram* pgm, ExceptionSink& xsink) const;
 
    DLLLOCAL virtual void issueParseCmd(QoreString &cmd) {
       parseException("PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' is a user module; only builtin modules can support parse commands", name.getBuffer(), filename.getBuffer());

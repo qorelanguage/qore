@@ -13,7 +13,9 @@
     |\c Qore::$QORE_ARGV|Global|List|complete qore command-line arguments
     |\c Qore::$ENV|Global|Hash|UNIX program environment
 
-    @note As of version 0.5.0, \c $STDERR and \c $STDOUT have been removed from %Qore. Use the I/O constants @ref Qore::stderr, @ref Qore::stdout, and @ref Qore::stdin constants of the @ref Qore::File class instead.
+    @note
+    - As of version 0.5.0, \c $STDERR and \c $STDOUT have been removed from %Qore. Use the I/O constants @ref Qore::stderr, @ref Qore::stdout, and @ref Qore::stdin constants of the @ref Qore::File class instead.
+    - As of version 0.8.4, global variables are namespace members; if a namespace path is not declared for the global variable, then the global variable will reside in the root namespace
 
     @section variable_declarations Variable Declarations and Lexical Scope
 
@@ -68,4 +70,6 @@ global a = 1@endverbatim
     Variables declared with \b our have global scope and are subject to mutual exclusion locks with each access.  Therefore even in single-threaded programs, it's more efficient to use local variables if the value of the variable does not need to be shared among other threads.
 
     Note that the \b our keyword is required if the parse option @ref require-our "%require-our" (\c -O or \c --require-our command-line option) is set for the parent program. See @ref parse_options for more information.    
+
+    Unlike local variables, global variables are members of @ref qore_namespaces "namespaces"; if a namespace path is not given, then the global variable will be assumed to be in the root namespace.
 */

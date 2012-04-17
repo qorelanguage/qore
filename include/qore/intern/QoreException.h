@@ -179,6 +179,29 @@ struct qore_es_private {
          tail->next = e;
       tail = e;
    }
+
+   DLLLOCAL void appendListIntern(QoreString& str) const {
+      QoreException* w = head;
+      while (w) {
+	 QoreStringNodeValueHelper err(w->err);
+	 QoreStringNodeValueHelper desc(w->desc);
+
+	 str.concat(" * ");
+	 if (!w->file.empty())
+	    str.sprintf("%s:", w->file.c_str());
+	 if (w->start_line)
+	    str.sprintf("%d-%d: ", w->start_line, w->end_line);
+	 str.sprintf("%s: %s", err->getBuffer(), desc->getBuffer());
+         if (w != tail)
+            str.concat('\n');
+
+	 w = w->next;
+      }
+   }
+
+   DLLLOCAL static void appendList(ExceptionSink& xsink, QoreString& str) {
+      xsink.priv->appendListIntern(str);
+   }
 };
 
 class ParseExceptionSink {

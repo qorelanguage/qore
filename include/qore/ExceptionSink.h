@@ -33,6 +33,8 @@ struct QoreProgramLocation;
 
 //! container for holding Qore-language exception information and also for registering a "thread_exit" call
 class ExceptionSink {
+   friend struct qore_es_private;
+
 private:
    //! private implementation of the class
    struct qore_es_private *priv;

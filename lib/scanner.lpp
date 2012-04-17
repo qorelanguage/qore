@@ -649,12 +649,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%exec-class{WS}*                       BEGIN(exec_class_state);
 ^%requires                              BEGIN(requires);
 <requires>[^\t\n\r]+                    {
-                                           char *cn = trim(yytext);
+                                           const char *cn = trim_inplace(yytext);
 					   //printd(5, "scanner requesting feature: '%s'\n", cn);
-					   QoreStringNode *err = MM.parseLoadModule(cn, getProgram());
-					   if (err)
-					      getProgram()->cannotProvideFeature(err);
-					   free(cn);
+					   QoreProgram* pgm = getProgram();
+					   QMM.parseLoadModule(cn, pgm, *(pgm->getParseExceptionSink()));
 					   BEGIN(INITIAL);
                                         }
 ^%module-cmd{WS}*$                      { parse_error("missing argument to %%module-cmd"); }

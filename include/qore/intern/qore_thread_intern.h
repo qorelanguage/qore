@@ -141,14 +141,16 @@ public:
 
 class QoreModuleContext {
 protected:
+   const char* name;
    qore_root_ns_private* rns;
    QoreStringNode* err;
+   ExceptionSink& xsink;
 
 public:
    ModuleContextNamespaceList mcnl;
    ModuleContextFunctionList mcfl;
 
-   DLLLOCAL QoreModuleContext(qore_root_ns_private* n_rns) : rns(n_rns), err(0) {
+   DLLLOCAL QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs) : name(n), rns(n_rns), err(0), xsink(xs) {
    }
 
    DLLLOCAL ~QoreModuleContext() {
@@ -157,10 +159,8 @@ public:
 
    DLLLOCAL void error(const char* fmt, ...);
 
-   DLLLOCAL QoreStringNode* takeError() {
-      QoreStringNode* rv = err;
-      err = 0;
-      return rv;
+   DLLLOCAL bool hasError() const {
+      return xsink;
    }
 
    DLLLOCAL void commit();

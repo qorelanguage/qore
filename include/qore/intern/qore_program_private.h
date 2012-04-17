@@ -1319,6 +1319,10 @@ public:
       return pgm.priv->dom;
    }
 
+   DLLLOCAL static void runtimeAddDomain(QoreProgram& pgm, int64 n_dom) {
+      pgm.priv->dom |= n_dom;
+   }
+
    DLLLOCAL static void makeParseWarning(QoreProgram* pgm, int code, const char *warn, const char *fmt, ...) {
       //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->pwo.warn_mask=%d priv->warnSink=%p %s\n", code, warn, fmt, priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
       if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask))
