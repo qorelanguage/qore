@@ -127,6 +127,12 @@ void QoreModuleDefContext::parseInit() {
    int lvids = 0;
    const QoreTypeInfo *typeInfo = 0;
    init_c = init_c->parseInit(0, PO_LOCKDOWN, lvids, typeInfo);
+   if (lvids) {
+      parseException("ILLEGAL-LOCAL-VAR", "local variables may not be declared in module initialization code");
+      // discard variables immediately
+      for (int i = 0; i < lvids; ++i)
+         pop_local_var();
+   }
 
    if (get_node_type(init_c) != NT_CLOSURE)
       parse_error("the module 'init' key must be assigned to a closure or call reference (got type '%s')", get_type_name(init_c));
