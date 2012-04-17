@@ -126,11 +126,11 @@ protected:
    }
 
 public:
-   DLLLOCAL FunctionCallNode(const QoreFunction *f, QoreListNode *a, QoreProgram *n_pgm) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(f), pgm(n_pgm), c_str(0) {
+   DLLLOCAL FunctionCallNode(const QoreFunction *f, QoreListNode *a, QoreProgram *n_pgm) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(f), pgm(n_pgm), c_str(0), finalized(false) {
    }
 
    // normal function call constructor
-   DLLLOCAL FunctionCallNode(char *name, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(0), pgm(0), c_str(name) {
+   DLLLOCAL FunctionCallNode(char *name, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(0), pgm(0), c_str(name), finalized(false) {
    }
       
    DLLLOCAL virtual ~FunctionCallNode() {
