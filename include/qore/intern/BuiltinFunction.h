@@ -43,6 +43,10 @@ public:
          }
 
 	 typeList[i]->concatName(str);
+         if (names.size() > i && !names[i].empty()) {
+            str.append(" ");
+            str.append(names[i]);
+         }
 
          if (hasDefaultArg)
             addDefaultArgument(defaultArgList[i]);

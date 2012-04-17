@@ -290,6 +290,8 @@ void UserSignature::pushParam(BarewordNode *b, bool needs_types) {
    parseTypeList.push_back(0);
    typeList.push_back(0);
    str.append(NO_TYPE_INFO);
+   str.append(" ");
+   str.append(b->str);
    defaultArgList.push_back(0);
 
    if (needs_types)
@@ -345,6 +347,10 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
       typeList.push_back(0);
       str.append(NO_TYPE_INFO);
    }
+
+   str.append(" ");
+   str.append(v->getName());
+
    defaultArgList.push_back(defArg);
    if (defArg)
       addDefaultArgument(defArg);
