@@ -155,7 +155,7 @@ protected:
    DLLLOCAL void globDir(const char* dir);
 
    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0);
-   DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0);
+   DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0);
 
 public:
    DLLLOCAL QoreModuleManager() : mutex(0) {
@@ -257,6 +257,9 @@ public:
    }
 
    DLLLOCAL virtual ~QoreUserModule() {
+      assert(pgm);
+      ExceptionSink xsink;
+      pgm->waitForTerminationAndDeref(&xsink);
    }
 
    DLLLOCAL virtual bool isBuiltin() const {

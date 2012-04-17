@@ -1181,6 +1181,10 @@ top_level_command:
 	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
         | TOK_MODULE '{' module_decls '}' {
+           QoreModuleDefContext* qmd = get_module_def_context();
+           if (!qmd)
+              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "module definitions are ignored when not defining a module");
+
            // registered internally
         }
 	;
@@ -1193,21 +1197,15 @@ module_decls:
         ;
 
 module_decl:
-        IDENTIFIER '=' string ';' {
+        IDENTIFIER '=' exp ';' {
            QoreModuleDefContext* qmd = get_module_def_context();
-           if (!qmd) {
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "cannot add module tag '%s' = '%s' when not defining a module", $1, $3->getBuffer());
-           }
-           else {
-              int rc = qmd->set($1, $3->getBuffer());
-              if (rc == QMD_NO_KEY)
-                 parse_error("module key '%s' is invalid", $1);
-              else if (rc == QMD_HAVE_KEY)
-                 parse_error("module key '%s' was given twice", $1);
-           }
+           if (!qmd)
+              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "cannot add module tag '%s' = <%s> when not defining a module", $1, get_type_name($3));
+           else
+              qmd->set($1, $3);
 
            free($1);
-           $3->deref();
+           $3->deref(0);
         }
         ;
 

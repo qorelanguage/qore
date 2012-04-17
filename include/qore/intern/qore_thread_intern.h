@@ -175,13 +175,20 @@ public:
    }
 };
 
-#define QMD_NO_KEY    -1
-#define QMD_HAVE_KEY  -2
-
 class QoreModuleDefContext {
 public:
    typedef std::set<std::string> strset_t;
    typedef std::map<std::string, std::string> strmap_t;
+
+   AbstractQoreNode* init_c;
+
+   DLLLOCAL QoreModuleDefContext() : init_c(0) {
+   }
+
+   DLLLOCAL ~QoreModuleDefContext() {
+      if (init_c)
+         init_c->deref(0);
+   }
 
    // set of valid tags
    static strset_t vset;
@@ -189,20 +196,15 @@ public:
    // set of tag definitions
    strmap_t vmap;
 
-   DLLLOCAL int set(const char* key, const char* val) {
-      if (vset.find(key) == vset.end())
-         return QMD_NO_KEY;
-      if (vmap.find(key) != vmap.end())
-         return QMD_HAVE_KEY;
-
-      vmap[key] = val;
-      return 0;
-   }
+   DLLLOCAL void set(const char* key, const AbstractQoreNode* val);
 
    DLLLOCAL const char* get(const char* str) const {
       strmap_t::const_iterator i = vmap.find(str);
       return i == vmap.end() || i->second.empty() ? 0 : i->second.c_str();
    }
+
+   DLLLOCAL void parseInit();
+   DLLLOCAL int init(QoreProgram& pgm, ExceptionSink& xsink);
 };
 
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check

@@ -465,6 +465,11 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    qore_root_ns_private::parseInit(po);
 
    if (first) {
+      // if parsing a module, then initialize the init function
+      QoreModuleDefContext* qmd = get_module_def_context();
+      if (qmd)
+	 qmd->parseInit();
+
       // this call will pop all local vars off the stack
       setupLVList(lvids);
       first = false;

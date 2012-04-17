@@ -73,13 +73,13 @@ private:
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
-   DLLLOCAL QoreClosureNode *evalClosure() const;
-   DLLLOCAL QoreObjectClosureNode *evalObjectClosure() const;
-
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
       return runTimeClosureTypeInfo;
    }
+
+   DLLLOCAL QoreClosureNode *evalClosure() const;
+   DLLLOCAL QoreObjectClosureNode *evalObjectClosure() const;
 
 public:
    DLLLOCAL QoreClosureParseNode(UserClosureFunction *n_uf, bool n_lambda = false);

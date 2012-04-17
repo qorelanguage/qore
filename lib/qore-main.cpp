@@ -108,9 +108,6 @@ void qore_cleanup() {
    // delete thread-local data
    delete_thread_local_data();
 
-   // delete static system namespaces
-   staticSystemNamespace.purge();
-
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
    WSACleanup();
 #endif
@@ -134,6 +131,9 @@ void qore_cleanup() {
 
    // delete all loadable modules
    QMM.cleanup();
+
+   // delete static system namespaces after modules
+   staticSystemNamespace.purge();
 
    // delete default type values
    delete_qore_types();

@@ -98,6 +98,58 @@ void QoreModuleContext::commit() {
    mcnl.mcnl_t::clear();
 }
 
+void QoreModuleDefContext::set(const char* key, const AbstractQoreNode* val) {
+   qore_type_t t = get_node_type(val);
+
+   // special handling for "init"
+   if (!strcmp(key, "init")) {
+      if (init_c)
+	 parse_error("module key 'init' was given multiple times");
+      else // check type when code is committed
+	 init_c = val->refSelf();
+   }
+   else if (vset.find(key) == vset.end())
+      parse_error("module key '%s' is invalid", key);
+   else if (vmap.find(key) != vmap.end())
+      parse_error("module key '%s' was given multiple times", key);
+   else if (t != NT_STRING)
+      parse_error("module key '%s' assigned type '%s' (expecting 'string')", get_type_name(val));
+   else
+      vmap[key] = reinterpret_cast<const QoreStringNode*>(val)->getBuffer();
+}
+
+// called only during parsing
+void QoreModuleDefContext::parseInit() {
+   if (!init_c)
+      return;
+
+   // initialize init_c
+   int lvids = 0;
+   const QoreTypeInfo *typeInfo = 0;
+   init_c = init_c->parseInit(0, PO_LOCKDOWN, lvids, typeInfo);
+
+   if (get_node_type(init_c) != NT_CLOSURE)
+      parse_error("the module 'init' key must be assigned to a closure or call reference (got type '%s')", get_type_name(init_c));
+}
+
+int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
+   if (!init_c)
+      return 0;
+
+   // temporary set program parse options to PO_LOCKDOWN
+   {
+      ProgramThreadCountHelper tch(&pgm);
+      ProgramContextHelper pch(&pgm);
+
+      ReferenceHolder<> cn(reinterpret_cast<QoreClosureParseNode*>(init_c)->eval(&xsink), &xsink);
+      assert(!xsink);
+      assert(cn->getType() == NT_RUNTIME_CLOSURE);
+      ReferenceHolder<> tmp(reinterpret_cast<QoreClosureNode*>(*cn)->exec(0, &xsink), &xsink);
+   }
+
+   return xsink ? -1 : 0;
+}
+
 class QoreModuleContextHelper : public QoreModuleContext {
 public:
    DLLLOCAL QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink) : QoreModuleContext(name, qore_root_ns_private::get(pgm ? *(pgm->getRootNS()) : staticSystemNamespace), xsink) {
@@ -510,7 +562,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char *name,
       // see if it's a user or binary module
       size_t len = strlen(name);
       if (len > 3 && !strcasecmp(".qm", name + len - 3))
-	 mi = loadUserModuleFromPath(xsink, name, 0);
+	 mi = loadUserModuleFromPath(xsink, name, 0, pgm);
       else
 	 mi = loadBinaryModuleFromPath(xsink, name, 0, pgm);
 
@@ -563,7 +615,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char *name,
 	 //printd(0, "ModuleManager::loadModule(%s) trying user module: %s\n", name, str.getBuffer());
 	 if (!stat(str.getBuffer(), &sb)) {
 	    printd(5, "ModuleManager::loadModule(%s) found user module: %s\n", name, str.getBuffer());
-	    mi = loadUserModuleFromPath(xsink, str.getBuffer(), name);
+	    mi = loadUserModuleFromPath(xsink, str.getBuffer(), name, pgm);
 	    if (xsink) {
 	       assert(!mi);
 	       return;
@@ -646,10 +698,16 @@ void QoreModuleManager::parseLoadModule(const char *name, QoreProgram *pgm, Exce
    loadModuleIntern(xsink, name, pgm);
 }
 
-QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char *path, const char* feature) {
+QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char *path, const char* feature, QoreProgram* tpgm) {
    QoreAbstractModule *mi = 0;
 
-   ReferenceHolder<QoreProgram> pgm(new QoreProgram(USER_MOD_PO), &xsink);
+   // parse options for the module
+   int64 po = USER_MOD_PO;
+   // add in parse options from the current program, if any
+   if (tpgm)
+      po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_POSITIVE_OPTIONS));
+
+   ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
 
    QoreModuleDefContextHelper qmd;
    pgm->parseFile(path, &xsink);
@@ -697,6 +755,10 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    }
  
    const char* url = qmd.get("url");
+
+   // init & run module initialization code if any
+   if (qmd.init(**pgm, xsink))
+      return 0;
 
    // xxx add to auto namespace list
    //ANSL.add(*pgm);
