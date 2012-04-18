@@ -1073,7 +1073,6 @@ trim					return TOK_TRIM;
 on_exit 		 		return TOK_ON_EXIT;
 on_success				return TOK_ON_SUCCESS;
 on_error 				return TOK_ON_ERROR;
-module                                  return TOK_MODULE;
 map                                     { push_ignore_numeric_argv_ref(); return TOK_MAP; }
 foldr                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDR; }
 foldl                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDL; }
@@ -1204,7 +1203,8 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 class{WS}+({WORD}::)+{WORD}             { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_class_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
 class{WS}+(::{WORD})+                   { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_class_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
 class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); parse_push_class_name(yylval->string); return CLASS_STRING; }
-namespace{WS}+{WORD}			{ const char* ns = trim_inplace(yytext + 10); parse_push_namespace_name(ns); return TOK_NAMESPACE; }
+namespace{WS}+{WORD}			{ const char* ns = trim_inplace(yytext + 10); parse_push_nsmod_name(ns); return TOK_NAMESPACE; }
+module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); parse_push_nsmod_name(mod); return TOK_MODULE; }
 {WORD}					yylval->string = strdup(yytext); return IDENTIFIER;
 \%{WORD}                                yylval->string = strdup(yytext + 1); return CONTEXT_REF;
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;

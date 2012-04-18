@@ -69,7 +69,7 @@ public:
    DLLLOCAL qore_ns_private() : depth(0), root(false), pub(false), parent(0), class_handler(0), ns(0) {
       // attaches to the ns attribute in the constructor
       new QoreNamespace(this);
-      name = parse_pop_namespace_name();
+      name = parse_pop_nsmod_name();
    }
 
    DLLLOCAL qore_ns_private(const qore_ns_private &old, int64 po) 

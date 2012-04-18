@@ -415,11 +415,11 @@ public:
       return rv;
    }
 
-   DLLLOCAL void pushNamespaceName(const char* name) {
+   DLLLOCAL void pushNsModName(const char* name) {
       ns_vec.push_back(name);
    }
 
-   DLLLOCAL std::string popNamespaceName() {
+   DLLLOCAL std::string popNsModName() {
       assert(!ns_vec.empty());
       std::string rv = ns_vec.back();
       ns_vec.pop_back();
@@ -762,14 +762,14 @@ ClosureParseEnvironment *thread_get_closure_parse_env() {
    return thread_data.get()->closure_parse_env;
 }
 
-void parse_push_namespace_name(const char* name) {
+void parse_push_nsmod_name(const char* name) {
    ThreadData *td = thread_data.get();
-   td->pushNamespaceName(name);
+   td->pushNsModName(name);
 }
 
-std::string parse_pop_namespace_name() {
+std::string parse_pop_nsmod_name() {
    ThreadData *td = thread_data.get();
-   return td->popNamespaceName();
+   return td->popNsModName();
 }
 
 void parse_push_class_name(const char* name) {
@@ -1092,7 +1092,10 @@ QoreModuleDefContext* set_module_def_context(QoreModuleDefContext* qmd) {
 }
 
 QoreModuleDefContext* get_module_def_context() {
-   return thread_data.get()->qmd;
+   QoreModuleDefContext* qmd = thread_data.get()->qmd;
+   if (qmd)
+      qmd->checkName();
+   return qmd;
 }
 
 void ModuleContextNamespaceList::clear() {

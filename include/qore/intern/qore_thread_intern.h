@@ -181,8 +181,9 @@ public:
    typedef std::map<std::string, std::string> strmap_t;
 
    AbstractQoreNode* init_c;
+   bool name_set;
 
-   DLLLOCAL QoreModuleDefContext() : init_c(0) {
+   DLLLOCAL QoreModuleDefContext() : init_c(0), name_set(false) {
    }
 
    DLLLOCAL ~QoreModuleDefContext() {
@@ -205,6 +206,7 @@ public:
 
    DLLLOCAL void parseInit();
    DLLLOCAL int init(QoreProgram& pgm, ExceptionSink& xsink);
+   DLLLOCAL void checkName();
 };
 
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
@@ -244,8 +246,8 @@ DLLLOCAL void parse_cond_push(bool mark = false);
 DLLLOCAL bool parse_cond_else();
 DLLLOCAL bool parse_cond_pop();
 DLLLOCAL void push_parse_options();
-DLLLOCAL void parse_push_namespace_name(const char* name);
-DLLLOCAL std::string parse_pop_namespace_name();
+DLLLOCAL void parse_push_nsmod_name(const char* name);
+DLLLOCAL std::string parse_pop_nsmod_name();
 DLLLOCAL void parse_push_class_name(const char* name);
 DLLLOCAL std::string parse_pop_class_name();
 DLLLOCAL qore_ns_private* parse_set_ns(qore_ns_private* ns);

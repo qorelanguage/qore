@@ -156,6 +156,13 @@ int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
    return xsink ? -1 : 0;
 }
 
+void QoreModuleDefContext::checkName() {
+   if (!name_set) {
+      vmap["name"] = parse_pop_nsmod_name();
+      name_set = true;
+   }
+}
+
 class QoreModuleContextHelper : public QoreModuleContext {
 public:
    DLLLOCAL QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink) : QoreModuleContext(name, qore_root_ns_private::get(pgm ? *(pgm->getRootNS()) : staticSystemNamespace), xsink) {
@@ -375,7 +382,6 @@ void QoreModuleManager::init(bool se) {
    static const char *qt_blacklist_string = "because it was implemented with faulty namespace handling that does not work with newer versions of Qore; use the 'qt4' module based in libsmoke instead; it is much more complete";
 
    // setup possible user module keys
-   QoreModuleDefContext::vset.insert("name");
    QoreModuleDefContext::vset.insert("desc");
    QoreModuleDefContext::vset.insert("version");
    QoreModuleDefContext::vset.insert("author");
