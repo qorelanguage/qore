@@ -105,63 +105,63 @@ class QoreTypeInfo;
 
 //! functor template for calling free() on pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void> {
-      void operator()(T *ptr) {
-	 free(ptr);
-      }
+   DLLLOCAL void operator()(T *ptr) {
+      free(ptr);
+   }
 };
 
 //! functor template for deleting elements
 template <typename T> struct simple_delete {
-      void operator()(T *ptr) {
-	 delete ptr;
-      }
+   DLLLOCAL void operator()(T *ptr) {
+      delete ptr;
+   }
 };
 
 //! functor template for dereferencing elements
 template <typename T> struct simple_deref {
-      void operator()(T *ptr) {
-	 ptr->deref();
-      }
-      void operator()(T *ptr, ExceptionSink *xsink) {
-	 ptr->deref(xsink);
-      }
+   DLLLOCAL void operator()(T *ptr) {
+      ptr->deref();
+   }
+   DLLLOCAL void operator()(T *ptr, ExceptionSink *xsink) {
+      ptr->deref(xsink);
+   }
 };
 
 //! for simple c-string less-than comparisons
 class ltstr {
-  public:
-   bool operator()(const char* s1, const char* s2) const {
+public:
+   DLLLOCAL bool operator()(const char* s1, const char* s2) const {
       return strcmp(s1, s2) < 0;
    }
 };
 
 //! for simple c-string case-insensitive less-than comparisons
 class ltcstrcase {
-   public:
-      bool operator()(const char* s1, const char* s2) const {
-	 return strcasecmp(s1, s2) < 0;
-      }
+public:
+   DLLLOCAL bool operator()(const char* s1, const char* s2) const {
+      return strcasecmp(s1, s2) < 0;
+   }
 };
 
 //! for std::string case-insensitive less-than comparisons
 class ltstrcase {
-   public:
-      bool operator()(std::string s1, std::string s2) const {
-	 return strcasecmp(s1.c_str(), s2.c_str()) < 0;
-      }
+public:
+   DLLLOCAL bool operator()(std::string s1, std::string s2) const {
+      return strcasecmp(s1.c_str(), s2.c_str()) < 0;
+   }
 };
 
 //! for char less-than comparisons
 class ltchar {
-   public:
-      bool operator()(const char s1, const char s2) const {
-	 return s1 < s2;
-      }
+public:
+   DLLLOCAL bool operator()(const char s1, const char s2) const {
+      return s1 < s2;
+   }
 };
 
 //! non-thread-safe vector for storing "char *" that you want to delete
 class cstr_vector_t : public std::vector<char *> {
-  public:
+public:
    DLLLOCAL ~cstr_vector_t() {
       std::for_each(begin(), end(), free_ptr<char>());
    }

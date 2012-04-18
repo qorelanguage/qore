@@ -75,6 +75,7 @@ Var *GlobalVariableList::runtimeCreateVar(const char *name, const QoreTypeInfo *
    return var;
 }
 
+/*
 Var *GlobalVariableList::parseCreatePendingVar(const char *name, QoreParseTypeInfo *typeInfo) {
    assert(!parseFindVar(name));
 
@@ -84,6 +85,7 @@ Var *GlobalVariableList::parseCreatePendingVar(const char *name, QoreParseTypeIn
    printd(5, "GlobalVariableList::parseCreatePendingVar(): %s (%p) added (parseType %s)\n", name, var, typeInfo->getName());
    return var;
 }
+*/
 
 Var *GlobalVariableList::parseCreatePendingVar(const char *name, const QoreTypeInfo *typeInfo) {
    assert(!parseFindVar(name));
@@ -113,6 +115,7 @@ const Var *GlobalVariableList::parseFindVar(const char *name) const {
    return i != pending_vmap.end() ? i->second : 0;
 }
 
+/*
 // used for resolving unflagged global variables
 Var *GlobalVariableList::parseFindCreateVar(const char *name, QoreParseTypeInfo *typeInfo, bool& new_var) {   
    QORE_TRACE("GlobalVariableList::checkVar()");
@@ -146,14 +149,11 @@ Var *GlobalVariableList::parseFindCreateVar(const char *name, const QoreTypeInfo
 
    return var;
 }
+*/
 
-void GlobalVariableList::parseInit(int64 parse_options) {
-   bool needs_type = (bool)(parse_options & PO_REQUIRE_TYPES);
-   for (map_var_t::iterator i = pending_vmap.begin(); i != pending_vmap.end(); i++) {
-      if (needs_type && !i->second->hasTypeInfo())
-	 parse_error("global variable '%s' declared without type information, but parse options require all declarations to have type information", i->second->getName());
+void GlobalVariableList::parseInit() {
+   for (map_var_t::iterator i = pending_vmap.begin(); i != pending_vmap.end(); i++)
       i->second->parseInit();
-   }
 }
 
 void GlobalVariableList::parseCommit() {

@@ -38,6 +38,7 @@
 typedef std::map<std::string, QoreNamespace*> nsmap_t;
 
 class qore_ns_private;
+class qore_root_ns_private;
 
 class QoreNamespaceList {
 private:
@@ -79,7 +80,7 @@ public:
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInitConstants();
 
-   DLLLOCAL void parseInitGlobalVars(int64 po);
+   DLLLOCAL void parseInitGlobalVars();
    DLLLOCAL void clearGlobalVars(ExceptionSink* sink);
    DLLLOCAL void deleteGlobalVars(ExceptionSink* sink);
 

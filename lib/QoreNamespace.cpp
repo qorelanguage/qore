@@ -329,9 +329,9 @@ void QoreNamespaceList::resolveCopy() {
       i->second->priv->classList.resolveCopy();
 }
 
-void QoreNamespaceList::parseInitGlobalVars(int64 po) {
+void QoreNamespaceList::parseInitGlobalVars() {
    for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      i->second->priv->parseInitGlobalVars(po);
+      i->second->priv->parseInitGlobalVars();
 }
 
 void QoreNamespaceList::clearGlobalVars(ExceptionSink* xsink) {
@@ -961,13 +961,13 @@ AbstractQoreNode* qore_root_ns_private::parseFindConstantValueIntern(const Named
 void qore_root_ns_private::parseAddClassIntern(const NamedScope& nscope, QoreClass* oc) {
    QORE_TRACE("qore_root_ns_private::parseAddClassIntern()");
 
-   QoreNamespace* sns = parseResolveNamespace(nscope);
+   qore_ns_private* sns = parseResolveNamespace(nscope);
 
    if (sns) {
-      //printd(5, "qore_root_ns_private::parseAddClassIntern() '%s' adding %s:%p to %s:%p\n", nscope.ostr, oc->getName(), oc, sns->priv->name.c_str(), sns);
+      //printd(5, "qore_root_ns_private::parseAddClassIntern() '%s' adding %s:%p to %s:%p\n", nscope.ostr, oc->getName(), oc, sns->name.c_str(), sns);
       // add to pending class map if add was successful
-      if (!sns->priv->parseAddPendingClass(oc))
-         pend_clmap.update(oc->getName(), sns->priv, oc);
+      if (!sns->parseAddPendingClass(oc))
+         pend_clmap.update(oc->getName(), sns, oc);
    }
    else {
       //printd(5, "qore_root_ns_private::parseAddClassIntern() class '%s' not added: '%s' namespace not found\n", oc->getName(), nscope.ostr);
@@ -998,40 +998,53 @@ void qore_root_ns_private::parseAddConstantIntern(QoreNamespace& ns, const Named
    pend_cnmap.update(i->first, sns->priv, i->second);
 }
 
-QoreNamespace* qore_root_ns_private::parseResolveNamespace(const NamedScope& nscope) {
-   if (nscope.size() == 1)
-      return ns;
+qore_ns_private *qore_root_ns_private::parseResolveNamespaceIntern(const NamedScope& nscope, qore_ns_private* sns) {
+   assert(nscope.size() > 1);
 
-   QoreNamespace* fns = 0;
    unsigned match = 0;
 
    // try to check in current namespace first
-   qore_ns_private* nscx = parse_get_ns();
-   if (nscx) {
-      fns = nscx->parseFindLocalNamespace(nscope[0]);
-      if (ns && (fns = ns->priv->parseMatchNamespace(nscope, match)))
-         return fns;
+   if (sns) {
+      QoreNamespace* tns = sns->parseFindLocalNamespace(nscope[0]);
+      if (tns && (tns = tns->priv->parseMatchNamespace(nscope, match)))
+         return tns->priv;
    }
 
    // iterate all namespaces with the initial name and look for the match
    {
       NamespaceMapIterator nmi(nsmap, nscope[0]);
       while (nmi.next()) {
-         if ((fns = nmi.get()->parseMatchNamespace(nscope, match)))
-            return fns;
+         QoreNamespace* tns = nmi.get()->parseMatchNamespace(nscope, match);
+         if (tns)
+            return tns->priv;
       }
    }
 
    {
       NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
       while (nmi.next()) {
-         if ((fns = nmi.get()->parseMatchNamespace(nscope, match)))
-            return fns;
+         QoreNamespace* tns = nmi.get()->parseMatchNamespace(nscope, match);
+         if (tns)
+            return tns->priv;
       }
    }
 
    parse_error("cannot resolve namespace '%s' in '%s'", nscope[match], nscope.ostr);
    return 0;
+}
+
+qore_ns_private *qore_root_ns_private::parseResolveNamespace(const NamedScope& n, qore_ns_private* sns) {
+   if (n.size() == 1)
+      return sns ? sns : this;
+
+   return parseResolveNamespaceIntern(n, sns);
+}
+
+qore_ns_private* qore_root_ns_private::parseResolveNamespace(const NamedScope& nscope) {
+   if (nscope.size() == 1)
+      return this;
+
+   return parseResolveNamespaceIntern(nscope, parse_get_ns());
 }
 
 const QoreFunction* qore_root_ns_private::runtimeFindFunctionIntern(const NamedScope& name, const qore_ns_private*& ns) {
@@ -1101,60 +1114,68 @@ AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern
    return fr_holder.release();
 }
 
-Var* qore_root_ns_private::parseAddResolvedGlobalVarDefIntern(const NamedScope& vname, const QoreTypeInfo *typeInfo) {
-   bool new_var = false;
+void qore_ns_private::parseInitGlobalVars() {
+   var_list.parseInit();
+   nsl.parseInitGlobalVars();
+   pendNSL.parseInitGlobalVars();
+}
 
-   qore_ns_private* tns;
-   // assume the root namespace for all unscoped global variables
-   if (vname.size() == 1)
-      tns = this;
-   else {
-      QoreNamespace* rns = parseResolveNamespace(vname);
-      tns = rns ? rns->priv : this;
-   }
+static void check_global_var_decl(Var* v, const NamedScope& vname) {
+   int64 po = getParseOptions();
+   if (po & PO_NO_GLOBAL_VARS)
+      parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
 
-   //printd(5, "qore_root_ns_private::parseAddResolvedGlobalVarDefIntern() this: %p vname: '%s' resolved ns to %p '%s::'\n", this, vname.ostr, tns, tns->name.c_str());
+   if (!v->hasTypeInfo() && (po & PO_REQUIRE_TYPES))
+      parse_error("global variable '%s' declared without type information, but parse options require all declarations to have type information", vname.ostr);
+}
 
-   Var* v = tns->var_list.parseFindCreateVar(vname.getIdentifier(), typeInfo, new_var);
-   
-   if (!new_var)
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", vname.ostr);
-   else {
-      if (checkParseOption(PO_NO_GLOBAL_VARS))
-         parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
+void qore_ns_private::parseAddGlobalVarDecl(char *name, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, bool pub) {
+   GVEntryBase e(name, typeInfo, parseTypeInfo);
+   if (pub)
+      e.var->setPublic();
+   pend_gvblist.push_back(e);
 
+   check_global_var_decl(e.var, *e.name);
+}
+
+void qore_root_ns_private::parseResolveGlobalVars() {
+   for (gvlist_t::iterator i = pend_gvlist.begin(), e = pend_gvlist.end(); i != e; ++i) {
+      // resolve namespace
+      const NamedScope& n = *((*i).name);
+
+      // find the namespace
+      qore_ns_private* tns = parseResolveNamespace(n, (*i).ns);
+      if (!tns)
+         continue;
+
+      Var* v = tns->var_list.parseFindVar(n.getIdentifier());
+      if (v) {
+         // FIXME: save parse location in Var for error handling
+         parse_error("global variable '%s::%s' has already been %s this Program object", tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
+         continue;
+      }
+
+      v = (*i).takeVar();
+      //printd(5, "qore_root_ns_private::parseResolveGlobalVars() resolved '%s::%s' ('%s') %p ns\n", tns->name.c_str(), n.getIdentifier(), n.ostr, v);
+      tns->var_list.parseAdd(v);
       pend_varmap.update(v->getName(), tns, v);
-      //printd(5, "qore_root_ns_private::parseAddResolvedGlobalVarDef() this: %p adding %p '%s' (%s) to '%s::'\n", this, v, vname.ostr, typeInfo->getName(), name.c_str());
    }
-   
+   pend_gvlist.clear();
+}
+
+Var* qore_root_ns_private::parseAddResolvedGlobalVarDefIntern(const NamedScope& vname, const QoreTypeInfo *typeInfo) {
+   Var* v = new Var(vname.getIdentifier(), typeInfo);
+   pend_gvlist.push_back(GVEntry(this, vname, v));
+
+   check_global_var_decl(v, vname);
    return v;
 }
 
 Var *qore_root_ns_private::parseAddGlobalVarDefIntern(const NamedScope& vname, QoreParseTypeInfo *typeInfo) {
-   bool new_var = false;
+   Var* v = new Var(vname.getIdentifier(), typeInfo);
+   pend_gvlist.push_back(GVEntry(this, vname, v));
 
-   qore_ns_private* tns;
-   // assume the root namespace for all unscoped global variables
-   if (vname.size() == 1)
-      tns = this;
-   else {
-      QoreNamespace* rns = parseResolveNamespace(vname);
-      // if the name cannot be resolved, then the above function raises a parse exception
-      // and we use the root namespace
-      tns = rns ? rns->priv : this;
-   }
-
-   Var* v = tns->var_list.parseFindCreateVar(vname.getIdentifier(), typeInfo, new_var);
-
-   if (!new_var)
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", vname.ostr);
-   else {
-      if (checkParseOption(PO_NO_GLOBAL_VARS))
-         parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
-
-      pend_varmap.update(v->getName(), tns, v);
-   }
-
+   check_global_var_decl(v, vname);
    return v;
 }
 
@@ -1162,14 +1183,15 @@ Var *qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const NamedScope& v
    Var* rv;
 
    qore_ns_private* tns;
-   // assume the root namespace for all unscoped global variables
-   if (vname.size() == 1) {      
+   if (vname.size() == 1) {
       rv = parseFindGlobalVarIntern(vname.ostr);
+      // for backwards-compatibility, assume the root namespace for all unscoped global variables
       tns = this;
    }
    else {
-      QoreNamespace* rns = parseResolveNamespace(vname);
-      tns = rns ? rns->priv : this;
+      tns = parseResolveNamespace(vname);
+      if (!tns)
+         tns = this;
       rv = tns->var_list.parseFindVar(vname.getIdentifier());
    }
 
@@ -1214,7 +1236,7 @@ void qore_ns_private::parseInit() {
 
    // do 2nd stage parse initialization on committed classes
    classList.parseInit();
-      
+
    // do 2nd stage parse initialization on pending classes
    pendClassList.parseInit();
 
@@ -1251,6 +1273,9 @@ void qore_ns_private::parseCommit() {
 
 void qore_ns_private::parseRollback() {
    printd(5, "qore_ns_private::parseRollback() %s this=%p ns=%p\n", name.c_str(), this, ns);
+
+   // delete pending global variable declarations
+   pend_gvblist.clear();
 
    // delete pending global variables
    var_list.parseRollback();
@@ -1480,7 +1505,7 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
 
 void qore_ns_private::assimilate(QoreNamespace* ans) {
    qore_ns_private* pns = ans->priv;
-   // make sure there are no objects in the committed lists
+   // make sure there are no objects in the committed lists in the namespace to be merged
    assert(pns->nsl.empty());
    assert(pns->constant.empty());
    assert(pns->classList.empty());
@@ -1494,6 +1519,10 @@ void qore_ns_private::assimilate(QoreNamespace* ans) {
 
    // assimilate pending functions
    func_list.assimilate(pns->func_list);
+
+   // assimilate pending global variable declarations
+   pend_gvblist = pns->pend_gvblist;
+   pns->pend_gvblist.zero();
 
    // assimilate sub namespaces
    for (nsmap_t::iterator i = pns->pendNSL.nsmap.begin(), e = pns->pendNSL.nsmap.end(); i != e; ++i) {

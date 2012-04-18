@@ -33,6 +33,57 @@
 #include <map>
 #include <vector>
 
+class qore_root_ns_private;
+
+struct GVEntryBase {
+   NamedScope* name;
+   Var* var;
+
+   DLLLOCAL GVEntryBase(const NamedScope& n, Var* v) : name(new NamedScope(n)), var(v) {
+   }
+
+   DLLLOCAL GVEntryBase(char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo) : name(new NamedScope(n)), var(typeInfo ? new Var(name->getIdentifier(), typeInfo) : new Var(name->getIdentifier(), parseTypeInfo)) {
+   }
+
+   DLLLOCAL GVEntryBase(const GVEntryBase& old) : name(old.name), var(old.var) {
+   }
+
+   DLLLOCAL void clear() {
+      delete name;
+      if (var)
+         var->deref(0);
+   }
+
+   DLLLOCAL Var* takeVar() {
+      Var* rv = var;
+      var = 0;
+      return rv;
+   }
+};
+
+template <class T>
+struct GVList : public std::vector<T> {
+   DLLLOCAL ~GVList() {
+      clear();
+   }
+
+   DLLLOCAL void clear() {
+      for (typename GVList<T>::iterator i = std::vector<T>::begin(), e = std::vector<T>::end(); i != e; ++i)
+         (*i).clear();
+      std::vector<T>::clear();
+   }
+
+   DLLLOCAL void zero() {
+      std::vector<T>::clear();      
+   }
+
+   DLLLOCAL void assimilate(GVList<T>& l) {
+      
+   }
+};
+
+typedef GVList<GVEntryBase> gvblist_t;
+
 class qore_ns_private {
 private:
    // not implemented
@@ -43,11 +94,15 @@ private:
 public:
    std::string name;
 
-   QoreClassList classList, pendClassList;
-   ConstantList constant, pendConstant;
-   QoreNamespaceList nsl, pendNSL;
-   FunctionList func_list;
-   GlobalVariableList var_list;
+   QoreClassList classList,       // committed class map
+      pendClassList;              // pending class map
+   ConstantList constant,         // committed constant map
+      pendConstant;               // pending constant map
+   QoreNamespaceList nsl,         // committed namespace map
+      pendNSL;                    // pending namespace map
+   FunctionList func_list;        // function map
+   GlobalVariableList var_list;   // global variable map
+   gvblist_t pend_gvblist;        // global variable declaration list
 
    // 0 = root namespace, ...
    unsigned depth;
@@ -239,12 +294,7 @@ public:
    DLLLOCAL void scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const;
    DLLLOCAL void copyMergeCommittedNamespace(const qore_ns_private& mns);
 
-   DLLLOCAL void parseInitGlobalVars(int64 po) {
-      var_list.parseInit(po);
-
-      nsl.parseInitGlobalVars(po);
-      pendNSL.parseInitGlobalVars(po);
-   }
+   DLLLOCAL void parseInitGlobalVars();
 
    DLLLOCAL void clearGlobalVars(ExceptionSink* xsink) {
       var_list.clear_all(xsink);
@@ -257,6 +307,8 @@ public:
 
       nsl.deleteGlobalVars(xsink);
    }
+
+   DLLLOCAL void parseAddGlobalVarDecl(char *name, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, bool pub);
 
    DLLLOCAL static void addNamespace(QoreNamespace& ns, QoreNamespace* nns) {
       ns.priv->addNamespace(nns->priv);
@@ -286,6 +338,10 @@ public:
 
    DLLLOCAL static void parseAddConstant(QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value) {
       ns.priv->parseAddConstant(name, value);
+   }
+
+   DLLLOCAL static void parseAddGlobalVarDecl(QoreNamespace& ns, char *name, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, bool pub) {
+      ns.priv->parseAddGlobalVarDecl(name, typeInfo, parseTypeInfo, pub);
    }
 
    DLLLOCAL static void parseRollback(QoreNamespace& ns) {
@@ -621,6 +677,21 @@ typedef RootMap<QoreClass> clmap_t;
 
 typedef RootMap<Var> varmap_t;
 
+struct GVEntry : public GVEntryBase {
+   qore_ns_private* ns;
+
+   DLLLOCAL GVEntry(qore_ns_private* n_ns, const NamedScope& n, Var* v) : GVEntryBase(n, v), ns(n_ns) {
+   }
+
+   DLLLOCAL GVEntry(const GVEntry& old) : GVEntryBase(old), ns(old.ns) {
+   }
+
+   DLLLOCAL GVEntry(const GVEntryBase& old, qore_ns_private* n_ns) : GVEntryBase(old), ns(n_ns) {
+   }
+};
+
+typedef GVList<GVEntry> gvlist_t;
+
 class qore_root_ns_private : public qore_ns_private {
    friend class qore_ns_private;
 
@@ -773,6 +844,9 @@ protected:
       pend_clmap.clear();
       pend_varmap.clear();
       pend_nsmap.clear();
+
+      // roll back pending global variables
+      pend_gvlist.clear();
 
       qore_ns_private::parseRollback();
    }
@@ -930,12 +1004,13 @@ protected:
 
    DLLLOCAL void parseAddClassIntern(const NamedScope& name, QoreClass *oc);
 
-   DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope& nscope);
+   DLLLOCAL qore_ns_private *parseResolveNamespaceIntern(const NamedScope& nscope, qore_ns_private* sns);
+   DLLLOCAL qore_ns_private *parseResolveNamespace(const NamedScope& nscope, qore_ns_private* sns);
+   DLLLOCAL qore_ns_private *parseResolveNamespace(const NamedScope& nscope);
 
    DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const NamedScope& nscope);
 
    DLLLOCAL Var* parseAddResolvedGlobalVarDefIntern(const NamedScope& name, const QoreTypeInfo* typeInfo);
-
    DLLLOCAL Var *parseAddGlobalVarDefIntern(const NamedScope& name, QoreParseTypeInfo* typeInfo);
 
    DLLLOCAL Var *parseCheckImplicitGlobalVarIntern(const NamedScope& name, const QoreTypeInfo* typeInfo);
@@ -1036,6 +1111,8 @@ protected:
       return v;
    }
 
+   DLLLOCAL void parseResolveGlobalVars();
+
    // returns 0 for success, non-zero for error
    DLLLOCAL int parseAddMethodToClassIntern(const NamedScope& name, MethodVariantBase *qcmethod, bool static_flag);
 
@@ -1108,6 +1185,13 @@ protected:
 
       //printd(5, "qore_root_ns_private::parseAddNamespaceIntern() this: %p ns: %p\n", this, ns);
 
+      // take global variable decls
+      for (unsigned i = 0; i < ns->pend_gvblist.size(); ++i) {
+         //printd(5, "qore_root_ns_private::parseAddNamespaceIntern() merging global var decl '%s::%s' into the root list\n", ns->name.c_str(), ns->pend_gvblist[i].name->ostr);
+         pend_gvlist.push_back(GVEntry(ns->pend_gvblist[i], ns));
+      }
+      ns->pend_gvblist.zero();
+
       // add all objects to the new (or assimilated) namespace
       if (ns) {
          QorePrivateNamespaceIterator qpni(ns, false);
@@ -1141,6 +1225,9 @@ public:
    
    NamespaceMap nsmap,  // root namespace map
       pend_nsmap;       // root pending namespace map (used only during parsing)
+   
+   // unresolved pending global variable list - only used in the 1st stage of parsing (data read in to tree)
+   gvlist_t pend_gvlist;
 
    DLLLOCAL qore_root_ns_private(RootQoreNamespace* n_rns) : qore_ns_private(n_rns), rns(n_rns), qoreNS(0) {
       root = true;
@@ -1224,9 +1311,11 @@ public:
       return getRootNS()->rpriv->parseResolveCallReferenceIntern(fr);
    }
 
-   DLLLOCAL static void parseInit(int64 parse_options) {
-      qore_ns_private* p = getRootNS()->priv;
-      p->parseInitGlobalVars(parse_options);
+   DLLLOCAL static void parseInit() {
+      RootQoreNamespace* rns = getRootNS();
+      qore_ns_private* p = rns->priv;
+      rns->rpriv->parseResolveGlobalVars();
+      p->parseInitGlobalVars();
       p->parseInitConstants();
       p->parseInit();
    }

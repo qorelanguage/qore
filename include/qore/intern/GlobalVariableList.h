@@ -37,7 +37,7 @@ typedef std::map<const char*, Var*, ltstr> map_var_t;
 // all reading and writing is done within the parse lock on the containing program object
 class GlobalVariableList {
 protected:
-   DLLLOCAL Var* parseCreatePendingVar(const char* name, QoreParseTypeInfo* typeInfo);
+   // xxx DLLLOCAL Var* parseCreatePendingVar(const char* name, QoreParseTypeInfo* typeInfo);
 
 public:
    map_var_t vmap, pending_vmap;
@@ -83,8 +83,14 @@ public:
    DLLLOCAL Var* parseFindVar(const char* name);
    DLLLOCAL Var* parseCreatePendingVar(const char* name, const QoreTypeInfo* typeInfo);
    DLLLOCAL const Var* parseFindVar(const char* name) const;
-   DLLLOCAL Var* parseFindCreateVar(const char* name, QoreParseTypeInfo* typeInfo, bool& new_var);
-   DLLLOCAL Var* parseFindCreateVar(const char* name, const QoreTypeInfo* typeInfo, bool& new_var);
+
+   DLLLOCAL void parseAdd(Var* v) {
+      assert(!parseFindVar(v->getName()));
+      pending_vmap[v->getName()] = v;
+   }
+
+   // xxx DLLLOCAL Var* parseFindCreateVar(const char* name, QoreParseTypeInfo* typeInfo, bool& new_var);
+   // xxx DLLLOCAL Var* parseFindCreateVar(const char* name, const QoreTypeInfo* typeInfo, bool& new_var);
 
    DLLLOCAL Var* runtimeFindVar(const char* name) {
       map_var_t::iterator i = vmap.find(name);
@@ -93,7 +99,7 @@ public:
 
    DLLLOCAL QoreListNode* getVarList() const;
 
-   DLLLOCAL void parseInit(int64 parse_options);
+   DLLLOCAL void parseInit();
    DLLLOCAL void parseCommit();
    DLLLOCAL void parseRollback();
 };

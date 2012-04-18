@@ -58,6 +58,7 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 
 #define YYINITDEPTH 300
 //#define YYDEBUG 1
@@ -201,11 +202,179 @@ public:
    }
 };
 
+static void set_global_public(VarRefNode* v) {
+   if (getParseOptions() & PO_IN_MODULE)
+      v->setPublic();
+   else
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with global variables in user module code (when declaring global variable '%s')", v->getName());
+}
+
+struct GVarDecl {
+   bool pub;
+
+   DLLLOCAL GVarDecl(bool p) : pub(p) {
+   }
+
+   DLLLOCAL virtual ~GVarDecl() {
+   }
+
+   DLLLOCAL virtual void add(QoreNamespace& ns) = 0;
+
+   DLLLOCAL virtual AbstractQoreNode* makeVar() = 0;
+};
+
+struct GVarSingleDecl : public GVarDecl {
+   char* name;
+   const QoreTypeInfo* typeInfo;
+   QoreParseTypeInfo* parseTypeInfo;
+
+   DLLLOCAL GVarSingleDecl(char* n, const QoreTypeInfo *ti, QoreParseTypeInfo* pti, bool p, bool bare) : GVarDecl(p), name(n), typeInfo(ti), parseTypeInfo(pti) {
+      if (bare) {
+         if (!checkParseOption(PO_ALLOW_BARE_REFS))
+            parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", n);
+      }
+      else {
+         if (checkParseOption(PO_ALLOW_BARE_REFS))
+            parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", n);
+      }
+   }
+
+   DLLLOCAL virtual ~GVarSingleDecl() {
+      if (name)
+         free(name);
+
+      delete parseTypeInfo;
+   }
+
+   DLLLOCAL char* takeName() {
+      char* rv = name;
+      name = 0;
+      return rv;
+   }
+
+   DLLLOCAL QoreParseTypeInfo* takeParseTypeInfo() {
+      QoreParseTypeInfo* rv = parseTypeInfo;
+      parseTypeInfo = 0;
+      return rv;
+   }
+
+   DLLLOCAL virtual void add(QoreNamespace& ns) {
+      qore_ns_private::parseAddGlobalVarDecl(ns, takeName(), typeInfo, takeParseTypeInfo(), pub);
+   }
+
+   DLLLOCAL virtual AbstractQoreNode* makeVar() {
+      GlobalVarRefNode* gv = typeInfo
+         ? new GlobalVarRefNode(takeName(), typeInfo)
+         : new GlobalVarRefNode(takeName(), takeParseTypeInfo());
+      if (pub)
+         set_global_public(gv);
+      
+      return gv;
+   }   
+};
+
+struct GVarListDecl : public GVarDecl {
+   QoreListNode* l;
+
+   DLLLOCAL GVarListDecl(QoreListNode* list, bool p) : GVarDecl(p), l(list) {
+      bool bareok = checkParseOption(PO_ALLOW_BARE_REFS);
+
+      ListIterator li(l);
+      while (li.next()) {
+         AbstractQoreNode *n = li.getValue();
+         qore_type_t t = get_node_type(n);
+         if (t == NT_BAREWORD) {
+            BarewordNode *b = reinterpret_cast<BarewordNode *>(n);
+            if (!bareok)
+               parse_error("global variable '%s' in global variable declaration list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", b->str);
+         }
+         else if (t == NT_VARREF) {
+            VarRefNode* vrn = reinterpret_cast<VarRefNode *>(n);
+            if (vrn->explicitScope()) {
+               if (vrn->getType() == VT_LOCAL)
+                  parse_error("illegal use of 'my %s' in global variable declaration list", vrn->getName());
+               else if (vrn->getType() == VT_GLOBAL)
+                  parse_error("illegal use of 'our %s' in global variable declaration list", vrn->getName());
+            }
+         }
+         else
+            parse_error("element %d in list following 'our' is not a variable reference (%s)", li.index(), get_node_type(n));
+      }
+   }
+
+   DLLLOCAL virtual ~GVarListDecl() {
+      if (l)
+         l->deref(0);
+   }
+
+   DLLLOCAL QoreListNode* takeList() {
+      QoreListNode* rv = l;
+      l = 0;
+      return rv;
+   }
+
+   DLLLOCAL virtual void add(QoreNamespace& ns) {
+      ListIterator li(l);
+      while (li.next()) {
+         AbstractQoreNode *n = li.getValue();
+         qore_type_t t = get_node_type(n);
+         if (t == NT_BAREWORD) {
+            BarewordNode *b = reinterpret_cast<BarewordNode *>(n);
+            qore_ns_private::parseAddGlobalVarDecl(ns, b->takeString(), 0, 0, pub);
+         }
+         else if (t == NT_VARREF) {
+            VarRefNode* vrn = reinterpret_cast<VarRefNode *>(n);
+            if (!vrn->explicitScope()) {
+               VarRefDeclNode* vrdn = dynamic_cast<VarRefDeclNode*>(vrn);
+               if (vrdn)
+                  qore_ns_private::parseAddGlobalVarDecl(ns, vrn->takeName(), vrdn->getTypeInfo(), vrdn->takeParseTypeInfo(), pub);
+               else
+                  qore_ns_private::parseAddGlobalVarDecl(ns, vrn->takeName(), 0, 0, pub);
+            }
+         }
+      }
+
+      delete this;
+   }
+
+   DLLLOCAL virtual AbstractQoreNode* makeVar() {
+      l->setVariableList();
+      ListIterator li(l);
+      while (li.next()) {
+         AbstractQoreNode *n = li.getValue();
+         qore_type_t t = get_node_type(n);
+         VarRefNode* vrn = 0;
+         if (t == NT_BAREWORD) {
+            BarewordNode *b = reinterpret_cast<BarewordNode *>(n);
+            GlobalVarRefNode *v = new GlobalVarRefNode(b->takeString());
+            b->deref();
+            AbstractQoreNode **p = li.getValuePtr();
+            *p = vrn = v;
+         }
+         else if (t == NT_VARREF) {
+            vrn = reinterpret_cast<VarRefNode *>(n);
+            if (!vrn->explicitScope()) {
+               vrn->makeGlobal();
+               vrn->setExplicitScope();
+            }
+         }
+
+         if (vrn && pub)
+            set_global_public(vrn);
+      }
+
+      QoreListNode* rv = takeList();
+      delete this;
+      return rv;
+   }
+};
+
 #define NSN_OCD   1
 #define NSN_CONST 2
 #define NSN_NS    3
 #define NSN_FUNC  4
 #define NSN_SFUNC 5
+#define NSN_VAR   6
 
 struct NSNode {
    int type;
@@ -215,6 +384,7 @@ struct NSNode {
       QoreNamespace *ns;
       ParseUserFunction* func;
       ParseScopedUserFunction* sfunc;
+      GVarDecl *gv;
    } n;
 
    DLLLOCAL NSNode(ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
@@ -225,6 +395,10 @@ struct NSNode {
    }
    DLLLOCAL NSNode(ParseScopedUserFunction* f) : type(NSN_SFUNC) {
       n.sfunc = f;
+   }
+
+   DLLLOCAL NSNode(GVarDecl* gv) : type(NSN_VAR) {
+      n.gv = gv;
    }
 
    DLLLOCAL void add(QoreNamespace& ns) {
@@ -246,6 +420,10 @@ struct NSNode {
          }
          case NSN_SFUNC: {
             n.sfunc->add(ns);
+            break;
+         }
+         case NSN_VAR: {
+            n.gv->add(ns);
             break;
          }
       }
@@ -677,13 +855,6 @@ static int check_case(const char *op, AbstractQoreNode *exp) {
    return 0;
 }
 
-static void set_global_public(VarRefNode* v) {
-   if (getParseOptions() & PO_IN_MODULE)
-      v->setPublic();
-   else
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with global variables in user module code (when declaring global variable '%s')", v->getName());
-}
-
 static void set_class_public(QoreClass* qc) {
    if (getParseOptions() & PO_IN_MODULE)
       qore_class_private::setPublic(*qc);
@@ -929,6 +1100,7 @@ AbstractQoreNode *get_static_call(NamedScope *ns, QoreListNode *args) {
    struct ParserTypeStruct *parsertype;
    class ParseUserFunction* parsefunc;
    class ParseScopedUserFunction* sparsefunc;
+   struct GVarDecl* gv;
 }
 
 %{
@@ -1146,9 +1318,10 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <parsefunc>      sub_def
 %type <sparsefunc>     scoped_sub_def
 %type <b>              ppub
+%type <gv>             gvardecl
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def
+%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl
 %destructor { if ($$) $$->deref(); } string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
@@ -1239,11 +1412,44 @@ ppub:   /* empty */
         }
         ;
 
+gvardecl:
+        ppub TOK_OUR uncqtypedef SCOPED_REF {
+	   const QoreTypeInfo *t = $3->getTypeInfo();
+           $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, true);
+           delete $3;
+	}
+        | ppub TOK_OUR SCOPED_REF {
+           $$ = new GVarSingleDecl($3, 0, 0, $1, true);
+        }
+        | ppub TOK_OUR uncqtypedef IDENTIFIER {
+	   const QoreTypeInfo *t = $3->getTypeInfo();
+           $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, true);
+           delete $3;
+	}
+        | ppub TOK_OUR IDENTIFIER {
+           $$ = new GVarSingleDecl($3, 0, 0, $1, true);
+	}
+        | ppub TOK_OUR qtypedef SCOPED_VREF {
+	   const QoreTypeInfo *t = $3->getTypeInfo();
+           $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, false);
+           delete $3;
+	}
+        | ppub TOK_OUR qtypedef VAR_REF {
+	   const QoreTypeInfo *t = $3->getTypeInfo();
+           $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, false);
+           delete $3;
+	}
+        | ppub TOK_OUR '(' list ')' {
+           $$ = new GVarListDecl($4, $1);
+        }
+        ;
+
 top_namespace_decl:
         ppub TOK_NAMESPACE '{' namespace_decls '}' {
            $$ = $4;
            if ($1)
               set_namespace_public($$);
+           
         }
         | ppub TOK_NAMESPACE ';' {
            qore_ns_private* p = new qore_ns_private;
@@ -1288,6 +1494,9 @@ namespace_decl:
            $$ = new NSNode($1);
         }
         | scoped_sub_def {
+           $$ = new NSNode($1);
+        }
+        | gvardecl ';' {
            $$ = new NSNode($1);
         }
 	| top_namespace_decl { 
@@ -2304,113 +2513,9 @@ exp:    scalar
 	   }
 	   $$ = $3;
         }
-        | ppub TOK_OUR uncqtypedef SCOPED_REF {
-	   const QoreTypeInfo *t = $3->getTypeInfo();
-	   GlobalVarRefNode* gv = t
-              ? new GlobalVarRefNode($4, t)
-              : new GlobalVarRefNode($4, $3->getParseTypeInfo());
-           if ($1)
-              set_global_public(gv);
-           $$ = gv;
-	   delete $3;
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $4);
-	}
-        | ppub TOK_OUR SCOPED_REF {
-	   GlobalVarRefNode* gv = new GlobalVarRefNode($3);
-           if ($1)
-              set_global_public(gv);
-           $$ = gv;
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $3);
+        | gvardecl {
+           $$ = $1->makeVar();
         }
-        | ppub TOK_OUR uncqtypedef IDENTIFIER {
-	   const QoreTypeInfo *t = $3->getTypeInfo();
-	   GlobalVarRefNode* gv = t
-              ? new GlobalVarRefNode($4, t)
-              : new GlobalVarRefNode($4, $3->getParseTypeInfo());
-           if ($1)
-              set_global_public(gv);
-           $$ = gv;
-	   delete $3;
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $4);
-	}
-        | ppub TOK_OUR IDENTIFIER {
-           GlobalVarRefNode* gv = new GlobalVarRefNode($3);
-           if ($1)
-              set_global_public(gv);
-           $$ = gv;
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $3);
-	}
-        | ppub TOK_OUR qtypedef SCOPED_VREF {
-	   const QoreTypeInfo *t = $3->getTypeInfo();
-	   GlobalVarRefNode* gv = t
-              ? new GlobalVarRefNode($4, t)
-              : new GlobalVarRefNode($4, $3->getParseTypeInfo());
-           if ($1)
-              set_global_public(gv);
-           $$ = gv;
-	   delete $3;
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $4);
-	}
-        | ppub TOK_OUR qtypedef VAR_REF {
-	   const QoreTypeInfo *t = $3->getTypeInfo();
-	   GlobalVarRefNode* gv = t
-              ? new GlobalVarRefNode($4, t)
-              : new GlobalVarRefNode($4, $3->getParseTypeInfo());
-           if ($1)
-              set_global_public(gv);
-           $$ = gv;
-	   delete $3;
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $4);
-	}
-        | ppub TOK_OUR '(' list ')' {
-	   $4->setVariableList();
-	   ListIterator li($4);
-	   while (li.next()) {
-	      AbstractQoreNode *n = li.getValue();
-	      qore_type_t t = get_node_type(n);
-              VarRefNode* vrn = 0;
-	      if (t == NT_BAREWORD) {
-		 BarewordNode *b = reinterpret_cast<BarewordNode *>(n);
-		 if (checkParseOption(PO_REQUIRE_TYPES))
-		    parse_error("global variable '%s' declared without type information, but parse options require all declarations to have type information", b->str);
-		 if (!checkParseOption(PO_ALLOW_BARE_REFS))
-		    parse_error("global variable '%s' in global variable declaration list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", b->str);
-		 GlobalVarRefNode *v = new GlobalVarRefNode(b->takeString());
-		 b->deref();
-		 AbstractQoreNode **p = li.getValuePtr();
-		 *p = vrn = v;
-	      }
-	      else if (t == NT_VARREF) {
-		 vrn = reinterpret_cast<VarRefNode *>(n);
-		 // see if types are required
-		 if (checkParseOption(PO_REQUIRE_TYPES) && !vrn->isDecl())
-		    parse_error("global variable '%s' declared without type information, but parse options require all declarations to have type information", vrn->getName());
-
-		 if (vrn->explicitScope()) {
-		    if (vrn->getType() == VT_LOCAL)
-		       parse_error("illegal use of 'my %s' in global variable declaration list", vrn->getName());
-		    else if (vrn->getType() == VT_GLOBAL)
-		       parse_error("illegal use of 'our %s' in global variable declaration list", vrn->getName());
-		 }
-		 else {
-		    vrn->makeGlobal();
-                    vrn->setExplicitScope();
-                 }
-	      }
-	      else
-		 parse_error("element %d in list following 'our' is not a variable reference (%s)", li.index(), get_node_type(n));
-
-              if (vrn && $1)
-                 set_global_public(vrn);
-           }
-	   $$ = $4;
-	}
 	| IDENTIFIER
         {
 	   if (checkParseOption(PO_ASSUME_LOCAL & PO_ALLOW_BARE_REFS) && !strcmp($1, "argv"))

@@ -462,7 +462,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    save_global_vnode(vn);
    
    // now initialize root namespace and functions before local variables are popped off the stack
-   qore_root_ns_private::parseInit(po);
+   qore_root_ns_private::parseInit();
 
    if (first) {
       // if parsing a module, then initialize the init function

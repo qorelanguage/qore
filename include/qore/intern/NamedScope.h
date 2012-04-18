@@ -38,22 +38,24 @@
 
 // for parsing namespace/class scope resolution
 class NamedScope {
-private:
+protected:
    typedef std::vector<std::string> nslist_t;
 
    bool del;
 
    DLLLOCAL void init();
-      
+
 public:
    char *ostr;
    nslist_t strlist;
 
    DLLLOCAL NamedScope(char *str) : del(true), ostr(str) {
+      assert(str);
       init();
    }
 
    DLLLOCAL NamedScope(const char *str) : del(false), ostr((char *)str) {
+      assert(str);
       init();
    }
 
@@ -108,6 +110,13 @@ public:
       ostr = 0;
       clear();
       return rv;
+   }
+};
+
+class ltns {
+public:
+   DLLLOCAL bool operator()(const NamedScope& s1, const NamedScope& s2) const {
+      return strcmp(s1.ostr, s2.ostr) < 0;
    }
 };
 
