@@ -677,6 +677,27 @@ static int check_case(const char *op, AbstractQoreNode *exp) {
    return 0;
 }
 
+static void set_global_public(VarRefNode* v) {
+   if (getParseOptions() & PO_IN_MODULE)
+      v->setPublic();
+   else
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with global variables in user module code (when declaring global variable '%s')", v->getName());
+}
+
+static void set_class_public(QoreClass* qc) {
+   if (getParseOptions() & PO_IN_MODULE)
+      qore_class_private::setPublic(*qc);
+   else
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with class declarations in user module code (when declaring class '%s')", qc->getName());
+}
+
+static void set_namespace_public(QoreNamespace* ns) {
+   if (getParseOptions() & PO_IN_MODULE)
+      qore_ns_private::setPublic(*ns);
+   else
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with namespace declarations in user module code (when declaring namespace '%s')", ns->getName());
+}
+
 #define OFM_PRIVATE    (1 << 0)
 #define OFM_SYNCED     (1 << 1)
 #define OFM_STATIC     (1 << 2)
@@ -867,6 +888,7 @@ AbstractQoreNode *get_static_call(NamedScope *ns, QoreListNode *args) {
 %error-verbose
 
 %union {
+   bool b;
    int i4;
    int64 integer;
    double decimal;
@@ -1123,6 +1145,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <parsertype>     uncqtypedef
 %type <parsefunc>      sub_def
 %type <sparsefunc>     scoped_sub_def
+%type <b>              ppub
 
  // destructor actions for elements that need deleting when parse errors occur
 %destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def
@@ -1209,40 +1232,30 @@ module_decl:
         }
         ;
 
+ppub:   /* empty */
+        { $$ = false; }
+        | TOK_PUBLIC {
+           $$ = true;
+        }
+        ;
+
 top_namespace_decl:
-        TOK_NAMESPACE '{' namespace_decls '}' {
-           $$ = $3;
-        }
-        | TOK_NAMESPACE ';' {
-           qore_ns_private* p = new qore_ns_private;
-           $$ = p->ns;
-        }
-        | TOK_NAMESPACE '{' '}' {
-           qore_ns_private* p = new qore_ns_private;
-           $$ = p->ns;
-        }
-        | TOK_PUBLIC TOK_NAMESPACE '{' namespace_decls '}' {
+        ppub TOK_NAMESPACE '{' namespace_decls '}' {
            $$ = $4;
-           if (getParseOptions() & PO_IN_MODULE)
-              qore_ns_private::setPublic(*($$));
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with namespace declarations in user module code (when declaring namespace '%s')", $$->getName());
+           if ($1)
+              set_namespace_public($$);
         }
-        | TOK_PUBLIC TOK_NAMESPACE ';' {
+        | ppub TOK_NAMESPACE ';' {
            qore_ns_private* p = new qore_ns_private;
            $$ = p->ns;
-           if (getParseOptions() & PO_IN_MODULE)
-              qore_ns_private::setPublic(*($$));
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with namespace declarations in user module code (when declaring namespace '%s')", $$->getName());
+           if ($1)
+              set_namespace_public($$);
         }
-        | TOK_PUBLIC TOK_NAMESPACE '{' '}' {
+        | ppub TOK_NAMESPACE '{' '}' {
            qore_ns_private* p = new qore_ns_private;
            $$ = p->ns;
-           if (getParseOptions() & PO_IN_MODULE)
-              qore_ns_private::setPublic(*($$));
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with namespace declarations in user module code (when declaring namespace '%s')", $$->getName());
+           if ($1)
+              set_namespace_public($$);
         }
 	;
 
@@ -1601,93 +1614,49 @@ myexp:  /* empty */  { $$ = 0; }
         ;
 
 class_def:
-	CLASS_STRING inheritance_list '{' class_attributes '}' {
-	   $4->parseSetBaseClassList($2);
-	   $$ = new ObjClassDef($1, $4); 
-	}
-        | CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' { 
-	   $$ = new ObjClassDef($1, $4); 
-	   $4->parseSetBaseClassList($2);
-	}
-	| CLASS_STRING inheritance_list ';' { 
-           // class name is set automatically from name saved in scanner
-	   QoreClass *qc = new QoreClass;
-	   qc->parseSetBaseClassList($2);
-	   $$ = new ObjClassDef($1, qc); 	   
-	}
-	| CLASS_SCOPED_REF inheritance_list ';' { 
-           // class name is set automatically from name saved in scanner
-	   QoreClass *qc = new QoreClass;
-	   $$ = new ObjClassDef($1, qc);
-	   qc->parseSetBaseClassList($2);
-	}
-	| CLASS_STRING inheritance_list '{' '}' { 
-           // class name is set automatically from name saved in scanner
-	   QoreClass *qc = new QoreClass;
-	   qc->parseSetBaseClassList($2);
-	   $$ = new ObjClassDef($1, qc); 	   
-	}
-	| CLASS_SCOPED_REF inheritance_list '{' '}' { 
-           // class name is set automatically from name saved in scanner
-	   QoreClass *qc = new QoreClass;
-	   $$ = new ObjClassDef($1, qc);
-	   qc->parseSetBaseClassList($2);
-	}
-        | TOK_PUBLIC CLASS_STRING inheritance_list '{' class_attributes '}' {
+        ppub CLASS_STRING inheritance_list '{' class_attributes '}' {
 	   $5->parseSetBaseClassList($3);
-           if (getParseOptions() & PO_IN_MODULE)
-              qore_class_private::setPublic(*($5));
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with class declarations in user module code (when declaring class '%s')", $5->getName());
+           if ($1)
+              set_class_public($5);
 	   $$ = new ObjClassDef($2, $5); 
 	}
-        | TOK_PUBLIC CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' { 
+        | ppub CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' { 
 	   $$ = new ObjClassDef($2, $5); 
-           if (getParseOptions() & PO_IN_MODULE)
-              qore_class_private::setPublic(*($5));
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with class declarations in user module code (when declaring class '%s')", $5->getName());
+           if ($1)
+              set_class_public($5);
 	   $5->parseSetBaseClassList($3);
 	}
-	| TOK_PUBLIC CLASS_STRING inheritance_list ';' { 
+	| ppub CLASS_STRING inheritance_list ';' { 
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
 	   qc->parseSetBaseClassList($3);
 	   $$ = new ObjClassDef($2, qc);
-           if (getParseOptions() & PO_IN_MODULE)
-              qore_class_private::setPublic(*qc);
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with class declarations in user module code (when declaring class '%s')", qc->getName());
+           if ($1)
+              set_class_public(qc);
 	}
-	| TOK_PUBLIC CLASS_SCOPED_REF inheritance_list ';' { 
+	| ppub CLASS_SCOPED_REF inheritance_list ';' { 
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
 	   $$ = new ObjClassDef($2, qc);
 	   qc->parseSetBaseClassList($3);
-           if (getParseOptions() & PO_IN_MODULE)
-              qore_class_private::setPublic(*qc);
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with class declarations in user module code (when declaring class '%s')", qc->getName());
+           if ($1)
+              set_class_public(qc);
 	}
-	| TOK_PUBLIC CLASS_STRING inheritance_list '{' '}' { 
+	| ppub CLASS_STRING inheritance_list '{' '}' { 
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
 	   qc->parseSetBaseClassList($3);
 	   $$ = new ObjClassDef($2, qc);
-           if (getParseOptions() & PO_IN_MODULE)
-              qore_class_private::setPublic(*qc);
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with class declarations in user module code (when declaring class '%s')", qc->getName());
+           if ($1)
+              set_class_public(qc);
 	}
-	| TOK_PUBLIC CLASS_SCOPED_REF inheritance_list '{' '}' { 
+	| ppub CLASS_SCOPED_REF inheritance_list '{' '}' { 
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
 	   $$ = new ObjClassDef($2, qc);
 	   qc->parseSetBaseClassList($3);
-           if (getParseOptions() & PO_IN_MODULE)
-              qore_class_private::setPublic(*qc);
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with class declarations in user module code (when declaring class '%s')", qc->getName());
+           if ($1)
+              set_class_public(qc);
 	}
 	;
 
@@ -2335,134 +2304,77 @@ exp:    scalar
 	   }
 	   $$ = $3;
         }
-        | TOK_OUR uncqtypedef SCOPED_REF {
-	   const QoreTypeInfo *t = $2->getTypeInfo();
-	   $$ = t
-              ? new GlobalVarRefNode($3, t)
-              : new GlobalVarRefNode($3, $2->getParseTypeInfo());
-	   delete $2;
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $3);
-	}
-        | TOK_OUR SCOPED_REF {
-	   $$ = new GlobalVarRefNode($2);
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $2);
-        }
-        | TOK_OUR uncqtypedef IDENTIFIER {
-	   const QoreTypeInfo *t = $2->getTypeInfo();
-	   $$ = t
-              ? new GlobalVarRefNode($3, t)
-              : new GlobalVarRefNode($3, $2->getParseTypeInfo());
-	   delete $2;
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $3);
-	}
-        | TOK_OUR IDENTIFIER {
-           $$ = new GlobalVarRefNode($2);
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $2);
-	}
-        | TOK_OUR qtypedef SCOPED_VREF {
-	   const QoreTypeInfo *t = $2->getTypeInfo();
-	   $$ = t
-              ? new GlobalVarRefNode($3, t)
-              : new GlobalVarRefNode($3, $2->getParseTypeInfo());
-	   delete $2;
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $3);
-	}
-        | TOK_OUR qtypedef VAR_REF {
-	   const QoreTypeInfo *t = $2->getTypeInfo();
-	   $$ = t
-              ? new GlobalVarRefNode($3, t)
-              : new GlobalVarRefNode($3, $2->getParseTypeInfo());
-	   delete $2;
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
-	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $3);
-	}
-        | TOK_PUBLIC TOK_OUR uncqtypedef SCOPED_REF {
+        | ppub TOK_OUR uncqtypedef SCOPED_REF {
 	   const QoreTypeInfo *t = $3->getTypeInfo();
 	   GlobalVarRefNode* gv = t
               ? new GlobalVarRefNode($4, t)
               : new GlobalVarRefNode($4, $3->getParseTypeInfo());
-           if (getParseOptions() & PO_IN_MODULE)
-              gv->setPublic();
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with global variables in user module code (when declaring global variable '%s')", $4);
+           if ($1)
+              set_global_public(gv);
            $$ = gv;
 	   delete $3;
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $4);
 	}
-        | TOK_PUBLIC TOK_OUR SCOPED_REF {
+        | ppub TOK_OUR SCOPED_REF {
 	   GlobalVarRefNode* gv = new GlobalVarRefNode($3);
-           if (getParseOptions() & PO_IN_MODULE)
-              gv->setPublic();
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with global variables in user module code (when declaring global variable '%s')", $3);
+           if ($1)
+              set_global_public(gv);
            $$ = gv;
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $3);
         }
-        | TOK_PUBLIC TOK_OUR uncqtypedef IDENTIFIER {
+        | ppub TOK_OUR uncqtypedef IDENTIFIER {
 	   const QoreTypeInfo *t = $3->getTypeInfo();
 	   GlobalVarRefNode* gv = t
               ? new GlobalVarRefNode($4, t)
               : new GlobalVarRefNode($4, $3->getParseTypeInfo());
-           if (getParseOptions() & PO_IN_MODULE)
-              gv->setPublic();
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with global variables in user module code (when declaring global variable '%s')", $4);
+           if ($1)
+              set_global_public(gv);
            $$ = gv;
 	   delete $3;
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $4);
 	}
-        | TOK_PUBLIC TOK_OUR IDENTIFIER {
+        | ppub TOK_OUR IDENTIFIER {
            GlobalVarRefNode* gv = new GlobalVarRefNode($3);
-           if (getParseOptions() & PO_IN_MODULE)
-              gv->setPublic();
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with global variables in user module code (when declaring global variable '%s')", $3);
+           if ($1)
+              set_global_public(gv);
            $$ = gv;
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $3);
 	}
-        | TOK_PUBLIC TOK_OUR qtypedef SCOPED_VREF {
+        | ppub TOK_OUR qtypedef SCOPED_VREF {
 	   const QoreTypeInfo *t = $3->getTypeInfo();
 	   GlobalVarRefNode* gv = t
               ? new GlobalVarRefNode($4, t)
               : new GlobalVarRefNode($4, $3->getParseTypeInfo());
-           if (getParseOptions() & PO_IN_MODULE)
-              gv->setPublic();
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with global variables in user module code (when declaring global variable '%s')", $3);
+           if ($1)
+              set_global_public(gv);
            $$ = gv;
 	   delete $3;
 	   if (checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $4);
 	}
-        | TOK_PUBLIC TOK_OUR qtypedef VAR_REF {
+        | ppub TOK_OUR qtypedef VAR_REF {
 	   const QoreTypeInfo *t = $3->getTypeInfo();
 	   GlobalVarRefNode* gv = t
               ? new GlobalVarRefNode($4, t)
               : new GlobalVarRefNode($4, $3->getParseTypeInfo());
-           if (getParseOptions() & PO_IN_MODULE)
-              gv->setPublic();
-           else
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with global variables in user module code (when declaring global variable '%s')", $4);
+           if ($1)
+              set_global_public(gv);
            $$ = gv;
 	   delete $3;
 	   if (checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $4);
 	}
-        | TOK_OUR '(' list ')' { 
-	   $3->setVariableList();
-	   ListIterator li($3);
+        | ppub TOK_OUR '(' list ')' {
+	   $4->setVariableList();
+	   ListIterator li($4);
 	   while (li.next()) {
 	      AbstractQoreNode *n = li.getValue();
 	      qore_type_t t = get_node_type(n);
+              VarRefNode* vrn = 0;
 	      if (t == NT_BAREWORD) {
 		 BarewordNode *b = reinterpret_cast<BarewordNode *>(n);
 		 if (checkParseOption(PO_REQUIRE_TYPES))
@@ -2472,29 +2384,32 @@ exp:    scalar
 		 GlobalVarRefNode *v = new GlobalVarRefNode(b->takeString());
 		 b->deref();
 		 AbstractQoreNode **p = li.getValuePtr();
-		 *p = v;
+		 *p = vrn = v;
 	      }
 	      else if (t == NT_VARREF) {
-		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
+		 vrn = reinterpret_cast<VarRefNode *>(n);
 		 // see if types are required
-		 if (checkParseOption(PO_REQUIRE_TYPES) && !v->isDecl())
-		    parse_error("global variable '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
+		 if (checkParseOption(PO_REQUIRE_TYPES) && !vrn->isDecl())
+		    parse_error("global variable '%s' declared without type information, but parse options require all declarations to have type information", vrn->getName());
 
-		 if (v->explicitScope()) {
-		    if (v->getType() == VT_LOCAL)
-		       parse_error("illegal use of 'my %s' in global variable declaration list", v->getName());
-		    else if (v->getType() == VT_GLOBAL)
-		       parse_error("illegal use of 'our %s' in global variable declaration list", v->getName());
+		 if (vrn->explicitScope()) {
+		    if (vrn->getType() == VT_LOCAL)
+		       parse_error("illegal use of 'my %s' in global variable declaration list", vrn->getName());
+		    else if (vrn->getType() == VT_GLOBAL)
+		       parse_error("illegal use of 'our %s' in global variable declaration list", vrn->getName());
 		 }
 		 else {
-		    v->makeGlobal();
-		 }
-		 v->setExplicitScope();
+		    vrn->makeGlobal();
+                    vrn->setExplicitScope();
+                 }
 	      }
 	      else
 		 parse_error("element %d in list following 'our' is not a variable reference (%s)", li.index(), get_node_type(n));
-	   }
-	   $$ = $3;
+
+              if (vrn && $1)
+                 set_global_public(vrn);
+           }
+	   $$ = $4;
 	}
 	| IDENTIFIER
         {
