@@ -113,17 +113,18 @@ static const char *trim_inplace(const char *str) {
    return str[0] ? str : 0;
 }
 
+// everybody likes to get the last word - now there's a function for it
 static const char* get_last_word(const char* str) {
    unsigned l = (unsigned)strlen(str);
    assert(l);
 
    const char *e = str + l - 2;
    
-   while (e != str && *e != ' ' && *e != 't' && *e != '\r' && *e != '\n')
+   while (e != str && *e != ' ' && *e != '\t' && *e != '\r' && *e != '\n')
       --e;
 
    //printd(0, "get_last_word() '%s' -> '%s'\n", str, e + 1);
-   return e + 1;
+   return e == str ? e : e + 1;
 }
 
 static QoreString *getIncludeFileName(char *file) {
