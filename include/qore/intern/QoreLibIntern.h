@@ -168,8 +168,7 @@ struct QoreCommandLineLocation : public QoreProgramLocation {
 DLLLOCAL extern QoreCommandLineLocation qoreCommandLineLocation;
 
 // the following functions are implemented in support.cc
-DLLLOCAL void parse_error(const char *file, int sline, int eline, const char *fmt, ...);
-
+DLLLOCAL void parse_error(const QoreProgramLocation& loc, const char *fmt, ...);
 DLLLOCAL void parse_error(const char *fmt, ...);
 DLLLOCAL void parseException(const char *err, const char *fmt, ...);
 DLLLOCAL void parseException(const char *err, QoreStringNode *desc);

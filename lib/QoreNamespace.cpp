@@ -998,7 +998,7 @@ void qore_root_ns_private::parseAddConstantIntern(QoreNamespace& ns, const Named
    pend_cnmap.update(i->first, sns->priv, i->second);
 }
 
-qore_ns_private *qore_root_ns_private::parseResolveNamespaceIntern(const NamedScope& nscope, qore_ns_private* sns) {
+qore_ns_private *qore_root_ns_private::parseResolveNamespaceIntern(const NamedScope& nscope, qore_ns_private* sns, const QoreProgramLocation* loc) {
    assert(nscope.size() > 1);
 
    unsigned match = 0;
@@ -1029,15 +1029,15 @@ qore_ns_private *qore_root_ns_private::parseResolveNamespaceIntern(const NamedSc
       }
    }
 
-   parse_error("cannot resolve namespace '%s' in '%s'", nscope[match], nscope.ostr);
+   parse_error(loc ? *loc : QoreProgramLocation(), "cannot resolve namespace '%s' in '%s'", nscope[match], nscope.ostr);
    return 0;
 }
 
-qore_ns_private *qore_root_ns_private::parseResolveNamespace(const NamedScope& n, qore_ns_private* sns) {
+qore_ns_private *qore_root_ns_private::parseResolveNamespace(const NamedScope& n, qore_ns_private* sns, const QoreProgramLocation* loc) {
    if (n.size() == 1)
       return sns ? sns : this;
 
-   return parseResolveNamespaceIntern(n, sns);
+   return parseResolveNamespaceIntern(n, sns, loc);
 }
 
 qore_ns_private* qore_root_ns_private::parseResolveNamespace(const NamedScope& nscope) {
@@ -1143,15 +1143,17 @@ void qore_root_ns_private::parseResolveGlobalVars() {
       // resolve namespace
       const NamedScope& n = *((*i).name);
 
+      const QoreProgramLocation& loc = (*i).var->getParseLocation();
+
       // find the namespace
-      qore_ns_private* tns = parseResolveNamespace(n, (*i).ns);
+      qore_ns_private* tns = parseResolveNamespace(n, (*i).ns, &loc);
       if (!tns)
          continue;
 
       Var* v = tns->var_list.parseFindVar(n.getIdentifier());
       if (v) {
          // FIXME: save parse location in Var for error handling
-         parse_error("global variable '%s::%s' has already been %s this Program object", tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
+         parse_error(loc, "global variable '%s::%s' has already been %s this Program object", tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
          continue;
       }
 

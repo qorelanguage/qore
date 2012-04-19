@@ -70,14 +70,14 @@ union VarValue {
 // structure for global variables
 class Var : public QoreReferenceCounter {
 private:
-   unsigned char type;
-   // holds the value of the variable or a pointer to the imported variable
+   const QoreProgramLocation loc;           // location of the initial definition
+   unsigned char type;                // holds the value of the variable or a pointer to the imported variable
    union VarValue v;
    std::string name;
    mutable QoreThreadLock m;
    QoreParseTypeInfo *parseTypeInfo;
    const QoreTypeInfo *typeInfo;
-   bool pub; // is this global var public (modules only)
+   bool pub;                          // is this global var public (valid and set for modules only)
 
    DLLLOCAL void del(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *evalIntern(ExceptionSink *xsink);
@@ -109,7 +109,7 @@ public:
    DLLLOCAL Var(const char *n_name, const QoreTypeInfo *n_typeInfo) : type(GV_VALUE), v(0), name(n_name), parseTypeInfo(0), typeInfo(n_typeInfo), pub(false) {
    }
 
-   DLLLOCAL Var(Var *ref, bool ro = false) : type(GV_IMPORT), v(ref, ro), name(ref->name), parseTypeInfo(0), typeInfo(ref->typeInfo), pub(false) {
+   DLLLOCAL Var(Var *ref, bool ro = false) : loc(ref->loc), type(GV_IMPORT), v(ref, ro), name(ref->name), parseTypeInfo(0), typeInfo(ref->typeInfo), pub(false) {
    }
 
    DLLLOCAL const char *getName() const;
@@ -240,6 +240,10 @@ public:
    DLLLOCAL void setPublic() {
       assert(!pub);
       pub = true;
+   }
+
+   DLLLOCAL const QoreProgramLocation& getParseLocation() const {
+      return loc;
    }
 };
 

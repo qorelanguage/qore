@@ -1004,8 +1004,8 @@ protected:
 
    DLLLOCAL void parseAddClassIntern(const NamedScope& name, QoreClass *oc);
 
-   DLLLOCAL qore_ns_private *parseResolveNamespaceIntern(const NamedScope& nscope, qore_ns_private* sns);
-   DLLLOCAL qore_ns_private *parseResolveNamespace(const NamedScope& nscope, qore_ns_private* sns);
+   DLLLOCAL qore_ns_private *parseResolveNamespaceIntern(const NamedScope& nscope, qore_ns_private* sns, const QoreProgramLocation* loc = 0);
+   DLLLOCAL qore_ns_private *parseResolveNamespace(const NamedScope& nscope, qore_ns_private* sns, const QoreProgramLocation* loc = 0);
    DLLLOCAL qore_ns_private *parseResolveNamespace(const NamedScope& nscope);
 
    DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const NamedScope& nscope);

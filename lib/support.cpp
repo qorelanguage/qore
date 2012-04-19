@@ -158,8 +158,8 @@ void parse_error(const char *fmt, ...) {
    qore_program_private::makeParseException(getProgram(), desc);
 }
 
-void parse_error(const char *file, int sline, int eline, const char *fmt, ...) {
-   printd(5, "parse_error(file=%s, sline=%d, eline=%d, \"%s\", ...) called\n", file, sline, eline, fmt);
+void parse_error(const QoreProgramLocation& loc, const char *fmt, ...) {
+   printd(5, "parse_error(\"%s\", ...) called\n", fmt);
 
    QoreStringNode *desc = new QoreStringNode;
    while (true) {
@@ -170,7 +170,7 @@ void parse_error(const char *file, int sline, int eline, const char *fmt, ...) {
       if (!rc)
 	 break;
    }
-   qore_program_private::makeParseException(getProgram(), QoreProgramLocation(sline, eline, file), desc);
+   qore_program_private::makeParseException(getProgram(), loc, desc);
 }
 
 void parseException(const char *err, QoreStringNode *desc) {
