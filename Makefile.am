@@ -559,7 +559,6 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	test/regex.q \
 	test/deadlock.q \
 	test/optest.q \
-	examples/HttpServer.qc \
 	examples/stmt.q \
 	examples/exp.q \
 	examples/obj2.q \
@@ -587,7 +586,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	$(LANG_DOXYFILES_SRC) \
 	$(LANG_QPP_SRC)
 
-modver_DATA = $(USER_MODULES)
+dist_modver_DATA = $(USER_MODULES)
 
 BUILT_SOURCES = dummy
 
