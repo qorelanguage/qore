@@ -119,8 +119,12 @@ class ConstNode {
 public:
    NamedScope name;
    AbstractQoreNode *value;
+   bool pub;
 
-   DLLLOCAL ConstNode(char *n, AbstractQoreNode *v) : name(n), value(v) {
+   DLLLOCAL ConstNode(char *n, AbstractQoreNode *v, bool p = false) : name(n), value(v), pub(p) {
+      // see if constant definitions are allowed
+      if (checkParseOption(PO_NO_CONSTANT_DEFS))
+         parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", n);
    }
    DLLLOCAL AbstractQoreNode *takeValue() {
       AbstractQoreNode *rv = value;
@@ -129,6 +133,9 @@ public:
    }
    DLLLOCAL const std::string &getName() const {
       return name.getIdentifierStr();
+   }
+   DLLLOCAL bool isPublic() const {
+      return pub;
    }
 };
 
@@ -410,7 +417,7 @@ struct NSNode {
             delete n.ocd;
             break;
          case NSN_CONST:
-            qore_ns_private::parseAddConstant(ns, n.cn->name, n.cn->value);
+            qore_ns_private::parseAddConstant(ns, n.cn->name, n.cn->value, n.cn->pub);
             delete n.cn;
             break;
          case NSN_NS:
@@ -839,12 +846,6 @@ static bool needsEval(AbstractQoreNode *n) {
    return !n->is_value();
 }
 
-static void const_ok(const char *name, AbstractQoreNode *v) {
-   // see if constant definitions are allowed
-   if (checkParseOption(PO_NO_CONSTANT_DEFS))
-      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", name);
-}
-
 static int check_case(const char *op, AbstractQoreNode *exp) {
    // ignore if NULL (= NOTHING)
    if (exp && needsEval(exp)) {
@@ -855,20 +856,6 @@ static int check_case(const char *op, AbstractQoreNode *exp) {
       return -1;
    }
    return 0;
-}
-
-static void set_class_public(QoreClass* qc) {
-   if (getParseOptions() & PO_IN_MODULE)
-      qore_class_private::setPublic(*qc);
-   else
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with class declarations in user module code (when declaring class '%s')", qc->getName());
-}
-
-static void set_namespace_public(QoreNamespace* ns) {
-   if (getParseOptions() & PO_IN_MODULE)
-      qore_ns_private::setPublic(*ns);
-   else
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with namespace declarations in user module code (when declaring namespace '%s')", ns->getName());
 }
 
 #define OFM_PRIVATE    (1 << 0)
@@ -1350,11 +1337,11 @@ top_level_command:
 	   delete $1;
 	}
 	| scoped_const_decl {
-           qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value);
+           qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
 	   delete $1;
 	}
         | unscoped_const_decl {
-           qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value);
+           qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
 	   delete $1;
 	}
         | object_outofline_function_def  // registered directly
@@ -1447,23 +1434,16 @@ gvardecl:
         ;
 
 top_namespace_decl:
-        ppub TOK_NAMESPACE '{' namespace_decls '}' {
-           $$ = $4;
-           if ($1)
-              set_namespace_public($$);
-           
+        TOK_NAMESPACE '{' namespace_decls '}' {
+           $$ = $3;
         }
-        | ppub TOK_NAMESPACE ';' {
+        | TOK_NAMESPACE ';' {
            qore_ns_private* p = new qore_ns_private;
            $$ = p->ns;
-           if ($1)
-              set_namespace_public($$);
         }
-        | ppub TOK_NAMESPACE '{' '}' {
+        | TOK_NAMESPACE '{' '}' {
            qore_ns_private* p = new qore_ns_private;
            $$ = p->ns;
-           if ($1)
-              set_namespace_public($$);
         }
 	;
 
@@ -1480,7 +1460,7 @@ namespace_decls:
 	;
 
 namespace_decl:
-	scoped_const_decl {
+        scoped_const_decl {
 	   $$ = new NSNode($1);
         }
         | unscoped_const_decl {
@@ -1510,15 +1490,19 @@ namespace_decl:
 
 unscoped_const_decl: 
 	TOK_CONST IDENTIFIER '=' exp ';' { 
-	   const_ok($2, $4);
 	   $$ = new ConstNode($2, $4); 
+	}
+        | TOK_PUBLIC TOK_CONST IDENTIFIER '=' exp ';' { 
+	   $$ = new ConstNode($3, $5, true); 
 	}
         ;
 
 scoped_const_decl:
 	TOK_CONST SCOPED_REF '=' exp ';' {
-	   const_ok($2, $4);
 	   $$ = new ConstNode($2, $4); 
+	}
+        | TOK_PUBLIC TOK_CONST SCOPED_REF '=' exp ';' {
+	   $$ = new ConstNode($3, $5, true); 
 	}
         ;
 
@@ -1825,49 +1809,37 @@ myexp:  /* empty */  { $$ = 0; }
         ;
 
 class_def:
-        ppub CLASS_STRING inheritance_list '{' class_attributes '}' {
-	   $5->parseSetBaseClassList($3);
-           if ($1)
-              set_class_public($5);
-	   $$ = new ObjClassDef($2, $5); 
+        CLASS_STRING inheritance_list '{' class_attributes '}' {
+	   $4->parseSetBaseClassList($2);
+	   $$ = new ObjClassDef($1, $4); 
 	}
-        | ppub CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' { 
-	   $$ = new ObjClassDef($2, $5); 
-           if ($1)
-              set_class_public($5);
-	   $5->parseSetBaseClassList($3);
+        | CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' { 
+	   $$ = new ObjClassDef($1, $4); 
+	   $4->parseSetBaseClassList($2);
 	}
-	| ppub CLASS_STRING inheritance_list ';' { 
+	| CLASS_STRING inheritance_list ';' { 
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
-	   qc->parseSetBaseClassList($3);
-	   $$ = new ObjClassDef($2, qc);
-           if ($1)
-              set_class_public(qc);
+	   qc->parseSetBaseClassList($2);
+	   $$ = new ObjClassDef($1, qc);
 	}
-	| ppub CLASS_SCOPED_REF inheritance_list ';' { 
+	| CLASS_SCOPED_REF inheritance_list ';' { 
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
-	   $$ = new ObjClassDef($2, qc);
-	   qc->parseSetBaseClassList($3);
-           if ($1)
-              set_class_public(qc);
+	   $$ = new ObjClassDef($1, qc);
+	   qc->parseSetBaseClassList($2);
 	}
-	| ppub CLASS_STRING inheritance_list '{' '}' { 
+        | CLASS_STRING inheritance_list '{' '}' { 
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
-	   qc->parseSetBaseClassList($3);
-	   $$ = new ObjClassDef($2, qc);
-           if ($1)
-              set_class_public(qc);
+	   qc->parseSetBaseClassList($2);
+	   $$ = new ObjClassDef($1, qc);
 	}
-	| ppub CLASS_SCOPED_REF inheritance_list '{' '}' { 
+	| CLASS_SCOPED_REF inheritance_list '{' '}' { 
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
-	   $$ = new ObjClassDef($2, qc);
-	   qc->parseSetBaseClassList($3);
-           if ($1)
-              set_class_public(qc);
+	   $$ = new ObjClassDef($1, qc);
+	   qc->parseSetBaseClassList($2);
 	}
 	;
 
@@ -2120,6 +2092,8 @@ member2:
 	   $$ = $1;
 	}
         | unscoped_const_decl {
+           if ($1->pub)
+              parse_error("cannot change class constant scope for constant '%s' within a public or private declaration block", $1->name.ostr);
 	   $$ = new MemberInfo($1->name.takeName(), $1->value);
 	   delete $1;
         }

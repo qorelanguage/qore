@@ -158,7 +158,7 @@ int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
 
 void QoreModuleDefContext::checkName() {
    if (!name_set) {
-      vmap["name"] = parse_pop_nsmod_name();
+      vmap["name"] = parse_pop_name();
       name_set = true;
    }
 }
@@ -722,7 +722,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
 
    QoreModuleDefContextHelper qmd;
-   pgm->parseFile(path, &xsink);
+   pgm->parseFile(path, &xsink, &xsink, QP_WARN_MODULES);
 
    if (xsink)
       return 0;

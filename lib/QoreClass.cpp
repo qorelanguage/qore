@@ -267,8 +267,7 @@ public:
 };
 
 qore_class_private::qore_class_private(QoreClass *n_cls, const char *nme, int64 dom, QoreTypeInfo *n_typeInfo) 
-   : name(nme ? nme : parse_pop_class_name()), 
-     cls(n_cls),
+   : cls(n_cls),
      ns(0),
      scl(0), 
      system_constructor(0),
@@ -304,6 +303,20 @@ qore_class_private::qore_class_private(QoreClass *n_cls, const char *nme, int64 
      ptr(0),
      new_copy(0) {
    assert(methodID == classID);
+
+   if (nme)
+      name = nme;
+   else {
+      namepub_t np = parse_pop_namepub();
+      name = np.name;
+      pub = np.pub;
+
+      if (pub) {
+	 QoreProgram* pgm = getProgram();
+	 if (!(pgm->getParseOptions64() & PO_IN_MODULE))
+	    qore_program_private::makeParseWarning(pgm, QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with class declarations in user module code (when declaring class '%s')", name.c_str());
+      }
+   }
    printd(5, "qore_class_private::qore_class_private() this=%p creating '%s' ID:%d cls=%p\n", this, name.c_str(), classID, cls);
 }
 

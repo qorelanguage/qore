@@ -209,6 +209,14 @@ public:
    DLLLOCAL void checkName();
 };
 
+struct namepub_t {
+   std::string name;
+   bool pub;
+
+   DLLLOCAL namepub_t(const char* n, bool p) : name(n), pub(p) {
+   }
+};
+
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink *xsink);
 DLLLOCAL void purge_thread_resources(ExceptionSink *xsink);
@@ -246,10 +254,11 @@ DLLLOCAL void parse_cond_push(bool mark = false);
 DLLLOCAL bool parse_cond_else();
 DLLLOCAL bool parse_cond_pop();
 DLLLOCAL void push_parse_options();
-DLLLOCAL void parse_push_nsmod_name(const char* name);
-DLLLOCAL std::string parse_pop_nsmod_name();
-DLLLOCAL void parse_push_class_name(const char* name);
-DLLLOCAL std::string parse_pop_class_name();
+
+DLLLOCAL void parse_push_name(const char* name, bool pub = false);
+DLLLOCAL namepub_t parse_pop_namepub();
+DLLLOCAL std::string parse_pop_name();
+
 DLLLOCAL qore_ns_private* parse_set_ns(qore_ns_private* ns);
 DLLLOCAL qore_ns_private* parse_get_ns();
 DLLLOCAL void set_module_context(QoreModuleContext* qmc);

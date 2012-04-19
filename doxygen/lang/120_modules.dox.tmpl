@@ -1,8 +1,8 @@
-/** @page qore_modules Qore Modules
-    
-    %Qore modules allow the %Qore language to be extended at run-time. %Qore modules must conform to the %Qore Module API and have the file extension \c "*.qmod". %Qore modules normally depend on other shared libraries and therefore can only be loaded if the libraries they require are present on the system and can be found in the library path.
+/** @page qore_modules Module Description
 
-    Please note that as of version 0.7.0 onwards, modules are no longer delivered with the %Qore library. Modules must be downloaded separately; see <a href="http://www.qore.org">%Qore's home page</a> for more information.
+    @section mod_overview Module Overview
+    
+    %Qore modules allow the %Qore language to be extended at run-time.
 
     To load a module at parse time (normally required for most modules), use the @ref requires "%requires" parse directive. If the named feature is not already present in %Qore, %Qore looks for a module with this name in the directories listed in the \c QORE_MODULE_DIR environment variable (see @ref environment_variables).
 
@@ -12,28 +12,155 @@
 
     Also note that DBI drivers are loaded on demand by the @ref Qore::SQL::Datasource and @ref Qore::SQL::DatasourcePool classes.
 
+    There are two types of modules: @ref binary_modules and @ref user_modules.
+
     At the time of writing this documentation, the following modules exist for %Qore:
 
     <b>%Qore Modules</b>
-    |!Module|!Description
-    |\c asn1|Provides ASN.1 functionality to %Qore
-    |\c xml|Provides XML, XPath, etc functionality to %Qore.
-    |\c xmlsec|Provides xmldsig and xmlenc functionality to %Qore.
-    |\c json|Provides JSON functionality to %Qore.
-    |\c ssh2|Provides SSH2 and SFTP functionality to %Qore.
-    |\c tibrv|Provides TIBCO Rendezvous(R) (TIBCO, Inc) functionality to %Qore.
-    |\c tibae|Provides TIBCO ActiveEnterprise(TM) (TIBCO, Inc) functionality to %Qore.
-    |\c tuxedo|Provides Oracle (ex Bea) Tuxedo functionality to %Qore.
-    |\c mysql|Provides a MySQL DBI driver to %Qore.
-    |\c pgsql|Provides a PostgreSQL DBI driver to %Qore.
-    |\c sqlite3|Provides a SQLite3 DBI driver to %Qore.
-    |\c sybase|Provides a Sybase DBI driver to %Qore.
-    |\c freetds|Provides a FreeTDS-based DBI driver to %Qore.
-    |\c oracle|Provides an Oracle DBI driver to %Qore.
-    |\c db2|Provides an IBM DB2 driver to %Qore.
-    |\c glut|Provides GLUT functionality to %Qore.
-    |\c opengl|Provides an OpenGL API to %Qore.
-    |\c qt4|Provides Nokia (formerly Trolltech) QT4 APIs for GUI development in %Qore.
-    |\c ncurses|Provides curses APIs to %Qore.
-    |\c yaml|Provides YAML functionality to %Qore.
+    |!Type|!Module|!Description
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/23-asn1-module/66-asn1-module-info">asn1</a>|Provides ASN.1 functionality to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/42-db2-module">db2</a>|Provides an IBM DB2 driver to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/17-sybase-and-freetds-modules/61-sybase-freetds-info">freetds</a>|Provides a FreeTDS-based DBI driver to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/25-glut-module">glut</a>|Provides GLUT functionality to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/41-json-module">json</a>|Provides JSON functionality to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/16-mysql-module">mysql</a>|Provides a MySQL DBI driver to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/26-ncurses-module">ncurses</a>|Provides curses APIs to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/14-oracle-module">oracle</a>|Provides an Oracle DBI driver to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/24-opengl-module">opengl</a>|Provides an OpenGL API to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/15-pgsql-module">pgsql</a>|Provides a PostgreSQL DBI driver to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/36-qt4-module">qt4</a>|Provides Nokia (formerly Trolltech) QT4 APIs for GUI development in %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/35-sqlite3-module">sqlite3</a>|Provides a SQLite3 DBI driver to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/37-ssh2-module">ssh2</a>|Provides SSH2 and SFTP functionality to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/17-sybase-and-freetds-modules/61-sybase-freetds-info">sybase</a>|Provides a Sybase DBI driver to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/19-tibae-module">tibae</a>|Provides TIBCO ActiveEnterprise(TM) (TIBCO, Inc) functionality to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/18-tibrv-module">tibrv</a>|Provides TIBCO Rendezvous(R) (TIBCO, Inc) functionality to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/20-tuxedo-module/65-tuxedo-module-info">tuxedo</a>|Provides Oracle (ex Bea) Tuxedo functionality to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/39-uuid-module">uuid</a>|Provices an API for generating UUIDs in %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/40-xml-module">xml</a>|Provides XML, XPath, etc functionality to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/22-xmlsec-module">xmlsec</a>|Provides xmldsig and xmlenc functionality to %Qore
+    |builtin|<a href="http://qore.org/modules-mainmenu-31/38-yaml-module">yaml</a>|Provides YAML functionality to %Qore
+
+    @section binary_modules Binary Modules
+
+    Binary modules are written in C++ and delivered in binary form. They must conform to the %Qore Module API and have the file extension \c "*.qmod". Binary modules normally depend on other shared libraries and therefore can only be loaded if the libraries they require are present on the system and can be found in the library path.
+    
+    Binary modules are merged into @ref Qore::Program "Program" objects in the same way as the static system namespace objects are imported.  It is possible to import a binary module and be able to use only part of its functionality, for example, if the importing @ref Qore::Program "Program" cannot access the filesystem, and the module has functions that access the filesystem, only the functions that access the filesystem will not be available.  In user modules, the functional domain is set on the module level and not on the individual function or method level as with builtin objects, so user modules are either completely imported or not at all.
+
+    Please note that as of version 0.7.0 onwards, the source code for binary modules has been split from the main %Qore library source code into separate projects; see <a href="http://www.qore.org">%Qore's home page</a> for more information.
+
+    @section user_modules User Modules
+
+    User modules are written in %Qore and delivered in source form.  They must have the extension \c "*.qm".
+
+    User modules will have their own dedicated @ref Qore::Program "Program" object; the @ref Qore::Program "Program" object is created automatically when the module is loaded and initialized.  The module's @ref Qore::Program "Program" object is created with locked parse options as follows:
+    - @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS "PO_NO_TOP_LEVEL_STATEMENTS"
+    - @ref Qore::PO_REQUIRE_PROTOTYPES "PO_REQUIRE_PROTOTYPES"
+    - @ref Qore::PO_REQUIRE_OUR "PO_REQUIRE_OUR"
+    - @ref Qore::PO_IN_MODULE "PO_IN_MODULE"
+
+    When parsing module code, the default warning mask is set to @ref Qore::WARN_MODULES "WARN_MODULES", and any warnings are treated as errors.   Furthermore, any restrictions that the importing @ref Qore::Program "Program" object has will be added to the module's @ref Qore::Program "Program" object.
+
+    Any @ref qore_namespaces "namespaces", @ref qore_classes "classes", @ref constants "constants", @ref qore_functions "functions", and @ref global_variables "global variables" declared as @ref public "public" will be exported into the importing @ref Qore::Program "Program" object; all other declarations will be private to the module's @ref Qore::Program "Program" object.  Note that the root namespace of a module @ref Qore::Program "Program" is always @ref public "public" by default.
+
+    Note that global variables exported from a module's @ref Qore::Program "Program" object are exported as references; each global variable declared in a module is unique, and they reside in the module's @ref Qore::Program "Program" object.
+
+    Furthermore, when using an environment with multiple @ref Qore::Program "Program" objects, if a user module has already been loaded and initialized, then it's functional domain mask is compared against any importing @ref Qore::Program "Program" object's restrictions; if the module uses functionality that is not allowed in the importing @ref Qore::Program "Program" object, then an exception is raised and the module is not imported.
+
+    @subsection user_module_declarations User Module Declarations
+
+    User modules are declared with a special syntax in %Qore:
+    
+    <b>User Module Declaration Syntax</b>\n
+    <b><tt>module</tt></b> <i>name</i> <tt>{</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt><b>version</b> = &quot;</tt><i>version string</i><tt>&quot;;</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt><b>desc</b> = &quot;</tt><i>description string</i><tt>&quot;;</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt><b>author</b> = &quot;</tt><i>author string</i><tt>&quot;;</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>url</b> = &quot;</tt><i>URL string</i><tt>&quot;;]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>init</b> = </tt><i>@ref closure "initialization closure"</i><tt>;]</tt>\n
+    <tt>}</tt>
+
+    Module properties are as follows:
+    - \c version: (required) must be assigned to a string giving the version of the module
+    - \c desc: (required) must be assigned to a string giving a text description of the module
+    - \c author: (required) must be assigned to a string giving the module's author's name
+    - \c url: (optional) if present, must be a string giving the URL or the module
+    - \c init: (options) if present, must be a closure that will be executed when the module is loaded; this can be used to initialize the module, for example
+
+    @subsection mod_public The "public" Keyword in User Modules
+
+    Only objects defined with the <b><tt>public</tt></b> keyword are made available in @ref Qore::Program "Program" objects importing the user module.  All other declarations and definitions are private to the module.
+
+    The <b><tt>public</tt></b> keyword must be used with the following declarations in the module to export them:
+    - @ref qore_namespaces "namespaces": namespaces themselves must be declared <b><tt>public</tt></b> in order for any of their contents also to be exported (it is an error to try to declare public members of a module-private namespace). ex: @code
+public namespace MyNamespace { ... }@endcode
+    - @ref qore_classes "classes": classes not declared <b><tt>public</tt></b> will not be exported; there is no way to export part of a class; either the entire class is exported or it is not. ex: @code
+public MyNamespace {
+    public MyClass { ... }
+}@endcode
+    - @ref constants "constants": constants must be declared <b><tt>public</tt></b> to be exported; ex: @code
+public namespace MyNamespace {
+    public const MyConst = 100;
+}@endcode
+    - @ref qore_functions "functions": function variants must be declared <b><tt>public</tt></b> in order to be exported. ex: @code
+public MyNamespace {
+    public int sub my_func() { ... }
+}@endcode
+    - @ref global_variables "global variables": only global variables declared <b><tt>public</tt></b> will be exported. ex: @code
+public namespace MyNamespace {
+    public our int MyNamespace::OurInt;
+}@endcode
+
+    @note Global variable declarations in a namespace declaration cannot be initialized at the point they are declared, also, since @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS is set for user module @ref Qore::Program "Program" objects, global variables also cannot be initialized at the top-level.  Use the \c init closure to initialize the module and any global variables requiring initialization.
+
+    User modules are only imported into a @ref Qore::Program "Program" if the importing @ref Qore::Program "Program" can use all of the capabilities used in the user module.  It is not possible to partially import a user module (in contrast with @ref builtin_modules "builtin modules", which can be imported even if they expose functionality not allowed in the importing @ref Qore::Program "Program", however that functionality will not be available in that case).  User module @ref Qore::Program "Program" objects have a functional domain attribute set on the @ref Qore::Program "Program" level, so either a user module is imported in its entirity or not at all.
+
+    @subsection User Module Example
+
+    Here is an example declaring user module \c "foo" version \c "1.0":
+    @code
+module foo {
+    version = "1.0";
+    desc = "test module";
+    author = "Foobar Industries, inc";
+    url = "http://example.com";
+
+    init = sub () {
+        Foo::initialized = True;
+	Bar::OurBool = False;
+    };
+}
+
+%new-style
+
+# nothing in namespace ::Foo is exported
+namespace Foo {
+    # inline global variable declarations cannot be initialized when declared
+    our bool initialized;
+
+    class SuperClass {
+    }
+    class NotSoGreatClass {
+    }
+    class UnstableClass {
+    }
+}
+
+# public members of namespace ::Bar are exported
+public namespace Bar {
+    # Bar::SomeClass is exported
+    public class SomeClass {
+    }
+
+    # Bar::add(int, int) is exported
+    public int sub add(int x, int y) { return x + y; }
+
+    # Bar::OurBool is exported
+    public our bool OurBool;
+
+    # Bar::PrivateClass is not exported
+    class PrivateClass {
+    }
+}@endcode
+
+    @since %Qore 0.8.4 user modules are supported
 */

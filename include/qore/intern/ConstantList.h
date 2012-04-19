@@ -52,7 +52,7 @@ public:
       pub;        // public constant (modules only)
 
    DLLLOCAL ConstantEntry() : typeInfo(0), node(0), in_init(false), init(false), pub(false) {}
-   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init), pub(false) {}
+      DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false, bool n_pub = false) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init), pub(n_pub) {}
    DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
    DLLLOCAL ~ConstantEntry() {
@@ -135,7 +135,7 @@ public:
    // do not delete the object returned by this function
    DLLLOCAL cnemap_t::iterator add(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
 
-   DLLLOCAL cnemap_t::iterator parseAdd(const char* name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
+   DLLLOCAL cnemap_t::iterator parseAdd(const char* name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0, bool pub = false);
 
    DLLLOCAL ConstantEntry* findEntry(const char* name);
    DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo, QoreClass *class_context = 0);

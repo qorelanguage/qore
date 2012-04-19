@@ -52,6 +52,11 @@ const PO_DEFAULT = PO_DEFAULT;
  */
 const PO_FREE_OPTIONS = PO_FREE_OPTIONS;
 
+//! Only set by the system when in a @ref user_module Program
+/** @note This option cannot be set manually or an exception will be raised
+ */
+const PO_IN_MODULE = PO_IN_MODULE;
+
 //! Allows global variables to be inherited into the new Program object
 const PO_INHERIT_GLOBAL_VARS = PO_INHERIT_GLOBAL_VARS;
 
@@ -334,6 +339,18 @@ const WARN_EXCESS_ARGS = QP_WARN_EXCESS_ARGS;
 /** @see @ref invalid-operation
  */
 const WARN_INVALID_OPERATION = QP_WARN_INVALID_OPERATION;
+
+//! The default warning mask for @ref user_module "user modules"
+/** This warning is made up of the following values combined with binary or:
+    - @ref WARN_UNREACHABLE_CODE
+    - @ref WARN_NONEXISTENT_METHOD_CALL
+    - @ref WARN_INVALID_OPERATION
+    - @ref WARN_CALL_WITH_TYPE_ERRORS
+    - @ref WARN_RETURN_VALUE_IGNORED
+    - @ref WARN_DUPLICATE_HASH_KEY
+    - @ref WARN_DUPLICATE_BLOCK_VARS
+*/
+const WARN_MODULES = QP_WARN_MODULES;
 
 //! Represents no warning
 const WARN_NONE = QP_WARN_NONE;

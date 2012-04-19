@@ -153,6 +153,38 @@ void QoreNamespace::addInitialNamespace(QoreNamespace* ns) {
    priv->addNamespace(ns->priv);
 }
 
+qore_ns_private::qore_ns_private() : depth(0), root(false), pub(false), parent(0), class_handler(0), ns(0) {
+   // attaches to the ns attribute in the constructor
+   new QoreNamespace(this);
+   namepub_t np = parse_pop_namepub();
+   name = np.name;
+   pub = np.pub;
+   if (pub) {
+      QoreProgram* pgm = getProgram();
+      if (!(pgm->getParseOptions64() & PO_IN_MODULE))
+         qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with namespace declarations in user module code (when declaring namespace '%s')", name.c_str());
+   }
+}
+
+FunctionEntry* qore_ns_private::addPendingVariantIntern(const char* fname, AbstractQoreFunctionVariant* v, bool& new_func) {
+   SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
+
+   if (!pub && v->isModulePublic())
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "function variant '%s::%s(%s)' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), fname, v->getSignature()->getSignatureText(), name.c_str());
+
+   FunctionEntry* fe = func_list.findNode(fname);
+
+   if (!fe) {
+      QoreFunction* u = new QoreFunction(fname);
+      u->addPendingVariant(vh.release());
+      fe = func_list.add(u);
+      new_func = true;
+      return fe;
+   }
+
+   return fe->getFunction()->addPendingVariant(vh.release()) ? 0 : fe;
+}
+
 void qore_ns_private::addModuleNamespace(qore_ns_private* nns, QoreModuleContext& qmc) {
    if (nsl.find(nns->name)) {
       std::string path;
@@ -983,7 +1015,7 @@ void qore_root_ns_private::addConstant(qore_ns_private& ns, const char* cname, A
    cnmap.update(i->first, &ns, i->second);
 }
 
-void qore_root_ns_private::parseAddConstantIntern(QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value) {
+void qore_root_ns_private::parseAddConstantIntern(QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value, bool cpub) {
    ReferenceHolder<> vh(value, 0);
 
    QoreNamespace* sns = ns.priv->resolveNameScope(name);
@@ -991,7 +1023,7 @@ void qore_root_ns_private::parseAddConstantIntern(QoreNamespace& ns, const Named
       return;
 
    const char* cname = name.strlist[name.size() - 1].c_str();
-   cnemap_t::iterator i = sns->priv->parseAddConstant(cname, vh.release());
+   cnemap_t::iterator i = sns->priv->parseAddConstant(cname, vh.release(), cpub);
    if (i == sns->priv->pendConstant.end())
       return;
 
@@ -1120,13 +1152,16 @@ void qore_ns_private::parseInitGlobalVars() {
    pendNSL.parseInitGlobalVars();
 }
 
-static void check_global_var_decl(Var* v, const NamedScope& vname) {
+void qore_ns_private::checkGlobalVarDecl(Var* v, const NamedScope& vname) {
    int64 po = getParseOptions();
    if (po & PO_NO_GLOBAL_VARS)
       parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
 
    if (!v->hasTypeInfo() && (po & PO_REQUIRE_TYPES))
       parse_error("global variable '%s' declared without type information, but parse options require all declarations to have type information", vname.ostr);
+
+   if (!pub && v->isPublic())
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "global variable '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), v->getName(), name.c_str());
 }
 
 void qore_ns_private::parseAddGlobalVarDecl(char *name, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, bool pub) {
@@ -1135,7 +1170,7 @@ void qore_ns_private::parseAddGlobalVarDecl(char *name, const QoreTypeInfo* type
       e.var->setPublic();
    pend_gvblist.push_back(e);
 
-   check_global_var_decl(e.var, *e.name);
+   checkGlobalVarDecl(e.var, *e.name);
 }
 
 void qore_root_ns_private::parseResolveGlobalVars() {
@@ -1152,7 +1187,6 @@ void qore_root_ns_private::parseResolveGlobalVars() {
 
       Var* v = tns->var_list.parseFindVar(n.getIdentifier());
       if (v) {
-         // FIXME: save parse location in Var for error handling
          parse_error(loc, "global variable '%s::%s' has already been %s this Program object", tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
          continue;
       }
@@ -1169,7 +1203,7 @@ Var* qore_root_ns_private::parseAddResolvedGlobalVarDefIntern(const NamedScope& 
    Var* v = new Var(vname.getIdentifier(), typeInfo);
    pend_gvlist.push_back(GVEntry(this, vname, v));
 
-   check_global_var_decl(v, vname);
+   checkGlobalVarDecl(v, vname);
    return v;
 }
 
@@ -1177,7 +1211,7 @@ Var *qore_root_ns_private::parseAddGlobalVarDefIntern(const NamedScope& vname, Q
    Var* v = new Var(vname.getIdentifier(), typeInfo);
    pend_gvlist.push_back(GVEntry(this, vname, v));
 
-   check_global_var_decl(v, vname);
+   checkGlobalVarDecl(v, vname);
    return v;
 }
 
@@ -1304,6 +1338,9 @@ void qore_ns_private::parseRollback() {
 qore_ns_private *qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
    std::auto_ptr<QoreNamespace> nnsh(nns);
 
+   if (!pub && nns->priv->pub)
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "namespace '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), nns->getName(), name.c_str());
+
    //printd(5, "qore_ns_private::parseAddNamespace() this=%p '%s' adding %p '%s' (exists %p)\n", this, getName(), ns, ns->getName(), priv->nsl.find(ns->getName()));
 
    // raise an exception if namespace collides with an object name
@@ -1330,8 +1367,12 @@ qore_ns_private *qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
 }
 
 // only called while parsing before addition to namespace tree, no locking needed
-cnemap_t::iterator qore_ns_private::parseAddConstant(const char* cname, AbstractQoreNode* value) {
+cnemap_t::iterator qore_ns_private::parseAddConstant(const char* cname, AbstractQoreNode* value, bool cpub) {
    ReferenceHolder<> vh(value, 0);
+
+   if (cpub && !pub) {
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "constant '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), cname, name.c_str());
+   }
 
    if (constant.inList(cname)) {
       std::string path;
@@ -1340,24 +1381,27 @@ cnemap_t::iterator qore_ns_private::parseAddConstant(const char* cname, Abstract
       return pendConstant.end();
    }
 
-   return pendConstant.parseAdd(cname, vh.release());
+   return pendConstant.parseAdd(cname, vh.release(), 0, cpub);
 }
 
 // only called while parsing before addition to namespace tree, no locking needed
-void qore_ns_private::parseAddConstant(const NamedScope& nscope, AbstractQoreNode* value) {
+void qore_ns_private::parseAddConstant(const NamedScope& nscope, AbstractQoreNode* value, bool cpub) {
    ReferenceHolder<> vh(value, 0);
 
    QoreNamespace *sns = resolveNameScope(nscope);
    if (!sns)
       return;
 
-   sns->priv->parseAddConstant(nscope[nscope.size() - 1], vh.release());
+   sns->priv->parseAddConstant(nscope[nscope.size() - 1], vh.release(), cpub);
 }
 
 // public, only called either in single-threaded initialization or
 // while the program-level parse lock is held
 int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
    std::auto_ptr<QoreClass> och(oc);
+
+   if (!pub && qore_class_private::isPublic(*oc))
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "class '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), oc->getName(), name.c_str());
 
    //printd(5, "qore_ns_private::parseAddPendingClass() adding str=%s (%p)\n", oc->name, oc);
    // raise an exception if object name collides with a namespace

@@ -4,12 +4,14 @@
     Constant definitions allow programmers to refer to values with %Qore identifiers rather than using the value or the expression that generates the value.
 
     @par Constant Declaration Syntax
-    <tt><b>const</b></tt> <em>@ref namespace_paths "[namespace_path::]"constant_identifier</em> <tt>=</tt> <em>@ref expressions "initialization_expression"</em>;
+    <tt>[@ref public "public"] <b>const</b></tt> <em>@ref namespace_paths "[namespace_path::]"constant_identifier</em> <tt>=</tt> <em>@ref expressions "initialization_expression"</em>;
 
     @par Example
     @code
 const PI_SQUARED = pow(Qore::M_PI, 2);
     @endcode
+
+    When defining a @ref user_module "user module", constant definitions can be preceded by @ref public "public", which means that the constant will be available (imported) in the @ref Qore::Program "Program" object importing the module.  Note that however the @ref public "public" keyword cannot be used when defining class constants in a public or private declaration block.  See @ref public "public" for more information.
 
     @since 0.8.1 The expression used to initialize a constant can be any valid @ref expressions "Qore expression" as long as no variables are referenced. 
 

@@ -113,6 +113,19 @@ static const char *trim_inplace(const char *str) {
    return str[0] ? str : 0;
 }
 
+static const char* get_last_word(const char* str) {
+   unsigned l = (unsigned)strlen(str);
+   assert(l);
+
+   const char *e = str + l - 2;
+   
+   while (e != str && *e != ' ' && *e != 't' && *e != '\r' && *e != '\n')
+      --e;
+
+   //printd(0, "get_last_word() '%s' -> '%s'\n", str, e + 1);
+   return e + 1;
+}
+
 static QoreString *getIncludeFileName(char *file) {
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
    // convert UNIX-style '/' character to '\'
@@ -650,9 +663,13 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%requires                              BEGIN(requires);
 <requires>[^\t\n\r]+                    {
                                            const char *cn = trim_inplace(yytext);
-					   //printd(5, "scanner requesting feature: '%s'\n", cn);
-					   QoreProgram* pgm = getProgram();
-					   QMM.parseLoadModule(cn, pgm, *(pgm->getParseExceptionSink()));
+					   if (!cn)
+					      parse_error("missing argument to %%requires");
+					   else {
+					      //printd(5, "scanner requesting feature: '%s'\n", cn);
+					      QoreProgram* pgm = getProgram();
+					      QMM.parseLoadModule(cn, pgm, *(pgm->getParseExceptionSink()));
+					   }
 					   BEGIN(INITIAL);
                                         }
 ^%module-cmd{WS}*$                      { parse_error("missing argument to %%module-cmd"); }
@@ -1200,11 +1217,15 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 {BINARY}                                yylval->binary = parseHex(yytext + 1, strlen(yytext + 1) - 1); return BINARY;
 \$\.{WORD}                              yylval->string = strdup(yytext + 2); return SELF_REF;
 \${WORD}				yylval->string = strdup(yytext + 1); return VAR_REF;
-class{WS}+({WORD}::)+{WORD}             { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_class_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
-class{WS}+(::{WORD})+                   { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_class_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
-class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); parse_push_class_name(yylval->string); return CLASS_STRING; }
-namespace{WS}+{WORD}			{ const char* ns = trim_inplace(yytext + 10); parse_push_nsmod_name(ns); return TOK_NAMESPACE; }
-module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); parse_push_nsmod_name(mod); return TOK_MODULE; }
+class{WS}+({WORD}::)+{WORD}             { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
+class{WS}+(::{WORD})+                   { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
+class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); parse_push_name(yylval->string); return CLASS_STRING; }
+public{WSNL}+class{WS}+({WORD}::)+{WORD}  { yylval->nscope = new NamedScope(strdup(get_last_word(yytext + 13))); parse_push_name(yylval->nscope->getIdentifier(), true); return CLASS_SCOPED_REF; }
+public{WSNL}+class{WS}+(::{WORD})+      { yylval->nscope = new NamedScope(strdup(get_last_word(yytext + 13))); parse_push_name(yylval->nscope->getIdentifier(), true); return CLASS_SCOPED_REF; }
+public{WSNL}+class{WS}+{WORD}           { yylval->string = strdup(get_last_word(yytext + 13)); parse_push_name(yylval->string, true); return CLASS_STRING; }
+namespace{WS}+{WORD}			{ const char* ns = trim_inplace(yytext + 10); parse_push_name(ns); return TOK_NAMESPACE; }
+public{WSNL}+namespace{WS}+{WORD}	{ const char* ns = get_last_word(yytext + 17); parse_push_name(ns, true); return TOK_NAMESPACE; }
+module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); parse_push_name(mod); return TOK_MODULE; }
 {WORD}					yylval->string = strdup(yytext); return IDENTIFIER;
 \%{WORD}                                yylval->string = strdup(yytext + 1); return CONTEXT_REF;
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;

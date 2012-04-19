@@ -199,15 +199,15 @@ void ConstantList::parseDeleteAll() {
       qore_program_private::addParseException(getProgram(), xsink);
 }
 
-cnemap_t::iterator ConstantList::parseAdd(const char* name, AbstractQoreNode *value, const QoreTypeInfo *typeInfo) {
+cnemap_t::iterator ConstantList::parseAdd(const char* name, AbstractQoreNode *value, const QoreTypeInfo *typeInfo, bool pub) {
    // first check if the constant has already been defined
    if (cnemap.find(name) != cnemap.end()) {
       parse_error("constant \"%s\" has already been defined", name);
       value->deref(0);
       return cnemap.end();
    }
-   
-   ConstantEntry* ce = new ConstantEntry(name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value));
+
+   ConstantEntry* ce = new ConstantEntry(name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), false, pub);
    return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 

@@ -344,8 +344,8 @@ public:
    ParseConditionalStack pcs;
 
    // for capturing namespace and class names while parsing
-   typedef std::vector<std::string> psvec_t;
-   psvec_t ns_vec, class_vec;
+   typedef std::vector<namepub_t> npvec_t;
+   npvec_t npvec;
 
    // used for error handling when merging module code into a Program object
    QoreModuleContext* qmc;
@@ -404,31 +404,27 @@ public:
 #endif
    }
 
-   DLLLOCAL void pushClassName(const char* name) {
-      class_vec.push_back(name);
+   DLLLOCAL void pushName(const char* name, bool b) {
+      npvec.push_back(namepub_t(name, b));
    }
 
-   DLLLOCAL std::string popClassName() {
-      assert(!class_vec.empty());
-      std::string rv = class_vec.back();
-      class_vec.pop_back();
+   DLLLOCAL std::string popName() {
+      assert(!npvec.empty());
+      assert(!npvec.back().pub);
+      std::string rv = npvec.back().name;
+      npvec.pop_back();
       return rv;
    }
 
-   DLLLOCAL void pushNsModName(const char* name) {
-      ns_vec.push_back(name);
-   }
-
-   DLLLOCAL std::string popNsModName() {
-      assert(!ns_vec.empty());
-      std::string rv = ns_vec.back();
-      ns_vec.pop_back();
+   DLLLOCAL namepub_t popNamePub() {
+      assert(!npvec.empty());
+      namepub_t rv = npvec.back();
+      npvec.pop_back();
       return rv;
    }
 
    DLLLOCAL void parseRollback() {
-      ns_vec.clear();
-      class_vec.clear();
+      npvec.clear();
    }
 
    DLLLOCAL qore_ns_private* set_ns(qore_ns_private* ns) {
@@ -762,24 +758,19 @@ ClosureParseEnvironment *thread_get_closure_parse_env() {
    return thread_data.get()->closure_parse_env;
 }
 
-void parse_push_nsmod_name(const char* name) {
+void parse_push_name(const char* name, bool pub) {
    ThreadData *td = thread_data.get();
-   td->pushNsModName(name);
+   td->pushName(name, pub);
 }
 
-std::string parse_pop_nsmod_name() {
+std::string parse_pop_name() {
    ThreadData *td = thread_data.get();
-   return td->popNsModName();
+   return td->popName();
 }
 
-void parse_push_class_name(const char* name) {
+namepub_t parse_pop_namepub() {
    ThreadData *td = thread_data.get();
-   td->pushClassName(name);
-}
-
-std::string parse_pop_class_name() {
-   ThreadData *td = thread_data.get();
-   return td->popClassName();
+   return td->popNamePub();
 }
 
 void set_thread_resource(AbstractThreadResource *atr) {
