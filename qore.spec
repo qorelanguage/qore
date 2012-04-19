@@ -1,6 +1,6 @@
 %define qore_ver 0.8.4
 %define module_dir %{_libdir}/qore-modules
-%define module_ver_dir %{module_dir}/%{qore_ver)
+%define module_ver_dir %{module_dir}/%{qore_ver}
 
 %if 0%{?sles_version}
 
@@ -104,7 +104,7 @@ functionality.
 
 %files -n libqore5
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.6.2
+%{_libdir}/libqore.so.5.7.0
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
@@ -155,6 +155,7 @@ Qore library.
 
 %files devel
 %defattr(-,root,root,-)
+/usr/bin/qpp
 %{_libdir}/libqore.so
 %{_libdir}/pkgconfig/qore.pc
 %{_prefix}/include/*
@@ -175,7 +176,7 @@ c64=--enable-64bit
 %install
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/%{module_dir}
-mkdir -p $RPM_BUILD_ROOT/%{module_dir}/auto
+mkdir -p $RPM_BUILD_ROOT/%{module_dir}/${qore_ver}
 mkdir -p $RPM_BUILD_ROOT/usr/man/man1
 make install prefix=$RPM_BUILD_ROOT/usr
 rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
@@ -186,7 +187,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/bin/qore
-${module_dir}/HttpServer.qm
+%{module_ver_dir}/HttpServer.qm
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*

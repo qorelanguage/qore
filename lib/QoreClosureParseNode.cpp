@@ -88,3 +88,4 @@ const char *QoreClosureParseNode::getTypeName() const {
 AbstractQoreNode *QoreClosureParseNode::exec(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const {   
    return uf->evalClosure(args, self, xsink);
 }
+

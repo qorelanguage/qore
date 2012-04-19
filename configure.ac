@@ -1369,8 +1369,11 @@ fi
 MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
 AC_SUBST([MODULE_DIR])
 
+mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}
+AC_SUBST([mymodverdir])
+
 # get version-dependent module path
-MODULE_VER_DIR="${MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
+MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
 AC_SUBST([MODULE_VER_DIR])
 
 if test "$enable_profile" = yes; then

@@ -1,6 +1,6 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/$(mypkglibdir)
-modverdir = $(MODULE_VER_DIR)
+modverdir = $(libdir)/$(mymodverdir)
 includedir = $(prefix)/include/qore
 
 ## use automake to create the Makefile.in for configure
@@ -53,6 +53,9 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/Pseudo_QC_String.qpp \
 	lib/Pseudo_QC_Binary.qpp \
 	lib/Pseudo_QC_List.qpp \
+	lib/Pseudo_QC_Bool.qpp \
+	lib/Pseudo_QC_Int.qpp \
+	lib/Pseudo_QC_Float.qpp \
 	lib/ql_misc.qpp \
 	lib/ql_compression.qpp \
 	lib/ql_thread.qpp \
@@ -84,6 +87,10 @@ LIB_DOXYFILES = \
 	doxygen/lib/75_dbi_drivers.doxygen
 
 LANG_DOXYFILES_SRC = \
+	doxygen/dot \
+	doxygen/dpp \
+	doxygen/footer_template.html \
+	doxygen/pdox \
 	doxygen/lang/Doxyfile.tmpl \
 	doxygen/lang/mainpage.dox.tmpl \
 	doxygen/lang/000_intro.dox.tmpl \
@@ -492,6 +499,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreLogicalGreaterThanOperatorNode.h \
 	include/qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h \
 	include/qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h \
+	include/qore/intern/QoreBinaryLValueOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
@@ -534,6 +542,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_AutoWriteLock.h \
 	include/qore/intern/QC_AbstractSmartLock.h \
 	include/qore/intern/QC_TimeZone.h \
+	lib/getopt_long.h \
 	command-line.h
 
 EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \

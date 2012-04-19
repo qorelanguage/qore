@@ -97,6 +97,7 @@ public:
 
    DLLLOCAL bool isLambda() const { return lambda; }
 
+   // warning: can only be called when the closure runtime environment is set
    DLLLOCAL AbstractQoreNode *exec(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const;
 
    DLLLOCAL const lvar_set_t *getVList() const {
