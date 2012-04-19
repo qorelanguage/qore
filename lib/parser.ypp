@@ -269,7 +269,8 @@ struct GVarSingleDecl : public GVarDecl {
          : new GlobalVarRefNode(takeName(), takeParseTypeInfo());
       if (pub)
          set_global_public(gv);
-      
+
+      delete this;
       return gv;
    }   
 };
