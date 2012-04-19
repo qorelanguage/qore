@@ -260,6 +260,7 @@ struct GVarSingleDecl : public GVarDecl {
 
    DLLLOCAL virtual void add(QoreNamespace& ns) {
       qore_ns_private::parseAddGlobalVarDecl(ns, takeName(), typeInfo, takeParseTypeInfo(), pub);
+      delete this;
    }
 
    DLLLOCAL virtual AbstractQoreNode* makeVar() {
