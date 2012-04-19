@@ -58,8 +58,6 @@ extern "C" {
 #include <vector>
 #include <set>
 
-#define AUTO_MODULE_DIR MODULE_DIR "/auto"
-
 static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 12}, {0, 11}, {0, 10}, {0, 9}, {0, 8}, {0, 7}, {0, 6}, {0, 5} };
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
 
@@ -191,11 +189,11 @@ public:
 /** a deque should require fewer memory allocations compared to a linked list
  */
 class DirectoryList : public strdeque_t {
-   public:
-      DLLLOCAL void addDirList(const char *str);
+public:
+   DLLLOCAL void addDirList(const char *str);
 };
 
-static DirectoryList autoDirList, moduleDirList;
+static DirectoryList moduleDirList;
 
 void DirectoryList::addDirList(const char *str) {
    if (!str)
@@ -306,7 +304,8 @@ void ModuleManager::addModuleDir(const char *dir) {
 
 // to add a directory to the auto module directory search list, can only be called before init()
 void ModuleManager::addAutoModuleDir(const char *dir) {
-   autoDirList.push_back(dir);
+   printd(0, "ModuleManager::addAutoModuleDir() suppport for auto module directories was removed in 0.8.4\n");
+   assert(false);
 }
 
 // to add a list of directories to the module directory search list, can only be called before init()
@@ -316,7 +315,8 @@ void ModuleManager::addModuleDirList(const char *strlist) {
 
 // to add a list of directories to the auto module directory search list, can only be called before init()
 void ModuleManager::addAutoModuleDirList(const char *strlist) {
-   autoDirList.addDirList(strlist);
+   printd(0, "ModuleManager::addAutoModuleDir() suppport for auto module directories was removed in 0.8.4\n");
+   assert(false);
 }
 
 // see if name has "-api-<digit(s)>.<digit(s)>" at the end
@@ -398,38 +398,15 @@ void QoreModuleManager::init(bool se) {
 
    show_errors = se;
 
-   // set up auto-load list from QORE_AUTO_MODULE_DIR (if it hasn't already been manually set up)
-   if (autoDirList.empty()) {
-      autoDirList.addDirList(getenv("QORE_AUTO_MODULE_DIR"));
-
-      // append standard directories to the end of the list
-      //autoDirList.push_back(AUTO_MODULE_DIR);
-
-      QoreString str(MODULE_DIR);
-      str.concat("/auto");
-      //printd(5, "adding auto module dir %s\n", str.getBuffer());
-      autoDirList.push_back(str.getBuffer());
-   }
-
    // setup module directory list from QORE_MODULE_DIR (if it hasn't already been manually set up)
    if (moduleDirList.empty()) {
       moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
-
-      // append standard directories to the end of the list
-      // moduleDirList.push_back(MODULE_DIR);
       
       // append qore module directory
       moduleDirList.push_back(MODULE_DIR);
-   }
 
-   // autoload modules
-   // try to load all modules in each directory in the autoDirList
-   QoreString gstr;
-
-   DirectoryList::iterator w = autoDirList.begin();
-   while (w != autoDirList.end()) {
-      globDir((*w).c_str());
-      ++w;
+      // append version-specifc module directory
+      moduleDirList.push_back(MODULE_VER_DIR);
    }
 }
 

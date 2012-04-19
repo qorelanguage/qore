@@ -1,4 +1,6 @@
+%define qore_ver 0.8.4
 %define module_dir %{_libdir}/qore-modules
+%define module_ver_dir %{module_dir}/%{qore_ver)
 
 %if 0%{?sles_version}
 
@@ -34,7 +36,7 @@
 
 Summary: Qore Programming Language
 Name: qore
-Version: 0.8.4
+Version: %{qore_ver}
 Release: 1%{dist}
 License: LGPL or GPL
 Group: Development/Languages/Other
@@ -78,6 +80,7 @@ character encoding (including proper UTF-8) support, and much more.
 %package -n libqore5
 Summary: The libraries for qore runtime and qore clients
 Group: Development/Languages/Other
+Provides: qore-module-api-0.12
 Provides: qore-module-api-0.11
 Provides: qore-module-api-0.10
 Provides: qore-module-api-0.9
@@ -183,6 +186,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/bin/qore
+${module_dir}/HttpServer.qm
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*

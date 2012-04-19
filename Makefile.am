@@ -1,5 +1,6 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/$(mypkglibdir)
+modverdir = $(MODULE_VER_DIR)
 includedir = $(prefix)/include/qore
 
 ## use automake to create the Makefile.in for configure
@@ -9,6 +10,8 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
+
+USER_MODULES = qlib/HttpServer.qm
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC
@@ -584,6 +587,8 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	$(LANG_DOXYFILES_SRC) \
 	$(LANG_QPP_SRC)
 
+modver_DATA = $(USER_MODULES)
+
 BUILT_SOURCES = dummy
 
 dummy:
@@ -642,7 +647,6 @@ endif
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = qore.pc
-
 
 BUILD=$(shell $(top_srcdir)/next_build.sh -b)
 PACKAGE_VERSION=$(shell grep PACKAGE_VERSION include/qore/intern/unix-config.h | cut -f3 -d\  | sed s/\"//g)

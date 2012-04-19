@@ -95,9 +95,9 @@ public:
    */
    DLLEXPORT static void addModuleDir(const char *dir);
 
-   //! to add a single directory to the QORE_AUTO_MODULE_DIR list, can only be called before the library initialization function qore_init()
-   /**
-      @param dir the directory path to add to the list
+   //! no longer supported - removed for security reasons
+   /** this function will abort() in debug builds, does nothing in production builds
+       @since qore 0.8.4 support for auto module directories was removed
    */
    DLLEXPORT static void addAutoModuleDir(const char *dir);
 
@@ -107,9 +107,9 @@ public:
    */
    DLLEXPORT static void addModuleDirList(const char *strlist);
 
-   //! to add a list of directories separated by ':' characters to the QORE_AUTO_MODULE_DIR list, can only be called before the library initialization function qore_init()
-   /**
-      @param strlist a list of directories separated by ':' characters to add to the QORE_AUTO_MODULE_DIR list
+   //! no longer supported - removed for security reasons
+   /** this function will abort() in debug builds, does nothing in production builds
+       @since qore 0.8.4 support for auto module directories was removed
    */
    DLLEXPORT static void addAutoModuleDirList(const char *strlist);
 

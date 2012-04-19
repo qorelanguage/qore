@@ -1365,6 +1365,14 @@ else
    myprefix=${ac_default_prefix}
 fi
 
+# set module path
+MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
+AC_SUBST([MODULE_DIR])
+
+# get version-dependent module path
+MODULE_VER_DIR="${MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
+AC_SUBST([MODULE_VER_DIR])
+
 if test "$enable_profile" = yes; then
    QORE_LIB_CXXFLAGS="$QORE_LIB_CXXFLAGS -g -pg"
    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -g -pg"
@@ -1386,7 +1394,7 @@ QORE_LIB_LDFLAGS="`echo $QORE_LIB_LDFLAGS $LDFLAGS $LIBS -lm|sed 's/ +/ /g'`"
 AC_SUBST([QORE_LIB_LDFLAGS])
 
 QORE_LIB_CPPFLAGS="`echo $QORE_LIB_CPPFLAGS $CPPFLAGS -D_QORE_LIB_INTERN|sed 's/ +/ /g'`"
-QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS -DMODULE_DIR=\\\"${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}\\\""
+QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS -DMODULE_DIR=\\\"${MODULE_DIR}\\\" -DMODULE_VER_DIR=\\\"${MODULE_VER_DIR}\\\""
 AC_SUBST([QORE_LIB_CPPFLAGS])
 if test -n "$QORE_LIB_CXXFLAGS"; then
    QORE_LIB_CFLAGS="$QORE_LIB_CPPFLAGS $QORE_LIB_CXXFLAGS"

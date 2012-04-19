@@ -1,0 +1,1802 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file HttpServer.qm HTTP multi-threaded server module definition
+
+# note that this server suffers from the following limitations, among many others:
+# *) not totally HTTP 1.1 compliant although claims to be
+# *) no HTTP mime/multipart handling (support for this ideally needs to be implemented in the qore library)
+
+# changes for v0.3.3:
+# * converted to a user module
+
+# changes for v0.3.2:
+# * added support for listeners with specific handler lists
+# * added the ability to manage dynamic content handlers
+# * implemented content-encoding handling flags in AbstractHttpRequestHandler
+# * implemented support for "identity" encoding (if anyone ever sends it)
+
+# changes for v0.3.1:
+# * added ipv6 support in qore 0.8.2
+
+# changes for v0.3.0:
+# * added the ability to start and stop listeners on demand
+
+# changes for v0.2.9:
+# * updates for new SSL and timeout behavior with with Socket class with qore 0.8.1+
+# * set socket encoding to UTF-8 by default
+# * add "charset=utf-8" to Content-Type header if not already present
+# * add "text/html" to Content-Type header if no content-type is given by the handler
+# * fixed setting X.509 certificate and private key for HTTPS listeners
+# * require qore >= 0.8.1 for new Socket features
+
+# changes for v0.2.8:
+# * converted to hard typing for use with %require-types
+# * require qore >= 0.8.0 for new Socket features
+
+# changes for v0.2.7:
+# * set TCP_NODELAY on all sockets to ensure that clients get all data
+#   before closing the socket, especially in case of errors
+# * require qore >= 0.7.4 for new Socket features
+
+# changes for v0.2.6:
+# * minor fixes for SOAP support
+# * improved handler matching
+
+# changes for v0.2.5:
+# * minor fixes for SOAP support
+
+# changes for v0.2.4:
+# * improved Content-Type handling
+# * improved URL/path support
+
+# changes for v0.2.3:
+# * bzip2 content-encoding support 
+
+# changes for v0.2.2:
+# * basic authentication
+
+# changes for v0.2.1:
+# * implementing logic to handle "deflate" and "gzip" content-encoding
+# * chunked content-encoding supported for POSTs
+# * Date: header always sent as per HTTP 1.1 spec
+
+# changes for v0.2.0: 
+# * modular/multiple listener support added
+# * https support added
+
+%requires qore >= 0.8.4
+
+module HttpServer {
+    version = "0.3.3";
+    desc = "HttpServer class definition";
+    author = "Qore Technologies, sro";
+    url = "http://qore.org";
+}
+
+#! the main namespace for this module
+public namespace HttpServer {
+    public string sub get_exception_string(hash $ex) {
+        my string $str;
+        
+        while (True) {
+            $str += sprintf("%s exception: %s:%d: %s: %s%s\ncall stack:",
+                            $ex.type, $ex.file, $ex.line, $ex.err, $ex.desc,
+                            exists $ex.arg ? sprintf(" (arg=%n)", $ex.arg) : "");
+            
+            if (exists $ex.callstack) {
+                foreach my hash $l in ($ex.callstack) {
+                    if ($l.type == "new-thread")
+                        $str += sprintf("\n  *** thread started by background operator ***");
+                    else if ($l.type == "rethrow")
+                        $str += sprintf("\n  *** RETHROW at %s:%d", $l.file, $l.line);
+                    else
+                        $str += sprintf("\n  %s() called at %s:%d (%s function)", $l.function, $l.file, $l.line, $l.type);
+                }
+            }
+            
+            if (!exists $ex.next)
+                break;
+            $ex = $ex.next;
+            $str += "\nchained exception:\n";
+        }
+        return $str;
+    }
+}
+
+# class to implement handler-handling (private)
+class HttpServer::HttpHandlerList {
+    public {
+        hash $.handlers;
+    }
+
+    private static checkSpecialHeaders(reference $sh) { 
+        foreach my any $h in (\$sh) {
+            if ($h.typeCode() != NT_STRING)
+                throw "SETHANDLER-ERROR", sprintf("entry %d in the special header list is not a string; type: %s", $#, $h.type());
+            # make sure header is in lower case for matching
+            $h = tolower($h);
+        }
+    }
+
+    #! sets a request handler according to the arguments given 
+    setHandler(string $name, string $url, any $content, AbstractHttpRequestHandler $obj, softlist $special_headers) {
+        if (exists $.handlers.$name)
+            throw "SETHANDLER-ERROR", sprintf("HTTP request handler %y already exists", $name);
+
+        HttpHandlerList::checkSpecialHeaders(\$special_headers);
+
+	$.handlers.$name = 
+	    ("obj"     : $obj,
+	     "content" : $content,
+	     "url"     : $url,
+	     "shdr"    : $special_headers );
+    }
+
+    *hash findHandler(*hash $url, hash $hdr, HandlerCleanupHelper $hch, bool $final = False) {
+	# if there is only one handler and final is true, then return the only handler
+	if ($final && elements $.handlers == 1) {
+	    my string $name = (keys $.handlers)[0];
+	    return ("handler": $.handlers.$name.obj, "handlerName": $name);
+	}
+
+	# find a handler for the request
+        my hash $rv;
+
+	#printf("HTTP DEBUG: HttpHandlerList::findHandler() hdr=%y, handlers=%y\n", $hdr, $.handlers);
+	foreach my string $h in (keys $.handlers) {
+            # skip dynamic handlers being removed
+            if ($.handlers.$h."remove")
+                continue;
+
+            #printf("HTTP DEBUG: checking handler %s: ct=%n, path=%n, url=%n, hcon=%n (url=%y) shdr=%y\n", $h, $hdr."content-type", $hdr.path, $.handlers.$h.url, $.handlers.$h.content, $url, $.handlers.$h.shdr);
+	    if (exists $hdr."content-type" && $hdr."content-type" == $.handlers.$h.content) {
+		if (strlen($.handlers.$h.url) && strlen($url.path) && regex($url.path, $.handlers.$h.url)) {
+                    #printf("HTTP DEBUG: match content-type and url for handler %y (h url: %y ct: %y, url: %y ct: %y)\n", $h, $.handlers.$h.url, $.handlers.$h.content, $url, $hdr."content-type");
+                    $rv = ("handler": $.handlers.$h.obj, "handlerName": $h);
+		    break;
+		}
+		if (!exists $rv) {
+                    #printf("HTTP DEBUG: match content-type for handler %y (h url: %y ct: %y, url: %y ct: %y)\n", $h, $.handlers.$h.url, $.handlers.$h.content, $url, $hdr."content-type");
+                    $rv = ("handler": $.handlers.$h.obj, "handlerName": $h);
+                }
+		continue;
+	    }
+	    if (exists $.handlers.$h.shdr) {
+		#printf("HTTP DEBUG: checking special headers %n: %n\n", $.handlers.$h.shdr, $hdr);
+                my bool $found = False;
+		foreach my any $shdr in ($.handlers.$h.shdr) {
+		    if (exists $hdr.$shdr) {
+			#printf("HTTP DEBUG: got special header %s: %s\n", $shdr, $hdr.$shdr);
+                        $rv = ("handler": $.handlers.$h.obj, "handlerName": $h);
+                        $found = True;
+			break;
+		    }
+		}
+                if ($found)
+                    break;
+	    }
+            
+	    # path trumps content-type
+	    #printf("regex(%n, %s, %n, %s) %n && %n && %n\n", $hdr.path, type($hdr.path), $.handlers.$h.url, type($.handlers.$h.url), strlen($.handlers.$h.url), strlen($hdr.path), regex($url.path, $.handlers.$h.url));
+	    if (strlen($.handlers.$h.url) && strlen($hdr.path) && regex($url.path, $.handlers.$h.url)) {
+                #printf("HTTP DEBUG: match url for handler %y (h url: %y, url: %y)\n", $h, $.handlers.$h.url, $url);
+                $rv = ("handler": $.handlers.$h.obj, "handlerName": $h);
+            }
+	}
+
+        #printf("HTTP DEBUG: handlerName=%y\n", $rv.handlerName);
+        return $rv;
+    }
+
+    bool empty() {
+	return !elements $.handlers;
+    }
+}
+
+# for dynamic handler-handling (private)
+class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
+    private {
+        RWLock $.dhl();
+    }
+
+    #! sets a dynamic request handler according to the arguments given 
+    setHandler(string $name, string $url, any $content, AbstractHttpRequestHandler $obj, softlist $special_headers) {
+        HttpHandlerList::checkSpecialHeaders(\$special_headers);
+
+        $.dhl.writeLock();
+        on_exit $.dhl.writeUnlock();
+
+        if (exists $.handlers.$name)
+            throw "SETHANDLER-ERROR", sprintf("dynamic HTTP request handler %y already exists", $name);
+
+	$.handlers.$name = 
+	    ("obj"     : $obj,
+	     "content" : $content,
+	     "url"     : $url,
+	     "shdr"    : $special_headers,
+             "counter" : new Counter(),
+             "remove"  : False);
+    }
+
+    #! remove dynamic handler
+    removeHandler(string $name) {
+        $.dhl.writeLock();
+        on_exit $.dhl.writeUnlock();
+
+        if (!exists $.handlers.$name)
+            throw "REMOVEHANDLER-ERROR", sprintf("dynamic request handler %y does not exist", $name);
+
+        if ($.handlers.$name."remove")
+            throw "REMOVEHANDLER-ERROR", sprintf("dynamic request handler %y is already being removed in another thread", $name);
+
+        # if one or more requests are in progress, then wait for all requests to complete before removing 
+        if ($.handlers.$name.counter.getCount()) {
+            $.handlers.$name."remove" = True;
+            $.dhl.writeUnlock();
+            $.handlers.$name.counter.waitForZero();
+            $.dhl.writeLock();
+        }
+
+        remove $.handlers.$name;
+    }
+
+    *hash findHandler(*hash $url, hash $hdr, HandlerCleanupHelper $hch, bool $final = False) {
+        $.dhl.readLock();
+        on_exit $.dhl.readUnlock();
+
+        my *hash $h = HttpHandlerList::$.findHandler($url, $hdr, $hch, $final);
+        if (!exists $h)
+            return;
+
+        my string $name = $h.handlerName;
+
+        $hch.set($.handlers.$name);
+        
+        return $h;
+    }
+}
+
+# for cleaning up after requests made to dynamic handlers (private)
+class HttpServer::HandlerCleanupHelper {
+    public {}
+
+    private {
+        hash $.handler;
+    }
+
+    set(hash $handler) {
+        $.handler = $handler;
+        $.handler.counter.inc();
+    }
+    
+    destructor() {
+        if (!exists $.handler)
+            return;
+
+        $.handler.counter.dec();
+    }
+}
+
+#! abstract base class for external authentication
+/** This class should be inherited by a class providing real authentication
+  */
+public class HttpServer::AbstractAuthenticator {
+    #! called to check if the connection requires authentication
+    /** @return True if authentication is enabled, False if not (False is the default value returned)
+      */
+    bool requiresAuthentication() {
+        return False;
+    }
+    #! returns the authentication realm as a string
+    /** @return the authentication realm as a string (default: \c "Default Authentication Realm")
+      */
+    string getRealm() {
+        return "Default Authentication Realm";
+    }
+    #! called to authenticate a user for a connection; should return a list of roles for the user if the user is authenticated
+    /** This method will only be called if requiresAuthentication() returns True
+        @param $user the username to authenticate
+        @param $pass the password for the user
+        @return a list of roles for the user if the user can be authenticated (this method returns an empty list by default)
+        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this method will never throw any exceptions)
+      */
+    list authenticate(string $user, string $pass = "") {
+        return ();
+    }
+    #! called when the connection requires authentication, but no authentication credentials were supplied, to try to authenticate the connection based on the source IP address
+    /** This method will only be called if requiresAuthentication() returns True and no authentication credentials are supplied with the request
+        @param $ip the IP address of the source connection
+        @param $user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
+        @return a list of roles if the authentication request is successful (this method returns an empty list by default)
+        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this base class method as implemented here will never throw any exceptions but instead just returns an empty list by default)
+      */
+    list authenticateByIP(string $ip, reference $user) {
+        return ();
+    }
+}
+
+#! abstract class that all HTTP request handler objects must inherit from
+/** reimplement handleRequest) in subclasses
+  */
+public class HttpServer::AbstractHttpRequestHandler {
+    public {
+        #! the optional AbstractAuthenticator for requests to this handler
+        *AbstractAuthenticator $.auth;
+
+        #! if POSTed data should be decompressed automatically if there is content-encoding
+        bool $.decompress = True;
+
+        #! if automatically decompressed POSTed data should be converted to a string (if False, then it will be decompressed to a binary)
+        bool $.decompress_to_string = True;
+
+        #! any thread-local data to add before calling handleRequest()
+        *hash $.tld;
+    }
+
+    #! create the object optionally with the given AbstractAuthenticator
+    /** @param $auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+        @param $my_tld any optional thread-local data to add before each call to handleRequest()
+      */
+    constructor(*AbstractAuthenticator $auth, *hash $my_tld) {
+        $.auth = $auth;
+        $.tld = $my_tld;
+    }
+
+    #! will be called when a request is received that should be directed to the handler
+    /**
+    @param $cx call context hash; this hash will have the following keys:
+    - \c socket: the bind address used to gind the listener (\c "socket-info" provides more detailed information)
+    - \c socket-info: a hash of socket information for the listening socket (as returned by Socket::getSocketInfo())
+    - \c peer-info: a hash of socket information for the remote socket (as returned by Socket::getPeerInfo())
+    - \c url: a hash of broken-down URL information (as returned from parseURL())
+    - \c id: the unique HTTP connection ID
+    - \c user: the current RBAC username (if any)
+    @param $hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+    - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+    - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
+    - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+    @param $body message body, if any
+    @return a hash with the following keys:
+    - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+    - \c "body": the message body to return in the response
+    - \c "close": (optional) set this key to \c True if the connection should be unconditionally closed when the handler returns
+    - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+    */
+    hash handleRequest(hash $cx, hash $hdr, *data $body) {
+        return ("code": 501,
+                "body": "default handler has no implementation",
+                "close": True);        
+    }
+
+    #! helper method for handling log messages
+    /** 
+    @param $cx the call context hash
+    @param $api the API description hash
+    @param $params a reference to the call parameters; the call context hash will be added as the first argument
+    @param $args an optional reference to a string describing the arguments
+    @return a string if the message should be logged, otherwise NOTHING
+    */
+    static *string getLogMessage(hash $cx, hash $api, reference $params, *reference $args) {
+        on_exit {
+	    if ($params.typeCode() == NT_LIST)
+		unshift $params, $cx;
+	    else if (exists $params)
+		$params = ($cx, $params);
+	    else
+		$params = $cx;
+        }
+
+        if (($api.logopt & HttpServer::LP_LEVELMASK) > 1 || !exists $cx.logfunc)
+            return;
+
+        my string $msg = $cx.method;
+
+        # add arguments to log message
+        $args = "";
+        if ($api.logopt & HttpServer::LP_LOGPARAMS) {
+            $args += "(";
+            my int $i = 0;
+            foreach my any $arg in ($params) {
+                if (inlist($i++, $api.maskargs))
+                    $args += "<masked>, ";
+                else if ($arg.typeCode() == NT_HASH && elements $arg) {
+                    $args += "{";
+                    foreach my string $k in (keys $arg) {
+                        if ($k == $api.maskkey)
+                            $args += sprintf("%s: <masked>, ", $k);
+                        else
+                            $args += sprintf("%s: %y, ", $k, $arg.$k);
+                    }
+                    splice $args, -2, 2;
+                    $args += "}, ";
+                }
+                else
+                    $args += sprintf("%y, ", $arg);
+            }
+            # remove the last two characters from the string if any were added
+            if ($i)
+                splice $args, -2, 2;
+            $args += ")";
+        }
+       
+        return sprintf("%s(%s)", $msg, $args);
+    }
+}
+
+# Listener will be assigned to private members of the HttpServer; is not directly accessible from code outside the HttpServer (private)
+class HttpServer::HttpListener inherits Qore::Socket {
+    private {
+        HttpServer $.serv;
+        Sequence $.ss;
+        *SSLCertificate $.cert;
+        *SSLPrivateKey $.key;
+        bool $.ssl = False;
+        any $.socket;
+        hash $.socket_info;
+
+	# connection counter
+	Counter $.cThreads();
+        bool $.exit = False;
+        bool $.stopped = False;
+        int $.id;
+
+        # stop mutex
+        Mutex $.sm();
+
+	# code references to external logging functions
+	*code $.logger;
+	*code $.errorlogger;
+        
+	const PollInterval = 300ms;
+    }
+
+    public {
+        # TID of the background listener thread
+        int $.tid;
+
+        # listener-specific handlers
+        HttpHandlerList $.handlers();
+    }
+
+    # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
+    constructor(HttpServer $server, int $id, Sequence $ss, any $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger) {
+        # we originally set for utf-8 and then per-connection the encoding is set accoring to the client's content-type header (with iso-8859-1 as the default)
+        # according to RFC2616, section 3.7.1
+        $.setEncoding("utf-8");
+        
+	# save a reference to the server object
+	$.serv = $server;
+
+	# set other params
+        $.id = $id;
+	$.ss = $ss;
+	$.logger = $logger;
+	$.errorlogger = $errorlogger;
+
+	#printf("HttpListener::constructor() hi=%y\n", $hi);
+	foreach my string $hk in (keys $hi) {
+	    my hash $h = $hi.$hk;
+	    $.handlers.setHandler($hk, $h.url, $h.content, $h.handler, $h.headers);
+	}
+
+	# create SSL certificate and private key objects from PEM files if passed
+        if (exists $cert) {
+	    $.cert = $cert;
+	    $.setCertificate($.cert);
+            $.key = $key;
+	    $.setPrivateKey($.key);
+	    $.ssl = True;
+	}
+
+        if ($sock =~ /^\//) {
+            # try to unlink the file first if it's a UNIX domain socket
+	    unlink($sock);
+            $.bindUNIX($sock, True);
+        }
+        else {
+            if (int($sock) == $sock)
+                $sock = int($sock);
+            if ($.bind($sock, True))
+                throw "HTTPLISTENER-BIND-ERROR", strerror(errno());
+        }
+
+	# save socket port/path
+	$.socket = $sock;
+        $.socket_info = $.getSocketInfo();
+
+	# make 'desc' key for logging
+	$.socket_info.desc = $.socket_info.address_desc;
+	if ($.socket_info.port)
+	    $.socket_info.desc += ":" + $.socket_info.port;
+
+	# set TCP_NODELAY
+	$.setNoDelay(True);
+
+	# set listening state on socket
+	if ($.listen())
+	    throw "HTTP-LISTEN-ERROR", sprintf("listen error on socket %s: %s", $sock, strerror(errno()));
+
+	# start main listener thread
+	$.cThreads.inc();
+	$.tid = background $.mainThread();
+    }
+
+    copy() {
+	throw "COPY-ERROR", "this object cannot be copied";
+    }
+
+    destructor() {
+	$.stop();
+    }
+    
+    any getAddress() {
+        return $.socket;
+    }
+
+    int getID() {
+        return $.id;
+    }
+
+    bool isSecure() {
+        return $.ssl;
+    }
+
+    hash getInfo() {
+        return $.socket_info + 
+            ( "proto": $.ssl ? "https" : "http",
+              "id": $.id,
+              "bind": $.socket );
+    }
+
+    stopNoWait() {
+        background $.stop();
+    }
+
+    stop() {
+        {
+            $.sm.lock();
+            on_exit $.sm.unlock();
+
+            if (!exists $.cThreads || $.stopped)
+                return;
+
+            if ($.exit)
+                return;
+
+            $.exit = True;
+
+            # wait for all connection threads to terminate
+            $.cThreads.waitForZero();
+            
+            $.stopped = True;
+            $.log("stopped listener");
+        }
+
+        $.serv.listenerStopped($self);
+    }
+
+    log() {
+	$argv[0] = sprintf("listener %s: %s", $.socket_info.desc, $argv[0]);
+	if (exists $.logger) {
+	    $argv[0] = "HTTP " + $argv[0];
+	    call_function_args($.logger, $argv);
+	}
+	else
+	    $.serv.logArgs($argv);
+    }
+    
+    logError() {
+	$argv[0] = sprintf("listener %s: %s", $.socket_info.desc, $argv[0]);
+	if (exists $.errorlogger) {
+	    $argv[0] = "HTTP " + $argv[0];
+	    call_function_args($.errorlogger, $argv);
+	}
+	else
+	    $.serv.logErrorArgs($argv);
+    }
+
+    private mainThread() {
+        on_exit	$.cThreads.dec();
+
+        # DEBUG
+        #printf("HTTP DEBUG: listener %s: mainThread() started TID %d\n", $.socket, gettid());
+
+	# start listening
+	while (!$.exit) {
+	    my *Socket $r;
+            my hash $info;
+	    try {
+                $r = $.ssl ? $.acceptSSL(PollInterval) : $.accept(PollInterval);
+		if (!exists $r)
+		    continue;
+                $info = $r.getPeerInfo();
+
+                if ($.ssl)
+		    $.log("secure connection (%s %s) from %s", $r.getSSLCipherName(), $r.getSSLCipherVersion(), $info.address_desc);
+	    }
+	    catch ($ex) {
+                if ($ex.err != "SOCKET-CLOSED")
+                    $.log("error accepting %sconnection: %s: %s", $.ssl ? "secure " : "", $ex.err, $ex.desc);
+		delete $r;
+            }
+
+	    if ($.exit)
+		break;
+
+	    if (!exists $r)
+		continue;
+
+	    # DEBUG
+	    #printf("HTTP DEBUG: listener %s: accepting HTTP connection from %s\n", $.socket_info.address_desc, $info.address_desc);
+	    #$.log("accepting HTTP connection from %s", $info.address_desc);
+	    
+	    $.cThreads.inc();
+	    background $.connectionThread($r, $info);
+	}
+	#printf("HTTP DEBUG: HttpListener::mainThread() closing socket %s\n", $.socket_info.address_desc);
+	$.shutdown();
+	$.close();
+	#printf("HTTP DEBUG: HttpListener::mainThread() TID %d terminating\n", gettid());
+    }
+
+    # thread for handling communication per connection
+    private connectionThread(Socket $s, hash $info) {
+        on_exit	$.cThreads.dec();
+
+	my hash $cx = 
+	    ( "socket"          : $.socket,
+              "socket-info"     : $.socket_info,
+              "peer-info"       : $info,
+	      "id"              : $.ss.next() );
+	
+	my (hash $hdr, any $body);
+
+	# set TCP_NODELAY on incoming socket
+	$s.setNoDelay(True);
+	
+	try {
+	    while (True) {
+		if ($.exit)
+		    break;
+		
+		delete $body;
+		delete $hdr;
+
+		if (!$s.isDataAvailable(HttpServer::PollTimeout))
+		    continue;
+		
+		try {
+		    $hdr = $s.readHTTPHeader(HttpServer::ReadTimeout);
+		}
+		catch (hash $ex) {
+		    # according to RFC 2616 sec 8.1.2.1, clients claiming http 1.1 
+		    # protocol compatibility SHOULD only close the connection after
+		    # sending a "connection: close" header, but in 
+		    # case they don't, we simply close the connection silently
+		    if ($ex.err == "SOCKET-CLOSED") {
+			#printf("HTTP DEBUG: socket closed id=%d source=%n\n", $cx.id, $info.address_desc);
+			break;
+		    }
+                    else if ($ex.err == "SOCKET-TIMEOUT") {
+                        # log error and close connection on timeout
+                        my string $err = sprintf("timed out reading HTTP header after %d ms", HttpServer::ReadTimeout);
+                        my string $str = sprintf("%s from %s via %s", $err, $info.address_desc, $.socket_info.address_desc);
+                        $.logError($str);
+                        $.serv.sendHttpError($s, 400, $err, True);
+                        break;
+                    }
+		    my string $etxt = sprintf("ERROR reading HTTP header: %s: %s", $ex.err, $ex.desc);
+		    my string $str = sprintf("%s: received from %s via %s", $etxt, $info.address_desc, $.socket_info.address_desc);
+		    $.logError($str);
+		    $.serv.sendHttpError($s, 400, $etxt, True);
+		    break;
+		}
+
+		# DEBUG:
+		#printf("HTTP DEBUG: id: %d, hdr=%n\n", $cx.id, $hdr);
+
+		# remove leading / if present in path
+		if ($hdr.path =~ /^\//)
+		    $hdr.path = substr($hdr.path, 1);
+
+		# process ascii encodings in url if present
+		$hdr.path = decode_url($hdr.path);
+
+		if (exists $hdr.authorization)
+		    $cx.auth = $hdr.authorization;
+
+		$cx.encoding = $.getEncoding();
+
+		# save original content-type
+		$hdr."_qore_orig_content_type" = $hdr."content-type";
+
+		# split content-type fields
+		my list $ct = split(";", $hdr."content-type");
+		trim $ct;
+
+		# check for character encoding specification in content-type
+		foreach my string $c in ($ct)	{
+		    if ($c =~ /charset=/) {
+			$c =~ s/charset=//;
+			$s.setEncoding($c);
+			$cx.encoding = tolower($c);
+		    }
+		    else if ($c !~ /=/)
+			$hdr."content-type" = $c;
+		}
+
+                # if no encoding is specified, then set iso-8859-1 according to RFC 2616 section 3.7.1
+                if (!exists $cx.encoding)
+                    $.setEncoding($cx.encoding = "iso-8859-1"); 
+
+		# some simple logic to check if the content-encoding header is misused to specify the character encoding
+		if ($hdr."content-encoding" =~ /^iso[-0-9p]+$/i || $hdr."content-encoding" =~ /^utf-[0-9]+$/i) {
+		    $.setEncoding($cx.encoding = tolower($hdr."content-encoding"));
+		    delete $hdr."content-encoding";
+		}
+
+                if (exists $hdr."accept-charset") {
+                    $ct = split(",", $hdr."accept-charset");
+                    trim $ct;
+                    foreach my string $c in (\$ct) {
+                        $c = tolower($c);
+                        # FIXME: ignore q values
+                        $c =~ s/;.*$//;
+                        if ($c == "*" || $c == "utf-8" || $c == "utf8") {
+                            $cx."response-encoding" = "utf-8";
+                            break;
+                        }
+                    }
+                    if (!exists $cx."response-encoding")
+                        $cx."response-encoding" = $ct[0];
+                }
+                else 
+                    # according to RFC-2616 section 14.2, "If no Accept-Charset header is present, the default is that any character set is acceptable" so we will use utf-8
+                    $cx."response-encoding" = "utf-8";
+
+		# check if we need to close the connection
+		my any $conn = split(",", tolower($hdr.connection));
+		# remove leading and trailing whitespace
+		trim $conn;
+
+		$cx.close = (inlist("close", $conn) || ($hdr.http_version != "1.1" && !inlist("keep-alive", $conn)));
+		#printf("HTTP DEBUG: conn=%n, close=%n\n", $conn, $cx.close);
+
+		if ($hdr.method != "POST" && ($hdr."content-length" || $hdr."transfer-encoding" == "chunked")) {
+		    my string $err = sprintf("body sent with %s method", $hdr.method);
+		    my string $str = sprintf("%s: received from %s via %s (header=%n)", $err, $info.address_desc, $.socket_info.address_desc, $hdr);
+		    $.logError($str);
+		    $.serv.sendHttpError($s, 411, $err, True, NOTHING, $cx."response-encoding");
+		    break;
+		}
+
+		# if we need to get a body
+		switch ($hdr.method) {
+                    case "HEAD": {
+                        $.serv.handleRequest($self, $s, $cx, $hdr, NOTHING, \$cx.close, True);
+                        break;
+                    }
+
+                    case "GET": {
+                        $.serv.handleRequest($self, $s, $cx, $hdr, NOTHING, \$cx.close);
+                        break;
+                    }
+
+                    case "POST": {
+                        if ($hdr."transfer-encoding" == "chunked") {
+                            try {
+                                if (exists $hdr."content-encoding")
+                                    $hdr += $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
+                                else
+                                    $hdr += $s.readHTTPChunkedBody(HttpServer::ReadTimeout);
+                                $body = $hdr.body;
+                                $hdr -= "body";
+                            }
+                            catch (hash $ex) {
+                                my string $etxt = sprintf("error reading chunked body in POST: %s: %s", $ex.err, $ex.desc);
+                                my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
+                                $.logError($str);
+                                $.serv.sendHttpError($s, 400, $etxt, True, NOTHING, $cx."response-encoding");
+                                $cx.close = True;
+                                break;
+                            }
+                        }
+                        else if (!$hdr."content-length") {
+                            my string $err = "missing body (no 'Content-Length' header, no chunked encoding)";
+                            my string $str = sprintf("%s: received from %s via %s (header=%n)", $err, $info.address_desc, $.socket_info.address_desc, $hdr);
+                            $.logError($str);
+                            $.serv.sendHttpError($s, 411, $err, True, NOTHING, $cx."response-encoding");
+                            $cx.close = True;
+                            break;
+                        }
+                        else {
+                            try {
+                                if (exists $hdr."content-encoding")
+                                    $body = $s.recvBinary($hdr."content-length", HttpServer::ReadTimeout);
+                                else
+                                    $body = $s.recv($hdr."content-length", HttpServer::ReadTimeout);
+				#printf("HTTP DEBUG: %s\n", $body);
+                            }
+                            catch (hash $ex) {
+                                my string $etxt = sprintf("error reading body in POST (Content-Length: %d): %s: %s", $hdr."content-length", $ex.err, $ex.desc);
+                                my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
+                                $.logError($str);
+                                $.serv.sendHttpError($s, 400, $etxt, True, NOTHING, $cx."response-encoding");
+                                $cx.close = True;
+                                break;
+                            }
+                        }
+
+                        #printf("HTTP DEBUG: id: %d, body: %n\n", $cx.id, substr($body, 0, 120));
+
+                        $.serv.handleRequest($self, $s, \$cx, $hdr, $body, \$cx.close);
+                        break;
+                    }
+
+                    default: {
+                        my string $err = sprintf("unknown HTTP method %n", $hdr.method);
+                        my string $str = sprintf("%s: received from %s via %s", $err, $info.address_desc, $.socket_info.address_desc);
+                        $.logError($str);
+                        $.serv.sendHttpError($s, 501, $err, True, NOTHING, $cx."response-encoding");
+                        $cx.close = True;
+                        break;
+                    }
+                }
+
+                if ($cx.close)
+                    break;
+	    }
+	}
+	catch (hash $ex) {
+            my string $etxt = $.serv.getDebug()
+                ? sprintf("%s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc)
+                : get_exception_string($ex);
+	    my string $str = sprintf("%s: received from %s via %s", $etxt, $info.address_desc, $.socket_info.address_desc);
+	    $.logError($str);
+	    $.logError(sprintf("hdr=%n", $hdr));
+	    #$.logError(sprintf("msg=%n", $body));
+	    $.serv.sendHttpError($s, 500, $etxt, True, NOTHING, $cx."response-encoding");
+	}
+
+	$s.close();
+    }
+}
+
+#! HttpServer class implements a multithreaded HTTP server primarily for serving RPC-style services
+public class HttpServer::HttpServer {
+    public {
+        #! version of the HttpServer's implementation
+        const Version = "0.3.3";
+        #! default read timeout in ms
+        const ReadTimeout = 30000;  # recvs timeout after 30 seconds
+        #! default poll timeout in ms
+        const PollTimeout = 5000;   # check for exit every 5 seconds while waiting
+
+        # logging options
+        const LP_LOGPARAMS = 1 << 16;
+        const LP_LEVELMASK = LP_LOGPARAMS - 1;
+
+        #! address info flags
+        const AIFlags = AI_PASSIVE | AI_ADDRCONFIG;
+
+        #! map of HTTP result codes and text messages
+        const HttpCodes = 
+            ( 
+              # 100s: Informational
+              "100" : "Continue",
+              "101" : "Switching Protocols",
+              
+              # 200s: Success
+              "200" : "OK",
+              "201" : "Created",
+              "202" : "Accepted",
+              "203" : "Non-Authoritative Information",
+              "204" : "No Content",
+              "205" : "Reset Content",
+              "206" : "Partial Content",
+              
+              # 300s: Redirection
+              "300" : "Multiple Choices",
+              "301" : "Moved Permanently",
+              "302" : "Found",
+              "303" : "See Other",
+              "304" : "Not Modified",
+              "305" : "Use Proxy",
+              #"306" : "(Reserved)",
+              "307" : "Temporary Redirect",
+
+              # 400s: Client Errors
+              "400" : "Bad Request",
+              "401" : "Unauthorized",
+              "402" : "Payment Required",
+              "403" : "Forbidden",
+              "404" : "Not Found",
+              "405" : "Method Not Allowed",
+              "406" : "Not Acceptable",
+              "407" : "Proxy Authentication Required",
+              "408" : "Request Timeout",
+              "409" : "Conflict",
+              "410" : "Gone",
+              "411" : "Length Required",
+              "412" : "Precondition Failed",
+              "413" : "Request Entity Too Large",
+              "414" : "Request-URI Too Long",
+              "415" : "Unsupported Media Type",
+              "416" : "Requested Range Not Satisfiable",
+              "417" : "Expectation Failed",
+
+              # 500s: Server Errors
+              "500" : "Internal Server Error",
+              "501" : "Not Implemented",
+              "502" : "Bad Gateway",
+              "503" : "Service Unavailable",
+              "504" : "Gateway Timeout",
+              "505" : "HTTP Version Not Supported",
+              "509" : "Bandwidth Limit Exceeded"
+            );
+
+        #! MIME type for unknown file types
+        const MimeTypeUnknown = "application/octet-stream";
+
+        #! MIME type for text
+        const MimeTypeText = "text/plain";
+
+        #! MIME type for HTML
+        const MimeTypeHtml = "text/html";
+
+        #! a map of default mime types per file extension
+        const MimeTypes = (
+            "7z": "application/x-7z-compressed",
+            "ai": "application/postscript",
+            "aif": "audio/x-aiff",
+            "aifc": "audio/x-aiff",
+            "aiff": "audio/x-aiff",
+            "asc": MimeTypeText,
+            "atom": "application/atom+xml",
+            "au": "audio/basic",
+            "avi": "video/x-msvideo",
+            "bcpio": "application/x-bcpio",
+            "bin": MimeTypeUnknown,
+            "bmp": "image/bmp",
+            "bz2": "application/x-bzip",
+            "cdf": "application/x-netcdf",
+            "cgm": "image/cgm",
+            "class": MimeTypeUnknown,
+            "cpio": "application/x-cpio",
+            "cpt": "application/mac-compactpro",
+            "csh": "application/x-csh",
+            "css": "text/css",
+            "dcr": "application/x-director",
+            "dif": "video/x-dv",
+            "dir": "application/x-director",
+            "djv": "image/vnd.djvu",
+            "djvu": "image/vnd.djvu",
+            "dll": MimeTypeUnknown,
+            "dmg": MimeTypeUnknown,
+            "dms": MimeTypeUnknown,
+            "doc": "application/msword",
+            "dtd": "application/xml-dtd",
+            "dv": "video/x-dv",
+            "dvi": "application/x-dvi",
+            "dxr": "application/x-director",
+            "eps": "application/postscript",
+            "etx": "text/x-setext",
+            "exe": MimeTypeUnknown,
+            "ez": "application/andrew-inset",
+            "gif": "image/gif",
+            "gram": "application/srgs",
+            "grxml": "application/srgs+xml",
+            "gtar": "application/x-gtar",
+            "gz": "application/x-gzip",
+            "hdf": "application/x-hdf",
+            "hqx": "application/mac-binhex40",
+            "htm": MimeTypeHtml,
+            "html": MimeTypeHtml,
+            "ice": "x-conference/x-cooltalk",
+            "ico": "image/x-icon",
+            "ics": "text/calendar",
+            "ief": "image/ief",
+            "ifb": "text/calendar",
+            "iges": "model/iges",
+            "igs": "model/iges",
+            "jar": "application/java-archive",
+            "java": MimeTypeText,
+            "jnlp": "application/x-java-jnlp-file",
+            "jp2": "image/jp2",
+            "jpe": "image/jpeg",
+            "jpeg": "image/jpeg",
+            "jpg": "image/jpeg",
+            "js": "application/x-javascript",
+            "kar": "audio/midi",
+            "latex": "application/x-latex",
+            "lha": MimeTypeUnknown,
+            "lzh": MimeTypeUnknown,
+            "m3u": "audio/x-mpegurl",
+            "m4a": "audio/mp4a-latm",
+            "m4b": "audio/mp4a-latm",
+            "m4p": "audio/mp4a-latm",
+            "m4u": "video/vnd.mpegurl",
+            "m4v": "video/x-m4v",
+            "mac": "image/x-macpaint",
+            "man": "application/x-troff-man",
+            "mathml": "application/mathml+xml",
+            "me": "application/x-troff-me",
+            "mesh": "model/mesh",
+            "mid": "audio/midi",
+            "midi": "audio/midi",
+            "mif": "application/vnd.mif",
+            "mov": "video/quicktime",
+            "movie": "video/x-sgi-movie",
+            "mp2": "audio/mpeg",
+            "mp3": "audio/mpeg",
+            "mp4": "video/mp4",
+            "mpe": "video/mpeg",
+            "mpeg": "video/mpeg",
+            "mpg": "video/mpeg",
+            "mpga": "audio/mpeg",
+            "ms": "application/x-troff-ms",
+            "msh": "model/mesh",
+            "mxu": "video/vnd.mpegurl",
+            "nc": "application/x-netcdf",
+            "oda": "application/oda",
+            "ogg": "application/ogg",
+            "pbm": "image/x-portable-bitmap",
+            "pct": "image/pict",
+            "pdb": "chemical/x-pdb",
+            "pdf": "application/pdf",
+            "pgm": "image/x-portable-graymap",
+            "pgn": "application/x-chess-pgn",
+            "pic": "image/pict",
+            "pict": "image/pict",
+            "png": "image/png",
+            "pnm": "image/x-portable-anymap",
+            "pnt": "image/x-macpaint",
+            "pntg": "image/x-macpaint",
+            "ppm": "image/x-portable-pixmap",
+            "ppt": "application/vnd.ms-powerpoint",
+            "ps": "application/postscript",
+            "qt": "video/quicktime",
+            "qti": "image/x-quicktime",
+            "qtif": "image/x-quicktime",
+            "ra": "audio/x-pn-realaudio",
+            "ram": "audio/x-pn-realaudio",
+            "ras": "image/x-cmu-raster",
+            "rdf": "application/rdf+xml",
+            "rgb": "image/x-rgb",
+            "rm": "application/vnd.rn-realmedia",
+            "roff": "application/x-troff",
+            "rtf": "text/rtf",
+            "rtx": "text/richtext",
+            "sgm": "text/sgml",
+            "sgml": "text/sgml",
+            "sh": "application/x-sh",
+            "shar": "application/x-shar",
+            "silo": "model/mesh",
+            "sit": "application/x-stuffit",
+            "skd": "application/x-koan",
+            "skm": "application/x-koan",
+            "skp": "application/x-koan",
+            "skt": "application/x-koan",
+            "smi": "application/smil",
+            "smil": "application/smil",
+            "snd": "audio/basic",
+            "so": MimeTypeUnknown,
+            "spl": "application/x-futuresplash",
+            "src": "application/x-wais-source",
+            "sv4cpio": "application/x-sv4cpio",
+            "sv4crc": "application/x-sv4crc",
+            "svg": "image/svg+xml",
+            "swf": "application/x-shockwave-flash",
+            "t": "application/x-troff",
+            "tar": "application/x-tar",
+            "tar.bz2": "application/x-bzip-compressed-tar",
+            "tar.gz": "application/x-tar-gz",	
+            "tbz": "application/x-bzip-compressed-tar",
+            "tcl": "application/x-tcl",
+            "tex": "application/x-tex",
+            "texi": "application/x-texinfo",
+            "texinfo": "application/x-texinfo",
+            "tgz": "application/x-tar-gz",	
+            "tif": "image/tiff",
+            "tiff": "image/tiff",
+            "tr": "application/x-troff",
+            "tsv": "text/tab-separated-values",
+            "txt": MimeTypeText,
+            "ustar": "application/x-ustar",
+            "vcd": "application/x-cdlink",
+            "vrml": "model/vrml",
+            "vxml": "application/voicexml+xml",
+            "wav": "audio/x-wav",
+            "wbmp": "image/vnd.wap.wbmp",
+            "wbmxl": "application/vnd.wap.wbxml",
+            "wml": "text/vnd.wap.wml",
+            "wmlc": "application/vnd.wap.wmlc",
+            "wmls": "text/vnd.wap.wmlscript",
+            "wmlsc": "application/vnd.wap.wmlscriptc",
+            "wrl": "model/vrml",
+            "xbm": "image/x-xbitmap",
+            "xht": "application/xhtml+xml",
+            "xhtml": "application/xhtml+xml",
+            "xls": "application/vnd.ms-excel",
+            "xml": "text/xml",
+            "xpm": "image/x-xpixmap",
+            "xsl": "application/xml",
+            "xslt": "application/xslt+xml",
+            "xul": "application/vnd.mozilla.xul+xml",
+            "xwd": "image/x-xwindowdump",
+            "xyz": "chemical/x-xyz",
+            "yaml": "text/x-yaml",
+            "zip": "application/zip",
+            );
+    }
+
+    private {
+	*code $.logfunc;
+	*code $.errlogfunc; 
+
+	# quit server flag
+	bool $.exit = False;
+
+        # if True then verbose exception info will be logged
+        bool $.debug = False;
+
+	Sequence $.seqSessions();
+	Sequence $.seqListeners();
+
+	string $.httpserverstring = sprintf("Qore HTTP Server v%s", HttpServer::Version);
+
+	bool $.stopped = False;
+
+        # permanent handlers; these handlers are never removed
+        HttpHandlerList $.handlers();
+
+        # default handler
+	hash $.defaultHandler;
+
+        # hash of listeners keyed by listener ID
+	hash $.listeners;
+
+        # map of bind addresses to listener IDs
+        hash $.smap;
+
+        # listener Gate
+	Gate $.lm();
+
+        # running listener counter
+        Counter $.c();
+
+        # dynamic handlers
+        DynamicHttpHandlerList $.dhandlers();
+    }
+
+    #! creates the HttpServer; call addListener() to add and start listeners
+    constructor(*code $logfunc, *code $errlogfunc) {
+	$.logfunc = $logfunc;
+	$.errlogfunc = $errlogfunc;
+    }
+
+    #! calls HttpServer::stop()
+    destructor() {
+	$.stop();
+    }
+    
+    private HttpListener addListenerIntern(string $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger) {
+        if (!exists $logger && exists $.logfunc)
+            $logger = $.logfunc;
+        if (!exists $errorlogger && exists $.errlogfunc)
+            $errorlogger = $.errlogfunc;
+
+	$.lm.enter();
+	on_exit $.lm.exit();
+
+        if (exists $.smap.$sock)
+            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("cannot add listener on %n; there is already an existing listener with this bind address", $sock);
+
+        $.c.inc();
+        #printf("HttpServer::addListenerIntern() %n c=%n\n", $sock, $.c.getCount());
+        on_error $.c.dec();
+
+	my int $id = $.seqListeners.next();
+	my HttpListener $l($self, $id, $.seqSessions, $sock, $cert, $key, $hi, $logger, $errorlogger);
+	$.listeners.$id = $l;
+        $.smap.$sock = $id;
+	return $l;
+    }
+
+    list addListenersWithHandler(string $name, AbstractHttpRequestHandler $handler, hash $lp, *code $logger, *code $errorlogger) {
+%ifdef QoreDebug
+        #ASSERT($lp.bind.typeCode() == NT_STRING);
+	#ASSERT($lp.url.typeCode() == NT_STRING);
+%endif
+
+	if (exists $lp.cert_path && !exists $lp.cert)
+	    $lp += HttpServer::getSSLObjects($lp.cert_path, $lp.key_path);
+
+	my hash $h.$name = ("url": $lp.url, "content": $lp.content_type, "handler": $handler, "headers": $lp.special_headers);
+
+	if ($lp.bind !~ /:/) {
+	    if ($lp.bind =~ /^\//)
+		return list($.addListenerIntern($lp.bind, $lp.cert, $lp.key, $h, $logger, $errorlogger).getInfo());
+	    return $.addINETListenersIntern(NOTHING, $lp.bind, $lp, $h, $logger, $errorlogger);
+	}
+
+        my (string $node, string $service) = ($lp.bind =~ x/(\w+):(\w+)/);
+        return $.addINETListenersIntern($node, $service, $lp, $h, $logger, $errorlogger);
+    }
+
+    static private hash getSSLObjects(string $cert_path, *string $key_path) {
+        my File $f();
+        # read in X.509 certificate file
+        $f.open2($cert_path);
+
+        my data $cert_data = $cert_path =~ /\.der$/ ? $f.readBinary(-1) : $f.read(-1);
+        my SSLCertificate $cert($cert_data);
+
+        my SSLPrivateKey $key;
+
+        # read in private key file
+        if (strlen($key_path)) {
+            $f.open2($key_path);
+            $key = $key_path =~ /\.der$/ ? new SSLPrivateKey($f.readBinary(-1)) : new SSLPrivateKey($f.read(-1));
+        }
+        else
+            $key = new SSLPrivateKey($cert_data);
+
+	return ("cert": $cert, "key": $key);
+    }
+
+    hash addListener(softstring $sock, *string $cert_path, *string $key_path) {
+        if (!exists $cert_path)
+            return $.addListenerIntern($sock).getInfo();
+
+	my hash $sd = HttpServer::getSSLObjects($cert_path, $key_path);
+        return $.addListenerIntern($sock, $sd.cert, $sd.key).getInfo();
+    }
+
+    list addListeners(softstring $sock, *string $cert_path, *string $key_path) {
+        if ($sock !~ /:/) {
+            if ($sock =~ /^\//)
+                return list($.addListener($sock, $cert_path, $key_path));
+
+            return $.addINETListeners(NOTHING, $sock, $cert_path, $key_path);
+        }
+
+        my (string $node, string $service) = ($sock =~ x/(\w+):(\w+)/);
+        return $.addINETListeners($node, $service, $cert_path, $key_path);
+    }
+
+    list addINETListeners(*string $node, softstring $service, *string $cert_path, *string $key_path) {
+	return $.addINETListenersIntern($node, $service, ("cert_path": $cert_path, "key_path": $key_path));
+    }
+
+    private list addINETListenersIntern(*string $node, softstring $service, hash $sd, *hash $lp, *code $logger, *code $errorlogger) {
+	if (exists $sd.cert_path && !exists $sd.cert)
+	    $sd += HttpServer::getSSLObjects($sd.cert_path, $sd.key_path);
+
+        my list $al = getaddrinfo($node, $service, AF_UNSPEC, AIFlags);
+
+        # sort ipv6 addresses first in list
+        $al = sort($al, int sub (hash $l, hash $r) { return $l.family === AF_INET6 ? -1 : 0; });
+
+        my list $l = ();
+        foreach my hash $h in ($al) {
+            my string $bind = $h.address + ":" + $h.port;
+            try {
+                $l += $.addListenerIntern($bind, $sd.cert, $sd.key, $lp, $logger, $errorlogger).getInfo();
+		# exit after the first listener is bound if the node address is missing (= bind on all addresses)
+                if (!exists $node)
+		    break;
+            }
+            catch ($ex) {
+                $.log("cannot add listener on %s:%d: %s: %s", $h.address_desc, $h.port, $ex.err, $ex.desc);
+            }
+        }
+        return $l;
+    }
+
+    #! throws an exception; these objects to not support copying
+    copy() {
+	throw "COPY-ERROR", "this object cannot be copied";
+    }
+
+    #! returns a hash of listener information
+    hash getListeners() {
+        my hash $h = hash();
+
+        map $h.$1 = $.listeners.$1.getInfo(), keys $.listeners;
+        return $h;
+    }
+
+    hash getListenerInfo(softint $id) {
+        $.lm.enter();
+        on_exit $.lm.exit();
+
+        if (!exists $.listeners.$id)
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", $id);
+
+        return $.listeners.$id.getInfo();
+    }
+
+    #! returns the number of running HTTP listeners
+    int getListenerCount() {
+        return elements $.listeners;
+    }
+
+    #! stops all listeners; does not wait for all connections on the listeners to close
+    /** do not call HttpServer::stop() after calling HttpServer::stopNoWait(); it can cause a deadlock */ 
+    stopNoWait() {
+	# stop all listeners
+	$.lm.enter();
+	on_exit $.lm.exit();
+
+        map $.listeners.$1.stopNoWait(), keys $.listeners;
+    }
+
+    #! waits for all listeners to be stopped; call after calling HttpServer::stopNoWait()
+    waitStop() {
+        $.c.waitForZero();
+    }
+
+    listenerStopped(HttpListener $l) {
+        # decrement listener count
+        on_exit $.c.dec();
+
+        $.lm.enter();
+        on_exit $.lm.exit();
+
+        delete $.smap.($l.getAddress());
+        remove $.listeners.($l.getID());
+        #printf("stopped %s c=%n\n", $l.getAddress(), $.c.getCount());
+    }
+
+    #! stops all listeners; only returns when all connections are closed on all listeners
+    /** do not call HttpServer::stop() after calling HttpServer::stopNoWait(); it can cause a deadlock */ 
+    stop() {
+	# shutdown all listeners
+	$.lm.enter();
+	on_exit $.lm.exit();
+
+        map $.listeners.$1.stop(), keys $.listeners;
+        $.c.waitForZero();
+    }
+
+    #! stops a single listener based on its bind address; does not return until all connections on the listener have closed
+    stopListener(softstring $bind) {
+	$.lm.enter();
+	on_exit $.lm.exit();
+
+        my *int $id = $.smap.$bind;
+
+	if (!exists $id)
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with bind address %n", $bind);
+
+        if (elements $.smap == 1)
+            throw "HTTP-SERVER-ERROR", "cannot stop last listener";
+
+        $.listeners.$id.stop();
+    }
+
+    #! stops a single listener based on its listener ID; does not return until all connections on the listener have closed
+    stopListenerID(softint $id) {
+	$.lm.enter();
+	on_exit $.lm.exit();
+
+	if (!exists $.listeners.$id)
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", $id);
+
+        if (elements $.smap == 1)
+            throw "HTTP-SERVER-ERROR", "cannot stop last listener";
+
+        $.listeners.$id.stop();
+    }
+
+    #! gets the TID of a listener based on its listener ID
+    int getListenerTID(softint $id) {
+	return $.listeners.$id.tid;
+    }
+    
+    #! sets the default request handler when no other handler can be matched
+    setDefaultHandler(string $name, AbstractHttpRequestHandler $obj) {
+	$.defaultHandler = ( "name" : $name,
+			     "obj"  : $obj );
+    }
+    
+    #! sets a request handler according to the arguments given 
+    setHandler(string $name, string $url, any $content, AbstractHttpRequestHandler $obj, softlist $special_headers) {
+	$.handlers.setHandler($name, $url, $content, $obj, $special_headers);
+    }
+
+    #! sets a dynamic request handler according to the arguments given 
+    setDynamicHandler(string $name, string $url, any $content, AbstractHttpRequestHandler $obj, softlist $special_headers) {
+	$.dhandlers.setHandler($name, $url, $content, $obj, $special_headers);
+    }
+
+    #! remove dynamic handler
+    removeDynamicHandler(string $name) {
+        $.dhandlers.removeHandler($name);
+    }
+
+    log() {
+	if (exists $.logfunc) {
+	    $argv[0] = "HttpServer: " + $argv[0];
+	    call_function_args($.logfunc, $argv);
+	}
+    }
+    
+    logError() {
+	if (exists $.errlogfunc) {
+	    $argv[0] = "HttpServer: " + $argv[0];
+	    call_function_args($.errlogfunc, $argv);
+	}
+    }
+    
+    #! calls the log function/closure with the given args
+    logArgs(list $args = ()) {
+	if (exists $.logfunc) {
+	    $args[0] = "HttpServer: " + $args[0];
+	    call_function_args($.logfunc, $args);
+	}
+    }
+    
+    #! calls the error log function/closure with the given args
+    logErrorArgs(list $args = ()) {
+	if (exists $.errlogfunc) {
+	    $args[0] = "HttpServer: " + $args[0];
+	    call_function_args($.errlogfunc, $args);
+	}
+    }
+    
+    private hash noHandlerError(hash $cx, hash $hdr, any $body) {
+	my string $str = "";
+	if (strlen($hdr.path))
+	    $str = sprintf("url=%n", $hdr.path);
+	else
+	    $str = "<no URL>";
+
+	if (strlen($hdr."content-type"))
+	    $str += sprintf(", content-type=%n", $hdr."content-type");
+	else
+	    $str += ", <no content-type>";
+
+	$.log("no handler for %s (from %s) hdr=%n", $str, $cx."peer-info".address_desc, $hdr);
+	return ( "code" : 501,
+		 "body" : sprintf("no handler has been registered for %s", $str) );
+    }
+    
+    #! sends an HTTP error message on the socket
+    sendHttpError(Socket $s, int $code, string $msg, bool $close = False, *hash $extra_hdrs, *string $encoding) {
+	my string $str = sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1>%s<p><hr><address>%s on %s</address></body></html>",
+                                 $code, HttpServer::HttpCodes.$code, HttpServer::HttpCodes.$code, html_encode($msg), $.httpserverstring, gethostname());
+
+        # restore encoding on exit
+        my string $old_encoding = $s.getEncoding();
+        on_exit if ($old_encoding != $s.getEncoding())
+            $s.setEncoding($old_encoding);
+
+        if (!exists $encoding)
+            $encoding = tolower($s.getEncoding());
+        else if ($encoding != tolower($s.getEncoding()))
+            $s.setEncoding($encoding);
+	
+	my hash $hdr = ( "Content-Type" : "text/html;charset=" + $encoding,
+                         "Server"       : $.httpserverstring );
+	if ($close)
+	    $hdr += ( "Connection" : "close" );
+	else
+	    $hdr += ( "Connection" : "Keep-Alive" );
+
+	if ($extra_hdrs.typeCode() == NT_HASH)
+	    $hdr += $extra_hdrs;
+
+        # log exceptions if not "SOCKET-SEND-ERROR" (probably broken pipe)
+        try {
+	    $s.sendHTTPResponse($code, HttpServer::HttpCodes.$code, "1.1", $hdr, $str);
+        }
+        catch (hash $ex) {
+            if ($ex.err != "SOCKET-SEND-ERROR") {
+		my string $estr = sprintf("%s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc);
+		$.logError($estr);
+            }
+        }
+    }
+
+    #! handles an incoming request
+    handleRequest(HttpListener $listener, Socket $s, reference $cx, hash $hdr, *data $body, reference $close, bool $head = False) {
+	# handle accept-encoding to compress data if necessary        
+	if (exists $hdr."accept-encoding") {
+	    # remove all writespace
+	    $hdr."accept-encoding" =~ s/\s//g;
+	    my any $mq = 0;
+	    my any $me;
+
+	    foreach my string $acc in (split(",", $hdr."accept-encoding")) {
+		my any $q;
+		# get encoding
+		my any $enc = $acc =~ x/^(\w+|\*)/[0];
+		# ignore encodings we don't recognize
+		if (!inlist($enc, ("gzip", "deflate", "x-deflate", "x-gzip", "bzip2", "x-bzip2")))
+		    continue;
+		# get q value
+		$q = $acc =~ x/;q=(.*)$/[0];
+		$q = exists $q ? float($q) : 1.0;
+		if ($q > $mq) {
+		    if ($enc =~ /x-/)
+			$enc =~ s/x-//;
+		    $me = $enc;
+		    $mq = $q;
+		}
+	    }
+	    if (exists $me)
+		$cx.encoding = $me;
+	}
+        # erase the encoding string on exit
+        on_exit remove $cx.encoding;
+        
+        # parse the path in the request
+        my *hash $url = parseURL($hdr.path);
+	if (elements $url == 1 && exists $url.host)
+	    $url = ( "path" : $url.host );
+
+	# add logging functions and url
+	$cx += 
+	    ( "logfunc"     : $.logfunc,
+	      "errlogfunc"  : $.errlogfunc,
+	      "url"         : $url 
+	    );
+
+	# find a handler for the request
+        my HandlerCleanupHelper $hch();
+
+	my *hash $h;
+	if (!$listener.handlers.empty()) {
+	    $h = $listener.handlers.findHandler($url, $hdr, $hch, True);
+	    if (!exists $h) {
+		$.sendHttpError($s, 404, "Not found", $close, NOTHING, $cx."response-encoding");
+		return;
+	    }
+	}
+	else {
+	    $h = $.handlers.findHandler($url, $hdr, $hch);
+	    if (!exists $h)
+		$h = $.dhandlers.findHandler($url, $hdr, $hch);
+	}
+
+        my AbstractHttpRequestHandler $handler;
+	my string $handlerName;
+
+        if (exists $h) {
+            $handler = $h.handler;
+            $handlerName = $h.handlerName;
+        }
+
+	try {
+	    my any $rv;
+	    
+	    #printf("HTTP DEBUG: handler=%n: context=%n, hdr=%n, body=%n\n", $handlerName, $cx, $hdr, $body);
+	    #printf("HTTP DEBUG: BEFORE handler=%s", dbg_node_info($.handlers.$handlerName));
+
+            if (!exists $handler && exists $.defaultHandler) {
+                $handler = $.defaultHandler.obj;
+                $handlerName = $.defaultHandler.name;
+            }
+
+            if (exists $handler) {
+		# check for authentication info
+                #printf("HTTP DEBUG: handler: %y (auth: %y) hdr: %y\n", $handlerName, exists $handler.auth && $handler.auth.requiresAuthentication(), $hdr);
+		if (exists $handler.auth && $handler.auth.requiresAuthentication()) {
+		    if (exists $hdr.authorization) {
+			if ($hdr.authorization !~ /basic /i) {
+			    $.sendHttpError($s, 401, "Only basic authentication is supported", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())), $cx."response-encoding");
+                            return;
+			}
+			my string $bstr = ($hdr.authorization =~ x/basic (.*)/i)[0];
+			if (!strlen($bstr)) {
+			    $.sendHttpError($s, 401, "Authentication is required to access this server", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())), $cx."response-encoding");
+                            return;
+			}
+			my string $str = parseBase64StringToString($bstr);
+			my int $i = index($str, ":");
+			if ($i == -1) {
+			    $.sendHttpError($s, 401, "Authentication is required to access this server", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())), $cx."response-encoding");
+                            return;
+			}
+			my string $user = substr($str, 0, $i);
+			my *string $pass = substr($str, $i + 1);
+			my list $roles;
+			try
+			    $roles = $handler.auth.authenticate($user, $pass);
+			catch (hash $ex) {
+			    if ($ex.err == "AUTHENTICATION-ERROR") {
+				$.sendHttpError($s, 401, "Authentication is required to access this server", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())), $cx."response-encoding");
+				return;
+			    }
+			    else
+				rethrow;
+			}
+			$cx.user = $user;
+		    }
+		    else {
+			my (list $roles, string $user);
+			# only try ip-based authentication if the connection is not already authenticated
+			try {
+			    $roles = $handler.auth.authenticateByIP($s.getPeerInfo().address, \$user);
+			}
+			catch (hash $ex) {
+			    # log the error
+			    my string $str = sprintf("%s:%d: %s: %s: received from %s", $ex.file, $ex.line, $ex.err, $ex.desc, $cx."peer-info".address_desc);
+			    $listener.logError($str);
+			}
+			if (!elements $roles) {
+			    $.sendHttpError($s, 401, "Authentication is required to access this server", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())));
+			    return;
+			}
+		    }
+		}
+
+                # handle content-encoding according to handler settings
+                if (exists $hdr."content-encoding" && $handler.decompress) {
+                    #printf("HTTP DEBUG: context=%n\nhdr=%n\nSHA1(body)=%n, body=%N\n", $cx, $hdr, SHA1($body), $body);
+                    try {
+                        switch ($hdr."content-encoding") {
+                            case "deflate":
+                            case "x-deflate":
+                                $body = $handler.decompress_to_string ? uncompress_to_string(binary($body)) : uncompress_to_binary($body);
+                                #printf("AFTER body=%N\n", $body);
+				break;
+                            case "gzip":
+			    case "x-gzip":
+                                $body = $handler.decompress_to_string ? gunzip_to_string(binary($body)) : gunzip_to_binary($body);
+                                #printf("AFTER body=%N\n", $body);
+				break;
+                            case "bzip2":
+			    case "x-bzip2":
+				$body = $handler.decompress_to_string ? bunzip2_to_string(binary($body)) : bunzip2_to_binary($body);
+				break;
+                            case "identity":
+                                break;
+                            default:
+                                throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $hdr."content-encoding");
+                        }
+                    }
+                    catch (hash $ex) {
+                        my string $etxt = sprintf("error processing content encoding %s: %s: %s", $hdr."content-encoding", $ex.err, $ex.desc);
+                        my string $str = sprintf("%s: received from %s (header=%y)", $etxt, $cx."peer-info".address_desc, $hdr);
+                        $listener.logError($str);
+                        $.sendHttpError($s, 501, $etxt, $close = True, NOTHING, $cx."response-encoding");
+                        break;
+                    }
+                }
+
+                $rv = $handler.handleRequest($cx, $hdr, $body);
+            }
+            else {
+                $handlerName = "error";
+                $rv = $.noHandlerError($cx, $hdr, $body);
+	    }
+
+            # RFC 2068 19.7.1: Persistent connections in HTTP/1.0 must be explicitly negotiated as they are not the default behavior
+            # RFC 1945 1.3: Except for experimental applications, current practice requires that the connection be established by the client prior to each request and closed by the server after sending the response.
+            # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open
+            if ($hdr.http_version == "1.0" && $hdr.connection !~ /^keep-alive$/i)
+                $close = True;
+            else
+                $close = boolean($rv.close);
+
+            if ($rv.typeCode() == NT_STRING)
+                $rv = ("code": 200,
+                       "body": $rv);
+
+            $rv.close = $close;
+
+	    if (!exists HttpCodes.($rv.code)) { # if the handler returns an invalid hash
+		my string $str = sprintf("%s handler returned an invalid response rv: %y", $handlerName, $rv);
+                
+		$.sendHttpError($s, 500, $str, $close, NOTHING, $cx."response-encoding");
+		$listener.logError($str);
+		return;
+	    }
+
+	    #printf("HTTP DEBUG: handler %s returned: %n\n", $handlerName, $rv);
+
+	    $rv.hdr.Server = $.httpserverstring;
+	    if ($rv.code != 200) {
+		if (!exists $rv.body)
+		    $rv.body = sprintf("unknown error in %s handler", $handlerName);
+		
+		$.sendHttpError($s, $rv.code, $rv.body, $close, NOTHING, $cx."response-encoding");
+	    }
+	    else {
+		#printf("\n**** REQUEST: %N\n", $body);
+		#printf("\n**** RESPONSE: %N\n", $rv.body);
+		if ($rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
+		    $rv.hdr.Connection = "close";
+		else
+		    $rv.hdr.Connection = "Keep-Alive";
+
+		if (!exists $rv.hdr.Date) # RFC 2616 sec 14.18 date format
+		    $rv.hdr.Date = format_date("Dy, DD Mon YYYY HH:mm:SS", gmtime()) + " GMT";
+
+		if (!exists $rv.hdr.Server)
+		    $rv.hdr.Server = $.httpserverstring;
+
+                my string $old_encoding = $s.getEncoding();
+                on_exit if ($s.getEncoding() != $old_encoding)
+                    $s.setEncoding($old_encoding);
+                if (!exists $cx."response-encoding")
+                    $cx."response-encoding" = tolower($s.getEncoding());
+                else if ($cx."response-encoding" != tolower($s.getEncoding()))
+                    $s.setEncoding($cx."response-encoding");
+
+                if (!exists $rv.hdr."Content-Type")
+                    $rv.hdr."Content-Type" = "text/html;charset=" + $cx."response-encoding";
+                else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING))
+                    $rv.hdr."Content-Type" += ";charset=" + $cx."response-encoding";
+
+		if ($head)
+		    $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr);
+		else {
+		    if ($cx.encoding == "deflate") {
+			$rv.hdr += ( "Content-Encoding" : "deflate" );
+			$rv.body = compress($rv.body);
+		    }
+		    else if ($cx.encoding == "gzip") {
+			$rv.hdr += ( "Content-Encoding" : "gzip" );
+			$rv.body = gzip($rv.body);
+		    }
+		    else if ($cx.encoding == "bzip2") {
+			$rv.hdr += ( "Content-Encoding" : "bzip2" );
+			$rv.body = bzip2($rv.body);
+		    }
+		    
+		    $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
+		    #$.log("HTTP DEBUG hdr=%N\nbody=%s", $rv.hdr, $rv.body);
+		    #printf("HTTP DEBUG: response hdr=%n\n", $rv.hdr);
+		}
+	    }
+	    
+	    if (exists $rv.log)
+		$listener.log("%s (from %s): %s", $handlerName, $cx."peer-info".address_desc, $rv.log);
+	    if (exists $rv.errlog)
+		$listener.logError("%s (from %s): %s", $handlerName, $cx."peer-info".address_desc, $rv.errlog);
+	}
+	catch (hash $ex) {
+            my string $desc = !$.debug
+                ? sprintf("%s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc)
+                : get_exception_string($ex);
+
+	    my string $str = sprintf("handler: %s: %s", $handlerName, $desc);
+	    $.sendHttpError($s, 500, $str, $close, NOTHING, $cx."response-encoding");
+	    $.logError($str);
+	}
+    }
+
+    #! returns a complete URL from a bind address
+    static string getURLFromBind(string $bind, any $host) {
+	my hash $h = parse_url($bind);
+	# if there is only a port number, it will appear in the "host" key
+	if (elements $h == 1 && exists $h.host && int($h.host) == $h.host) {
+	    $h.port = int($h.host);
+	    delete $h.host;
+	}
+
+	if (!exists $h.host)
+	    $h.host = (!exists $host || $host == gethostname()) ? "localhost" : $host;
+
+	my string $login = exists $h.password ? ($h.password + ":") : "";    
+	if (exists $h.username)
+	    $login += sprintf("%s@", $h.password);
+
+	return sprintf("%s://%s%s%s%s", exists $h.protocol ? $h.protocol : "http", 
+		       $login, 
+		       $h.host, 
+		       $h.port ? sprintf(":%d", $h.port) : "", 
+		       $h.path);
+    }
+
+    setDebug(bool $dbg = True) {
+        $.debug = $dbg;
+    }
+
+    bool getDebug() {
+        return $.debug;
+    }
+}
