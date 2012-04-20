@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-BinaryNode::BinaryNode(void *p, unsigned long size) : SimpleValueQoreNode(NT_BINARY) {
+BinaryNode::BinaryNode(void *p, qore_size_t size) : SimpleValueQoreNode(NT_BINARY) {
    ptr = p;
    len = size;
 }
@@ -56,7 +56,7 @@ int BinaryNode::compare(const BinaryNode *obj) const {
    return memcmp(ptr, obj->ptr, len);
 }
 
-unsigned long BinaryNode::size() const {
+qore_size_t BinaryNode::size() const {
    return len;
 }
 
@@ -77,7 +77,7 @@ const void *BinaryNode::getPtr() const {
    return ptr;
 }
 
-void BinaryNode::append(const void *nptr, unsigned long size) {
+void BinaryNode::append(const void *nptr, qore_size_t size) {
    bool self_copy = nptr == ptr;
    ptr = realloc(ptr, len + size);
    if (self_copy) {
@@ -96,7 +96,7 @@ void BinaryNode::append(const BinaryNode &b) {
    append(b.ptr, b.len);
 }
 
-void BinaryNode::prepend(const void *nptr, unsigned long size) {
+void BinaryNode::prepend(const void *nptr, qore_size_t size) {
    ptr = realloc(ptr, len + size);
    // move memory forward
    memmove((char *)ptr + size, ptr, len);
