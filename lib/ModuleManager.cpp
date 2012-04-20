@@ -99,12 +99,18 @@ void QoreModuleContext::commit() {
 void QoreModuleDefContext::set(const char* key, const AbstractQoreNode* val) {
    qore_type_t t = get_node_type(val);
 
-   // special handling for "init"
+   // special handling for "init" and "del"
    if (!strcmp(key, "init")) {
       if (init_c)
 	 parse_error("module key 'init' was given multiple times");
       else // check type when code is committed
 	 init_c = val->refSelf();
+   }
+   else if (!strcmp(key, "del")) {
+      if (del_c)
+	 parse_error("module key 'del' was given multiple times");
+      else // check type when code is committed
+	 del_c = val->refSelf();
    }
    else if (vset.find(key) == vset.end())
       parse_error("module key '%s' is invalid", key);
@@ -118,29 +124,33 @@ void QoreModuleDefContext::set(const char* key, const AbstractQoreNode* val) {
 
 // called only during parsing
 void QoreModuleDefContext::parseInit() {
-   if (!init_c)
-      return;
+   if (init_c)
+      initClosure(init_c, "init");
+   if (del_c)
+      initClosure(del_c, "del");
+}
 
-   // initialize init_c
+void QoreModuleDefContext::initClosure(AbstractQoreNode*& c, const char* n) {
+   // initialize closure
    int lvids = 0;
-   const QoreTypeInfo *typeInfo = 0;
-   init_c = init_c->parseInit(0, PO_LOCKDOWN, lvids, typeInfo);
+   const QoreTypeInfo* typeInfo = 0;
+   // check for local variables at the top level - this can only happen if the expresion is not a closure
+   c = c->parseInit(0, PO_LOCKDOWN, lvids, typeInfo);
    if (lvids) {
-      parseException("ILLEGAL-LOCAL-VAR", "local variables may not be declared in module initialization code");
+      parseException("ILLEGAL-LOCAL-VAR", "local variables may not be declared in module '%s' code", n);
       // discard variables immediately
       for (int i = 0; i < lvids; ++i)
          pop_local_var();
    }
 
-   if (get_node_type(init_c) != NT_CLOSURE)
-      parse_error("the module 'init' key must be assigned to a closure or call reference (got type '%s')", get_type_name(init_c));
+   if (get_node_type(c) != NT_CLOSURE)
+      parse_error("the module '%s' key must be assigned to a closure or call reference (got type '%s')", n, get_type_name(c));
 }
 
 int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
    if (!init_c)
       return 0;
 
-   // temporary set program parse options to PO_LOCKDOWN
    {
       ProgramThreadCountHelper tch(&pgm);
       ProgramContextHelper pch(&pgm);
@@ -152,6 +162,16 @@ int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
    }
 
    return xsink ? -1 : 0;
+}
+
+QoreClosureParseNode* QoreModuleDefContext::takeDel() {
+   if (!del_c)
+      return 0;
+
+   assert(dynamic_cast<QoreClosureParseNode*>(del_c));
+   QoreClosureParseNode* rv = reinterpret_cast<QoreClosureParseNode*>(del_c);
+   del_c = 0;
+   return rv;
 }
 
 void QoreModuleDefContext::checkName() {
@@ -250,6 +270,23 @@ void QoreBuiltinModule::addToProgram(QoreProgram* pgm, ExceptionSink& xsink) con
    // commit all module changes
    qmc.commit();
    pgm->addFeature(name.getBuffer());
+}
+
+QoreUserModule::~QoreUserModule() {
+   assert(pgm);
+   ExceptionSink xsink;
+   if (del) {
+      ProgramThreadCountHelper tch(pgm);
+      ProgramContextHelper pch(pgm);
+
+      ReferenceHolder<> cn(del->eval(&xsink), &xsink);
+      assert(!xsink);
+      assert(cn->getType() == NT_RUNTIME_CLOSURE);
+
+      ReferenceHolder<> tmp(reinterpret_cast<QoreClosureNode*>(*cn)->exec(0, &xsink), &xsink);
+      del->deref(&xsink);
+   }
+   pgm->waitForTerminationAndDeref(&xsink);
 }
 
 void QoreUserModule::addToProgram(QoreProgram* tpgm, ExceptionSink& xsink) const {
@@ -752,7 +789,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    // xxx add to auto namespace list
    //ANSL.add(*pgm);
 
-   mi = new QoreUserModule(path, name, desc, version, author, url, pgm.release());
+   mi = new QoreUserModule(path, name, desc, version, author, url, pgm.release(), qmd.takeDel());
    QMM.addModule(mi);
 
    qoreFeatureList.push_back(name);
@@ -971,6 +1008,19 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    qoreFeatureList.push_back(name);
    printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) registered '%s'\n", path, name);
    return mi;
+}
+
+// deletes only user modules
+void QoreModuleManager::delUser() {
+   for (module_map_t::iterator i = map.begin(), e = map.end(); i != e;) {
+      QoreAbstractModule* m = i->second;
+      if (m->isUser()) {
+	 map.erase(i++);
+	 delete m;
+      }
+      else
+	 ++i;
+   }
 }
 
 void QoreModuleManager::cleanup() {

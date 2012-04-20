@@ -166,6 +166,7 @@ public:
    }
 
    DLLLOCAL void init(bool se);
+   DLLLOCAL void delUser();
    DLLLOCAL void cleanup();
    DLLLOCAL void issueParseCmd(const char* mname, QoreProgram* pgm, QoreString &cmd);
 
@@ -251,16 +252,13 @@ public:
 class QoreUserModule : public QoreAbstractModule {
 protected:
    QoreProgram* pgm;
+   QoreClosureParseNode* del; // deletion closure
 
 public:
-   DLLLOCAL QoreUserModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, QoreProgram* p) : QoreAbstractModule(fn, n, d, v, a, u), pgm(p) {
+   DLLLOCAL QoreUserModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, QoreProgram* p, QoreClosureParseNode* dl) : QoreAbstractModule(fn, n, d, v, a, u), pgm(p), del(dl) {
    }
 
-   DLLLOCAL virtual ~QoreUserModule() {
-      assert(pgm);
-      ExceptionSink xsink;
-      pgm->waitForTerminationAndDeref(&xsink);
-   }
+   DLLLOCAL virtual ~QoreUserModule();
 
    DLLLOCAL virtual bool isBuiltin() const {
       return false;

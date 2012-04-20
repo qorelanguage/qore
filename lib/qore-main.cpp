@@ -105,6 +105,9 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 // unloaded in case there are any module-specific thread
 // cleanup functions to be run...
 void qore_cleanup() {
+   // first delete all user modules
+   QMM.delUser();
+
    // delete thread-local data
    delete_thread_local_data();
 
@@ -117,13 +120,7 @@ void qore_cleanup() {
    QSM.del();
 #endif
 
-   // now free memory (like ARGV, QORE_ARGV, ENV, etc)
-   delete_global_variables();
-
-   // delete pseudo-methods
-   pseudo_classes_del();
-
-   // purge thread resources before deleteing modules
+   // purge thread resources before deleting modules
    {
       ExceptionSink xsink;
       purge_thread_resources(&xsink);
@@ -131,6 +128,12 @@ void qore_cleanup() {
 
    // delete all loadable modules
    QMM.cleanup();
+
+   // now free memory (like ARGV, QORE_ARGV, ENV, etc)
+   delete_global_variables();
+
+   // delete pseudo-methods
+   pseudo_classes_del();
 
    // delete static system namespaces after modules
    staticSystemNamespace.purge();

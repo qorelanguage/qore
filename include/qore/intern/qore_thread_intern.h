@@ -175,20 +175,28 @@ public:
    }
 };
 
+class QoreClosureParseNode;
+
 class QoreModuleDefContext {
+protected:
+   DLLLOCAL void initClosure(AbstractQoreNode*& c, const char* n);
+
 public:
    typedef std::set<std::string> strset_t;
    typedef std::map<std::string, std::string> strmap_t;
 
-   AbstractQoreNode* init_c;
+   AbstractQoreNode* init_c, // the initialization closure
+      * del_c;               // the destructor closure
    bool name_set;
 
-   DLLLOCAL QoreModuleDefContext() : init_c(0), name_set(false) {
+   DLLLOCAL QoreModuleDefContext() : init_c(0), del_c(0), name_set(false) {
    }
 
    DLLLOCAL ~QoreModuleDefContext() {
       if (init_c)
          init_c->deref(0);
+      if (del_c)
+         del_c->deref(0);
    }
 
    // set of valid tags
@@ -207,6 +215,8 @@ public:
    DLLLOCAL void parseInit();
    DLLLOCAL int init(QoreProgram& pgm, ExceptionSink& xsink);
    DLLLOCAL void checkName();
+
+   DLLLOCAL QoreClosureParseNode* takeDel();
 };
 
 struct namepub_t {
