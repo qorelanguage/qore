@@ -89,6 +89,13 @@
 #define QORE_DIR_SEP_STR "/"
 #endif
 
+// printf format for size_t or qore_size_t integers
+#if TARGET_BITS == 64
+#define QSD QLLD
+#else
+#define QSD "%d"
+#endif
+
 #include <set>
 #include <list>
 #include <map>

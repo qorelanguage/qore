@@ -1585,14 +1585,14 @@ struct qore_socket_private {
 	       if (!count)
 		  se_closed(meth, xsink);
 	       else
-		  xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "socket closed on remote end while reading header data after reading "QLLD" byte%s", count, count == 1 ? "" : "s");
+		  xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "socket closed on remote end while reading header data after reading "QSD" byte%s", count, count == 1 ? "" : "s");
 	    }
-	    //printd(5, "qore_socket_private::readHTTPData(timeout=%d) hdr='%s' (len: %d), rc="QLLD", errno=%d: '%s'\n", timeout, hdr->getBuffer(), hdr->strlen(), rc, errno, strerror(errno));
+	    //printd(5, "qore_socket_private::readHTTPData(timeout=%d) hdr='%s' (len: %d), rc="QSD", errno=%d: '%s'\n", timeout, hdr->getBuffer(), hdr->strlen(), rc, errno, strerror(errno));
 	    return 0;
 	 }
 	 if (++count == QORE_MAX_HEADER_SIZE) {
 	    if (xsink)
-	       xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed "QLLD" bytes", count);
+	       xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed "QSD" bytes", count);
 	    return 0;
 	 }
 	 
@@ -1714,7 +1714,7 @@ struct qore_socket_private {
 	       buf = (char *)realloc(buf, tot);
 	    }
 	    rc = recv(xsink, "recv", buf + rd, tot - rd - 1, 0, 0, false);
-	    //printd(0, "qore_socket_private::recv(to=%d) rc=%d rd="QLLD"\n", timeout, rc, rd);
+	    //printd(0, "qore_socket_private::recv(to=%d) rc=%d rd="QSD"\n", timeout, rc, rd);
 	    // if the remote end has closed the connection, return what we have
 	    if (!rc)
 	       break;

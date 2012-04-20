@@ -667,7 +667,7 @@ list split(string str, string sep, string quote) [flags=RET_VALUE_ONLY] {
 	 while (true) {
 	    p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
 	    if (!p) {
-	       xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field "QLLD, tquote->getBuffer(), l->size() + 1);
+	       xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field "QSD, tquote->getBuffer(), l->size() + 1);
 	       return 0;
 	    }
 	    if (p == tstr)
@@ -688,7 +688,7 @@ list split(string str, string sep, string quote) [flags=RET_VALUE_ONLY] {
 
 	 // or a separator string comes next
 	 if (len < pl || memcmp(tpattern, ststr, pl)) {
-	    xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field "QLLD, tpattern, l->size());
+	    xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field "QSD, tpattern, l->size());
 	    return 0;
 	 }
 	 ststr += pl;
@@ -1192,12 +1192,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s,%s"
  */
 string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ONLY] {
    if (offset < 0) {
-      xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QLLD, offset);
+      xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QSD, offset);
       return 0;
    }
    
    if (smul < 1) {
-      xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be > 0; value: "QLLD, smul);
+      xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be > 0; value: "QSD, smul);
       return 0;
    }
 

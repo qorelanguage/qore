@@ -32,6 +32,7 @@
 #include <string.h>
 #include <strings.h>
 #include <stdarg.h>
+#include <stddef.h>
 
 #include <string>
 #include <functional>
@@ -57,7 +58,7 @@
 typedef signed short qore_type_t;
 
 //! used for sizes (same range as a pointer)
-typedef unsigned long qore_size_t;
+typedef size_t qore_size_t;
 
 //! used for offsets that could be negative
 typedef long qore_offset_t;
