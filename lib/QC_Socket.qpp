@@ -1656,7 +1656,7 @@ my hash $ans = $sock.readHTTPHeader(10s);
     @throw SOCKET-RECV-ERROR There was an error receiving the data
     @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
-    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received, in the case of invalid header info received, the \c arg key of the exception hash will have the invalid data received
 
     @since %Qore 0.8.4 this method always returns a hash and raises a \c SOCKET-HTTP-ERROR if invalid HTTP data is received
  */
