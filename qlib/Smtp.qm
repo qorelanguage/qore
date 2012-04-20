@@ -1,0 +1,916 @@
+# -*- mode: qore; indent-tabs-mode nil -*-
+# @file Smtp.qm Smtp client module definition
+
+# original authors:
+# - Wolfgang Ritzinger
+# - Marian Bonda
+# - Pavol Potoncok
+
+# based on:
+# http://james.apache.org/server/rfclist/smtp/rfc0821.txt
+# http://www.faqs.org/rfcs/rfc0821.html
+# http://www.faqs.org/rfcs/rfc2822.html
+
+%requires qore >= 0.8.4
+
+module Smtp {
+    version = "1.0";
+    desc = "SMTP client support module";
+    author = "Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok";
+    url = "http://qore.org";
+}
+
+/*
+ class SMTP::SMTP
+    holds a configured connection to a smtp server
+ class SMTP::Message
+    holds a message to be send via smtp
+ class SMTP::Attachment
+    used for attach files to the message
+
+ version 1.0, ritzinwo, 20090716
+*/
+ 
+public namespace Smtp {
+    ###########################################################
+    #
+    # class for the message.
+    #
+    # my Smtp::Message $msg("sender", "subject");
+    #   sender: a smtp string for sender eg: The User <theuser@somewhere.org>
+    #
+    # you can add recipients with
+    #   addTO(), addCC() and addBCC() which all take a email like sender in constructor
+    #
+    # toString() and toLine() return info about the message either als multiline or
+    # as single line (like %N or %n for objects)
+    #
+    # set the body text with setBody(string) or add a line to the body with addBody(string)
+    #
+    # additional header lines (eg: "X-SPAM-Status: No") can be added with addHeader(string) or
+    # set with setHeader(string | list of string)
+    # eg for setting the messageid:
+    #   $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");
+    #
+    # add attachments with attach(name, mime, attachment)
+    # - name: the name string of the attachment (file.jpg)
+    # - mime: the mimetype to be send (image/jpeg)
+    # - attachment: either a string (eg from file.read(-1)) or a binary
+    #
+    # important([True/False]) will set the given importance and return the current setting
+    # receiptDelivery([True/False]) will set the delivery receipt and return the setting
+    # receiptRead([True/False]) will set the read receipt request and return the setting
+    # these methods return the current setting if called without argument
+    #
+    #
+    ###########################################################
+    public const Mime = (
+	"CSV": "text/comma-separated-values",
+	"XML": "text/xml",
+	"AXML": "application/xml",
+	"TEXT": "text/plain",
+	);
+
+    #! default content transfer encoding depending on attachment type
+    public const EncDefault = "default";
+
+    #! no content transfer encoding (not recommended as SMTP servers break up long lines automatically)
+    public const EncNone = "none";
+
+    #! base-64 content transfer encoding
+    public const EncBase64 = "base64";
+
+    #! "quoted-printable" content transfer encoding
+    #const EncQuotedPrintable = "quoted-printable";
+
+    public const Encodings = (
+	EncDefault,
+	EncNone,
+	EncBase64,
+	#EncQuotedPrintable,
+	);       
+
+    #! 5 second read timeout
+    public const ReadTimeout = 5s;
+
+    public class Message {
+	private {
+	    # the sender
+	    string $.from;
+	    # subject is a header field
+	    string $.subject;
+
+	    # additional headers
+	    list $.headers = (); # list for additional headers except the ones below
+	    # message statuses
+	    bool $.importance = False;
+	    bool $.deliveryReceipt = False;
+	    bool $.readReceipt = False;
+	    # names
+
+	    #$.from; # will be prefilled (and overwritten) with the sender
+	    list $.to = (); # list of names for to (header only) will be prefilled (and overwritten) with the recipients
+	    list $.cc = (); # list of cc's
+	    list $.bcc = (); # list of bcc's
+
+	    # message data itself
+	    string $.messageData = "";
+
+	    # message body content transfer encoding
+	    string $.messageEncoding = EncDefault;
+
+	    list $.attachments = ();
+	    string $.sender;
+	}
+
+	public {}
+
+	# use:
+	# Message(string sender, string subject)
+	# by default the recipients will be filled in the 
+	constructor(string $sender, string $subject) {
+	    # sender
+	    if (!strlen($sender)) {
+		throw "ARGUMENT-EXCEPTION", "sender must be not empty string";
+	    }
+
+	    my *string $se = Message::getEmailAddress($sender);
+	    if (!exists $se)
+		throw "ARGUMENT-EXCEPTION", sprintf("cannot get email address out of: %n", $sender);
+
+	    $.sender = $se; # used for sending
+	    $.from = $sender; # used for diplaying
+	    	    
+	    # subject
+	    if (!strlen($subject))
+		throw "ARGUMENT-EXCEPTION", "subject must be not empty string";
+
+	    $.subject = $subject;
+	}
+
+	# fetch the email address out of a sender/recpt string
+	static *string getEmailAddress(string $str) {
+	    return ($str =~ x/([a-zA-Z0-9\-\._\+\=]+@[a-zA-Z0-9\-\._]+)/)[0];
+	    #regex_extract($str, '([a-zA-Z0-9\-\._\+\=]+@[a-zA-Z0-9\-\._]+)');
+	    #return $email[0];
+	}
+
+	static bool checkEmailAddress(string $str) {
+	    return exists Message::getEmailAddress($str);
+	}
+
+	# add a recipient to the list
+	list addTO(string $recipient) {
+	    if (!Message::checkEmailAddress($recipient)) {
+		throw "ARGUMENT-EXCEPTION", sprintf("cannot determine email address in %n", $recipient);
+	    }
+	    push $.to, $recipient;
+	    return $.getTO();
+	}
+	
+	# add a cc recipient to the list
+	list addCC(string $recipient) {
+	    if (!Message::checkEmailAddress($recipient)) {
+		throw "ARGUMENT-EXCEPTION", sprintf("cannot determine email address in %n", $recipient);
+	    }
+	    push $.cc, $recipient;
+	    return $.getCC();
+	}
+
+	# add a bcc recipient to the list
+	list addBCC(string $recipient) {
+	    if (!Message::checkEmailAddress($recipient)) {
+		throw "ARGUMENT-EXCEPTION", sprintf("cannot determine email address in %n", $recipient);
+	    }
+	    push $.bcc, $recipient;
+	    return $.getBCC();
+	}
+
+	string getSender() {
+	    return $.from;
+	}
+
+	string getFrom() {
+	    return $.sender;
+	}
+
+	list getTO() {
+	    return $.to;
+	}
+
+	list getCC() {
+	    return $.cc;
+	}
+
+	list getBCC() {
+	    return $.bcc;
+	}
+
+	string getSubject() {
+	    return $.subject;
+	}
+
+	# use toString(True) for including the body
+	string toString(bool $body = False) {
+	    # attachmentsDirHandler-v1.0.qclass,v 1.13, 2009-06-15 12:59:56Z, Bonda,Marian
+	    my list $attarr = ();
+	    foreach my $att in ( $.attachments ) {
+		$attarr+=(sprintf("%s (%s,%d)", $att.name, $att.mime, length($att.data)));
+	    }
+
+	    # sending envelope: from, to, subject
+	    my list $env = ();
+	    $env[0]=sprintf("Sender: '%s'", $.from);
+	    $env[1]=sprintf("Subject: '%s'", $.subject);
+	    foreach my $l in ($.to) { $env+=(sprintf("To: %s", $l)); }
+	    foreach my $l in ($.cc) { $env+=(sprintf("CC: %s", $l)); }
+	    foreach my $l in ($.bcc) { $env+=(sprintf("BCC: %s", $l)); }
+
+	    my string $str="";
+
+	    # the main string
+	    $str=sprintf("Message (%s)\n", $.sendPossible()? "ok": "unfinished");
+	    # from/to/subject
+	    foreach my $l in ($env) {
+		$str+="  "+trim($l)+"\n";
+	    }
+	    # important or not...
+	    $str+=sprintf("%s%s%s",
+			  $.important()? "  Important\n": "",
+			  $.receiptDelivery()? "  ReceiptDelivery\n": "",
+			  $.receiptRead()? "  ReceiptRead\n": "");
+	    # add headers
+	    foreach my $l in ($.headers) {
+		$str+="  "+trim($l)+"\n";
+	    }
+	    # add attachments
+	    if (elements $attarr) {
+		$str+="  Attachments:\n";
+		foreach my $l in ($attarr) {
+		    $str+="    "+trim($l)+"\n";
+		}
+	    }
+	    
+	    # the user wants to see the body also...
+	    if ($body) {
+		$str+="--\n"+trim($.messageData)+"\n";
+	    }
+
+	    return $str;
+	}
+
+	string toLine() {
+	    # attachments
+	    my $attarr=list();
+	    foreach my $att in ( $.attachments ) {
+		$attarr+=(sprintf("%s (%s,%d)", $att.name, $att.mime, length($att.data)));
+	    }
+
+	    # sending envelope: from, to, subject
+	    my $env=list();
+	    $env[0]=sprintf("Sender: '%s'", $.from);
+	    $env[1]=sprintf("Subject: '%s'", $.subject);
+	    foreach my $l in ($.to) { $env+=(sprintf("To: %s", $l)); }
+	    foreach my $l in ($.cc) { $env+=(sprintf("CC: %s", $l)); }
+	    foreach my $l in ($.bcc) { $env+=(sprintf("BCC: %s", $l)); }
+
+	    my $str="";
+
+	    # the main string
+	    $str=sprintf("[Message (%s), %s, %simportant, %sdelivery, %sread",
+			 $.sendPossible()? "ok": "unfinished",
+			 join(", ", $env),
+			 $.important()? "": "not ",
+			 $.receiptDelivery()? "": "not ",
+			 $.receiptRead()? "": "not "
+		);
+	    # add headers
+	    if (elements $.headers) {
+		$str+=sprintf(", %s", join(", ", $.headers));
+	    }
+	    # add attachments
+	    if (elements $attarr) {
+		$str+=sprintf(", %s", join(", ", $attarr));
+	    }
+	    $str+="]";
+
+	    return $str;
+	}
+
+	# return all the emails the message will be sent to
+	list getRecipients() {
+	    my list $recpt = ();
+	    foreach my $e in ( $.to + $.cc + $.bcc ) {
+		push $recpt, $.getEmailAddress($e);
+	    }
+	    return $recpt;
+	}
+
+	# returns true if the message can be sent
+	bool sendPossible() {
+	    if (!elements($.getRecipients())) {
+		return False;
+	    }
+	    if ($.messageData.empty()) {
+		return False;
+	    } 
+
+	    return True;
+	}
+
+	setBody(string $str = "", string $enc = EncDefault) {
+	    $enc = Smtp::checkEncoding($str, $enc);
+	    $.messageData = $str;
+	    $.messageEncoding = Smtp::checkEncoding($str, $enc);
+	}
+
+	addBody(string $str) {
+	    $.messageData += $str;
+	}
+
+	string getBody() {
+	    return $.messageData;
+	}
+
+	string getBodyTransferEncoding() {
+	    return $.messageEncoding;
+	}
+
+	setHeader(softlist $hdr) {
+	    $.headers = $hdr;
+	}
+
+	addHeader(string $hdr) {
+	    push $.headers, $hdr;
+	}
+
+	list getHeader() {
+	    return $.headers;
+	}
+
+	bool important() {
+	    return $.importance;
+	}
+
+	important(softbool $i) {
+	    $.importance = $i;
+	}
+
+	bool receiptRead() {
+	    return $.deliveryReceipt;
+	}
+
+	receiptRead(bool $arg) {
+	    $.deliveryReceipt = $arg;
+	}
+
+	bool receiptDelivery() {
+	    return $.readReceipt;
+	}
+
+	receiptDelivery(bool $arg) {
+	    $.readReceipt = $arg;
+	}
+
+	attach(string $name, string $mime, data $att, string $enc = EncDefault) {
+	    push $.attachments, new Smtp::Attachment($name, $mime, $att, $enc);
+	}
+
+	attach(Smtp::Attachment $att) {
+	    push $.attachments, $att;
+	}
+
+	list getAttachments() {
+	    return $.attachments;
+	}
+    }
+
+    ###########################################################
+    # internal class for attachments
+    # contains the name (file name which will be shown)
+    # the mime type which will be send (image/jpeg)
+    # the data as binary object or as str
+    #
+    # example:
+    #  my File $f();
+    #  $f.open2("file.jpg");
+    #  my Attachment $att("file.jpg", "image/jpeg", $f.readBinary(-1));
+    #  $f.close();
+    #  $msg.addAttachment($att);
+    ###########################################################
+    class Attachment {
+	public {
+	    string $.name;
+	    string $.mime;
+	    data $.data;
+	    #! content-transfer encoding
+	    string $.enc;
+	}
+
+	constructor(string $name, string $mime, data $data, string $enc) {
+	    $.name = $name;
+	    $.mime = $mime;
+	    $.data = $data;
+
+	    $.enc = Smtp::checkEncoding($data, $enc);
+	}
+
+	# create string out of attachment
+	string encode() {
+	    return Smtp::encodeData($.data, $.mime, sprintf("attachment; filename=%y", $.name), $.enc);
+	}
+    }
+
+    ###########################################################
+    # Smtp class:
+    #
+    # construct with 
+    #   my Smtp::Smtp $smtp("hostname", port);
+    #
+    # create a Smtp::Message and then send it with
+    #   $smtp.sendMessage($message);
+    #
+    # in the reply there is:
+    #   RCPT: hash with each used email addresses and the return structures for the RCPT TO command   
+    #   MSGID: return structure after the send. mostly contains message id
+    #   QUIT: the server response of the disconnect command
+    #
+    # return structure:
+    # - code: the returncode as number
+    # - desc: the rest of the return line
+    ###########################################################
+    public class Smtp {
+	private {
+	    Socket $.sock();
+
+	    # connect string
+	    string $.connect;
+
+	    Mutex $.mutex();
+	    
+	    bool $.nosend = False;
+
+	    # log closure
+	    *code $.logc;
+	}
+
+	public {
+	    string $.hash = replace(makeBase64String(string(now())), "=", "");
+	}
+
+	# create class with basic settings
+	constructor(string $host, softint $port, *code $logc) {
+	    $.logc = $logc;
+	    $.connect = sprintf("%s:%d", $host, $port);
+	}
+
+	constructor(string $connect) {
+	    #$.log(LL_DEBUG_2, "Smtp::constructor(connect=%y) called", $connect);
+
+	    # add default port if the connect string has no port number and:
+	    # 1) is not a path (for a UNIX domain socket)
+	    # 2) is not an ipv6 address enclosed in '[]' (ex '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]')
+	    if ($connect[0] != "/") {
+		my *string $c;
+		if ($connect[0] == "[")
+		    $c = ($connect =~ x/](.*)$/)[0];
+		else
+		    $c = $connect;
+		if ($c !~ /:[0-9]+$/)
+		    $connect += ":25";
+	    }
+	    $.connect = $connect;
+	    #$.log(LL_DEBUG_1, "Smtp::constructor() connect = %y", $.connect);
+	}
+
+	# connect to the server
+  	connect() {
+	    $.sock.connect($.connect);
+  	}
+  	
+	# return connection status
+  	bool isConnected() {
+	    return ($.nosend || $.sock.isOpen());
+  	}
+  	
+	# disconnect from the server
+  	disconnect() {
+	    if ($.isConnected()) {
+		$.sock.close();
+		$.sock.shutdown();
+	    }
+  	}
+  	
+	# clean up
+  	destructor() {
+	    try {
+		$.disconnect();
+	    }
+	    catch($ex) {
+		#$.log(LL_DEBUG_1, "DISCONNECT-EXCEPTION: %n\n", $ex);
+	    }
+  	}
+
+	# parse the server reply string to code and description
+	static hash parseReply(string $str) {
+	    my list $ret = $str =~ x/^([[:digit:]]{3}) (.*)$/;
+	    #my $ret = regex_extract($str, '^([[:digit:]]{3}) (.*)$');
+
+	    if (elements $ret != 2) {
+		return ('code': -1, 'desc': sprintf("error in parsing reply '%s'", $str));
+	    }
+
+	    my int $code = int($ret[0]);
+
+	    if (!$code) {
+		return ('code': -2, 'desc': sprintf("there is no return code in reply '%s'", $str));
+	    }
+
+	    return ('code': $code, 'desc': $ret[1]);
+	}
+
+	# return the hash which is used as multipart boundary
+	private string addhash() {
+	    return $.hash;
+	}
+
+	static string encodeData(data $data, string $mime, string $disp, string $enc) {
+	    my string $str = sprintf("Content-Type: %s\r\nContent-Disposition: %s\r\n", $mime, $disp);
+	    switch ($enc) {
+		case EncBase64: {
+		    $str += "Content-Transfer-Encoding: base64\r\n\r\n";
+		    $str += makeBase64String($data, 72);
+		    $str += "\r\n";
+		    break;
+		}
+		case EncNone: {
+		    $str += "\r\n";
+		    $str += $data;
+		    $str += "\r\n";
+		    break;
+		}
+		#case EncQuotedPrintable: {
+		#    $str+=sprintf("Content-Transfer-Encoding: quoted-printable\r\n");
+		#}
+	    }
+
+	    return $str;
+	}
+
+	static string checkEncoding(data $data, string $enc) {
+	    if ($enc == EncDefault)
+		$enc = $data.typeCode() == NT_STRING ? EncNone : EncBase64; 
+	    else if (!inlist($enc, Encodings))
+		throw "UNKNOWN-ENCODING", sprintf("%y is not a known encoding; known encodings: %y", $enc, Encodings);
+
+	    if ($data.typeCode() == NT_BINARY && $enc == EncNone)
+		throw "INVALID-ENCODING", sprintf("%y cannot be used with binary data", $enc);
+
+	    return $enc;
+	}
+
+	# send data over the socket
+	private sendData(string $str, bool $silent = False) {
+	    if (!$silent) {
+		my string $lstr = trim($str);
+		if ($lstr.size() > 128) {
+		    splice $lstr, 128;
+		    $lstr += "...";
+		}
+		#$.log(LL_DEBUG_2, "sendData(%n)", $lstr);
+	    }
+	    if (!$.isConnected()) {
+		#$.log(LL_DEBUG_1, "not connected. aborting send.");
+		throw "NOT-CONNECTED", "not connected in sendData()";
+	    }
+
+	    # send
+	    $.sock.send($str);
+	}
+
+	# send a command over the socket and return the response
+	private string sendCommand(string $str) {
+	    trim $str;
+	    #$.log(LL_DEBUG_2, "sendCommand(%n)", $str);
+
+	    # send data
+	    $.sendData($str+"\r\n", True);
+
+	    # read data
+	    my string $rep = $.readLine();
+
+	    #$.log(LL_DEBUG_2, "-> returned: %n", $rep);
+	    return $rep;
+	}
+
+	# read a line from the socket (terminated with \n)
+	private string readLine(*softint $to) {
+	    my string $str;
+	    my int $c = 0;
+	    do {
+		$c = $.sock.recvu1($to);
+		$str += chr($c);
+	    } while ($c != 10);
+
+	    return $str;
+	}
+
+	##
+	# send a message object
+	hash sendMessage(object $message) {
+	    if (getClassName($message) != "Message") {
+		throw "ARGUMENT-EXCEPTION", "use: sendMessage(Smtp::Message)";
+	    }
+
+	    if (!$message.sendPossible()) {
+		throw "ARGUMENT-EXCEPTION", "Message is not ready to be sent";
+	    }
+
+	    #$.log(LL_DEBUG_1, "sendMessage: %n", $message.toLine());
+	    
+	    # lock for sending
+	    my AutoLock $am($.mutex);
+
+	    my hash $reply;
+	    my $rep;
+	    my $str;
+	    try {
+		# open connection to server
+		$.connect();    
+		#$.openDumbTerminal();
+		$rep=$.readLine(ReadTimeout);
+		#$.log(LL_DEBUG_2, "connect reply: %n", trim($rep));
+
+		# send helo string
+		$rep=$.sendCommand("HELO "+gethostname());
+		$rep=$.parseReply($rep);
+		$reply.'HELO'=$rep;
+		#$.log(LL_DEBUG_2, "-> %n", $rep);
+		if ($rep.code>=500) {
+		    throw "SMTP-DATA-EXCEPTION", sprintf("error on sending HELO command: %n", $rep);
+		}
+
+		# send sender
+		$str=sprintf("MAIL FROM: %s", $message.getFrom());
+		$rep=$.sendCommand($str);
+		$rep=$.parseReply($rep);
+		#$.log(LL_DEBUG_2, "-> %n", $rep);
+		if ($rep.code>=500) {
+		    throw "SMTP-DATA-EXCEPTION", sprintf("error on sending FROM command: %n", $rep);
+		}
+
+		# send receipient
+		foreach my $rcpt in ($message.getRecipients()) {
+		    $str=sprintf("RCPT TO: %s", $rcpt);
+		    $rep=$.sendCommand($str);
+		    $rep=$.parseReply($rep);
+		    $reply.'RCPT'.$rcpt=$rep;
+		    #$.log(LL_DEBUG_2, "-> %n", $rep);
+		    if ($rep.code>=500) {
+			throw "SMTP-DATA-EXCEPTION", sprintf("error on sending RCPT command: %n", $rep);
+		    }
+		}
+
+		# send data
+		$str="DATA";
+		$rep=$.sendCommand($str);
+		$rep=$.parseReply($rep);
+		#$.log(LL_DEBUG_2, "-> %n", $rep);
+		if ($rep.'code'!=354) {
+		    throw "DATA-EXCEPTION", sprintf("error on sending DATA command: %n", $rep);
+		}
+		my list $atts = $message.getAttachments();
+		# first: the additional headers if there
+		#foreach my $l in ($headers) {
+		#    $.sendData($l+"\r\n");
+		#}
+		# sender
+		$.sendData(sprintf("From: %s\r\n", $message.getSender()));
+		# to
+		foreach my $l in ($message.getTO()) {
+		    $.sendData(sprintf("To: %s\r\n", $l));
+		}
+		# cc
+		foreach my $l in ($message.getCC()) {
+		    $.sendData(sprintf("CC: %s\r\n", $l));
+		}
+		# bcc
+		foreach my $l in ($message.getBCC()) {
+		    $.sendData(sprintf("BCC: %s\r\n", $l));
+		}
+		# then the subject
+		$.sendData(sprintf("Subject: %s\r\n", $message.getSubject()));
+		# importance
+		if ($message.important()) {
+		    $.sendData(sprintf("Importance: high\r\n"));
+		    $.sendData(sprintf("X-Priority: 1\r\n"));
+		    $.sendData(sprintf("Priority: Urgent\r\n"));
+		}
+		if ($message.receiptRead()) {
+		    $.sendData(sprintf("Return-Receipt-To: %s\r\n", $message.getSender()));
+		}
+		if ($message.receiptDelivery()) {
+		    $.sendData(sprintf("Disposition-Notification-To: %s\r\n", $message.getSender()));
+		}
+		# additional headers
+		foreach my $hdr in ($message.getHeader()) {
+		    $.sendData(trim($hdr)+"\r\n");
+		}
+		# multipart message?
+		if (!$atts.empty()) {
+		    $.sendData(sprintf("MIME-Version: 1.0\r\n"));
+		    $.sendData(sprintf("Content-Type: multipart/mixed; boundary=\"%s\"\r\n", $.addhash()));
+		    $.sendData(sprintf("Content-Disposition: inline\r\n"));
+		    $.sendData("\r\n");
+		}
+		##
+		# body and attachments
+		$.sendData("\r\n");
+
+		# rest of data (the body)
+		
+		my string $be = $message.getBodyTransferEncoding();
+		if (!$atts.empty() || $be != Smtp::EncNone) {
+		    $.sendData(sprintf("--%s\r\n", $.addhash()));
+		    $.sendData(Smtp::encodeData($message.getBody(), sprintf("%s; charset=utf-8", Mime.TEXT), "inline", $be));
+		}
+		else 
+		    $.sendData($message.getBody()+"\r\n");
+		# send attachments
+		if (!$atts.empty()) {
+		    foreach my Smtp::Attachment $att in ($atts) {
+			$.sendData(sprintf("--%s\r\n", $.addhash()));
+			$.sendData($att.encode());
+		    }
+		    $.sendData(sprintf("--%s--\r\n", $.addhash()));
+		    $.sendData("\r\n");
+		}
+
+		# end of data
+		$str=".";
+		$rep=$.sendCommand($str);
+		$rep=$.parseReply($rep);
+		#$.log(LL_DEBUG_2, "-> %n", $rep);
+		$reply.'MSGID'=$rep;
+
+		# quit
+		$str=sprintf("QUIT");
+		$rep=$.sendCommand($str);
+		$rep=$.parseReply($rep);
+		#$.log(LL_DEBUG_2, "-> %n", $rep);
+		$reply.'QUIT'=$rep;
+	    }
+	    catch($ex) {
+		#$.log(LL_DEBUG_1, "EXCEPTION: %n\n", $ex);
+		$.forceDisconnect();
+		rethrow;
+	    }
+	    # close connection
+	    $.forceDisconnect();
+
+	    return $reply;
+	}
+
+	########################################################
+	# send a message object - MHT email
+	# - no attachments, resources are included directly in the mail page and referenced by relative links
+	hash sendMHTMessage(object $message) {
+	    if (getClassName($message) != "Message") {
+		throw "ARGUMENT-EXCEPTION", "use: sendMessage(Smtp::Message)";
+	    }
+
+	    if (!$message.sendPossible()) {
+		throw "ARGUMENT-EXCEPTION", "Message is not ready to be sent";
+	    }
+
+	    #$.log(LL_DEBUG_1, "sendMessage: %n", $message.toLine());
+	    
+	    # lock for sending
+	    my AutoLock $am($.mutex);
+
+	    my $reply;
+	    my $rep;
+	    my $str;
+	    try {
+		# open connection to server
+		$.connect();	
+		#$.openDumbTerminal();
+		$rep=$.readLine(ReadTimeout);
+		#$.log(LL_DEBUG_2, "connect reply: %n", trim($rep));
+
+		# send helo string
+		$rep=$.sendCommand("HELO "+gethostname());
+		$rep=$.parseReply($rep);
+		$reply.'HELO'=$rep;
+		#$.log(LL_DEBUG_2, "-> %n", $rep);
+		if ($rep.code>=500) {
+		    throw "SMTP-DATA-EXCEPTION", sprintf("error on sending HELO command: %n", $rep);
+		}
+
+		# send sender
+		$str=sprintf("MAIL FROM: %s", $message.getFrom());
+		$rep=$.sendCommand($str);
+		$rep=$.parseReply($rep);
+		#$.log(LL_DEBUG_2, "-> %n", $rep);
+		if ($rep.code>=500) {
+		    throw "SMTP-DATA-EXCEPTION", sprintf("error on sending FROM command: %n", $rep);
+		}
+
+		# send receipient
+		foreach my $rcpt in ($message.getRecipients()) {
+		    $str=sprintf("RCPT TO: %s", $rcpt);
+		    $rep=$.sendCommand($str);
+		    $rep=$.parseReply($rep);
+		    $reply.'RCPT'.$rcpt=$rep;
+		    #$.log(LL_DEBUG_2, "-> %n", $rep);
+		    if ($rep.code>=500) {
+		        throw "SMTP-DATA-EXCEPTION", sprintf("error on sending RCPT command: %n", $rep);
+		    }
+		}
+
+		# send data
+		$str=sprintf("DATA");
+		$rep=$.sendCommand($str);
+		$rep=$.parseReply($rep);
+		#$.log(LL_DEBUG_2, "-> %n", $rep);
+		if ($rep.'code'!=354) {
+		    throw "DATA-EXCEPTION", sprintf("error on sending DATA command: %n", $rep);
+		}
+		# sender
+		$.sendData(sprintf("From: %s\r\n", $message.getSender()));
+		foreach my $l in ($message.getTO()) {
+		    $.sendData(sprintf("To: %s\r\n", $l));
+		}
+		# cc
+		foreach my $l in ($message.getCC()) {
+		    $.sendData(sprintf("CC: %s\r\n", $l));
+		}
+		# bcc
+		foreach my $l in ($message.getBCC()) {
+		    $.sendData(sprintf("BCC: %s\r\n", $l));
+		}
+		# then the subject 
+		# encode the subject as base64 to ensure correct displaying of special characters through all smtp servers
+		$.sendData(sprintf("Subject: %s\r\n",  sprintf("=?utf-8?B?%s?=",makeBase64String($message.getSubject())) ));
+		
+		# importance
+		if ($message.important()) {
+		    $.sendData(sprintf("Importance: high\r\n"));
+		    $.sendData(sprintf("X-Priority: 1\r\n"));
+		    $.sendData(sprintf("Priority: Urgent\r\n"));
+		}
+		if ($message.receiptRead()) {
+		    $.sendData(sprintf("Return-Receipt-To: %s\r\n", $message.getSender()));
+		}
+		if ($message.receiptDelivery()) {
+		    $.sendData(sprintf("Disposition-Notification-To: %s\r\n", $message.getSender()));
+		}  
+		# additional headers
+		foreach my $hdr in ($message.getHeader()) {
+		    $.sendData(trim($hdr)+"\r\n");
+		}    
+		# entire MHT body 
+		$.sendData($message.getBody());
+		$.sendData("\r\n");
+		# there are no attachments allowed in MHT emails for HANF2
+		$str="."; # end of data
+		$rep=$.sendCommand($str);
+		$rep=$.parseReply($rep);
+		#$.log(LL_DEBUG_2, "-> %n", $rep);
+		$reply.'MSGID'=$rep;
+
+		# quit
+		$str=sprintf("QUIT");
+		$rep=$.sendCommand($str);
+		$rep=$.parseReply($rep);
+		#$.log(LL_DEBUG_2, "-> %n", $rep);
+		$reply.'QUIT'=$rep;
+	    }
+	    catch($ex) {
+		#$.log(LL_DEBUG_1, "EXCEPTION: %n\n", $ex);
+		$.forceDisconnect();
+		rethrow;
+	    }
+	    # close connection
+	    $.forceDisconnect();
+
+	    return $reply;
+	}
+
+	# force disconnect of socket without error
+	forceDisconnect() {
+	    if ($.isConnected()) {
+		try {
+		    $.disconnect();
+		}
+		catch($ex) {
+		    # ignore
+		}
+	    }
+	}
+
+    } # class
+} # namespace
+
+# END
+

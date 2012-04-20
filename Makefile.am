@@ -11,7 +11,8 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-USER_MODULES = qlib/HttpServer.qm
+USER_MODULES = qlib/HttpServer.qm \
+	qlib/Smtp.qm
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC

@@ -206,8 +206,11 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
    first_line(n_first_line), last_line(n_last_line), parse_file(get_parse_file()),
    lv(0), argvid(0), selfid(0), resolved(false) {
    int64 po = getProgram()->getParseOptions64();
+
+   bool needs_types = (bool)(po & (PO_REQUIRE_TYPES | PO_REQUIRE_PROTOTYPES));
+
    // assign no return type if return type declaration is missing and PO_REQUIRE_TYPES or PO_REQUIRE_PROTOTYPES is set
-   if (!retTypeInfo && (po & (PO_REQUIRE_TYPES | PO_REQUIRE_PROTOTYPES)))
+   if (!retTypeInfo && needs_types)
       returnTypeInfo = nothingTypeInfo;
    delete retTypeInfo;
 
@@ -215,8 +218,6 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
       str = NO_TYPE_INFO;
       return;
    }
-
-   int needs_types = po & (PO_REQUIRE_TYPES | PO_REQUIRE_PROTOTYPES);
 
    ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
 
@@ -295,7 +296,7 @@ void UserSignature::pushParam(BarewordNode *b, bool needs_types) {
    defaultArgList.push_back(0);
 
    if (needs_types)
-      parse_error(parse_file, first_line, last_line, "parameter '%s' declared without type information, but parse options require all declarations to have type information", b->str);
+      parse_error(QoreProgramLocation(first_line, last_line, parse_file), "parameter '%s' declared without type information, but parse options require all declarations to have type information", b->str);
 
    if (!(getProgram()->getParseOptions64() & PO_ALLOW_BARE_REFS))
       parse_error("parameter '%s' declared without '$' prefix, but parse option 'allow-bare-defs' is not set", b->str);
@@ -306,18 +307,18 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
    // check for duplicate name
    for (name_vec_t::iterator i = names.begin(), e = names.end(); i != e; ++i)
       if (*i == v->getName())
-	 parse_error(parse_file, first_line, last_line, "duplicate variable '%s' declared in parameter list", (*i).c_str());
+	 parse_error(QoreProgramLocation(first_line, last_line, parse_file), "duplicate variable '%s' declared in parameter list", (*i).c_str());
 
    names.push_back(v->getName());
 
    bool is_decl = v->isDecl();
    if (needs_types && !is_decl)
-      parse_error(parse_file, first_line, last_line, "parameter '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
+      parse_error(QoreProgramLocation(first_line, last_line, parse_file), "parameter '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
 
    // see if this is a new object call
    if (v->has_effect()) {
       // here we make 4 virtual function calls when 2 would be enough, but no need to optimize for speed for an exception
-      parse_error(parse_file, first_line, last_line, "parameter '%s' may not be declared with new object syntax; instead use: '%s %s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
+      parse_error(QoreProgramLocation(first_line, last_line, parse_file), "parameter '%s' may not be declared with new object syntax; instead use: '%s %s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
    }
 
    if (is_decl) {
@@ -357,9 +358,9 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
 
    if (v->explicitScope()) {
       if (v->getType() == VT_LOCAL)
-	 parse_error(parse_file, first_line, last_line, "invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
+	 parse_error(QoreProgramLocation(first_line, last_line, parse_file), "invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
       else if (v->getType() == VT_GLOBAL)
-	 parse_error(parse_file, first_line, last_line, "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
+	 parse_error(QoreProgramLocation(first_line, last_line, parse_file), "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
    }
 }
 

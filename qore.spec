@@ -187,7 +187,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/bin/qore
-%{module_ver_dir}/HttpServer.qm
+%{module_ver_dir}
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*
