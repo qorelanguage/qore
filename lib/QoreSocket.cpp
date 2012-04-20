@@ -589,7 +589,7 @@ struct qore_socket_private {
       }
       // add data and content-length header if necessary
       if (size)
-	 hdr.sprintf("Content-Length: %d\r\n", size);
+	 hdr.sprintf("Content-Length: "QSD"\r\n", size);
 
       hdr.concat("\r\n");
    }
@@ -666,7 +666,7 @@ struct qore_socket_private {
 	 socklen_t size = sizeof(struct sockaddr_un);
 #endif
 	 rc = accept_intern((struct sockaddr *)&addr_un, (socklen_t *)&size, timeout_ms, xsink);
-	 //printd(1, "qore_socket_private::accept_internal() %d bytes returned\n", size);
+	 //printd(1, "qore_socket_private::accept_internal() "QSD" bytes returned\n", size);
 
 	 if (rc >= 0 && source) {
 	    QoreStringNode *addr = new QoreStringNode(enc);
@@ -1655,7 +1655,7 @@ struct qore_socket_private {
 	 rc = recv(xsink, "recv", buf, bs, 0, timeout, false);
 
 	 if (rc <= 0) {
-	    printd(5, "qore_socket_private::recv(%d, %d) bs=%d, br=%d, rc=%d, errno=%d (%s)\n", bufsize, timeout, bs, br, rc, errno, strerror(errno));
+	    printd(5, "qore_socket_private::recv(%d, %d) bs="QSD", br="QSD", rc="QSD", errno=%d (%s)\n", bufsize, timeout, bs, br, rc, errno, strerror(errno));
 
 	    if (rc || !br || (!rc && bufsize > 0)) {
 	       str->deref();
@@ -1678,7 +1678,7 @@ struct qore_socket_private {
 	 }
       }
 
-      printd(5, "qore_socket_private::recv() received %d byte(s), bufsize=%d, strlen=%d str='%s'\n", br, bufsize, str ? str->strlen() : 0, str ? str->getBuffer() : "n/a");
+      printd(5, "qore_socket_private::recv() received "QSD" byte(s), bufsize="QSD", strlen="QSD" str='%s'\n", br, bufsize, (size_t)(str ? str->strlen() : 0), str ? str->getBuffer() : "n/a");
       // "fix" return code value if no buffer size was set
       if (bufsize <= 0 && !rc)
 	 rc = 1;
@@ -1714,7 +1714,7 @@ struct qore_socket_private {
 	       buf = (char *)realloc(buf, tot);
 	    }
 	    rc = recv(xsink, "recv", buf + rd, tot - rd - 1, 0, 0, false);
-	    //printd(0, "qore_socket_private::recv(to=%d) rc=%d rd="QSD"\n", timeout, rc, rd);
+	    //printd(0, "qore_socket_private::recv(to=%d) rc="QSD" rd="QSD"\n", timeout, rc, rd);
 	    // if the remote end has closed the connection, return what we have
 	    if (!rc)
 	       break;
@@ -1770,12 +1770,12 @@ struct qore_socket_private {
       // "fix" return code value if no buffer size was set
       if (bufsize <= 0 && !rc)
 	 rc = 1;
-      printd(5, "qore_socket_private::recvBinary() received %d byte(s), bufsize=%d, strlen=%d\n", br, bufsize, b->size());
+      printd(5, "qore_socket_private::recvBinary() received "QSD" byte(s), bufsize="QSD", strlen="QSD"\n", br, bufsize, b->size());
       return b.release();
    }
 
    DLLLOCAL BinaryNode *recvBinary(int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
-      //printd(5, "QoreSocket::recvBinary(%d, %d) this=%p\n", timeout, rc, this);
+      //printd(5, "QoreSocket::recvBinary(%d, "QSD") this=%p\n", timeout, rc, this);
       if (sock == QORE_INVALID_SOCKET) {
 	 if (xsink)
 	    se_not_open("recvBinary", xsink);
@@ -1939,7 +1939,7 @@ struct qore_socket_private {
 	 else
 	    rc = ssl->write(xsink, mname, buf + bs, size - bs);
 
-	 //printd(5, "qore_socket_private::send() bs=%ld rc=%d len=%ld (total=%ld)\n", bs, rc, size - bs, size);
+	 //printd(5, "qore_socket_private::send() bs=%ld rc="QSD" len="QSD" (total="QSD")\n", bs, rc, size - bs, size);
 	 if (rc < 0)
 	    return rc;
 
@@ -1951,7 +1951,7 @@ struct qore_socket_private {
 	    break;
       }
 
-      //printd(5, "qore_socket_private::send() sent %ld bytes (size=%ld)\n", bs, size);
+      //printd(5, "qore_socket_private::send() sent "QSD" bytes (size="QSD")\n", bs, size);
       return 0;
    }
 
@@ -2339,8 +2339,6 @@ int QoreSocket::sendi1(char i) {
    if (rc < 0)
       return -1;
 
-   //printd(5, "QoreSocket::sendi1() sent %d byte(s)\n", bs);
-
    return 0;
 }
 
@@ -2635,7 +2633,7 @@ int QoreSocket::recvu4LSB(int timeout, unsigned int *val) {
 
 int QoreSocket::send(int fd, qore_offset_t size) {
    if (priv->sock == QORE_INVALID_SOCKET || !size) {
-      printd(5, "QoreSocket::send() ERROR: sock=%d size=%d\n", priv->sock, size);
+      printd(5, "QoreSocket::send() ERROR: sock=%d size="QSD"\n", priv->sock, size);
       return -1;
    }
 
@@ -2861,7 +2859,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 	 }
       }
       // DEBUG
-      //printd(0, "QoreSocket::readHTTPChunkedBodyBinary(): got chunk size (%d bytes) string: %s\n", str.strlen(), str.getBuffer());
+      //printd(0, "QoreSocket::readHTTPChunkedBodyBinary(): got chunk size ("QSD" bytes) string: %s\n", str.strlen(), str.getBuffer());
 
       // terminate string at ';' char if present
       char *p = (char *)strchr(str.getBuffer(), ';');
@@ -2872,7 +2870,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
       if (size == 0)
 	 break;
       if (size < 0) {
-	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%d)", size);
+	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%ld)", size);
 	 return 0;
       }
 
@@ -2902,7 +2900,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
       // copy string buffer to binary object
       b->append(str.getBuffer(), size);
       // DEBUG
-      //printd(0, "QoreSocket::readHTTPChunkedBodyBinary(): received binary chunk: size=%d br=%d total=%ld\n", size, br, b->size());
+      //printd(0, "QoreSocket::readHTTPChunkedBodyBinary(): received binary chunk: size=%d br="QSD" total="QSD"\n", size, br, b->size());
       
       // read crlf after chunk
       char crlf[2];
@@ -2979,7 +2977,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 	 }
       }
       // DEBUG
-      //printd(0, "got chunk size (%d bytes) string: %s\n", str.strlen(), str.getBuffer());
+      //printd(0, "got chunk size ("QSD" bytes) string: %s\n", str.strlen(), str.getBuffer());
 
       // terminate string at ';' char if present
       char *p = (char *)strchr(str.getBuffer(), ';');
@@ -3022,7 +3020,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
       // ensure new data read is included in string size
       buf->terminate(buf->strlen() + size);
       // DEBUG
-      //printd(0, "got chunk (%d bytes): %s\n", br, buf->getBuffer() + buf->strlen() -  size);
+      //printd(0, "got chunk ("QSD" bytes): %s\n", br, buf->getBuffer() + buf->strlen() -  size);
 
       // read crlf after chunk
       char crlf[2];

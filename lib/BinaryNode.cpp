@@ -124,7 +124,7 @@ QoreString *BinaryNode::getAsString(bool &del, int foff, ExceptionSink *xsink) c
 }
 
 int BinaryNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("binary object %p (%d byte%s)", getPtr(), size(), size() == 1 ? "" : "s");
+   str.sprintf("binary object %p ("QSD" byte%s)", getPtr(), size(), size() == 1 ? "" : "s");
    return 0;
 }
 
