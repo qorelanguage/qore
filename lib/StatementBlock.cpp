@@ -445,6 +445,8 @@ void TopLevelStatementBlock::parseInit(int64 po) {
 	 push_top_level_local_var(lvars->lv[i]);
    }
 
+   // resolve global variables before initializing the top-level statements
+   qore_root_ns_private::parseResolveGlobalVars();
    int lvids = parseInitIntern(0, PF_TOP_LEVEL, hwm);
 
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d, lvids=%d\n", &rns, first, lvids);

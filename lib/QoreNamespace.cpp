@@ -1173,7 +1173,7 @@ void qore_ns_private::parseAddGlobalVarDecl(char *name, const QoreTypeInfo* type
    checkGlobalVarDecl(e.var, *e.name);
 }
 
-void qore_root_ns_private::parseResolveGlobalVars() {
+void qore_root_ns_private::parseResolveGlobalVarsIntern() {
    for (gvlist_t::iterator i = pend_gvlist.begin(), e = pend_gvlist.end(); i != e; ++i) {
       // resolve namespace
       const NamedScope& n = *((*i).name);
