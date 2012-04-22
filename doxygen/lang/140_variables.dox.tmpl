@@ -88,5 +88,5 @@ global a = 1@endverbatim
 
     Unlike local variables, global variables are members of @ref qore_namespaces "namespaces"; if a namespace path is not given, then the global variable will be assumed to be in the root namespace.  Global variables declared in @ref qore_namespaces "namespaces" cannot be initialized at the same time as the declaration, but instead have to be initialized elsewhere.
 
-    When defining a @ref user_module "user module", the \b our keyword can be preceded by @ref public "public", which means that the global variable will be available (imported) in the @ref Qore::Program "Program" object importing the module.  See @ref public "public" for more information.
+    When defining a @ref user_modules "user module", the \b our keyword can be preceded by @ref mod_public "public", which means that the global variable will be available (imported) in the @ref Qore::Program "Program" object importing the module.  See @ref mod_public "public" for more information.
 */

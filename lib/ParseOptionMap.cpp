@@ -63,7 +63,8 @@ void ParseOptionMap::static_init() {
    DO_MAP("no-locale-control",        PO_NO_LOCALE_CONTROL);
    DO_MAP("no-io",                    PO_NO_IO);
    DO_MAP("no-modules",               PO_NO_MODULES);
-   DO_MAP("lockdown",                 PO_LOCKDOWN);   
+   DO_MAP("lockdown",                 PO_LOCKDOWN);
+   DO_MAP("no-embedded-logic",        PO_NO_EMBEDDED_LOGIC);
 }
 
 int ParseOptionMap::find_code(const char *name) {

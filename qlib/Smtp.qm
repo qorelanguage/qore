@@ -106,8 +106,8 @@ public namespace Smtp {
 	    bool $.importance = False;
 	    bool $.deliveryReceipt = False;
 	    bool $.readReceipt = False;
-	    # names
 
+	    # names
 	    #$.from; # will be prefilled (and overwritten) with the sender
 	    list $.to = (); # list of names for to (header only) will be prefilled (and overwritten) with the recipients
 	    list $.cc = (); # list of cc's

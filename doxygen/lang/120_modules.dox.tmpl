@@ -8,7 +8,7 @@
 
     Use the load_module() function to load %Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the @ref requires "%requires" directive.
 
-    From %Qore 0.7.1 onwards, you can specify a comparison operator (one of < <=, =, >=, or >) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'. If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version \c "1.0" compared with version \c "1.0.1" will be exteneded to "1.0.0").
+    From %Qore 0.7.1 onwards, you can specify a comparison operator (one of < <=, =, >=, or >) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'. If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version \c "1.0" compared with version \c "1.0.1" will be exteneded to \c "1.0.0").
 
     Also note that DBI drivers are loaded on demand by the @ref Qore::SQL::Datasource and @ref Qore::SQL::DatasourcePool classes.
 
@@ -53,14 +53,15 @@
     User modules are written in %Qore and delivered in source form.  They must have the extension \c "*.qm".
 
     User modules will have their own dedicated @ref Qore::Program "Program" object; the @ref Qore::Program "Program" object is created automatically when the module is loaded and initialized.  The module's @ref Qore::Program "Program" object is created with locked parse options as follows:
-    - @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS "PO_NO_TOP_LEVEL_STATEMENTS"
-    - @ref Qore::PO_REQUIRE_PROTOTYPES "PO_REQUIRE_PROTOTYPES"
-    - @ref Qore::PO_REQUIRE_OUR "PO_REQUIRE_OUR"
-    - @ref Qore::PO_IN_MODULE "PO_IN_MODULE"
+    - @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS "PO_NO_TOP_LEVEL_STATEMENTS": modules provide API services and are not designed to be executed at the top-level.  Put any initialization code in the module's \c init closure
+    - @ref Qore::PO_REQUIRE_PROTOTYPES "PO_REQUIRE_PROTOTYPES": to ensure that module's APIs are transparent, all method and function declarations must include parameter and return types
+    - @ref Qore::PO_REQUIRE_OUR "PO_REQUIRE_OUR": this parse option is meant to ensure that typos in variable names are caught at parse time and to ensure transparency of variable types in the module's source code
+    - @ref Qore::PO_NO_EMBEDDED_LOGIC "PO_NO_EMBEDDED_LOGIC": this parse option is necessary because without it, it is trivial to work around %Qore's functional restriction framework
+    - @ref Qore::PO_IN_MODULE "PO_IN_MODULE": this parse option is set so that module code is recognized by the system when parsing modules
 
     When parsing module code, the default warning mask is set to @ref Qore::WARN_MODULES "WARN_MODULES", and any warnings are treated as errors.   Furthermore, any restrictions that the importing @ref Qore::Program "Program" object has will be added to the module's @ref Qore::Program "Program" object.
 
-    Any @ref qore_namespaces "namespaces", @ref qore_classes "classes", @ref constants "constants", @ref qore_functions "functions", and @ref global_variables "global variables" declared as @ref public "public" will be exported into the importing @ref Qore::Program "Program" object; all other declarations will be private to the module's @ref Qore::Program "Program" object.  Note that the root namespace of a module @ref Qore::Program "Program" is always @ref public "public" by default.
+    Any @ref qore_namespaces "namespaces", @ref qore_classes "classes", @ref constants "constants", @ref qore_functions "functions", and @ref global_variables "global variables" declared as @ref mod_public "public" will be exported into the importing @ref Qore::Program "Program" object; all other declarations will be private to the module's @ref Qore::Program "Program" object.  Note that the root namespace of a module @ref Qore::Program "Program" is always @ref mod_public "public" by default.
 
     Note that global variables exported from a module's @ref Qore::Program "Program" object are exported as references; each global variable declared in a module is unique, and they reside in the module's @ref Qore::Program "Program" object.
 

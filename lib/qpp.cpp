@@ -3192,6 +3192,7 @@ void init() {
    dmap["LOCALE_CONTROL"] = "PO_NO_LOCALE_CONTROL";
    dmap["MODULES"] = "PO_NO_MODULES";
    dmap["IN_MODULE"] = "PO_IN_MODULE";
+   dmap["EMBEDDED_LOGIC"] = "PO_NO_EMBEDDED_LOGIC";
 
    // initialize code flag set
    fset.insert("NO_FLAGS");

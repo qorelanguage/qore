@@ -52,7 +52,7 @@ const PO_DEFAULT = PO_DEFAULT;
  */
 const PO_FREE_OPTIONS = PO_FREE_OPTIONS;
 
-//! Only set by the system when in a @ref user_module Program
+//! Only set by the system when in a @ref user_modules "user module" Program
 /** @note This option cannot be set manually or an exception will be raised
  */
 const PO_IN_MODULE = PO_IN_MODULE;
@@ -112,6 +112,9 @@ const PO_NO_CONSTANT_DEFS = PO_NO_CONSTANT_DEFS;
     @see @ref no-database "%no-database"
 */
 const PO_NO_DATABASE = PO_NO_DATABASE;
+
+//! Prohibits embedded logic from being used
+const PO_NO_EMBEDDED_LOGIC = PO_NO_EMBEDDED_LOGIC;
 
 //! Prohibits any external access
 /** made up of @ref PO_NO_PROCESS_CONTROL | @ref PO_NO_NETWORK | @ref PO_NO_FILESYSTEM | @ref PO_NO_DATABASE | @ref PO_NO_EXTERNAL_INFO | @ref PO_NO_EXTERNAL_PROCESS
@@ -340,7 +343,7 @@ const WARN_EXCESS_ARGS = QP_WARN_EXCESS_ARGS;
  */
 const WARN_INVALID_OPERATION = QP_WARN_INVALID_OPERATION;
 
-//! The default warning mask for @ref user_module "user modules"
+//! The default warning mask for @ref user_modules "user modules"
 /** This warning is made up of the following values combined with binary or:
     - @ref WARN_UNREACHABLE_CODE
     - @ref WARN_NONEXISTENT_METHOD_CALL
@@ -420,7 +423,7 @@ my Program $pgm();
 
     @throw PROGRAM-OPTION-ERROR invalid parse options used
  */
-Program::constructor(softint po = PO_DEFAULT) [dom=IN_MODULE] {
+Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
    if (po & PO_SYSTEM_OPS) {
       xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", po);
       return;
@@ -452,7 +455,7 @@ $pgm.parse($code, "label");
 
     @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
  */
-nothing Program::parse(string code, string label) {
+nothing Program::parse(string code, string label) [dom=EMBEDDED_LOGIC] {
    // format label as "<run-time-loaded: xxx>"
    QoreString nlabel("<run-time-loaded: ");
    nlabel.concat(label, xsink);
@@ -486,7 +489,7 @@ while (exists $wh) {
 
     @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
  */
-*hash Program::parse(string code, string label, softint warning_mask) {
+*hash Program::parse(string code, string label, softint warning_mask) [dom=EMBEDDED_LOGIC] {
    // format label as "<run-time-loaded: xxx>"
    QoreString nlabel("<run-time-loaded: ");
    nlabel.concat(label, xsink);
@@ -520,7 +523,7 @@ $pgm.parsePending($code, "label");
 
     @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
  */
-nothing Program::parsePending(string code, string label) {
+nothing Program::parsePending(string code, string label) [dom=EMBEDDED_LOGIC] {
    // format label as "<run-time-loaded: xxx>"
    QoreString nlabel("<run-time-loaded: ");
    nlabel.concat(label, xsink);
@@ -556,7 +559,7 @@ $pgm.parseCommit();
 
     @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
  */
-*hash Program::parsePending(string code, string label, softint warning_mask) {
+*hash Program::parsePending(string code, string label, softint warning_mask) [dom=EMBEDDED_LOGIC] {
    // format label as "<run-time-loaded: xxx>"
    QoreString nlabel("<run-time-loaded: ");
    nlabel.concat(label, xsink);

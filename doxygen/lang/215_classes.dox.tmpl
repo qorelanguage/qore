@@ -6,7 +6,7 @@
     @note each %Qore type has a "pseudo-class" associated with it (the default is @ref Qore::zzz8valuezzz9); methods from the data type's "pseudo-class" can be run on any value of that type; see "Pseudo Class for Type" headings in @ref basic_data_types for more information.
 
     @par In-Line Class Declaration Syntax
-    <tt>[@ref public "public"] \b class [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>] [<b>inherits</b> [<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]] {</tt>\n
+    <tt>[@ref mod_public "public"] \b class [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>] [<b>inherits</b> [<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]] {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>private</b>] $.</tt><em>member_name</em><tt>[, ...];]</tt>\n\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>private</b>|<b>public</b> {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[[</tt><em>@ref data_type_declarations "member_type"</em><tt>] $.</tt><em>member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
@@ -20,7 +20,7 @@
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>...</tt>\n
     <tt>}</tt>
 
-    When defining a @ref user_module "user module", class declarations can be preceded by @ref public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module.  See @ref public "public" for more information.
+    When defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module.  See @ref mod_public "public" for more information.
 
     @par In-Line Class Declaration Example
     @code
@@ -44,13 +44,13 @@ class MyClass inherits MyBaseClass {
 
     @par Out-Of-Line Class Declaration Syntax
     Alternatively class declarations and method declarations can be defined out of line as follows:\n
-    <tt>[@ref public "public"] \b class [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt> [<b>inherits</b> [<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]];</tt>\n\n
+    <tt>[@ref mod_public "public"] \b class [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt> [<b>inherits</b> [<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]];</tt>\n\n
     <tt>[[<b>private</b>|<b>public</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>::<b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
     <tt>}]</tt>\n\n
     <tt>[[<b>static</b>] [<b>@ref synchronized "synchronized"</b>] [<b>private</b>|<b>public</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
     <tt>}]</tt>
 
-    As with inline class definitions, when defining a @ref user_module "user module", class declarations can be preceded by @ref public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module.  See @ref public "public" for more information.
+    As with inline class definitions, when defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module.  See @ref mod_public "public" for more information.
 
     @par Out-Of-Line Class Declaration Example
     @code

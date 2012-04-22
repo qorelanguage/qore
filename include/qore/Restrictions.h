@@ -63,6 +63,7 @@
 #define PO_NO_SYSTEM_FUNC_VARIANTS     (1LL << 31)  //!< do not inherit any builtin function variants to the new program's space
 #define PO_INHERIT_GLOBAL_VARS         (1LL << 32)  //!< inherit global variables from the parent into the new program's space
 #define PO_IN_MODULE                   (1LL << 33)  //!< do not use directly, this is set automatically in user module programs
+#define PO_NO_EMBEDDED_LOGIC           (1LL << 34)  //!< do not allow embedded logic or runtime parsing
 
 #define PO_DEFAULT                     0            //!< no parse options set by default
 
@@ -112,5 +113,6 @@
 #define QDOM_LOCALE_CONTROL     PO_NO_LOCALE_CONTROL      //!< provices access to functionality that changes locale information
 #define QDOM_MODULES            PO_NO_MODULES             //!< provides access to external modules
 #define QDOM_IN_MODULE          PO_IN_MODULE              //!< tagged with code that is restricted in user modules
+#define QDOM_EMBEDDED_LOGIC     PO_NO_EMBEDDED_LOGIC      //!< provides dynamic parsing functionality
 
 #endif //_QORE_DOMAIN_H

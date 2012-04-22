@@ -31,7 +31,7 @@
 #include <map>
 
 // user module parse options
-#define USER_MOD_PO (PO_NO_TOP_LEVEL_STATEMENTS | PO_REQUIRE_PROTOTYPES | PO_REQUIRE_OUR | PO_IN_MODULE)
+#define USER_MOD_PO (PO_NO_TOP_LEVEL_STATEMENTS | PO_REQUIRE_PROTOTYPES | PO_REQUIRE_OUR | PO_IN_MODULE | PO_NO_EMBEDDED_LOGIC)
 
 //! list of version numbers in order of importance (i.e. 1.2.3 = 1, 2, 3)
 struct version_list_t : public std::vector<int> {
