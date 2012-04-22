@@ -157,6 +157,17 @@ AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&t
    return ref.var->getValuePtr(vl, typeInfo, xsink);
 }
 
+AbstractQoreNode **VarRefNode::getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const {
+   if (type == VT_LOCAL)
+      return ref.id->getContainerValuePtr(vl, typeInfo, omap, xsink);
+   if (type == VT_CLOSURE) {
+      printd(5, "VarRefNode::eval() closure var %p (%s)\n", ref.id, ref.id);
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->getValuePtr(vl, typeInfo, omap, xsink);
+   }
+   return ref.var->getValuePtr(vl, typeInfo, xsink);
+}
+
 void VarRefNode::setValue(AbstractQoreNode *n, ExceptionSink *xsink) const {
    if (type == VT_LOCAL)
       ref.id->setValue(n, xsink);
@@ -335,6 +346,41 @@ double VarRefNode::divideEqualsFloat(double v, ExceptionSink *xsink) {
    assert(type == VT_CLOSURE);
    ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
    return val->divideEqualsFloat(v, xsink);
+}
+
+int64 VarRefNode::removeBigInt(ExceptionSink* xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->removeBigInt(xsink);
+   if (type == VT_CLOSURE) {
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->removeBigInt(xsink);
+   }
+   assert(type == VT_GLOBAL);
+   ReferenceHolder<> val(ref.var->remove(xsink), xsink);
+   return val ? val->getAsBigInt() : 0;
+}
+
+double VarRefNode::removeFloat(ExceptionSink* xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->removeFloat(xsink);
+   if (type == VT_CLOSURE) {
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->removeFloat(xsink);
+   }
+   assert(type == VT_GLOBAL);
+   ReferenceHolder<> val(ref.var->remove(xsink), xsink);
+   return val ? val->getAsFloat() : 0.0;
+}
+
+AbstractQoreNode* VarRefNode::remove(ExceptionSink* xsink, bool for_del) {
+   if (type == VT_LOCAL)
+      return ref.id->remove(xsink, for_del);
+   if (type == VT_CLOSURE) {
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->remove(xsink);
+   }
+   assert(type == VT_GLOBAL);
+   return ref.var->remove(xsink);
 }
 
 AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {

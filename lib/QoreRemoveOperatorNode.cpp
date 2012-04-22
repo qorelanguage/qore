@@ -35,6 +35,18 @@ int QoreRemoveOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink
    return 0;
 }
 
+int64 QoreRemoveOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+   return remove_lvalue_bigint(exp, xsink);
+}
+
+int QoreRemoveOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
+   return (int)remove_lvalue_bigint(exp, xsink);
+}
+
+double QoreRemoveOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
+   return remove_lvalue_float(exp, xsink);
+}
+
 AbstractQoreNode *QoreRemoveOperatorNode::evalImpl(ExceptionSink *xsink) const {
    return remove_lvalue(exp, xsink);
 }

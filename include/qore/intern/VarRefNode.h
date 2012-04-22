@@ -176,7 +176,13 @@ public:
    DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink);
    DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink);
 
+   DLLLOCAL int64 removeBigInt(ExceptionSink* xsink);
+   DLLLOCAL double removeFloat(ExceptionSink* xsink);
+   DLLLOCAL AbstractQoreNode* remove(ExceptionSink* xsink, bool for_del);
+
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode **getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const;
+
    DLLLOCAL qore_var_t getType() const { return type; }
    DLLLOCAL const char *getName() const { return name.ostr; }
    // called when a list of variables is declared

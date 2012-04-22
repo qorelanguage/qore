@@ -116,9 +116,12 @@ public:
    DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
    DLLLOCAL bool isImported() const;
    DLLLOCAL void deref(ExceptionSink *xsink);
+
    DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *getReferencedValue() const;
+   DLLLOCAL AbstractQoreNode* remove(ExceptionSink* xsink);
+
    //DLLLOCAL ScopedObjectCallNode *makeNewCall(AbstractQoreNode *args) const;
    DLLLOCAL void doDoubleDeclarationError() {
       // make sure types are identical or throw an exception
@@ -252,7 +255,9 @@ DLLLOCAL AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, Except
 // deletes the value from an lvalue expression
 DLLLOCAL void delete_lvalue(AbstractQoreNode *node, ExceptionSink *xsink);
 // like delete_lvalue, but returns the value removed from the lvalue
-DLLLOCAL AbstractQoreNode *remove_lvalue(AbstractQoreNode *node, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *remove_lvalue(AbstractQoreNode *node, ExceptionSink *xsink, bool for_del = false);
+DLLLOCAL int64 remove_lvalue_bigint(AbstractQoreNode *node, ExceptionSink *xsink);
+DLLLOCAL double remove_lvalue_float(AbstractQoreNode *node, ExceptionSink *xsink);
 
 DLLLOCAL void delete_global_variables();
 

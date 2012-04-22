@@ -125,6 +125,26 @@ AbstractQoreNode **Var::getValuePtrIntern(AutoVLock *vl, const QoreTypeInfo *&va
    return const_cast<AbstractQoreNode **>(&v.val.value);
 }
 
+AbstractQoreNode* Var::remove(ExceptionSink* xsink) {
+   m.lock();
+   if (type == GV_IMPORT) {
+      if (v.ivar.readonly) {
+	 m.unlock();
+	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only imported variable $%s", v.ivar.refptr->getName());
+	 return 0;
+      }
+
+      // perform lock handoff
+      m.unlock();
+      return v.ivar.refptr->remove(xsink);
+   }
+
+   AbstractQoreNode* rv = v.val.value;
+   v.val.value = 0;
+   m.unlock();
+   return rv;
+}
+
 // note: unlocking the lock is managed with the AutoVLock object
 AbstractQoreNode **Var::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&varTypeInfo, ExceptionSink *xsink) const {
    m.lock();
@@ -436,12 +456,12 @@ static AbstractQoreNode **check_unique(AbstractQoreNode **p, ExceptionSink *xsin
 // only returns a value ptr if the expression points to an already-existing value
 // (i.e. does not create entries anywhere)
 // needed for deletes
-static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl, ObjMap &omap) {
-   printd(5, "getUniqueExistingVarValuePtr(%p) %s\n", n, n->getTypeName());
+static AbstractQoreNode **get_unique_existing_container_value_ptr(AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl, ObjMap &omap) {
+   printd(5, "get_unique_existing_container_value_ptr(%p) %s\n", n, n->getTypeName());
    qore_type_t ntype = n->getType();
    const QoreTypeInfo *typeInfo = 0;
    if (ntype == NT_VARREF)
-      return check_unique(reinterpret_cast<VarRefNode *>(n)->getValuePtr(vl, typeInfo, omap, xsink), xsink);
+      return check_unique(reinterpret_cast<VarRefNode *>(n)->getContainerValuePtr(vl, typeInfo, omap, xsink), xsink);
 
    // getStackObject() will always return a value here (self refs are only legal in methods)
    if (ntype == NT_SELF_VARREF) {
@@ -454,7 +474,7 @@ static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, Exce
 
    assert(tree && (tree->getOp() == OP_LIST_REF || tree->getOp() == OP_OBJECT_REF));
 
-   AbstractQoreNode **val = getUniqueExistingVarValuePtr(tree->left, xsink, vl, omap);
+   AbstractQoreNode **val = get_unique_existing_container_value_ptr(tree->left, xsink, vl, omap);
    if (!val || !(*val))
       return 0;
 
@@ -502,29 +522,7 @@ static AbstractQoreNode *remove_hash_object_value(QoreHashNode *h, QoreObject *o
    return h->takeKeyValue(mem);
 }
 
-AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
-   AutoVLock vl(xsink);
-   AbstractQoreNode **val;
-
-   qore_type_t lvtype = lvalue->getType();
-
-   // FIXME: add logic to detect breaking a recursive reference
-   ObjMap omap;
-
-   // if the node is a variable reference, then find value ptr, set it to 0, and return the value
-   if (lvtype == NT_VARREF) {
-      const QoreTypeInfo *typeInfo = 0;
-      val = reinterpret_cast<VarRefNode *>(lvalue)->getValuePtr(&vl, typeInfo, omap, xsink);
-      if (!val || !*val)
-	 return 0;
-
-      printd(5, "remove_lvalue() setting ptr %p (val=%p) to NULL\n", val, (*val));
-      AbstractQoreNode *rv = *val;
-      *val = 0;
-
-      return rv;
-   }
-
+AbstractQoreNode *remove_lvalue_intern(ExceptionSink *xsink, AbstractQoreNode *lvalue, AutoVLock& vl, qore_type_t lvtype, ObjMap& omap) {
    if (lvtype == NT_SELF_VARREF)
       return getStackObject()->takeMember(reinterpret_cast<SelfVarrefNode *>(lvalue)->str, xsink);
 
@@ -541,7 +539,7 @@ AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) 
 	 return 0;
 
       // find variable ptr, exit if doesn't exist anyway
-      val = getUniqueExistingVarValuePtr(tree->left, xsink, &vl, omap);
+      AbstractQoreNode **val = get_unique_existing_container_value_ptr(tree->left, xsink, &vl, omap);
       
       if (!val || !(*val) || (*val)->getType() != NT_LIST || *xsink)
 	 return 0;
@@ -558,7 +556,7 @@ AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) 
       return 0;
 
    // find variable ptr, exit if doesn't exist anyway
-   val = getUniqueExistingVarValuePtr(tree->left, xsink, &vl, omap);      
+   AbstractQoreNode **val = get_unique_existing_container_value_ptr(tree->left, xsink, &vl, omap);      
    if (!val || !(*val) || *xsink)
       return 0;
 
@@ -593,8 +591,52 @@ AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) 
    return remove_hash_object_value(h, o, mem->getBuffer(), xsink);
 }
 
+AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink, bool for_del) {
+   AutoVLock vl(xsink);
+   qore_type_t lvtype = lvalue->getType();
+
+   // FIXME: add logic to detect breaking a recursive reference
+   ObjMap omap;
+
+   // if the node is a variable reference, then find value ptr, set it to 0, and return the value
+   if (lvtype == NT_VARREF)
+      return reinterpret_cast<VarRefNode *>(lvalue)->remove(xsink, for_del);
+
+   return remove_lvalue_intern(xsink, lvalue, vl, lvtype, omap);
+}
+
+DLLLOCAL int64 remove_lvalue_bigint(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
+   AutoVLock vl(xsink);
+   qore_type_t lvtype = lvalue->getType();
+
+   // FIXME: add logic to detect breaking a recursive reference
+   ObjMap omap;
+
+   // if the node is a variable reference, then find value ptr, set it to 0, and return the value
+   if (lvtype == NT_VARREF) 
+      reinterpret_cast<VarRefNode *>(lvalue)->removeBigInt(xsink);
+
+   ReferenceHolder<> rv(remove_lvalue_intern(xsink, lvalue, vl, lvtype, omap), xsink);
+   return rv ? rv->getAsBigInt() : 0;
+}
+
+DLLLOCAL double remove_lvalue_float(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
+   AutoVLock vl(xsink);
+   qore_type_t lvtype = lvalue->getType();
+
+   // FIXME: add logic to detect breaking a recursive reference
+   ObjMap omap;
+
+   // if the node is a variable reference, then find value ptr, set it to 0, and return the value
+   if (lvtype == NT_VARREF) 
+      reinterpret_cast<VarRefNode *>(lvalue)->removeFloat(xsink);
+
+   ReferenceHolder<> rv(remove_lvalue_intern(xsink, lvalue, vl, lvtype, omap), xsink);
+   return rv ? rv->getAsFloat() : 0.0;
+}
+
 void delete_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
-   ReferenceHolder<AbstractQoreNode> v(remove_lvalue(lvalue, xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> v(remove_lvalue(lvalue, xsink, true), xsink);
    if (!v)
       return;
 
