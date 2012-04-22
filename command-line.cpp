@@ -30,7 +30,7 @@ qore_license_t license = QL_GPL;
 cl_mod_list_t cl_mod_list;
 
 // global parse_option
-int parse_options = PO_DEFAULT;
+int64 parse_options = PO_DEFAULT;
 int warnings = QP_WARN_DEFAULT;
 int qore_lib_options = QLO_NONE;
 
@@ -214,7 +214,7 @@ static void show_latest_module_api(const char *arg) {
 }
 
 static void set_parse_option(const char *arg) {
-   int code = ParseOptionMap::find_code(arg);
+   int64 code = ParseOptionMap::find_code64(arg);
    if (code == -1) {
       fprintf(stderr, "unknown parse option '%s', use -o or --list-parse-options\n", arg);
       exit(1);

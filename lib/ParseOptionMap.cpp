@@ -70,6 +70,12 @@ void ParseOptionMap::static_init() {
 int ParseOptionMap::find_code(const char *name) {
    opt_map_t::iterator i = map.find(name);
    //printd(5, "find_code(%s) returning %08x\n", name, i == map.end() ? -1 : i->second);
+   return (int)(i == map.end() ? -1 : i->second);
+}
+
+int64 ParseOptionMap::find_code64(const char *name) {
+   opt_map_t::iterator i = map.find(name);
+   //printd(5, "find_code(%s) returning %08x\n", name, i == map.end() ? -1 : i->second);
    return (i == map.end() ? -1 : i->second);
 }
 

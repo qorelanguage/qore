@@ -294,7 +294,7 @@ bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 my bool $b = is_readable("/etc/hosts");
     @endcode
 
-    @bug on Windows this function always returns @ref True for directories; this will be fixed in a later version of Qore
+    @bug on Windows this function always returns @ref Qore::True "True" for directories; this will be fixed in a later version of Qore
  */
 bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #ifdef HAVE_PWD_H
@@ -345,7 +345,7 @@ bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 my bool $b = is_writable("/etc/hosts");
     @endcode
 
-    @bug on Windows this function always returns @ref False for directories; this will be fixed in a later version of Qore
+    @bug on Windows this function always returns @ref Qore::False "False" for directories; this will be fixed in a later version of Qore
  */
 bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return is_writable_intern(path);

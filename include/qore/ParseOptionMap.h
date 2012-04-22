@@ -26,8 +26,8 @@
 
 #include <qore/Restrictions.h>
 
-typedef std::map<const char *, int, ltstr> opt_map_t;
-typedef std::map<int, const char *> rev_opt_map_t;
+typedef std::map<const char *, int64, ltstr> opt_map_t;
+typedef std::map<int64, const char *> rev_opt_map_t;
 
 //! provides access to parse option information
 class ParseOptionMap {
@@ -47,7 +47,11 @@ class ParseOptionMap {
       DLLEXPORT static const char *find_name(int code);
 
       //! find a parse option code from its name
+      /** @deprecated: do not use; uses the wrong return type; use find_code64() instead */
       DLLEXPORT static int find_code(const char *name);
+
+      //! find a parse option code from its name
+      DLLEXPORT static int64 find_code64(const char *name);
 
       //! print out all parse optionsto stdout
       DLLEXPORT static void list_options();

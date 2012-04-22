@@ -1519,8 +1519,8 @@ if ($x || $y)
     <b>Arguments Processed by splice</b>
     |!Argument|!Processing
     |\a lvalue (@ref list_type "list" or @ref string_type "string")|If the lvalue is a list, list elements are processed, otherwise, if it is a string, characters in the string are processed. For any other data type, no action is taken.
-    |\a offset_expression|The start element/character position for removing elements/characters from the list or string.
-    |\a length_expression|The number of elements/characters to remove. If this expression is not present, then all elements/characters from the offset to the end of the list/string are removed. If this expression is present and evaluates to 0, no characters/elements are removed.
+    |\a offset_expression|The start element/character position for removing elements/characters from the list or string; if this value is negative, it gives the offset from the end of the list or string
+    |\a length_expression|The number of elements/characters to remove. If this expression is not present, then all elements/characters from the offset to the end of the list/string are removed. If this expression is present and evaluates to 0, no characters/elements are removed; if this value is negative, then it gives an offset from the end of the list or string (ie -2 means remove all elements/characters up to but not including the last two)
     |\a substitution_expression|For list splice, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list). For string splice, an optional string to substitute for the removed characters.
 
     <hr>
@@ -1545,9 +1545,9 @@ if ($x || $y)
     <b>Arguments Processed by extract</b>
     |!Argument|!Processing
     |\a lvalue (@ref list_type "list" or @ref string_type "string")|If the lvalue is a list, list elements are processed, otherwise, if it is a string, characters in the string are processed. For any other data type, no action is taken.
-    |\a offset_expression|The start element/character position for removing elements/characters from the list or string.
-    |\a length_expression|The number of elements/characters to remove. If this expression is not present, then all elements/characters from the offset to the end of the list/string are removed. If this expression is present and evaluates to 0, no characters/elements are removed.
-    |\a substitution_expression|For list splice, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list). For string splice, an optional string to substitute for the removed characters.
+    |\a offset_expression|The start element/character position for removing elements/characters from the list or string; if this value is negative, it gives the offset from the end of the list or string
+    |\a length_expression|The number of elements/characters to remove. If this expression is not present, then all elements/characters from the offset to the end of the list/string are removed. If this expression is present and evaluates to 0, no characters/elements are removed; if this value is negative, then it gives an offset from the end of the list or string (ie -2 means extract all elements/characters up to but not including the last two)
+    |\a substitution_expression|For list extract, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list). For string extract, an optional string to substitute for the removed characters.
 
     <hr>
     @section assignment_operator Assignment Operator (=)
@@ -1591,8 +1591,7 @@ if ($x || $y)
 
     <b>Arguments Processed by +=</b>
     |!Argument|!Processing
-    |\a lvalue (@ref list_type "list")|
-the expression will be evaluated and concatenated to the lvalue. If \a expression is a list, the lists will be concatenated, to ensure adding a single element to a list, use the @ref push "push operator"
+    |\a lvalue (@ref list_type "list")|the expression will be evaluated and concatenated to the lvalue. If \a expression is a list, the lists will be concatenated, to ensure adding a single element to a list, use the @ref push "push operator"
     |\a lvalue (@ref hash_type "hash" or (@ref object_type "object")|the \a expression will be evaluated, and, if it is a hash or object, then it's members will be added to the \a lvalue, any duplicate elements in the \a lvalue will be overridden by elements in the \a expression.
     |\a lvalue (@ref string_type "string")|the \a expression will be evaluated and converted to a string if necessary and concatenated to the \a lvalue.
     |\a lvalue (@ref float_type "float")|the \a expression will be evaluated and converted to a float if necessary and added to the \a lvalue.

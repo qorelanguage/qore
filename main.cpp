@@ -17,7 +17,7 @@
 
 #include <map>
 
-extern int parse_options;
+extern int64 parse_options;
 extern int warnings, qore_lib_options;
 extern const char *def_charset;
 extern const char *cl_pgm, *exec_class_name, *eval_arg, *cmd_zone;

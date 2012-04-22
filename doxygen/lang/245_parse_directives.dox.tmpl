@@ -25,7 +25,6 @@
     |@ref lock-warnings "%lock-warnings"|Prohibits further changes to the warning mask (equivalent to the <tt>--lock-warnings</tt> command line option)
     |@ref new-style "%new-style"|Sets both @ref allow-bare-refs "%allow-bare-refs" and @ref assume-local "%assume-local". These two options together make programming in %Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the \c "$" sign, for example; see also @ref old-style "%old-style" <br><br>Since %Qore 0.8.1
     |@ref old-style "%old-style"|Resets default %Qore parsing behavior by setting @ref require-dollar "%require-dollar" and @ref assume-global "%assume-global"; this option is the opposite of @ref new-style "%new-style" <br><br>Since %Qore 0.8.4
-    |@ref no-binary-modules "%no-binary-modules"|Disallows loading @ref qore_modules "binary modules" with the @ref requires "%requires" directive or at runtime with load_module(); equivalent to @ref Qore::PO_NO_BINARY_MODULES and the <tt>-pno-binary-modules</tt> command line option <br><br>Since %Qore 0.8.4
     |@ref no-class-defs "%no-class-defs"|Disallows @ref qore_classes "class definitions"; equivalent to @ref Qore::PO_NO_CLASS_DEFS and the <tt>--no-class-defs</tt> command line option
     |@ref no-child-restrictions "%no-child-restrictions"|Allows child program objects to have parse option restrictions that are not a strict subset of the parents'; equivalent to parse option @ref Qore::PO_NO_CHILD_PO_RESTRICTIONS and the <tt>--no-child-restrictions</tt> command line option
     |@ref no-constant-defs "%no-constant-defs"|Disallows @ref constants "constant definitions"; equivalent to parse option @ref Qore::PO_NO_CONSTANT_DEFS and the <tt>--no-constant-defs</tt> command line option
@@ -38,6 +37,7 @@
     |@ref no-gui "%no-gui"|Disallows functionality that draws graphics to the display; equivalent to parse option @ref Qore::PO_NO_GUI and the <tt>-pno-gui</tt> command line option
     |@ref no-io "%no-io"|Made up of @ref no-gui "%no-gui" \| @ref no-terminal-io "%no-terminal-io" \| @ref no-filesystem "%no-filesystem" \| @ref no-network "%no-network" \| @ref no-database "%no-database"; equivalent to parse option @ref Qore::PO_NO_IO and the \c --no-io command line option
     |@ref no-locale-control "%no-locale-control"|Disallows access to functionality that changes locale information (see %no-locale-control for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_LOCALE_CONTROL and the <tt>--no-locale-control</tt> command line option
+    |@ref no-modules "%no-modules"|Disallows loading @ref qore_modules "modules" with the @ref requires "%requires" directive or at runtime with load_module(); equivalent to @ref Qore::PO_NO_MODULES and the <tt>-pno-modules</tt> command line option <br><br>Since %Qore 0.8.4
     |@ref no-namespace-defs "%no-namespace-defs"|Disallows new @ref qore_namespaces "namespace definitions"; equivalent to @ref Qore::PO_NO_NAMESPACE_DEFS and the <tt>--no-namespace-defs</tt> command line option
     |@ref no-network "%no-network"|Disallows access to the network; equivalent to parse option @ref Qore::PO_NO_NETWORK and the <tt>--no-network</tt> command line option
     |@ref no-new "%no-new"|Disallows use of the @ref new "new operator"; equivalent to parse option @ref Qore::PO_NO_NEW and the <tt>--no-new</tt> command line option
@@ -397,23 +397,6 @@
     Allows child program objects to have parse option restrictions that are not a strict subset of the parents'.
 
     <hr>
-    @section no-binary-modules %no-binary-modules
-
-    @par Parse Directive:
-    <tt>%%no-binary-modules</tt>
-
-    @par Command Line:
-    <tt>-pno-binary-modules</tt>
-
-    @par Parse Option Constant:
-    @ref Qore::PO_NO_BINARY_MODULES
-
-    @par Description:
-    Disallows loading @ref qore_modules "binary modules" with the @ref requires "%requires" directive or at runtime with load_module()
-
-    @since %Qore 0.8.4
-
-    <hr>
     @section no-class-defs %no-class-defs
 
     @par Parse Directive:
@@ -651,6 +634,23 @@
     - @ref Qore::TimeZone::set()
     - @ref Qore::TimeZone::setUTCOffset()
     - @ref Qore::TimeZone::setRegion()
+
+    <hr>
+    @section no-modules %no-modules
+
+    @par Parse Directive:
+    <tt>%%no-modules</tt>
+
+    @par Command Line:
+    <tt>-pno-modules</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_MODULES
+
+    @par Description:
+    Disallows loading @ref qore_modules "modules" with the @ref requires "%requires" directive or at runtime with load_module()
+
+    @since %Qore 0.8.4
 
     <hr>
     @section no-namespace-defs %no-namespace-defs

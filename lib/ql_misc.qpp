@@ -1580,7 +1580,7 @@ string splice(string[doc] str) [flags=NOOP] {
 /** An exception can only be thrown here if an invalid multi-byte encoding is found
 
     @param str the string to process
-    @param start the character index (where the first character is 0) to start removing characters
+    @param start the character index (where the first character is 0) to start removing characters; if this value is negative, it gives the offset from the end of the string
 
     @return the processed string
 
@@ -1601,8 +1601,8 @@ string splice(string str, softint start) {
 /** An exception can only be thrown here if an invalid multi-byte encoding is found
 
     @param str the string to process
-    @param start the character index (where the first character is 0) to start removing characters (and/or adding characters)
-    @param len the number of characters to remove; if this argument is 0 then no characters are removed
+    @param start the character index (where the first character is 0) to start removing (and/or adding) characters; if this value is negative, it gives the offset from the end of the string
+    @param len the number of characters to remove; if this argument is 0 then no characters are removed; if this value is negative, then it gives an offset from the end of the string (ie -2 means remove all characters up to but not including the two last characters)
     @param nstr the optional string for inserting new characters
 
     @return the processed string with characters removed and/or added according to the arguments
@@ -1624,7 +1624,7 @@ string splice(string str, softint start, softint len, *string nstr) {
 /** Exceptions can only be thrown here if objects are removed from the list and this causes them to go out of scope and an exception is thrown in one of the destructors
 
     @param l the list to process
-    @param start the starting element (where the first element is 0) to start removing elements
+    @param start the starting element (where the first element is 0) to start removing elements; if this value is negative, it gives the offset from the end of the list
 
     @par Example:
     @code
@@ -1643,11 +1643,11 @@ list splice(list l, softint start) {
 /** Exceptions can only be thrown here if objects are removed from the list and this causes them to go out of scope and an exception is thrown in one of the destructors
 
     @param l the list to process
-    @param start the index (where the first element is 0) to start removing elements (and/or adding elements)
-    @param len the number of characters to remove; if this argument is 0 then no characters are removed
+    @param start the starting element (where the first element is 0) to start removing (and/or adding) elements; if this value is negative, it gives the offset from the end of the list
+    @param len the number of list elements to remove; if this argument is 0 then no elements are removed; if this value is negative, then it gives an offset from the end of the list (ie -2 means remove all elements up to but not including the two last elements)
     @param nlist the optional list for inserting new elements
 
-    @return the processed list with characters removed and/or added according to the arguments
+    @return the processed list with elements removed and/or added according to the arguments
 
     @par Example:
     @code
