@@ -597,14 +597,14 @@ public namespace Smtp {
 	    $.sendData($str+"\r\n", True);
 
 	    # read data
-	    my string $rep = $.readLine();
+	    my string $rep = $.readLine(ReadTimeout);
 
 	    #$.log(LL_DEBUG_2, "-> returned: %n", $rep);
 	    return $rep;
 	}
 
 	# read a line from the socket (terminated with \n)
-	private string readLine(*softint $to) {
+	private string readLine(softint $to) {
 	    my string $str;
 	    my int $c = 0;
 	    do {
