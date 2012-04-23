@@ -696,7 +696,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 						 // remove preface from string leaving only command
 						 str.replace(0, cp - str.getBuffer() + 1, (const char *)0);
 						 str.trim();
-						 if (!str.strlen())
+						 if (str.empty())
 						    parse_error("%%module-cmd not in format %%module-cmd(<module-name>) <command>; missing command; text given: '%%module-cmd %s'", str.getBuffer());
 						 else {
 						    QMM.issueParseCmd(module.getBuffer(), 0, str);

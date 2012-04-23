@@ -1035,12 +1035,16 @@ void QoreModuleManager::cleanup() {
 }
 
 void QoreModuleManager::issueParseCmd(const char *mname, QoreProgram *pgm, QoreString &cmd) {
-   QoreStringNode *err = ModuleManager::parseLoadModule(mname, pgm);
-   if (err) {
-      parseException("PARSE-COMMAND-ERROR", err);
+   ExceptionSink xsink;
+
+   AutoLocker al(mutex); // make sure checking and loading are atomic
+   loadModuleIntern(xsink, mname, pgm);
+
+   if (xsink) {
+      parseException("PARSE-COMMAND-ERROR", loadModuleError(mname, xsink));
       return;
    }
-   
+
    QoreAbstractModule* mi = findModule(mname);
    assert(mi);
 

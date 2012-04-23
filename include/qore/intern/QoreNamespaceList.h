@@ -75,7 +75,9 @@ public:
    }
 
    // do not delete the pointer returned from this function
-   DLLLOCAL qore_ns_private* add(QoreNamespace *ot, qore_ns_private* parent);
+   DLLLOCAL qore_ns_private* parseAdd(QoreNamespace *ot, qore_ns_private* parent);
+
+   DLLLOCAL qore_ns_private* runtimeAdd(QoreNamespace *ot, qore_ns_private* parent);
 
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInitConstants();
@@ -89,7 +91,9 @@ public:
    DLLLOCAL void parseRollback();
    DLLLOCAL void deleteAllConstants(ExceptionSink *xsink);
    DLLLOCAL void reset();
-   DLLLOCAL void assimilate(QoreNamespaceList& n, qore_ns_private* parent);
+
+   DLLLOCAL void parseAssimilate(QoreNamespaceList& n, qore_ns_private* parent);
+   DLLLOCAL void runtimeAssimilate(QoreNamespaceList& n, qore_ns_private* parent);
 
    DLLLOCAL void deleteData(ExceptionSink *xsink);
 

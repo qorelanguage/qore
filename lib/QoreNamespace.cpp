@@ -221,7 +221,7 @@ void qore_ns_private::addCommitNamespaceIntern(qore_ns_private* nns) {
    assert(!classList.find(nns->name.c_str()));
    assert(!pendClassList.find(nns->name.c_str()));
 
-   nsl.add(nns->ns, this);
+   nsl.runtimeAdd(nns->ns, this);
 
    // see if namespace is attached to the root
    qore_root_ns_private* rns = getRoot();
@@ -305,7 +305,7 @@ void qore_ns_private::addBuiltinVariantIntern(const char* fname, AbstractQoreFun
    rns->fmap.update(fe->getName(), this, fe);
 }
 
-void QoreNamespaceList::assimilate(QoreNamespaceList& n, qore_ns_private* parent) {
+void QoreNamespaceList::parseAssimilate(QoreNamespaceList& n, qore_ns_private* parent) {
    for (nsmap_t::iterator i = n.nsmap.begin(), e = n.nsmap.end(); i != e; ++i) {
       assert(nsmap.find(i->first) == nsmap.end());
       nsmap[i->first] = i->second;
@@ -317,16 +317,47 @@ void QoreNamespaceList::assimilate(QoreNamespaceList& n, qore_ns_private* parent
    n.nsmap.clear();
 }
 
+void QoreNamespaceList::runtimeAssimilate(QoreNamespaceList& n, qore_ns_private* parent) {
+   for (nsmap_t::iterator i = n.nsmap.begin(), e = n.nsmap.end(); i != e; ++i) {
+      nsmap_t::iterator ni = nsmap.find(i->first);
+      if (ni == nsmap.end()) {
+         nsmap[i->first] = i->second;
+         if (parent) {
+            i->second->priv->parent = parent;
+            i->second->priv->updateDepthRecursive(parent->depth + 1);
+         }
+      }
+      else {
+         ni->second->priv->runtimeAssimilate(i->second);
+      }
+   }
+   n.nsmap.clear();
+}
+
 void QoreNamespaceList::reset() {
    deleteAll();
 }
 
-qore_ns_private* QoreNamespaceList::add(QoreNamespace* ns, qore_ns_private* parent) {
+qore_ns_private* QoreNamespaceList::parseAdd(QoreNamespace* ns, qore_ns_private* parent) {
    // if namespace is already registered, then assimilate
    QoreNamespace* ons;
    if ((ons = find(ns->priv->name.c_str()))) {
       //printd(5, "QoreNamespaceList::add() this=%p ns=%p (%s) assimilating with ons=%p (%s)\n", this, ns, ns->getName(), ons, ons->getName());
-      ons->priv->assimilate(ns);
+      ons->priv->parseAssimilate(ns);
+      return ons->priv;
+   }
+   nsmap[ns->priv->name] = ns;
+   ns->priv->parent = parent;
+   ns->priv->updateDepthRecursive(parent->depth + 1);
+   return ns->priv;
+}
+
+qore_ns_private* QoreNamespaceList::runtimeAdd(QoreNamespace* ns, qore_ns_private* parent) {
+   // if namespace is already registered, then assimilate
+   QoreNamespace* ons;
+   if ((ons = find(ns->priv->name.c_str()))) {
+      //printd(5, "QoreNamespaceList::add() this=%p ns=%p (%s) assimilating with ons=%p (%s)\n", this, ns, ns->getName(), ons, ons->getName());
+      ons->priv->runtimeAssimilate(ns);
       return ons->priv;
    }
    nsmap[ns->priv->name] = ns;
@@ -392,7 +423,7 @@ void QoreNamespaceList::parseInit() {
 }
 
 void QoreNamespaceList::parseCommit(QoreNamespaceList& l) {
-   assimilate(l, 0);
+   parseAssimilate(l, 0);
 
    for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
       i->second->priv->parseCommit();
@@ -428,7 +459,7 @@ QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
 QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn) {
    QoreNamespace* ns = nsl.find(nsn);
    if (!ns)
-      nsl.add((ns = new QoreNamespace(nsn)), this);
+      nsl.runtimeAdd((ns = new QoreNamespace(nsn)), this);
    return ns;
 }
 
@@ -873,21 +904,21 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& ns
 
    unsigned m = 0;
    oc = parseFindScopedClassIntern(nscope, m);
+   if (oc)
+      return oc;
 
-   if (!oc) {
-      if (m != (nscope.size() - 1))
-         parse_error("cannot resolve namespace '%s' in '%s'", nscope[m], nscope.ostr);
-      else {
-         QoreString err;
-         err.sprintf("cannot find class '%s' in any namespace '", nscope.getIdentifier());
-         for (unsigned i = 0; i < (nscope.size() - 1); i++) {
-            err.concat(nscope[i]);
-            if (i != (nscope.size() - 2))
-               err.concat("::");
-         }
-         err.concat("'");
-         parse_error(err.getBuffer());
+   if (m != (nscope.size() - 1))
+      parse_error("cannot resolve namespace '%s' in '%s'", nscope[m], nscope.ostr);
+   else {
+      QoreString err;
+      err.sprintf("cannot find class '%s' in any namespace '", nscope.getIdentifier());
+      for (unsigned i = 0; i < (nscope.size() - 1); i++) {
+         err.concat(nscope[i]);
+         if (i != (nscope.size() - 2))
+            err.concat("::");
       }
+      err.concat("'");
+      parse_error(err.getBuffer());
    }
 
    printd(5, "qore_root_ns_private::parseFindScopedClassIntern('%s') returning %p\n", nscope.ostr, oc);
@@ -1359,11 +1390,11 @@ qore_ns_private *qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
    // see if a committed namespace with the same name already exists
    QoreNamespace* orig = nsl.find(nns->getName());
    if (orig) {
-      orig->priv->assimilate(nns);
+      orig->priv->parseAssimilate(nns);
       return orig->priv;
    }
 
-   return pendNSL.add(nns, this);
+   return pendNSL.parseAdd(nns, this);
 }
 
 // only called while parsing before addition to namespace tree, no locking needed
@@ -1541,7 +1572,7 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
       QoreNamespace* nns = nsl.find(i->first);
       if (!nns) {
          nns = new QoreNamespace(i->first.c_str());
-         nsl.add(nns, this);
+         nsl.runtimeAdd(nns, this);
       }
       
       nns->priv->copyMergeCommittedNamespace(*i->second->priv);
@@ -1549,7 +1580,7 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
    }
 }
 
-void qore_ns_private::assimilate(QoreNamespace* ans) {
+void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
    qore_ns_private* pns = ans->priv;
    // make sure there are no objects in the committed lists in the namespace to be merged
    assert(pns->nsl.empty());
@@ -1567,6 +1598,7 @@ void qore_ns_private::assimilate(QoreNamespace* ans) {
    func_list.assimilate(pns->func_list);
 
    // assimilate pending global variable declarations
+   assert(pend_gvblist.empty());
    pend_gvblist = pns->pend_gvblist;
    pns->pend_gvblist.zero();
 
@@ -1586,7 +1618,36 @@ void qore_ns_private::assimilate(QoreNamespace* ans) {
    }
 
    // assimilate target namespace list
-   pendNSL.assimilate(pns->pendNSL, this);
+   pendNSL.parseAssimilate(pns->pendNSL, this);
+
+   // delete source namespace
+   delete ans;
+}
+
+void qore_ns_private::runtimeAssimilate(QoreNamespace* ans) {
+   qore_ns_private* pns = ans->priv;
+   // make sure there are no objects in the pending lists in the namespace to be merged
+   assert(pns->pendNSL.empty());
+   assert(pns->pendConstant.empty());
+   assert(pns->pendClassList.empty());
+   assert(pns->pend_gvblist.empty());
+
+   // assimilate constants
+   constant.assimilate(pns->constant);
+
+   // assimilate classes
+   classList.assimilate(pns->classList, *this);
+
+   // assimilate pending functions
+   func_list.assimilate(pns->func_list);
+
+   if (pns->class_handler) {
+      assert(!class_handler);
+      class_handler = pns->class_handler;
+   }
+
+   // assimilate target namespace list
+   nsl.runtimeAssimilate(pns->nsl, this);
 
    // delete source namespace
    delete ans;

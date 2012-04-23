@@ -147,7 +147,7 @@ protected:
    DLLLOCAL void loadModuleIntern(const char* name, QoreProgram* pgm, ExceptionSink& xsink) {
       AutoLocker sl(mutex); // make sure checking and loading are atomic
 
-      return loadModuleIntern(xsink, name, pgm);
+      loadModuleIntern(xsink, name, pgm);
    }
 
    DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0);

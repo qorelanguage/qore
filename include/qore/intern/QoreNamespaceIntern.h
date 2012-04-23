@@ -179,13 +179,15 @@ public:
 
    // finds a local class in the committed class list, if not found executes the class handler
    DLLLOCAL QoreClass *findLoadClass(const char* cname) {
+      //printd(5, "qore_ns_private::findLoadClass('%s') this: %p ('%s') class_handler: %p found: %d\n", cname, this, name.c_str(), class_handler, classList.find(cname));
       QoreClass *qc = classList.find(cname);
       if (!qc && class_handler)
 	 qc = class_handler(ns, cname);
       return qc;
    }
 
-   DLLLOCAL void assimilate(QoreNamespace* ns);
+   DLLLOCAL void parseAssimilate(QoreNamespace* ns);
+   DLLLOCAL void runtimeAssimilate(QoreNamespace* ns);
 
    DLLLOCAL void updateDepthRecursive(unsigned ndepth);
 
@@ -542,7 +544,7 @@ public:
    }
 
    DLLLOCAL void update(qore_ns_private* ns) {
-      // if this namespace is already indexes, then reindex
+      // if this namespace is already indexed, then reindex
       nsrmap_t::iterator ri = nsrmap.find(ns);
       if (ri != nsrmap.end()) {
          // if the depth is the same, then do nothing
@@ -1209,7 +1211,7 @@ public:
    
    NamespaceMap nsmap,  // root namespace map
       pend_nsmap;       // root pending namespace map (used only during parsing)
-   
+
    // unresolved pending global variable list - only used in the 1st stage of parsing (data read in to tree)
    gvlist_t pend_gvlist;
 
