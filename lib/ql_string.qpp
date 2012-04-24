@@ -603,13 +603,13 @@ my list $list = split(":", "some:text:here"); # returns ("some", "text", "here")
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
  */
-list split(string str, string sep, bool with_separator = False) [flags=RET_VALUE_ONLY] {
+list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE_ONLY] {
    // convert pattern encoding to string if necessary
-   TempEncodingHelper temp(str, sep->getEncoding(), xsink);
+   TempEncodingHelper temp(sep, str->getEncoding(), xsink);
    if (*xsink)
       return 0;
    
-   return split_intern(temp->getBuffer(), temp->strlen(), sep->getBuffer(), sep->strlen(), sep->getEncoding(), with_separator);
+   return split_intern(temp->getBuffer(), temp->strlen(), str->getBuffer(), str->strlen(), str->getEncoding(), with_separator);
 }
 
 //! Splits a string into a list of components based on a separator string and a quote character
@@ -629,23 +629,23 @@ my list $list = split(",", "some,'text with spaces',here", "'"); # returns ("som
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
     @throw SPLIT-ERROR field missing closing quote character; extra text following quoted field
  */
-list split(string str, string sep, string quote) [flags=RET_VALUE_ONLY] {
+list split(string sep, string str, string quote) [flags=RET_VALUE_ONLY] {
    // convert pattern encoding to string if necessary
-   TempEncodingHelper pat(str, sep->getEncoding(), xsink);
+   TempEncodingHelper pat(sep, str->getEncoding(), xsink);
    if (*xsink)
       return 0;
    
    // convert quote to string if necessary
-   TempEncodingHelper tquote(quote, sep->getEncoding(), xsink);
+   TempEncodingHelper tquote(quote, str->getEncoding(), xsink);
    if (*xsink)
       return 0;
 
    if (!tquote->strlen() || tquote->strlen() > sep->strlen())
-      return split_intern(pat->getBuffer(), pat->strlen(), sep->getBuffer(), sep->strlen(), sep->getEncoding());
+      return split_intern(pat->getBuffer(), pat->strlen(), str->getBuffer(), str->strlen(), str->getEncoding());
    
    ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
-   const char *ostr = sep->getBuffer();
-   qore_size_t sl = sep->strlen();
+   const char *ostr = str->getBuffer();
+   qore_size_t sl = str->strlen();
    const char *tpattern = pat->getBuffer();
    qore_size_t pl = pat->strlen();
 
@@ -723,8 +723,8 @@ list split(string str, string sep, string quote) [flags=RET_VALUE_ONLY] {
 my list $l = split($bin, $sep);
     @endcode
  */
-list split(binary data, binary sep) [flags=CONSTANT] {
-   return split_intern((const char*)data->getPtr(), data->size(), (const char*)sep->getPtr(), sep->size(), 0);
+list split(binary sep, binary data) [flags=CONSTANT] {
+   return split_intern((const char*)sep->getPtr(), sep->size(), (const char*)data->getPtr(), data->size(), 0);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
