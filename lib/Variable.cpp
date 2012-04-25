@@ -1368,8 +1368,14 @@ double lvar_ref::divideEqualsFloat(double v, T *vv, ExceptionSink* xsink) {
 }
 
 bool LocalVarValue::isOptimized(const QoreTypeInfo*& varTypeInfo) const {
-   if (val.type == QV_Ref)
-      return val.v.ref->vexp->getType() == NT_VARREF ? reinterpret_cast<VarRefNode*>(val.v.ref->vexp)->isOptimized(varTypeInfo) : false;
+   if (val.type == QV_Ref) {
+      if (val.v.ref->vexp->getType() == NT_VARREF) {
+	 // skip this entry in case it's a recursive reference
+	 VarStackPointerHelper<LocalVarValue> helper(const_cast<LocalVarValue*>(this));
+	 return reinterpret_cast<VarRefNode*>(val.v.ref->vexp)->isOptimized(varTypeInfo);
+      }
+      return false;
+   }
    
    return val.optimized() ? true : false;
 }
@@ -1521,8 +1527,14 @@ double LocalVarValue::divideEqualsFloat(double v, ExceptionSink* xsink) {
 }
 
 bool ClosureVarValue::isOptimized(const QoreTypeInfo*& varTypeInfo) const {
-   if (val.type == QV_Ref)
-      return val.v.ref->vexp->getType() == NT_VARREF ? reinterpret_cast<VarRefNode*>(val.v.ref->vexp)->isOptimized(varTypeInfo) : false;
+   if (val.type == QV_Ref) {
+      if (val.v.ref->vexp->getType() == NT_VARREF) {
+	 // skip this entry in case it's a recursive reference
+	 VarStackPointerHelper<ClosureVarValue> helper(const_cast<ClosureVarValue*>(this));
+	 return reinterpret_cast<VarRefNode*>(val.v.ref->vexp)->isOptimized(varTypeInfo);
+      }
+      return false;
+   }
 
    if (val.optimized()) {
       varTypeInfo = typeInfo;
