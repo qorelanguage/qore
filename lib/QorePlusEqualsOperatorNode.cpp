@@ -47,8 +47,8 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int
       // converted to an integer, so we just check if it can be assigned an
       // integer value below, this is enough
       if (ti->returnsSingle()) {
-	 ti = bigIntTypeInfo;
 	 check_lvalue_int(ti, "+=");
+	 ti = bigIntTypeInfo;
 	 return makeSpecialization<QoreIntPlusEqualsOperatorNode>();
       }
       else
@@ -133,11 +133,7 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) con
    }
    else if (vtype == NT_FLOAT) {
       double f = new_right ? new_right->getAsFloat() : 0.0;
-      if (f != 0.0) {
-	 v.ensure_unique();
-	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
-	 vf->f += f;
-      }
+      v.plusEqualsFloat(f);
    }
    else if (vtype == NT_DATE) {
       if (new_right) {

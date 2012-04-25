@@ -35,200 +35,403 @@ QoreHashNode *ENV;
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreObjectIntern.h>
 
-VarValue::VarValue(Var *n_refptr, bool n_readonly) {
-   ivar.refptr = n_refptr;
-   ivar.readonly = n_readonly;
-   ivar.refptr->ROreference();
-}
-
-/*
-ScopedObjectCallNode *Var::makeNewCall(AbstractQoreNode *args) const {
-   if (type == GV_IMPORT)
-      return v.ivar.refptr->makeNewCall(args);
-
-   const QoreClass *qc = typeInfo->getUniqueReturnClass();
-   if (qc)
-      return new ScopedObjectCallNode(qc, makeArgs(args));
-   if (parseTypeInfo && parseTypeInfo->cscope)
-      return new ScopedObjectCallNode(parseTypeInfo->cscope->copy(), makeArgs(args));
+int qore_gvar_ref_u::write(ExceptionSink* xsink) const {
+   if (_refptr & 1) {
+      xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only imported global variable '%s'", getPtr()->getName());
+      return -1;
+   }
    return 0;
 }
-*/
 
-void Var::del(ExceptionSink *xsink) {
-   if (type == GV_IMPORT) {
-      printd(4, "Var::~Var() refptr=%p\n", v.ivar.refptr);
-      v.ivar.refptr->deref(xsink);
+void Var::del(ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      printd(4, "Var::~Var() refptr=%p\n", val.v.getPtr());
+      val.v.getPtr()->deref(xsink);
       // clear type so no further deleting will be done
    }
-   else {
-      printd(4, "Var::~Var() name=%s value=%p type=%s refs=%d\n", name.c_str(),
-	     v.val.value, v.val.value ? v.val.value->getTypeName() : "null", 
-	     v.val.value ? v.val.value->reference_count() : 0);
- 
-      if (v.val.value)
-	 v.val.value->deref(xsink);
-      // clear type so no further deleting will be done
-   }
+   else
+      discard(val.remove(true), xsink);
 }
 
 bool Var::isImported() const {
-   return type == GV_IMPORT;
+   return val.type == QV_Ref;
 }
 
 const char *Var::getName() const {
    return name.c_str();
 }
 
-AbstractQoreNode *Var::evalIntern(ExceptionSink *xsink) {
-   if (type == GV_IMPORT) {
-      // perform lock handoff
-      m.unlock();
-      v.ivar.refptr->m.lock();
+AbstractQoreNode *Var::eval() const {
+   if (val.type == QV_Ref)
+      return val.v.getPtr()->eval();
 
-      return v.ivar.refptr->evalIntern(xsink);
-   }
-
-   AbstractQoreNode *rv = v.val.value;
-   if (rv)
-      rv->ref();
-   //printd(5, "Var::eval() this=%p val=%p (%s)\n", this, rv, rv ? rv->getTypeName() : "(null)");
-
-   m.unlock();
-   return rv;
+   AutoLocker al(m);
+   return val.eval();
 }
 
-AbstractQoreNode *Var::eval(ExceptionSink *xsink) {
-   m.lock();
+AbstractQoreNode *Var::eval(bool &needs_deref) const {
+   if (val.type == QV_Ref)
+      return val.v.getPtr()->eval(needs_deref);
 
-   return evalIntern(xsink);
+   
+   AutoLocker al(m);
+   return val.eval(needs_deref);
 }
 
-// note: unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode **Var::getValuePtrIntern(AutoVLock *vl, const QoreTypeInfo *&varTypeInfo, ExceptionSink *xsink) const {
-   if (type == GV_IMPORT) {
-      if (v.ivar.readonly) {
-	 m.unlock();
-	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only imported variable $%s", v.ivar.refptr->getName());
+int64 Var::bigIntEval() const {
+   if (val.type == QV_Ref)
+      return val.v.getPtr()->bigIntEval();
+
+   AutoLocker al(m);
+   return val.getAsBigInt();
+}
+
+double Var::floatEval() const {
+   if (val.type == QV_Ref)
+      return val.v.getPtr()->floatEval();
+
+   AutoLocker al(m);
+   return val.getAsFloat();
+}
+
+int64 Var::removeBigInt(ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
 	 return 0;
-      }
 
-      // perform lock handoff
-      m.unlock();
-      v.ivar.refptr->m.lock();
-
-      return v.ivar.refptr->getValuePtrIntern(vl, varTypeInfo, xsink);
+      return val.v.getPtr()->removeBigInt(xsink);
    }
 
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.removeBigInt(old.getRef());
+}
+
+double Var::removeFloat(ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+
+      return val.v.getPtr()->removeFloat(xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.removeFloat(old.getRef());
+}
+
+AbstractQoreNode* Var::remove(ExceptionSink* xsink, bool for_del) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+
+      return val.v.getPtr()->remove(xsink, for_del);
+   }
+
+   AutoLocker al(m);
+   return val.remove(for_del);
+}
+
+AbstractQoreNode **Var::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&varTypeInfo, ObjMap &omap, ExceptionSink* xsink) const {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+
+      return val.v.getPtr()->getValuePtr(vl, varTypeInfo, omap, xsink);
+   }
+
+   // note: unlocking the lock is managed with the AutoVLock object
+   m.lock();
    vl->set(&m);
    varTypeInfo = typeInfo;
-   return const_cast<AbstractQoreNode **>(&v.val.value);
+   return val.getValuePtr(xsink);
 }
 
-AbstractQoreNode* Var::remove(ExceptionSink* xsink) {
-   m.lock();
-   if (type == GV_IMPORT) {
-      if (v.ivar.readonly) {
-	 m.unlock();
-	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only imported variable $%s", v.ivar.refptr->getName());
+AbstractQoreNode **Var::getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&varTypeInfo, ObjMap &omap, ExceptionSink* xsink) const {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
 	 return 0;
-      }
 
-      // perform lock handoff
-      m.unlock();
-      return v.ivar.refptr->remove(xsink);
+      return val.v.getPtr()->getContainerValuePtr(vl, varTypeInfo, omap, xsink);
    }
 
-   AbstractQoreNode* rv = v.val.value;
-   v.val.value = 0;
-   m.unlock();
-   return rv;
-}
-
-// note: unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode **Var::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&varTypeInfo, ExceptionSink *xsink) const {
+   // note: unlocking the lock is managed with the AutoVLock object
    m.lock();
-   return getValuePtrIntern(vl, varTypeInfo, xsink);
-}
-
-// note: unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode *Var::getValueIntern(AutoVLock *vl) {
-   if (type == GV_IMPORT) {
-      // perform lock handoff
-      m.unlock();
-      v.ivar.refptr->m.lock();
-
-      return v.ivar.refptr->getValueIntern(vl);
-   }
-
    vl->set(&m);
-   return v.val.value;
+   varTypeInfo = typeInfo;
+   return val.getContainerValuePtr();
 }
 
-// note: unlocking the lock is managed with the AutoVLock object
-const AbstractQoreNode *Var::getValueIntern(AutoVLock *vl) const {
-   if (type == GV_IMPORT) {
-      // perform lock handoff
-      m.unlock();
-      v.ivar.refptr->m.lock();
-
-      return v.ivar.refptr->getValueIntern(vl);
-   }
-
-   vl->set(&m);
-   return v.val.value;
-}
-
-AbstractQoreNode *Var::getReferencedValue() const {
-   AutoVLock vl(0);
-   m.lock();
-   AbstractQoreNode *rv = (AbstractQoreNode *)getValueIntern(&vl);
-   return rv ? rv->refSelf() : 0;
-}
-
-// note: type enforcement is done at a higher level
-void Var::setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink) {
-   if (type == GV_IMPORT) {
-      if (v.ivar.readonly) {
-	 m.unlock();
-	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only variable $%s", getName());
+void Var::assign(AbstractQoreNode *v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
 	 return;
-      }
 
-      // perform lock handoff
-      m.unlock();
-      v.ivar.refptr->m.lock();
-
-      v.ivar.refptr->setValueIntern(val, xsink);
+      val.v.getPtr()->assign(v, xsink);
       return;
    }
 
-   // save old value (if any) to dereference outside the lock
-   // (because a deadlock could occur if the dereference causes
-   // a destructor to run which references this variable)
-   AbstractQoreNode *old = v.val.value;
-   v.val.value = val;
-
-   m.unlock();
-
-   // dereference old value once lock has been released
-   if (old)
-      old->deref(xsink);
+   // must dereference old value outside the lock
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   old = val.assign(v);
 }
 
-void Var::setValue(AbstractQoreNode *val, ExceptionSink *xsink) {
-   m.lock();
-   setValueIntern(val, xsink);
+void Var::assignBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return;
+
+      val.v.getPtr()->assignBigInt(v, xsink);
+      return;
+   }
+
+   // must dereference old value outside the lock
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   old = val.assign(v);
+   return;
 }
 
-void Var::deref(ExceptionSink *xsink) {
+void Var::assignFloat(double v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return;
+
+      val.v.getPtr()->assignFloat(v, xsink);
+      return;
+   }
+
+   // must dereference old value outside the lock
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   old = val.assign(v);
+}
+
+int64 Var::plusEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->plusEqualsBigInt(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.plusEqualsBigInt(v, old.getRef());
+}
+
+double Var::plusEqualsFloat(double v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->plusEqualsFloat(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.plusEqualsFloat(v, old.getRef());
+}
+
+int64 Var::minusEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->minusEqualsBigInt(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.minusEqualsBigInt(v, old.getRef());
+}
+
+double Var::minusEqualsFloat(double v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->minusEqualsFloat(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.minusEqualsFloat(v, old.getRef());
+}
+
+int64 Var::orEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->orEqualsBigInt(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.orEqualsBigInt(v, old.getRef());
+}
+
+int64 Var::andEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->andEqualsBigInt(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.andEqualsBigInt(v, old.getRef());
+}
+
+int64 Var::modulaEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->modulaEqualsBigInt(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.modulaEqualsBigInt(v, old.getRef());
+}
+
+int64 Var::multiplyEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->multiplyEqualsBigInt(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.multiplyEqualsBigInt(v, old.getRef());
+}
+
+int64 Var::divideEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->divideEqualsBigInt(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.divideEqualsBigInt(v, old.getRef());
+}
+
+int64 Var::xorEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->xorEqualsBigInt(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.xorEqualsBigInt(v, old.getRef());
+}
+
+int64 Var::shiftLeftEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->shiftLeftEqualsBigInt(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.shiftLeftEqualsBigInt(v, old.getRef());
+}
+
+int64 Var::shiftRightEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->shiftRightEqualsBigInt(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.shiftRightEqualsBigInt(v, old.getRef());
+}
+
+double Var::multiplyEqualsFloat(double v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->multiplyEqualsFloat(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.multiplyEqualsFloat(v, old.getRef());
+}
+
+double Var::divideEqualsFloat(double v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->divideEqualsFloat(v, xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.divideEqualsFloat(v, old.getRef());
+}
+
+int64 Var::postIncrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->postIncrement(xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.postIncrement(old.getRef());
+}
+
+int64 Var::preIncrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->preIncrement(xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.preIncrement(old.getRef());
+}
+
+int64 Var::postDecrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->postDecrement(xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.postDecrement(old.getRef());
+}
+
+int64 Var::preDecrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref) {
+      if (val.v.write(xsink))
+	 return 0;
+      return val.v.getPtr()->preDecrement(xsink);
+   }
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(m);
+   return val.preDecrement(old.getRef());
+}
+
+void Var::deref(ExceptionSink* xsink) {
    if (ROdereference()) {
       del(xsink);
       delete this;
    }
 }
 
-static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, ObjMap &omap, ExceptionSink *xsink) {
+static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, ObjMap &omap, ExceptionSink* xsink) {
    // first get index
    int ind = tree->right->integerEval(xsink);
    if (xsink->isEvent())
@@ -274,7 +477,7 @@ static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, AutoVLock *v
 }
 
 // for objects and hashes
-static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
+static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink* xsink) {
    QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
    if (*xsink)
       return 0;
@@ -353,7 +556,7 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
 }
 
 // this function will change the lvalue to the right type if needed (used for assignments)
-AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
+AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink* xsink) {
    qore_type_t ntype = n->getType();
    //printd(0, "get_var_value_ptr(%p) %s\n", n, n->getTypeName());
    if (ntype == NT_VARREF) {
@@ -388,7 +591,7 @@ AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, 
 
 // finds object value pointers without making any changes to the referenced structures
 // will *not* execute memberGate methods
-AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *xsink) {
+AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink* xsink) {
    printd(5, "getExistingVarValue(%p) %s\n", n, n->getTypeName());
    qore_type_t ntype = n->getType();
    if (ntype == NT_VARREF)
@@ -444,7 +647,7 @@ AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *
    return n->eval(xsink);
 }
 
-static AbstractQoreNode **check_unique(AbstractQoreNode **p, ExceptionSink *xsink) {
+static AbstractQoreNode **check_unique(AbstractQoreNode **p, ExceptionSink* xsink) {
    if (p && *p && (*p)->reference_count() > 1 && (*p)->getType() != NT_OBJECT) {
       AbstractQoreNode *op = *p;
       *p = (*p)->realCopy();
@@ -456,7 +659,7 @@ static AbstractQoreNode **check_unique(AbstractQoreNode **p, ExceptionSink *xsin
 // only returns a value ptr if the expression points to an already-existing value
 // (i.e. does not create entries anywhere)
 // needed for deletes
-static AbstractQoreNode **get_unique_existing_container_value_ptr(AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl, ObjMap &omap) {
+static AbstractQoreNode **get_unique_existing_container_value_ptr(AbstractQoreNode *n, ExceptionSink* xsink, AutoVLock *vl, ObjMap &omap) {
    printd(5, "get_unique_existing_container_value_ptr(%p) %s\n", n, n->getTypeName());
    qore_type_t ntype = n->getType();
    const QoreTypeInfo *typeInfo = 0;
@@ -513,7 +716,7 @@ static AbstractQoreNode **get_unique_existing_container_value_ptr(AbstractQoreNo
    return rv;
 }
 
-static AbstractQoreNode *remove_hash_object_value(QoreHashNode *h, QoreObject *o, const char *mem, ExceptionSink *xsink) {
+static AbstractQoreNode *remove_hash_object_value(QoreHashNode *h, QoreObject *o, const char *mem, ExceptionSink* xsink) {
    // otherwise if not a hash or object then exit
    if (o)
       return o->takeMember(mem, xsink);
@@ -522,7 +725,7 @@ static AbstractQoreNode *remove_hash_object_value(QoreHashNode *h, QoreObject *o
    return h->takeKeyValue(mem);
 }
 
-AbstractQoreNode *remove_lvalue_intern(ExceptionSink *xsink, AbstractQoreNode *lvalue, AutoVLock& vl, qore_type_t lvtype, ObjMap& omap) {
+AbstractQoreNode *remove_lvalue_intern(ExceptionSink* xsink, AbstractQoreNode *lvalue, AutoVLock& vl, qore_type_t lvtype, ObjMap& omap) {
    if (lvtype == NT_SELF_VARREF)
       return getStackObject()->takeMember(reinterpret_cast<SelfVarrefNode *>(lvalue)->str, xsink);
 
@@ -591,7 +794,7 @@ AbstractQoreNode *remove_lvalue_intern(ExceptionSink *xsink, AbstractQoreNode *l
    return remove_hash_object_value(h, o, mem->getBuffer(), xsink);
 }
 
-AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink, bool for_del) {
+AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink* xsink, bool for_del) {
    AutoVLock vl(xsink);
    qore_type_t lvtype = lvalue->getType();
 
@@ -605,7 +808,7 @@ AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink, 
    return remove_lvalue_intern(xsink, lvalue, vl, lvtype, omap);
 }
 
-DLLLOCAL int64 remove_lvalue_bigint(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
+DLLLOCAL int64 remove_lvalue_bigint(AbstractQoreNode *lvalue, ExceptionSink* xsink) {
    AutoVLock vl(xsink);
    qore_type_t lvtype = lvalue->getType();
 
@@ -620,7 +823,7 @@ DLLLOCAL int64 remove_lvalue_bigint(AbstractQoreNode *lvalue, ExceptionSink *xsi
    return rv ? rv->getAsBigInt() : 0;
 }
 
-DLLLOCAL double remove_lvalue_float(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
+DLLLOCAL double remove_lvalue_float(AbstractQoreNode *lvalue, ExceptionSink* xsink) {
    AutoVLock vl(xsink);
    qore_type_t lvtype = lvalue->getType();
 
@@ -635,7 +838,7 @@ DLLLOCAL double remove_lvalue_float(AbstractQoreNode *lvalue, ExceptionSink *xsi
    return rv ? rv->getAsFloat() : 0.0;
 }
 
-void delete_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
+void delete_lvalue(AbstractQoreNode *lvalue, ExceptionSink* xsink) {
    ReferenceHolder<AbstractQoreNode> v(remove_lvalue(lvalue, xsink, true), xsink);
    if (!v)
       return;
@@ -653,41 +856,41 @@ void delete_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
 
 LValueHelper::LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink), typeInfo(0), lvt(LVT_Unknown)  {
    qore_type_t t = exp->getType();
-   // make sure it's an optimized (ie not global, not a reference, not a "normal" local var)
-   if (t == NT_VARREF && (lv.v = reinterpret_cast<const VarRefNode *>(exp)->isLocalOptimized(typeInfo)))
-      lvt = LVT_OptLocalVar;
+   // make sure it's an optimized var
+   if (t == NT_VARREF && (lv.v = reinterpret_cast<const VarRefNode *>(exp)->isOptimized(typeInfo))) {
+      //lv.v = (VarRefNode*)exp;
+      //typeInfo = lv.v->getTypeInfo();
+      lvt = LVT_OptVarRef;
+   }
    else {
-      lvt = LVT_Normal;
+      lvt = LVT_Expr;
       lv.n = new LValueExpressionHelper(exp, typeInfo, xsink);
    }         
 }
 
 AbstractQoreNode *LValueHelper::getReferencedValue() const {
-   return lvt == LVT_OptLocalVar ? lv.v->eval(xsink) : lv.n->getReferencedValue();
+   return lvt == LVT_OptVarRef ? lv.v->eval(xsink) : lv.n->getReferencedValue();
 }
 
 const qore_type_t LValueHelper::get_type() const {
-   return lvt == LVT_OptLocalVar ? lv.v->getValueType() : *(lv.n->v) ? (*(lv.n->v))->getType() : NT_NOTHING; 
+   return lvt == LVT_OptVarRef ? lv.v->getValueType() : *(lv.n->v) ? (*(lv.n->v))->getType() : NT_NOTHING; 
 }
 
 const char* LValueHelper::get_type_name() const {
-   return lvt == LVT_OptLocalVar ? lv.v->getValueTypeName() : ::get_type_name(*(lv.n->v)); 
+   return lvt == LVT_OptVarRef ? lv.v->getValueTypeName() : ::get_type_name(*(lv.n->v)); 
 }
 
 int LValueHelper::assign(AbstractQoreNode *val, const char *desc) {
    // check type for assignment
-   val = get_type_info()->acceptAssignment(desc, val, xsink);
+   val = typeInfo->acceptAssignment(desc, val, xsink);
    if (*xsink) {
       discard(val, xsink);
       return -1;
    }
 
-   if (lvt == LVT_OptLocalVar) {
-      // since we are only dealing with optimized local vars, it's not possible
-      // to have an exception here on the assignment
-      lv.v->setValue(val, xsink);
-      assert(!*xsink);
-      return 0;
+   if (lvt == LVT_OptVarRef) {
+      lv.v->assign(val, xsink);
+      return *xsink;
    }
 
    return lv.n->assign(val, xsink);
@@ -700,12 +903,10 @@ int LValueHelper::assignBigInt(int64 v, const char *desc) {
       return -1;
    }
 
-   if (lvt == LVT_OptLocalVar) {
-      // since we are only dealing with optimized local vars, it's not possible
-      // to have an exception here on the assignment
+   // type compatibility must have been checked as parse time
+   if (lvt == LVT_OptVarRef) {
       lv.v->assignBigInt(v, xsink);
-      assert(!*xsink);
-      return 0;
+      return *xsink;
    }
 
    AbstractQoreNode *val = new QoreBigIntNode(v);
@@ -725,7 +926,7 @@ int LValueHelper::assignFloat(double v, const char *desc) {
       return -1;
    }
 
-   if (lvt == LVT_OptLocalVar) {
+   if (lvt == LVT_OptVarRef) {
       // since we are only dealing with optimized local vars, it's not possible
       // to have an exception here on the assignment
       lv.v->assignFloat(v, xsink);
@@ -744,7 +945,7 @@ int LValueHelper::assignFloat(double v, const char *desc) {
 }
 
 int64 LValueHelper::plusEqualsBigInt(int64 v) {
-   if (lvt == LVT_OptLocalVar)
+   if (lvt == LVT_OptVarRef)
       return lv.v->plusEqualsBigInt(v, xsink);
 
    // get new value if necessary
@@ -757,7 +958,7 @@ int64 LValueHelper::plusEqualsBigInt(int64 v) {
 }
 
 int64 LValueHelper::minusEqualsBigInt(int64 v) {
-   if (lvt == LVT_OptLocalVar)
+   if (lvt == LVT_OptVarRef)
       return lv.v->minusEqualsBigInt(v, xsink);
 
    // get new value if necessary
@@ -770,7 +971,7 @@ int64 LValueHelper::minusEqualsBigInt(int64 v) {
 }
 
 int64 LValueHelper::multiplyEqualsBigInt(int64 v) {
-   if (lvt == LVT_OptLocalVar)
+   if (lvt == LVT_OptVarRef)
       return lv.v->multiplyEqualsBigInt(v, xsink);
 
    // get new value if necessary
@@ -784,7 +985,7 @@ int64 LValueHelper::multiplyEqualsBigInt(int64 v) {
 
 int64 LValueHelper::divideEqualsBigInt(int64 v) {
    assert(v);
-   if (lvt == LVT_OptLocalVar)
+   if (lvt == LVT_OptVarRef)
       return lv.v->divideEqualsBigInt(v, xsink);
 
    // get new value if necessary
@@ -796,8 +997,34 @@ int64 LValueHelper::divideEqualsBigInt(int64 v) {
    return i->val;
 }
 
+double LValueHelper::plusEqualsFloat(double v) {
+   if (lvt == LVT_OptVarRef)
+      return lv.v->plusEqualsFloat(v, xsink);
+
+   // get new value if necessary
+   if (ensure_unique_float())
+      return 0.0;
+   QoreFloatNode *i = reinterpret_cast<QoreFloatNode *>(get_value());
+   // increment current value
+   i->f += v;
+   return i->f;
+}
+
+double LValueHelper::minusEqualsFloat(double v) {
+   if (lvt == LVT_OptVarRef)
+      return lv.v->minusEqualsFloat(v, xsink);
+
+   // get new value if necessary
+   if (ensure_unique_float())
+      return 0.0;
+   QoreFloatNode *i = reinterpret_cast<QoreFloatNode *>(get_value());
+   // increment current value
+   i->f -= v;
+   return i->f;
+}
+
 double LValueHelper::multiplyEqualsFloat(double v) {
-   if (lvt == LVT_OptLocalVar)
+   if (lvt == LVT_OptVarRef)
       return lv.v->multiplyEqualsFloat(v, xsink);
 
    // get new value if necessary
@@ -811,7 +1038,7 @@ double LValueHelper::multiplyEqualsFloat(double v) {
 
 double LValueHelper::divideEqualsFloat(double v) {
    assert(v);
-   if (lvt == LVT_OptLocalVar)
+   if (lvt == LVT_OptVarRef)
       return lv.v->divideEqualsFloat(v, xsink);
 
    // get new value if necessary
@@ -823,18 +1050,15 @@ double LValueHelper::divideEqualsFloat(double v) {
    return i->f;
 }
 
-void lvar_ref::assign(AbstractQoreNode *n_vexp, QoreObject *n_obj, QoreProgram *n_pgm) {
-   vexp = n_vexp;
-   obj = n_obj;
-   pgm = n_pgm;
+lvar_ref::lvar_ref(AbstractQoreNode *n_vexp, QoreObject *n_obj, QoreProgram *n_pgm) 
+  : vexp(n_vexp), obj(n_obj), pgm(n_pgm), 
+    is_vref(vexp->getType() == NT_VARREF && !reinterpret_cast<VarRefNode*>(vexp)->isGlobalVar()) {
    if (n_obj)
       n_obj->tRef();
-
-   is_vref = vexp->getType() == NT_VARREF && !reinterpret_cast<VarRefNode*>(vexp)->isGlobalVar();
 }
 
 template <class T>
-int64 lvar_ref::postIncrement(T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::postIncrement(T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->postIncrement(xsink);
@@ -852,7 +1076,7 @@ int64 lvar_ref::postIncrement(T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::preIncrement(T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::preIncrement(T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->preIncrement(xsink);
@@ -867,7 +1091,7 @@ int64 lvar_ref::preIncrement(T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::postDecrement(T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::postDecrement(T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->postDecrement(xsink);
@@ -885,7 +1109,7 @@ int64 lvar_ref::postDecrement(T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::preDecrement(T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::preDecrement(T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->preDecrement(xsink);
@@ -901,7 +1125,7 @@ int64 lvar_ref::preDecrement(T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::plusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::plusEqualsBigInt(int64 v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->plusEqualsBigInt(v, xsink);
@@ -918,7 +1142,7 @@ int64 lvar_ref::plusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-double lvar_ref::plusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
+double lvar_ref::plusEqualsFloat(double v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->plusEqualsFloat(v, xsink);
@@ -935,7 +1159,7 @@ double lvar_ref::plusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::minusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::minusEqualsBigInt(int64 v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->minusEqualsBigInt(v, xsink);
@@ -952,7 +1176,7 @@ int64 lvar_ref::minusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-double lvar_ref::minusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
+double lvar_ref::minusEqualsFloat(double v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->minusEqualsFloat(v, xsink);
@@ -969,7 +1193,7 @@ double lvar_ref::minusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::orEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::orEqualsBigInt(int64 v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->orEqualsBigInt(v, xsink);
@@ -986,7 +1210,7 @@ int64 lvar_ref::orEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::andEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::andEqualsBigInt(int64 v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->andEqualsBigInt(v, xsink);
@@ -1003,7 +1227,7 @@ int64 lvar_ref::andEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::modulaEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::modulaEqualsBigInt(int64 v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->modulaEqualsBigInt(v, xsink);
@@ -1015,12 +1239,15 @@ int64 lvar_ref::modulaEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
       
    valp->ensure_unique_int();
    QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
-   n->val %= v;
+   if (v)
+      n->val %= v;
+   else
+      n->val = 0;
    return n->val;
 }
 
 template <class T>
-int64 lvar_ref::multiplyEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::multiplyEqualsBigInt(int64 v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->multiplyEqualsBigInt(v, xsink);
@@ -1037,7 +1264,7 @@ int64 lvar_ref::multiplyEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::divideEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::divideEqualsBigInt(int64 v, T *vv, ExceptionSink* xsink) {
    assert(v);
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
@@ -1055,7 +1282,7 @@ int64 lvar_ref::divideEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::xorEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::xorEqualsBigInt(int64 v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->xorEqualsBigInt(v, xsink);
@@ -1072,7 +1299,7 @@ int64 lvar_ref::xorEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::shiftLeftEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::shiftLeftEqualsBigInt(int64 v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->shiftLeftEqualsBigInt(v, xsink);
@@ -1089,7 +1316,7 @@ int64 lvar_ref::shiftLeftEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-int64 lvar_ref::shiftRightEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+int64 lvar_ref::shiftRightEqualsBigInt(int64 v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->shiftRightEqualsBigInt(v, xsink);
@@ -1106,7 +1333,7 @@ int64 lvar_ref::shiftRightEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-double lvar_ref::multiplyEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
+double lvar_ref::multiplyEqualsFloat(double v, T *vv, ExceptionSink* xsink) {
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->multiplyEqualsFloat(v, xsink);
@@ -1123,7 +1350,7 @@ double lvar_ref::multiplyEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
 }
 
 template <class T>
-double lvar_ref::divideEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
+double lvar_ref::divideEqualsFloat(double v, T *vv, ExceptionSink* xsink) {
    assert(v);
    if (is_vref) {
       LocalRefHelper<T> lrh(vv);
@@ -1140,681 +1367,330 @@ double lvar_ref::divideEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
    return n->f;
 }
 
-LocalVarValue* LocalVarValue::optimized(const QoreTypeInfo *&varTypeInfo) const {
-   if (vvt == VVT_Ref) {
-      if (val.ref.vexp->getType() != NT_VARREF)
-	 return 0;
-
-      SkipHelper sh(const_cast<LocalVarValue*>(this));
-      ProgramContextHelper pch(val.ref.pgm);
-
-      return reinterpret_cast<const VarRefNode*>(val.ref.vexp)->isLocalOptimized(varTypeInfo);
-   }
+bool LocalVarValue::isOptimized(const QoreTypeInfo*& varTypeInfo) const {
+   if (val.type == QV_Ref)
+      return val.v.ref->vexp->getType() == NT_VARREF ? reinterpret_cast<VarRefNode*>(val.v.ref->vexp)->isOptimized(varTypeInfo) : false;
    
-   return vvt != VVT_Normal ? const_cast<LocalVarValue*>(this) : 0;
+   return val.optimized() ? true : false;
 }
 
-int64 LocalVarValue::plusEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_plusEqualsBigInt(v, xsink);
+int64 LocalVarValue::plusEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->plusEqualsBigInt<LocalVarValue>(v, this, xsink);
 
-      case VVT_Int:
-	 return val.val_int += v;
-
-      case VVT_Ref:
-	 return val.ref.plusEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.plusEqualsBigInt(v, old.getRef());
 }
 
-double LocalVarValue::plusEqualsFloat(double v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_plusEqualsFloat(v, xsink);
+double LocalVarValue::plusEqualsFloat(double v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->plusEqualsFloat<LocalVarValue>(v, this, xsink);
 
-      case VVT_Float:
-	 return val.val_float += v;
-
-      case VVT_Ref:
-	 return val.ref.plusEqualsFloat<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0.0;
+   ReferenceHolder<> old(xsink);
+   return val.plusEqualsFloat(v, old.getRef());
 }
 
-int64 LocalVarValue::minusEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_minusEqualsBigInt(v, xsink);
+int64 LocalVarValue::minusEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->minusEqualsBigInt<LocalVarValue>(v, this, xsink);
 
-      case VVT_Int:
-	 return val.val_int -= v;
-
-      case VVT_Ref:
-	 return val.ref.minusEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.minusEqualsBigInt(v, old.getRef());
 }
 
-double LocalVarValue::minusEqualsFloat(double v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_minusEqualsFloat(v, xsink);
+double LocalVarValue::minusEqualsFloat(double v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->minusEqualsFloat<LocalVarValue>(v, this, xsink);
 
-      case VVT_Float:
-	 return val.val_float += v;
-
-      case VVT_Ref:
-	 return val.ref.minusEqualsFloat<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0.0;
+   ReferenceHolder<> old(xsink);
+   return val.minusEqualsFloat(v, old.getRef());
 }
 
-int64 LocalVarValue::orEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_orEqualsBigInt(v, xsink);
+int64 LocalVarValue::orEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->orEqualsBigInt<LocalVarValue>(v, this, xsink);
 
-      case VVT_Int:
-	 return val.val_int |= v;
-
-      case VVT_Ref:
-	 return val.ref.orEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.orEqualsBigInt(v, old.getRef());
 }
 
-int64 LocalVarValue::andEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_andEqualsBigInt(v, xsink);
+int64 LocalVarValue::andEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->andEqualsBigInt<LocalVarValue>(v, this, xsink);
 
-      case VVT_Int:
-	 return val.val_int &= v;
-
-      case VVT_Ref:
-	 return val.ref.andEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.andEqualsBigInt(v, old.getRef());
 }
 
-int64 LocalVarValue::modulaEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_modulaEqualsBigInt(v, xsink);
+int64 LocalVarValue::modulaEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->modulaEqualsBigInt<LocalVarValue>(v, this, xsink);
 
-      case VVT_Int:
-	 return val.val_int %= v;
-
-      case VVT_Ref:
-	 return val.ref.modulaEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.modulaEqualsBigInt(v, old.getRef());
 }
 
-int64 LocalVarValue::multiplyEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_multiplyEqualsBigInt(v, xsink);
+int64 LocalVarValue::multiplyEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->multiplyEqualsBigInt<LocalVarValue>(v, this, xsink);
 
-      case VVT_Int:
-	 return val.val_int *= v;
-
-      case VVT_Ref:
-	 return val.ref.multiplyEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.multiplyEqualsBigInt(v, old.getRef());
 }
 
-int64 LocalVarValue::divideEqualsBigInt(int64 v, ExceptionSink *xsink) {
+int64 LocalVarValue::divideEqualsBigInt(int64 v, ExceptionSink* xsink) {
    assert(v);
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_minusEqualsBigInt(v, xsink);
+   if (val.type == QV_Ref)
+      return val.v.ref->divideEqualsBigInt<LocalVarValue>(v, this, xsink);
 
-      case VVT_Int:
-	 return val.val_int /= v;
-
-      case VVT_Ref:
-	 return val.ref.minusEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.divideEqualsBigInt(v, old.getRef());
 }
 
-int64 LocalVarValue::xorEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_minusEqualsBigInt(v, xsink);
+int64 LocalVarValue::xorEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->xorEqualsBigInt<LocalVarValue>(v, this, xsink);
 
-      case VVT_Int:
-	 return val.val_int ^= v;
-
-      case VVT_Ref:
-	 return val.ref.minusEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.xorEqualsBigInt(v, old.getRef());
 }
 
-int64 LocalVarValue::shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_shiftLeftEqualsBigInt(v, xsink);
+int64 LocalVarValue::shiftLeftEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->shiftLeftEqualsBigInt<LocalVarValue>(v, this, xsink);
 
-      case VVT_Int:
-	 return val.val_int <<= v;
-
-      case VVT_Ref:
-	 return val.ref.shiftLeftEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.shiftLeftEqualsBigInt(v, old.getRef());
 }
 
-int64 LocalVarValue::shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_shiftRightEqualsBigInt(v, xsink);
+int64 LocalVarValue::shiftRightEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->shiftRightEqualsBigInt<LocalVarValue>(v, this, xsink);
 
-      case VVT_Int:
-	 return val.val_int >>= v;
-
-      case VVT_Ref:
-	 return val.ref.shiftRightEqualsBigInt<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.shiftRightEqualsBigInt(v, old.getRef());
 }
 
-int64 LocalVarValue::postIncrement(ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_postIncrement(xsink);
+int64 LocalVarValue::postIncrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->postIncrement<LocalVarValue>(this, xsink);
 
-      case VVT_Int: {
-	 int64 rv = val.val_int;
-	 ++val.val_int;
-	 return rv;
-      }
-
-      case VVT_Ref:
-	 return val.ref.postIncrement<LocalVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.postIncrement(old.getRef());
 }
 
-int64 LocalVarValue::preIncrement(ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_preIncrement(xsink);
+int64 LocalVarValue::preIncrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->preIncrement<LocalVarValue>(this, xsink);
 
-      case VVT_Int:
-	 return ++val.val_int;
-
-      case VVT_Ref:
-	 return val.ref.preIncrement<LocalVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.preIncrement(old.getRef());
 }
 
-int64 LocalVarValue::postDecrement(ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_postDecrement(xsink);
+int64 LocalVarValue::postDecrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->postDecrement<LocalVarValue>(this, xsink);
 
-      case VVT_Int: {
-	 int64 rv = val.val_int;
-	 --val.val_int;
-	 return rv;
-      }
-
-      case VVT_Ref:
-	 return val.ref.postDecrement<LocalVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.postDecrement(old.getRef());
 }
 
-int64 LocalVarValue::preDecrement(ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_preDecrement(xsink);
+int64 LocalVarValue::preDecrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->preDecrement<LocalVarValue>(this, xsink);
 
-      case VVT_Int:
-	 return --val.val_int;
-
-      case VVT_Ref:
-	 return val.ref.preDecrement<LocalVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.preDecrement(old.getRef());
 }
 
-double LocalVarValue::multiplyEqualsFloat(double v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_multiplyEqualsFloat(v, xsink);
+double LocalVarValue::multiplyEqualsFloat(double v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->multiplyEqualsFloat<LocalVarValue>(v, this, xsink);
 
-      case VVT_Int:
-	 return val.val_int *= (int64)v;
-
-      case VVT_Ref:
-	 return val.ref.multiplyEqualsFloat<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.multiplyEqualsFloat(v, old.getRef());
 }
 
-double LocalVarValue::divideEqualsFloat(double v, ExceptionSink *xsink) {
+double LocalVarValue::divideEqualsFloat(double v, ExceptionSink* xsink) {
    assert(v);
+   if (val.type == QV_Ref)
+      return val.v.ref->divideEqualsFloat<LocalVarValue>(v, this, xsink);
 
-   switch (vvt) {
-      case VVT_Normal:
-	 return val.value_divideEqualsFloat(v, xsink);
-
-      case VVT_Int:
-	 return val.val_int /= (int64)v;
-
-      case VVT_Ref:
-	 return val.ref.divideEqualsFloat<LocalVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   return val.divideEqualsFloat(v, old.getRef());
 }
 
+bool ClosureVarValue::isOptimized(const QoreTypeInfo*& varTypeInfo) const {
+   if (val.type == QV_Ref)
+      return val.v.ref->vexp->getType() == NT_VARREF ? reinterpret_cast<VarRefNode*>(val.v.ref->vexp)->isOptimized(varTypeInfo) : false;
 
-int64 ClosureVarValue::plusEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_plusEqualsBigInt(v, xsink);
-      }
-	 
-      case VVT_Ref:
-	 return val.ref.plusEqualsBigInt<ClosureVarValue>(v, this, xsink);
-	 
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
+   if (val.optimized()) {
+      varTypeInfo = typeInfo;
+      return true;
    }
-   
-   return 0;
+   return false;
 }
 
-double ClosureVarValue::plusEqualsFloat(double v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_plusEqualsFloat(v, xsink);
-      }
+int64 ClosureVarValue::plusEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->plusEqualsBigInt<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.plusEqualsFloat<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0.0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.plusEqualsBigInt(v, old.getRef());
 }
 
-int64 ClosureVarValue::minusEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_minusEqualsBigInt(v, xsink);
-      }
+double ClosureVarValue::plusEqualsFloat(double v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->plusEqualsFloat<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.minusEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.plusEqualsFloat(v, old.getRef());
 }
 
-double ClosureVarValue::minusEqualsFloat(double v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_minusEqualsFloat(v, xsink);
-      }
+int64 ClosureVarValue::minusEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->minusEqualsBigInt<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.minusEqualsFloat<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0.0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.minusEqualsBigInt(v, old.getRef());
 }
 
-int64 ClosureVarValue::orEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_orEqualsBigInt(v, xsink);
-      }
+double ClosureVarValue::minusEqualsFloat(double v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->minusEqualsFloat<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.orEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.minusEqualsFloat(v, old.getRef());
 }
 
-int64 ClosureVarValue::andEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_andEqualsBigInt(v, xsink);
-      }
+int64 ClosureVarValue::orEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->orEqualsBigInt<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.andEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.orEqualsBigInt(v, old.getRef());
 }
 
-int64 ClosureVarValue::modulaEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_modulaEqualsBigInt(v, xsink);
-      }
+int64 ClosureVarValue::andEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->andEqualsBigInt<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.modulaEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.andEqualsBigInt(v, old.getRef());
 }
 
-int64 ClosureVarValue::multiplyEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_multiplyEqualsBigInt(v, xsink);
-      }
+int64 ClosureVarValue::modulaEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->modulaEqualsBigInt<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.multiplyEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.modulaEqualsBigInt(v, old.getRef());
 }
 
-int64 ClosureVarValue::divideEqualsBigInt(int64 v, ExceptionSink *xsink) {
+int64 ClosureVarValue::multiplyEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->multiplyEqualsBigInt<ClosureVarValue>(v, this, xsink);
+
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.multiplyEqualsBigInt(v, old.getRef());
+}
+
+int64 ClosureVarValue::divideEqualsBigInt(int64 v, ExceptionSink* xsink) {
    assert(v);
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_divideEqualsBigInt(v, xsink);
-      }
+   if (val.type == QV_Ref)
+      return val.v.ref->divideEqualsBigInt<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.divideEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.divideEqualsBigInt(v, old.getRef());
 }
 
-int64 ClosureVarValue::xorEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_xorEqualsBigInt(v, xsink);
-      }
+int64 ClosureVarValue::xorEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->xorEqualsBigInt<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.xorEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.xorEqualsBigInt(v, old.getRef());
 }
 
-int64 ClosureVarValue::shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_shiftLeftEqualsBigInt(v, xsink);
-      }
+int64 ClosureVarValue::shiftLeftEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->shiftLeftEqualsBigInt<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.shiftLeftEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.shiftLeftEqualsBigInt(v, old.getRef());
 }
 
-int64 ClosureVarValue::shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_shiftRightEqualsBigInt(v, xsink);
-      }
+int64 ClosureVarValue::shiftRightEqualsBigInt(int64 v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->shiftRightEqualsBigInt<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.shiftRightEqualsBigInt<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.shiftRightEqualsBigInt(v, old.getRef());
 }
 
-int64 ClosureVarValue::postIncrement(ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_postIncrement(xsink);
-      }
+int64 ClosureVarValue::postIncrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->postIncrement<ClosureVarValue>(this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.postIncrement<ClosureVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.postIncrement(old.getRef());
 }
 
-int64 ClosureVarValue::preIncrement(ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_preIncrement(xsink);
-      }
+int64 ClosureVarValue::preIncrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->preIncrement<ClosureVarValue>(this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.preIncrement<ClosureVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.preIncrement(old.getRef());
 }
 
-int64 ClosureVarValue::postDecrement(ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_postDecrement(xsink);
-      }
+int64 ClosureVarValue::postDecrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->postDecrement<ClosureVarValue>(this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.postDecrement<ClosureVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.postDecrement(old.getRef());
 }
 
-int64 ClosureVarValue::preDecrement(ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_preDecrement(xsink);
-      }
+int64 ClosureVarValue::preDecrement(ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->preDecrement<ClosureVarValue>(this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.preDecrement<ClosureVarValue>(this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }      
-   return 0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.preDecrement(old.getRef());
 }
 
-double ClosureVarValue::multiplyEqualsFloat(double v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_multiplyEqualsFloat(v, xsink);
-      }
+double ClosureVarValue::multiplyEqualsFloat(double v, ExceptionSink* xsink) {
+   if (val.type == QV_Ref)
+      return val.v.ref->multiplyEqualsFloat<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.multiplyEqualsFloat<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-   return 0.0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.multiplyEqualsFloat(v, old.getRef());
 }
 
-double ClosureVarValue::divideEqualsFloat(double v, ExceptionSink *xsink) {
-   switch (vvt) {
-      case VVT_Normal: {
-	 AutoLocker al(this);
-	 return val.value_divideEqualsFloat(v, xsink);
-      }
+double ClosureVarValue::divideEqualsFloat(double v, ExceptionSink* xsink) {
+   assert(v);
+   if (val.type == QV_Ref)
+      return val.v.ref->divideEqualsFloat<ClosureVarValue>(v, this, xsink);
 
-      case VVT_Ref:
-	 return val.ref.divideEqualsFloat<ClosureVarValue>(v, this, xsink);
-
-         // to avoid warnings about missing enum values
-      default:
-	 assert(false);
-   }
-   return 0.0;
+   ReferenceHolder<> old(xsink);
+   AutoLocker al(this);
+   return val.divideEqualsFloat(v, old.getRef());
 }

@@ -175,8 +175,8 @@ public:
          uninstantiate(xsink);
    }
 
-   DLLLOCAL ClosureVarValue *instantiate(const char *id, AbstractQoreNode *value) {
-      ClosureVarValue *cvar = new ClosureVarValue(id, value);
+   DLLLOCAL ClosureVarValue *instantiate(const char *id, const QoreTypeInfo* typeInfo, AbstractQoreNode *value) {
+      ClosureVarValue *cvar = new ClosureVarValue(id, typeInfo, value);
       instantiate(cvar);
       return cvar;
    }
@@ -348,15 +348,15 @@ public:
       // initialize global vars
       Var *var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ARGV", listTypeInfo);
       if (var && ARGV)
-	 var->setValue(ARGV->copy(), 0);
+	 var->assign(ARGV->copy(), 0);
 	 
       var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "QORE_ARGV", listTypeInfo);
       if (var && QORE_ARGV)
-	 var->setValue(QORE_ARGV->copy(), 0);
+	 var->assign(QORE_ARGV->copy(), 0);
 	 
       var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ENV", hashTypeInfo);
       if (var)
-         var->setValue(ENV->copy(), 0);
+         var->assign(ENV->copy(), 0);
    }
 
    DLLLOCAL void start_thread() {

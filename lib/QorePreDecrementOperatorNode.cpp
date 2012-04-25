@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-QoreString QorePreDecrementOperatorNode::op_str("++ (pre-decrement) operator expression");
+QoreString QorePreDecrementOperatorNode::op_str("-- (pre-decrement) operator expression");
 
 AbstractQoreNode *QorePreDecrementOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);

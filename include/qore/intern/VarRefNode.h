@@ -65,14 +65,6 @@ protected:
    // initializes during parsing
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-      if (type == VT_LOCAL || type == VT_CLOSURE)
-         return ref.id->getTypeInfo();
-      if (type == VT_GLOBAL)
-         return ref.var->getTypeInfo();
-      return 0;
-   }
-
    DLLLOCAL virtual const QoreTypeInfo *parseGetTypeInfo() const {
       if (type == VT_LOCAL || type == VT_CLOSURE)
          return ref.id->getTypeInfo();
@@ -110,6 +102,14 @@ public:
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      if (type == VT_LOCAL || type == VT_CLOSURE)
+         return ref.id->getTypeInfo();
+      if (type == VT_GLOBAL)
+         return ref.var->getTypeInfo();
+      return 0;
+   }
+
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const;
 
@@ -135,6 +135,8 @@ public:
 
    DLLLOCAL bool isGlobalVar() const { return type == VT_GLOBAL; }
 
+   DLLLOCAL VarRefNode* isOptimized(const QoreTypeInfo*& typeInfo) const;
+   
    DLLLOCAL bool isRef() const {
       if (type == VT_LOCAL)
          return ref.id->isRef();
@@ -142,20 +144,16 @@ public:
       return ref.var->isRef();
    }
 
-   DLLLOCAL LocalVarValue *isLocalOptimized(const QoreTypeInfo *&varTypeInfo) const {
-      return type == VT_LOCAL ? ref.id->optimized(varTypeInfo) : 0;
-   }
+   // note: this can only be called if the value is optimized, otherwise it will assert
+   DLLLOCAL qore_type_t getValueType() const;
+   // note: this can only be called if the value is optimized, otherwise it will assert
+   DLLLOCAL const char* getValueTypeName() const;
 
-   //FIXME: implemented evalImpl as getReferencedValue()
-   //DLLLOCAL AbstractQoreNode *getReferencedValue() const;
-
-   DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink) const;
-
-   //DLLLOCAL AbstractQoreNode *assign(const AbstractQoreNode *expr, bool ref_rv, ExceptionSink *xsink);
+   DLLLOCAL void assign(AbstractQoreNode *val, ExceptionSink *xsink) const;
 
    DLLLOCAL void assignBigInt(int64 v, ExceptionSink *xsink);
    DLLLOCAL void assignFloat(double v, ExceptionSink *xsink);
-   DLLLOCAL void assignBool(bool v, ExceptionSink *xsink);
+   //DLLLOCAL void assignBool(bool v, ExceptionSink *xsink);
 
    DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink);
    DLLLOCAL double plusEqualsFloat(double v, ExceptionSink *xsink);

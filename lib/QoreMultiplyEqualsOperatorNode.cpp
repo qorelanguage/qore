@@ -44,30 +44,18 @@ AbstractQoreNode *QoreMultiplyEqualsOperatorNode::evalImpl(ExceptionSink *xsink)
       return 0;
 
    // is either side a float?
-   if (v.get_type() == NT_FLOAT) {
-      double f = res ? res->getAsFloat() : 0;
-
-      if (f) {
-	 v.ensure_unique();
-	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
-	 vf->f *= f;
-      }
-      else { // if factor is NOTHING, assign 0.0
-	 if (v.assign(new QoreFloatNode))
-	    return 0;
-      }
-   }
+   if (v.get_type() == NT_FLOAT)
+      v.multiplyEqualsFloat(res ? res->getAsFloat() : 0.0);
    else {
       if (res && res->getType() == NT_FLOAT) {
 	 v.multiplyEqualsFloat((reinterpret_cast<const QoreFloatNode *>(*res))->f);
       }
       else { // do integer multiply equals
-	 // get new value if necessary
-	 if (v.get_type() == NT_NOTHING || !res) {
-	    if (v.assign(new QoreBigIntNode))
-	       return 0;
-	 }
-	 else
+        if (v.get_type() == NT_NOTHING || !res) {
+           if (v.assignBigInt(0))
+              return 0;
+        }
+        else
 	    v.multiplyEqualsBigInt(res->getAsBigInt());
       }
    }

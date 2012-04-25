@@ -44,12 +44,12 @@ public:
 
       if (!ti->isType(NT_FLOAT)) {
          if (rightTypeInfo->isType(NT_FLOAT)) {
-            ti = floatTypeInfo;
             check_lvalue_float(ti, name);
+            ti = floatTypeInfo;
          }
          else if (ti->returnsSingle()) {
-            ti = bigIntTypeInfo;
             check_lvalue_int(ti, name);
+            ti = bigIntTypeInfo;
          }
          else
             ti = 0;

@@ -34,54 +34,65 @@ const pre = (
     );
 
 # strings that will be parsed to be all basic Qore types
-my $types = ("NOTHING" : 'NOTHING',
-	     "integer" : '1',
-	     "float" : '2.3',
-	     "string" : '"string"',
-	     "date" : '2008-12-03T10:09:14.123',
-	     "boolean" : 'True',
-	     "NULL" : 'NULL',
-	     "binary" : 'binary("hello")',
-	     "list" : '(1, "two", 3.0)',
-	     "hash" : '( "a" : "value", "another" : 123 )',
-	     "object" : '(new Mutex())',
-	     "NOTHING0" : 'my $nothing'
+const TypeHash = (
+    "any-int": ("decl": "any", "val": "1"),
+    #"any-bool": ("decl": "any", "val": "True"),
+    #"any-float": ("decl": "any", "val": "50.45"),
+    #"any-string": ("decl": "any", "val": '"hi"'),
+    "any-list": ("decl": "any", "val": "(1,'two')"),
+    #"any-hash": ("decl": "any", "val": "('a':1,'b':2)"),
+    #"any-object": ("decl": "any", "val": "new Mutex()"),
+    "any-nothing": ("decl": "any", "val": "NOTHING"),
+    "NOTHING" : ("decl": "nothing", "val": 'NOTHING'),
+    "integer" : ("decl": "int", "val": '1'),
+    "float" : ("decl": "float", "val": '2.3'),
+    "string" : ("decl": "string", "val": '"string"'),
+    "date" : ("decl": "date", "val": '2008-12-03T10:09:14.123'),
+    "boolean" : ("decl": "bool", "val": 'True'),
+    "NULL" : ("decl": "null", "val": 'NULL'),
+    "binary" : ("decl": "binary", "val": 'binary("hello")'),
+    "list" : ("decl": "list", "val": '(1, "two", 3.0)'),
+    "hash" : ("decl": "hash", "val": '( "a" : "value", "another" : 123 )'),
+    "object" : ("decl": "object", "val": '(new Mutex())'),
+    "NOTHING0" : ("decl": "string", "val": 'my $nothing'),
     );
 
-my $kt = keys $types;
+const TypeKeys = keys TypeHash;
+const TypeValues = map TypeHash.$1.val, TypeKeys;
+const TypeDecls = map TypeHash.$1.decl, TypeKeys;
 
-sub eval($desc, $str) {
-    if ($opt.verb)
-	stdout.printf($desc);
-
-    my $p = new Program();
+sub eval(Program $p, string $name, string $desc, string $str) {
     try {
-	$p.parse($str, "test");
-	$p.run();
-    }
-    catch ($ex) {
 	if ($opt.verb)
-	    stdout.printf("INVALID (%s: %s)\n", $ex.err, $ex.desc);
+	    stdout.printf("%s: ", $desc);
+	$p.parse($str, $desc);
+	$p.callFunction($name);
+	stdout.print($opt.verb ? "OK\n" : ".");
+    }
+    catch (hash $ex) {
+	if ($opt.verb)
+	    stdout.printf("INVALID (%s: %s) code: %s\n", $ex.err, $ex.desc, $str);
 	else
 	    stdout.printf("X");
-
-	return;
     }
-    if ($opt.verb)
-	stdout.printf("OK\n"); 
-    else
-	stdout.printf(".");
 }
 
 sub infix_test() {
     if (!$opt.verb)
 	stdout.printf("infix tests: ");
-    foreach my $op in (infix) {
-	foreach my $t in ($kt) {
-	    foreach my $t1 in ($kt) {
-		my $desc = sprintf("infix: evaluating %s %s %s: ", $t, $op, $t1);
-		my $str = sprintf("my $l=%s;my $r=%s; return $l %s $r;", $types.$t, $types.$t1, $op);
-		eval($desc, $str);
+
+    my Program $p();
+    my int $cnt = 0;
+    foreach my string $op in (infix) {
+	foreach my string $t in (TypeKeys) {
+	    my int $lp = $#;
+	    foreach my string $t1 in (TypeKeys) {
+		my int $rp = $#;
+		my string $name = sprintf("test%d", $cnt++);
+		my string $desc = sprintf("infix: %s %s %s", $t, $op, $t1);		
+		my string $str = sprintf("any sub %s(){my %s $l=%s;my %s $r=%s; return $l %s $r;}\n", $name, 
+					 TypeDecls[$lp], TypeValues[$lp], TypeDecls[$rp], TypeValues[$rp], $op);
+		eval($p, $name, $desc, $str);
 	    }
 	}
     }
@@ -92,11 +103,19 @@ sub infix_test() {
 sub assign_test() {
     if (!$opt.verb)
 	stdout.printf("assignment tests: ");
+
+    my Program $p();
+    my int $cnt = 0;
     foreach my $op in (assign) {
-	foreach my $t in ($kt) {
-	    my $desc = sprintf("assign: evaluating %s %s: ", $op, $t);
-	    my $str = sprintf("my $v=%s;my $x %s $v;", $types.$t, $op);
-	    eval($desc, $str);
+	foreach my $t in (TypeKeys) {
+	    my int $lp = $#;
+	    foreach my string $t1 in (TypeKeys) {
+		my int $rp = $#;
+		my string $name = sprintf("test%d", $cnt++);
+		my $desc = sprintf("assign: evaluating %s %s: ", $op, $t);
+		my $str = sprintf("any sub %s(){my %s $v=%s;my %s $x = %s; $x %s $v;}\n", $name, TypeDecls[$lp], TypeValues[$lp], TypeDecls[$rp], TypeValues[$rp], $op);
+		eval($p, $name, $desc, $str);
+	    }
 	}
     }
     if (!$opt.verb)
@@ -106,11 +125,15 @@ sub assign_test() {
 sub lop_tests() {
     if (!$opt.verb)
 	stdout.printf("unary prefix operator tests: ");
+
+    my Program $p();
+    my int $cnt = 0;
     foreach my $op in (lop) {
-	foreach my $t in ($kt) {
+	foreach my $t in (TypeKeys) {
+	    my string $name = sprintf("test%d", $cnt++);
 	    my $desc = sprintf("unary prefix: evaluating %s%s: ", $op, $t);
-	    my $str = sprintf("my $v=%s; return %s$v;", $types.$t, $op);
-	    eval($desc, $str);
+	    my $str = sprintf("any sub %s(){my %s $v=%s; return %s$v;}\n", $name, TypeDecls[$#], TypeValues[$#], $op);
+	    eval($p, $name, $desc, $str);
 	}
     }
     if (!$opt.verb)
@@ -120,11 +143,15 @@ sub lop_tests() {
 sub lv_pre_tests() {
     if (!$opt.verb)
 	stdout.printf("lvalue prefix operator tests: ");
+
+    my Program $p();
+    my int $cnt = 0;
     foreach my $op in (lv_pre_post) {
-	foreach my $t in ($kt) {
+	foreach my $t in (TypeKeys) {
+	    my string $name = sprintf("test%d", $cnt++);
 	    my $desc = sprintf("lvalue prefix: evaluating %s%s: ", $op, $t);
-	    my $str = sprintf("my $v=%s; return %s$v;", $types.$t, $op);
-	    eval($desc, $str);
+	    my $str = sprintf("any sub %s(){my %s $v=%s; return %s$v;}\n", $name, TypeDecls[$#], TypeValues[$#], $op);
+	    eval($p, $name, $desc, $str);
 	}
     }
     if (!$opt.verb)
@@ -134,11 +161,15 @@ sub lv_pre_tests() {
 sub lv_post_tests() {
     if (!$opt.verb)
 	stdout.printf("lvalue postfix operator tests: ");
+
+    my Program $p();
+    my int $cnt = 0;
     foreach my $op in (lv_pre_post) {
-	foreach my $t in ($kt) {
+	foreach my $t in (TypeKeys) {
+	    my string $name = sprintf("test%d", $cnt++);
 	    my $desc = sprintf("lvalue postfix: evaluating %s%s: ", $t, $op);
-	    my $str = sprintf("my $v=%s; return $v%s;", $types.$t, $op);
-	    eval($desc, $str);
+	    my $str = sprintf("any sub %s(){my %s $v=%s; return $v%s;}\n", $name, TypeDecls[$#], TypeValues[$#], $op);
+	    eval($p, $name, $desc, $str);
 	}
     }
     if (!$opt.verb)
@@ -148,22 +179,22 @@ sub lv_post_tests() {
 sub lv_tests() {
     if (!$opt.verb)
 	stdout.printf("lvalue operator tests: ");
-   
-    # get list of values in hash
-    my $vt = hash_values($types);
 
+    my Program $p();
+    my int $cnt = 0;
+   
     foreach my $num in (keys lv) {
 	my $limit = int($num) + 1;
 
 	foreach my $op in (lv.$num) {
-	    my $max = pow(elements $kt, $limit);
+	    my $max = pow(elements TypeKeys, $limit);
 
-	    my $p;
+	    my $pm;
 	    # calculate offsets
 	    for (my $i = 0; $i < $limit; ++$i)
-		$p[$i] = pow(elements $kt, $i);
+		$pm[$i] = pow(elements TypeKeys, $i);
 
-	    #printf("DEBUG: offsets: %N\n", $p);
+	    #printf("DEBUG: offsets: %N\n", $pm);
 
 	    for (my $i = 0; $i < $max; ++$i) {
 		my $str;
@@ -171,17 +202,19 @@ sub lv_tests() {
 		my $dargs;
 		for (my $j = $limit - 1; $j >= 0; --$j) {
 		    # get each argument's position in the type hash
-		    #printf("DEBUG: i=%n,j=%n: %n\n", $i, $j, $p[$j]);
-		    my $x = ($i / $p[$j]) % (elements $kt);
-		    $str += sprintf("my $l[%d]=%s;", $j, $vt[$x]);
-		    $args += sprintf("$l[%d], ", $j);
-		    $dargs += sprintf("%s, ", $kt[$x]);
+		    #printf("DEBUG: i=%n,j=%n: %n\n", $i, $j, $pm[$j]);
+		    my $x = ($i / $pm[$j]) % (elements TypeKeys);
+		    $str += sprintf("my %s $l%d=%s;", TypeDecls[$x], $j, TypeValues[$x]);
+		    $args += sprintf("$l%d, ", $j);
+		    $dargs += sprintf("%s, ", TypeKeys[$x]);
 		}
 		splice $args, -2;
 		splice $dargs, -2;
+		my string $name = sprintf("test%d", $cnt++);
 		my $desc = sprintf("lvalue: evaluating %s, %s: ", $op, $dargs);
 		$str += sprintf("%s %s;", $op, $args);
-		eval($desc, $str);
+		$str = sprintf("any sub %s(){%s}\n", $name, $str);
+		eval($p, $name, $desc, $str);
 	    }
 	}
     }
@@ -194,19 +227,19 @@ sub pre_tests() {
     if (!$opt.verb)
 	stdout.printf("pre operator tests: ");
    
-    # get list of values in hash
-    my $vt = hash_values($types);
-
+    my Program $p();
+    my int $cnt = 0;
+   
     foreach my $num in (keys pre) {
 	my $limit = int($num);
 
 	foreach my $op in (pre.$num) {
-	    my $max = pow(elements $kt, $limit);
+	    my $max = pow(elements TypeKeys, $limit);
 
-	    my $p;
+	    my $pm;
 	    # calculate offsets
 	    for (my $i = 0; $i < $limit; ++$i)
-		$p[$i] = pow(elements $kt, $i);
+		$pm[$i] = pow(elements TypeKeys, $i);
 
 	    for (my $i = 0; $i < $max; ++$i) {
 		my $str;
@@ -214,17 +247,19 @@ sub pre_tests() {
 		my $dargs;
 		for (my $j = $limit - 1; $j >= 0; --$j) {
 		    # get each argument's position in the type hash
-		    #printf("DEBUG: i=%n,j=%n: %n\n", $i, $j, $p[$j]);
-		    my $x = ($i / $p[$j]) % (elements $kt);
-		    $str += sprintf("my $l[%d]=%s;", $j, $vt[$x]);
-		    $args += sprintf("$l[%d], ", $j);
-		    $dargs += sprintf("%s, ", $kt[$x]);
+		    #printf("DEBUG: i=%n,j=%n: %n\n", $i, $j, $pm[$j]);
+		    my $x = ($i / $pm[$j]) % (elements TypeKeys);
+		    $str += sprintf("my %s $l%d=%s;", TypeDecls[$x], $j, TypeValues[$x]);
+		    $args += sprintf("$l%d, ", $j);
+		    $dargs += sprintf("%s, ", TypeKeys[$x]);
 		}
 		splice $args, -2;
 		splice $dargs, -2;
+		my string $name = sprintf("test%d", $cnt++);
 		my $desc = sprintf("lvalue: evaluating %s, %s: ", $op, $dargs);
 		$str += sprintf("return %s %s;", $op, $args);
-		eval($desc, $str);
+		$str = sprintf("any sub %s(){%s}\n", $name, $str);
+		eval($p, $name, $desc, $str);
 	    }
 	}
     }

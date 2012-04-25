@@ -48,7 +48,7 @@ void GlobalVariableList::clear_all(ExceptionSink *xsink) {
    for (map_var_t::reverse_iterator i = vmap.rbegin(), e = vmap.rend(); i != e; ++i) {
       if (!i->second->isImported()) {
 	 printd(5, "GlobalVariableList::clear_all() clearing '%s' (%p)\n", i->first, i->second);
-	 i->second->setValue(0, xsink);
+	 i->second->assign(0, xsink);
       }
 #ifdef DEBUG
       else printd(5, "GlobalVariableList::clear_all() skipping imported var '%s' (%p)\n", i->first, i->second);

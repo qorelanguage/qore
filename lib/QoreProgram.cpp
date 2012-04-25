@@ -746,7 +746,7 @@ AbstractQoreNode *QoreProgram::getGlobalVariableValue(const char *var, bool &fou
       return 0;
    }
    found = true;   
-   return v->getReferencedValue();
+   return v->eval();
 }
 
 // only called when parsing, therefore in the parse thread lock
