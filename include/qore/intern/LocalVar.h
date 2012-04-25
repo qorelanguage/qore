@@ -235,7 +235,8 @@ public:
          val.set(QV_Node);
       
       // no exception is possible here as there was no previous value
-      val.assign(value);
+      // also since only basic value types could be returned, no exceptions can occur with the value passed either
+      discard(val.assign(value), 0);
    }
 
    DLLLOCAL void set(const char *n_id, AbstractQoreNode* vexp, QoreObject *obj, QoreProgram *pgm) {
@@ -495,7 +496,8 @@ public:
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
 
    DLLLOCAL ClosureVarValue(const char *n_id, const QoreTypeInfo* varTypeInfo, AbstractQoreNode* value) : VarValueBase(n_id, varTypeInfo), typeInfo(varTypeInfo) {
-      val.assign(value);
+      // also since only basic value types could be returned, no exceptions can occur with the value passed either
+      discard(val.assign(value), 0);
    }
 
    DLLLOCAL ClosureVarValue(const char *n_id, AbstractQoreNode* vexp, QoreObject *obj, QoreProgram *pgm) : VarValueBase(n_id, QV_Ref), typeInfo(0) {
