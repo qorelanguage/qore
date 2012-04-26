@@ -52,7 +52,7 @@ protected:
    
 public:
    LocalVar *lvar;
-   VNode *next;
+   VNode* next;
 
    DLLLOCAL VNode(LocalVar *lv, int n_refs = 0, bool n_top_level = false) : refs(n_refs), file(get_parse_file()), block_start(false), top_level(n_top_level), lvar(lv), next(getVStack()) {
       get_parse_location(first_line, last_line);
@@ -97,12 +97,12 @@ public:
    }
 
    // searches to marker and then jumps to global thread-local variables
-   DLLLOCAL VNode *nextSearch() const {
+   DLLLOCAL VNode* nextSearch() const {
       if (!next || next->lvar)
 	 return next;
 
       // skip to global thread-local variables
-      VNode *rv = get_global_vnode();
+      VNode* rv = get_global_vnode();
       //printd(5, "VNode::nextSearch() returning global VNode %p\n", rv);
       return rv;
    }
@@ -114,7 +114,7 @@ protected:
 
 public:
    DLLLOCAL BlockStartHelper() {
-      VNode *v = getVStack();
+      VNode* v = getVStack();
       //printd(5, "BlockStartHelper::BlockStartHelper() v=%p ibs=%d\n", v, v ? v->isBlockStart() : 0);
       bs = v ? v->setBlockStart(true) : true;
    }
@@ -140,8 +140,8 @@ public:
    }
 };
 
-AbstractQoreNode *StatementBlock::exec(ExceptionSink *xsink) {
-   AbstractQoreNode *return_value = 0;
+AbstractQoreNode* StatementBlock::exec(ExceptionSink* xsink) {
+   AbstractQoreNode* return_value = 0;
    execImpl(&return_value, xsink);
    return return_value;
 }
@@ -173,14 +173,14 @@ void StatementBlock::del() {
    }
 }
 
-int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int StatementBlock::execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink) {
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
 
    return execIntern(return_value, xsink);
 }
 
-int StatementBlock::execIntern(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int StatementBlock::execIntern(AbstractQoreNode** return_value, ExceptionSink* xsink) {
    QORE_TRACE("StatementBlock::execImpl()");
    int rc = 0;
 
@@ -242,7 +242,7 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool ch
    // check stack for duplicate entries
    bool avs = checkParseOption(PO_ASSUME_LOCAL);
    if (check_dup && (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS | QP_WARN_DUPLICATE_BLOCK_VARS) || avs)) {
-      VNode *vnode = getVStack();
+      VNode* vnode = getVStack();
       while (vnode) {
 	 printd(5, "push_local_var() vnode=%p %s (top: %s) ibs=%d found_block=%d\n", vnode, vnode->getName(), vnode->isTopLevel() ? "true" : "false", vnode->isBlockStart(), found_block);
 	 if (!found_block && vnode->isBlockStart())
@@ -289,7 +289,7 @@ LocalVar *pop_local_var() {
 }
 
 LocalVar *find_local_var(const char *name, bool &in_closure) {
-   VNode *vnode = getVStack();
+   VNode* vnode = getVStack();
    ClosureParseEnvironment *cenv = thread_get_closure_parse_env();
    in_closure = false;
 
@@ -369,7 +369,7 @@ void StatementBlock::parseCheckReturn() {
    if (returnTypeInfo->hasType() && !returnTypeInfo->parseAccepts(nothingTypeInfo)) {
       // make sure the last statement is a return statement if the block has a return type
       if (!this || statement_list.empty() || !(*statement_list.last())->hasFinalReturn()) {
-	 QoreStringNode *desc = new QoreStringNode("this code block has declared return type ");
+	 QoreStringNode* desc = new QoreStringNode("this code block has declared return type ");
 	 returnTypeInfo->getThisType(*desc);
 	 desc->concat(" but does not have a return statement as the last statement in the block");
 	 if (!this)
@@ -459,7 +459,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    }
 
    // save local variable position for searches
-   VNode *vn = getVStack();
+   VNode* vn = getVStack();
    //printd(5, "TopLevelStatementBlock::parseInit() saving global vnode=%p\n", vn);
    save_global_vnode(vn);
    
@@ -490,7 +490,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    return;
 }
 
-int TopLevelStatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int TopLevelStatementBlock::execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink) {
    // do not instantiate local vars here; they are instantiated by the QoreProgram object for each thread
    return execIntern(return_value, xsink);
 }

@@ -24,16 +24,6 @@
 #include <qore/intern/ReturnStatement.h>
 #include <qore/intern/qore_program_private.h>
 
-ReturnStatement::ReturnStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line) {
-   exp = v;
-}
-
-ReturnStatement::~ReturnStatement() {
-   // this should never be 0, but in case the implementation changes...
-   if (exp)
-      exp->deref(0);
-}
-
 int ReturnStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    if (exp)
       (*return_value) = exp->eval(xsink);

@@ -29,14 +29,21 @@
 
 class ReturnStatement : public AbstractStatement {
 private:
-   class AbstractQoreNode *exp;
+   AbstractQoreNode *exp;
 
    DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    
 public:
-   DLLLOCAL ReturnStatement(int start_line, int end_line, class AbstractQoreNode *v = NULL);
-   DLLLOCAL virtual ~ReturnStatement();
+   DLLLOCAL ReturnStatement(int start_line, int end_line, AbstractQoreNode* v = 0) : AbstractStatement(start_line, end_line), exp(v) {
+   }
+
+   DLLLOCAL ~ReturnStatement() {
+      // this should never be 0, but in case the implementation changes...
+      if (exp)
+         exp->deref(0);
+   }
+
    DLLLOCAL virtual bool endsBlock() const {
       return true;
    }

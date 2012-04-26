@@ -1288,19 +1288,26 @@ AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
       if (signature.selfid)
          signature.selfid->uninstantiate(xsink);
    }
-   else
+   else {
       argv = 0; // dereference argv now
+   }
 
    // if return value is NOTHING; make sure it's valid; maybe there wasn't a return statement
    // only check if there isn't an active exception
-   if (!*xsink && is_nothing(val)) {
+   if (!*xsink && !val) {
       const QoreTypeInfo *rt = signature.getReturnTypeInfo();
+
+      // check return type
+      val = rt->acceptAssignment("<block return>", val, xsink);
+
+      /*
       if (!rt->parseAccepts(nothingTypeInfo)) {
 	 QoreStringNode *desc = new QoreStringNode("block has declared return type ");
 	 rt->getThisType(*desc);
 	 desc->concat(" but NOTHING was returned");
 	 xsink->raiseException("RETURN-TYPE-ERROR", desc);
       }
+       */
    }
 
    return val;
