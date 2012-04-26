@@ -7,6 +7,7 @@
 
 # changes for v0.3.3:
 # * converted to a user module
+# * added support for custom redirects from user handlers
 
 # changes for v0.3.2:
 # * added support for listeners with specific handler lists
@@ -327,39 +328,35 @@ public class HttpServer::AbstractHttpRequestHandler {
 
         #! if automatically decompressed POSTed data should be converted to a string (if False, then it will be decompressed to a binary)
         bool $.decompress_to_string = True;
-
-        #! any thread-local data to add before calling handleRequest()
-        *hash $.tld;
     }
 
     #! create the object optionally with the given AbstractAuthenticator
     /** @param $auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
         @param $my_tld any optional thread-local data to add before each call to handleRequest()
       */
-    constructor(*AbstractAuthenticator $auth, *hash $my_tld) {
+    constructor(*AbstractAuthenticator $auth) {
         $.auth = $auth;
-        $.tld = $my_tld;
     }
 
     #! will be called when a request is received that should be directed to the handler
     /**
-    @param $cx call context hash; this hash will have the following keys:
-    - \c socket: the bind address used to gind the listener (\c "socket-info" provides more detailed information)
-    - \c socket-info: a hash of socket information for the listening socket (as returned by Socket::getSocketInfo())
-    - \c peer-info: a hash of socket information for the remote socket (as returned by Socket::getPeerInfo())
-    - \c url: a hash of broken-down URL information (as returned from parseURL())
-    - \c id: the unique HTTP connection ID
-    - \c user: the current RBAC username (if any)
-    @param $hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
-    - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
-    - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
-    - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
-    @param $body message body, if any
-    @return a hash with the following keys:
-    - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
-    - \c "body": the message body to return in the response
-    - \c "close": (optional) set this key to \c True if the connection should be unconditionally closed when the handler returns
-    - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+        @param $cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to gind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from parseURL())
+        - \c id: the unique HTTP connection ID
+        - \c user: the current RBAC username (if any)
+        @param $hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+        - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+        - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
+        - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+        @param $body message body, if any
+        @return a hash with the following keys:
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+        - \c "body": the message body to return in the response
+        - \c "close": (optional) set this key to \c True if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
     */
     hash handleRequest(hash $cx, hash $hdr, *data $body) {
         return ("code": 501,
@@ -369,11 +366,11 @@ public class HttpServer::AbstractHttpRequestHandler {
 
     #! helper method for handling log messages
     /** 
-    @param $cx the call context hash
-    @param $api the API description hash
-    @param $params a reference to the call parameters; the call context hash will be added as the first argument
-    @param $args an optional reference to a string describing the arguments
-    @return a string if the message should be logged, otherwise NOTHING
+        @param $cx the call context hash
+        @param $api the API description hash
+        @param $params a reference to the call parameters; the call context hash will be added as the first argument
+        @param $args an optional reference to a string describing the arguments
+        @return a string if the message should be logged, otherwise NOTHING
     */
     static *string getLogMessage(hash $cx, hash $api, reference $params, *reference $args) {
         on_exit {
@@ -419,6 +416,18 @@ public class HttpServer::AbstractHttpRequestHandler {
         }
        
         return sprintf("%s(%s)", $msg, $args);
+    }
+
+    #! called before handleRequest() any data returned here will be given to restoreThreadLocalData() after the handleRequest() call
+    /** the default implementation does nothing
+      */
+    *hash saveThreadLocalData() {
+    }
+
+    #! called after handleRequest() with any data returned from saveThreadData()
+    /** the default implementation does nothing
+      */
+    restoreThreadLocalData(*hash $data) {
     }
 }
 
@@ -1137,12 +1146,12 @@ public class HttpServer::HttpServer {
 	bool $.exit = False;
 
         # if True then verbose exception info will be logged
-        bool $.debug = False;
+        bool $.debug;
 
 	Sequence $.seqSessions();
 	Sequence $.seqListeners();
 
-	string $.httpserverstring = sprintf("Qore HTTP Server v%s", HttpServer::Version);
+	string $.httpserverstring;
 
 	bool $.stopped = False;
 
@@ -1169,9 +1178,11 @@ public class HttpServer::HttpServer {
     }
 
     #! creates the HttpServer; call addListener() to add and start listeners
-    constructor(*code $logfunc, *code $errlogfunc) {
+    constructor(*code $logfunc, *code $errlogfunc, bool $dbg = False, string $name = sprintf("Qore HTTP Server v%s", HttpServer::Version)) {
 	$.logfunc = $logfunc;
 	$.errlogfunc = $errlogfunc;
+        $.debug = $dbg;
+        $.httpserverstring = $name;
     }
 
     #! calls HttpServer::stop()
@@ -1629,6 +1640,7 @@ public class HttpServer::HttpServer {
 			    $.sendHttpError($s, 401, "Authentication is required to access this server", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())));
 			    return;
 			}
+                        $cx.user = $user;
 		    }
 		}
 
@@ -1666,6 +1678,8 @@ public class HttpServer::HttpServer {
                     }
                 }
 
+                my *hash $tld_save = $handler.saveThreadLocalData();
+                on_exit $handler.restoreThreadLocalData($tld_save);
                 $rv = $handler.handleRequest($cx, $hdr, $body);
             }
             else {
@@ -1698,7 +1712,11 @@ public class HttpServer::HttpServer {
 	    #printf("HTTP DEBUG: handler %s returned: %n\n", $handlerName, $rv);
 
 	    $rv.hdr.Server = $.httpserverstring;
-	    if ($rv.code != 200) {
+            if ($rv.code >= 300 && $rv.code < 400) {
+                # handle redirect msgs
+                $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr);
+            }
+            else if ($rv.code != 200) {
 		if (!exists $rv.body)
 		    $rv.body = sprintf("unknown error in %s handler", $handlerName);
 		
