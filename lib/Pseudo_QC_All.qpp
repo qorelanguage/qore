@@ -107,12 +107,12 @@ int <value>::size() [flags=CONSTANT] {
    return 0;
 }
 
-//! Returns @ref False; this method is reimplemented in all other types and will return @ref True if the given expression has a value
+//! Returns @ref False; this method is reimplemented in other types and will return @ref True if the given expression has a value
 /** This pseudo-method can be used to mimic perl's boolean evaluation; unfortunately it was a design error in Qore to
     implement strict mathematical boolean evaluation (where any value must evaluate to a non-zero integer or floating-point
     value to be @ref True), however this pseudo-method solves the problem in an intuitive manner.
 
-    @return @ref False; this method is reimplemented in all other types and will return @ref True if the given expression has a value
+    @return @ref False; this method is reimplemented in other types and will return @ref True if the given expression has a value
 
     @par Example:
     @code
@@ -121,5 +121,35 @@ if ($n.val())
     @endcode
 */
 bool <value>::val() [flags=CONSTANT] {
+   return false;
+}
+
+//! Returns @ref False; this method is reimplemented in other types and will return @ref True if the given expression can be converted to an integer
+/**
+    @return @ref False; this method is reimplemented in other types and will return @ref True if the given expression can be converted to an integer
+
+    @par Example:
+    @code
+if ($n.intp())
+    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+    @endcode
+
+    @see <string>::intp() for an example of an implementation of this method where the result depends on the value and not the type
+*/
+bool <value>::intp() [flags=CONSTANT] {
+   return false;
+}
+
+//! Returns @ref False; this method is reimplemented in other types and will return @ref True if the given expression can be converted to a string
+/**
+    @return @ref False; this method is reimplemented in other types and will return @ref True if the given expression can be converted to a string
+
+    @par Example:
+    @code
+if ($n.strp())
+    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+    @endcode
+*/
+bool <value>::strp() [flags=CONSTANT] {
    return false;
 }

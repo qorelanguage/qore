@@ -57,3 +57,31 @@ my bool $bool = $b.val();
 bool <bool>::val() [flags=CONSTANT] {
    return (bool)b->getValue();
 }
+
+//! Returns @ref True because boolean values can be converted to integers (False = 0, True = 1)
+/**
+    @return @ref True because boolean values can be converted to integers (False = 0, True = 1)
+
+    @par Example:
+    @code
+if ($n.intp())
+    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+    @endcode
+*/
+bool <bool>::intp() [flags=CONSTANT] {
+   return true;
+}
+
+//! Returns @ref True because boolean values can be converted to strings (False = \c "0", True = \c "1")
+/**
+    @return @ref True because boolean values can be converted to strings (False = \c "0", True = \c "1")
+
+    @par Example:
+    @code
+if ($n.strp())
+    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+    @endcode
+*/
+bool <bool>::strp() [flags=CONSTANT] {
+   return true;
+}

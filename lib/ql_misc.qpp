@@ -1082,7 +1082,7 @@ bool has_key(object obj, string key) {
 my *int $byte = get_byte($str, 2); # returns the third byte of the string
     @endcode
 
-    @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator operates on characters\n\n
+    @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator" operates on characters\n\n
     Furthermore this function is identical to getByte(), except this function has no @ref RUNTIME_NOOP variant
 */
 *int get_byte(string str, softint offset = 0) [flags=CONSTANT] {
@@ -1132,7 +1132,7 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
 my *int $byte = get_byte($str, 2); # returns the third byte of the string
     @endcode
 
-    @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator operates on characters\n\n
+    @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator" operates on characters\n\n
     Furthermore this function is identical to get_byte(), except this function has a @ref RUNTIME_NOOP variant
 
     @since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead

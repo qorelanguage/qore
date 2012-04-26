@@ -57,3 +57,31 @@ my bool $b = $f.val();
 bool <float>::val() [flags=CONSTANT] {
    return (bool)f->f == 0.0 ? false : true;
 }
+
+//! Returns @ref True because float values can be converted to integers
+/**
+    @return @ref True because float values can be converted to integers
+
+    @par Example:
+    @code
+if ($n.intp())
+    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+    @endcode
+*/
+bool <float>::intp() [flags=CONSTANT] {
+   return true;
+}
+
+//! Returns @ref True because float values can be converted to strings
+/**
+    @return @ref True because float values can be converted to strings
+
+    @par Example:
+    @code
+if ($n.strp())
+    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+    @endcode
+*/
+bool <float>::strp() [flags=CONSTANT] {
+   return true;
+}

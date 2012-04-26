@@ -23,6 +23,8 @@
 
 #include <qore/Qore.h>
 
+#include <ctype.h>
+
 //! Methods in this pseudo-class can be executed on @ref string "strings"
 /** 
  */
@@ -189,5 +191,38 @@ my bool $b = $str.val();
 */
 bool <string>::val() [flags=CONSTANT] {
    return !str->empty();
+}
+
+//! Returns @ref True if the string can be converted to an integer, False if not, this depends on the first (or possibly second) character of the string, if it's 0 - 9 (possibly preceded by \c "-"), then the method returns True
+/**
+    @return @ref True if the string can be converted to an integer, False if not, this depends on the first (or possibly second) character of the string, if it's 0 - 9 (possibly preceded by \c "-"), then the method returns True
+
+    @par Example:
+    @code
+if ($n.intp())
+    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+    @endcode
+*/
+bool <string>::intp() [flags=CONSTANT] {
+   if (str->empty())
+      return false;
+   char c = (*str)[0];
+   if (c == '-')
+      c = (*str)[1];
+   return (isdigit(c)) ? true : false;
+}
+
+//! Returns @ref True by default
+/**
+    @return @ref True by default
+
+    @par Example:
+    @code
+if ($n.strp())
+    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+    @endcode
+*/
+bool <string>::strp() [flags=CONSTANT] {
+   return true;
 }
 

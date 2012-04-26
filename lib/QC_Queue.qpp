@@ -228,7 +228,7 @@ int Queue::getReadWaiting() [flags=CONSTANT] {
 
 //! Returns the number of threads currently blocked on this queue for writing
 /** @par Example:
-    <code>my int $waiting = $queue.numWriteWaiting();</code>
+    <code>my int $waiting = $queue.getWriteWaiting();</code>
 
     @return the number of threads currently blocked on this queue for writing
     
@@ -236,6 +236,6 @@ int Queue::getReadWaiting() [flags=CONSTANT] {
     
     @since %Qore 0.8.4
  */
-int Queue::numWriteWaiting() [flags=CONSTANT] {
+int Queue::getWriteWaiting() [flags=CONSTANT] {
    return q->getWriteWaiting();
 }

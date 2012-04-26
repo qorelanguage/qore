@@ -113,19 +113,19 @@ pthread_t PTHREAD_NA, PTHREAD_AVAIL;
 class tid_node {
 public:
    int tid;
-   tid_node *next, *prev;
+   tid_node* next, *prev;
    
    DLLLOCAL tid_node(int ntid);
    DLLLOCAL ~tid_node();
 };
 
-static tid_node *tid_head = 0, *tid_tail = 0;
+static tid_node* tid_head = 0, *tid_tail = 0;
  
 // this structure holds all thread data that can be addressed with the qore tid
 class ThreadEntry {
 public:
    pthread_t ptid;
-   tid_node *tidnode;
+   tid_node* tidnode;
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    CallStack *callStack;
 #endif
@@ -154,7 +154,7 @@ public:
       }
    }
    
-   DLLLOCAL void allocate(tid_node *tn) {
+   DLLLOCAL void allocate(tid_node* tn) {
       ptid = PTHREAD_NA;
       tidnode = tn;
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
@@ -283,8 +283,8 @@ public:
    const char *pgm_file;
    const char *parse_code; // the current function, method, or closure being parsed
    void *parseState;
-   VNode *vstack;  // used during parsing (local variable stack)
-   CVNode *cvarstack;
+   VNode* vstack;  // used during parsing (local variable stack)
+   CVNode* cvarstack;
    QoreClass *parseClass; // current class being parsed
    QoreException *catchException;
    std::list<block_list_t::iterator> on_block_exit_list;
@@ -303,7 +303,7 @@ public:
    qore_ns_private* current_ns;
 
    // current implicit argument
-   QoreListNode *current_implicit_arg;
+   QoreListNode* current_implicit_arg;
 
    // local variable data slots
    ThreadLocalVariableData *lvstack;
@@ -338,7 +338,7 @@ public:
    int element;
 
    // start of global thread-local variables for the current thread and program being parsed
-   VNode *global_vnode;
+   VNode* global_vnode;
 
    // Maintaining the conditional parse block count for each file parsed
    ParseConditionalStack pcs;
@@ -485,18 +485,18 @@ class ThreadCleanupNode {
 public:
    qtdest_t func;
    void *arg;
-   ThreadCleanupNode *next;
+   ThreadCleanupNode* next;
 };
 
-DLLLOCAL ThreadCleanupNode *ThreadCleanupList::head = 0;
+DLLLOCAL ThreadCleanupNode* ThreadCleanupList::head = 0;
 
 class ThreadParams {
 public:
-   AbstractQoreNode *fc;
+   AbstractQoreNode* fc;
    int tid;
    QoreProgram *pgm;
    
-   DLLLOCAL ThreadParams(AbstractQoreNode *f, int t) { 
+   DLLLOCAL ThreadParams(AbstractQoreNode* f, int t) {
       fc = f; 
       tid = t;
       pgm = getProgram();
@@ -532,14 +532,14 @@ private:
    QoreObject *callobj;
 public:
    QoreObject *obj;
-   AbstractQoreNode *fc;
+   AbstractQoreNode* fc;
    QoreProgram *pgm;
    int tid;
    int s_line, e_line;
    const char *file;
    bool method_reference;
    
-   DLLLOCAL BGThreadParams(AbstractQoreNode *f, int t, ExceptionSink *xsink) : callobj(getStackObject()), obj(0),
+   DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink *xsink) : callobj(getStackObject()), obj(0),
 									       fc(f), pgm(getProgram()), tid(t) {
       // callobj: get and reference the current stack object, if any, for the new call stack
       // save program location
@@ -557,7 +557,7 @@ public:
 	 callobj = 0;
       }
       else if (fctype == NT_OPERATOR) {
-         QoreDotEvalOperatorNode *deon = dynamic_cast<QoreDotEvalOperatorNode*>(fc);
+         QoreDotEvalOperatorNode* deon = dynamic_cast<QoreDotEvalOperatorNode*>(fc);
          if (deon) {
 	    // evaluate object
 	    QoreNodeEvalOptionalRefHolder n(deon->getExpression(), xsink);
@@ -612,9 +612,9 @@ public:
       }
    }
    
-   DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink) {
+   DLLLOCAL AbstractQoreNode* exec(ExceptionSink *xsink) {
       //printd(5, "BGThreadParams::exec() this=%p fc=%p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
-      AbstractQoreNode *rv = fc->eval(xsink);
+      AbstractQoreNode* rv = fc->eval(xsink);
       fc->deref(xsink);
       fc = 0;
       return rv;
@@ -630,14 +630,14 @@ ThreadCleanupList::~ThreadCleanupList() {
    //printf("ThreadCleanupList::~ThreadCleanupList() head=%p\n", head);
 
    while (head) {
-      class ThreadCleanupNode *w = head->next;
+      class ThreadCleanupNode* w = head->next;
       delete head;
       head = w;
    }
 }
 
 void ThreadCleanupList::exec() {
-   class ThreadCleanupNode *w = head;
+   class ThreadCleanupNode* w = head;
    while (w) {
       w->func(w->arg);
       w = w->next;
@@ -645,7 +645,7 @@ void ThreadCleanupList::exec() {
 }
 
 void ThreadCleanupList::push(qtdest_t func, void *arg) {
-   class ThreadCleanupNode *w = new ThreadCleanupNode;
+   class ThreadCleanupNode* w = new ThreadCleanupNode;
    w->next = head;
    w->func = func;
    w->arg = arg;
@@ -660,7 +660,7 @@ void ThreadCleanupList::pop(bool exec) {
    if (head) {
       if (exec)
 	 head->func(head->arg);
-      ThreadCleanupNode *w = head->next;
+      ThreadCleanupNode* w = head->next;
       delete head;
       head = w;
    }
@@ -695,12 +695,12 @@ int check_stack(ExceptionSink *xsink) {
 #endif
 
 // returns 1 if data structure is already on stack, 0 if not (=OK)
-int thread_push_container(const AbstractQoreNode *n) {
+int thread_push_container(const AbstractQoreNode* n) {
    std::pair<const_node_set_t::iterator, bool> rv = thread_data.get()->node_set.insert(n);
    return !rv.second;
 }
 
-void thread_pop_container(const AbstractQoreNode *n) {
+void thread_pop_container(const AbstractQoreNode* n) {
    ThreadData *td = thread_data.get();
    
    const_node_set_t::iterator i = td->node_set.find(n);
@@ -722,11 +722,11 @@ LocalVarValue *thread_find_lvar(const char *id) {
    return td->lvstack->find(id);
 }
 
-ClosureVarValue *thread_instantiate_closure_var(const char *n_id, const QoreTypeInfo* typeInfo, AbstractQoreNode *value) {
+ClosureVarValue *thread_instantiate_closure_var(const char *n_id, const QoreTypeInfo* typeInfo, AbstractQoreNode* value) {
    return thread_data.get()->cvstack->instantiate(n_id, typeInfo, value);
 }
 
-ClosureVarValue *thread_instantiate_closure_var(const char *n_id, AbstractQoreNode *vexp, QoreObject *obj, QoreProgram *pgm) {
+ClosureVarValue *thread_instantiate_closure_var(const char *n_id, AbstractQoreNode* vexp, QoreObject *obj, QoreProgram *pgm) {
    return thread_data.get()->cvstack->instantiate(n_id, vexp, obj, pgm);
 }
 
@@ -1132,7 +1132,7 @@ CodeContextHelper::~CodeContextHelper() {
    td->current_obj = old_obj;
 }
 
-ArgvContextHelper::ArgvContextHelper(QoreListNode *argv, ExceptionSink *n_xsink) : xsink(n_xsink) {
+ArgvContextHelper::ArgvContextHelper(QoreListNode* argv, ExceptionSink *n_xsink) : xsink(n_xsink) {
    ThreadData *td  = thread_data.get();
    old_argv = td->current_implicit_arg;
    td->current_implicit_arg = argv;
@@ -1147,11 +1147,11 @@ ArgvContextHelper::~ArgvContextHelper() {
    //printd(5, "ArgvContextHelper::~ArgvContextHelper() setting argv=%p\n", old_argv);
 }
 
-SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode *val, ExceptionSink *n_xsink) : xsink(n_xsink) {
+SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode* val, ExceptionSink *n_xsink) : xsink(n_xsink) {
    //printd(0, "SingleArgvContextHelper::SingleArgvContextHelper() this=%p arg=%p (%s)\n", this, val, val ? val->getTypeName() : 0);
    ThreadData *td  = thread_data.get();
    old_argv = td->current_implicit_arg;
-   QoreListNode *argv;
+   QoreListNode* argv;
    if (!is_nothing(val)) {
       argv = new QoreListNode();
       argv->push(val->refSelf());
@@ -1168,13 +1168,13 @@ SingleArgvContextHelper::~SingleArgvContextHelper() {
    td->current_implicit_arg = old_argv;
 }
 
-const QoreListNode *thread_get_implicit_args() {
+const QoreListNode* thread_get_implicit_args() {
    //printd(5, "thread_get_implicit_args() returning %p\n", thread_data.get()->current_implicit_arg);
    return thread_data.get()->current_implicit_arg;
 }
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-void pushCall(CallNode *cn) {
+void pushCall(CallNode* cn) {
    thread_list[gettid()].callStack->push(cn);
 }
 
@@ -1182,7 +1182,7 @@ void popCall(ExceptionSink *xsink) {
    thread_list[gettid()].callStack->pop(xsink);
 }
 
-QoreListNode *getCallStackList() {
+QoreListNode* getCallStackList() {
    return thread_list[gettid()].callStack->getCallStack();
 }
 
@@ -1248,30 +1248,30 @@ bool checkParseOption(int64 o) {
    return (getParseOptions() & o) == o;
 }
 
-void updateCVarStack(CVNode *ncvs) {
+void updateCVarStack(CVNode* ncvs) {
    ThreadData *td = thread_data.get();
    td->cvarstack = ncvs;
 }
 
-CVNode *getCVarStack() {
+CVNode* getCVarStack() {
    return (thread_data.get())->cvarstack;
 }
 
-void updateVStack(VNode *nvs) {
+void updateVStack(VNode* nvs) {
    ThreadData *td = thread_data.get();
    td->vstack = nvs;
 }
 
-VNode *getVStack() {
+VNode* getVStack() {
    return (thread_data.get())->vstack;
 }
 
-void save_global_vnode(VNode *vn) {
+void save_global_vnode(VNode* vn) {
    ThreadData *td = thread_data.get();
    td->global_vnode = vn;
 }
 
-VNode *get_global_vnode() {
+VNode* get_global_vnode() {
    return (thread_data.get())->global_vnode;
 }
 
@@ -1429,7 +1429,7 @@ namespace {
 
       {
          ExceptionSink xsink;
-         AbstractQoreNode *rv;
+         AbstractQoreNode* rv;
          {
             CodeContextHelper cch(0, btp->getCallObject(), &xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
@@ -1479,7 +1479,7 @@ namespace {
    }
 }
 
-static AbstractQoreNode *op_background(const AbstractQoreNode *left, const AbstractQoreNode *ignored, bool ref_rv, ExceptionSink *xsink) {
+static AbstractQoreNode* op_background(const AbstractQoreNode* left, const AbstractQoreNode* ignored, bool ref_rv, ExceptionSink *xsink) {
    if (!left)
       return 0;
 
@@ -1527,7 +1527,7 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
    return ref_rv ? new QoreBigIntNode(tid) : 0;
 }
 
-static AbstractQoreNode *check_op_background(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *descr) {
+static AbstractQoreNode* check_op_background(QoreTreeNode* tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *descr) {
    returnTypeInfo = bigIntTypeInfo;
 
    if (pflag & PF_CONST_EXPRESSION)
@@ -1621,7 +1621,6 @@ QoreNamespace *get_thread_ns(QoreNamespace &qorens) {
    Thread->addSystemClass(initAutoReadLockClass(*Thread));
    Thread->addSystemClass(initAutoWriteLockClass(*Thread));
 
-
    return Thread;
 }
 
@@ -1658,11 +1657,11 @@ void delete_qore_threads() {
 #endif
 }
 
-QoreListNode *get_thread_list() {
-   QoreListNode *l = new QoreListNode();
+QoreListNode* get_thread_list() {
+   QoreListNode* l = new QoreListNode();
 
    AutoLocker al(lThreadList);
-   tid_node *w = tid_head;
+   tid_node* w = tid_head;
    while (w) {
       l->push(new QoreBigIntNode(w->tid));
       w = w->next;
@@ -1679,8 +1678,8 @@ extern QoreRWLock *thread_stack_lock;
 extern QoreRWLock thread_stack_lock;
 #endif
 
-QoreHashNode *getAllCallStacks() {
-   QoreHashNode *h = new QoreHashNode();
+QoreHashNode* getAllCallStacks() {
+   QoreHashNode* h = new QoreHashNode();
    QoreString str;
 
    // grab the call stack write lock
@@ -1689,11 +1688,11 @@ QoreHashNode *getAllCallStacks() {
    // grab thread list lock
    AutoLocker al(lThreadList);
 
-   tid_node *w = tid_head;
+   tid_node* w = tid_head;
    while (w) {
       // get call stack
       if (thread_list[w->tid].callStack) {
-	 QoreListNode *l = thread_list[w->tid].callStack->getCallStack();
+	 QoreListNode* l = thread_list[w->tid].callStack->getCallStack();
 	 if (l->size()) {
 	    // make hash entry
 	    str.clear();
