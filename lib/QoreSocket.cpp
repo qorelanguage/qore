@@ -724,7 +724,7 @@ struct qore_socket_private {
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DELETED), 0);
 	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
 
 	 // deref and remove event queue
 	 cb_queue->deref(xsink);
@@ -744,7 +744,7 @@ struct qore_socket_private {
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_START_SSL), 0);
 	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -756,7 +756,7 @@ struct qore_socket_private {
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
 	 h->setKeyValue("cipher", new QoreStringNode(ssl->getCipherName()), 0);
 	 h->setKeyValue("cipher_version", new QoreStringNode(ssl->getCipherVersion()), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -772,7 +772,7 @@ struct qore_socket_private {
 	    h->setKeyValue("service", new QoreStringNode(service), 0);
 	 if (prt != -1)
 	    h->setKeyValue("port", new QoreBigIntNode(prt), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -782,7 +782,7 @@ struct qore_socket_private {
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CONNECTED), 0);
 	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -797,7 +797,7 @@ struct qore_socket_private {
 	 else
 	    h->setKeyValue("size", new QoreBigIntNode(bytes), 0);
 	 h->setKeyValue("total_read", new QoreBigIntNode(total_read), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -808,7 +808,7 @@ struct qore_socket_private {
 	 h->setKeyValue("source", new QoreBigIntNode(source), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
 	 h->setKeyValue("headers", headers->hashRefSelf(), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -821,7 +821,7 @@ struct qore_socket_private {
 	 h->setKeyValue("message", new QoreStringNode(str), 0);
 	 //printd(0, "do_send_http_message() str='%s' headers=%p (%d %s)\n", str.getBuffer(), headers, headers->getType(), headers->getTypeName());
 	 h->setKeyValue("headers", headers->hashRefSelf(), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -831,7 +831,7 @@ struct qore_socket_private {
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED), 0);
 	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -847,7 +847,7 @@ struct qore_socket_private {
 	 // set total bytes to read and remaining bytes if bufsize > 0
 	 if (bufsize > 0)
 	    h->setKeyValue("total_to_read", new QoreBigIntNode(bufsize), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -861,7 +861,7 @@ struct qore_socket_private {
 	 h->setKeyValue("sent", new QoreBigIntNode(bytes_sent), 0);
 	 h->setKeyValue("total_sent", new QoreBigIntNode(total_sent), 0);
 	 h->setKeyValue("total_to_send", new QoreBigIntNode(bufsize), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -876,7 +876,7 @@ struct qore_socket_private {
 	    h->setKeyValue("name", new QoreStringNode(host), 0);
 	 if (service)
 	    h->setKeyValue("service", new QoreStringNode(service), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -895,7 +895,7 @@ struct qore_socket_private {
 	 int prt = q_get_port_from_addr(addr);
 	 if (prt > 0)
 	    h->setKeyValue("port", new QoreBigIntNode(prt), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 

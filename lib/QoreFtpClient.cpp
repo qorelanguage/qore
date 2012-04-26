@@ -186,7 +186,7 @@ public:
 	 h->setKeyValue("command", new QoreStringNode(cmd), 0);
 	 if (arg)
 	    h->setKeyValue("arg", new QoreStringNode(arg), 0);
-	 q->push_and_take_ref(h);
+	 q->pushAndTakeRef(h);
       }
    }
 
@@ -199,7 +199,7 @@ public:
 	 h->setKeyValue("id", new QoreBigIntNode(control.getObjectIDForEvents()), 0);
 	 h->setKeyValue("code", new QoreBigIntNode(code), 0);
 	 h->setKeyValue("message", msg[0] ? new QoreStringNode(msg) : 0, 0);
-	 q->push_and_take_ref(h);
+	 q->pushAndTakeRef(h);
       }
    }
 

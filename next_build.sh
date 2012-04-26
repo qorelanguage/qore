@@ -53,11 +53,12 @@ make_version() {
     fi
 }
 
-# see if svnversion is available
-which svnversion >/dev/null 2>/dev/null
+# see if svn is available
+which svn >/dev/null 2>/dev/null
 if [ $? -eq 0 ]; then
-    build=`svnversion|sed -e s/M// -e s/:.*$// -e 's/ .*$//'`
-    if [ "$build" != "exported" -a "$build" != "Unversioned" ]; then
+    si=`svn info` 2>/dev/null
+    if [ $? -eq 0 -a -n "$si" ]; then
+	build=`svn info|grep Revision|cut -f2 -d\ `
 	make_file $file
 	ok=1
     fi
@@ -67,7 +68,7 @@ if [ $ok -ne 1 ]; then
     if [ -f $file ]; then
 	build=`cat $file|cut -b15-`
     else
-	echo WARNING! $file not found and svnversion is not available
+	echo WARNING! $file not found and svn is not available
 	build=0
 	make_file $build
     fi

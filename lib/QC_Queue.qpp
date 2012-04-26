@@ -23,8 +23,10 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Queue.h>
 
-//! Queue objects provide a blocking, thread-safe message-passing object to %Qore programs
-/** Queue objects can also be used as a stack
+//! %Queue objects provide a blocking, thread-safe message-passing object to %Qore programs
+/** %Queue objects can also be used as a stack or as a blocking message channel, if a maximum size is given to Queue::constructor() when the object is created.
+    In this case when the %Queue is full, adding new elements to the %Queue will block until the %Queue shrinks below the maximum size.
+    All read and write methods to %Queue also take timeout values; if a timeout occurs a \c QUEUE-TIMEOUT exception is thrown.
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option   
  */
@@ -33,9 +35,20 @@ qclass Queue [dom=THREAD_CLASS; arg=Queue *q; ns=Qore::Thread];
 //! Creates the Queue object
 /** @par Example:
     <code>my Queue $queue();</code>
+
+    @param max the maximum size of the Queue; -1 means no limit; if 0 or a negative number other than -1 is passed then a \c QUEUE-SIZE-ERROR exception will be thrown
+
+    @throw QUEUE-SIZE-ERROR the size cannot be zero or any negative number except for -1 or a number that cannot fit in 32 bits (signed)
+
+    @see Queue::max()
+
+    @since %Qore 0.8.4 this method takes a maximum size parameter and can throw exceptions if the parameter is invalid
  */
-Queue::constructor() {
-   self->setPrivate(CID_QUEUE, new Queue);
+Queue::constructor(int max = -1) {
+   if (!max || (max < 0 && max != -1) || max > 0x7fffffff)
+      xsink->raiseException("QUEUE-SIZE-ERROR", QLLD" is an invalid size for a Queue", max);
+   else
+      self->setPrivate(CID_QUEUE, new Queue(max));
 }
 
 //! Destroys the Queue object
@@ -48,7 +61,7 @@ Queue::destructor() {
    q->deref(xsink);
 }
 
-//! Creates a new Queue object with the same elements as the original
+//! Creates a new Queue object with the same elements and maximum size as the original
 /**
  */
 Queue::copy() {
@@ -60,9 +73,18 @@ Queue::copy() {
     <code>$queue.push($value);</code>
 
     @param arg value to be put on the queue
+    @param timeout_ms a timeout value to wait for a free entry to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until a slot becomes available on the queue.  Queue slots are only limited if a maximum size is passed to Queue::constructor().
+
+    @throw QUEUE-TIMEOUT The timeout value was exceeded
+    @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
+
+    @since %Qore 0.8.4 this method takes a timeout parameter
  */
-nothing Queue::push(any arg) {
-   q->push(arg);
+nothing Queue::push(any arg, timeout timeout_ms = 0) {
+   bool to;
+   q->push(xsink, arg, timeout_ms, &to);
+   if (to)
+      xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
 }
 
 //! Inserts a value at the beginning of the queue
@@ -70,9 +92,18 @@ nothing Queue::push(any arg) {
     <code>$queue.insert($value);</code>
 
     @param arg value to be put on the queue
+    @param timeout_ms a timeout value to wait for a free entry to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until a slot becomes available on the queue.  Queue slots are only limited if a maximum size is passed to Queue::constructor().
+
+    @throw QUEUE-TIMEOUT The timeout value was exceeded
+    @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
+
+    @since %Qore 0.8.4 this method takes a timeout parameter
  */
-nothing Queue::insert(any arg) {
-   q->insert(arg);
+nothing Queue::insert(any arg, timeout timeout_ms = 0) {
+   bool to;
+   q->insert(xsink, arg, timeout_ms, &to);
+   if (to)
+      xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
 }
 
 //! Blocks until at least one entry is available on the queue, then returns the first entry in the queue. If a timeout occurs, an exception is thrown. If the timeout is less than or equal to zero, then the call does not timeout until data is available
@@ -141,22 +172,70 @@ nothing Queue::clear() {
    q->clear(xsink);
 }
 
-//! Returns the number of elements in the queue
+//! Returns the number of elements in the Queue
 /** @par Example:
     <code>my int $size = $queue.size();</code>
 
-    @return the number of elements in the queue
+    @return the number of elements in the Queue
+
+    @see Queue::max()
  */
 int Queue::size() [flags=CONSTANT] {
    return q->size();
 }
 
-//! Returns the number of threads currently blocked on this queue
+//! Returns the upper limit of the number of elements in the Queue
 /** @par Example:
+    <code>my int $max = $queue.max();</code>
+
+    @return the upper limit of the number of elements in the Queu
+
+    @see Queue::size()
+ */
+int Queue::max() [flags=CONSTANT] {
+   return q->getMax();
+}
+
+//! Returns the number of threads currently blocked on this queue for reading
+/** This is a "synonym" for Queue::getReadWaiting()
+
+    @par Example:
     <code>my int $waiting = $queue.numWaiting();</code>
 
-    @return the number of threads currently blocked on this queue
+    @return the number of threads currently blocked on this queue for reading
+    
+    @see Queue::getWriteWaiting()
  */
 int Queue::getWaiting() [flags=CONSTANT] {
-   return q->getWaiting();
+   return q->getReadWaiting();
+}
+
+//! Returns the number of threads currently blocked on this queue for reading
+/** This is a "synonym" for Queue::getWaiting()
+
+    @par Example:
+    <code>my int $waiting = $queue.numReadWaiting();</code>
+
+    @return the number of threads currently blocked on this queue for reading
+    
+    @see Queue::getWriteWaiting()
+    
+    @since %Qore 0.8.4
+ */
+int Queue::getReadWaiting() [flags=CONSTANT] {
+   return q->getReadWaiting();
+}
+
+//! Returns the number of threads currently blocked on this queue for writing
+/** @par Example:
+    <code>my int $waiting = $queue.numWriteWaiting();</code>
+
+    @return the number of threads currently blocked on this queue for writing
+    
+    @see Queue::getReadWaiting()
+    
+    @since %Qore 0.8.4
+ */
+int Queue::numWriteWaiting() [flags=CONSTANT] {
+   return q->getWriteWaiting();
 }

@@ -301,7 +301,7 @@ struct qore_qf_private {
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DELETED), 0);
 	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
 	 
 	 // deref and remove event queue
 	 cb_queue->deref(xsink);
@@ -319,7 +319,7 @@ struct qore_qf_private {
 	 h->setKeyValue("flags", new QoreBigIntNode(flags), 0);
 	 h->setKeyValue("mode", new QoreBigIntNode(mode), 0);
 	 h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -333,7 +333,7 @@ struct qore_qf_private {
 	 h->setKeyValue("flags", new QoreBigIntNode(flags), 0);
 	 h->setKeyValue("mode", new QoreBigIntNode(mode), 0);
 	 h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -343,7 +343,7 @@ struct qore_qf_private {
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED), 0);
 	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -357,7 +357,7 @@ struct qore_qf_private {
 	 h->setKeyValue("read", new QoreBigIntNode(bytes_read), 0);
 	 h->setKeyValue("total_read", new QoreBigIntNode(total_read), 0);
 	 h->setKeyValue("total_to_read", new QoreBigIntNode(bufsize), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -371,7 +371,7 @@ struct qore_qf_private {
 	 h->setKeyValue("written", new QoreBigIntNode(bytes_written), 0);
 	 h->setKeyValue("total_written", new QoreBigIntNode(total_written), 0);
 	 h->setKeyValue("total_to_write", new QoreBigIntNode(bufsize), 0);
-	 cb_queue->push_and_take_ref(h);
+	 cb_queue->pushAndTakeRef(h);
       }
    }
 

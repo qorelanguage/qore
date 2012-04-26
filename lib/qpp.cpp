@@ -361,7 +361,7 @@ int parse_attributes(const char* fileName, unsigned& lineNumber, attr_t& attr, s
          attr |= ai->second;
    }
 
-   if (attr & QCA_PUBLIC && attr & QCA_PRIVATE) {
+   if ((attr & QCA_PUBLIC) && (attr & QCA_PRIVATE)) {
       error("%s:%d: declared both public and private\n", fileName, lineNumber);
       return -1;
    }
@@ -1176,12 +1176,15 @@ public:
 class TextGroupElement {
 protected:
    std::string text;
+   unsigned startLine;
+   std::string fileName;
 
 public:
-   TextGroupElement(const std::string &t) : text(t) {
+   TextGroupElement(const std::string &t, unsigned sl, const std::string& fn) : text(t), startLine(sl), fileName(fn) {
    }
 
    int serializeCpp(FILE *fp) const {
+      fprintf(fp, "# %d \"%s\"\n", startLine, fileName.c_str());
       output_file(fp, text);
       return 0;
    }
@@ -1201,14 +1204,15 @@ class CodeBase {
 protected:
    enum ReturnType { RT_ANY = 0, RT_INT = 1, RT_BOOL = 2, RT_OBJ = 3, RT_FLOAT = 4 };
 
-   std::string name,   // name
-      vname,           // variant name
-      docs,            // docs
-      return_type,     // return type
-      code;            // c++ code
+   std::string fileName,  // source file name
+      name,               // name
+      vname,              // variant name
+      docs,               // docs
+      return_type,        // return type
+      code;               // c++ code
 
-   strlist_t flags,    // flags
-      dom;             // functional domains
+   strlist_t flags,       // flags
+      dom;                // functional domains
 
    attr_t attr;
    paramlist_t params;
@@ -1451,10 +1455,10 @@ protected:
    }
 
 public:
-   CodeBase(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
+   CodeBase(const std::string& fn, const std::string &n_name, attr_t n_attr, const paramlist_t &n_params,
             const std::string &n_docs, const std::string &n_return_type, 
             const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
-            unsigned n_line, bool n_doconly) : name(n_name), vname(name), docs(n_docs), return_type(n_return_type), 
+            unsigned n_line, bool n_doconly) : fileName(fn), name(n_name), vname(name), docs(n_docs), return_type(n_return_type),
                                                code(n_code), flags(n_flags), dom(n_dom), attr(n_attr),
                                                params(n_params), rt(RT_ANY), line(n_line), has_return(false),
                                                doconly(n_doconly), valid(true) {
@@ -1499,11 +1503,11 @@ protected:
    }
 
 public:
-   FunctionGroupElement(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
+   FunctionGroupElement(const char* fn, const std::string &n_name, attr_t n_attr, const paramlist_t &n_params,
                         const std::string &n_docs, const std::string &n_return_type, 
                         const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
                         unsigned n_line, bool n_doconly) 
-      : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, n_flags, n_dom, n_code, n_line, n_doconly) {
+      : CodeBase(fn, n_name, n_attr, n_params, n_docs, n_return_type, n_flags, n_dom, n_code, n_line, n_doconly) {
    }
 
    int serializeCpp(FILE *fp) const {
@@ -1514,6 +1518,7 @@ public:
 
       fprintf(fp, "static %s f_%s(const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), vname.c_str());
       serializeArgs(fp);
+      fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
       output_file(fp, code);
 
       if (!has_return)
@@ -1621,11 +1626,13 @@ protected:
 
    bool valid;
    const char *fileName;
+   unsigned startLineNumber;
    unsigned &lineNumber;
 
    void checkBuf(std::string &buf) {
       if (!buf.empty()) {
-         tlist.push_back(new TextGroupElement(buf));
+         tlist.push_back(new TextGroupElement(buf, startLineNumber, fileName));
+         startLineNumber = lineNumber;
          buf.clear();
       }
    }
@@ -1710,14 +1717,14 @@ protected:
 
       //log(LL_INFO, "+ method %s::%s() attr: 0x%x (static: %d)\n", name.c_str(), mname.c_str(), attr, attr & QCA_STATIC);
 
-      FunctionGroupElement* fge = new FunctionGroupElement(fn, attr, params, doc, return_type, cf, dom, code, line, doconly);
+      FunctionGroupElement* fge = new FunctionGroupElement(fileName, fn, attr, params, doc, return_type, cf, dom, code, line, doconly);
       fmap.insert(fmap_t::value_type(fn, fge));
 
       return !*fge;
    }
 
 public:
-   Group(std::string &buf, FILE *fp, const char *fn, unsigned &ln) : valid(true), fileName(fn), lineNumber(ln) {     
+   Group(std::string &buf, FILE *fp, const char *fn, unsigned &ln) : valid(true), fileName(fn), startLineNumber(ln), lineNumber(ln) {
       doc = buf;
       if (readUntilOpenGroup(fileName, lineNumber, doc, fp)) {
          error("%s:%d: could not find start of group\n", fileName, lineNumber);
@@ -2101,6 +2108,7 @@ protected:
       serializeQoreConstructorPrototypeComment(fp, cname);
       fprintf(fp, "static void %s_%s(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {\n", cname, vname.c_str());
       serializeArgs(fp, cname, false);
+      fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
       output_file(fp, code);
       fputs("\n}\n\n", fp);
    }
@@ -2108,6 +2116,7 @@ protected:
    void serializeCppDestructor(FILE *fp, const char *cname, const char *arg) const {
       serializeQoreDestructorCopyPrototypeComment(fp, cname);
       fprintf(fp, "static void %s_destructor(QoreObject* self, %s, ExceptionSink* xsink) {\n", cname, arg);
+      fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
       output_file(fp, code);
       fputs("\n}\n\n", fp);
    }
@@ -2115,6 +2124,7 @@ protected:
    void serializeCppCopy(FILE *fp, const char *cname, const char *arg) const {
       serializeQoreDestructorCopyPrototypeComment(fp, cname);
       fprintf(fp, "static void %s_copy(QoreObject* self, QoreObject* old, %s, ExceptionSink* xsink) {\n", cname, arg);
+      fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
       output_file(fp, code);
       fputs("\n}\n\n", fp);
    }
@@ -2186,11 +2196,12 @@ protected:
    }
 
 public:
-   Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
+   Method(const std::string& fn, const std::string &n_name, attr_t n_attr, const paramlist_t &n_params,
           const std::string &n_docs, const std::string &n_return_type, 
           const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
-          unsigned n_line, bool n_doconly) : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, 
+          unsigned n_line, bool n_doconly) : CodeBase(fn, n_name, n_attr, n_params, n_docs, n_return_type,
                                                       n_flags, n_dom, n_code, n_line, n_doconly) {
+      //printf("Method::Method() %s:%d '%s'\n", fn.c_str(), line, name.c_str());
    }
 
    virtual ~Method() {
@@ -2219,6 +2230,7 @@ public:
 
       fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
       serializeArgs(fp, cname);
+      fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
       output_file(fp, code);
 
       if (!has_return)
@@ -2275,6 +2287,7 @@ public:
 
       fprintf(fp, "static %s static_%s_%s(const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str());
       serializeArgs(fp, cname);
+      fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
       output_file(fp, code);
 
       if (!has_return)
@@ -2351,22 +2364,23 @@ class ClassElement : public AbstractElement {
 protected:
    typedef std::multimap<std::string, Method*> mmap_t;
 
-   std::string name,    // class name
-      doc,              // doc string
-      arg,              // argument for non-static methods
-      scons,            // system constructor
-      ns,               // namespace name
-      virt_parent;      // builtin virtual base/parent class
+   std::string fileName, // file name
+      name,              // class name
+      doc,               // doc string
+      arg,               // argument for non-static methods
+      scons,             // system constructor
+      ns,                // namespace name
+      virt_parent;       // builtin virtual base/parent class
    paramlist_t public_members;  // public members
 
-   strlist_t dom;       // functional domains
+   strlist_t dom;        // functional domains
 
-   mmap_t normal_mmap,  // normal method map
-      static_mmap;      // static method map
+   mmap_t normal_mmap,   // normal method map
+      static_mmap;       // static method map
 
    int64 flags;
    bool valid,
-      upm,              // unset public member flag
+      upm,               // unset public member flag
       is_pseudo;
 
    void addElement(strlist_t &l, const std::string &str, size_t start, size_t end = std::string::npos) {
@@ -2376,7 +2390,7 @@ protected:
    }
 
 public:
-   ClassElement(const std::string &n_name, const strmap_t &props, const std::string &n_doc) : name(n_name), doc(n_doc), valid(true), upm(false), is_pseudo(false) {
+   ClassElement(const char* fn, const std::string &n_name, const strmap_t &props, const std::string &n_doc) : fileName(fn), name(n_name), doc(n_doc), valid(true), upm(false), is_pseudo(false) {
       log(LL_DETAIL, "parsing Qore class '%s'\n", name.c_str());
 
       if (name.size() && name[0] == '<' && name[name.size() - 1] == '>')
@@ -2516,7 +2530,7 @@ public:
 
       mmap_t &mmap = (attr & QCA_STATIC) ? static_mmap : normal_mmap;
 
-      Method *m = new Method(mname, attr, params, doc, return_type, cf, dom, code, line, doconly);
+      Method *m = new Method(fileName, mname, attr, params, doc, return_type, cf, dom, code, line, doconly);
       mmap.insert(mmap_t::value_type(mname, m));
       return !*m;
    }
@@ -2809,7 +2823,7 @@ protected:
                   break;
                }
 
-               ClassElement *ce = new ClassElement(cn, props, str);
+               ClassElement *ce = new ClassElement(fileName, cn, props, str);
                cemap[cn] = ce;
                checkBuf(buf);
                source.push_back(ce);

@@ -36,7 +36,7 @@ protected:
    DLLLOCAL virtual ~Queue() {}
 
 public:
-   DLLLOCAL Queue() {}
+   DLLLOCAL Queue(int max = -1) : QoreQueue(max) {}
 };
 
 #endif // _QORE_CLASS_QUEUE

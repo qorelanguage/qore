@@ -818,18 +818,25 @@ nothing FtpClient::setEventQueue() {
 }
 
 //! Sets a Queue object to receive FtpClient and Socket events on both the data and control connections
-/** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on both the data and control connections
+/** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on both the data and control connections; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
 
     @par Example:
     @code
 $ftp.setEventQueue($queue);
     @endcode
 
+    @throw QUEUE-ERROR the Queue passed has a maximum size set
+
     @see event_handling for more information
  */
 nothing FtpClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
+   ReferenceHolder<Queue> q(queue, xsink);
+   if (queue->getMax() != -1) {
+      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+      return 0;
+   }
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   f->setEventQueue(queue, xsink);
+   f->setEventQueue(q.release(), xsink);
 }
 
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on the data connection
@@ -844,18 +851,25 @@ nothing FtpClient::setDataEventQueue() {
 }
 
 //! Sets a Queue object to receive FtpClient and Socket events on the data connection
-/** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on the data connection
+/** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on the data connection; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
 
     @par Example:
     @code
 $ftp.setDataEventQueue($queue);
     @endcode
 
+    @throw QUEUE-ERROR the Queue passed has a maximum size set
+
     @see event_handling for more information
  */
 nothing FtpClient::setDataEventQueue(Qore::Thread::Queue[Queue] queue) {
+   ReferenceHolder<Queue> q(queue, xsink);
+   if (queue->getMax() != -1) {
+      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+      return 0;
+   }
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   f->setDataEventQueue(queue, xsink);
+   f->setDataEventQueue(q.release(), xsink);
 }
 
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on the control connection
@@ -870,16 +884,23 @@ nothing FtpClient::setControlEventQueue() {
 }
 
 //! Sets a Queue object to receive FtpClient and Socket events on the control connection
-/** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on the control connection
+/** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on the control connection; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
 
     @par Example:
     @code
 $ftp.setControlEventQueue($queue);
     @endcode
 
+    @throw QUEUE-ERROR the Queue passed has a maximum size set
+
     @see event_handling for more information
  */
 nothing FtpClient::setControlEventQueue(Qore::Thread::Queue[Queue] queue) {
+   ReferenceHolder<Queue> q(queue, xsink);
+   if (queue->getMax() != -1) {
+      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+      return 0;
+   }
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   f->setControlEventQueue(queue, xsink);
+   f->setControlEventQueue(q.release(), xsink);
 }

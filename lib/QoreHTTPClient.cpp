@@ -748,40 +748,37 @@ QoreHashNode *qore_qtc_private::getResponseHeader(const char *meth, const char *
 static void do_content_length_event(Queue *cb_queue, int64 id, int len) {
    if (cb_queue) {
       ExceptionSink xsink;
-      ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
+      QoreHashNode* h = new QoreHashNode;
       h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HTTP_CONTENT_LENGTH), 0);
       h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT), 0);
       h->setKeyValue("id", new QoreBigIntNode(id), 0);
       h->setKeyValue("len", new QoreBigIntNode(len), 0);
-      // FIXME: should implement a QoreQueue::push_temporary() method to take reference
-      cb_queue->push(*h);      
+      cb_queue->pushAndTakeRef(h);
    }
 }
 
 static void do_redirect_event(Queue *cb_queue, int64 id, const QoreStringNode *loc, const QoreStringNode *msg) {
    if (cb_queue) {
       ExceptionSink xsink;
-      ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
+      QoreHashNode* h = new QoreHashNode;
       h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HTTP_REDIRECT), 0);
       h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT), 0);
       h->setKeyValue("id", new QoreBigIntNode(id), 0);
       h->setKeyValue("location", loc->refSelf(), 0);
       if (msg)
 	 h->setKeyValue("status_message", msg->refSelf(), 0);
-      // FIXME: should implement a QoreQueue::push_temporary() method to take reference
-      cb_queue->push(*h);      
+      cb_queue->pushAndTakeRef(h);
    }
 }
 
 static void do_event(Queue *cb_queue, int64 id, int event) {
    if (cb_queue) {
       ExceptionSink xsink;
-      ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
+      QoreHashNode* h = new QoreHashNode;
       h->setKeyValue("event", new QoreBigIntNode(event), 0);
       h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT), 0);
       h->setKeyValue("id", new QoreBigIntNode(id), 0);
-      // FIXME: should implement a QoreQueue::push_temporary() method to take reference
-      cb_queue->push(*h);      
+      cb_queue->pushAndTakeRef(h);
    }
 }
 

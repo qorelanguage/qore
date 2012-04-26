@@ -701,18 +701,25 @@ nothing HTTPClient::setEventQueue() {
 }
 
 //! Sets a Queue object to receive HTTPClient and Socket events
-/** @param queue a @ref Qore::Thread::Queue "Queue" object to receive HTTPClient and Socket events
+/** @param queue a @ref Qore::Thread::Queue "Queue" object to receive HTTPClient and Socket events; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
 
     @par Example:
     @code
 $httpclient.setEventQueue($queue);
     @endcode
 
+    @throw QUEUE-ERROR the Queue passed has a maximum size set
+
     @see event_handling for more information
  */
 nothing HTTPClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
+   ReferenceHolder<Queue> q(queue, xsink);
+   if (queue->getMax() != -1) {
+      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the HttpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+      return 0;
+   }
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   client->setEventQueue(queue, xsink);
+   client->setEventQueue(q.release(), xsink);
 }
 
 //! Sets the connect timeout in milliseconds

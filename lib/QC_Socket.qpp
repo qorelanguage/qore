@@ -2025,13 +2025,20 @@ nothing Socket::setEventQueue() {
 /** @par Example:
     @code $sock.setEventQueue($queue); @endcode
 
-    @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
+    @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
+
+    @throw QUEUE-ERROR the Queue passed has a maximum size set
 
     @see @ref event_handling for more information
  */
 nothing Socket::setEventQueue(Queue[Queue] queue) {
+   ReferenceHolder<Queue> q(queue, xsink);
+   if (queue->getMax() != -1) {
+      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+      return 0;
+   }
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   s->setEventQueue(queue, xsink);
+   s->setEventQueue(q.release(), xsink);
 }
 
 //! Sets the boolean \c TCP_NODELAY setting for the socket
