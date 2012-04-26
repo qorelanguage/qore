@@ -677,7 +677,7 @@ public namespace Smtp {
 		$rep=$.parseReply($rep);
 		#$.log(LL_DEBUG_2, "-> %n", $rep);
 		if ($rep.'code'!=354) {
-		    throw "DATA-EXCEPTION", sprintf("error on sending DATA command: %n", $rep);
+		    throw "SMTP-DATA-EXCEPTION", sprintf("error on sending DATA command: %n", $rep);
 		}
 		my list $atts = $message.getAttachments();
 		# first: the additional headers if there
