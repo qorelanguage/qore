@@ -234,7 +234,7 @@ public:
          return;
 
       if (parseTypeInfo) {
-         typeInfo = parseTypeInfo->resolveAndDelete();
+         typeInfo = parseTypeInfo->resolveAndDelete(loc);
          parseTypeInfo = 0;
 
          val.set(typeInfo);

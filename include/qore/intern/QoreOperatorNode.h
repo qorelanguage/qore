@@ -33,6 +33,9 @@ protected:
    DLLLOCAL virtual void ignoreReturnValueImpl() {}
 
 public:
+   // populated automatically on creation
+   QoreProgramLocation loc;
+
    DLLLOCAL QoreOperatorNode(bool n_ref_rv = true) : ParseNode(NT_OPERATOR), ref_rv(n_ref_rv) {
    }
 

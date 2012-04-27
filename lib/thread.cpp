@@ -873,8 +873,7 @@ void advanceOnBlockExit() {
 // new file name, current parse state
 void beginParsing(char *file, void *ps) {
    ThreadData *td = thread_data.get();
-   
-   //printd(5, "beginParsing() of %p (%s), (stack=%s)\n", file, file ? file : "null", (td->plStack ? td->plStack->file : "NONE"));
+   //printd(5, "beginParsing() td: %p of %p (%s), (stack=%s)\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"));
    
    // store current position
    ProgramLocation *pl = new ProgramLocation(td->parse_file, td->parseState);
@@ -886,20 +885,21 @@ void beginParsing(char *file, void *ps) {
    td->parseState = ps;
 }
 
-void *endParsing() {
-   ThreadData *td = thread_data.get();
-
+void* endParsing() {
+   ThreadData* td = thread_data.get();
+   //printd(5, "endParsing() td: %p restoreParseOptions pgm: %p parse_file: %p '%s'\n", td, td->current_pgm, td->parse_file, td->parse_file);
    qore_program_private::restoreParseOptions(td->current_pgm, td->parse_file);
 
-   void *rv = td->parseState;
+   void* rv = td->parseState;
 
    // ensure there are no conditional blocks left open at EOF
    td->pcs.purge();
    
-   printd(5, "endParsing() ending parsing of \"%s\", returning %p\n", td->parse_file, rv);
    assert(td->plStack);
 
-   ProgramLocation *pl = td->plStack->next;
+   ProgramLocation* pl = td->plStack->next;
+   //printd(5, "endParsing() td: %p ending parsing of '%s', returning %p, setting file: %p '%s'\n", td, td->parse_file, rv, td->plStack->file, td->plStack->file);
+
    td->parse_file  = td->plStack->file;
    td->parseState  = td->plStack->parseState;
    delete td->plStack;
@@ -955,6 +955,18 @@ const char *get_pgm_file() {
    return (thread_data.get())->pgm_file;
 }
 
+QoreProgramLocation get_parse_location() {
+   ThreadData *td = thread_data.get();
+   return QoreProgramLocation(td->parse_line_end, td->parse_line_end, td->parse_file);
+}
+
+void update_parse_location(const QoreProgramLocation& loc) {
+   ThreadData *td = thread_data.get();
+   td->parse_line_start = loc.start_line;
+   td->parse_line_end   = loc.end_line;
+   td->parse_file       = loc.file;
+}
+
 void get_parse_location(int &start_line, int &end_line) {
    ThreadData *td = thread_data.get();
    start_line = td->parse_line_start;
@@ -966,6 +978,7 @@ void update_parse_location(int start_line, int end_line, const char *f) {
    td->parse_line_start = start_line;
    td->parse_line_end   = end_line;
    td->parse_file       = f;
+   //printd(5, "update_parse_location(start: %d, end: %d, f: %p '%s'\n", start_line, end_line, f, f);
 }
 
 void update_parse_location(int start_line, int end_line) {
@@ -1148,7 +1161,7 @@ ArgvContextHelper::~ArgvContextHelper() {
 }
 
 SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode* val, ExceptionSink *n_xsink) : xsink(n_xsink) {
-   //printd(0, "SingleArgvContextHelper::SingleArgvContextHelper() this=%p arg=%p (%s)\n", this, val, val ? val->getTypeName() : 0);
+   //printd(5, "SingleArgvContextHelper::SingleArgvContextHelper() this=%p arg=%p (%s)\n", this, val, val ? val->getTypeName() : 0);
    ThreadData *td  = thread_data.get();
    old_argv = td->current_implicit_arg;
    QoreListNode* argv;
@@ -1573,7 +1586,7 @@ void init_qore_threads() {
 #else // !WIN32 && !SOLARIS
    qore_thread_stack_size = ta_default.getstacksize();
    assert(qore_thread_stack_size);
-   //printd(0, "getstacksize() returned: %ld\n", qore_thread_stack_size);
+   //printd(5, "getstacksize() returned: %ld\n", qore_thread_stack_size);
 #endif // #ifdef WIN32
 #endif // #ifdef SOLARIS
 

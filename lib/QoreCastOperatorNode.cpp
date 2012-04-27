@@ -85,7 +85,7 @@ AbstractQoreNode *QoreCastOperatorNode::parseInitImpl(LocalVar *oflag, int pflag
       qc = !strcmp(id, "object") ? 0 : qore_root_ns_private::parseFindClass(path->getIdentifier(), true);
    }
    else {
-      qc = qore_root_ns_private::parseFindScopedClass(*path);
+      qc = qore_root_ns_private::parseFindScopedClass(loc, *path);
    }
 
    //printd(5, "QoreCastOperatorNode::parseInit() this=%p resolved %s->%s\n", this, path->getIdentifier(), qc ? qc->getName() : "<generic object cast>");
@@ -95,11 +95,11 @@ AbstractQoreNode *QoreCastOperatorNode::parseInitImpl(LocalVar *oflag, int pflag
 
    if (typeInfo->hasType()) {
       if (!objectTypeInfo->parseAccepts(typeInfo)) {
-	 parse_error("cast<>(%s) is invalid; cannot cast from %s to object", qc ? qc->getName() : "object", typeInfo->getName(), typeInfo->getName());
+	 parse_error(loc, "cast<>(%s) is invalid; cannot cast from %s to object", qc ? qc->getName() : "object", typeInfo->getName(), typeInfo->getName());
       }
 #ifdef _QORE_STRICT_CAST
       else if (qc && (qc->getTypeInfo()->parseAccepts(typeInfo) == QTI_NOT_EQUAL) && typeInfo->parseAccepts(qc->getTypeInfo()) == QTI_NOT_EQUAL) {
-	 parse_error("cannot cast from %s to %s; the classes are not compatible", typeInfo->getName(), path->ostr);
+	 parse_error(loc, "cannot cast from %s to %s; the classes are not compatible", typeInfo->getName(), path->ostr);
       }
 #endif
    }

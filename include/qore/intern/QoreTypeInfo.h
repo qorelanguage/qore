@@ -810,7 +810,7 @@ public:
    }
 
    // resolves the current type to a QoreTypeInfo pointer and deletes itself
-   DLLLOCAL const QoreTypeInfo *resolveAndDelete();
+   DLLLOCAL const QoreTypeInfo *resolveAndDelete(const QoreProgramLocation& loc);
 
 #ifdef DEBUG
    DLLLOCAL const char *getCID() const { return this && cscope ? cscope->getIdentifier() : "n/a"; }

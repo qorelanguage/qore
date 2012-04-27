@@ -535,12 +535,12 @@ void QoreTypeInfo::doNonStringWarning(const char *preface) const {
    qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
+const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
    if (!this)
       return 0;
 
    // resolve class
-   const QoreClass *qc = qore_root_ns_private::parseFindScopedClass(*cscope);
+   const QoreClass *qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
 
    bool my_or_nothing = or_nothing;
    delete this;
@@ -548,7 +548,7 @@ const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
    if (qc && my_or_nothing) {
       const QoreTypeInfo *rv = qc->getOrNothingTypeInfo();
       if (!rv) {
-	 parse_error("class %s cannot be typed with '*' as the class' type handler has an input filter and the filter does not accept NOTHING", qc->getName());
+	 parse_error(loc, "class %s cannot be typed with '*' as the class' type handler has an input filter and the filter does not accept NOTHING", qc->getName());
 	 return objectOrNothingTypeInfo;
       }
       return rv;

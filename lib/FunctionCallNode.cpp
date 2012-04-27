@@ -497,7 +497,7 @@ AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag
    if (name) {
       assert(!oc);
       // find object class
-      if ((oc = qore_root_ns_private::parseFindScopedClass(*name))) {
+      if ((oc = qore_root_ns_private::parseFindScopedClass(loc, *name))) {
 	 // check if parse options allow access to this class
 	 if (qore_program_private::parseAddDomain(getProgram(), oc->getDomain()))
 	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());

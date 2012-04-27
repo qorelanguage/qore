@@ -23,13 +23,6 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 
-ClassRefNode::ClassRefNode(char *str) : ParseNoEvalNode(NT_CLASSREF), cscope(new NamedScope(str)) {
-}
-
-ClassRefNode::~ClassRefNode() {
-   delete cscope;
-}
-
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
@@ -67,7 +60,7 @@ AbstractQoreNode *ClassRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &l
    // FIXME: implement a type for this
    typeInfo = 0;
    if (cscope) {
-      const QoreClass *qc = qore_root_ns_private::parseFindScopedClass(*cscope);
+      const QoreClass *qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
       if (qc)
 	 cid = qc->getID();
       delete cscope;

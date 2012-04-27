@@ -920,7 +920,7 @@ protected:
       return i->second.obj->makeCallReference();
    }
 
-   DLLLOCAL QoreClass *parseFindScopedClassIntern(const NamedScope& name);
+   DLLLOCAL QoreClass *parseFindScopedClassIntern(const QoreProgramLocation& loc, const NamedScope& name);
    DLLLOCAL QoreClass *parseFindScopedClassIntern(const NamedScope& name, unsigned& matched);
    DLLLOCAL QoreClass *parseFindScopedClassWithMethodInternError(const NamedScope& name, bool error);
    DLLLOCAL QoreClass *parseFindScopedClassWithMethodIntern(const NamedScope& name, unsigned& matched);
@@ -1341,8 +1341,8 @@ public:
       return getRootNS()->rpriv->parseFindClassIntern(name, error);
    }
 
-   DLLLOCAL static QoreClass *parseFindScopedClass(const NamedScope& name) {
-      return getRootNS()->rpriv->parseFindScopedClassIntern(name);
+   DLLLOCAL static QoreClass *parseFindScopedClass(const QoreProgramLocation& loc, const NamedScope& name) {
+      return getRootNS()->rpriv->parseFindScopedClassIntern(loc, name);
    }
 
    DLLLOCAL static QoreClass *parseFindScopedClassWithMethod(const NamedScope& name, bool error) {

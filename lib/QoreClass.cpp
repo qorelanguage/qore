@@ -873,7 +873,7 @@ void BCEAList::deref(ExceptionSink *xsink) {
 void BCANode::parseInit(BCList *bcl, const char *classname) {
    QoreClass *sclass = 0;
    if (ns) {
-      sclass = qore_root_ns_private::parseFindScopedClass(*ns);
+      sclass = qore_root_ns_private::parseFindScopedClass(loc, *ns);
       printd(5, "BCANode::parseInit() this=%p resolved named scoped %s -> %p\n", this, ns->ostr, sclass);
       delete ns;
       ns = 0;
@@ -887,7 +887,7 @@ void BCANode::parseInit(BCList *bcl, const char *classname) {
 
    if (sclass) {
       if (!bcl->match(sclass))
-	 parse_error("%s in base constructor argument list is not a base class of %s", sclass->getName(), classname);
+	 parse_error(loc, "%s in base constructor argument list is not a base class of %s", sclass->getName(), classname);
       else {
 	 classid = sclass->getID();
 
@@ -903,7 +903,7 @@ void BCANode::parseInit(BCList *bcl, const char *classname) {
 	       args = args->parseInitList(0, PF_REFERENCE_OK, lvids, argTypeInfo);
 	 }
 	 if (lvids) {
-	    parse_error("illegal local variable declaration in base class constructor argument");
+	    parse_error(loc, "illegal local variable declaration in base class constructor argument");
 	    while (lvids--)
 	       pop_local_var();
 	 }
@@ -915,7 +915,7 @@ void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
    if (!sclass) {
       if (cname) {
 	 // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
-	 sclass = qore_root_ns_private::parseFindScopedClass(*cname);
+	 sclass = qore_root_ns_private::parseFindScopedClass(loc, *cname);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
 	 delete cname;
 	 cname = 0;
@@ -992,10 +992,10 @@ bool BCList::runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTy
    return false;
 }
 
-const QoreClass *BCList::parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const {
+const QoreClass *BCList::parseFindPublicPrivateMember(const QoreProgramLocation*& loc, const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
-	 const QoreClass *qc = (*i)->sclass->parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, priv);
+	 const QoreClass *qc = (*i)->sclass->priv->parseFindPublicPrivateMember(loc, mem, memberTypeInfo, member_has_type_info, priv);
 	 if (qc)
 	    return qc;
       }
@@ -1003,10 +1003,10 @@ const QoreClass *BCList::parseFindPublicPrivateMember(const char *mem, const Qor
    return 0;
 }
 
-const QoreClass *BCList::parseFindPublicPrivateVar(const char *name, const QoreTypeInfo *&varTypeInfo, bool &has_type_info, bool &priv) const {
+const QoreClass *BCList::parseFindPublicPrivateVar(const QoreProgramLocation*& loc, const char *name, const QoreTypeInfo *&varTypeInfo, bool &has_type_info, bool &priv) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
-	 const QoreClass *qc = qore_class_private::parseFindPublicPrivateVar((*i)->sclass, name, varTypeInfo, has_type_info, priv);
+	 const QoreClass *qc = (*i)->sclass->priv->parseFindPublicPrivateVar(loc, name, varTypeInfo, has_type_info, priv);
 	 if (qc)
 	    return qc;
       }
@@ -2879,7 +2879,7 @@ void qore_class_private::resolveCopy() {
       scl->resolveCopy();
 }
 
-int qore_class_private::checkExistingVarMember(char *dname, bool decl_has_type_info, bool priv, const QoreClass *sclass, bool has_type_info, bool is_priv, bool var) const {
+int qore_class_private::checkExistingVarMember(const QoreProgramLocation& loc, char *dname, bool decl_has_type_info, bool priv, const QoreClass *sclass, bool has_type_info, bool is_priv, bool var) const {
    //printd(5, "qore_class_private::checkExistingVarMember() name=%s priv=%d is_priv=%d sclass=%s\n", name.c_str(), priv, is_priv, sclass->getName());
 
    // here we know that the member or var already exists, so either it will be a
@@ -2900,7 +2900,7 @@ int qore_class_private::checkExistingVarMember(char *dname, bool decl_has_type_i
 	 else
 	    desc->sprintf("base class '%s'", sclass->getName());
 	 desc->sprintf(" already declared this %s as %s", var ? "variable" : "member", privpub(is_priv));
-	 qore_program_private::makeParseException(getProgram(), "PARSE-ERROR", desc);
+	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-ERROR", desc);
       }
       return -1;
    }
@@ -2919,7 +2919,7 @@ int qore_class_private::checkExistingVarMember(char *dname, bool decl_has_type_i
 	 desc->sprintf(" in class '%s'", name.c_str());
 	 desc->concat(" if the declaration has a type definition");
 	    
-	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
       return -1;
    }
@@ -3118,10 +3118,6 @@ const QoreTypeInfo *QoreClass::getOrNothingTypeInfo() const {
 
 int QoreClass::parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const {
    return priv->parseCheckMemberAccess(mem, memberTypeInfo, pflag);
-}
-
-const QoreClass *QoreClass::parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv_member) const {
-   return priv->parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, priv_member);
 }
 
 bool QoreClass::parseHasPublicMembersInHierarchy() const {
@@ -3616,7 +3612,7 @@ const QoreMethod *QoreStaticMethodIterator::getMethod() const {
 
 void QoreMemberInfo::parseInit(const char *name, bool priv) {
    if (!typeInfo) {
-      typeInfo = parseTypeInfo->resolveAndDelete();
+      typeInfo = parseTypeInfo->resolveAndDelete(loc);
       parseTypeInfo = 0;
    }
 #ifdef DEBUG
@@ -3628,8 +3624,7 @@ void QoreMemberInfo::parseInit(const char *name, bool priv) {
       int lvids = 0;
       exp = exp->parseInit(0, 0, lvids, argTypeInfo);
       if (lvids) {
-	 update_parse_location(first_line, last_line, file);
-	 parse_error("illegal local variable declaration in member initialization expression");
+	 parse_error(loc, "illegal local variable declaration in member initialization expression");
 	 while (lvids)
 	    pop_local_var();
       }
@@ -3640,15 +3635,14 @@ void QoreMemberInfo::parseInit(const char *name, bool priv) {
 	 argTypeInfo->getThisType(*desc);
 	 desc->concat(", but the member was declared as ");
 	 typeInfo->getThisType(*desc);
-	 update_parse_location(first_line, last_line, file);
-	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
    }
 }
 
 void QoreVarInfo::parseInit(const char *name, bool priv) {
    if (!typeInfo) {
-      typeInfo = parseTypeInfo->resolveAndDelete();
+      typeInfo = parseTypeInfo->resolveAndDelete(loc);
       parseTypeInfo = 0;
    }
 #ifdef DEBUG
@@ -3660,8 +3654,7 @@ void QoreVarInfo::parseInit(const char *name, bool priv) {
       int lvids = 0;
       exp = exp->parseInit(0, 0, lvids, argTypeInfo);
       if (lvids) {
-	 update_parse_location(first_line, last_line, file);
-	 parse_error("illegal local variable declaration in class static variable initialization expression");
+	 parse_error(loc, "illegal local variable declaration in class static variable initialization expression");
 	 while (lvids)
 	    pop_local_var();
       }
@@ -3672,8 +3665,7 @@ void QoreVarInfo::parseInit(const char *name, bool priv) {
 	 argTypeInfo->getThisType(*desc);
 	 desc->concat(", but the variable was declared as ");
 	 typeInfo->getThisType(*desc);
-	 update_parse_location(first_line, last_line, file);
-	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
    }
 }

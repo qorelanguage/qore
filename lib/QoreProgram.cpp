@@ -173,9 +173,21 @@ void qore_program_private::internParseRollback() {
    pend_dom = 0;
 }
 
+struct SaveParseLocationHelper : QoreProgramLocation {
+   DLLLOCAL SaveParseLocationHelper() : QoreProgramLocation(get_parse_location()) {
+   }
+   DLLLOCAL ~SaveParseLocationHelper() {
+      update_parse_location(*this);
+   }
+};
+
 int qore_program_private::internParseCommit() {
    QORE_TRACE("qore_program_private::internParseCommit()");
    printd(5, "qore_program_private::internParseCommit() pgm=%p isEvent=%d\n", pgm, parseSink->isEvent());
+
+   // save and restore parse location on exit
+   // FIXME: remove this when all parseInit code sets the location manually (remove calls to update_parse_location in parseInit code)
+   SaveParseLocationHelper plh;
 
    // if the first stage of parsing has already failed, 
    // then don't go forward

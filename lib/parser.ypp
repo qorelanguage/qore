@@ -1,6 +1,6 @@
 %{ /* -*- mode: c++; indent-tabs-mode: nil -*-
 
-   parser.yy
+   parser.ypp
 
    Qore Programming Language
 
@@ -2391,7 +2391,7 @@ exp:    scalar
 	      inc_argv_ref();
 
 	   if ($1)
-	      $$ = new VarRefDeclNode($2, get_var_type(), $1->getTypeInfo(), $1->getParseTypeInfo());
+	      $$ = new VarRefDeclNode(@1.first_line, @2.last_line, $2, get_var_type(), $1->getTypeInfo(), $1->getParseTypeInfo());
 	   else
 	      $$ = new VarRefNode($2, get_var_type());
 
@@ -2404,7 +2404,7 @@ exp:    scalar
 	      inc_argv_ref();
 
 	   if ($1)
-	      $$ = new VarRefDeclNode($2, get_var_type(), $1->getTypeInfo(), $1->getParseTypeInfo());
+	      $$ = new VarRefDeclNode(@1.first_line, @2.last_line, $2, get_var_type(), $1->getTypeInfo(), $1->getParseTypeInfo());
 	   else
 	      $$ = new VarRefNode($2, get_var_type());
 
@@ -2413,11 +2413,11 @@ exp:    scalar
 	      parse_error("reference to variable '%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
 	}
         | uncqtypedef IDENTIFIER {
-	   $$ = new VarRefDeclNode($2, get_var_type(), $1->getTypeInfo(), $1->getParseTypeInfo());
+	   $$ = new VarRefDeclNode(@1.first_line, @2.last_line, $2, get_var_type(), $1->getTypeInfo(), $1->getParseTypeInfo());
 	   delete $1;
 	}
         | TOK_MY uncqtypedef IDENTIFIER {
-	   VarRefDeclNode *v = new VarRefDeclNode($3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
+	   VarRefDeclNode *v = new VarRefDeclNode(@2.first_line, @3.last_line, $3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
 	   v->setExplicitScope();
 	   $$ = v;
 	   delete $2;
@@ -2437,7 +2437,7 @@ exp:    scalar
         | TOK_MY qtypedef VAR_REF {
 	   VarRefNode *v; 
 	   if ($2) {
-	      v = new VarRefDeclNode($3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
+	      v = new VarRefDeclNode(@3.first_line, @3.last_line, $3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
 	      delete $2;
 	   }
 	   else {

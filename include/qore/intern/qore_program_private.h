@@ -273,7 +273,7 @@ typedef std::map<ThreadProgramData *, ThreadLocalProgramData *> pgm_data_map_t;
 typedef std::map<std::string, AbstractQoreNode *> dmap_t;
 
 // map for pushed parse options
-typedef std::map<const char*, int64> ppo_t;
+typedef std::map<const char*, int64, ltstr> ppo_t;
 
 class qore_program_private_base {
 public:
@@ -782,10 +782,11 @@ public:
 	 exceptions_raised++;
 	 return;
       }
-      setScriptPath(filename);
-	 
       ON_BLOCK_EXIT(fclose, fp);
+
+      setScriptPath(filename);
       
+      ProgramContextHelper pch(pgm, false);
       parse(fp, filename, xsink, wS, wm);
    }
    
@@ -804,7 +805,6 @@ public:
 	 return;
 
       ProgramContextHelper pch(pgm, false);
-      
       parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
    }
 
@@ -1165,16 +1165,24 @@ public:
    DLLLOCAL void pushParseOptions(const char* pf) {
       assert(ppo.find(pf) == ppo.end());
       ppo[pf] = pwo.parse_options;
-      //printd(5, "pushParseOptions() %p (%s) saving %lld\n", pf, pf, pwo.parse_options);
+      //printd(5, "qore_program_private::pushParseOptions() this: %p %p '%s' saving %lld\n", this, pf, pf, pwo.parse_options);
    }
 
    DLLLOCAL void restoreParseOptions(const char* pf) {
       ppo_t::iterator i = ppo.find(pf);
       if (i != ppo.end()) {
-         //printd(5, "restoreParseOptions() %p (%s) restoring %lld\n", pf, pf, pwo.parse_options);         
+         //printd(5, "qore_program_private::restoreParseOptions() this: %p %p '%s' restoring %lld\n", this, pf, pf, pwo.parse_options);
          pwo.parse_options = i->second;
          ppo.erase(i);
       }
+#if 0
+      else {
+         printd(5, "qore_program_private::restoreParseOptions() this: %p %p '%s' parse options not found\n", this, pf, pf, pwo.parse_options);
+         for (ppo_t::iterator i = ppo.begin(), e = ppo.end(); i != e; ++i) {
+            printd(5, " + ppo: %p '%s' = %lld\n", i->first, i->first, i->second);
+         }
+      }
+#endif
    }
 
    DLLLOCAL void addParseException(ExceptionSink& xsink, QoreProgramLocation* loc = 0) {

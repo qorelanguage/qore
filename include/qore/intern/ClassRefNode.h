@@ -27,6 +27,8 @@
 
 class ClassRefNode : public ParseNoEvalNode {
 protected:
+   // populated on creation
+   QoreProgramLocation loc;
    NamedScope *cscope;
    int cid;
 
@@ -37,8 +39,12 @@ protected:
    }
       
 public:
-   DLLLOCAL ClassRefNode(char *str);
-   DLLLOCAL virtual ~ClassRefNode();
+   DLLLOCAL ClassRefNode(char *str) : ParseNoEvalNode(NT_CLASSREF), cscope(new NamedScope(str)) {
+   }
+
+   DLLLOCAL ~ClassRefNode() {
+      delete cscope;
+   }
 
    // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
    // the ExceptionSink is only needed for QoreObject where a method may be executed

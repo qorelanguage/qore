@@ -896,7 +896,7 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& ns
    return 0;
 }
 
-QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& nscope) {
+QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const QoreProgramLocation& loc, const NamedScope& nscope) {
    QoreClass* oc;
    // if there is no namespace specified, then just find class
    if (nscope.size() == 1)
@@ -908,7 +908,7 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& ns
       return oc;
 
    if (m != (nscope.size() - 1))
-      parse_error("cannot resolve namespace '%s' in '%s'", nscope[m], nscope.ostr);
+      parse_error(loc, "cannot resolve namespace '%s' in '%s'", nscope[m], nscope.ostr);
    else {
       QoreString err;
       err.sprintf("cannot find class '%s' in any namespace '", nscope.getIdentifier());
@@ -918,7 +918,7 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& ns
             err.concat("::");
       }
       err.concat("'");
-      parse_error(err.getBuffer());
+      parse_error(loc, err.getBuffer());
    }
 
    printd(5, "qore_root_ns_private::parseFindScopedClassIntern('%s') returning %p\n", nscope.ostr, oc);

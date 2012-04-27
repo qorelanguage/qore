@@ -152,8 +152,7 @@ protected:
    ptype_vec_t parseTypeList;
    QoreParseTypeInfo* parseReturnTypeInfo;
 
-   int first_line, last_line;
-   const char* parse_file;
+   QoreProgramLocation loc;
 
    DLLLOCAL void pushParam(BarewordNode* b, bool needs_types);
    DLLLOCAL void pushParam(QoreOperatorNode* t, bool needs_types);
@@ -200,16 +199,8 @@ public:
       return returnTypeInfo;
    }
 
-   DLLLOCAL int firstLine() const {
-      return first_line;
-   }
-   
-   DLLLOCAL int lastLine() const {
-      return last_line;
-   }
-   
-   DLLLOCAL const char* getParseFile() const {
-      return parse_file;
+   DLLLOCAL const QoreProgramLocation& getParseLocation() const {
+      return loc;
    }
 
    DLLLOCAL bool hasReturnTypeInfo() const {

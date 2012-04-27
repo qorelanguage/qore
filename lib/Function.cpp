@@ -200,10 +200,10 @@ void AbstractFunctionSignature::addDefaultArgument(const AbstractQoreNode* arg) 
    str.append("<exp>");
 }
 
-UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode* params, RetTypeInfo *retTypeInfo) :
+UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* params, RetTypeInfo *retTypeInfo) :
    AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : 0), 
    parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0), 
-   first_line(n_first_line), last_line(n_last_line), parse_file(get_parse_file()),
+   loc(first_line, last_line, get_parse_file()),
    lv(0), argvid(0), selfid(0), resolved(false) {
    int64 po = getProgram()->getParseOptions64();
 
@@ -296,7 +296,7 @@ void UserSignature::pushParam(BarewordNode* b, bool needs_types) {
    defaultArgList.push_back(0);
 
    if (needs_types)
-      parse_error(QoreProgramLocation(first_line, last_line, parse_file), "parameter '%s' declared without type information, but parse options require all declarations to have type information", b->str);
+      parse_error(loc, "parameter '%s' declared without type information, but parse options require all declarations to have type information", b->str);
 
    if (!(getProgram()->getParseOptions64() & PO_ALLOW_BARE_REFS))
       parse_error("parameter '%s' declared without '$' prefix, but parse option 'allow-bare-defs' is not set", b->str);
@@ -307,18 +307,18 @@ void UserSignature::pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool need
    // check for duplicate name
    for (name_vec_t::iterator i = names.begin(), e = names.end(); i != e; ++i)
       if (*i == v->getName())
-	 parse_error(QoreProgramLocation(first_line, last_line, parse_file), "duplicate variable '%s' declared in parameter list", (*i).c_str());
+	 parse_error(loc, "duplicate variable '%s' declared in parameter list", (*i).c_str());
 
    names.push_back(v->getName());
 
    bool is_decl = v->isDecl();
    if (needs_types && !is_decl)
-      parse_error(QoreProgramLocation(first_line, last_line, parse_file), "parameter '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
+      parse_error(loc, "parameter '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
 
    // see if this is a new object call
    if (v->has_effect()) {
       // here we make 4 virtual function calls when 2 would be enough, but no need to optimize for speed for an exception
-      parse_error(QoreProgramLocation(first_line, last_line, parse_file), "parameter '%s' may not be declared with new object syntax; instead use: '%s %s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
+      parse_error(loc, "parameter '%s' may not be declared with new object syntax; instead use: '%s %s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
    }
 
    if (is_decl) {
@@ -358,9 +358,9 @@ void UserSignature::pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool need
 
    if (v->explicitScope()) {
       if (v->getType() == VT_LOCAL)
-	 parse_error(QoreProgramLocation(first_line, last_line, parse_file), "invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
+	 parse_error(loc, "invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
       else if (v->getType() == VT_GLOBAL)
-	 parse_error(QoreProgramLocation(first_line, last_line, parse_file), "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
+	 parse_error(loc, "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
    }
 }
 
@@ -404,11 +404,8 @@ void UserSignature::resolve() {
       
    resolved = true;
 
-   // push parse location in case of exceptions
-   update_parse_location(first_line, last_line, parse_file);
-
    if (!returnTypeInfo) {
-      returnTypeInfo = parseReturnTypeInfo->resolveAndDelete();
+      returnTypeInfo = parseReturnTypeInfo->resolveAndDelete(loc);
       parseReturnTypeInfo = 0;
    }
 #ifdef DEBUG
@@ -418,7 +415,7 @@ void UserSignature::resolve() {
    for (unsigned i = 0; i < parseTypeList.size(); ++i) {
       if (parseTypeList[i]) {
 	 assert(!typeList[i]);
-	 typeList[i] = parseTypeList[i]->resolveAndDelete();
+	 typeList[i] = parseTypeList[i]->resolveAndDelete(loc);
       }
 
       // initialize default arguments
@@ -428,7 +425,7 @@ void UserSignature::resolve() {
 	 defaultArgList[i] = defaultArgList[i]->parseInit(selfid, 0, lvids, argTypeInfo);
 	 if (lvids) {
 	    // FIXME: set parse position?
-	    parse_error("illegal local variable declaration in default value expression in parameter '%s'", names[i].c_str());
+	    parse_error(loc, "illegal local variable declaration in default value expression in parameter '%s'", names[i].c_str());
 	    while (lvids--)
 	       pop_local_var();
 	 }
@@ -440,7 +437,7 @@ void UserSignature::resolve() {
 	    desc->concat(", but the default value is ");
 	    argTypeInfo->getThisType(*desc);
 	    desc->concat(" instead");
-	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+	    qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
 	 }
       }
    }

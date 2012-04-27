@@ -243,6 +243,8 @@ DLLLOCAL const char *get_parse_file();
 DLLLOCAL const char *get_parse_code();
 DLLLOCAL void update_parse_location(int start_line, int end_line);
 DLLLOCAL void update_parse_location(int start_line, int end_line, const char *f);
+DLLLOCAL QoreProgramLocation get_parse_location();
+DLLLOCAL void update_parse_location(const QoreProgramLocation& loc);
 DLLLOCAL bool inMethod(const char *name, const QoreObject *o);
 DLLLOCAL RootQoreNamespace *getRootNS();
 DLLLOCAL int64 getParseOptions();

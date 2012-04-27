@@ -490,7 +490,7 @@ GlobalVarRefNode::GlobalVarRefNode(char *n, QoreParseTypeInfo* parseTypeInfo) : 
 
 void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, bool is_new) {
    if (!typeInfo) {
-      typeInfo = parseTypeInfo->resolveAndDelete();
+      typeInfo = parseTypeInfo->resolveAndDelete(loc);
       parseTypeInfo = 0;
    }
 #ifdef DEBUG
@@ -518,7 +518,7 @@ AbstractQoreNode *VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int 
 
 // for checking for new object calls
 AbstractQoreNode *VarRefDeclNode::makeNewCall(AbstractQoreNode *args) {
-   VarRefNewObjectNode *rv = new VarRefNewObjectNode(takeName(), typeInfo, takeParseTypeInfo(), makeArgs(args), type);
+   VarRefNewObjectNode *rv = new VarRefNewObjectNode(loc, takeName(), typeInfo, takeParseTypeInfo(), makeArgs(args), type);
    deref();
    return rv;
 }
