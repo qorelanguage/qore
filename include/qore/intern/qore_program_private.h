@@ -348,15 +348,15 @@ public:
       // initialize global vars
       Var *var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ARGV", listTypeInfo);
       if (var && ARGV)
-	 var->assign(ARGV->copy(), 0);
+	 var->setInitial(ARGV->copy());
 	 
       var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "QORE_ARGV", listTypeInfo);
       if (var && QORE_ARGV)
-	 var->assign(QORE_ARGV->copy(), 0);
+	 var->setInitial(QORE_ARGV->copy());
 	 
       var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ENV", hashTypeInfo);
       if (var)
-         var->assign(ENV->copy(), 0);
+         var->setInitial(ENV->copy());
    }
 
    DLLLOCAL void start_thread() {

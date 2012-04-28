@@ -85,9 +85,11 @@ class socket_test {
 		    socket_test::printf("server: bound to %s socket on %s:%d\n", $a.familystr, $a.address_desc, $.server_port);
 		    break;
 		}
-		catch($ex) {
-		    socket_test::printf("server: error binding socket to %s: %s: %s (arg=%n)\n", $a.address_desc, $ex.err, $ex.desc, $ex.arg);
-		    thread_exit;
+		catch ($ex) {
+		    if ($# == (elements $addr - 1)) {
+			socket_test::printf("server: error binding socket to %s:%d %s: %s (arg: %y)\n", $a.address_desc, $.server_port, $ex.err, $ex.desc, $ex.arg);
+			thread_exit;
+		    }
 		}
 	    }
 
@@ -156,7 +158,7 @@ class socket_test {
 		    $s.setPrivateKey($.o.clientkey);
 		$s.connectINETSSL($.client_host, $.client_port, 15s, $.fam);
 		
-		my $str = $s.verifyPeerCertificate();
+		my string $str = $s.verifyPeerCertificate();
 		socket_test::printf("client: server certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
 	    }
 	    else

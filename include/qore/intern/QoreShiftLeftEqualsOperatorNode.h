@@ -24,15 +24,37 @@
 #ifndef _QORE_QORESHIFTLEFTEQUALSOPERATORNODE_H
 #define _QORE_QORESHIFTLEFTEQUALSOPERATORNODE_H
 
-class QoreShiftLeftEqualsOperatorNode : public QoreBinaryLValueOperatorNode {
+class QoreShiftLeftEqualsOperatorNode : public QoreBinaryIntLValueOperatorNode {
 OP_COMMON
 protected:
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
+      int64 rv = QoreShiftLeftEqualsOperatorNode::bigIntEvalImpl(xsink);
+      return *xsink || !ref_rv ? 0 : new QoreBigIntNode(rv);
+   }
+
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+      needs_deref = ref_rv;
+      int64 rv = QoreShiftLeftEqualsOperatorNode::bigIntEvalImpl(xsink);
+      return *xsink || ! ref_rv ? 0 : new QoreBigIntNode(rv);
+   }
+
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const {
+      return (int)QoreShiftLeftEqualsOperatorNode::bigIntEvalImpl(xsink);
+   }
+
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const {
+      return (double)QoreShiftLeftEqualsOperatorNode::bigIntEvalImpl(xsink);
+   }
+
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const {
+      return (bool)QoreShiftLeftEqualsOperatorNode::bigIntEvalImpl(xsink);
+   }
 
 public:
-   DLLLOCAL QoreShiftLeftEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryLValueOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreShiftLeftEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryIntLValueOperatorNode(n_left, n_right) {
    }
 };
 

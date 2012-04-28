@@ -38,8 +38,10 @@ AbstractQoreNode *QoreIntPostIncrementOperatorNode::evalImpl(bool &needs_deref, 
 }
 
 int64 QoreIntPostIncrementOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   VarRefNode *v = reinterpret_cast<VarRefNode *>(exp);
-   return v->postIncrement(xsink);
+   LValueHelper n(exp, xsink);
+   if (!n)
+      return 0;
+   return n.postIncrementBigInt("<++ (post) operator>");
 }
 
 int QoreIntPostIncrementOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {

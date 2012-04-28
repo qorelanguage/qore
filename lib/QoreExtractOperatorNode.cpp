@@ -110,15 +110,15 @@ AbstractQoreNode *QoreExtractOperatorNode::extract(ExceptionSink *xsink) const {
       return 0;
 
    // if value is not a list or string, throw exception
-   qore_type_t vt = val.get_type();
+   qore_type_t vt = val.getType();
 
    if (vt == NT_NOTHING) {
       // see if the lvalue has a default type
-      const QoreTypeInfo *typeInfo = val.get_type_info();
+      const QoreTypeInfo *typeInfo = val.getTypeInfo();
       if (typeInfo == listTypeInfo || typeInfo == stringTypeInfo) {
 	 if (val.assign(typeInfo->getDefaultValue()))
 	    return 0;
-	 vt = val.get_type();
+	 vt = val.getType();
       }
    }
 
@@ -128,25 +128,25 @@ AbstractQoreNode *QoreExtractOperatorNode::extract(ExceptionSink *xsink) const {
    }
    
    // no exception can occur here
-   val.ensure_unique();
+   val.ensureUnique();
 
    qore_size_t offset = eoffset ? (qore_size_t)eoffset->getAsBigInt() : 0;
 
 #ifdef DEBUG
    if (vt == NT_LIST) {
-      QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.get_value());
-      printd(5, "op_extract() val=%p (size=%d) offset=%d\n", val.get_value(), vl->size(), offset);
+      QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.getValue());
+      printd(5, "op_extract() val=%p (size=%d) offset=%d\n", vl, vl->size(), offset);
    }
    else {
-      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.get_value());
-      printd(5, "op_extract() val=%p (strlen=%d) offset=%d\n", val.get_value(), vs->strlen(), offset);
+      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.getValue());
+      printd(5, "op_extract() val=%p (strlen=%d) offset=%d\n", vs, vs->strlen(), offset);
    }
 #endif
 
    ReferenceHolder<AbstractQoreNode> rv(xsink);
 
    if (vt == NT_LIST) {
-      QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.get_value());
+      QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.getValue());
       if (!length_exp && !new_exp)
 	 rv = vl->extract(offset, xsink);
       else {
@@ -158,7 +158,7 @@ AbstractQoreNode *QoreExtractOperatorNode::extract(ExceptionSink *xsink) const {
       }
    }
    else { // must be a string
-      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.get_value());
+      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.getValue());
       if (!length_exp && !new_exp)
 	 rv = vs->extract(offset, xsink);
       else {

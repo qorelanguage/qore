@@ -44,7 +44,7 @@ AbstractQoreNode *QoreDivideEqualsOperatorNode::evalImpl(ExceptionSink *xsink) c
       return 0;
 
    // is either side a float?
-   if ((res && res->getType() == NT_FLOAT) || v.get_type() == NT_FLOAT) {
+   if ((res && res->getType() == NT_FLOAT) || v.getType() == NT_FLOAT) {
       double val = res ? res->getAsFloat() : 0.0;
       if (val == 0.0) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression");

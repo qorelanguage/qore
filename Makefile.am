@@ -474,21 +474,15 @@ noinst_HEADERS = \
 	include/qore/intern/QoreMinusEqualsOperatorNode.h \
 	include/qore/intern/QoreIntMinusEqualsOperatorNode.h \
 	include/qore/intern/QoreOrEqualsOperatorNode.h \
-	include/qore/intern/QoreIntOrEqualsOperatorNode.h \
 	include/qore/intern/QoreAndEqualsOperatorNode.h \
-	include/qore/intern/QoreIntAndEqualsOperatorNode.h \
 	include/qore/intern/QoreModulaEqualsOperatorNode.h \
-	include/qore/intern/QoreIntModulaEqualsOperatorNode.h \
 	include/qore/intern/QoreMultiplyEqualsOperatorNode.h \
 	include/qore/intern/QoreIntMultiplyEqualsOperatorNode.h \
 	include/qore/intern/QoreDivideEqualsOperatorNode.h \
 	include/qore/intern/QoreIntDivideEqualsOperatorNode.h \
 	include/qore/intern/QoreXorEqualsOperatorNode.h \
-	include/qore/intern/QoreIntXorEqualsOperatorNode.h \
 	include/qore/intern/QoreShiftLeftEqualsOperatorNode.h \
-	include/qore/intern/QoreIntShiftLeftEqualsOperatorNode.h \
 	include/qore/intern/QoreShiftRightEqualsOperatorNode.h \
-	include/qore/intern/QoreIntShiftRightEqualsOperatorNode.h \
 	include/qore/intern/QorePostIncrementOperatorNode.h \
 	include/qore/intern/QoreIntPostIncrementOperatorNode.h \
 	include/qore/intern/QorePostDecrementOperatorNode.h \

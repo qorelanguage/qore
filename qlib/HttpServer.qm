@@ -1788,7 +1788,7 @@ public class HttpServer::HttpServer {
     }
 
     #! returns a complete URL from a bind address
-    static string getURLFromBind(string $bind, any $host) {
+    static string getURLFromBind(softstring $bind, *string $host) {
 	my hash $h = parse_url($bind);
 	# if there is only a port number, it will appear in the "host" key
 	if (elements $h == 1 && exists $h.host && int($h.host) == $h.host) {

@@ -1241,6 +1241,7 @@ QoreStringNode *qore_reassign_signal(int sig, const char *name) {
 }
 #endif
 
+/*
 static int qoreCheckHash(QoreHashNode *h, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
    int rc = 0;
 
@@ -1348,6 +1349,7 @@ int ObjMap::check(QoreObject *obj) {
    mark();
    return 1;
 }
+*/
 
 // returns 0 for OK, -1 for error
 int check_lvalue(const AbstractQoreNode *node) {

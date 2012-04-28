@@ -38,8 +38,10 @@ AbstractQoreNode *QoreIntPostDecrementOperatorNode::evalImpl(bool &needs_deref, 
 }
 
 int64 QoreIntPostDecrementOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   VarRefNode *v = reinterpret_cast<VarRefNode *>(exp);
-   return v->postDecrement(xsink);
+   LValueHelper n(exp, xsink);
+   if (!n)
+      return 0;
+   return n.postDecrementBigInt("<-- (post) operator>");
 }
 
 int QoreIntPostDecrementOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {

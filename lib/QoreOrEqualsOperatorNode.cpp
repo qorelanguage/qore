@@ -26,11 +26,10 @@ QoreString QoreOrEqualsOperatorNode::op_str("|= operator expression");
 
 AbstractQoreNode *QoreOrEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) { 
    parseInitIntLValue(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-   // version for local var
-   return makeSpecialization<QoreIntOrEqualsOperatorNode>();
+   return this;
 }
 
-AbstractQoreNode *QoreOrEqualsOperatorNode::evalImpl(ExceptionSink *xsink) const {
+int64 QoreOrEqualsOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    int64 val = right->bigIntEval(xsink);
    if (xsink->isEvent())
       return 0;
@@ -39,19 +38,5 @@ AbstractQoreNode *QoreOrEqualsOperatorNode::evalImpl(ExceptionSink *xsink) const
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
-
-   if (v.ensure_unique_int())
-      return 0;
-   QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-
-   // or current value with arg val
-   b->val |= val;
-
-   // reference return value and return
-   return ref_rv ? b->refSelf() : 0;
-}
-
-AbstractQoreNode *QoreOrEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreOrEqualsOperatorNode::evalImpl(xsink);
+   return v.orEqualsBigInt(val, "<|= operator");
 }

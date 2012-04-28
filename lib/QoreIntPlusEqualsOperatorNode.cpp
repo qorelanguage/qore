@@ -39,9 +39,10 @@ int64 QoreIntPlusEqualsOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const 
    int64 rv = right->bigIntEval(xsink);
    if (*xsink)
       return 0;
-
-   VarRefNode *v = reinterpret_cast<VarRefNode *>(left);
-   return v->plusEqualsBigInt(rv, xsink);
+   LValueHelper v(left, xsink);
+   if (*xsink)
+      return 0;
+   return v.plusEqualsBigInt(rv, "<+= operator>");
 }
 
 int QoreIntPlusEqualsOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {

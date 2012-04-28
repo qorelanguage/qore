@@ -19,7 +19,7 @@
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+*/
 
 #ifndef _QORE_STATICCLASSVARREFNODE_H
 
@@ -28,39 +28,41 @@
 #include <string>
 
 class QoreVarInfo;
+class LValueHelper;
 
 class StaticClassVarRefNode : public ParseNode {
 protected:
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode* evalImpl(class ExceptionSink* xsink) const;
       
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool &needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;      
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const;
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const;
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const;
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const;
 
-   DLLLOCAL AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL const QoreTypeInfo *getTypeInfo() const;
+   DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL const QoreTypeInfo* getTypeInfo() const;
 
 public:
    const QoreClass &qc;
    QoreVarInfo &vi;
    std::string str;
 
-   DLLLOCAL StaticClassVarRefNode(const char *c_str, const QoreClass &n_qc, QoreVarInfo &n_vi);
+   DLLLOCAL StaticClassVarRefNode(const char* c_str, const QoreClass& n_qc, QoreVarInfo& n_vi);
 
    DLLLOCAL virtual ~StaticClassVarRefNode();
 
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
-   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+   // if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
    // returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const;
+   DLLLOCAL virtual const char* getTypeName() const;
 
-   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock &vl, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL void getLValue(LValueHelper& lvh) const;
+   //DLLLOCAL AbstractQoreNode** getValuePtr(AutoVLock& vl, const QoreTypeInfo* &typeInfo) const;
 };
 
 #endif

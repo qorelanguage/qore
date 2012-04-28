@@ -46,13 +46,7 @@ Var* GlobalVariableList::import(Var *v, ExceptionSink *xsink, bool readonly) {
 void GlobalVariableList::clear_all(ExceptionSink *xsink) {
    //printd(5, "GlobalVariableList::clear_all() this=%p (size=%d)\n", this, vmap.size());
    for (map_var_t::reverse_iterator i = vmap.rbegin(), e = vmap.rend(); i != e; ++i) {
-      if (!i->second->isImported()) {
-	 printd(5, "GlobalVariableList::clear_all() clearing '%s' (%p)\n", i->first, i->second);
-	 i->second->assign(0, xsink);
-      }
-#ifdef DEBUG
-      else printd(5, "GlobalVariableList::clear_all() skipping imported var '%s' (%p)\n", i->first, i->second);
-#endif
+      i->second->clearLocal(xsink);
    }
 }
 

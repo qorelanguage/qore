@@ -334,18 +334,8 @@ static bool op_log_ne_binary(const AbstractQoreNode *left, const AbstractQoreNod
 */
 
 static bool op_exists(const AbstractQoreNode *left, const AbstractQoreNode *x, ExceptionSink *xsink) {
-   if (is_nothing(left))
-      return false;
-   if (!left->needs_eval())
-      return true;
-
-   AutoVLock vl(xsink);
-   ReferenceHolder<AbstractQoreNode> tn(getExistingVarValue(left, xsink), xsink);
-   // return if an exception happened
-   if (*xsink)
-      return false;
-
-   return is_nothing(*tn) ? false : true;
+   assert(!left->needs_eval());
+   return is_nothing(left) ? false : true;
 }
 
 static bool op_instanceof(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) {
@@ -510,10 +500,10 @@ static AbstractQoreNode *op_regex_subst(const AbstractQoreNode *left, const Abst
       return 0;
 
    // if it's not a string, then do nothing
-   if (!v.check_type(NT_STRING))
+   if (!v.checkType(NT_STRING))
       return 0;
 
-   const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v.get_value());
+   const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v.getValue());
 
    assert(right && right->getType() == NT_REGEX_SUBST);
    const RegexSubstNode *rs = reinterpret_cast<const RegexSubstNode *>(right);
@@ -540,10 +530,10 @@ static AbstractQoreNode *op_transliterate(const AbstractQoreNode *left, const Ab
       return 0;
 
    // if it's not a string, then do nothing
-   if (!v.check_type(NT_STRING))
+   if (!v.checkType(NT_STRING))
       return 0;
 
-   const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v.get_value());
+   const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v.getValue());
 
    // get new value
    assert(right && right->getType() == NT_REGEX_TRANS);
@@ -821,22 +811,21 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
       return 0;
 
    // assign to a blank list if the lvalue has no value yet but is typed as a list
-   if (val.get_type() == NT_NOTHING && val.get_type_info() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+   if (val.getType() == NT_NOTHING && val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
       return 0;
 
    // value is not a list, so throw exception
-   if (val.get_type() != NT_LIST) {
+   if (val.getType() != NT_LIST) {
       xsink->raiseException("UNSHIFT-ERROR", "first argument to unshift is not a list");
       return 0;
    }
 
    // no exception can occur here
-   val.ensure_unique();
+   val.ensureUnique();
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.getValue());
 
    printd(5, "op_unshift() about to call unshift() on list node %p (%d) with element %p\n", l, l->size(), elem);
-
    l->insert(value.getReferencedValue());
 
    // reference for return value
@@ -852,16 +841,15 @@ static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQo
    if (!val)
       return 0;
 
-   if (val.get_type() != NT_LIST)
+   if (val.getType() != NT_LIST)
       return 0;
 
    // no exception can occurr here
-   val.ensure_unique();
+   val.ensureUnique();
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.getValue());
 
    printd(5, "op_shift() about to call QoreListNode::shift() on list node %p (%d)\n", l, l->size());
-
    // the list reference will now be the reference for return value
    // therefore no need to reference again
    return l->shift();
@@ -876,16 +864,16 @@ static AbstractQoreNode *op_pop(const AbstractQoreNode *left, const AbstractQore
       return 0;
 
    // assign to a blank list if the lvalue has no vaule yet but is typed as a list
-   if (val.get_type() == NT_NOTHING && val.get_type_info() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+   if (val.getType() == NT_NOTHING && val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
       return 0;
 
-   if (val.get_type() != NT_LIST)
+   if (val.getType() != NT_LIST)
       return 0;
 
    // no exception can occurr here
-   val.ensure_unique();
+   val.ensureUnique();
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.getValue());
 
    printd(5, "op_pop() about to call QoreListNode::pop() on list node %p (%d)\n", l, l->size());
 
@@ -908,21 +896,20 @@ static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQor
       return 0;
 
    // assign to a blank list if the lvalue has no vaule yet but is typed as a list
-   if (val.get_type() == NT_NOTHING && val.get_type_info() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+   if (val.getType() == NT_NOTHING && val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
       return 0;
 
-   if (val.get_type() != NT_LIST)
+   if (val.getType() != NT_LIST)
       return 0;
 
    // no exception can occurr here
-   val.ensure_unique();
+   val.ensureUnique();
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.getValue());
 
    printd(5, "op_push() about to call push() on list node %p (%d) with element %p\n", l, l->size(), elem);
 
    l->push(value.getReferencedValue());
-
    // reference for return value
    return ref_rv ? l->refSelf() : 0;
 }
@@ -935,24 +922,24 @@ static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, Ex
    if (!val)
       return 0;
 
-   qore_type_t vtype = val.get_type();
+   qore_type_t vtype = val.getType();
    if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
       return 0;
 
    // note that no exception can happen here
-   val.ensure_unique();
+   val.ensureUnique();
    assert(!*xsink);
 
    if (vtype == NT_STRING)
-      return reinterpret_cast<QoreStringNode *>(val.get_value())->chomp();
+      return reinterpret_cast<QoreStringNode *>(val.getValue())->chomp();
 
    int64 count = 0;   
 
    if (vtype == NT_LIST) {
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(val.getValue());
       ListIterator li(l);
       while (li.next()) {
-	 AbstractQoreNode **v = li.getValuePtr();
+	 AbstractQoreNode** v = li.getValuePtr();
 	 if (*v && (*v)->getType() == NT_STRING) {
 	    // note that no exception can happen here
 	    ensure_unique(v, xsink);
@@ -965,22 +952,22 @@ static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, Ex
    }
 
    // must be a hash
-   QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(val.get_value());
+   QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(val.getValue());
    HashIterator hi(vh);
    while (hi.next()) {
-      AbstractQoreNode **v = hi.getValuePtr();
+      AbstractQoreNode** v = hi.getValuePtr();
       if (*v && (*v)->getType() == NT_STRING) {
 	 // note that no exception can happen here
 	 ensure_unique(v, xsink);
 	 assert(!*xsink);
-	 QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(*v);
+	 QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
 	 count += vs->chomp();
       }
    }
    return count;
 }
 
-static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink) {
+static AbstractQoreNode* op_trim(const AbstractQoreNode* arg, const AbstractQoreNode* x, bool ref_rv, ExceptionSink* xsink) {
    //QORE_TRACE("op_trim()");
    
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
@@ -988,23 +975,23 @@ static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQore
    if (!val)
       return 0;
 
-   qore_type_t vtype = val.get_type();
+   qore_type_t vtype = val.getType();
    if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
       return 0;
    
    // note that no exception can happen here
-   val.ensure_unique();
+   val.ensureUnique();
    assert(!*xsink);
 
    if (vtype == NT_STRING) {
-      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.get_value());
+      QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(val.getValue());
       vs->trim();
    }
    else if (vtype == NT_LIST) {
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
+      QoreListNode* l = reinterpret_cast<QoreListNode *>(val.getValue());
       ListIterator li(l);
       while (li.next()) {
-	 AbstractQoreNode **v = li.getValuePtr();
+	 AbstractQoreNode** v = li.getValuePtr();
 	 if (*v && (*v)->getType() == NT_STRING) {
 	    // note that no exception can happen here
 	    ensure_unique(v, xsink);
@@ -1015,15 +1002,15 @@ static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQore
       }      
    }
    else { // is a hash
-      QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(val.get_value());
+      QoreHashNode* vh = reinterpret_cast<QoreHashNode *>(val.getValue());
       HashIterator hi(vh);
       while (hi.next()) {
-	 AbstractQoreNode **v = hi.getValuePtr();
+	 AbstractQoreNode** v = hi.getValuePtr();
 	 if (*v && (*v)->getType() == NT_STRING) {
 	    // note that no exception can happen here
 	    assert(!*xsink);
 	    ensure_unique(v, xsink);
-	    QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(*v);
+	    QoreStringNode *vs = reinterpret_cast<QoreStringNode*>(*v);
 	    vs->trim();
 	 }
       }
@@ -3220,7 +3207,7 @@ void OperatorList::init() {
    OP_REGEX_NMATCH = add(new Operator(2, "!~", "regular expression negative match", 0, false, false, check_op_logical));
    OP_REGEX_NMATCH->addFunction(op_regex_nmatch);
 
-   OP_EXISTS = add(new Operator(1, "exists", "exists", 0, false, false, check_op_logical));
+   OP_EXISTS = add(new Operator(1, "exists", "exists", 1, false, false, check_op_logical));
    OP_EXISTS->addFunction(NT_ALL, NT_NONE, op_exists);
    
    OP_INSTANCEOF = add(new Operator(2, "instanceof", "instanceof", 0, false, false, check_op_logical));

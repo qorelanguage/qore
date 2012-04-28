@@ -40,8 +40,10 @@ int64 QoreIntMinusEqualsOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const
    if (*xsink)
       return 0;
 
-   VarRefNode *v = reinterpret_cast<VarRefNode *>(left);
-   return v->minusEqualsBigInt(rv, xsink);
+   LValueHelper v(left, xsink);
+   if (*xsink)
+      return 0;
+   return v.minusEqualsBigInt(rv, "<-= operator");
 }
 
 int QoreIntMinusEqualsOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {

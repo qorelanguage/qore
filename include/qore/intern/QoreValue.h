@@ -25,50 +25,6 @@
 
 #define _QORE_QOREVALUE_H
 
-/*
-class AbstractLValue {
-public:
-   DLLLOCAL virtual ~AbstractLValue() {
-   }
-
-   DLLLOCAL virtual AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, ObjMap &omap, ExceptionSink* xsink) const = 0;
-   DLLLOCAL virtual AbstractQoreNode **getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, ObjMap &omap, ExceptionSink* xsink) const = 0;
-
-   DLLLOCAL virtual void assign(AbstractQoreNode *value, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual void assignBigInt(int64 v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual void assignFloat(double v, ExceptionSink* xsink) = 0;
-
-   DLLLOCAL virtual int64 plusEqualsBigInt(int64 v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual double plusEqualsFloat(double v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 minusEqualsBigInt(int64 v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual double minusEqualsFloat(double v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 orEqualsBigInt(int64 v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 andEqualsBigInt(int64 v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 modulaEqualsBigInt(int64 v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 multiplyEqualsBigInt(int64 v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 divideEqualsBigInt(int64 v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 xorEqualsBigInt(int64 v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 shiftLeftEqualsBigInt(int64 v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 shiftRightEqualsBigInt(int64 v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual double multiplyEqualsFloat(double v, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual double divideEqualsFloat(double v, ExceptionSink* xsink) = 0;
-
-   DLLLOCAL virtual int64 postIncrement(ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 preIncrement(ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 postDecrement(ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int64 preDecrement(ExceptionSink* xsink) = 0;
-
-   DLLLOCAL virtual AbstractQoreNode* eval(ExceptionSink* xsink) const = 0;
-   DLLLOCAL virtual AbstractQoreNode* eval(bool &needs_deref, ExceptionSink* xsink) const = 0;
-   DLLLOCAL virtual int64 bigIntEval(ExceptionSink* xsink) const = 0;
-   DLLLOCAL virtual double floatEval(ExceptionSink* xsink) const = 0;
-
-   DLLLOCAL virtual int64 removeBigInt(ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual double removeFloat(ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual AbstractQoreNode* remove(ExceptionSink* xsink, bool for_del) = 0;
-};
-*/
-
 typedef unsigned char valtype_t;
 
 #define QV_Bool  (valtype_t)0
@@ -82,9 +38,10 @@ union qore_value_u {
    int64 i;
    double f;
    AbstractQoreNode* n;
+   void* p;
 };
 
-template <typename U>
+template <typename U = qore_value_u>
 class QoreValue {
 protected:
    // returns the old value just in case it needs to be dereferenced outside a lock
@@ -119,12 +76,17 @@ protected:
 	 case QV_Ref:
 	    break;
          default: assert(false);
+         // no break
       }
    }
 
 public:
    U v;
    valtype_t type;
+
+   DLLLOCAL QoreValue() : type(QV_Node) {
+      reset();
+   }
 
    DLLLOCAL QoreValue(valtype_t t) : type(t) {
       reset();
@@ -154,6 +116,18 @@ public:
       return type != QV_Node && type != QV_Ref;
    }
 
+   DLLLOCAL bool hasValue() const {
+      switch (type) {
+         case QV_Bool: return v.b;
+         case QV_Int: return (bool)v.i;
+         case QV_Float: return (bool)v.f;
+         case QV_Node: return (bool)v.n;
+         default: assert(false);
+         // no break
+      }
+      return false;
+   }
+
    DLLLOCAL AbstractQoreNode* assign(bool b) {
       switch (type) {
          case QV_Bool: v.b = false; return 0;
@@ -165,6 +139,7 @@ public:
 	    return rv;
 	 }
          default: assert(false);
+         // no break
       }
       return 0;
    }
@@ -180,6 +155,7 @@ public:
 	    return rv;
 	 }
          default: assert(false);
+         // no break
       }
       return 0;
    }
@@ -195,8 +171,41 @@ public:
 	    return rv;
 	 }
          default: assert(false);
+         // no break
       }
       return 0;
+   }
+
+   DLLLOCAL void assignTakeInitial(QoreValue<U>& n) {
+      assert(!hasValue());
+      switch (n.type) {
+         case QV_Bool: v.b = n.v.b; n.v.b = false; break;
+         case QV_Int: v.i = n.v.i; n.v.i = 0; break;
+         case QV_Float: v.f = n.v.f; n.v.f = 0; break;
+         case QV_Node: v.n = n.v.n; n.v.n = 0; break;
+         default: assert(false);
+         // no break
+      }
+   }
+
+   DLLLOCAL void assignInitial(bool n) {
+      assert(!hasValue());
+      assign(n);
+   }
+
+   DLLLOCAL void assignInitial(int64 n) {
+      assert(!hasValue());
+      assign(n);
+   }
+
+   DLLLOCAL void assignInitial(double n) {
+      assert(!hasValue());
+      assign(n);
+   }
+
+   DLLLOCAL void assignInitial(AbstractQoreNode* n) {
+      assert(!hasValue());
+      assign(n);
    }
 
    DLLLOCAL AbstractQoreNode* assign(AbstractQoreNode* n) {
@@ -232,6 +241,7 @@ public:
 	 }
          default:
 	    assert(false);
+	    // no break
       }
       return 0;
    }
@@ -243,6 +253,7 @@ public:
          case QV_Float: return (bool)v.f;
          case QV_Node: return v.n ? v.n->getAsBool() : false;
          default: assert(false);
+         // no break
       }
       return false;
    }
@@ -254,6 +265,7 @@ public:
          case QV_Float: return (int64)v.f;
          case QV_Node: return v.n ? v.n->getAsBigInt() : 0;
          default: assert(false);
+         // no break
       }
       return 0;
    }
@@ -265,6 +277,7 @@ public:
          case QV_Float: return v.f;
          case QV_Node: return v.n ? v.n->getAsFloat() : 0.0;
          default: assert(false);
+         // no break
       }
       return 0.0;
    }
@@ -276,6 +289,7 @@ public:
          case QV_Float: return new QoreFloatNode(v.f);
          case QV_Node: return v.n ? v.n->refSelf() : 0;
          default: assert(false);
+         // no break
       }
       return 0;
    }
@@ -292,6 +306,7 @@ public:
          case QV_Int: return new QoreBigIntNode(v.i);
          case QV_Float: return new QoreFloatNode(v.f);
          default: assert(false);
+         // no break
       }
       return 0;
    }
@@ -303,6 +318,7 @@ public:
          case QV_Float: return NT_FLOAT;
          case QV_Node: return v.n ? v.n->getType() : 0;
          default: assert(false);
+         // no break
       }
       return NT_NOTHING;      
    }
@@ -314,6 +330,7 @@ public:
 	 case QV_Float: return QoreFloatNode::getStaticTypeName();
 	 case QV_Node: return get_type_name(v.n);
          default: assert(false);
+         // no break
       }
       return 0;
    }
@@ -346,6 +363,7 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }
 
       return 0;
@@ -365,6 +383,7 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }
 
       return 0.0;
@@ -384,6 +403,7 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }
 
       return 0;
@@ -403,6 +423,7 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }
 
       return 0.0;
@@ -422,6 +443,7 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }
 
       return 0;
@@ -441,7 +463,8 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
-      }
+	    // no break
+     }
 
       return 0;
    }
@@ -459,6 +482,7 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }
 
       return 0;
@@ -478,6 +502,7 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }
 
       return 0;
@@ -499,6 +524,7 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }
 
       return 0;
@@ -518,7 +544,8 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
-      }
+	    // no break
+    }
 
       return 0;
    }
@@ -537,6 +564,7 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }
 
       return 0;
@@ -556,12 +584,13 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }
 
       return 0;
    }
 
-   DLLLOCAL int64 postIncrement(AbstractQoreNode*& old) {
+   DLLLOCAL int64 postIncrementBigInt(AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
 	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
@@ -585,12 +614,13 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }      
 
       return 0;
    }
 
-   DLLLOCAL int64 preIncrement(AbstractQoreNode*& old) {
+   DLLLOCAL int64 preIncrementBigInt(AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
 	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
@@ -606,12 +636,13 @@ public:
 	 // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }      
 
       return 0;
    }
 
-   DLLLOCAL int64 postDecrement(AbstractQoreNode*& old) {
+   DLLLOCAL int64 postDecrementBigInt(AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
 	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
@@ -635,12 +666,13 @@ public:
 	 // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }      
 
       return 0;
    }
 
-   DLLLOCAL int64 preDecrement(AbstractQoreNode*& old) {
+   DLLLOCAL int64 preDecrementBigInt(AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
 	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
@@ -656,7 +688,101 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }      
+      return 0;
+   }
+
+   DLLLOCAL double postIncrementFloat(AbstractQoreNode*& old) {
+      switch (type) {
+         case QV_Node: {
+            QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+            return vv->f++;
+         }
+
+         case QV_Float:
+            return v.f++;
+
+         case QV_Int: {
+            double rv = v.i;
+            ++v.i;
+            return rv;
+         }
+
+            // to avoid warnings about missing enum values
+         default:
+            assert(false);
+            // no break
+      }
+
+      return 0.0;
+   }
+
+   DLLLOCAL double preIncrementFloat(AbstractQoreNode*& old) {
+      switch (type) {
+         case QV_Node: {
+            QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+            return ++vv->f;
+         }
+
+         case QV_Float:
+            return ++v.f;
+
+         case QV_Int:
+            return (double)++v.i;
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+            // no break
+      }
+
+      return 0.0;
+   }
+
+   DLLLOCAL double postDecrementFloat(AbstractQoreNode*& old) {
+      switch (type) {
+         case QV_Node: {
+            QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+            return vv->f--;
+         }
+
+         case QV_Float:
+            return v.f--;
+
+         case QV_Int: {
+            double rv = v.i;
+            --v.i;
+            return rv;
+         }
+
+         // to avoid warnings about missing enum values
+         default:
+            assert(false);
+            // no break
+      }
+
+      return 0.0;
+   }
+
+   DLLLOCAL double preDecrementFloat(AbstractQoreNode*& old) {
+      switch (type) {
+         case QV_Node: {
+            QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+            return --vv->f;
+         }
+
+         case QV_Float:
+            return --v.f;
+
+         case QV_Int:
+            return --v.i;
+
+            // to avoid warnings about missing enum values
+         default:
+            assert(false);
+            // no break
+      }
       return 0;
    }
 
@@ -677,6 +803,7 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }      
 
       return 0;
@@ -701,6 +828,7 @@ public:
 	    // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
+            // no break
       }      
 
       return 0;
@@ -738,7 +866,8 @@ public:
          }
          default:
             assert(false);
-      }
+            // no break
+     }
       return 0;
    }
 
@@ -773,6 +902,7 @@ public:
          }
          default:
             assert(false);
+            // no break
       }
       return 0.0;
    }
@@ -801,10 +931,13 @@ public:
          }
          default:
             assert(false);
+            // no break
       }
       return 0;
    }
 };
+
+typedef QoreValue<> QoreValueGeneric;
 
 #endif
 

@@ -42,10 +42,10 @@ struct lvih_intern {
       lv.uninstantiate(xsink);
    }
 
-   DLLLOCAL AbstractQoreNode *getOutputValue() {
+   DLLLOCAL AbstractQoreNode* getOutputValue() {
       // there will be no locking here, because it's our temporary local "variable"
       ExceptionSink xsink2;
-      LValueHelper vp(ref->getExpression(), &xsink2);
+      LValueRemoveHelper vp(ref->getExpression(), &xsink2, true);
 
       // no exception should be possible here
       assert(!xsink2);
@@ -53,7 +53,7 @@ struct lvih_intern {
 	 return 0;
 
       // take output value from our temporary "variable" and return it
-      return vp.take_value();
+      return vp.remove();
    }
 
    DLLLOCAL AbstractQoreNode *getArg() {

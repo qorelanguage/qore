@@ -135,7 +135,8 @@ public:
 
    DLLLOCAL bool isGlobalVar() const { return type == VT_GLOBAL; }
 
-   DLLLOCAL VarRefNode* isOptimized(const QoreTypeInfo*& typeInfo) const;
+   //DLLLOCAL VarRefNode* isOptimized(const QoreTypeInfo*& typeInfo) const;
+   DLLLOCAL int getLValue(ExceptionSink* xsink, LValueHelper& lvh, bool for_remove) const;
    
    DLLLOCAL bool isRef() const {
       if (type == VT_LOCAL)
@@ -144,42 +145,7 @@ public:
       return ref.var->isRef();
    }
 
-   // note: this can only be called if the value is optimized, otherwise it will assert
-   DLLLOCAL qore_type_t getValueType() const;
-   // note: this can only be called if the value is optimized, otherwise it will assert
-   DLLLOCAL const char* getValueTypeName() const;
-
-   DLLLOCAL void assign(AbstractQoreNode *val, ExceptionSink *xsink) const;
-
-   DLLLOCAL void assignBigInt(int64 v, ExceptionSink *xsink);
-   DLLLOCAL void assignFloat(double v, ExceptionSink *xsink);
-   //DLLLOCAL void assignBool(bool v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink);
-   DLLLOCAL double plusEqualsFloat(double v, ExceptionSink *xsink);
-   DLLLOCAL int64 minusEqualsBigInt(int64 v, ExceptionSink *xsink);
-   DLLLOCAL double minusEqualsFloat(double v, ExceptionSink *xsink);
-   DLLLOCAL int64 orEqualsBigInt(int64 v, ExceptionSink *xsink);
-   DLLLOCAL int64 andEqualsBigInt(int64 v, ExceptionSink *xsink);
-   DLLLOCAL int64 modulaEqualsBigInt(int64 v, ExceptionSink *xsink);
-   DLLLOCAL int64 multiplyEqualsBigInt(int64 v, ExceptionSink *xsink);
-   DLLLOCAL int64 divideEqualsBigInt(int64 v, ExceptionSink *xsink);
-   DLLLOCAL int64 xorEqualsBigInt(int64 v, ExceptionSink *xsink);
-   DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink);
-   DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink);
-   DLLLOCAL int64 postIncrement(ExceptionSink *xsink);
-   DLLLOCAL int64 preIncrement(ExceptionSink *xsink);
-   DLLLOCAL int64 postDecrement(ExceptionSink *xsink);
-   DLLLOCAL int64 preDecrement(ExceptionSink *xsink);
-   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink);
-   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 removeBigInt(ExceptionSink* xsink);
-   DLLLOCAL double removeFloat(ExceptionSink* xsink);
-   DLLLOCAL AbstractQoreNode* remove(ExceptionSink* xsink, bool for_del);
-
-   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const;
-   DLLLOCAL AbstractQoreNode **getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const;
+   DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
    DLLLOCAL qore_var_t getType() const { return type; }
    DLLLOCAL const char *getName() const { return name.ostr; }

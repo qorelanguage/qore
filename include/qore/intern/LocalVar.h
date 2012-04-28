@@ -31,7 +31,7 @@
 
 template <class T>
 class VarStackPointerHelper {
-   T *orig;
+   T* orig;
 
 public:
    DLLLOCAL VarStackPointerHelper(T *v) : orig(v) {
@@ -88,7 +88,8 @@ struct lvar_ref {
 
    DLLLOCAL lvar_ref(AbstractQoreNode* n_vexp, QoreObject *n_obj, QoreProgram *n_pgm);
 
-   DLLLOCAL AbstractQoreNode* *getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
+   /*
+   DLLLOCAL AbstractQoreNode** getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
       ProgramContextHelper pch(pgm);
 
       if (obj) {
@@ -98,7 +99,8 @@ struct lvar_ref {
 
       return get_var_value_ptr(vexp, vl, typeInfo, omap, xsink);
    }
-
+    */
+   /*
    template <class T>
    DLLLOCAL int64 plusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink);
 
@@ -152,6 +154,7 @@ struct lvar_ref {
 
    template <class T>
    DLLLOCAL double divideEqualsFloat(double v, T *vv, ExceptionSink *xsink);
+   */
 };
 
 union qore_value_ref_u {
@@ -257,7 +260,9 @@ public:
       return val.optimized();
    }
 
-   DLLLOCAL bool isOptimized(const QoreTypeInfo*& varTypeInfo) const;
+   //DLLLOCAL bool isOptimized(const QoreTypeInfo*& varTypeInfo) const;
+   DLLLOCAL int getLValue(ExceptionSink* xsink, LValueHelper& lvh, bool for_remove) const;
+   DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
    DLLLOCAL qore_type_t getValueType() const {
       assert(optimizedLocal());
@@ -271,7 +276,8 @@ public:
       return val.getTypeName();
    }
 
-   DLLLOCAL AbstractQoreNode* *getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
+   /*
+   DLLLOCAL AbstractQoreNode** getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
       if (checkFinalized(xsink))
          return 0;
 
@@ -285,7 +291,7 @@ public:
       return val.getValuePtr(xsink);
    }
 
-   DLLLOCAL AbstractQoreNode* *getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
+   DLLLOCAL AbstractQoreNode** getContainerValuePtr(AutoVLock& vl, const QoreTypeInfo*& typeInfo, ObjMap& omap, ExceptionSink* xsink) {
       if (checkFinalized(xsink))
          return 0;
 
@@ -298,6 +304,7 @@ public:
 
       return val.getContainerValuePtr();
    }
+    */
 
    DLLLOCAL void finalize(ExceptionSink *xsink) {
       assert(!finalized);
@@ -307,6 +314,7 @@ public:
       }
    }
 
+   /*
    // value is already referenced for assignment
    DLLLOCAL void assign(AbstractQoreNode* value, ExceptionSink *xsink) {
       ReferenceHolder<> value_holder(value, xsink);
@@ -388,6 +396,7 @@ public:
    DLLLOCAL int64 postDecrement(ExceptionSink *xsink);
 
    DLLLOCAL int64 preDecrement(ExceptionSink *xsink);
+*/
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
@@ -444,6 +453,7 @@ public:
       return val.getAsFloat();
    }
 
+   /*
    DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink);
 
    DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink);
@@ -484,6 +494,7 @@ public:
 
       return val.remove(for_del);
    }
+   */
 };
 
 /* NOTE: the proper threading behavior of this class depends on the fact that the
@@ -508,8 +519,11 @@ public:
 
    DLLLOCAL void deref(ExceptionSink *xsink) { if (ROdereference()) { del(xsink); delete this; } }
 
-   DLLLOCAL bool isOptimized(const QoreTypeInfo*& varTypeInfo) const;
+   //DLLLOCAL bool isOptimized(const QoreTypeInfo*& varTypeInfo) const;
+   DLLLOCAL int getLValue(ExceptionSink* xsink, LValueHelper& lvh, bool for_remove) const;
+   DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
+   /*
    DLLLOCAL void assignBigInt(int64 v, ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
          // FIXME: implement assignFloat for LValueRefHelper
@@ -543,8 +557,9 @@ public:
       }
       discard(old, xsink);
    }
-
-   DLLLOCAL AbstractQoreNode* *getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
+*/
+   /*
+   DLLLOCAL AbstractQoreNode** getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
          // skip this entry in case it's a recursive reference
          VarStackPointerHelper<ClosureVarValue> helper(this);
@@ -561,7 +576,7 @@ public:
       return val.getValuePtr(xsink);
    }
 
-   DLLLOCAL AbstractQoreNode* *getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
+   DLLLOCAL AbstractQoreNode** getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
          // skip this entry in case it's a recursive reference
          VarStackPointerHelper<ClosureVarValue> helper(this);
@@ -577,6 +592,7 @@ public:
 
       return val.getContainerValuePtr();
    }
+*/
 
    DLLLOCAL void finalize(ExceptionSink *xsink) {
       SafeLocker sl(this);
@@ -588,6 +604,7 @@ public:
       }
    }
 
+   /*
    DLLLOCAL void setValueRef(ReferenceHolder<AbstractQoreNode> &value_holder, ExceptionSink *xsink) {
       LValueRefHelper<ClosureVarValue> valp(this, xsink);
       if (!valp)
@@ -617,6 +634,7 @@ public:
       }
       discard(dr, xsink);
    }
+*/
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
@@ -678,6 +696,7 @@ public:
       return val.getAsFloat();
    }
 
+   /*
    DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink);
 
    DLLLOCAL double plusEqualsFloat(double v, ExceptionSink *xsink);
@@ -753,6 +772,7 @@ public:
       AutoLocker al(this);
       return val.remove(for_del);
    }
+   */
 };
 
 // now shared between parent and child Program objects for top-level local variables with global scope
@@ -820,7 +840,8 @@ public:
          thread_uninstantiate_closure_var(xsink);
    }
 
-   DLLLOCAL AbstractQoreNode* *getValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, ObjMap &omap, ExceptionSink *xsink) const {
+   /*
+   DLLLOCAL AbstractQoreNode** getValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, ObjMap &omap, ExceptionSink *xsink) const {
       // typeInfo is set here, but in case the variable is a reference, the actual
       // typeInfo structure will be set from the referenced value
       n_typeInfo = typeInfo;
@@ -832,7 +853,7 @@ public:
       return val->getValuePtr(vl, n_typeInfo, omap, xsink);
    }
 
-   DLLLOCAL AbstractQoreNode* *getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, ObjMap &omap, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode** getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, ObjMap &omap, ExceptionSink *xsink) const {
       // typeInfo is set here, but in case the variable is a reference, the actual
       // typeInfo structure will be set from the referenced value
       n_typeInfo = typeInfo;
@@ -843,7 +864,9 @@ public:
       ClosureVarValue *val = thread_find_closure_var(name.c_str());
       return val->getContainerValuePtr(vl, n_typeInfo, omap, xsink);
    }
+*/
 
+   /*
    // value is already referenced for assignment
    DLLLOCAL void assign(AbstractQoreNode* value, ExceptionSink *xsink) {
       if (!closure_use) {
@@ -878,7 +901,7 @@ public:
       ClosureVarValue *val = thread_find_closure_var(name.c_str());
       val->assignFloat(v, xsink);
    }
-
+*/
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink *xsink) const {
       if (!closure_use) {
          LocalVarValue *val = get_var();
@@ -938,7 +961,7 @@ public:
       ClosureVarValue *val = thread_find_closure_var(name.c_str());
       return val->floatEval(xsink);
    }
-
+/*
    DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink) {
       if (!closure_use) {
          LocalVarValue *val = get_var();
@@ -1125,6 +1148,7 @@ public:
       ClosureVarValue *val = thread_find_closure_var(name.c_str());
       return val->remove(xsink, for_del);
    }
+*/
 
    DLLLOCAL const char *getName() const {
       return name.c_str();
@@ -1146,6 +1170,23 @@ public:
       return !closure_use ? get_var()->isRef() : thread_find_closure_var(name.c_str())->isRef();
    }
 
+   DLLLOCAL int getLValue(ExceptionSink* xsink, LValueHelper& lvh, bool for_remove) const {
+      if (!closure_use) {
+         lvh.setTypeInfo(typeInfo);
+         return get_var()->getLValue(xsink, lvh, for_remove);
+      }
+
+      return thread_find_closure_var(name.c_str())->getLValue(xsink, lvh, for_remove);
+   }
+
+   DLLLOCAL void remove(LValueRemoveHelper& lvrh) {
+      if (!closure_use)
+         return get_var()->remove(lvrh);
+
+      return thread_find_closure_var(name.c_str())->remove(lvrh);
+   }
+
+   /*
    DLLLOCAL bool isOptimized(const QoreTypeInfo*& varTypeInfo) const {
       if (!closure_use) {
          varTypeInfo = typeInfo;
@@ -1154,6 +1195,7 @@ public:
 
       return thread_find_closure_var(name.c_str())->isOptimized(varTypeInfo);
    }
+    */
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
       return typeInfo;

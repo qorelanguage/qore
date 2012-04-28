@@ -73,15 +73,15 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) con
    // already referenced value can be passed to list->push()
    // if necessary
    // do list plus-equals if left-hand side is a list
-   qore_type_t vtype = v.get_type();
+   qore_type_t vtype = v.getType();
 
    if (vtype == NT_NOTHING) {
       // see if the lvalue has a default type
-      const QoreTypeInfo *typeInfo = v.get_type_info();
+      const QoreTypeInfo *typeInfo = v.getTypeInfo();
       if (typeInfo->hasDefaultValue()) {
 	 if (v.assign(typeInfo->getDefaultValue()))
 	    return 0;
-	 vtype = v.get_type();
+	 vtype = v.getType();
       }
       else if (new_right) {
 	 // assign rhs to lhs (take reference for plusequals)
@@ -95,8 +95,8 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) con
    }
 
    if (vtype == NT_LIST) {
-      v.ensure_unique(); // no exception possible here
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(v.get_value());
+      v.ensureUnique(); // no exception possible here
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(v.getValue());
       if (new_right && new_right->getType() == NT_LIST)
 	 l->merge(reinterpret_cast<const QoreListNode *>(*new_right));
       else
@@ -105,29 +105,27 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) con
    else if (vtype == NT_HASH) {
       if (new_right) {
 	 if (new_right->getType() == NT_HASH) {
-	    v.ensure_unique();
-	    reinterpret_cast<QoreHashNode *>(v.get_value())->merge(reinterpret_cast<const QoreHashNode *>(*new_right), xsink);
+	    v.ensureUnique();
+	    reinterpret_cast<QoreHashNode *>(v.getValue())->merge(reinterpret_cast<const QoreHashNode *>(*new_right), xsink);
 	 }
 	 else if (new_right->getType() == NT_OBJECT) {
-	    v.ensure_unique();
-	    const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*new_right))->mergeDataToHash(reinterpret_cast<QoreHashNode *>(v.get_value()), xsink);
+	    v.ensureUnique();
+	    const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*new_right))->mergeDataToHash(reinterpret_cast<QoreHashNode *>(v.getValue()), xsink);
 	 }
       }
    }
    // do hash/object plus-equals if left side is an object
    else if (vtype == NT_OBJECT) {
-      QoreObject *o = reinterpret_cast<QoreObject *>(v.get_value());
-      qore_object_private::plusEquals(o, *new_right, v.getObjMap(), v.getAutoVLock(), xsink);
-      // duplicates are checked in the call above
-      v.alreadyChecked();
+      QoreObject *o = reinterpret_cast<QoreObject *>(v.getValue());
+      qore_object_private::plusEquals(o, *new_right, v.getAutoVLock(), xsink);
    }
    // do string plus-equals if left-hand side is a string
    else if (vtype == NT_STRING) {
       if (new_right) {
 	 QoreStringValueHelper str(*new_right);
 
-	 v.ensure_unique();
-	 QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(v.get_value());
+	 v.ensureUnique();
+	 QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(v.getValue());
 	 vs->concat(*str, xsink);
       }
    }
@@ -138,13 +136,13 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) con
    else if (vtype == NT_DATE) {
       if (new_right) {
 	 DateTimeValueHelper date(*new_right);
-	 v.assign(reinterpret_cast<DateTimeNode *>(v.get_value())->add(*date));
+	 v.assign(reinterpret_cast<DateTimeNode *>(v.getValue())->add(*date));
       }
    }
    else if (vtype == NT_BINARY) {
       if (new_right) {
-	 v.ensure_unique();
-	 BinaryNode *b = reinterpret_cast<BinaryNode *>(v.get_value());
+	 v.ensureUnique();
+	 BinaryNode *b = reinterpret_cast<BinaryNode *>(v.getValue());
 	 if (new_right->getType() == NT_BINARY) {
 	    const BinaryNode *arg = reinterpret_cast<const BinaryNode *>(*new_right);
 	    b->append(arg);

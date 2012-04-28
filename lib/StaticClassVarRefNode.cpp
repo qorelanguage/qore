@@ -84,11 +84,20 @@ AbstractQoreNode *StaticClassVarRefNode::parseInitImpl(LocalVar *oflag, int pfla
    return this;
 }
 
+void StaticClassVarRefNode::getLValue(LValueHelper& lvh) const {
+   lvh.setTypeInfo(vi.getTypeInfo());
+   lvh.setAndLock(vi.l);
+   lvh.setPtr(vi.val);
+}
+
+/*
 AbstractQoreNode **StaticClassVarRefNode::getValuePtr(AutoVLock &vl, const QoreTypeInfo *&typeInfo) const {
    typeInfo = vi.getTypeInfo();
+   vi.l.lock();
    vl.set(&vi.l);
    return &vi.val;
 }
+*/
 
 const QoreTypeInfo *StaticClassVarRefNode::getTypeInfo() const {
    return vi.getTypeInfo();

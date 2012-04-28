@@ -339,7 +339,7 @@ AbstractQoreNode *ParseSelfMethodReferenceNode::parseInitImpl(LocalVar *oflag, i
       parse_error("reference to object member '%s' out of a class member function definition", method);
    else {
       assert(method);
-      meth = getParseClass()->parseResolveSelfMethod(method);
+      meth = qore_class_private::parseResolveSelfMethod(*(getParseClass()), method);
       free(method);
       method = 0;
    }
@@ -385,7 +385,7 @@ AbstractQoreNode *ParseScopedSelfMethodReferenceNode::parseInitImpl(LocalVar *of
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);
    else {
-      method = getParseClass()->parseResolveSelfMethod(nscope);
+      method = qore_class_private::parseResolveSelfMethod(*(getParseClass()), nscope);
       delete nscope;
       nscope = 0;
    }

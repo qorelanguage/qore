@@ -32,9 +32,21 @@ protected:
    }
 
 public:
-   const QoreTypeInfo *ti;         // typeinfo of lhs
+   const QoreTypeInfo *ti; // typeinfo of lhs
 
    DLLLOCAL QoreBinaryLValueOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(n_left, n_right), ti(0) {
+   }
+};
+
+// for operators that try to change the lvalue to an int
+class QoreBinaryIntLValueOperatorNode : public QoreBinaryOperatorNode<LValueOperatorNode> {
+protected:
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return bigIntTypeInfo;
+   }
+
+public:
+   DLLLOCAL QoreBinaryIntLValueOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(n_left, n_right) {
    }
 
    DLLLOCAL void parseInitIntLValue(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -55,5 +67,4 @@ public:
       right = right->parseInit(oflag, pflag, lvids, mti);
    }
 };
-
 #endif

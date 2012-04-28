@@ -26,11 +26,10 @@ QoreString QoreModulaEqualsOperatorNode::op_str("%= operator expression");
 
 AbstractQoreNode *QoreModulaEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    parseInitIntLValue(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-   // version for local var
-   return makeSpecialization<QoreIntModulaEqualsOperatorNode>();
+   return this;
 }
 
-AbstractQoreNode *QoreModulaEqualsOperatorNode::evalImpl(ExceptionSink *xsink) const {
+int64 QoreModulaEqualsOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    int64 val = right->bigIntEval(xsink);
    if (xsink->isEvent())
       return 0;
@@ -39,22 +38,5 @@ AbstractQoreNode *QoreModulaEqualsOperatorNode::evalImpl(ExceptionSink *xsink) c
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
-
-   // get new value if necessary
-   if (v.ensure_unique_int())
-      return 0;
-   QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-
-   if (val)
-      b->val %= val;
-   else
-      b->val = 0;
-
-   // reference return value and return
-   return ref_rv ? b->refSelf() : 0;
-}
-
-AbstractQoreNode *QoreModulaEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreModulaEqualsOperatorNode::evalImpl(xsink);
+   return v.modulaEqualsBigInt(val, "<%= operator>");
 }

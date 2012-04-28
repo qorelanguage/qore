@@ -39,9 +39,10 @@ int64 QoreIntAssignmentOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const 
    int64 rv = right->bigIntEval(xsink);
    if (*xsink)
       return 0;
-
-   VarRefNode *v = reinterpret_cast<VarRefNode *>(left);
-   v->assignBigInt(rv, xsink);
+   LValueHelper v(left, xsink);
+   if (*xsink)
+      return 0;
+   v.assignBigInt(rv, "<+= operator>");
    return rv;
 }
 

@@ -38,8 +38,10 @@ AbstractQoreNode *QoreIntPreDecrementOperatorNode::evalImpl(bool &needs_deref, E
 }
 
 int64 QoreIntPreDecrementOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   VarRefNode *v = reinterpret_cast<VarRefNode *>(exp);
-   return v->preDecrement(xsink);
+   LValueHelper n(exp, xsink);
+   if (!n)
+      return 0;
+   return n.preDecrementBigInt("<-- (pre) operator>");
 }
 
 int QoreIntPreDecrementOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {

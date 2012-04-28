@@ -36,14 +36,14 @@ int QoreDeleteOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink
 }
 
 AbstractQoreNode *QoreDeleteOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   delete_lvalue(exp, xsink);
+   LValueRemoveHelper lvrh(exp, xsink, true);
+   lvrh.deleteLValue();
    return 0;
 }
 
 AbstractQoreNode *QoreDeleteOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = false;
-   delete_lvalue(exp, xsink);
-   return 0;
+   return QoreDeleteOperatorNode::evalImpl(xsink);
 }
 
 AbstractQoreNode *QoreDeleteOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

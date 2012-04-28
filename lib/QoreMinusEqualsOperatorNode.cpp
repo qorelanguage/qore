@@ -71,15 +71,15 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) co
    }
 
    // do float minus-equals if left side is a float
-   qore_type_t vtype = v.get_type();
+   qore_type_t vtype = v.getType();
 
    if (vtype == NT_NOTHING) {
       // see if the lvalue has a default type
-      const QoreTypeInfo *typeInfo = v.get_type_info();
+      const QoreTypeInfo *typeInfo = v.getTypeInfo();
       if (typeInfo->hasDefaultValue()) {
 	 if (v.assign(typeInfo->getDefaultValue()))
 	    return 0;
-	 vtype = v.get_type();
+	 vtype = v.getType();
       }
       else if (new_right) {
 	 if (new_right->getType() == NT_FLOAT) {
@@ -106,12 +106,12 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) co
    }
    else if (vtype == NT_DATE) {
       DateTimeValueHelper date(*new_right);
-      v.assign(reinterpret_cast<DateTimeNode *>(v.get_value())->subtractBy(*date));
+      v.assign(reinterpret_cast<DateTimeNode *>(v.getValue())->subtractBy(*date));
    }
    else if (vtype == NT_HASH) {
       if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {
-	 v.ensure_unique();
-	 QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(v.get_value());
+	 v.ensureUnique();
+	 QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(v.getValue());
 
 	 const QoreListNode *nrl = (new_right->getType() == NT_LIST) ? reinterpret_cast<const QoreListNode *>(*new_right) : 0;
 	 if (nrl && nrl->size()) {
@@ -133,7 +133,7 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) co
    }
    else if (vtype == NT_OBJECT) {
       if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {
-	 QoreObject *o = reinterpret_cast<QoreObject *>(v.get_value());
+	 QoreObject *o = reinterpret_cast<QoreObject *>(v.getValue());
 
 	 const QoreListNode *nrl = (new_right->getType() == NT_LIST) ? reinterpret_cast<const QoreListNode *>(*new_right) : 0;
 	 if (nrl && nrl->size()) {

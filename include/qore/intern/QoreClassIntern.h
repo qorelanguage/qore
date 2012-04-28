@@ -2407,10 +2407,15 @@ public:
       return scl ? scl->getClass(qc, priv) : 0;
    }
 
-   DLLLOCAL const QoreClass* parseGetClass(qore_classid_t cid, bool &cpriv) const;
+   DLLLOCAL const QoreClass* parseGetClass(qore_classid_t cid, bool& cpriv) const;
+
+   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* nme);
+   DLLLOCAL const QoreMethod* parseResolveSelfMethod(NamedScope* nme);
+
+   DLLLOCAL void addBaseClassesToSubclass(QoreClass* sc, bool is_virtual);
 
    // static methods
-   //DLLLOCAL void 
+   //DLLLOCAL static
    DLLLOCAL static BCList* getBaseClassList(const QoreClass& qc) {
       return qc.priv->scl;
    }
@@ -2453,6 +2458,14 @@ public:
       return vi;
    }
 
+   DLLLOCAL static const QoreMethod* parseResolveSelfMethod(const QoreClass& qc, const char* nme) {
+      return qc.priv->parseResolveSelfMethod(nme);
+   }
+
+   DLLLOCAL static const QoreMethod* parseResolveSelfMethod(const QoreClass& qc, NamedScope* nme) {
+      return qc.priv->parseResolveSelfMethod(nme);
+   }
+
    DLLLOCAL static int parseCheckInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo) {
       return qc->priv->parseCheckInternalMemberAccess(mem, memberTypeInfo);
    }
@@ -2472,6 +2485,14 @@ public:
          return 0;
 
       return m;
+   }
+
+   DLLLOCAL static void parseAddPrivateMember(QoreClass& qc, char *nme, QoreMemberInfo *mInfo) {
+      qc.priv->parseAddPrivateMember(nme, mInfo);
+   }
+
+   DLLLOCAL static void parseAddPublicMember(QoreClass& qc, char *nme, QoreMemberInfo *mInfo) {
+      qc.priv->parseAddPublicMember(nme, mInfo);
    }
 
    DLLLOCAL static const QoreMethod* parseFindAnyMethodIntern(const QoreClass* qc, const char* mname) {

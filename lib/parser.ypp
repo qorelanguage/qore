@@ -642,7 +642,7 @@ public:
 	 member_map_t::iterator i;
 	 // merge private members
 	 while ((i = mmap.begin()) != mmap.end()) {
-	    qc->parseAddPrivateMember(i->first, i->second);
+	    qore_class_private::parseAddPrivateMember(*qc, i->first, i->second);
 	    mmap.erase(i);
 	 }
       }
@@ -668,7 +668,7 @@ public:
 	 member_map_t::iterator i;
 
 	 while ((i = mmap.begin()) != mmap.end()) {
-	    qc->parseAddPublicMember(i->first, i->second);
+	    qore_class_private::parseAddPublicMember(*qc, i->first, i->second);
 	    mmap.erase(i);
 	 }
       }

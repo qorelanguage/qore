@@ -26,11 +26,10 @@ QoreString QoreShiftLeftEqualsOperatorNode::op_str("<<= operator expression");
 
 AbstractQoreNode *QoreShiftLeftEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    parseInitIntLValue(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-   // version for local var
-   return makeSpecialization<QoreIntShiftLeftEqualsOperatorNode>();
+   return this;
 }
 
-AbstractQoreNode *QoreShiftLeftEqualsOperatorNode::evalImpl(ExceptionSink *xsink) const {
+int64 QoreShiftLeftEqualsOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    int64 val = right->bigIntEval(xsink);
    if (*xsink)
       return 0;
@@ -39,21 +38,5 @@ AbstractQoreNode *QoreShiftLeftEqualsOperatorNode::evalImpl(ExceptionSink *xsink
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
-
-   // get new value if necessary
-   if (v.ensure_unique_int())
-      return 0;
-
-   QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-
-   // ShiftLeft current value with arg val
-   b->val <<= val;
-
-   // reference return value and return
-   return ref_rv ? v.getReferencedValue() : 0;
-}
-
-AbstractQoreNode *QoreShiftLeftEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreShiftLeftEqualsOperatorNode::evalImpl(xsink);
+   return v.shiftLeftEqualsBigInt(val, "<<= operator>");
 }

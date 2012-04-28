@@ -44,9 +44,10 @@ int64 QoreIntDivideEqualsOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) cons
       xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression");
       return 0;
    }
-
-   VarRefNode *v = reinterpret_cast<VarRefNode *>(left);
-   return v->divideEqualsBigInt(rv, xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
+      return 0;
+   return v.divideEqualsBigInt(rv, "</= operator>");
 }
 
 int QoreIntDivideEqualsOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {

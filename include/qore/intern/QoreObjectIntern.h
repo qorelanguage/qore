@@ -46,6 +46,8 @@
 #define QORE_DEBUG_OBJ_REFS 5
 #endif
 
+class LValueHelper;
+
 /*
   Qore internal class data is stored against the object with this data structure
   against its qore_classid_t (class ID).  In a class hierarchy, for private data
@@ -256,7 +258,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL void plusEquals(const AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
+   DLLLOCAL void plusEquals(const AbstractQoreNode *v, AutoVLock &vl, ExceptionSink *xsink) {
       if (!v)
          return;
 
@@ -264,13 +266,13 @@ public:
       if (v->getType() == NT_OBJECT) {
          ReferenceHolder<QoreHashNode> h(const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(v))->copyData(xsink), xsink);
          if (h)
-            merge(*h, omap, vl, xsink);
+            merge(*h, vl, xsink);
       }
       else if (v->getType() == NT_HASH)
-         merge(reinterpret_cast<const QoreHashNode *>(v), omap, vl, xsink);
+         merge(reinterpret_cast<const QoreHashNode *>(v), vl, xsink);
    }
 
-   DLLLOCAL void merge(const QoreHashNode *h, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
+   DLLLOCAL void merge(const QoreHashNode *h, AutoVLock &vl, ExceptionSink *xsink) {
       // list for saving all overwritten values to be dereferenced outside the object lock
       ReferenceHolder<QoreListNode> holder(xsink);
 
@@ -283,10 +285,6 @@ public:
          }
 
          //printd(5, "qore_object_private::merge() obj=%p\n", obj);
-
-#ifdef _QORE_CYCLE_CHECK
-         ObjectCycleHelper och(omap, obj);
-#endif
 
          ConstHashIterator hi(h);
          while (hi.next()) {
@@ -309,17 +307,13 @@ public:
                   holder = new QoreListNode;
                holder->push(n);
             }
-
-#ifdef _QORE_CYCLE_CHECK
-            printd(0, "qore_object_private::merge() obj=%p key=%s\n", obj, hi.getKey());
-            omap.reset(obj, hi.getKey());
-            qoreCheckContainer(const_cast<AbstractQoreNode *>(hi.getValue()), omap, vl, xsink);
-#endif
          }
       }
    }
 
-   DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const;
+   DLLLOCAL void getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const;
+
+   DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
 
    DLLLOCAL QoreStringNode *firstKey(ExceptionSink *xsink) {
       AutoLocker al(mutex);
@@ -604,8 +598,13 @@ public:
 	    privateData->insertVirtual((*i).first->getID(), apd);
    }
 
-   DLLLOCAL static int checkRecursive(QoreObject *obj, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
-      return obj->priv->checkRecursive(omap, vl, xsink);
+   DLLLOCAL static void getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) {
+      obj.priv->getLValue(key, lvh, internal, for_remove, xsink);
+   }
+
+   /*
+   DLLLOCAL static int checkRecursive(QoreObject *obj, AutoVLock &vl, ExceptionSink *xsink) {
+      return obj->priv->checkRecursive(vl, xsink);
    }
 
    DLLLOCAL static int verifyRecursive(QoreObject *obj, QoreObject *other) {
@@ -615,13 +614,13 @@ public:
    DLLLOCAL static int addRecursive(QoreObject *obj, const char *key, QoreObject *next, bool is_new) {
       return obj->priv->addRecursive(key, next, is_new);
    }
-
-   DLLLOCAL static AbstractQoreNode **getMemberValuePtr(const QoreObject *obj, const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
-      return obj->priv->getMemberValuePtr(key, vl, typeInfo, omap, xsink);
+    */
+   DLLLOCAL static AbstractQoreNode **getMemberValuePtr(const QoreObject *obj, const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) {
+      return obj->priv->getMemberValuePtr(key, vl, typeInfo, xsink);
    }
 
-   DLLLOCAL static void plusEquals(QoreObject *obj, const AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
-      obj->priv->plusEquals(v, omap, vl, xsink);
+   DLLLOCAL static void plusEquals(QoreObject *obj, const AbstractQoreNode *v, AutoVLock &vl, ExceptionSink *xsink) {
+      obj->priv->plusEquals(v, vl, xsink);
    }
 
    DLLLOCAL static void derefProgramCycle(QoreObject *obj, QoreProgram *p) {

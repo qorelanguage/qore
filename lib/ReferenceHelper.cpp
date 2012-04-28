@@ -25,55 +25,29 @@
 #include <qore/intern/ReferenceHelper.h>
 
 ReferenceHelper::ReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink) {
-   const QoreTypeInfo *typeInfo = 0;
-   ObjMap omap;
-   vp = get_var_value_ptr(ref->getExpression(), &vl, typeInfo, omap, xsink);
-   if (!*xsink && typeInfo->hasType()) {
-      // set the pointer to null so it cannot be used
-      vp = 0;
-      xsink->raiseException("RUNTIME-TYPE-ERROR", "this module uses an old data structure (ReferenceHelper) that is not type aware, and the referenced value has type restrictions; the module must be updated to use the new type 'QoreTypeSafeReferenceHelper' instead");
-   }
+   xsink->raiseException("RUNTIME-TYPE-ERROR", "this module uses an outdated, unsafe, and removed API (ReferenceHelper); the module must be updated to use the new type 'QoreTypeSafeReferenceHelper' instead");
+   vp = 0;
 }
 
 ReferenceHelper::~ReferenceHelper() {
 }
 
 AbstractQoreNode *ReferenceHelper::getUnique(ExceptionSink *xsink) {
-   if (!(*vp)) 
-      return 0;
-   
-   if (!(*vp)->is_unique()) {
-      AbstractQoreNode *old = *vp;
-      (*vp) = old->realCopy();
-      old->deref(xsink);
-   }
-   return *vp;
-}
-
-int ReferenceHelper::assign(AbstractQoreNode *val, ExceptionSink *xsink) {
-   assert(vp);
-   if (*vp) {
-      (*vp)->deref(xsink);
-      if (*xsink) {
-	 (*vp) = 0;
-	 discard(val, xsink);
-	 return -1;
-      }
-   }
-   (*vp) = val;
+   xsink->raiseException("RUNTIME-TYPE-ERROR", "this module uses an outdated, unsafe, and removed API (ReferenceHelper); the module must be updated to use the new type 'QoreTypeSafeReferenceHelper' instead");
    return 0;
 }
 
+int ReferenceHelper::assign(AbstractQoreNode *val, ExceptionSink *xsink) {
+   ReferenceHolder<> del(val, xsink);
+   xsink->raiseException("RUNTIME-TYPE-ERROR", "this module uses an outdated, unsafe, and removed API (ReferenceHelper); the module must be updated to use the new type 'QoreTypeSafeReferenceHelper' instead");
+   return -1;
+}
+
 void ReferenceHelper::swap(ReferenceHelper &other) {
-   assert(vp);
-   AbstractQoreNode *t = *other.vp;
-   *other.vp = *vp;
-   *vp = t;
 }
 
 const AbstractQoreNode *ReferenceHelper::getValue() const {
-   assert(vp);
-   return *vp;
+   return 0;
 }
 
 struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
@@ -99,9 +73,9 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
       if (assign_dummy)
 	 assign_dummy = false;
       if (dummy) {
-	 dummy->deref(xsink);
+	 dummy->deref(vl.xsink);
 	 dummy = 0;
-	 return *xsink;
+	 return *vl.xsink;
       }
       return 0;
    }
@@ -111,18 +85,16 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
 	 if (discardDummy())
 	    return 0;
 
-	 dummy = lv.v->eval(xsink);
+	 dummy = getReferencedValue();
 	 assign_dummy = true;
 	 return dummy;
       }
 
-      if (ensure_unique())
-	 return 0;
-
-      return get_value();
+      ensureUnique();
+      return LValueHelper::getValue();
    }
 
-   DLLLOCAL int assign(AbstractQoreNode *val) {
+   DLLLOCAL int assign(AbstractQoreNode* val) {
       return LValueHelper::assign(val, "<reference>");
    }
 
@@ -135,19 +107,19 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
 	 if (discardDummy())
 	    return 0;
 
-	 dummy = lv.v->eval(xsink);
+	 dummy = getReferencedValue();
 	 return dummy;
       }
 
-      return LValueHelper::get_value();
+      return LValueHelper::getValue();
    }
 
    DLLLOCAL qore_type_t getType() const {
-      return LValueHelper::get_type();
+      return LValueHelper::getType();
    }
 
    DLLLOCAL const char* getTypeName() const {
-      return LValueHelper::get_type_name();
+      return LValueHelper::getTypeName();
    }
 };
 

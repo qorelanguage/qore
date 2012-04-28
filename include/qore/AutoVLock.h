@@ -33,29 +33,31 @@ class AbstractSmartLock;
 class AutoVLock {
 private:
    // pointer to lock currently held
-   QoreThreadLock *m;
+   QoreThreadLock* m;
 
    // pointer to object to dereference
-   QoreObject *o;
+   QoreObject* o;
 
+public:
    // pointer to ExceptionSink object for use with object notifications
-   ExceptionSink *xsink;
+   ExceptionSink* xsink;
 
+private:
    //! private implementation of the object notification container
-   struct qore_avl_private *priv;
+   struct qore_avl_private* priv;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL AutoVLock(const AutoVLock&);
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL AutoVLock& operator=(const AutoVLock&);
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void *operator new(size_t);
+   DLLLOCAL void* operator new(size_t);
    
 public:
    //! creates an empty lock container
    /** @param n_xsink pointer to ExceptionSink object for use with object notifications
     */
-   DLLEXPORT AutoVLock(ExceptionSink *n_xsink);
+   DLLEXPORT AutoVLock(ExceptionSink* n_xsink);
 
    //! releases all locks held and destroys the container
    DLLEXPORT ~AutoVLock();
@@ -64,16 +66,16 @@ public:
    DLLEXPORT void del();
 
    //! sets the current lock
-   DLLLOCAL void set(QoreThreadLock *n_m);
+   DLLLOCAL void set(QoreThreadLock* n_m);
 
    //! sets the current object (for dereference) and lock
-   DLLLOCAL void set(QoreObject *n_o, QoreThreadLock *n_m);
+   DLLLOCAL void set(QoreObject* n_o, QoreThreadLock* n_m);
 
    //! gets the current lock
-   DLLLOCAL QoreThreadLock *get() const;
+   DLLLOCAL QoreThreadLock* get() const;
 
    //! gets the current object
-   DLLLOCAL QoreObject *getObject() const;
+   DLLLOCAL QoreObject* getObject() const;
 
    //! leaves the lock locked and the object referenced and clears the object and lock pointers
    DLLLOCAL void clear();
@@ -82,7 +84,7 @@ public:
    /** @param o the object to add
        @param member the member that was changed (must be in QCS_DEFAULT encoding)
    */
-   DLLLOCAL void addMemberNotification(QoreObject *o, const char *member);
+   DLLLOCAL void addMemberNotification(QoreObject* o, const char* member);
 };
 
 #endif

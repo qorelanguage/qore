@@ -45,20 +45,14 @@ AbstractQoreNode *QorePostIncrementOperatorNode::evalImpl(ExceptionSink *xsink) 
    LValueHelper n(exp, xsink);
    if (!n)
       return 0;
+   if (n.getType() == NT_FLOAT) {
+      n.postIncrementFloat("<++ (post) operator>");
+      assert(*xsink);
+      return n.getReferencedValue();
+   }
 
-   // reference for return value is reference for variable assignment (if not null)
-   ReferenceHolder<AbstractQoreNode> rv(n.take_value(), xsink);
-
-   // acquire new value
-   QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(*rv) ? rv->getAsBigInt() : 0);
-   if (n.assign(b))
-      return 0;
-
-   // increment value
-   ++b->val;
-
-   // return original value (may be null or non-integer)
-   return rv.release();
+   n.postIncrementBigInt("<++ (post) operator>");
+   return *xsink ? 0 : n.getReferencedValue();
 }
 
 AbstractQoreNode *QorePostIncrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

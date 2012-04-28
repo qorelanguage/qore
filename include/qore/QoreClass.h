@@ -803,28 +803,8 @@ public:
    //! constructor not exported in library's API
    DLLLOCAL QoreClass();
 
-   DLLLOCAL void addMethod(QoreMethod *f);
-   DLLLOCAL const QoreMethod *parseResolveSelfMethod(const char *nme);
-   DLLLOCAL const QoreMethod *parseResolveSelfMethod(NamedScope *nme);
-   DLLLOCAL void addDomain(int64 dom);
-   DLLLOCAL void addBaseClassesToSubclass(QoreClass *sc, bool is_virtual);
-
    // used when parsing, finds committed non-static methods within the entire class hierarchy (local class plus base classes)
    DLLLOCAL const QoreMethod *parseFindCommittedMethod(const char *nme);
-
-   //! adds a name of a private member (not accessible from outside the class hierarchy)
-   /** this method takes ownership of *name
-       @param name the name of the private member (ownership of the memory is assumed by the QoreClass object)
-       @param mInfo unvalidated and unresolved type and initialization information available at parse time
-   */
-   DLLLOCAL void parseAddPrivateMember(char *name, QoreMemberInfo *mInfo);
-
-   //! adds a public member; if a class has at least one public member then only public members can be accessed externally from the class
-   /** this method takes ownership of *name
-       @param name the name of the public member (ownership of the memory is assumed by the QoreClass object)
-       @param mInfo unvalidated and unresolved type and initialization information available at parse time
-   */
-   DLLLOCAL void parseAddPublicMember(char *name, QoreMemberInfo *mInfo);
 
    // adds public constants to pending list
    DLLLOCAL void parseAssimilatePublicConstants(ConstantList &cmap);

@@ -34,6 +34,7 @@ void RecursiveSet::merge(RecursiveSet *rset) {
       oset.insert(*i);
 }
 
+/*
 int qore_object_private::checkRecursive(ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
    // do lock handoff
    qore_object_recursive_lock_handoff_helper qolhm(this, vl);
@@ -80,9 +81,44 @@ int qore_object_private::checkRecursive(ObjMap &omap, AutoVLock &vl, ExceptionSi
 
    return rc;
 }
+*/
+
+void qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const {
+   const QoreTypeInfo* mti = 0;
+   if (!internal && checkMemberAccessGetTypeInfo(key, mti, xsink))
+      return;
+
+   // do lock handoff
+   AutoVLock& vl = lvh.getAutoVLock();
+   qore_object_lock_handoff_helper qolhm(const_cast<qore_object_private *>(this), vl);
+
+   if (status == OS_DELETED) {
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", key);
+      return;
+   }
+
+   qolhm.stay_locked();
+
+   // save lvalue type info
+   lvh.setTypeInfo(mti);
+
+   HashMember* m;
+   if (for_remove) {
+      m = data->priv->findMember(key);
+      if (!m)
+         return;
+   }
+   else
+      m = data->priv->findCreateMember(key);
+   lvh.setPtr(m->node);
+
+   // add member notification for external updates
+   if (!internal)
+      vl.addMemberNotification(obj, key);
+}
 
 // unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode **qore_object_private::getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const {
+AbstractQoreNode **qore_object_private::getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const {
    // check for external access to private members
    if (checkMemberAccessGetTypeInfo(key, typeInfo, xsink))
       return 0;
@@ -96,8 +132,6 @@ AbstractQoreNode **qore_object_private::getMemberValuePtr(const char *key, AutoV
    qolhm.stay_locked();
 
    HashMember *m = data->priv->findCreateMember(key);
-   omap.set(obj, m->key);
-
    return &m->node;
 }
 
@@ -663,8 +697,7 @@ void QoreObject::setValue(const char *key, AbstractQoreNode *val, ExceptionSink 
       old_value->deref(xsink);
 }
 
-int QoreObject::size(ExceptionSink *xsink) const
-{
+int QoreObject::size(ExceptionSink *xsink) const {
    AutoLocker al(priv->mutex);
 
    if (priv->status == OS_DELETED)

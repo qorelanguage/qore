@@ -933,9 +933,9 @@ void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
       sclass->initialize();
       if (!has_delete_blocker && sclass->has_delete_blocker())
 	 has_delete_blocker = true;
-      sclass->addBaseClassesToSubclass(cls, is_virtual);
+      sclass->priv->addBaseClassesToSubclass(cls, is_virtual);
       // include all subclass domains in this class' domain
-      cls->addDomain(sclass->getDomain64());
+      cls->priv->domain |= sclass->priv->domain;
    }
 }
 
@@ -1598,14 +1598,6 @@ static const QoreClass *getStackClass() {
    return 0;
 }
 
-void QoreClass::parseAddPrivateMember(char *nme, QoreMemberInfo *mInfo) {
-   priv->parseAddPrivateMember(nme, mInfo);
-}
-
-void QoreClass::parseAddPublicMember(char *nme, QoreMemberInfo *mInfo) {
-   priv->parseAddPublicMember(nme, mInfo);
-}
-
 void QoreClass::addPublicMember(const char *mname, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value) {
    priv->addPublicMember(mname, n_typeInfo, initial_value);
 }
@@ -1893,10 +1885,6 @@ void QoreClass::insertMethod(QoreMethod *m) {
 void QoreClass::insertStaticMethod(QoreMethod *m) {
    priv->insertBuiltinStaticMethod(m);
 }      
-
-void QoreClass::addDomain(int64 dom) {
-   priv->domain |= dom;
-}
 
 const QoreClass *qore_class_private::parseGetClass(qore_classid_t cid, bool &cpriv) const {
    cpriv = false;
@@ -2253,24 +2241,24 @@ QoreObject *qore_class_private::execCopy(QoreObject *old, ExceptionSink *xsink) 
    return *xsink ? 0 : self.release();
 }
 
-void QoreClass::addBaseClassesToSubclass(QoreClass *sc, bool is_virtual) {
-   if (priv->scl)
-      priv->scl->sml.addBaseClassesToSubclass(this, sc, is_virtual);
-   sc->priv->scl->sml.add(sc, this, is_virtual);
+void qore_class_private::addBaseClassesToSubclass(QoreClass* sc, bool is_virtual) {
+   if (scl)
+      scl->sml.addBaseClassesToSubclass(cls, sc, is_virtual);
+   sc->priv->scl->sml.add(sc, cls, is_virtual);
 }
 
 // searches all methods, both pending and comitted
-const QoreMethod *QoreClass::parseResolveSelfMethod(const char *nme) {
+const QoreMethod* qore_class_private::parseResolveSelfMethod(const char* nme) {
    initialize();
-   const QoreMethod *m = priv->parseResolveSelfMethodIntern(nme);
+   const QoreMethod* m = parseResolveSelfMethodIntern(nme);
 
    if (!m) {
-      parse_error("no method %s::%s() has been defined; if you want to make a call to a method that will be defined in an inherited class, then use 'self.%s()' instead", priv->name.c_str(), nme, nme);
+      parse_error("no method %s::%s() has been defined; if you want to make a call to a method that will be defined in an inherited class, then use 'self.%s()' instead", name.c_str(), nme, nme);
       return 0;
    }
-   printd(5, "QoreClass::parseResolveSelfMethod(%s) resolved to %s::%s() %p (static=%d)\n", nme, getName(), nme, m, m->isStatic());
+   printd(5, "qore_class_private::parseResolveSelfMethod(%s) resolved to %s::%s() %p (static=%d)\n", nme, name.c_str(), nme, m, m->isStatic());
 
-   const char *mname = m->getName();
+   const char* mname = m->getName();
    // make sure we're not calling a method that cannot be called directly
    if (!m->isStatic() && (!strcmp(mname, "constructor") || !strcmp(mname, "destructor") || !strcmp(mname, "copy"))) {
       parse_error("explicit calls to %s() methods are not allowed", nme);
@@ -2280,19 +2268,19 @@ const QoreMethod *QoreClass::parseResolveSelfMethod(const char *nme) {
    return m;
 }
 
-const QoreMethod *QoreClass::parseResolveSelfMethod(NamedScope *nme) {
+const QoreMethod* qore_class_private::parseResolveSelfMethod(NamedScope* nme) {
    // first find class
-   QoreClass *qc = qore_root_ns_private::parseFindScopedClassWithMethod(*nme, true);
+   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(*nme, true);
    if (!qc)
       return 0;
 
    // see if class is base class of this class
-   if (qc != this && (!priv->scl || !priv->scl->sml.isBaseClass(qc))) {
-      parse_error("'%s' is not a base class of '%s'", qc->getName(), getName());
+   if (qc != cls && (!scl || !scl->sml.isBaseClass(qc))) {
+      parse_error("'%s' is not a base class of '%s'", qc->getName(), name.c_str());
       return 0;
    }
 
-   return qc->parseResolveSelfMethod(nme->getIdentifier());
+   return qc->priv->parseResolveSelfMethod(nme->getIdentifier());
 }
 
 // for adding user-defined (qore language) methods to a class

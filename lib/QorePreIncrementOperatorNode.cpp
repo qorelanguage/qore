@@ -36,18 +36,14 @@ AbstractQoreNode *QorePreIncrementOperatorNode::evalImpl(ExceptionSink *xsink) c
    LValueHelper n(exp, xsink);
    if (!n)
       return 0;
+   if (n.getType() == NT_FLOAT) {
+      n.preIncrementFloat("<++ (pre) operator>");
+      assert(*xsink);
+      return n.getReferencedValue();
+   }
 
-   // acquire new value if necessary
-   if (n.ensure_unique_int())
-      return 0;
-   QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(n.get_value());
-
-   // increment value
-   ++b->val;
-
-   //printd(5, "op_pre_inc() ref_rv=%s\n", ref_rv ? "true" : "false");
-   // reference for return value
-   return ref_rv ? b->refSelf() : 0;
+   n.preIncrementBigInt("<++ (pre) operator>");
+   return *xsink ? 0 : n.getReferencedValue();
 }
 
 AbstractQoreNode *QorePreIncrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

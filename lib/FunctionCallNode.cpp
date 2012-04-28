@@ -289,10 +289,10 @@ AbstractQoreNode *SelfFunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag
 	    parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", oflag->getTypeInfo()->getUniqueReturnClass()->getName());
       }
       else
-	 method = getParseClass()->parseResolveSelfMethod(ns.ostr);
+         method = qore_class_private::parseResolveSelfMethod(*(getParseClass()), ns.ostr);
    }
    else
-      method = getParseClass()->parseResolveSelfMethod(&ns);
+      method = qore_class_private::parseResolveSelfMethod(*(getParseClass()), &ns);
 
    // by here, if there are no errors, the class has been initialized
    parseInitCall(oflag, pflag, lvids, returnTypeInfo);

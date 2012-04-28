@@ -290,23 +290,6 @@ protected:
    DLLLOCAL qore_type_result_e matchClassIntern(const QoreClass *n_qc) const;
    DLLLOCAL qore_type_result_e runtimeMatchClassIntern(const QoreClass *n_qc) const;
 
-   DLLLOCAL int doTypeException(int param_num, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
-      // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
-      // for example if there was a "requires" error
-      if (!xsink)
-	 return -1;
-
-      QoreStringNode *desc = new QoreStringNode;
-      QoreTypeInfo::ptext(*desc, param_num, param_name);
-      desc->concat("expects ");
-      getThisType(*desc);
-      desc->concat(", but got ");
-      getNodeType(*desc, n);
-      desc->concat(" instead");
-      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
-      return -1;
-   }
-
    DLLLOCAL int doPrivateClassException(int param_num, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
       // xsink may be null in case that parse exceptions have been disabled in the QoreProgram object
       // for example if there was a "requires" error
@@ -734,6 +717,34 @@ public:
          else
             doTypeException(param_num + 1, param_name, n, xsink);
       }
+      return -1;
+   }
+
+   DLLLOCAL int doTypeException(int param_num, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+      // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
+      // for example if there was a "requires" error
+      if (!xsink)
+         return -1;
+
+      QoreStringNode *desc = new QoreStringNode;
+      QoreTypeInfo::ptext(*desc, param_num, param_name);
+      desc->concat("expects ");
+      getThisType(*desc);
+      desc->concat(", but got ");
+      getNodeType(*desc, n);
+      desc->concat(" instead");
+      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
+      return -1;
+   }
+
+   DLLLOCAL int doTypeException(int param_num, const char *param_name, const char *n, ExceptionSink *xsink) const {
+      assert(xsink);
+      QoreStringNode *desc = new QoreStringNode;
+      QoreTypeInfo::ptext(*desc, param_num, param_name);
+      desc->concat("expects ");
+      getThisType(*desc);
+      desc->sprintf(", but got type '%s' instead", n);
+      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
    }
 };
