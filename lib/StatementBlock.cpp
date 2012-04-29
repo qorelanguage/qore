@@ -426,7 +426,7 @@ void StatementBlock::parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *
 
    // initialize code block
    if (this)
-      parseInitImpl(uvb->getUserSignature()->selfid, PF_IN_CLOSURE);
+      parseInitImpl(uvb->getUserSignature()->selfid);
    parseCheckReturn();
 }
 

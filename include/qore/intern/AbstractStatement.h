@@ -38,7 +38,6 @@
 #define PF_FOR_ASSIGNMENT        (1 << 4)
 #define PF_CONST_EXPRESSION      (1 << 5)
 #define PF_TOP_LEVEL             (1 << 6) //!< parsing at the top-level of the program
-#define PF_IN_CLOSURE            (1 << 7) //!< set while parsing in a closure
 
 // all definitions in this file are private to the library and subject to change
 
