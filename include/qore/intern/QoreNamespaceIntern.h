@@ -1219,6 +1219,8 @@ public:
       root = true;
       // always set the module public flag to true in the root namespace
       pub = true;
+      // add initial namespace to committed map
+      nsmap.update(this);
    }
 
    DLLLOCAL qore_root_ns_private(const qore_root_ns_private& old, int64 po) : qore_ns_private(old, po) {
@@ -1388,6 +1390,10 @@ public:
 
    DLLLOCAL static Var* parseFindGlobalVar(const char* vname) {
       return getRootNS()->rpriv->parseFindGlobalVarIntern(vname);
+   }
+
+   DLLLOCAL static Var* parseFindGlobalVar(const NamedScope& nscope) {
+      return getRootNS()->rpriv->parseFindGlobalVarIntern(nscope);
    }
 
    DLLLOCAL static void scanMergeCommittedNamespace(const RootQoreNamespace& ns, const RootQoreNamespace& mns, QoreModuleContext& qmc) {

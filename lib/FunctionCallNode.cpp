@@ -599,7 +599,17 @@ AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag
 	 }
       }
 
-      AbstractQoreNode* n = qore_root_ns_private::parseFindConstantValue(*scope, typeInfo, false);
+      AbstractQoreNode* n = 0;
+
+      if (abr) {
+         Var *v = qore_root_ns_private::parseFindGlobalVar(*scope);
+         if (v)
+            n = new GlobalVarRefNode(strdup(scope->getIdentifier()), v);
+      }
+
+      if (!n)
+         n = qore_root_ns_private::parseFindConstantValue(*scope, typeInfo, false);
+
       if (n) {
 	 CallReferenceCallNode *crcn = new CallReferenceCallNode(n->refSelf(), takeArgs());	 
 	 deref();
