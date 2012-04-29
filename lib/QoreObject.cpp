@@ -635,19 +635,14 @@ AbstractQoreNode *QoreObject::takeMember(const char *key, ExceptionSink *xsink) 
    if (priv->checkMemberAccess(key, xsink))
       return 0;
 
-   AbstractQoreNode *v;
-   {
-      AutoLocker al(priv->mutex);
+   AutoLocker al(priv->mutex);
 
-      if (priv->status == OS_DELETED) {
-	 makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
-	 return 0;
-      }
-      
-      v = priv->data->takeKeyValue(key);
+   if (priv->status == OS_DELETED) {
+      makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
+      return 0;
    }
-
-   return v;
+      
+   return priv->data->takeKeyValue(key);
 }
 
 void QoreObject::removeMember(const QoreString *key, ExceptionSink *xsink) {

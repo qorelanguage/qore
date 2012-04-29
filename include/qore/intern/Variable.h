@@ -114,7 +114,7 @@ public:
 
    DLLLOCAL const char* getName() const;
 
-   DLLLOCAL int getLValue(ExceptionSink* xsink, LValueHelper& lvh, bool for_remove) const;
+   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
    DLLLOCAL void clearLocal(ExceptionSink* xsink) {
@@ -406,11 +406,6 @@ public:
       typeInfo = 0;
    }
 
-   DLLLOCAL AbstractQoreNode*& getPtrRef() {
-      assert(v);
-      return *v;
-   }
-
    DLLLOCAL operator bool() const {
       return val || v;
    }
@@ -495,22 +490,6 @@ public:
    DLLLOCAL int64 removeBigInt();
    DLLLOCAL double removeFloat();
    DLLLOCAL AbstractQoreNode* remove(bool for_del);
-
-   /*
-   DLLLOCAL int ensure_unique_int() {
-      assert(lvt == LVT_Expr);
-      return lv.n->ensureUnique<QoreBigIntNode, int64, NT_INT>(xsink);
-   }
-
-   DLLLOCAL int ensure_unique_float() {
-      assert(lvt == LVT_Expr);
-      return lv.n->ensureUnique<QoreFloatNode, double, NT_FLOAT>(xsink);
-   }
-    */
-
-   DLLLOCAL ExceptionSink* getExceptionSink() {
-      return vl.xsink;
-   }
 };
 
 class LValueRemoveHelper {
@@ -536,10 +515,6 @@ public:
 
    DLLLOCAL bool forDel() const {
       return for_del;
-   }
-
-   DLLLOCAL void setRemove(AbstractQoreNode* n) {
-      rv.assignInitial(n);
    }
 
    DLLLOCAL void setRemove(QoreValueGeneric& qv) {

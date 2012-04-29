@@ -203,13 +203,13 @@ void VarRefNode::makeGlobal() {
    new_decl = true;
 }
 
-int VarRefNode::getLValue(ExceptionSink* xsink, LValueHelper& lvh, bool for_remove) const {
+int VarRefNode::getLValue(LValueHelper& lvh, bool for_remove) const {
    if (type == VT_LOCAL)
-      return ref.id->getLValue(xsink, lvh, for_remove);
+      return ref.id->getLValue(lvh, for_remove);
    if (type == VT_CLOSURE)
-      return thread_get_runtime_closure_var(ref.id)->getLValue(xsink, lvh, for_remove);
+      return thread_get_runtime_closure_var(ref.id)->getLValue(lvh, for_remove);
    assert(type == VT_GLOBAL);
-   return ref.var->getLValue(xsink, lvh, for_remove);
+   return ref.var->getLValue(lvh, for_remove);
 }
 
 DLLLOCAL void VarRefNode::remove(LValueRemoveHelper& lvrh) {

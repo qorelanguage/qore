@@ -261,7 +261,7 @@ public:
    }
 
    //DLLLOCAL bool isOptimized(const QoreTypeInfo*& varTypeInfo) const;
-   DLLLOCAL int getLValue(ExceptionSink* xsink, LValueHelper& lvh, bool for_remove) const;
+   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
    DLLLOCAL qore_type_t getValueType() const {
@@ -520,7 +520,7 @@ public:
    DLLLOCAL void deref(ExceptionSink *xsink) { if (ROdereference()) { del(xsink); delete this; } }
 
    //DLLLOCAL bool isOptimized(const QoreTypeInfo*& varTypeInfo) const;
-   DLLLOCAL int getLValue(ExceptionSink* xsink, LValueHelper& lvh, bool for_remove) const;
+   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
    /*
@@ -1170,13 +1170,13 @@ public:
       return !closure_use ? get_var()->isRef() : thread_find_closure_var(name.c_str())->isRef();
    }
 
-   DLLLOCAL int getLValue(ExceptionSink* xsink, LValueHelper& lvh, bool for_remove) const {
+   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const {
       if (!closure_use) {
          lvh.setTypeInfo(typeInfo);
-         return get_var()->getLValue(xsink, lvh, for_remove);
+         return get_var()->getLValue(lvh, for_remove);
       }
 
-      return thread_find_closure_var(name.c_str())->getLValue(xsink, lvh, for_remove);
+      return thread_find_closure_var(name.c_str())->getLValue(lvh, for_remove);
    }
 
    DLLLOCAL void remove(LValueRemoveHelper& lvrh) {

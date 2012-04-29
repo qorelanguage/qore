@@ -136,7 +136,7 @@ public:
    DLLLOCAL bool isGlobalVar() const { return type == VT_GLOBAL; }
 
    //DLLLOCAL VarRefNode* isOptimized(const QoreTypeInfo*& typeInfo) const;
-   DLLLOCAL int getLValue(ExceptionSink* xsink, LValueHelper& lvh, bool for_remove) const;
+   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    
    DLLLOCAL bool isRef() const {
       if (type == VT_LOCAL)
