@@ -172,7 +172,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
 
    // here we do a "doPartialEval()" to evaluate all parts of the expression not related to the lvalue so
    // that these parts will only be executed once (and not again when this lvalue is actually assigned)
-   ReferenceHolder<AbstractQoreNode> vr(doPartialEval(r->getExpression(), &is_self_ref, xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> vr(doPartialEval(r->getExpression(), is_self_ref, false, xsink), xsink);
    if (*xsink)
       return 0;
 

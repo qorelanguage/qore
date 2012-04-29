@@ -238,6 +238,7 @@ DLLLOCAL void update_context_stack(Context *cstack);
 DLLLOCAL const char *get_pgm_counter(int &start_line, int &end_line);
 DLLLOCAL const char *get_pgm_file();
 DLLLOCAL void update_pgm_counter_pgm_file(int start_line, int end_line, const char *f);
+DLLLOCAL void update_runtime_location(const QoreProgramLocation& loc);
 DLLLOCAL void get_parse_location(int &start_line, int &end_line);
 DLLLOCAL const char *get_parse_file();
 DLLLOCAL const char *get_parse_code();

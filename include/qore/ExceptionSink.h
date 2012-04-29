@@ -141,8 +141,6 @@ public:
    DLLLOCAL QoreException *catchException();
    DLLLOCAL void overrideLocation(int sline, int eline, const char *file);
    DLLLOCAL void rethrow(QoreException *old);
-   DLLLOCAL void addStackInfo(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
-   DLLLOCAL void addStackInfo(int type, const char *class_name, const char *code);
 
    DLLLOCAL static void defaultExceptionHandler(QoreException *e);
    DLLLOCAL static void defaultWarningHandler(QoreException *e);

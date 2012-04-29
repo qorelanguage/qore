@@ -34,7 +34,7 @@
 
 // these data structures are all private to the library
 
-DLLLOCAL AbstractQoreNode* doPartialEval(class AbstractQoreNode* n, bool* is_self_ref, ExceptionSink* xsink);
+DLLLOCAL AbstractQoreNode* doPartialEval(AbstractQoreNode* n, bool& is_self_ref, bool for_closure, ExceptionSink* xsink);
 
 class LocalVar;
 class VarRefNode;
@@ -220,8 +220,8 @@ protected:
    qore_call_t ct;
    const char* name;
    ExceptionSink* xsink;
-   const char* class_name,* o_fn;
-   int o_ln, o_eln;
+   const char* class_name;
+   QoreProgramLocation loc;
    QoreListNodeEvalOptionalRefHolder tmp;
    const QoreTypeInfo* returnTypeInfo; // saved return type info
    QoreProgram* pgm; // program used when evaluated (to find stacks for references)
@@ -230,12 +230,8 @@ public:
    // saves current program location in case there's an exception
    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = 0, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED);
 
-   DLLLOCAL ~CodeEvaluationHelper() {
-      if (returnTypeInfo != (const QoreTypeInfo* )-1)
-         saveReturnTypeInfo(returnTypeInfo);
-      if (ct != CT_UNUSED && xsink->isException())
-	 xsink->addStackInfo(ct, class_name, name, o_fn, o_ln, o_eln);
-   }
+   DLLLOCAL ~CodeEvaluationHelper();
+
    DLLLOCAL void setReturnTypeInfo(const QoreTypeInfo* n_returnTypeInfo) {
       returnTypeInfo = saveReturnTypeInfo(n_returnTypeInfo);
    }
@@ -258,7 +254,7 @@ public:
       return pgm;
    }
    DLLLOCAL void restorePosition() const {
-      update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);   
+      update_runtime_location(loc);
    }
 };
 
@@ -382,8 +378,8 @@ protected:
    bool init;
 
    DLLLOCAL AbstractQoreNode* evalIntern(ReferenceHolder<QoreListNode>& argv, QoreObject* self, ExceptionSink* xsink, const char* class_name) const;
-   DLLLOCAL AbstractQoreNode* eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const char* class_name = 0) const;
-   DLLLOCAL int setupCall(CodeEvaluationHelper* ceh, ReferenceHolder<QoreListNode>& argv, ExceptionSink* xsink) const;
+   DLLLOCAL AbstractQoreNode* eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const char* class_name = 0, bool for_closure = false) const;
+   DLLLOCAL int setupCall(CodeEvaluationHelper* ceh, ReferenceHolder<QoreListNode>& argv, bool for_closure, ExceptionSink* xsink) const;
 
 public:
 
@@ -422,8 +418,8 @@ protected:
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) : uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
-      if (uvb->setupCall(ceh, argv, xsink))
+   DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, bool for_closure, ExceptionSink* n_xsink) : uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
+      if (uvb->setupCall(ceh, argv, for_closure, xsink))
 	 uvb = 0;
    }
    DLLLOCAL ~UserVariantExecHelper();
@@ -443,7 +439,8 @@ protected:
    }
 
 public:
-   DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags = QC_NO_FLAGS) : AbstractQoreFunctionVariant(n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced), mod_pub(false) {
+   DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags = QC_NO_FLAGS) :
+      AbstractQoreFunctionVariant(n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced), mod_pub(false) {
    }
 
    // the following defines the virtual functions that are common to all user variants
@@ -959,7 +956,7 @@ public:
    DLLLOCAL virtual void parseInit(QoreFunction* f);
 
    DLLLOCAL AbstractQoreNode* evalClosure(CodeEvaluationHelper& ceh, QoreObject* self, ExceptionSink* xsink) const {
-      return eval("<anonymous closure>",& ceh, self, xsink);
+      return eval("<anonymous closure>",& ceh, self, xsink, 0, true);
    }
 };
 

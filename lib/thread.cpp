@@ -945,6 +945,13 @@ void update_pgm_counter_pgm_file(int start_line, int end_line, const char *f) {
    td->pgm_file          = f;
 }
 
+void update_runtime_location(const QoreProgramLocation& loc) {
+   ThreadData *td  = thread_data.get();
+   td->pgm_counter_start = loc.start_line;
+   td->pgm_counter_end   = loc.end_line;
+   td->pgm_file          = loc.file;
+}
+
 void update_pgm_counter(int start_line, int end_line) {
    ThreadData *td  = thread_data.get();
    td->pgm_counter_start = start_line;

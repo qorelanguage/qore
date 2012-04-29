@@ -46,37 +46,6 @@ bool ExceptionSink::isException() const {
    return priv->head;
 }
 
-// creates a stack trace node and adds it to all exceptions in this sink
-void ExceptionSink::addStackInfo(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line) {
-   assert(priv->head);
-   QoreHashNode *n = QoreException::getStackHash(type, class_name, code, file, start_line, end_line);
-
-   QoreException *w = priv->head;
-   while (w) {
-      w->addStackInfo(n);
-      w = w->next;
-      if (w)
-	 n->ref();
-   }   
-}
-
-// creates a stack trace node and adds it to all exceptions in this sink
-void ExceptionSink::addStackInfo(int type, const char *class_name, const char *code) {
-   assert(priv->head);
-
-   int start_line, end_line;
-   const char *file = get_pgm_counter(start_line, end_line);
-   QoreHashNode *n = QoreException::getStackHash(type, class_name, code, file, start_line, end_line);
-
-   QoreException *w = priv->head;
-   while (w) {
-      w->addStackInfo(n);
-      w = w->next;
-      if (w)
-	 n->ref();
-   }   
-}
-
 // Intended as a alternative to isException():
 // ExceptionSink xsink;
 // if (xsink) { .. }

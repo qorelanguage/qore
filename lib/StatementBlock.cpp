@@ -422,12 +422,11 @@ void StatementBlock::parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *
    QORE_TRACE("StatementBlock::parseInitClosure");
 
    ClosureParseEnvironment cenv(vlist);
-
    UserParamListLocalVarHelper ph(uvb, classTypeInfo);
 
    // initialize code block
    if (this)
-      parseInitImpl(uvb->getUserSignature()->selfid);
+      parseInitImpl(uvb->getUserSignature()->selfid, PF_IN_CLOSURE);
    parseCheckReturn();
 }
 

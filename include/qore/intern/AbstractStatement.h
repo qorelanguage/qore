@@ -38,26 +38,27 @@
 #define PF_FOR_ASSIGNMENT        (1 << 4)
 #define PF_CONST_EXPRESSION      (1 << 5)
 #define PF_TOP_LEVEL             (1 << 6) //!< parsing at the top-level of the program
+#define PF_IN_CLOSURE            (1 << 7) //!< set while parsing in a closure
 
 // all definitions in this file are private to the library and subject to change
 
 class AbstractStatement {
 private:
-   DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) = 0;
-   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) = 0;   
+   DLLLOCAL virtual int execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink) = 0;
+   DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0) = 0;
 
 public:
    int LineNumber;
    int EndLineNumber;
-   const char *FileName;
+   const char* FileName;
    struct ParseWarnOptions pwo;
 
    DLLLOCAL AbstractStatement(int start_line, int end_line);
 
    DLLLOCAL virtual ~AbstractStatement() {}
 
-   DLLLOCAL int exec(AbstractQoreNode **return_value, ExceptionSink *xsink);
-   DLLLOCAL int parseInit(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL int exec(AbstractQoreNode** return_value, ExceptionSink* xsink);
+   DLLLOCAL int parseInit(LocalVar* oflag, int pflag = 0);
 
    // statement should return true if it ends a block (break, continue, return, throw, etc)
    // meaning that any subsequent statements will be unconditionally skipped
@@ -80,13 +81,13 @@ public:
    }
 };
 
-DLLLOCAL void push_cvar(const char *name);
+DLLLOCAL void push_cvar(const char* name);
 DLLLOCAL void pop_cvar();
-DLLLOCAL LocalVar *pop_local_var();
+DLLLOCAL LocalVar* pop_local_var();
 DLLLOCAL int pop_local_var_get_id();
 // used for constructor methods sharing a common "self" local variable and for top-level local variables
-DLLLOCAL void push_local_var(LocalVar *lv);
-DLLLOCAL LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup = true, int n_refs = 0, bool top_level = false);
-DLLLOCAL LocalVar *find_local_var(const char *name, bool &in_closure);
+DLLLOCAL void push_local_var(LocalVar* lv);
+DLLLOCAL LocalVar* push_local_var(const char* name, const QoreTypeInfo* typeInfo, bool check_dup = true, int n_refs = 0, bool top_level = false);
+DLLLOCAL LocalVar* find_local_var(const char* name, bool &in_closure);
 
 #endif // _QORE_ABSTRACTSTATEMENT_H

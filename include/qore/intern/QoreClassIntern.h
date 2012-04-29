@@ -219,7 +219,7 @@ public:
       // in case this method is called from a subclass, switch to the program where the class was created
       ProgramContextHelper pch(pgm);
 
-      UserVariantExecHelper uveh(this, &ceh, xsink);
+      UserVariantExecHelper uveh(this, &ceh, false, xsink);
       if (!uveh)
 	 return;
 

@@ -199,6 +199,24 @@ struct qore_es_private {
       }
    }
 
+   // creates a stack trace node and adds it to all exceptions in this sink
+   DLLLOCAL void addStackInfo(int type, const char *class_name, const char *code, const QoreProgramLocation& loc) {
+      assert(head);
+      QoreHashNode* n = QoreException::getStackHash(type, class_name, code, loc.file, loc.start_line, loc.end_line);
+
+      QoreException *w = head;
+      while (w) {
+         w->addStackInfo(n);
+         w = w->next;
+         if (w)
+            n->ref();
+      }
+   }
+
+   DLLLOCAL static void addStackInfo(ExceptionSink& xsink, int type, const char* class_name, const char* code, const QoreProgramLocation& loc = QoreProgramLocation()) {
+      xsink.priv->addStackInfo(type, class_name, code, loc);
+   }
+
    DLLLOCAL static void appendList(ExceptionSink& xsink, QoreString& str) {
       xsink.priv->appendListIntern(str);
    }
