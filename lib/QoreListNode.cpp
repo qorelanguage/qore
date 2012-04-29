@@ -1115,3 +1115,11 @@ AbstractQoreNode *QoreListNode::swap(qore_offset_t offset, AbstractQoreNode *val
    return rv;
 }
 
+AbstractQoreNode *QoreListNode::takeExists(qore_offset_t offset) {
+   AbstractQoreNode **ptr = getExistingEntryPtr(offset);
+   if (!ptr)
+      return 0;
+   AbstractQoreNode *rv = *ptr;
+   *ptr = 0;
+   return rv;
+}

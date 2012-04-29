@@ -426,6 +426,9 @@ public:
    //! swaps the value at the given position with the value given, caller owns any reference returned
    DLLEXPORT AbstractQoreNode *swap(qore_offset_t offset, AbstractQoreNode *val);
 
+   //! takes the value at the given position and replaces with NULL, only if the list position exists
+   DLLEXPORT AbstractQoreNode* takeExists(qore_offset_t offset);
+
    // needed only while parsing
    //! this function is not exported in the qore library
    DLLLOCAL QoreListNode(bool i);

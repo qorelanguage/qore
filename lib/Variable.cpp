@@ -710,8 +710,8 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 
       lvhb.ensureUnique();
       QoreListNode* l = reinterpret_cast<QoreListNode*>(lvhb.getValue());
-      // delete the value if it exists
-      rv.assignInitial(l->swap(offset, 0));
+      // take the value if it exists
+      rv.assignInitial(l->takeExists(offset));
       return;
    }
    assert(tree->getOp() == OP_OBJECT_REF);
@@ -722,18 +722,18 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       return;
 
    // find variable ptr, exit if doesn't exist anyway
-   LValueHelper lvhb(tree->left, xsink, true);
-   if (!lvhb)
+   LValueHelper lvh(tree->left, xsink, true);
+   if (!lvh)
       return;
 
-   t = lvhb.getType();
-   QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject* >(lvhb.getValue()) : 0;
-   QoreHashNode* h = !o && t == NT_HASH ? reinterpret_cast<QoreHashNode*>(lvhb.getValue()) : 0;
+   t = lvh.getType();
+   if (t == NT_HASH)
+      lvh.ensureUnique();
+
+   QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject* >(lvh.getValue()) : 0;
+   QoreHashNode* h = !o && t == NT_HASH ? reinterpret_cast<QoreHashNode*>(lvh.getValue()) : 0;
    if (!o && !h)
       return;
-
-   if (h)
-      lvhb.ensureUnique();
 
    // remove a slice of the hash or object
    if (get_node_type(*member) == NT_LIST) {
