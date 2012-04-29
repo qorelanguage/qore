@@ -303,8 +303,9 @@ protected:
       if (nt == get_node_type(*v)) {
          if (!(*v)->is_unique()) {
             //printd(5, "LValueHelper::ensureUnique() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
-            saveTemp(*v);
+            AbstractQoreNode* old = *v;
             (*v) = (*v)->realCopy();
+            saveTemp(old);
          }
       }
       else {
@@ -352,11 +353,8 @@ public:
    DLLLOCAL void saveTemp(AbstractQoreNode* n) {
       if (!n || !n->isReferenceCounted())
          return;
-      // dereference immediately if no locks are held
-      if (!vl)
-         n->deref(vl.xsink);
-      else // otherwise save for dereferencing later
-         tvec.push_back(n);
+      // save for dereferencing later
+      tvec.push_back(n);
    }
 
    DLLLOCAL AbstractQoreNode*& getTempRef() {
@@ -459,8 +457,9 @@ public:
 
       if (!(*v)->is_unique()) {
          //printd(5, "LValueHelper::ensureUnique() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
-         saveTemp(*v);
+         AbstractQoreNode* old = (*v);
          (*v) = (*v)->realCopy();
+         saveTemp(old);
       }
    }
 

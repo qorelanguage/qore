@@ -157,8 +157,9 @@ int LValueHelper::doListLValue(const QoreTreeNode* tree, bool for_remove) {
          // otherwise if it's a list and the reference_count > 1, then duplicate it
          // save the old value for dereferencing outside any locks that may have been acquired
          //printd(5, "LValueHelper::doListLValue() this: %p saving old list: %p '%s'\n", this, l, get_type_name(l));
-         saveTemp(l);
+         AbstractQoreNode* old = l;
          l = l->copy();
+         saveTemp(old);
       }
    }
    else {
@@ -212,8 +213,9 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
          if (h->reference_count() > 1) {
             //printd(5, "LValueHelper::doHashObjLValue() this: %p saving hash to dereference: %p\n", this, h);
             // if the reference_count > 1 then duplicate it.
-            saveTemp(h);
+            AbstractQoreNode* old = h;
             h = h->copy();
+            saveTemp(old);
          }
       }
       else {
