@@ -741,14 +741,17 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 
    // find variable ptr, exit if doesn't exist anyway
    LValueHelper lvhb(tree->left, xsink, true);
-   t = lvhb.getType();
    if (!lvhb)
       return;
 
+   t = lvhb.getType();
    QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject* >(lvhb.getValue()) : 0;
    QoreHashNode* h = !o && t == NT_HASH ? reinterpret_cast<QoreHashNode*>(lvhb.getValue()) : 0;
    if (!o && !h)
       return;
+
+   if (h)
+      lvhb.ensureUnique();
 
    // remove a slice of the hash or object
    if (get_node_type(*member) == NT_LIST) {
