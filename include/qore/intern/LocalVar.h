@@ -87,74 +87,6 @@ struct lvar_ref {
    }
 
    DLLLOCAL lvar_ref(AbstractQoreNode* n_vexp, QoreObject *n_obj, QoreProgram *n_pgm);
-
-   /*
-   DLLLOCAL AbstractQoreNode** getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
-      ProgramContextHelper pch(pgm);
-
-      if (obj) {
-         ObjectSubstitutionHelper osh(obj);
-         return get_var_value_ptr(vexp, vl, typeInfo, omap, xsink);
-      }
-
-      return get_var_value_ptr(vexp, vl, typeInfo, omap, xsink);
-   }
-    */
-   /*
-   template <class T>
-   DLLLOCAL int64 plusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL double plusEqualsFloat(double v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 minusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL double minusEqualsFloat(double v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 orEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 andEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 modulaEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 multiplyEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 divideEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 xorEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 postIncrement(T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 preIncrement(T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 postDecrement(T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL int64 preDecrement(T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL double multiplyEqualsFloat(double v, T *vv, ExceptionSink *xsink);
-
-   template <class T>
-   DLLLOCAL double divideEqualsFloat(double v, T *vv, ExceptionSink *xsink);
-   */
 };
 
 union qore_value_ref_u {
@@ -260,7 +192,6 @@ public:
       return val.optimized();
    }
 
-   //DLLLOCAL bool isOptimized(const QoreTypeInfo*& varTypeInfo) const;
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
@@ -276,36 +207,6 @@ public:
       return val.getTypeName();
    }
 
-   /*
-   DLLLOCAL AbstractQoreNode** getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
-      if (checkFinalized(xsink))
-         return 0;
-
-      if (val.type == QV_Ref) {
-         // skip this entry in case it's a recursive reference
-         VarStackPointerHelper<LocalVarValue> helper(this);
-         
-         return val.v.ref->getValuePtr(vl, typeInfo, omap, xsink);
-      }
-
-      return val.getValuePtr(xsink);
-   }
-
-   DLLLOCAL AbstractQoreNode** getContainerValuePtr(AutoVLock& vl, const QoreTypeInfo*& typeInfo, ObjMap& omap, ExceptionSink* xsink) {
-      if (checkFinalized(xsink))
-         return 0;
-
-      if (val.type == QV_Ref) {
-         // skip this entry in case it's a recursive reference
-         VarStackPointerHelper<LocalVarValue> helper(this);
-
-         return val.v.ref->getValuePtr(vl, typeInfo, omap, xsink);
-      }
-
-      return val.getContainerValuePtr();
-   }
-    */
-
    DLLLOCAL void finalize(ExceptionSink *xsink) {
       assert(!finalized);
       if (val.type == QV_Node) {
@@ -313,90 +214,6 @@ public:
          finalized = true;
       }
    }
-
-   /*
-   // value is already referenced for assignment
-   DLLLOCAL void assign(AbstractQoreNode* value, ExceptionSink *xsink) {
-      ReferenceHolder<> value_holder(value, xsink);
-
-      switch (val.type) {
-         case QV_Ref:
-            setValueRef(value_holder, xsink);
-            break;
-
-         case QV_Node:
-            if (checkFinalized(xsink))
-               return;
-            // fall through here
-
-         default:
-            discard(val.assign(value_holder.release()), xsink);
-            break;
-      }
-   }
-
-   DLLLOCAL void setValueRef(ReferenceHolder<AbstractQoreNode> &value_holder, ExceptionSink *xsink) {
-      assert(val.type == QV_Ref);
-
-      LValueRefHelper<LocalVarValue> valp(this, xsink);
-      if (!valp)
-         return;
-
-      valp->assign(value_holder.release());
-   }
-
-   DLLLOCAL void assignBigInt(int64 v, ExceptionSink *xsink) {
-      if (val.type == QV_Ref) {
-         ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
-         setValueRef(value_holder, xsink);
-         return;
-      }
-
-      discard(val.assign(v), xsink);
-   }
-
-   DLLLOCAL void assignFloat(double v, ExceptionSink *xsink) {
-      if (val.type == QV_Ref) {
-         ReferenceHolder<AbstractQoreNode> value_holder(new QoreFloatNode(v), xsink);
-         setValueRef(value_holder, xsink);
-         return;
-      }
-
-      discard(val.assign(v), xsink);
-   }
-
-   DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL double plusEqualsFloat(double v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 minusEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL double minusEqualsFloat(double v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 orEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 andEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 modulaEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 multiplyEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 divideEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 xorEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 postIncrement(ExceptionSink *xsink);
-
-   DLLLOCAL int64 preIncrement(ExceptionSink *xsink);
-
-   DLLLOCAL int64 postDecrement(ExceptionSink *xsink);
-
-   DLLLOCAL int64 preDecrement(ExceptionSink *xsink);
-*/
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
@@ -452,49 +269,6 @@ public:
 
       return val.getAsFloat();
    }
-
-   /*
-   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink);
-
-   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 removeBigInt(ExceptionSink *xsink) {
-      if (val.type == QV_Ref) {
-         LValueRefHelper<LocalVarValue> valp(this, xsink);
-         if (!valp)
-            return 0;
-         // FIXME: implement removeBigInt
-         ReferenceHolder<> tmp(valp->take_value(), xsink);
-         return tmp ? tmp->getAsBigInt() : 0;
-      }
-
-      ReferenceHolder<> old(xsink);
-      return val.removeBigInt(old.getRef());
-   }
-
-   DLLLOCAL double removeFloat(ExceptionSink *xsink) {
-      if (val.type == QV_Ref) {
-         LValueRefHelper<LocalVarValue> valp(this, xsink);
-         if (!valp)
-            return 0;
-         // FIXME: implement removeFloat
-         ReferenceHolder<> tmp(valp->take_value(), xsink);
-         return tmp ? tmp->getAsFloat() : 0;
-      }
-
-      ReferenceHolder<> old(xsink);
-      return val.removeFloat(old.getRef());
-   }
-
-   DLLLOCAL AbstractQoreNode* remove(ExceptionSink *xsink, bool for_del) {
-      if (val.type == QV_Ref) {
-         LValueRefHelper<LocalVarValue> valp(this, xsink);
-         return !valp ? 0 : valp->take_value();
-      }
-
-      return val.remove(for_del);
-   }
-   */
 };
 
 /* NOTE: the proper threading behavior of this class depends on the fact that the
@@ -519,80 +293,8 @@ public:
 
    DLLLOCAL void deref(ExceptionSink *xsink) { if (ROdereference()) { del(xsink); delete this; } }
 
-   //DLLLOCAL bool isOptimized(const QoreTypeInfo*& varTypeInfo) const;
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
-
-   /*
-   DLLLOCAL void assignBigInt(int64 v, ExceptionSink *xsink) {
-      if (val.type == QV_Ref) {
-         // FIXME: implement assignFloat for LValueRefHelper
-         ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
-         setValueRef(value_holder, xsink);
-         return;
-      }
-
-      // dereference old value outside the lock
-      AbstractQoreNode* old;
-      {
-         AutoLocker al(this);
-         old = val.assign(v);
-      }
-      discard(old, xsink);
-   }
-
-   DLLLOCAL void assignFloat(double v, ExceptionSink *xsink) {
-      if (val.type == QV_Ref) {
-         // FIXME: implement assignFloat for LValueRefHelper
-         ReferenceHolder<AbstractQoreNode> value_holder(new QoreFloatNode(v), xsink);
-         setValueRef(value_holder, xsink);
-         return;
-      }
-
-      // dereference old value outside the lock
-      AbstractQoreNode* old;
-      {
-         AutoLocker al(this);
-         old = val.assign(v);
-      }
-      discard(old, xsink);
-   }
-*/
-   /*
-   DLLLOCAL AbstractQoreNode** getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
-      if (val.type == QV_Ref) {
-         // skip this entry in case it's a recursive reference
-         VarStackPointerHelper<ClosureVarValue> helper(this);
-
-         return val.v.ref->getValuePtr(vl, typeInfo, omap, xsink);
-      }
-
-      lock();
-      vl->set(this);
-
-      if (checkFinalized(xsink))
-         return 0;
-
-      return val.getValuePtr(xsink);
-   }
-
-   DLLLOCAL AbstractQoreNode** getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
-      if (val.type == QV_Ref) {
-         // skip this entry in case it's a recursive reference
-         VarStackPointerHelper<ClosureVarValue> helper(this);
-
-         return val.v.ref->getValuePtr(vl, typeInfo, omap, xsink);
-      }
-
-      lock();
-      vl->set(this);
-
-      if (checkFinalized(xsink))
-         return 0;
-
-      return val.getContainerValuePtr();
-   }
-*/
 
    DLLLOCAL void finalize(ExceptionSink *xsink) {
       SafeLocker sl(this);
@@ -603,38 +305,6 @@ public:
          discard(dr, xsink);         
       }
    }
-
-   /*
-   DLLLOCAL void setValueRef(ReferenceHolder<AbstractQoreNode> &value_holder, ExceptionSink *xsink) {
-      LValueRefHelper<ClosureVarValue> valp(this, xsink);
-      if (!valp)
-         return;
-
-      valp->assign(value_holder.release());
-   }
-
-   // value is already referenced for assignment
-   DLLLOCAL void assign(AbstractQoreNode* value, ExceptionSink *xsink) {
-      ReferenceHolder<AbstractQoreNode> value_holder(value, xsink);
-
-      if (val.type == QV_Ref) {
-         setValueRef(value_holder, xsink);
-         return;
-      }
-
-      // make sure and dereference the old value outside the lock
-      AbstractQoreNode* dr = 0;
-      {
-         AutoLocker al(this);
-
-         if (checkFinalized(xsink))
-            return;
-
-         dr = val.assign(value_holder.release());
-      }
-      discard(dr, xsink);
-   }
-*/
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
@@ -695,84 +365,6 @@ public:
       AutoLocker al(this);
       return val.getAsFloat();
    }
-
-   /*
-   DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL double plusEqualsFloat(double v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 minusEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL double minusEqualsFloat(double v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 orEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 andEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 modulaEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 multiplyEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 divideEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 xorEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 postIncrement(ExceptionSink *xsink);
-
-   DLLLOCAL int64 preIncrement(ExceptionSink *xsink);
-
-   DLLLOCAL int64 postDecrement(ExceptionSink *xsink);
-
-   DLLLOCAL int64 preDecrement(ExceptionSink *xsink);
-
-   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink);
-
-   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink);
-
-   DLLLOCAL int64 removeBigInt(ExceptionSink *xsink) {
-      if (val.type == QV_Ref) {
-         LValueRefHelper<ClosureVarValue> valp(this, xsink);
-         if (!valp)
-            return 0;
-         // FIXME: implement removeBigInt
-         ReferenceHolder<> tmp(valp->take_value(), xsink);
-         return tmp ? tmp->getAsBigInt() : 0;
-      }
-
-      ReferenceHolder<> old(xsink);      
-      AutoLocker al(this);
-      return val.removeBigInt(old.getRef());
-   }
-
-   DLLLOCAL double removeFloat(ExceptionSink *xsink) {
-      if (val.type == QV_Ref) {
-         LValueRefHelper<ClosureVarValue> valp(this, xsink);
-         if (!valp)
-            return 0;
-         // FIXME: implement removeBigInt
-         ReferenceHolder<> tmp(valp->take_value(), xsink);
-         return tmp ? tmp->getAsFloat() : 0.0;
-      }
-
-      ReferenceHolder<> old(xsink);      
-      AutoLocker al(this);
-      return val.removeFloat(old.getRef());
-   }
-
-   DLLLOCAL AbstractQoreNode* remove(ExceptionSink *xsink, bool for_del) {
-      if (val.type == QV_Ref) {
-         LValueRefHelper<ClosureVarValue> valp(this, xsink);
-         return !valp ? 0 : valp->take_value();
-      }
-
-      AutoLocker al(this);
-      return val.remove(for_del);
-   }
-   */
 };
 
 // now shared between parent and child Program objects for top-level local variables with global scope
@@ -840,68 +432,6 @@ public:
          thread_uninstantiate_closure_var(xsink);
    }
 
-   /*
-   DLLLOCAL AbstractQoreNode** getValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, ObjMap &omap, ExceptionSink *xsink) const {
-      // typeInfo is set here, but in case the variable is a reference, the actual
-      // typeInfo structure will be set from the referenced value
-      n_typeInfo = typeInfo;
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->getValuePtr(vl, n_typeInfo, omap, xsink);
-      }
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->getValuePtr(vl, n_typeInfo, omap, xsink);
-   }
-
-   DLLLOCAL AbstractQoreNode** getContainerValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, ObjMap &omap, ExceptionSink *xsink) const {
-      // typeInfo is set here, but in case the variable is a reference, the actual
-      // typeInfo structure will be set from the referenced value
-      n_typeInfo = typeInfo;
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->getContainerValuePtr(vl, n_typeInfo, omap, xsink);
-      }
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->getContainerValuePtr(vl, n_typeInfo, omap, xsink);
-   }
-*/
-
-   /*
-   // value is already referenced for assignment
-   DLLLOCAL void assign(AbstractQoreNode* value, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         val->assign(value, xsink);
-         return;
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      val->assign(value, xsink);
-   }
-
-   DLLLOCAL void assignBigInt(int64 v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         val->assignBigInt(v, xsink);
-         return;
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      val->assignBigInt(v, xsink);
-      return;
-   }
-
-   DLLLOCAL void assignFloat(double v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         val->assignFloat(v, xsink);
-         return;
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      val->assignFloat(v, xsink);
-   }
-*/
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink *xsink) const {
       if (!closure_use) {
          LocalVarValue *val = get_var();
@@ -961,194 +491,6 @@ public:
       ClosureVarValue *val = thread_find_closure_var(name.c_str());
       return val->floatEval(xsink);
    }
-/*
-   DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->plusEqualsBigInt(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->plusEqualsBigInt(v, xsink);      
-   }
-
-   DLLLOCAL double plusEqualsFloat(double v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->plusEqualsFloat(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->plusEqualsFloat(v, xsink);      
-   }
-
-   DLLLOCAL int64 minusEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->minusEqualsBigInt(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->minusEqualsBigInt(v, xsink);      
-   }
-
-   DLLLOCAL double minusEqualsFloat(double v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->minusEqualsFloat(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->minusEqualsFloat(v, xsink);      
-   }
-
-   DLLLOCAL int64 orEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->orEqualsBigInt(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->orEqualsBigInt(v, xsink);      
-   }
-
-   DLLLOCAL int64 andEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->andEqualsBigInt(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->andEqualsBigInt(v, xsink);      
-   }
-
-   DLLLOCAL int64 modulaEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->modulaEqualsBigInt(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->modulaEqualsBigInt(v, xsink);      
-   }
-
-   DLLLOCAL int64 multiplyEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->multiplyEqualsBigInt(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->multiplyEqualsBigInt(v, xsink);      
-   }
-
-   DLLLOCAL int64 divideEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      assert(v);
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->divideEqualsBigInt(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->divideEqualsBigInt(v, xsink);      
-   }
-
-   DLLLOCAL int64 xorEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->xorEqualsBigInt(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->xorEqualsBigInt(v, xsink);      
-   }
-
-   DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->shiftLeftEqualsBigInt(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->shiftLeftEqualsBigInt(v, xsink);      
-   }
-
-   DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->shiftRightEqualsBigInt(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->shiftRightEqualsBigInt(v, xsink);      
-   }
-
-   DLLLOCAL int64 postIncrement(ExceptionSink *xsink) {
-      return !closure_use ? get_var()->LocalVarValue::postIncrement(xsink) : thread_find_closure_var(name.c_str())->ClosureVarValue::postIncrement(xsink);
-   }
-
-   DLLLOCAL int64 preIncrement(ExceptionSink *xsink) {
-      return !closure_use ? get_var()->LocalVarValue::preIncrement(xsink) : thread_find_closure_var(name.c_str())->ClosureVarValue::preIncrement(xsink);
-   }
-
-   DLLLOCAL int64 postDecrement(ExceptionSink *xsink) {
-      return !closure_use ? get_var()->LocalVarValue::postDecrement(xsink) : thread_find_closure_var(name.c_str())->ClosureVarValue::postDecrement(xsink);
-   }
-
-   DLLLOCAL int64 preDecrement(ExceptionSink *xsink) {
-      return !closure_use ? get_var()->LocalVarValue::preDecrement(xsink) : thread_find_closure_var(name.c_str())->ClosureVarValue::preDecrement(xsink);
-   }
-
-   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->multiplyEqualsFloat(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->multiplyEqualsFloat(v, xsink);      
-   }
-
-   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink* xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->divideEqualsFloat(v, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->divideEqualsFloat(v, xsink);      
-   }
-
-   DLLLOCAL int64 removeBigInt(ExceptionSink* xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->removeBigInt(xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->removeBigInt(xsink);      
-   }
-
-   DLLLOCAL double removeFloat(ExceptionSink* xsink) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->removeFloat(xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->removeFloat(xsink);      
-   }
-
-   DLLLOCAL AbstractQoreNode* remove(ExceptionSink* xsink, bool for_del) {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->remove(xsink, for_del);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->remove(xsink, for_del);
-   }
-*/
 
    DLLLOCAL const char *getName() const {
       return name.c_str();
@@ -1185,17 +527,6 @@ public:
 
       return thread_find_closure_var(name.c_str())->remove(lvrh);
    }
-
-   /*
-   DLLLOCAL bool isOptimized(const QoreTypeInfo*& varTypeInfo) const {
-      if (!closure_use) {
-         varTypeInfo = typeInfo;
-         return get_var()->isOptimized(varTypeInfo);
-      }
-
-      return thread_find_closure_var(name.c_str())->isOptimized(varTypeInfo);
-   }
-    */
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
       return typeInfo;

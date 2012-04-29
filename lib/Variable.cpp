@@ -773,11 +773,7 @@ lvar_ref::lvar_ref(AbstractQoreNode* n_vexp, QoreObject* n_obj, QoreProgram *n_p
 
 int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    if (val.type == QV_Ref) {
-      if (val.v.ref->vexp->getType() == NT_VARREF) {
-         // skip this entry in case it's a recursive reference
-         VarStackPointerHelper<LocalVarValue> helper(const_cast<LocalVarValue*>(this));
-         return lvh.doLValue(val.v.ref->vexp, for_remove);
-      }
+      LocalRefHelper<LocalVarValue> helper(const_cast<LocalVarValue*>(this));
       return lvh.doLValue(val.v.ref->vexp, for_remove);
    }
 
@@ -787,26 +783,18 @@ int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
 
 void LocalVarValue::remove(LValueRemoveHelper& lvrh) {
    if (val.type == QV_Ref) {
-      if (val.v.ref->vexp->getType() == NT_VARREF) {
-         // skip this entry in case it's a recursive reference
-         VarStackPointerHelper<LocalVarValue> helper(const_cast<LocalVarValue*>(this));
-         lvrh.doRemove(val.v.ref->vexp);
-      }
-      else
-         lvrh.doRemove(val.v.ref->vexp);
+      VarStackPointerHelper<LocalVarValue> helper(const_cast<LocalVarValue*>(this));
+      lvrh.doRemove(val.v.ref->vexp);
+      return;
    }
-   else
-      lvrh.setRemove((QoreValueGeneric&)val);
+
+   lvrh.setRemove((QoreValueGeneric&)val);
 }
 
 int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    if (val.type == QV_Ref) {
-      if (val.v.ref->vexp->getType() == NT_VARREF) {
-         assert(reinterpret_cast<VarRefNode*>(val.v.ref->vexp)->getType() != VT_LOCAL);
-         // skip this entry in case it's a recursive reference
-         VarStackPointerHelper<ClosureVarValue> helper(const_cast<ClosureVarValue*>(this));
-         return lvh.doLValue(val.v.ref->vexp, for_remove);
-      }
+      assert(val.v.ref->vexp->getType() != NT_VARREF || reinterpret_cast<VarRefNode*>(val.v.ref->vexp)->getType() != VT_LOCAL);
+      LocalRefHelper<ClosureVarValue> helper(const_cast<ClosureVarValue*>(this));
       return lvh.doLValue(val.v.ref->vexp, for_remove);
    }
 
@@ -818,16 +806,12 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
 
 void ClosureVarValue::remove(LValueRemoveHelper& lvrh) {
    if (val.type == QV_Ref) {
-      if (val.v.ref->vexp->getType() == NT_VARREF) {
-         // skip this entry in case it's a recursive reference
-         VarStackPointerHelper<ClosureVarValue> helper(const_cast<ClosureVarValue*>(this));
-         lvrh.doRemove(val.v.ref->vexp);
-      }
-      else
-         lvrh.doRemove(val.v.ref->vexp);
+      // skip this entry in case it's a recursive reference
+      VarStackPointerHelper<ClosureVarValue> helper(const_cast<ClosureVarValue*>(this));
+      lvrh.doRemove(val.v.ref->vexp);
+      return;
    }
-   else {
-      AutoLocker al(this);
-      lvrh.setRemove((QoreValueGeneric&)val);
-   }
+
+   AutoLocker al(this);
+   lvrh.setRemove((QoreValueGeneric&)val);
 }
