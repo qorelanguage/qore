@@ -62,6 +62,9 @@ public:
    //! releases all locks held and destroys the container
    DLLEXPORT ~AutoVLock();
 
+   //! returns true if managing a lock, false if not (unlocked)
+   DLLEXPORT operator bool() const;
+
    //! manually releases the lock currently held
    DLLEXPORT void del();
 

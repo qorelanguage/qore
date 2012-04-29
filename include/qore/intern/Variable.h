@@ -349,15 +349,14 @@ public:
          discard(*i, vl.xsink);
    }
 
-   DLLLOCAL unsigned saveTemp(AbstractQoreNode* n) {
-#ifdef DEBUG
-      if (!n) n = &True;
-#else
+   DLLLOCAL void saveTemp(AbstractQoreNode* n) {
       if (!n || !n->isReferenceCounted())
          return;
-#endif
-      tvec.push_back(n);
-      return tvec.size() - 1;
+      // dereference immediately if no locks are held
+      if (!vl)
+         n->deref(vl.xsink);
+      else // otherwise save for dereferencing later
+         tvec.push_back(n);
    }
 
    DLLLOCAL AbstractQoreNode*& getTempRef() {

@@ -630,18 +630,20 @@ int64 LValueHelper::removeBigInt() {
    if (val)
       return val->removeBigInt(getTempRef());
 
-   unsigned ix = saveTemp(*v);
+   int64 rv = *v ? (*v)->getAsBigInt() : 0;
+   saveTemp(*v);
    *v = 0;
-   return tvec[ix] ? tvec[ix]->getAsBigInt() : 0;
+   return rv;
 }
 
 double LValueHelper::removeFloat() {
    if (val)
       return val->removeFloat(getTempRef());
 
-   unsigned ix = saveTemp(*v);
+   double rv = *v ? (*v)->getAsFloat() : 0;
+   saveTemp(*v);
    *v = 0;
-   return tvec[ix] ? tvec[ix]->getAsFloat() : 0.0;
+   return rv;
 }
 
 AbstractQoreNode* LValueHelper::remove(bool for_del) {

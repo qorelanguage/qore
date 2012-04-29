@@ -178,6 +178,7 @@ public:
 
    DLLLOCAL void assignTakeInitial(QoreValue<U>& n) {
       assert(!hasValue());
+      type = n.type;
       switch (n.type) {
          case QV_Bool: v.b = n.v.b; n.v.b = false; break;
          case QV_Int: v.i = n.v.i; n.v.i = 0; break;
@@ -190,22 +191,26 @@ public:
 
    DLLLOCAL void assignInitial(bool n) {
       assert(!hasValue());
-      assign(n);
+      type = QV_Bool;
+      v.b = n;
    }
 
    DLLLOCAL void assignInitial(int64 n) {
       assert(!hasValue());
-      assign(n);
+      type = QV_Int;
+      v.i = n;
    }
 
    DLLLOCAL void assignInitial(double n) {
       assert(!hasValue());
-      assign(n);
+      type = QV_Float;
+      v.f = n;
    }
 
    DLLLOCAL void assignInitial(AbstractQoreNode* n) {
       assert(!hasValue());
-      assign(n);
+      type = QV_Node;
+      v.n = n;
    }
 
    DLLLOCAL AbstractQoreNode* assign(AbstractQoreNode* n) {

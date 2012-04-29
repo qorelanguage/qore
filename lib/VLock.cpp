@@ -81,6 +81,10 @@ AutoVLock::~AutoVLock() {
    delete priv;
 }
 
+AutoVLock::operator bool() const {
+   return (bool)m;
+}
+
 void AutoVLock::del() {
    if (m) {
       m->unlock();
