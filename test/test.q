@@ -1424,7 +1424,7 @@ sub class_test_File() {
     # File test
     my File $f("iso-8859-1");
     $f.open(get_script_path());
-    test_value($f.getEncoding(), "iso-8859-2", "file encoding");
+    test_value($f.getEncoding(), "ISO-8859-1", "file encoding");
 /*
     my string $l = $f.readLine();
     my int $p = $f.getPos();

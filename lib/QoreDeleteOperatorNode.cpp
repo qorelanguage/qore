@@ -37,6 +37,8 @@ int QoreDeleteOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink
 
 AbstractQoreNode *QoreDeleteOperatorNode::evalImpl(ExceptionSink *xsink) const {
    LValueRemoveHelper lvrh(exp, xsink, true);
+   if (!lvrh)
+      return 0;
    lvrh.deleteLValue();
    return 0;
 }
