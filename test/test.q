@@ -1497,9 +1497,9 @@ sub check(string $err, string $test) {
 class Test2 { private { any $.a; } }
 
 sub class_library_tests() {
-    my Test $t = new Test(1, "gee", 2);
+    my Test $t(1, "gee", 2);
     test_value($t.getData(1), "gee", "first object");
-    test_value(exists $t.testing, False, "memberGate() existence");
+    test_value(exists $t.testing, True, "memberGate() existence");
     test_value($t.testing, "memberGate-testing", "memberGate() value");
     test_value($t.test(), "test", "methodGate() value");
     test_value($t instanceof Test, True, "first instanceof");
