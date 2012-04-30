@@ -476,7 +476,7 @@ int fork() [dom=PROCESS] {
 
 #ifdef HAVE_SIGNAL_HANDLING
    // we may not fork from within a signal handler
-   if (sh && gettid() == QSM.gettid()) {
+   if (QSM.thread_running && gettid() == QSM.gettid()) {
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() within a signal handler");
       return 0;
    }
