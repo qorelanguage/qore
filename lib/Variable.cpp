@@ -45,8 +45,11 @@ int qore_gvar_ref_u::write(ExceptionSink* xsink) const {
 }
 
 int Var::getLValue(LValueHelper& lvh, bool for_remove) const {
-   if (val.type == QV_Ref)
+   if (val.type == QV_Ref) {
+      if (val.v.write(lvh.vl.xsink))
+         return -1;
       return val.v.getPtr()->getLValue(lvh, for_remove);
+   }
 
    lvh.setTypeInfo(typeInfo);
    lvh.setAndLock(m);
@@ -56,6 +59,8 @@ int Var::getLValue(LValueHelper& lvh, bool for_remove) const {
 
 void Var::remove(LValueRemoveHelper& lvrh) {
    if (val.type == QV_Ref) {
+      if (val.v.write(lvrh.getExceptionSink()))
+         return;
       val.v.getPtr()->remove(lvrh);
       return;
    }

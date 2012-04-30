@@ -513,6 +513,10 @@ public:
       return !*xsink;
    }
 
+   DLLLOCAL ExceptionSink* getExceptionSink() const {
+      return xsink;
+   }
+
    DLLLOCAL bool forDel() const {
       return for_del;
    }

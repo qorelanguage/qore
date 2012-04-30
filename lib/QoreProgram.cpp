@@ -285,7 +285,7 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
 
    // find/create target namespace based on source namespace
    QoreNamespace* tns = nspath.empty() ? tpgm.RootNS : tpgm.RootNS->findCreateNamespacePath(nspath.c_str());
-   //printd(5, "qore_program_private::importFunction() this: %p nspath: %s tns: %p %s RootNS: %p %s\n", this, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+   //printd(5, "qore_program_private::exportGlobalVariable() this: %p vname: '%s' ro: %d nspath: '%s' vns: %p '%s::' RootNS: %p '%s::'\n", this, vname, readonly, nspath.c_str(), vns, vns->name.c_str(), RootNS, RootNS->getName());
    AutoLocker al(tpgm.plock);
    qore_root_ns_private::importGlobalVariable(*tpgm.RootNS, *tns, v, readonly, xsink);
 }
