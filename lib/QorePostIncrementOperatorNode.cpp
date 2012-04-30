@@ -25,15 +25,6 @@
 QoreString QorePostIncrementOperatorNode::op_str("++ (post-increment) operator expression");
 
 AbstractQoreNode *QorePostIncrementOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   // change to pre increment if return value is ignored because it's more efficient
-   if (!ref_rv) {
-      SimpleRefHolder<QorePostIncrementOperatorNode> del(this);
-
-      QorePreIncrementOperatorNode *rv = new QorePreIncrementOperatorNode(exp);
-      exp = 0;
-      return rv->parseInitImpl(oflag, pflag, lvids, typeInfo);
-   }
-
    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 
    // version for local var
@@ -41,8 +32,6 @@ AbstractQoreNode *QorePostIncrementOperatorNode::parseInitImpl(LocalVar *oflag, 
 }
 
 AbstractQoreNode *QorePostIncrementOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   // only called when result is used - otherwise optimized to pre-dec in parse initialization
-   assert(ref_rv);
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(exp, xsink);
    if (!n)
@@ -50,11 +39,11 @@ AbstractQoreNode *QorePostIncrementOperatorNode::evalImpl(ExceptionSink *xsink) 
    if (n.getType() == NT_FLOAT) {
       double f = n.postIncrementFloat("<++ (post) operator>");
       assert(!*xsink);
-      return new QoreFloatNode(f);
+      return ref_rv ? new QoreFloatNode(f) : 0;
    }
 
    int64 rc = n.postIncrementBigInt("<++ (post) operator>");
-   return *xsink ? 0 : new QoreBigIntNode(rc);
+   return *xsink || !ref_rv ? 0 : new QoreBigIntNode(rc);
 }
 
 AbstractQoreNode *QorePostIncrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
