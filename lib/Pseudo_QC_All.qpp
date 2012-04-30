@@ -108,9 +108,7 @@ int <value>::size() [flags=CONSTANT] {
 }
 
 //! Returns @ref False; this method is reimplemented in other types and will return @ref True if the given expression has a value
-/** This pseudo-method can be used to mimic perl's boolean evaluation; unfortunately it was a design error in Qore to
-    implement strict mathematical boolean evaluation (where any value must evaluate to a non-zero integer or floating-point
-    value to be @ref True), however this pseudo-method solves the problem in an intuitive manner.
+/** This pseudo-method can be used to mimic perl's boolean evaluation; unfortunately it was a design error in Qore to implement strict mathematical boolean evaluation (where any value must evaluate to a non-zero integer or floating-point value to be @ref True), so this pseudo-method was implemented to provide the same functionality in qore.
 
     @return @ref False; this method is reimplemented in other types and will return @ref True if the given expression has a value
 
