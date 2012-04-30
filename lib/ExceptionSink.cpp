@@ -108,6 +108,16 @@ AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt
    return 0;
 }
 
+AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, QoreStringNode* desc) {
+   // append strerror(en) to description
+   desc->concat(": ");
+   q_strerror(*desc, en);
+
+   printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
+   priv->insert(new QoreException(err, desc, new QoreBigIntNode(en)));
+   return 0;
+}
+
 AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, const char *fmt, ...) {
    QoreStringNode *desc = new QoreStringNode;
    
@@ -121,13 +131,7 @@ AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, co
 	 break;
    }
 
-   // append strerror(en) to description
-   desc->concat(": ");
-   q_strerror(*desc, en);
-
-   printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
-   priv->insert(new QoreException(err, desc, new QoreBigIntNode(en)));
-   return 0;
+   return raiseErrnoException(err, en, desc);
 }
 
 // returns 0, takes ownership of the "desc" argument

@@ -280,14 +280,8 @@ public:
    // unlocked
    DLLLOCAL int connectIntern(FtpResp *resp, ExceptionSink *xsink) {
       // connect to FTP port on remote machine
-      if (control.connectINET(host, port)) {
-	 if (port != DEFAULT_FTP_CONTROL_PORT)
-	    xsink->raiseException("FTP-CONNECT-ERROR", "could not connect to ftp%s://%s:%d", secure ? "s" : "", host, port);
-	 else
-	    xsink->raiseException("FTP-CONNECT-ERROR", "could not connect to ftp%s://%s", secure ? "s" : "", host);
-	 
+      if (control.connectINET(host, port, xsink))
 	 return -1;
-      }
 
       control_connected = 1;
 

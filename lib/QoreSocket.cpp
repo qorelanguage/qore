@@ -50,6 +50,13 @@
 #define QORE_MAX_HEADER_SIZE 16384
 #endif
 
+static void concat_target(QoreString& str, const struct sockaddr *addr, const char* type = "target") {
+   QoreString host;
+   q_addr_to_string2(addr, host);
+   if (!host.empty())
+      str.sprintf(" (%s: %s:%d)", type, host.getBuffer(), q_get_port_from_addr(addr));
+}
+
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
 #define GETSOCKOPT_ARG_4 char*
 #define SETSOCKOPT_ARG_4 const char*
@@ -132,7 +139,7 @@ static int check_windows_rc(int rc) {
    return -1;
 }
 
-static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *err, const char *cdesc, const char* mname = 0) {
+static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *err, const char *cdesc, const char* mname = 0, const char* host = 0, const char* svc = 0, const struct sockaddr *addr = 0) {
    sock_get_error();
    if (!xsink)
       return;
@@ -142,6 +149,20 @@ static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *e
       desc->sprintf("error while executing Socket::%s(): ", mname);
 
    desc->concat(cdesc);
+
+   if (addr) {
+      assert(!host);
+      assert(!svc);
+
+      concat_target(*desc, addr);
+   }
+   else
+      if (host && host[0]) {
+         desc->sprintf(" (target: %s", host);
+         if (svc)
+            desc->sprintf(":%s", svc);
+         desc->concat(")")
+      }
 
    if (!errno) {
       xsink->raiseException(err, desc);
@@ -163,8 +184,8 @@ static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *e
    xsink->raiseException(err, desc);
 }
 
-static void qore_socket_error(ExceptionSink *xsink, const char *err, const char *cdesc, const char* mname = 0) {
-   qore_socket_error_intern(WSAGetLastError(), xsink, err, cdesc, mname); 
+static void qore_socket_error(ExceptionSink *xsink, const char *err, const char *cdesc, const char* mname = 0, const char* host = 0, const char* svc = 0, const struct sockaddr *addr = 0) {
+   qore_socket_error_intern(WSAGetLastError(), xsink, err, cdesc, mname, host, svc, addr);
 }
 #else
 // UNIX/Cygwin
@@ -182,19 +203,36 @@ static int sock_get_error() {
    return errno;
 }
 
-static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *err, const char *cdesc, const char* mname = 0) {
+static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *err, const char *cdesc, const char* mname = 0, const char* host = 0, const char* svc = 0, const struct sockaddr *addr = 0) {
    assert(rc);
    if (!xsink)
       return;
 
+   QoreStringNode* desc = new QoreStringNode;
    if (mname)
-      xsink->raiseErrnoException(err, rc, "error while executing Socket::%s(): %s", mname, cdesc);
+      desc->sprintf("error while executing Socket::%s(): ", mname);
+
+   desc->concat(cdesc);
+
+   if (addr) {
+      assert(!host);
+      assert(!svc);
+
+      concat_target(*desc, addr);
+   }
    else
-      xsink->raiseErrnoException(err, rc, cdesc);
+      if (host) {
+         desc->sprintf(" (target: %s", host);
+         if (svc)
+            desc->sprintf(":%s", svc);
+         desc->concat(")");
+      }
+
+   xsink->raiseErrnoException(err, rc, desc);
 }
 
-static void qore_socket_error(ExceptionSink *xsink, const char *err, const char *cdesc, const char* mname = 0) {
-   qore_socket_error_intern(errno, xsink, err, cdesc, mname); 
+static void qore_socket_error(ExceptionSink *xsink, const char *err, const char *cdesc, const char* mname = 0, const char* host = 0, const char* svc = 0, const struct sockaddr *addr = 0) {
+   qore_socket_error_intern(errno, xsink, err, cdesc, mname, host, svc, addr);
 }
 #endif
 
@@ -635,8 +673,8 @@ struct qore_socket_private {
 	 // retry if interrupted by a signal
 	 if (sock_get_error() == EINTR)
 	    continue;
-	 
-	 qore_socket_error(xsink, "SOCKET-ACCEPT-ERROR", "error in accept()");
+
+	 qore_socket_error(xsink, "SOCKET-ACCEPT-ERROR", "error in accept()", 0, 0, 0, addr);
 	 return -1;
       }
    }
@@ -942,7 +980,7 @@ struct qore_socket_private {
 	 ::close(sock);
 
 	 sock = QORE_INVALID_SOCKET;
-	 qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()");
+	 qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, p);
 	    
 	 return -1;	    
       }
@@ -1046,7 +1084,7 @@ struct qore_socket_private {
 
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
 	 if (WSAGetLastError() != WSAEWOULDBLOCK) {
-	    qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()");
+	    qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, 0, 0, ai_addr);
 	    break;
 	 }
 #else
@@ -1067,7 +1105,7 @@ struct qore_socket_private {
 	    //printd(0, "selectWrite(%d) returned %d\n", timeout_ms, rc);
 	    if (rc == QORE_SOCKET_ERROR && sock_get_error() != EINTR) { 
 	       if (xsink && !only_timeout)
-		  qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in select() with Socket::connect() with timeout");
+		  qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in select() with Socket::connect() with timeout", 0, 0, 0, ai_addr);
 	       return -1;
 	    } 
 	    else if (rc > 0) { 
@@ -1077,7 +1115,7 @@ struct qore_socket_private {
 
 	       if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (GETSOCKOPT_ARG_4)(&val), &lon) == QORE_SOCKET_ERROR) { 
 		  if (xsink && !only_timeout)
-		     qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in getsockopt()");
+		     qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in getsockopt()", 0, 0, 0, ai_addr);
 		  return -1;
 	       } 
 	       
@@ -1086,7 +1124,7 @@ struct qore_socket_private {
 		     errno = val;
 		     return -1;
 		  }
-		  qore_socket_error_intern(val, xsink, "SOCKET-CONNECT-ERROR", "error in getsockopt()");
+		  qore_socket_error_intern(val, xsink, "SOCKET-CONNECT-ERROR", "error in getsockopt()", 0, 0, 0, ai_addr);
 		  return -1;
 	       }
 
@@ -1094,8 +1132,11 @@ struct qore_socket_private {
 	       return 0;
 	    }
 	    else { 
-	       if (xsink)
-		  xsink->raiseException("SOCKET-CONNECT-ERROR", "timeout in connection after %dms", timeout_ms);
+	       if (xsink) {
+	          QoreStringNode* desc = new QoreStringNodeMaker("timeout in connection after %dms", timeout_ms);
+	          concat_target(*desc, ai_addr);
+	          xsink->raiseException("SOCKET-CONNECT-ERROR", desc);
+	       }
 	       return -1;
 	    }
 	 }
@@ -1169,7 +1210,7 @@ struct qore_socket_private {
       }
 
       if (xsink && !*xsink)
-	 qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()");
+	 qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, host, service);
       return -1;
    }
 
@@ -1177,7 +1218,7 @@ struct qore_socket_private {
       //printd(5, "qore_socket_private::connectINETIntern() host=%s service=%s family=%d\n", host, service, ai_family);
       if ((sock = socket(ai_family, ai_socktype, ai_protocol)) == QORE_INVALID_SOCKET) {
 	 if (xsink)
-	    xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(errno));
+	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "cannot establish a connection to %s:%s", host, service);
 
 	 return -1;
       }
@@ -1218,7 +1259,7 @@ struct qore_socket_private {
 
       if (rc < 0) {
 	 if (xsink && (!only_timeout || errno == ETIMEDOUT))
-	    qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()");
+	    qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, host, service);
 
 	 return close_and_exit();
       }
@@ -1300,7 +1341,7 @@ struct qore_socket_private {
       reuse(reuseaddr);
 
       if ((::bind(sock, ai_addr, ai_addrlen)) == QORE_SOCKET_ERROR) {
-	 qore_socket_error(xsink, "SOCKET-BIND-ERROR", "error in bind()");
+	 qore_socket_error(xsink, "SOCKET-BIND-ERROR", "error in bind()", 0, 0, 0, ai_addr);
 	 close();
 	 return -1;
       }
@@ -1336,7 +1377,7 @@ struct qore_socket_private {
       // try to open socket if necessary
       if (openUNIX(socktype, protocol)) {
 	 if (xsink)
-	    xsink->raiseErrnoException("SOCKET-BIND-ERROR", errno, "error opening socket for bind");
+	    xsink->raiseErrnoException("SOCKET-BIND-ERROR", errno, "error opening UNIX socket ('%s') for bind", name);
 	 return -1;
       }
 
@@ -1376,7 +1417,7 @@ struct qore_socket_private {
 
       // try to open socket if necessary
       if (openINET(aip->ai_family, aip->ai_socktype, protocol)) {
-	 qore_socket_error(xsink, "SOCKET-BINDINET-ERROR", "error opening socket for bind");
+	 qore_socket_error(xsink, "SOCKET-BINDINET-ERROR", "error opening socket for bind", 0, name, service);
 	 return -1;
       }
 
@@ -1395,7 +1436,7 @@ struct qore_socket_private {
       }
 
       // if no bind was possible, then raise an exception
-      qore_socket_error_intern(en, xsink, "SOCKET-BIND-ERROR", "error binding on socket");
+      qore_socket_error_intern(en, xsink, "SOCKET-BIND-ERROR", "error binding on socket", 0, name, service);
       return -1;
    }
 

@@ -51,6 +51,16 @@ int q_get_sock_type(int t) {
    return SOCK_STREAM;
 }
 
+int q_addr_to_string(int family, const char *addr, QoreString& str) {
+   family = q_get_af(family);
+
+   char buf[QORE_NET_ADDR_BUF_LEN];
+   if (!inet_ntop(family, addr, buf, QORE_NET_ADDR_BUF_LEN))
+      return -1;
+   str.concat(buf);
+   return 0;
+}
+
 QoreStringNode *q_addr_to_string(int family, const char *addr) {
    family = q_get_af(family);
 
@@ -58,28 +68,35 @@ QoreStringNode *q_addr_to_string(int family, const char *addr) {
    return inet_ntop(family, addr, buf, QORE_NET_ADDR_BUF_LEN) ? new QoreStringNode(buf) : 0;
 }
 
-QoreStringNode *q_addr_to_string2(const struct sockaddr *ai_addr) {
-   SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
+int q_addr_to_string2(const struct sockaddr* ai_addr, QoreString& str) {
+   size_t slen = str.strlen();
 
    const void *addr;
    if (ai_addr->sa_family == AF_INET) {
       struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_addr;
       addr = &(ipv4->sin_addr);
-      str->reserve(INET_ADDRSTRLEN);
+      str.reserve(slen + INET_ADDRSTRLEN + 1);
    }
    else if (ai_addr->sa_family == AF_INET6) {
       struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_addr;
       addr = &(ipv6->sin6_addr);
-      str->reserve(INET6_ADDRSTRLEN);
+      str.reserve(slen + INET6_ADDRSTRLEN + 1);
    }
    else
-      return 0;
+      return -1;
 
-   if (!inet_ntop(ai_addr->sa_family, addr, (char *)str->getBuffer(), str->capacity()))
-      return 0;
+   if (!inet_ntop(ai_addr->sa_family, addr, (char *)(str.getBuffer() + slen), str.capacity() - slen))
+      return -1;
 
-   str->terminate(strlen(str->getBuffer()));
-   return str.release();
+   str.terminate(slen + strlen(str.getBuffer() + slen));
+   return 0;
+}
+
+
+QoreStringNode *q_addr_to_string2(const struct sockaddr *ai_addr) {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
+
+   return q_addr_to_string2(ai_addr, **str) ? 0 : str.release();
 }
 
 int q_get_port_from_addr(const struct sockaddr *ai_addr) {

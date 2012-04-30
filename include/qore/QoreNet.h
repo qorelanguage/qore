@@ -54,8 +54,29 @@ DLLEXPORT QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const 
  */
 DLLEXPORT QoreStringNode *q_addr_to_string(int address_family, const char *addr);
 
+//! converts a network address in network byte order to a string (address_family = AF_INET or AF_INET6), returns -1 on error
+/** @param address_family the address family
+    @param addr the address
+    @param str the output string
+
+    @return 0 for OK, -1 for error
+
+    @see q_addr_to_string2()
+ */
+DLLEXPORT int q_addr_to_string(int address_family, const char* addr, QoreString& str);
+
 //! converts a network address in network byte order to a string (address_family = AF_INET or AF_INET6), returns 0 on error
 DLLEXPORT QoreStringNode *q_addr_to_string2(const struct sockaddr *ai_addr);
+
+//! converts a network address in network byte order to a string (address_family = AF_INET or AF_INET6), returns -1 on error
+/** @param ai_addr the address
+    @param str the output string
+
+    @return 0 for OK, -1 for error
+
+    @see q_addr_to_string2()
+ */
+DLLEXPORT int q_addr_to_string2(const struct sockaddr *ai_addr, QoreString& str);
 
 //! get port from struct sockaddr, returns -1 if port cannot be determined
 DLLEXPORT int q_get_port_from_addr(const struct sockaddr *ai_addr);

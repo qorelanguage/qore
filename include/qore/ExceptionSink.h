@@ -91,7 +91,16 @@ public:
        @param fmt the format string for the description for the exception
        @return always returns 0
    */
-   DLLEXPORT AbstractQoreNode *raiseErrnoException(const char *err, int en, const char *fmt, ...);
+   DLLEXPORT AbstractQoreNode* raiseErrnoException(const char *err, int en, const char *fmt, ...);
+
+   //! appends a Qore-language exception to the list and appends the result of strerror(errno) to the description
+   /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
+       @param err the exception code string
+       @param en the error number (normally "errno")
+       @param desc the error description (the ExceptionSink object takes over ownership of the reference count)
+       @return always returns 0
+   */
+   DLLEXPORT AbstractQoreNode* raiseErrnoException(const char *err, int en, QoreStringNode* desc);
 
    //! appends a Qore-language exception to the list, and sets the 'arg' member (this object takes over the reference count of 'arg')
    /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.

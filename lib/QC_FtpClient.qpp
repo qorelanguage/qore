@@ -138,7 +138,8 @@ $ftp.connect();
     @endcode
 
     @throw FTP-RESPONSE-ERROR Invalid response received from FTP server
-    @throw FTP-CONNECT-ERROR Cannot establish connection on data port, no hostname set, FTP server reported an error, etc
+    @throw SOCKET-CONNECT-ERROR Cannot establish socket connection to FTP server
+    @throw FTP-CONNECT-ERROR no hostname set, FTP server reported an error, etc
     @throw FTP-LOGIN-ERROR Login denied by FTP server
  */
 nothing FtpClient::connect() {
