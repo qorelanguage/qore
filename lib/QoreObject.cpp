@@ -85,7 +85,7 @@ int qore_object_private::checkRecursive(ObjMap &omap, AutoVLock &vl, ExceptionSi
 
 int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const {
    const QoreTypeInfo* mti = 0;
-   if (!internal && checkMemberAccessGetTypeInfo(key, mti, xsink))
+   if (checkMemberAccessGetTypeInfo(xsink, key, mti, !internal))
       return -1;
 
    // do lock handoff
@@ -99,6 +99,7 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool inte
 
    qolhm.stay_locked();
 
+   //printd(5, "qore_object_private::getLValue() this: %p %s::%s type %s\n", this, theclass->getName(), key, mti->getName());
    // save lvalue type info
    lvh.setTypeInfo(mti);
 
@@ -115,9 +116,10 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool inte
 }
 
 // unlocking the lock is managed with the AutoVLock object
+/*
 AbstractQoreNode **qore_object_private::getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const {
    // check for external access to private members
-   if (checkMemberAccessGetTypeInfo(key, typeInfo, xsink))
+   if (checkMemberAccessGetTypeInfo(xsink, key, typeInfo))
       return 0;
 
    // do lock handoff
@@ -131,6 +133,7 @@ AbstractQoreNode **qore_object_private::getMemberValuePtr(const char *key, AutoV
    HashMember *m = data->priv->findCreateMember(key);
    return &m->node;
 }
+*/
 
 void QoreObject::externalDelete(qore_classid_t key, ExceptionSink *xsink) {
    {

@@ -258,13 +258,13 @@ public:
       return 0;
    }
 
-   DLLLOCAL void plusEquals(const AbstractQoreNode *v, AutoVLock &vl, ExceptionSink *xsink) {
+   DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock &vl, ExceptionSink* xsink) {
       if (!v)
          return;
 
       // do not need ensure_unique() for objects
       if (v->getType() == NT_OBJECT) {
-         ReferenceHolder<QoreHashNode> h(const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(v))->copyData(xsink), xsink);
+         ReferenceHolder<QoreHashNode> h(const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(v))->copyData(xsink), xsink);
          if (h)
             merge(*h, vl, xsink);
       }
@@ -275,6 +275,8 @@ public:
    DLLLOCAL void merge(const QoreHashNode *h, AutoVLock &vl, ExceptionSink *xsink) {
       // list for saving all overwritten values to be dereferenced outside the object lock
       ReferenceHolder<QoreListNode> holder(xsink);
+
+      bool inclass = qore_class_private::runtimeCheckPrivateClassAccess(*theclass);
 
       {
          AutoLocker al(mutex);
@@ -291,7 +293,7 @@ public:
             const QoreTypeInfo *ti;
 
             // check member status
-            if (checkMemberAccessGetTypeInfo(hi.getKey(), ti, xsink))
+            if (checkMemberAccessGetTypeInfo(xsink, hi.getKey(), ti, !inclass))
                return;
             
             // check type compatibility and perform type translations, if any
@@ -443,13 +445,14 @@ public:
       return -1;
    }
 
-   DLLLOCAL int checkMemberAccessGetTypeInfo(const char* mem, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const {
+   DLLLOCAL int checkMemberAccessGetTypeInfo(ExceptionSink* xsink, const char* mem, const QoreTypeInfo*& typeInfo, bool check_access = true) const {
       bool priv;
       if (theclass->runtimeGetMemberInfo(mem, typeInfo, priv)) {
-	 if (priv && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
+	 if (priv && check_access && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
 	    doPrivateException(mem, xsink);
 	    return -1;
 	 }
+
 	 return 0;
       }
 
