@@ -28,14 +28,6 @@
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/QoreException.h>
 
-#ifdef NEED_DLFCN_WRAPPER
-extern "C" {
-#endif
-#include <dlfcn.h>
-#ifdef NEED_DLFCN_WRAPPER
-}
-#endif
-
 #include <errno.h>
 #include <string.h>
 

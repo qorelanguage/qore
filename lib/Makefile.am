@@ -13,7 +13,7 @@ AM_YFLAGS = -d
 
 lib_LTLIBRARIES = libqore.la
 
-bin_PROGRAMS = qpp
+bin_PROGRAMS = qpp$(EXEEXT)
 
 qpp_SOURCES = qpp.cpp
 
@@ -27,10 +27,10 @@ QPP=./qpp_native
 qpp_native: $(qpp_SOURCES)
 	$(NATIVE_CXX) $(INCLUDES) $(NATIVE_CPPFLAGS) $(NATIVE_LDFLAGS) -o $@ $(qpp_SOURCES)
 else
-QPP=./qpp
+QPP=./qpp$(EXEEXT)
 endif
 
-qpp: $(qpp_SOURCES)
+qpp$(EXEEXT): $(qpp_SOURCES)
 	$(CXX) $(INCLUDES) $(AM_CPPFLAGS) $(AM_CXXFLAGS) $(AM_LDFLAGS) -o $@ $(qpp_SOURCES)
 
 QC_Queue.cpp: QC_Queue.qpp qpp

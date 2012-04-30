@@ -25,7 +25,13 @@
 
 #define _QORE_MODULEINFO_H
 
+#ifdef NEED_DLFCN_WRAPPER
+extern "C" {
+#endif
 #include <dlfcn.h>
+#ifdef NEED_DLFCN_WRAPPER
+}
+#endif
 
 #include <string>
 #include <map>
