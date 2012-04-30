@@ -25,7 +25,7 @@
 
 // cannot include Qore.h with the Oracle Sun Studio compiler
 // when not linking with libqore as link errors result
-#include <qore/intern/config.h>
+//#include <qore/intern/config.h>
 #include <qore/common.h>
 
 #include <stdio.h>
@@ -1443,7 +1443,7 @@ protected:
                cn = (*i).type;
 
             char buf[20];
-            sprintf(buf, "%ld", cn.size());
+            sprintf(buf, "%ld", (long)cn.size());
             vname += "C";
             vname += buf;
             vname += cn;

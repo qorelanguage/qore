@@ -464,8 +464,12 @@ if ($pid = fork())
  */
 int fork() [dom=PROCESS] {
 #ifdef HAVE_FORK
-   int sh = (QSM.thread_running ? 1 : 0);
-   if (num_threads > (1 + sh)) {   
+#ifdef HAVE_SIGNAL_HANDLING
+   int QORE_THREAD_LIMIT = 1 + (QSM.thread_running ? 1 : 0);
+#else
+#define QORE_THREAD_LIMIT 1
+#endif
+   if (num_threads > (QORE_THREAD_LIMIT)) {
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() when other threads are running");
       return 0;
    }

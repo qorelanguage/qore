@@ -917,7 +917,7 @@ fi
 for clib in $need_libs; do
     AC_MSG_CHECKING([for the $clib library])
     for dir in "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/mingw /opt/mingw32 /opt/local /sw /usr/sfw /opt/sfw; do
-      LIB_LDFLAG=
+      LIB_LDFLAGS=
       find_lib "$clib" "$dir"
       if test -n "$LIB_LDFLAGS"; then
          break
@@ -1450,20 +1450,13 @@ show_library_feature "runtime thread stack tracing" $enable_runtime_thread_stack
 echo
 echo "*** MODULES DELIVERED SEPARATELY - SEE 'README-MODULES' FOR MORE INFO ***"
 
-# hack to use our libtool if on HP-UX and mingw to enable static libs to be linked in to modules
-# on HP-UX, also to allow 64-bit libraries to be linked to modules
-if test "$OS" = "HP-UX" -o "$mingw" = yes; then
+# hack to use our libtool if on mingw to enable static libs to be linked in to the qore DLL
+if test "$mingw" = yes; then
    # backup generated libtool
    if test ! -e libtool.orig ; then
       cp libtool libtool.orig
    fi
-   # remove references to -ldl in libtool
-   sed "s/-ldl//g" libtool > libtool.tmp
-   # ensure static libs can be linked to modules
-   sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool.tmp.1
-   # ensure static libs can be linked to modules and ensure that valid 64-bit libraries are not recognized as invalid
-   sed "s/deplibs_check_method=.*/deplibs_check_method=pass_all/g" libtool.tmp.1 > libtool
-   # delete temporary files
-   rm -f libtool.tmp libtool.tmp.1
+   sed -e 's/deplibs_check_method=.*/deplibs_check_method=pass_all/g' -e 's/libext=.*/libext=a/g' libtool > libtool.tmp
+   mv libtool.tmp libtool
 fi
 

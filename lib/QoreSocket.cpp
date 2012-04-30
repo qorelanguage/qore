@@ -161,7 +161,7 @@ static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *e
          desc->sprintf(" (target: %s", host);
          if (svc)
             desc->sprintf(":%s", svc);
-         desc->concat(")")
+         desc->concat(")");
       }
 
    if (!errno) {
