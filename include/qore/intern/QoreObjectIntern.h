@@ -311,7 +311,7 @@ public:
       }
    }
 
-   DLLLOCAL void getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const;
+   DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const;
 
    DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
 
@@ -443,7 +443,7 @@ public:
       return -1;
    }
 
-   DLLLOCAL int checkMemberAccessGetTypeInfo(const char *mem, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const {
+   DLLLOCAL int checkMemberAccessGetTypeInfo(const char* mem, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const {
       bool priv;
       if (theclass->runtimeGetMemberInfo(mem, typeInfo, priv)) {
 	 if (priv && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
@@ -598,8 +598,8 @@ public:
 	    privateData->insertVirtual((*i).first->getID(), apd);
    }
 
-   DLLLOCAL static void getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) {
-      obj.priv->getLValue(key, lvh, internal, for_remove, xsink);
+   DLLLOCAL static int getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) {
+      return obj.priv->getLValue(key, lvh, internal, for_remove, xsink);
    }
 
    /*

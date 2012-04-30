@@ -222,8 +222,12 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
 
    clearPtr();
 
-   // true is for "internal" so that the member notification will be queued
-   qore_object_private::getLValue(*o, mem->getBuffer(), *this, true, for_remove, vl.xsink);
+   bool intern = qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass());
+   if (!qore_object_private::getLValue(*o, mem->getBuffer(), *this, intern, for_remove, vl.xsink)) {
+      if (!intern)
+         vl.addMemberNotification(o, mem->getBuffer()); // add member notification for external updates
+   }
+
    return *vl.xsink ? -1 : 0;
 }
 
@@ -240,9 +244,8 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
       QoreObject* obj = getStackObject();
       assert(obj);
-      // false is for "internal" so that no member notification will be queued
-      qore_object_private::getLValue(*obj, v->str, *this, false, for_remove, vl.xsink);
-      return *vl.xsink ? -1 : 0;
+      // true is for "internal"
+      return qore_object_private::getLValue(*obj, v->str, *this, true, for_remove, vl.xsink);
    }
    else if (ntype == NT_CLASS_VARREF) {
       const StaticClassVarRefNode* v = reinterpret_cast<const StaticClassVarRefNode*>(n);

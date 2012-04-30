@@ -83,10 +83,10 @@ int qore_object_private::checkRecursive(ObjMap &omap, AutoVLock &vl, ExceptionSi
 }
 */
 
-void qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const {
+int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const {
    const QoreTypeInfo* mti = 0;
    if (!internal && checkMemberAccessGetTypeInfo(key, mti, xsink))
-      return;
+      return -1;
 
    // do lock handoff
    AutoVLock& vl = lvh.getAutoVLock();
@@ -94,7 +94,7 @@ void qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool int
 
    if (status == OS_DELETED) {
       xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", key);
-      return;
+      return -1;
    }
 
    qolhm.stay_locked();
@@ -106,15 +106,12 @@ void qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool int
    if (for_remove) {
       m = data->priv->findMember(key);
       if (!m)
-         return;
+         return -1;
    }
    else
       m = data->priv->findCreateMember(key);
    lvh.setPtr(m->node);
-
-   // add member notification for external updates
-   if (!internal)
-      vl.addMemberNotification(obj, key);
+   return 0;
 }
 
 // unlocking the lock is managed with the AutoVLock object
