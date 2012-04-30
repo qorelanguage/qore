@@ -38,5 +38,6 @@ int64 QoreModulaEqualsOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
-   return v.modulaEqualsBigInt(val, "<%= operator>");
+   // do not try to execute %= 0 or a runtime exception will occur
+   return val ? v.modulaEqualsBigInt(val, "<%= operator>") : v.assignBigInt(0, "<%= operator>");
 }
