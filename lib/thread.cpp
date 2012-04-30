@@ -1419,8 +1419,7 @@ void delete_signal_thread() {
    deregister_signal_thread();
 }
 
-
-// should only be called from new thread
+// should only be called from the new thread
 void register_thread(int tid, pthread_t ptid, QoreProgram *p) {
    thread_list[tid].ptid = ptid;
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
@@ -1435,63 +1434,66 @@ void register_thread(int tid, pthread_t ptid, QoreProgram *p) {
 
 // put "op_background_thread" in an unnamed namespace to make it 'static extern "C"'
 namespace {
-   extern "C" void *op_background_thread(void *x) {    
+   extern "C" void* op_background_thread(void* x) {
       BGThreadParams *btp = (BGThreadParams *)x;
       // register thread
       register_thread(btp->tid, pthread_self(), btp->pgm);
       printd(5, "op_background_thread() btp=%p TID %d started\n", btp, btp->tid);
       //printf("op_background_thread() btp=%p TID %d started\n", btp, btp->tid);
-      
-      // create thread-local data for this thread in the program object
-      btp->pgm->startThread();
-      // set program counter for new thread
-      update_pgm_counter_pgm_file(btp->s_line, btp->e_line, btp->file);
 
       {
          ExceptionSink xsink;
-         AbstractQoreNode* rv;
-         {
-            CodeContextHelper cch(0, btp->getCallObject(), &xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-            // push this call on the thread stack
-            CallStackHelper csh("background operator", CT_NEWTHREAD, btp->getCallObject(), &xsink);
-#endif
-            
-            // dereference call object if present
-            btp->derefCallObj();
-            
-            // run thread expression
-            rv = btp->exec(&xsink);
-            
-            // if there is an object, we dereference the extra reference here
-            btp->derefObj(&xsink);
-         }
-         
-         // dereference any return value from the background expression
-         if (rv)
-            rv->deref(&xsink);
-         
-         // delete any thread data
-         thread_data.get()->del(&xsink);
-         
-         // cleanup thread resources
-         purge_thread_resources(&xsink);
-         
-         xsink.handleExceptions();
-         
-         printd(4, "thread terminating");
 
-         // delete internal thread data structure
-         delete_thread_data();
-         
-         // deregister_thread
-         deregister_thread(btp->tid);
-         
-         // run any cleanup functions
-         tclist.exec();
-         
-         //printd(5, "deleting thread params %p\n", btp);
-         delete btp;
+         // create thread-local data for this thread in the program object
+         qore_program_private::startThread(*btp->pgm, xsink);
+         // set program counter for new thread
+         update_pgm_counter_pgm_file(btp->s_line, btp->e_line, btp->file);
+
+         {
+            AbstractQoreNode* rv;
+            {
+               CodeContextHelper cch(0, btp->getCallObject(), &xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+               // push this call on the thread stack
+               CallStackHelper csh("background operator", CT_NEWTHREAD, btp->getCallObject(), &xsink);
+#endif
+
+               // dereference call object if present
+               btp->derefCallObj();
+
+               // run thread expression
+               rv = btp->exec(&xsink);
+
+               // if there is an object, we dereference the extra reference here
+               btp->derefObj(&xsink);
+            }
+            
+            // dereference any return value from the background expression
+            if (rv)
+               rv->deref(&xsink);
+
+            // delete any thread data
+            thread_data.get()->del(&xsink);
+
+            // cleanup thread resources
+            purge_thread_resources(&xsink);
+
+            xsink.handleExceptions();
+
+            printd(4, "thread terminating");
+
+            // delete internal thread data structure
+            delete_thread_data();
+            
+            // deregister_thread
+            deregister_thread(btp->tid);
+            
+            // run any cleanup functions
+            tclist.exec();
+
+            //printd(5, "deleting thread params %p\n", btp);
+            delete btp;
+         }
       }
 
       pthread_exit(0);

@@ -63,6 +63,20 @@ static const char *qore_warnings_l[] = {
 const char **qore_warnings = qore_warnings_l;
 unsigned qore_num_warnings = NUM_WARNINGS;
 
+void qore_program_private_base::startThread(ExceptionSink& xsink) {
+   assert(!thread_local_storage->get());
+   thread_local_storage->set(new QoreHashNode);
+
+   // if there is any thread-initialization code, execute it here
+   ReferenceHolder<ResolvedCallReferenceNode> ti(&xsink);
+   {
+      AutoLocker al(tlock);
+      ti = thr_init ? thr_init->refRefSelf() : 0;
+   }
+   if (ti)
+      ti->boolExec(0, &xsink);
+}
+
 void qore_program_private_base::newProgram() {
    base_object = true;
    po_locked = false;
@@ -72,7 +86,8 @@ void qore_program_private_base::newProgram() {
    thread_local_storage = new qpgm_thread_local_storage_t;
 
    // save thread local storage hash
-   start_thread();
+   assert(!thread_local_storage->get());
+   thread_local_storage->set(new QoreHashNode);
 
    // copy global feature list to local list
    for (FeatureList::iterator i = qoreFeatureList.begin(), e = qoreFeatureList.end(); i != e; ++i)
@@ -278,6 +293,9 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
 void qore_program_private::del(ExceptionSink *xsink) {
    printd(5, "QoreProgram::del() pgm=%p (base_object=%d)\n", pgm, base_object);
 
+   if (thr_init)
+      thr_init->deref(xsink);
+
    if (base_object) {
       deleteThreadData(xsink);
 
@@ -348,26 +366,6 @@ ExceptionSink *QoreProgram::getParseExceptionSink() {
 
    return priv->parseSink;
 }
-
-void QoreProgram::cannotProvideFeature(QoreStringNode *desc) {
-   QORE_TRACE("QoreProgram::cannotProvideFeature()");
-   
-   if (!priv->requires_exception) {
-      priv->parseSink->clear();
-      priv->requires_exception = true;
-   }
-
-   QoreException *ne = new ParseException("CANNOT-PROVIDE-FEATURE", desc);
-   priv->parseSink->raiseException(ne);
-}
-
-/*
-void QoreProgram::importGlobalVariable(class Var *var, ExceptionSink *xsink, bool readonly) {
-   priv->plock.lock();
-   priv->global_var_list.import(var, xsink, readonly);
-   priv->plock.unlock();
-}
-*/
 
 int QoreProgram::setWarningMask(int wm) {
    if (!(priv->pwo.parse_options & PO_LOCK_WARNINGS)) { 
@@ -512,10 +510,6 @@ void QoreProgram::parsePending(const char *code, const char *label, ExceptionSin
    ProgramContextHelper pch(this, false);
 
    priv->parsePending(code, label, xsink, wS, wm);
-}
-
-void QoreProgram::startThread() {
-   priv->start_thread();
 }
 
 QoreHashNode *QoreProgram::getThreadData() {

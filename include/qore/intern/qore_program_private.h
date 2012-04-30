@@ -315,7 +315,7 @@ public:
    // thread-local data (could be inherited from another program)
    qpgm_thread_local_storage_t *thread_local_storage;
 
-   // thread variable data lock, for accessing the thread variable data map
+   // thread variable data lock, for accessing the thread variable data map and the thr_init variable
    mutable QoreThreadLock tlock;
 
    // thread-local variable storage - map from thread ID to thread-local storage
@@ -330,12 +330,15 @@ public:
    // pushed parse option map
    ppo_t ppo;
 
+   // thread initialization user code
+   ResolvedCallReferenceNode* thr_init;
+
    QoreProgram *pgm;
 
    DLLLOCAL qore_program_private_base(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm = 0) 
       : thread_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0), only_first_except(false),
         exceptions_raised(0), pwo(n_parse_options), dom(0), pend_dom(0), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
-        requires_exception(false), thread_local_storage(0), pgm(n_pgm) {
+        requires_exception(false), thread_local_storage(0), thr_init(0), pgm(n_pgm) {
       printd(5, "qore_program_private::init() this=%p pgm=%p\n", this, pgm);
 	 
       if (p_pgm)
@@ -359,10 +362,7 @@ public:
          var->setInitial(ENV->copy());
    }
 
-   DLLLOCAL void start_thread() {
-      assert(!thread_local_storage->get());
-      thread_local_storage->set(new QoreHashNode);
-   }
+   DLLLOCAL void startThread(ExceptionSink& xsink);
 
 protected:
    DLLLOCAL void setParent(QoreProgram *p_pgm, int64 n_parse_options);
@@ -1211,6 +1211,25 @@ public:
    }
 
    DLLLOCAL void exportGlobalVariable(const char* name, bool readonly, qore_program_private& tpgm, ExceptionSink* xsink);
+
+   // returns true if there was already a thread init closure set, false if not
+   DLLLOCAL bool setThreadInit(const ResolvedCallReferenceNode* n_thr_init, ExceptionSink* xsink) {
+      ReferenceHolder<> old(xsink);
+      {
+         AutoLocker al(tlock);
+         old = thr_init;
+         thr_init = n_thr_init ? n_thr_init->refRefSelf() : 0;
+      }
+      return (bool)old;
+   }
+
+   DLLLOCAL static void startThread(QoreProgram& pgm, ExceptionSink& xsink) {
+      pgm.priv->qore_program_private_base::startThread(xsink);
+   }
+
+   DLLLOCAL static bool setThreadInit(QoreProgram& pgm, const ResolvedCallReferenceNode* n_thr_init, ExceptionSink* xsink) {
+      return pgm.priv->setThreadInit(n_thr_init, xsink);
+   }
 
    DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(QoreProgram* pgm, const char *name, ExceptionSink* xsink) {
       return pgm->priv->runtimeGetCallReference(name, xsink);

@@ -377,4 +377,20 @@ catch ($ex) {
 nothing mark_thread_resources() [dom=THREAD_CONTROL] {
    mark_thread_resources();
 }
+
+//! Sets a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started
+/** This code can be used to initialize @ref threading_and_variables "global thread-local variables", for example.
+
+    @return @ref True if there was already user initialization code set, @ref False if not
+
+    @par Example:
+    @code
+set_thread_init(sub () { $var = 123; });
+    @endcode
+
+    @note the code will be run for all new threads, but is not run by this function for the current thread
+*/
+bool set_thread_init(code init) [dom=THREAD_CONTROL] {
+   return qore_program_private::setThreadInit(*getProgram(), init, xsink);
+}
 //@}

@@ -524,8 +524,6 @@ public:
    // returns 0 if a "requires" exception has already occurred
    DLLLOCAL ExceptionSink *getParseExceptionSink();
 
-   DLLLOCAL void cannotProvideFeature(QoreStringNode *desc);
-   DLLLOCAL void startThread();
    DLLLOCAL QoreHashNode *getThreadData();
    DLLLOCAL void depRef();
    DLLLOCAL void depDeref(ExceptionSink *xsink);

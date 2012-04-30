@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreSignal.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -304,9 +305,9 @@ void QoreSignalManager::signal_handler_thread() {
 
 	 // create thread-local storage if possible
 	 // FIXME: set thread-local storage
-	 QoreProgram *pgm = handlers[sig].getProgram();
+	 QoreProgram* pgm = handlers[sig].getProgram();
 	 if (pgm)
-	    pgm->startThread();
+	    qore_program_private::startThread(*pgm, xsink);
 
 	 {
 	    ProgramContextHelper pch(pgm);

@@ -190,23 +190,24 @@
     This operator does not throw any exceptions; if the first expression does not evaluate to either a list, string, or binary, then no value (@ref nothing) is returned.
 
     <hr>
-    @section pre_increment_operator Integer Pre-Increment Operator (++)
+    @section pre_increment_operator Pre-Increment Operator (++)
 
     @par Synopsis
-    Increments an lvalue and returns the incremented value.
+    Increments an lvalue and returns the incremented value; only works on integer and floating-point values.
 
     @par Syntax
     <tt>++</tt><em>lvalue</em>
 
     @par Return Type
-    @ref int_type "int"
+    @ref int_type "int" or @ref float_type "float"
 
     @par Example
     @code ++$i;@endcode
 
     <b>Arguments Processed by ++ (pre-increement)</b>
     |!Argument|!Processing
-    |@ref integer|First converts the value of \a lvalue to an integer if necessary, then increments \a lvalue and returns the result
+    |@ref float|increments \a lvalue and returns the result
+    |@ref integer (or any other type)|First converts the value of \a lvalue to an integer if necessary, then increments \a lvalue and returns the result
 
     This operator does not throw any exceptions.
 
@@ -214,7 +215,7 @@
     @section post_increment_operator Integer Post-Increment Operator (++)
 
     @par Synopsis
-    Increments an lvalue and returns the value before the increment.
+    Increments an integer or floating-point lvalue and returns the value before the increment; if the lvalue is neither a floating-point value or an integer, it will be converted to an integer
 
     @par Syntax
     <em>lvalue</em><tt>++</tt>
@@ -227,7 +228,8 @@
 
     <b>Arguments Processed by ++ (post-increment)</b>
     |!Argument|!Processing
-    |@ref integer|First converts the value of \a lvalue to an integer if necessary, then saves this value as the result, then increments \a lvalue, then returns the saved original value of \a lvalue
+    |@ref float|saves the value of the lvalue as the result, then increments \a lvalue, then returns the saved original value of \a lvalue
+    |@ref integer (or any other type)|saves the value of the lvalue as the result, then converts the value of \a lvalue to an integer if necessary and increments it, then returns the saved original value of \a lvalue
 
     This operator does not throw any exceptions.
 
@@ -235,20 +237,21 @@
     @section pre_decrement_operator Integer Pre-Decrement Operator (--)
 
     @par Synopsis
-    Decrements an lvalue and returns the decremented value.
+    Decrements an lvalue and returns the incremented value; only works on integer and floating-point values.
 
     @par Syntax
     <tt>--</tt><em>lvalue</em>
 
     @par Return Type
-    @ref int_type "int"
+    @ref int_type "int" or @ref float_type "float"
 
     @par Example
     @code --$i;@endcode
 
     <b>Arguments Processed by -- (pre-decrement)</b>
     |!Argument|!Processing
-    |@ref integer|First converts the value of \a lvalue to an integer if necessary, then decrements it and returns the result
+    |@ref float|increments \a lvalue and returns the result
+    |@ref integer (or any other type)|First converts the value of \a lvalue to an integer if necessary, then increments \a lvalue and returns the result
 
     This operator does not throw any exceptions.
 
@@ -256,7 +259,7 @@
     @section post_decrement_operator Integer Post-Decrement Operator (--)
 
     @par Synopsis
-    Decrements an lvalue and returns the value before the decrement.
+    Decrements an integer or floating-point lvalue and returns the value before the decrement; if the lvalue is neither a floating-point value or an integer, it will be converted to an integer
 
     @par Syntax
     <em>lvalue</em><tt>--</tt>
@@ -269,7 +272,8 @@
 
     <b>Arguments Processed by -- (post-decrement)</b>
     |!Argument|!Processing
-    |@ref integer|First converts the value of \a lvalue to an integer if necessary, then saves this value as the result, then decrements \a lvalue, then returns the saved original value of lvalue
+    |@ref float|saves the value of the lvalue as the result, then decrements \a lvalue, then returns the saved original value of \a lvalue
+    |@ref integer (or any other type)|saves the value of the lvalue as the result, then converts the value of \a lvalue to an integer if necessary and decrements it, then returns the saved original value of \a lvalue
 
     This operator does not throw any exceptions.
 
