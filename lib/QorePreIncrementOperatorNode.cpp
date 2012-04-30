@@ -24,11 +24,11 @@
 
 QoreString QorePreIncrementOperatorNode::op_str("++ (pre-increment) operator expression");
 
-AbstractQoreNode *QorePreIncrementOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
+AbstractQoreNode *QorePreIncrementOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
+   parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, outTypeInfo);
 
    // version for local var
-   return makeSpecialization<QoreIntPreIncrementOperatorNode>();
+   return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPreIncrementOperatorNode>() : this;
 }
 
 AbstractQoreNode *QorePreIncrementOperatorNode::evalImpl(ExceptionSink *xsink) const {
@@ -38,12 +38,12 @@ AbstractQoreNode *QorePreIncrementOperatorNode::evalImpl(ExceptionSink *xsink) c
       return 0;
    if (n.getType() == NT_FLOAT) {
       n.preIncrementFloat("<++ (pre) operator>");
-      assert(*xsink);
-      return n.getReferencedValue();
+      assert(!*xsink);
    }
+   else
+      n.preIncrementBigInt("<++ (pre) operator>");
 
-   n.preIncrementBigInt("<++ (pre) operator>");
-   return *xsink ? 0 : n.getReferencedValue();
+   return *xsink || !ref_rv ? 0 : n.getReferencedValue();
 }
 
 AbstractQoreNode *QorePreIncrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

@@ -27,28 +27,30 @@
 class QorePreIncrementOperatorNode : public QoreSingleExpressionOperatorNode<LValueOperatorNode> {
    friend class QorePostIncrementOperatorNode;
 
-OP_COMMON
+   OP_COMMON
 protected:
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   const QoreTypeInfo* typeInfo;
+
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo);
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
-   DLLLOCAL void parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL void parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo*& outTypeInfo) {
       // turn off "reference ok" and "return value ignored" flags
       pflag &= ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
       
-      exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
+      exp = exp->parseInit(oflag, pflag, lvids, outTypeInfo);
       checkLValue(exp);
 
-      // make sure left side can take an integer value
-      check_lvalue_int(typeInfo, name);
+      // make sure left side can take an integer or floating-point value
+      check_lvalue_int_float(outTypeInfo, name);
 
-      // expression always returns int
-      typeInfo = bigIntTypeInfo;
+      // save return type
+      typeInfo = outTypeInfo;
    }
 
    // always returns an int
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return bigIntTypeInfo;
+      return typeInfo;
    }
 
 public:

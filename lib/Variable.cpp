@@ -522,7 +522,7 @@ double LValueHelper::preIncrementFloat(const char* desc) {
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
    if (!f)
-      return 0;
+      return 0.0;
    return ++f->f;
 }
 
@@ -533,7 +533,7 @@ double LValueHelper::preDecrementFloat(const char* desc) {
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
    if (!f)
-      return 0;
+      return 0.0;
    return --f->f;
 }
 
@@ -544,7 +544,7 @@ double LValueHelper::postIncrementFloat(const char* desc) {
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
    if (!f)
-      return 0;
+      return 0.0;
    return f->f++;
 }
 
@@ -555,7 +555,7 @@ double LValueHelper::postDecrementFloat(const char* desc) {
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
    if (!f)
-      return 0;
+      return 0.0;
    return f->f--;
 }
 

@@ -651,9 +651,7 @@ public:
       switch (type) {
 	 case QV_Node: {
 	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
-	    int64 rv = vv->val;
-	    --vv->val;
-	    return rv;
+	    return vv->val--;
 	 }
 
 	 case QV_Float: {
@@ -662,11 +660,8 @@ public:
 	    return rv;
 	 }
 
-	 case QV_Int: {
-	    int64 rv = v.i;
-	    --v.i;
-	    return rv;
-	 }
+	 case QV_Int:
+	    return v.i--;
 
 	 // to avoid warnings about missing enum values
 	 default:

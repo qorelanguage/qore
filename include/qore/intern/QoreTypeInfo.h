@@ -1067,6 +1067,19 @@ public:
    }
 };
 
+class IntOrFloatTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
+protected:
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "int|float";
+   }
+
+public:
+   DLLLOCAL IntOrFloatTypeInfo() : AcceptsReturnsSameMultiTypeInfo(0, NT_INTORFLOAT) {
+      at.push_back(bigIntTypeInfo);
+      at.push_back(floatTypeInfo);
+   }
+};
+
 // accepts any type
 class UserReferenceTypeInfo : public ReverseTypeInfo {
 protected:

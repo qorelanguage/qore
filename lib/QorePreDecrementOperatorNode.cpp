@@ -24,11 +24,11 @@
 
 QoreString QorePreDecrementOperatorNode::op_str("-- (pre-decrement) operator expression");
 
-AbstractQoreNode *QorePreDecrementOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
+AbstractQoreNode *QorePreDecrementOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+   parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, outTypeInfo);
 
    // version for local var
-   return makeSpecialization<QoreIntPreDecrementOperatorNode>();
+   return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPreDecrementOperatorNode>() : this;
 }
 
 AbstractQoreNode *QorePreDecrementOperatorNode::evalImpl(ExceptionSink *xsink) const {
@@ -38,12 +38,12 @@ AbstractQoreNode *QorePreDecrementOperatorNode::evalImpl(ExceptionSink *xsink) c
       return 0;
    if (n.getType() == NT_FLOAT) {
       n.preDecrementFloat("<-- (pre) operator>");
-      assert(*xsink);
-      return n.getReferencedValue();
+      assert(!*xsink);
    }
+   else
+      n.preDecrementBigInt("<-- (pre) operator>");
 
-   n.preDecrementBigInt("<-- (pre) operator>");
-   return *xsink ? 0 : n.getReferencedValue();
+   return *xsink || !ref_rv ? 0 : n.getReferencedValue();
 }
 
 AbstractQoreNode *QorePreDecrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

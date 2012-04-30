@@ -138,6 +138,9 @@ static TimeoutOrNothingTypeInfo staticTimeoutOrNothingTypeInfo;
 const QoreTypeInfo *timeoutTypeInfo = &staticTimeoutTypeInfo,
    *timeoutOrNothingTypeInfo = &staticTimeoutOrNothingTypeInfo;
 
+static IntOrFloatTypeInfo staticIntOrFloatTypeInfo;
+const QoreTypeInfo* bigIntOrFloatTypeInfo = &staticIntOrFloatTypeInfo;
+
 QoreListNode *emptyList;
 QoreHashNode *emptyHash;
 QoreStringNode *NullString;

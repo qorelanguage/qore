@@ -81,7 +81,7 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
    return 0;
 }
 
-/** @defgroup file_open_constants File Open Constants
+/** @defgroup file_open_constants %File Open Constants
     These are the possible values that can be or'ed together when calling File::open() or File::open2()
 */
 //@{ 
@@ -141,11 +141,11 @@ const O_DIRECTORY = O_DIRECTORY;
 const O_NOFOLLOW = O_NOFOLLOW;
 //@}
 
-/** @defgroup file_stat_constants File Stat Constants
+/** @defgroup file_stat_constants %File Stat Constants
     These are values that can be and'ed with the \c "mode" element of a file's status as returned by File::hstat(), hstat(), etc, or with element 2 of the status list as returned from File::stat(), stat(), etc.
 */
 //@{ 
-//! File type bitmask
+//! %File type bitmask
 const S_IFMT = S_IFMT;
 
 //! Bit signifying if the file is a character special (device) file
@@ -297,10 +297,11 @@ const SEEK_CUR = SEEK_CUR;
 const SEEK_END = SEEK_END;
 //@}
 
-//! The File class allows %Qore programs to read, write, and create files
+//! The %File class allows %Qore programs to read, write, and create files
 /** @note This class is not available with the @ref PO_NO_FILESYSTEM parse option
 
-    File objects are created and/or opened with a specific character encoding, meaning that any string read from the file will be tagged with the file's character encoding, and any string data written to the file will be transparently converted to that character encoding before being written (if necessary). If no character encoding is specified, then the default %Qore @ref character_encoding "character encoding" is assumed for the file.
+    %File objects are created and/or opened with a specific @ref character_encoding "character encoding", meaning that any string read from the file will be tagged with the file's @ref character_encoding "character encoding", and any string data written to the file will be transparently converted to that @ref character_encoding "character encoding" before being written (if necessary).
+    If no @ref character_encoding "character encoding" is specified, then the @ref default_encoding "default character encoding" is assumed for the file.
 
     This class supports posting events to a @ref Qore::Thread::Queue "Queue". See @ref event_handling for more information.
 
@@ -318,8 +319,9 @@ const SEEK_END = SEEK_END;
  */
 qclass File [system_constructor=FILE_system_constructor; arg=File* f; dom=FILESYSTEM];
 
-//! Creates the File object
-/** It accepts one optional argument that will set the default character encoding for the file (only affects reading and writing string data).  To open the file, call File::open() or File::open2().
+//! Creates the %File object
+/** It accepts one optional argument that will set the default @ref character_encoding "character encoding" for the file (only affects reading and writing string data)
+    To open the file, call File::open() or File::open2(); the @ref character_encoding "character encoding" can also be set or changed in the File::open() or File::open2() methods.
 
     @par Example:
     @code
@@ -327,7 +329,7 @@ my File $f();
 $f.open2("/tmp/my-file.txt");
 @endcode
 
-    @param encoding The character encoding for the file. Any strings written to the file will be converted to this character encoding if necessary; if this argument is not given then the file will receive the default encoding
+    @param encoding The @ref character_encoding "character encoding" for the %File. Any strings written to the %File will be converted to this @ref character_encoding "character encoding" if necessary; if this argument is not given then the %File will receive the @ref default_encoding "default encoding"
 
     @see File::open(), File::open2()
  */
@@ -336,15 +338,15 @@ File::constructor(*string encoding) {
    self->setPrivate(CID_FILE, new File(qe));
 }
 
-//! Closes the file if it is open and destroys the file object
-/** Closes the file if it is open and destroys the file object
+//! Closes the %File if it is open and destroys the %File object
+/** Closes the %File if it is open and destroys the %File object
  */
 File::destructor() [doconly=true] {
    // this code should never be output - this function is only here for documentation
    assert(false);
 }
 
-//! Creates a new file object with the same character encoding specification as the original, otherwise no other information is copied
+//! Creates a new %File object with the same @ref character_encoding "character encoding" specification as the original, otherwise no other information is copied
 /** @par Example:
     @code my File $f1 = $f.copy(); @endcode
  */
@@ -352,10 +354,11 @@ File::copy() {
    self->setPrivate(CID_FILE, new File(f->getEncoding()));
 }
 
-//! Opens a file in a particular mode, returns an error code on failure
-/** Opens the file in the mode given; if the file was previously open, it is closed first. Aditionally, the file permissions can be given if the file is to be created, and optionally the file's default character encoding can be specified.
+//! Opens a %File in a particular mode, returns an error code on failure
+/** Opens the %File in the mode given; if the %File was previously open, it is closed first. Additionally, the file permissions can be given if the file is to be created, and optionally the %File's @ref character_encoding "character encoding" can be specified.
 
-    Note that if no encoding is specified, the file will be tagged with the default character encoding for the process. Any string data written to the file will be converted to the file's encoding, and any string data read from the file will be automatically tagged with the file's encoding.
+    Note that if no encoding is specified, the %File will be tagged with the @ref character_encoding "character encoding" set in the %File's @ref File::constructor() "constructor".
+    Any string data written to the %File will be converted to the %File's encoding, and any string data read from the %File will be automatically tagged with the %File's encoding.
 
     @par Example:
     @code
@@ -371,7 +374,7 @@ if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
     @param path the path to the file
     @param flags flags that determine the way the file is accessed, see @ref file_open_constants for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
     @param mode permission bits for when the file is to be created (default: 0666)
-    @param encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the @ref default_encoding "default character encoding" of the process
+    @param encoding the name of the @ref character_encoding "character encoding" for the %File; if this argument is not given, the file will be tagged with the @ref character_encoding "character encoding" given in the @ref File::constructor() "constructor"
 
     @return 0 = no error, -1 = see errno() and strerror() for the error message
 
@@ -383,14 +386,15 @@ int File::open(string path, softint flags = O_RDONLY, softint mode = 0666, *stri
    if (check_terminal_io(self, "open", xsink))
       return 0;
 
-   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : f->getEncoding();
    return f->open(path->getBuffer(), flags, mode, qe);
 }
 
 //! Opens a file in a particular mode; throws an exception on failure
-/** Opens the file in the mode given; if the file was previously open, it is closed first. Aditionally, the file permissions can be given if the file is to be created, and optionally the file's default character encoding can be specified.
+/** Opens the file in the mode given; if the %File was previously open, it is closed first. Additionally, the file permissions can be given if the file is to be created, and optionally the %File's default character encoding can be specified.
 
-    Note that if no encoding is specified, the file will be tagged with the default character encoding for the process. Any string data written to the file will be converted to the file's encoding, and any string data read from the file will be automatically tagged with the file's encoding.
+    Note that if no encoding is specified, the %File will be tagged with the @ref character_encoding "character encoding" set in the %File's @ref File::constructor() "constructor".
+    Any string data written to the %File will be converted to the %File's encoding, and any string data read from the %File will be automatically tagged with the %File's encoding.
 
     If an error occurs, a \c FILE-OPEN2-ERROR exception is thrown. For a version of this method that returns an error code, see File::open().
 
@@ -412,24 +416,24 @@ catch (hash $ex) {
     @param path the path to the file
     @param flags flags that determine the way the file is accessed, see @ref file_open_constants for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
     @param mode permission bits for when the file is to be created (default: 0666)
-    @param encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the default character encoding for the process
+    @param encoding the name of the @ref character_encoding "character encoding" for the %File; if this argument is not given, the %File will be tagged with the @ref character_encoding "character encoding" given in the @ref File::constructor() "constructor"
 
     @return 0 = no error, -1 = see errno() and strerror() for the error message
 
-    @throw FILE-OPEN2-ERROR an error occured opening the file
+    @throw FILE-OPEN2-ERROR an error occurred opening the file
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
-    @see File::open2() for a version of this method that throws an exception when errors occur opening the file
+    @see File::open2() for a version of this method that throws an exception when errors occur opening the %File
  */
 nothing File::open2(string path, softint flags = O_RDONLY, softint mode = 0666, *string encoding) {
    if (check_terminal_io(self, "open2", xsink))
       return 0;
 
-   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : f->getEncoding();
    f->open2(xsink, path->getBuffer(), flags, mode, qe);
 }
 
-//! Closes the file object
+//! Closes the %File object
 /** @par Example:
     @code
  if ($f.close())
@@ -468,12 +472,12 @@ int File::sync() {
    return f->sync();
 }
 
-//! Reads a certain number of bytes from the file within an optional timeout period and returns a string of the data read or NOTHING if no data can be read
-/** Reads a certain amount of string data from the file; the size argument is required. To read binary data, use the File::readBinary() method.
+//! Reads a certain number of bytes from the %File within an optional timeout period and returns a string of the data read or @ref nothing if no data can be read
+/** Reads a certain amount of string data from the %File; the size argument is required. To read binary data, use the File::readBinary() method.
 
-    Note that the amount of data read from the file may be less than the size given, for example if the file does not contain enough data to fulfill the request. In this case, only the data available in the file is returned.
+    Note that the amount of data read from the %File may be less than the size given, for example if the file does not contain enough data to fulfill the request. In this case, only the data available in the file is returned.
 
-    An optional timeout period in milliseconds can be passed as well (or a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear; ex: 25ms). If a timeout value is passed and the data cannot be read within the timeout period, then a \c FILE-READ-TIMEOUT exception is thrown. If no timeout value is passed or a negative value is given, then the call will never timeout until either the requested amount of data has been read from the file or an end-of-file condition has been reached.
+    An optional timeout period in milliseconds can be passed as well (or a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear; ex: 25ms). If a timeout value is passed and the data cannot be read within the timeout period, then a \c FILE-READ-TIMEOUT exception is thrown. If no timeout value is passed or a negative value is given, then the call will never timeout until either the requested amount of data has been read from the %File or an end-of-file condition has been reached.
 
     @par Example:
     @code my *string $data = $f.read(-1); # read an entire text file into a variable @endcode
@@ -484,7 +488,7 @@ int File::sync() {
     @param size the number of bytes to read of the file, -1 will read the entire file
     @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out and will only return when the data has been read
 
-    @return the data read from the file, returned as a string tagged with the File's character encoding.  @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.
+    @return the data read from the file, returned as a string tagged with the %File's @ref character_encoding "character encoding".  @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.
 
     @throw FILE-READ-PARAMETER-ERROR zero size argument passed
     @throw FILE-READ-ERROR file is not open
@@ -505,14 +509,14 @@ int File::sync() {
    return f->read((qore_offset_t)size, timeout_ms, xsink);
 }
 
-//! Reads a 1-byte unsigned integer from the file in binary format or NOTHING if no data can be read 
+//! Reads a 1-byte unsigned integer from the %File in binary format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readu1(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 1-byte unsigned integer as read from the file in binary format or NOTHING if no data can be read
+    @return a 1-byte unsigned integer as read from the %File in binary format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -527,14 +531,14 @@ int File::sync() {
    return new QoreBigIntNode(c);
 }
 
-//! Reads a 2-byte (16 bit) unsigned integer from the file in binary big-endian format or NOTHING if no data can be read
+//! Reads a 2-byte (16 bit) unsigned integer from the %File in binary big-endian format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readu2(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 2-byte unsigned integer as read from the file in binary big-endian format or NOTHING if no data can be read
+    @return a 2-byte unsigned integer as read from the file in binary big-endian format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -549,14 +553,14 @@ int File::sync() {
    return new QoreBigIntNode(s);
 }
 
-//! Reads a 4-byte (32 bit) unsigned integer from the file in big-endian format or NOTHING if no data can be read
+//! Reads a 4-byte (32 bit) unsigned integer from the file in big-endian format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readu4(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 4-byte unsigned integer as read from the file in binary big-endian format or NOTHING if no data can be read
+    @return a 4-byte unsigned integer as read from the file in binary big-endian format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -571,14 +575,14 @@ int File::sync() {
    return new QoreBigIntNode(i);
 }
 
-//! Reads a 2-byte (16 bit) unsigned integer from the file in binary little-endian format or NOTHING if no data can be read
+//! Reads a 2-byte (16 bit) unsigned integer from the file in binary little-endian format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readu2LSB(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 2-byte unsigned integer as read from the file in binary little-endian format or NOTHING if no data can be read
+    @return a 2-byte unsigned integer as read from the file in binary little-endian format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -594,14 +598,14 @@ int File::sync() {
    return new QoreBigIntNode(s);
 }
 
-//! Reads a 4-byte (32 bit) unsigned integer from the file in binary little-endian format or NOTHING if no data can be read
+//! Reads a 4-byte (32 bit) unsigned integer from the file in binary little-endian format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readu4LSB(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 4-byte unsigned integer as read from the file in binary little-endian format or NOTHING if no data can be read
+    @return a 4-byte unsigned integer as read from the file in binary little-endian format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -617,14 +621,14 @@ int File::sync() {
    return new QoreBigIntNode(i);
 }
 
-//! Reads a 1-byte signed integer from the file in binary format or NOTHING if no data can be read 
+//! Reads a 1-byte signed integer from the file in binary format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readi1(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 1-byte signed integer as read from the file in binary format or NOTHING if no data can be read
+    @return a 1-byte signed integer as read from the file in binary format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -639,14 +643,14 @@ int File::sync() {
    return new QoreBigIntNode(c);
 }
 
-//! Reads a 2-byte (16 bit) signed integer from the file in binary big-endian format or NOTHING if no data can be read
+//! Reads a 2-byte (16 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readi2(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 2-byte signed integer as read from the file in binary big-endian format or NOTHING if no data can be read
+    @return a 2-byte signed integer as read from the file in binary big-endian format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -661,14 +665,14 @@ int File::sync() {
    return new QoreBigIntNode(s);
 }
 
-//! Reads a 4-byte (32 bit) signed integer from the file in binary big-endian format or NOTHING if no data can be read
+//! Reads a 4-byte (32 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readi4(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 4-byte signed integer as read from the file in binary big-endian format or NOTHING if no data can be read
+    @return a 4-byte signed integer as read from the file in binary big-endian format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -683,14 +687,14 @@ int File::sync() {
    return new QoreBigIntNode(i);
 }
 
-//! Reads an 8-byte (64 bit) signed integer from the file in binary big-endian format or NOTHING if no data can be read
+//! Reads an 8-byte (64 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readi8(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 8-byte signed integer as read from the file in binary big-endian format or NOTHING if no data can be read
+    @return a 8-byte signed integer as read from the file in binary big-endian format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -706,14 +710,14 @@ int File::sync() {
    return new QoreBigIntNode(i);
 }
 
-//! Reads a 2-byte (16 bit) signed integer from the file in binary little-endian format or NOTHING if no data can be read
+//! Reads a 2-byte (16 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readi2LSB(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 2-byte signed integer as read from the file in binary little-endian format or NOTHING if no data can be read
+    @return a 2-byte signed integer as read from the file in binary little-endian format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -729,14 +733,14 @@ int File::sync() {
    return new QoreBigIntNode(s);
 }
 
-//! Reads a 4-byte (32 bit) signed integer from the file in binary little-endian format or NOTHING if no data can be read
+//! Reads a 4-byte (32 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readi4LSB(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 4-byte signed integer as read from the file in binary little-endian format or NOTHING if no data can be read
+    @return a 4-byte signed integer as read from the file in binary little-endian format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -751,14 +755,14 @@ int File::sync() {
    return new QoreBigIntNode(i);
 }
 
-//! Reads an 8-byte (64 bit) signed integer from the file in binary little-endian format or NOTHING if no data can be read
+//! Reads an 8-byte (64 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
 /** @par Example:
     @code my *int $i = $f.readi8LSB(); @endcode
 
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return an 8-byte signed integer as read from the file in binary little-endian format or NOTHING if no data can be read
+    @return an 8-byte signed integer as read from the file in binary little-endian format or @ref nothing if no data can be read
 
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -773,7 +777,7 @@ int File::sync() {
    return new QoreBigIntNode(i);
 }
 
-//! Reads a certain number of bytes from the file within an optional timeout period and returns a binary object of the data read or NOTHING if no data can be read
+//! Reads a certain number of bytes from the file within an optional timeout period and returns a binary object of the data read or @ref nothing if no data can be read
 /** Reads a certain amount of string data from the file; the size argument is required. To read string data, use the File::read() method.
 
     Note that the amount of data read from the file may be less than the size given, for example if the file does not contain enough data to fulfill the request. In this case, only the data available in the file is returned.
@@ -824,7 +828,7 @@ if ($f.write($data))
 
     @return the number of bytes written or -1 for error; if -1 is returned, the error can be checked with the errno() function
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::write(binary data) {
@@ -834,7 +838,7 @@ int File::write(binary data) {
    return f->write(data, xsink);
 }
 
-//! Writes string data to a file; string data is converted to the File's character encoding if necessary before writing
+//! Writes string data to a file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 /** @par Example:
     @code
 if ($f.write($data))
@@ -844,12 +848,12 @@ if ($f.write($data))
     @par Events:
     @ref EVENT_DATA_WRITTEN
 
-    @param data the data to be written to the file; string data is converted to the File's character encoding if necessary before writing
+    @param data the data to be written to the file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 
     @return the number of bytes written or -1 for error; if -1 is returned, the error can be checked with the errno() function
 
-    @throw FILE-WRITE-ERROR File is not open
-    @throw ENCODING-CONVERSION-ERROR error converting from the string's encoding to the File's encoding
+    @throw FILE-WRITE-ERROR %File is not open
+    @throw ENCODING-CONVERSION-ERROR error converting from the string's @ref character_encoding "character encoding" to the %File's @ref character_encoding "character encoding"
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @note this variant of this method is equivalent to File::print()
@@ -861,7 +865,7 @@ int File::write(string data) {
    return f->write(data, xsink);
 }
 
-//! Writes string data to a file; string data is converted to the File's character encoding if necessary before writing
+//! Writes string data to a file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 /** @par Example:
     @code
 if ($f.print($data))
@@ -871,12 +875,12 @@ if ($f.print($data))
     @par Events:
     @ref EVENT_DATA_WRITTEN
 
-    @param data the data to be written to the file; string data is converted to the File's character encoding if necessary before writing
+    @param data the data to be written to the file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 
     @return the number of bytes written or -1 for error; if -1 is returned, the error can be checked with the errno() function
 
-    @throw FILE-WRITE-ERROR File is not open
-    @throw ENCODING-CONVERSION-ERROR error converting from the string's encoding to the File's encoding
+    @throw FILE-WRITE-ERROR %File is not open
+    @throw ENCODING-CONVERSION-ERROR error converting from the string's @ref character_encoding "character encoding" to the %File's @ref character_encoding "character encoding"
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @note this method is equivalent to File::write(string)
@@ -902,7 +906,7 @@ if ($f.writei1($val))
 
     @return 0 for success, -1 for error
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei1(int c) {
@@ -926,7 +930,7 @@ if ($f.writei2($val))
 
     @return 0 for success, -1 for error
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei2(int s) {
@@ -950,7 +954,7 @@ if ($f.writei4($val))
 
     @return 0 for success, -1 for error
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei4(int i) {
@@ -974,7 +978,7 @@ if ($f.writei8($val))
 
     @return 0 for success, -1 for error
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei8(int i) {
@@ -998,7 +1002,7 @@ if ($f.writei2LSB($val))
 
     @return 0 for success, -1 for error
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei2LSB(int s) {
@@ -1022,7 +1026,7 @@ if ($f.writei4LSB($val))
 
     @return 0 for success, -1 for error
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei4LSB(int i) {
@@ -1046,7 +1050,7 @@ if ($f.writei8LSB($val))
 
     @return 0 for success, -1 for error
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::writei8LSB(int i) {
@@ -1069,7 +1073,7 @@ int File::writei8LSB(int i) {
 
     @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::f_printf() for a similar method that enforces field widths
@@ -1106,7 +1110,7 @@ int File::printf() [flags=RUNTIME_NOOP] {
 
     @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::f_vprintf() for a similar method that enforces field widths
@@ -1142,7 +1146,7 @@ int File::vprintf() [flags=RUNTIME_NOOP] {
 
     @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::printf() for a similar method that does not enforce field widths
@@ -1179,7 +1183,7 @@ int File::f_printf() [flags=RUNTIME_NOOP] {
 
     @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
 
-    @throw FILE-WRITE-ERROR File is not open
+    @throw FILE-WRITE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::vprintf() for a similar method that does not enforce field widths
@@ -1202,8 +1206,8 @@ int File::f_vprintf() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! Reads until an EOL marker is found and returns the string read or NOTHING if no data can be read
-/** Any string returned wiill be tagged with the File's character encoding.
+//! Reads until an EOL marker is found and returns the string read or @ref nothing if no data can be read
+/** Any string returned wiill be tagged with the %File's @ref character_encoding "character encoding".
 
     @par Example:
     @code
@@ -1218,9 +1222,9 @@ while (exists (my *string $line = $f.readLine())) {
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return The line read from the file. NOTHING is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and NOTHING (signifying EOF) will be returned on the next call to this method.  Any string returned wiill be tagged with the File's character encoding.
+    @return The line read from the file. @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.  Any string returned will be tagged with the %File's @ref character_encoding "character encoding".
 
-    @throw FILE-READLINE-ERROR File is not open
+    @throw FILE-READLINE-ERROR %File is not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 *string File::readLine() {
@@ -1230,11 +1234,11 @@ while (exists (my *string $line = $f.readLine())) {
    return f->readLine(xsink);
 }
 
-//! Sets the character encoding for the file; if called with no argument, the default encoding is set
+//! Sets the @ref character_encoding "character encoding" for the %File; if called with no argument, the @ref default_encoding "default encoding" is set
 /** @par Example:
     @code $f.setEncoding("ISO-8859-1"); @endcode
 
-    @param encoding the character encoding for the file; if called with no argument, the default encoding is set
+    @param encoding the @ref character_encoding "character encoding" for the file; if called with no argument, the @ref default_encoding "default encoding" is set
 
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
@@ -1246,9 +1250,9 @@ nothing File::setEncoding(*string encoding) {
    f->setEncoding(qe);
 }
 
-//! Sets the character encoding for the file; if called with no argument, the default encoding is set
+//! Sets the @ref character_encoding "character encoding" for the file; if called with no argument, the @ref default_encoding "default encoding" is set
 /** A method synonym for Socket::setEncoding(), kept for backwards-compatibility
-    @param encoding the character encoding for the file; if called with no argument, the default encoding is set
+    @param encoding the @ref character_encoding "character encoding" for the file; if called with no argument, the @ref default_encoding "default encoding" is set
 
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
@@ -1260,23 +1264,23 @@ nothing File::setCharset(*string encoding) {
    f->setEncoding(qe);
 }
 
-//! Returns the character encoding for the file
+//! Returns the @ref character_encoding "character encoding" for the %File
 /** @par Example:
     @code my string $encoding = $f.getEncoding(); @endcode
 
-    @return the character encoding for the file
+    @return the @ref character_encoding "character encoding" for the %File
  */
 string File::getEncoding() {
    return new QoreStringNode(f->getEncoding()->getCode());
 }
 
-//! Returns the character encoding for the file
+//! Returns the @ref character_encoding "character encoding" for the %File
 /** A method synonym for Socket::getEncoding(), kept for backwards-compatibility
 
     @par Example:
     @code my string $encoding = $f.getCharset(); @endcode
 
-    @return the character encoding for the file
+    @return the @ref character_encoding "character encoding" for the %File
  */
 string File::getCharset() {
    return new QoreStringNode(f->getEncoding()->getCode());
@@ -1314,13 +1318,13 @@ int File::getPos() {
    return f->getPos();
 }
 
-//! Reads one character from the file and returns it as a string; returns NOTHING if no data can be read from the file
-/** Multi-byte characters are also read; use File::readu1() or File::readi1() to read a single byte from a file regardless of the File's character encoding. 
+//! Reads one character from the file and returns it as a string; returns @ref nothing if no data can be read from the file
+/** Multi-byte characters are also read; use File::readu1() or File::readi1() to read a single byte from a file regardless of the %File's @ref character_encoding "character encoding".
 
     @par Example:
     @code my *string $str = $f.getchar(); @endcode
 
-    @return the single character read from the file or NOTHING if no data can be read from the file
+    @return the single character read from the file or @ref nothing if no data can be read from the %File
 
     @throw FILE-READ-ERROR file is not open
     @throw FILE-GETCHAR-ERROR invalid multi-byte character read or EOF received while reading a multi-byte character
@@ -1351,14 +1355,14 @@ $f.lock(F_RDLCK, 512, 2048);
 $f.lock(F_UNLCK);
 @endcode
 
-    @param type Type of lock (or unlock); see @ref file_locking_constants
+    @param type %Type of lock (or unlock); see @ref file_locking_constants
     @param start Start byte for lock, 0 is the default (start of file)
     @param len Length in bytes for range to lock, 0 is the default (rest of file)
     @param whence Indicates how the relative offset of the file should be calculated for the lock; see @ref file_seek_constants
 
-    @return 0 for success, \c EACCES if the lock would block (only in the case that the lock would block is no exception thrown and \c EACCES returned)
+    @return 0 for success, @ref Err::EACCES "EACCES" if the lock would block (only in the case that the lock would block is no exception thrown and @ref Err::EACCES "EACCES" returned)
 
-    @throw FILE-LOCK-ERROR File is not open, lock length is negative, or the fcntl operation failed
+    @throw FILE-LOCK-ERROR %File is not open, lock length is negative, or the fcntl operation failed
     @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref Qore::Option::HAVE_FILE_LOCKING before calling this function.
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
@@ -1397,12 +1401,12 @@ $f.lockBlocking(F_RDLCK, 512, 2048);
 $f.lockBlocking(F_UNLCK);
 @endcode
 
-    @param type Type of lock (or unlock); see @ref file_locking_constants
+    @param type %Type of lock (or unlock); see @ref file_locking_constants
     @param start Start byte for lock, 0 is the default (start of file)
     @param len Length in bytes for range to lock, 0 is the default (rest of file)
     @param whence Indicates how the relative offset of the file should be calculated for the lock; see @ref file_seek_constants
 
-    @throw FILE-LOCK-ERROR File is not open, lock length is negative, or the fcntl operation failed
+    @throw FILE-LOCK-ERROR %File is not open, lock length is negative, or the fcntl operation failed
     @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref Qore::Option::HAVE_FILE_LOCKING before calling this function.
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
@@ -1439,7 +1443,7 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
     - \c type: see @ref file_locking_constants; if no lock is set on the file, the key type has the value \c F_UNLCK.
     - \c whence: always returned as \c SEEK_SET when the call is successful
 
-    @throw FILE-LOCK-ERROR File is not open or the fcntl operation failed
+    @throw FILE-LOCK-ERROR %File is not open or the internal fcntl operation failed
     @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref Qore::Option::HAVE_FILE_LOCKING before calling this function.
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
@@ -1476,8 +1480,8 @@ hash File::getLockInfo() {
     @param uid The user id of the user to change to; -1 means do not change uid
     @param gid The group id of the user to change to; -1 means do not change gid
 
-    @throw FILE-CHOWN-ERROR File is not open or the chown operation failed
-    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check \c Option::HAVE_UNIX_FILEMGT before calling this method to avoid this exception
+    @throw FILE-CHOWN-ERROR %File is not open or the chown operation failed
+    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_UNIX_FILEMGT before calling this method to avoid this exception
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 nothing File::chown(softint uid, softint gid = -1) {
@@ -1522,9 +1526,9 @@ stdin.getTerminalAttributes($termios);
 
     @param termios The method writes the current terminal attributes for the file to the object passed
 
-    @throw FILE-OPERATION-ERROR the File is not open
+    @throw FILE-OPERATION-ERROR the %File is not open
     @throw TERMIOS-GET-ERROR error reading terminal attributes from the file descriptor
-    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check \c Option::HAVE_TERMIOS before calling this method to avoid this exception
+    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_TERMIOS before calling this method to avoid this exception
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 nothing File::getTerminalAttributes(TermIOS[QoreTermIOS] termios) {
@@ -1540,7 +1544,7 @@ nothing File::getTerminalAttributes(TermIOS[QoreTermIOS] termios) {
 #endif
 }
 
-//! Sets the current terminal attributes for the File from the TermIOS object passed; does not change the object passed
+//! Sets the current terminal attributes for the %File from the TermIOS object passed; does not change the object passed
 /** @par Platform Availability:
     @ref Qore::Option::HAVE_TERMIOS
 
@@ -1563,15 +1567,15 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);
 @endcode
 
     @param action a binary or'ed value of the following actions: 
-    - \c TCSANOW: the change occurs immediately
-    - \c TCSADRAIN: the change occurs after all output written to fildes has been transmitted to the terminal
-    - \c TCSAFLUSH: the change occurs after all output written to the File has been transmitted to the terminal
-    - \c TCSASOFT: the values of the \c c_cflag, \c c_ispeed, and \c c_ospeed fields are ignored
+    - @ref Qore::TCSANOW "TCSANOW": the change occurs immediately
+    - @ref Qore::TCSADRAIN "TCSADRAIN": the change occurs after all output written to the %File has been transmitted to the terminal
+    - @ref Qore::TCSAFLUSH "TCSAFLUSH": the change occurs after all output written to the %File has been transmitted to the terminal
+    - @ref Qore::TCSASOFT "TCSASOFT": the values of the \c c_cflag, \c c_ispeed, and \c c_ospeed fields are ignored
     @param termios the TermIOS to use
 
-    @throw FILE-OPERATION-ERROR the File is not open
+    @throw FILE-OPERATION-ERROR the %File is not open
     @throw TERMIOS-SET-ERROR error setting terminal attributes on the file descriptor
-    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check \c Option::HAVE_TERMIOS before calling this method to avoid this exception
+    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_TERMIOS before calling this method to avoid this exception
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 nothing File::setTerminalAttributes(softint action = TCSANOW, TermIOS[QoreTermIOS] termios) {
@@ -1604,7 +1608,7 @@ nothing File::setEventQueue(Qore::Thread::Queue[Queue] queue) {
       return 0;
 
    if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the File object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the %File object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
       return 0;
    }
 
@@ -1613,7 +1617,7 @@ nothing File::setEventQueue(Qore::Thread::Queue[Queue] queue) {
    return 0;
 }
 
-//! Removes any @ref Qore::Thread::Queue "Queue" object from the File object so that @ref file_events "file events" are no longer added to the @ref Qore::Thread::Queue "Queue"
+//! Removes any @ref Qore::Thread::Queue "Queue" object from the %File object so that @ref file_events "file events" are no longer added to the @ref Qore::Thread::Queue "Queue"
 /** @par Example:
     @code $f.setEventQueue(); @endcode
 
@@ -1681,7 +1685,7 @@ hash File::hstat() {
     @return a @ref filesystem_status_hash about the filesystem where the file resides
 
     @throw FILE-STATVFS-ERROR statvfs() call failed or file is not open
-    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check \c Option::HAVE_STATVFS before calling this method to avoid this exception
+    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_STATVFS before calling this method to avoid this exception
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 hash File::statvfs() {
@@ -1819,7 +1823,7 @@ static hash File::hlstat(string path) [dom=FILESYSTEM] {
     @return a @ref filesystem_status_hash about the filesystem where the file resides
 
     @throw FILE-STATVFS-ERROR statvfs() call failed
-    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check \c Option::HAVE_STATVFS before calling this method to avoid this exception
+    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_STATVFS before calling this method to avoid this exception
  */
 static hash File::statvfs(string path) [dom=FILESYSTEM] {
 #ifdef HAVE_SYS_STATVFS_H

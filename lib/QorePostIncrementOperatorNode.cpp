@@ -37,22 +37,24 @@ AbstractQoreNode *QorePostIncrementOperatorNode::parseInitImpl(LocalVar *oflag, 
    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 
    // version for local var
-   return makeSpecialization<QoreIntPostIncrementOperatorNode>();
+   return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPostIncrementOperatorNode>() : this;
 }
 
 AbstractQoreNode *QorePostIncrementOperatorNode::evalImpl(ExceptionSink *xsink) const {
+   // only called when result is used - otherwise optimized to pre-dec in parse initialization
+   assert(ref_rv);
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(exp, xsink);
    if (!n)
       return 0;
    if (n.getType() == NT_FLOAT) {
-      n.postIncrementFloat("<++ (post) operator>");
-      assert(*xsink);
-      return n.getReferencedValue();
+      double f = n.postIncrementFloat("<++ (post) operator>");
+      assert(!*xsink);
+      return new QoreFloatNode(f);
    }
 
-   n.postIncrementBigInt("<++ (post) operator>");
-   return *xsink ? 0 : n.getReferencedValue();
+   int64 rc = n.postIncrementBigInt("<++ (post) operator>");
+   return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 
 AbstractQoreNode *QorePostIncrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

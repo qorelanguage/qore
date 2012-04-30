@@ -2785,6 +2785,30 @@ int check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name) {
    return 0;
 }
 
+int check_lvalue_int_float(const QoreTypeInfo*& typeInfo, const char *name) {
+   // make sure the lvalue can be assigned an integer value
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!typeInfo->parseAcceptsReturns(NT_INT) && !typeInfo->parseAcceptsReturns(NT_FLOAT)) {
+      if (getProgram()->getParseExceptionSink()) {
+         QoreStringNode *desc = new QoreStringNode("lvalue has type ");
+         typeInfo->getThisType(*desc);
+         desc->sprintf(", but the %s operator only works with integer or floating-point lvalues", name);
+         qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      }
+      return -1;
+   }
+   if (typeInfo->parseReturnsType(NT_INT)) {
+      if (typeInfo->parseReturnsType(NT_FLOAT))
+         typeInfo = bigIntOrFloatTypeInfo;
+      else
+         typeInfo = bigIntTypeInfo;
+   }
+   else
+      typeInfo = floatTypeInfo;
+
+   return 0;
+}
+
 // set the return value for op_minus (-)
 static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;

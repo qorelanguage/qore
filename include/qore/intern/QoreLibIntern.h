@@ -112,6 +112,7 @@
 #define NT_SOFTDATE     -8
 #define NT_SOFTLIST     -9
 #define NT_TIMEOUT      -10
+#define NT_INTORFLOAT   -11
 
 #define NT_SOMETHING    -101 // i.e. "not NOTHING"
 #define NT_DATA         -102 // either QoreStringNode or BinaryNode
@@ -349,6 +350,7 @@ DLLLOCAL int qoreCheckContainer(AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl
 DLLLOCAL int check_lvalue(const AbstractQoreNode *n);
 DLLLOCAL int check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name);
 DLLLOCAL int check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name);
+DLLLOCAL int check_lvalue_int_float(const QoreTypeInfo *&typeInfo, const char *name);
 
 DLLLOCAL bool checkParseOption(int64 o);
 

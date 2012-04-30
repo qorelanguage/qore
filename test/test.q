@@ -1421,11 +1421,11 @@ sub class_test_Program() {
 }
 
 sub class_test_File() {
-    return;
-/*
     # File test
-    my File $f = new File();
-    $f.open($ENV."_");
+    my File $f("iso-8859-1");
+    $f.open(get_script_path());
+    test_value($f.getEncoding(), "iso-8859-2", "file encoding");
+/*
     my string $l = $f.readLine();
     my int $p = $f.getPos();
     $f.setPos(0);
@@ -1777,7 +1777,7 @@ sub main() {
     printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n", Qore::VersionString, 
 	   $o.threads, $o.threads == 1 ? "" : "s", $o.iters, $o.iters == 1 ? "" : "s");
 
-    our Counter $counter = new Counter();
+    our Counter $counter();
     while ($o.threads--) {
 	$counter.inc();
 	background do_tests();

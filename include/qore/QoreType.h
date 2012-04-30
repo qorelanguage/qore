@@ -68,6 +68,7 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
    *somethingTypeInfo,         // i.e. not "NOTHING"
    *dataTypeInfo,              // either string or binary
    *timeoutTypeInfo,           // accepts int or date and returns int giving timeout in milliseconds
+   *bigIntOrFloatTypeInfo,     // accepts int or float and returns the same
 
    *bigIntOrNothingTypeInfo, 
    *floatOrNothingTypeInfo, 

@@ -41,8 +41,8 @@ protected:
       // returns the left side
       typeInfo = ti;
 
-      // make sure left side can take an integer value
-      check_lvalue_int(ti, name);
+      // make sure left side can take an integer or floating-point value
+      check_lvalue_int_float(ti, name);
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {

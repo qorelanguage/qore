@@ -76,10 +76,6 @@ public:
 
    template <class O>
    DLLLOCAL QoreSingleExpressionOperatorNode *makeSpecialization() {
-      // only generate the specialization if the lvalue is not a variable reference to a global var
-      if (get_node_type(exp) != NT_VARREF || reinterpret_cast<VarRefNode *>(exp)->isGlobalVar())
-         return this;
-
       AbstractQoreNode *e = exp;
       exp = 0;
       SimpleRefHolder<QoreSingleExpressionOperatorNode> del(this);
@@ -108,10 +104,6 @@ public:
 
    template<typename U>
    DLLLOCAL QoreBinaryOperatorNode *makeSpecialization() {
-      // only generate the specialization if the lvalue is not a variable reference to a global var
-      if (get_node_type(left) != NT_VARREF || reinterpret_cast<VarRefNode *>(left)->isGlobalVar())
-         return this;
-
       AbstractQoreNode *l = left, *r = right;
       left = right = 0;
       SimpleRefHolder<QoreBinaryOperatorNode> del(this);
