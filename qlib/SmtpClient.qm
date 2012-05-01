@@ -1,10 +1,26 @@
 # -*- mode: qore; indent-tabs-mode nil -*-
-# @file Smtp.qm Smtp client module definition
+# @file SmtpClient.qm SmtpClient module definition
 
-# original authors:
-# - Wolfgang Ritzinger
-# - Marian Bonda
-# - Pavol Potoncok
+/*  SmtpClient.qm Copyright 2012 Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
 
 # based on:
 # http://james.apache.org/server/rfclist/smtp/rfc0821.txt
@@ -12,8 +28,10 @@
 # http://www.faqs.org/rfcs/rfc2822.html
 
 %requires qore >= 0.8.4
+# need mime definitions
+%requires Mime >= 1.0
 
-module Smtp {
+module SmtpClient {
     version = "1.0";
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok";
@@ -21,22 +39,22 @@ module Smtp {
 }
 
 /*
- class SMTP::SMTP
+ class SmtpClient::SmtpClient
     holds a configured connection to a smtp server
- class SMTP::Message
+ class SmtpClient::Message
     holds a message to be send via smtp
- class SMTP::Attachment
+ class SmtpClient::Attachment
     used for attach files to the message
 
  version 1.0, ritzinwo, 20090716
 */
  
-public namespace Smtp {
+public namespace SmtpClient {
     ###########################################################
     #
     # class for the message.
     #
-    # my Smtp::Message $msg("sender", "subject");
+    # my SmtpClient::Message $msg("sender", "subject");
     #   sender: a smtp string for sender eg: The User <theuser@somewhere.org>
     #
     # you can add recipients with
@@ -54,7 +72,7 @@ public namespace Smtp {
     #
     # add attachments with attach(name, mime, attachment)
     # - name: the name string of the attachment (file.jpg)
-    # - mime: the mimetype to be send (image/jpeg)
+    # - mime: the mimetype to be send (MimeTypeJpeg)
     # - attachment: either a string (eg from file.read(-1)) or a binary
     #
     # important([True/False]) will set the given importance and return the current setting
@@ -64,12 +82,6 @@ public namespace Smtp {
     #
     #
     ###########################################################
-    public const Mime = (
-	"CSV": "text/comma-separated-values",
-	"XML": "text/xml",
-	"AXML": "application/xml",
-	"TEXT": "text/plain",
-	);
 
     #! default content transfer encoding depending on attachment type
     public const EncDefault = "default";
@@ -319,9 +331,9 @@ public namespace Smtp {
 	}
 
 	setBody(string $str = "", string $enc = EncDefault) {
-	    $enc = Smtp::checkEncoding($str, $enc);
+	    $enc = SmtpClient::checkEncoding($str, $enc);
 	    $.messageData = $str;
-	    $.messageEncoding = Smtp::checkEncoding($str, $enc);
+	    $.messageEncoding = SmtpClient::checkEncoding($str, $enc);
 	}
 
 	addBody(string $str) {
@@ -373,10 +385,10 @@ public namespace Smtp {
 	}
 
 	attach(string $name, string $mime, data $att, string $enc = EncDefault) {
-	    push $.attachments, new Smtp::Attachment($name, $mime, $att, $enc);
+	    push $.attachments, new SmtpClient::Attachment($name, $mime, $att, $enc);
 	}
 
-	attach(Smtp::Attachment $att) {
+	attach(SmtpClient::Attachment $att) {
 	    push $.attachments, $att;
 	}
 
@@ -412,22 +424,22 @@ public namespace Smtp {
 	    $.mime = $mime;
 	    $.data = $data;
 
-	    $.enc = Smtp::checkEncoding($data, $enc);
+	    $.enc = SmtpClient::checkEncoding($data, $enc);
 	}
 
 	# create string out of attachment
 	string encode() {
-	    return Smtp::encodeData($.data, $.mime, sprintf("attachment; filename=%y", $.name), $.enc);
+	    return SmtpClient::encodeData($.data, $.mime, sprintf("attachment; filename=%y", $.name), $.enc);
 	}
     }
 
     ###########################################################
-    # Smtp class:
+    # SmtpClient class:
     #
     # construct with 
-    #   my Smtp::Smtp $smtp("hostname", port);
+    #   my SmtpClient::SmtpClient $smtp("hostname", port);
     #
-    # create a Smtp::Message and then send it with
+    # create a SmtpClient::Message and then send it with
     #   $smtp.sendMessage($message);
     #
     # in the reply there is:
@@ -439,7 +451,7 @@ public namespace Smtp {
     # - code: the returncode as number
     # - desc: the rest of the return line
     ###########################################################
-    public class Smtp {
+    public class SmtpClient {
 	private {
 	    Socket $.sock();
 
@@ -465,7 +477,7 @@ public namespace Smtp {
 	}
 
 	constructor(string $connect) {
-	    #$.log(LL_DEBUG_2, "Smtp::constructor(connect=%y) called", $connect);
+	    #$.log(LL_DEBUG_2, "SmtpClient::constructor(connect=%y) called", $connect);
 
 	    # add default port if the connect string has no port number and:
 	    # 1) is not a path (for a UNIX domain socket)
@@ -480,7 +492,7 @@ public namespace Smtp {
 		    $connect += ":25";
 	    }
 	    $.connect = $connect;
-	    #$.log(LL_DEBUG_1, "Smtp::constructor() connect = %y", $.connect);
+	    #$.log(LL_DEBUG_1, "SmtpClient::constructor() connect = %y", $.connect);
 	}
 
 	# connect to the server
@@ -619,7 +631,7 @@ public namespace Smtp {
 	# send a message object
 	hash sendMessage(object $message) {
 	    if (getClassName($message) != "Message") {
-		throw "ARGUMENT-EXCEPTION", "use: sendMessage(Smtp::Message)";
+		throw "ARGUMENT-EXCEPTION", "use: sendMessage(SmtpClient::Message)";
 	    }
 
 	    if (!$message.sendPossible()) {
@@ -730,15 +742,15 @@ public namespace Smtp {
 		# rest of data (the body)
 		
 		my string $be = $message.getBodyTransferEncoding();
-		if (!$atts.empty() || $be != Smtp::EncNone) {
+		if (!$atts.empty() || $be != SmtpClient::EncNone) {
 		    $.sendData(sprintf("--%s\r\n", $.addhash()));
-		    $.sendData(Smtp::encodeData($message.getBody(), sprintf("%s; charset=utf-8", Mime.TEXT), "inline", $be));
+		    $.sendData(SmtpClient::encodeData($message.getBody(), sprintf("%s; charset=utf-8", MimeTypeText), "inline", $be));
 		}
 		else 
 		    $.sendData($message.getBody()+"\r\n");
 		# send attachments
 		if (!$atts.empty()) {
-		    foreach my Smtp::Attachment $att in ($atts) {
+		    foreach my SmtpClient::Attachment $att in ($atts) {
 			$.sendData(sprintf("--%s\r\n", $.addhash()));
 			$.sendData($att.encode());
 		    }
@@ -776,7 +788,7 @@ public namespace Smtp {
 	# - no attachments, resources are included directly in the mail page and referenced by relative links
 	hash sendMHTMessage(object $message) {
 	    if (getClassName($message) != "Message") {
-		throw "ARGUMENT-EXCEPTION", "use: sendMessage(Smtp::Message)";
+		throw "ARGUMENT-EXCEPTION", "use: sendMessage(SmtpClient::Message)";
 	    }
 
 	    if (!$message.sendPossible()) {
