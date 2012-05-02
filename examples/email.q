@@ -108,7 +108,7 @@ class mail {
     }
 
     static usage() {
-	printf("usage: %s [options] <SMTP\n"
+	printf("usage: %s [options] <SMTP>\n"
 	       "  where <SMTP> is a server address with an optional port (ex: stmp.com:25)\n"
 	       "  --from, --body, --subject and one of --to, --cc, or --bcc is required\n"
 	       "options:\n"
