@@ -125,6 +125,24 @@ static AbstractQoreNode *GETOPT_parse2_intern(ReferenceHolder<QoreHashNode> &rv,
    return 0;
 }
 
+static AbstractQoreNode *GETOPT_parse3_intern(ReferenceHolder<QoreHashNode> &rv, ExceptionSink *xsink) {
+   assert(rv);
+
+   // check for _ERRORS_ key
+   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(rv->getKeyValue("_ERRORS_"));
+   if (!l)
+      return rv.release();
+
+   const QoreStringNode *err = reinterpret_cast<const QoreStringNode *>(l->retrieve_entry(0));
+   const QoreStringNode* sn = getProgram()->getScriptName();
+   if (sn)
+      fprintf(stderr, "%s: ", sn->getBuffer());
+   fprintf(stderr, "%s\n", err->getBuffer());
+   qore_exit_process(1);
+
+   return 0;
+}
+
 //! The %GetOpt class provides an easy way to process POSIX-style command-line options in %Qore scripts/programs
 /** 
  */
@@ -349,10 +367,7 @@ hash GetOpt::parse2(reference pgm_args) {
       return 0;
 
    ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
-   if (*xsink)
-      return 0;
-
-   return GETOPT_parse2_intern(rv, xsink);
+   return *xsink ? 0 : GETOPT_parse2_intern(rv, xsink);
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor
@@ -379,8 +394,56 @@ catch ($ex) {
  */
 hash GetOpt::parse2(softlist pgm_args) {
    ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode *>(pgm_args), false, xsink), xsink);
+   return *xsink ? 0 : GETOPT_parse2_intern(rv, xsink);
+}
+
+//! Parses the parameter list according to the option hash passed to the constructor and displays an explanatory error message on stderr and exits the program if an error occurs
+/** @param pgm_args The reference should point to a list of arguments to process (normally <tt>$ARGV</tt>); any argument accepted by the object will be removed from the list
+
+    @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument
+
+    @par Example:
+    @code
+my hash $o = $getopt.parse3(\$ARGV);
+    @endcode
+
+    @see
+    - GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned
+    - GetOpt::parse2() for a similar method that throws exceptions instead of exiting the program
+ */
+hash GetOpt::parse3(reference pgm_args) [dom=PROCESS] {
+   QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
+   if (!ref)
+      return 0;
+
+   if (ref.getType() != NT_LIST)
+      return new QoreHashNode;
+
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
    if (*xsink)
       return 0;
 
-   return GETOPT_parse2_intern(rv, xsink);
+   ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
+   return *xsink ? 0 : GETOPT_parse3_intern(rv, xsink);
+}
+
+//! Parses the parameter list according to the option hash passed to the constructor and displays an explanatory error message on stderr and exits the program if an error occurs
+/** @param pgm_args A list of arguments to process
+
+    @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument
+
+    @par Example:
+    @code
+my hash $o = $getopt.parse3($ARGV);
+    @endcode
+
+    @throw GETOPT-ERROR error parsing arguments
+
+    @see
+    - GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned
+    - GetOpt::parse2() for a similar method that throws exceptions instead of exiting the program
+ */
+hash GetOpt::parse3(softlist pgm_args) [dom=PROCESS] {
+   ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode *>(pgm_args), false, xsink), xsink);
+   return *xsink ? 0 : GETOPT_parse3_intern(rv, xsink);
 }
