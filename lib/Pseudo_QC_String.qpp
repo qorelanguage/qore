@@ -120,6 +120,52 @@ string <string>::encoding() [flags=CONSTANT] {
    return new QoreStringNode(str->getEncoding()->getCode());
 }
 
+//! Returns the string in lower case
+/**
+    @return the string in lower case
+
+    @code
+my string $lwr = $str.lwr();
+    @endcode
+
+    @note
+    - this function only processes ASCII characters
+    - equivalent to tolower(string)
+
+    @see
+    - <string>::upr()
+    - tolower()
+    - toupper()
+*/
+string <string>::lwr() [flags=CONSTANT] {
+   QoreStringNode* rv = str->copy();
+   rv->tolwr();
+   return rv;
+}
+
+//! Returns the string in upper case
+/**
+    @return the string in upper case
+
+    @code
+my string $upr = $str.upr();
+    @endcode
+
+    @note
+    - this function only processes ASCII characters
+    - equivalent to toupper(string)
+
+    @see
+    - <string>::lwr()
+    - tolower()
+    - toupper()
+*/
+string <string>::upr() [flags=CONSTANT] {
+   QoreStringNode* rv = str->copy();
+   rv->toupr();
+   return rv;
+}
+
 //! Retrieves the character position of a substring within a string
 /** The \a pos argument and the return value are in character positions; byte offsets may differ from the character offsets with multi-byte @ref character_encoding "character encodings".
 

@@ -31,7 +31,7 @@ module Mime {
     url = "http://qore.org";
 }
 
-#! public Mime namespace defines constants relevant to MIME
+#! public Mime namespace defines constants and functions relevant to MIME
 public namespace Mime {
     #! MIME type for unknown file types
     public const MimeTypeUnknown = "application/octet-stream";
@@ -257,4 +257,78 @@ public namespace Mime {
 	"yaml": MimeTypeYaml,
 	"zip": "application/zip",
 	);
+
+    #! maximum line length for quoted-printable encoding
+    /** <a href="http://tools.ietf.org/html/rfc2045#section-6.7>RFC 2045 section 6.7</a>
+     */
+    public const MimeQuotedPrintableLineLen = 76;
+
+    #! return a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
+    /** @param str the string to encode
+	@param len the maximum line length
+     */
+    public string sub mime_encode_base64(string $str, int $len = 76) {
+	return makeBase64String($str, $len);
+    }
+
+    #! return a string in "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
+    /** @param str the string to encode
+	@param hdr use rules for a MIME header (<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>)
+     */
+    public string sub mime_encode_quoted_printable(string $str, bool $hdr = False) {
+	my string $rv;
+	my int $lp = 0;
+
+	for (my int $i = 0; $i < $str.size(); ++$i) {
+	    my int $c = get_byte($str, $i);
+
+	    # check if we're processing a UNIX '\n' line break
+	    if ($c == 10) {
+		# we MUST encode this as a CRLF sequence (we assume it's a UNIX line break)
+		$rv += "\r\n";
+		$lp = 0;
+		continue;
+	    }
+
+	    # check if we're processing a CRLF line break
+	    if ($c == 13 && get_byte($str, $i + 1) == 10) {
+		$rv += "\r\n";
+		$lp = 0;
+		++$i;
+		continue;
+	    }
+
+	    # new string to append
+	    my string $nc;
+	    # if we are enconding a header and we have a space, transform to "_"
+	    if ($hdr && $c == 32)
+		$nc = "_";
+	    # check if the high bit is set or if it's an ASCII control character or '=', or we are enconding a header and the char is not '?' and '_', encode
+	    else if (!($c & 0x80) || $c < 32 || $c == 61 || ($hdr && ($c == 63 || $c == 95)))
+		$nc = chr($c);
+	    else
+		$nc = sprintf("=%02x", $c).upr();
+
+	    # we MUST break up lines longer than 76 characters (the line length includes the '=' but not the CRLF
+	    if (($nc.size() + $lp) >= (MimeQuotedPrintableLineLen - 1)) {
+		# insert soft line break
+		$rv += "=\r\n";
+		$lp = 0;
+	    }
+
+	    $rv += $nc;
+	    $lp += $nc.size();
+	}
+	return $rv;
+    }
+
+    #! return a string in "B" ("BASE64") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
+    public string sub mime_encode_header_word_b(string $str) {
+	return makeBase64String(sprintf("=?%s?B?%s?=", get_encoding($str), $str, 76));
+    }
+
+    #! return a string in "Q" ("quoted-printable") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
+    public string sub mime_encode_header_word_q(string $str) {
+	return mime_encode_quoted_printable(sprintf("=?%s?Q?%s?=", get_encoding($str), $str), True);
+    }
 }

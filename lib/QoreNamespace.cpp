@@ -27,7 +27,6 @@
 #include <qore/intern/CallStack.h>
 #include <qore/intern/QoreRegexBase.h>
 #include <qore/intern/QoreNamespaceList.h>
-#include <qore/intern/AutoNamespaceList.h>
 #include <qore/intern/ssl_constants.h>
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/QoreClassList.h>
@@ -101,8 +100,6 @@ DLLLOCAL void init_dbi_functions(QoreNamespace& ns);
 DLLLOCAL void init_dbi_constants(QoreNamespace& ns);
 
 StaticSystemNamespace staticSystemNamespace;
-
-AutoNamespaceList ANSL;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 
@@ -686,9 +683,6 @@ void StaticSystemNamespace::init() {
 #endif
 
    qore_ns_private::addNamespace(*this, rpriv->qoreNS);
-
-   // add all changes in loaded modules
-   ANSL.init(this, rpriv->qoreNS);
 }
 
 #ifdef DEBUG_TESTS

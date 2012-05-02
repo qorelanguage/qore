@@ -295,9 +295,14 @@ int strlen(any[doc] arg) [flags=NOOP] {
 my string $lwr = tolower($str);
     @endcode
 
-    @note This function only processes ASCII characters
+    @note
+    - this function only processes ASCII characters
+    - equivalent to <string>::lwr(string)
 
-    @see toupper()
+    @see\
+    - <string>::lwr()
+    - <string>::upr()
+    - toupper()
  */
 string tolower(string str) [flags=CONSTANT] {
    QoreStringNode *rv = str->copy();
@@ -322,9 +327,14 @@ nothing tolower() [flags=RUNTIME_NOOP] {
 my string $upr = toupper($str);
     @endcode
 
-    @note This function only processes ASCII characters
+    @note
+    - this function only processes ASCII characters
+    - equivalent to <string>::upr(string)
 
-    @see tolower()
+    @see
+    - <string>::lwr()
+    - <string>::upr()
+    - tolower()
  */
 string toupper(string str) [flags=CONSTANT] {
    QoreStringNode *rv = str->copy();

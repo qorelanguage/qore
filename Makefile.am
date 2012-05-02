@@ -442,7 +442,6 @@ noinst_HEADERS = \
 	include/qore/intern/QoreException.h \
 	include/qore/intern/AbstractSmartLock.h \
 	include/qore/intern/VLock.h \
-	include/qore/intern/AutoNamespaceList.h \
 	include/qore/intern/CallReferenceNode.h \
 	include/qore/intern/CallReferenceCallNode.h \
 	include/qore/intern/DatasourceStatementHelper.h \

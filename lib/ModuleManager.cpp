@@ -24,7 +24,6 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ModuleInfo.h>
-#include <qore/intern/AutoNamespaceList.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/QoreException.h>
 
@@ -651,7 +650,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char *name,
    xsink.raiseException("LOAD-MODULE-ERROR", "feature '%s' is not builtin and no module with this name could be found in the module path", name);
 }
 
-QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pgm) {
+QoreStringNode* ModuleManager::parseLoadModule(const char *name, QoreProgram *pgm) {
    ExceptionSink xsink;
 
    QMM.parseLoadModule(name, pgm, xsink);
@@ -665,7 +664,7 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
 void QoreModuleManager::parseLoadModule(const char *name, QoreProgram *pgm, ExceptionSink& xsink) {
    //printd(5, "ModuleManager::parseLoadModule(name=%s, pgm=%p)\n", name, pgm);
 
-   char *p = strchrs(name, "<>=");
+   char* p = strchrs(name, "<>=");
    if (p) {
       QoreString str(name, p - name);
       str.trim();
@@ -783,8 +782,6 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 
    mi = new QoreUserModule(path, name, desc, version, author, url, pgm.release(), qmd.takeDel());
    QMM.addModule(mi);
-
-   qoreFeatureList.push_back(name);
 
    return mi;
 }
@@ -995,9 +992,6 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    mi = new QoreBuiltinModule(path, name, desc, version, author, url, *api_major, *api_minor, *module_init, *module_ns_init, *module_delete, pcmd ? *pcmd : 0, dlh.release());
    QMM.addModule(mi);
 
-   // add to auto namespace list
-   ANSL.add(*module_ns_init);
-   qoreFeatureList.push_back(name);
    printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) registered '%s'\n", path, name);
    return mi;
 }
