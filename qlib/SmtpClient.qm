@@ -559,7 +559,7 @@ $msg.addAttachment($att);
 
 	#! serializes a string for sending the Attachment according to the encoding
 	string encode() {
-	    return SmtpClient::encodeData($.data, $.mime, sprintf("attachment; filename = %y", $.name), $.enc);
+	    return SmtpClient::encodeData($.data, $.mime, sprintf("attachment; filename=%y", $.name), $.enc);
 	}
     }
 
