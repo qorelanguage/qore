@@ -63,7 +63,7 @@ public namespace SmtpClient {
     #   addTO(), addCC() and addBCC() which all take a email like sender in constructor
     #
     # toString() and toLine() return info about the message either as multiline or
-    # as single line (like %N or %n for objects)
+    # as single line (like %y or %y for objects)
     #
     # set the body text with setBody(string) or add a line to the body with addBody(string)
     #
@@ -155,7 +155,7 @@ public namespace SmtpClient {
 	constructor(string $sender, string $subject) {
 	    my *string $se = Message::getEmailAddress($sender);
 	    if (!exists $se)
-		throw "MESSAGE-CONSTRUCTOR-ERROR", sprintf("cannot get email address out of: %n", $sender);
+		throw "MESSAGE-CONSTRUCTOR-ERROR", sprintf("cannot get email address out of: %y", $sender);
 
 	    # subject
 	    if ($subject.empty())
@@ -184,7 +184,7 @@ public namespace SmtpClient {
 	*/
 	list addTO(string $recipient) {
 	    if (!Message::checkEmailAddress($recipient))
-		throw "MESSAGE-ADDTO-ERROR", sprintf("cannot determine email address in %n", $recipient);
+		throw "MESSAGE-ADDTO-ERROR", sprintf("cannot determine email address in %y", $recipient);
 
 	    return $.to += $recipient;
 	}
@@ -197,7 +197,7 @@ public namespace SmtpClient {
 	*/
 	list addCC(string $recipient) {
 	    if (!Message::checkEmailAddress($recipient))
-		throw "MESSAGE-ADDCC-ERROR", sprintf("cannot determine email address in %n", $recipient);
+		throw "MESSAGE-ADDCC-ERROR", sprintf("cannot determine email address in %y", $recipient);
 
 	    return $.cc += $recipient;
 	}
@@ -210,7 +210,7 @@ public namespace SmtpClient {
 	 */
 	list addBCC(string $recipient) {
 	    if (!Message::checkEmailAddress($recipient))
-		throw "MESSAGE-ADDBCC-ERROR", sprintf("cannot determine email address in %n", $recipient);
+		throw "MESSAGE-ADDBCC-ERROR", sprintf("cannot determine email address in %y", $recipient);
 
 	    return $.bcc += $recipient;
 	}
@@ -264,6 +264,15 @@ public namespace SmtpClient {
 		return False;
 
 	    return $.messageData.empty() ? False : True;
+	}
+
+	#! throw a MESSAGE-ERROR exception if the Message cannot be sent
+	checkSendPossible() {
+	    if ($.to.empty() && $.cc.empty() && $.bcc.empty())
+		throw "MESSAGE-ERROR", "the Message cannot be sent because there is no target address";
+	    
+	    if ($.messageData.empty())
+		throw "MESSAGE-ERROR", "the Message cannot be sent because there is no message body set";
 	}
 
 	#! sets or replaces the Message body
@@ -577,6 +586,19 @@ $msg.addAttachment($att);
 
 	    # optional debug log closure
 	    *code $.log_debug;
+
+	    # tls flag
+	    bool $.tls = False;
+
+	    # esmtp flag
+	    bool $.esmtp;
+
+	    # authentication credentials
+	    *string $.user;
+	    *string $.pass;
+
+	    # logged in flag
+	    bool $.logged_in = False;
 	}
 
 	public {
@@ -596,7 +618,9 @@ $msg.addAttachment($att);
 	constructor(string $host, softint $port, *code $log, *code $dbglog) {
 	    $.log_info = $log;
 	    $.log_debug = $dbglog;
+
 	    $.connect = sprintf("%s:%d", $host, $port);
+	    $.logDbg("SmtpClient server: %y", $.connect);
 	}
 
 	#! creates the SmtpClient object
@@ -616,8 +640,9 @@ $msg.addAttachment($att);
 		if (!$p)
 		    $connect += ":" + SmtpPort;
 	    }
+
 	    $.connect = $connect;
-	    $.logDbg("SmtpClient connect: %y", $.connect);
+	    $.logDbg("SmtpClient server: %y", $.connect);
 	}
 
 	#! disconnects if connected and destroys the object
@@ -630,14 +655,27 @@ $msg.addAttachment($att);
 	    }
   	}
 
+	tls(bool $tls) {
+	    $.tls = $tls;
+	}
+
+	bool tls() {
+	    return $.tls;
+	}
+
+	setUserPass(string $user, string $pass) {
+	    $.user = $user;
+	    $.pass = $pass;
+	}
+
 	private log(string $msg) {
 	    if ($.log_info.val())
-		call_function($.log_info, trim(vsprintf($msg, $argv)));
+		call_function($.log_info, "SmtpClient: " + trim(vsprintf($msg, $argv)));
 	}
 
 	private logDbg(string $msg) {
 	    if ($.log_debug.val())
-		call_function($.log_debug, trim(vsprintf($msg, $argv)));
+		call_function($.log_debug, "SmtpClient: " + trim(vsprintf($msg, $argv)));
 	}
 
 	#! sets or disables test mode; no connections are made in test mode
@@ -668,20 +706,6 @@ $msg.addAttachment($att);
 	    }
   	}
   	
-	# parse the server reply string to code and description
-	private hash parseReply(string $str) {
-	    my (*softint $code, *string $desc) = ($str =~ x/^([[:digit:]]{3}) (.*)$/);
-
-	    my hash $rv;
-	    if (!$code || !$desc.val())
-		$rv = ('code': -1, 'desc': sprintf("error in parsing reply '%s'", $str));
-	    else
-		$rv = ('code': $code, 'desc': $desc);
-
-	    $.logDbg("-> %n", $rv);
-	    return $rv;
-	}
-
 	#! returns a string of message data according to the encoding passed
 	static string encodeData(data $data, string $mime, string $disp, string $enc) {
 	    my string $str = sprintf("Content-Type: %s\r\nContent-Disposition: %s\r\n", $mime, $disp);
@@ -719,12 +743,12 @@ $msg.addAttachment($att);
 	    @throw INVALID-ENCODING the encoding given cannot be used with data given
 	 */
 	static string checkEncoding(data $data, string $enc) {
-	    if ($enc = =  EncDefault)
-		$enc = $data.typeCode() = =  NT_STRING ? EncNone : EncBase64; 
+	    if ($enc == EncDefault)
+		$enc = $data.typeCode() == NT_STRING ? EncQuotedPrintable : EncBase64; 
 	    else if (!inlist($enc, Encodings))
 		throw "UNKNOWN-ENCODING", sprintf("%y is not a known encoding; known encodings: %y", $enc, Encodings);
 
-	    if ($data.typeCode() = =  NT_BINARY && $enc = =  EncNone)
+	    if ($data.typeCode() == NT_BINARY && $enc == EncNone)
 		throw "INVALID-ENCODING", sprintf("%y cannot be used with binary data", $enc);
 
 	    return $enc;
@@ -733,8 +757,8 @@ $msg.addAttachment($att);
 	# send data over the socket
 	private sendDataIntern(string $str) {
 	    if (!$.isConnected()) {
-		$.logDbg("SmtpClient sendData: not connected; not sending");
-		throw "NOT-CONNECTED", "not connected in sendData()";
+		$.logDbg("send: not connected; not sending");
+		throw "NOT-CONNECTED", "not connected in sendDataIntern()";
 	    }
 
 	    # send
@@ -753,33 +777,68 @@ $msg.addAttachment($att);
 		    splice $lstr, 128;
 		    $lstr += "...";
 		}
-		$.logDbg("SmtpClient sendData: %y", $lstr);
+		$.logDbg("data: %y", $lstr);
 	    }
 
 	    $.sendDataIntern($str);
 	}
 
-	# send a command over the socket and return the response
-	private string sendCommand(string $str) {
+	# send a command over the socket and return the response as a hash
+	private hash sendCommand(string $str) {
 	    # format additional arguments if necessary
 	    if (!$argv.empty())
 		$str = vsprintf($str, $argv);
 
 	    trim $str;
-	    $.logDbg("Smtp: sendCommand %y", $str);
+	    $.logDbg("send %y", $str);
 
 	    # send data
 	    $.sendDataIntern($str + "\r\n");
 
 	    # read data
-	    my string $rep = $.readLine(ReadTimeout);
+	    my string $rep;
 
-	    $.logDbg("Smtp: sendCommand reply: %y", $rep);
-	    return $rep;
+	    my softint $code;
+	    my string $desc;
+
+	    # process multi-line responses
+	    while (True) {
+		my string $l = $.readLine(ReadTimeout);
+		trim $l;
+		$.logDbg("reply: %y", $l);
+
+		# if a continuation is signaled from the server, then keep reading
+		if ($l =~ /^[0-9]{3}-/) {
+		    if (!$code)
+			$code = int($l);
+		    # assume it's the same code every time
+		    if (!$desc.empty())
+			$desc += "\n";
+		    $desc += extract $l, 4;
+		    continue;
+		}
+		else {
+		    if ($l !~ /^[0-9]{3} /) {
+			$.log("cannot parse reply: %s\n", $l);
+			$desc += $l;
+			$code = -1;
+			break;
+		    }
+		    if (!$code)
+			$code = int($l);
+		    # assume it's the same code every time
+		    if (!$desc.empty())
+			$desc += "\n";
+		    $desc += extract $l, 4;
+		    break;
+		}
+	    }
+
+	    return ("code": $code, "desc": $desc);
 	}
 
 	# read a line from the socket (terminated with \n)
-	private string readLine(softint $to) {
+	private string readLine(timeout $to) {
 	    my string $str;
 	    my int $c = 0;
 	    do {
@@ -792,38 +851,54 @@ $msg.addAttachment($att);
 
 	private hash sendMessageIntern(SmtpClient::Message $message) {
 	    # open connection to server
-	    $.connect();
-	    my string $rep = $.readLine(ReadTimeout);
-	    $.logDbg("connect reply: %n", trim($rep));
-	    
-	    # send helo string
-	    $rep = $.sendCommand("HELO %s", gethostname());
-	    my hash $rh = $.parseReply($rep);
-	    if ($rh.code >= 500)
-		throw "SMTP-DATA-EXCEPTION", sprintf("error on sending HELO command: %n", $rh);
+	    if (!$.isConnected()) {
+		$.connect();
+		my string $rep = $.readLine(ReadTimeout);
+		$.logDbg("connect reply: %y", trim($rep));
+		$.esmtp = ($rep =~ /ESMTP/);
+	    }
 
-	    my hash $reply.HELO = $rh;
-	    
-	    # send sender
-	    $rep = $.sendCommand("MAIL FROM: %s", $message.getFrom());
-	    $rh = $.parseReply($rep);
+	    # send HELO/EHLO string
+	    my string $hello = $.esmtp ? "EHLO" : "HELO";
+	    my hash $rh = $.sendCommand($hello + "  %s", gethostname());
 	    if ($rh.code >= 500)
-		throw "SMTP-DATA-EXCEPTION", sprintf("error on sending FROM command: %n", $rh);
+		throw "SMTP-DATA-EXCEPTION", sprintf("error sending %s command: %y", $hello, $rh);
+
+	    my hash $reply.$hello = $rh;
+
+	    # issue STARTTLS and upgrade to a TLS connection if the tls flag is set and we are not already secure
+	    if ($.tls && !$.sock.isSecure()) {
+		$rh = $.sendCommand("STARTTLS");
+		if ($rh.code >= 500)
+		    throw "SMTP-DATA-EXCEPTION", sprintf("error sending STARTTLS command: %y", $rh);
+
+		$.sock.upgradeClientToSSL();
+		$.logDbg("upgrade to TLS/SSL connection %s %s", $.sock.getSSLCipherName(), $.sock.getSSLCipherVersion());
+	    }
 	    
+	    # issue login if credentials supplied and we have not already logged in
+	    if (!$.logged_in && !$.user.empty()) {
+		$rh = $.sendCommand("AUTH PLAIN %s", makeBase64String(binary($.user) + <00> + binary($.user) + <00> + binary($.pass)));
+		if ($rh.code != 235)
+		    throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", $rh);
+	    }
+
+	    $rh = $.sendCommand("MAIL FROM: <%s>", $message.getFrom());
+	    if ($rh.code >= 500)
+		throw "SMTP-DATA-EXCEPTION", sprintf("error sending FROM command: %y", $rh);
+
 	    # send receipient
 	    foreach my string $rcpt in ($message.getRecipients()) {
-		$rep = $.sendCommand("RCPT TO: %s", $rcpt);
-		$rh = $.parseReply($rep);
+		$rh = $.sendCommand("RCPT TO: <%s>", $rcpt);
 		$reply.RCPT.$rcpt = $rh;
 		if ($rh.code >= 500)
-		    throw "SMTP-DATA-EXCEPTION", sprintf("error on sending RCPT command: %n", $rh);
+		    throw "SMTP-DATA-EXCEPTION", sprintf("error sending RCPT command: %y", $rh);
 	    }
 
 	    # send data
-	    $rep = $.sendCommand("DATA");
-	    $rh = $.parseReply($rep);
+	    $rh = $.sendCommand("DATA");
 	    if ($rh.code != 354)
-		throw "SMTP-DATA-EXCEPTION", sprintf("error on sending DATA command (expected code 354): %n", $rh);
+		throw "SMTP-DATA-EXCEPTION", sprintf("error sending DATA command (expected code 354): %y", $rh);
 
 	    # From: (sender)
 	    $.sendData("From: %s\r\n", $message.getSender());
@@ -867,7 +942,7 @@ $msg.addAttachment($att);
 	/** @param message the Message to send
 
 	    @return a hash of data returned by the SMTP server (the return structure hashes described below are made up of the following keys: \c "code": the return code, \c "desc": the string description):
-	    - \c HELO: a hash of the reply received from the HELO command
+	    - \c HELO or \c EHLO: a hash of the reply received from the HELO or \c EHLO command
 	    - \c RCPT: hash keyed by email address with hash return structures values for the RCPT TO command   
 	    - \c MSGID: return structure after the send; generally contains message id
 	    - \c QUIT: the server response of the disconnect command
@@ -878,13 +953,12 @@ $msg.addAttachment($att);
 		throw "ARGUMENT-EXCEPTION", "Message is not ready to be sent";
 
 	    if ($.log_debug.val())
-		$.logDbg("SmtpClient sendMessage: %s", $message.toLine());
+		$.logDbg("message: %s", $message.toLine());
 	    
 	    # lock for sending
 	    my AutoLock $am($.mutex);
 
 	    my hash $reply;
-	    my $rep;
 	    try {
 		$reply = $.sendMessageIntern($message);
 
@@ -922,17 +996,15 @@ $msg.addAttachment($att);
 		}
 
 		# end of data
-		$rep = $.sendCommand(".");
-		$rep = $.parseReply($rep);
-		$reply.MSGID = $rep;
+		my hash $rh = $.sendCommand(".");
+		$reply.MSGID = $rh;
 
 		# quit
-		$rep = $.sendCommand("QUIT");
-		$rep = $.parseReply($rep);
-		$reply.QUIT = $rep;
+		$rh = $.sendCommand("QUIT");
+		$reply.QUIT = $rh;
 	    }
 	    catch($ex) {
-		$.logDbg("SmtpClient sendMessage error: %s: %s", $ex.err, $ex.desc);
+		$.logDbg("send error: %s: %s", $ex.err, $ex.desc);
 		$.forceDisconnect();
 		rethrow;
 	    }
@@ -950,13 +1022,12 @@ $msg.addAttachment($att);
 		throw "ARGUMENT-EXCEPTION", "Message is not ready to be sent";
 
 	    if ($.log_debug.val())
-		$.logDbg("SmtpClient sendMHTMessage: %s", $message.toLine());
+		$.logDbg("MHTMessage: %s", $message.toLine());
 	    
 	    # lock for sending
 	    my AutoLock $am($.mutex);
 
 	    my hash $reply;
-	    my $rep;
 	    try {
 		$reply = $.sendMessageIntern($message);
 		
@@ -965,17 +1036,15 @@ $msg.addAttachment($att);
 		$.sendData("\r\n");
 
 		# send end of data
-		$rep = $.sendCommand(".");
-		$rep = $.parseReply($rep);
-		$reply.'MSGID' = $rep;
+		my hash $rh = $.sendCommand(".");
+		$reply.MSGID = $rh;
 
 		# quit
-		$rep = $.sendCommand("QUIT");
-		$rep = $.parseReply($rep);
-		$reply.'QUIT' = $rep;
+		$rh = $.sendCommand("QUIT");
+		$reply.QUIT = $rh;
 	    }
 	    catch($ex) {
-		$.logDbg("SmtpClient sendMHTMessage error: %s: %s", $ex.err, $ex.desc);
+		$.logDbg("MHTMessage error: %s: %s", $ex.err, $ex.desc);
 		$.forceDisconnect();
 		rethrow;
 	    }

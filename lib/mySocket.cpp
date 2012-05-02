@@ -449,11 +449,21 @@ void mySocket::setCertificate(QoreSSLCertificate *c) {
 }
 
 // p must be already referenced before this call
-void mySocket::setPrivateKey(class QoreSSLPrivateKey *p) {
+void mySocket::setPrivateKey(QoreSSLPrivateKey *p) {
    AutoLocker al(m);
    if (pk)
       pk->deref();
    pk = p;
+}
+
+void mySocket::upgradeClientToSSL(ExceptionSink* xsink) {
+   AutoLocker al(m);
+   socket->upgradeClientToSSL(cert ? cert->getData() : 0, pk ? pk->getData() : 0, xsink);
+}
+
+void mySocket::upgradeServerToSSL(ExceptionSink* xsink) {
+   AutoLocker al(m);
+   socket->upgradeServerToSSL(cert ? cert->getData() : 0, pk ? pk->getData() : 0, xsink);
 }
 
 void mySocket::setEventQueue(Queue *cbq, ExceptionSink *xsink) {

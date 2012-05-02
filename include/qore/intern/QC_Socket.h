@@ -178,6 +178,11 @@ public:
    DLLLOCAL void setAccept(QoreObject *o) {
       socket->setAccept(o);
    }
+
+   DLLLOCAL void upgradeClientToSSL(ExceptionSink* xsink);
+
+   DLLLOCAL void upgradeServerToSSL(ExceptionSink* xsink);
+
 };
 
 #endif // _QORE_CLASS_QORESOCKET_H

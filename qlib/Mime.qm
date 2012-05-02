@@ -87,10 +87,12 @@ public namespace Mime {
 	"bin": MimeTypeUnknown,
 	"bmp": "image/bmp",
 	"bz2": "application/x-bzip",
+	"cc": MimeTypeText,
 	"cdf": "application/x-netcdf",
 	"cgm": "image/cgm",
 	"class": MimeTypeUnknown,
 	"cpio": "application/x-cpio",
+	"cpp": MimeTypeText,
 	"cpt": "application/mac-compactpro",
 	"csh": "application/x-csh",
 	"css": "text/css",
@@ -117,7 +119,10 @@ public namespace Mime {
 	"grxml": "application/srgs+xml",
 	"gtar": "application/x-gtar",
 	"gz": "application/x-gzip",
+	"h": MimeTypeText,
 	"hdf": "application/x-hdf",
+	"hh": MimeTypeText,
+	"hpp": MimeTypeText,
 	"hqx": "application/mac-binhex40",
 	"htm": MimeTypeHtml,
 	"html": MimeTypeHtml,
@@ -267,7 +272,7 @@ public namespace Mime {
     /** @param str the string to encode
 	@param len the maximum line length
      */
-    public string sub mime_encode_base64(string $str, int $len = 76) {
+    public string sub mime_encode_base64(data $str, int $len = 76) {
 	return makeBase64String($str, $len);
     }
 

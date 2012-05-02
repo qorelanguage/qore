@@ -2100,3 +2100,20 @@ hash Socket::getPeerInfo() {
 hash Socket::getSocketInfo() {
    return s->getSocketInfo(xsink);
 }
+
+//! Upgrades a client socket connection to a TLS/SSL connection
+/** @par Example:
+    @code $sock.upgradeClientToSSL(); @endcode
+ */
+nothing Socket::upgradeClientToSSL() {
+   s->upgradeClientToSSL(xsink);
+}
+
+//! Upgrades a server socket connection to a TLS/SSL connection
+/** @par Example:
+    @code $sock.upgradeServerToSSL(); @endcode
+ */
+nothing Socket::upgradeServerToSSL() {
+   s->upgradeServerToSSL(xsink);
+}
+
