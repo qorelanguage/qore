@@ -118,9 +118,11 @@ class mail {
 	       " -c,--cc=ARG       an email address for the CC: line\n"
 	       " -f,--from=ARG     an email address for the sender\n"
 	       " -h,--help         this help text\n"
+	       " -p,--pass=ARG     password for authenticated connections\n"
 	       " -s,--subject=ARG  the subject of the message (required)\n"
 	       " -S,--ssl          use a TLS/SSL connection to the SMTP server\n"
 	       " -t,--to=ARG       an email address for the To: line\n",	       
+	       " -u,--user=ARG     username for authenticated connections\n"
 	       get_script_name());
 	exit(1);
     }

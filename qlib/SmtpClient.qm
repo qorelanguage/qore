@@ -577,6 +577,7 @@ $msg.addAttachment($att);
 	    # connect string
 	    string $.connect;
 
+	    # ensures exclusive access to the object
 	    Mutex $.mutex();
 	    
 	    bool $.nosend = False;
@@ -690,6 +691,7 @@ $msg.addAttachment($att);
 
 	#! connect to the server
   	connect() {
+	    my AutoLock $am($.mutex);
 	    $.sock.connect($.connect);
   	}
   	
@@ -700,6 +702,7 @@ $msg.addAttachment($att);
   	
 	#! disconnect from the server
   	disconnect() {
+	    my AutoLock $am($.mutex);
 	    if ($.isConnected()) {
 		$.sock.close();
 		$.sock.shutdown();
