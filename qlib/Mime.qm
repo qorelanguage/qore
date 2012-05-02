@@ -31,6 +31,7 @@ module Mime {
     url = "http://qore.org";
 }
 
+#! public Mime namespace defines constants relevant to MIME
 public namespace Mime {
     #! MIME type for unknown file types
     public const MimeTypeUnknown = "application/octet-stream";
@@ -50,7 +51,7 @@ public namespace Mime {
     #! MIME type for png images
     public const MimeTypePng = "image/png";
 
-    #! Mime type for SOAP XML messages
+    #! Mime type for SOAP XML messages (XML MIME type reference: http://tools.ietf.org/html/rfc3023)
     public const MimeTypeSoapXml = "application/soap+xml";
 
     #! Mime type for yaml data files

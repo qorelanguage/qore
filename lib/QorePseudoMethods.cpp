@@ -34,11 +34,13 @@
 #include "Pseudo_QC_Object.cpp"
 #include "Pseudo_QC_Date.cpp"
 #include "Pseudo_QC_Binary.cpp"
+#include "Pseudo_QC_Callref.cpp"
+#include "Pseudo_QC_Closure.cpp"
 
 #include "intern/QoreClassIntern.h"
 
-// list of pseudo-classes for basic types
-static QoreClass* po_list[NODE_ARRAY_LEN];
+// list of pseudo-classes for basic types + 2 entries for closures and call references
+static QoreClass* po_list[NODE_ARRAY_LEN + 2];
 
 // int <x>.typeCode()
 static int64 PSEUDONOTHING_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
@@ -49,8 +51,8 @@ static int64 PSEUDONULL_typeCode(QoreObject *ignored, AbstractQoreNode *node, co
 }
 
 // create pseudo-class for type
-static QoreClass *do_type_code(const char *name, q_method_int64_t f) {
-   QoreClass *qc = new QoreClass(name);
+static QoreClass* do_type_code(const char *name, q_method_int64_t f) {
+   QoreClass* qc = new QoreClass(name);
    qc->addBuiltinVirtualBaseClass(QC_PSEUDOVALUE);
    qc->addMethodExtended3("typeCode", f, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
    return qc;
@@ -74,24 +76,35 @@ void pseudo_classes_init() {
    po_list[NT_LIST] = initPseudoListClass();
    po_list[NT_HASH] = initPseudoHashClass();
    po_list[NT_OBJECT] = initPseudoObjectClass();
+
+   // + 2 pseudo classes with runtime type values outside the value type range
+   po_list[NODE_ARRAY_LEN] = initPseudoCallrefClass();
+   po_list[NODE_ARRAY_LEN + 1] = initPseudoClosureClass();
 }
 
 void pseudo_classes_del() {
    // delete pseudo-classes
-   for (unsigned i = 0; i < NODE_ARRAY_LEN; ++i)
+   for (unsigned i = 0; i < NODE_ARRAY_LEN + 2; ++i)
       delete po_list[i];
 
    delete QC_PSEUDOVALUE;
 }
 
 // return the pseudo class for the given type
-static QoreClass *pseudo_get_class(qore_type_t t) {
+static QoreClass* pseudo_get_class(qore_type_t t) {
    assert(t >= 0);
-   return t < NODE_ARRAY_LEN ? po_list[t] : QC_PSEUDOVALUE;
+   if (t < NODE_ARRAY_LEN)
+      return po_list[t];
+   if (t == NT_FUNCREF)
+      return po_list[NODE_ARRAY_LEN];
+   if (t == NT_RUNTIME_CLOSURE)
+      return po_list[NODE_ARRAY_LEN + 1];
+
+   return QC_PSEUDOVALUE;
 }
 
 // return the pseudo class for the given node
-static QoreClass *pseudo_get_class(const AbstractQoreNode *n) {
+static QoreClass* pseudo_get_class(const AbstractQoreNode *n) {
    return pseudo_get_class(get_node_type(n));
 }
 
@@ -115,19 +128,19 @@ double pseudo_classes_double_eval(const AbstractQoreNode *n, const char *name, c
    return qore_class_private::floatEvalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
 }
 
-const QoreMethod *pseudo_classes_find_method(qore_type_t t, const char *mname, QoreClass *&qc) {
-   QoreClass *nqc = pseudo_get_class(t);
+const QoreMethod* pseudo_classes_find_method(qore_type_t t, const char *mname, QoreClass* &qc) {
+   QoreClass* nqc = pseudo_get_class(t);
 
-   const QoreMethod *m = nqc->findMethod(mname);
+   const QoreMethod* m = nqc->findMethod(mname);
    if (m)
       qc = nqc;
    return m;
 }
 
-const QoreMethod *pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const char *mname, QoreClass *&qc, bool &possible_match) {
+const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const char *mname, QoreClass* &qc, bool &possible_match) {
    assert(typeInfo->hasType());
 
-   const QoreMethod *m;
+   const QoreMethod* m;
    if (typeInfo->returnsSingle()) {
       m = pseudo_classes_find_method(typeInfo->getSingleType(), mname, qc);
       possible_match = m ? true : false;
@@ -136,7 +149,7 @@ const QoreMethod *pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const
 
    possible_match = false;
    const type_vec_t &tv = typeInfo->getReturnTypeList();
-   QoreClass *nqc;
+   QoreClass* nqc;
    for (type_vec_t::const_iterator i = tv.begin(), e = tv.end(); i != e; ++i) {
       if (!(*i)->returnsSingle()) {
 	 pseudo_classes_find_method(*i, mname, nqc, possible_match);

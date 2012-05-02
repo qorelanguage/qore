@@ -1,0 +1,67 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Pseudo_QC_callref.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+
+//! Methods in this pseudo-class can be executed on @ref call_reference "call references"
+/** 
+ */
+qclass <callref> [arg=ResolvedCallReferenceNode* c;vparent=<value>];
+
+//! Returns Qore::NT_CALLREF
+/** 
+    @return Qore::NT_CALLREF
+
+    @par Example:
+    @code
+switch ($c.typeCode()) {
+    case NT_CALLREF:
+        printf("%y: is a call reference\n", $c);
+        break;
+}
+    @endcode
+*/
+int <callref>::typeCode() [flags=CONSTANT] {
+   return NT_FUNCREF;
+}
+
+//! Returns @ref True
+/** @return @ref True
+
+    @par Example:
+    @code
+my bool $b = $c.val();
+    @endcode
+*/
+bool <callref>::val() [flags=CONSTANT] {
+   return true;
+}
+
+//! Evaluates the code with the arguments given and returns the result
+/** @param ... the arguments to the code to be called
+
+    @return the return value of the code called
+*/
+any <callref>::exec(...) {
+   c->exec(args, xsink);
+}

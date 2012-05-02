@@ -134,7 +134,7 @@ $element3 = $hash{"keys"};
     - @ref object_type
     - @ref object_functions
 
-    @note each %Qore type has a "pseudo-class" associated with it (the default is @ref Qore::zzz8valuezzz9); methods from the data type's "pseudo-class" can be run on any value of that type; see "Pseudo Class for Type" headings in @ref basic_data_types for more information.
+    @note each %Qore type has a "pseudo-class" associated with it (the default is @ref Qore::zzz8valuezzz9); methods from the data type's "pseudo-class" can be run on any value of that type; see "Pseudo Class for Type" headings in @ref basic_data_types for more information.  Pseudo-methods can be overridden in classes; if a class implements a method with the same name and signature as an object pseudo-method, then the class' method will be executed instead of the pseudo-method.
 
     @section object_overview Object Overview
     The recommend way to instantiate an object is to declare its type and give constructor arguments after the variable name in parentheses as follows:

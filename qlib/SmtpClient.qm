@@ -92,7 +92,7 @@ public namespace SmtpClient {
     #! base-64 content transfer encoding
     public const EncBase64 = "base64";
 
-    #! "quoted-printable" content transfer encoding
+    # "quoted-printable" content transfer encoding
     #const EncQuotedPrintable = "quoted-printable";
 
     public const Encodings = (
@@ -462,17 +462,22 @@ public namespace SmtpClient {
 	    
 	    bool $.nosend = False;
 
-	    # log closure
-	    *code $.logc;
+	    #! optional info log closure
+	    *code $.log_info;
+
+	    #! optional debug log closure
+	    *code $.log_debug;
 	}
 
 	public {
-	    string $.hash = replace(makeBase64String(string(now())), "=", "");
+	    #! create a different separator string every time based on the current time
+	    string $.hash = replace(makeBase64String(string(now_us())), "=", "");
 	}
 
-	# create class with basic settings
-	constructor(string $host, softint $port, *code $logc) {
-	    $.logc = $logc;
+	# create object with basic settings
+	constructor(string $host, softint $port, *code $log, *code $dbglog) {
+	    $.log_info = $log;
+	    $.log_debug = $dbglog;
 	    $.connect = sprintf("%s:%d", $host, $port);
 	}
 
@@ -493,6 +498,14 @@ public namespace SmtpClient {
 	    }
 	    $.connect = $connect;
 	    #$.log(LL_DEBUG_1, "SmtpClient::constructor() connect = %y", $.connect);
+	}
+
+	log(string $msg) {
+	    $.log_info(vsprintf($msg, $argv));
+	}
+
+	logDbg(string $msg) {
+	    $.log_debug(vsprintf($msg, $argv));
 	}
 
 	# connect to the server

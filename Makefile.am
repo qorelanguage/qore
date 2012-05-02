@@ -12,7 +12,8 @@ SUBDIRS = lib
 INCLUDES = -I$(top_srcdir)/include
 
 USER_MODULES = qlib/HttpServer.qm \
-	qlib/Smtp.qm
+	qlib/SmtpClient.qm \
+	qlib/Mime.qm
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC
@@ -57,6 +58,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/Pseudo_QC_Bool.qpp \
 	lib/Pseudo_QC_Int.qpp \
 	lib/Pseudo_QC_Float.qpp \
+	lib/Pseudo_QC_Closure.qpp \
+	lib/Pseudo_QC_Callref.qpp \
 	lib/ql_misc.qpp \
 	lib/ql_compression.qpp \
 	lib/ql_thread.qpp \
