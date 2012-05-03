@@ -50,8 +50,8 @@
 #endif
 #endif
 
-// use SIGCHLD for the status signal
-#define QORE_STATUS_SIGNAL SIGSYS //SIGCHLD
+// use SIGSYS for the status signal
+#define QORE_STATUS_SIGNAL SIGSYS
 
 class QoreSignalHandler {
 private:
@@ -80,11 +80,11 @@ class QoreSignalManager {
    friend class QoreSignalManagerBusyHelper;
 
 private:
-   bool is_enabled;      // signal handling enabled?
-   pthread_t ptid;       // handler thread
-   int tid;              // handler thread TID
-   QoreCounter tcount;   // thread counter, for synchronization only
-   QoreCondition cond;   // to ensure atomicity of set and remove calls
+   bool is_enabled;        // signal handling enabled?
+   pthread_t ptid;         // handler thread
+   int tid;                // handler thread TID
+   QoreCounter tcount;     // thread counter, for synchronization only
+   QoreCondition cond;     // to ensure atomicity of set and remove calls
    bool block;
    int waiting;
       

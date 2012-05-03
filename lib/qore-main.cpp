@@ -108,9 +108,6 @@ void qore_cleanup() {
    // first delete all user modules
    QMM.delUser();
 
-   // delete thread-local data
-   delete_thread_local_data();
-
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
    WSACleanup();
 #endif
@@ -128,6 +125,9 @@ void qore_cleanup() {
 
    // delete all loadable modules
    QMM.cleanup();
+
+   // delete thread-local data
+   delete_thread_local_data();
 
    // now free memory (like ARGV, QORE_ARGV, ENV, etc)
    delete_global_variables();

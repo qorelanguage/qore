@@ -35,6 +35,9 @@ QoreSignalManager QSM;
 void QoreSignalHandler::set(int sig, const ResolvedCallReferenceNode *n_funcref) {
    funcref = const_cast<ResolvedCallReferenceNode *>(n_funcref);
    funcref->ref();
+   QoreProgram* pgm = funcref->getProgram();
+   if (pgm)
+      pgm->ref();
 }
 
 void QoreSignalHandler::init() {
@@ -44,8 +47,15 @@ void QoreSignalHandler::init() {
 
 // must be called in the signal lock
 void QoreSignalHandler::del(int sig, ExceptionSink *xsink) {
-   if (funcref)
+   if (funcref) {
+      QoreProgram* pgm = funcref->getProgram();
+      if (pgm)
+         pgm->deref(xsink);
+
       funcref->deref(xsink);
+      --QSM.num_handlers;
+      assert(QSM.num_handlers >= 0);
+   }
    init();
 }
 
@@ -127,13 +137,13 @@ void QoreSignalManager::del() {
 	 handlers[i].status = QoreSignalHandler::SH_Delete;
       else // must be called in the signal lock
 	 handlers[i].del(i, &xsink);
-      --num_handlers;
    }
 
-   if (!running())
-      return;
+   // can be called if it's already stopped...
+   stop_signal_thread_unlocked();
    sl.unlock();
-   stop_signal_thread();
+   tcount.waitForZero();
+   assert(!num_handlers);
 }
 
 // must only be called inside the lock
@@ -453,8 +463,6 @@ int QoreSignalManager::removeHandler(int sig, ExceptionSink *xsink) {
       handlers[sig].status = QoreSignalHandler::SH_Delete;
    else // must be called in the signal lock
       handlers[sig].del(sig, xsink);
-   --num_handlers;
-   
    return 0;
 }
 
