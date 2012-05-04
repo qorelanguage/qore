@@ -1441,12 +1441,12 @@ int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
    }
 
    if (classList.find(oc->getName())) {
-      parse_error("class '%s' already exists in namespace '%s'", oc->getName(), name.c_str());
+      parse_error("class '%s' already exists in namespace '%s::'", oc->getName(), name.c_str());
       return -1;
    }
 
    if (pendClassList.add(oc)) {
-      parse_error("class '%s' is already pending in namespace '%s'", oc->getName(), name.c_str());
+      parse_error("class '%s' is already pending in namespace '%s::'", oc->getName(), name.c_str());
       return -1;
    }
 

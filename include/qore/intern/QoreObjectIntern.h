@@ -190,8 +190,9 @@ public:
 	 disappear when the program is deleted
       */
       if (p) {
-	 printd(5, "qore_object_private::qore_object_private() obj=%p (%s) calling QoreProgram::depRef() (%p)\n", obj, theclass->getName(), p);
-	 p->depRef();
+	 printd(5, "qore_object_private::qore_object_private() obj=%p (%s) calling QoreProgram::ref() (%p)\n", obj, theclass->getName(), p);
+	 //p->depRef();
+         p->ref();
       }
    }
 
@@ -504,7 +505,8 @@ public:
          if (pgm) {
             if (pgm_ref) {
                printd(5, "qore_object_private::cleanup() obj=%p (%s) calling QoreProgram::depDeref() (%p)\n", obj, theclass->getName(), pgm);
-               pgm->depDeref(xsink);
+               //pgm->depDeref(xsink);
+               pgm->deref(xsink);
             }
             pgm = 0;
          }
@@ -517,7 +519,8 @@ public:
       AutoLocker al(mutex);
 
       if (pgm && pgm_ref) {
-         pgm->depDeref(0);
+         //pgm->depDeref(0);
+         pgm->deref(0);
          pgm_ref = 0;
       }
    }

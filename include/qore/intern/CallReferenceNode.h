@@ -181,7 +181,8 @@ protected:
 public:
    DLLLOCAL FunctionCallReferenceNode(const QoreFunction *n_uf, QoreProgram *n_pgm) : LocalFunctionCallReferenceNode(n_uf, false), pgm(n_pgm) {      
       assert(pgm);
-      pgm->depRef();
+      //pgm->depRef();
+      pgm->ref();
    }
    DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
 };

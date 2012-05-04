@@ -188,6 +188,33 @@ void qore_program_private::internParseRollback() {
    pend_dom = 0;
 }
 
+// called when the program's ref count = 0 (but the dc count may not go to 0 yet)
+void qore_program_private::clear(ExceptionSink *xsink) {
+   // wait for all threads to terminate
+   waitForAllThreadsToTerminate();
+
+   // clear all signal handlers managed by this program
+   for (int_set_t::iterator i = sigset.begin(), e = sigset.end(); i != e; ++i)
+      QSM.removeHandler(*i, xsink);
+
+   // merge pending parse exceptions into the passed exception sink, if any
+   if (pendingParseSink) {
+      xsink->assimilate(pendingParseSink);
+      pendingParseSink = 0;
+   }
+
+   // delete all global variables
+   qore_root_ns_private::clearGlobalVars(*RootNS, xsink);
+
+   // clear thread data if base object
+   if (base_object)
+      clearThreadData(xsink);
+
+   clearProgramThreadData(xsink);
+
+   depDeref(xsink);
+}
+
 struct SaveParseLocationHelper : QoreProgramLocation {
    DLLLOCAL SaveParseLocationHelper() : QoreProgramLocation(get_parse_location()) {
    }
@@ -349,7 +376,7 @@ QoreThreadLock *QoreProgram::getParseLock() {
 }
 
 void QoreProgram::deref(ExceptionSink *xsink) {
-   printd(5, "QoreProgram::deref() this=%p %d->%d\n", this, reference_count(), reference_count() - 1);
+   //printd(5, "QoreProgram::deref() this=%p %d->%d\n", this, reference_count(), reference_count() - 1);
    if (ROdereference())
       priv->clear(xsink);
 }

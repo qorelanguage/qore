@@ -53,23 +53,76 @@
 // use SIGSYS for the status signal
 #define QORE_STATUS_SIGNAL SIGSYS
 
-class QoreSignalHandler {
-private:
-   ResolvedCallReferenceNode *funcref;
+class CodePgm {
+public:
+   ResolvedCallReferenceNode* funcref;
+   QoreProgram* pgm;
 
+   DLLLOCAL void setProgram(QoreProgram* n_pgm) {
+      assert(n_pgm);
+      pgm = n_pgm;
+      pgm->ref();
+      //printd(5, "CodePgm::setProgram() pgm: %p %d -> %d\n", pgm, pgm->reference_count() - 1, pgm->reference_count());
+   }
+
+   DLLLOCAL CodePgm() : funcref(0), pgm(0) {
+   }
+
+   DLLLOCAL CodePgm(ResolvedCallReferenceNode *f, QoreProgram* p) : funcref(f), pgm(p) {
+   }
+
+   // must be called in the signal lock
+   DLLLOCAL void set(const ResolvedCallReferenceNode *n_funcref, QoreProgram* n_pgm) {
+      assert(!funcref);
+      assert(!pgm);
+
+      funcref = n_funcref->refRefSelf();
+      setProgram(n_pgm);
+   }
+
+   // must be called in the signal lock
+   DLLLOCAL CodePgm replace(const ResolvedCallReferenceNode *n_funcref, QoreProgram* n_pgm) {
+      assert(funcref);
+      assert(pgm);
+      assert(n_funcref);
+      CodePgm rv(funcref, pgm);
+
+      funcref = n_funcref->refRefSelf();
+      setProgram(n_pgm);
+      return rv;
+   }
+
+   // must be called in the signal lock
+   DLLLOCAL CodePgm take() {
+      assert(funcref);
+      CodePgm rv(funcref, pgm);
+      funcref = 0;
+      pgm = 0;
+      return rv;
+   }
+
+   DLLLOCAL void del(ExceptionSink *xsink) {
+      if (funcref) {
+         funcref->deref(xsink);
+         assert(pgm);
+         //printd(5, "CodePgm::del() pgm: %p %d -> %d\n", pgm, pgm->reference_count() + 1, pgm->reference_count());
+         pgm->deref(xsink);
+      }
+   }
+};
+
+class QoreSignalHandler : public CodePgm {
 public:
    enum sh_status_e { SH_OK = 0, SH_InProgress = 1, SH_Delete = 2 };
    sh_status_e status;
 
    DLLLOCAL void init();
-   DLLLOCAL void set(int sig, const ResolvedCallReferenceNode *n_funcref);
-   DLLLOCAL void del(int sig, ExceptionSink *xsink);
    DLLLOCAL void runHandler(int sig, ExceptionSink *xsink);
    DLLLOCAL bool isSet() const {
       return (bool)funcref;
    }
    DLLLOCAL QoreProgram *getProgram() const {
-      return funcref->getProgram();
+      return pgm;
    }
 };
 

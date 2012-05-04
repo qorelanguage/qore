@@ -291,7 +291,10 @@ public:
    // parse lock, making parsing actions atomic and thread-safe
    mutable QoreThreadLock plock;
 
-   // depedency counter, when this hits zero, the object is deleted
+   // set of signals being handled by code in this Program (to be deleted on exit)
+   int_set_t sigset;
+
+   // dependency counter, when this hits zero, the object is deleted
    QoreReferenceCounter dc;
    ExceptionSink *parseSink, *warnSink, *pendingParseSink;
    RootQoreNamespace *RootNS;
@@ -448,27 +451,7 @@ public:
    }
 
    // called when the program's ref count = 0 (but the dc count may not go to 0 yet)
-   DLLLOCAL void clear(ExceptionSink *xsink) {
-      // wait for all threads to terminate
-      waitForAllThreadsToTerminate();
-
-      // merge pending parse exceptions into the passed exception sink, if any
-      if (pendingParseSink) {
-         xsink->assimilate(pendingParseSink);
-         pendingParseSink = 0;
-      }
-
-      // delete all global variables
-      qore_root_ns_private::clearGlobalVars(*RootNS, xsink);
-
-      // clear thread data if base object
-      if (base_object)
-         clearThreadData(xsink);
-
-      clearProgramThreadData(xsink);
-      
-      depDeref(xsink);
-   }
+   DLLLOCAL void clear(ExceptionSink *xsink);
 
    DLLLOCAL void incThreadCount() {
       // grab program-level lock
@@ -1221,6 +1204,18 @@ public:
          thr_init = n_thr_init ? n_thr_init->refRefSelf() : 0;
       }
       return (bool)old;
+   }
+
+   // locking is done by the signal manager
+   DLLLOCAL static void addSignal(QoreProgram& pgm, int sig) {
+      assert(pgm.priv->sigset.find(sig) == pgm.priv->sigset.end());
+      pgm.priv->sigset.insert(sig);
+   }
+
+   // locking is done by the signal manager
+   DLLLOCAL static void delSignal(QoreProgram& pgm, int sig) {
+      assert(pgm.priv->sigset.find(sig) != pgm.priv->sigset.end());
+      pgm.priv->sigset.erase(sig);
    }
 
    DLLLOCAL static void startThread(QoreProgram& pgm, ExceptionSink& xsink) {
