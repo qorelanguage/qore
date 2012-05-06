@@ -217,6 +217,8 @@
     |\c event|@ref Qore::EVENT_HOSTNAME_RESOLVED
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
+    |\c type|The type of address for the socket; one of the @ref network_address_family_constants
+    |\c typename|A descriptive name for the address family (ex: \c "ipv4", \c "ipv6")
     |\c address|A string giving the network address the name was resolved to.
 
     <hr>
@@ -318,6 +320,8 @@
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
     |\c type|The type of address for the socket; one of the @ref network_address_family_constants
+    |\c typename|A descriptive name for the address family (ex: \c "ipv4", \c "ipv6")
+   	|\c address|A string giving the target address (ex: \c "::1", \c "192.168.20.4")
     |\c target|The target address for the connection.
     |\c [port]|The target port for the connection; if not applicable for the address family then this hash key is not included.
 

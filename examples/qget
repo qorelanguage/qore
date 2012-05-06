@@ -1,4 +1,27 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file qget example program showing I/O event monitoring
+
+/*  get Copyright 2011 - 2012 David Nichols
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
 
 # This script is meant to demonstrate Qore's event support.  Currently only
 # socket events are supported (from the Socket, FtpClient, and HTTPClient
@@ -28,7 +51,7 @@
 # size
 
 # ensure we have the minimum version of qore we need
-%requires qore >= 0.7.1
+%requires qore >= 0.8.4
 
 %require-our
 %enable-all-warnings
@@ -65,23 +88,38 @@ sub myprintf($fmt) {
 # for an "EVENT_DELETED" event to stop listening and exit the thread.
 
 class QueueCallBack {
-    constructor($o, $url) {
+    private {
+        Queue $.queue();
+        Counter $.counter(1);
+
+        bool $.lookup = False;
+        int $.ignore = 0;
+        int $.total_read = 0;
+        int $.body_len = 0;
+        bool $.in_body = False;
+        int $.stime = 0;
+        int $.utime = 0;
+        string $.units;
+        float $.bps;
+    }
+
+    public {}
+
+    constructor(object $o, $url) {
 	myprintf("retrieving %s\n", $url);
-	$.queue = new Queue();
-	$.counter = new Counter(1);
 	$o.setEventQueue($.queue);
 	background $.listen();
     }
 
     # static function returning a string with key=value format for a hash
-    static getstr($h) {
-	my $str;
+    static string getstr(hash $h) {
+	my string $str;
 
 	# we create the string by mapping our string format function on a list
 	# of the hash keys.  this is more consise than iterating the keys with 
 	# a "foreach" statement, for example
 
-	map ($str += sprintf("%s=%n ", $1, $h.$1)), keys $h;
+	map ($str += sprintf("%s=%y ", $1, $h.$1)), keys $h;
 	return $str;
     }
 
@@ -92,7 +130,7 @@ class QueueCallBack {
 	    # least the following keys: "event" with the event code, and
 	    # "source" with the event source identifier
 
-	    my $e = $.queue.get();
+	    my hash $e = $.queue.get();
 
 	    # if the source object is deleted, then stop listening for events
 	    if ($e.event == EVENT_DELETED) {
@@ -115,14 +153,14 @@ class QueueCallBack {
 
 	    switch ($e.event) {
 		case EVENT_HOSTNAME_LOOKUP: {
-		if (!$.lookup)
+                    if (!$.lookup)
 			myprintf("resolving %s: ", $e.name);
 		    break;
 		}
 
 		case EVENT_HOSTNAME_RESOLVED: {
 		    if (!$.lookup) {
-			myprintf("%s\n", $e.address);
+			myprintf("%s\n", $e.address, $e);
 			$.lookup = True;
 		    }
 		    break;
@@ -180,7 +218,7 @@ class QueueCallBack {
     
     # display a running total of the download
     update_total() {
-	my $now = clock_getmillis();
+	my int $now = clock_getmillis();
 	if (!exists $.stime) {
 	    $.stime = $now;
 	    $.utime = $now;
@@ -189,7 +227,7 @@ class QueueCallBack {
 	else {
 	    if (!$.bps || $now - $.utime > 250 || $.total_read == $.body_len) {
 		$.utime = $now;
-		if (my $diff = $now - $.stime) {
+		if (my int $diff = $now - $.stime) {
 		    $.bps = 1000 * $.total_read / float($diff);
 
 		    if ($.bps > 1024 * 1024 * 1024) {
@@ -211,7 +249,7 @@ class QueueCallBack {
 	}
 
 	if ($.body_len) {
-	    my $nh = $.total_read * 50 / float($.body_len); 
+	    my float $nh = $.total_read * 50 / float($.body_len); 
 	    myprintf("\r%3d% %s%s %f %s (%d/%d)    ", $.total_read * 100 / float($.body_len), substr(cstr, 0, $nh), substr(bstr, $nh), $.bps, $.units, $.total_read, $.body_len);
 	}
 	else {

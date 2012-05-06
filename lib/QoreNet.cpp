@@ -82,8 +82,11 @@ int q_addr_to_string2(const struct sockaddr* ai_addr, QoreString& str) {
       addr = &(ipv6->sin6_addr);
       str.reserve(slen + INET6_ADDRSTRLEN + 1);
    }
-   else
-      return -1;
+   else if (ai_addr->sa_family == AF_UNIX) {
+      struct sockaddr_un* un = (struct sockaddr_un*)ai_addr;
+      str.concat(un->sun_path);
+      return 0;
+   }
 
    if (!inet_ntop(ai_addr->sa_family, addr, (char *)(str.getBuffer() + slen), str.capacity() - slen))
       return -1;
@@ -152,6 +155,29 @@ int q_gethostbyname(const char *host, struct in_addr *sin_addr) {
 #endif
 
    return 0;
+}
+
+void q_af_to_hash(int af, QoreHashNode& h, ExceptionSink* xsink) {
+   h.setKeyValue("type", new QoreBigIntNode(af), xsink);
+   QoreStringNode* str;
+   switch (af) {
+      case AF_INET:
+	 str = new QoreStringNode("ipv4");
+	 break;
+
+      case AF_INET6:
+	 str = new QoreStringNode("ipv6");
+	 break;
+
+      case AF_UNIX:
+	 str = new QoreStringNode("unix");
+	 break;
+
+      default:
+	 str = new QoreStringNode("unknown");
+	 break;
+   }
+   h.setKeyValue("typename", str, xsink);
 }
 
 static QoreHashNode *he_to_hash(struct hostent &he) {

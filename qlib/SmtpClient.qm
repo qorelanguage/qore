@@ -1,4 +1,4 @@
-# -*- mode: qore; indent-tabs-mode nil -*-
+# -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SmtpClient.qm SmtpClient module definition
 
 /*  SmtpClient.qm Copyright 2012 Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok

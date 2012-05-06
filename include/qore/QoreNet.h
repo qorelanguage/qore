@@ -84,6 +84,9 @@ DLLEXPORT int q_get_port_from_addr(const struct sockaddr *ai_addr);
 //! returns address info as a hash
 DLLEXPORT QoreListNode *q_getaddrinfo_to_list(ExceptionSink *xsink, const char *node, const char *service, int family = Q_AF_UNSPEC, int flags = 0, int socktype = Q_SOCK_STREAM);
 
+//! adds the address family as "type" and a descriptive name as "typename" to the hash; writes "unknown" if the address family is unknown
+DLLEXPORT void q_af_to_hash(int af, QoreHashNode& h, ExceptionSink* xsink);
+
 //! provides an interface to getaddrinfo
 class QoreAddrInfo {
 protected:

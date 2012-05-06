@@ -798,13 +798,18 @@ struct qore_socket_private {
       }
    }
 
-   DLLLOCAL void do_connect_event(int af, const char *target, const char *service = 0, int prt = -1) {
+   DLLLOCAL void do_connect_event(int af, const struct sockaddr* addr, const char *target, const char *service = 0, int prt = -1) {
       if (cb_queue) {
 	 QoreHashNode *h = new QoreHashNode;
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CONNECTING), 0);
 	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 h->setKeyValue("type", new QoreBigIntNode(af), 0);
+         QoreStringNode *str = q_addr_to_string2(addr);
+          if (str)
+             h->setKeyValue("address", str, 0);
+          else
+             h->setKeyValue("error", q_strerror(sock_get_error()), 0);
+         q_af_to_hash(af, *h, 0);
 	 h->setKeyValue("target", new QoreStringNode(target), 0);
 	 if (service)
 	    h->setKeyValue("service", new QoreStringNode(service), 0);
@@ -933,6 +938,7 @@ struct qore_socket_private {
 	 int prt = q_get_port_from_addr(addr);
 	 if (prt > 0)
 	    h->setKeyValue("port", new QoreBigIntNode(prt), 0);
+	 q_af_to_hash(addr->sa_family, *h, 0);
 	 cb_queue->pushAndTakeRef(h);
       }
    }
@@ -966,7 +972,7 @@ struct qore_socket_private {
 	 return -1;
       }
 	 
-      do_connect_event(AF_UNIX, p);
+      do_connect_event(AF_UNIX, (sockaddr*)&addr, p);
       while (true) {
 	 if (!::connect(sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un)))
 	    break;
@@ -1235,7 +1241,7 @@ struct qore_socket_private {
 	    return -1;
 	 }
 
-	 do_connect_event(ai_family, host, service, prt);
+	 do_connect_event(ai_family, ai_addr, host, service, prt);
 
 	 rc = connectINETTimeout(timeout_ms, ai_addr, ai_addrlen, xsink, only_timeout);
 	 //printd(5, "qore_socket_private::connectINETIntern() errno=%d rc=%d, xsink=%d\n", errno, rc, xsink && *xsink);
@@ -1247,7 +1253,7 @@ struct qore_socket_private {
 	 }
       }
       else {
-	 do_connect_event(ai_family, host, service, prt);
+	 do_connect_event(ai_family, ai_addr, host, service, prt);
 
 	 while (true) {
 	    rc = ::connect(sock, ai_addr, ai_addrlen);
