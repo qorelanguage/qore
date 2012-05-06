@@ -1,11 +1,36 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file getopt.q GetOpt example program
+
+/*  getopt.q Copyright 2010 - 2012 David Nichols
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
 
 # require global variables to be declared
 %require-our
 %enable-all-warnings
 
-sub usage()
-{
+# do not use '$' symbols
+%new-style
+
+sub usage() {
     printf(
 "usage: %s [options]
   -s,--string=arg  returns a list of strings in 'string'
@@ -15,45 +40,41 @@ sub usage()
   -d,--date        returns a date value in 'date'
   -t               returns a boolean value in 'test'
   -o,--opt         returns an integer sum of arguments in 'opt'\n",
-	   basename($ENV."_"));
-    exit();
+	get_script_name());
+    exit(1);
 }
 
-sub process_command_line()
-{
-    if (!elements $ARGV)
+const Opts = 
+    ( # --string,-s will give a list of strings 
+      "string"  : "string,s=s@",  
+      # --int,-i    will give an added integer sum of the arguments
+      "int"     : "int,i=i+",
+      # --float,-f  will give a floating point value 
+      "float"   : "float,f=f",
+      # --bool,-b   will give a boolean value
+      "bool"    : "bool,b=b",
+      # --date,-d   will give a date value
+      "date"    : "date,d=d",
+      # -t          will give a boolean value
+      "test"    : "t",
+      # --opt,-o    will give an integer sum of arguments
+      "opt"     : "opt,o:i+",
+      "help"    : "help,h",
+    );
+
+sub process_command_line() {
+    if (!elements ARGV)
 	usage();
 
-    my $opts = 
-	( # --string,-s will give a list of strings 
-	  "string"  : "string,s=s@",  
-	  # --int,-t    will give an added integer sum of the arguments
-	  "int"     : "int,i=i+",
-	  # --float,-f  will give a floating point value 
-	  "float"   : "float,f=f",
-	  # --bool,-b   will give a boolean value
-	  "bool"    : "bool,b=b",
-	  # --date,-d   will give a date value
-          "date"    : "date,d=d",
-	  # --err       will give a list of strings
-	  #"err"     : "err=@",
-	  # -t          will give a boolean value
-	  "test"    : "t",
-	  # --opt,-o    will give an integer sum of arguments
-	  "opt"     : "opt,o:i+",
-	  "help"    : "help,h",
-	  #"err1"    : "err,e=+",
-	  #"err2"    : "x,err"
-	  );
-    my $g = new GetOpt($opts);
+    GetOpt g(Opts);
     # NOTE: by passing a reference to the list, the arguments parsed will be removed from the list
-    my $o = $g.parse(\$ARGV);
-    if ($o.help)
+    # NOTE: errors will cause the script to exit immediately with an informative message
+    hash o = g.parse3(\ARGV);
+    if (o.help)
 	usage();
     print("qore GetOpt class test script\n");
-    # NOTE: errors will be returned in the $o."_ERRORS_" structure
-    printf("o=%N\n", $o);
-    printf("ARGV=%N\n", $ARGV);
+    printf("o: %N\n", o);
+    printf("ARGV: %N\n", ARGV);
 }
 
 process_command_line();

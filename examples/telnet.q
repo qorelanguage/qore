@@ -1,4 +1,5 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 # @file telnet.q example program using the Telnet module
 
 /*  telnet.q Copyright 2012 David Nichols
@@ -46,6 +47,7 @@ class telnet {
 	# command-line options for GetOpt
 	const opts = (
 	    "help": "h,help",
+	    "timeout": "t,timeout=i",
 	    "user": "u,user=s",
 	    "verbose": "v,verbose",
 	    );
@@ -89,18 +91,21 @@ class telnet {
 	    if (opt.user.val())
 		telnet.setUser(opt.user);
 
-	    # connect to the server
-	    telnet.connect();
+	    # connect to the server - if no timeout was set on the command line, then the default timeout is used
+	    telnet.connect(opt.timeout);
 
-	    # do not process special keys once connected
+	    # do not process special keys locally like ^C, etc once connected
 	    term.unsetSpecial();
 
 	    # tell server we are willing to send terminal size info
 	    telnet.sendData((IAC,WILL,TOPT_NAWS));
 
 	    # update the window size on the server when the SIGWINCH signal arrives
-	    if (SIGWINCH)
-		set_signal_handler(SIGWINCH, sub () { printf("sigwinch\n");telnet.windowSizeUpdated(); });
+	    if (SIGWINCH) {
+		# note: it seems that Darwin will not deliver SIGINFO and SIGWINCH to Qore's background
+		#       signal-handling thread, so window resizing will not work with Darwin
+		set_signal_handler(SIGWINCH, sub () { telnet.windowSizeUpdated(); });
+	    }
 
 	    # we start a background thread for reading from the Telnet session
 	    background startReceive(telnet);
@@ -123,9 +128,10 @@ class telnet {
 	}
 	catch (hash ex) {
 	    # ignore NOT-CONNECTED-EXCEPTION as this happens when the server disconnects in the background
-	    if (ex.err != "NOT-CONNECTED-EXCEPTION")
+	    if (ex.err != "NOT-CONNECTED-EXCEPTION") {
 		printf("%s:%d: %s: %s\n", ex.file, ex.line, ex.err, ex.desc);
-	    exit(2);
+		exit(2);
+	    }	    
 	}
     }
 
@@ -157,13 +163,14 @@ class telnet {
     }
 
     static usage() {
-	printf("usage: %s [options] <Telnet>\n"
-	       "  where <Telnet> is a server address with an optional port (ex: telnet.com:25)\n"
+	printf("usage: %s [options] <server>\n"
+	       "  where <server> is a telnet server address (port optional, ex: telnet.com:25)\n"
 	       "options:\n"
 	       " -h,--help         this help text\n"
+	       " -t,--timeout=ARG  gives a connect timeout in ms (default: %y)\n"
 	       " -u,--user=ARG     set username\n"
 	       " -v,--verbose      show protocol negotiation messages\n",
-	       get_script_name());
+	       get_script_name(), Telnet::DefaultConnTimeout);
 	exit(1);
     }
 

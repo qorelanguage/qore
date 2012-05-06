@@ -197,13 +197,14 @@ GetOpt::constructor(hash options) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v);
       
       qore_type_t at = -1;
-      char *long_opt = 0, short_opt = '\0';
+      const char *long_opt = 0;
+      char short_opt = '\0';
       int attributes = QGO_OPT_NONE;
 
       // reset buffer
       vstr.clear();
       vstr.concat(str->getBuffer());
-      char *val = (char *)vstr.getBuffer();
+      const char* val = vstr.getBuffer();
 
       // get data type, if any
       char *tok = strchrs(val, "=:");
