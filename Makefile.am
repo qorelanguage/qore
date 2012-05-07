@@ -14,7 +14,7 @@ INCLUDES = -I$(top_srcdir)/include
 USER_MODULES = qlib/HttpServer.qm \
 	qlib/SmtpClient.qm \
 	qlib/Mime.qm \
-	qlib/Telnet.qm
+	qlib/TelnetClient.qm
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC

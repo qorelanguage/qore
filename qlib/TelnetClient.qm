@@ -1,7 +1,7 @@
-# -*- mode: qore; indent-tabs-mode nil -*-
-# @file Telnet.qm Telnet module definition
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file TelnetClient.qm Telnet module definition
 
-/*  Telnet.qm Copyright 2012 David Nichols
+/*  TelnetClient.qm Copyright 2012 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -27,14 +27,14 @@
     * ?: original author unknown
 */
 
-module Telnet {
+module TelnetClient {
        version = "1.0";
        desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
        author = "unknown";
        url = "http://qore.org";
 }
 
-public namespace Telnet {
+public namespace TelnetClient {
     # default telnet port
     public const TelnetPort = 23;
 
@@ -196,7 +196,7 @@ public namespace Telnet {
         TOPT_EXTOP : "Extended-Options-List",
 	);
 
-    public class Telnet {
+    public class TelnetClient {
   	private {
 	    # the connection string
 	    string $.connect;
@@ -207,8 +207,6 @@ public namespace Telnet {
 	    # to manage contention on the Socket
 	    Mutex $.m();
 	    
-	    bool $.terminalOpened = False; 
-
 	    # login user
 	    *string $.user;
 
@@ -223,7 +221,7 @@ public namespace Telnet {
 	#! no public members
 	public {}
 
-	#! creates the Telnet object
+	#! creates the TelnetClient object
 	/** @param host the hostname of the telnet server (use [hostname] to explicitly specify an ipv6 connection)
 	    @param port the port number of the telnet server
 	    @param log a closure for log messages
@@ -240,7 +238,7 @@ public namespace Telnet {
 	    $.logDbg("server: %y", $.connect);
 	}
 
-	#! creates the Telnet object
+	#! creates the TelnetClient object
 	/** @param connect the hostname of the Telnet server or a hostname:port specification (use [hostname] or [address] for ipv6 connections)
 	    @param log a closure for log messages
 	    @param dbglog a closure for debugging/technical log messages
@@ -319,24 +317,6 @@ public namespace Telnet {
 		throw "NOT-CONNECTED-EXCEPTION", "Cannot perform the operation without being connected to server!";
   	}
   	
-  	private list strToByteList(string $str, bool $double = False, bool $enc = False) {
-	    my list $result = ();
-	    for (my int $x = 0; $x < $str.size(); ++$x) {
-		my int $e = ord($str[$x]); 
-		$result += $e;
-		if ($double && $e == IAC)
-		    $result += $e;
-	    }
-	    return $result;
-  	}
-  	
-  	private string byteListToStr(list $arr) {
-	    my string $result = "";
-	    for (my int $x = 0; $x < elements $arr; $x++)
-		$result += chr($arr[$x]);
-	    return $result;
-  	}
-  	
   	sendData(softlist $arr) {
 	    my AutoLock $al($.m);
 	    $.checkConnIntern();
@@ -373,58 +353,6 @@ public namespace Telnet {
 	    my AutoLock $al($.m);
 	    $.checkConnIntern();
 	    $.sendTextDataIntern($str);
-  	}
-
-  	string openDumbTerminal(string $username, string $password, bool $executeSetupCommands = False, bool $doubleEntries = False) {
-	    my AutoLock $al($.m);
-	    $.checkConnIntern();
-	    
-	    # perform initial handshaking
-	    $.getAvailableDataIntern(); 		
-	    
-	    if ($executeSetupCommands) {
-		$.logDbg("--> sending SGA flag and DONT ECHO to server");
-		# set Suppress Go Ahead flag and do not echo the commands (do not echo password on terminal)
-		$.sendDataIntern((IAC,DO,TOPT_SUPP, IAC,DONT,TOPT_ECHO));
-	    }
-	    
-	    $.logDbg("--> sending USERNAME to server");
-	    $.sendTextDataIntern($username + "\r\n");
-	    my string $replyStr = $.getAvailableDataIntern();
-	    
-	    if ($doubleEntries) {
-		$.logDbg("--> sending DOUBLED USERNAME to server");
-		$.sendTextDataIntern($username + "\r\n");
-		$replyStr = $.getAvailableDataIntern();
-	    }
-	    
-	    $.logDbg("--> sending PASSWORD to server\n");
-	    $.sendTextDataIntern($password + "\r\n");
-	    $replyStr = $.getAvailableDataIntern();
-
-	    if ($doubleEntries) {	    
-		$.logDbg("--> sending DOUBLED PASSWORD to server\n");
-		$.sendTextDataIntern($password + "\r\n");
-		$replyStr = $.getAvailableDataIntern();
-	    }
-	    
-	    $.terminalOpened = True;
-	    return $replyStr; 
-  	}
-  	
-  	string sendCommand(string $cmd, bool $supressEcho = False) {
-	    my AutoLock $al($.m);
-	    $.checkConnIntern();
-	    if (!$.terminalOpened)
-		throw "TERMINAL-NOT-OPENED", "Dumb terminal not opened, please call Telnet::openDumbTerminal() first";
-	    
-	    if ($supressEcho) {
-		$.logDbg("requesting echo supress from server");
-		$.sendDataIntern((IAC,DONT,TOPT_ECHO));
-	    }
-
-	    $.sendTextDataIntern($cmd + "\r\n");	    
-	    return $.getAvailableDataIntern();
   	}
 
 	#! returns all data available as a string (which could be an empty string if no data is available in the timeout period) or NOTHING if the connection was closed by the remote end

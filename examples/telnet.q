@@ -1,6 +1,6 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file telnet.q example program using the Telnet module
+# @file telnet.q example program using the TelnetClient module
 
 /*  telnet.q Copyright 2012 David Nichols
 
@@ -24,9 +24,9 @@
 */
 
 /*  Version History
-    * 1.0: initial example program showing usage of the Telnet user module
+    * 1.0: initial example program showing usage of the TelnetClient user module
 
-    This is a very simple telnet client program using the Telnet user module.
+    This is a very simple telnet client program using the TelnetClient user module.
     To exit the client, just type ^] (ie ctrl-])
 
     Note that there is a bug on Darwin where SIGWINCH is not delivered to 
@@ -39,8 +39,8 @@
 # execute the telnet class as the application object
 %exec-class telnet
 
-# use the Telnet module
-%requires Telnet >= 1.0
+# use the TelnetClient module
+%requires TelnetClient >= 1.0
 
 class telnet {
     private {
@@ -85,7 +85,7 @@ class telnet {
 	    Term term();
 
 	    # create the telnet client object
-	    Telnet telnet(server, \log(), opt.verbose ? \log() : NOTHING);
+	    TelnetClient telnet(server, \log(), opt.verbose ? \log() : NOTHING);
 
 	    # set a username for the connection, if any
 	    if (opt.user.val())
@@ -136,7 +136,7 @@ class telnet {
     }
 
     # this method will read in data and print it to the screen
-    private startReceive(Telnet telnet) {
+    private startReceive(TelnetClient telnet) {
 	while (!quit) {
 	    *string str = telnet.getAvailableData(PollInterval);
 	    # if the remote end closed the connection, then exit
@@ -170,7 +170,7 @@ class telnet {
 	       " -t,--timeout=ARG  gives a connect timeout in ms (default: %y)\n"
 	       " -u,--user=ARG     set username\n"
 	       " -v,--verbose      show protocol negotiation messages\n",
-	       get_script_name(), Telnet::DefaultConnTimeout);
+	       get_script_name(), TelnetClient::DefaultConnTimeout);
 	exit(1);
     }
 
