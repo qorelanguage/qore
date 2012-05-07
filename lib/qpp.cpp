@@ -1006,7 +1006,7 @@ static size_t find_start(std::string& str) {
       str.insert(start + 1, "\n   ");
       return start + 5;
    }
-   i = str.find("@", start);
+   i = str.find("@par", start);
    if (i == std::string::npos)
       return start;
    // find the beginning of the line if possible

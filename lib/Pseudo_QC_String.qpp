@@ -33,6 +33,8 @@ qclass <string> [arg=QoreStringNode* str;vparent=<value>];
 //! Returns Qore::NT_STRING
 /** 
     @return Qore::NT_STRING
+
+    @par Example:
     @code
 switch ($str.typeCode()) {
     case NT_STRING:
@@ -49,6 +51,7 @@ int <string>::typeCode() [flags=CONSTANT] {
 /** 
     @return the number of bytes in the string (not including the terminating null character (\c '\0')
 
+    @par Example:
     @code
 my int $len = $str.strlen();
     @endcode
@@ -65,6 +68,7 @@ int <string>::strlen() [flags=CONSTANT] {
 /** 
     @return the number of bytes in the string (not including the terminating null character (\c '\0')
 
+    @par Example:
     @code
 my int $len = $str.size();
     @endcode
@@ -81,6 +85,7 @@ int <string>::size() [flags=CONSTANT] {
 /** 
     @return the number of characters in the string; may not be equal to the byte length (returned by <string>::strlen() and <string>::size()) for @ref character_encoding "multi-byte character encodings"
 
+    @par Example:
     @code
 my int $len = $str.length();
     @endcode
@@ -98,6 +103,7 @@ int <string>::length() [flags=CONSTANT] {
 
     @return @ref True if the string is empty, @ref False if not
 
+    @par Example:
     @code
 my bool $b = $str.empty();
     @endcode
@@ -110,6 +116,7 @@ bool <string>::empty() [flags=CONSTANT] {
 /** 
     @return the name of the string's @ref character_encoding "character encoding"
 
+    @par Example:
     @code
 my string $enc = $str.encoding();
     @endcode
@@ -124,6 +131,7 @@ string <string>::encoding() [flags=CONSTANT] {
 /**
     @return the string in lower case
 
+    @par Example:
     @code
 my string $lwr = $str.lwr();
     @endcode
@@ -147,6 +155,7 @@ string <string>::lwr() [flags=CONSTANT] {
 /**
     @return the string in upper case
 
+    @par Example:
     @code
 my string $upr = $str.upr();
     @endcode
@@ -231,6 +240,7 @@ int <string>::rfind(softstring substr, softint pos = -1) [flags=RET_VALUE_ONLY] 
 
     @return @ref False if the string is empty, @ref True if not
 
+    @par Example:
     @code
 my bool $b = $str.val();
     @endcode
