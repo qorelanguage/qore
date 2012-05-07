@@ -220,19 +220,22 @@ QORE_GENERATED_SOURCES = \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_type.cpp ql_pwd.cpp ql_object.cpp \
 	ql_env.cpp ql_dbi.cpp ql_context.cpp \
-	qc_option.cpp qc_errno.cpp qc_qore.cpp
+	qc_option.cpp qc_errno.cpp qc_qore.cpp parser.cpp parser.hpp scanner.cpp
 
 QORE_ALL_SRC = $(QORE_GENERATED_SOURCES) $(QORE_PSEUDO_SRC)
 
 CLEANFILES = $(QORE_ALL_SRC)
 
+parser.hpp: dummy
+	if [ -f parser.h ]; then mv parser.h parser.hpp; fi
+parser.cpp: parser.ypp
+scanner.cpp: scanner.lpp
+
 if COND_SINGLE_COMPILATION_UNIT
 libqore_la_SOURCES = \
 	single-compilation-unit.cpp
 
-parser.cpp: parser.ypp
-scanner.cpp: scanner.lpp
-single-compilation-unit.cpp: parser.cpp scanner.cpp $(QORE_ALL_SRC)
+single-compilation-unit.cpp: parser.cpp parser.hpp scanner.cpp $(QORE_ALL_SRC)
 
 else
 nodist_libqore_la_SOURCES = $(QORE_GENERATED_SOURCES)

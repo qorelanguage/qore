@@ -226,7 +226,7 @@ GetOpt::constructor(hash options) {
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' has no option specifiers", k);
 	 break;
       }
-      tok = strchr(val, ',');
+      tok = (char*)strchr(val, ',');
       if (tok) {
 	 if (tok == (val + 1)) {
 	    short_opt = val[0];
