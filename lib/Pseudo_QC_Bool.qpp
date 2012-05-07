@@ -28,9 +28,9 @@
  */
 qclass <bool> [arg=QoreBoolNode* b;vparent=<value>];
 
-//! Returns Qore::NT_BOOL
+//! Returns Qore::NT_BOOLEAN
 /** 
-    @return Qore::NT_BOOL
+    @return Qore::NT_BOOLEAN
 
     @par Example:
     @code
