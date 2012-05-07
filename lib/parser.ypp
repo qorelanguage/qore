@@ -47,7 +47,7 @@
 #include <qore/intern/GlobalVariableList.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 
-#include "parser.h"
+#include "parser.hpp"
 
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/qore_program_private.h>

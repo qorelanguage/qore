@@ -36,7 +36,7 @@
 #include <qore/intern/qore_program_private.h>
 #include <qore/intern/ModuleInfo.h>
 
-#include "parser.h"
+#include "parser.hpp"
 
 #include <stdio.h>
 #include <string.h>
