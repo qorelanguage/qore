@@ -35,7 +35,7 @@ qclass <bool> [arg=QoreBoolNode* b;vparent=<value>];
     @par Example:
     @code
 switch ($b.typeCode()) {
-    case NT_BOOL:
+    case NT_BOOLEAN:
         printf("%y: is a bool\n", $b);
         break;
 }
