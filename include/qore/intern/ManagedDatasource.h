@@ -172,11 +172,12 @@ public:
 class DatasourceLockHelper {
 protected:
    ManagedDatasource &ds;
-   bool valid;
+   bool valid, had_lock;
 
 public:
    DLLLOCAL DatasourceLockHelper(ManagedDatasource &n_ds, ExceptionSink *xsink) : ds(n_ds) {
       ds.ds_lock.lock();
+      had_lock = ds.tid == gettid();
       valid = !ds.grabLock(xsink);
       if (!valid)
          ds.ds_lock.unlock();
@@ -184,7 +185,8 @@ public:
 
    DLLLOCAL ~DatasourceLockHelper() {
       if (valid) {
-         ds.releaseLockIntern();
+         if (!had_lock)
+            ds.releaseLockIntern();
          ds.ds_lock.unlock();
       }
    }
