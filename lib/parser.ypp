@@ -1598,9 +1598,6 @@ statement:
 	}
         | TOK_FOREACH exp TOK_IN '(' exp ')' statement_or_block {
 	   $$ = new ForEachStatement(@1.first_line, @7.last_line, $2, $5, $7);
-	   qore_type_t t = $2 ? $2->getType() : 0;
-	   if (t != NT_VARREF && t != NT_SELF_VARREF)
-	      parse_error("foreach variable expression is not a variable reference");
 	}
         | return_statement ';' { $$ = $1; }
         | TOK_THREAD_EXIT ';' {

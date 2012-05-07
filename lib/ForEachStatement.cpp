@@ -260,6 +260,11 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    const QoreTypeInfo *argTypeInfo = 0;
    if (var)
       var = var->parseInit(oflag, pflag, lvids, argTypeInfo);
+
+   qore_type_t t = get_node_type(var);
+   if (t != NT_VARREF && t != NT_SELF_VARREF)
+      parse_error("foreach variable expression is not a variable reference (got type '%s' instead)", get_type_name(var));
+
    if (list)
       list = list->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo);
    if (code)
