@@ -249,9 +249,9 @@ bool <string>::val() [flags=CONSTANT] {
    return !str->empty();
 }
 
-//! Returns @ref True if the string can be converted to an integer, False if not, this depends on the first (or possibly second) character of the string, if it's 0 - 9 (possibly preceded by \c "-"), then the method returns True
+//! Returns @ref True if the string can be converted to an integer, @ref False if not, this depends on the first (or possibly second) character of the string, if it's 0 - 9 (possibly preceded by \c "-"), then the method returns @ref True
 /**
-    @return @ref True if the string can be converted to an integer, False if not, this depends on the first (or possibly second) character of the string, if it's 0 - 9 (possibly preceded by \c "-"), then the method returns True
+    @return @ref True if the string can be converted to an integer, @ref False if not, this depends on the first (or possibly second) character of the string, if it's 0 - 9 (possibly preceded by \c "-"), then the method returns @ref True
 
     @par Example:
     @code

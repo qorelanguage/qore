@@ -82,7 +82,7 @@ class Var : public QoreReferenceCounter {
 private:
    const QoreProgramLocation loc;      // location of the initial definition
    unsigned char type;              
-   QoreValue<qore_gvar_ref_u> val;
+   QoreLValue<qore_gvar_ref_u> val;
    std::string name;
    mutable QoreThreadLock m;
    QoreParseTypeInfo *parseTypeInfo;
@@ -336,7 +336,7 @@ private:
    typedef std::vector<AbstractQoreNode*> nvec_t;
    nvec_t tvec;
 public:
-   QoreValueGeneric* val;
+   QoreLValueGeneric* val;
    const QoreTypeInfo* typeInfo;
 
    DLLLOCAL LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove = false);
@@ -380,7 +380,7 @@ public:
       v = &ptr;
    }
 
-   DLLLOCAL void setValue(QoreValueGeneric& nv) {
+   DLLLOCAL void setValue(QoreLValueGeneric& nv) {
       assert(!v);
       assert(!val);
       if (nv.type == QV_Node)
@@ -501,7 +501,7 @@ private:
 
 protected:
    ExceptionSink* xsink;
-   QoreValueGeneric rv;
+   QoreLValueGeneric rv;
    bool for_del;
 
 public:
@@ -521,7 +521,7 @@ public:
       return for_del;
    }
 
-   DLLLOCAL void setRemove(QoreValueGeneric& qv) {
+   DLLLOCAL void setRemove(QoreLValueGeneric& qv) {
       rv.assignTakeInitial(qv);
    }
 

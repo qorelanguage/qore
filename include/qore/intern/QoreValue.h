@@ -41,8 +41,12 @@ union qore_value_u {
    void* p;
 };
 
+//template <typename U = qore_value_u>
+//class QoreValue {
+//};
+
 template <typename U = qore_value_u>
-class QoreValue {
+class QoreLValue {
 protected:
    // returns the old value just in case it needs to be dereferenced outside a lock
    template <class T, typename t, int nt>
@@ -72,9 +76,9 @@ protected:
          case QV_Int: v.i = 0; break;
          case QV_Float: v.f = 0.0; break;
          case QV_Node:
-	    v.n = 0; break;
-	 case QV_Ref:
-	    break;
+            v.n = 0; break;
+         case QV_Ref:
+            break;
          default: assert(false);
          // no break
       }
@@ -84,32 +88,16 @@ public:
    U v;
    valtype_t type;
 
-   DLLLOCAL QoreValue() : type(QV_Node) {
+   DLLLOCAL QoreLValue() : type(QV_Node) {
       reset();
    }
 
-   DLLLOCAL QoreValue(valtype_t t) : type(t) {
+   DLLLOCAL QoreLValue(valtype_t t) : type(t) {
       reset();
    }
 
-   DLLLOCAL QoreValue(const QoreTypeInfo* typeInfo) {
+   DLLLOCAL QoreLValue(const QoreTypeInfo* typeInfo) {
       set(typeInfo);
-   }
-
-   DLLLOCAL void set(const QoreTypeInfo* typeInfo) {
-      if (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)
-         set(QV_Int);
-      else if (typeInfo == floatTypeInfo || typeInfo == softFloatTypeInfo)
-         set(QV_Float);
-      else if (typeInfo == boolTypeInfo || typeInfo == softBoolTypeInfo)
-         set(QV_Bool);
-      else
-         set(QV_Node);
-   }
-
-   DLLLOCAL void set(valtype_t t) {
-      type = t;
-      reset();
    }
 
    DLLLOCAL bool optimized() const {
@@ -126,6 +114,22 @@ public:
          // no break
       }
       return false;
+   }
+
+   DLLLOCAL void set(const QoreTypeInfo* typeInfo) {
+      if (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)
+         set(QV_Int);
+      else if (typeInfo == floatTypeInfo || typeInfo == softFloatTypeInfo)
+         set(QV_Float);
+      else if (typeInfo == boolTypeInfo || typeInfo == softBoolTypeInfo)
+         set(QV_Bool);
+      else
+         set(QV_Node);
+   }
+
+   DLLLOCAL void set(valtype_t t) {
+      type = t;
+      reset();
    }
 
    DLLLOCAL AbstractQoreNode* assign(bool b) {
@@ -176,7 +180,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL void assignTakeInitial(QoreValue<U>& n) {
+   DLLLOCAL void assignTakeInitial(QoreLValue<U>& n) {
       assert(!hasValue());
       type = n.type;
       switch (n.type) {
@@ -299,7 +303,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL AbstractQoreNode *eval(bool &needs_deref) const {
+   DLLLOCAL AbstractQoreNode* eval(bool &needs_deref) const {
       if (type == QV_Node) {
          needs_deref = false;
 	 return v.n;
@@ -340,7 +344,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL AbstractQoreNode **getValuePtr(ExceptionSink* xsink) const {
+   DLLLOCAL AbstractQoreNode* *getValuePtr(ExceptionSink* xsink) const {
       if (type == QV_Node)
          return (AbstractQoreNode**)&v.n;
 
@@ -349,7 +353,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL AbstractQoreNode **getContainerValuePtr() const {
+   DLLLOCAL AbstractQoreNode* *getContainerValuePtr() const {
       return type == QV_Node ? (AbstractQoreNode**)&v.n : 0;
    }
 
@@ -377,7 +381,7 @@ public:
    DLLLOCAL double plusEqualsFloat(double f, AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+	    QoreFloatNode* vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
 	    vv->f += f;
 	    return vv->f;
 	 }
@@ -397,7 +401,7 @@ public:
    DLLLOCAL int64 minusEqualsBigInt(int64 i, AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    vv->val -= i;
 	    return vv->val;
 	 }
@@ -417,7 +421,7 @@ public:
    DLLLOCAL double minusEqualsFloat(double f, AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+	    QoreFloatNode* vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
 	    vv->f -= f;
 	    return vv->f;
 	 }
@@ -437,7 +441,7 @@ public:
    DLLLOCAL int64 orEqualsBigInt(int64 i, AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    vv->val |= i;
 	    return vv->val;
 	 }
@@ -457,7 +461,7 @@ public:
    DLLLOCAL int64 andEqualsBigInt(int64 i, AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    vv->val &= i;
 	    return vv->val;
 	 }
@@ -477,7 +481,7 @@ public:
    DLLLOCAL int64 modulaEqualsBigInt(int64 i, AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    return i ? vv->val %= i : vv->val = 0;
 	 }
 
@@ -496,7 +500,7 @@ public:
    DLLLOCAL int64 multiplyEqualsBigInt(int64 i, AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    vv->val *= i;
 	    return vv->val;
 	 }
@@ -518,7 +522,7 @@ public:
 
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    vv->val /= i;
 	    return vv->val;
 	 }
@@ -538,7 +542,7 @@ public:
    DLLLOCAL int64 xorEqualsBigInt(int64 i, AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    vv->val ^= i;
 	    return vv->val;
 	 }
@@ -558,7 +562,7 @@ public:
    DLLLOCAL int64 shiftLeftEqualsBigInt(int64 i, AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    vv->val <<= i;
 	    return vv->val;
 	 }
@@ -578,7 +582,7 @@ public:
    DLLLOCAL int64 shiftRightEqualsBigInt(int64 i, AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    vv->val >>= i;
 	    return vv->val;
 	 }
@@ -598,7 +602,7 @@ public:
    DLLLOCAL int64 postIncrementBigInt(AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    int64 rv = vv->val;
 	    ++vv->val;
 	    return rv;
@@ -628,7 +632,7 @@ public:
    DLLLOCAL int64 preIncrementBigInt(AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    return ++vv->val;
 	 }
 
@@ -650,7 +654,7 @@ public:
    DLLLOCAL int64 postDecrementBigInt(AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    return vv->val--;
 	 }
 
@@ -675,7 +679,7 @@ public:
    DLLLOCAL int64 preDecrementBigInt(AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreBigIntNode *vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
+	    QoreBigIntNode* vv = ensureUnique<QoreBigIntNode, int64, NT_INT>(old);
 	    return --vv->val;
 	 }
 
@@ -696,7 +700,7 @@ public:
    DLLLOCAL double postIncrementFloat(AbstractQoreNode*& old) {
       switch (type) {
          case QV_Node: {
-            QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+            QoreFloatNode* vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
             return vv->f++;
          }
 
@@ -721,7 +725,7 @@ public:
    DLLLOCAL double preIncrementFloat(AbstractQoreNode*& old) {
       switch (type) {
          case QV_Node: {
-            QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+            QoreFloatNode* vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
             return ++vv->f;
          }
 
@@ -743,7 +747,7 @@ public:
    DLLLOCAL double postDecrementFloat(AbstractQoreNode*& old) {
       switch (type) {
          case QV_Node: {
-            QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+            QoreFloatNode* vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
             return vv->f--;
          }
 
@@ -768,7 +772,7 @@ public:
    DLLLOCAL double preDecrementFloat(AbstractQoreNode*& old) {
       switch (type) {
          case QV_Node: {
-            QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+            QoreFloatNode* vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
             return --vv->f;
          }
 
@@ -789,7 +793,7 @@ public:
    DLLLOCAL double multiplyEqualsFloat(double f, AbstractQoreNode*& old) {
       switch (type) {
 	 case QV_Node: {
-	    QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+	    QoreFloatNode* vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
 	    vv->f *= f;
 	    return vv->f;
 	 }
@@ -814,7 +818,7 @@ public:
 
       switch (type) {
 	 case QV_Node: {
-	    QoreFloatNode *vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
+	    QoreFloatNode* vv = ensureUnique<QoreFloatNode, double, NT_FLOAT>(old);
 	    vv->f /= f;
 	    return vv->f;
 	 }
@@ -937,7 +941,7 @@ public:
    }
 };
 
-typedef QoreValue<> QoreValueGeneric;
+typedef QoreLValue<> QoreLValueGeneric;
 
 #endif
 

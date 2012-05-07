@@ -23,17 +23,18 @@
 */
 
 /*  Version History
-    * 1.0: updated by David Nichols to a user module
-    * ?: original author unknown
+    * 1.0: updated by David Nichols <david@qore.org> to a user module
+    * 0.9: original author Pavol Potancok <ppotancok@gmail.com>
 */
 
 module TelnetClient {
        version = "1.0";
        desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
-       author = "unknown";
+       author = "Pavol Potancok <ppotancok@gmail.com>";
        url = "http://qore.org";
 }
 
+#! contains constant definitions and the definition of the TelnetClient class
 public namespace TelnetClient {
     # default telnet port
     public const TelnetPort = 23;

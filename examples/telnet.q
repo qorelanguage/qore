@@ -71,6 +71,9 @@ class telnet {
     constructor() {
 	# parse the command-line options
 	GetOpt g(opts);
+        # NOTE: by passing a reference to the list, the arguments parsed will be removed from the list
+        # NOTE: calling GetOpt::parse3() means that errors will cause the script to exit immediately
+        #       with an informative message
 	opt = g.parse3(\ARGV);
 
 	# show help text if necessary
@@ -81,7 +84,7 @@ class telnet {
 	server = shift ARGV;
 
 	try {
-	    # set up the terminal in the mode we want
+	    # set up the terminal in the mode we want (Term class defined below)
 	    Term term();
 
 	    # create the telnet client object

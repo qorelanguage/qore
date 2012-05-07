@@ -21,7 +21,7 @@
 
     Type declarations optionally precede the parameter variable and will restrict any arguments passed to the type declared. The same function can be declared multiple times if each declaration has different parameter types; this is called @ref overloading "overloading" the function.
 
-    Variables passed as function arguments are passed by value by default, unless the caller places a \c "\" character before an lvalue in the argument list in the function call. In this case the function must have a parameter defined to accept the variable passed by reference. Any changes to the local variable will be reflected in the original variable for variables passed by reference. Also note that it is illegal to pass an argument by reference in a @ref background "background" expression.
+    Variables passed as function arguments are passed by value by default, unless the caller places a \c "\" character before an lvalue in the argument list in the function call. In this case the function must have a parameter defined to accept the variable passed by reference. Any changes to the local variable will be reflected in the original variable for variables passed by reference. Also note that it is illegal to pass a local variable by reference in a @ref background "background" expression.
 
     @note In order to process a variable number of arguments to a function, use @ref implicit_arguments "implicit argument references" (<tt>$1</tt>) or the <tt>$argv</tt> variable (an automatic local variable); these are automatically instantiated at run time when additional arguments in excess of the declared parameters are passed to the function at run time.  No declaration needs to be made in the function signature to use the <tt>$argv</tt> variable.
 

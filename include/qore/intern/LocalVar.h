@@ -99,7 +99,7 @@ union qore_value_ref_u {
 
 class VarValueBase {
 protected:
-   DLLLOCAL int checkFinalized(ExceptionSink *xsink) {
+   DLLLOCAL int checkFinalized(ExceptionSink* xsink) {
       if (finalized) {
          xsink->raiseException("DESTRUCTOR-ERROR", "illegal variable assignment after second phase of variable destruction");
          return -1;
@@ -108,7 +108,7 @@ protected:
    }
 
 public:
-   QoreValue<qore_value_ref_u> val;
+   QoreLValue<qore_value_ref_u> val;
    const char *id;
    bool skip : 1;
    bool finalized : 1;
@@ -208,7 +208,7 @@ public:
    }
 
    DLLLOCAL void finalize(ExceptionSink *xsink) {
-      assert(!finalized);
+      //assert(!finalized);
       if (val.type == QV_Node) {
          discard(val.remove(true), xsink);
          finalized = true;

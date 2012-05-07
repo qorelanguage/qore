@@ -67,8 +67,10 @@ sub process_command_line() {
 	usage();
 
     GetOpt g(Opts);
+
     # NOTE: by passing a reference to the list, the arguments parsed will be removed from the list
-    # NOTE: errors will cause the script to exit immediately with an informative message
+    # NOTE: calling GetOpt::parse3() means that errors will cause the script to exit immediately
+    #       with an informative message
     hash o = g.parse3(\ARGV);
     if (o.help)
 	usage();

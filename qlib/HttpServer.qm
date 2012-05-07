@@ -93,7 +93,7 @@
 module HttpServer {
     version = "0.3.3";
     desc = "HttpServer class definition";
-    author = "Qore Technologies, sro";
+    author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 

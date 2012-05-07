@@ -36,19 +36,20 @@
 module SmtpClient {
     version = "1.0";
     desc = "SMTP client support module";
-    author = "Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok";
+    author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
 }
 
-/*
- class SmtpClient::SmtpClient
-    holds a configured connection to a smtp server
- class SmtpClient::Message
-    holds a message to be send via smtp
- class SmtpClient::Attachment
-    used for attach files to the message
+/*  Version History
+    * 1.0: David Nichols <david@qore.org>: updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + the bane of all developers: documentation :)
 
- version 1.0, ritzinwo, 20090716
+    class SmtpClient::SmtpClient
+    * holds a configured connection to a smtp server
+    class SmtpClient::Message
+    * holds a message to be sent via smtp
+    class SmtpClient::Attachment
+    * used for attach files to the message
+    ritzinwo, 20090716
 */
  
 public namespace SmtpClient {

@@ -821,6 +821,9 @@ public:
       SafeLocker sl(tlock);
       pgm_data_map_t::iterator i = pgm_data_map.find(td);
       if (i != pgm_data_map.end()) {
+         // make sure the Program doesn't disappear while we are clearing thread-local variables
+         pgm->ref();
+         ReferenceHolder<QoreProgram> pgm_holder(pgm, xsink);
          // remove from map and delete outside of lock to avoid deadlocks (or the need for recursive locking)
          ThreadLocalProgramData *tlpd = i->second;
          sl.unlock();

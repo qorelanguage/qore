@@ -53,7 +53,7 @@ int Var::getLValue(LValueHelper& lvh, bool for_remove) const {
 
    lvh.setTypeInfo(typeInfo);
    lvh.setAndLock(m);
-   lvh.setValue((QoreValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val);
    return 0;
 }
 
@@ -66,7 +66,7 @@ void Var::remove(LValueRemoveHelper& lvrh) {
    }
 
    AutoLocker al(m);
-   lvrh.setRemove((QoreValueGeneric&)val);
+   lvrh.setRemove((QoreLValueGeneric&)val);
 }
 
 void Var::del(ExceptionSink* xsink) {
@@ -785,7 +785,7 @@ int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
       return lvh.doLValue(val.v.ref->vexp, for_remove);
    }
 
-   lvh.setValue((QoreValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val);
    return 0;
 }
 
@@ -796,7 +796,7 @@ void LocalVarValue::remove(LValueRemoveHelper& lvrh) {
       return;
    }
 
-   lvrh.setRemove((QoreValueGeneric&)val);
+   lvrh.setRemove((QoreLValueGeneric&)val);
 }
 
 int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
@@ -808,7 +808,7 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
 
    lvh.setTypeInfo(typeInfo);
    lvh.setAndLock(*const_cast<ClosureVarValue*>(this));
-   lvh.setValue((QoreValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val);
    return 0;
 }
 
@@ -821,5 +821,5 @@ void ClosureVarValue::remove(LValueRemoveHelper& lvrh) {
    }
 
    AutoLocker al(this);
-   lvrh.setRemove((QoreValueGeneric&)val);
+   lvrh.setRemove((QoreLValueGeneric&)val);
 }
