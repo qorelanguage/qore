@@ -53,6 +53,9 @@ int Var::getLValue(LValueHelper& lvh, bool for_remove) const {
 
    lvh.setTypeInfo(typeInfo);
    lvh.setAndLock(m);
+   if (checkFinalized(lvh.vl.xsink))
+      return -1;
+
    lvh.setValue((QoreLValueGeneric&)val);
    return 0;
 }
@@ -128,7 +131,9 @@ void Var::deref(ExceptionSink* xsink) {
 }
 
 LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), val(0), typeInfo(0) {
-   doLValue(exp, for_remove);
+   // exp can be 0 when called from LValueRefHelper if the attach to the Program fails, for example
+   if (exp)
+      doLValue(exp, for_remove);
 }
 
 static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, ExceptionSink* xsink) {
@@ -781,8 +786,8 @@ lvar_ref::lvar_ref(AbstractQoreNode* n_vexp, QoreObject* n_obj, QoreProgram *n_p
 
 int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    if (val.type == QV_Ref) {
-      LocalRefHelper<LocalVarValue> helper(const_cast<LocalVarValue*>(this));
-      return lvh.doLValue(val.v.ref->vexp, for_remove);
+      LocalRefHelper<LocalVarValue> helper(const_cast<LocalVarValue*>(this), lvh.vl.xsink);
+      return helper ? lvh.doLValue(val.v.ref->vexp, for_remove) : -1;
    }
 
    lvh.setValue((QoreLValueGeneric&)val);
@@ -802,8 +807,8 @@ void LocalVarValue::remove(LValueRemoveHelper& lvrh) {
 int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    if (val.type == QV_Ref) {
       assert(val.v.ref->vexp->getType() != NT_VARREF || reinterpret_cast<VarRefNode*>(val.v.ref->vexp)->getType() != VT_LOCAL);
-      LocalRefHelper<ClosureVarValue> helper(const_cast<ClosureVarValue*>(this));
-      return lvh.doLValue(val.v.ref->vexp, for_remove);
+      LocalRefHelper<ClosureVarValue> helper(const_cast<ClosureVarValue*>(this), lvh.vl.xsink);
+      return helper ? lvh.doLValue(val.v.ref->vexp, for_remove) : -1;
    }
 
    lvh.setTypeInfo(typeInfo);

@@ -34,7 +34,7 @@ class VarStackPointerHelper {
    T* orig;
 
 public:
-   DLLLOCAL VarStackPointerHelper(T *v) : orig(v) {
+   DLLLOCAL VarStackPointerHelper(T* v) : orig(v) {
       v->skip = true;
    }
    DLLLOCAL ~VarStackPointerHelper() {
@@ -48,11 +48,16 @@ template <class T>
 class LocalRefHelper {
 protected:
    ObjectSubstitutionHelper osh;
-   ProgramContextHelper pch;
+   ProgramThreadCountContextHelper pch;
    // used to skip the var entry in case it's a recursive reference
    VarStackPointerHelper<T> helper;
+   bool valid;
+
 public:
-   DLLLOCAL LocalRefHelper(T *val) : osh(val->val.v.ref->obj), pch(val->val.v.ref->pgm), helper(val) {
+   DLLLOCAL LocalRefHelper(T* val, ExceptionSink* xsink) : osh(val->val.v.ref->obj), pch(xsink, val->val.v.ref->pgm, true), helper(val), valid(!*xsink) {
+   }
+   DLLLOCAL operator bool() const {
+      return valid;
    }
 };
 
@@ -62,7 +67,7 @@ protected:
    LValueHelper valp;
 
 public:
-   DLLLOCAL LValueRefHelper(T *val, ExceptionSink *xsink) : LocalRefHelper<T>(val), valp(val->val.v.ref->vexp, xsink) {
+   DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? val->val.v.ref->vexp : 0, xsink) {
    }
 
    DLLLOCAL operator bool() const {
@@ -99,7 +104,7 @@ union qore_value_ref_u {
 
 class VarValueBase {
 protected:
-   DLLLOCAL int checkFinalized(ExceptionSink* xsink) {
+   DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
       if (finalized) {
          xsink->raiseException("DESTRUCTOR-ERROR", "illegal variable assignment after second phase of variable destruction");
          return -1;
@@ -217,8 +222,8 @@ public:
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
-         LocalRefHelper<LocalVarValue> helper(this);
-         return val.v.ref->vexp->eval(xsink);
+         LocalRefHelper<LocalVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->eval(xsink) : 0;
       }
 
       return val.eval();
@@ -227,8 +232,8 @@ public:
    DLLLOCAL AbstractQoreNode* eval(bool &needs_deref, ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
          needs_deref = true;
-         LocalRefHelper<LocalVarValue> helper(this);
-         return val.v.ref->vexp->eval(xsink);
+         LocalRefHelper<LocalVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->eval(xsink) : 0;
       }
  
       return val.eval(needs_deref);
@@ -236,8 +241,8 @@ public:
 
    DLLLOCAL int64 bigIntEval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
-         LocalRefHelper<LocalVarValue> helper(this);
-         return val.v.ref->vexp->bigIntEval(xsink);
+         LocalRefHelper<LocalVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->bigIntEval(xsink) : 0;
       }
 
       return val.getAsBigInt();
@@ -245,8 +250,8 @@ public:
 
    DLLLOCAL int intEval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
-         LocalRefHelper<LocalVarValue> helper(this);
-         return val.v.ref->vexp->integerEval(xsink);
+         LocalRefHelper<LocalVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->integerEval(xsink) : 0;
       }
 
       return (int)val.getAsBigInt();
@@ -254,8 +259,8 @@ public:
 
    DLLLOCAL bool boolEval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
-         LocalRefHelper<LocalVarValue> helper(this);
-         return val.v.ref->vexp->boolEval(xsink);
+         LocalRefHelper<LocalVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->boolEval(xsink) : 0;
       }
 
       return val.getAsBool();
@@ -263,8 +268,8 @@ public:
 
    DLLLOCAL double floatEval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
-         LocalRefHelper<LocalVarValue> helper(this);
-         return val.v.ref->vexp->floatEval(xsink);
+         LocalRefHelper<LocalVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->floatEval(xsink) : 0;
       }
 
       return val.getAsFloat();
@@ -308,8 +313,8 @@ public:
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this);
-         return val.v.ref->vexp->eval(xsink);
+         LocalRefHelper<ClosureVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->eval(xsink) : 0;
       }
 
       AutoLocker al(this);
@@ -318,8 +323,8 @@ public:
 
    DLLLOCAL AbstractQoreNode* eval(bool& needs_deref, ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this);
-         return val.v.ref->vexp->eval(needs_deref, xsink);
+         LocalRefHelper<ClosureVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->eval(needs_deref, xsink) : 0;
       }
 
       AutoLocker al(this);
@@ -328,8 +333,8 @@ public:
 
    DLLLOCAL int64 bigIntEval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this);
-         return val.v.ref->vexp->bigIntEval(xsink);
+         LocalRefHelper<ClosureVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->bigIntEval(xsink) : 0;
       }
 
       AutoLocker al(this);
@@ -338,8 +343,8 @@ public:
 
    DLLLOCAL int intEval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this);
-         return val.v.ref->vexp->integerEval(xsink);
+         LocalRefHelper<ClosureVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->integerEval(xsink) : 0;
       }
 
       AutoLocker al(this);
@@ -348,8 +353,8 @@ public:
 
    DLLLOCAL bool boolEval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this);
-         return val.v.ref->vexp->boolEval(xsink);
+         LocalRefHelper<ClosureVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->boolEval(xsink) : 0;
       }
 
       AutoLocker al(this);
@@ -358,8 +363,8 @@ public:
 
    DLLLOCAL double floatEval(ExceptionSink *xsink) {
       if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this);
-         return val.v.ref->vexp->floatEval(xsink);
+         LocalRefHelper<ClosureVarValue> helper(this, xsink);
+         return helper ? val.v.ref->vexp->floatEval(xsink) : 0;
       }
 
       AutoLocker al(this);

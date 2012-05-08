@@ -523,7 +523,9 @@ bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *StaticMethodCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ProgramContextHelper pch(pgm);
+   ProgramThreadCountContextHelper tch(xsink, pgm, true);
+   if (*xsink)
+      return 0;
    return method->eval(0, args, xsink);
 }
 
@@ -540,7 +542,9 @@ bool MethodCallReferenceNode::derefImpl(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *MethodCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ProgramContextHelper pch(pgm);
+   ProgramThreadCountContextHelper tch(xsink, pgm, true);
+   if (*xsink)
+      return 0;
    return method->eval(getStackObject(), args, xsink);
 }
 
@@ -629,7 +633,9 @@ bool FunctionCallReferenceNode::derefImpl(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *FunctionCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ProgramContextHelper pch(pgm);
+   ProgramThreadCountContextHelper tch(xsink, pgm, true);
+   if (*xsink)
+      return 0;
    return uf->evalFunction(0, args, 0, xsink);
 }
 

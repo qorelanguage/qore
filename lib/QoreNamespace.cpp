@@ -394,14 +394,9 @@ void QoreNamespaceList::parseInitGlobalVars() {
       i->second->priv->parseInitGlobalVars();
 }
 
-void QoreNamespaceList::clearGlobalVars(ExceptionSink* xsink) {
+void QoreNamespaceList::clearData(ExceptionSink* xsink) {
    for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      i->second->priv->clearGlobalVars(xsink);
-}
-
-void QoreNamespaceList::deleteGlobalVars(ExceptionSink* xsink) {
-   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      i->second->priv->deleteGlobalVars(xsink);
+      i->second->priv->clearData(xsink);
 }
 
 void QoreNamespaceList::parseInitConstants() {
@@ -485,15 +480,7 @@ const QoreNamespace* QoreNamespace::getParent() const {
 }
 
 void QoreNamespace::deleteData(ExceptionSink *xsink) {
-   // clear all constants
-   priv->constant.deleteAll(xsink);
-   // clear all constants and static class vars
-   priv->classList.deleteClassData(xsink);
-   // clear all user functions
-   priv->func_list.del();
-
-   // repeat for all subnamespaces
-   priv->nsl.deleteData(xsink);
+   priv->deleteData(xsink);
 }
 
 void QoreNamespaceList::deleteData(ExceptionSink *xsink) {
@@ -1175,6 +1162,26 @@ void qore_ns_private::parseInitGlobalVars() {
    var_list.parseInit();
    nsl.parseInitGlobalVars();
    pendNSL.parseInitGlobalVars();
+}
+
+void qore_ns_private::clearData(ExceptionSink *xsink) {
+   var_list.clearAll(xsink);
+
+   nsl.clearData(xsink);
+}
+
+void qore_ns_private::deleteData(ExceptionSink *xsink) {
+   // clear all constants
+   constant.deleteAll(xsink);
+   // clear all constants and static class vars
+   classList.deleteClassData(xsink);
+   // clear all user functions
+   func_list.del();
+   // delete all global variables
+   var_list.deleteAll(xsink);
+
+   // repeat for all subnamespaces
+   nsl.deleteData(xsink);
 }
 
 void qore_ns_private::checkGlobalVarDecl(Var* v, const NamedScope& vname) {

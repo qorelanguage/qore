@@ -56,13 +56,13 @@
 #define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_MODULES|QP_WARN_DEPRECATED)
 
 //! list of strings of warning codes
-DLLEXPORT extern const char **qore_warnings;
+DLLEXPORT extern const char** qore_warnings;
 
 //! number of warning codes
 DLLEXPORT extern unsigned qore_num_warnings;
 
 //! returns the warning code corresponding to the string passed (0 if no match was made)
-DLLEXPORT int get_warning_code(const char *str);
+DLLEXPORT int get_warning_code(const char* str);
 
 class AbstractCallReferenceNode;
 class LocalVar;
@@ -97,7 +97,7 @@ class QoreProgram : public AbstractPrivateData {
    friend class qore_program_private;
 private:
    //! private implementation
-   qore_program_private *priv;
+   qore_program_private* priv;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreProgram(const QoreProgram&);
@@ -127,7 +127,7 @@ public:
        @param args the argument to the function (can be 0)
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT AbstractQoreNode *callFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink);
+   DLLEXPORT AbstractQoreNode* callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink);
 
    //! runs the program (instantiates the program class if a program class has been set) and returns the return value (if any)
    /** @note if the program is run as a class it's not possible to return a value
@@ -138,7 +138,7 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value returned by the final return statement (if any, can be 0)
    */
-   DLLEXPORT AbstractQoreNode *run(ExceptionSink *xsink);
+   DLLEXPORT AbstractQoreNode* run(ExceptionSink* xsink);
 
    //! tuns the top level code and returns any return value
    /**
@@ -148,7 +148,7 @@ public:
       @param xsink if an error occurs, the Qore-language exception information will be added here
       @return the value returned by the final return statement (if any, can be 0)
    */
-   DLLEXPORT AbstractQoreNode *runTopLevel(ExceptionSink *xsink);
+   DLLEXPORT AbstractQoreNode* runTopLevel(ExceptionSink* xsink);
 
    //! parses the given filename and runs the file
    /** any errors opening the file are added as Qore-language exceptions
@@ -161,7 +161,7 @@ public:
        @note will also commit any pending changes added with QoreProgram::parsePending()
        @param filename the filename to run
    */
-   DLLEXPORT void parseFileAndRun(const char *filename);
+   DLLEXPORT void parseFileAndRun(const char* filename);
 
    //! parses the given file and runs the file
    /** the default exception handler is run on any Qore-language exceptions
@@ -173,7 +173,7 @@ public:
        @param fp the filename to run
        @param name the name of the file being parsed and run
    */
-   DLLEXPORT void parseAndRun(FILE *fp, const char *name);
+   DLLEXPORT void parseAndRun(FILE *fp, const char* name);
 
    //! parses the given string and runs the code
    /** The default exception handler is run on any Qore-language exceptions
@@ -185,7 +185,7 @@ public:
        @param str the Qore-language code to parse and run
        @param name the label of the code being parsed and run (used as the file name)
    */
-   DLLEXPORT void parseAndRun(const char *str, const char *name);
+   DLLEXPORT void parseAndRun(const char* str, const char* name);
 
    //! instantiates the class given and runs its constructor
    /** @note any threads started by this call will continue running in the background,
@@ -195,7 +195,7 @@ public:
        @param classname the name of the class to instantiate
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void runClass(const char *classname, ExceptionSink *xsink);
+   DLLEXPORT void runClass(const char* classname, ExceptionSink* xsink);
 
    //! parses the given filename and runs the program by instantiating the class given
    /** Any errors opening the file are added as Qore-language exceptions.
@@ -209,7 +209,7 @@ public:
        @param filename the filename to run
        @param classname the name of the class to instantiate
    */
-   DLLEXPORT void parseFileAndRunClass(const char *filename, const char *classname);
+   DLLEXPORT void parseFileAndRunClass(const char* filename, const char* classname);
 
    //! parses the given file and runs the code by instantiating the class given
    /** The default exception handler is run on any Qore-language exceptions
@@ -222,7 +222,7 @@ public:
        @param name the name of the file being parsed and run
        @param classname the name of the class to instantiate
    */
-   DLLEXPORT void parseAndRunClass(FILE *fp, const char *name, const char *classname);
+   DLLEXPORT void parseAndRunClass(FILE *fp, const char* name, const char* classname);
 
    //! parses the given string and runs the code by instantiating the class given
    /** The default exception handler is run on any Qore-language exceptions
@@ -235,7 +235,7 @@ public:
        @param name the label of the code being parsed and run (used as the file name)
        @param classname the name of the class to instantiate
    */
-   DLLEXPORT void parseAndRunClass(const char *str, const char *name, const char *classname);      
+   DLLEXPORT void parseAndRunClass(const char* str, const char* name, const char* classname);
 
    //! parses code from the file given and commits changes to the QoreProgram
    /**
@@ -246,7 +246,7 @@ public:
       @param warn_sink if a warning is raised, the warning information will be added here
       @param warn_mask the warning mask to set (-1 sets all possible warnings)
    */
-   DLLEXPORT void parse(FILE *fp, const char *name, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
+   DLLEXPORT void parse(FILE *fp, const char* name, ExceptionSink* xsink, ExceptionSink* warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! parses code from the given string and commits changes to the QoreProgram
    /**
@@ -257,7 +257,7 @@ public:
       @param warn_sink if a warning is raised, the warning information will be added here
       @param warn_mask the warning mask to set (-1 sets all possible warnings)
    */
-   DLLEXPORT void parse(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
+   DLLEXPORT void parse(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! parses code from the given string and commits changes to the QoreProgram
    /**
@@ -268,7 +268,7 @@ public:
       @param warn_sink if a warning is raised, the warning information will be added here
       @param warn_mask the warning mask to set (-1 sets all possible warnings)
    */
-   DLLEXPORT void parse(const char *str, const char *lstr, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
+   DLLEXPORT void parse(const char* str, const char* lstr, ExceptionSink* xsink, ExceptionSink* warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! parses code from the file given and commits changes to the QoreProgram
    /** Also sets the script path.
@@ -279,7 +279,7 @@ public:
        @param warn_mask the warning mask to set (-1 sets all possible warnings)
        @param only_first_except is flag to stop parsing exceptions printing after 1st exception
    */
-   DLLEXPORT void parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL, bool only_first_except = false);
+   DLLEXPORT void parseFile(const char* filename, ExceptionSink* xsink, ExceptionSink* warn_sink = 0, int warn_mask = QP_WARN_ALL, bool only_first_except = false);
 
    //! parses code from the given string but does not commit changes to the QoreProgram
    /**
@@ -291,7 +291,7 @@ public:
       @see QoreProgram::parseCommit()
       @see QoreProgram::parseRollback()
    */
-   DLLEXPORT void parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
+   DLLEXPORT void parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! parses code from the given string but does not commit changes to the QoreProgram
    /**
@@ -303,14 +303,14 @@ public:
       @see QoreProgram::parseCommit()
       @see QoreProgram::parseRollback()
    */
-   DLLEXPORT void parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
+   DLLEXPORT void parsePending(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! commits pending changes to the program
    /**
       @see QoreProgram::parsePending()
       @see QoreProgram::parseRollback()
    */
-   DLLEXPORT void parseCommit(ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
+   DLLEXPORT void parseCommit(ExceptionSink* xsink, ExceptionSink* warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! rolls back changes to the program object that were added with QoreProgram::parsePending()
    /**
@@ -320,7 +320,7 @@ public:
    DLLEXPORT void parseRollback();
 
    //! returns true if the given function exists as a user function, false if not
-   DLLEXPORT bool existsFunction(const char *name);
+   DLLEXPORT bool existsFunction(const char* name);
 
    //! dereferences the object and deletes it if the reference count reaches zero
    /** do not use this function if the program may be running, use QoreProgram::waitForTerminationAndDeref() instead
@@ -328,7 +328,7 @@ public:
        @see QoreProgram::waitForTerminationAndDeref()
    */
    using AbstractPrivateData::deref;
-   DLLEXPORT virtual void deref(ExceptionSink *xsink);
+   DLLEXPORT virtual void deref(ExceptionSink* xsink);
 
    //! locks parse options so they may not be changed
    DLLEXPORT void lockOptions();
@@ -339,7 +339,7 @@ public:
        @param ecn the name of the class to be executed as the program class
        @see QoreProgram::parseSetParseOptions()
    */
-   DLLEXPORT void setExecClass(const char *ecn = 0);
+   DLLEXPORT void setExecClass(const char* ecn = 0);
 
    //! adds the parse options given to the parse option mask; DEPRECATED: use parseSetParseOptions(int64) instead
    DLLEXPORT void parseSetParseOptions(int po);
@@ -357,13 +357,13 @@ public:
    /**
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void waitForTerminationAndDeref(ExceptionSink *xsink);
+   DLLEXPORT void waitForTerminationAndDeref(ExceptionSink* xsink);
 
    //! returns a pointer to the "Qore" namespace
-   DLLEXPORT QoreNamespace *getQoreNS() const;
+   DLLEXPORT QoreNamespace* getQoreNS() const;
 
    //! returns a pointer to the root namespace
-   DLLEXPORT RootQoreNamespace *getRootNS() const;
+   DLLEXPORT RootQoreNamespace* getRootNS() const;
 
    //! sets the warning mask
    /**
@@ -397,41 +397,41 @@ public:
        @param po the parse options to add to the parse option mask
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void setParseOptions(int po, ExceptionSink *xsink);
+   DLLEXPORT void setParseOptions(int po, ExceptionSink* xsink);
 
    //! sets the parse options and adds Qore-language exception information if an error occurs
    /**
       @param po the parse options to add to the parse option mask
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void setParseOptions(int64 po, ExceptionSink *xsink);
+   DLLEXPORT void setParseOptions(int64 po, ExceptionSink* xsink);
 
    //! turns off the parse options given in the passed mask and adds Qore-language exception information if an error occurs
    /** DEPRECATED: use disableParseOptions(int64, ...) instead
        @param po the parse options to subtract from the parse option mask
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void disableParseOptions(int po, ExceptionSink *xsink);
+   DLLEXPORT void disableParseOptions(int po, ExceptionSink* xsink);
    
    //! turns off the parse options given in the passed mask and adds Qore-language exception information if an error occurs
    /**
       @param po the parse options to subtract from the parse option mask
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void disableParseOptions(int64 po, ExceptionSink *xsink);
+   DLLEXPORT void disableParseOptions(int64 po, ExceptionSink* xsink);
 
    //! replaces the parse options in the program with those given by the argument; adds Qore-language exception information if an error occurs
    /** An exception will be raised if the calling program does not have PO_NO_CHILD_PO_RESTRICTIONS set
        @param po the parse options to add to the parse option mask
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void replaceParseOptions(int64 po, ExceptionSink *xsink);
+   DLLEXPORT void replaceParseOptions(int64 po, ExceptionSink* xsink);
 
    //! returns a list of all user functions in this program
    /**
       @return a list of all user functions in this program
    */
-   DLLEXPORT QoreListNode *getUserFunctionList();
+   DLLEXPORT QoreListNode* getUserFunctionList();
 
    //! returns true if the warning code is set
    DLLEXPORT bool checkWarning(int code) const;
@@ -440,37 +440,37 @@ public:
    DLLEXPORT int getWarningMask() const;
 
    //! returns true if the given feature is present in the program object
-   DLLEXPORT bool checkFeature(const char *f) const;
+   DLLEXPORT bool checkFeature(const char* f) const;
 
    //! returns a list of features in the program object
-   DLLEXPORT QoreListNode *getFeatureList() const;
+   DLLEXPORT QoreListNode* getFeatureList() const;
 
    //! returns the script file name, if known (0 if not)
    /** @return the script file name, if known (0 if not)
     */
-   DLLEXPORT QoreStringNode *getScriptName() const;
+   DLLEXPORT QoreStringNode* getScriptName() const;
       
    //! returns the script path (directory and name), if known (0 if not)
    /** @return the script path (directory and name), if known (0 if not)
     */
-   DLLEXPORT QoreStringNode *getScriptPath() const;
+   DLLEXPORT QoreStringNode* getScriptPath() const;
       
    //! returns the script directory, if known (0 if not)
    /** @return the script directory, if known (0 if not)
     */
-   DLLEXPORT QoreStringNode *getScriptDir() const;
+   DLLEXPORT QoreStringNode* getScriptDir() const;
 
    //! sets the script path
    /** @param path the directory and filename of the script (set to 0 to clear)
     */
-   DLLEXPORT void setScriptPath(const char *path);
+   DLLEXPORT void setScriptPath(const char* path);
 
    //! returns the value of the global variable given (do not include the "$" symbol), the caller owns the reference count returned
    /** @param var the variable name to return (do not include the "$" symbol)
        @param found returns true if the variable exists, false if not
        @return the value of the global variable given; if a non-zero pointer is returned, the caller owns the reference count returned
    */
-   DLLEXPORT AbstractQoreNode *getGlobalVariableValue(const char *var, bool &found) const;
+   DLLEXPORT AbstractQoreNode* getGlobalVariableValue(const char* var, bool &found) const;
 
    // retrieves the time zone setting for the program
    DLLEXPORT const AbstractQoreZoneInfo *currentTZ() const;
@@ -482,12 +482,12 @@ public:
    /** useful for use with %module-cmd when manually merging in namespace changes to the program
        @param name the name of the feature to add to the QoreProgram's feature list
     */
-   DLLEXPORT void addFeature(const char *name);
+   DLLEXPORT void addFeature(const char* name);
 
    //! sets the time zone during parsing
    /** @param zone can be either a region name (ex: 'Europe/Prague') or a UTC offset in the format SDD[:DD[:DD]] where S is + or - and D is an integer 0 - 9; the ':' characters are optional
     */
-   DLLEXPORT void parseSetTimeZone(const char *zone);
+   DLLEXPORT void parseSetTimeZone(const char* zone);
 
    //! defines a parse-time variable; call only at parse time (or before parsing)
    /** @param str the name of the variable
@@ -497,7 +497,7 @@ public:
 
        @see runtimeDefine()
    */
-   DLLEXPORT void parseDefine(const char *str, AbstractQoreNode *val);
+   DLLEXPORT void parseDefine(const char* str, AbstractQoreNode* val);
 
    //! defines a parse-time variable; call only at parse time (or before parsing)
    /** @param str the name of the variable
@@ -507,49 +507,37 @@ public:
 
        @see runtimeDefine()
    */
-   DLLEXPORT void parseDefine(const char *str, const char *val);   
+   DLLEXPORT void parseDefine(const char* str, const char* val);
 
-   DLLLOCAL QoreProgram(QoreProgram *pgm, int64 po, bool ec = false, const char *ecn = 0);
+   DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 
-   DLLLOCAL LocalVar *createLocalVar(const char *name, const QoreTypeInfo *typeInfo);
+   DLLLOCAL LocalVar *createLocalVar(const char* name, const QoreTypeInfo *typeInfo);
 
-   DLLLOCAL void addStatement(AbstractStatement *s);
+   DLLLOCAL void addStatement(AbstractStatement* s);
    
-   //DLLLOCAL Var *addGlobalVarDef(const char *name, QoreParseTypeInfo *typeInfo);
-   //DLLLOCAL Var *addResolvedGlobalVarDef(const char *name, const QoreTypeInfo *typeInfo);
-   //DLLLOCAL Var *parseCheckImplicitGlobalVar(const char *name, const QoreTypeInfo *typeInfo);
-
-   //DLLLOCAL void importGlobalVariable(Var *var, ExceptionSink *xsink, bool readonly);
-
    // returns 0 if a "requires" exception has already occurred
-   DLLLOCAL ExceptionSink *getParseExceptionSink();
+   DLLLOCAL ExceptionSink* getParseExceptionSink();
 
-   DLLLOCAL QoreHashNode *getThreadData();
+   DLLLOCAL QoreHashNode* getThreadData();
    DLLLOCAL void depRef();
-   DLLLOCAL void depDeref(ExceptionSink *xsink);
-   DLLLOCAL void addFile(char *f);
-   DLLLOCAL QoreListNode *getVarList();
-   DLLLOCAL void parseSetIncludePath(const char *path);
-   DLLLOCAL const char *parseGetIncludePath() const;
-
-   // increment atomic thread counter
-   DLLLOCAL void tc_inc();
-
-   // decrement atomic thread counter
-   DLLLOCAL void tc_dec();
+   DLLLOCAL void depDeref(ExceptionSink* xsink);
+   DLLLOCAL void addFile(char* f);
+   DLLLOCAL QoreListNode* getVarList();
+   DLLLOCAL void parseSetIncludePath(const char* path);
+   DLLLOCAL const char* parseGetIncludePath() const;
 
    /* for run-time module loading; the parse lock must be grabbed
       before loading new modules - note this should only be assigned
       to a AutoLock or SafeLocker object!
    */
    DLLLOCAL QoreThreadLock *getParseLock();
-   DLLLOCAL QoreHashNode *clearThreadData(ExceptionSink *xsink);
-   DLLLOCAL const LVList *getTopLevelLVList() const;
+   DLLLOCAL QoreHashNode* clearThreadData(ExceptionSink* xsink);
+   DLLLOCAL const LVList* getTopLevelLVList() const;
 
    //! returns the script directory, if known (0 if not), does not grab the parse lock, only to be called while parsing
    /** @return the script directory, if known (0 if not)
     */
-   DLLLOCAL const char *parseGetScriptDir() const;
+   DLLLOCAL const char* parseGetScriptDir() const;
 
    // can only be called while parsing from the same thread doing the parsing
    DLLLOCAL bool parseExceptionRaised() const;
@@ -558,16 +546,16 @@ public:
 //! safely manages QoreProgram objects
 class QoreProgramHelper {
 private:
-   QoreProgram *pgm;
-   ExceptionSink &xsink;
+   QoreProgram* pgm;
+   ExceptionSink& xsink;
 
 public:
    //! creates the QoreProgram object: DEPRECATED: use QoreProgramHelper(int64, ExceptionSink&) instead
-   DLLLOCAL QoreProgramHelper(ExceptionSink &xs) : pgm(new QoreProgram), xsink(xs) {
+   DLLLOCAL QoreProgramHelper(ExceptionSink& xs) : pgm(new QoreProgram), xsink(xs) {
    }
 
    //! creates the QoreProgram object and sets the parse options
-   DLLLOCAL QoreProgramHelper(int64 parse_options, ExceptionSink &xs) : pgm(new QoreProgram(parse_options)), xsink(xs) {
+   DLLLOCAL QoreProgramHelper(int64 parse_options, ExceptionSink& xs) : pgm(new QoreProgram(parse_options)), xsink(xs) {
    }
 
    //! waits until the QoreProgram object is done executing and then dereferences the object

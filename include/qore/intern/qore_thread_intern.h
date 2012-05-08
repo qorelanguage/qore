@@ -484,6 +484,18 @@ public:
    DLLLOCAL ~ProgramContextHelper();
 };
 
+class ProgramThreadCountContextHelper {
+protected:
+   QoreProgram* old_pgm;
+   ThreadLocalVariableData *old_lvstack;
+   ThreadClosureVariableStack *old_cvstack;
+   bool restore;
+
+public:
+   DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
+   DLLLOCAL ~ProgramThreadCountContextHelper();
+};
+
 class ArgvContextHelper {
 private:
    QoreListNode *old_argv;

@@ -439,6 +439,13 @@ Program::copy() {
    xsink->raiseException("PROGRAM-COPY-ERROR", "copying Program objects is currently unsupported");
 }
 
+//! Waits for all threads to finish executing, then deletes all global variables, dereferences the internal Program object and deletes the %Qore object
+/**
+ */
+Program::destructor() {
+   p->waitForTerminationAndDeref(xsink);
+}
+
 //! Parses the string argument and adds the code to the Program object
 /** This method causes both stages of parsing to be executed; if this method is successful, then the code parsed is committed to the Program object.
     This method is equivalent to calling Program::parsePending() and Program::parseCommit() in one atomic call.

@@ -3289,7 +3289,8 @@ void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, Qor
       ceh.restorePosition();
    }
 
-   ProgramContextHelper pch(pgm);
+   ProgramThreadCountContextHelper tch(xsink, pgm, true);
+   if (*xsink) return;
    discard(evalIntern(uveh.getArgv(), self, xsink, thisclass.getName()), xsink);
 }
 

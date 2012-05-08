@@ -315,8 +315,9 @@ void QoreSignalManager::signal_handler_thread() {
 	    qore_program_private::startThread(*pgm, xsink);
 
 	 {
-	    ProgramContextHelper pch(pgm);
-	    handlers[sig].runHandler(sig, &xsink);
+	    ProgramThreadCountContextHelper tch(&xsink, pgm, true);
+	    if (!xsink)
+	       handlers[sig].runHandler(sig, &xsink);
 	 }
 
 	 // delete thread-local storage, if any

@@ -537,15 +537,12 @@ public:
    AbstractQoreNode* fc;
    QoreProgram *pgm;
    int tid;
-   int s_line, e_line;
-   const char *file;
-   bool method_reference;
+   QoreProgramLocation loc;
+   bool deref_count;
    
    DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink *xsink) : callobj(getStackObject()), obj(0),
-									       fc(f), pgm(getProgram()), tid(t) {
+         fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation), deref_count(false) {
       // callobj: get and reference the current stack object, if any, for the new call stack
-      // save program location
-      file = get_pgm_counter(s_line, e_line);
 
       qore_type_t fctype = fc->getType();
       //printd(5, "BGThreadParams::BGThreadParams(f=%p (%s %d), t=%d) this=%p callobj=%p\n", f, f->getTypeName(), f->getType(), t, this, callobj);
@@ -581,12 +578,14 @@ public:
 	 callobj->tRef();
 
       // increment the program's thread counter
-      pgm->tc_inc();
+      if (!qore_program_private::incThreadCount(*pgm, xsink))
+         deref_count = true;
    }
 
    DLLLOCAL ~BGThreadParams() {
       // decrement program's thread count
-      pgm->tc_dec();
+      if (deref_count)
+         qore_program_private::decThreadCount(*pgm);
    }
 
    DLLLOCAL QoreObject *getCallObject() {
@@ -1251,6 +1250,44 @@ ProgramContextHelper::~ProgramContextHelper() {
    }
 }
 
+ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) :
+            old_pgm(0), old_lvstack(0), old_cvstack(0), restore(false) {
+   if (!pgm)
+      return;
+
+   ThreadData *td = thread_data.get();
+   printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm=%p new_pgm=%p\n", td->current_pgm, pgm);
+   if (pgm != td->current_pgm) {
+      // try to increment thread count
+      if (qore_program_private::incThreadCount(*pgm, xsink))
+         return;
+
+      // set up thread stacks
+      restore = true;
+      old_pgm = td->current_pgm;
+      old_lvstack = td->lvstack;
+      old_cvstack = td->cvstack;
+      td->current_pgm = pgm;
+      td->tpd->saveProgram(runtime);
+   }
+}
+
+ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
+   if (!restore)
+      return;
+
+   // restore thread stacks
+   ThreadData *td = thread_data.get();
+
+   QoreProgram* pgm = td->current_pgm;
+   //printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm=%p restoring old pgm=%p old lvstack=%p\n", td->current_pgm, old_pgm, old_lvstack);
+   td->current_pgm = old_pgm;
+   td->lvstack     = old_lvstack;
+   td->cvstack     = old_cvstack;
+
+   qore_program_private::decThreadCount(*pgm);
+}
+
 QoreProgram *getProgram() {
    return (thread_data.get())->current_pgm;
    //return (thread_data.get())->pgmStack->getProgram();
@@ -1449,7 +1486,7 @@ namespace {
          // create thread-local data for this thread in the program object
          qore_program_private::startThread(*btp->pgm, xsink);
          // set program counter for new thread
-         update_pgm_counter_pgm_file(btp->s_line, btp->e_line, btp->file);
+         update_runtime_location(btp->loc);
 
          {
             AbstractQoreNode* rv;

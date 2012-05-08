@@ -1092,7 +1092,8 @@ AbstractQoreNode* QoreFunction::evalFunction(const AbstractQoreFunctionVariant* 
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
    if (*xsink) return 0;
 
-   ProgramContextHelper pch(pgm);
+   ProgramThreadCountContextHelper tch(xsink, pgm, true);
+   if (*xsink) return 0;
    return variant->evalFunction(fname, ceh, xsink);
 }
 
@@ -1101,7 +1102,8 @@ int64 QoreFunction::bigIntEvalFunction(const AbstractQoreFunctionVariant* varian
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
    if (*xsink) return 0;
 
-   ProgramContextHelper pch(pgm);
+   ProgramThreadCountContextHelper tch(xsink, pgm, true);
+   if (*xsink) return 0;
    return variant->bigIntEvalFunction(fname, ceh, xsink);
 }
 
@@ -1110,7 +1112,8 @@ int QoreFunction::intEvalFunction(const AbstractQoreFunctionVariant* variant, co
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
    if (*xsink) return 0;
 
-   ProgramContextHelper pch(pgm);
+   ProgramThreadCountContextHelper tch(xsink, pgm, true);
+   if (*xsink) return 0;
    return variant->intEvalFunction(fname, ceh, xsink);
 }
 
@@ -1119,7 +1122,8 @@ bool QoreFunction::boolEvalFunction(const AbstractQoreFunctionVariant* variant, 
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
    if (*xsink) return 0;
 
-   ProgramContextHelper pch(pgm);
+   ProgramThreadCountContextHelper tch(xsink, pgm, true);
+   if (*xsink) return 0;
    return variant->boolEvalFunction(fname, ceh, xsink);
 }
 
@@ -1128,7 +1132,8 @@ double QoreFunction::floatEvalFunction(const AbstractQoreFunctionVariant* varian
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
    if (*xsink) return 0;
 
-   ProgramContextHelper pch(pgm);
+   ProgramThreadCountContextHelper tch(xsink, pgm, true);
+   if (*xsink) return 0;
    return variant->floatEvalFunction(fname, ceh, xsink);
 }
 
@@ -1312,9 +1317,9 @@ AbstractQoreNode* UserVariantBase::eval(const char* name, CodeEvaluationHelper *
    QORE_TRACE("UserVariantBase::eval()");
    printd(5, "UserVariantBase::eval() this=%p name=%s() args=%p (size=%d) self=%p\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self);
 
-   // if pgm is 0 or == the current pgm, then ProgramContextHelper does nothing
-   //ProgramContextHelper pch(self ? self->getProgram() : pgm);
-   ProgramContextHelper pch(pgm);
+   // if pgm is 0 or == the current pgm, then ProgramThreadCountContextHelper does nothing
+   ProgramThreadCountContextHelper tch(xsink, pgm, true);
+   if (*xsink) return 0;
 
    UserVariantExecHelper uveh(this, ceh, for_closure, xsink);
    if (!uveh)

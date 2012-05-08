@@ -143,8 +143,9 @@ int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
       return 0;
 
    {
-      ProgramThreadCountHelper tch(&pgm);
-      ProgramContextHelper pch(&pgm);
+      ProgramThreadCountContextHelper tch(&xsink, &pgm, true);
+      if (!xsink)
+         return -1;
 
       ReferenceHolder<> cn(reinterpret_cast<QoreClosureParseNode*>(init_c)->eval(&xsink), &xsink);
       assert(!xsink);
@@ -267,15 +268,15 @@ QoreUserModule::~QoreUserModule() {
    assert(pgm);
    ExceptionSink xsink;
    if (del) {
-      ProgramThreadCountHelper tch(pgm);
-      ProgramContextHelper pch(pgm);
+      ProgramThreadCountContextHelper tch(&xsink, pgm, true);
+      if (!xsink) {
+         ReferenceHolder<> cn(del->eval(&xsink), &xsink);
+         assert(!xsink);
+         assert(cn->getType() == NT_RUNTIME_CLOSURE);
 
-      ReferenceHolder<> cn(del->eval(&xsink), &xsink);
-      assert(!xsink);
-      assert(cn->getType() == NT_RUNTIME_CLOSURE);
-
-      ReferenceHolder<> tmp(reinterpret_cast<QoreClosureNode*>(*cn)->exec(0, &xsink), &xsink);
-      del->deref(&xsink);
+         ReferenceHolder<> tmp(reinterpret_cast<QoreClosureNode*>(*cn)->exec(0, &xsink), &xsink);
+         del->deref(&xsink);
+      }
    }
    pgm->waitForTerminationAndDeref(&xsink);
 }

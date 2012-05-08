@@ -87,7 +87,8 @@ private:
    mutable QoreThreadLock m;
    QoreParseTypeInfo *parseTypeInfo;
    const QoreTypeInfo *typeInfo;
-   bool pub;                          // is this global var public (valid and set for modules only)
+   bool pub,                          // is this global var public (valid and set for modules only)
+      finalized;                      // has this var already been cleared during Program destruction?
 
    DLLLOCAL void del(ExceptionSink* xsink);
 
@@ -97,17 +98,25 @@ private:
 protected:
    DLLLOCAL ~Var() { delete parseTypeInfo; }
 
+   DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
+         if (finalized) {
+            xsink->raiseException("DESTRUCTOR-ERROR", "illegal variable assignment after second phase of variable destruction");
+            return -1;
+         }
+         return 0;
+      }
+
 public:
-   DLLLOCAL Var(const char* n_name) : val(QV_Node), name(n_name), parseTypeInfo(0), typeInfo(0), pub(false) {
+   DLLLOCAL Var(const char* n_name) : val(QV_Node), name(n_name), parseTypeInfo(0), typeInfo(0), pub(false), finalized(false) {
    }
 
-   DLLLOCAL Var(const char* n_name, QoreParseTypeInfo *n_parseTypeInfo) : val(QV_Node), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0), pub(false) {
+   DLLLOCAL Var(const char* n_name, QoreParseTypeInfo *n_parseTypeInfo) : val(QV_Node), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0), pub(false), finalized(false) {
    }
 
-   DLLLOCAL Var(const char* n_name, const QoreTypeInfo *n_typeInfo) : val(n_typeInfo), name(n_name), parseTypeInfo(0), typeInfo(n_typeInfo), pub(false) {
+   DLLLOCAL Var(const char* n_name, const QoreTypeInfo *n_typeInfo) : val(n_typeInfo), name(n_name), parseTypeInfo(0), typeInfo(n_typeInfo), pub(false), finalized(false) {
    }
 
-   DLLLOCAL Var(Var *ref, bool ro = false) : loc(ref->loc), val(QV_Ref), name(ref->name), parseTypeInfo(0), typeInfo(ref->typeInfo), pub(false) {
+   DLLLOCAL Var(Var *ref, bool ro = false) : loc(ref->loc), val(QV_Ref), name(ref->name), parseTypeInfo(0), typeInfo(ref->typeInfo), pub(false), finalized(false) {
       ref->ROreference();
       val.v.setPtr(ref, ro);
    }
@@ -119,22 +128,18 @@ public:
 
    DLLLOCAL void clearLocal(ExceptionSink* xsink) {
       if (val.type != QV_Ref) {
+         ReferenceHolder<> h(xsink);
+         AutoLocker al(m);
+         if (!finalized)
+            finalized = true;
          printd(5, "Var::clearLocal() clearing '%s' %p\n", name.c_str(), this);
-         discard(val.remove(true), xsink);
+         h = val.remove(true);
       }
 #ifdef DEBUG
       else
          printd(5, "Var::clearLocal() skipping imported var '%s' %p\n", name.c_str(), this);
 #endif
 
-   }
-
-   DLLLOCAL qore_type_t getValueType() const {
-      return val.type == QV_Ref ? val.v.getPtr()->getValueType() : val.getType();
-   }
-
-   DLLLOCAL const char* getValueTypeName() const {
-      return val.type == QV_Ref ? val.v.getPtr()->getValueTypeName() : val.getTypeName();
    }
 
    DLLLOCAL void setInitial(AbstractQoreNode* v) {
@@ -146,8 +151,8 @@ public:
    DLLLOCAL bool isImported() const;
    DLLLOCAL void deref(ExceptionSink* xsink);
 
-   DLLLOCAL AbstractQoreNode *eval() const;
-   DLLLOCAL AbstractQoreNode* eval(bool &needs_deref) const;
+   DLLLOCAL AbstractQoreNode* eval() const;
+   DLLLOCAL AbstractQoreNode* eval(bool& needs_deref) const;
    DLLLOCAL int64 bigIntEval() const;
    DLLLOCAL double floatEval() const;
 

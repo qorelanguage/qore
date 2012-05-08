@@ -42,6 +42,7 @@ QoreGetOptNode* QoreGetOpt::find(const char* opt) const {
    getopt_long_map_t::const_iterator i = long_map.find(opt);
    if (i != long_map.end())
       return i->second;
+
    return 0;
 }
 
@@ -70,7 +71,7 @@ int QoreGetOpt::add(const char* name, char short_opt, const char* long_opt, qore
    if (short_opt)
       short_map[short_opt] = n;
    if (long_opt)
-      long_map[n->name.c_str()] = n;
+      long_map[n->long_opt.c_str()] = n;
    node_list.push_back(n);
    
    return 0;

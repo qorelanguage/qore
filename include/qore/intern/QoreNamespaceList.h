@@ -83,7 +83,7 @@ public:
    DLLLOCAL void parseInitConstants();
 
    DLLLOCAL void parseInitGlobalVars();
-   DLLLOCAL void clearGlobalVars(ExceptionSink* sink);
+   DLLLOCAL void clearData(ExceptionSink* sink);
    DLLLOCAL void deleteGlobalVars(ExceptionSink* sink);
 
    DLLLOCAL void parseInit();

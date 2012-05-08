@@ -71,8 +71,8 @@ public:
       assert(vmap.empty());
    }
 
-   DLLLOCAL void delete_all(ExceptionSink* xsink);
-   DLLLOCAL void clear_all(ExceptionSink* xsink);
+   DLLLOCAL void clearAll(ExceptionSink *xsink);
+   DLLLOCAL void deleteAll(ExceptionSink* xsink);
 
    // called at runtime
    // returns a non-0 Var* if a new variable was created, 0 if not (because it already existed - exception raised)

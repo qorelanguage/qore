@@ -186,6 +186,9 @@ public:
       return qc;
    }
 
+   DLLLOCAL void clearData(ExceptionSink* xsink);
+   DLLLOCAL void deleteData(ExceptionSink* xsink);
+
    DLLLOCAL void parseAssimilate(QoreNamespace* ns);
    DLLLOCAL void runtimeAssimilate(QoreNamespace* ns);
 
@@ -280,18 +283,6 @@ public:
 
    DLLLOCAL void parseInitGlobalVars();
 
-   DLLLOCAL void clearGlobalVars(ExceptionSink* xsink) {
-      var_list.clear_all(xsink);
-
-      nsl.clearGlobalVars(xsink);
-   }
-
-   DLLLOCAL void deleteGlobalVars(ExceptionSink* xsink) {
-      var_list.delete_all(xsink);
-
-      nsl.deleteGlobalVars(xsink);
-   }
-
    DLLLOCAL void checkGlobalVarDecl(Var* v, const NamedScope& vname);
    DLLLOCAL void parseAddGlobalVarDecl(char *name, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, bool pub);
 
@@ -349,12 +340,8 @@ public:
       return ns.priv;
    }
 
-   DLLLOCAL static void clearGlobalVars(QoreNamespace& ns, ExceptionSink* xsink) {
-      ns.priv->clearGlobalVars(xsink);
-   }
-
-   DLLLOCAL static void deleteGlobalVars(QoreNamespace& ns, ExceptionSink* xsink) {
-      ns.priv->deleteGlobalVars(xsink);
+   DLLLOCAL static void clearData(QoreNamespace& ns, ExceptionSink* xsink) {
+      ns.priv->clearData(xsink);
    }
 
    DLLLOCAL static bool isPublic(const QoreNamespace& ns) {

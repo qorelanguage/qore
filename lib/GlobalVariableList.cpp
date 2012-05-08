@@ -43,14 +43,14 @@ Var* GlobalVariableList::import(Var* v, ExceptionSink *xsink, bool readonly) {
 }
 
 // sets all non-imported variables to NULL (dereferences contents if any)
-void GlobalVariableList::clear_all(ExceptionSink *xsink) {
+void GlobalVariableList::clearAll(ExceptionSink *xsink) {
    //printd(5, "GlobalVariableList::clear_all() this=%p (size=%d)\n", this, vmap.size());
    for (map_var_t::reverse_iterator i = vmap.rbegin(), e = vmap.rend(); i != e; ++i) {
       i->second->clearLocal(xsink);
    }
 }
 
-void GlobalVariableList::delete_all(ExceptionSink *xsink) {
+void GlobalVariableList::deleteAll(ExceptionSink *xsink) {
    parseRollback();
 
    for (map_var_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)
