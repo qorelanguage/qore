@@ -299,7 +299,7 @@ my string $lwr = tolower($str);
     - this function only processes ASCII characters
     - equivalent to <string>::lwr(string)
 
-    @see\
+    @see
     - <string>::lwr()
     - <string>::upr()
     - toupper()

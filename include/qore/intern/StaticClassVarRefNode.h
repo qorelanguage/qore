@@ -45,8 +45,8 @@ protected:
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const;
 
 public:
-   const QoreClass &qc;
-   QoreVarInfo &vi;
+   const QoreClass& qc;
+   QoreVarInfo& vi;
    std::string str;
 
    DLLLOCAL StaticClassVarRefNode(const char* c_str, const QoreClass& n_qc, QoreVarInfo& n_vi);
@@ -62,7 +62,6 @@ public:
    DLLLOCAL virtual const char* getTypeName() const;
 
    DLLLOCAL void getLValue(LValueHelper& lvh) const;
-   //DLLLOCAL AbstractQoreNode** getValuePtr(AutoVLock& vl, const QoreTypeInfo* &typeInfo) const;
 };
 
 #endif

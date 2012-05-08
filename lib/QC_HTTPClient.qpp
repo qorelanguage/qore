@@ -214,7 +214,7 @@ bool HTTPClient::isSecure() [flags=CONSTANT] {
     @par Example:
     @code
 if ($httpclient.isSecure() && exists (my *string $str = $httpclient.verifyPeerCertificate())) {
-    printf("vertificate: %s: %s\n", $str, X509_VerificationReasons.$str);
+    printf("certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
     @endcode
  */
 *string HTTPClient::verifyPeerCertificate() [flags=CONSTANT] {
@@ -287,7 +287,7 @@ nothing HTTPClient::disconnect() {
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
-    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send messages bodies without a \c "Content-Length" header.
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key.
 
@@ -323,7 +323,7 @@ hash HTTPClient::send(string body, string method, *string path, *hash headers, s
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
-    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send messages bodies without a \c "Content-Length" header.
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key.
 

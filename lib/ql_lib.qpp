@@ -380,7 +380,7 @@ usleep(5000);
 
     @see sleep() for a similar function supporting second resolution
 
-    @note both sleep() and usleep() are implemented internally by calls to nanosleep() (2) of available on the current platform, otherwise both are implemented by calls to usleep() (3)
+    @note both sleep() and usleep() are implemented internally by calls to nanosleep() (2) if available on the current platform, otherwise both are implemented by calls to usleep() (3)
  */
 int usleep(softint usecs) [dom=PROCESS] {
    if (!usecs)
@@ -401,7 +401,7 @@ usleep(250ms);
 
     @see sleep() for a similar function supporting second resolution
 
-    @note both sleep() and usleep() are implemented internally by calls to nanosleep() (2) of available on the current platform, otherwise both are implemented by calls to usleep() (3)
+    @note both sleep() and usleep() are implemented internally by calls to nanosleep() (2) if available on the current platform, otherwise both are implemented by calls to usleep() (3)
  */
 int usleep(date d) [dom=PROCESS] {
    return qore_usleep(d->getRelativeMicroseconds());

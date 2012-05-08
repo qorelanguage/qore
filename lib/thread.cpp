@@ -56,10 +56,12 @@
 #include <set>
 #include <string>
 
-#if defined(DARWIN) && MAX_QORE_THREADS > 2560
+#if defined(DARWIN) && MAX_QORE_THREADS > 2560 && !defined(__MAC_10_7)
 // testing has revealed that darwin's pthread_create will not return an error when more than 2560 threads
 // are running, however the threads are not actually started, therefore we set MAX_QORE_THREADS to 2560 on 
 // Darwin.  This should be much more than any program/script should need (famous last words? :-) )
+// this bug is not present on 10.7.3 at least - in 10.7.3 pthread_create() returns an error after 2047
+// threads have been created and therefore works reliably
 #warning Darwin cannot support more than 2560 threads, MAX_QORE_THREADS set to 2560
 #undef MAX_QORE_THREADS
 #define MAX_QORE_THREADS 2560

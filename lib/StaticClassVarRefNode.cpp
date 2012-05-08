@@ -59,23 +59,19 @@ AbstractQoreNode *StaticClassVarRefNode::evalImpl(bool &needs_deref, ExceptionSi
 }
 
 int64 StaticClassVarRefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(StaticClassVarRefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBigInt() : 0;
+   return vi.getAsBigInt();
 }
 
 int StaticClassVarRefNode::integerEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(StaticClassVarRefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsInt() : 0;
+   return (int)vi.getAsBigInt();
 }
 
 bool StaticClassVarRefNode::boolEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(StaticClassVarRefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBool() : 0;
+   return vi.getAsBool();
 }
 
 double StaticClassVarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(StaticClassVarRefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsFloat() : 0;
+   return vi.getAsFloat();
 }
 
 AbstractQoreNode *StaticClassVarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -87,17 +83,8 @@ AbstractQoreNode *StaticClassVarRefNode::parseInitImpl(LocalVar *oflag, int pfla
 void StaticClassVarRefNode::getLValue(LValueHelper& lvh) const {
    lvh.setTypeInfo(vi.getTypeInfo());
    lvh.setAndLock(vi.l);
-   lvh.setPtr(vi.val);
+   lvh.setValue(vi.val);
 }
-
-/*
-AbstractQoreNode **StaticClassVarRefNode::getValuePtr(AutoVLock &vl, const QoreTypeInfo *&typeInfo) const {
-   typeInfo = vi.getTypeInfo();
-   vi.l.lock();
-   vl.set(&vi.l);
-   return &vi.val;
-}
-*/
 
 const QoreTypeInfo *StaticClassVarRefNode::getTypeInfo() const {
    return vi.getTypeInfo();

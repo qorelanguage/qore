@@ -3637,6 +3637,8 @@ void QoreVarInfo::parseInit(const char *name, bool priv) {
    else assert(!parseTypeInfo);
 #endif
 
+   val.set(typeInfo);
+
    if (exp) {
       const QoreTypeInfo *argTypeInfo = 0;
       int lvids = 0;

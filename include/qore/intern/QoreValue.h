@@ -100,6 +100,17 @@ public:
       set(typeInfo);
    }
 
+   DLLLOCAL QoreLValue(const QoreLValue<U>& old) : type(old.type) {
+      switch (old.type) {
+         case QV_Bool: v.b = old.v.b; break;
+         case QV_Int: v.i = old.v.i; break;
+         case QV_Float: v.f = old.v.f; break;
+         case QV_Node: v.n = old.v.n ? old.v.n->refSelf() : 0; break;
+         default: assert(false);
+         // no break
+      }
+   }
+
    DLLLOCAL bool optimized() const {
       return type != QV_Node && type != QV_Ref;
    }
@@ -188,6 +199,19 @@ public:
          case QV_Int: v.i = n.v.i; n.v.i = 0; break;
          case QV_Float: v.f = n.v.f; n.v.f = 0; break;
          case QV_Node: v.n = n.v.n; n.v.n = 0; break;
+         default: assert(false);
+         // no break
+      }
+   }
+
+   DLLLOCAL void assignInitial(QoreLValue<U>& n) {
+      assert(!hasValue());
+      type = n.type;
+      switch (n.type) {
+         case QV_Bool: v.b = n.v.b; break;
+         case QV_Int: v.i = n.v.i; break;
+         case QV_Float: v.f = n.v.f; break;
+         case QV_Node: v.n = n.v.n ? n.v.n->refSelf() : 0; break;
          default: assert(false);
          // no break
       }
@@ -344,7 +368,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL AbstractQoreNode* *getValuePtr(ExceptionSink* xsink) const {
+   DLLLOCAL AbstractQoreNode** getValuePtr(ExceptionSink* xsink) const {
       if (type == QV_Node)
          return (AbstractQoreNode**)&v.n;
 
@@ -353,7 +377,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL AbstractQoreNode* *getContainerValuePtr() const {
+   DLLLOCAL AbstractQoreNode** getContainerValuePtr() const {
       return type == QV_Node ? (AbstractQoreNode**)&v.n : 0;
    }
 

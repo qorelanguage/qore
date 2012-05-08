@@ -325,6 +325,8 @@ nothing throwThreadResourceExceptions() [dom=THREAD_CONTROL] {
 /** 
     When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
 
+    @return @ref True if there are additional thread resource marks to process, @ref False if there are no more
+
     @par Example:
     @code
 try {

@@ -33,13 +33,13 @@
 sub usage() {
     printf(
 "usage: %s [options]
-  -s,--string=arg  returns a list of strings in 'string'
-  -t,--int=arg     returns an added integer sum of the arguments in 'int'
-  -f,--float       returns a floating point value in 'float' 
-  -b,--bool        returns a boolean value in 'bool'
-  -d,--date        returns a date value in 'date'
+  -s,--string=ARG  returns a list of strings in 'string'
+  -i,--int=ARG     returns an added integer sum of the arguments in 'int'
+  -f,--float=ARG   returns a floating point value in 'float' 
+  -b,--bool=ARG    returns a boolean value in 'bool'
+  -d,--date=ARG    returns a date value in 'date'
   -t               returns a boolean value in 'test'
-  -o,--opt         returns an integer sum of arguments in 'opt'\n",
+  -o,--opt[=ARG]   returns an integer sum of arguments in 'opt'\n",
 	get_script_name());
     exit(1);
 }

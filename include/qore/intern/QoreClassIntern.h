@@ -27,6 +27,7 @@
 
 #include <qore/safe_dslist>
 #include <qore/intern/ConstantList.h>
+#include <qore/intern/QoreValue.h>
 
 #include <string.h>
 
@@ -1023,35 +1024,30 @@ public:
 
 class QoreVarInfo : public QoreMemberInfo {
 protected:
-   DLLLOCAL QoreVarInfo(const QoreVarInfo& old) : QoreMemberInfo(old), val(old.val ? old.val->refSelf() : 0) {
+   DLLLOCAL QoreVarInfo(const QoreVarInfo& old) : QoreMemberInfo(old), val(old.val) {
    }
 
 public:
-   QoreThreadLock l;
-   AbstractQoreNode* val;
+   mutable QoreThreadLock l;
+   QoreLValueGeneric val;
 
    DLLLOCAL QoreVarInfo(int nfl, int nll, const QoreTypeInfo* n_typeinfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0) :
-      QoreMemberInfo(nfl, nll, n_typeinfo, n_parseTypeInfo, e), val(0) {
+      QoreMemberInfo(nfl, nll, n_typeinfo, n_parseTypeInfo, e) {
    }
 
-   DLLLOCAL QoreVarInfo(int nfl, int nll) : QoreMemberInfo(nfl, nll), val(0) {
+   DLLLOCAL QoreVarInfo(int nfl, int nll) : QoreMemberInfo(nfl, nll) {
    }
 
-   DLLLOCAL QoreVarInfo(int nfl, int nll, AbstractQoreNode* e) : QoreMemberInfo(nfl, nll, e), val(0) {
+   DLLLOCAL QoreVarInfo(int nfl, int nll, AbstractQoreNode* e) : QoreMemberInfo(nfl, nll, e) {
    }
    
    DLLLOCAL ~QoreVarInfo() {
-      assert(!val);
+      assert(!val.hasValue());
    }
 
    DLLLOCAL void delVar(ExceptionSink* xsink) {
       del();
-      if (val) {
-         val->deref(xsink);
-#ifdef DEBUG
-         val = 0;
-#endif
-      }
+      discard(val.remove(false), xsink);
    }
 
    DLLLOCAL QoreVarInfo* copy() const {
@@ -1062,10 +1058,10 @@ public:
    }
 
    DLLLOCAL void assignInit(AbstractQoreNode* v) {
-      assert(!val);
-      val = v;
+      val.assignInitial(v);
    }
 
+   /*
    DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink* xsink) {
       AutoLocker al(l);
 
@@ -1073,17 +1069,33 @@ public:
          val->deref(xsink);
       val = v;
    }
+   */
 
-   DLLLOCAL AbstractQoreNode* getReferencedValue() {
+   DLLLOCAL AbstractQoreNode* getReferencedValue() const {
       AutoLocker al(l);
-      return val ? val->refSelf() : 0;
+      return val.eval();
+   }
+
+   DLLLOCAL int64 getAsBigInt() const {
+      AutoLocker al(l);
+      return val.getAsBigInt();
+   }
+
+   DLLLOCAL double getAsFloat() const {
+      AutoLocker al(l);
+      return val.getAsFloat();
+   }
+
+   DLLLOCAL bool getAsBool() const {
+      AutoLocker al(l);
+      return val.getAsBool();
    }
 
    DLLLOCAL void parseInit(const char* name, bool priv);
 
 #ifdef DEBUG
    DLLLOCAL bool empty() const {
-      return !val;
+      return !val.hasValue();
    }
 #endif
 };
