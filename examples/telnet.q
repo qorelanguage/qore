@@ -167,7 +167,7 @@ class telnet {
 
     static usage() {
 	printf("usage: %s [options] <server>\n"
-	       "  where <server> is a telnet server address (port optional, ex: telnet.com:25)\n"
+	       "  where <server> is a telnet server address (port optional, ex: telnet.com:23)\n"
 	       "options:\n"
 	       " -h,--help         this help text\n"
 	       " -t,--timeout=ARG  gives a connect timeout in ms (default: %y)\n"
