@@ -48,7 +48,7 @@ private:
    class QoreString *newstr;
 
    DLLLOCAL void init();
-   DLLLOCAL static void concat(QoreString *str, int *ovector, int olen, const char *ptr, const char *target);
+   DLLLOCAL static void concat(QoreString *str, int *ovector, int olen, const char *ptr, const char *target, int rc);
 
 public:
    DLLLOCAL RegexSubstNode();

@@ -1,7 +1,7 @@
 RELEASE NOTES for qore v0.8.4
 
 release summary: major new features and changes that can affect backwards-
-	         compatibility, plus 36 bug fixes
+	         compatibility, plus 38 bug fixes
 
 Release Overview
 **************************************************
@@ -359,6 +359,12 @@ type code for runtime closure values
 * fixed a bug in HashIterator::deleteKey() when the node's value is NULL
 * fixed time zone/DST calculations for time zone regions with DST with dates
   before the epoch but after the last DST transition before the epoch 
+* fixed a memory error where invalid source expressions referenced in a
+  regular expression substitution expression would cause a crash (ex:
+  str =~ s/public (name)/$2/g
+* fixed a memory error in regular expression substitution where the
+  unconverted string (if not given in UTF-8 encoding) was used when copying
+  source expressions to the target string
 
 *** end of release notes
 

@@ -59,12 +59,10 @@ RegexSubstNode::RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *
 
 RegexSubstNode::~RegexSubstNode() {
    //printd(5, "RegexSubstNode::~RegexSubstNode() this=%p\n", this);
-   if (newstr)
-      delete newstr;
+   delete newstr;
    if (p)
       pcre_free(p);
-   if (str)
-      delete str;
+   delete str;
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -130,16 +128,18 @@ void RegexSubstNode::parse() {
 }
 
 // static function
-void RegexSubstNode::concat(QoreString *cstr, int *ovector, int olen, const char *ptr, const char *target) {
+void RegexSubstNode::concat(QoreString *cstr, int *ovector, int olen, const char *ptr, const char *target, int rc) {
    while (*ptr) {
       if (*ptr == '$' && isdigit(ptr[1])) {
 	 QoreString n;
-	 ptr++;
+	 ++ptr;
 	 do
 	    n.concat(*(ptr++));
 	 while (isdigit(*ptr));
-	 int pos = atoi(n.getBuffer()) * 2;
-	 if (pos > 0 && pos < olen && ovector[pos] != -1)
+	 int num = atoi(n.getBuffer());
+	 int pos = num * 2;
+	 //printd(5, "RegexSubstNode::concat() pos: %d olen: %d ovector[%d]: %d ovector[%d]: %d rc: %d\n", pos, olen, pos, ovector[pos], pos + 1, ovector[pos + 1], rc);
+	 if (pos > 0 && pos < olen && num < rc && ovector[pos] != -1)
 	    cstr->concat(target + ovector[pos], ovector[pos + 1] - ovector[pos]);
       }
       else
@@ -150,8 +150,7 @@ void RegexSubstNode::concat(QoreString *cstr, int *ovector, int olen, const char
 #define SUBST_OVECSIZE 30
 #define SUBST_LASTELEM 20
 // called directly for run-time evaluation
-QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString *nstr, ExceptionSink *xsink) const
-{
+QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString *nstr, ExceptionSink *xsink) const {
    TempEncodingHelper t(target, QCS_UTF8, xsink);
    if (*xsink)
       return 0;
@@ -160,8 +159,7 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
    
    const char *ptr = t->getBuffer();
    //printd(5, "RegexSubstNode::exec(%s) this=%p: global=%s\n", ptr, this, global ? "true" : "false"); 
-   while (true)
-   {
+   while (true) {
       int ovector[SUBST_OVECSIZE];
       int offset = ptr - t->getBuffer();
       int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, SUBST_OVECSIZE);
@@ -171,7 +169,7 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
       if (ovector[0] > offset)
 	 tstr->concat(ptr, ovector[0] - offset);
       
-      concat(tstr, ovector, SUBST_LASTELEM, nstr->getBuffer(), target->getBuffer());
+      concat(tstr, ovector, SUBST_LASTELEM, nstr->getBuffer(), t->getBuffer(), rc);
       
       //printd(5, "RegexSubstNode::exec() '%s' =~ s/?/%s/%s offset=%d, 0=%d, 1=%d ('%s')\n", t->getBuffer(), nstr->getBuffer(), global ? "g" : "", offset, ovector[0], ovector[1], tstr->getBuffer());
       
@@ -190,17 +188,14 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
 }
 
 // called for run-time evaluation of parse-time-created objects
-QoreStringNode *RegexSubstNode::exec(const QoreString *target, ExceptionSink *xsink) const
-{
+QoreStringNode *RegexSubstNode::exec(const QoreString *target, ExceptionSink *xsink) const {
    return exec(target, newstr, xsink);
 }
 
-void RegexSubstNode::setGlobal()
-{
+void RegexSubstNode::setGlobal() {
    global = true;
 }
 
-QoreString *RegexSubstNode::getPattern() const
-{
+QoreString *RegexSubstNode::getPattern() const {
    return str;
 }
