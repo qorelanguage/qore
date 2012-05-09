@@ -23,6 +23,11 @@ else
 QPP=lib/qpp
 endif
 
+QDX=./qore doxygen/qdx
+
+#lib_doxyfiles: qore
+#	for a in $(USER_MODULES); do ./qore doxygen/qdx -d=lib -e=.dox.h $$a; done
+
 LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_AutoGate.qpp \
 	lib/QC_AutoLock.qpp \
@@ -279,6 +284,26 @@ doxygen/lang/250_warnings.dox: doxygen/lang/250_warnings.dox.tmpl lib
 
 doxygen/lang/255_keywords.dox: doxygen/lang/255_keywords.dox.tmpl lib
 	$(QPP) -t $< -o $@
+
+QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
+	doxygen/qlib/Mime.qm.dox.h \
+	doxygen/qlib/TelnetClient.qm.dox.h \
+	doxygen/qlib/SmtpClient.qm.dox.h
+
+doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl
+	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h $< $@
+
+doxygen/qlib/HttpServer.qm.dox.h: qlib/HttpServer.qm
+	$(QDX) $< $@
+
+doxygen/qlib/Mime.qm.dox.h: qlib/Mime.qm
+	$(QDX) $< $@
+
+doxygen/qlib/TelnetClient.qm.dox.h: qlib/TelnetClient.qm
+	$(QDX) $< $@
+
+doxygen/qlib/SmtpClient.qm.dox.h: qlib/SmtpClient.qm
+	$(QDX) $< $@
 
 include_HEADERS = \
 	include/qore/ReferenceArgumentHelper.h \
@@ -602,7 +627,7 @@ dummy:
 	./next_build.sh
 
 if COND_DOXYGEN
-DX_CLEANFILES = docs/library $(LANG_TMP_DOXYFILES)
+DX_CLEANFILES = docs/library $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
 
 docs/library/html/index.html: $(include_HEADERS) $(LIB_DOXYFILES)
 	$(DOXYGEN_CMD) doxygen/lib/Doxyfile
@@ -611,7 +636,11 @@ docs/lang/html/index.html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
 	$(DOXYGEN_CMD) doxygen/lang/Doxyfile
 	$(top_srcdir)/doxygen/pdox docs/lang/html docs/lang/html/search
 
-doxygen-doc: docs/library/html/index.html docs/lang/html/index.html
+docs/modules/HttpServer/html/index.html: docs/lang/html/index.html doxygen/qlib/HttpServer.qm.dox.h doxygen/qlib/Doxyfile.HttpServer
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.HttpServer
+	$(top_srcdir)/doxygen/pdox docs/modules/HttpServer/html docs/modules/HttpServer/html/search
+
+doxygen-doc: docs/library/html/index.html docs/lang/html/index.html docs/modules/HttpServer/html/index.html
 
 else
 doxygen-doc:

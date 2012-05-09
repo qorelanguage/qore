@@ -97,7 +97,13 @@ module HttpServer {
     url = "http://qore.org";
 }
 
-#! the main namespace for this module
+#! the main namespace for the HttpServer module
+/** To use this module, use '%requires HttpServer' in your code.
+
+    See examples/httpserver.q for an example program using this module
+    
+    All the public symbols in the module are defined in this namespace
+ */
 public namespace HttpServer {
     public string sub get_exception_string(hash $ex) {
         my string $str;
@@ -1191,7 +1197,8 @@ public class HttpServer::HttpServer {
     }
 
     #! stops all listeners; only returns when all connections are closed on all listeners
-    /** do not call HttpServer::stop() after calling HttpServer::stopNoWait(); it can cause a deadlock */ 
+    /** do not call HttpServer::stop() after calling HttpServer::stopNoWait(); it can cause a deadlock
+     */ 
     stop() {
 	# shutdown all listeners
 	$.lm.enter();

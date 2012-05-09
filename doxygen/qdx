@@ -1,0 +1,490 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-our
+%strict-args
+%new-style
+
+%exec-class qdx
+
+const opts = (
+    "moddx": "M,module-dx=s",
+    "post": "post,p",
+    "tex": "posttex,x",          # use TeX syntax for "post" processing
+    "help": "help,h"
+    );
+
+class qdx {
+    private {
+	bool post;
+	bool links;
+	bool svc;
+	bool help;
+	hash o;
+	*string sname;
+	*string psname;
+        string build;
+        string qorever;
+    }
+    public {}
+
+    constructor() {
+	GetOpt g(opts);
+	try {
+	    o = g.parse2(\ARGV);
+	}
+	catch (ex) {
+	    printf("%s\n", ex.desc);
+	    exit(1);
+	}
+
+	if (o.help || ARGV.empty())
+	    usage();
+
+        if (o.post) {
+            map (map postProcess($1), glob($1)), ARGV;
+            return;
+        }
+
+        if (o.moddx.val()) {
+            if (ARGV.size() < 2)
+                usage();
+            doModDx(ARGV[0], ARGV[1]);
+            return;
+        }
+
+        if (o.tex) {
+            map (map postProcess($1, True), glob($1)), ARGV;
+            return;
+        }
+
+        if (ARGV.size() < 2)
+            usage();
+        processQore(ARGV[0], ARGV[1]);
+    }
+
+    static usage() {
+      printf("usage: %s [options] <file1> ...
+  -d,--dir=ARG        directory to write output files in
+  -M,--module-dx=ARG  prepare doxyfile module template; ARG=<src>:<trg>
+  -e,--ext=ARG        extension to add to output files
+  -p,--post           post process files
+  -h,--help           this help text
+", get_script_name());
+      exit(1);
+    }
+
+    private getQoreVersion() {
+        if (!exists qorever)
+            qorever = sprintf("%d.%d.%d", Qore::VersionMajor, Qore::VersionMinor, Qore::VersionSub);
+        return qorever;
+    }
+
+    private checkNames(string fn, string ofn) {
+        if (fn === ofn) {
+            stderr.printf("OUTPUT-ERROR: input and output files are the same: %y", fn);
+            exit(1);
+        }
+    }
+
+    doModDx(string fn, string ofn) {
+        checkNames(fn, ofn);
+
+        (*string src, *string trg) = (o.moddx =~ x/([^:]+):(.*)/);
+        if (!exists trg) {
+            stderr.printf("MODULE-ERROR: --module-dx argument %y is not in format <src>:<trg>\n", o.moddx);
+            exit(1);
+        }
+
+        # get module name and version (the easy way)
+        string name = substr(basename(src), 0, -3);
+        Program p();
+        p.parse(sprintf("%requires %s\nhash sub get() { return getModuleHash().'%s'; }\n", src, name), "mod");
+        hash h = p.callFunction("get");
+
+        printf("processing %y -> %y (module %s %s src: %y trg: %y)\n", fn, ofn, name, h.version, src, trg);
+
+	File inf();
+	inf.open2(fn);
+
+        File of();
+        of.open2(ofn, O_CREAT | O_TRUNC | O_WRONLY);
+
+        while ((*string line = inf.readLine()).val()) {            
+            if (line =~ /{module}/)
+                line = replace(line, "{module}", name);
+            else if (line =~ /{input}/)
+                line = replace(line, "{input}", trg);
+            else if (line =~ /{version}/)
+                line = replace(line, "{version}", h.version);
+
+            of.write(line);
+        }
+    }
+
+    postProcess(string ifn, bool tex = False) {
+	File inf();
+	inf.open2(ifn);
+
+	string ofn = ifn + ".new";
+
+	printf("processing API file %s\n", ifn);
+
+	File of();
+	of.open2(ofn, O_CREAT | O_WRONLY | O_TRUNC);
+
+	on_success rename(ofn, ifn);
+
+	while (exists (*string line = inf.readLine())) {
+            if (tex) {
+                line =~ s/\\_\\-\\_\\-1\\_\\-/[/g;
+                line =~ s/\\_\\-\\_\\-2\\_\\-/]/g;
+                line =~ s/\\_\\-\\_\\-4\\_\\-/./g;
+                line =~ s/\\_\\-\\_\\-5\\_\\-/-/g;
+                line =~ s/\\_\\-\\_\\-6\\_\\-/\$/g;
+                line =~ s/\\_\\-\\_\\-7\\_\\-/*/g;
+            } 
+
+	    line =~ s/__1_/[/g;
+	    line =~ s/__2_/]/g;
+	    line =~ s/__4_/./g;
+	    line =~ s/__5_/-/g;
+	    line =~ s/__6_//g;
+	    line =~ s/__7_ /*/g;
+
+	    # remove "inline" tags
+	    line =~ s/\[inline\]//g;
+	    line =~ s/, inline\]/]/g;
+	    line =~ s/\[inline, /[/g;
+
+	    of.print(line);
+	}
+    }
+
+    fixParam(reference line) {
+	if (line =~ /@param/) {
+	    line =~ s/([^\/\*])\*/1__7_ /g;
+	    line =~ s/\$/__6_/g;
+	}
+	if (exists (*string str = regex_extract(line, "(" + sname + "\\.[a-z0-9_]+)", RE_Caseless)[0])) {
+	    string nstr = str;
+	    #printf("str=%n nstr=%n\n", str, nstr);
+	    nstr =~ s/\./__4_/g;
+	    line = replace(line, str, nstr);
+	}
+    }
+
+    getComment(string comment, File inf, File of, bool fix_param = False) {
+	comment =~ s/^[ \t]+//g;
+	if (fix_param)
+	    fixParam(\comment);
+
+	DocumentTableHelper dth();
+
+	while (exists (*string line = inf.readLine())) {
+	    line =~ s/^[ \t]+//g;
+	    line =~ s/\$/__6_/g; #/;
+
+	    if (fix_param)
+		fixParam(\line);
+
+	    line = dth.process(line);
+
+	    if (line =~ /\*\//) {
+		comment += line;
+		break;
+	    }
+	    if (line =~ /\/\*/) #/)
+		comment += line;
+	    else
+		comment += "   " + line;
+	}
+	#printf("comment: %s", comment);
+	return comment;
+    }
+
+    processQore(string fn, string nn) {
+        checkNames(fn, nn);
+
+	File inf();
+	inf.open2(fn);
+
+	File of();
+	of.open2(nn, O_CREAT|O_WRONLY|O_TRUNC);
+
+        printf("processing %y -> %y\n", fn, nn);
+
+	*string class_name;
+	*string ns_name;
+
+	# class member private flag
+	bool pp;
+
+	# method private flag
+	bool mpp;
+
+	# method private count
+	int mpc = 0;
+
+	# class bracket count
+	int cbc = 0;
+
+	# namespace bracket count
+	int nbc = 0;
+
+	bool in_doc = False;
+
+	while (exists (*string line = inf.readLine())) {
+            #printf("line: %s", line);
+
+	    # skip parse commands
+	    if (line =~ /^%/)
+		continue;
+
+            line =~ s/\$\.//g;
+	    line =~ s/([^\/\*])\*([a-zA-Z])/$1__7_ $2/g;
+            #line =~ s/\$/__6_/g;
+            line =~ s/\$//g;
+
+	    if (in_doc) {
+		if (line =~ /\*\//)
+		    in_doc = False;
+		of.print(line);
+		continue;
+	    }
+            
+	    if (line =~ /\/\*\*/) { #/){
+		if (line !~ /\*\//)
+                    in_doc = True;
+                of.print(line);
+                continue;
+	    }
+
+            # take public off sub definitions
+            line =~ s/public(.*)[[:space:]]sub([[:space:]]+)/$1$2/g;
+
+	    line =~ s/\$\.//g;
+	    #line =~ s/\$//g;
+	    line =~ s/\#/\/\//;
+	    line =~ s/our /extern /g;
+	    line =~ s/my //g;
+	    line =~ s/sub //;
+
+            # take public off namespace, class, constant and global variable declarations
+            line =~ s/public[[:space:]]+(const|our|namespace|class)/$1/g;
+
+            # remove regular expressions
+            line =~ s/[=!]~ *\/.*\//==1/g;        
+
+            # skip module declarations for now
+            if (line =~ /^[[:space:]]*module[[:space:]]+/) {
+                while (line.val() && line !~ /}/)
+                    line = inf.readLine();
+                continue;
+            }
+
+            # temporary list variable
+            *list xl;
+
+	    # convert class inheritance lists to c++-style declarations
+	    if (line =~ /inherits / && line !~ /\/(\/|\*)/) {
+		trim line;
+		xl = (line =~ x/(.*) inherits ([^{]+)(.*)/);
+		xl[1] = split(",", xl[1]);		
+		foreach string e in (\xl[1]) {
+		    if (e !~ /(private|public)/)
+			e = "public " + e;
+		}
+		trim(xl[0]);
+		line = xl[0] + " : " + join(",", xl[1]) + xl[2] + "\n";
+                if (line =~ /;[ \t]*/) #/)
+                    line =~ s/;[ \t]*/ {};/; #/;# this comment is only needed for emacs broken qore-mode :(
+
+		#printf("x=%n line=%s\n", xl, line);
+		#of.print(line);
+		#continue;
+	    }
+
+            # temporary string variable
+	    *string xs = (line =~ x/^namespace (\w+(::\w+)?)/)[0];
+	    if (xs.val()) {
+		#printf("namespace %n\n", xs);
+		ns_name = xs;
+
+		if (nbc != 0)
+		    throw "ERROR", sprintf("namespace found but nbc=%d\nline=%n\n", cbc, line);
+
+		if (line =~ /{/ && line !~ /}/)
+		    ++nbc;
+		    
+		of.print(line);
+		continue;
+	    }
+	    else {
+		xs = (line =~ x/^class (\w+(::\w+)?)/)[0];
+		if (xs.val()) {
+		    #printf("class %n\n", xs);
+		    class_name = xs;
+
+		    if (cbc != 0)
+			throw "ERROR", sprintf("class found but cbc=%d\nline=%n\n", cbc, line);
+
+		    if (line =~ /{/ && line !~ /}/) {
+			line += "\npublic:\n";
+			++cbc;
+		    }
+		    
+		    of.print(line);
+		    continue;
+		}
+		else if (exists class_name) {
+		    if (line =~ /{/) {
+			if (line !~ /}/)
+			    ++cbc;
+		    }
+		    else if (line =~ /}/) {
+			--cbc;
+			if (!cbc) {
+			    trim line;
+			    line += ";\n";
+			    delete class_name;
+			}
+		    }
+		    
+		    if (exists (xs = (line =~ x/(public|private)[ \t]+{(.*)}/)[1])) {
+			of.printf("private:\n%s\npublic:\n", xs);
+			continue;
+		    }
+		    else if (line =~ /(public|private) *{/) {
+			line =~ s/{/:/;
+			#printf("line: %s\n", line);
+			pp = True;
+		    }
+		    else if (pp && line =~ /}/) {
+			line = "public:\n";
+			pp = False;
+		    }
+		}
+		else if (exists ns_name) {
+		    if (line =~ /{/) {
+			if (line !~ /}/)
+			    ++nbc;
+		    }
+		    else if (line =~ /}/) {
+			--nbc;
+			if (!nbc) {
+			    trim line;
+			    line += ";\n";
+			    delete ns_name;
+			}
+		    }
+		}
+	    }
+
+	    if (!pp && line !~ /^[ \t]*\/\//) {
+		list mods = ();
+		if (line !~ /"/) {
+                    #string before = line;
+		    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|private[^-:]|public[^-:]|static)(.*)/))) {
+			mods += l[1];
+			line = l[0] + l[2];
+		    }
+                    #if (line != before)
+                    #    printf("EDITED: AFTER: %s\n", line);
+                    #if (line =~ /deprecated|synchronized|private|public|static/)
+                    #    printf("FOUND: %s\n", line);
+                }
+
+		if (elements mods) {
+		    trim mods;
+		    #printf("mods=%n line=%n\n",mods, line);
+		    foreach string mod in (mods) {
+			if (mod == "private") {
+			    mpp = True;
+			    of.printf("private:\n");
+			}
+			#line = regex_subst(line, mod, "");
+		    }
+		    mods = select mods, $1 != "private" && $1 != "public";
+		    #line = join(" ", mods) + line;
+		}
+
+		xl = (line =~ x/(.*\)) *returns (\*?[a-zA-Z_0-9]+)(.*)/);
+		if (strlen(xl[1])) {
+		    #printf("x=%n\n", x);
+		    line = xl[1] + " " + xl[0] + xl[2] + "\n";
+		}
+
+		if (exists mods)
+		    line = join(" ", mods) + " " + line;
+	    }
+
+	    of.print(line);
+
+	    if (mpp) {
+		if (line =~ /{/)
+		    ++mpc;
+		else if (line =~ /}/)
+		    --mpc;
+
+		if (!mpc) {
+		    of.print("public:\n");
+		    mpp = False;
+		}
+	    }
+	}
+    }
+}
+
+class DocumentTableHelper {
+    private {
+        bool css = False;
+        bool inTable = False;
+    }
+
+    # no public members
+    public {}
+
+    process(string line) returns string {
+        if (line =~ /@page/) {
+            #printf("PAGE: css: %n %s", css, line);#exit(1);
+            css = False;
+        }
+        #printf("XXX %s", line);
+
+        if (line !~ /^(\s)*\|/) {
+            if (inTable) {
+                inTable = False;
+                return "    </table>\n" + line;
+            }
+            return line;
+        }
+
+        string str;
+
+        if (!inTable) {
+            if (!css) {
+                str = "    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly\n";
+                css = True;
+            }
+            str += "    <table>\n";
+        }
+
+	inTable = True;
+
+	str += "      <tr>\n";
+
+	trim line;
+	splice line, 0, 1;
+	foreach *string cell in (split("|", line)) {
+	    trim cell;
+	    *string cs;
+	    if (cell =~ /^!/)
+		str += sprintf("        <td class=\"qore\"><b>%s</b></td>\n", substr(cell, 1));
+	    else
+		str += sprintf("        <td>%s</td>\n", cell);
+	}	
+	str += "      </tr>\n";
+	return str;
+    }
+}
