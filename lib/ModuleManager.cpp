@@ -202,25 +202,25 @@ public:
  */
 class DirectoryList : public strdeque_t {
 public:
-   DLLLOCAL void addDirList(const char *str);
+   DLLLOCAL void addDirList(const char* str);
 };
 
 static DirectoryList moduleDirList;
 
-void DirectoryList::addDirList(const char *str) {
+void DirectoryList::addDirList(const char* str) {
    if (!str)
       return;
 
    // duplicate string for invasive searches
    QoreString plist(str);
-   str = (char *)plist.getBuffer();
+   str = (char*)plist.getBuffer();
 
    // add each directory
-   while (char *p = (char *)strchr(str, ':')) {
+   while (char* p = (char*)strchr(str, ':')) {
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
       // don't match ':' as the second character in a path as a path separator
       if (p == str + 1) {
-	 p = (char *)strchr(p + 1, ':');
+	 p = (char*)strchr(p + 1, ':');
 	 if (!p)
 	    break;
       }
@@ -327,30 +327,30 @@ ModuleManager::ModuleManager() {
 }
 
 // to add a directory to the module directory search list, can only be called before init()
-void ModuleManager::addModuleDir(const char *dir) {
+void ModuleManager::addModuleDir(const char* dir) {
    moduleDirList.push_back(dir);
 }
 
 // to add a directory to the auto module directory search list, can only be called before init()
-void ModuleManager::addAutoModuleDir(const char *dir) {
+void ModuleManager::addAutoModuleDir(const char* dir) {
    printd(0, "ModuleManager::addAutoModuleDir() suppport for auto module directories was removed in 0.8.4\n");
    assert(false);
 }
 
 // to add a list of directories to the module directory search list, can only be called before init()
-void ModuleManager::addModuleDirList(const char *strlist) {
+void ModuleManager::addModuleDirList(const char* strlist) {
    moduleDirList.addDirList(strlist);
 }
 
 // to add a list of directories to the auto module directory search list, can only be called before init()
-void ModuleManager::addAutoModuleDirList(const char *strlist) {
+void ModuleManager::addAutoModuleDirList(const char* strlist) {
    printd(0, "ModuleManager::addAutoModuleDir() suppport for auto module directories was removed in 0.8.4\n");
    assert(false);
 }
 
 // see if name has "-api-<digit(s)>.<digit(s)>" at the end
-static bool has_extension(const char *name) {
-   const char *p = strstr(name, "-api-");
+static bool has_extension(const char* name) {
+   const char* p = strstr(name, "-api-");
    if (!p)
       return false;
    p += 5;
@@ -360,7 +360,7 @@ static bool has_extension(const char *name) {
    return isdigit(*(p + 1));
 }
 
-void QoreModuleManager::globDir(const char *dir) {
+void QoreModuleManager::globDir(const char* dir) {
    ExceptionSink xsink;
 
    // first check modules with extensions indicating compatible apis
@@ -380,7 +380,7 @@ void QoreModuleManager::globDir(const char *dir) {
       glob_t globbuf;
       if (!glob(gstr.getBuffer(), 0, 0, &globbuf)) {
 	 for (int i = 0; i < (int)globbuf.gl_pathc; i++) {
-	    char *name = q_basename(globbuf.gl_pathv[i]);
+	    char* name = q_basename(globbuf.gl_pathv[i]);
 	    ON_BLOCK_EXIT(free, name);
 
 	    // see if the name has an api in it (if on the generic case)
@@ -408,7 +408,7 @@ void QoreModuleManager::globDir(const char *dir) {
 }
 
 void QoreModuleManager::init(bool se) {
-   static const char *qt_blacklist_string = "because it was implemented with faulty namespace handling that does not work with newer versions of Qore; use the 'qt4' module based in libsmoke instead; it is much more complete";
+   static const char* qt_blacklist_string = "because it was implemented with faulty namespace handling that does not work with newer versions of Qore; use the 'qt4' module based in libsmoke instead; it is much more complete";
 
    // setup possible user module keys
    QoreModuleDefContext::vset.insert("desc");
@@ -420,10 +420,10 @@ void QoreModuleManager::init(bool se) {
 
    // initialize blacklist
    // add old QT modules to blacklist
-   mod_blacklist.insert(std::make_pair((const char *)"qt-core", qt_blacklist_string));
-   mod_blacklist.insert(std::make_pair((const char *)"qt-gui", qt_blacklist_string));
-   mod_blacklist.insert(std::make_pair((const char *)"qt-svn", qt_blacklist_string));
-   mod_blacklist.insert(std::make_pair((const char *)"qt-opengl", qt_blacklist_string));
+   mod_blacklist.insert(std::make_pair((const char*)"qt-core", qt_blacklist_string));
+   mod_blacklist.insert(std::make_pair((const char*)"qt-gui", qt_blacklist_string));
+   mod_blacklist.insert(std::make_pair((const char*)"qt-svn", qt_blacklist_string));
+   mod_blacklist.insert(std::make_pair((const char*)"qt-opengl", qt_blacklist_string));
 
    show_errors = se;
 
@@ -439,13 +439,13 @@ void QoreModuleManager::init(bool se) {
    }
 }
 
-int ModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink) {
+int ModuleManager::runTimeLoadModule(const char* name, ExceptionSink *xsink) {
    assert(name);
    assert(xsink);
    return QMM.runTimeLoadModule(name, *xsink);
 }
 
-int QoreModuleManager::runTimeLoadModule(const char *name, ExceptionSink& xsink) {
+int QoreModuleManager::runTimeLoadModule(const char* name, ExceptionSink& xsink) {
    QoreProgram *pgm = getProgram();
    assert(pgm);
 
@@ -459,7 +459,7 @@ int QoreModuleManager::runTimeLoadModule(const char *name, ExceptionSink& xsink)
    return xsink ? -1 : 0;
 }
 
-static const char *get_op_string(mod_op_e op) {
+static const char* get_op_string(mod_op_e op) {
    if (op == MOD_OP_LT) return "<";
    if (op == MOD_OP_LE) return "<=";
    if (op == MOD_OP_EQ) return "=";
@@ -490,7 +490,7 @@ int check_component(mod_op_e op, int mod_ver, int req_ver, bool last) {
    return mod_ver > req_ver ? MVC_FINAL_OK : MVC_FAIL;
 }
 
-static void check_qore_version(const char *name, mod_op_e op, version_list_t& version, ExceptionSink& xsink) {
+static void check_qore_version(const char* name, mod_op_e op, version_list_t& version, ExceptionSink& xsink) {
    unsigned max = version.size() > 3 ? version.size() : 3;
    for (unsigned i = 0; i < max; ++i) {
       int mv = (!i ? QORE_VERSION_MAJOR : 
@@ -535,7 +535,7 @@ static void qore_check_load_module_intern(QoreAbstractModule *mi, mod_op_e op, v
       mi->addToProgram(pgm, xsink);
 }
 
-void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char *name, QoreProgram *pgm, mod_op_e op, version_list_t *version) {
+void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram *pgm, mod_op_e op, version_list_t *version) {
    assert(!version || (version && op != MOD_OP_NONE));
 
    // check for special "qore" feature
@@ -651,7 +651,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char *name,
    xsink.raiseException("LOAD-MODULE-ERROR", "feature '%s' is not builtin and no module with this name could be found in the module path", name);
 }
 
-QoreStringNode* ModuleManager::parseLoadModule(const char *name, QoreProgram *pgm) {
+QoreStringNode* ModuleManager::parseLoadModule(const char* name, QoreProgram *pgm) {
    ExceptionSink xsink;
 
    QMM.parseLoadModule(name, pgm, xsink);
@@ -662,7 +662,7 @@ QoreStringNode* ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
    return loadModuleError(name, xsink);
 }
 
-void QoreModuleManager::parseLoadModule(const char *name, QoreProgram *pgm, ExceptionSink& xsink) {
+void QoreModuleManager::parseLoadModule(const char* name, QoreProgram *pgm, ExceptionSink& xsink) {
    //printd(5, "ModuleManager::parseLoadModule(name=%s, pgm=%p)\n", name, pgm);
 
    char* p = strchrs(name, "<>=");
@@ -716,7 +716,7 @@ void QoreModuleManager::parseLoadModule(const char *name, QoreProgram *pgm, Exce
    loadModuleIntern(xsink, name, pgm);
 }
 
-QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char *path, const char* feature, QoreProgram* tpgm) {
+QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm) {
    QoreAbstractModule *mi = 0;
 
    // parse options for the module
@@ -805,7 +805,7 @@ struct DLHelper {
    }
 };
 
-QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& xsink, const char *path, const char *feature, QoreProgram *pgm) {
+QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram *pgm) {
    QoreAbstractModule *mi = 0;
 
    void *ptr = dlopen(path, RTLD_LAZY|RTLD_GLOBAL);
@@ -817,7 +817,7 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    DLHelper dlh(ptr);
 
    // get module name
-   const char *name = (const char *)dlsym(ptr, "qore_module_name");
+   const char* name = (const char*)dlsym(ptr, "qore_module_name");
    if (!name) {
       xsink.raiseException("LOAD-MODULE-ERROR", "module '%s': no feature name present in module", path);
       return 0;
@@ -932,32 +932,32 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    qore_module_parse_cmd_t *pcmd = (qore_module_parse_cmd_t *)dlsym(ptr, "qore_module_parse_cmd");
 
    // get qore module description
-   char *desc = (char *)dlsym(ptr, "qore_module_description");
+   char* desc = (char*)dlsym(ptr, "qore_module_description");
    if (!desc) {
       xsink.raiseException("LOAD-MODULE-ERROR", "module '%s': feature '%s': missing description", path, name);
       return 0;
    }
 
    // get qore module version
-   char *version = (char *)dlsym(ptr, "qore_module_version");
+   char* version = (char*)dlsym(ptr, "qore_module_version");
    if (!version) {
       xsink.raiseException("LOAD-MODULE-ERROR", "module '%s': feature '%s': missing version", path, name);
       return 0;
    }
 
    // get qore module author
-   char *author = (char *)dlsym(ptr, "qore_module_author");
+   char* author = (char*)dlsym(ptr, "qore_module_author");
    if (!author) {
       xsink.raiseException("LOAD-MODULE-ERROR", "module '%s': feature '%s': missing author", path, name);
       return 0;
    }
 
    // get qore module URL (optional)
-   char *url = (char *)dlsym(ptr, "qore_module_url");
+   char* url = (char*)dlsym(ptr, "qore_module_url");
 
-   char **dep_list = (char **)dlsym(ptr, "qore_module_dependencies");
+   char** dep_list = (char**)dlsym(ptr, "qore_module_dependencies");
    if (dep_list) {
-      char *dep = dep_list[0];
+      char* dep = dep_list[0];
       //printd(5, "dep_list=%08p (0=%s)\n", dep_list, dep);
       for (int j = 0; dep; dep = dep_list[++j]) {
 	 //printd(5, "loading module dependency=%s\n", dep);
@@ -1021,7 +1021,7 @@ void QoreModuleManager::cleanup() {
    }
 }
 
-void QoreModuleManager::issueParseCmd(const char *mname, QoreProgram *pgm, QoreString &cmd) {
+void QoreModuleManager::issueParseCmd(const char* mname, QoreProgram *pgm, QoreString &cmd) {
    ExceptionSink xsink;
 
    AutoLocker al(mutex); // make sure checking and loading are atomic
@@ -1062,14 +1062,14 @@ QoreListNode *QoreModuleManager::getModuleList() {
    return l;
 }
 
-char version_list_t::set(const char *v) {
+char version_list_t::set(const char* v) {
    ver = v;
 
    // set version list
    ver.trim();
 
-   char *a;
-   char *p = a = (char *)ver.getBuffer();
+   char* a;
+   char* p = a = (char*)ver.getBuffer();
    while (*p) {
       if (*p == '.') {
 	 char save = *p;

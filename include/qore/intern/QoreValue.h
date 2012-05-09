@@ -633,13 +633,13 @@ public:
 	 }
 
 	 case QV_Float: {
-	    int64 rv = v.f;
+	    int64 rv = (int64)v.f;
 	    ++v.f;
 	    return rv;
 	 }
 
 	 case QV_Int: {
-	    int64 rv = v.i;
+	    int64 rv = (int64)v.i;
 	    ++v.i;
 	    return rv;
 	 }
@@ -661,7 +661,7 @@ public:
 	 }
 
 	 case QV_Float:
-	    return ++v.f;
+	    return (int64)++v.f;
 
 	 case QV_Int:
 	    return ++v.i;
@@ -683,7 +683,7 @@ public:
 	 }
 
 	 case QV_Float: {
-	    int64 rv = v.f;
+	    int64 rv = (int64)v.f;
 	    --v.f;
 	    return rv;
 	 }
@@ -708,7 +708,7 @@ public:
 	 }
 
 	 case QV_Float:
-	    return --v.f;
+	    return (int64)--v.f;
 
 	 case QV_Int:
 	    return --v.i;
