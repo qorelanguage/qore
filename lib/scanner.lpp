@@ -309,7 +309,7 @@ static int64 parse_get_integer(const char *str) {
    errno = 0;
    int64 rv = strtoll(str, 0, 10);
    if (errno == ERANGE)
-      parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point number instead (integers must be in the range "QLLD" to "QLLD")", str, LLONG_MIN, LLONG_MAX);
+      parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point number instead (integers must be in the range "QLLD" to "QLLD")", str, -LLONG_MAX, LLONG_MAX);
    return rv;
 }
 
