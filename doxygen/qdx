@@ -290,7 +290,7 @@ class qdx {
                 #printf("method or func: %s", line);
                 
                 # make into a declaration
-                line =~ s/{[[:blank:]]*$/;/;
+                line =~ s/[[:blank:]]*{[[:blank:]]*$/;/;
                 # read until closing curly bracket '}'
                 readUntilCloseBracket(inf);
             }
@@ -372,8 +372,7 @@ class qdx {
 		    else if (line =~ /}/) {
 			--cbc;
 			if (!cbc) {
-			    trim line;
-			    line += ";\n";
+			    line =~ s/}/};/;
 			    delete class_name;
 			}
 		    }
@@ -400,8 +399,7 @@ class qdx {
 		    else if (line =~ /}/) {
 			--nbc;
 			if (!nbc) {
-			    trim line;
-			    line += ";\n";
+			    line =~ s/}/};/;
 			    delete ns_name;
 			}
 		    }
@@ -430,8 +428,9 @@ class qdx {
 			#line = regex_subst(line, mod, "");
 		    }
 		    mods = select mods, $1 != "private" && $1 != "public";
-                    if (!mods.empty())
-                        line = join(" ", mods) + " " + line;
+                    if (!mods.empty()) {
+                        line = regex_subst(line, "^([[:blank:]]+)(.*)", "$1 " + join(" ", mods) + " $2");
+                    }
 		}
 	    }
 

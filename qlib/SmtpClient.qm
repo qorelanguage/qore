@@ -27,7 +27,7 @@
 # http://www.faqs.org/rfcs/rfc0821.html
 # http://www.faqs.org/rfcs/rfc2822.html
 
-# mmimum qore version
+# minimum qore version
 %requires qore >= 0.8.4
 
 # need mime definitions
@@ -42,50 +42,25 @@ module SmtpClient {
 
 /*  Version History
     * 1.0: David Nichols <david@qore.org>: updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + the bane of all developers: documentation :)
-
-    class SmtpClient::SmtpClient
-    * holds a configured connection to a smtp server
-    class SmtpClient::Message
-    * holds a message to be sent via smtp
-    class SmtpClient::Attachment
-    * used for attach files to the message
     ritzinwo, 20090716
 */
- 
-public namespace SmtpClient {
-    ###########################################################
-    #
-    # class for the message.
-    #
-    # my SmtpClient::Message $msg("sender", "subject");
-    #   sender: a smtp string for sender eg: The User <theuser@somewhere.org>
-    #
-    # you can add recipients with
-    #   addTO(), addCC() and addBCC() which all take a email like sender in constructor
-    #
-    # toString() and toLine() return info about the message either as multiline or
-    # as single line (like %y or %y for objects)
-    #
-    # set the body text with setBody(string) or add a line to the body with addBody(string)
-    #
-    # additional header lines (eg: "X-SPAM-Status: No") can be added with addHeader(string) or
-    # set with setHeader(string | list of string)
-    # eg for setting the messageid:
-    #   $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");
-    #
-    # add attachments with attach(name, mime, attachment)
-    # - name: the name string of the attachment (file.jpg)
-    # - mime: the mimetype to be send (MimeTypeJpeg)
-    # - attachment: either a string (eg from file.read(-1)) or a binary
-    #
-    # important([True/False]) will set the given importance and return the current setting
-    # receiptDelivery([True/False]) will set the delivery receipt and return the setting
-    # receiptRead([True/False]) will set the read receipt request and return the setting
-    # these methods return the current setting if called without argument
-    #
-    #
-    ###########################################################
 
+/** @mainpage SmtpClient Module
+
+    The %SmtpClient module provides a set of classes that can be used for easy communication with SMTP servers for sending emails.
+
+    To use this module, use \c "%requires SmtpClient" in your code.  See examples/email.q for an example program using this module
+    
+    All the public symbols in the module are defined in the %SmtpClient namespace
+ */
+
+#! the %SmtpClient namespace holds all public definitions in the %SmtpClient module
+/** This includes:
+    - SmtpClient: manages a connection to an SMTP server
+    - Message: wraps a message to be sent via an SmtpClient object
+    - Attachment: used to attach files to a Message
+*/
+public namespace SmtpClient {
     /** @defgroup MessageEncodings Smtp Message Encodings
      */
     #@{
@@ -113,6 +88,36 @@ public namespace SmtpClient {
     #! 15 second read timeout
     public const DefaultReadTimeout = 15s;
 
+    #! The %Message class holds the information for a single email %Message to be sent via an SmtpClient object
+    /** @par Example:
+        @code
+my SmtpClient::Message $msg("The Sender <sender@email.com>", "My Subject");@endcode
+
+    sender: a smtp string for sender eg: The User <theuser@somewhere.org>
+    
+     you can add recipients with
+       addTO(), addCC() and addBCC() which all take a email like sender in constructor
+    
+     toString() and toLine() return info about the message either as multiline or
+     as single line (like %y or %y for objects)
+    
+     set the body text with setBody(string) or add a line to the body with addBody(string)
+    
+     additional header lines (eg: "X-SPAM-Status: No") can be added with addHeader(string) or
+     set with setHeader(string | list of string)
+     eg for setting the messageid:
+       $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");
+    
+     add attachments with attach(name, mime, attachment)
+     - name: the name string of the attachment (file.jpg)
+     - mime: the mimetype to be send (MimeTypeJpeg)
+     - attachment: either a string (eg from file.read(-1)) or a binary
+    
+     important([True/False]) will set the given importance and return the current setting
+     receiptDelivery([True/False]) will set the delivery receipt and return the setting
+     receiptRead([True/False]) will set the read receipt request and return the setting
+     these methods return the current setting if called without argument
+    */
     public class Message {
 	private {
 	    # the sender
@@ -396,7 +401,7 @@ public namespace SmtpClient {
 	#! adds an Attachment to the Message
 	/** @param att the Attachment to add to the Message
 	  */
-	attach(SmtpClient::Attachment $att) {
+	attach(Attachment $att) {
 	    $.attachments += $att;
 	}
 
@@ -564,13 +569,7 @@ $msg.addAttachment($att);
 	}
     }
 
-    #! the calss that's used to communicate with an SMTP server
-    /** Examples:
-        - create an SmtpClient object:
-	  @code my SmtpClient::SmtpClient $smtp("hostname", port);@endcode
-	- create a SmtpClient::Message and then send it:
-	  @code $smtp.sendMessage($message);@endcode
-     */
+    #! the class that's used to communicate with an SMTP server
     public class SmtpClient {
 	private {
 	    Socket $.sock();
@@ -964,7 +963,7 @@ $msg.addAttachment($att);
 	/** @param message the Message to send
 
 	    @return a hash of data returned by the SMTP server (the return structure hashes described below are made up of the following keys: \c "code": the return code, \c "desc": the string description):
-	    - \c HELO or \c EHLO: a hash of the reply received from the HELO or \c EHLO command
+	    - \c HELO or \c EHLO: a hash of the reply received from the \c HELO or \c EHLO command
 	    - \c RCPT: hash keyed by email address with hash return structures values for the RCPT TO command   
 	    - \c MSGID: return structure after the send; generally contains message id
 	    - \c QUIT: the server response of the disconnect command
@@ -1036,9 +1035,9 @@ $msg.addAttachment($att);
 	    return $reply;
 	}
 
-	########################################################
-	# send a message object - MHT email
-	# - no attachments, resources are included directly in the mail page and referenced by relative links
+	#! send a message object - MHT email
+	/** no attachments, resources are included directly in the mail page and referenced by relative links
+         */
 	hash sendMHTMessage(SmtpClient::Message $message) {
 	    if (!$message.sendPossible())
 		throw "ARGUMENT-EXCEPTION", "Message is not ready to be sent";

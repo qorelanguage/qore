@@ -105,7 +105,7 @@ module HttpServer {
 
     It has not been audited for security.
 
-    To use this module, use '%requires HttpServer' in your code.  See examples/httpserver.q for an example program using this module
+    To use this module, use "%requires HttpServer" in your code.  See examples/httpserver.q for an example program using this module
     
     All the public symbols in the module are defined in the %HttpServer namespace
  */
