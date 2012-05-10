@@ -1096,8 +1096,7 @@ public class HttpServer::HttpServer {
 %endif
 
         if ($lp.bind != NT_STRING)
-            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'bind' entry in listener description giving the bind address; expecting type 'string', got type '%s'", $hi.bind.type());
-
+            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'bind' entry in listener description giving the bind address; expecting type 'string', got type '%s'", $lp.bind.type());
 
 	if (exists $lp.cert_path && !exists $lp.cert)
 	    $lp += HttpServer::getSSLObjects($lp.cert_path, $lp.key_path);

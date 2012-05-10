@@ -659,14 +659,21 @@ $msg.addAttachment($att);
 	    }
   	}
 
+        #! sets the TLS/SSL flag
+        /** @param tls if @ref Qore::True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a STARTTLS command after connecting and negotiate a secure TLS/SSL connection to the server
+         */
 	tls(bool $tls) {
 	    $.tls = $tls;
 	}
 
+        #! returns the TLS/SSL flag
 	bool tls() {
 	    return $.tls;
 	}
 
+        #! sets the username and password for authenticated connections
+        /** @note currently this class only knows how to do AUTH PLAIN authentication
+         */
 	setUserPass(string $user, string $pass) {
 	    $.user = $user;
 	    $.pass = $pass;
@@ -968,7 +975,6 @@ $msg.addAttachment($att);
 	    - \c MSGID: return structure after the send; generally contains message id
 	    - \c QUIT: the server response of the disconnect command
 	 */
-
 	hash sendMessage(SmtpClient::Message $message) {
 	    if (!$message.sendPossible())
 		throw "ARGUMENT-EXCEPTION", "Message is not ready to be sent";
