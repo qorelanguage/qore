@@ -1057,9 +1057,6 @@ public class HttpServer::HttpServer {
         if (exists $.smap.$sock)
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("cannot add listener on %n; there is already an existing listener with this bind address", $sock);
 
-        if ($hi.url.typeCode() != NT_STRING)
-            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'url' entry in listener description giving the path; expecting type 'string', got type '%s'", $hi.url.type());
-
         $.c.inc();
         #printf("HttpServer::addListenerIntern() %n c=%n\n", $sock, $.c.getCount());
         on_error $.c.dec();
@@ -1097,6 +1094,9 @@ public class HttpServer::HttpServer {
 
         if ($lp.bind != NT_STRING)
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'bind' entry in listener description giving the bind address; expecting type 'string', got type '%s'", $lp.bind.type());
+
+        if ($lp.url != NT_STRING)
+            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'url' entry in listener description giving the path; expecting type 'string', got type '%s'", $lp.url.type());
 
 	if (exists $lp.cert_path && !exists $lp.cert)
 	    $lp += HttpServer::getSSLObjects($lp.cert_path, $lp.key_path);
