@@ -299,11 +299,20 @@ doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl
 doxygen/qlib/HttpServer.qm.dox.h: qlib/HttpServer.qm
 	$(QDX) $< $@
 
+doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl
+	$(QDX) -M=qlib/Mime.qm:doxygen/qlib/Mime.qm.dox.h $< $@
+
 doxygen/qlib/Mime.qm.dox.h: qlib/Mime.qm
 	$(QDX) $< $@
 
+doxygen/qlib/Doxyfile.TelnetClient: doxygen/qlib/Doxyfile.tmpl
+	$(QDX) -M=qlib/TelnetClient.qm:doxygen/qlib/TelnetClient.qm.dox.h $< $@
+
 doxygen/qlib/TelnetClient.qm.dox.h: qlib/TelnetClient.qm
 	$(QDX) $< $@
+
+doxygen/qlib/Doxyfile.SmtpClient: doxygen/qlib/Doxyfile.tmpl
+	$(QDX) -M=qlib/SmtpClient.qm:doxygen/qlib/SmtpClient.qm.dox.h $< $@
 
 doxygen/qlib/SmtpClient.qm.dox.h: qlib/SmtpClient.qm
 	$(QDX) $< $@
@@ -643,8 +652,24 @@ docs/modules/HttpServer/html/index.html: docs/lang/html/index.html doxygen/qlib/
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.HttpServer
 	$(top_srcdir)/doxygen/pdox docs/modules/HttpServer/html docs/modules/HttpServer/html/search
 
-doxygen-doc: docs/library/html/index.html docs/lang/html/index.html docs/modules/HttpServer/html/index.html
+docs/modules/Mime/html/index.html: docs/lang/html/index.html doxygen/qlib/Mime.qm.dox.h doxygen/qlib/Doxyfile.Mime
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.Mime
+	$(top_srcdir)/doxygen/pdox docs/modules/Mime/html docs/modules/Mime/html/search
 
+docs/modules/TelnetClient/html/index.html: docs/lang/html/index.html doxygen/qlib/TelnetClient.qm.dox.h doxygen/qlib/Doxyfile.TelnetClient
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.TelnetClient
+	$(top_srcdir)/doxygen/pdox docs/modules/TelnetClient/html docs/modules/TelnetClient/html/search
+
+docs/modules/SmtpClient/html/index.html: docs/lang/html/index.html doxygen/qlib/SmtpClient.qm.dox.h doxygen/qlib/Doxyfile.SmtpClient
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.SmtpClient
+	$(top_srcdir)/doxygen/pdox docs/modules/SmtpClient/html docs/modules/SmtpClient/html/search
+
+doxygen-doc: docs/library/html/index.html docs/lang/html/index.html \
+	docs/modules/HttpServer/html/index.html \
+	docs/modules/Mime/html/index.html \
+	docs/modules/TelnetClient/html/index.html \
+	docs/modules/SmtpClient/html/index.html
+	
 else
 doxygen-doc:
 	echo no doxygen support

@@ -141,9 +141,6 @@ public namespace SmtpClient {
 
 	    list $.attachments = ();
 	    string $.sender;
-
-            # read timeout in milliseconds
-            timeout $.readTimeout = DefaultReadTimeout;
 	}
 
 	public {}
@@ -169,21 +166,6 @@ public namespace SmtpClient {
 	    $.from = $sender; # used for displaying
 	    $.subject = $subject;
 	}
-
-        #! sets the read timeout
-        setReadTimeout(timeout $to) {
-            $.readTimeout = $to;
-        }
-
-        #! returns the read timeout as an integer giving milliseconds
-        int getReadTimeoutMs() {
-            return $.readTimeout;
-        }
-        
-        #! returns the read timeout as a relative time value
-        date getReadTimeoutDate() {
-            return milliseconds($.readTimeout);
-        }
 
 	#! fetch the email address out of a sender/rcpt string
 	static *string getEmailAddress(string $str) {
@@ -619,6 +601,9 @@ $msg.addAttachment($att);
 
 	    # logged in flag
 	    bool $.logged_in = False;
+
+            # read timeout in milliseconds
+            timeout $.readTimeout = DefaultReadTimeout;
 	}
 
 	public {
@@ -728,6 +713,21 @@ $msg.addAttachment($att);
 	    }
   	}
   	
+        #! sets the read timeout
+        setReadTimeout(timeout $to) {
+            $.readTimeout = $to;
+        }
+
+        #! returns the read timeout as an integer giving milliseconds
+        int getReadTimeoutMs() {
+            return $.readTimeout;
+        }
+        
+        #! returns the read timeout as a relative time value
+        date getReadTimeoutDate() {
+            return milliseconds($.readTimeout);
+        }
+
 	#! returns a string of message data according to the encoding passed
 	static string encodeData(data $data, string $mime, string $disp, string $enc) {
 	    my string $str = sprintf("Content-Type: %s\r\nContent-Disposition: %s\r\n", $mime, $disp);

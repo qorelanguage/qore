@@ -97,6 +97,19 @@ module HttpServer {
     url = "http://qore.org";
 }
 
+/** @mainpage HttpServer Module
+
+    The %HttpServer module provides a multi-threaded HTTP server to Qore programs.
+
+    The %HttpServer implemented here was designed mostly for serving RPC-style requests, however it can also be used to serve files with an appropriate handler.
+
+    It has not been audited for security.
+
+    To use this module, use '%requires HttpServer' in your code.  See examples/httpserver.q for an example program using this module
+    
+    All the public symbols in the module are defined in the %HttpServer namespace
+ */
+
 #! the main namespace for the HttpServer module
 /** To use this module, use '%requires HttpServer' in your code.
 
@@ -362,7 +375,6 @@ public class HttpServer::AbstractHttpRequestHandler {
 
     #! create the object optionally with the given AbstractAuthenticator
     /** @param $auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
-        @param $my_tld any optional thread-local data to add before each call to handleRequest()
       */
     constructor(*AbstractAuthenticator $auth) {
         $.auth = $auth;
@@ -900,7 +912,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
     }
 }
 
-#! HttpServer class implements a multithreaded HTTP server primarily for serving RPC-style services
+#! The HttpServer class implements a multithreaded HTTP server primarily designed for serving RPC-style services
 public class HttpServer::HttpServer {
     public {
         #! version of the HttpServer's implementation
@@ -1014,7 +1026,13 @@ public class HttpServer::HttpServer {
         DynamicHttpHandlerList $.dhandlers();
     }
 
-    #! creates the HttpServer; call addListener() to add and start listeners
+    #! creates the HttpServer
+    /** call @ref addListener() to add and start listeners
+        @param logfunc an optional closure or call reference that will be called with logging information
+        @param errlogfunc an optional closure or call reference that will be called with error information
+        @param dbg if this parameter is set to @ref Qore::True "True", then additional information will be logged when errors occur
+        @param name the name of the HTTP server as returned in the Server header
+     */
     constructor(*code $logfunc, *code $errlogfunc, bool $dbg = False, string $name = sprintf("Qore HTTP Server v%s", HttpServer::Version)) {
 	$.logfunc = $logfunc;
 	$.errlogfunc = $errlogfunc;
@@ -1022,7 +1040,7 @@ public class HttpServer::HttpServer {
         $.httpserverstring = $name;
     }
 
-    #! calls HttpServer::stop()
+    #! calls stop() and destroys the object
     destructor() {
 	$.stop();
     }
@@ -1039,6 +1057,9 @@ public class HttpServer::HttpServer {
         if (exists $.smap.$sock)
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("cannot add listener on %n; there is already an existing listener with this bind address", $sock);
 
+        if ($hi.url.typeCode() != NT_STRING)
+            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'url' entry in listener description giving the path; expecting type 'string', got type '%s'", $hi.url.type());
+
         $.c.inc();
         #printf("HttpServer::addListenerIntern() %n c=%n\n", $sock, $.c.getCount());
         on_error $.c.dec();
@@ -1050,11 +1071,33 @@ public class HttpServer::HttpServer {
 	return $l;
     }
 
+    #! adds a listener to the server with an explicit handler for incoming connections
+    /** @param name the name of the handler
+        @param handler the AbstractHttpRequestHandler object that will handle incoming connections
+        @param lp a hash with the following keys:
+        - \c cert_path: (optional) a path to an X509 certificate for HTTPS listeners
+        - \c key_path: (optional) a path to a private key file for an X509 certificate for HTTPS listeners
+        - \c cert: (optional) an SSLCertificate object for HTTPS listeners
+        - \c key: (optional) an SSLPrivateKey object for HTTPS listeners
+        - \c url: (required) the path for matching incoming requests (use "/" for dedicated listeners); this is more important for handlers on the global listeners
+        - \c bind: (required) the bind address for the dedicated listener
+        - \c content_type: (optional) an optional content type to match; this is more important for handlers on the global listeners
+        - \c special_headers: (optional) a string or a list of strings giving special headers that when matched will direct requests to the given handler; this is more important for handlers on the global listeners
+        @param logger an optional closure or call reference that will be called with logging information; if this is not set, then the logger set in the HttpServer::constructor() will be used instead
+        @param errorlogger an optional closure or call reference that will be called with error information; if this is not set, then the error logger set in the HttpServer::constructor() will be used instead
+
+        @throw SETHANDLER-ERROR HTTP request handler already exists with the given name; non-string entry in special_header list
+        @throw HTTPSERVER-ADDLISTENER-ERROR missing or invalid \c "bind" or \c "url" entry in the \c lp argument; duplicate bind address
+     */
     list addListenersWithHandler(string $name, AbstractHttpRequestHandler $handler, hash $lp, *code $logger, *code $errorlogger) {
 %ifdef QoreDebug
         #ASSERT($lp.bind.typeCode() == NT_STRING);
 	#ASSERT($lp.url.typeCode() == NT_STRING);
 %endif
+
+        if ($lp.bind != NT_STRING)
+            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'bind' entry in listener description giving the bind address; expecting type 'string', got type '%s'", $hi.bind.type());
+
 
 	if (exists $lp.cert_path && !exists $lp.cert)
 	    $lp += HttpServer::getSSLObjects($lp.cert_path, $lp.key_path);
@@ -1092,6 +1135,13 @@ public class HttpServer::HttpServer {
 	return ("cert": $cert, "key": $key);
     }
 
+    #! adds a global listener to the server
+    /** @param sock the bind address for the listener
+        @param cert_path an optional path to an X509 certificate for HTTPS listeners
+        @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
+
+        @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
+     */
     hash addListener(softstring $sock, *string $cert_path, *string $key_path) {
         if (!exists $cert_path)
             return $.addListenerIntern($sock).getInfo();
@@ -1100,10 +1150,17 @@ public class HttpServer::HttpServer {
         return $.addListenerIntern($sock, $sd.cert, $sd.key).getInfo();
     }
 
-    list addListeners(softstring $sock, *string $cert_path, *string $key_path) {
+    #! adds one or more global listeners according to the bind address
+    /** @param sock the bind address for the listener
+        @param cert_path an optional path to an X509 certificate for HTTPS listeners
+        @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
+
+        @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
+     */
+    softlist addListeners(softstring $sock, *string $cert_path, *string $key_path) {
         if ($sock !~ /:/) {
             if ($sock =~ /^\//)
-                return list($.addListener($sock, $cert_path, $key_path));
+                return $.addListener($sock, $cert_path, $key_path);
 
             return $.addINETListeners(NOTHING, $sock, $cert_path, $key_path);
         }
@@ -1112,6 +1169,14 @@ public class HttpServer::HttpServer {
         return $.addINETListeners($node, $service, $cert_path, $key_path);
     }
 
+    #! adds one or more global listeners according to the bind address
+    /** @param node the bind address for the listener; if not given then the listener will be bound on all interfaces
+        @param service a service name (which will be lookup up to derive a port number) or port number to bind on
+        @param cert_path an optional path to an X509 certificate for HTTPS listeners
+        @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
+
+        @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
+     */
     list addINETListeners(*string $node, softstring $service, *string $cert_path, *string $key_path) {
 	return $.addINETListenersIntern($node, $service, ("cert_path": $cert_path, "key_path": $key_path));
     }
@@ -1141,7 +1206,7 @@ public class HttpServer::HttpServer {
         return $l;
     }
 
-    #! throws an exception; these objects to not support copying
+    #! throws an exception; these objects do not support copying
     copy() {
 	throw "COPY-ERROR", "this object cannot be copied";
     }
@@ -1170,7 +1235,8 @@ public class HttpServer::HttpServer {
     }
 
     #! stops all listeners; does not wait for all connections on the listeners to close
-    /** do not call HttpServer::stop() after calling HttpServer::stopNoWait(); it can cause a deadlock */ 
+    /** do not call stop() after calling stopNoWait(); it can cause a deadlock
+     */ 
     stopNoWait() {
 	# stop all listeners
 	$.lm.enter();
@@ -1184,6 +1250,7 @@ public class HttpServer::HttpServer {
         $.c.waitForZero();
     }
 
+    # only called from the listeners - do not call externally
     listenerStopped(HttpListener $l) {
         # decrement listener count
         on_exit $.c.dec();
@@ -1197,7 +1264,7 @@ public class HttpServer::HttpServer {
     }
 
     #! stops all listeners; only returns when all connections are closed on all listeners
-    /** do not call HttpServer::stop() after calling HttpServer::stopNoWait(); it can cause a deadlock
+    /** do not call stop() after calling stopNoWait(); it can cause a deadlock
      */ 
     stop() {
 	# shutdown all listeners
@@ -1264,6 +1331,7 @@ public class HttpServer::HttpServer {
         $.dhandlers.removeHandler($name);
     }
 
+    #! called to log information to the registered log code
     log() {
 	if (exists $.logfunc) {
 	    $argv[0] = "HttpServer: " + $argv[0];
@@ -1271,6 +1339,7 @@ public class HttpServer::HttpServer {
 	}
     }
     
+    #! called to log error information to the registered error log code
     logError() {
 	if (exists $.errlogfunc) {
 	    $argv[0] = "HttpServer: " + $argv[0];
@@ -1348,7 +1417,7 @@ public class HttpServer::HttpServer {
         }
     }
 
-    #! handles an incoming request
+    # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
     handleRequest(HttpListener $listener, Socket $s, reference $cx, hash $hdr, *data $body, reference $close, bool $head = False) {
 	# handle accept-encoding to compress data if necessary        
 	if (exists $hdr."accept-encoding") {
@@ -1648,10 +1717,12 @@ public class HttpServer::HttpServer {
 		       $h.path);
     }
 
+    #! turns on or off debugging; when debugging is enabled more verbose error messages are reported
     setDebug(bool $dbg = True) {
         $.debug = $dbg;
     }
 
+    #! returns the current status of the debug flag
     bool getDebug() {
         return $.debug;
     }

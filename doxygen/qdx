@@ -142,15 +142,15 @@ class qdx {
                 line =~ s/\\_\\-\\_\\-4\\_\\-/./g;
                 line =~ s/\\_\\-\\_\\-5\\_\\-/-/g;
                 line =~ s/\\_\\-\\_\\-6\\_\\-/\$/g;
-                line =~ s/\\_\\-\\_\\-7\\_\\-/*/g;
+                line =~ s/\\_\\-\\_\\-7\\_\\-/*/g; #//;
             } 
 
 	    line =~ s/__1_/[/g;
-	    line =~ s/__2_/]/g;
+            line =~ s/__2_/]/g;
 	    line =~ s/__4_/./g;
 	    line =~ s/__5_/-/g;
 	    line =~ s/__6_//g;
-	    line =~ s/__7_ /*/g;
+	    line =~ s/__7_ /*/g; #//;
 
 	    # remove "inline" tags
 	    line =~ s/\[inline\]//g;
@@ -217,7 +217,7 @@ class qdx {
 	*string class_name;
 	*string ns_name;
 
-	# class member private flag
+	# class member public/private block flag
 	bool pp;
 
 	# method private flag
@@ -253,7 +253,7 @@ class qdx {
 		continue;
 	    }
             
-	    if (line =~ /\/\*\*/) { #/){
+	    if (line =~ /^[[:blank:]]*\/\*/){ #/{
 		if (line !~ /\*\//)
                     in_doc = True;
                 of.print(line);
@@ -263,9 +263,11 @@ class qdx {
             # take public off sub definitions
             line =~ s/public(.*)[[:space:]]sub([[:space:]]+)/$1$2/g;
 
+            # switch mode: qore to mode: c++
+            line =~ s/mode: qore/mode: c++/g;
+
 	    line =~ s/\$\.//g;
 	    #line =~ s/\$//g;
-	    line =~ s/\#/\/\//;
 	    line =~ s/our /extern /g;
 	    line =~ s/my //g;
 	    line =~ s/sub //;
@@ -280,6 +282,25 @@ class qdx {
             if (line =~ /^[[:space:]]*module[[:space:]]+/) {
                 while (line.val() && line !~ /}/)
                     line = inf.readLine();
+                continue;
+            }
+
+            # see if the line is the start of a method or function declaration
+            if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/) {
+                #printf("method or func: %s", line);
+                
+                # make into a declaration
+                line =~ s/{[[:blank:]]*$/;/;
+                # read until closing curly bracket '}'
+                readUntilCloseBracket(inf);
+            }
+
+            # convert Qore line comments to C++ line comments
+	    line =~ s/\#/\/\//;
+
+            # skip lines that are only comments
+            if (line =~ /^[[:blank:]]*\/\//) {
+                of.write(line);
                 continue;
             }
 
@@ -298,7 +319,7 @@ class qdx {
 		trim(xl[0]);
 		line = xl[0] + " : " + join(",", xl[1]) + xl[2] + "\n";
                 if (line =~ /;[ \t]*/) #/)
-                    line =~ s/;[ \t]*/ {};/; #/;# this comment is only needed for emacs broken qore-mode :(
+                    line =~ s/;[ \t]*/ {};/; #/;# this comment is only needed for emacs' broken qore-mode :(
 
 		#printf("x=%n line=%s\n", xl, line);
 		#of.print(line);
@@ -306,8 +327,11 @@ class qdx {
 	    }
 
             # temporary string variable
-	    *string xs = (line =~ x/^namespace (\w+(::\w+)?)/)[0];
+	    *string xs = (line =~ x/^[[:space:]]*namespace[[:space:]]+(\w+(::\w+)?)/)[0];
 	    if (xs.val()) {
+                if (!ns_name.empty())
+                    throw "NS-ERROR", sprintf("current ns: %s; found nested ns: %s", ns_name, line);
+
 		#printf("namespace %n\n", xs);
 		ns_name = xs;
 
@@ -321,12 +345,15 @@ class qdx {
 		continue;
 	    }
 	    else {
-		xs = (line =~ x/^class (\w+(::\w+)?)/)[0];
+		xs = (line =~ x/^[[:space:]]*class[[:space:]]+(\w+(::\w+)?)/)[0];
+
 		if (xs.val()) {
+                    if (!class_name.empty())
+                        throw "CLASS-ERROR", sprintf("current class: %s; found nested class: %s", class_name, line);
 		    #printf("class %n\n", xs);
 		    class_name = xs;
 
-		    if (cbc != 0)
+		    if (cbc)
 			throw "ERROR", sprintf("class found but cbc=%d\nline=%n\n", cbc, line);
 
 		    if (line =~ /{/ && line !~ /}/) {
@@ -355,13 +382,13 @@ class qdx {
 			of.printf("private:\n%s\npublic:\n", xs);
 			continue;
 		    }
-		    else if (line =~ /(public|private) *{/) {
+		    else if (line =~ /(public|private)[[:space:]]*{/) {
 			line =~ s/{/:/;
-			#printf("line: %s\n", line);
+			#printf("PP line: %s\n", line);
 			pp = True;
 		    }
 		    else if (pp && line =~ /}/) {
-			line = "public:\n";
+			line = "\npublic:\n";
 			pp = False;
 		    }
 		}
@@ -384,39 +411,28 @@ class qdx {
 	    if (!pp && line !~ /^[ \t]*\/\//) {
 		list mods = ();
 		if (line !~ /"/) {
-                    #string before = line;
 		    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|private[^-:]|public[^-:]|static)(.*)/))) {
 			mods += l[1];
 			line = l[0] + l[2];
 		    }
-                    #if (line != before)
-                    #    printf("EDITED: AFTER: %s\n", line);
-                    #if (line =~ /deprecated|synchronized|private|public|static/)
-                    #    printf("FOUND: %s\n", line);
                 }
 
-		if (elements mods) {
+		if (!mods.empty()) {
 		    trim mods;
 		    #printf("mods=%n line=%n\n",mods, line);
 		    foreach string mod in (mods) {
 			if (mod == "private") {
-			    mpp = True;
-			    of.printf("private:\n");
+                            if (!mpp) {
+                                mpp = True;
+                                of.printf("\nprivate:\n");
+                            }
 			}
 			#line = regex_subst(line, mod, "");
 		    }
 		    mods = select mods, $1 != "private" && $1 != "public";
-		    #line = join(" ", mods) + line;
+                    if (!mods.empty())
+                        line = join(" ", mods) + " " + line;
 		}
-
-		xl = (line =~ x/(.*\)) *returns (\*?[a-zA-Z_0-9]+)(.*)/);
-		if (strlen(xl[1])) {
-		    #printf("x=%n\n", x);
-		    line = xl[1] + " " + xl[0] + xl[2] + "\n";
-		}
-
-		if (exists mods)
-		    line = join(" ", mods) + " " + line;
 	    }
 
 	    of.print(line);
@@ -428,11 +444,69 @@ class qdx {
 		    --mpc;
 
 		if (!mpc) {
-		    of.print("public:\n");
+		    of.print("\npublic:\n");
 		    mpp = False;
 		}
 	    }
 	}
+    }
+    
+    private readUntilCloseBracket(File inf) {
+        int cnt = 1;
+        string quote;
+        bool need = True;
+        string c;
+        while (True) {
+            if (need)
+                c = inf.read(1);
+            else
+                need = True;
+            #printf("%s", c);
+            if (c == "'" || c == '"') {
+                if (quote.val()) {
+                    if (c == quote)
+                        delete quote;
+                }
+                else
+                    quote = c;
+                continue;
+            }
+            if (quote.val()) {
+                if (c == "\\")
+                    inf.read(1);
+                continue;
+            }
+            if (c == "{")
+                ++cnt;
+            else if (c == "}") {
+                if (!--cnt)
+                    return;
+            }
+            else if (c == "#") {
+                # read until EOL
+                inf.readLine();
+            }
+            else if (c == "/") {
+                c = inf.read(1);
+                if (c == "*") {
+                    # read until close block comment
+                    bool star = False;
+                    while (True) {
+                        c = inf.read(1);
+                        if (star) {
+                            if (c == "/")
+                                break;
+                            star = (c == "*");
+                            continue;
+                        }
+                        if (c == "*")
+                            star = True;
+                    }
+                }
+                else
+                    need = False;
+            }
+        }
     }
 }
 
