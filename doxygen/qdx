@@ -244,7 +244,7 @@ class qdx {
             line =~ s/\$\.//g;
 	    line =~ s/([^\/\*])\*([a-zA-Z])/$1__7_ $2/g;
             #line =~ s/\$/__6_/g;
-            line =~ s/\$//g;
+            #line =~ s/\$//g;
 
 	    if (in_doc) {
 		if (line =~ /\*\//)
@@ -289,6 +289,9 @@ class qdx {
             if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/) {
                 #printf("method or func: %s", line);
                 
+                # remove "$" signs
+                line =~ s/\$//g;
+
                 # make into a declaration
                 line =~ s/[[:blank:]]*{[[:blank:]]*$/;/;
                 # read until closing curly bracket '}'

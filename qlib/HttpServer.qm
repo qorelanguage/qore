@@ -111,7 +111,7 @@ module HttpServer {
  */
 
 #! the main namespace for the HttpServer module
-/** To use this module, use '%requires HttpServer' in your code.
+/** To use this module, use "%requires HttpServer" in your code.
 
     See examples/httpserver.q for an example program using this module
     

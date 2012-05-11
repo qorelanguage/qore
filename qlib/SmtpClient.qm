@@ -22,11 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# based on:
-# http://james.apache.org/server/rfclist/smtp/rfc0821.txt
-# http://www.faqs.org/rfcs/rfc0821.html
-# http://www.faqs.org/rfcs/rfc2822.html
-
 # minimum qore version
 %requires qore >= 0.8.4
 
@@ -43,6 +38,14 @@ module SmtpClient {
 /*  Version History
     * 1.0: David Nichols <david@qore.org>: updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + the bane of all developers: documentation :)
     ritzinwo, 20090716
+
+    based on:
+    - http://james.apache.org/server/rfclist/smtp/rfc0821.txt
+    - http://tools.ietf.org/html/rfc821: initial SMTP protocol spec
+    - http://tools.ietf.org/html/rfc1521: quoted printable & base 64 transfer encodings
+    - http://tools.ietf.org/html/rfc2045: mime headers, content types, etc
+    - http://tools.ietf.org/html/rfc2047: "Q" and "B" encoded words (implemented by the Mime module)
+    - http://tools.ietf.org/html/rfc2822: message structure, headers, body, etc
 */
 
 /** @mainpage SmtpClient Module
@@ -52,6 +55,22 @@ module SmtpClient {
     To use this module, use \c "%requires SmtpClient" in your code.  See examples/email.q for an example program using this module
     
     All the public symbols in the module are defined in the %SmtpClient namespace
+
+    The main classes are:
+    - @ref SmtpClient::SmtpClient "SmtpClient": manages a connection to an SMTP server
+    - @ref SmtpClient::Message "Message": wraps a message to be sent via an @ref SmtpClient::SmtpClient "SmtpClient" object
+    - @ref SmtpClient::Attachment "Attachment": used to attach files to a @ref SmtpClient::Message "Message"
+
+    @par Example:
+    @code
+my SmtpClient::Message $msg("The Sender <sender@email.com>", "My Subject");
+$msg.setBody($body);
+$msg.addTO("My Best Friend <you@friend.com>");
+$msg.attach($filename, MimeTypeText, $data);
+
+my code $log = sub (string str) {printf("%y: %s\n", now_us(), str);}
+my SmtpClient::SmtpClient $smtp("smtp.example.com", $log, $log);
+$smtp.sendMessage($msg);@endcode
  */
 
 #! the %SmtpClient namespace holds all public definitions in the %SmtpClient module
@@ -88,35 +107,46 @@ public namespace SmtpClient {
     #! 15 second read timeout
     public const DefaultReadTimeout = 15s;
 
+    #! 30 second connect timeout
+    public const DefaultConnectTimeout = 30s;
+
     #! The %Message class holds the information for a single email %Message to be sent via an SmtpClient object
     /** @par Example:
         @code
-my SmtpClient::Message $msg("The Sender <sender@email.com>", "My Subject");@endcode
+my SmtpClient::Message $msg("The Sender <sender@email.com>", "My Subject");
+$msg.setBody($body);
+$msg.addTO("My Best Friend <you@friend.com>");
+@endcode
 
-    sender: a smtp string for sender eg: The User <theuser@somewhere.org>
-    
-     you can add recipients with
-       addTO(), addCC() and addBCC() which all take a email like sender in constructor
-    
-     toString() and toLine() return info about the message either as multiline or
-     as single line (like %y or %y for objects)
-    
-     set the body text with setBody(string) or add a line to the body with addBody(string)
-    
-     additional header lines (eg: "X-SPAM-Status: No") can be added with addHeader(string) or
-     set with setHeader(string | list of string)
-     eg for setting the messageid:
-       $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");
-    
-     add attachments with attach(name, mime, attachment)
-     - name: the name string of the attachment (file.jpg)
-     - mime: the mimetype to be send (MimeTypeJpeg)
-     - attachment: either a string (eg from file.read(-1)) or a binary
-    
-     important([True/False]) will set the given importance and return the current setting
-     receiptDelivery([True/False]) will set the delivery receipt and return the setting
-     receiptRead([True/False]) will set the read receipt request and return the setting
-     these methods return the current setting if called without argument
+        Each message must have a body and at least one destination address before it can be sent.
+
+        Set the body text with:
+        - Message::setBody(): set/replace the message body
+        - Message::addBody(): or add a line to the body with 
+ 
+        Add recipients with:
+        - Message::addTO()
+        - Message::addCC()
+        - Message::addBCC()
+
+        Each of the above methods takes email addresses like the sender address in Message::constructor()
+
+        To get a text summary of the Message; try:
+        - Message::toString(): returns a multi-line summary of the message for display purposes
+        - Message::toLine(): returns a single line summary of the message for display purposes
+        
+        Additional header lines (eg: \c "X-SPAM-Status: No") can be added with addHeader(string) or
+        set with setHeader()
+
+        For example, to set the messageid:
+        @code
+$m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
+
+        Other useful methods:
+        - attach(): add attachments
+        - important(): sets the given importance or returns the current setting (depending on the variant used)
+        - receiptDelivery(): sets the delivery receipt or returns the current setting (depending on the variant used)
+        - receiptRead(): sets the read receipt request or returns the setting (depending on the variant used)
     */
     public class Message {
 	private {
@@ -153,8 +183,8 @@ my SmtpClient::Message $msg("The Sender <sender@email.com>", "My Subject");@endc
 	#! creates a Message to send in the SmtpClient
 	/** Use the Message::addTo() method to add message recipients
 
-	    @param sender the sender's email address; can be in the format "name@example.com <Full Name>"
-	    @param subject the subject line for the email
+	    @param sender the sender's email address; can be in the format \c "name@example.com <Full Name>"
+	    @param subject the subject line for the email; the subject will be encoded with <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
 
 	    @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
 	 */
@@ -320,7 +350,7 @@ my SmtpClient::Message $msg("The Sender <sender@email.com>", "My Subject");@endc
 	}
 
 	#! adds a header to the Message
-	/** @param $hdr a header to add to the Message
+	/** @param hdr a header to add to the Message
 	    
 	    @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
 	 */
@@ -603,6 +633,9 @@ $msg.addAttachment($att);
 
             # read timeout in milliseconds
             timeout $.readTimeout = DefaultReadTimeout;
+
+            # connect timeout in milliseconds
+            timeout $.connectTimeout = DefaultConnectTimeout;
 	}
 
 	public {
@@ -614,7 +647,7 @@ $msg.addAttachment($att);
 	}
 
 	#! creates the SmtpClient object
-	/** @param host the hostname of the SMTP server (use [hostname] to explicitly specify an ipv6 connection)
+	/** @param host the hostname of the SMTP server (use \c "[hostname]" to explicitly specify an ipv6 connection)
 	    @param port the port number of the SMTP server
 	    @param log a closure for log messages
 	    @param dbglog a closure for debugging/technical log messages
@@ -628,9 +661,9 @@ $msg.addAttachment($att);
 	}
 
 	#! creates the SmtpClient object
-	/** @param connect the hostname of the SMTP server or a hostname:port specification (use [hostname] or [address] for ipv6 connections)
-	    @param log a closure for log messages
-	    @param dbglog a closure for debugging/technical log messages
+	/** @param connect the hostname of the SMTP server or a hostname:port specification (use \c "[hostname]" or \c "[address]" for ipv6 connections); if no port is given for non-UNIX sockets, then SmtpPort is used as the default port number
+	    @param log an optional closure or call reference for log messages
+	    @param dbglog an optional closure or call reference for debugging/technical log messages
 	 */
 	constructor(string $connect, *code $log, *code $dbglog) {
 	    $.log_info = $log;
@@ -650,6 +683,8 @@ $msg.addAttachment($att);
 	}
 
 	#! disconnects if connected and destroys the object
+        /** if any exceptions occur during the disconnection, they are sent to the debug log closure/call reference
+         */
   	destructor() {
 	    try {
 		$.disconnect();
@@ -672,9 +707,11 @@ $msg.addAttachment($att);
 	}
 
         #! sets the username and password for authenticated connections
-        /** @note currently this class only knows how to do AUTH PLAIN authentication
+        /** This method is protected by the object's Mutex lock
+            @note currently this class only knows how to do AUTH PLAIN authentication
          */
 	setUserPass(string $user, string $pass) {
+	    my AutoLock $am($.mutex);
 	    $.user = $user;
 	    $.pass = $pass;
 	}
@@ -700,9 +737,17 @@ $msg.addAttachment($att);
 	}
 
 	#! connect to the server
+        /** This method is protected by the object's Mutex lock
+
+            @note for possible exceptions, see %Qore's @ref Qore::Socket::connect() "Socket::connect()" method
+         */
   	connect() {
 	    my AutoLock $am($.mutex);
-	    $.sock.connect($.connect);
+            $.connectIntern();
+        }
+
+        private connectIntern() {
+	    $.sock.connect($.connect, $.connectTimeout);
   	}
   	
 	#! return connection status
@@ -711,13 +756,19 @@ $msg.addAttachment($att);
   	}
   	
 	#! disconnect from the server
+        /** This method is protected by the object's Mutex lock
+         */
   	disconnect() {
 	    my AutoLock $am($.mutex);
+            $.disconnectIntern();
+  	}
+
+        private disconnectIntern() {
 	    if ($.isConnected()) {
 		$.sock.close();
 		$.sock.shutdown();
 	    }
-  	}
+        }
   	
         #! sets the read timeout
         setReadTimeout(timeout $to) {
@@ -732,6 +783,21 @@ $msg.addAttachment($att);
         #! returns the read timeout as a relative time value
         date getReadTimeoutDate() {
             return milliseconds($.readTimeout);
+        }
+
+        #! sets the connect timeout
+        setConnectTimeout(timeout $to) {
+            $.connectTimeout = $to;
+        }
+
+        #! returns the read timeout as an integer giving milliseconds
+        int getConnectTimeoutMs() {
+            return $.connectTimeout;
+        }
+        
+        #! returns the read timeout as a relative time value
+        date getConnectTimeoutDate() {
+            return milliseconds($.connectTimeout);
         }
 
 	#! returns a string of message data according to the encoding passed
@@ -877,10 +943,11 @@ $msg.addAttachment($att);
 	    return $str;
 	}
 
-	private hash sendMessageIntern(SmtpClient::Message $message) {
+        # sends the message header (without body & attachments) to the SMTP server
+	private hash sendMessageHeaderIntern(SmtpClient::Message $message) {
 	    # open connection to server
 	    if (!$.isConnected()) {
-		$.connect();
+		$.connectIntern();
 		my string $rep = $.readLine($.readTimeout);
 		$.logDbg("connect reply: %y", trim($rep));
 		$.esmtp = ($rep =~ /ESMTP/);
@@ -987,7 +1054,7 @@ $msg.addAttachment($att);
 
 	    my hash $reply;
 	    try {
-		$reply = $.sendMessageIntern($message);
+		$reply = $.sendMessageHeaderIntern($message);
 
 		my list $atts = $message.getAttachments();
 
@@ -1006,7 +1073,7 @@ $msg.addAttachment($att);
 		
 		my string $be = $message.getBodyTransferEncoding();
 		if (!$atts.empty() || $be != SmtpClient::EncNone) {
-		    $.sendData(sprintf("--%s\r\n", $.mpboundary));
+		    $.sendData("--%s\r\n", $.mpboundary);
 		    $.sendData(SmtpClient::encodeData($message.getBody(), sprintf("%s;charset=utf-8", MimeTypeText), "inline", $be));
 		}
 		else 
@@ -1031,61 +1098,26 @@ $msg.addAttachment($att);
 		$reply.QUIT = $rh;
 	    }
 	    catch($ex) {
-		$.logDbg("send error: %s: %s", $ex.err, $ex.desc);
-		$.forceDisconnect();
+		$.logDbg("send error: %s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc);
+		$.forceDisconnectIntern();
 		rethrow;
 	    }
 	    # close connection
-	    $.forceDisconnect();
+	    $.forceDisconnectIntern();
 
 	    return $reply;
 	}
 
-	#! send a message object - MHT email
-	/** no attachments, resources are included directly in the mail page and referenced by relative links
-         */
-	hash sendMHTMessage(SmtpClient::Message $message) {
-	    if (!$message.sendPossible())
-		throw "ARGUMENT-EXCEPTION", "Message is not ready to be sent";
-
-	    if ($.log_debug.val())
-		$.logDbg("MHTMessage: %s", $message.toLine());
-	    
-	    # lock for sending
+	#! force disconnect of socket without error
+        forceDisconnect() {
 	    my AutoLock $am($.mutex);
-
-	    my hash $reply;
-	    try {
-		$reply = $.sendMessageIntern($message);
-		
-		# entire MHT body 
-		$.sendData($message.getBody());
-		$.sendData("\r\n");
-
-		# send end of data
-		my hash $rh = $.sendCommand(".");
-		$reply.MSGID = $rh;
-
-		# quit
-		$rh = $.sendCommand("QUIT");
-		$reply.QUIT = $rh;
-	    }
-	    catch($ex) {
-		$.logDbg("MHTMessage error: %s: %s", $ex.err, $ex.desc);
-		$.forceDisconnect();
-		rethrow;
-	    }
-	    # close connection
-	    $.forceDisconnect();
-
-	    return $reply;
+            $.forceDisconnectIntern();
 	}
-
-	# force disconnect of socket without error
-	forceDisconnect() {
+    
+	private forceDisconnectIntern() {
 	    if ($.isConnected()) {
 		try {
-		    $.disconnect();
+		    $.disconnectIntern();
 		}
 		catch($ex) {
 		    # ignore
