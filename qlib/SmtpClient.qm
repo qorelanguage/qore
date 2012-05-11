@@ -183,7 +183,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	#! creates a Message to send in the SmtpClient
 	/** Use the Message::addTo() method to add message recipients
 
-	    @param sender the sender's email address; can be in the format \c "name@example.com <Full Name>"
+	    @param sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
 	    @param subject the subject line for the email; the subject will be encoded with <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
 
 	    @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
@@ -790,12 +790,12 @@ $msg.addAttachment($att);
             $.connectTimeout = $to;
         }
 
-        #! returns the read timeout as an integer giving milliseconds
+        #! returns the connect timeout as an integer giving milliseconds
         int getConnectTimeoutMs() {
             return $.connectTimeout;
         }
         
-        #! returns the read timeout as a relative time value
+        #! returns the connect timeout as a relative time value
         date getConnectTimeoutDate() {
             return milliseconds($.connectTimeout);
         }
@@ -1074,7 +1074,8 @@ $msg.addAttachment($att);
 		my string $be = $message.getBodyTransferEncoding();
 		if (!$atts.empty() || $be != SmtpClient::EncNone) {
 		    $.sendData("--%s\r\n", $.mpboundary);
-		    $.sendData(SmtpClient::encodeData($message.getBody(), sprintf("%s;charset=utf-8", MimeTypeText), "inline", $be));
+                    my string $body = $message.getBody();
+		    $.sendData(SmtpClient::encodeData($body, sprintf("%s; charset=%s", MimeTypeText, get_encoding($body)), "inline", $be));
 		}
 		else 
 		    $.sendData($message.getBody()+"\r\n");
