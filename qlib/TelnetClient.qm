@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file TelnetClient.qm Telnet module definition
 
-/*  TelnetClient.qm Copyright 2012 David Nichols
+/*  TelnetClient.qm Copyright 2012 Pavol Potancok, David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,11 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-/*  Version History
-    * 1.0: updated by David Nichols <david@qore.org> to a user module
-    * 0.9: original author Pavol Potancok <ppotancok@gmail.com>
-*/
-
 module TelnetClient {
        version = "1.0";
        desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
@@ -34,10 +29,33 @@ module TelnetClient {
        url = "http://qore.org";
 }
 
+/*  Version History
+    * 1.0: updated by David Nichols <david@qore.org> to a user module
+    * 0.9: original author Pavol Potancok <ppotancok@gmail.com>
+*/
+
+/** @mainpage TelnetClient Module
+
+    The %TelnetClient module provides a telnet client class for communicating with a server using the telnet protocol
+
+    To use this module, use \c "%requires TelnetClient" in your code.  See examples/telnet.q for an example program using this module.
+    
+    All the public symbols in the module are defined in the TelnetClient namespace
+
+    The main class and definitions are:
+    - @ref TelnetClient::TelnetClient "TelnetClient": the telnet client class
+    - @ref TelnetDefaults "TelnetDefaults": default values for the @ref TelnetClient::TelnetClient "TelnetClient" class
+    - @ref TelnetCommandCodes "TelnetCommandCodes": telnet protocol command codes and a lookup map
+    - @ref TelnetOptionCodes "TelnetOptionCodes": telnet protocol option codes and a lookup map
+ */
+
 #! contains constant definitions and the definition of the TelnetClient class
 public namespace TelnetClient {
+    /** @defgroup TelnetDefaults Default Values
+     */
+    #@{
     # default telnet port
-    public const TelnetPort = 23;
+    public const DefaultTelnetPort = 23;
 
     # default connection timeout
     public const DefaultConnTimeout = 15s;
@@ -50,34 +68,35 @@ public namespace TelnetClient {
 
     # default terminal speed
     const DefaultTerminalSpeed = 38400;
+    #@}
 
-    # telnet protocol codes
-    public const IAC  = 255;
-    public const DONT = 254;
-    public const DO   = 253;
-    public const WONT = 252;
-    public const WILL = 251;
-    public const theNULL = 0;
-    public const SE  = 240;  # Subnegotiation End
-    public const NOP = 241;  # No Operation
-    public const DM  = 242;  # Data Mark
-    public const BRK = 243;  # Break
-    public const IP  = 244;  # Interrupt process
-    public const AO  = 245;  # Abort output
-    public const AYT = 246;  # Are You There
-    public const EC  = 247;  # Erase Character
-    public const EL  = 248;  # Erase Line
-    public const GA  = 249;  # Go Ahead
-    public const SB =  250;  # Subnegotiation Begin
+    /** @defgroup TelnetCommandCodes Telnet Protocol Command Codes
+     */
+    #@{
+    public const IAC  = 255; #!< IAC
+    public const DONT = 254; #!< DONT
+    public const DO   = 253; #!< DO
+    public const WONT = 252; #!< WONT
+    public const WILL = 251; #!< WILL
+    public const SE  = 240;  #!< Subnegotiation End
+    public const NOP = 241;  #!< No Operation
+    public const DM  = 242;  #!< Data Mark
+    public const BRK = 243;  #!< Break
+    public const IP  = 244;  #!< Interrupt process
+    public const AO  = 245;  #!< Abort output
+    public const AYT = 246;  #!< Are You There
+    public const EC  = 247;  #!< Erase Character
+    public const EL  = 248;  #!< Erase Line
+    public const GA  = 249;  #!< Go Ahead
+    public const SB =  250;  #!< Subnegotiation Begin
 
-    # command name map
+    #! command name map
     public const CmdMap = (
 	IAC : "IAC", 
         DONT : "DONT",
         DO : "DO",
         WONT : "WONT",
         WILL: "WILL",
-        theNULL : "theNULL",
         SE : "SubnegotiationEnd",
         NOP : "NoOperation",
         DM: "DataMark",
@@ -90,61 +109,64 @@ public namespace TelnetClient {
         GA : "GoAhead",
         SB : "SubnegotiationBegin",
 	);
-    
+    #@}|
+
     public const SUPDUP_OPT = 21; # SUPDUP_OPT display protocol
     
-    # telnet option codes
-    public const TOPT_BIN = 0;
-    public const TOPT_ECHO = 1;
-    public const TOPT_RECN = 2;
-    public const TOPT_SUPP = 3;
-    public const TOPT_APRX = 4;
-    public const TOPT_STAT = 5;
-    public const TOPT_TIM = 6;
-    public const TOPT_REM = 7;
-    public const TOPT_OLW = 8;
-    public const TOPT_OPS = 9;
-    public const TOPT_OCRD = 10;
-    public const TOPT_OHT = 11;
-    public const TOPT_OHTD = 12;
-    public const TOPT_OFD = 13;
-    public const TOPT_OVT = 14;
-    public const TOPT_OVTD = 15;
-    public const TOPT_OLD = 16;
-    public const TOPT_EXT = 17;
-    public const TOPT_LOGO = 18;
-    public const TOPT_BYTE = 19;
-    public const TOPT_DATA = 20;
-    public const TOPT_SUP = 21;
-    public const TOPT_SUPO = 22;
-    public const TOPT_SNDL = 23;
-    public const TOPT_TERM = 24;
-    public const TOPT_EOR = 25;
-    public const TOPT_TACACS = 26;
-    public const TOPT_OM = 27;
-    public const TOPT_TLN = 28;
-    public const TOPT_3270 = 29;
-    public const TOPT_X3 = 30;
-    public const TOPT_NAWS = 31;
-    public const TOPT_TS = 32;
-    public const TOPT_RFC = 33;
-    public const TOPT_LINE = 34;
-    public const TOPT_XDL = 35;
-    public const TOPT_ENVIR = 36;
-    public const TOPT_AUTH = 37;
-    public const TOPT_ENVIR_NEW = 39;
-    public const TOPT_TN3270 = 40;
-    public const TOPT_X_AUTH = 41;
-    public const TOPT_CHARSET = 42;
-    public const TOPT_RSP = 43;
-    public const TOPT_COMPORT = 44;
-    public const TOPT_SLE = 45;
-    public const TOPT_STARTTLS = 46;
-    public const TOPT_KERMIT = 47;
-    public const TOPT_SEND_URL = 48;
-    public const TOPT_EXTOP = 255;
+    /** @defgroup TelnetOptionCodes Telnet Command Option Codes
+     */
+    #@{
+    public const TOPT_BIN = 0;         #!< BinaryTransmission
+    public const TOPT_ECHO = 1;        #!< Echo|Is|Send
+    public const TOPT_RECN = 2;        #!< Reconnection
+    public const TOPT_SUPP = 3;        #!< SuppressGoAhead
+    public const TOPT_APRX = 4;        #!< ApproxMessageSizeNegotiation
+    public const TOPT_STAT = 5;        #!< Status
+    public const TOPT_TIM = 6;         #!< TimingMark
+    public const TOPT_REM = 7;         #!< RemoteControlledTransandEcho
+    public const TOPT_OLW = 8;         #!< OutputLineWidth
+    public const TOPT_OPS = 9;         #!< OutputPageSize
+    public const TOPT_OCRD = 10;       #!< OutputCarriage-ReturnDisposition
+    public const TOPT_OHT = 11;        #!< OutputHorizontalTabstops
+    public const TOPT_OHTD = 12;       #!< OutputHorizontalTabDisposition
+    public const TOPT_OFD = 13;        #!< OutputFormfeedDisposition
+    public const TOPT_OVT = 14;        #!< OutputVerticalTabstops
+    public const TOPT_OVTD = 15;       #!< OutputVerticalTabDisposition
+    public const TOPT_OLD = 16;        #!< OutputLinefeedDisposition
+    public const TOPT_EXT = 17;        #!< ExtendedASCII
+    public const TOPT_LOGO = 18;       #!< Logout
+    public const TOPT_BYTE = 19;       #!< ByteMacro
+    public const TOPT_DATA = 20;       #!< DataEntryTerminal
+    public const TOPT_SUP = 21;        #!< SUPDUP
+    public const TOPT_SUPO = 22;       #!< SUPDUPOutput
+    public const TOPT_SNDL = 23;       #!< SendLocation
+    public const TOPT_TERM = 24;       #!< TerminalType
+    public const TOPT_EOR = 25;        #!< EndofRecord
+    public const TOPT_TACACS = 26;     #!< TACACSUserIdent
+    public const TOPT_OM = 27;         #!< OutputMarking
+    public const TOPT_TLN = 28;        #!< TerminalLocationNumber
+    public const TOPT_3270 = 29;       #!< Telnet3270Regime
+    public const TOPT_X3 = 30;         #!< X.3PAD
+    public const TOPT_NAWS = 31;       #!< NegotiateAboutWindowSize
+    public const TOPT_TS = 32;         #!< TerminalSpeed
+    public const TOPT_RFC = 33;        #!< RemoteFlowControl
+    public const TOPT_LINE = 34;       #!< Linemode
+    public const TOPT_XDL = 35;        #!< XDisplayLocation
+    public const TOPT_ENVIR = 36;      #!< TelnetEnvironmentOption
+    public const TOPT_AUTH = 37;       #!< TelnetAuthenticationOption
+    public const TOPT_ENVIR_NEW = 39;  #!< TelnetNewEnvironmentOption
+    public const TOPT_TN3270 = 40;     #!< TN3270Enhancements
+    public const TOPT_X_AUTH = 41;     #!< TelnetXAUTH
+    public const TOPT_CHARSET = 42;    #!< TelnetCHARSET
+    public const TOPT_RSP = 43;        #!< TelnetRemoteSerialPort
+    public const TOPT_COMPORT = 44;    #!< TelnetComPortControl
+    public const TOPT_SLE = 45;        #!< TelnetSuppressLocalEcho
+    public const TOPT_STARTTLS = 46;   #!< TelnetStartTLS
+    public const TOPT_KERMIT = 47;     #!< TelnetKERMIT
+    public const TOPT_SEND_URL = 48;   #!< Send-URL
+    public const TOPT_EXTOP = 255;     #!< Extended-Options-List
 
-    # option map
+    #! option map, maps codes to text descriptions
     public const OptMap = (
 	TOPT_BIN : "BinaryTransmission",
 	TOPT_ECHO : "Echo|Is|Send",
@@ -196,7 +218,12 @@ public namespace TelnetClient {
         TOPT_SEND_URL : "Send-URL",
         TOPT_EXTOP : "Extended-Options-List",
 	);
+    #@}
 
+    #! The TelnetClient class allows communication with a telnet server; it can be used directly or subclassed with overridden methods to customize its behavior
+    /** This class uses a Mutex lock in each TelnetClient object to ensure thread serialization to the underlying socket and its internal configuration, 
+        so it is safe to access in a multithreaded context.
+     */
     public class TelnetClient {
   	private {
 	    # the connection string
@@ -219,14 +246,14 @@ public namespace TelnetClient {
 	    hash $.fh;
 	}
 
-	#! no public members
+	# no public members
 	public {}
 
 	#! creates the TelnetClient object
 	/** @param host the hostname of the telnet server (use [hostname] to explicitly specify an ipv6 connection)
 	    @param port the port number of the telnet server
 	    @param log a closure for log messages
-	    @param dbglog a closure for debugging/technical log messages
+	    @param dbgLog a closure for debugging/technical log messages
 	 */
   	constructor(string $host, softint $port, *code $log, *code $dbgLog) {
 	    if ($host.empty())
@@ -254,13 +281,14 @@ public namespace TelnetClient {
 	    if ($connect !~ /^\//) {
 		my *softint $p = ($connect =~ x/:([0-9]+)$/)[0];
 		if (!$p)
-		    $connect += ":" + TelnetPort;
+		    $connect += ":" + DefaultTelnetPort;
 	    }
 
 	    $.connect = $connect;
 	    $.logDbg("server: %y", $.connect);
 	}
   	
+        #! disconnects from the server if connected and deletes the object
   	destructor() {
 	    $.disconnect();
   	}
@@ -276,6 +304,9 @@ public namespace TelnetClient {
 	}
 
 	#! connects to the Telnet server
+        /** If the object is already connected, it is disconnected and a new connection attempt is made.
+            @note This method is subject to thread serialization.
+         */
   	connect(timeout $timeout = DefaultConnTimeout) {
 	    my AutoLock $al($.m);
 	    if ($.isConnected())
@@ -286,20 +317,27 @@ public namespace TelnetClient {
 	    $.log("connected to %s (%s)%s", $h.hostname, $h.address_desc, $h.port ? sprintf(" port %d", $h.port) : "");
   	}
   	
+        #! returns True if the client is connected to the server
 	bool isConnected() {
 	    return $.conn.isOpen();
   	}
 
+        #! sets or clears (in case passed with no value) the username parameter for logging in to the telnet server
+        /** @note This method is subject to thread serialization.
+         */
 	setUser(*string $user) {
 	    my AutoLock $al($.m);
 	    $.user = $user;
 	}
 
+        #! returns the current value of the username parameter
 	*string getUser() {
 	    return $.user;
 	}
 
   	#! disconnects from the Telnet server
+        /** @note This method is subject to thread serialization.
+         */
   	disconnect() {
 	    my AutoLock $al($.m);
 	    if ($.isConnected())
@@ -318,6 +356,19 @@ public namespace TelnetClient {
 		throw "NOT-CONNECTED-EXCEPTION", "Cannot perform the operation without being connected to server!";
   	}
   	
+        #! sends data to the server
+        /** @param $arr a single element or a list of elements to send to the server; elements can be as follows:
+            - string: currently sent verbatim to the server, in particular no encoding conversions are performed on this string (possibly these should be scanned for @ref IAC characters which should be duplicated)
+            - integer: treated as a single-byte value; if the value is @ref IAC (ie 255 or 0xff) then it is sent twice
+            - binary: sent verbatim to the server
+
+            @throw SEND-ERROR this exception is thrown if an invalid data type is passed to this method
+            @throw NOT-CONNECTED-EXCEPTION if the socket is not already connected then this exception is thrown
+
+            @note
+            - This method could also throw any exception that Socket::sendBinary2() or Socket::sendi1() could throw
+            - This method is subject to thread serialization
+         */
   	sendData(softlist $arr) {
 	    my AutoLock $al($.m);
 	    $.checkConnIntern();
@@ -327,6 +378,11 @@ public namespace TelnetClient {
   	private sendDataIntern(softlist $arr, bool $double_aic = False) {
 	    foreach my any $val in ($arr) {
 		switch ($val.typeCode()) {
+                    case NT_BINARY: {
+		        $.conn.sendBinary2($val);
+		        break;
+		    }
+
 		    case NT_STRING: { 
 		        $.conn.sendBinary2($val);
 		        break;
@@ -350,6 +406,15 @@ public namespace TelnetClient {
 	    $.conn.send($str);
 	}
 
+        #! sends literal string data to the server; the text dat is converted to the socket's encoding if necessary
+        /** @param $str currently sent verbatim to the server after converting to the socket's encoding if necessary (possibly these should be scanned for @ref IAC characters which should be duplicated)
+
+            @throw NOT-CONNECTED-EXCEPTION if the socket is not already connected then this exception is thrown
+
+            @note
+            - This method could also throw any exception that Socket::send() could throw
+            - This method is subject to thread serialization
+         */
   	sendTextData(string $str) {
 	    my AutoLock $al($.m);
 	    $.checkConnIntern();
@@ -357,6 +422,12 @@ public namespace TelnetClient {
   	}
 
 	#! returns all data available as a string (which could be an empty string if no data is available in the timeout period) or NOTHING if the connection was closed by the remote end
+        /** NOTHING is only returned if the remote end closed the connection
+
+            @note
+            - This method could throw any exception that Socket::recvu1() could throw except SOCKET-CLOSED (in which case the exception is caught and NOTHING is returned)
+            - This method is subject to thread serialization
+         */
   	*string getAvailableData(timeout $t = DefaultTimeout) {
 	    my AutoLock $al($.m);
 	    return $.getAvailableDataIntern($t);
@@ -396,10 +467,22 @@ public namespace TelnetClient {
 	    return $rv;
 	}
 
-	bool hasFeature(softstring $fc) {
+        #! returns True if the server has confirmed with a DO command that it supports the given feature
+        /** @param fc The feature code to check; see @ref TelnetOptionCodes for possible values; supported features are:
+            - @ref TOPT_TS "TOPT_TS": TerminalSpeed
+            - @ref TOPT_XDL "TOPT_XDL": XDisplayLocation
+            - @ref TOPT_TERM "TOPT_TERM": TerminalType
+            - @ref TOPT_ENVIR_NEW "TOPT_ENVIR_NEW": TelnetNewEnvironmentOption
+            - @ref TOPT_SUPP "TOPT_SUPP": SuppressGoAhead
+            - @ref TOPT_NAWS "TOPT_NAWS": NegotiateAboutWindowSize
+         */
+	bool hasFeature(int $fc) {
 	    return boolean($.fh.$fc);
 	}
 
+        #! this method should be called externally when the window size has changed
+        /** @see @ref getWindowSize()
+         */
 	windowSizeUpdated() {
 	    my hash $wh = $.getWindowSize();
 	    my AutoLock $al($.m);
@@ -538,7 +621,8 @@ public namespace TelnetClient {
 	}
 
 	#! this method provides the value that will be given as the terminal window size in protocol negotiation
-	/** override this method in a subclass to provide a different value
+	/** The default implementation of this method is to return the actual terminal size by calling TermIOS::getWindowSize().
+            Override this method in a subclass to provide a different value.
 
 	    @return a hash with the following keys: 
 	    - \c rows: the number of rows in the display

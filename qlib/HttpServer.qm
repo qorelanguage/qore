@@ -105,13 +105,27 @@ module HttpServer {
 
     It has not been audited for security.
 
-    To use this module, use "%requires HttpServer" in your code.  See examples/httpserver.q for an example program using this module
+    To use this module, use \c "%requires HttpServer" in your code.  See examples/httpserver.q for an example program using this module
     
-    All the public symbols in the module are defined in the %HttpServer namespace
+    All the public symbols in the module are defined in the HttpServer namespace
+
+    The main classes are:
+    - @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator": can be implemented to provide authentication and authorization info to the server
+    - @ref HttpServer::AbstractHttpRequestHandler "AbstractHttpRequestHandler": this class must be subclassed to provide the real work of the HttpServer handling connections
+    - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
+
+    @par Example:
+    @code
+%requires HttpServer
+
+my code $log = sub (string str) {printf("%y: %s\n", now_us(), str);}
+my HttpServer $hs($log(), $log);
+$hs.setHandler("my-handler", "/", MimeTypeHtml, $myHandler);
+$hs.setDefaultHandler("my-handler", $myHandler);@endcode
  */
 
 #! the main namespace for the HttpServer module
-/** To use this module, use "%requires HttpServer" in your code.
+/** To use this module, use \c "%requires HttpServer" in your code.
 
     See examples/httpserver.q for an example program using this module
     

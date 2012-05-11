@@ -54,7 +54,7 @@ module SmtpClient {
 
     To use this module, use \c "%requires SmtpClient" in your code.  See examples/email.q for an example program using this module
     
-    All the public symbols in the module are defined in the %SmtpClient namespace
+    All the public symbols in the module are defined in the SmtpClient namespace
 
     The main classes are:
     - @ref SmtpClient::SmtpClient "SmtpClient": manages a connection to an SMTP server
@@ -63,6 +63,8 @@ module SmtpClient {
 
     @par Example:
     @code
+%requires SmtpClient
+
 my SmtpClient::Message $msg("The Sender <sender@email.com>", "My Subject");
 $msg.setBody($body);
 $msg.addTO("My Best Friend <you@friend.com>");
@@ -84,6 +86,10 @@ public namespace SmtpClient {
      */
     #@{
     #! default content transfer encoding depending on attachment type
+    /** The default encodings are as follows per file type:
+        - text data: @ref EncQuotedPrintable
+        - binary data: @ref EncBase64
+     */
     public const EncDefault = "default";
 
     #! no content transfer encoding (not recommended as SMTP servers break up long lines automatically)
@@ -827,11 +833,11 @@ $msg.addAttachment($att);
 	    return $str;
 	}
 
-	#! checks the data against the encoding and returns the new encoding (if the encoding is EncDefault for example)
+	#! checks the data against the encoding and returns the new encoding (if the encoding is @ref EncDefault for example)
 	/** @param data the data to be encoded
 	    @param enc the encoding type for the data (see @ref MessageEncodings for possible values)
 
-	    @return the new encoding to use in case the input data was EncDefault
+	    @return the new encoding to use in case the input data was @ref EncDefault
 
 	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
 	    @throw INVALID-ENCODING the encoding given cannot be used with data given
@@ -841,8 +847,7 @@ $msg.addAttachment($att);
 		$enc = $data.typeCode() == NT_STRING ? EncQuotedPrintable : EncBase64; 
 	    else if (!inlist($enc, Encodings))
 		throw "UNKNOWN-ENCODING", sprintf("%y is not a known encoding; known encodings: %y", $enc, Encodings);
-
-	    if ($data.typeCode() == NT_BINARY && $enc == EncNone)
+            else if ($data.typeCode() == NT_BINARY && $enc == EncNone)
 		throw "INVALID-ENCODING", sprintf("%y cannot be used with binary data", $enc);
 
 	    return $enc;

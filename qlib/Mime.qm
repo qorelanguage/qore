@@ -31,8 +31,35 @@ module Mime {
     url = "http://qore.org";
 }
 
+/*  Version History
+    * 1.0: David Nichols <david@qore.org>: pulled MIME implementation out of other code and made a user module to aggregate MIME definitions and functions
+
+    based on:
+    - http://tools.ietf.org/html/rfc1521: quoted printable & base 64 transfer encodings
+    - http://tools.ietf.org/html/rfc2045: mime headers, content types, etc
+    - http://tools.ietf.org/html/rfc2047: "Q" and "B" encoded words (implemented by the Mime module)
+*/
+
+/** @mainpage Mime Module
+
+    The %Mime module provides definitions and functions related to MIME processing.  MIME concepts are used in HTTP and SMTP communications, among others.
+
+    To use this module, use \c "%requires Mime" in your code.  See the SmtpClient and the HttpServer modules for examples of %Qore code using this module.
+    
+    All the public symbols in the module are defined in the Mime namespace
+
+    The main definitions and functions are:
+    - @ref MimeTypeDefinitions "MimeTypeDefinitions": constant for common MIME types
+    - @ref Mime::MimeTypes "MimeTypes": a map of common file name extensions to the default MIME type
+    - @ref MimeEncodingFunctions "MimeEncodingFunctions": functions for encoding MIME data
+ */
+
 #! public Mime namespace defines constants and functions relevant to MIME
 public namespace Mime {
+    /** @defgroup MimeTypeDefinitions MIME Type Definitions
+	These are constants for common MIME types
+     */
+    #@{
     #! MIME type for unknown file types
     public const MimeTypeUnknown = "application/octet-stream";
 
@@ -72,7 +99,7 @@ public namespace Mime {
     #! Mime type for YAML-RPC
     public const MimeTypeYamlRpc = "application/x-yaml";
 
-    #! a map of default mime types per file extension
+    #! A map of default mime types per file extension; the hash keys are file extensions in lower-case without the dot (ex: \c "txt")
     public const MimeTypes = (
 	"7z": "application/x-7z-compressed",
 	"ai": "application/postscript",
@@ -230,6 +257,7 @@ public namespace Mime {
 	"tex": "application/x-tex",
 	"texi": "application/x-texinfo",
 	"texinfo": "application/x-texinfo",
+	"text": MimeTypeText,
 	"tgz": "application/x-tar-gz",	
 	"tif": "image/tiff",
 	"tiff": "image/tiff",
@@ -262,21 +290,27 @@ public namespace Mime {
 	"yaml": MimeTypeYaml,
 	"zip": "application/zip",
 	);
+    #@}
 
     #! maximum line length for quoted-printable encoding
     /** <a href="http://tools.ietf.org/html/rfc2045#section-6.7>RFC 2045 section 6.7</a>
      */
     public const MimeQuotedPrintableLineLen = 76;
 
-    #! return a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
+    /** @defgroup MimeEncodingFunctions MIME Encoding Functions
+     */
+    #@{    
+    #! returns a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to encode
 	@param len the maximum line length
+
+	@note this function is basically just a wrapper for the standard %Qore function makeBase64String()
      */
     public string sub mime_encode_base64(data $str, int $len = 76) {
 	return makeBase64String($str, $len);
     }
 
-    #! return a string in "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
+    #! returns a string in "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to encode
 	@param hdr use rules for a MIME header (<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>)
      */
@@ -327,13 +361,14 @@ public namespace Mime {
 	return $rv;
     }
 
-    #! return a string in "B" ("BASE64") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
+    #! returns a string in "B" ("BASE64") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
     public string sub mime_encode_header_word_b(string $str) {
 	return makeBase64String(sprintf("=?%s?B?%s?=", get_encoding($str), $str, 76));
     }
 
-    #! return a string in "Q" ("quoted-printable") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
+    #! returns a string in "Q" ("quoted-printable") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
     public string sub mime_encode_header_word_q(string $str) {
 	return mime_encode_quoted_printable(sprintf("=?%s?Q?%s?=", get_encoding($str), $str), True);
     }
+    #@}
 }
