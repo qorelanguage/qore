@@ -1059,12 +1059,11 @@ $msg.addAttachment($att);
 		my list $atts = $message.getAttachments();
 
 		# multipart message?
-		if (!$atts.empty()) {
-		    $.sendData("MIME-Version: 1.0\r\n");
-		    $.sendData("Content-Type: multipart/mixed;boundary=\"%s\"\r\n", $.mpboundary);
-		    $.sendData("Content-Disposition: inline\r\n");
-		    $.sendData("\r\n");
-		}
+                $.sendData("MIME-Version: 1.0\r\n");
+                $.sendData("Content-Type: multipart/mixed;boundary=\"%s\"\r\n", $.mpboundary);
+                $.sendData("Content-Disposition: inline\r\n");
+
+                $.sendData("\r\n");
 
 		# body and attachments
 		$.sendData("\r\n");
@@ -1072,8 +1071,8 @@ $msg.addAttachment($att);
 		# rest of data (the body)
 		
 		my string $be = $message.getBodyTransferEncoding();
+                $.sendData("--%s\r\n", $.mpboundary);
 		if (!$atts.empty() || $be != SmtpClient::EncNone) {
-		    $.sendData("--%s\r\n", $.mpboundary);
                     my string $body = $message.getBody();
 		    $.sendData(SmtpClient::encodeData($body, sprintf("%s; charset=%s", MimeTypeText, get_encoding($body)), "inline", $be));
 		}
