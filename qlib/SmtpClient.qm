@@ -1058,26 +1058,33 @@ $msg.addAttachment($att);
 
 		my list $atts = $message.getAttachments();
 
-		# multipart message?
-                $.sendData("MIME-Version: 1.0\r\n");
-                $.sendData("Content-Type: multipart/mixed;boundary=\"%s\"\r\n", $.mpboundary);
-                $.sendData("Content-Disposition: inline\r\n");
-
-                $.sendData("\r\n");
-
-		# body and attachments
-		$.sendData("\r\n");
-
-		# rest of data (the body)
-		
+                # get message body transfer encoding
 		my string $be = $message.getBodyTransferEncoding();
-                $.sendData("--%s\r\n", $.mpboundary);
-		if (!$atts.empty() || $be != SmtpClient::EncNone) {
+
+                # is this a multipart msg?
+                my bool $multipart = !$atts.empty();
+
+		# see if we need to send a MIME msg: multipart message or need body encoding
+                my bool $mime = $multipart || $be != SmtpClient::EncNone;
+
+                if ($mime) {
+                    $.sendData("MIME-Version: 1.0\r\n");
+                    if ($multipart) {
+                        $.sendData("Content-Type: multipart/mixed;boundary=\"%s\"\r\n", $.mpboundary);
+                        $.sendData("Content-Disposition: inline\r\n");
+                        $.sendData("\r\n");
+                    }
+                }
+
+                # send the msg body
+		if ($mime) {
+                    if ($multipart)
+                        $.sendData("--%s\r\n", $.mpboundary);
                     my string $body = $message.getBody();
 		    $.sendData(SmtpClient::encodeData($body, sprintf("%s; charset=%s", MimeTypeText, get_encoding($body)), "inline", $be));
 		}
 		else 
-		    $.sendData($message.getBody()+"\r\n");
+		    $.sendData($message.getBody() + "\r\n");
 
 		# send attachments
 		if (!$atts.empty()) {
