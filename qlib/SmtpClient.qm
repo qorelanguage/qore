@@ -215,7 +215,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    return ($str =~ x/([a-zA-Z0-9\-\._\+\ = ]+@[a-zA-Z0-9\-\._]+)/)[0];
 	}
 
-	#! returns True if the string contains an email address, False if not
+	#! returns @ref Qore::True "True" if the string contains an email address, @ref Qore::False "False" if not
 	static bool checkEmailAddress(string $str) {
 	    return !Message::getEmailAddress($str).empty();
 	}
@@ -297,11 +297,11 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    return $recpt;
 	}
 
-	#! returns True if the message can be sent, False if not
+	#! returns @ref Qore::True "True" if the message can be sent, @ref Qore::False "False" if not
 	/** To be able to send a message, there must be at least one recipient in the "To:" or the "CC:" or the "BCC:" lists \
 	    and there must be a message body 
 
-	    @return True if the message can be sent, False if not
+	    @return @ref Qore::True "True" if the message can be sent, @ref Qore::False "False" if not
 	 */
 	bool sendPossible() {
 	    if ($.to.empty() && $.cc.empty() && $.bcc.empty())
@@ -372,7 +372,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	}
 
 	#! returns the current importance setting
-	/** if this is True, then the following headers will be sent:
+	/** if this is @ref Qore::True "True", then the following headers will be sent:
 	    - \c Importance: high
 	    - \c X-Priority: 1
 	    - \c Priority: Urgent
@@ -382,7 +382,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	}
 
 	#! sets the importance setting
-	/** if this is True, then the following headers will be sent:
+	/** if this is @ref Qore::True "True", then the following headers will be sent:
 	    - \c Importance: high
 	    - \c X-Priority: 1
 	    - \c Priority: Urgent
@@ -392,7 +392,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	}
 
 	#! returns the current read delivery receipt setting
-	/** if this is True, then the following header will be sent:
+	/** if this is @ref Qore::True "True", then the following header will be sent:
 	    - \c Return-Receipt-To: <sender's email address>
 	  */
 	bool receiptRead() {
@@ -400,7 +400,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	}
 
 	#! sets the read delivery receipt setting
-	/** if this is True, then the following header will be sent:
+	/** if this is @ref Qore::True "True", then the following header will be sent:
 	    - \c Return-Receipt-To: <sender's email address>
 	  */
 	receiptRead(bool $arg) {
@@ -408,7 +408,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	}
 
 	#! returns the delivery receipt setting
-	/** if this is True, then the following header will be sent:
+	/** if this is @ref Qore::True "True", then the following header will be sent:
 	    - \c Disposition-Notification-To: <sender's email address>
 	  */
 	bool receiptDelivery() {
@@ -416,7 +416,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	}
 
 	#! sets the delivery receipt setting
-	/** if this is True, then the following header will be sent:
+	/** if this is @ref Qore::True "True", then the following header will be sent:
 	    - \c Disposition-Notification-To: <sender's email address>
 	  */
 	receiptDelivery(bool $arg) {
@@ -449,7 +449,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	}
 
 	#! returns a multi-line string representing the Message
-	/** @param body if True the Message body will be included in the string output
+	/** @param body if @ref Qore::True "True" the Message body will be included in the string output
 	 */
 	string toString(bool $body = False) {
 	    my list $attarr = ();
@@ -541,7 +541,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
     #! class representing an Attachment for the Message
     /** this class wraps all the data for the attachment, including:
         - the attachment's name; ie the file name which will be shown
-	- the mime type which will be sent (ex: MimeTypeJpeg ie \c "image/jpeg")
+	- the mime type which will be sent (ex: @ref MimeTypeJpeg ie \c "image/jpeg")
 	- the data for the attachment; either binary object or as str
 	- the encoding type for the attachment
 

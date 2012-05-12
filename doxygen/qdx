@@ -9,9 +9,10 @@
 
 const opts = (
     "moddx": "M,module-dx=s",
-    "post": "post,p",
-    "tex": "posttex,x",          # use TeX syntax for "post" processing
-    "help": "help,h"
+    "post": "p,post",
+    "tag": "t,tag=s",
+    "tex": "x,posttex",          # use TeX syntax for "post" processing
+    "help": "h,help"
     );
 
 class qdx {
@@ -69,6 +70,7 @@ class qdx {
   -M,--module-dx=ARG  prepare doxyfile module template; ARG=<src>:<trg>
   -e,--ext=ARG        extension to add to output files
   -p,--post           post process files
+  -t,--tag=ARG        tag argument for doxyfile
   -h,--help           this help text
 ", get_script_name());
       exit(1);
@@ -117,6 +119,8 @@ class qdx {
                 line = replace(line, "{input}", trg);
             else if (line =~ /{version}/)
                 line = replace(line, "{version}", h.version);
+            else if (line =~ /{tags}/)
+                line = replace(line, "{tags}", o.tag.val() ? o.tag : "");
 
             of.write(line);
         }

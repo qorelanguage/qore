@@ -100,6 +100,8 @@ public namespace Mime {
     public const MimeTypeYamlRpc = "application/x-yaml";
 
     #! A map of default mime types per file extension; the hash keys are file extensions in lower-case without the dot (ex: \c "txt")
+    /** @showinitializer
+     */
     public const MimeTypes = (
 	"7z": "application/x-7z-compressed",
 	"ai": "application/postscript",

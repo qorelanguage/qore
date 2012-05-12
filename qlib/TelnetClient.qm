@@ -321,7 +321,7 @@ public namespace TelnetClient {
 	    $.log("connected to %s (%s)%s", $h.hostname, $h.address_desc, $h.port ? sprintf(" port %d", $h.port) : "");
   	}
   	
-        #! returns True if the client is connected to the server
+        #! returns @ref Qore::True "True" if the client is connected to the server
 	bool isConnected() {
 	    return $.conn.isOpen();
   	}
@@ -394,7 +394,7 @@ public namespace TelnetClient {
 	    return $.getAvailableDataIntern($t);
 	}
 
-        #! returns True if the server has confirmed with a DO command that it supports the given feature
+        #! returns @ref Qore::True "True" if the server has confirmed with a DO command that it supports the given feature
         /** @param fc The feature code to check; see @ref TelnetOptionCodes for possible values; supported features are:
             - @ref TOPT_TS "TOPT_TS": TerminalSpeed
             - @ref TOPT_XDL "TOPT_XDL": XDisplayLocation

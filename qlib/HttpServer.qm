@@ -339,7 +339,7 @@ class HttpServer::HandlerCleanupHelper {
   */
 public class HttpServer::AbstractAuthenticator {
     #! called to check if the connection requires authentication
-    /** @return True if authentication is enabled, False if not (False is the default value returned)
+    /** @return @ref Qore::True "True" if authentication is enabled, @ref Qore::False "False" if not (@ref Qore::False "False" is the default value returned)
       */
     bool requiresAuthentication() {
         return False;
@@ -353,7 +353,7 @@ public class HttpServer::AbstractAuthenticator {
     }
 
     #! called to authenticate a user for a connection; should return a list of roles for the user if the user is authenticated
-    /** This method will only be called if requiresAuthentication() returns True
+    /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True"
         @param $user the username to authenticate
         @param $pass the password for the user
         @return a list of roles for the user if the user can be authenticated (this method returns an empty list by default)
@@ -364,7 +364,7 @@ public class HttpServer::AbstractAuthenticator {
     }
 
     #! called when the connection requires authentication, but no authentication credentials were supplied, to try to authenticate the connection based on the source IP address
-    /** This method will only be called if requiresAuthentication() returns True and no authentication credentials are supplied with the request
+    /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True" and no authentication credentials are supplied with the request
         @param $ip the IP address of the source connection
         @param $user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
         @return a list of roles if the authentication request is successful (this method returns an empty list by default)
@@ -386,7 +386,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         #! if POSTed data should be decompressed automatically if there is content-encoding
         bool $.decompress = True;
 
-        #! if automatically decompressed POSTed data should be converted to a string (if False, then it will be decompressed to a binary)
+        #! if automatically decompressed POSTed data should be converted to a string (if @ref Qore::False "False", then it will be decompressed to a binary)
         bool $.decompress_to_string = True;
     }
 
@@ -414,7 +414,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response
-        - \c "close": (optional) set this key to \c True if the connection should be unconditionally closed when the handler returns
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
     */
     hash handleRequest(hash $cx, hash $hdr, *data $body) {

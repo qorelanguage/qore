@@ -176,7 +176,8 @@ LANG_TMP_DOXYFILES = doxygen/lang/Doxyfile \
 	doxygen/lang/240_command_line_processing.dox \
 	doxygen/lang/245_parse_directives.dox \
 	doxygen/lang/250_warnings.dox \
-	doxygen/lang/255_keywords.dox
+	doxygen/lang/255_keywords.dox \
+	qore.tag
 
 LANG_DOXYFILES = doxygen/lang/Doxyfile $(LANG_TMP_DOXYFILES)
 
@@ -291,10 +292,14 @@ doxygen/lang/255_keywords.dox: doxygen/lang/255_keywords.dox.tmpl lib
 QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	doxygen/qlib/Mime.qm.dox.h \
 	doxygen/qlib/TelnetClient.qm.dox.h \
-	doxygen/qlib/SmtpClient.qm.dox.h
+	doxygen/qlib/SmtpClient.qm.dox.h \
+	HttpServer.tag \
+	Mime.tag \
+	TelnetClient.tag \
+	SmtpClient.tag
 
-doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl
-	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h $< $@
+doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html
+	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/HttpServer.qm.dox.h: qlib/HttpServer.qm
 	$(QDX) $< $@
@@ -311,8 +316,8 @@ doxygen/qlib/Doxyfile.TelnetClient: doxygen/qlib/Doxyfile.tmpl
 doxygen/qlib/TelnetClient.qm.dox.h: qlib/TelnetClient.qm
 	$(QDX) $< $@
 
-doxygen/qlib/Doxyfile.SmtpClient: doxygen/qlib/Doxyfile.tmpl
-	$(QDX) -M=qlib/SmtpClient.qm:doxygen/qlib/SmtpClient.qm.dox.h $< $@
+doxygen/qlib/Doxyfile.SmtpClient: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html
+	$(QDX) -M=qlib/SmtpClient.qm:doxygen/qlib/SmtpClient.qm.dox.h -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/SmtpClient.qm.dox.h: qlib/SmtpClient.qm
 	$(QDX) $< $@
