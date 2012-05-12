@@ -344,12 +344,14 @@ public class HttpServer::AbstractAuthenticator {
     bool requiresAuthentication() {
         return False;
     }
+
     #! returns the authentication realm as a string
     /** @return the authentication realm as a string (default: \c "Default Authentication Realm")
       */
     string getRealm() {
         return "Default Authentication Realm";
     }
+
     #! called to authenticate a user for a connection; should return a list of roles for the user if the user is authenticated
     /** This method will only be called if requiresAuthentication() returns True
         @param $user the username to authenticate
@@ -360,6 +362,7 @@ public class HttpServer::AbstractAuthenticator {
     list authenticate(string $user, string $pass = "") {
         return ();
     }
+
     #! called when the connection requires authentication, but no authentication credentials were supplied, to try to authenticate the connection based on the source IP address
     /** This method will only be called if requiresAuthentication() returns True and no authentication credentials are supplied with the request
         @param $ip the IP address of the source connection
@@ -1001,6 +1004,7 @@ public class HttpServer::HttpServer {
 
     }
 
+    #! @cond nodoc
     private {
 	*code $.logfunc;
 	*code $.errlogfunc; 
@@ -1039,6 +1043,7 @@ public class HttpServer::HttpServer {
         # dynamic handlers
         DynamicHttpHandlerList $.dhandlers();
     }
+    #! @endcond
 
     #! creates the HttpServer
     /** call @ref addListener() to add and start listeners
@@ -1059,29 +1064,6 @@ public class HttpServer::HttpServer {
 	$.stop();
     }
     
-    private HttpListener addListenerIntern(string $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger) {
-        if (!exists $logger && exists $.logfunc)
-            $logger = $.logfunc;
-        if (!exists $errorlogger && exists $.errlogfunc)
-            $errorlogger = $.errlogfunc;
-
-	$.lm.enter();
-	on_exit $.lm.exit();
-
-        if (exists $.smap.$sock)
-            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("cannot add listener on %n; there is already an existing listener with this bind address", $sock);
-
-        $.c.inc();
-        #printf("HttpServer::addListenerIntern() %n c=%n\n", $sock, $.c.getCount());
-        on_error $.c.dec();
-
-	my int $id = $.seqListeners.next();
-	my HttpListener $l($self, $id, $.seqSessions, $sock, $cert, $key, $hi, $logger, $errorlogger);
-	$.listeners.$id = $l;
-        $.smap.$sock = $id;
-	return $l;
-    }
-
     #! adds a listener to the server with an explicit handler for incoming connections
     /** @param name the name of the handler
         @param handler the AbstractHttpRequestHandler object that will handle incoming connections
@@ -1125,27 +1107,6 @@ public class HttpServer::HttpServer {
 
         my (string $node, string $service) = ($lp.bind =~ x/(\w+):(\w+)/);
         return $.addINETListenersIntern($node, $service, $lp, $h, $logger, $errorlogger);
-    }
-
-    static private hash getSSLObjects(string $cert_path, *string $key_path) {
-        my File $f();
-        # read in X.509 certificate file
-        $f.open2($cert_path);
-
-        my data $cert_data = $cert_path =~ /\.der$/ ? $f.readBinary(-1) : $f.read(-1);
-        my SSLCertificate $cert($cert_data);
-
-        my SSLPrivateKey $key;
-
-        # read in private key file
-        if (strlen($key_path)) {
-            $f.open2($key_path);
-            $key = $key_path =~ /\.der$/ ? new SSLPrivateKey($f.readBinary(-1)) : new SSLPrivateKey($f.read(-1));
-        }
-        else
-            $key = new SSLPrivateKey($cert_data);
-
-	return ("cert": $cert, "key": $key);
     }
 
     #! adds a global listener to the server
@@ -1194,31 +1155,6 @@ public class HttpServer::HttpServer {
 	return $.addINETListenersIntern($node, $service, ("cert_path": $cert_path, "key_path": $key_path));
     }
 
-    private list addINETListenersIntern(*string $node, softstring $service, hash $sd, *hash $lp, *code $logger, *code $errorlogger) {
-	if (exists $sd.cert_path && !exists $sd.cert)
-	    $sd += HttpServer::getSSLObjects($sd.cert_path, $sd.key_path);
-
-        my list $al = getaddrinfo($node, $service, AF_UNSPEC, AIFlags);
-
-        # sort ipv6 addresses first in list
-        $al = sort($al, int sub (hash $l, hash $r) { return $l.family === AF_INET6 ? -1 : 0; });
-
-        my list $l = ();
-        foreach my hash $h in ($al) {
-            my string $bind = $h.address + ":" + $h.port;
-            try {
-                $l += $.addListenerIntern($bind, $sd.cert, $sd.key, $lp, $logger, $errorlogger).getInfo();
-		# exit after the first listener is bound if the node address is missing (= bind on all addresses)
-                if (!exists $node)
-		    break;
-            }
-            catch ($ex) {
-                $.log("cannot add listener on %s:%d: %s: %s", $h.address_desc, $h.port, $ex.err, $ex.desc);
-            }
-        }
-        return $l;
-    }
-
     #! throws an exception; these objects do not support copying
     copy() {
 	throw "COPY-ERROR", "this object cannot be copied";
@@ -1232,6 +1168,23 @@ public class HttpServer::HttpServer {
         return $h;
     }
 
+    #! returns a hash of information about the listener given the listener ID
+    /** @param id the listener ID
+
+        @return a hash of listener information with the following keys:
+        - \c hostname: the listening interface name if available (ex: "localhost"; note that this key is not present when retrieving information about UNIX sockets)
+        - \c hostname_desc: a descriptive string giving the hostname and the address family if the hostname is available (ex: "ipv6[localhost]"; note that this key is not present when retrieving information about UNIX sockets)
+        - \c address: a string giving the address (ex: "::ffff:0.0.0.0")
+        - \c address_desc: a descriptive string giving the address and the address family (ex: "ipv6[::ffff:0.0.0.0]")
+        - \c port: an integer port number if available (note that this key is not present when retrieving information about UNIX sockets)
+        - \c family: the network address family (see @ref network_address_family_constants "Network Address Family Constants")
+        - \c familystr: a string describing the network address family (ex: "ipv4")
+        - \c proto: the protocol used; either \c "http" or \c "https" for secure listeners
+        - \c id: the listener ID
+        - \c bind: the bind specification used
+        
+        @throw HTTP-SERVER-ERROR invalid listener ID
+     */
     hash getListenerInfo(softint $id) {
         $.lm.enter();
         on_exit $.lm.exit();
@@ -1376,23 +1329,6 @@ public class HttpServer::HttpServer {
 	}
     }
     
-    private hash noHandlerError(hash $cx, hash $hdr, any $body) {
-	my string $str = "";
-	if (strlen($hdr.path))
-	    $str = sprintf("url=%n", $hdr.path);
-	else
-	    $str = "<no URL>";
-
-	if (strlen($hdr."content-type"))
-	    $str += sprintf(", content-type=%n", $hdr."content-type");
-	else
-	    $str += ", <no content-type>";
-
-	$.log("no handler for %s (from %s) hdr=%n", $str, $cx."peer-info".address_desc, $hdr);
-	return ( "code" : 501,
-		 "body" : sprintf("no handler has been registered for %s", $str) );
-    }
-    
     #! sends an HTTP error message on the socket
     sendHttpError(Socket $s, int $code, string $msg, bool $close = False, *hash $extra_hdrs, *string $encoding) {
 	my string $str = sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1>%s<p><hr><address>%s on %s</address></body></html>",
@@ -1430,6 +1366,126 @@ public class HttpServer::HttpServer {
         }
     }
 
+    #! returns a complete URL from a bind address
+    static string getURLFromBind(softstring $bind, *string $host) {
+	my hash $h = parse_url($bind);
+	# if there is only a port number, it will appear in the "host" key
+	if (elements $h == 1 && exists $h.host && int($h.host) == $h.host) {
+	    $h.port = int($h.host);
+	    delete $h.host;
+	}
+
+	if (!exists $h.host)
+	    $h.host = (!exists $host || $host == gethostname()) ? "localhost" : $host;
+
+	my string $login = exists $h.password ? ($h.password + ":") : "";    
+	if (exists $h.username)
+	    $login += sprintf("%s@", $h.password);
+
+	return sprintf("%s://%s%s%s%s", exists $h.protocol ? $h.protocol : "http", 
+		       $login, 
+		       $h.host, 
+		       $h.port ? sprintf(":%d", $h.port) : "", 
+		       $h.path);
+    }
+
+    #! turns on or off debugging; when debugging is enabled more verbose error messages are reported
+    setDebug(bool $dbg = True) {
+        $.debug = $dbg;
+    }
+
+    #! returns the current status of the debug flag
+    bool getDebug() {
+        return $.debug;
+    }
+
+    #! @cond nodoc
+    private HttpListener addListenerIntern(string $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger) {
+        if (!exists $logger && exists $.logfunc)
+            $logger = $.logfunc;
+        if (!exists $errorlogger && exists $.errlogfunc)
+            $errorlogger = $.errlogfunc;
+
+	$.lm.enter();
+	on_exit $.lm.exit();
+
+        if (exists $.smap.$sock)
+            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("cannot add listener on %n; there is already an existing listener with this bind address", $sock);
+
+        $.c.inc();
+        #printf("HttpServer::addListenerIntern() %n c=%n\n", $sock, $.c.getCount());
+        on_error $.c.dec();
+
+	my int $id = $.seqListeners.next();
+	my HttpListener $l($self, $id, $.seqSessions, $sock, $cert, $key, $hi, $logger, $errorlogger);
+	$.listeners.$id = $l;
+        $.smap.$sock = $id;
+	return $l;
+    }
+
+    static private hash getSSLObjects(string $cert_path, *string $key_path) {
+        my File $f();
+        # read in X.509 certificate file
+        $f.open2($cert_path);
+
+        my data $cert_data = $cert_path =~ /\.der$/ ? $f.readBinary(-1) : $f.read(-1);
+        my SSLCertificate $cert($cert_data);
+
+        my SSLPrivateKey $key;
+
+        # read in private key file
+        if (strlen($key_path)) {
+            $f.open2($key_path);
+            $key = $key_path =~ /\.der$/ ? new SSLPrivateKey($f.readBinary(-1)) : new SSLPrivateKey($f.read(-1));
+        }
+        else
+            $key = new SSLPrivateKey($cert_data);
+
+	return ("cert": $cert, "key": $key);
+    }
+
+    private list addINETListenersIntern(*string $node, softstring $service, hash $sd, *hash $lp, *code $logger, *code $errorlogger) {
+	if (exists $sd.cert_path && !exists $sd.cert)
+	    $sd += HttpServer::getSSLObjects($sd.cert_path, $sd.key_path);
+
+        my list $al = getaddrinfo($node, $service, AF_UNSPEC, AIFlags);
+
+        # sort ipv6 addresses first in list
+        $al = sort($al, int sub (hash $l, hash $r) { return $l.family === AF_INET6 ? -1 : 0; });
+
+        my list $l = ();
+        foreach my hash $h in ($al) {
+            my string $bind = $h.address + ":" + $h.port;
+            try {
+                $l += $.addListenerIntern($bind, $sd.cert, $sd.key, $lp, $logger, $errorlogger).getInfo();
+		# exit after the first listener is bound if the node address is missing (= bind on all addresses)
+                if (!exists $node)
+		    break;
+            }
+            catch ($ex) {
+                $.log("cannot add listener on %s:%d: %s: %s", $h.address_desc, $h.port, $ex.err, $ex.desc);
+            }
+        }
+        return $l;
+    }
+
+    private hash noHandlerError(hash $cx, hash $hdr, any $body) {
+	my string $str = "";
+	if (strlen($hdr.path))
+	    $str = sprintf("url=%n", $hdr.path);
+	else
+	    $str = "<no URL>";
+
+	if (strlen($hdr."content-type"))
+	    $str += sprintf(", content-type=%n", $hdr."content-type");
+	else
+	    $str += ", <no content-type>";
+
+	$.log("no handler for %s (from %s) hdr=%n", $str, $cx."peer-info".address_desc, $hdr);
+	return ( "code" : 501,
+		 "body" : sprintf("no handler has been registered for %s", $str) );
+    }
+    
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
     handleRequest(HttpListener $listener, Socket $s, reference $cx, hash $hdr, *data $body, reference $close, bool $head = False) {
 	# handle accept-encoding to compress data if necessary        
@@ -1706,37 +1762,5 @@ public class HttpServer::HttpServer {
 	    $.logError($str);
 	}
     }
-
-    #! returns a complete URL from a bind address
-    static string getURLFromBind(softstring $bind, *string $host) {
-	my hash $h = parse_url($bind);
-	# if there is only a port number, it will appear in the "host" key
-	if (elements $h == 1 && exists $h.host && int($h.host) == $h.host) {
-	    $h.port = int($h.host);
-	    delete $h.host;
-	}
-
-	if (!exists $h.host)
-	    $h.host = (!exists $host || $host == gethostname()) ? "localhost" : $host;
-
-	my string $login = exists $h.password ? ($h.password + ":") : "";    
-	if (exists $h.username)
-	    $login += sprintf("%s@", $h.password);
-
-	return sprintf("%s://%s%s%s%s", exists $h.protocol ? $h.protocol : "http", 
-		       $login, 
-		       $h.host, 
-		       $h.port ? sprintf(":%d", $h.port) : "", 
-		       $h.path);
-    }
-
-    #! turns on or off debugging; when debugging is enabled more verbose error messages are reported
-    setDebug(bool $dbg = True) {
-        $.debug = $dbg;
-    }
-
-    #! returns the current status of the debug flag
-    bool getDebug() {
-        return $.debug;
-    }
+    #! @endcond
 }

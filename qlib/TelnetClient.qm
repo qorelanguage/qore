@@ -225,6 +225,7 @@ public namespace TelnetClient {
         so it is safe to access in a multithreaded context.
      */
     public class TelnetClient {
+        #! @cond nodoc
   	private {
 	    # the connection string
 	    string $.connect;
@@ -245,7 +246,8 @@ public namespace TelnetClient {
 	    # hash of features the telnet server has asked for
 	    hash $.fh;
 	}
-
+        #! @endcond
+        
 	# no public members
 	public {}
 
@@ -292,12 +294,14 @@ public namespace TelnetClient {
   	destructor() {
 	    $.disconnect();
   	}
-  	
+
+  	#! logs the message to the log closure set with the constructor (if any)
 	private log(string $msg) {
 	    if ($.log_info.val())
 		call_function($.log_info, "Telnet INFO: " + trim(vsprintf($msg, $argv)));
 	}
 
+  	#! logs the message to the debug log closure set with the constructor (if any)
 	private logDbg(string $msg) {
 	    if ($.log_debug.val())
 		call_function($.log_debug, "Telnet DEBUG: " + trim(vsprintf($msg, $argv)));
@@ -344,18 +348,6 @@ public namespace TelnetClient {
 		$.disconnectIntern();
 	}
 
-  	private disconnectIntern() {
-	    my hash $h = $.conn.getSocketInfo();
-	    $.conn.close();
-	    $.conn.shutdown();
-	    $.log("disconnected from %s (%s)%s", $h.hostname, $h.address_desc, $h.port ? sprintf(" port %d", $h.port) : "");
-  	}
-  	
-  	private checkConnIntern() {
-	    if (!$.isConnected())
-		throw "NOT-CONNECTED-EXCEPTION", "Cannot perform the operation without being connected to server!";
-  	}
-  	
         #! sends data to the server
         /** @param $arr a single element or a list of elements to send to the server; elements can be as follows:
             - string: currently sent verbatim to the server, in particular no encoding conversions are performed on this string (possibly these should be scanned for @ref IAC characters which should be duplicated)
@@ -375,6 +367,111 @@ public namespace TelnetClient {
 	    $.sendDataIntern($arr);
 	}
 
+        #! sends literal string data to the server; the text dat is converted to the socket's encoding if necessary
+        /** @param $str currently sent verbatim to the server; no encoding conversions are performed on this string (possibly these should be scanned for @ref IAC characters which should be duplicated)
+
+            @throw NOT-CONNECTED-EXCEPTION if the socket is not already connected then this exception is thrown
+
+            @note
+            - This method could also throw any exception that Socket::sendBinary2() could throw
+            - This method is subject to thread serialization
+         */
+  	sendTextData(string $str) {
+	    my AutoLock $al($.m);
+	    $.checkConnIntern();
+	    $.sendTextDataIntern($str);
+  	}
+
+	#! returns all data available as a string (which could be an empty string if no data is available in the timeout period) or NOTHING if the connection was closed by the remote end
+        /** NOTHING is only returned if the remote end closed the connection
+
+            @note
+            - This method could throw any exception that Socket::recvu1() could throw except SOCKET-CLOSED (in which case the exception is caught and NOTHING is returned)
+            - This method is subject to thread serialization
+         */
+  	*string getAvailableData(timeout $t = DefaultTimeout) {
+	    my AutoLock $al($.m);
+	    return $.getAvailableDataIntern($t);
+	}
+
+        #! returns True if the server has confirmed with a DO command that it supports the given feature
+        /** @param fc The feature code to check; see @ref TelnetOptionCodes for possible values; supported features are:
+            - @ref TOPT_TS "TOPT_TS": TerminalSpeed
+            - @ref TOPT_XDL "TOPT_XDL": XDisplayLocation
+            - @ref TOPT_TERM "TOPT_TERM": TerminalType
+            - @ref TOPT_ENVIR_NEW "TOPT_ENVIR_NEW": TelnetNewEnvironmentOption
+            - @ref TOPT_SUPP "TOPT_SUPP": SuppressGoAhead
+            - @ref TOPT_NAWS "TOPT_NAWS": NegotiateAboutWindowSize
+         */
+	bool hasFeature(int $fc) {
+	    return boolean($.fh.$fc);
+	}
+
+        #! this method should be called externally when the window size has changed
+        /** @see @ref getWindowSize()
+         */
+	windowSizeUpdated() {
+	    my hash $wh = $.getWindowSize();
+	    my AutoLock $al($.m);
+	    $.updateWindowSizeIntern($wh);
+	}
+
+	#! this method provides the value that will be given as the DISPLAY value in protocol negotiation
+	/** override this method in a subclass to provide a different value
+	  */
+	private *string getDisplay() {
+	    my *string $rv = $ENV.DISPLAY;
+	    # do not use UNIX socket path
+	    return exists $rv && $rv !~ /^\// ? $rv : gethostname() + ":0";
+	}
+
+	#! this method provides the value that will be given as the terminal type in protocol negotiation
+	/** override this method in a subclass to provide a different value
+	  */
+	private *string getTerminalType() {
+	    return $ENV.TERM.val() ? $ENV.TERM : DefaultTerminalType;
+	}
+
+	#! this method provides the value that will be given as the user's environment in protocol negotiation
+	/** override this method in a subclass to provide a different value
+	  */
+	private hash getEnvironment() {
+	    # by default we only return the DISPLAY and PRINTER env variables to the other side
+	    return $ENV.(list("PRINTER")) + ("DISPLAY": $.getDisplay());
+	}
+
+	#! this method provides the value that will be given as the terminal speed in protocol negotiation
+	/** override this method in a subclass to provide a different value
+	  */
+	private int getTerminalSpeed() {
+	    return DefaultTerminalSpeed;
+	}
+
+	#! this method provides the value that will be given as the terminal window size in protocol negotiation
+	/** The default implementation of this method is to return the actual terminal size by calling TermIOS::getWindowSize().
+            Override this method in a subclass to provide a different value.
+
+	    @return a hash with the following keys: 
+	    - \c rows: the number of rows in the display
+	    - \c columns: the number of columns in the display
+	  */
+	private hash getWindowSize() {
+	    return TermIOS::getWindowSize();
+	}
+
+        #! @cond nodoc
+  	private disconnectIntern() {
+	    my hash $h = $.conn.getSocketInfo();
+	    $.conn.close();
+	    $.conn.shutdown();
+	    $.log("disconnected from %s (%s)%s", $h.hostname, $h.address_desc, $h.port ? sprintf(" port %d", $h.port) : "");
+  	}
+  	
+  	private checkConnIntern() {
+	    if (!$.isConnected())
+		throw "NOT-CONNECTED-EXCEPTION", "Cannot perform the operation without being connected to server!";
+  	}
+  	
   	private sendDataIntern(softlist $arr, bool $double_aic = False) {
 	    foreach my any $val in ($arr) {
 		switch ($val.typeCode()) {
@@ -403,34 +500,7 @@ public namespace TelnetClient {
   	}
 
   	private sendTextDataIntern(string $str) {	
-	    $.conn.send($str);
-	}
-
-        #! sends literal string data to the server; the text dat is converted to the socket's encoding if necessary
-        /** @param $str currently sent verbatim to the server after converting to the socket's encoding if necessary (possibly these should be scanned for @ref IAC characters which should be duplicated)
-
-            @throw NOT-CONNECTED-EXCEPTION if the socket is not already connected then this exception is thrown
-
-            @note
-            - This method could also throw any exception that Socket::send() could throw
-            - This method is subject to thread serialization
-         */
-  	sendTextData(string $str) {
-	    my AutoLock $al($.m);
-	    $.checkConnIntern();
-	    $.sendTextDataIntern($str);
-  	}
-
-	#! returns all data available as a string (which could be an empty string if no data is available in the timeout period) or NOTHING if the connection was closed by the remote end
-        /** NOTHING is only returned if the remote end closed the connection
-
-            @note
-            - This method could throw any exception that Socket::recvu1() could throw except SOCKET-CLOSED (in which case the exception is caught and NOTHING is returned)
-            - This method is subject to thread serialization
-         */
-  	*string getAvailableData(timeout $t = DefaultTimeout) {
-	    my AutoLock $al($.m);
-	    return $.getAvailableDataIntern($t);
+	    $.conn.sendBinary2($str);
 	}
 
   	private *string getAvailableDataIntern(timeout $t = DefaultTimeout) {
@@ -465,28 +535,6 @@ public namespace TelnetClient {
 	
 	    #$.logDbg("rv: %y", $rv);
 	    return $rv;
-	}
-
-        #! returns True if the server has confirmed with a DO command that it supports the given feature
-        /** @param fc The feature code to check; see @ref TelnetOptionCodes for possible values; supported features are:
-            - @ref TOPT_TS "TOPT_TS": TerminalSpeed
-            - @ref TOPT_XDL "TOPT_XDL": XDisplayLocation
-            - @ref TOPT_TERM "TOPT_TERM": TerminalType
-            - @ref TOPT_ENVIR_NEW "TOPT_ENVIR_NEW": TelnetNewEnvironmentOption
-            - @ref TOPT_SUPP "TOPT_SUPP": SuppressGoAhead
-            - @ref TOPT_NAWS "TOPT_NAWS": NegotiateAboutWindowSize
-         */
-	bool hasFeature(int $fc) {
-	    return boolean($.fh.$fc);
-	}
-
-        #! this method should be called externally when the window size has changed
-        /** @see @ref getWindowSize()
-         */
-	windowSizeUpdated() {
-	    my hash $wh = $.getWindowSize();
-	    my AutoLock $al($.m);
-	    $.updateWindowSizeIntern($wh);
 	}
 
 	private updateWindowSizeIntern(hash $wh) {
@@ -587,49 +635,6 @@ public namespace TelnetClient {
 		    break;
 		}
 	    }
-	}
-
-	#! this method provides the value that will be given as the DISPLAY value in protocol negotiation
-	/** override this method in a subclass to provide a different value
-	  */
-	private *string getDisplay() {
-	    my *string $rv = $ENV.DISPLAY;
-	    # do not use UNIX socket path
-	    return exists $rv && $rv !~ /^\// ? $rv : gethostname() + ":0";
-	}
-
-	#! this method provides the value that will be given as the terminal type in protocol negotiation
-	/** override this method in a subclass to provide a different value
-	  */
-	private *string getTerminalType() {
-	    return $ENV.TERM.val() ? $ENV.TERM : DefaultTerminalType;
-	}
-
-	#! this method provides the value that will be given as the user's environment in protocol negotiation
-	/** override this method in a subclass to provide a different value
-	  */
-	private hash getEnvironment() {
-	    # by default we only return the DISPLAY and PRINTER env variables to the other side
-	    return $ENV.(list("PRINTER")) + ("DISPLAY": $.getDisplay());
-	}
-
-	#! this method provides the value that will be given as the terminal speed in protocol negotiation
-	/** override this method in a subclass to provide a different value
-	  */
-	private int getTerminalSpeed() {
-	    return DefaultTerminalSpeed;
-	}
-
-	#! this method provides the value that will be given as the terminal window size in protocol negotiation
-	/** The default implementation of this method is to return the actual terminal size by calling TermIOS::getWindowSize().
-            Override this method in a subclass to provide a different value.
-
-	    @return a hash with the following keys: 
-	    - \c rows: the number of rows in the display
-	    - \c columns: the number of columns in the display
-	  */
-	private hash getWindowSize() {
-	    return TermIOS::getWindowSize();
 	}
 
 	private doSubNegotiation() {
@@ -742,5 +747,6 @@ public namespace TelnetClient {
 		}
 	    }
 	}
+        #! @endcond
     }
 } 

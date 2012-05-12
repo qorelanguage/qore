@@ -155,6 +155,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         - receiptRead(): sets the read receipt request or returns the setting (depending on the variant used)
     */
     public class Message {
+        #! @cond nodoc
 	private {
 	    # the sender
 	    string $.from;
@@ -183,6 +184,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    list $.attachments = ();
 	    string $.sender;
 	}
+        #! @endcond
 
 	public {}
 
@@ -446,17 +448,6 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    return $.attachments;
 	}
 
-	private list getEnvelopeList() {
-	    my list $env = (sprintf("Sender: '%s'", $.from), sprintf("Subject: '%s'", $.subject));
-	    # add To addresses
-	    map $env += sprintf("To: %s", $1), $.to;
-	    # add CC addresses
-	    map $env += sprintf("CC: %s", $1), $.cc;
-	    # add BCC addresses
-	    map $env += sprintf("BCC: %s", $1), $.bcc;
-	    return $env;
-	}
-
 	#! returns a multi-line string representing the Message
 	/** @param body if True the Message body will be included in the string output
 	 */
@@ -532,6 +523,19 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
 	    return $str;
 	}
+
+        #! @cond nodoc
+	private list getEnvelopeList() {
+	    my list $env = (sprintf("Sender: '%s'", $.from), sprintf("Subject: '%s'", $.subject));
+	    # add To addresses
+	    map $env += sprintf("To: %s", $1), $.to;
+	    # add CC addresses
+	    map $env += sprintf("CC: %s", $1), $.cc;
+	    # add BCC addresses
+	    map $env += sprintf("BCC: %s", $1), $.bcc;
+	    return $env;
+	}
+        #! @endcond
     }
 
     #! class representing an Attachment for the Message
@@ -551,6 +555,7 @@ $msg.addAttachment($att);
         @endcode
     */
     class Attachment {
+        #! @cond nodoc
 	private {
 	    string $.name;
 	    string $.mime;
@@ -558,8 +563,9 @@ $msg.addAttachment($att);
 	    #! content-transfer encoding
 	    string $.enc;
 	}
+        #! @endcond
 
-	#! no public members
+	# no public members
 	public {}
 
 	#! creates an Attachment object for a Message object
@@ -606,7 +612,11 @@ $msg.addAttachment($att);
     }
 
     #! the class that's used to communicate with an SMTP server
+    /** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and its internal configuration, 
+        so it is safe to access in a multithreaded context.
+     */
     public class SmtpClient {
+        #! @cond nodoc
 	private {
 	    Socket $.sock();
 
@@ -643,6 +653,7 @@ $msg.addAttachment($att);
             # connect timeout in milliseconds
             timeout $.connectTimeout = DefaultConnectTimeout;
 	}
+        #! @endcond
 
 	public {
 	    #! create a different multipart boundary string every time based on the current time
@@ -713,23 +724,17 @@ $msg.addAttachment($att);
 	}
 
         #! sets the username and password for authenticated connections
-        /** This method is protected by the object's Mutex lock
-            @note currently this class only knows how to do AUTH PLAIN authentication
+        /** @param user the username to set for authentication
+            @param pass the password to set for authentication
+            
+            @note
+            - Currently this class only knows how to do AUTH PLAIN authentication
+            - This method is subject to thread serialization
          */
 	setUserPass(string $user, string $pass) {
 	    my AutoLock $am($.mutex);
 	    $.user = $user;
 	    $.pass = $pass;
-	}
-
-	private log(string $msg) {
-	    if ($.log_info.val())
-		call_function($.log_info, "SmtpClient: " + trim(vsprintf($msg, $argv)));
-	}
-
-	private logDbg(string $msg) {
-	    if ($.log_debug.val())
-		call_function($.log_debug, "SmtpClient: " + trim(vsprintf($msg, $argv)));
 	}
 
 	#! sets or disables test mode; no connections are made in test mode
@@ -742,40 +747,29 @@ $msg.addAttachment($att);
 	    return $.nosend;
 	}
 
-	#! connect to the server
-        /** This method is protected by the object's Mutex lock
-
-            @note for possible exceptions, see %Qore's @ref Qore::Socket::connect() "Socket::connect()" method
+	#! Connect to the server with the connection parameters set in the @ref constructor()
+        /** @note
+            - For possible exceptions, see %Qore's @ref Qore::Socket::connect() "Socket::connect()" method
+            - This method is subject to thread serialization
          */
   	connect() {
 	    my AutoLock $am($.mutex);
             $.connectIntern();
         }
 
-        private connectIntern() {
-	    $.sock.connect($.connect, $.connectTimeout);
-  	}
-  	
 	#! return connection status
   	bool isConnected() {
 	    return ($.nosend || $.sock.isOpen());
   	}
   	
 	#! disconnect from the server
-        /** This method is protected by the object's Mutex lock
+        /** @note This method is subject to thread serialization
          */
   	disconnect() {
 	    my AutoLock $am($.mutex);
             $.disconnectIntern();
   	}
 
-        private disconnectIntern() {
-	    if ($.isConnected()) {
-		$.sock.close();
-		$.sock.shutdown();
-	    }
-        }
-  	
         #! sets the read timeout
         setReadTimeout(timeout $to) {
             $.readTimeout = $to;
@@ -853,6 +847,120 @@ $msg.addAttachment($att);
 	    return $enc;
 	}
 
+	#! send a Message to the server
+	/** @param message the Message to send
+
+	    @return a hash of data returned by the SMTP server (the return structure hashes described below are made up of the following keys: \c "code": the return code, \c "desc": the string description):
+	    - \c HELO or \c EHLO: a hash of the reply received from the \c HELO or \c EHLO command
+	    - \c RCPT: hash keyed by email address with hash return structures values for the RCPT TO command   
+	    - \c MSGID: return structure after the send; generally contains message id
+	    - \c QUIT: the server response of the disconnect command
+
+            @note This method is subject to thread serialization
+	 */
+	hash sendMessage(SmtpClient::Message $message) {
+	    if (!$message.sendPossible())
+		throw "ARGUMENT-EXCEPTION", "Message is not ready to be sent";
+
+	    if ($.log_debug.val())
+		$.logDbg("message: %s", $message.toLine());
+	    
+	    # lock for sending
+	    my AutoLock $am($.mutex);
+
+	    my hash $reply;
+	    try {
+		$reply = $.sendMessageHeaderIntern($message);
+
+		my list $atts = $message.getAttachments();
+
+                # get message body transfer encoding
+		my string $be = $message.getBodyTransferEncoding();
+
+                # is this a multipart msg?
+                my bool $multipart = !$atts.empty();
+
+		# see if we need to send a MIME msg: multipart message or need body encoding
+                my bool $mime = $multipart || $be != SmtpClient::EncNone;
+
+                if ($mime) {
+                    $.sendData("MIME-Version: 1.0\r\n");
+                    if ($multipart) {
+                        $.sendData("Content-Type: multipart/mixed;boundary=\"%s\"\r\n", $.mpboundary);
+                        $.sendData("Content-Disposition: inline\r\n");
+                        $.sendData("\r\n");
+                    }
+                }
+
+                # send the msg body
+		if ($mime) {
+                    if ($multipart)
+                        $.sendData("--%s\r\n", $.mpboundary);
+                    my string $body = $message.getBody();
+		    $.sendData(SmtpClient::encodeData($body, sprintf("%s; charset=%s", MimeTypeText, get_encoding($body)), "inline", $be));
+		}
+		else 
+		    $.sendData($message.getBody() + "\r\n");
+
+		# send attachments
+		if (!$atts.empty()) {
+		    foreach my SmtpClient::Attachment $att in ($atts) {
+			$.sendData(sprintf("--%s\r\n", $.mpboundary));
+			$.sendData($att.encode());
+		    }
+		    $.sendData(sprintf("--%s--\r\n", $.mpboundary));
+		    $.sendData("\r\n");
+		}
+
+		# end of data
+		my hash $rh = $.sendCommand(".");
+		$reply.MSGID = $rh;
+
+		# quit
+		$rh = $.sendCommand("QUIT");
+		$reply.QUIT = $rh;
+	    }
+	    catch($ex) {
+		$.logDbg("send error: %s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc);
+		$.forceDisconnectIntern();
+		rethrow;
+	    }
+	    # close connection
+	    $.forceDisconnectIntern();
+
+	    return $reply;
+	}
+
+	#! force disconnect of socket without error
+        /** @note This method is subject to thread serialization
+         */
+        forceDisconnect() {
+	    my AutoLock $am($.mutex);
+            $.forceDisconnectIntern();
+	}
+
+        #! @cond nodoc
+        private disconnectIntern() {
+	    if ($.isConnected()) {
+		$.sock.close();
+		$.sock.shutdown();
+	    }
+        }
+  	
+	private log(string $msg) {
+	    if ($.log_info.val())
+		call_function($.log_info, "SmtpClient: " + trim(vsprintf($msg, $argv)));
+	}
+
+	private logDbg(string $msg) {
+	    if ($.log_debug.val())
+		call_function($.log_debug, "SmtpClient: " + trim(vsprintf($msg, $argv)));
+	}
+
+        private connectIntern() {
+	    $.sock.connect($.connect, $.connectTimeout);
+  	}
+  	
 	# send data over the socket
 	private sendDataIntern(string $str) {
 	    if (!$.isConnected()) {
@@ -1038,94 +1146,6 @@ $msg.addAttachment($att);
 	    return $reply;
 	}
 
-	#! send a Message to the server
-	/** @param message the Message to send
-
-	    @return a hash of data returned by the SMTP server (the return structure hashes described below are made up of the following keys: \c "code": the return code, \c "desc": the string description):
-	    - \c HELO or \c EHLO: a hash of the reply received from the \c HELO or \c EHLO command
-	    - \c RCPT: hash keyed by email address with hash return structures values for the RCPT TO command   
-	    - \c MSGID: return structure after the send; generally contains message id
-	    - \c QUIT: the server response of the disconnect command
-	 */
-	hash sendMessage(SmtpClient::Message $message) {
-	    if (!$message.sendPossible())
-		throw "ARGUMENT-EXCEPTION", "Message is not ready to be sent";
-
-	    if ($.log_debug.val())
-		$.logDbg("message: %s", $message.toLine());
-	    
-	    # lock for sending
-	    my AutoLock $am($.mutex);
-
-	    my hash $reply;
-	    try {
-		$reply = $.sendMessageHeaderIntern($message);
-
-		my list $atts = $message.getAttachments();
-
-                # get message body transfer encoding
-		my string $be = $message.getBodyTransferEncoding();
-
-                # is this a multipart msg?
-                my bool $multipart = !$atts.empty();
-
-		# see if we need to send a MIME msg: multipart message or need body encoding
-                my bool $mime = $multipart || $be != SmtpClient::EncNone;
-
-                if ($mime) {
-                    $.sendData("MIME-Version: 1.0\r\n");
-                    if ($multipart) {
-                        $.sendData("Content-Type: multipart/mixed;boundary=\"%s\"\r\n", $.mpboundary);
-                        $.sendData("Content-Disposition: inline\r\n");
-                        $.sendData("\r\n");
-                    }
-                }
-
-                # send the msg body
-		if ($mime) {
-                    if ($multipart)
-                        $.sendData("--%s\r\n", $.mpboundary);
-                    my string $body = $message.getBody();
-		    $.sendData(SmtpClient::encodeData($body, sprintf("%s; charset=%s", MimeTypeText, get_encoding($body)), "inline", $be));
-		}
-		else 
-		    $.sendData($message.getBody() + "\r\n");
-
-		# send attachments
-		if (!$atts.empty()) {
-		    foreach my SmtpClient::Attachment $att in ($atts) {
-			$.sendData(sprintf("--%s\r\n", $.mpboundary));
-			$.sendData($att.encode());
-		    }
-		    $.sendData(sprintf("--%s--\r\n", $.mpboundary));
-		    $.sendData("\r\n");
-		}
-
-		# end of data
-		my hash $rh = $.sendCommand(".");
-		$reply.MSGID = $rh;
-
-		# quit
-		$rh = $.sendCommand("QUIT");
-		$reply.QUIT = $rh;
-	    }
-	    catch($ex) {
-		$.logDbg("send error: %s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc);
-		$.forceDisconnectIntern();
-		rethrow;
-	    }
-	    # close connection
-	    $.forceDisconnectIntern();
-
-	    return $reply;
-	}
-
-	#! force disconnect of socket without error
-        forceDisconnect() {
-	    my AutoLock $am($.mutex);
-            $.forceDisconnectIntern();
-	}
-    
 	private forceDisconnectIntern() {
 	    if ($.isConnected()) {
 		try {
@@ -1136,9 +1156,7 @@ $msg.addAttachment($att);
 		}
 	    }
 	}
-
-    } # class
-} # namespace
-
-# END
+        #! @endcond
+    }
+}
 
