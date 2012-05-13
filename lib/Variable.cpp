@@ -69,7 +69,7 @@ void Var::remove(LValueRemoveHelper& lvrh) {
    }
 
    AutoLocker al(m);
-   lvrh.setRemove((QoreLValueGeneric&)val);
+   lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
 }
 
 void Var::del(ExceptionSink* xsink) {
@@ -701,7 +701,12 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
    }
 
    if (t == NT_SELF_VARREF) {
-      rv.assignInitial(getStackObject()->takeMember(reinterpret_cast<SelfVarrefNode*>(lvalue)->str, xsink));
+      rv.assignInitial(qore_object_private::takeMember(*(getStackObject()), xsink, reinterpret_cast<SelfVarrefNode*>(lvalue)->str, false));
+      return;
+   }
+
+   if (t == NT_CLASS_VARREF) {
+      reinterpret_cast<StaticClassVarRefNode*>(lvalue)->remove(*this);
       return;
    }
 
@@ -753,13 +758,15 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       QoreHashNode* rvh = new QoreHashNode;
       rv.assignInitial(rvh);
 
+      bool intern = o ? qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass()) : false;
+
       ConstListIterator li(reinterpret_cast<const QoreListNode*>(*member));
       while (li.next()) {
          QoreStringValueHelper mem(li.getValue(), QCS_DEFAULT, xsink);
          if (*xsink)
             return;
 
-         AbstractQoreNode* n = o ? o->takeMember(mem->getBuffer(), xsink) : h->takeKeyValue(mem->getBuffer());
+         AbstractQoreNode* n = o ? qore_object_private::takeMember(*o, xsink, mem->getBuffer(), !intern) : h->takeKeyValue(mem->getBuffer());
          if (*xsink)
             return;
 
@@ -794,14 +801,14 @@ int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    return 0;
 }
 
-void LocalVarValue::remove(LValueRemoveHelper& lvrh) {
+void LocalVarValue::remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo) {
    if (val.type == QV_Ref) {
       VarStackPointerHelper<LocalVarValue> helper(const_cast<LocalVarValue*>(this));
       lvrh.doRemove(val.v.ref->vexp);
       return;
    }
 
-   lvrh.setRemove((QoreLValueGeneric&)val);
+   lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
 }
 
 int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
@@ -826,5 +833,5 @@ void ClosureVarValue::remove(LValueRemoveHelper& lvrh) {
    }
 
    AutoLocker al(this);
-   lvrh.setRemove((QoreLValueGeneric&)val);
+   lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
 }

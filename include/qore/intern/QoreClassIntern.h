@@ -1008,6 +1008,7 @@ public:
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
       return this ? typeInfo : 0;
    }
+
    DLLLOCAL bool parseHasTypeInfo() const {
       return this && (typeInfo || parseTypeInfo);
    }
@@ -1061,15 +1062,11 @@ public:
       val.assignInitial(v);
    }
 
-   /*
-   DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink* xsink) {
-      AutoLocker al(l);
-
-      if (val)
-         val->deref(xsink);
-      val = v;
+   DLLLOCAL void init() {
+#ifdef QORE_ENFORCE_DEFAULT_LVALUE
+      val.assignInitial(typeInfo->getDefaultQoreValue());
+#endif
    }
-   */
 
    DLLLOCAL AbstractQoreNode* getReferencedValue() const {
       AutoLocker al(l);
@@ -2166,8 +2163,11 @@ public:
 	       val.release();
 	    }
 	    else {
-	       //*v = i->second->getTypeInfo()->getDefaultValue();
+#ifdef QORE_ENFORCE_DEFAULT_LVALUE
+	       *v = i->second->getTypeInfo()->getDefaultValue();
+#else
 	       *v = 0;
+#endif
 	    }
 	 }
       } 
@@ -2187,6 +2187,8 @@ public:
 
          vi.assignInit(val.release());
       }
+      else
+         vi.init();
 
       return 0;
    }

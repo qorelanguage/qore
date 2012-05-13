@@ -163,8 +163,8 @@ public:
          uninstantiate(xsink);
    }
 
-   DLLLOCAL ClosureVarValue *instantiate(const char* id, const QoreTypeInfo* typeInfo, AbstractQoreNode* value) {
-      ClosureVarValue *cvar = new ClosureVarValue(id, typeInfo, value);
+   DLLLOCAL ClosureVarValue *instantiate(const char* id, const QoreTypeInfo* typeInfo, const QoreValue& nval) {
+      ClosureVarValue *cvar = new ClosureVarValue(id, typeInfo, nval);
       instantiate(cvar);
       return cvar;
    }

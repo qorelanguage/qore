@@ -25,6 +25,8 @@
 
 #define _QORE_QORETYPEINFO_H
 
+#include <qore/intern/QoreValue.h>
+
 #include <map>
 #include <vector>
 
@@ -305,6 +307,20 @@ protected:
       return -1;
    }
 
+   /*
+   DLLLOCAL int doObjectTypeException(const char *param_name, const QoreValue n, ExceptionSink *xsink) const {
+      assert(xsink);
+      QoreStringNode *desc = new QoreStringNode;
+      desc->sprintf("member '$.%s' expects ", param_name);
+      getThisType(*desc);
+      desc->concat(", but got ");
+      getNodeType(*desc, n);
+      desc->concat(" instead");
+      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
+      return -1;
+   }
+   */
+
    DLLLOCAL int doObjectTypeException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
       assert(xsink);
       QoreStringNode *desc = new QoreStringNode;
@@ -327,6 +343,34 @@ protected:
       return -1;
    }
 
+   /*
+   // returns -1 for error encountered, 0 for OK
+   // can only be called with accepts_mult is false
+   DLLLOCAL int runtimeAcceptInputIntern(bool &priv_error, QoreValue n) const;
+
+   // returns -1 for error encountered, 0 for OK
+   DLLLOCAL int acceptInputDefault(bool &priv_error, QoreValue n) const;
+
+   DLLLOCAL QoreValue acceptInputIntern(bool obj, int param_num, const char *param_name, QoreValue& n, ExceptionSink *xsink) const {
+      if (!input_filter) {
+         bool priv_error = false;
+         if (acceptInputDefault(priv_error, n))
+            doAcceptError(priv_error, obj, param_num, param_name, n, xsink);
+         return n;
+      }
+
+      // first check if input matches default type
+      bool priv_error = false;
+      if (!runtimeAcceptInputIntern(priv_error, n))
+         return n;
+
+      if (!acceptInputImpl(n, xsink) && !*xsink)
+         doAcceptError(false, obj, param_num, param_name, n, xsink);
+
+      return n;
+   }
+   */
+
    // returns -1 for error encountered, 0 for OK
    // can only be called with accepts_mult is false
    DLLLOCAL int runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode *n) const;
@@ -347,9 +391,8 @@ protected:
       if (!runtimeAcceptInputIntern(priv_error, n))
          return n;
 
-      if (!acceptInputImpl(n, xsink))
-         if (!*xsink)
-            doAcceptError(false, obj, param_num, param_name, n, xsink);
+      if (!acceptInputImpl(n, xsink) && !*xsink)
+         doAcceptError(false, obj, param_num, param_name, n, xsink);
 
       return n;
    }
@@ -388,14 +431,29 @@ protected:
       return 0;
    }
 
-   DLLLOCAL static void getNodeType(QoreString &str, const AbstractQoreNode *n) {
-      if (is_nothing(n)) {
+   /*
+   DLLLOCAL static void getNodeType(QoreString &str, const QoreValue& n) {
+      qore_type_t nt = n.getType();
+      if (nt == NT_NOTHING) {
 	 str.concat("no value");
 	 return;
       }
-      if (n->getType() != NT_OBJECT) {
-	 str.sprintf("type '%s'", n->getTypeName());
+      if (nt != NT_OBJECT) {
+	 str.sprintf("type '%s'", n.getTypeName());
 	 return;
+      }
+      str.sprintf("an object of class '%s'", reinterpret_cast<const QoreObject *>(n.getNode())->getClassName());
+   }
+   */
+
+   DLLLOCAL static void getNodeType(QoreString &str, const AbstractQoreNode *n) {
+      if (is_nothing(n)) {
+         str.concat("no value");
+         return;
+      }
+      if (n->getType() != NT_OBJECT) {
+         str.sprintf("type '%s'", n->getTypeName());
+         return;
       }
       str.sprintf("an object of class '%s'", reinterpret_cast<const QoreObject *>(n)->getClassName());
    }
@@ -601,6 +659,15 @@ public:
       return acceptInputIntern(true, -1, member_name, n, xsink);
    }
 
+   /*
+   DLLLOCAL QoreValue acceptAssignment(const char *text, QoreValue n, ExceptionSink *xsink) const {
+      assert(text && text[0] == '<');
+      if (!hasType())
+         return n;
+      return acceptInputIntern(false, -1, text, n, xsink);
+   }
+   */
+
    DLLLOCAL AbstractQoreNode *acceptAssignment(const char *text, AbstractQoreNode *n, ExceptionSink *xsink) const {
       assert(text && text[0] == '<');
       if (!hasType())
@@ -612,17 +679,42 @@ public:
       if (!hasType())
          return false;
 
-      return (qt >= 0 && qt < NT_OBJECT) || has_defval;
+      return (!returns_mult && qt >= 0 && qt < NT_OBJECT) || has_defval;
    }
 
    DLLLOCAL AbstractQoreNode *getDefaultValue() const {
       if (!hasType())
          return 0;
 
-      if (!has_defval && qt >= 0 && qt < NT_OBJECT)
+      if (has_defval)
+         return getDefaultValueImpl();
+
+      if (!returns_mult && qt >= 0 && qt < NT_OBJECT)
          return getDefaultValueForBuiltinValueType(qt);
 
-      return has_defval ? getDefaultValueImpl() : 0;
+      return 0;
+   }
+
+   DLLLOCAL QoreValue getDefaultQoreValue() const {
+      if (!hasType())
+         return QoreValue();
+
+      if (has_defval)
+         return getDefaultValueImpl();
+
+      if (!returns_mult && qt >= 0 && qt < NT_OBJECT) {
+         switch (qt) {
+            case NT_BOOLEAN:
+               return QoreValue(false);
+            case NT_INT:
+               return QoreValue((int64)0);
+            case NT_FLOAT:
+               return QoreValue((double)0.0);
+            default:
+               return QoreValue(getDefaultValueForBuiltinValueType(qt));
+         }
+      }
+      return QoreValue();
    }
 
    // quick function to tell if the argument may be subject to an input filter for this type
@@ -704,6 +796,24 @@ public:
          concatClass(str, qc->getName());
    }
 
+   /*
+   DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, QoreValue n, ExceptionSink *xsink) const {
+      if (priv_error) {
+         if (obj)
+            doObjectPrivateClassException(param_name, n.getNode(), xsink);
+         else
+            doPrivateClassException(param_num + 1, param_name, n.getNode(), xsink);
+      }
+      else {
+         if (obj)
+            doObjectTypeException(param_name, n, xsink);
+         else
+            doTypeException(param_num + 1, param_name, n, xsink);
+      }
+      return -1;
+   }
+   */
+
    DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
       if (priv_error) {
          if (obj)
@@ -719,6 +829,25 @@ public:
       }
       return -1;
    }
+
+   /*
+   DLLLOCAL int doTypeException(int param_num, const char *param_name, const QoreValue& n, ExceptionSink *xsink) const {
+      // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
+      // for example if there was a "requires" error
+      if (!xsink)
+         return -1;
+
+      QoreStringNode *desc = new QoreStringNode;
+      QoreTypeInfo::ptext(*desc, param_num, param_name);
+      desc->concat("expects ");
+      getThisType(*desc);
+      desc->concat(", but got ");
+      getNodeType(*desc, n);
+      desc->concat(" instead");
+      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
+      return -1;
+   }
+   */
 
    DLLLOCAL int doTypeException(int param_num, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
       // xsink may be null in case parse exceptions have been disabled in the QoreProgram object

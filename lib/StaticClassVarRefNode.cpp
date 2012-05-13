@@ -86,6 +86,11 @@ void StaticClassVarRefNode::getLValue(LValueHelper& lvh) const {
    lvh.setValue(vi.val);
 }
 
+void StaticClassVarRefNode::remove(LValueRemoveHelper& lvrh) {
+   AutoLocker al(vi.l);
+   lvrh.doRemove((QoreLValueGeneric&)vi.val, vi.getTypeInfo());
+}
+
 const QoreTypeInfo *StaticClassVarRefNode::getTypeInfo() const {
    return vi.getTypeInfo();
 }

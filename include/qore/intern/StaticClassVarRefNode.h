@@ -62,6 +62,8 @@ public:
    DLLLOCAL virtual const char* getTypeName() const;
 
    DLLLOCAL void getLValue(LValueHelper& lvh) const;
+
+   DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 };
 
 #endif

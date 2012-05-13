@@ -465,6 +465,8 @@ public:
       return 0;
    }
 
+   DLLLOCAL AbstractQoreNode* takeMember(ExceptionSink* xsink, const char* mem, bool check_access = true);
+
    // lock not held on entry
    DLLLOCAL void doDeleteIntern(ExceptionSink *xsink) {
       printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj=%p\n", obj);
@@ -602,6 +604,10 @@ public:
       for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i)
 	 if ((*i).second)
 	    privateData->insertVirtual((*i).first->getID(), apd);
+   }
+
+   DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
+      return obj.priv->takeMember(xsink, mem, check_access);
    }
 
    DLLLOCAL static int getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) {

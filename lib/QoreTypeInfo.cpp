@@ -239,7 +239,7 @@ void init_qore_types() {
    do_maps(NT_TIMEOUT,     "timeout", timeoutTypeInfo, timeoutOrNothingTypeInfo);
 
    // map the closure and callref strings to codeTypeInfo to ensure that these
-   // types are always interchangable
+   // types are always interchangeable
    do_maps(NT_RUNTIME_CLOSURE, "closure", codeTypeInfo);
    do_maps(NT_FUNCREF, "callref", codeTypeInfo);
 }

@@ -133,7 +133,11 @@ public:
          if (!finalized)
             finalized = true;
          printd(5, "Var::clearLocal() clearing '%s' %p\n", name.c_str(), this);
-         h = val.remove(true);
+#ifdef QORE_ENFORCE_DEFAULT_LVALUE
+         h = val.assign(typeInfo->getDefaultQoreValue());
+#else
+         h = val.assign(false);
+#endif
       }
 #ifdef DEBUG
       else
@@ -224,6 +228,11 @@ public:
 
          val.set(typeInfo);
       }
+
+#ifdef QORE_ENFORCE_DEFAULT_LVALUE
+      if (!val.hasValue())
+         val.assignInitial(typeInfo->getDefaultQoreValue());
+#endif
    }
 
    DLLLOCAL QoreParseTypeInfo *copyParseTypeInfo() const {
@@ -315,7 +324,7 @@ protected:
       }
       else {
          if (!typeInfo->parseAccepts(typeTypeInfo)) {
-            typeInfo->doTypeException(-1, desc, typeTypeInfo->getName(), vl.xsink);
+            typeInfo->doTypeException(0, desc, typeTypeInfo->getName(), vl.xsink);
             return 0;
          }
          if (!(*v))
@@ -487,6 +496,8 @@ public:
    DLLLOCAL double postIncrementFloat(const char* desc = "<lvalue>");
    DLLLOCAL double postDecrementFloat(const char* desc = "<lvalue>");
 
+   //DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>");
+
    DLLLOCAL int assign(AbstractQoreNode *val, const char* desc = "<lvalue>");
 
    DLLLOCAL int assignBigInt(int64 v, const char* desc = "<lvalue>");
@@ -526,8 +537,12 @@ public:
       return for_del;
    }
 
-   DLLLOCAL void setRemove(QoreLValueGeneric& qv) {
+   DLLLOCAL void doRemove(QoreLValueGeneric& qv, const QoreTypeInfo* ti) {
+#ifdef QORE_ENFORCE_DEFAULT_LVALUE
+      rv.assignInitialSwap(qv, ti->getDefaultQoreValue());
+#else
       rv.assignTakeInitial(qv);
+#endif
    }
 
    DLLLOCAL int64 removeBigInt();

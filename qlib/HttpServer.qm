@@ -212,7 +212,7 @@ class HttpServer::HttpHandlerList {
                     $rv = ("handler": $.handlers.$h.obj, "handlerName": $h);
 		    break;
 		}
-		if (!exists $rv) {
+		else if (!$rv.val()) {
                     #printf("HTTP DEBUG: match content-type for handler %y (h url: %y ct: %y, url: %y ct: %y)\n", $h, $.handlers.$h.url, $.handlers.$h.content, $url, $hdr."content-type");
                     $rv = ("handler": $.handlers.$h.obj, "handlerName": $h);
                 }
@@ -327,7 +327,7 @@ class HttpServer::HandlerCleanupHelper {
     }
     
     destructor() {
-        if (!exists $.handler)
+        if (!$.handler.val())
             return;
 
         $.handler.counter.dec();
@@ -624,7 +624,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
             $.sm.lock();
             on_exit $.sm.unlock();
 
-            if (!exists $.cThreads || $.stopped)
+            if ($.stopped)
                 return;
 
             if ($.exit)
@@ -1088,10 +1088,10 @@ public class HttpServer::HttpServer {
 	#ASSERT($lp.url.typeCode() == NT_STRING);
 %endif
 
-        if ($lp.bind != NT_STRING)
+        if ($lp.bind.typeCode() != NT_STRING)
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'bind' entry in listener description giving the bind address; expecting type 'string', got type '%s'", $lp.bind.type());
 
-        if ($lp.url != NT_STRING)
+        if ($lp.url.typeCode() != NT_STRING)
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'url' entry in listener description giving the path; expecting type 'string', got type '%s'", $lp.url.type());
 
 	if (exists $lp.cert_path && !exists $lp.cert)

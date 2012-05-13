@@ -115,7 +115,7 @@ AbstractQoreNode *QoreSpliceOperatorNode::splice(ExceptionSink *xsink) const {
    if (vt == NT_NOTHING) {
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = val.getTypeInfo();
-      if (typeInfo == listTypeInfo || typeInfo == stringTypeInfo) {
+      if (typeInfo == softListTypeInfo || typeInfo == listTypeInfo || typeInfo == stringTypeInfo || typeInfo == softStringTypeInfo) {
 	 if (val.assign(typeInfo->getDefaultValue()))
 	    return 0;
 	 vt = val.getType();

@@ -723,8 +723,8 @@ LocalVarValue *thread_find_lvar(const char *id) {
    return td->lvstack->find(id);
 }
 
-ClosureVarValue *thread_instantiate_closure_var(const char *n_id, const QoreTypeInfo* typeInfo, AbstractQoreNode* value) {
-   return thread_data.get()->cvstack->instantiate(n_id, typeInfo, value);
+ClosureVarValue *thread_instantiate_closure_var(const char *n_id, const QoreTypeInfo* typeInfo, const QoreValue& nval) {
+   return thread_data.get()->cvstack->instantiate(n_id, typeInfo, nval);
 }
 
 ClosureVarValue *thread_instantiate_closure_var(const char *n_id, AbstractQoreNode* vexp, QoreObject *obj, QoreProgram *pgm) {

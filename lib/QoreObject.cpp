@@ -83,6 +83,25 @@ int qore_object_private::checkRecursive(ObjMap &omap, AutoVLock &vl, ExceptionSi
 }
 */
 
+AbstractQoreNode *qore_object_private::takeMember(ExceptionSink *xsink, const char *key, bool check_access) {
+   const QoreTypeInfo* mti = 0;
+   if (checkMemberAccessGetTypeInfo(xsink, key, mti, check_access))
+      return 0;
+
+   AutoLocker al(mutex);
+
+   if (status == OS_DELETED) {
+      makeAccessDeletedObjectException(xsink, key, theclass->getName());
+      return 0;
+   }
+
+#ifdef QORE_ENFORCE_DEFAULT_LVALUE
+   return data->swapKeyValue(key, mti->getDefaultValue());
+#else
+   return data->swapKeyValue(key, 0);
+#endif
+}
+
 int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const {
    const QoreTypeInfo* mti = 0;
    if (checkMemberAccessGetTypeInfo(xsink, key, mti, !internal))
@@ -627,22 +646,11 @@ AbstractQoreNode *QoreObject::takeMember(const QoreString *key, ExceptionSink *x
    if (!enc)
       return 0;
 
-   return takeMember(enc->getBuffer(), xsink);
+   return priv->takeMember(xsink, enc->getBuffer());
 }
 
 AbstractQoreNode *QoreObject::takeMember(const char *key, ExceptionSink *xsink) {
-   // check for external access to private members
-   if (priv->checkMemberAccess(key, xsink))
-      return 0;
-
-   AutoLocker al(priv->mutex);
-
-   if (priv->status == OS_DELETED) {
-      makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
-      return 0;
-   }
-      
-   return priv->data->takeKeyValue(key);
+   return priv->takeMember(xsink, key);
 }
 
 void QoreObject::removeMember(const QoreString *key, ExceptionSink *xsink) {
