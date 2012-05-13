@@ -37,6 +37,7 @@ module SmtpClient {
 
 /*  Version History
     * 1.0: David Nichols <david@qore.org>: updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + the bane of all developers: documentation :)
+
     ritzinwo, 20090716
 
     based on:
@@ -298,10 +299,12 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	}
 
 	#! returns @ref Qore::True "True" if the message can be sent, @ref Qore::False "False" if not
-	/** To be able to send a message, there must be at least one recipient in the "To:" or the "CC:" or the "BCC:" lists \
+	/** To be able to send a message, there must be at least one recipient in the "To:" or the "CC:" or the "BCC:" lists
 	    and there must be a message body 
 
 	    @return @ref Qore::True "True" if the message can be sent, @ref Qore::False "False" if not
+
+            @see checkSendPossible()
 	 */
 	bool sendPossible() {
 	    if ($.to.empty() && $.cc.empty() && $.bcc.empty())
@@ -310,7 +313,12 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    return $.messageData.empty() ? False : True;
 	}
 
-	#! throw a MESSAGE-ERROR exception if the Message cannot be sent
+	#! throw a \c MESSAGE-ERROR exception if the Message cannot be sent
+	/** To be able to send a message, there must be at least one recipient in the "To:" or the "CC:" or the "BCC:" lists
+	    and there must be a message body 
+
+            @see sendPossible()
+         */
 	checkSendPossible() {
 	    if ($.to.empty() && $.cc.empty() && $.bcc.empty())
 		throw "MESSAGE-ERROR", "the Message cannot be sent because there is no target address";

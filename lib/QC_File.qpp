@@ -81,7 +81,7 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
    return 0;
 }
 
-/** @defgroup file_open_constants %File Open Constants
+/** @defgroup file_open_constants File Open Constants
     These are the possible values that can be or'ed together when calling File::open() or File::open2()
 */
 //@{ 
@@ -141,7 +141,7 @@ const O_DIRECTORY = O_DIRECTORY;
 const O_NOFOLLOW = O_NOFOLLOW;
 //@}
 
-/** @defgroup file_stat_constants %File Stat Constants
+/** @defgroup file_stat_constants File Stat Constants
     These are values that can be and'ed with the \c "mode" element of a file's status as returned by File::hstat(), hstat(), etc, or with element 2 of the status list as returned from File::stat(), stat(), etc.
 */
 //@{ 

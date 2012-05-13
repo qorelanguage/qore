@@ -241,10 +241,6 @@ class qdx {
 	while (exists (*string line = inf.readLine())) {
             #printf("line: %s", line);
 
-	    # skip parse commands
-	    if (line =~ /^%/)
-		continue;
-
             line =~ s/\$\.//g;
 	    line =~ s/([^\/\*])\*([a-zA-Z])/$1__7_ $2/g;
             #line =~ s/\$/__6_/g;
@@ -256,6 +252,10 @@ class qdx {
 		of.print(line);
 		continue;
 	    }
+
+	    # skip parse commands
+	    if (line =~ /^%/)
+		continue;
             
 	    if (line =~ /^[[:blank:]]*\/\*/){ #/{
 		if (line !~ /\*\//)
