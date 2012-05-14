@@ -468,7 +468,7 @@ void qore_class_private::initialize() {
 	 i->second->priv->func->resolvePendingSignatures();
 
       if (scl)
-	 scl->parseInit(cls, has_delete_blocker);
+         scl->parseInit(cls, has_delete_blocker);
 
       QoreProgram *pgm = getProgram();
       if (pgm && !sys && (qore_program_private::parseAddDomain(pgm, domain)))
@@ -574,6 +574,15 @@ void qore_class_private::parseCommit() {
    if (has_new_user_changes) {
       // signature string
       QoreString csig;
+
+      // add parent classes to signature if creating for the first time
+      if (!hash && scl) {
+         for (bclist_t::const_iterator i = scl->begin(), e = scl->end(); i != e; ++i) {
+            QoreClass* qc = (*i)->sclass;
+            assert(qc);
+            //csig.sprintf("%s %s", xxx, xxx);
+         }
+      }
 
       // commit pending "normal" (non-static) method variants
       for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
@@ -916,14 +925,14 @@ void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
       if (cname) {
 	 // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
 	 sclass = qore_root_ns_private::parseFindScopedClass(loc, *cname);
-	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
+	 printd(5, "BCNode::parseInit() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
 	 delete cname;
 	 cname = 0;
       }
       else {
 	 // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
 	 sclass = qore_root_ns_private::parseFindClass(cstr, true);
-	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
+	 printd(5, "BCNode::parseInit() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
 	 free(cstr);
 	 cstr = 0;
       }
@@ -933,9 +942,9 @@ void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
       sclass->initialize();
       if (!has_delete_blocker && sclass->has_delete_blocker())
 	 has_delete_blocker = true;
-      sclass->priv->addBaseClassesToSubclass(cls, is_virtual);
       // include all subclass domains in this class' domain
-      cls->priv->domain |= sclass->priv->domain;
+      if (!sclass->priv->addBaseClassesToSubclass(cls, is_virtual))
+         cls->priv->domain |= sclass->priv->domain;
    }
 }
 
@@ -993,6 +1002,9 @@ bool BCList::runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTy
 }
 
 const QoreClass *BCList::parseFindPublicPrivateMember(const QoreProgramLocation*& loc, const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const {
+   if (!valid)
+      return 0;
+
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 const QoreClass *qc = (*i)->sclass->priv->parseFindPublicPrivateMember(loc, mem, memberTypeInfo, member_has_type_info, priv);
@@ -1004,6 +1016,9 @@ const QoreClass *BCList::parseFindPublicPrivateMember(const QoreProgramLocation*
 }
 
 const QoreClass *BCList::parseFindPublicPrivateVar(const QoreProgramLocation*& loc, const char *name, const QoreTypeInfo *&varTypeInfo, bool &has_type_info, bool &priv) const {
+   if (!valid)
+      return 0;
+
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 const QoreClass *qc = (*i)->sclass->priv->parseFindPublicPrivateVar(loc, name, varTypeInfo, has_type_info, priv);
@@ -1036,6 +1051,9 @@ const QoreMethod *BCList::findCommittedMethod(const char *name, bool &priv_flag)
 
 // called at parse time
 const QoreMethod *BCList::parseFindCommittedMethod(const char *name) {
+   if (!valid)
+      return 0;
+
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
@@ -1048,6 +1066,9 @@ const QoreMethod *BCList::parseFindCommittedMethod(const char *name) {
 }
 
 const QoreMethod *BCList::parseFindMethodTree(const char *name) {
+   if (!valid)
+      return 0;
+
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 const QoreMethod *m;
@@ -1059,6 +1080,9 @@ const QoreMethod *BCList::parseFindMethodTree(const char *name) {
 }
 
 const QoreMethod *BCList::parseFindAnyMethodTree(const char *name) {
+   if (!valid)
+      return 0;
+
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 const QoreMethod *m;
@@ -1092,6 +1116,9 @@ const QoreMethod *BCList::findCommittedStaticMethod(const char *name, bool &priv
 /*
 // called at parse time
 const QoreMethod *BCList::parseFindCommittedStaticMethod(const char *name) {
+   if (!valid)
+      return 0;
+
    for (bclist_t::iterator i = begin(); i != end(); i++) {
       if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
@@ -1105,6 +1132,9 @@ const QoreMethod *BCList::parseFindCommittedStaticMethod(const char *name) {
 */
 
 const QoreMethod *BCList::parseFindStaticMethodTree(const char *name) {
+   if (!valid)
+      return 0;
+
    for (bclist_t::iterator i = begin(); i != end(); i++) {
       if ((*i)->sclass) {
 	 const QoreMethod *m;
@@ -1270,6 +1300,9 @@ void BCList::resolveCopy() {
 }
 
 AbstractQoreNode *BCList::parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo, bool check) {
+   if (!valid)
+      return 0;
+
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       QoreClass *qc = (*i)->sclass;
       // qc may be 0 if there were a parse error with an unknown class earlier
@@ -1284,6 +1317,9 @@ AbstractQoreNode *BCList::parseFindConstantValue(const char *cname, const QoreTy
 }
 
 QoreVarInfo *BCList::parseFindStaticVar(const char *vname, const QoreClass *&qc, bool check) const {
+   if (!valid)
+      return 0;
+
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       const QoreClass *nqc = (*i)->sclass;
       // qc may be 0 if there were a parse error with an unknown class earlier
@@ -1305,6 +1341,42 @@ const QoreClass *BCList::getClass(const qore_class_private& qc, bool &priv) cons
    }
 	 
    return 0;
+}
+
+int BCList::checkRecursive(qcp_set_t& qcp_set) {
+   if (!valid)
+      return -1;
+
+   int rc = 0;
+
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
+      // if there was a parse error finding the base class, then skip
+      QoreClass *qc = (*i)->sclass;
+      if (!qc)
+         continue;
+
+      bool err = false;
+
+      bool new_elem = qcp_set.insert(qc->priv).second;
+      if (!new_elem) {
+         parse_error("circular reference in class hierarchy, '%s' is an ancestor of itself", qc->getName());
+         err = true;
+      }
+
+      if (qc->priv->scl && qc->priv->scl->checkRecursive(qcp_set))
+         err = true;
+
+      if (err) {
+         delete *i;
+         erase(i);
+         if (valid) {
+            valid = false;
+            rc = -1;
+         }
+      }
+   }
+
+   return rc;
 }
 
 int BCAList::execBaseClassConstructorArgs(BCEAList *bceal, ExceptionSink *xsink) const {
@@ -1621,32 +1693,36 @@ bool BCSMList::isBaseClass(QoreClass *qc) const {
    return false;
 }
 
-void BCSMList::addBaseClassesToSubclass(QoreClass *thisclass, QoreClass *sc, bool is_virtual) {
+int BCSMList::addBaseClassesToSubclass(QoreClass *thisclass, QoreClass *sc, bool is_virtual) {
    //printd(5, "BCSMList::addBaseClassesToSubclass(this=%s, sc=%s) size=%d\n", thisclass->getName(), sc->getName());
    for (class_list_t::const_iterator i = begin(), e = end(); i != e; ++i)
-      sc->priv->scl->sml.add(thisclass, (*i).first, is_virtual || (*i).second);
+      if (sc->priv->scl->sml.add(thisclass, (*i).first, is_virtual || (*i).second))
+         return -1;
+   return 0;
 }
 
-void BCSMList::add(QoreClass *thisclass, QoreClass *qc, bool is_virtual) {
+int BCSMList::add(QoreClass *thisclass, QoreClass *qc, bool is_virtual) {
    if (thisclass->getID() == qc->getID()) {
       parse_error("class '%s' cannot inherit itself", thisclass->getName());
-      return;
+      return -1;
    }
 
    // see if class already exists in list
    class_list_t::const_iterator i = begin();
    while (i != end()) {
       if ((*i).first->getID() == qc->getID())
-         return;
+         return 0;
       if ((*i).first->getID() == thisclass->getID()) {
+         thisclass->priv->scl->valid = false;
       	 parse_error("circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
-      	 return;
+      	 return -1;
       }
       i++;
    }
 
    // append to the end of the list
    push_back(std::make_pair(qc, is_virtual));
+   return 0;
 }
 
 void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const {
@@ -2241,10 +2317,10 @@ QoreObject *qore_class_private::execCopy(QoreObject *old, ExceptionSink *xsink) 
    return *xsink ? 0 : self.release();
 }
 
-void qore_class_private::addBaseClassesToSubclass(QoreClass* sc, bool is_virtual) {
-   if (scl)
-      scl->sml.addBaseClassesToSubclass(cls, sc, is_virtual);
-   sc->priv->scl->sml.add(sc, cls, is_virtual);
+int qore_class_private::addBaseClassesToSubclass(QoreClass* sc, bool is_virtual) {
+   if (scl && scl->sml.addBaseClassesToSubclass(cls, sc, is_virtual))
+      return -1;
+   return sc->priv->scl->sml.add(sc, cls, is_virtual);
 }
 
 // searches all methods, both pending and comitted
@@ -2730,25 +2806,38 @@ void qore_class_private::parseInitPartialIntern() {
    parse_init_partial_called = true;
 
    QoreParseClassHelper qpch(cls);
+   if (scl) {
+      qcp_set_t qcp_set;
+      qcp_set.insert(this);
+      // check for a recursive inheritance list
+      if (scl->checkRecursive(qcp_set)) {
+         delete scl;
+         scl = 0;
+      }
+   }
+
    initialize();
 
    if (!has_new_user_changes)
       return;
 
-   // setup inheritance list for new methods
-   for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      bool is_new = i->second->priv->func->committedEmpty();
-      if (is_new) {
-	 if (!checkSpecial(i->second->getName()))
-	    parseAddAncestors(i->second);
+   // do processing related to parent classes
+   if (scl) {
+      // setup inheritance list for new methods
+      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+         bool is_new = i->second->priv->func->committedEmpty();
+         if (is_new) {
+            if (!checkSpecial(i->second->getName()))
+               parseAddAncestors(i->second);
+         }
       }
-   }
 
-   // setup inheritance list for new static methods
-   for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
-      bool is_new = i->second->priv->func->committedEmpty();
-      if (is_new)
-	 parseAddStaticAncestors(i->second);
+      // setup inheritance list for new static methods
+      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
+         bool is_new = i->second->priv->func->committedEmpty();
+         if (is_new)
+            parseAddStaticAncestors(i->second);
+      }
    }
 
    {

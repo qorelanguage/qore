@@ -1219,8 +1219,8 @@ public:
       for (class_list_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i)
          push_back(*i);
    }
-   DLLLOCAL void add(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
-   DLLLOCAL void addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual);
+   DLLLOCAL int add(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
+   DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual);
    DLLLOCAL bool isBaseClass(QoreClass* qc) const;
    DLLLOCAL QoreClass* getClass(qore_classid_t cid) const;
    //DLLLOCAL void execConstructors(QoreObject *o, BCEAList *bceal, ExceptionSink* xsink) const;
@@ -1285,7 +1285,9 @@ public:
    DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, bool& n_priv) const;
 };
 
-//typedef safe_dslist<BCNode* > bclist_t;
+// set of private class pointers; used when checking for recursive class inheritance lists
+typedef std::set<qore_class_private*> qcp_set_t;
+
 typedef std::vector<BCNode* > bclist_t;
 
 //  BCList
@@ -1299,15 +1301,17 @@ protected:
 public:
    // special method (constructor, destructor, copy) list for superclasses
    BCSMList sml;
+   bool valid;
 
-   DLLLOCAL BCList(BCNode* n) {
+   DLLLOCAL BCList(BCNode* n) : valid(true) {
       push_back(n);
    }
 
-   DLLLOCAL BCList() {
+   DLLLOCAL BCList() : valid(true) {
    }
 
-   DLLLOCAL BCList(const BCList &old) : sml(old.sml) {
+   DLLLOCAL BCList(const BCList &old) : sml(old.sml), valid(true) {
+      assert(old.valid);
       reserve(old.size());
       for (bclist_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i)
          push_back(new BCNode(*(*i)));
@@ -1366,6 +1370,7 @@ public:
    DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, bool check) const;
 
    DLLLOCAL void resolveCopy();
+   DLLLOCAL int checkRecursive(qcp_set_t& qcp_set);
 };
 
 // BCEANode
@@ -1466,7 +1471,7 @@ public:
    std::string name;             // the name of the class
    QoreClass* cls;               // parent class
    qore_ns_private* ns;          // parent namespace
-   BCList *scl;                  // base class list
+   BCList* scl;                  // base class list
 
    hm_method_t hm,               // "normal" (non-static) method map
       shm;                       // static method map
@@ -2426,7 +2431,7 @@ public:
    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* nme);
    DLLLOCAL const QoreMethod* parseResolveSelfMethod(NamedScope* nme);
 
-   DLLLOCAL void addBaseClassesToSubclass(QoreClass* sc, bool is_virtual);
+   DLLLOCAL int addBaseClassesToSubclass(QoreClass* sc, bool is_virtual);
 
    // static methods
    //DLLLOCAL static
