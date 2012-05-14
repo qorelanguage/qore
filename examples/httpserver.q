@@ -54,11 +54,13 @@ class ExampleFileHandler inherits public AbstractHttpRequestHandler {
    }
 
    private static hash redirect(hash cx, hash hdr, string path) {
+       # make sure no forward slashes are doubled in the path
        path =~ s/\/+/\//g;
-       string uri = sprintf("http://%s/%s", hdr.host, path);
+       string uri = sprintf("http%s://%s/%s", cx.ssl ? "s" : "", hdr.host, path);
        return (
            "code": 301,
            "hdr": ("Location": uri),
+           "body": hdr.method != "HEAD" ? sprintf("redirecting to %s", uri) : NOTHING,
            );
    }
 

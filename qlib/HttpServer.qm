@@ -528,7 +528,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
     # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
     constructor(HttpServer $server, int $id, Sequence $ss, any $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger) {
         # we originally set for utf-8 and then per-connection the encoding is set accoring to the client's content-type header (with iso-8859-1 as the default)
-        # according to RFC2616, section 3.7.1
+        # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)
         $.setEncoding("utf-8");
         
 	# save a reference to the server object
@@ -738,7 +738,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		    $hdr = $s.readHTTPHeader(HttpServer::ReadTimeout);
 		}
 		catch (hash $ex) {
-		    # according to RFC 2616 sec 8.1.2.1, clients claiming http 1.1 
+		    # according to RFC 2616 sec 8.1.2.1 (http://tools.ietf.org/html/rfc2616#section-8.1.2), clients claiming http 1.1 
 		    # protocol compatibility SHOULD only close the connection after
 		    # sending a "connection: close" header, but in 
 		    # case they don't, we simply close the connection silently
@@ -1049,12 +1049,13 @@ public class HttpServer::HttpServer {
 
     #! creates the HttpServer
     /** call @ref addListener() to add and start listeners
+
         @param logfunc an optional closure or call reference that will be called with logging information
         @param errlogfunc an optional closure or call reference that will be called with error information
         @param dbg if this parameter is set to @ref Qore::True "True", then additional information will be logged when errors occur
-        @param name the name of the HTTP server as returned in the Server header
+        @param name the name of the HTTP server as returned in the Server header (should be formatted according to RFC 2616 section 3.8 http://tools.ietf.org/html/rfc2616#section-3.8)
      */
-    constructor(*code $logfunc, *code $errlogfunc, bool $dbg = False, string $name = sprintf("Qore HTTP Server v%s", HttpServer::Version)) {
+    constructor(*code $logfunc, *code $errlogfunc, bool $dbg = False, string $name = sprintf("Qore-HTTP-Server/%s", HttpServer::Version)) {
 	$.logfunc = $logfunc;
 	$.errlogfunc = $errlogfunc;
         $.debug = $dbg;
@@ -1689,10 +1690,16 @@ public class HttpServer::HttpServer {
 
 	    #printf("HTTP DEBUG: handler %s returned: %n\n", $handlerName, $rv);
 
+            # currently enforced by the handlers:
+            # RFC 2616 section 4.3: http://tools.ietf.org/html/rfc2616#section-4.3
+            # All 1xx (informational), 204 (no content), and 304 (not modified) responses
+            # MUST NOT include a message-body. All other responses do include a
+            # message-body, although it MAY be of zero length.
+
 	    $rv.hdr.Server = $.httpserverstring;
             if ($rv.code >= 300 && $rv.code < 400) {
-                # handle redirect msgs
-                $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr);
+                # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
+                $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
             }
             else if ($rv.code != 200) {
 		if (!exists $rv.body)

@@ -2018,7 +2018,8 @@ struct qore_socket_private {
       // insert headers
       do_headers(hdr, headers, size && data ? size : 0);
 
-      //printf("hdr=%s\n", hdr.getBuffer());
+      //printd(5, "qore_socket_private::sendHTTPMessage() hdr: %s\n", hdr.getBuffer());
+
       int rc;
       if ((rc = send(xsink, "sendHTTPMessage", hdr.getBuffer(), hdr.strlen())))
 	 return rc;
@@ -2037,7 +2038,7 @@ struct qore_socket_private {
       hdr.concat("\r\n");
       do_headers(hdr, headers, size && data ? size : 0);
    
-      //printd(0, "QoreSocket::sendHTTPResponse() data=%p size=%ld hdr=%s", data, size, hdr.getBuffer());
+      //printd(5, "QoreSocket::sendHTTPResponse() data: %p size: %ld hdr: %s", data, size, hdr.getBuffer());
    
       int rc;
       if ((rc = send(xsink, "sendHTTPResponse", hdr.getBuffer(), hdr.strlen())))

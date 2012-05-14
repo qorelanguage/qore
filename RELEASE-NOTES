@@ -7,71 +7,6 @@ Release Overview
 **************************************************
 ** Changes That Can Affect Backwards-Compatibility
 **************************************************
-* LValue Handling Changes
-lvalue handling was rewritten as the old implementation was ugly and subject
-to deadlocks (in rare corner cases).
-
-Furthermore, medium-term, an architectural goal of Qore is to store all 
-ints, floats, and bools internally as the basic C++ type instead of using a
-class wrapper for each value, which needs dynamic allocation and destruction,
-which takes up more memory and negatively affects execution speed.
-
-With Qore 0.8.4, all local and global variables are stored using optimized C++
-types when declared with the appropriate type restrictions; for example:
-      my int $i0;
-      our int $i1;
-
-These declares local and global variables that can only be assigned integer
-values; in Qore 0.8.4 the value internally will be stored as an "int64" value
-(and not a dynamically-allocated QoreBigIntNode object). 
-
-However this means that such lvalues can never hold NOTHING or no value at all.
-When deleted or unassigned, they will hold the default value for the type, for 
-int that means 0 (for bool: False, for float: 0.0).
-
-The same holds for:
-    + int
-    + softint
-    + float
-    + softfloat
-    + bool
-    + softbool
-
-This breaks code such as the following:
-
----
-my int $i;
-if ($bool)
-   $i = 10;
-
-if (exists $i)
-    printf("$i = %y\n", $i);
----
-
-In previous versions of Qore, if $i were not assigned, "exists $i" would return
-False.  In Qore 0.8.4, since $i is declared "int", it can only hold an integer
-value, so even though it has not been assigned a value yet, it holds the value
-0, so "exists $i" will always return True.
-
-In other words, variables declared with the types given above will always have
-a value, which could break compatibility with code written for Qore < 0.8.4.
-
-Why was this done - why is this important?
-This is important because it will make Qore faster and more efficient; in the
-medium-term Qore's internal implementation should use optimized values and
-reduce the dependency on dynamically-allocated objects wherever possible.
-When fully implemented, this will also cause Qore's API to change; there will
-be a new major version of the API when this is implemented (probably will be
-called libqore2).  When this approach is applied consistently and completely
-with redesigned internal and external APIs, it will make it more feasible to
-start llvm integration with compilation (and JIT compilation) support for
-Qore.
-
-Note that the optimized lvalue handling has not yet been applied to all
-lvalues, in particular non-static object members with declared types are not
-yet affected; they will have no value (ie NOTHING) when unassigned or deleted
-even if declared as type int, softint, bool, etc.
-
 * Namespace Changes
 Qore's internal namespace handling was nearly completely rewritten for Qore
 0.8.4.  This is because the old code was inefficient and applied namespaces
@@ -172,6 +107,40 @@ if it is a non-empty string, it returns True, etc.
 See Qore's new documentation for more information about pseudo-classes and a
 complete technical description of all the methods available, their return
 values, etc.
+
+* LValue Handling Changes
+lvalue handling was rewritten as the old implementation was ugly and subject
+to deadlocks (in rare corner cases).
+
+Furthermore, medium-term, an architectural goal of Qore is to store all 
+ints, floats, and bools internally as the basic C++ type instead of using a
+class wrapper for each value, which needs dynamic allocation and destruction,
+which takes up more memory and negatively affects execution speed.
+
+With Qore 0.8.4, all local and global variables are stored using optimized C++
+types when declared with the appropriate type restrictions; for example:
+      my int $i0;
+      our int $i1;
+
+These declares local and global variables that can only be assigned integer
+values; in Qore 0.8.4 the value internally will be stored as an "int64" value
+(and not a dynamically-allocated QoreBigIntNode object). 
+
+The same holds for:
+    + int
+    + softint
+    + float
+    + softfloat
+    + bool
+    + softbool
+
+Note that the optimized lvalue handling has not yet been applied to all
+lvalues, in particular non-static object members with declared types are not
+yet implemented with optimized storage; to do this requires a rewrite of 
+Qore's API and ABI (will happen in the next major release of Qore).
+
+This change leads to improved integer and floating-point performance and a
+smaller memory footprint.
 
 * Runtime Optimizations
 In addition to the up to 3x faster parsing (as decribed in the namespace

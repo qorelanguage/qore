@@ -136,7 +136,7 @@ public:
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
          h = val.assign(typeInfo->getDefaultQoreValue());
 #else
-         h = val.assign(false);
+         h = val.remove(true);
 #endif
       }
 #ifdef DEBUG
@@ -148,8 +148,7 @@ public:
 
    DLLLOCAL void setInitial(AbstractQoreNode* v) {
       assert(val.type == QV_Node);
-      assert(!val.v.n);
-      val.v.n = v;
+      val.assignInitial(v);
    }
 
    DLLLOCAL bool isImported() const;
@@ -397,8 +396,11 @@ public:
    DLLLOCAL void setValue(QoreLValueGeneric& nv) {
       assert(!v);
       assert(!val);
-      if (nv.type == QV_Node)
+      if (nv.type == QV_Node) {
+         if (!nv.assigned)
+            nv.assigned = true;
          v = &(nv.v.n);
+      }
       else
          val = &nv;
    }
