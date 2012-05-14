@@ -710,11 +710,13 @@ class HttpServer::HttpListener inherits Qore::Socket {
     private connectionThread(Socket $s, hash $info) {
         on_exit	$.cThreads.dec();
 
-	my hash $cx = 
-	    ( "socket"          : $.socket,
-              "socket-info"     : $.socket_info,
-              "peer-info"       : $info,
-	      "id"              : $.ss.next() );
+	my hash $cx = (
+            "socket": $.socket,
+            "socket-info": $.socket_info,
+            "peer-info": $info,
+            "id": $.ss.next(),
+            "ssl": $.ssl,
+            );
 	
 	my (hash $hdr, any $body);
 
