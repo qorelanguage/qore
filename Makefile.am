@@ -141,7 +141,7 @@ LANG_DOXYFILES_SRC = \
 	doxygen/lang/250_warnings.dox.tmpl \
 	doxygen/lang/255_keywords.dox.tmpl
 
-LANG_TMP_DOXYFILES = doxygen/lang/Doxyfile \
+LANG_TMP_DOXYFILES_SRC = doxygen/lang/Doxyfile \
 	doxygen/lang/mainpage.dox \
 	doxygen/lang/000_intro.dox \
 	doxygen/lang/105_desc_overview.dox \
@@ -176,10 +176,12 @@ LANG_TMP_DOXYFILES = doxygen/lang/Doxyfile \
 	doxygen/lang/240_command_line_processing.dox \
 	doxygen/lang/245_parse_directives.dox \
 	doxygen/lang/250_warnings.dox \
-	doxygen/lang/255_keywords.dox \
+	doxygen/lang/255_keywords.dox
+
+LANG_TMP_DOXYFILES = $(LANG_TMP_DOXYFILES_SRC) \
 	qore.tag
 
-LANG_DOXYFILES = doxygen/lang/Doxyfile $(LANG_TMP_DOXYFILES)
+LANG_DOXYFILES = doxygen/lang/Doxyfile $(LANG_TMP_DOXYFILES_SRC)
 
 doxygen/lang/Doxyfile: doxygen/lang/Doxyfile.tmpl
 	doxygen/dpp $< "$(top_srcdir)/doxygen/" > $@
@@ -674,7 +676,7 @@ doxygen-doc: docs/library/html/index.html docs/lang/html/index.html \
 	docs/modules/Mime/html/index.html \
 	docs/modules/TelnetClient/html/index.html \
 	docs/modules/SmtpClient/html/index.html
-	
+
 else
 doxygen-doc:
 	echo no doxygen support
