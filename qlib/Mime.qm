@@ -220,6 +220,19 @@ public namespace Mime {
 	"ppm": "image/x-portable-pixmap",
 	"ppt": "application/vnd.ms-powerpoint",
 	"ps": "application/postscript",
+
+	# Qore script
+	"q": MimeTypeText,
+
+	# Qore class include file
+	"qc": MimeTypeText,
+
+	# Qore include file
+	"ql": MimeTypeText,
+
+	# Qore user module source
+	"qm": MimeTypeText,
+
 	"qt": "video/quicktime",
 	"qti": "image/x-quicktime",
 	"qtif": "image/x-quicktime",

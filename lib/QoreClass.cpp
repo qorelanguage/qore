@@ -292,6 +292,7 @@ qore_class_private::qore_class_private(QoreClass *n_cls, const char *nme, int64 
      has_new_user_changes(false),
      owns_ornothingtypeinfo(false),
      pub(false),
+     final(false),
      domain(dom), 
      num_methods(0), 
      num_user_methods(0),
@@ -348,7 +349,8 @@ qore_class_private::qore_class_private(const qore_class_private &old, QoreClass 
      resolve_copy_done(false),
      has_new_user_changes(false),
      owns_ornothingtypeinfo(false),
-     pub(false),
+     pub(false), // set the public flag to false; only code directly declared public in a module can be exported
+     final(old.final),
      domain(old.domain), 
      num_methods(old.num_methods), 
      num_user_methods(old.num_user_methods),
@@ -945,6 +947,8 @@ void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
       // include all subclass domains in this class' domain
       if (!sclass->priv->addBaseClassesToSubclass(cls, is_virtual))
          cls->priv->domain |= sclass->priv->domain;
+      if (sclass->priv->final)
+         parse_error("class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
    }
 }
 

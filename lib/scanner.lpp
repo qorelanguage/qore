@@ -1,6 +1,6 @@
 %{
 /*
-  scanner.ll
+  scanner.lpp
 
   Qore Programming Language
 
@@ -1057,6 +1057,7 @@ try                                     return TOK_TRY;
 throw                                   return TOK_THROW;
 rethrow                                 return TOK_RETHROW;
 catch                                   return TOK_CATCH;
+final                                   return TOK_FINAL;
 finally                                 return TOK_FINALLY;
 find                                    return TOK_FIND;
 delete                                  return TOK_DELETE;
@@ -1103,6 +1104,7 @@ new\(                                   yylval->string = strdup("new"); return K
 delete\(                                yylval->string = strdup("delete"); return KW_IDENTIFIER_OPENPAREN;
 case\(                                  yylval->string = strdup("case"); return KW_IDENTIFIER_OPENPAREN;
 chomp\(                                 yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
+final\(                                 yylval->string = strdup("final"); return KW_IDENTIFIER_OPENPAREN;
 trim\(                                  yylval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN;
 push\(                                  yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
 pop\(                                   yylval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN;
@@ -1165,6 +1167,7 @@ module{WS}*\(                           yylval->string = strdup("module"); retur
 \.continue[^A-Za-z_0-9]                 DO_DOT_KW_IDENTIFIER("continue")
 \.do[^A-Za-z_0-9]                       DO_DOT_KW_IDENTIFIER("do")
 \.else[^A-Za-z_0-9]                     DO_DOT_KW_IDENTIFIER("else")
+\.final[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("final")
 \.for[^A-Za-z_0-9]                      DO_DOT_KW_IDENTIFIER("for")
 \.foreach[^A-Za-z_0-9]                  DO_DOT_KW_IDENTIFIER("foreach")
 \.if[^A-Za-z_0-9]                       DO_DOT_KW_IDENTIFIER("if")

@@ -60,8 +60,12 @@ class mail {
     constructor() {
 	GetOpt g(opts);
 	opt = g.parse3(\ARGV);
-	if (opt.help || ARGV.empty())
+	if (opt.help)
 	    usage();
+	if (ARGV.empty()) {
+	    stderr.print("missing SMTP server address\n");
+	    usage();
+	}
 
 	# ensure the required options are set
 	checkOpt("from");

@@ -1506,7 +1506,8 @@ public:
       resolve_copy_done,            // has the copy already been resolved
       has_new_user_changes,         // does the class have new user code that needs to be processed?
       owns_ornothingtypeinfo,       // do we own the "or nothing" type info
-      pub                           // is a public class (modules only)
+      pub,                          // is a public class (modules only)
+      final                         // is the class "final" (cannot be inherited)
       ;
 
    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
