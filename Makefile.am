@@ -300,7 +300,7 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	TelnetClient.tag \
 	SmtpClient.tag
 
-doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html
+doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html/index.html
 	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/HttpServer.qm.dox.h: qlib/HttpServer.qm
@@ -318,7 +318,7 @@ doxygen/qlib/Doxyfile.TelnetClient: doxygen/qlib/Doxyfile.tmpl
 doxygen/qlib/TelnetClient.qm.dox.h: qlib/TelnetClient.qm
 	$(QDX) $< $@
 
-doxygen/qlib/Doxyfile.SmtpClient: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html
+doxygen/qlib/Doxyfile.SmtpClient: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html/index.html
 	$(QDX) -M=qlib/SmtpClient.qm:doxygen/qlib/SmtpClient.qm.dox.h -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/SmtpClient.qm.dox.h: qlib/SmtpClient.qm
