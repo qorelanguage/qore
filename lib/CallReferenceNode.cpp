@@ -308,7 +308,7 @@ AbstractQoreNode *ParseObjectMethodReferenceNode::parseInitImpl(LocalVar *oflag,
 
 // returns a RunTimeObjectMethodReferenceNode or NULL if there's an exception
 AbstractQoreNode *ParseSelfMethodReferenceNode::evalImpl(ExceptionSink *xsink) const {
-   return new RunTimeResolvedMethodReferenceNode(getStackObject(), meth);
+   return new RunTimeResolvedMethodReferenceNode(runtime_get_stack_object(), meth);
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
@@ -355,7 +355,7 @@ ParseScopedSelfMethodReferenceNode::~ParseScopedSelfMethodReferenceNode() {
 
 // returns a RunTimeObjectMethodReference or NULL if there's an exception
 AbstractQoreNode *ParseScopedSelfMethodReferenceNode::evalImpl(ExceptionSink *xsink) const {
-   return new RunTimeResolvedMethodReferenceNode(getStackObject(), method);
+   return new RunTimeResolvedMethodReferenceNode(runtime_get_stack_object(), method);
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
@@ -501,7 +501,7 @@ AbstractQoreNode *LocalMethodCallReferenceNode::evalImpl(bool &needs_deref, Exce
 }
 
 AbstractQoreNode *LocalMethodCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   return method->eval(getStackObject(), args, xsink);
+   return method->eval(runtime_get_stack_object(), args, xsink);
 }
 
 bool LocalMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {   
@@ -545,7 +545,7 @@ AbstractQoreNode *MethodCallReferenceNode::exec(const QoreListNode *args, Except
    ProgramThreadCountContextHelper tch(xsink, pgm, true);
    if (*xsink)
       return 0;
-   return method->eval(getStackObject(), args, xsink);
+   return method->eval(runtime_get_stack_object(), args, xsink);
 }
 
 UnresolvedStaticMethodCallReferenceNode::UnresolvedStaticMethodCallReferenceNode(NamedScope *n_scope) : AbstractUnresolvedCallReferenceNode(false), scope(n_scope) {

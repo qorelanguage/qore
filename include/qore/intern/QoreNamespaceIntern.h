@@ -114,10 +114,10 @@ public:
    q_ns_class_handler_t class_handler;   
    QoreNamespace *ns;
 
-   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char* n) : name(n), depth(0), root(false), pub(false), parent(0), class_handler(0), ns(n_ns) {
+   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char* n) : name(n), constant(this), pendConstant(this), depth(0), root(false), pub(false), parent(0), class_handler(0), ns(n_ns) {
    }
 
-   DLLLOCAL qore_ns_private(QoreNamespace *n_ns) : depth(0), root(false), pub(false), parent(0), class_handler(0), ns(n_ns) {      
+   DLLLOCAL qore_ns_private(QoreNamespace *n_ns) : constant(this), pendConstant(this), depth(0), root(false), pub(false), parent(0), class_handler(0), ns(n_ns) {
    }
 
    // called when parsing
@@ -126,18 +126,19 @@ public:
    DLLLOCAL qore_ns_private(const qore_ns_private &old, int64 po) 
       : name(old.name), 
         classList(old.classList, po, this), 
-        constant(old.constant),        
+        constant(old.constant, this),
+        pendConstant(this),
         nsl(old.nsl, po, *this),
         func_list(old.func_list, po),
         var_list(old.var_list, po),
         depth(old.depth),
         root(old.root),
-        pub(false),
+        pub(false), // set the public flag to false in copies; only the original should be exported
         parent(0), class_handler(old.class_handler), ns(0) {
    }
 
    DLLLOCAL ~qore_ns_private() {
-      printd(5, "qore_ns_private::~qore_ns_private() this=%p '%s'\n", this, name.c_str());
+      printd(5, "qore_ns_private::~qore_ns_private() this: %p '%s'\n", this, name.c_str());
    }
 
    DLLLOCAL void getPath(std::string& str, bool anchored = false) const {
@@ -286,6 +287,8 @@ public:
    DLLLOCAL void checkGlobalVarDecl(Var* v, const NamedScope& vname);
    DLLLOCAL void parseAddGlobalVarDecl(char *name, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, bool pub);
 
+   DLLLOCAL void setPublic();
+
    DLLLOCAL static void addNamespace(QoreNamespace& ns, QoreNamespace* nns) {
       ns.priv->addNamespace(nns->priv);
    }
@@ -316,10 +319,6 @@ public:
       ns.priv->parseAddConstant(name, value, pub);
    }
 
-   DLLLOCAL static void parseAddGlobalVarDecl(QoreNamespace& ns, char *name, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, bool pub) {
-      ns.priv->parseAddGlobalVarDecl(name, typeInfo, parseTypeInfo, pub);
-   }
-
    DLLLOCAL static void parseRollback(QoreNamespace& ns) {
       ns.priv->parseRollback();
    }
@@ -346,11 +345,6 @@ public:
 
    DLLLOCAL static bool isPublic(const QoreNamespace& ns) {
       return ns.priv->pub;
-   }
-
-   DLLLOCAL static void setPublic(QoreNamespace& ns) {
-      assert(!ns.priv->pub);
-      ns.priv->pub = true;
    }
 };
 
@@ -668,7 +662,7 @@ class qore_root_ns_private : public qore_ns_private {
    friend class qore_ns_private;
 
 protected:
-   DLLLOCAL int addPendingVariant(qore_ns_private& ns, const char* name, AbstractQoreFunctionVariant* v) {
+   DLLLOCAL int addPendingVariantIntern(qore_ns_private& ns, const char* name, AbstractQoreFunctionVariant* v) {
       // try to add function variant to given namespace
       bool new_func = false;
       FunctionEntry* fe = ns.addPendingVariantIntern(name, v, new_func);
@@ -685,7 +679,7 @@ protected:
       return 0;      
    }
 
-   DLLLOCAL int addPendingVariant(qore_ns_private& ns, const NamedScope& nscope, AbstractQoreFunctionVariant* v) {
+   DLLLOCAL int addPendingVariantIntern(qore_ns_private& ns, const NamedScope& nscope, AbstractQoreFunctionVariant* v) {
       assert(nscope.size() > 1);
       SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
 
@@ -698,7 +692,7 @@ protected:
          }
       }
 
-      return addPendingVariant(*fns->priv, nscope.getIdentifier(), vh.release());
+      return addPendingVariantIntern(*fns->priv, nscope.getIdentifier(), vh.release());
    }
 
    // performed at runtime
@@ -874,7 +868,7 @@ protected:
       //printd(5, "qore_root_ns_private::parseFindOnlyConstantValueIntern() const: %s ns: %p %s\n", cname, ns, ns->name.c_str());
 
       NamespaceParseContextHelper nspch(ns);
-      return ce->get(typeInfo);
+      return ce->get(typeInfo, this);
    }
 
    AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo, bool error) {
@@ -1254,12 +1248,12 @@ public:
       return rns.rpriv->copy(po);
    }
 
-   DLLLOCAL static int addPendingVariant(QoreNamespace& ns, const char* name, AbstractQoreFunctionVariant* v) {
-      return getRootNS()->rpriv->addPendingVariant(*ns.priv, name, v);
+   DLLLOCAL static int addPendingVariant(qore_ns_private& nsp, const char* name, AbstractQoreFunctionVariant* v) {
+      return getRootNS()->rpriv->addPendingVariantIntern(nsp, name, v);
    }
 
-   DLLLOCAL static int addPendingVariant(QoreNamespace& ns, const NamedScope& name, AbstractQoreFunctionVariant* v) {
-      return getRootNS()->rpriv->addPendingVariant(*ns.priv, name, v);
+   DLLLOCAL static int addPendingVariant(qore_ns_private& nsp, const NamedScope& name, AbstractQoreFunctionVariant* v) {
+      return getRootNS()->rpriv->addPendingVariantIntern(nsp, name, v);
    }
 
    DLLLOCAL static int importFunction(RootQoreNamespace& rns, ExceptionSink *xsink, QoreNamespace& ns, QoreFunction *u, const char* new_name = 0) {

@@ -21,7 +21,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/CallStack.h>
 
 // a read-write lock is used in an inverted fashion to provide thread-safe
 // access to call stacks: writing to each call stack is performed within
@@ -34,24 +33,26 @@ QoreRWLock *thread_stack_lock;
 QoreRWLock thread_stack_lock;
 #endif
 
-CallNode::CallNode(const char *f, int t, QoreObject *o) {
+CallNode::CallNode(const char *f, int t, ClassObj o) {
    func = f;
    type = t;
    file_name = get_pgm_counter(start_line, end_line);
    obj = o;
-   if (obj)
-      obj->ref();
+   QoreObject *qo = o.getObj();
+   if (qo)
+      qo->ref();
 #ifdef DEBUG
-   if (obj)
-      printd(5, "CallNode::CallNode() pushing class=%08p '%s' (name=%08p) obj=%08p\n", obj->getClass(), obj->getClass()->getName(), obj->getClass()->getName(), obj);
+   if (qo)
+      printd(5, "CallNode::CallNode() pushing class=%p '%s' (name=%p) obj=%p\n", qo->getClass(), qo->getClass()->getName(), qo->getClass()->getName(), qo);
 #endif
 }
 
 void CallNode::objectDeref(ExceptionSink *xsink) {
-   if (obj) {
-      printd(5, "CallNode::~CallNode() popping class=%s obj=%08p\n", obj->getClass()->getName(), obj);
+   QoreObject *qo = obj.getObj();
+   if (qo) {
+      printd(5, "CallNode::~CallNode() popping class=%s obj=%p\n", qo->getClass()->getName(), qo);
       // deref object
-      obj->deref(xsink);
+      qo->deref(xsink);
    }
 }
 
@@ -59,9 +60,9 @@ extern char *file_names[];
 QoreHashNode *CallNode::getInfo() const {
    QoreHashNode *h = new QoreHashNode();
    // FIXME: add class name
-   QoreStringNode *str = new QoreStringNode();
+   QoreStringNode *str = new QoreStringNode;
    if (obj) {
-      str->concat(obj->getClass()->getName());
+      str->concat(obj.getClass()->name.c_str());
       str->concat("::");
    }
    str->concat(func);
@@ -92,7 +93,7 @@ CallStack::CallStack() {
 
 CallStack::~CallStack() {
    while (tail) {
-      class CallNode *c = tail->prev;
+      CallNode *c = tail->prev;
       delete tail;
       tail = c;
    }
@@ -132,7 +133,7 @@ QoreListNode *CallStack::getCallStack() const {
 }
 
 void CallStack::substituteObjectIfEqual(QoreObject *o) {
-   if (!tail->obj && tail->prev && tail->prev->obj == o) {
+   if (!tail->obj.getObj() && tail->prev && tail->prev->obj.getObj() == o) {
       tail->obj = o;
       o->ref();
    }
@@ -141,11 +142,11 @@ void CallStack::substituteObjectIfEqual(QoreObject *o) {
 QoreObject *CallStack::getStackObject() const {
    if (!tail)
       return 0;
-   return tail->obj;
+   return tail->obj.getObj();
 }
 
 QoreObject *CallStack::substituteObject(QoreObject *o) {
-   QoreObject *ro = tail->obj;
+   QoreObject *ro = tail->obj.getObj();
    tail->obj = o;
    return ro;
 }

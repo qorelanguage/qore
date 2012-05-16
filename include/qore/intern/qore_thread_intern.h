@@ -78,6 +78,7 @@ class VLock;
 class ConstantEntry;
 class qore_ns_private;
 class qore_root_ns_private;
+class qore_class_private;
 class AbstractQoreFunctionVariant;
 
 DLLLOCAL extern Operator *OP_BACKGROUND;
@@ -219,14 +220,6 @@ public:
    DLLLOCAL QoreClosureParseNode* takeDel();
 };
 
-struct namepub_t {
-   std::string name;
-   bool pub;
-
-   DLLLOCAL namepub_t(const char* n, bool p) : name(n), pub(p) {
-   }
-};
-
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink *xsink);
 DLLLOCAL void purge_thread_resources(ExceptionSink *xsink);
@@ -246,14 +239,12 @@ DLLLOCAL void update_parse_location(int start_line, int end_line);
 DLLLOCAL void update_parse_location(int start_line, int end_line, const char *f);
 DLLLOCAL QoreProgramLocation get_parse_location();
 DLLLOCAL void update_parse_location(const QoreProgramLocation& loc);
-DLLLOCAL bool inMethod(const char *name, const QoreObject *o);
 DLLLOCAL RootQoreNamespace *getRootNS();
 DLLLOCAL int64 getParseOptions();
 DLLLOCAL void updateCVarStack(CVNode *ncvs);
 DLLLOCAL CVNode *getCVarStack();
 DLLLOCAL void updateVStack(VNode *nvs);
 DLLLOCAL VNode *getVStack();
-DLLLOCAL QoreObject *getStackObject();
 DLLLOCAL void setParseClass(QoreClass *c);
 DLLLOCAL QoreClass *getParseClass();
 DLLLOCAL void substituteObjectIfEqual(QoreObject *o);
@@ -268,8 +259,7 @@ DLLLOCAL bool parse_cond_else();
 DLLLOCAL bool parse_cond_pop();
 DLLLOCAL void push_parse_options();
 
-DLLLOCAL void parse_push_name(const char* name, bool pub = false);
-DLLLOCAL namepub_t parse_pop_namepub();
+DLLLOCAL void parse_push_name(const char* name);
 DLLLOCAL std::string parse_pop_name();
 
 DLLLOCAL qore_ns_private* parse_set_ns(qore_ns_private* ns);
@@ -378,7 +368,7 @@ DLLLOCAL void thread_uninstantiate_lvar(ExceptionSink *xsink);
 DLLLOCAL void thread_set_closure_parse_env(ClosureParseEnvironment *cenv);
 DLLLOCAL ClosureParseEnvironment *thread_get_closure_parse_env();
 
-DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char *id, const QoreTypeInfo* typeInfo, const QoreValue& nval);
+DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char *id, const QoreTypeInfo* typeInfo, QoreValue& nval);
 DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char *id, AbstractQoreNode *vexp, QoreObject *obj, QoreProgram *pgm);
 DLLLOCAL void thread_uninstantiate_closure_var(ExceptionSink *xsink);
 DLLLOCAL ClosureVarValue *thread_find_closure_var(const char *id);
@@ -444,25 +434,88 @@ DLLLOCAL const QoreListNode *thread_get_implicit_args();
 
 DLLLOCAL LocalVarValue *thread_find_lvar(const char *id);
 
-// for object implementation
-DLLLOCAL QoreObject *getStackObject();
-// for methods that behave differently when called within the method itself
-DLLLOCAL bool inMethod(const char *name, const QoreObject *o);
+// to get the current runtime object
+DLLLOCAL QoreObject* runtime_get_stack_object();
+// to get the current runtime class
+DLLLOCAL const qore_class_private* runtime_get_class();
+// for methods that behave differently when called within the method itself (methodGate(), memberGate(), etc)
+DLLLOCAL bool runtime_in_object_method(const char *name, const QoreObject *o);
+
+struct ClassObj {
+protected:
+   size_t ptr;
+
+public:
+   DLLLOCAL ClassObj() : ptr(0) {
+   }
+
+   DLLLOCAL explicit ClassObj(int p) : ptr(0) {
+      assert(!p);
+   }
+
+   DLLLOCAL ClassObj(const QoreObject* o) : ptr((size_t)o) {
+   }
+
+   DLLLOCAL explicit ClassObj(const qore_class_private* qc) : ptr(qc ? (((size_t)qc) | 1) : 0) {
+   }
+
+   DLLLOCAL ClassObj(const ClassObj& old) : ptr(old.ptr) {
+   }
+
+   DLLLOCAL operator bool() const {
+      return (bool)ptr;
+   }
+
+   DLLLOCAL ClassObj& operator=(const ClassObj& n) {
+      ptr = n.ptr;
+      return *this;
+   }
+
+   DLLLOCAL ClassObj& operator=(const QoreObject* o) {
+      ptr = (size_t)o;
+      return *this;
+   }
+
+   DLLLOCAL ClassObj& operator=(const qore_class_private* qc) {
+      ptr = qc ? (((size_t)qc) | 1) : 0;
+      return *this;
+   }
+
+   DLLLOCAL void clear() {
+      ptr = 0;
+   }
+
+   /*
+   DLLLOCAL bool isClass() const {
+      return ptr & 1;
+   }
+
+   DLLLOCAL bool isObject() const {
+      return !(ptr & 1);
+   }
+   */
+
+   DLLLOCAL QoreObject* getObj() const {
+      return (!(ptr & 1)) ? (QoreObject*)ptr : 0;
+   }
+
+   DLLLOCAL const qore_class_private* getClass() const;
+};
 
 class CodeContextHelper {
 private:
    const char *old_code;
-   QoreObject *old_obj;
+   ClassObj old;
    ExceptionSink *xsink;
-   
+
 public:
-   DLLLOCAL CodeContextHelper(const char *code = NULL, const QoreObject *obj = NULL, ExceptionSink *xs = NULL);
+   DLLLOCAL CodeContextHelper(const char* code, ClassObj obj, ExceptionSink* xs);
    DLLLOCAL ~CodeContextHelper();
 };
 
 class ObjectSubstitutionHelper {
 private:
-   QoreObject *old_obj;
+   ClassObj old;
 
 public:
    DLLLOCAL ObjectSubstitutionHelper(QoreObject *obj);
@@ -530,9 +583,38 @@ public:
    }
 };
 
-#include <qore/intern/CallStack.h>
-
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+class CallNode {
+public:
+   const char *func;
+   const char *file_name;
+   int start_line, end_line, type;
+
+   ClassObj obj;
+   CallNode *next, *prev;
+
+   DLLLOCAL CallNode(const char *f, int t, ClassObj o);
+   DLLLOCAL void objectDeref(ExceptionSink *xsink);
+   DLLLOCAL QoreHashNode *getInfo() const;
+};
+
+class CallStack {
+private:
+   CallNode *tail;
+
+public:
+   DLLLOCAL CallStack();
+   DLLLOCAL ~CallStack();
+   DLLLOCAL QoreListNode* getCallStack() const;
+   DLLLOCAL void push(CallNode* cn);
+   DLLLOCAL void pop(ExceptionSink* xsink);
+   DLLLOCAL void substituteObjectIfEqual(QoreObject* o);
+   DLLLOCAL QoreObject* getStackObject() const;
+   DLLLOCAL const qore_class_private* getStackClass() const;
+   DLLLOCAL QoreObject* substituteObject(QoreObject* o);
+   //DLLLOCAL bool inMethod(const char *name, QoreObject *o) const;
+};
+
 class CallStackHelper : public CallNode {
    ExceptionSink *xsink;
    
@@ -542,7 +624,7 @@ class CallStackHelper : public CallNode {
    DLLLOCAL void *operator new(size_t);
    
 public:
-   DLLLOCAL CallStackHelper(const char *f, int t, QoreObject *o, ExceptionSink *n_xsink) : CallNode(f, t, o), xsink(n_xsink) {
+   DLLLOCAL CallStackHelper(const char *f, int t, ClassObj o, ExceptionSink *n_xsink) : CallNode(f, t, o), xsink(n_xsink) {
       pushCall(this);
    }
    DLLLOCAL ~CallStackHelper() {

@@ -541,9 +541,9 @@ public:
 
    DLLLOCAL void doRemove(QoreLValueGeneric& qv, const QoreTypeInfo* ti) {
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      rv.assignInitialSwap(qv, ti->getDefaultQoreValue());
+      rv.assignSetInitialSwap(qv, ti->getDefaultQoreValue());
 #else
-      rv.assignTakeInitial(qv);
+      rv.assignSetTakeInitial(qv);
 #endif
    }
 

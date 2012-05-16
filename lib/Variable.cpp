@@ -252,7 +252,7 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
    else if (ntype == NT_SELF_VARREF) {
       const SelfVarrefNode* v = reinterpret_cast<const SelfVarrefNode*>(n);
       // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
-      QoreObject* obj = getStackObject();
+      QoreObject* obj = runtime_get_stack_object();
       assert(obj);
       // true is for "internal"
       return qore_object_private::getLValue(*obj, v->str, *this, true, for_remove, vl.xsink);
@@ -701,7 +701,7 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
    }
 
    if (t == NT_SELF_VARREF) {
-      rv.assignInitial(qore_object_private::takeMember(*(getStackObject()), xsink, reinterpret_cast<SelfVarrefNode*>(lvalue)->str, false));
+      rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, reinterpret_cast<SelfVarrefNode*>(lvalue)->str, false));
       return;
    }
 

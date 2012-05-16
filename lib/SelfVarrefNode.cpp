@@ -46,8 +46,8 @@ const char *SelfVarrefNode::getTypeName() const {
 
 // eval(): return value requires a deref(xsink)
 AbstractQoreNode *SelfVarrefNode::evalImpl(ExceptionSink *xsink) const {
-   assert(getStackObject());
-   return getStackObject()->getReferencedMemberNoMethod(str, xsink);
+   assert(runtime_get_stack_object());
+   return runtime_get_stack_object()->getReferencedMemberNoMethod(str, xsink);
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0

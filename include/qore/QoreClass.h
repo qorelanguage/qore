@@ -85,6 +85,7 @@ class QoreMethod {
    friend class QoreObject;
    friend class qore_class_private;
    friend class qore_method_private;
+   friend class BCList;
 
 private:
    //! private implementation of the method
@@ -823,13 +824,10 @@ public:
    DLLLOCAL void parseRollback();
    DLLLOCAL void resolveCopy();
    DLLLOCAL qore_classid_t getIDForMethod() const;
-   DLLLOCAL void parseSetBaseClassList(BCList *bcl);
    // get base class list to add virtual class indexes for private data
    DLLLOCAL BCSMList *getBCSMList() const;
    // returns true if the class has a delete_blocker function (somewhere in the hierarchy)
    DLLLOCAL bool has_delete_blocker() const;
-   // one-time initialization
-   DLLLOCAL void initialize();
    // looks in current and pending method lists, non-static methods only, no initialization
    DLLLOCAL const QoreMethod *parseFindLocalMethod(const char *name) const;
    // looks in current and pending method lists for the entire hierarchy (local class plus base classes), non-static methods only

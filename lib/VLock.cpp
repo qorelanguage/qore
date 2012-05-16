@@ -127,7 +127,7 @@ QoreObject *AutoVLock::getObject() const {
 
 void AutoVLock::addMemberNotification(QoreObject *obj, const char *member) {
    // ignore member notifications for updates made within the class
-   if (obj == getStackObject() || !obj->hasMemberNotification())
+   if (obj == runtime_get_stack_object() || !obj->hasMemberNotification())
       return;
 
    if (!priv)

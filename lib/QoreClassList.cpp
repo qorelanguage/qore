@@ -91,8 +91,10 @@ void QoreClassList::resolveCopy() {
 }
 
 void QoreClassList::parseInit() {
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+      //printd(5, "QoreClassList::parseInit() this: %p initializing %p '%s'\n", this, i->second, i->first);
       i->second->parseInit();
+   }
 }
 
 void QoreClassList::parseRollback() {

@@ -24,6 +24,7 @@
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -80,8 +81,8 @@ void ConstantEntry::del(ExceptionSink* xsink) {
    delete this;
 }
 
-int ConstantEntry::parseInit(QoreClass *class_context) {
-   //printd(5, "ConstantEntry::parseInit() this: %p %s init: %d node: %p (%s) class context: %p (%s)\n", this, name.c_str(), init, node, get_type_name(node), class_context, class_context ? class_context->getName() : "<none>");
+int ConstantEntry::parseInit(ClassNs ptr) {
+   //printd(5, "ConstantEntry::parseInit() this: %p '%s' pub: %d init: %d node: %p '%s' class context: %p '%s' ns: %p ('%s') pub: %d\n", this, name.c_str(), pub, init, node, get_type_name(node), ptr.getClass(), ptr.getClass() ? ptr.getClass()->name.c_str() : "<none>", ptr.getNs(), ptr.getNs() ? ptr.getNs()->name.c_str() : "<none>", ptr.getNs() ? ptr.getNs()->pub : 0);
 
    if (init)
       return 0;
@@ -103,10 +104,10 @@ int ConstantEntry::parseInit(QoreClass *class_context) {
       ParseLocationHelper plh(loc);
 
       // push parse class context
-      QoreParseClassHelper qpch(class_context);
+      qore_class_private* p = ptr.getClass();
+      QoreParseClassHelper qpch(p ? p->cls : 0);
 
-      //printd(5, "ConstantEntry::parseInit() this: %p %s about to init node: %p %s\n", this, name.c_str(), node, get_type_name(node));
-   
+      //printd(5, "ConstantEntry::parseInit() this: %p '%s' about to init node: %p '%s' class: %p '%s'\n", this, name.c_str(), node, get_type_name(node), p, p ? p->name.c_str() : "n/a");
       node = node->parseInit((LocalVar *)0, PF_CONST_EXPRESSION, lvids, typeInfo);
    }
 
@@ -145,7 +146,9 @@ int ConstantEntry::parseInit(QoreClass *class_context) {
    return 0;
 }
 
-ConstantList::ConstantList(const ConstantList &old) {
+ConstantList::ConstantList(const ConstantList &old, ClassNs p) : ptr(p) {
+   //printd(5, "ConstantList::ConstantList(old) this: %p cls: %p ns: %p\n", this, ptr.getClass(), ptr.getNs());
+
    // DEBUG
    //fprintf(stderr, "XXX ConstantList::ConstantList() this=%p copy constructor from %p called\n", this, &old);
    cnemap_t::iterator last = cnemap.begin();
@@ -227,10 +230,10 @@ ConstantEntry *ConstantList::findEntry(const char *name) {
    return i == cnemap.end() ? 0 : i->second;
 }
 
-AbstractQoreNode *ConstantList::find(const char *name, const QoreTypeInfo *&constantTypeInfo, QoreClass *class_context) {
+AbstractQoreNode *ConstantList::find(const char *name, const QoreTypeInfo *&constantTypeInfo) {
    cnemap_t::iterator i = cnemap.find(name);
    if (i != cnemap.end()) {
-      if (!i->second->parseInit(class_context)) {
+      if (!i->second->parseInit(ptr)) {
 	 constantTypeInfo = i->second->typeInfo;
 	 return i->second->node;
       }
@@ -346,11 +349,11 @@ void ConstantList::assimilate(ConstantList &n, ConstantList &committed, Constant
    n.parseDeleteAll();
 }
 
-void ConstantList::parseInit(QoreClass *class_context) {
+void ConstantList::parseInit() {
    //RootQoreNamespace *rns = getRootNS();
    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
-      printd(5, "ConstantList::parseInit() %s %p (class: %s)\n", i->first, i->second->node, class_context ? class_context->getName() : "<none>");
-      i->second->parseInit(class_context);
+      //printd(5, "ConstantList::parseInit() this: %p '%s' %p (class: %p '%s' ns: %p '%s')\n", this, i->first, i->second->node, ptr.getClass(), ptr.getClass() ? ptr.getClass()->name.c_str() : "n/a", ptr.getNs(), ptr.getNs() ? ptr.getNs()->name.c_str() : "n/a");
+      i->second->parseInit(ptr);
    }
 }
 

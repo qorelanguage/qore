@@ -161,7 +161,7 @@ struct SkipHelper {
 
 class LocalVarValue : public VarValueBase {
 public:
-   DLLLOCAL void set(const char* n_id, const QoreTypeInfo* typeInfo, const QoreValue& nval) {
+   DLLLOCAL void set(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
       skip = false;
       id = n_id;
 
@@ -176,7 +176,7 @@ public:
 
       // no exception is possible here as there was no previous value
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
-      val.assignInitial(nval);
+      discard(val.assignInitial(nval), 0);
    }
 
    DLLLOCAL void set(const char* n_id, const QoreTypeInfo* typeInfo, AbstractQoreNode* value) {
@@ -303,9 +303,9 @@ struct ClosureVarValue : public VarValueBase, public QoreReferenceCounter, publi
 public:
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
 
-   DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, const QoreValue& nval) : VarValueBase(n_id, varTypeInfo), typeInfo(varTypeInfo) {
+   DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), typeInfo(varTypeInfo) {
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
-      val.assignInitial(nval);
+      discard(val.assignInitial(nval), 0);
    }
 
    DLLLOCAL ClosureVarValue(const char* n_id, AbstractQoreNode* vexp, QoreObject* obj, QoreProgram* pgm) : VarValueBase(n_id, QV_Ref), typeInfo(0) {

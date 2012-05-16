@@ -1230,7 +1230,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 	    // ceh can only be 0 with a destructor, in which case there are no arguments
 	    assert(ceh);
 	    if (!*xsink)
-	       signature.lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0, ceh->getSourceProgram());
+	       signature.lv[i]->instantiate(n, is_self_ref ? runtime_get_stack_object() : 0, ceh->getSourceProgram());
 	 }
 	 else
 	    signature.lv[i]->instantiate(np->refSelf());
@@ -1264,7 +1264,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
    return 0;
 }
 
-AbstractQoreNode* UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink, const char* class_name) const {
+AbstractQoreNode* UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink) const {
    AbstractQoreNode* val = 0;
    if (statements) {      
       if (signature.selfid) {
@@ -1313,9 +1313,9 @@ AbstractQoreNode* UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
 }
 
 // primary function for executing user code
-AbstractQoreNode* UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, QoreObject *self, ExceptionSink* xsink, const char* class_name, bool for_closure) const {
+AbstractQoreNode* UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, QoreObject *self, ExceptionSink* xsink, const qore_class_private* qc, bool for_closure) const {
    QORE_TRACE("UserVariantBase::eval()");
-   printd(5, "UserVariantBase::eval() this=%p name=%s() args=%p (size=%d) self=%p\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self);
+   //printd(5, "UserVariantBase::eval() this: %p '%s()' args: %p (size: %d) self: %p class: %p '%s'\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self, qc, qc ? qc->name.c_str() : "n/a");
 
    // if pgm is 0 or == the current pgm, then ProgramThreadCountContextHelper does nothing
    ProgramThreadCountContextHelper tch(xsink, pgm, true);
@@ -1325,9 +1325,15 @@ AbstractQoreNode* UserVariantBase::eval(const char* name, CodeEvaluationHelper *
    if (!uveh)
       return 0;
 
-   CODE_CONTEXT_HELPER(CT_USER, name, self, xsink);
+   ClassObj cobj;
+   if (self)
+      cobj = self;
+   else if (qc)
+      cobj = qc;
+   assert((self && self == cobj.getObj()) || (qc && qc == cobj.getClass()) || (!self && !qc));
+   CODE_CONTEXT_HELPER(CT_USER, name, cobj, xsink);
      
-   return evalIntern(uveh.getArgv(), self, xsink, class_name);
+   return evalIntern(uveh.getArgv(), self, xsink);
 }
 
 // returns 0 for OK, -1 for error
@@ -1651,8 +1657,9 @@ void QoreFunction::parseInit() {
 
    parse_same_return_type = same_return_type;
 
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i)
+   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       (*i)->parseInit(this);
+   }
 }
 
 AbstractQoreNode* UserClosureFunction::evalClosure(const QoreListNode* args, QoreObject *self, ExceptionSink* xsink) const {

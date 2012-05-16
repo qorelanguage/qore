@@ -130,13 +130,9 @@ struct QoreValue {
          case QV_Int: return new QoreBigIntNode(v.i);
          case QV_Float: return new QoreFloatNode(v.f);
          case QV_Node: {
-#ifdef DEBUG
             AbstractQoreNode* rv = v.n;
             v.n = 0;
             return rv;
-#else
-            return v.n;
-#endif
          }
          default: assert(false);
          // no break
@@ -145,8 +141,7 @@ struct QoreValue {
    }
 
    DLLLOCAL AbstractQoreNode* getNode() const {
-      assert(type == QV_Node);
-      return v.n;
+      return type == QV_Node ? v.n : 0;
    }
 
    DLLLOCAL qore_type_t getType() const {
@@ -221,15 +216,15 @@ public:
    valtype_t type : 4;
    bool assigned : 1;
 
-   DLLLOCAL QoreLValue() : type(QV_Node) {
+   DLLLOCAL QoreLValue() : type(QV_Node), assigned(false) {
       reset();
    }
 
-   DLLLOCAL QoreLValue(valtype_t t) : type(t) {
+   DLLLOCAL QoreLValue(valtype_t t) : type(t), assigned(false) {
       reset();
    }
 
-   DLLLOCAL QoreLValue(const QoreTypeInfo* typeInfo) {
+   DLLLOCAL QoreLValue(const QoreTypeInfo* typeInfo) : assigned(false) {
       set(typeInfo);
    }
 
@@ -282,10 +277,10 @@ public:
       if (!assigned)
          assigned = true;
       switch (type) {
-         case QV_Bool: v.b = val.getAsBool(); break;
-         case QV_Int: v.i = val.getAsBigInt(); break;
-         case QV_Float: v.f = val.getAsFloat(); break;
-         case QV_Node: v.n = val.takeNode(); break;
+         case QV_Bool: v.b = val.getAsBool(); return val.getNode();
+         case QV_Int: v.i = val.getAsBigInt(); return val.getNode();
+         case QV_Float: v.f = val.getAsFloat(); return val.getNode();
+         case QV_Node: { AbstractQoreNode* rv = v.n; v.n = val.takeNode(); return rv; }
          default: assert(false);
          // no break
       }
@@ -346,21 +341,21 @@ public:
       return 0;
    }
 
-   DLLLOCAL void assignInitialSwap(QoreLValue<U>& n, QoreValue& val) {
+   DLLLOCAL void assignSetInitialSwap(QoreLValue<U>& n, QoreValue& val) {
       assert(!assigned);
       assigned = true;
       type = n.type;
       switch (n.type) {
-         case QV_Bool: v.b = n.v.b; n.v.b = val.getAsBool(); break;
-         case QV_Int: v.i = n.v.i; n.v.i = val.getAsBigInt(); break;
-         case QV_Float: v.f = n.v.f; n.v.f = val.getAsFloat(); break;
+         case QV_Bool: v.b = n.v.b; n.v.b = val.v.b; break;
+         case QV_Int: v.i = n.v.i; n.v.i = val.v.i; break;
+         case QV_Float: v.f = n.v.f; n.v.f = val.v.f; break;
          case QV_Node: v.n = n.v.n; n.v.n = val.takeNode(); break;
          default: assert(false);
          // no break
       }
    }
 
-   DLLLOCAL void assignTakeInitial(QoreLValue<U>& n) {
+   DLLLOCAL void assignSetTakeInitial(QoreLValue<U>& n) {
       assert(!assigned);
       assigned = true;
       type = n.type;
@@ -374,22 +369,14 @@ public:
       }
    }
 
-   DLLLOCAL void assignInitial(const QoreValue& n) {
+
+   DLLLOCAL AbstractQoreNode* assignInitial(QoreValue& n) {
       assert(!assigned);
-      if (!assigned)
-         assigned = true;
-      type = n.type;
-      switch (n.type) {
-         case QV_Bool: v.b = n.v.b; break;
-         case QV_Int: v.i = n.v.i; break;
-         case QV_Float: v.f = n.v.f; break;
-         case QV_Node: v.n = n.v.n; break;
-         default: assert(false);
-         // no break
-      }
+      return assign(n);
    }
 
-   DLLLOCAL void assignInitial(const QoreLValue<U>& n) {
+   /*
+   DLLLOCAL void assignSetInitial(const QoreLValue<U>& n) {
       assert(!assigned);
       assigned = true;
       type = n.type;
@@ -402,6 +389,7 @@ public:
          // no break
       }
    }
+   */
 
    DLLLOCAL void assignInitial(bool n) {
       assert(!assigned);

@@ -24,7 +24,6 @@
 #include <qore/Qore.h>
 
 #include <qore/intern/ParserSupport.h>
-#include <qore/intern/CallStack.h>
 #include <qore/intern/QoreRegexBase.h>
 #include <qore/intern/QoreNamespaceList.h>
 #include <qore/intern/ssl_constants.h>
@@ -150,17 +149,16 @@ void QoreNamespace::addInitialNamespace(QoreNamespace* ns) {
    priv->addNamespace(ns->priv);
 }
 
-qore_ns_private::qore_ns_private() : depth(0), root(false), pub(false), parent(0), class_handler(0), ns(0) {
-   // attaches to the ns attribute in the constructor
+qore_ns_private::qore_ns_private() : constant(this), pendConstant(this), depth(0), root(false), pub(false), parent(0), class_handler(0), ns(0) {
    new QoreNamespace(this);
-   namepub_t np = parse_pop_namepub();
-   name = np.name;
-   pub = np.pub;
-   if (pub) {
-      QoreProgram* pgm = getProgram();
-      if (!(pgm->getParseOptions64() & PO_IN_MODULE))
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with namespace declarations in user module code (when declaring namespace '%s')", name.c_str());
-   }
+   name = parse_pop_name();
+}
+
+void qore_ns_private::setPublic() {
+   pub = true;
+   //printd(5, "qore_ns_private::setPublic() this: %p '%s::' pub:%d\n", this, name.c_str(), pub);
+   if (!(getParseOptions() & PO_IN_MODULE))
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with namespace declarations in user module code (when declaring namespace '%s')", name.c_str());
 }
 
 FunctionEntry* qore_ns_private::addPendingVariantIntern(const char* fname, AbstractQoreFunctionVariant* v, bool& new_func) {
@@ -1402,16 +1400,15 @@ qore_ns_private *qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
 cnemap_t::iterator qore_ns_private::parseAddConstant(const char* cname, AbstractQoreNode* value, bool cpub) {
    ReferenceHolder<> vh(value, 0);
 
-   if (cpub && !pub) {
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "constant '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), cname, name.c_str());
-   }
-
    if (constant.inList(cname)) {
       std::string path;
       getPath(path, true);
       parse_error("constant '%s' has already been defined in '%s'", cname, path.c_str());
       return pendConstant.end();
    }
+
+   if (cpub && !pub)
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "constant '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), cname, name.c_str());
 
    return pendConstant.parseAdd(cname, vh.release(), 0, cpub);
 }

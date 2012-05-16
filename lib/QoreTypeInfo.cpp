@@ -375,7 +375,7 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode *n
    return -1;
 }
 
-int QoreTypeInfo::acceptInputDefault(bool &priv_error, AbstractQoreNode *n) const {
+int QoreTypeInfo::acceptInputDefault(bool& priv_error, AbstractQoreNode* n) const {
    //printd(0, "QoreTypeInfo::acceptInputDefault() this=%p hasType=%d (%s) n=%p (%s)\n", this, hasType(), getName(), n, get_type_name(n));
    if (!hasType())
       return 0;

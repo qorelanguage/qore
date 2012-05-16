@@ -30,7 +30,7 @@ QoreClosureNode *QoreClosureParseNode::evalClosure() const {
 }
 
 QoreObjectClosureNode *QoreClosureParseNode::evalObjectClosure() const {
-   return new QoreObjectClosureNode(getStackObject(), this);
+   return new QoreObjectClosureNode(runtime_get_stack_object(), this);
 }
 
 AbstractQoreNode *QoreClosureParseNode::evalImpl(ExceptionSink *xsink) const {

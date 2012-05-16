@@ -37,7 +37,31 @@
 #include <map>
 #include <string>
 
-class LocalVar;
+class qore_ns_private;
+class qore_class_private;
+
+struct ClassNs {
+   // if the low bit is set, then ptr is a qore_ns_priv*, otherwise it's a qore_class_private
+   size_t ptr;
+
+   DLLLOCAL ClassNs(qore_class_private* qc) : ptr((size_t)qc) {
+   }
+
+   DLLLOCAL ClassNs(qore_ns_private* ns) {
+      ptr = ((size_t)ns) | (size_t)1;
+   }
+
+   DLLLOCAL ClassNs(const ClassNs& old) : ptr(old.ptr) {
+   }
+
+   DLLLOCAL qore_class_private* getClass() const {
+      return (!(ptr & (size_t)1)) ? (qore_class_private*)ptr : 0;
+   }
+
+   DLLLOCAL qore_ns_private* getNs() const {
+      return (ptr & (size_t)1) ? (qore_ns_private*)(ptr & ~(size_t)1) : 0;
+   }
+};
 
 class ConstantEntry {
    friend class ConstantEntryInitHelper;
@@ -52,7 +76,7 @@ public:
       pub;        // public constant (modules only)
 
    DLLLOCAL ConstantEntry() : typeInfo(0), node(0), in_init(false), init(false), pub(false) {}
-      DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false, bool n_pub = false) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init), pub(n_pub) {}
+   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false, bool n_pub = false) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init), pub(n_pub) {}
    DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
    DLLLOCAL ~ConstantEntry() {
@@ -61,15 +85,15 @@ public:
 
    DLLLOCAL void del(ExceptionSink* xsink);
 
-   DLLLOCAL int parseInit(QoreClass *class_context = 0);
-   DLLLOCAL AbstractQoreNode* get(const QoreTypeInfo*& constantTypeInfo) {
+   DLLLOCAL int parseInit(ClassNs ptr);
+   DLLLOCAL AbstractQoreNode* get(const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
       if (in_init) {
          parse_error("recursive constant reference found to constant '%s'", name.c_str());
          constantTypeInfo = nothingTypeInfo;
          return 0;
       }
 
-      if (!init && parseInit()) {
+      if (!init && parseInit(ptr)) {
          constantTypeInfo = nothingTypeInfo;
          return 0;
       }
@@ -121,16 +145,20 @@ private:
    DLLLOCAL void clearIntern(ExceptionSink *xsink);
    DLLLOCAL int checkDup(const char* name, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
 
+protected:
+   // the object that owns the list (either a class or a namespace)
+   ClassNs ptr;
+
 public:
    cnemap_t cnemap;
 
    DLLLOCAL ~ConstantList();
 
-   DLLLOCAL ConstantList() {
-      //fprintf(stderr, "XXX ConstantList::ConstantList() this=%p\n", this);
+   DLLLOCAL ConstantList(ClassNs p) : ptr(p) {
+      //printd(5, "ConstantList::ConstantList() this: %p cls: %p ns: %p\n", this, ptr.getClass(), ptr.getNs());
    }
 
-   DLLLOCAL ConstantList(const ConstantList &old);
+   DLLLOCAL ConstantList(const ConstantList &old, ClassNs p);
 
    // do not delete the object returned by this function
    DLLLOCAL cnemap_t::iterator add(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
@@ -138,7 +166,7 @@ public:
    DLLLOCAL cnemap_t::iterator parseAdd(const char* name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0, bool pub = false);
 
    DLLLOCAL ConstantEntry* findEntry(const char* name);
-   DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo, QoreClass *class_context = 0);
+   DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo);
    DLLLOCAL bool inList(const char *name) const;
    DLLLOCAL bool inList(const std::string &name) const;
    //DLLLOCAL ConstantList *copy();
@@ -155,7 +183,7 @@ public:
    // add a constant to a list with duplicate checking (pub & priv + pending)
    DLLLOCAL void parseAdd(const std::string &name, AbstractQoreNode *val, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
 
-   DLLLOCAL void parseInit(QoreClass *class_context = 0);
+   DLLLOCAL void parseInit();
    DLLLOCAL QoreHashNode *getInfo();
    DLLLOCAL void parseDeleteAll();
    DLLLOCAL void deleteAll(ExceptionSink *xsink);

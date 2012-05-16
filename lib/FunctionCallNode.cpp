@@ -250,7 +250,7 @@ double AbstractFunctionCallNode::floatEvalImpl(ExceptionSink *xsink) const {
 }
 
 AbstractQoreNode *SelfFunctionCallNode::evalImpl(ExceptionSink *xsink) const {
-   QoreObject *self = getStackObject();
+   QoreObject *self = runtime_get_stack_object();
    
    //printd(0, "SelfFunctionCallNode::evalImpl() this=%p self=%p method=%p (%s)\n", this, self, method, ns.ostr);
    if (is_copy)
@@ -515,7 +515,7 @@ AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag
    if (oc) {
       // initialize class immediately, in case the class will be instantiated immediately after during parsing
       // to be assigned to a constant
-      const_cast<QoreClass *>(oc)->initialize();
+      qore_class_private::initialize(*const_cast<QoreClass *>(oc));
 
       typeInfo = oc->getTypeInfo();
       desc.sprintf("new %s", oc->getName());

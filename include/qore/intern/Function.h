@@ -42,6 +42,7 @@ class BCAList;
 class QoreOperatorNode;
 class BarewordNode;
 class QoreFunction;
+class qore_class_private;
 
 typedef std::vector<QoreParseTypeInfo* > ptype_vec_t;
 typedef std::vector<LocalVar* > lvar_vec_t;
@@ -369,16 +370,18 @@ protected:
    StatementBlock* statements;
    // for "synchronized" functions
    VRMutex* gate;
+
 public:
    QoreProgram* pgm;
+
 protected:
    // flag to recheck params against committed after type resolution
    bool recheck;
    // flag to tell if variant has been initialized or not (still in pending list)
    bool init;
 
-   DLLLOCAL AbstractQoreNode* evalIntern(ReferenceHolder<QoreListNode>& argv, QoreObject* self, ExceptionSink* xsink, const char* class_name) const;
-   DLLLOCAL AbstractQoreNode* eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const char* class_name = 0, bool for_closure = false) const;
+   DLLLOCAL AbstractQoreNode* evalIntern(ReferenceHolder<QoreListNode>& argv, QoreObject* self, ExceptionSink* xsink) const;
+   DLLLOCAL AbstractQoreNode* eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const qore_class_private* qc = 0, bool for_closure = false) const;
    DLLLOCAL int setupCall(CodeEvaluationHelper* ceh, ReferenceHolder<QoreListNode>& argv, bool for_closure, ExceptionSink* xsink) const;
 
 public:
@@ -447,7 +450,7 @@ public:
    COMMON_USER_VARIANT_FUNCTIONS
 
    DLLLOCAL virtual AbstractQoreNode* evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-      return eval(name,& ceh, 0, xsink);
+      return eval(name, &ceh, 0, xsink);
    }
 
    DLLLOCAL virtual void parseInit(QoreFunction* f);
@@ -956,7 +959,7 @@ public:
    DLLLOCAL virtual void parseInit(QoreFunction* f);
 
    DLLLOCAL AbstractQoreNode* evalClosure(CodeEvaluationHelper& ceh, QoreObject* self, ExceptionSink* xsink) const {
-      return eval("<anonymous closure>",& ceh, self, xsink, 0, true);
+      return eval("<anonymous closure>", &ceh, self, xsink, 0, true);
    }
 };
 

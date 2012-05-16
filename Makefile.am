@@ -463,7 +463,6 @@ noinst_HEADERS = \
 	include/qore/intern/CaseNodeWithOperator.h \
 	include/qore/intern/CaseNodeRegex.h \
 	include/qore/intern/ClassRefNode.h \
-	include/qore/intern/CallStack.h \
 	include/qore/intern/AbstractStatement.h \
 	include/qore/intern/OnBlockExitStatement.h \
 	include/qore/intern/RethrowStatement.h \

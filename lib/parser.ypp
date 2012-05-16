@@ -178,12 +178,12 @@ public:
          free(name);
    }
 
-   DLLLOCAL void add(QoreNamespace& ns) {
+   DLLLOCAL void add(qore_ns_private& ns) {
       qore_root_ns_private::addPendingVariant(ns, name, variant);
       variant = 0;
       // make sure definition was legal
       if (checkParseOption(PO_NO_SUBROUTINE_DEFS)) {
-         const char* nsn = ns.getName();
+         const char* nsn = ns.name.c_str();
          parse_error("function '%s%s%s()' cannot be defined (conflicts with parse option NO_SUBROUTINE_DEFS)", nsn[0] ? nsn : "", nsn[0] ? "::" : "", name);
       }
 
@@ -198,7 +198,7 @@ public:
    DLLLOCAL ParseScopedUserFunction(char* n_name, UserFunctionVariant* n_variant) : ParseUserFunctionBase(n_variant), name(n_name) {
    }
 
-   DLLLOCAL void add(QoreNamespace& ns) {
+   DLLLOCAL void add(qore_ns_private& ns) {
       qore_root_ns_private::addPendingVariant(ns, name, variant);
       variant = 0;
       // make sure definition was legal
@@ -225,7 +225,7 @@ struct GVarDecl {
    DLLLOCAL virtual ~GVarDecl() {
    }
 
-   DLLLOCAL virtual void add(QoreNamespace& ns) = 0;
+   DLLLOCAL virtual void add(qore_ns_private& ns) = 0;
 
    DLLLOCAL virtual AbstractQoreNode* makeVar() = 0;
 };
@@ -265,8 +265,8 @@ struct GVarSingleDecl : public GVarDecl {
       return rv;
    }
 
-   DLLLOCAL virtual void add(QoreNamespace& ns) {
-      qore_ns_private::parseAddGlobalVarDecl(ns, takeName(), typeInfo, takeParseTypeInfo(), pub);
+   DLLLOCAL virtual void add(qore_ns_private& ns) {
+      ns.parseAddGlobalVarDecl(takeName(), typeInfo, takeParseTypeInfo(), pub);
       delete this;
    }
 
@@ -322,23 +322,23 @@ struct GVarListDecl : public GVarDecl {
       return rv;
    }
 
-   DLLLOCAL virtual void add(QoreNamespace& ns) {
+   DLLLOCAL virtual void add(qore_ns_private& ns) {
       ListIterator li(l);
       while (li.next()) {
          AbstractQoreNode *n = li.getValue();
          qore_type_t t = get_node_type(n);
          if (t == NT_BAREWORD) {
             BarewordNode *b = reinterpret_cast<BarewordNode *>(n);
-            qore_ns_private::parseAddGlobalVarDecl(ns, b->takeString(), 0, 0, pub);
+            ns.parseAddGlobalVarDecl(b->takeString(), 0, 0, pub);
          }
          else if (t == NT_VARREF) {
             VarRefNode* vrn = reinterpret_cast<VarRefNode *>(n);
             if (!vrn->explicitScope()) {
                VarRefDeclNode* vrdn = dynamic_cast<VarRefDeclNode*>(vrn);
                if (vrdn)
-                  qore_ns_private::parseAddGlobalVarDecl(ns, vrn->takeName(), vrdn->getTypeInfo(), vrdn->takeParseTypeInfo(), pub);
+                  ns.parseAddGlobalVarDecl(vrn->takeName(), vrdn->getTypeInfo(), vrdn->takeParseTypeInfo(), pub);
                else
-                  qore_ns_private::parseAddGlobalVarDecl(ns, vrn->takeName(), 0, 0, pub);
+                  ns.parseAddGlobalVarDecl(vrn->takeName(), 0, 0, pub);
             }
          }
       }
@@ -378,6 +378,7 @@ struct GVarListDecl : public GVarDecl {
    }
 };
 
+#define NSN_NONE  0
 #define NSN_OCD   1
 #define NSN_CONST 2
 #define NSN_NS    3
@@ -410,33 +411,54 @@ struct NSNode {
       n.gv = gv;
    }
 
-   DLLLOCAL void add(QoreNamespace& ns) {
+   DLLLOCAL void deref() {
+      assert(false);
+      delete this;
+   }
+
+   DLLLOCAL void add(qore_ns_private& ns) {
       switch (type) {
          case NSN_OCD:
-            qore_ns_private::parseAddPendingClass(ns, *(n.ocd->name), n.ocd->oc);
+            ns.parseAddPendingClass(*(n.ocd->name), n.ocd->oc);
             delete n.ocd;
             break;
          case NSN_CONST:
-            qore_ns_private::parseAddConstant(ns, n.cn->name, n.cn->value, n.cn->pub);
+            ns.parseAddConstant(n.cn->name, n.cn->value, n.cn->pub);
             delete n.cn;
             break;
          case NSN_NS:
-            qore_ns_private::parseAddNamespace(ns, n.ns);
+            ns.parseAddNamespace(n.ns);
             break;
-         case NSN_FUNC: {
+         case NSN_FUNC:
             n.func->add(ns);
             break;
-         }
-         case NSN_SFUNC: {
+         case NSN_SFUNC:
             n.sfunc->add(ns);
             break;
-         }
-         case NSN_VAR: {
+         case NSN_VAR:
             n.gv->add(ns);
             break;
-         }
+         default:
+            assert(false);
+            // no break
       }
       delete this;
+   }
+};
+
+typedef std::vector<NSNode*> nsnode_list_t;
+
+struct NSNodeList : public nsnode_list_t {
+   DLLLOCAL void deref() {
+      for (nsnode_list_t::iterator i = begin(), e = end(); i != e; ++i)
+         (*i)->deref();
+
+      delete this;
+   }
+
+   DLLLOCAL void add(qore_ns_private& ns) {
+      for (nsnode_list_t::iterator i = begin(), e = end(); i != e; ++i)
+         (*i)->add(ns);
    }
 };
 
@@ -569,11 +591,11 @@ protected:
    // for new class static variables
    QoreVarMap vmap;
    
-   DLLLOCAL MemberList() {
+   DLLLOCAL MemberList() : cmap((qore_class_private*)0) {
    }
 
 public:
-   DLLLOCAL MemberList(MemberInfo *member) {
+   DLLLOCAL MemberList(MemberInfo *member) : cmap((qore_class_private*)0) {
       if (!member)
 	 return;
 
@@ -867,22 +889,41 @@ static int check_case(const char *op, AbstractQoreNode *exp) {
 
 static void check_funcmod(int mod) {
    if (mod & OFM_PRIVATE)
-      parse_error("illegal 'private' modifier in function definition");
+      parse_error("illegal 'private' modifier in function declaration");
    if (mod & OFM_STATIC)
-      parse_error("illegal 'static' modifier in function definition");
+      parse_error("illegal 'static' modifier in function declaration");
    if (mod & OFM_FINAL)
-      parse_error("illegal 'final' modifier in function definition");
+      parse_error("illegal 'final' modifier in function declaration");
 }
 
-static void check_classmod(int mod) {
+static void check_classmod(int mod, QoreClass& qc) {
    if (mod & OFM_PRIVATE)
-      parse_error("illegal 'private' modifier in class definition");
+      parse_error("illegal 'private' modifier in class declaration");
    if (mod & OFM_SYNCED)
-      parse_error("illegal 'synchronized' modifier in class definition");
+      parse_error("illegal 'synchronized' modifier in class declaration");
    if (mod & OFM_STATIC)
-      parse_error("illegal 'static' modifier in class definition");
+      parse_error("illegal 'static' modifier in class declaration");
+   if (mod & OFM_PUBLIC)
+      qore_class_private::setPublic(qc);
    if (mod & OFM_DEPRECATED)
-      parse_error("illegal 'deprecated' modifier in class definition");
+      parse_error("illegal 'deprecated' modifier in class declaration");
+   if (mod & OFM_FINAL)
+      qore_class_private::setFinal(qc);
+}
+
+static void check_nsmod(int mod, qore_ns_private& ns) {
+   if (mod & OFM_PRIVATE)
+      parse_error("illegal 'private' modifier in namespace declaration");
+   if (mod & OFM_SYNCED)
+      parse_error("illegal 'synchronized' modifier in namespace declaration");
+   if (mod & OFM_STATIC)
+      parse_error("illegal 'static' modifier in namespace declaration");
+   if (mod & OFM_PUBLIC)
+      ns.setPublic();
+   if (mod & OFM_DEPRECATED)
+      parse_error("illegal 'deprecated' modifier in namespace declaration");
+   if (mod & OFM_FINAL)
+      parse_error("illegal 'final' modifier in namespace declaration");
 }
 
 static bool hasEffect(AbstractQoreNode *n) {
@@ -912,7 +953,6 @@ static int checkMethod(const char *name, BCAList *bcal, RetTypeInfo *returnTypeI
 }
 
 static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b, int64 flags = QC_NO_FLAGS) {
-
    if (get_pop_argv_ref())
       flags |= QC_USES_EXTRA_ARGS;
 
@@ -924,6 +964,8 @@ static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int
    if (!strcmp(name, "constructor")) {
       if (mod & OFM_SYNCED)
 	 parse_error("constructors may not be synchronized");
+      if (mod & OFM_FINAL)
+         parse_error("constructors cannot by declared final; declare the class final instead");
       if (returnTypeInfo) {
 	 parse_error("return type information cannot be defined for constructors");
 	 delete returnTypeInfo;
@@ -954,7 +996,7 @@ static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int
          return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
    }
 
-   return new UserMethodVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags);
+   return new UserMethodVariant(mod & OFM_PRIVATE, mod & OFM_FINAL, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags);
 }
 
 static inline void tryAddMethod(int mod, char *n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b) {
@@ -1081,6 +1123,7 @@ static qore_var_t get_var_type() {
    QoreClass *qoreclass;
    class ConstNode *constnode;
    QoreNamespace *ns;
+   struct NSNodeList* nsnlist;
    struct NSNode *nsn;
    class ObjClassDef *classdef;
    DateTimeNode *datetime;
@@ -1295,12 +1338,13 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <qoreclass>      class_attributes
 %type <classdef>       class_def
 %type <ns>             top_namespace_decl
-%type <ns>             namespace_decls
+%type <nsnlist>        namespace_decls
 %type <nsn>            namespace_decl
 %type <constnode>      scoped_const_decl
 %type <constnode>      unscoped_const_decl
 %type <i4>             method_modifiers
 %type <i4>             method_modifier
+%type <i4>             nsc_modifiers
 %type <returnTypeInfo> return_value
 %type <string>         optname
 %type <statement>      switch_statement
@@ -1321,10 +1365,10 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <gv>             gvardecl
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl
-%destructor { if ($$) $$->deref(); } string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
-%destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
+%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
+%destructor { if ($$) $$->deref(); } namespace_decl namespace_decls string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
+%destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 
 %%
 top_level_commands:
@@ -1334,10 +1378,10 @@ top_level_commands:
 
 top_level_command:
         sub_def {
-           $1->add(*(getRootNS()));
+           $1->add(*(qore_ns_private::get(*(getRootNS()))));
         }
         | scoped_sub_def {
-           $1->add(*(getRootNS()));
+           $1->add(*(qore_ns_private::get(*(getRootNS()))));
         }
         | class_def {
            qore_root_ns_private::parseAddClass(*($1->name), $1->oc);
@@ -1445,28 +1489,33 @@ gvardecl:
         ;
 
 top_namespace_decl:
-        TOK_NAMESPACE '{' namespace_decls '}' {
-           $$ = $3;
-        }
-        | TOK_NAMESPACE ';' {
+        nsc_modifiers TOK_NAMESPACE '{' namespace_decls '}' {
            qore_ns_private* p = new qore_ns_private;
+           check_nsmod($1, *p);
+           $4->add(*p);
+           delete $4;
            $$ = p->ns;
         }
-        | TOK_NAMESPACE '{' '}' {
+        | nsc_modifiers TOK_NAMESPACE ';' {
            qore_ns_private* p = new qore_ns_private;
+           check_nsmod($1, *p);
+           $$ = p->ns;
+        }
+        | nsc_modifiers TOK_NAMESPACE '{' '}' {
+           qore_ns_private* p = new qore_ns_private;
+           check_nsmod($1, *p);
            $$ = p->ns;
         }
 	;
 
 namespace_decls:
 	namespace_decl {
-           qore_ns_private* p = new qore_ns_private;
-           $1->add(*(p->ns));
-           $$ = p->ns;
+	   $$ = new NSNodeList;
+	   $$->push_back($1);
         }
         | namespace_decls namespace_decl {
-           $2->add(*($1));
-	   $$ = $1;
+           $$ = $1;
+           $$->push_back($2);
 	}
 	;
 
@@ -1817,38 +1866,43 @@ myexp:  /* empty */  { $$ = 0; }
         ;
 
 class_def:
-        CLASS_STRING inheritance_list '{' class_attributes '}' {
-           //check_classmod($1);
-           $4->parseSetBaseClassList($2);
-	   $$ = new ObjClassDef($1, $4);
+        nsc_modifiers CLASS_STRING inheritance_list '{' class_attributes '}' {
+           check_classmod($1, *($5));
+           qore_class_private::parseSetBaseClassList(*($5), $3);
+	   $$ = new ObjClassDef($2, $5);
 	}
-        | CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' { 
-	   $$ = new ObjClassDef($1, $4); 
-	   $4->parseSetBaseClassList($2);
+        | nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' {
+           check_classmod($1, *($5));
+	   $$ = new ObjClassDef($2, $5);
+           qore_class_private::parseSetBaseClassList(*($5), $3);
 	}
-	| CLASS_STRING inheritance_list ';' { 
+	| nsc_modifiers CLASS_STRING inheritance_list ';' {
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
-	   qc->parseSetBaseClassList($2);
-	   $$ = new ObjClassDef($1, qc);
+           check_classmod($1, *qc);
+           qore_class_private::parseSetBaseClassList(*qc, $3);
+	   $$ = new ObjClassDef($2, qc);
 	}
-	| CLASS_SCOPED_REF inheritance_list ';' { 
+	| nsc_modifiers CLASS_SCOPED_REF inheritance_list ';' {
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
-	   $$ = new ObjClassDef($1, qc);
-	   qc->parseSetBaseClassList($2);
+           check_classmod($1, *qc);
+	   $$ = new ObjClassDef($2, qc);
+           qore_class_private::parseSetBaseClassList(*qc, $3);
 	}
-        | CLASS_STRING inheritance_list '{' '}' { 
+        | nsc_modifiers CLASS_STRING inheritance_list '{' '}' {
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
-	   qc->parseSetBaseClassList($2);
-	   $$ = new ObjClassDef($1, qc);
+           check_classmod($1, *qc);
+           qore_class_private::parseSetBaseClassList(*qc, $3);
+	   $$ = new ObjClassDef($2, qc);
 	}
-	| CLASS_SCOPED_REF inheritance_list '{' '}' { 
+	| nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' '}' {
            // class name is set automatically from name saved in scanner
 	   QoreClass *qc = new QoreClass;
-	   $$ = new ObjClassDef($1, qc);
-	   qc->parseSetBaseClassList($2);
+           check_classmod($1, *qc);
+	   $$ = new ObjClassDef($2, qc);
+           qore_class_private::parseSetBaseClassList(*qc, $3);
 	}
 	;
 
@@ -2151,11 +2205,11 @@ ident_openparen:
         ;
 
 method_definition:
-        method_modifiers ident_openparen myexp ')' base_constructor_list return_value block {
+        nsc_modifiers ident_openparen myexp ')' base_constructor_list return_value block {
 	   checkMethod($2, $5, $6);
 	   $$ = new MethodNode($2, newMethodVariant($2, $1, @3.first_line, @3.last_line, $3, $5, $6, $7, $1 & OFM_DEPRECATED), $1 & OFM_STATIC);
 	}
-        | method_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list block {
+        | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list block {
 	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 	   
@@ -2163,25 +2217,13 @@ method_definition:
 
 	   $$ = new MethodNode($3, newMethodVariant($3, $1, @4.first_line, @4.last_line, $4, $6, rt, $7, $1 & OFM_DEPRECATED), $1 & OFM_STATIC);
 	}
-	| ident_openparen myexp ')' base_constructor_list return_value block {
-	   checkMethod($1, $4, $5);
-	   $$ = new MethodNode($1, newMethodVariant($1, 0, @2.first_line, @2.last_line, $2, $4, $5, $6), false);
-	}
-	| uncqtypedef ident_openparen myexp ')' base_constructor_list block {
-	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
-	   delete $1;
-
-	   checkMethod($2, $5, rt);
-
-	   $$ = new MethodNode($2, newMethodVariant($2, 0, @3.first_line, @3.last_line, $3, $5, rt, $6), false);
-	}
 	;
 
 object_outofline_function_def:
 	method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
 	   tryAddMethod($1, $2, @4.first_line, @4.last_line, $4, $6, $7, $8);
 	}
-	|method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
+	| method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
 	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 
@@ -2226,6 +2268,13 @@ base_constructor:
 	}
 	;
 
+nsc_modifiers:
+        // nothing
+        { $$ = 0; }
+        | method_modifiers {
+           $$ = $1;
+        }
+
 method_modifiers:
         method_modifier { $$ = $1; }
         | method_modifiers method_modifier {
@@ -2241,6 +2290,7 @@ method_modifier:
         | TOK_SYNCHRONIZED { $$ = OFM_SYNCED; }
         | TOK_DEPRECATED { $$ = OFM_DEPRECATED; }
         | TOK_PUBLIC { $$ = OFM_PUBLIC; }
+        | TOK_FINAL { $$ = OFM_FINAL; }
         ;
 
 return_value:
@@ -2260,15 +2310,15 @@ return_value:
 	}
 
 sub_def:
-	TOK_SUB ident_openparen myexp ')' return_value block { 
+	TOK_SUB ident_openparen myexp ')' return_value block {
 	   int ar = get_pop_argv_ref();
 	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
            $$ = new ParseUserFunction($2, new UserFunctionVariant($6, @3.first_line, @3.last_line, $3, $5, false, flags));
 	}
-        | uncqtypedef TOK_SUB ident_openparen myexp ')' block { 
+        | uncqtypedef TOK_SUB ident_openparen myexp ')' block {
 	   int ar = get_pop_argv_ref();
 	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
-	   
+
 	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
 	   delete $1;
 
@@ -2301,15 +2351,15 @@ sub_def:
 	}
 
 scoped_sub_def:
-	TOK_SUB SCOPED_REF '(' myexp ')' return_value block { 
+	TOK_SUB SCOPED_REF '(' myexp ')' return_value block {
 	   int ar = get_pop_argv_ref();
 	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
            $$ = new ParseScopedUserFunction($2, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, false, flags));
 	}
-        | uncqtypedef TOK_SUB SCOPED_REF '(' myexp ')' block { 
+        | uncqtypedef TOK_SUB SCOPED_REF '(' myexp ')' block {
 	   int ar = get_pop_argv_ref();
 	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
-	   
+
 	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
 	   delete $1;
 

@@ -21,7 +21,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/CallStack.h>
 #include <qore/intern/qore_program_private.h>
 
 #include <qore/safe_dslist>

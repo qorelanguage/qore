@@ -51,29 +51,41 @@ class BCList;
 // forward reference for base class (constructor) evaluated argument list
 class BCEAList;
 
+// forward reference to private class implementation
+class qore_class_private;
+
 class MethodVariantBase : public AbstractQoreFunctionVariant {
 protected:
-   // is the method private or not
-   bool priv_flag;
-   // pointer to method that owns the variant
-   const QoreMethod* qmethod;
+   const QoreMethod* qmethod;    // pointer to method that owns the variant
+   bool priv_flag,               // is the method private or not
+      final;                     // is the method final or not
 
 public:
-   DLLLOCAL MethodVariantBase(bool n_priv_flag, int64 n_flags, bool n_is_user = false) : AbstractQoreFunctionVariant(n_flags, n_is_user), priv_flag(n_priv_flag), qmethod(0) {
+   DLLLOCAL MethodVariantBase(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false) : AbstractQoreFunctionVariant(n_flags, n_is_user), qmethod(0), priv_flag(n_priv_flag), final(n_final) {
    }
+
    DLLLOCAL bool isPrivate() const {
       return priv_flag;
    }
+
+   DLLLOCAL bool isFinal() const {
+      return final;
+   }
+
    DLLLOCAL void setMethod(QoreMethod* n_qm) {
       qmethod = n_qm;
    }
+
    DLLLOCAL const QoreMethod* method() const {
       assert(qmethod);
       return qmethod;
    }
-   DLLLOCAL virtual const QoreClass* getClass() const {
+
+   DLLLOCAL const QoreClass* getClass() const {
       return qmethod->getClass();
    }
+
+   DLLLOCAL const qore_class_private* getClassPriv() const;
 };
 
 #define METHVB(f) (reinterpret_cast<MethodVariantBase *>(f))
@@ -81,7 +93,7 @@ public:
 
 class MethodVariant : public MethodVariantBase {
 public:
-   DLLLOCAL MethodVariant(bool n_priv_flag, int64 n_flags, bool n_is_user = false) : MethodVariantBase(n_priv_flag, n_flags, n_is_user) {
+   DLLLOCAL MethodVariant(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false) : MethodVariantBase(n_priv_flag, n_final, n_flags, n_is_user) {
    }
    DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const = 0;
    DLLLOCAL virtual int64 bigIntEvalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
@@ -131,7 +143,7 @@ protected:
    DLLLOCAL int constructorPrelude(const QoreClass &thisclass, CodeEvaluationHelper &ceh, QoreObject *self, BCList *bcl, BCEAList *bceal, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL ConstructorMethodVariant(bool n_priv_flag, int64 n_flags, bool n_is_user = false) : MethodVariantBase(n_priv_flag, n_flags, n_is_user) {
+   DLLLOCAL ConstructorMethodVariant(bool n_priv_flag, int64 n_flags, bool n_is_user = false) : MethodVariantBase(n_priv_flag, false, n_flags, n_is_user) {
    }
    DLLLOCAL virtual const BCAList *getBaseClassArgumentList() const = 0;
    DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, CodeEvaluationHelper &ceh, BCList *bcl, BCEAList *bceal, ExceptionSink* xsink) const = 0;
@@ -166,7 +178,7 @@ public:
 
 class UserMethodVariant : public MethodVariant, public UserVariantBase {
 public:
-   DLLLOCAL UserMethodVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags) : MethodVariant(n_priv_flag, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserMethodVariant(bool n_priv_flag, bool n_final, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags) : MethodVariant(n_priv_flag, n_final, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -191,7 +203,7 @@ public:
    }
 
    DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      return eval(qmethod->getName(), &ceh, self, xsink, qmethod->getClass()->getName());
+      return eval(qmethod->getName(), &ceh, self, xsink, getClassPriv());
    }
 };
 
@@ -233,7 +245,7 @@ public:
       if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
 	 return;
 
-      discard(evalIntern(uveh.getArgv(), self, xsink, thisclass.getName()), xsink);
+      discard(evalIntern(uveh.getArgv(), self, xsink), xsink);
    }
 
    DLLLOCAL virtual void parseInit(QoreFunction* f);
@@ -271,7 +283,7 @@ public:
       assert(!signature.numParams());
       assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
       ProgramContextHelper pch(pgm);
-      discard(eval("destructor", 0, self, xsink, thisclass.getName()), xsink);
+      discard(eval("destructor", 0, self, xsink, getClassPriv()), xsink);
    }
 };
 
@@ -296,7 +308,7 @@ public:
 
 class BuiltinMethodVariant : public MethodVariant, public BuiltinFunctionVariantBase {
 public:
-   DLLLOCAL BuiltinMethodVariant(bool n_priv_flag, int64 n_flags, int64 n_functionality, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : MethodVariant(n_priv_flag, n_flags), BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {}
+   DLLLOCAL BuiltinMethodVariant(bool n_priv_flag, bool n_final, int64 n_flags, int64 n_functionality, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : MethodVariant(n_priv_flag, n_final, n_flags), BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {}
 
    // the following defines the pure virtual functions that are common to all builtin variants
    COMMON_BUILTIN_VARIANT_FUNCTIONS
@@ -304,7 +316,7 @@ public:
 
 class BuiltinNormalMethodVariantBase : public BuiltinMethodVariant {
 public:
-   DLLLOCAL BuiltinNormalMethodVariantBase(bool n_priv_flag, int64 n_flags,  int64 n_functionality, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {}
+   DLLLOCAL BuiltinNormalMethodVariantBase(bool n_priv_flag, bool n_final, int64 n_flags, int64 n_functionality, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {}
 
    DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), self, xsink);
@@ -366,7 +378,7 @@ protected:
    q_method_t method;
 
 public:
-   DLLLOCAL BuiltinNormalMethodVariant(q_method_t m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
+   DLLLOCAL BuiltinNormalMethodVariant(q_method_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
    }
    DLLLOCAL virtual AbstractQoreNode* evalImpl(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode* args, ExceptionSink* xsink) const {
       return method(self, private_data, args, xsink);
@@ -379,7 +391,7 @@ protected:
    F method;
 
 public:
-   DLLLOCAL BuiltinNormalMethodTypeVariantBase(F m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
+   DLLLOCAL BuiltinNormalMethodTypeVariantBase(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
    }
    DLLLOCAL virtual int64 bigIntEvalImpl(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode* args, ExceptionSink* xsink) const {
       return (int64)method(self, private_data, args, xsink);
@@ -398,7 +410,7 @@ public:
 template <typename B, typename F, class Q>
 class BuiltinNormalMethodTypeVariant : public BuiltinNormalMethodTypeVariantBase<F> {
 public:
-   DLLLOCAL BuiltinNormalMethodTypeVariant(F m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodTypeVariantBase<F>(m, n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
+   DLLLOCAL BuiltinNormalMethodTypeVariant(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodTypeVariantBase<F>(m, n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
    }
    DLLLOCAL virtual AbstractQoreNode* evalImpl(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode* args, ExceptionSink* xsink) const {
       B rv = BuiltinNormalMethodTypeVariantBase<F>::method(self, private_data, args, xsink);
@@ -412,7 +424,7 @@ typedef BuiltinNormalMethodTypeVariant<double, q_method_double_t, QoreFloatNode>
 
 class BuiltinNormalMethodBoolVariant : public BuiltinNormalMethodTypeVariantBase<q_method_bool_t> {
 public:
-   DLLLOCAL BuiltinNormalMethodBoolVariant(q_method_bool_t m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodTypeVariantBase<q_method_bool_t>(m, n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
+   DLLLOCAL BuiltinNormalMethodBoolVariant(q_method_bool_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodTypeVariantBase<q_method_bool_t>(m, n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
    }
    DLLLOCAL virtual AbstractQoreNode* evalImpl(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode* args, ExceptionSink* xsink) const {
       bool rv = method(self, private_data, args, xsink);
@@ -425,7 +437,7 @@ protected:
    q_method2_t method;
 
 public:
-   DLLLOCAL BuiltinNormalMethod2Variant(q_method2_t m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
+   DLLLOCAL BuiltinNormalMethod2Variant(q_method2_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
    }
    DLLLOCAL virtual AbstractQoreNode* evalImpl(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode* args, ExceptionSink* xsink) const {
       return method(*qmethod, self, private_data, args, xsink);
@@ -438,7 +450,7 @@ protected:
    const void *ptr;
 
 public:
-   DLLLOCAL BuiltinNormalMethod3Variant(const void *n_ptr, q_method3_t m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m), ptr(n_ptr) {
+   DLLLOCAL BuiltinNormalMethod3Variant(const void *n_ptr, q_method3_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m), ptr(n_ptr) {
    }
    DLLLOCAL virtual AbstractQoreNode* evalImpl(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode* args, ExceptionSink* xsink) const {
       return method(*qmethod, signature.getTypeList(), ptr, self, private_data, args, xsink);
@@ -450,10 +462,11 @@ protected:
    q_func_t static_method;
 
 public:
-   DLLLOCAL BuiltinStaticMethodVariant(q_func_t m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
+   DLLLOCAL BuiltinStaticMethodVariant(q_func_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
+
    DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
+      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
 
       return static_method(ceh.getArgs(), xsink);
    }
@@ -465,28 +478,28 @@ protected:
    F static_method;
 
 public:
-   DLLLOCAL BuiltinStaticMethodTypeVariantBase(F m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
+   DLLLOCAL BuiltinStaticMethodTypeVariantBase(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
    DLLLOCAL virtual int64 bigIntEvalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
+      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
 
       return (int64)static_method(ceh.getArgs(), xsink);
    }
 
    DLLLOCAL virtual int intEvalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
+      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
 
       return (int)static_method(ceh.getArgs(), xsink);
    }
 
    DLLLOCAL virtual bool boolEvalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
+      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
 
       return (bool)static_method(ceh.getArgs(), xsink);
    }
 
    DLLLOCAL virtual double floatEvalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
+      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
 
       return (double)static_method(ceh.getArgs(), xsink);
    }
@@ -495,7 +508,7 @@ public:
 template <typename B, typename F, class Q>
 class BuiltinStaticMethodTypeVariant : public BuiltinStaticMethodTypeVariantBase<F> {
 public:
-   DLLLOCAL BuiltinStaticMethodTypeVariant(F m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinStaticMethodTypeVariantBase<F>(m, n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
+   DLLLOCAL BuiltinStaticMethodTypeVariant(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinStaticMethodTypeVariantBase<F>(m, n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
    }
    DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       B rv = BuiltinStaticMethodTypeVariantBase<F>::static_method(ceh.getArgs(), xsink);
@@ -508,7 +521,7 @@ typedef BuiltinStaticMethodTypeVariant<double, q_func_double_t, QoreFloatNode> B
 
 class BuiltinStaticMethodBoolVariant : public BuiltinStaticMethodTypeVariantBase<q_func_bool_t> {
 public:
-   DLLLOCAL BuiltinStaticMethodBoolVariant(q_func_bool_t m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinStaticMethodTypeVariantBase<q_func_bool_t>(m, n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
+   DLLLOCAL BuiltinStaticMethodBoolVariant(q_func_bool_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinStaticMethodTypeVariantBase<q_func_bool_t>(m, n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
    }
    DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       bool rv = BuiltinStaticMethodTypeVariantBase<q_func_bool_t>::static_method(ceh.getArgs(), xsink);
@@ -521,10 +534,10 @@ protected:
    q_static_method2_t static_method;
 
 public:
-   DLLLOCAL BuiltinStaticMethod2Variant(q_static_method2_t m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
+   DLLLOCAL BuiltinStaticMethod2Variant(q_static_method2_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
    DLLLOCAL AbstractQoreNode* evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
+      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
 
       return static_method(*qmethod, ceh.getArgs(), xsink);
    }
@@ -536,10 +549,10 @@ protected:
    const void *ptr;
 
 public:
-   DLLLOCAL BuiltinStaticMethod3Variant(const void *n_ptr, q_static_method3_t m, bool n_priv_flag, int64 n_flags, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m), ptr(n_ptr) {
+   DLLLOCAL BuiltinStaticMethod3Variant(const void *n_ptr, q_static_method3_t m, bool n_priv_flag, bool n_final, int64 n_flags, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m), ptr(n_ptr) {
    }
    DLLLOCAL AbstractQoreNode* evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
+      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
 
       return static_method(*qmethod, signature.getTypeList(), ptr, ceh.getArgs(), xsink);
    }
@@ -1232,6 +1245,9 @@ public:
    DLLLOCAL void resolveCopy();
 };
 
+// set of private class pointers; used when checking for recursive class inheritance lists
+typedef std::set<qore_class_private*> qcp_set_t;
+
 // BCNode 
 // base class pointer
 class BCNode {
@@ -1270,7 +1286,8 @@ public:
    }
 
    DLLLOCAL bool isPrivate() const { return priv; }
-   DLLLOCAL void parseInit(QoreClass* cls, bool &has_delete_blocker);
+   // returns -1 if a recursive reference is found, 0 if not
+   DLLLOCAL int parseInit(QoreClass* cls, bool &has_delete_blocker, qcp_set_t& qcp_set);
    DLLLOCAL const QoreClass* getClass(qore_classid_t cid, bool &n_priv) const {
       // sclass can be 0 if the class could not be found during parse initialization
       if (!sclass)
@@ -1284,9 +1301,6 @@ public:
 
    DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, bool& n_priv) const;
 };
-
-// set of private class pointers; used when checking for recursive class inheritance lists
-typedef std::set<qore_class_private*> qcp_set_t;
 
 typedef std::vector<BCNode* > bclist_t;
 
@@ -1322,7 +1336,7 @@ public:
          delete *i;
    }
 
-   DLLLOCAL void parseInit(QoreClass* thisclass, bool &has_delete_blocker);
+   DLLLOCAL int parseInit(QoreClass* thisclass, bool& has_delete_blocker, qcp_set_t& qcp_set);
    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* name);
 
    // only looks in committed method lists
@@ -1370,7 +1384,6 @@ public:
    DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, bool check) const;
 
    DLLLOCAL void resolveCopy();
-   DLLLOCAL int checkRecursive(qcp_set_t& qcp_set);
 };
 
 // BCEANode
@@ -1421,7 +1434,7 @@ struct SelfInstantiatorHelper {
    }
 };
 
-// signature hash size - we use SHA1 for performance reasons (and because we don't necessarily need the best crytographic security)
+// signature hash size - we use SHA1 for performance reasons (and because we don't necessarily need the best cryptographic security)
 #define SH_SIZE 20
 
 // class "signature" hash for comparing classes with the same name from different program objects at runtime
@@ -1457,12 +1470,10 @@ public:
       return is_set;
    }
 
-#ifdef DEBUG
    DLLLOCAL void toString(QoreString& str) const {
       for (unsigned i = 0; i < SH_SIZE; ++i) 
          str.sprintf("%02x", buf[i]);
    }
-#endif
 };
 
 // private QoreClass implementation
@@ -1634,6 +1645,8 @@ public:
       return checkAssignSpecialIntern(m);
    }
 
+   // returns -1 if a recursive inheritance list was found, 0 if not
+   DLLLOCAL int initializeIntern(qcp_set_t& qcp_set);
    DLLLOCAL void initialize();
 
    DLLLOCAL void parseInitPartial();
@@ -1940,14 +1953,14 @@ public:
 
    DLLLOCAL AbstractQoreNode* parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo) {
       // first check public constants
-      AbstractQoreNode* rv = pub_const.find(cname, cTypeInfo, cls);
+      AbstractQoreNode* rv = pub_const.find(cname, cTypeInfo);
       if (!rv) {
-	 rv = pend_pub_const.find(cname, cTypeInfo, cls);
+	 rv = pend_pub_const.find(cname, cTypeInfo);
 	 if (!rv) {
 	    // now check private constants
-	    rv = priv_const.find(cname, cTypeInfo, cls);
+	    rv = priv_const.find(cname, cTypeInfo);
 	    if (!rv)
-	       rv = pend_priv_const.find(cname, cTypeInfo, cls);
+	       rv = pend_priv_const.find(cname, cTypeInfo);
 	 
 	    // check for accessibility to private constants
 	    if (rv && !parseCheckPrivateClassAccess()) {
@@ -1965,16 +1978,16 @@ public:
       bool priv = false;
 
       // first check public constants
-      AbstractQoreNode* rv = pub_const.find(cname, cTypeInfo, cls);
+      AbstractQoreNode* rv = pub_const.find(cname, cTypeInfo);
       if (!rv) {
-	 rv = pend_pub_const.find(cname, cTypeInfo, cls);
+	 rv = pend_pub_const.find(cname, cTypeInfo);
 	 if (!rv) {
             priv = true;
 
 	    // now check private constants
-	    rv = priv_const.find(cname, cTypeInfo, cls);
+	    rv = priv_const.find(cname, cTypeInfo);
 	    if (!rv) {
-	       rv = pend_priv_const.find(cname, cTypeInfo, cls);
+	       rv = pend_priv_const.find(cname, cTypeInfo);
             }
 	 }
       }
@@ -2070,7 +2083,7 @@ public:
       shm[m->getName()] = m;
       // maintain method counts (safely inside parse lock)
       ++num_static_methods;
-      if (!sys) sys = true;
+      if (!sys) { sys = true; }
       // check for special methods (except constructor and destructor) and abort if found
       assert(!checkSpecialStaticIntern(m->getName()));
       // add ancestors
@@ -2083,7 +2096,7 @@ public:
       hm[m->getName()] = m;      
       // maintain method counts (safely inside parse lock)
       ++num_methods;
-      if (!sys) sys = true;
+      if (!sys) { sys = true; }
       // check for special methods (except constructor and destructor)
       if (!special_method && !checkAssignSpecialIntern(m))
 	 // add ancestors
@@ -2413,7 +2426,7 @@ public:
    // this = class to find in "oc"
    DLLLOCAL qore_type_result_e runtimeCheckCompatibleClass(const qore_class_private& oc) const;
 
-   DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, bool &priv) {
+   DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, bool &priv) const {
       if (qc.classID == classID)
          return cls;
 
@@ -2434,8 +2447,28 @@ public:
 
    DLLLOCAL int addBaseClassesToSubclass(QoreClass* sc, bool is_virtual);
 
+   DLLLOCAL void setPublic();
+
    // static methods
    //DLLLOCAL static
+
+   DLLLOCAL void parseSetBaseClassList(BCList *bcl) {
+      assert(!scl);
+      if (bcl) {
+         scl = bcl;
+         if (!has_new_user_changes)
+            has_new_user_changes = true;
+      }
+   }
+
+   DLLLOCAL static void initialize(QoreClass& qc) {
+      qc.priv->initialize();
+   }
+
+   DLLLOCAL static void parseSetBaseClassList(QoreClass& qc, BCList *bcl) {
+      qc.priv->parseSetBaseClassList(bcl);
+   }
+
    DLLLOCAL static BCList* getBaseClassList(const QoreClass& qc) {
       return qc.priv->scl;
    }
@@ -2581,15 +2614,26 @@ public:
       return qc.priv->runtimeCheckCompatibleClass(*oc.priv);
    }
 
+   DLLLOCAL static const qore_class_private* get(const QoreClass& qc) {
+      return qc.priv;
+   }
+
    DLLLOCAL static bool isPublic(const QoreClass& qc) {
       return qc.priv->pub;
    }
 
-   DLLLOCAL static void setPublic(QoreClass& qc) {
-      assert(!qc.priv->pub);
-      qc.priv->pub = true;
+   DLLLOCAL static bool isFinal(const QoreClass& qc) {
+      return qc.priv->final;
    }
 
+   DLLLOCAL static void setPublic(QoreClass& qc) {
+      qc.priv->setPublic();
+   }
+
+   DLLLOCAL static void setFinal(QoreClass& qc) {
+      assert(!qc.priv->final);
+      qc.priv->final = true;
+   }
 };
 
 #endif
