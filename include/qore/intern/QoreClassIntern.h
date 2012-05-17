@@ -61,7 +61,8 @@ protected:
       final;                     // is the method final or not
 
 public:
-   DLLLOCAL MethodVariantBase(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false) : AbstractQoreFunctionVariant(n_flags, n_is_user), qmethod(0), priv_flag(n_priv_flag), final(n_final) {
+   DLLLOCAL MethodVariantBase(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false) :
+      AbstractQoreFunctionVariant(n_flags, n_is_user), qmethod(0), priv_flag(n_priv_flag), final(n_final) {
    }
 
    DLLLOCAL bool isPrivate() const {
@@ -88,8 +89,8 @@ public:
    DLLLOCAL const qore_class_private* getClassPriv() const;
 };
 
-#define METHVB(f) (reinterpret_cast<MethodVariantBase *>(f))
-#define METHVB_const(f) (reinterpret_cast<const MethodVariantBase *>(f))
+#define METHVB(f) (reinterpret_cast<MethodVariantBase*>(f))
+#define METHVB_const(f) (reinterpret_cast<const MethodVariantBase*>(f))
 
 class MethodVariant : public MethodVariantBase {
 public:

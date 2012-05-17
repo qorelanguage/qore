@@ -263,6 +263,11 @@ class UserVariantBase;
 
 // describes the details of the function variant
 class AbstractQoreFunctionVariant : protected QoreReferenceCounter {
+private:
+   // not implemented
+   DLLLOCAL AbstractQoreFunctionVariant(const AbstractQoreFunctionVariant& old);
+   DLLLOCAL AbstractQoreFunctionVariant& operator=(AbstractQoreFunctionVariant& orig);
+
 protected:
    // code flags
    int64 flags;
@@ -567,6 +572,9 @@ protected:
       return *(pending_vlist.begin());
    }
 
+   // returns QTI_NOT_EQUAL, QTI_AMBIGUOUS, or QTI_IDENT
+   DLLLOCAL static int parseCompareResolvedSignature(const VList& vlist, const AbstractFunctionSignature* sig, const AbstractFunctionSignature*& vs);
+
    // returns 0 for OK, -1 for error
    DLLLOCAL int parseCheckDuplicateSignature(AbstractQoreFunctionVariant* variant);
 
@@ -855,20 +863,25 @@ public:
 
 class MethodVariantBase;
 class MethodFunctionBase;
-#define METHFB(f) (reinterpret_cast<MethodFunctionBase* >(f))
+#define METHFB(f) (reinterpret_cast<MethodFunctionBase*>(f))
+#define METHFB_const(f) (reinterpret_cast<const MethodFunctionBase*>(f))
 
 class MethodFunctionBase : public QoreFunction {
 protected:
    bool all_private, 
       pending_all_private,
-      is_static;
+      is_static,
+      has_final,
+      pending_has_final;
    const QoreClass* qc;   
 
    // pointer to copy, only valid during copy
    mutable MethodFunctionBase* new_copy;
 
+   DLLLOCAL int checkFinalVariant(const MethodFunctionBase* m, const MethodVariantBase* v) const;
+
 public:
-   DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), all_private(true), pending_all_private(true), is_static(n_is_static), qc(n_qc), new_copy(0) {
+   DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), all_private(true), pending_all_private(true), is_static(n_is_static), has_final(false), pending_has_final(false), qc(n_qc), new_copy(0) {
    }
 
    // copy constructor, only copies comitted variants
@@ -877,6 +890,8 @@ public:
         all_private(old.all_private), 
         pending_all_private(true),
         is_static(old.is_static),
+        has_final(old.has_final),
+        pending_has_final(false),
         qc(n_qc) {
       //printd(5, "MethodFunctionBase() copying old=%p -> new=%p %p %s::%s() %p %s::%s()\n",& old, this, old.qc, old.qc->getName(), old.getName(), qc, qc->getName(), old.getName());
 
@@ -931,6 +946,8 @@ public:
    DLLLOCAL bool isStatic() const {
       return is_static;
    }
+
+   DLLLOCAL void checkFinal() const;
 
    // virtual copy constructor
    DLLLOCAL virtual MethodFunctionBase* copy(const QoreClass* n_qc) const = 0;

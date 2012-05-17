@@ -31,7 +31,6 @@
 #include "QoreImplicitArgumentNode.cpp"
 #include "QoreImplicitElementNode.cpp"
 #include "Function.cpp"
-#include "BuiltinFunction.cpp"
 #include "BuiltinFunctionList.cpp"
 #include "GlobalVariableList.cpp"
 #include "FunctionList.cpp"

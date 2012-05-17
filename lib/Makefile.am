@@ -269,7 +269,6 @@ libqore_la_SOURCES = \
 	QoreNullNode.cpp \
 	QoreNothingNode.cpp \
 	Function.cpp \
-	BuiltinFunction.cpp \
 	BuiltinFunctionList.cpp \
 	GlobalVariableList.cpp \
 	FunctionList.cpp \

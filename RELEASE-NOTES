@@ -1,7 +1,7 @@
 RELEASE NOTES for qore v0.8.4
 
 release summary: major new features and changes that can affect backwards-
-	         compatibility, plus 38 bug fixes
+	         compatibility, plus 40 bug fixes
 
 Release Overview
 **************************************************
@@ -64,6 +64,10 @@ As listed above:
 + real depth-first searches are used for namespace symbols
 + symbols are resolved first in the current namespace when parsing
   declarations/code in a namespace
+
+* The "final" Keyword
+classes and methods can now be declared "final" to prevent subclassing or
+overriding in a subclass
 
 * Pseudo Methods
 Pseudo-methods are class methods that can be implemented on any value; they
@@ -334,6 +338,9 @@ type code for runtime closure values
 * fixed a memory error in regular expression substitution where the
   unconverted string (if not given in UTF-8 encoding) was used when copying
   source expressions to the target string
+* fixed a bug where a recursive class inheritance tree would cause a crash
+* fixed a bug where a static class method could not access private members of
+  the class
 
 *** end of release notes
 

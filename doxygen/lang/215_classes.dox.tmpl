@@ -6,16 +6,16 @@
     @note each %Qore type has a "pseudo-class" associated with it (the default is @ref Qore::zzz8valuezzz9); methods from the data type's "pseudo-class" can be run on any value of that type; see "Pseudo Class for Type" headings in @ref basic_data_types for more information.
 
     @par In-Line Class Declaration Syntax
-    <tt>[@ref mod_public "public"] \b class [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>] [<b>inherits</b> [<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]] {</tt>\n
+    <tt><b>[@ref mod_public "public"] [@ref final_classes "final"] class</b> [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>] [<b>inherits</b> [<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]] {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>private</b>] $.</tt><em>member_name</em><tt>[, ...];]</tt>\n\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>private</b>|<b>public</b> {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[[</tt><em>@ref data_type_declarations "member_type"</em><tt>] $.</tt><em>member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>static</b> [</tt><em>@ref data_type_declarations "static_member_type"</em><tt>] </tt><em>static_member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>const</b> </tt><em>constant_name</em> <tt>=</tt> <em>@ref expressions "initialization_expression"</em><tt>;]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>private</b>|<b>public</b>] [<b>@ref deprecated "deprecated"</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref final_methods "final"</b>] [<b>private</b>|<b>public</b>] [<b>@ref deprecated "deprecated"</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>static</b>] [<b>@ref synchronized "synchronized"</b>] [<b>private</b>|<b>public</b>] [<b>@ref deprecated "deprecated"</b>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>static</b>] [<b>@ref final_methods "final"</b>] [<b>@ref synchronized "synchronized"</b>] [<b>private</b>|<b>public</b>] [<b>@ref deprecated "deprecated"</b>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>...</tt>\n
     <tt>}</tt>
@@ -70,6 +70,11 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
     In a class hierarchy, base class constructor methods can be explicitly specified using a special syntax unique to subclass constructor methods. Please see @ref inheritance for more information.\n\n
     It's possible to write purely object-oriented scripts/programs in %Qore by defining an application class and using the \c "-x" or \c "--exec-class" command-line arguments to tell %Qore to instantiate the class instead of doing normal top-level execution (in fact, the \c "--exec-class" argument disallows the use of top-level statements entirely). For more information, please see @ref command_line_processing and @ref parse_directives.
 
+    @anchor final_classes
+    @par Final Classes
+    Classes declared <b><tt>final</tt></b> cannot be subclassed, and, by extension, no methods of a <b><tt>final</tt></b> class can be reimplemented as well.\n\n
+    Currently the %Qore standard class library (delivered with %Qore) has no <b><tt>final</tt></b> classes.
+
     @section class_methods Class Methods
 
     @anchor private_methods
@@ -99,6 +104,19 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
     |@ref any_type "any" <tt>methodGate(</tt>@ref string_type "string" <tt>$</tt><em>method_param_name</em><tt>, ...) {}</tt>|If this method is implemented in the class, it is called when methods are called on the object that do not exist in the current object and the return value of this method is returned as the value of the method call.\n\n\c methodGate() methods cannot be overloaded and are not inherited by subclasses.
     |<tt>@ref memberNotification_methods "memberNotification"(</tt>@ref string_type "string" <tt>$</tt><em>member_param_name</em><tt>) {}</tt>|If this method is implemented in the class, it is called when an object member is updated outside the class with the member name as the argument. Note that this method is called after the member has been updated and without locking; the call is not atomic respective to other threads that also may update the same member simultaneously.\n\n\c memberNotification() methods cannot be overloaded and are not inherited by subclasses.
 
+    @anchor final_methods
+    @par Final Methods
+	Methods declared <b><tt>final</tt></b> cannot be reimplemented in a subclass.  Methods can be declared <b><tt>final</tt></b> to prevent a subclass from altering the behavior of a method that is critical to the class's functionality.\n\n
+	None of the following special methods can be declared <b><tt>final</tt></b>:
+	- constructor(): declare the class @ref final_classes "final" instead
+	- destructor(): declare the class @ref final_classes "final" instead
+	- copy(): declare the class @ref final_classes "final" instead
+	- @ref memberGate_methods "memberGate()": these methods are not inherited so they may not be declared <b><tt>final</tt></b>
+	- @ref memberNotification_methods "memberNotification()": these methods are not inherited so they may not be declared <b><tt>final</tt></b>
+	- methodGate(): these methods are not inherited so they may not be declared <b><tt>final</tt></b>
+	.
+    Currently the %Qore standard class library has no <b><tt>final</tt></b> methods.
+
     @anchor class_constants
     @par Class Constants
     Class constants, like non-class constants, allow programmers to refer to values with %Qore identifiers rather than using the value or the expression that generates the value.\n\n
@@ -116,7 +134,7 @@ class Test {
 }
     @endcode
 
-    @note Class constant cannot have the same names as @ref static_class_variables "static class variables".
+    @note Class constants cannot have the same names as @ref static_class_variables "static class variables".
 
     @anchor static_class_variables
     @par Static Class Variables
@@ -189,7 +207,7 @@ lock();
 
     Class inheritance is a powerful concept for easily extending and resuing object-oriented code, but is also subject to some limitations. This section will explain how class inheritance works in %Qore.
 
-    Classes inherit the methods of a parent class by using the inherits as specified above. Multiple inheritance is supported; a single %Qore class can inherit one or more classes. When a class is inherited by another class, it is called a base class. Private inheritance is speficied by including the keyword <tt><b>private</b></tt> before the inherited class name. When a class is privately inherited, it means that the inherited class' public members are treated as private members in the context of accesses outside the class.
+    Classes inherit the methods of a parent class by using the inherits as specified above. Multiple inheritance is supported; a single %Qore class can inherit one or more classes. When a class is inherited by another class, it is called a base class. Private inheritance is speficied by including the keyword <tt><b>private</b></tt> before the inherited class name. When a class is privately inherited, it means that the inherited class's public members are treated as private members in the context of accesses outside the class.
 
     Inheritance is <tt><b>public</b></tt> by default, to inherit a class privately, use the <tt><b>private</b></tt> keyword before the class name or class path to inherit as follows:
     @code

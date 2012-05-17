@@ -965,7 +965,7 @@ static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int
       if (mod & OFM_SYNCED)
 	 parse_error("constructors may not be synchronized");
       if (mod & OFM_FINAL)
-         parse_error("constructors cannot by declared final; declare the class final instead");
+         parse_error("constructors cannot be declared final; declare the class final instead");
       if (returnTypeInfo) {
 	 parse_error("return type information cannot be defined for constructors");
 	 delete returnTypeInfo;
@@ -982,7 +982,7 @@ static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int
       if (mod & OFM_PRIVATE)
 	 parse_error("destructors cannot be private");
       if (mod & OFM_FINAL)
-         parse_error("destructors cannot by declared final; declare the class final instead");
+         parse_error("destructors cannot be declared final; declare the class final instead");
       if (returnTypeInfo) {
 	 parse_error("return type information cannot be defined for destructors");
 	 delete returnTypeInfo;
@@ -994,6 +994,11 @@ static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int
          parse_error("copy methods cannot by declared final; declare the class final instead");
       if (!(mod & OFM_SYNCED))
          return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
+   }
+
+   if (!strcmp(name, "methodGate") || !strcmp(name, "memberGate") || !strcmp(name, "memberNotification")) {
+      if (mod & OFM_FINAL)
+         parse_error("%s methods cannot be declared final", name);
    }
 
    return new UserMethodVariant(mod & OFM_PRIVATE, mod & OFM_FINAL, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags);

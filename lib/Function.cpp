@@ -32,12 +32,12 @@
 #include <math.h>
 
 // FIXME: xxx set parse location
-static inline void duplicateSignatureException(const char* cname, const char* name, AbstractFunctionSignature* sig) {
+static inline void duplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig) {
    parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());
 }
 
 // FIXME: xxx set parse location
-static inline void ambiguousDuplicateSignatureException(const char* cname, const char* name, AbstractFunctionSignature* sig1, AbstractFunctionSignature* sig2) {
+static inline void ambiguousDuplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig1, const AbstractFunctionSignature* sig2) {
    parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant %s(%s)", cname ? cname : "", cname ? "::" : "", name, sig2->getSignatureText(), name, sig1->getSignatureText());
 }
 
@@ -1336,14 +1336,27 @@ AbstractQoreNode* UserVariantBase::eval(const char* name, CodeEvaluationHelper *
    return evalIntern(uveh.getArgv(), self, xsink);
 }
 
+int QoreFunction::parseCheckDuplicateSignatureCommitted(AbstractFunctionSignature* sig) {
+   const AbstractFunctionSignature* vs = 0;
+   int rc = parseCompareResolvedSignature(vlist, sig, vs);
+   if (rc == QTI_NOT_EQUAL)
+      return 0;
+
+   if (rc == QTI_AMBIGUOUS)
+      ambiguousDuplicateSignatureException(className(), getName(), vs, sig);
+   else
+      duplicateSignatureException(className(), getName(), sig);
+   return -1;
+}
+
 // returns 0 for OK, -1 for error
 // this is called after types have been resolved and the types must be rechecked
-int QoreFunction::parseCheckDuplicateSignatureCommitted(AbstractFunctionSignature* sig) {
+int QoreFunction::parseCompareResolvedSignature(const VList& vlist, const AbstractFunctionSignature* sig, const AbstractFunctionSignature*& vs) {
    unsigned vp = sig->getParamTypes();
 
    // now check already-committed variants
-   for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-      AbstractFunctionSignature* vs = (*i)->getSignature();
+   for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+      vs = (*i)->getSignature();
       // get the minimum number of parameters with type information that need to match
       unsigned mp = vs->getMinParamTypes();
       // get number of parameters with type information
@@ -1352,10 +1365,6 @@ int QoreFunction::parseCheckDuplicateSignatureCommitted(AbstractFunctionSignatur
       // shortcut: if the two variants have different numbers of parameters with type information, then they do not match
       if (vp < mp || vp > tp)
 	 continue;
-
-      // we have already checked for duplicates with no signature, so we can assume
-      // this is not the case here
-      assert(tp);
 
       bool dup = true;
       bool ambiguous = false;
@@ -1386,15 +1395,10 @@ int QoreFunction::parseCheckDuplicateSignatureCommitted(AbstractFunctionSignatur
 	    }
 	 }
       }
-      if (dup) {
-	 if (ambiguous)
-	    ambiguousDuplicateSignatureException(className(), getName(), (*i)->getSignature(), sig);
-	 else
-	    duplicateSignatureException(className(), getName(), sig);
-	 return -1;
-      }
+      if (dup)
+         return ambiguous ? QTI_AMBIGUOUS : QTI_IDENT;
    }
-   return 0;
+   return QTI_NOT_EQUAL;
 }
 
 int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* variant) {
