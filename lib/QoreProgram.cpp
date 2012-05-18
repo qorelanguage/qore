@@ -208,9 +208,11 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
 }
 
 void qore_program_private::clearIntern(ExceptionSink* xsink) {
+#ifdef HAVE_SIGNAL_HANDLING
    // clear all signal handlers managed by this program
    for (int_set_t::iterator i = sigset.begin(), e = sigset.end(); i != e; ++i)
       QSM.removeHandler(*i, xsink);
+#endif
 
    // merge pending parse exceptions into the passed exception sink, if any
    if (pendingParseSink) {
