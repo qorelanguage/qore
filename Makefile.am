@@ -26,7 +26,12 @@ endif
 # the QORE_MODULE_DIR=./qlib is there because of situation of fresh install
 # when the qore is not in system (modules are searched in  eg. /usr/local/lib/qore-modules/0.8.4
 # by default - and it does not exist in the fresh install)
+if COND_MINGWCC
+# when cross-compiling, we just hope that qore is installed also natively, otherwise the documentation can't be built
+QDX=QORE_MODULE_DIR=./qlib doxygen/qdx
+else
 QDX=QORE_MODULE_DIR=./qlib ./qore doxygen/qdx
+endif
 
 #lib_doxyfiles: qore
 #	for a in $(USER_MODULES); do ./qore doxygen/qdx -d=lib -e=.dox.h $$a; done
