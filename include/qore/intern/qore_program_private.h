@@ -269,8 +269,8 @@ class qore_program_private_base {
 public:
    LocalVariableList local_var_list;
 
-   // for the thread counter
-   QoreCondition tcond;
+   // for the thread counter, used only with plock
+   QoreCondition pcond;
    unsigned thread_count;   // number of threads currently running in this Program
    unsigned thread_waiting; // number of threads waiting on all threads to terminate
 
@@ -294,9 +294,16 @@ public:
    // top level statements
    TopLevelStatementBlock sb;
       
-   // parsing
-   bool only_first_except,
-      valid;
+   // bit field flags
+   bool only_first_except : 1,
+      valid : 1,
+      po_locked : 1,
+      po_allow_restrict : 1,
+      exec_class : 1,
+      base_object : 1,
+      requires_exception : 1,
+      tclear : 1;              // clearing thread-local variables in progress?
+
    int exceptions_raised;
 
    ParseWarnOptions pwo;
@@ -305,19 +312,19 @@ public:
       pend_dom;  // a mask of pending function domains used in this Program
 
    std::string exec_class_name, script_dir, script_path, script_name, include_path;
-   bool po_locked, po_allow_restrict, exec_class, base_object, requires_exception;
 
    // thread-local data (could be inherited from another program)
    qpgm_thread_local_storage_t *thread_local_storage;
 
-   // thread variable data lock, for accessing the thread variable data map and the thr_init variable
-   mutable QoreThreadLock tlock;
+   mutable QoreThreadLock tlock;  // thread variable data lock, for accessing the thread variable data map and the thr_init variable
+   mutable QoreCondition tcond;   // cond variable for tclear to become false, used only with tlock
+   mutable unsigned twaiting;     // threads waiting on tclear to become false
 
    // thread-local variable storage - map from thread ID to thread-local storage
    pgm_data_map_t pgm_data_map;
 
    // time zone setting for the program
-   const AbstractQoreZoneInfo *TZ;
+   const AbstractQoreZoneInfo* TZ;
 
    // define map
    dmap_t dmap;
@@ -328,12 +335,14 @@ public:
    // thread initialization user code
    ResolvedCallReferenceNode* thr_init;
 
-   QoreProgram *pgm;
+   // public object that owns this private implementation
+   QoreProgram* pgm;
 
    DLLLOCAL qore_program_private_base(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm = 0) 
       : thread_count(0), thread_waiting(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
-        only_first_except(false), valid(true), exceptions_raised(0), pwo(n_parse_options), dom(0), pend_dom(0), po_locked(false),
-        po_allow_restrict(true), exec_class(false), base_object(false), requires_exception(false), thread_local_storage(0),
+        only_first_except(false), valid(true), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
+        requires_exception(false), tclear(false),
+        exceptions_raised(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), pgm(n_pgm) {
       printd(5, "qore_program_private::init() this=%p pgm=%p\n", this, pgm);
 	 
@@ -424,8 +433,13 @@ public:
       // copy the map and run on the copy to avoid deadlocks
       {
          AutoLocker al(tlock);
+         // twaiting must be 0 here, as it can only be incremented while clearProgramThreadData() is in progress, which can only be executed once
+         assert(!twaiting);
+         assert(!tclear);
+         tclear = true;
          pdm_copy = pgm_data_map;
       }
+
       for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
          i->second->finalize(xsink);
       }
@@ -440,14 +454,13 @@ public:
          AutoLocker al(tlock);
          assert(pgm_data_map.size() == pdm_copy.size());
          pgm_data_map.clear();
+         tclear = false;
+         if (twaiting)
+            tcond.broadcast();
       }
    }
 
    DLLLOCAL void waitForTerminationAndClear(ExceptionSink* xsink);
-
-   // marks the program as not valid and clears all data - must be called with plock held
-   // returns true if clearIntern must be called outside the lock
-   DLLLOCAL bool invalidateIntern();
 
    // deletes all internal data
    DLLLOCAL void clearIntern(ExceptionSink* xsink);
@@ -458,7 +471,7 @@ public:
    // returns 0 for OK, -1 for error
    DLLLOCAL int incThreadCount(ExceptionSink* xsink) {
       // grab program-level lock
-      AutoLocker al(&plock);
+      AutoLocker al(plock);
       if (!valid) {
          xsink->raiseException("PROGRAM-ERROR", "the program accessed has already been deleted");
          return -1;
@@ -469,16 +482,16 @@ public:
 
    DLLLOCAL void decThreadCount() {
       // grab program-level lock
-      AutoLocker al(&plock);
+      AutoLocker al(plock);
       assert(thread_count > 0);
       if (!--thread_count && thread_waiting)
-	 tcond.broadcast();
+	 pcond.broadcast();
    }
 
    DLLLOCAL void waitForAllThreadsToTerminateIntern() {
       while (thread_count) {
          ++thread_waiting;
-         tcond.wait(&plock);
+         pcond.wait(plock);
          --thread_waiting;
       }
    }
@@ -667,8 +680,6 @@ public:
    }
 
    DLLLOCAL void parseRollback() {
-      ProgramContextHelper pch(pgm, false);
-
       // grab program-level parse lock and release on exit
       AutoLocker al(&plock);
    
@@ -693,10 +704,14 @@ public:
 	 
       // grab program-level parse lock
       {
+         ProgramThreadCountContextHelper pch(xsink, pgm, false);
+         if (*xsink)
+            return;
+
 	 AutoLocker al(plock);
 	 if (checkParseCommitUnlocked(xsink))
 	    return;
-	 
+
          startParsing(xsink, wS, wm);
 	 
 	 // save this file name for storage in the parse tree and deletion
@@ -705,7 +720,6 @@ public:
 	 fileList.push_back(sname);
 	 beginParsing(sname);
 	 
-	 ProgramContextHelper pch(pgm, false);
 	 //printd(5, "QoreProgram::parse(): about to call yyparse()\n");
 	 yylex_init(&lexer);
 	 yyset_in(fp, lexer);
@@ -748,8 +762,10 @@ public:
       if (!(*code))
 	 return;
 
-      ProgramContextHelper pch(pgm, false);
-   
+      ProgramThreadCountContextHelper pch(xsink, pgm, false);
+      if (*xsink)
+         return;
+
       // grab program-level parse lock
       AutoLocker al(plock);
       if (checkParseCommitUnlocked(xsink))
@@ -783,7 +799,10 @@ public:
 
       setScriptPath(filename);
       
-      ProgramContextHelper pch(pgm, false);
+      ProgramThreadCountContextHelper pch(xsink, pgm, false);
+      if (*xsink)
+         return;
+
       parse(fp, filename, xsink, wS, wm);
    }
    
@@ -801,7 +820,10 @@ public:
       if (*xsink)
 	 return;
 
-      ProgramContextHelper pch(pgm, false);
+      ProgramThreadCountContextHelper pch(xsink, pgm, false);
+      if (*xsink)
+         return;
+
       parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
    }
 
@@ -833,6 +855,12 @@ public:
 
       // delete all local variables for this thread
       SafeLocker sl(tlock);
+      while (tclear) {
+         ++twaiting;
+         tcond.wait(tlock);
+         --twaiting;
+      }
+
       pgm_data_map_t::iterator i = pgm_data_map.find(td);
       if (i != pgm_data_map.end()) {
          // make sure the Program doesn't disappear while we are clearing thread-local variables
@@ -864,6 +892,12 @@ public:
    // returns true if setting for the first time, false if not
    DLLLOCAL bool setThreadVarData(ThreadProgramData *td, ThreadLocalVariableData *&lvstack, ThreadClosureVariableStack *&cvstack, bool run) {
       SafeLocker sl(tlock);
+      // wait for data to finished being cleared if applicable
+      while (tclear) {
+         ++twaiting;
+         tcond.wait(tlock);
+         --twaiting;
+      }
 
       pgm_data_map_t::iterator i = pgm_data_map.find(td);
       if (i == pgm_data_map.end()) {

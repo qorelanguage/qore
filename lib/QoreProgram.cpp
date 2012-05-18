@@ -188,20 +188,16 @@ void qore_program_private::internParseRollback() {
    pend_dom = 0;
 }
 
-bool qore_program_private::invalidateIntern() {
-   bool del = valid;
-   if (valid)
-      valid = false;
-   return del;
-}
-
 void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
+   // we only clear the internal data structures once
    bool clr;
    {
       AutoLocker al(plock);
       // wait for all threads to terminate
       waitForAllThreadsToTerminateIntern();
-      clr = invalidateIntern();
+      clr = valid;
+      if (valid)
+         valid = false;
    }
    if (clr)
       clearIntern(xsink);

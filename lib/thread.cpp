@@ -1227,6 +1227,7 @@ const qore_class_private* runtime_get_class() {
    return (thread_data.get())->current_classobj.getClass();
 }
 
+/*
 ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm, bool runtime) : 
    old_pgm(0), old_lvstack(0), old_cvstack(0), restore(false) {
    if (pgm) {
@@ -1253,6 +1254,7 @@ ProgramContextHelper::~ProgramContextHelper() {
       td->cvstack     = old_cvstack;
    }
 }
+*/
 
 ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) :
             old_pgm(0), old_lvstack(0), old_cvstack(0), restore(false) {

@@ -525,6 +525,7 @@ public:
 class ThreadLocalVariableData;
 class ThreadClosureVariableStack;
 
+/*
 class ProgramContextHelper {
 private:
    QoreProgram *old_pgm;
@@ -536,6 +537,7 @@ public:
    DLLLOCAL ProgramContextHelper(QoreProgram *pgm, bool runtime = true);
    DLLLOCAL ~ProgramContextHelper();
 };
+*/
 
 class ProgramThreadCountContextHelper {
 protected:

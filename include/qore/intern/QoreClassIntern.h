@@ -231,7 +231,9 @@ public:
 
    DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, CodeEvaluationHelper &ceh, BCList *bcl, BCEAList *bceal, ExceptionSink* xsink) const {
       // in case this method is called from a subclass, switch to the program where the class was created
-      ProgramContextHelper pch(pgm);
+      ProgramThreadCountContextHelper pch(xsink, pgm, true);
+      if (*xsink)
+         return;
 
       UserVariantExecHelper uveh(this, &ceh, false, xsink);
       if (!uveh)
@@ -283,7 +285,7 @@ public:
       // there cannot be any params
       assert(!signature.numParams());
       assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
-      ProgramContextHelper pch(pgm);
+      ProgramThreadCountContextHelper pch(xsink, pgm, true);
       discard(eval("destructor", 0, self, xsink, getClassPriv()), xsink);
    }
 };
