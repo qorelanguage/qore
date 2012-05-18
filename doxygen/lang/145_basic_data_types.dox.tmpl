@@ -139,16 +139,16 @@ YYYY-MM-DD[THH:mm:SS[.n*]][Z|[+-]HH[:mm[:SS]]]@endverbatim
 
     Note that if no time zone information is given, the local time zone will be assumed. If a time zone UTC offset is given, it is given in units of time east of UTC (i.e. \c +05:00 means five hours east of UTC).
 
-    Or an alternative format (with a '-' instead ofa 'T' to separate the time component):
+    Or an alternative format (with a \c '-' instead of a \c 'T' to separate the time component):
 
     @verbatim
 YYYY-MM-DD[-HH:mm:SS[.n*]][Z|[+-]HH[:mm[:SS]]]@endverbatim
 
     for example, for just the date in UTC, without a time component:
-    - \c 2010-05-26
+    - \c <tt>2010-05-26</tt>
 
     or, for just the time, without a date component (note that in this case the date component will be set to Jan 1, 1970, in order for time arithmetic to function properly and will also be tagged with the local time zone):
-    - \c 20:05:10.458342
+    - <tt>20:05:10.458342</tt>
 
     Some further examples (note that the date/time values without a time zone specification here are tagged with the local time zone):
 

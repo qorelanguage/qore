@@ -1114,7 +1114,7 @@ public class HttpServer::HttpServer {
 	$.stop();
     }
     
-    #! adds a listener to the server with an explicit handler for incoming connections
+    #! adds a dedicated listener to the server with an explicit/dedicated handler for incoming connections
     /** @param name the name of the handler
         @param handler the AbstractHttpRequestHandler object that will handle incoming connections
         @param lp a hash with the following keys:
@@ -1132,7 +1132,7 @@ public class HttpServer::HttpServer {
         @throw SETHANDLER-ERROR HTTP request handler already exists with the given name; non-string entry in special_header list
         @throw HTTPSERVER-ADDLISTENER-ERROR missing or invalid \c "bind" or \c "url" entry in the \c lp argument; duplicate bind address
      */
-    list addListenersWithHandler(string $name, AbstractHttpRequestHandler $handler, hash $lp, *code $logger, *code $errorlogger) {
+    final list addListenersWithHandler(string $name, AbstractHttpRequestHandler $handler, hash $lp, *code $logger, *code $errorlogger) {
 %ifdef QoreDebug
         #ASSERT($lp.bind.typeCode() == NT_STRING);
 	#ASSERT($lp.url.typeCode() == NT_STRING);
@@ -1453,7 +1453,8 @@ public class HttpServer::HttpServer {
     }
 
     #! @cond nodoc
-    private HttpListener addListenerIntern(string $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger) {
+    # don't reimplement this method; fix/enhance it in the module
+    final private HttpListener addListenerIntern(string $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger) {
         if (!exists $logger && exists $.logfunc)
             $logger = $.logfunc;
         if (!exists $errorlogger && exists $.errlogfunc)
@@ -1476,7 +1477,8 @@ public class HttpServer::HttpServer {
 	return $l;
     }
 
-    static private hash getSSLObjects(string $cert_path, *string $key_path) {
+    # don't reimplement this method; fix/enhance it in the module
+    final static private hash getSSLObjects(string $cert_path, *string $key_path) {
         my File $f();
         # read in X.509 certificate file
         $f.open2($cert_path);
@@ -1497,7 +1499,8 @@ public class HttpServer::HttpServer {
 	return ("cert": $cert, "key": $key);
     }
 
-    private list addINETListenersIntern(*string $node, softstring $service, hash $sd, *hash $lp, *code $logger, *code $errorlogger) {
+    # don't reimplement this method; fix/enhance it in the module
+    final private list addINETListenersIntern(*string $node, softstring $service, hash $sd, *hash $lp, *code $logger, *code $errorlogger) {
 	if (exists $sd.cert_path && !exists $sd.cert)
 	    $sd += HttpServer::getSSLObjects($sd.cert_path, $sd.key_path);
 
@@ -1522,7 +1525,8 @@ public class HttpServer::HttpServer {
         return $l;
     }
 
-    private hash noHandlerError(hash $cx, hash $hdr, any $body) {
+    # don't reimplement this method; fix/enhance it in the module
+    final private hash noHandlerError(hash $cx, hash $hdr, any $body) {
 	my string $str = "";
 	if (strlen($hdr.path))
 	    $str = sprintf("url=%n", $hdr.path);
@@ -1540,7 +1544,8 @@ public class HttpServer::HttpServer {
     }
     
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
-    handleRequest(HttpListener $listener, Socket $s, reference $cx, hash $hdr, *data $body, reference $close, bool $head = False) {
+    # don't reimplement this method; fix/enhance it in the module
+    final handleRequest(HttpListener $listener, Socket $s, reference $cx, hash $hdr, *data $body, reference $close, bool $head = False) {
 	# handle accept-encoding to compress data if necessary        
 	if (exists $hdr."accept-encoding") {
 	    # remove all writespace

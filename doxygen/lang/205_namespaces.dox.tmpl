@@ -9,12 +9,14 @@
     <tt>[@ref mod_public "public"] <b>namespace</b></tt> <em>[namespace_path::]namespace_identifier</em> <tt>{</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>[@ref constants "constant_declarations"]</em>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>[@ref qore_classes "class_declarations"]</em>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<em>[@ref global_variables global_variable_declarations"]</em>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<em>[@ref global_variables "global_variable_declarations"]</em>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>[namespace_declarations]</em>\n
     <tt>}</tt>
 
     @par Out of Line Namespace Declaration
-    <tt>[@ref mod_public "public"] <b>namespace</b></tt> <em>[namespace_path::]namespace_identifier</em><tt>;</tt>
+    <tt>[@ref mod_public "public"] <b>namespace</b></tt> <em>namespace_identifier</em><tt>;</tt>
+
+	@note No namespace path may be given with out of line namespace declarations.
 
     When defining a @ref user_modules "user module", namespace declarations can be preceded by @ref mod_public "public", which means that the namespace's public contents will be exported into the @ref Qore::Program "Program" object importing the module.  See @ref mod_public "public" for more information.
 

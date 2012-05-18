@@ -948,7 +948,8 @@ $msg.addAttachment($att);
 	}
 
         #! @cond nodoc
-        private disconnectIntern() {
+        # don't reimplement this method; fix/enhance it in the module
+        final private disconnectIntern() {
 	    if ($.isConnected()) {
 		$.sock.close();
 		$.sock.shutdown();
@@ -999,7 +1000,8 @@ $msg.addAttachment($att);
 	}
 
 	# send a command over the socket and return the response as a hash
-	private hash sendCommand(string $str) {
+        # don't reimplement this method; fix/enhance it in the module
+	final private hash sendCommand(string $str) {
 	    # format additional arguments if necessary
 	    if (!$argv.empty())
 		$str = vsprintf($str, $argv);
@@ -1065,7 +1067,8 @@ $msg.addAttachment($att);
 	}
 
         # sends the message header (without body & attachments) to the SMTP server
-	private hash sendMessageHeaderIntern(SmtpClient::Message $message) {
+        # don't reimplement this method; fix/enhance it in the module
+        final private hash sendMessageHeaderIntern(SmtpClient::Message $message) {
 	    # open connection to server
 	    if (!$.isConnected()) {
 		$.connectIntern();

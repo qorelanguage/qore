@@ -460,7 +460,8 @@ public namespace TelnetClient {
 	}
 
         #! @cond nodoc
-  	private disconnectIntern() {
+        # don't override this method, fix/enhance it with a patch to the module
+  	private final disconnectIntern() {
 	    my hash $h = $.conn.getSocketInfo();
 	    $.conn.close();
 	    $.conn.shutdown();
@@ -472,7 +473,8 @@ public namespace TelnetClient {
 		throw "NOT-CONNECTED-EXCEPTION", "Cannot perform the operation without being connected to server!";
   	}
   	
-  	private sendDataIntern(softlist $arr, bool $double_aic = False) {
+        # don't override this method, fix/enhance it with a patch to the module
+  	private final sendDataIntern(softlist $arr, bool $double_aic = False) {
 	    foreach my any $val in ($arr) {
 		switch ($val.typeCode()) {
                     case NT_BINARY: {
@@ -503,7 +505,8 @@ public namespace TelnetClient {
 	    $.conn.sendBinary2($str);
 	}
 
-  	private *string getAvailableDataIntern(timeout $t = DefaultTimeout) {
+        # don't override this method, fix/enhance it with a patch to the module
+  	private final *string getAvailableDataIntern(timeout $t = DefaultTimeout) {
 	    my string $rv = "";
 
 	    while ($.conn.isDataAvailable($t)) {
@@ -537,14 +540,16 @@ public namespace TelnetClient {
 	    return $rv;
 	}
 
-	private updateWindowSizeIntern(hash $wh) {
+        # don't override this method, fix/enhance it with a patch to the module
+	private final updateWindowSizeIntern(hash $wh) {
 	    $.logDbg("SND: %s %s [%d,%d,%d,%d]", CmdMap{SB}, OptMap{TOPT_NAWS},($wh.columns & 0xff00),($wh.columns & 0xff),($wh.rows & 0xff00),($wh.rows & 0xff));
 	    $.sendDataIntern((IAC,SB,TOPT_NAWS));
 	    $.sendDataIntern((($wh.columns & 0xff00),($wh.columns & 0xff),($wh.rows & 0xff00),($wh.rows & 0xff)), True);
 	    $.sendDataIntern((IAC, SE));
 	}
 
-	private processCmd(reference $rv) {
+        # don't override this method, fix/enhance it with a patch to the module
+	private final processCmd(reference $rv) {
 	    # read all data with no timeout; we assume that commands are pushed in their entirety
 	    my int $cmd = $.conn.recvu1(0);
 	    if ($cmd == IAC) {
@@ -637,7 +642,8 @@ public namespace TelnetClient {
 	    }
 	}
 
-	private doSubNegotiation() {
+        # don't override this method, fix/enhance it with a patch to the module
+	private final doSubNegotiation() {
 	    my bool $gotiac = False;
 
 	    while (True) {
