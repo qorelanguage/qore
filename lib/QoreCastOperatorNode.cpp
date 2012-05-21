@@ -82,7 +82,7 @@ AbstractQoreNode *QoreCastOperatorNode::parseInitImpl(LocalVar *oflag, int pflag
    if (path->size() == 1) {
       // if the class is "object", then set qc = 0 to use as a catch-all and generic "cast to object"
       const char *id = path->getIdentifier();
-      qc = !strcmp(id, "object") ? 0 : qore_root_ns_private::parseFindClass(path->getIdentifier(), true);
+      qc = !strcmp(id, "object") ? 0 : qore_root_ns_private::parseFindClass(loc, path->getIdentifier());
    }
    else {
       qc = qore_root_ns_private::parseFindScopedClass(loc, *path);

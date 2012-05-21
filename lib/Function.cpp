@@ -430,7 +430,6 @@ void UserSignature::resolve() {
 	 const QoreTypeInfo* argTypeInfo = 0;
 	 defaultArgList[i] = defaultArgList[i]->parseInit(selfid, 0, lvids, argTypeInfo);
 	 if (lvids) {
-	    // FIXME: set parse position?
 	    parse_error(loc, "illegal local variable declaration in default value expression in parameter '%s'", names[i].c_str());
 	    while (lvids--)
 	       pop_local_var();

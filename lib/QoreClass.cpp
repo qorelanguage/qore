@@ -934,7 +934,7 @@ void BCANode::parseInit(BCList *bcl, const char* classname) {
       ns = 0;
    }
    else {
-      sclass = qore_root_ns_private::parseFindClass(name, true);
+      sclass = qore_root_ns_private::parseFindClass(loc, name);
       printd(5, "BCANode::parseInit() this=%p resolved %s -> %p\n", this, name, sclass);
       free(name);
       name = 0;
@@ -977,7 +977,7 @@ int BCNode::parseInit(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_s
       }
       else {
 	 // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
-	 sclass = qore_root_ns_private::parseFindClass(cstr, true);
+	 sclass = qore_root_ns_private::parseFindClass(loc, cstr);
 	 printd(5, "BCNode::parseInit() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
 	 free(cstr);
 	 cstr = 0;

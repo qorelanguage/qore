@@ -795,7 +795,7 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
 
    // now look for class constants if there is only a single namespace or class name in the beginning
    if (nscope.size() == 2) {
-      QoreClass* qc = parseFindClassIntern(nscope[0], false);
+      QoreClass* qc = parseFindClassIntern(nscope[0]);
       if (qc) {
          rv = parseResolveClassConstant(qc, nscope.getIdentifier(), typeInfo);
          if (rv)
@@ -878,8 +878,12 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& ns
 QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const QoreProgramLocation& loc, const NamedScope& nscope) {
    QoreClass* oc;
    // if there is no namespace specified, then just find class
-   if (nscope.size() == 1)
-      return parseFindClassIntern(nscope.getIdentifier(), true);
+   if (nscope.size() == 1) {
+      oc = parseFindClassIntern(nscope.ostr);
+      if (!oc)
+         parse_error(loc, "reference to undefined class '%s'", nscope.ostr);
+      return oc;
+   }
 
    unsigned m = 0;
    oc = parseFindScopedClassIntern(nscope, m);
@@ -911,13 +915,10 @@ QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodInternError(const
    QoreClass* oc;
 
    if (scname.size() == 2) {
-      oc = parseFindClassIntern(scname[0], false);
-      if (oc)
-         return oc;
-
-      if (error)
+      oc = parseFindClassIntern(scname[0]);
+      if (!oc && error)
          parse_error("reference to undefined class '%s' in '%s()'", scname[0], scname.ostr);
-      return 0;
+      return oc;
    }
 
    unsigned m = 0;
@@ -971,7 +972,7 @@ AbstractQoreNode* qore_root_ns_private::parseFindConstantValueIntern(const Named
 
    // look for a class constant if there are only 2 elements in the scope list
    if (scname.size() == 2) {
-      QoreClass* qc = parseFindClassIntern(scname[0], false);
+      QoreClass* qc = parseFindClassIntern(scname[0]);
       if (qc) {
          rv = parseResolveClassConstant(qc, scname.getIdentifier(), typeInfo);
          if (rv)

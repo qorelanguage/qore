@@ -906,7 +906,7 @@ protected:
    DLLLOCAL QoreClass *parseFindScopedClassWithMethodInternError(const NamedScope& name, bool error);
    DLLLOCAL QoreClass *parseFindScopedClassWithMethodIntern(const NamedScope& name, unsigned& matched);
 
-   DLLLOCAL QoreClass* parseFindClassIntern(const char* cname, bool error) {
+   DLLLOCAL QoreClass* parseFindClassIntern(const char* cname) {
       {
          // try to check in current namespace first
          qore_ns_private* nscx = parse_get_ns();
@@ -932,9 +932,6 @@ protected:
 
       if (ip != pend_clmap.end())
          return ip->second.obj;
-
-      if (error)
-         parse_error("reference to undefined class '%s'", cname);
 
       return 0;
    }
@@ -1320,8 +1317,11 @@ public:
       return getRootNS()->rpriv->parseResolveScopedReferenceIntern(name, typeInfo);
    }
 
-   DLLLOCAL static QoreClass *parseFindClass(const char* name, bool error) {
-      return getRootNS()->rpriv->parseFindClassIntern(name, error);
+   DLLLOCAL static QoreClass *parseFindClass(const QoreProgramLocation& loc, const char* name) {
+      QoreClass* qc = getRootNS()->rpriv->parseFindClassIntern(name);
+      if (!qc)
+         parse_error(loc, "reference to undefined class '%s'", name);
+      return qc;
    }
 
    DLLLOCAL static QoreClass *parseFindScopedClass(const QoreProgramLocation& loc, const NamedScope& name) {
