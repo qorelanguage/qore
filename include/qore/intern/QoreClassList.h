@@ -81,7 +81,8 @@ public:
       return hm.empty();
    }
 
-   DLLLOCAL void deleteClassData(ExceptionSink *xsink);
+   DLLLOCAL void clearStaticVars(ExceptionSink* xsink);
+   DLLLOCAL void deleteClassData(ExceptionSink* xsink);
 };
 
 class ClassListIterator {

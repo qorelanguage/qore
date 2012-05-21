@@ -296,6 +296,7 @@ public:
       
    // bit field flags
    bool only_first_except : 1,
+      clear_started : 1,
       valid : 1,
       po_locked : 1,
       po_allow_restrict : 1,
@@ -340,7 +341,7 @@ public:
 
    DLLLOCAL qore_program_private_base(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm = 0) 
       : thread_count(0), thread_waiting(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
-        only_first_except(false), valid(true), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
+        only_first_except(false), clear_started(false), valid(true), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
         requires_exception(false), tclear(false),
         exceptions_raised(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), pgm(n_pgm) {
@@ -461,9 +462,6 @@ public:
    }
 
    DLLLOCAL void waitForTerminationAndClear(ExceptionSink* xsink);
-
-   // deletes all internal data
-   DLLLOCAL void clearIntern(ExceptionSink* xsink);
 
    // called when the program's ref count = 0 (but the dc count may not go to 0 yet)
    DLLLOCAL void clear(ExceptionSink* xsink);

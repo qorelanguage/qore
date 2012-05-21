@@ -1164,7 +1164,10 @@ void qore_ns_private::parseInitGlobalVars() {
 }
 
 void qore_ns_private::clearData(ExceptionSink *xsink) {
+   // clear/finalize global variables
    var_list.clearAll(xsink);
+   // clear/finalize static class vars
+   classList.clearStaticVars(xsink);
 
    nsl.clearData(xsink);
 }

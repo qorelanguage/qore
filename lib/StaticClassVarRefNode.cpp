@@ -81,9 +81,7 @@ AbstractQoreNode *StaticClassVarRefNode::parseInitImpl(LocalVar *oflag, int pfla
 }
 
 void StaticClassVarRefNode::getLValue(LValueHelper& lvh) const {
-   lvh.setTypeInfo(vi.getTypeInfo());
-   lvh.setAndLock(vi.l);
-   lvh.setValue(vi.val);
+   vi.getLValue(lvh);
 }
 
 void StaticClassVarRefNode::remove(LValueRemoveHelper& lvrh) {

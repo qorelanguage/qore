@@ -1044,27 +1044,44 @@ protected:
    DLLLOCAL QoreVarInfo(const QoreVarInfo& old) : QoreMemberInfo(old), val(old.val) {
    }
 
+   DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
+         if (finalized) {
+            xsink->raiseException("DESTRUCTOR-ERROR", "illegal class static variable assignment after second phase of variable destruction");
+            return -1;
+         }
+         return 0;
+      }
+
 public:
    mutable QoreThreadLock l;
    QoreLValueGeneric val;
+   bool finalized;
 
    DLLLOCAL QoreVarInfo(int nfl, int nll, const QoreTypeInfo* n_typeinfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0) :
-      QoreMemberInfo(nfl, nll, n_typeinfo, n_parseTypeInfo, e) {
+      QoreMemberInfo(nfl, nll, n_typeinfo, n_parseTypeInfo, e), finalized(false) {
    }
 
-   DLLLOCAL QoreVarInfo(int nfl, int nll) : QoreMemberInfo(nfl, nll) {
+   DLLLOCAL QoreVarInfo(int nfl, int nll) : QoreMemberInfo(nfl, nll), finalized(false) {
    }
 
-   DLLLOCAL QoreVarInfo(int nfl, int nll, AbstractQoreNode* e) : QoreMemberInfo(nfl, nll, e) {
+   DLLLOCAL QoreVarInfo(int nfl, int nll, AbstractQoreNode* e) : QoreMemberInfo(nfl, nll, e), finalized(false) {
    }
    
    DLLLOCAL ~QoreVarInfo() {
       assert(!val.hasValue());
    }
 
+   DLLLOCAL void clear(ExceptionSink* xsink) {
+      ReferenceHolder<> tmp(xsink);
+      AutoLocker al(l);
+      if (!finalized)
+         finalized = true;
+      tmp = val.remove(true);
+   }
+
    DLLLOCAL void delVar(ExceptionSink* xsink) {
       del();
-      discard(val.remove(false), xsink);
+      discard(val.remove(true), xsink);
    }
 
    DLLLOCAL QoreVarInfo* copy() const {
@@ -1076,6 +1093,14 @@ public:
 
    DLLLOCAL void assignInit(AbstractQoreNode* v) {
       val.assignInitial(v);
+   }
+
+   DLLLOCAL void getLValue(LValueHelper& lvh) {
+      lvh.setTypeInfo(getTypeInfo());
+      lvh.setAndLock(l);
+      if (checkFinalized(lvh.vl.xsink))
+         return;
+      lvh.setValue(val);
    }
 
    DLLLOCAL void init() {
@@ -1147,13 +1172,19 @@ public:
       }
    }
 
+   DLLLOCAL void clear(ExceptionSink* xsink) {
+      for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+         i->second->clear(xsink);
+      }
+   }
+
    DLLLOCAL void del(ExceptionSink* xsink) {
       for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
          i->second->delVar(xsink);
          free(i->first);
          delete i->second;
       }
-      clear();
+      var_map_t::clear();
    }
 
    DLLLOCAL bool inList(const char* name) const {
@@ -1457,7 +1488,9 @@ public:
       memset(buf, 0, SH_SIZE);
    }
 
-   DLLLOCAL SignatureHash(const SignatureHash& old) {
+   DLLLOCAL SignatureHash(const SignatureHash& old) : is_set(old.is_set) {
+      if (is_set)
+         memcpy(buf, old.buf, SH_SIZE);
    }
 
    DLLLOCAL void update(const QoreString& str);
@@ -2215,6 +2248,11 @@ public:
       return 0;
    }
 
+   DLLLOCAL void clearStaticVars(ExceptionSink* xsink) {
+      private_vars.clear(xsink);
+      public_vars.clear(xsink);
+   }
+
    DLLLOCAL void deleteClassData(ExceptionSink* xsink) {
       private_vars.del(xsink);
       public_vars.del(xsink);
@@ -2482,6 +2520,10 @@ public:
 
    DLLLOCAL static void parseAddPublicStaticVar(QoreClass* qc, char* dname, QoreVarInfo* VarInfo) {
       qc->priv->parseAddPublicStaticVar(dname, VarInfo);
+   }
+
+   DLLLOCAL static void clearStaticVars(QoreClass* qc, ExceptionSink* xsink) {
+      qc->priv->clearStaticVars(xsink);
    }
 
    DLLLOCAL static void deleteClassData(QoreClass* qc, ExceptionSink* xsink) {

@@ -190,40 +190,45 @@ void qore_program_private::internParseRollback() {
 
 void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
    // we only clear the internal data structures once
-   bool clr;
+   bool clr = false;
    {
       AutoLocker al(plock);
       // wait for all threads to terminate
       waitForAllThreadsToTerminateIntern();
-      clr = valid;
-      if (valid)
-         valid = false;
+      if (!clear_started) {
+         clr = true;
+         clear_started = true;
+      }
    }
-   if (clr)
-      clearIntern(xsink);
-}
 
-void qore_program_private::clearIntern(ExceptionSink* xsink) {
+   if (clr) {
+      // delete all global variables
+      qore_root_ns_private::clearData(*RootNS, xsink);
+
+      {
+         AutoLocker al(plock);
+         assert(valid);
+         valid = false;
+      }
+
 #ifdef HAVE_SIGNAL_HANDLING
-   // clear all signal handlers managed by this program
-   for (int_set_t::iterator i = sigset.begin(), e = sigset.end(); i != e; ++i)
-      QSM.removeHandler(*i, xsink);
+      // clear all signal handlers managed by this program
+      for (int_set_t::iterator i = sigset.begin(), e = sigset.end(); i != e; ++i)
+         QSM.removeHandler(*i, xsink);
 #endif
 
-   // merge pending parse exceptions into the passed exception sink, if any
-   if (pendingParseSink) {
-      xsink->assimilate(pendingParseSink);
-      pendingParseSink = 0;
+      // merge pending parse exceptions into the passed exception sink, if any
+      if (pendingParseSink) {
+         xsink->assimilate(pendingParseSink);
+         pendingParseSink = 0;
+      }
+
+      // clear thread data if base object
+      if (base_object)
+         clearThreadData(xsink);
+
+      clearProgramThreadData(xsink);
    }
-
-   // delete all global variables
-   qore_root_ns_private::clearData(*RootNS, xsink);
-
-   // clear thread data if base object
-   if (base_object)
-      clearThreadData(xsink);
-
-   clearProgramThreadData(xsink);
 }
 
 // called when the program's ref count = 0 (but the dc count may not go to 0 yet)
