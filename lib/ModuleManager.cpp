@@ -348,65 +348,6 @@ void ModuleManager::addAutoModuleDirList(const char* strlist) {
    assert(false);
 }
 
-// see if name has "-api-<digit(s)>.<digit(s)>" at the end
-static bool has_extension(const char* name) {
-   const char* p = strstr(name, "-api-");
-   if (!p)
-      return false;
-   p += 5;
-   while (isdigit(*p)) ++p;
-   if (*p != '.')
-      return false;
-   return isdigit(*(p + 1));
-}
-
-void QoreModuleManager::globDir(const char* dir) {
-   ExceptionSink xsink;
-
-   // first check modules with extensions indicating compatible apis
-   for (unsigned mi = 0; mi <= qore_mod_api_list_len; ++mi) {
-      QoreString gstr(dir);
-      QoreString ext;
-
-      // make new string for glob
-      if (mi < qore_mod_api_list_len)
-	 ext.sprintf("-api-%d.%d.qmod", qore_mod_api_list[mi].major, qore_mod_api_list[mi].minor);
-      else
-	 ext.concat(".qmod");
-
-      gstr.concat("/*");
-      gstr.concat(&ext);
- 
-      glob_t globbuf;
-      if (!glob(gstr.getBuffer(), 0, 0, &globbuf)) {
-	 for (int i = 0; i < (int)globbuf.gl_pathc; i++) {
-	    char* name = q_basename(globbuf.gl_pathv[i]);
-	    ON_BLOCK_EXIT(free, name);
-
-	    // see if the name has an api in it (if on the generic case)
-	    // and skip it if it does
-	    if (mi == qore_mod_api_list_len && has_extension(name))
-	       continue;
-
-	    // delete extension from module name for feature matching
-	    unsigned len = strlen(name);
-	    if (len == ext.strlen()) {
-	       printd(5, "QoreModuleManager::globDir() %s has no name, just an extension\n", name);
-	       continue;
-	    }
-	    name[len - ext.strlen()] = '\0';
-	    printd(5, "QoreModuleManager::globDir() found %s (%s)\n", globbuf.gl_pathv[i], name);
-	    loadBinaryModuleFromPath(xsink, globbuf.gl_pathv[i], name);
-	    if (xsink && !show_errors)
-	       xsink.clear();
-	 }
-      }
-      else
-	 printd(5, "QoreModuleManager::globDir(): glob(%s) returned an error: %s\n", gstr.getBuffer(), strerror(errno));
-      globfree(&globbuf);
-   }
-}
-
 void QoreModuleManager::init(bool se) {
    static const char* qt_blacklist_string = "because it was implemented with faulty namespace handling that does not work with newer versions of Qore; use the 'qt4' module based in libsmoke instead; it is much more complete";
 
@@ -612,7 +553,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	 else
 	    str.concat(".qmod");
 	    
-	 //printd(0, "ModuleManager::loadModule(%s) trying binary module: %s\n", name, str.getBuffer());
+	 printd(0, "ModuleManager::loadModule(%s) trying binary module: %s\n", name, str.getBuffer());
 	 if (!stat(str.getBuffer(), &sb)) {
 	    printd(5, "ModuleManager::loadModule(%s) found binary module: %s\n", name, str.getBuffer());
 	    mi = loadBinaryModuleFromPath(xsink, str.getBuffer(), name, pgm);

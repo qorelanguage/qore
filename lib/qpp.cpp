@@ -26,7 +26,7 @@
 // cannot include Qore.h with the Oracle Sun Studio compiler
 // when not linking with libqore as link errors result
 //#include <qore/intern/config.h>
-#include <qore/common.h>
+#include "../include/qore/common.h"
 
 #include <stdio.h>
 #include <errno.h>

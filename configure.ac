@@ -1366,14 +1366,26 @@ else
 fi
 
 # set module path
-MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
+if test "$windows" = yes; then
+  winprefix=z:`echo ${myprefix}|sed 's/\//\\\\\\\\\\\\\\\\/g'`
+  winlibdir=`echo ${mypkglibdir}|sed 's/\/$//'|sed 's/\//\\\\\\\\\\\\\\\\/g'`
+  # we don't know the real final install location, but at least we can set a valid windows path
+  MODULE_DIR="${winprefix}\\\\\\\\\lib${LIBSUFFIX}\\\\\\\\${winlibdir}"
+else
+  MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
+fi
 AC_SUBST([MODULE_DIR])
 
 mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}
 AC_SUBST([mymodverdir])
 
 # get version-dependent module path
-MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
+if test "$windows" = yes; then
+  # we don't know the real final install location, but at least we can set a valid windows path
+  MODULE_VER_DIR="${MODULE_DIR}\\\\\\\\${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
+else
+  MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
+fi
 AC_SUBST([MODULE_VER_DIR])
 
 if test "$enable_profile" = yes; then

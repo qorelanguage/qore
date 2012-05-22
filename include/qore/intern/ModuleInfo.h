@@ -158,8 +158,6 @@ protected:
 
    DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0);
 
-   DLLLOCAL void globDir(const char* dir);
-
    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0);
 
