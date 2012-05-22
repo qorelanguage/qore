@@ -65,20 +65,16 @@ BuildRequires: bzip2-devel
 %endif
 
 %description
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features database integration, 
-database-independent programming support, exception-handling and 
-exception-safe programming support, as well as built-in date arithmetic,
-character encoding (including proper UTF-8) support, and much more.
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development, but is also useful as a general purpose language.
 
 %if 0%{?suse_version}
 %debug_package
 %endif
 
 %package -n libqore5
-Summary: The libraries for qore runtime and qore clients
+Summary: The libraries for the qore runtime and qore clients
 Group: Development/Languages/Other
 Provides: qore-module-api-0.12
 Provides: qore-module-api-0.11
@@ -90,16 +86,11 @@ Provides: qore-module-api-0.6
 Provides: qore-module-api-0.5
 
 %description -n libqore5
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features database integration, 
-database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development, but is also useful as a general purpose language.
 
-This module provides the qore library required for all clients using qore
+This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore5
@@ -119,21 +110,16 @@ Summary: API documentation, programming language reference, and Qore example pro
 Group: Development/Languages/Other
 
 %description doc
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features database integration, 
-database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development, but is also useful as a general purpose language.
 
-This module provides API documentation, programming language reference, and
-example programs
+This package provides the HTML documentation for the Qore programming language
+and also for user modules delivered with Qore and also example programs.
 
 %files doc
 %defattr(-,root,root,-)
-%doc docs/library docs/qore-style.css docs/img docs/qore.html examples/
+%doc docs/lang/html docs/modules/*/html examples/
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
@@ -141,16 +127,11 @@ Group: Development/Languages/Other
 Requires: libqore5 = %{version}-%{release}
 
 %description devel
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language with optional strong typing suitable for embedding application logic,
-application scripting, interface development, and even complex multi-threaded,
-network-aware object-oriented application development. Qore features
-database integration, database-independent programming support, exception-
-handling and exception-safe programming support, TIBCO and Tuxedo modules, as
-well as built-in date arithmetic, character encoding (including proper UTF-8)
-support, and much more.
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development, but is also useful as a general purpose language.
 
-This module provides header files needed to compile client programs using the
+This package provides header files needed to compile client programs using the
 Qore library.
 
 %files devel
@@ -160,9 +141,25 @@ Qore library.
 %{_libdir}/pkgconfig/qore.pc
 %{_prefix}/include/*
 
+%package devel-doc
+Summary: C++ API documentation for the qore library
+Group: Development/Languages/Other
+Requires: libqore5 = %{version}-%{release}
+
+%description devel-doc
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development, but is also useful as a general purpose language.
+
+This package provides HTML documentation for the C++ API for the Qore library.
+
+%files devel-doc
+%doc docs/library/html
+
 %prep
 %setup -q
 mv $RPM_BUILD_DIR/%{name}-%{version}/test $RPM_BUILD_DIR/%{name}-%{version}/examples
+mkdir docs/modules
 
 %ifarch x86_64 ppc64 x390x
 c64=--enable-64bit
@@ -178,7 +175,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/%{module_dir}
 mkdir -p $RPM_BUILD_ROOT/%{module_dir}/${qore_ver}
 mkdir -p $RPM_BUILD_ROOT/usr/man/man1
-make install prefix=$RPM_BUILD_ROOT/usr
+make install prefix=%{_prefix} DESTDIR=$RPM_BUILD_ROOT
 rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 
 %clean
@@ -201,7 +198,11 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Thu Oct 20 2011 David Nichols <david@qore.org>
+* Tue May 22 2012 David Nichols <david@qore.org> 0.8.4
+- updated for new doxygen-based documentation, added devel-doc pkg for API docs
+- updated package descriptions
+
+* Thu Oct 20 2011 David Nichols <david@qore.org> 0.8.4
 - updated to 0.8.4
 
 * Fri Oct 07 2011 Petr Vanek <petr.vanek@qoretechnologies.com> 0.8.3

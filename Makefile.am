@@ -33,9 +33,6 @@ else
 QDX=QORE_MODULE_DIR=./qlib ./qore doxygen/qdx
 endif
 
-#lib_doxyfiles: qore
-#	for a in $(USER_MODULES); do ./qore doxygen/qdx -d=lib -e=.dox.h $$a; done
-
 LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_AutoGate.qpp \
 	lib/QC_AutoLock.qpp \
@@ -109,6 +106,8 @@ LANG_DOXYFILES_SRC = \
 	doxygen/dpp \
 	doxygen/footer_template.html \
 	doxygen/pdox \
+	doxygen/qdx \
+	doxygen/qlib/Doxyfile.tmpl \
 	doxygen/lang/Doxyfile.tmpl \
 	doxygen/lang/mainpage.dox.tmpl \
 	doxygen/lang/000_intro.dox.tmpl \
@@ -624,18 +623,6 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/inherit2.q \
 	examples/getopt.q \
 	examples/getch.q \
-	docs/*.html \
-	docs/qore-style.css \
-	docs/img/acrobat_a.gif \
-	docs/img/acrobat.gif \
-	docs/img/disk.gif \
-	docs/img/qbullet-note_a.gif \
-	docs/img/qbullet-note.gif \
-	docs/img/remote_a.gif \
-	docs/img/remote.gif \
-	docs/img/scrollup_a.gif \
-	docs/img/scrollup.gif \
-	docs/img/word.gif \
 	docs/library/html \
 	qore.spec \
 	$(LIB_DOXYFILES) \

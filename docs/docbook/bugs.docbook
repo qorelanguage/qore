@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-
-<chapter id="Appendix_B:_Known_Bugs">
-  <title>Appendix B: Known Bugs</title>
-
-  <para>Out of memory errors are not always captured. Internal support for trapping these conditions in the C++ <command>new</command> operator must be developed.</para>
-
-</chapter>
-
