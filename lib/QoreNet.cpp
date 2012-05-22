@@ -90,6 +90,8 @@ int q_addr_to_string2(const struct sockaddr* ai_addr, QoreString& str) {
       return 0;
    }
 #endif
+   else
+      return -1;
 
    if (!inet_ntop(ai_addr->sa_family, addr, (char *)(str.getBuffer() + slen), str.capacity() - slen))
       return -1;
