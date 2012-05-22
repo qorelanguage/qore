@@ -67,7 +67,7 @@ BuildRequires: bzip2-devel
 %description
 Qore is a scripting language supporting threading and embedded logic, designed
 for applying a flexible scripting-based approach to enterprise interface
-development, but is also useful as a general purpose language.
+development but is also useful as a general purpose language.
 
 %if 0%{?suse_version}
 %debug_package
@@ -88,7 +88,7 @@ Provides: qore-module-api-0.5
 %description -n libqore5
 Qore is a scripting language supporting threading and embedded logic, designed
 for applying a flexible scripting-based approach to enterprise interface
-development, but is also useful as a general purpose language.
+development but is also useful as a general purpose language.
 
 This package provides the qore library required for all clients using qore
 functionality.
@@ -112,7 +112,7 @@ Group: Development/Languages/Other
 %description doc
 Qore is a scripting language supporting threading and embedded logic, designed
 for applying a flexible scripting-based approach to enterprise interface
-development, but is also useful as a general purpose language.
+development but is also useful as a general purpose language.
 
 This package provides the HTML documentation for the Qore programming language
 and also for user modules delivered with Qore and also example programs.
@@ -129,7 +129,7 @@ Requires: libqore5 = %{version}-%{release}
 %description devel
 Qore is a scripting language supporting threading and embedded logic, designed
 for applying a flexible scripting-based approach to enterprise interface
-development, but is also useful as a general purpose language.
+development but is also useful as a general purpose language.
 
 This package provides header files needed to compile client programs using the
 Qore library.
@@ -149,7 +149,7 @@ Requires: libqore5 = %{version}-%{release}
 %description devel-doc
 Qore is a scripting language supporting threading and embedded logic, designed
 for applying a flexible scripting-based approach to enterprise interface
-development, but is also useful as a general purpose language.
+development but is also useful as a general purpose language.
 
 This package provides HTML documentation for the C++ API for the Qore library.
 
