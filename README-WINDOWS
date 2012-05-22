@@ -25,6 +25,16 @@ The Qore DLL built this way will be statically linked with the libraries necessa
 
 Currently Windows XP is required as the mininum required Windows target.
 
+RUNNING
+-------
+set PATH to the binary directory where qore.exe and qore.dll are located:
+    set PATH=%PATH%;c:\qopre\bin
+
+set QORE_MODULE_PATH to the module directory where Qore was installed, don't forget the versioned subdirectory for user modules; ex:\    
+    set QORE_MODULE_PATH=c:\qore\lib\qore-modules:c:\qore\lib\qore-modules\0.8.4
+
+report any bugs to david@qore.org or post on the Qore forums:
+    http://www.qore.org/forums
 
 FUNCTIONAL NOTES
 ----------------

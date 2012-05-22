@@ -1,3 +1,401 @@
+2012-05-22 08:52  david_nichols
+
+	* qore.spec: fixed minor grammatical mistake in description
+
+2012-05-22 08:49  david_nichols
+
+	* Makefile.am, docs/Makefile, docs/chunks2php, docs/docbook,
+	  docs/docbook2qthelp, docs/get-docbook-root.sh, docs/img,
+	  docs/qore-style.css, docs/qore.html, docs/scripts,
+	  lib/Makefile.am, qore.spec: * packaging fixes for building with
+	  automake < 1.12
+	  * removed old docbook documentation
+	  * updated spec file for new docs, created devel-doc package,
+	  other minor spec file fixes
+
+2012-05-21 12:41  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreClassList.h,
+	  include/qore/intern/qore_program_private.h,
+	  lib/QoreClassList.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreProgram.cpp, lib/StaticClassVarRefNode.cpp: * "finalize"
+	  static class vars in Program destruction at the same time as
+	  global variables
+	  * make sure and "finalize" program vars before marking the
+	  Program as invalid
+	  * implemented missing class SignatureHash copy constructor
+
+2012-05-21 08:23  david_nichols
+
+	* doxygen/lang/152_code_data_types.dox.tmpl,
+	  doxygen/lang/170_character_encoding.dox.tmpl,
+	  include/qore/intern/QoreNamespaceIntern.h, lib/Function.cpp,
+	  lib/QoreCastOperatorNode.cpp, lib/QoreClass.cpp,
+	  lib/QoreNamespace.cpp, lib/ql_lib.qpp: * fixed bugs reporting the
+	  parse error location for unresolved class lookups in parsing
+	  stage 2
+	  * minor doc updates
+
+2012-05-18 12:07  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/qore_program_private.h,
+	  include/qore/intern/qore_thread_intern.h, lib/QoreProgram.cpp,
+	  lib/thread.cpp: fixed a race condition deleting thread local data
+	  caused by a lack of serialization between thread termination and
+	  program-global thread-local data deletion
+
+2012-05-18 10:41  david_nichols
+
+	* Makefile.am, test/test.q: windows / mxe / mingw compile/build
+	  fixes
+
+2012-05-18 10:35  david_nichols
+
+	* lib/QoreNet.cpp: windows / mxe / mingw compile fixes
+
+2012-05-18 09:29  david_nichols
+
+	* lib/QoreProgram.cpp: do not try to remove signal handlers on
+	  platforms that don't support signals
+
+2012-05-18 09:15  david_nichols
+
+	* doxygen/lang/145_basic_data_types.dox.tmpl,
+	  doxygen/lang/205_namespaces.dox.tmpl, qlib/HttpServer.qm,
+	  qlib/SmtpClient.qm, qlib/TelnetClient.qm: minor doc fixes,
+	  declared some internal methods in modules final
+
+2012-05-17 15:30  david_nichols
+
+	* RELEASE-NOTES, doxygen/lang/215_classes.dox.tmpl,
+	  doxygen/lang/255_keywords.dox.tmpl,
+	  include/qore/intern/BuiltinFunction.h,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/QoreClassIntern.h, lib/BuiltinFunction.cpp,
+	  lib/Function.cpp, lib/Makefile.am, lib/QoreClass.cpp,
+	  lib/parser.ypp, lib/single-compilation-unit.cpp: * implemented
+	  support for "final" class methods
+	  * minor documentation corrections
+
+2012-05-16 17:12  david_nichols
+
+	* Makefile.am: build fixes
+
+2012-05-16 13:39  david_nichols
+
+	* Makefile.am, include/qore/QoreClass.h,
+	  include/qore/intern/CallStack.h,
+	  include/qore/intern/ConstantList.h,
+	  include/qore/intern/Function.h, include/qore/intern/LocalVar.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/QoreValue.h, include/qore/intern/Variable.h,
+	  include/qore/intern/qore_program_private.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  lib/CallReferenceNode.cpp, lib/CallStack.cpp,
+	  lib/ConstantList.cpp, lib/Function.cpp, lib/FunctionCallNode.cpp,
+	  lib/QoreClass.cpp, lib/QoreClassList.cpp,
+	  lib/QoreClosureParseNode.cpp, lib/QoreException.cpp,
+	  lib/QoreNamespace.cpp, lib/QoreTypeInfo.cpp,
+	  lib/SelfVarrefNode.cpp, lib/VLock.cpp, lib/Variable.cpp,
+	  lib/parser.ypp, lib/ql_debug.cpp, lib/scanner.lpp,
+	  lib/thread.cpp: * rewrote constant list initialization to save
+	  context for out of order assignment expression initialization
+	  * initial implementation of "final" classes (cannot be
+	  subclassed)
+	  * fixed a bug where static class methods could not access private
+	  objects in their class'
+	  * added parent class information to class' SHA1 hashes
+	  * rewrote class one-time initialization; it was not being
+	  executed on some classes in certain cases that were never
+	  otherwise referenced; this would cause problems with module
+	  classes when exported; also fixed recursive class hierarchy check
+	  and integrated with new initialization solution
+
+2012-05-15 09:19  david_nichols
+
+	* examples/email.q, include/qore/intern/QoreClassIntern.h,
+	  lib/QoreClass.cpp, lib/parser.ypp, lib/scanner.lpp, qlib/Mime.qm:
+	  minor fixes; started implementing support for the "final" keyword
+
+2012-05-15 08:07  david_nichols
+
+	* Makefile.am: build fix
+
+2012-05-14 14:50  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/QoreClass.cpp,
+	  qlib/HttpServer.qm: * HttpServer updates
+	  * fixed a bug detecting recursive class hierarchies at parse time
+
+2012-05-14 11:36  david_nichols
+
+	* RELEASE-NOTES, examples/httpserver.q,
+	  include/qore/intern/QoreValue.h, include/qore/intern/Variable.h,
+	  lib/QoreSocket.cpp, qlib/HttpServer.qm: * implemented an
+	  "assigned" bit for optimized lvalues so that they can still hold
+	  "NOTHING" when unassigned or after deletion/removal for
+	  backwards-compatibility and consistency with all other lvalues in
+	  Qore.
+	  * updated the Qore HttpServer module to generate RFC
+	  2616-compliant Server strings and to send out the msg body with
+	  redirect messages
+	  * updated the httpserver.q example program to send a small msg
+	  body with redirect messages
+
+2012-05-14 09:58  david_nichols
+
+	* qlib/HttpServer.qm: added ssl key to context hash to identify
+	  secure connections
+
+2012-05-13 20:35  david_nichols
+
+	* include/qore/intern/LocalVar.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreObjectIntern.h,
+	  include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/QoreValue.h,
+	  include/qore/intern/StaticClassVarRefNode.h,
+	  include/qore/intern/Variable.h,
+	  include/qore/intern/qore_program_private.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  lib/QoreExtractOperatorNode.cpp, lib/QoreObject.cpp,
+	  lib/QoreSpliceOperatorNode.cpp, lib/QoreTypeInfo.cpp,
+	  lib/StaticClassVarRefNode.cpp, lib/Variable.cpp, lib/thread.cpp,
+	  qlib/HttpServer.qm: * fixed removing/deleting static class
+	  variable lvalues
+	  * implemented initial QoreValue structure
+	  * minor fixes and cleanups
+
+2012-05-13 10:28  david_nichols
+
+	* doxygen/qdx, lib/QC_File.qpp, qlib/Mime.qm, qlib/SmtpClient.qm:
+	  doc updates
+
+2012-05-12 18:41  david_nichols
+
+	* Makefile.am, doxygen/lang/Doxyfile.tmpl, doxygen/qdx,
+	  doxygen/qlib/Doxyfile.tmpl, qlib/HttpServer.qm, qlib/Mime.qm,
+	  qlib/SmtpClient.qm, qlib/TelnetClient.qm: use tag files to link
+	  documentation
+
+2012-05-12 09:34  david_nichols
+
+	* qlib/HttpServer.qm, qlib/SmtpClient.qm, qlib/TelnetClient.qm:
+	  fixed module documentation to not document private / internal
+	  definitions
+
+2012-05-11 20:27  david_nichols
+
+	* doxygen/qlib/Doxyfile.tmpl, lib/QC_Socket.qpp,
+	  qlib/HttpServer.qm, qlib/Mime.qm, qlib/SmtpClient.qm,
+	  qlib/TelnetClient.qm: user module doc updates
+
+2012-05-11 09:18  david_nichols
+
+	* qlib/SmtpClient.qm: more smtp client fixes
+
+2012-05-11 09:10  david_nichols
+
+	* qlib/SmtpClient.qm: more SmtpClient fixes
+
+2012-05-11 08:59  david_nichols
+
+	* qlib/SmtpClient.qm: Smtp body encoding fixes
+
+2012-05-11 08:47  david_nichols
+
+	* doxygen/qdx, qlib/HttpServer.qm, qlib/SmtpClient.qm: module doc
+	  updates and SmtpClient locking fixes
+
+2012-05-10 14:19  david_nichols
+
+	* qlib/HttpServer.qm: fixed broken HttpServer module
+
+2012-05-10 14:03  david_nichols
+
+	* qlib/HttpServer.qm, qlib/SmtpClient.qm: module doc and typo
+	  updates
+
+2012-05-10 12:52  david_nichols
+
+	* doxygen/qdx, qlib/HttpServer.qm, qlib/SmtpClient.qm: more updates
+
+2012-05-10 12:00  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl, doxygen/qdx,
+	  qlib/HttpServer.qm, qlib/SmtpClient.qm: progress on integrating
+	  user module documentation with Qore's documentation
+
+2012-05-10 10:16  david_nichols
+
+	* lib/scanner.lpp: fixed integer overflow exception text
+
+2012-05-10 08:25  subik
+
+	* Makefile.am: qdx fix for fresh qore compilation/install
+
+2012-05-09 19:19  david_nichols
+
+	* qlib/SmtpClient.qm: added some new method to SmtpClient
+
+2012-05-09 19:19  david_nichols
+
+	* Makefile.am, docs/modules, docs/modules/HttpServer,
+	  docs/modules/Mime, docs/modules/SmtpClient,
+	  docs/modules/TelnetClient, doxygen/pdox, doxygen/qdx,
+	  doxygen/qlib, doxygen/qlib/Doxyfile.tmpl, qlib/HttpServer.qm:
+	  started adding infrastructure for generating doxygen
+	  documentation from qore-language sources (currently a bit of a
+	  mess and not fully functional)
+
+2012-05-09 14:46  david_nichols
+
+	* RELEASE-NOTES, include/qore/intern/RegexSubstNode.h,
+	  lib/RegexSubstNode.cpp: fixed 2 memory bugs in the regex subst
+	  operator =~ s///
+	  * the validity of the source expression number (ie $2, $3, etc)
+	  was not checked before trying to copy the source expression -
+	  invalid numbers would result in a crash
+	  * if a non-UTF-8-encoded string was passed to the regex subst
+	  operator, the unconverted string was used when copying data to
+	  the target string
+
+2012-05-09 09:48  david_nichols
+
+	* include/qore/intern/QoreValue.h, lib/ModuleManager.cpp: cosmetic
+	  updates and to eliminate some warnings on some compilers
+
+2012-05-08 18:06  david_nichols
+
+	* include/qore/QoreProgram.h,
+	  include/qore/intern/GlobalVariableList.h,
+	  include/qore/intern/LocalVar.h,
+	  include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/QoreNamespaceList.h,
+	  include/qore/intern/Variable.h,
+	  include/qore/intern/qore_program_private.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  lib/CallReferenceNode.cpp, lib/Function.cpp,
+	  lib/GlobalVariableList.cpp, lib/ModuleManager.cpp,
+	  lib/QC_Program.qpp, lib/QoreClass.cpp, lib/QoreGetOpt.cpp,
+	  lib/QoreNamespace.cpp, lib/QoreProgram.cpp, lib/QoreSignal.cpp,
+	  lib/Variable.cpp, lib/thread.cpp: * fixed a (newly-inserted) bug
+	  in the GetOpt class
+	  * added Program::destructor() to make sure that Program objects
+	  are never used after they are deleted
+	  * internal implementation changes to ensure that Programs are not
+	  deleted when code is running in them and that Programs cannot be
+	  accessed after they are deleted even though their object may have
+	  pointers to it (and therefore still exists with a positive ref
+	  count)
+
+2012-05-08 12:01  david_nichols
+
+	* ChangeLog, RELEASE-NOTES, examples/getopt.q,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreValue.h,
+	  include/qore/intern/StaticClassVarRefNode.h,
+	  lib/QC_HTTPClient.qpp, lib/QoreClass.cpp,
+	  lib/StaticClassVarRefNode.cpp, lib/ql_context.qpp,
+	  lib/ql_lib.qpp, lib/ql_string.qpp, lib/ql_thread.qpp,
+	  lib/thread.cpp: * many small doc/typo updates
+	  * updated class static vars to use optimized lvalue storage and
+	  new APIs
+	  * updated release notes for upcoming 0.8.4 release
+	  * do not set MAX_QORE_THREADS with Darwin 11 (OSX 10.7) as the
+	  pthread_create() bug appears to have been fixed
+	  * minor getopt.q example fixes
+
+2012-05-08 06:50  david_nichols
+
+	* examples/telnet.q: fixed example telnet port in help text
+
+2012-05-07 20:00  david_nichols
+
+	* lib/Pseudo_QC_Bool.qpp: fixed typos
+
+2012-05-07 19:57  david_nichols
+
+	* RELEASE-NOTES, lib/Pseudo_QC_Bool.qpp: * started writing release
+	  notes for 0.8.4
+	  * fixed a typo in the <bool> pseudo-class
+
+2012-05-07 17:55  david_nichols
+
+	* include/qore/intern/ManagedDatasource.h: fixed a memory error bug
+	  managing thread-local resources when Datasource::setAutoCommit()
+	  or Datasource::open() is called when the transaction lock is held
+
+2012-05-07 15:22  david_nichols
+
+	* lib/Makefile.am, lib/QC_GetOpt.qpp: linux compile fixes
+
+2012-05-07 13:39  david_nichols
+
+	* doxygen/lang/200_functions.dox.tmpl,
+	  doxygen/lang/205_namespaces.dox.tmpl, examples/getopt.q,
+	  examples/httpserver.q, examples/telnet.q,
+	  include/qore/intern/LocalVar.h, include/qore/intern/QoreValue.h,
+	  include/qore/intern/Variable.h,
+	  include/qore/intern/qore_program_private.h,
+	  lib/Pseudo_QC_String.qpp, lib/Variable.cpp, qlib/HttpServer.qm,
+	  qlib/SmtpClient.qm, qlib/TelnetClient.qm: * renamed QoreValue to
+	  QoreLValue
+	  * make sure the QoreProgram object does not get deleted while
+	  clearing thread-local vars
+	  * removed incorrect assert() in LocalVarValue::finalize()
+	  * doc and example and qlib updates
+	  * addded httpserver example program
+
+2012-05-07 12:08  david_nichols
+
+	* lib/Pseudo_QC_String.qpp, lib/qpp.cpp: minor doc updates
+
+2012-05-07 11:51  david_nichols
+
+	* lib/ForEachStatement.cpp, lib/parser.ypp: check foreach var
+	  expression in parse init stage, not in parser directly
+
+2012-05-07 10:36  subik
+
+	* lib/parser.ypp, lib/scanner.lpp: compilation fix. I'm not sure if
+	  it will work on linux/windows - but it's required on mac. There
+	  os no parser.h, just parser.hpp
+
+2012-05-07 09:42  david_nichols
+
+	* Makefile.am, examples/telnet.q, qlib/Telnet.qm,
+	  qlib/TelnetClient.qm: renamed the Telnet module -> TelnetClient
+
+2012-05-06 19:47  david_nichols
+
+	* examples/getopt.q, examples/telnet.q,
+	  include/qore/intern/QoreGetOpt.h, lib/QC_GetOpt.qpp,
+	  lib/QoreGetOpt.cpp: * minor non-functional GetOpt implementation
+	  cleanups
+	  * updated getopt.q to typed qore + added MIT license text
+	  * minor telnet updates
+
+2012-05-06 13:34  david_nichols
+
+	* README-LICENSE, doxygen/lang/230_signal_handling.dox.tmpl,
+	  doxygen/lang/235_event_handling.dox.tmpl, examples/email.q,
+	  examples/qget, examples/telnet.q, include/qore/QoreNet.h,
+	  lib/QoreNet.cpp, lib/QoreSocket.cpp, qlib/SmtpClient.qm,
+	  qlib/Telnet.qm: * added "type" and "typename" keys to the
+	  EVENT_HOSTNAME_RESOLVED event
+	  * added "type", "typename", and "address" keys to the
+	  EVENT_CONNECTING event
+	  * updated the C++ q_addr_to_string2 API (used internally to look
+	  up text address info from binary address info) to return the UNIX
+	  domain socket path as the address if passed an address in family
+	  AF_UNIX
+	  * minor updates to qget and other example programs; added MIT
+	  license text
+
 2012-05-05 05:42  david_nichols
 
 	* doxygen/lang/230_signal_handling.dox.tmpl: updated bug text
