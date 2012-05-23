@@ -228,7 +228,7 @@ CLEANFILES = $(QORE_ALL_SRC)
 
 # only copy parser.h to parser.hpp as automake < 1.12 will still expect parser.h in the dist file :-(
 parser.hpp: dummy
-	if [ -f parser.h ]; then cp parser.h parser.hpp; fi
+	if [ -f parser.h -a ! -f parser.hpp ]; then cp parser.h parser.hpp; fi
 parser.cpp: parser.ypp
 scanner.cpp: scanner.lpp
 
