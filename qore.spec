@@ -1,6 +1,5 @@
 %define qore_ver 0.8.4
 %define module_dir %{_libdir}/qore-modules
-%define module_ver_dir %{module_dir}/%{qore_ver}
 
 %if 0%{?sles_version}
 
@@ -172,8 +171,7 @@ c64=--enable-64bit
 
 %install
 mkdir -p $RPM_BUILD_ROOT/usr/bin
-mkdir -p $RPM_BUILD_ROOT/%{module_dir}
-mkdir -p $RPM_BUILD_ROOT/%{module_dir}/${qore_ver}
+mkdir -p $RPM_BUILD_ROOT/%{module_dir}/%{qore_ver}
 mkdir -p $RPM_BUILD_ROOT/usr/man/man1
 make install prefix=%{_prefix} DESTDIR=$RPM_BUILD_ROOT
 rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
@@ -184,7 +182,8 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/bin/qore
-%{module_ver_dir}
+%{module_dir}
+%{module_dir}/%{qore_ver}
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*
