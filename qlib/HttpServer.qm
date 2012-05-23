@@ -118,7 +118,7 @@ module HttpServer {
     @code
 %requires HttpServer
 
-my code $log = sub (string str) {printf("%y: %s\n", now_us(), str);}
+my code $log = sub (string str) {printf("%y: %s\n", now_us(), str);};
 my HttpServer $hs($log(), $log);
 $hs.setHandler("my-handler", "/", MimeTypeHtml, $myHandler);
 $hs.setDefaultHandler("my-handler", $myHandler);@endcode
