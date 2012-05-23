@@ -1,4 +1,4 @@
-%define qore_ver 0.8.4
+%define qore_ver 0.8.5
 %define module_dir %{_libdir}/qore-modules
 
 %if 0%{?sles_version}
@@ -197,6 +197,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Wed May 23 2012 David Nichols <david@qore.org> 0.8.5
+- updated to 0.8.5
+
 * Tue May 22 2012 David Nichols <david@qore.org> 0.8.4
 - updated for new doxygen-based documentation, added devel-doc pkg for API docs
 - updated package descriptions
