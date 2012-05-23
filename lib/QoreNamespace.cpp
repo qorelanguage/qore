@@ -267,7 +267,7 @@ void qore_ns_private::addBuiltinModuleVariant(const char* fname, AbstractQoreFun
    if (fe)
       qmc.error("function '%s()' has already been declared in namespace '%s'", fname, name.c_str());
    else
-      qmc.mcfl.push_back(ModuleContextFunctionCommit(this, fname, v));
+      qmc.mcfl.push_back(ModuleContextFunctionCommit(this, fname, vh.release()));
 }
 
 void qore_ns_private::addBuiltinVariant(const char* fname, AbstractQoreFunctionVariant* v) {

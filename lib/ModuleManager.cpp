@@ -553,7 +553,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	 else
 	    str.concat(".qmod");
 	    
-	 printd(0, "ModuleManager::loadModule(%s) trying binary module: %s\n", name, str.getBuffer());
+	 //printd(5, "ModuleManager::loadModule(%s) trying binary module: %s\n", name, str.getBuffer());
 	 if (!stat(str.getBuffer(), &sb)) {
 	    printd(5, "ModuleManager::loadModule(%s) found binary module: %s\n", name, str.getBuffer());
 	    mi = loadBinaryModuleFromPath(xsink, str.getBuffer(), name, pgm);
