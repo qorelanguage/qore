@@ -715,6 +715,13 @@ static int get_val_type(const std::string &str) {
          return T_HASH;
       if (str[0] == '<' && str[lc] == '>')
          return T_BIN;
+      if (str[0] == '{') {
+         size_t i = str.find('}');
+         if (i == std::string::npos)
+            return T_OTHER;
+         std::string ns(str, i + 1);
+         return get_val_type(ns);
+      }
       if (!str.compare(0, 5, "bool(") && str[lc] == ')')
          return T_BOOL;
       if (!str.compare(0, 5, "qore(") && str[lc] == ')')
@@ -754,7 +761,34 @@ static int get_val_type(const std::string &str) {
    return T_OTHER;
 }
 
+static int get_dox_value(const std::string &qv, std::string &v) {
+   if (qv[0] == '{') {
+      size_t i = qv.find('}', 1);
+      if (i == std::string::npos) {
+         error("cannot find end of doc text\n");
+         return -1;
+      }
+
+      v.assign(qv, 1, i - 1);
+      return 0;
+   }
+
+   v = qv;
+   return 0;
+}
+
 static int get_qore_value(const std::string &qv, std::string &v, const char *cname = 0, const char** prefix = 0) {
+   if (qv[0] == '{') {
+      size_t i = qv.find('}', 1);
+      if (i == std::string::npos) {
+         error("cannot find end of doc text\n");
+         return -1;
+      }
+
+      std::string tmp(qv, i + 1);
+      return get_qore_value(tmp, v, cname, prefix);
+   }
+
    {
       strmap_t::iterator i = valmap.find(qv);
       if (i != valmap.end()) {
@@ -795,7 +829,7 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
       }
       case T_BIN: {
          if (!cname) {
-            error("cannot create a hash for a non-constant value\n");
+            error("cannot create a binary object for a non-constant value\n");
             return -1;
          }
 
@@ -1168,7 +1202,11 @@ public:
 
    int serializeDox(FILE *fp) {
       output_file(fp, doc);
-      fprintf(fp, "   const %s = %s;\n", name.c_str(), value.c_str());
+
+      std::string qv;
+      if (get_dox_value(value, qv))
+         return -1;
+      fprintf(fp, "   const %s = %s;\n", name.c_str(), qv.c_str());
       return 0;
    }
 };
@@ -1332,7 +1370,7 @@ protected:
       }
    }
 
-   void serializeQoreParams(FILE *fp) const {
+   int serializeQoreParams(FILE *fp) const {
       for (unsigned i = 0; i < params.size(); ++i) {
          if (i)
             fputs(", ", fp);
@@ -1341,10 +1379,16 @@ protected:
             fputs("...", fp);
          else {
             fprintf(fp, "%s %s", p.type.c_str(), p.name.c_str());
-            if (!p.val.empty())
-               fprintf(fp, " = %s", p.val.c_str());
+            if (!p.val.empty()) {
+               std::string qv;
+               if (get_dox_value(p.val, qv))
+                  return -1;
+
+               fprintf(fp, " = %s", qv.c_str());
+            }
          }
       }
+      return 0;
    }
 
    int serializeBindingArgs(FILE *fp) const {
@@ -1572,7 +1616,10 @@ public:
          fputs(p.name.c_str(), fp);
          if (!p.val.empty()) {
             fputs(" = ", fp);
-            fputs(p.val.c_str(), fp);
+            std::string qv;
+            if (get_dox_value(p.val, qv))
+               return -1;
+            fputs(qv.c_str(), fp);
          }
       }
       fputs(");\n\n", fp);
