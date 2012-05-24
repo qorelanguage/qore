@@ -136,6 +136,7 @@ Qore library.
 %files devel
 %defattr(-,root,root,-)
 /usr/bin/qpp
+/usr/bin/qdx
 %{_libdir}/libqore.so
 %{_libdir}/pkgconfig/qore.pc
 %{_prefix}/include/*

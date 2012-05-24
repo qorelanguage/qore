@@ -2399,7 +2399,10 @@ public:
          fputs(p.name.c_str(), fp);
          if (!p.val.empty()) {
             fputs(" = ", fp);
-            fputs(p.val.c_str(), fp);
+            std::string qv;
+            if (get_dox_value(p.val, qv))
+               return -1;
+            fputs(qv.c_str(), fp);
          }
       }
       fputs(");\n", fp);

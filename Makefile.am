@@ -698,6 +698,7 @@ endif
 endif
 
 bin_PROGRAMS = qore
+dist_bin_SCRIPTS = doxygen/qdx
 if COND_SINGLE_COMPILATION_UNIT
 qore_SOURCES = single-compilation-unit.cpp
 else
