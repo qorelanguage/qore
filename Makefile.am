@@ -11,6 +11,7 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
+USER_MODS = HttpServer SmtpClient Mime TelnetClient
 USER_MODULES = qlib/HttpServer.qm \
 	qlib/SmtpClient.qm \
 	qlib/Mime.qm \
@@ -18,10 +19,11 @@ USER_MODULES = qlib/HttpServer.qm \
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC
-QPP=lib/qpp_native
+QPP_PGM=qpp_native
 else
-QPP=lib/qpp
+QPP_PGM=qpp
 endif
+QPP = lib/$(QPP_PGM)
 
 # the QORE_MODULE_DIR=./qlib is there because of situation of fresh install
 # when the qore is not in system (modules are searched in  eg. /usr/local/lib/qore-modules/0.8.4
@@ -90,243 +92,6 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/qc_option.qpp \
 	lib/qc_errno.qpp \
 	lib/qc_qore.qpp
-
-LIB_DOXYFILES = \
-	doxygen/lib/Doxyfile \
-	doxygen/lib/mainpage.doxygen \
-	doxygen/lib/10_embedding.doxygen \
-	doxygen/lib/20_qore_data.doxygen \
-	doxygen/lib/30_qore_builtin_functions.doxygen \
-	doxygen/lib/40_class_implementation.doxygen \
-	doxygen/lib/70_qore_modules.doxygen \
-	doxygen/lib/75_dbi_drivers.doxygen
-
-LANG_DOXYFILES_SRC = \
-	doxygen/dot \
-	doxygen/dpp \
-	doxygen/footer_template.html \
-	doxygen/pdox \
-	doxygen/qdx \
-	doxygen/qlib/Doxyfile.tmpl \
-	doxygen/lang/Doxyfile.tmpl \
-	doxygen/lang/mainpage.dox.tmpl \
-	doxygen/lang/000_intro.dox.tmpl \
-	doxygen/lang/105_desc_overview.dox.tmpl \
-	doxygen/lang/110_environment_variables.dox.tmpl \
-	doxygen/lang/115_conditional_parsing.dox.tmpl \
-	doxygen/lang/120_modules.dox.tmpl \
-	doxygen/lang/125_include_files.dox.tmpl \
-	doxygen/lang/130_identifiers.dox.tmpl \
-	doxygen/lang/135_comments.dox.tmpl \
-	doxygen/lang/140_variables.dox.tmpl \
-	doxygen/lang/145_basic_data_types.dox.tmpl \
-	doxygen/lang/150_container_data_types.dox.tmpl \
-	doxygen/lang/152_code_data_types.dox.tmpl \
-	doxygen/lang/155_data_type_declarations.dox.tmpl \
-	doxygen/lang/160_overloading.dox.tmpl \
-	doxygen/lang/165_time_zones.dox.tmpl \
-	doxygen/lang/170_character_encoding.dox.tmpl \
-	doxygen/lang/175_expressions.dox.tmpl \
-	doxygen/lang/180_operators.dox.tmpl \
-	doxygen/lang/185_qore_regex.dox.tmpl \
-	doxygen/lang/190_date_time_arithmetic.dox.tmpl \
-	doxygen/lang/195_statements.dox.tmpl \
-	doxygen/lang/200_functions.dox.tmpl \
-	doxygen/lang/202_code_flags.dox.tmpl \
-	doxygen/lang/205_namespaces.dox.tmpl \
-	doxygen/lang/210_constants.dox.tmpl \
-	doxygen/lang/215_classes.dox.tmpl \
-	doxygen/lang/220_threading.dox.tmpl \
-	doxygen/lang/225_exception_handling.dox.tmpl \
-	doxygen/lang/230_signal_handling.dox.tmpl \
-	doxygen/lang/235_event_handling.dox.tmpl \
-	doxygen/lang/240_command_line_processing.dox.tmpl \
-	doxygen/lang/245_parse_directives.dox.tmpl \
-	doxygen/lang/250_warnings.dox.tmpl \
-	doxygen/lang/255_keywords.dox.tmpl
-
-LANG_TMP_DOXYFILES_SRC = doxygen/lang/Doxyfile \
-	doxygen/lang/mainpage.dox \
-	doxygen/lang/000_intro.dox \
-	doxygen/lang/105_desc_overview.dox \
-	doxygen/lang/110_environment_variables.dox \
-	doxygen/lang/115_conditional_parsing.dox \
-	doxygen/lang/120_modules.dox \
-	doxygen/lang/125_include_files.dox \
-	doxygen/lang/130_identifiers.dox \
-	doxygen/lang/135_comments.dox \
-	doxygen/lang/140_variables.dox \
-	doxygen/lang/145_basic_data_types.dox \
-	doxygen/lang/150_container_data_types.dox \
-	doxygen/lang/152_code_data_types.dox \
-	doxygen/lang/155_data_type_declarations.dox \
-	doxygen/lang/160_overloading.dox \
-	doxygen/lang/165_time_zones.dox \
-	doxygen/lang/170_character_encoding.dox \
-	doxygen/lang/175_expressions.dox \
-	doxygen/lang/180_operators.dox \
-	doxygen/lang/185_qore_regex.dox \
-	doxygen/lang/190_date_time_arithmetic.dox \
-	doxygen/lang/195_statements.dox \
-	doxygen/lang/200_functions.dox \
-	doxygen/lang/202_code_flags.dox \
-	doxygen/lang/205_namespaces.dox \
-	doxygen/lang/210_constants.dox \
-	doxygen/lang/215_classes.dox \
-	doxygen/lang/220_threading.dox \
-	doxygen/lang/225_exception_handling.dox \
-	doxygen/lang/230_signal_handling.dox \
-	doxygen/lang/235_event_handling.dox \
-	doxygen/lang/240_command_line_processing.dox \
-	doxygen/lang/245_parse_directives.dox \
-	doxygen/lang/250_warnings.dox \
-	doxygen/lang/255_keywords.dox
-
-LANG_TMP_DOXYFILES = $(LANG_TMP_DOXYFILES_SRC) \
-	qore.tag
-
-LANG_DOXYFILES = doxygen/lang/Doxyfile $(LANG_TMP_DOXYFILES_SRC)
-
-doxygen/lang/Doxyfile: doxygen/lang/Doxyfile.tmpl
-	doxygen/dpp $< "$(top_srcdir)/doxygen/" > $@
-
-doxygen/lang/mainpage.dox: doxygen/lang/mainpage.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/000_intro.dox: doxygen/lang/000_intro.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/105_desc_overview.dox: doxygen/lang/105_desc_overview.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/110_environment_variables.dox: doxygen/lang/110_environment_variables.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/115_conditional_parsing.dox: doxygen/lang/115_conditional_parsing.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/120_modules.dox: doxygen/lang/120_modules.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/125_include_files.dox: doxygen/lang/125_include_files.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/130_identifiers.dox: doxygen/lang/130_identifiers.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/135_comments.dox: doxygen/lang/135_comments.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/140_variables.dox: doxygen/lang/140_variables.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/145_basic_data_types.dox: doxygen/lang/145_basic_data_types.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/150_container_data_types.dox: doxygen/lang/150_container_data_types.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/152_code_data_types.dox: doxygen/lang/152_code_data_types.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/155_data_type_declarations.dox: doxygen/lang/155_data_type_declarations.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/160_overloading.dox: doxygen/lang/160_overloading.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/165_time_zones.dox: doxygen/lang/165_time_zones.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/170_character_encoding.dox: doxygen/lang/170_character_encoding.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/175_expressions.dox: doxygen/lang/175_expressions.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/180_operators.dox: doxygen/lang/180_operators.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/185_qore_regex.dox: doxygen/lang/185_qore_regex.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/190_date_time_arithmetic.dox: doxygen/lang/190_date_time_arithmetic.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/195_statements.dox: doxygen/lang/195_statements.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/200_functions.dox: doxygen/lang/200_functions.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/202_code_flags.dox: doxygen/lang/202_code_flags.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/205_namespaces.dox: doxygen/lang/205_namespaces.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/210_constants.dox: doxygen/lang/210_constants.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/215_classes.dox: doxygen/lang/215_classes.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/220_threading.dox: doxygen/lang/220_threading.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/225_exception_handling.dox: doxygen/lang/225_exception_handling.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/230_signal_handling.dox: doxygen/lang/230_signal_handling.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/235_event_handling.dox: doxygen/lang/235_event_handling.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/240_command_line_processing.dox: doxygen/lang/240_command_line_processing.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/245_parse_directives.dox: doxygen/lang/245_parse_directives.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/250_warnings.dox: doxygen/lang/250_warnings.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-doxygen/lang/255_keywords.dox: doxygen/lang/255_keywords.dox.tmpl lib
-	$(QPP) -t $< -o $@
-
-QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
-	doxygen/qlib/Mime.qm.dox.h \
-	doxygen/qlib/TelnetClient.qm.dox.h \
-	doxygen/qlib/SmtpClient.qm.dox.h \
-	HttpServer.tag \
-	Mime.tag \
-	TelnetClient.tag \
-	SmtpClient.tag
-
-doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html/index.html
-	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html $< $@
-
-doxygen/qlib/HttpServer.qm.dox.h: qlib/HttpServer.qm
-	$(QDX) $< $@
-
-doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl
-	$(QDX) -M=qlib/Mime.qm:doxygen/qlib/Mime.qm.dox.h $< $@
-
-doxygen/qlib/Mime.qm.dox.h: qlib/Mime.qm
-	$(QDX) $< $@
-
-doxygen/qlib/Doxyfile.TelnetClient: doxygen/qlib/Doxyfile.tmpl
-	$(QDX) -M=qlib/TelnetClient.qm:doxygen/qlib/TelnetClient.qm.dox.h $< $@
-
-doxygen/qlib/TelnetClient.qm.dox.h: qlib/TelnetClient.qm
-	$(QDX) $< $@
-
-doxygen/qlib/Doxyfile.SmtpClient: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html/index.html
-	$(QDX) -M=qlib/SmtpClient.qm:doxygen/qlib/SmtpClient.qm.dox.h -tMime.tag=../../Mime/html $< $@
-
-doxygen/qlib/SmtpClient.qm.dox.h: qlib/SmtpClient.qm
-	$(QDX) $< $@
 
 include_HEADERS = \
 	include/qore/ReferenceArgumentHelper.h \
@@ -623,7 +388,6 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/inherit2.q \
 	examples/getopt.q \
 	examples/getch.q \
-	docs/library/html \
 	qore.spec \
 	$(LIB_DOXYFILES) \
 	$(LANG_DOXYFILES_SRC) \
@@ -637,36 +401,301 @@ dummy:
 	./next_build.sh
 
 if COND_DOXYGEN
-DX_CLEANFILES = docs/library $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
+DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html
 
-docs/library/html/index.html: $(include_HEADERS) $(LIB_DOXYFILES)
+LIB_DOXYFILES = \
+	doxygen/lib/Doxyfile \
+	doxygen/lib/mainpage.doxygen \
+	doxygen/lib/10_embedding.doxygen \
+	doxygen/lib/20_qore_data.doxygen \
+	doxygen/lib/30_qore_builtin_functions.doxygen \
+	doxygen/lib/40_class_implementation.doxygen \
+	doxygen/lib/70_qore_modules.doxygen \
+	doxygen/lib/75_dbi_drivers.doxygen
+
+LANG_DOXYFILES_SRC = \
+	doxygen/dot \
+	doxygen/dpp \
+	doxygen/footer_template.html \
+	doxygen/pdox \
+	doxygen/qdx \
+	doxygen/qlib/Doxyfile.tmpl \
+	doxygen/lang/Doxyfile.tmpl \
+	doxygen/lang/mainpage.dox.tmpl \
+	doxygen/lang/000_intro.dox.tmpl \
+	doxygen/lang/105_desc_overview.dox.tmpl \
+	doxygen/lang/110_environment_variables.dox.tmpl \
+	doxygen/lang/115_conditional_parsing.dox.tmpl \
+	doxygen/lang/120_modules.dox.tmpl \
+	doxygen/lang/125_include_files.dox.tmpl \
+	doxygen/lang/130_identifiers.dox.tmpl \
+	doxygen/lang/135_comments.dox.tmpl \
+	doxygen/lang/140_variables.dox.tmpl \
+	doxygen/lang/145_basic_data_types.dox.tmpl \
+	doxygen/lang/150_container_data_types.dox.tmpl \
+	doxygen/lang/152_code_data_types.dox.tmpl \
+	doxygen/lang/155_data_type_declarations.dox.tmpl \
+	doxygen/lang/160_overloading.dox.tmpl \
+	doxygen/lang/165_time_zones.dox.tmpl \
+	doxygen/lang/170_character_encoding.dox.tmpl \
+	doxygen/lang/175_expressions.dox.tmpl \
+	doxygen/lang/180_operators.dox.tmpl \
+	doxygen/lang/185_qore_regex.dox.tmpl \
+	doxygen/lang/190_date_time_arithmetic.dox.tmpl \
+	doxygen/lang/195_statements.dox.tmpl \
+	doxygen/lang/200_functions.dox.tmpl \
+	doxygen/lang/202_code_flags.dox.tmpl \
+	doxygen/lang/205_namespaces.dox.tmpl \
+	doxygen/lang/210_constants.dox.tmpl \
+	doxygen/lang/215_classes.dox.tmpl \
+	doxygen/lang/220_threading.dox.tmpl \
+	doxygen/lang/225_exception_handling.dox.tmpl \
+	doxygen/lang/230_signal_handling.dox.tmpl \
+	doxygen/lang/235_event_handling.dox.tmpl \
+	doxygen/lang/240_command_line_processing.dox.tmpl \
+	doxygen/lang/245_parse_directives.dox.tmpl \
+	doxygen/lang/250_warnings.dox.tmpl \
+	doxygen/lang/255_keywords.dox.tmpl
+
+LANG_TMP_DOXYFILES_SRC = doxygen/lang/Doxyfile \
+	doxygen/lang/mainpage.dox \
+	doxygen/lang/000_intro.dox \
+	doxygen/lang/105_desc_overview.dox \
+	doxygen/lang/110_environment_variables.dox \
+	doxygen/lang/115_conditional_parsing.dox \
+	doxygen/lang/120_modules.dox \
+	doxygen/lang/125_include_files.dox \
+	doxygen/lang/130_identifiers.dox \
+	doxygen/lang/135_comments.dox \
+	doxygen/lang/140_variables.dox \
+	doxygen/lang/145_basic_data_types.dox \
+	doxygen/lang/150_container_data_types.dox \
+	doxygen/lang/152_code_data_types.dox \
+	doxygen/lang/155_data_type_declarations.dox \
+	doxygen/lang/160_overloading.dox \
+	doxygen/lang/165_time_zones.dox \
+	doxygen/lang/170_character_encoding.dox \
+	doxygen/lang/175_expressions.dox \
+	doxygen/lang/180_operators.dox \
+	doxygen/lang/185_qore_regex.dox \
+	doxygen/lang/190_date_time_arithmetic.dox \
+	doxygen/lang/195_statements.dox \
+	doxygen/lang/200_functions.dox \
+	doxygen/lang/202_code_flags.dox \
+	doxygen/lang/205_namespaces.dox \
+	doxygen/lang/210_constants.dox \
+	doxygen/lang/215_classes.dox \
+	doxygen/lang/220_threading.dox \
+	doxygen/lang/225_exception_handling.dox \
+	doxygen/lang/230_signal_handling.dox \
+	doxygen/lang/235_event_handling.dox \
+	doxygen/lang/240_command_line_processing.dox \
+	doxygen/lang/245_parse_directives.dox \
+	doxygen/lang/250_warnings.dox \
+	doxygen/lang/255_keywords.dox
+
+LANG_TMP_DOXYFILES = $(LANG_TMP_DOXYFILES_SRC) \
+	qore.tag
+
+LANG_DOXYFILES = doxygen/lang/Doxyfile $(LANG_TMP_DOXYFILES_SRC)
+
+$(QPP): dummy
+	cd lib; make $(QPP_PGM)
+
+lang-dox-src: dummy
+	cd lib; make dox-src
+
+doxygen/lang/Doxyfile: doxygen/lang/Doxyfile.tmpl
+	doxygen/dpp $< "$(top_srcdir)/doxygen/" > $@
+
+doxygen/lang/mainpage.dox: doxygen/lang/mainpage.dox.tmpl lib $(QPP) lang-dox-src
+	$(QPP) -t $< -o $@
+
+doxygen/lang/000_intro.dox: doxygen/lang/000_intro.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/105_desc_overview.dox: doxygen/lang/105_desc_overview.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/110_environment_variables.dox: doxygen/lang/110_environment_variables.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/115_conditional_parsing.dox: doxygen/lang/115_conditional_parsing.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/120_modules.dox: doxygen/lang/120_modules.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/125_include_files.dox: doxygen/lang/125_include_files.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/130_identifiers.dox: doxygen/lang/130_identifiers.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/135_comments.dox: doxygen/lang/135_comments.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/140_variables.dox: doxygen/lang/140_variables.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/145_basic_data_types.dox: doxygen/lang/145_basic_data_types.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/150_container_data_types.dox: doxygen/lang/150_container_data_types.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/152_code_data_types.dox: doxygen/lang/152_code_data_types.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/155_data_type_declarations.dox: doxygen/lang/155_data_type_declarations.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/160_overloading.dox: doxygen/lang/160_overloading.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/165_time_zones.dox: doxygen/lang/165_time_zones.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/170_character_encoding.dox: doxygen/lang/170_character_encoding.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/175_expressions.dox: doxygen/lang/175_expressions.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/180_operators.dox: doxygen/lang/180_operators.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/185_qore_regex.dox: doxygen/lang/185_qore_regex.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/190_date_time_arithmetic.dox: doxygen/lang/190_date_time_arithmetic.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/195_statements.dox: doxygen/lang/195_statements.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/200_functions.dox: doxygen/lang/200_functions.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/202_code_flags.dox: doxygen/lang/202_code_flags.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/205_namespaces.dox: doxygen/lang/205_namespaces.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/210_constants.dox: doxygen/lang/210_constants.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/215_classes.dox: doxygen/lang/215_classes.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/220_threading.dox: doxygen/lang/220_threading.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/225_exception_handling.dox: doxygen/lang/225_exception_handling.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/230_signal_handling.dox: doxygen/lang/230_signal_handling.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/235_event_handling.dox: doxygen/lang/235_event_handling.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/240_command_line_processing.dox: doxygen/lang/240_command_line_processing.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/245_parse_directives.dox: doxygen/lang/245_parse_directives.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/250_warnings.dox: doxygen/lang/250_warnings.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/255_keywords.dox: doxygen/lang/255_keywords.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
+	doxygen/qlib/Mime.qm.dox.h \
+	doxygen/qlib/TelnetClient.qm.dox.h \
+	doxygen/qlib/SmtpClient.qm.dox.h \
+	HttpServer.tag \
+	Mime.tag \
+	TelnetClient.tag \
+	SmtpClient.tag
+
+lib/libqore.la: dummy
+	cd lib; make
+
+$(QDX): qore
+
+doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
+	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html $< $@
+
+doxygen/qlib/HttpServer.qm.dox.h: qlib/HttpServer.qm $(QDX)
+	$(QDX) $< $@
+
+doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX)
+	$(QDX) -M=qlib/Mime.qm:doxygen/qlib/Mime.qm.dox.h $< $@
+
+doxygen/qlib/Mime.qm.dox.h: qlib/Mime.qm $(QDX)
+	$(QDX) $< $@
+
+doxygen/qlib/Doxyfile.TelnetClient: doxygen/qlib/Doxyfile.tmpl $(QDX)
+	$(QDX) -M=qlib/TelnetClient.qm:doxygen/qlib/TelnetClient.qm.dox.h $< $@
+
+doxygen/qlib/TelnetClient.qm.dox.h: qlib/TelnetClient.qm $(QDX)
+	$(QDX) $< $@
+
+doxygen/qlib/Doxyfile.SmtpClient: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
+	$(QDX) -M=qlib/SmtpClient.qm:doxygen/qlib/SmtpClient.qm.dox.h -tMime.tag=../../Mime/html $< $@
+
+doxygen/qlib/SmtpClient.qm.dox.h: qlib/SmtpClient.qm $(QDX)
+	$(QDX) $< $@
+
+DX_CLEANFILES = $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
+
+docs/library/html: $(include_HEADERS) $(LIB_DOXYFILES)
 	$(DOXYGEN_CMD) doxygen/lib/Doxyfile
 
-docs/lang/html/index.html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
+docs/lang/html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
 	$(DOXYGEN_CMD) doxygen/lang/Doxyfile
 	$(top_srcdir)/doxygen/pdox docs/lang/html docs/lang/html/search
 
-docs/modules/HttpServer/html/index.html: docs/lang/html/index.html doxygen/qlib/HttpServer.qm.dox.h doxygen/qlib/Doxyfile.HttpServer
+docs/modules/HttpServer/html: docs/lang/html doxygen/qlib/HttpServer.qm.dox.h doxygen/qlib/Doxyfile.HttpServer
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.HttpServer
 	$(top_srcdir)/doxygen/pdox docs/modules/HttpServer/html docs/modules/HttpServer/html/search
 
-docs/modules/Mime/html/index.html: docs/lang/html/index.html doxygen/qlib/Mime.qm.dox.h doxygen/qlib/Doxyfile.Mime
+docs/modules/Mime/html: docs/lang/html doxygen/qlib/Mime.qm.dox.h doxygen/qlib/Doxyfile.Mime
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.Mime
 	$(top_srcdir)/doxygen/pdox docs/modules/Mime/html docs/modules/Mime/html/search
 
-docs/modules/TelnetClient/html/index.html: docs/lang/html/index.html doxygen/qlib/TelnetClient.qm.dox.h doxygen/qlib/Doxyfile.TelnetClient
+docs/modules/TelnetClient/html: docs/lang/html doxygen/qlib/TelnetClient.qm.dox.h doxygen/qlib/Doxyfile.TelnetClient
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.TelnetClient
 	$(top_srcdir)/doxygen/pdox docs/modules/TelnetClient/html docs/modules/TelnetClient/html/search
 
-docs/modules/SmtpClient/html/index.html: docs/lang/html/index.html doxygen/qlib/SmtpClient.qm.dox.h doxygen/qlib/Doxyfile.SmtpClient
+docs/modules/SmtpClient/html: docs/lang/html doxygen/qlib/SmtpClient.qm.dox.h doxygen/qlib/Doxyfile.SmtpClient
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.SmtpClient
 	$(top_srcdir)/doxygen/pdox docs/modules/SmtpClient/html docs/modules/SmtpClient/html/search
 
-doxygen-doc: docs/library/html/index.html docs/lang/html/index.html \
-	docs/modules/HttpServer/html/index.html \
-	docs/modules/Mime/html/index.html \
-	docs/modules/TelnetClient/html/index.html \
-	docs/modules/SmtpClient/html/index.html
+doxygen-doc: $(DOXYGEN_OUTPUT)
+
+EXTRA_DIST += $(DOXYGEN_OUTPUT)
+
+html-local: $(DOXYGEN_OUTPUT)
+
+install-html-local:
+	$(MKDIR_P) $(DESTDIR)$(datadir)/$(PACKAGE)/docs/lang/html/search
+	$(MKDIR_P) $(DESTDIR)$(datadir)/$(PACKAGE)/docs/library/html/search
+	for mod in $(USER_MODS); do $(MKDIR_P) $(DESTDIR)$(datadir)/$(PACKAGE)/docs/modules/$$mod/html/search; done
+	for dir in $(DOXYGEN_OUTPUT); do \
+	   for f in $$dir/*; do if [ -f $$f ]; then $(INSTALL_DATA) $$f $(DESTDIR)$(datadir)/$(PACKAGE)/$$dir; fi; done; \
+	   for f in $$dir/search/*; do $(INSTALL_DATA) $$f $(DESTDIR)$(datadir)/$(PACKAGE)/$$dir/search; done; \
+	done
+
+clean-local:
+	$(RM) -rf $(DOXYGEN_OUTPUT)
+
+uninstall-local:
+	$(RM) -rf $(DESTDIR)$(datadir)/$(PACKAGE)/docs
 
 else
 doxygen-doc:
@@ -677,7 +706,7 @@ MOSTLYCLEANFILES = $(DX_CLEANFILES)
 
 dist_man_MANS = qore.1
 
-$(dist_man_MANS): doxygen-doc
+#$(dist_man_MANS): doxygen-doc
 
 qore_LDADD = lib/libqore.la
 

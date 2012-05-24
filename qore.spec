@@ -159,7 +159,6 @@ This package provides HTML documentation for the C++ API for the Qore library.
 %prep
 %setup -q
 mv $RPM_BUILD_DIR/%{name}-%{version}/test $RPM_BUILD_DIR/%{name}-%{version}/examples
-mkdir docs/modules
 
 %ifarch x86_64 ppc64 x390x
 c64=--enable-64bit

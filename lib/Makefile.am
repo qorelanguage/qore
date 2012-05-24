@@ -222,6 +222,8 @@ QORE_GENERATED_SOURCES = \
 	ql_env.cpp ql_dbi.cpp ql_context.cpp \
 	qc_option.cpp qc_errno.cpp qc_qore.cpp parser.cpp parser.hpp scanner.cpp
 
+dox-src: $(QORE_GENERATED_SOURCES)
+
 QORE_ALL_SRC = $(QORE_GENERATED_SOURCES) $(QORE_PSEUDO_SRC)
 
 CLEANFILES = $(QORE_ALL_SRC)

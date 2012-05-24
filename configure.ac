@@ -4,7 +4,7 @@
 AC_INIT([qore], [0.8.5],
         [David Nichols <david@qore.org>],
         [qore])
-AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2])
+AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar])
 AC_CONFIG_HEADER(include/qore/intern/unix-config.h)
 
 # fix default include dir
