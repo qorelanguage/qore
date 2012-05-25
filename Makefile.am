@@ -455,7 +455,8 @@ LANG_DOXYFILES_SRC = \
 	doxygen/lang/240_command_line_processing.dox.tmpl \
 	doxygen/lang/245_parse_directives.dox.tmpl \
 	doxygen/lang/250_warnings.dox.tmpl \
-	doxygen/lang/255_keywords.dox.tmpl
+	doxygen/lang/255_keywords.dox.tmpl \
+	doxygen/lang/900_release_notes.dox.tmpl
 
 LANG_TMP_DOXYFILES_SRC = doxygen/lang/Doxyfile \
 	doxygen/lang/mainpage.dox \
@@ -492,7 +493,8 @@ LANG_TMP_DOXYFILES_SRC = doxygen/lang/Doxyfile \
 	doxygen/lang/240_command_line_processing.dox \
 	doxygen/lang/245_parse_directives.dox \
 	doxygen/lang/250_warnings.dox \
-	doxygen/lang/255_keywords.dox
+	doxygen/lang/255_keywords.dox \
+	doxygen/lang/900_release_notes.dox
 
 LANG_TMP_DOXYFILES = $(LANG_TMP_DOXYFILES_SRC) \
 	qore.tag
@@ -611,6 +613,9 @@ doxygen/lang/250_warnings.dox: doxygen/lang/250_warnings.dox.tmpl lib $(QPP)
 	$(QPP) -t $< -o $@
 
 doxygen/lang/255_keywords.dox: doxygen/lang/255_keywords.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/900_release_notes.dox: doxygen/lang/900_release_notes.dox.tmpl lib $(QPP)
 	$(QPP) -t $< -o $@
 
 QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \

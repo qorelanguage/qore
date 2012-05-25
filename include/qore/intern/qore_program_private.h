@@ -933,22 +933,22 @@ public:
       return false;
    }
 
-   DLLLOCAL const AbstractQoreZoneInfo *currentTZ() const {
+   DLLLOCAL const AbstractQoreZoneInfo* currentTZ() const {
       return TZ;
    }
 
-   DLLLOCAL void setTZ(const AbstractQoreZoneInfo *n_TZ) {
+   DLLLOCAL void setTZ(const AbstractQoreZoneInfo* n_TZ) {
       TZ = n_TZ;
    }
 
-   DLLLOCAL void exportFunction(ExceptionSink* xsink, qore_program_private *p, const char* name, const char* new_name = 0) {
+   DLLLOCAL void exportFunction(ExceptionSink* xsink, qore_program_private* p, const char* name, const char* new_name = 0) {
       if (this == p) {
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
 	 return;
       }
 
       const QoreFunction* u;
-      const qore_ns_private* ns;
+      const qore_ns_private* ns = 0;
 
       {
 	 AutoLocker al(plock);
