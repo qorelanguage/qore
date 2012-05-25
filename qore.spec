@@ -154,6 +154,7 @@ development but is also useful as a general purpose language.
 This package provides HTML documentation for the C++ API for the Qore library.
 
 %files devel-doc
+%defattr(-,root,root,-)
 %doc docs/library/html
 
 %prep
