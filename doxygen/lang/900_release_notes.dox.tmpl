@@ -15,13 +15,13 @@
     Other namespace changes:
     - loading namespaces provided by builtin modules into a @ref Qore::Program "Program" object is now an atomic operation that may fail, if, for example, objects have already been defined in the target @ref Qore::Program "Program" with the same name as objects provided by the builtin module.  Previously this could cause undefined behavior.
     - namespace lookups are now truly breadth-first as documented; previously the algorithm was depth-first (contrary to the documentation)
-    - namespace lookups are now done (both at parse time and runtime) with the help of symbol lookup tables for fast lookups; tables are maintained for both committed and temporary uncomitted parse symbols; this leads to up to 3x faster parsing for Qore code
+    - namespace lookups are now done (both at parse time and runtime) with the help of symbol lookup tables for fast lookups; tables are maintained for both committed and temporary uncomitted parse symbols; this leads to up to 3x faster parsing for %Qore code
     - global variables are also now full namespace members, however this does not cause problems with backwards-compatibility
 
     @subsection qore_084_new_features New Features in Qore
     @par User Modules
     It is now possible to develop user modules in %Qore; several user modules are now included in the %Qore distribution, forming %Qore-language components of %Qore's runtime library.\n\n
-    User modules delivered with Qore 0.8.4:
+    User modules delivered with %Qore 0.8.4:
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a>: a multi-threaded HTTP server implementation
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a>: an SMTP client library
     - <a href="../../modules/TelnetClient/html/index.html">TelnetClient</a>: a TELNET client implementation
@@ -149,8 +149,8 @@ our int $i1;
 
    @par New Context Functions
    - cx_value(): returns the value of the given key
-   - cx_first(): returns True if iterating the first row
-   - cx_last(): returns True if iterating the last row
+   - cx_first(): returns @ref Qore::True "True" if iterating the first row
+   - cx_last(): returns @ref Qore::True "True" if iterating the last row
    - cx_pos(): returns the current row number (starting from 0)
    - cx_total(): returns the total number of rows in the set
 
@@ -165,21 +165,21 @@ our int $i1;
 
     @subsection qore_084_bug_fixes Bug Fixes in Qore
     - fixed a race condition with @ref Qore::Program "Program" objects when a signal handler is left active and the @ref Qore::Program "Program" terminates
-    - fixed a bug in the @ref Qore::File "File" class where the encoding given in the constructor was ignored; if no encoding was given in the File::open*() method then the File's encoding would always be set to the default encoding, now it's set to the encoding given in the constructor (as documented)
+    - fixed a bug in the @ref Qore::File "File" class where the encoding given in the constructor was ignored; if no encoding was given in the File::open*() method then the @ref Qore::File "File"'s encoding would always be set to the default encoding, now it's set to the encoding given in the constructor (as documented)
     - runtime checks have been implemented so that references to local variables cannot be passed to a closure; this would cause a runtime crash
-    - a fix has been made to the delete and remove operators; lists will not be extended when trying to remove/delete list elements that do not exist
+    - a fix has been made to the @ref delete "delete" and @ref remove "remove" operators; lists will not be extended when trying to remove/delete list elements that do not exist
     - fixed some bugs showing the error location with bugs in the second stage of parsing (symbol resolution)
-    - apply type filters to blocks with a designated return type but no return statement
+    - apply type filters to blocks with a designated return type but no @ref return "return statement"
     - fixed crashing bugs on some 32bit platforms where size_t was assumed to be 64 bits
     - fixed a crashing bug parsing invalid @ref requires "%requires" directives in the scanner
     - fixed a bug in usleep() with relative date/time values (added a new usleep() variant to support this)
     - fixed a typo in the command-line help for the qore binary with unknown parse options	  
     - fixed @ref Qore::Option::HAVE_SIGNAL_HANDLING "HAVE_SIGNAL_HANDLING" to be @ref Qore::False "False" if signal handling is disabled on platforms where signal handling is otherwise available
-    - fixed a scanner bug parsing out of line class definitions with a root-justified namespace path (ex: "class ::X::ClassName ...")
+    - fixed a scanner bug parsing out of line class definitions with a root-justified namespace path (ex: \c "class ::X::ClassName ...")
     - merging code from binary modules at parse time and at runtime is now transaction-safe (before it would cause memory errors and/or a crash), now if errors are detected then an exception is raised and changes are not applied.
     - fixed a crashing bug in the C++ API function QoreHashNode::setKeyValue() when the value is 0 and an exception occurs or is already active before the call is made
     - fixed a bug in date parsing with a format string - off by one with integer months - added a regression test for this case
-    - fixed a memory error with the rethrow statement in enclosing but nested try-catch blocks
+    - fixed a memory error with the @ref rethrow "rethrow statement" in enclosing but nested try-catch blocks
     - fixed a crashing bug where qore would try to instantiate a class for a type that did not represent a class (ex: \c "my int $i();")
     - fixed a memory leak in the @ref softlist_type "softlist" and @ref softlist_or_nothing_type "*softlist" type implementation
     - make sure and raise a \c SOCKET-CLOSED error when reading a HTTP header if no data is received
@@ -189,8 +189,8 @@ our int $i1;
     - fixed a bug in @ref Qore::Thread::AbstractSmartLock::lockTID() "AbstractSmartLock::lockTID()"
     - fixed a major crashing error in the C++ API function QoreStringNode::createAndConvertEncoding(); this function is used by the xml module when parsing XML-RPC sent in a non-UTF-8 character encoding
     - fixed Qore::File::getchar() to always retrieve 1 character (even for multi-byte character encodings)
-    - fixed string evaluation in a boolean context to return True with floating-point numbers between -1.0 and 1.0 exclusive
-    - printf formatting fix: output YAML-style \c "null" for @ref nothing with %y
+    - fixed string evaluation in a boolean context to return @ref Qore::True "True" with floating-point numbers between -1.0 and 1.0 exclusive
+    - printf formatting fix: output YAML-style \c "null" for @ref nothing with %%y
     - scanner fix: accept \r as whitespace to allow better parsing of sources with Windows EOL markers
     - fixed parse-time type processing/checks for the keys, + and * operators
     - foreach statement fix: unconditionally evaluate the hash when iterating as otherwise it could change during iteration which could cause a crash
