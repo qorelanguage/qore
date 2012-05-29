@@ -12,6 +12,7 @@ const opts = (
     "post": "p,post",
     "tag": "t,tag=s",
     "tex": "x,posttex",          # use TeX syntax for "post" processing
+    "dox": "d,dox",
     "help": "h,help"
     );
 
@@ -27,7 +28,10 @@ class qdx {
         string build;
         string qorever;
     }
-    public {}
+
+    public {
+        const QoreVer = sprintf("%d.%d.%d", Qore::VersionMajor, Qore::VersionMinor, Qore::VersionSub);
+    }
 
     constructor() {
 	GetOpt g(opts);
@@ -54,6 +58,11 @@ class qdx {
             return;
         }
 
+        if (o.dox) {
+            doDox(ARGV[0], ARGV[1]);
+            return;
+        }
+
         if (o.tex) {
             map (map postProcess($1, True), glob($1)), ARGV;
             return;
@@ -65,10 +74,9 @@ class qdx {
     }
 
     static usage() {
-      printf("usage: %s [options] <file1> ...
-  -d,--dir=ARG        directory to write output files in
+      printf("usage: %s [options] <infile> <outfile>
+  -d,--dox            process doxygen files
   -M,--module-dx=ARG  prepare doxyfile module template; ARG=<src>:<trg>
-  -e,--ext=ARG        extension to add to output files
   -p,--post           post process files
   -t,--tag=ARG        tag argument for doxyfile
   -h,--help           this help text
@@ -121,6 +129,29 @@ class qdx {
                 line = replace(line, "{version}", h.version);
             else if (line =~ /{tags}/)
                 line = replace(line, "{tags}", o.tag.val() ? o.tag : "");
+            else if (line =~ /{qore_version}/)
+                line = replace(line, "{qore_version}", QoreVer);
+
+            of.write(line);
+        }
+    }
+
+    doDox(string fn, string ofn) {
+        printf("processing %y -> %y\n", fn, ofn);
+
+	File inf();
+	inf.open2(fn);
+
+        File of();
+        of.open2(ofn, O_CREAT | O_TRUNC | O_WRONLY);
+
+        DocumentTableHelper dth();
+
+        while ((*string line = inf.readLine()).val()) {            
+            line = dth.process(line);
+
+            if (line =~ /{qore_version}/)
+                line = replace(line, "{qore_version}", QoreVer);
 
             of.write(line);
         }
@@ -139,7 +170,11 @@ class qdx {
 
 	on_success rename(ofn, ifn);
 
+        DocumentTableHelper dth();
+
 	while (exists (*string line = inf.readLine())) {
+            line = dth.process(line);
+
             if (tex) {
                 line =~ s/\\_\\-\\_\\-1\\_\\-/[/g;
                 line =~ s/\\_\\-\\_\\-2\\_\\-/]/g;
@@ -296,8 +331,8 @@ class qdx {
                 # remove "$" signs
                 line =~ s/\$//g;
 
-                # make into a declaration
-                line =~ s/[[:blank:]]*{[[:blank:]]*$/;/;
+                # make into a declaration (also remove any parent class constructor calls)
+                line =~ s/[[:blank:]]*(:.*)?{[[:blank:]]*$/;/;
                 # read until closing curly bracket '}'
                 readUntilCloseBracket(inf);
             }

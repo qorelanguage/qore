@@ -1,4 +1,4 @@
-# -*- mode: qore; indent-tabs-mode nil -*-
+# -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Mime.qm Mime module definition
 
 /*  Mime.qm Copyright 2012 David Nichols
