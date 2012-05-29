@@ -56,7 +56,7 @@ make_version() {
 # see if svn is available
 which svn >/dev/null 2>/dev/null
 if [ $? -eq 0 ]; then
-    si=`svn info` 2>/dev/null
+    si=`svn info 2>/dev/null`
     if [ $? -eq 0 -a -n "$si" ]; then
 	build=`svn info|grep Revision|cut -f2 -d\ `
 	make_file $file
