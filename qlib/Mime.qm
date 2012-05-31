@@ -444,31 +444,31 @@ public namespace Mime {
      */
     #@{
     #! for form data (http://tools.ietf.org/html/rfc1867, http://tools.ietf.org/html/rfc2388)
-    const MPT_FORM_DATA   = "form-data";
+    public const MPT_FORM_DATA   = "form-data";
 
     #! for sending files with different "Content-Type" headers (http://tools.ietf.org/html/rfc2046#section-5.1.3)
-    const MPT_MIXED       = "mixed";
+    public const MPT_MIXED       = "mixed";
 
     #! for email/MIME messages with headers (http://tools.ietf.org/html/rfc2046)
-    const MPT_MESSAGE     = "message";
+    public const MPT_MESSAGE     = "message";
 
     #! for sending multiple text messages (http://tools.ietf.org/html/rfc2046#section-5.1.5)
-    const MPT_DIGEST      = "digest";
+    public const MPT_DIGEST      = "digest";
 
     #! for sending multiple "alternatives" of the same content (http://tools.ietf.org/html/rfc2046#section-5.1.4)
-    const MPT_ALTERNATIVE = "alternative";
+    public const MPT_ALTERNATIVE = "alternative";
 
     #! for sending multiple components of an aggregated whole (http://tools.ietf.org/html/rfc2387)
-    const MPT_RELATED     = "related";
+    public const MPT_RELATED     = "related";
 
     #! to attach a digital signature to a message (http://tools.ietf.org/html/rfc1847#section-2.1)
-    const MPT_SIGNED      = "signed";
+    public const MPT_SIGNED      = "signed";
 
     #! for sending encrypted messages (http://tools.ietf.org/html/rfc1847#section-2.2)
-    const MPT_ENCRYPTED   = "encrypted";
+    public const MPT_ENCRYPTED   = "encrypted";
 
     #! for sending noncontiguous byte ranges of a single message (http://tools.ietf.org/html/rfc2616)
-    const MPT_BYTERANGES  = "byteranges";
+    public const MPT_BYTERANGES  = "byteranges";
     #@}
         
     #! MultiPartMessage class implementation
