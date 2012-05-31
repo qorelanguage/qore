@@ -2040,7 +2040,7 @@ public:
             return -1;
 
       // now serialize function bindings
-      fprintf(fp, "\nvoid init_%s_functions(QoreNamespace& ns) {\n", rootName);
+      fprintf(fp, "\nDLLLOCAL void init_%s_functions(QoreNamespace& ns) {\n", rootName);
 
       add_init_code(fp);
 
@@ -2418,6 +2418,7 @@ protected:
       name,              // class name
       doc,               // doc string
       arg,               // argument for non-static methods
+      defbase,           // default builtin base class
       scons,             // system constructor
       ns,                // namespace name
       virt_parent;       // builtin virtual base/parent class
@@ -2522,6 +2523,12 @@ public:
             continue;
          }
 
+         if (i->first == "default_base") {
+            defbase = i->second;
+            log(LL_DEBUG, "+ default builtin base class: %s\n", defbase.c_str());
+            continue;
+         }
+
          error("prop: '%s': '%s' - unknown property '%s'\n", i->first.c_str(), i->second.c_str(), i->first.c_str());
          valid = false;
       }
@@ -2622,6 +2629,9 @@ public:
          fprintf(fp, "QoreClass* init%sClass(QoreNamespace &ns) {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
       dom_output_cpp(fp, dom);
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
+
+      if (!defbase.empty())
+         fprintf(fp, "\n   // set default builtin base class\n   assert(%s);\n  QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
 
       if (!virt_parent.empty()) {
          std::string vp;
