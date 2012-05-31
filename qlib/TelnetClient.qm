@@ -349,7 +349,7 @@ public namespace TelnetClient {
 	}
 
         #! sends data to the server
-        /** @param $arr a single element or a list of elements to send to the server; elements can be as follows:
+        /** @param arr a single element or a list of elements to send to the server; elements can be as follows:
             - string: currently sent verbatim to the server, in particular no encoding conversions are performed on this string (possibly these should be scanned for @ref IAC characters which should be duplicated)
             - integer: treated as a single-byte value; if the value is @ref IAC (ie 255 or 0xff) then it is sent twice
             - binary: sent verbatim to the server
@@ -368,7 +368,7 @@ public namespace TelnetClient {
 	}
 
         #! sends literal string data to the server; the text dat is converted to the socket's encoding if necessary
-        /** @param $str currently sent verbatim to the server; no encoding conversions are performed on this string (possibly these should be scanned for @ref IAC characters which should be duplicated)
+        /** @param str currently sent verbatim to the server; no encoding conversions are performed on this string (possibly these should be scanned for @ref IAC characters which should be duplicated)
 
             @throw NOT-CONNECTED-EXCEPTION if the socket is not already connected then this exception is thrown
 

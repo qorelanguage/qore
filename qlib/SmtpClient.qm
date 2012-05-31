@@ -97,10 +97,10 @@ public namespace SmtpClient {
     public const EncNone = "none";
 
     #! base-64 content transfer encoding
-    public const EncBase64 = "base64";
+    public const EncBase64 = ContentTransEncBase64;
 
     #! "quoted-printable" content transfer encoding
-    public const EncQuotedPrintable = "quoted-printable";
+    public const EncQuotedPrintable = ContentTransEncQuotedPrintable;
 
     #! a list of all known content encoding schemes encodings
     public const Encodings = (
@@ -334,9 +334,8 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
 	 */
 	setBody(string $str, string $enc = EncDefault) {
-	    $enc = SmtpClient::checkEncoding($str, $enc);
+	    $.messageEncoding = SmtpClient::checkEncoding($str, $enc, True);
 	    $.messageData = $str;
-	    $.messageEncoding = SmtpClient::checkEncoding($str, $enc);
 	}
 
 	#! concatenates a string to the message body
@@ -613,10 +612,10 @@ $msg.addAttachment($att);
 	    return $.enc;
 	}
 
-	#! serializes a string for sending the Attachment according to the encoding
-	string encode() {
-	    return SmtpClient::encodeData($.data, $.mime, sprintf("attachment; filename=%y", $.name), $.enc);
-	}
+        #! adds itself to a multipart/mixed message
+        add(MultiPartMixedMessage $mpm) {
+            $mpm.addEncodePart($.data, $.enc, $.mime, sprintf("attachment; filename=%y", $.name));
+        }
     }
 
     #! the class that's used to communicate with an SMTP server
@@ -660,6 +659,8 @@ $msg.addAttachment($att);
 
             # connect timeout in milliseconds
             timeout $.connectTimeout = DefaultConnectTimeout;
+
+            const MaxDebugLine = 2048;
 	}
         #! @endcond
 
@@ -809,6 +810,32 @@ $msg.addAttachment($att);
         }
 
 	#! returns a string of message data according to the encoding passed
+        /** @param data the data to encode
+            @param enc the encoding type for the data (see @ref MessageEncodings for possible values)
+            @param hdr a reference to a hash for header information
+
+            @throw ENCODE-TRANSFER-DATA-ERROR unknown encoding passed
+         */
+	static string encodeTransferData(data $data, string $enc, reference $hdr) {
+	    switch ($enc) {
+		case EncBase64: {
+		    $hdr."Content-Transfer-Encoding" = $enc;
+                    return mime_encode_base64($data, 72);
+                }
+
+		case EncNone:
+                    return $data;
+
+		case EncQuotedPrintable: {
+		    $hdr."Content-Transfer-Encoding" = $enc;
+                    return mime_encode_quoted_printable($data);
+                }
+	    }
+
+            throw "ENCODE-TRANSFER-DATA-ERROR", sprintf("unknown Content-Transfer-Encoding: %y", $enc);
+	}
+
+	#! returns a string of message data according to the encoding passed
 	static string encodeData(data $data, string $mime, string $disp, string $enc) {
 	    my string $str = sprintf("Content-Type: %s\r\nContent-Disposition: %s\r\n", $mime, $disp);
 	    switch ($enc) {
@@ -838,15 +865,18 @@ $msg.addAttachment($att);
 	#! checks the data against the encoding and returns the new encoding (if the encoding is @ref EncDefault for example)
 	/** @param data the data to be encoded
 	    @param enc the encoding type for the data (see @ref MessageEncodings for possible values)
+            @param noneok if this argument is True, then @ref EncNone may be given as an argument
 
 	    @return the new encoding to use in case the input data was @ref EncDefault
 
 	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
 	    @throw INVALID-ENCODING the encoding given cannot be used with data given
 	 */
-	static string checkEncoding(data $data, string $enc) {
+	static string checkEncoding(data $data, string $enc, bool $noneok = False) {
 	    if ($enc == EncDefault)
 		$enc = $data.typeCode() == NT_STRING ? EncQuotedPrintable : EncBase64; 
+            else if (!$noneok && $enc == EncNone)
+                throw "INVALID-ENCODING", "\"none\" may not be used; a valid encoding is required in this context";
 	    else if (!inlist($enc, Encodings))
 		throw "UNKNOWN-ENCODING", sprintf("%y is not a known encoding; known encodings: %y", $enc, Encodings);
             else if ($data.typeCode() == NT_BINARY && $enc == EncNone)
@@ -892,33 +922,23 @@ $msg.addAttachment($att);
                 my bool $mime = $multipart || $be != SmtpClient::EncNone;
 
                 if ($mime) {
-                    $.sendData("MIME-Version: 1.0\r\n");
-                    if ($multipart) {
-                        $.sendData("Content-Type: multipart/mixed;boundary=\"%s\"\r\n", $.mpboundary);
-                        $.sendData("Content-Disposition: inline\r\n");
-                        $.sendData("\r\n");
-                    }
-                }
+                    my MultiPartMixedMessage $mpm($.mpboundary);
 
-                # send the msg body
-		if ($mime) {
-                    if ($multipart)
-                        $.sendData("--%s\r\n", $.mpboundary);
-                    my string $body = $message.getBody();
-		    $.sendData(SmtpClient::encodeData($body, sprintf("%s; charset=%s", MimeTypeText, get_encoding($body)), "inline", $be));
-		}
+                    if ($be == SmtpClient::EncNone)
+                        $be = ContentTransEnc7Bit;
+
+                    # add the message body
+                    $mpm.addEncodePart($message.getBody(), $be, MimeTypeText, "inline");
+                   
+                    # add attachments
+                    foreach my SmtpClient::Attachment $att in ($atts)
+                        $att.add($mpm);
+
+                    $.sendData($mpm.serialize());
+                    $.sendData("\r\n");
+                }
 		else 
 		    $.sendData($message.getBody() + "\r\n");
-
-		# send attachments
-		if (!$atts.empty()) {
-		    foreach my SmtpClient::Attachment $att in ($atts) {
-			$.sendData(sprintf("--%s\r\n", $.mpboundary));
-			$.sendData($att.encode());
-		    }
-		    $.sendData(sprintf("--%s--\r\n", $.mpboundary));
-		    $.sendData("\r\n");
-		}
 
 		# end of data
 		my hash $rh = $.sendCommand(".");
@@ -971,7 +991,7 @@ $msg.addAttachment($att);
   	}
   	
 	# send data over the socket
-	private sendDataIntern(string $str) {
+	private sendDataIntern(data $str) {
 	    if (!$.isConnected()) {
 		$.logDbg("send: not connected; not sending");
 		throw "NOT-CONNECTED", "not connected in sendDataIntern()";
@@ -989,14 +1009,20 @@ $msg.addAttachment($att);
 
 	    if ($.log_debug.val()) {
 		my string $lstr = trim($str);
-		if ($lstr.size() > 128) {
-		    splice $lstr, 128;
+		if ($lstr.size() > MaxDebugLine) {
+		    splice $lstr, MaxDebugLine;
 		    $lstr += "...";
 		}
 		$.logDbg("data: %y", $lstr);
 	    }
 
 	    $.sendDataIntern($str);
+	}
+
+	# send data and log in the debug log if set
+	private sendData(binary $b) {
+            $.logDbg("binary data: %d bytes", $b.size());
+	    $.sendDataIntern($b);
 	}
 
 	# send a command over the socket and return the response as a hash

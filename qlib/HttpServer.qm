@@ -354,8 +354,8 @@ public class HttpServer::AbstractAuthenticator {
 
     #! called to authenticate a user for a connection; should return a list of roles for the user if the user is authenticated
     /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True"
-        @param $user the username to authenticate
-        @param $pass the password for the user
+        @param user the username to authenticate
+        @param pass the password for the user
         @return a list of roles for the user if the user can be authenticated (this method returns an empty list by default)
         @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this method will never throw any exceptions)
       */
@@ -365,8 +365,8 @@ public class HttpServer::AbstractAuthenticator {
 
     #! called when the connection requires authentication, but no authentication credentials were supplied, to try to authenticate the connection based on the source IP address
     /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True" and no authentication credentials are supplied with the request
-        @param $ip the IP address of the source connection
-        @param $user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
+        @param ip the IP address of the source connection
+        @param user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
         @return a list of roles if the authentication request is successful (this method returns an empty list by default)
         @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this base class method as implemented here will never throw any exceptions but instead just returns an empty list by default)
       */
@@ -391,7 +391,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 
     #! create the object optionally with the given AbstractAuthenticator
-    /** @param $auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+    /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
       */
     constructor(*AbstractAuthenticator $auth) {
         $.auth = $auth;
@@ -399,18 +399,18 @@ public class HttpServer::AbstractHttpRequestHandler {
 
     #! will be called when a request is received that should be directed to the handler
     /**
-        @param $cx call context hash; this hash will have the following keys:
+        @param cx call context hash; this hash will have the following keys:
         - \c socket: the bind address used to gind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by Socket::getSocketInfo())
         - \c peer-info: a hash of socket information for the remote socket (as returned by Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from parseURL())
         - \c id: the unique HTTP connection ID
         - \c user: the current RBAC username (if any)
-        @param $hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+        @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
         - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
         - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
-        @param $body message body, if any
+        @param body message body, if any
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response
@@ -425,10 +425,10 @@ public class HttpServer::AbstractHttpRequestHandler {
 
     #! helper method for handling log messages
     /** 
-        @param $cx the call context hash
-        @param $api the API description hash
-        @param $params a reference to the call parameters; the call context hash will be added as the first argument
-        @param $args an optional reference to a string describing the arguments
+        @param cx the call context hash
+        @param api the API description hash
+        @param params a reference to the call parameters; the call context hash will be added as the first argument
+        @param args an optional reference to a string describing the arguments
         @return a string if the message should be logged, otherwise NOTHING
     */
     static *string getLogMessage(hash $cx, hash $api, reference $params, *reference $args) {
