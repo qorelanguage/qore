@@ -2063,7 +2063,7 @@ public:
          return 0;
 
       // now serialize constant bindings
-      fprintf(fp, "\nvoid init_%s_constants(QoreNamespace& ns) {\n", rootName);
+      fprintf(fp, "\nDLLLOCAL void init_%s_constants(QoreNamespace& ns) {\n", rootName);
 
       add_init_code(fp);
 
@@ -2624,9 +2624,9 @@ public:
       }
 
       if (is_pseudo)
-         fprintf(fp, "QoreClass* init%sClass() {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
+         fprintf(fp, "DLLLOCAL QoreClass* init%sClass() {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
       else
-         fprintf(fp, "QoreClass* init%sClass(QoreNamespace &ns) {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
+         fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace &ns) {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
       dom_output_cpp(fp, dom);
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
 
