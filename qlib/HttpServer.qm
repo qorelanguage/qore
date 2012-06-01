@@ -27,7 +27,7 @@
 %requires Mime >= 1.0
 
 module HttpServer {
-    version = "0.3.3";
+    version = "0.3.4";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -955,7 +955,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 public class HttpServer::HttpServer {
     public {
         #! version of the HttpServer's implementation
-        const Version = "0.3.3";
+        const Version = "0.3.4";
         #! default read timeout in ms
         const ReadTimeout = 30000;  # recvs timeout after 30 seconds
         #! default poll timeout in ms
