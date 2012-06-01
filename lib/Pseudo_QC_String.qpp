@@ -282,3 +282,47 @@ bool <string>::strp() [flags=CONSTANT] {
    return true;
 }
 
+//! Returns a portion of a string starting from an integer offset
+/** Arguments can be negative, giving offsets from the end of the string. All offsets are character positions, not byte positions.
+
+    @param start The starting character for the substring where the first character is at offset 0; if the offset is negative, it designates the number of characters from the end of the string.  If the offset is 0, then the entire string is returned.
+
+    @return the substring of the string starting from an integer character offset; the rest of the string is returned after this offset
+
+    @par Example:
+    @code
+# get the last 10 characters of a string
+my string $substr = $str.substr(-10);
+    @endcode
+
+    @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
+
+    @note equivalent to substr(softstring, softint)
+ */
+string <string>::substr(softint start) [flags=RET_VALUE_ONLY] {
+   return str->substr(start, xsink);
+}
+
+//! Returns a portion of a string starting from an integer offset, with a length parameter
+/** Arguments can be negative, giving offsets from the end of the string. All offsets are character positions, not byte positions.
+
+    @param start The starting character for the substring where the first character is at offset 0; if the offset is negative, it designates the number of characters from the end of the string
+    @param len The maximum number of characters to copy; if this value is negative, the rest of the string from \a start will be copied to the substring, except without - \a len characters from the end of the string
+
+    @return the substring of the string according to the arguments passed
+
+    @par Example:
+    @code
+# get a substring 10 characters into the string except omitting the last 2 characters of the string
+my string $substr = $str.substr(10, -2);
+    @endcode
+
+    @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
+
+    @note equivalent to substr(softstring, softint, softint)
+ */
+string <string>::substr(softint start, softint len) [flags=RET_VALUE_ONLY] {
+   return str->substr(start, len, xsink);
+}
+
+

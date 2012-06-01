@@ -363,6 +363,8 @@ my string $substr = substr($str, -10);
     @endcode
 
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
+
+    @note equivalent to <string>::substr(softint)
  */
 string substr(softstring str, softint start) [flags=RET_VALUE_ONLY] {
    return str->substr(start, xsink);
@@ -384,6 +386,8 @@ my string $substr = substr($str, 10, -2);
     @endcode
 
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
+
+    @note equivalent to <string>::substr(softint, softint)
  */
 string substr(softstring str, softint start, softint len) [flags=RET_VALUE_ONLY] {
    return str->substr(start, len, xsink);

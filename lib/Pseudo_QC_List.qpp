@@ -85,3 +85,31 @@ my bool $b = $l.val();
 bool <list>::val() [flags=CONSTANT] {
    return !l->empty();
 }
+
+//! Returns the first entry in the list
+/** @return the first entry in the list
+
+    @par Example:
+    @code
+my any $e = $l.first();
+    @endcode
+
+    @see <list>::last()
+ */
+any <list>::first() [flags=CONSTANT] {
+   return l->get_referenced_entry(0);
+}
+
+//! Returns the last entry in the list
+/** @return the last entry in the list
+
+    @par Example:
+    @code
+my any $e = $l.last();
+    @endcode
+
+    @see <list>::first()
+ */
+any <list>::last() [flags=CONSTANT] {
+   return l->get_referenced_entry((qore_size_t)(l->size() - 1));
+}
