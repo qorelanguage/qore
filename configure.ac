@@ -1258,7 +1258,7 @@ else
 fi
 
 # turn on some build flags for non-debugging, non-profiling builds
-if test "$enable_debug" = "no" -a "$enable_profile" = "no"; then
+if test "$enable_debug" = "no" -a "$enable_profile" = "no" -a "$enable_optimization" = "yes" ; then
     # strip binaries and libraries on darwin with -x
     if test "`echo $host_os|cut -b-6`" = "darwin"; then
        LDFLAGS="$LDFLAGS -Wl,-x"

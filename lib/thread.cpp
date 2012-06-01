@@ -1227,35 +1227,6 @@ const qore_class_private* runtime_get_class() {
    return (thread_data.get())->current_classobj.getClass();
 }
 
-/*
-ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm, bool runtime) : 
-   old_pgm(0), old_lvstack(0), old_cvstack(0), restore(false) {
-   if (pgm) {
-      ThreadData *td = thread_data.get();
-      printd(5, "ProgramContextHelper::ProgramContextHelper() current_pgm=%p new_pgm=%p\n", td->current_pgm, pgm);
-      if (pgm != td->current_pgm) {
-	 restore = true;
-	 old_pgm = td->current_pgm;
-         old_lvstack = td->lvstack;
-         old_cvstack = td->cvstack;
-	 td->current_pgm = pgm;
-         td->tpd->saveProgram(runtime);
-      }
-   }
-}
-
-ProgramContextHelper::~ProgramContextHelper() {
-   if (restore) {
-      ThreadData *td = thread_data.get();      
-
-      //printd(5, "ProgramContextHelper::~ProgramContextHelper() current_pgm=%p restoring old pgm=%p old lvstack=%p\n", td->current_pgm, old_pgm, old_lvstack);
-      td->current_pgm = old_pgm;
-      td->lvstack     = old_lvstack;
-      td->cvstack     = old_cvstack;
-   }
-}
-*/
-
 ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) :
             old_pgm(0), old_lvstack(0), old_cvstack(0), restore(false) {
    if (!pgm)
@@ -1369,20 +1340,28 @@ void qore_exit_process(int rc) {
    int tid = gettid();
    SafeLocker sl(lThreadList);
 
-   // call pthread_cancel on all threads so the call to exit() will not
-   // cause a core dump
+   // call pthread_cancel on all threads so the call to exit() will not cause a core dump
    for (int i = 1; i < MAX_QORE_THREADS; ++i) {
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
       if (i != tid && thread_list[i].ptid.p != PTHREAD_AVAIL.p && thread_list[i].ptid.p != PTHREAD_NA.p) {
 #else
-      if (i != tid && thread_list[i].ptid) {
+      if (i != tid && thread_list[i].ptid && thread_list[i].ptid != PTHREAD_NA) {
 #endif
+         //printf("qore_exit_process() canceling TID %d ptid: %p (this TID: %d)\n", i, thread_list[i].ptid, tid);
 	 int trc = pthread_cancel(thread_list[i].ptid);
 	 if (!trc) {
+#ifdef DARWIN
+	    // for some reason we cannot call pthread_join() on the main thread in Darwin or we get a segfault
+	    // at least in 10.7.4 - but only when debugging is disabled for some reason
+	    if (i == 1)
+	       continue;
+#endif
 	    thread_list[i].joined = true;
 
+	    //printf("qore_exit_process() ptid: %p\n", thread_list[i].ptid);
 	    sl.unlock();
 	    pthread_join(thread_list[i].ptid, 0);
+	    //printd("ptid: %p p: %p\n", thread_list[i].ptid, p);
 	    sl.lock();
 	 }
 #ifdef DEBUG
@@ -1446,6 +1425,7 @@ static void delete_thread_data() {
 }
 
 void deregister_thread(int tid) {
+   //printf("DEBUG: deregister_thread() TID %d terminated\n", tid);
    // NOTE: cannot safely call printd here, because normally the thread_data has been deleted
    AutoLocker al(lThreadList);
    thread_list[tid].cleanup();
@@ -1663,10 +1643,8 @@ void init_qore_threads() {
    pthread_mutexattr_init(&ma_recursive);
    pthread_mutexattr_settype(&ma_recursive, PTHREAD_MUTEX_RECURSIVE);
 
-#ifdef DEBUG
    // mark threading as active
    threads_initialized = true;
-#endif
 }
 
 QoreNamespace *get_thread_ns(QoreNamespace &qorens) {
@@ -1706,10 +1684,8 @@ void delete_thread_local_data() {
 void delete_qore_threads() {
    QORE_TRACE("delete_qore_threads()");
 
-#ifdef DEBUG
    // mark threading as inactive
    threads_initialized = false;
-#endif
 
    pthread_mutexattr_destroy(&ma_recursive);
 
