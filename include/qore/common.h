@@ -81,6 +81,12 @@ enum qore_license_t { QL_GPL = 0,         //!< code to be used under the GPL lic
     #define DLLEXPORT __declspec(dllimport)
   #endif
   #define DLLLOCAL
+
+  #define QLLD "%I64d"
+  #define QLLX "%I64x"
+  #define QLLDx(a) "%" #a "I64d"
+  #define QORE_DIR_SEP '\\'
+  #define QORE_DIR_SEP_STR "\\"
 #else
   #ifdef HAVE_GCC_VISIBILITY
     #define DLLEXPORT __attribute__ ((visibility("default")))
@@ -89,6 +95,11 @@ enum qore_license_t { QL_GPL = 0,         //!< code to be used under the GPL lic
     #define DLLEXPORT
     #define DLLLOCAL
   #endif
+  #define QLLD "%lld"
+  #define QLLX "%llx"
+  #define QLLDx(a) "%" #a "lld"
+  #define QORE_DIR_SEP '/'
+  #define QORE_DIR_SEP_STR "/"
 #endif
 
 #define _Q_MAKE_STRING(x) #x
