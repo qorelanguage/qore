@@ -30,7 +30,7 @@
 #include <map>
 #include <vector>
 
-#define NO_TYPE_INFO "<no type info>"
+#define NO_TYPE_INFO "any"
 
 // adds external types to global type map
 DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo);
