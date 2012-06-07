@@ -434,7 +434,7 @@ $db.exec("create table my_tab (id number, some_text varchar2(30))");
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any Datasource::execRaw(string sql) {
-   return ds->execRaw(sql, xsink);
+   return ds->execRaw(sql, 0, xsink);
 }
 
 //! Executes an %SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)

@@ -290,7 +290,7 @@ public:
        @param query_str the qurey to execute
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT AbstractQoreNode *execRaw(const QoreString *query_str, ExceptionSink *xsink);
+   DLLEXPORT AbstractQoreNode *execRaw(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
 
    //! commits the current transaction to the database
    /** Calls the DBI driver's "commit" method.

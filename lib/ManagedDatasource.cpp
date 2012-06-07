@@ -224,6 +224,15 @@ AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, const Qor
    return Datasource::exec(query_str, args, xsink);
 }
 
+AbstractQoreNode *ManagedDatasource::execRaw(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
+   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NONE : DAH_ACQUIRE);
+   if (!dbah)
+      return 0;
+
+   return Datasource::execRaw(query_str, args, xsink);
+}
+
+
 bool ManagedDatasource::beginTransaction(ExceptionSink *xsink) {
    DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NONE : DAH_ACQUIRE);
    if (!dbah)

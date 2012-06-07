@@ -299,15 +299,15 @@ AbstractQoreNode *DatasourcePool::exec_internal(bool doBind, const QoreString *s
    if (!dpah)
       return 0;
 
-   return doBind ? dpah->exec(sql, args, xsink) : dpah->execRaw(sql, xsink);;
+   return doBind ? dpah->exec(sql, args, xsink) : dpah->execRaw(sql, args, xsink);;
 }
 
 AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
    return exec_internal(true, sql, args, xsink);
 }
 
-AbstractQoreNode *DatasourcePool::execRaw(const QoreString *sql, ExceptionSink *xsink) {
-   return exec_internal(false, sql, 0, xsink);
+AbstractQoreNode *DatasourcePool::execRaw(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
+   return exec_internal(false, sql, args, xsink);
 }
 
 int DatasourcePool::commit(ExceptionSink *xsink) {

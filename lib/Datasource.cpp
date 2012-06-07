@@ -157,8 +157,8 @@ AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNo
    return exec_internal(true, query_str, args, xsink);
 }
 
-AbstractQoreNode *Datasource::execRaw(const QoreString *query_str, ExceptionSink *xsink) {
-   return exec_internal(false, query_str, 0, xsink);
+AbstractQoreNode *Datasource::execRaw(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
+   return exec_internal(false, query_str, args, xsink);
 }
 
 int Datasource::beginImplicitTransaction(ExceptionSink *xsink) {
