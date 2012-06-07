@@ -453,6 +453,9 @@ public:
    //! get file descriptor
    DLLEXPORT int getFD() const;
 
+   //! returns true if the file is open, false if not
+   DLLEXPORT bool isOpen() const;
+
    //! sets terminal attributes
    DLLLOCAL int setTerminalAttributes(int action, QoreTermIOS *ios, ExceptionSink *xsink) const;
 

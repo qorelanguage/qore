@@ -1699,6 +1699,17 @@ hash File::statvfs() {
 #endif
 }
 
+
+//! returns @ref Qore::True "True" if the File is open, @ref Qore::False "False" if not
+/** @return @ref Qore::True "True" if the File is open, @ref Qore::False "False" if not
+
+    @par Example:
+    @code my bool $b = $file.isOpen();@endcode
+*/
+bool File::isOpen() {
+   return f->isOpen();
+}
+
 //! Returns a @ref stat_list about the file's status (follows symbolic links) or throws an exception if any errors occur
 /** This method will follow symbolic links and return information about the target.
     If any errors occur, a \c FILE-STAT-ERROR exception is thrown

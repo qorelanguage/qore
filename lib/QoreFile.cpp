@@ -143,6 +143,10 @@ struct qore_qf_private {
       return -1;
    }
 
+   DLLLOCAL bool isOpen() const {
+      return is_open;
+   }
+
    DLLLOCAL bool isDataAvailable(int timeout_ms, ExceptionSink *xsink) const {
       AutoLocker al(m);
 
@@ -1167,6 +1171,10 @@ int QoreFile::readi8LSB(int64 *val, ExceptionSink *xsink) {
    
    *val = LSBi8(*val);
    return 0;
+}
+
+bool QoreFile::isOpen() const {
+   return priv->isOpen();
 }
 
 bool QoreFile::isDataAvailable(int timeout_ms, ExceptionSink *xsink) const {
