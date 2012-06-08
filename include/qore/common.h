@@ -163,6 +163,20 @@ public:
    }
 };
 
+class eqstr {
+public:
+   DLLLOCAL bool operator()(const char* s1, const char* s2) const {
+      return !strcmp(s1, s2);
+   }
+};
+
+class eqstrcase {
+public:
+   DLLLOCAL bool operator()(const char* s1, const char* s2) const {
+      return !strcasecmp(s1, s2);
+   }
+};
+
 //! for char less-than comparisons
 class ltchar {
 public:

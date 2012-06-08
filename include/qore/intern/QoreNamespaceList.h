@@ -35,7 +35,15 @@
 
 #include <map>
 
+#ifdef HAVE_QORE_HASH_MAP
+//#warning compiling with hash_map
+#include <qore/hash_map_include.h>
+#include <qore/intern/xxhash.h>
+
+typedef HASH_MAP<std::string, QoreNamespace*> nsmap_t;
+#else
 typedef std::map<std::string, QoreNamespace*> nsmap_t;
+#endif
 
 class qore_ns_private;
 class qore_root_ns_private;

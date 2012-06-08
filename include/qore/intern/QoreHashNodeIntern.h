@@ -42,7 +42,15 @@ public:
    }
 };
 
+#ifdef HAVE_QORE_HASH_MAP
+//#warning compiling with hash_map
+#include <qore/hash_map_include.h>
+#include <qore/intern/xxhash.h>
+
+typedef HASH_MAP<const char*, HashMember*, qore_hash_str, eqstr> hm_hm_t;
+#else
 typedef std::map<const char*, HashMember *, ltstr> hm_hm_t;
+#endif
 
 class qore_hash_private {
 public:

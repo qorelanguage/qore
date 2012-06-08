@@ -34,7 +34,15 @@
 
 #include <map>
 
-typedef std::map<const char*, QoreClass *, ltstr> hm_qc_t;
+#ifdef HAVE_QORE_HASH_MAP
+//#warning compiling with hash_map
+#include <qore/hash_map_include.h>
+#include <qore/intern/xxhash.h>
+
+typedef HASH_MAP<const char*, QoreClass*, qore_hash_str, eqstr> hm_qc_t;
+#else
+typedef std::map<const char*, QoreClass*, ltstr> hm_qc_t;
+#endif
 
 class QoreNamespaceList;
 

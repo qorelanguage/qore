@@ -38,7 +38,15 @@
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
 
-typedef std::map<std::string, QoreMethod* > hm_method_t;
+#ifdef HAVE_QORE_HASH_MAP
+//#warning compiling with hash_map
+#include <qore/hash_map_include.h>
+#include <qore/intern/xxhash.h>
+
+typedef HASH_MAP<std::string, QoreMethod*> hm_method_t;
+#else
+typedef std::map<std::string, QoreMethod*> hm_method_t;
+#endif
 
 class SignatureHash;
 
@@ -1138,8 +1146,13 @@ public:
 #endif
 };
 
-typedef std::map<char* , QoreMemberInfo* , ltstr> member_map_t;
-typedef std::map<char* , QoreVarInfo* , ltstr> var_map_t;
+#ifdef HAVE_QORE_HASH_MAP
+typedef HASH_MAP<char*, QoreMemberInfo*, qore_hash_str, eqstr> member_map_t;
+typedef HASH_MAP<char*, QoreVarInfo*, qore_hash_str, eqstr> var_map_t;
+#else
+typedef std::map<char*, QoreMemberInfo*, ltstr> member_map_t;
+typedef std::map<char*, QoreVarInfo*, ltstr> var_map_t;
+#endif
 
 class QoreMemberMap : public member_map_t {
 public:

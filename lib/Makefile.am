@@ -392,6 +392,7 @@ libqore_la_SOURCES = \
 	QoreLogicalGreaterThanOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
+	xxhash.cpp \
 	minitest.cpp
 
 if COND_SIGNAL_HANDLING

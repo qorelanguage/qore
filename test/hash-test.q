@@ -4,73 +4,77 @@
 # by David Nichols
 
 # default 10000 hash keys
-our $size = int(shift $ARGV);
+my int $size = int(shift $ARGV);
 if (!$size)
     $size = 10000;
 
 # default minimum hash key length = 20 characters
-our $min_length = int(shift $ARGV);
+my int $min_length = int(shift $ARGV);
 if (!$min_length)
     $min_length = 20;
 
-sub rstr($len) {
-    my $str = "";
+# times to search the hash
+my int $num_loops = int(shift $ARGV);
+if (!$num_loops)
+    $num_loops = 2;
 
-    for (my $i = 0; $i < $len; $i++)
+string sub rstr(int $len) {
+    my string $str = "";
+
+    for (my int $i = 0; $i < $len; $i++)
 	$str += doChar(rand() % 52);
 
     return $str;
 }
 
-sub doChar($v) {
-    if ($v < 26)
-	return chr($v + ord("A"));
-    return chr($v - 26 + ord("a"));
+string sub doChar(int $v) {
+    return $v < 26 ? chr($v + ord("A")) : chr($v - 26 + ord("a"));
 }
 
-sub getKey($n)
-{
-    my $str = "";
+string sub getKey(int $n) {
+    my string $str = "";
 
-    my $v = $n % 52;
-    $str += doChar($v) + rstr(4);
+    my int $v = $n % 52;
+    $str += doChar($v) + rstr(2);
     $n -= $v;
-    while ($n > 51)
-    {
-	$n = $n / 52;
-	$str += doChar(($n - 1) % 52) + rstr(4);
+    while ($n > 51) {
+	$n /= 52;
+	$str += doChar(($n - 1) % 52) + rstr(2);
     }
-    $str += rstr($min_length - strlen($str));
+    $str += rstr($min_length - $str.size());
     return $str;
 }
 
 sub hash_test() {
     srand(now());
 
-    my $h;
-    my $l = ();
+    my hash $h;
+    my list $l = ();
 
     printf("creating hash key list (%d entries, %d char key len): ", $size, $min_length); flush();
     # first we get a list of all the hash keys
-    my $list_start = clock_getmicros();
-    for (my $i = 0; $i < $size; $i++)
+    my date $list_start = now_us();
+    for (my int $i = 0; $i < $size; $i++)
 	$l += getKey($i);
 
-    my $start = clock_getmicros();
-    printf("created in %.6fs\n", ($start - $list_start) / 1000000.0); flush();
+    my date $start = now_us();
+    printf("created in %y\n", $start - $list_start); flush();
     print("running insert: ");
-    for (my $i = 0; $i < $size; $i++)
+    for (my int $i = 0; $i < $size; $i++)
 	$h{$l[$i]} = True;
 
-    my $search = clock_getmicros();
-    printf("done in %.6fs, running search: ", ($search - $start) / 1000000.0); flush();
-    $l = keys $h;
-    my $end = $size / 2;
-    for (my $i = 0; $i < $end; $i++)
-	my $v = $h.($l[$i]);
+    my date $search = now_us();
+    #$l = keys $h;
+    printf("done in %y (%d keys), running search: ", $search - $start, $h.size()); flush();
+    $search = now_us();
+    
+    for (my int $loop = 0; $loop < $num_loops; ++$loop) {
+	for (my int $i = 0; $i < $size; $i++)
+	    my bool $v = $h.($l[$i]);
+    }
 
-    my $et = clock_getmicros();
-    printf("%d searches in %.6fs, total time: %.6fs\n", $end, ($et - $search) / 1000000.0, ($et - $start) / 1000000.0);
+    my date $et = now_us();
+    printf("%d searches in %y, total time: %y\n", $size & $num_loops, $et - $search, $et - $start);
 }
 
 hash_test();

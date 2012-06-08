@@ -200,6 +200,8 @@
 
 #include "QorePseudoMethods.cpp"
 
+#include "xxhash.cpp"
+
 #ifndef HAVE_GLOB
 #include "glob.cpp"
 #endif

@@ -31,7 +31,15 @@
 
 class Var;
 
+#ifdef HAVE_QORE_HASH_MAP
+//#warning compiling with hash_map
+#include <qore/hash_map_include.h>
+#include <qore/intern/xxhash.h>
+
+typedef HASH_MAP<const char*, Var*, qore_hash_str, eqstr> map_var_t;
+#else
 typedef std::map<const char*, Var*, ltstr> map_var_t;
+#endif
 
 // this is a "grow-only" container
 // all reading and writing is done within the parse lock on the containing program object

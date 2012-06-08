@@ -99,7 +99,15 @@ public:
    }
 };
 
-typedef std::map<const char* , FunctionEntry* , class ltstr> fl_map_t;
+#ifdef HAVE_QORE_HASH_MAP
+//#warning compiling with hash_map
+#include <qore/hash_map_include.h>
+#include <qore/intern/xxhash.h>
+
+typedef HASH_MAP<const char*, FunctionEntry*, qore_hash_str, eqstr> fl_map_t;
+#else
+typedef std::map<const char*, FunctionEntry*, ltstr> fl_map_t;
+#endif
 
 class FunctionList : public fl_map_t {
 public:

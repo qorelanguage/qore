@@ -18,11 +18,13 @@ AC_DEFUN([AC_CXX_MAKE_HASH_MAP_H],
 #define HASH_NAMESPACE $ac_cv_cxx_hash_namespace
 #endif
 #ifdef HAVE_UNORDERED_MAP
-using HASH_NAMESPACE::unordered_map;
+#define HASH_MAP HASH_NAMESPACE::unordered_map
+//using HASH_NAMESPACE::unordered_map;
 #else
-using HASH_NAMESPACE::hash_map;
+#define HASH_MAP HASH_NAMESPACE::hash_map
+//using HASH_NAMESPACE::hash_map;
 #endif
-using HASH_NAMESPACE::hash;
+//using HASH_NAMESPACE::hash;
 EOF
 
    AC_MSG_RESULT([$1])

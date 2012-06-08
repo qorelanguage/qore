@@ -132,7 +132,15 @@ public:
    }
 };
 
+#ifdef HAVE_QORE_HASH_MAP
+//#warning compiling with hash_map
+#include <qore/hash_map_include.h>
+#include <qore/intern/xxhash.h>
+
+typedef HASH_MAP<const char*, ConstantEntry*, qore_hash_str, eqstr> cnemap_t;
+#else
 typedef std::map<const char*, ConstantEntry*, ltstr> cnemap_t;
+#endif
 
 class ConstantList {
    friend class ConstantListIterator;

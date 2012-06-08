@@ -28,7 +28,7 @@
 #include <assert.h>
 
 // adds directly to committed list
-Var* GlobalVariableList::import(Var* v, ExceptionSink *xsink, bool readonly) {
+Var* GlobalVariableList::import(Var* v, ExceptionSink* xsink, bool readonly) {
    map_var_t::iterator i = vmap.find(v->getName());
    if (i != vmap.end()) {
       xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "'%s' already exists in the target namespace", v->getName());
@@ -43,14 +43,14 @@ Var* GlobalVariableList::import(Var* v, ExceptionSink *xsink, bool readonly) {
 }
 
 // sets all non-imported variables to NULL (dereferences contents if any)
-void GlobalVariableList::clearAll(ExceptionSink *xsink) {
+void GlobalVariableList::clearAll(ExceptionSink* xsink) {
    //printd(5, "GlobalVariableList::clear_all() this=%p (size=%d)\n", this, vmap.size());
-   for (map_var_t::reverse_iterator i = vmap.rbegin(), e = vmap.rend(); i != e; ++i) {
+   for (map_var_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i) {
       i->second->clearLocal(xsink);
    }
 }
 
-void GlobalVariableList::deleteAll(ExceptionSink *xsink) {
+void GlobalVariableList::deleteAll(ExceptionSink* xsink) {
    parseRollback();
 
    for (map_var_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)
@@ -58,7 +58,7 @@ void GlobalVariableList::deleteAll(ExceptionSink *xsink) {
    vmap.clear();
 }
 
-Var* GlobalVariableList::runtimeCreateVar(const char *name, const QoreTypeInfo *typeInfo) {
+Var* GlobalVariableList::runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo) {
    if (parseFindVar(name))
       return 0;
 
@@ -69,7 +69,7 @@ Var* GlobalVariableList::runtimeCreateVar(const char *name, const QoreTypeInfo *
    return var;
 }
 
-Var* GlobalVariableList::parseCreatePendingVar(const char *name, const QoreTypeInfo *typeInfo) {
+Var* GlobalVariableList::parseCreatePendingVar(const char* name, const QoreTypeInfo* typeInfo) {
    assert(!parseFindVar(name));
 
    Var* var = new Var(name, typeInfo);
@@ -79,7 +79,7 @@ Var* GlobalVariableList::parseCreatePendingVar(const char *name, const QoreTypeI
    return var;
 }
 
-Var* GlobalVariableList::parseFindVar(const char *name) {
+Var* GlobalVariableList::parseFindVar(const char* name) {
    map_var_t::iterator i = vmap.find(name);
    if (i != vmap.end())
       return i->second;
@@ -88,7 +88,7 @@ Var* GlobalVariableList::parseFindVar(const char *name) {
    return i != pending_vmap.end() ? i->second : 0;
 }
 
-const Var* GlobalVariableList::parseFindVar(const char *name) const {
+const Var* GlobalVariableList::parseFindVar(const char* name) const {
    map_var_t::const_iterator i = vmap.find(name);
    if (i != vmap.end())
       return i->second;
