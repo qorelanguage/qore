@@ -916,16 +916,19 @@ fi
 
 for clib in $need_libs; do
     AC_MSG_CHECKING([for the $clib library])
+
+    #QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -l$clib"
+
     for dir in "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/mingw /opt/mingw32 /opt/local /sw /usr/sfw /opt/sfw; do
-      LIB_LDFLAGS=
-      find_lib "$clib" "$dir"
-      if test -n "$LIB_LDFLAGS"; then
-         break
-      fi
-   done
-   if test -z "$LIB_LDFLAGS"; then
-      AC_MSG_ERROR([cannot find the $clib library which is needed to compile Qore for the target platform ($OS)])
-   fi    
+       LIB_LDFLAGS=
+       find_lib "$clib" "$dir"
+       if test -n "$LIB_LDFLAGS"; then
+          break
+       fi
+    done
+    if test -z "$LIB_LDFLAGS"; then
+       AC_MSG_ERROR([cannot find the $clib library which is needed to compile Qore for the target platform ($OS)])
+    fi    
 done
 
 AC_ARG_ENABLE([profile],

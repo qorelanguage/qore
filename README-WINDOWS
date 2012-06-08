@@ -9,12 +9,12 @@ BUILDING
 --------
 Currently Qore can only be (easily) built with the mingw compiler as a cross-compiler (from Linux, OSX, etc).  
 Information about this cross-compiler can be found here:
-	    http://mingw-cross-env.nongnu.org/
+        http://mxe.cc/
 
 It requires the dlfcn library as well for dynamic module loading:
-   http://code.google.com/p/dlfcn-win32/
+        http://code.google.com/p/dlfcn-win32/
 
-Once dlfcn has been built and installed using the mingw cross-compiler, configure Qore on the source (ie UNIX) host as follows:
+Once dlfcn has been built and installed using the mingw cross-compiler, configure Qore on the source (ie UNIX) host as follows (make sure the mmxe/mingw cross compiler binaries are in your PATH and unset CXX if it's set to a native compiler):
 configure --host=i686-pc-mingw32 --with-dl-dir=<wherever you installed dlfcn> --prefix=<wherever you want windows qore>
 
 Then a Qore DLL is built along with a qore.exe when you type "make"
@@ -25,6 +25,13 @@ The Qore DLL built this way will be statically linked with the libraries necessa
 
 Currently Windows XP is required as the mininum required Windows target.
 
+PROBLEMS
+--------
+if you get a configure error like:
+   checking for the wsock32 library... configure: error: cannot find the wsock32 library which is needed to compile Qore for the target platform (Windows)
+make sure you don't have the CXX environment variable set to a native compiler; as this will override the cross-compiler set by the --host-i686-pc-mingw32 configure option (for example, I have CXX=clang++ so I have to call configure like:
+        CXX= configure --host=i686-pc-mingw32 --with-dl-dir=<wherever you installed dlfcn> --prefix=<wherever you want windows qore>
+=======
 RUNNING
 -------
 set PATH to the binary directory where qore.exe and qore.dll are located:
