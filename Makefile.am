@@ -168,7 +168,7 @@ include_HEADERS = \
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
 	include/qore/macros-none.h \
-	include/qore/xxhash.h \
+	include/qore/intern/xxhash.h \
 	include/qore/intern/config.h \
 	include/qore/intern/unix-config.h \
 	include/qore/intern/win32-config.h \
