@@ -123,7 +123,7 @@ public:
        if (!rh)  
           return;
        // make the assignment (if the assignment fails, the value will be dereferenced automatically)
-       rh.assign(val->refSelf(), xsink);
+       rh.assign(val->refSelf());
        @endcode
    */
    DLLEXPORT int assign(AbstractQoreNode *val);
@@ -139,7 +139,7 @@ public:
        if (!rh)  
           return;
        // make the assignment (if the assignment fails, the value will be dereferenced automatically)
-       rh.assign(val->refSelf(), xsink);
+       rh.assign(val->refSelf());
        @endcode
 
        @deprecated use QoreTypeSafeReferenceHelper::assign(AbstractQoreNode *val) instead
