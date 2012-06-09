@@ -886,6 +886,7 @@ static int check_case(const char *op, AbstractQoreNode *exp) {
 #define OFM_DEPRECATED (1 << 3)
 #define OFM_PUBLIC     (1 << 4)
 #define OFM_FINAL      (1 << 5)
+#define OFM_ABSTRACT   (1 << 6)
 
 static void check_funcmod(int mod) {
    if (mod & OFM_PRIVATE)
@@ -894,6 +895,8 @@ static void check_funcmod(int mod) {
       parse_error("illegal 'static' modifier in function declaration");
    if (mod & OFM_FINAL)
       parse_error("illegal 'final' modifier in function declaration");
+   if (mod & OFM_ABSTRACT)
+      parse_error("illegal 'abstract' modifier in function declaration");
 }
 
 static void check_classmod(int mod, QoreClass& qc) {
@@ -909,6 +912,8 @@ static void check_classmod(int mod, QoreClass& qc) {
       parse_error("illegal 'deprecated' modifier in class declaration");
    if (mod & OFM_FINAL)
       qore_class_private::setFinal(qc);
+   if (mod & OFM_ABSTRACT)
+      parse_error("illegal 'abstract' modifier in class declaration");
 }
 
 static void check_nsmod(int mod, qore_ns_private& ns) {
@@ -924,6 +929,8 @@ static void check_nsmod(int mod, qore_ns_private& ns) {
       parse_error("illegal 'deprecated' modifier in namespace declaration");
    if (mod & OFM_FINAL)
       parse_error("illegal 'final' modifier in namespace declaration");
+   if (mod & OFM_ABSTRACT)
+      parse_error("illegal 'abstract' modifier in namespace declaration");
 }
 
 static bool hasEffect(AbstractQoreNode *n) {
@@ -936,7 +943,7 @@ static bool hasEffect(AbstractQoreNode *n) {
 
 static int checkMethod(const char *name, BCAList *bcal, RetTypeInfo *returnTypeInfo) {
    bool con = !strcmp(name, "constructor");
-   bool dst = !strcmp(name, "destructor");
+   bool dst = !con && !strcmp(name, "destructor");
 
    // see if a return type is given for special methods
    if (returnTypeInfo && (con || dst)) {
