@@ -85,3 +85,20 @@ my bool $b = $bin.val();
 bool <binary>::val() [flags=CONSTANT] {
    return !b->empty();
 }
+
+//! Returns a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
+/**
+    @param sep the bytes that separate the fields
+
+    @return a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
+
+    @par Example:
+    @code
+my list $l = $bin.split($sep);
+    @endcode
+
+    @note equivalent to split(binary, binary)
+ */
+list <binary>::split(binary sep) [flags=CONSTANT] {
+   return split_intern((const char*)sep->getPtr(), sep->size(), (const char*)b->getPtr(), b->size(), 0);
+}

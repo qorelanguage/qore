@@ -91,7 +91,7 @@ static void split_add_element(QoreListNode *l, const char *str, unsigned len, co
    }
 }
 
-static QoreListNode *split_intern(const char *pattern, qore_size_t pl, const char *str, qore_size_t sl, const QoreEncoding *enc, bool with_separator = false) {
+QoreListNode *split_intern(const char *pattern, qore_size_t pl, const char *str, qore_size_t sl, const QoreEncoding *enc, bool with_separator) {
    QoreListNode *l = new QoreListNode();
    const char *ostr = str;
    while (const char *p = memstr(str, pattern, pl, sl - (str - ostr))) {
@@ -105,7 +105,89 @@ static QoreListNode *split_intern(const char *pattern, qore_size_t pl, const cha
    return l;
 }
 
-static QoreStringNode *join_intern(const QoreStringNode *p0, const QoreListNode *l, int offset, ExceptionSink* xsink) {
+QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, const QoreString* quote, ExceptionSink* xsink) {
+   // convert pattern encoding to string if necessary
+   TempEncodingHelper pat(sep, str->getEncoding(), xsink);
+   if (*xsink)
+      return 0;
+
+   // convert quote to string if necessary
+   TempEncodingHelper tquote(quote, str->getEncoding(), xsink);
+   if (*xsink)
+      return 0;
+
+   if (!tquote->strlen() || tquote->strlen() > sep->strlen())
+      return split_intern(pat->getBuffer(), pat->strlen(), str->getBuffer(), str->strlen(), str->getEncoding());
+
+   ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+   const char *ostr = str->getBuffer();
+   qore_size_t sl = str->strlen();
+   const char *tpattern = pat->getBuffer();
+   qore_size_t pl = pat->strlen();
+
+   const char *ststr = ostr;
+
+   // remaining byte length
+   qore_size_t len = sl;
+
+   while (len > 0) {
+      // see if the field begins with the quote string
+      // and if the remaining string length is at least big enough for two quote strings
+      if ((tquote->strlen() * 2) <= len
+          && !memcmp(tquote->getBuffer(), ststr, tquote->strlen())) {
+         // advance pointer past quote
+         ststr += tquote->strlen();
+         // find next quote character, ignore escaped quotes
+         const char *tstr = ststr;
+         const char *p;
+         while (true) {
+            p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
+            if (!p) {
+               xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field "QSD, tquote->getBuffer(), l->size() + 1);
+               return 0;
+            }
+            if (p == tstr)
+               break;
+            if (*(p - 1) != '\\')
+               break;
+            tstr = p + 1;
+         }
+         // optimistically add the field to the list
+         l->push(new QoreStringNode(ststr, p - ststr, sep->getEncoding()));
+
+         ststr = p + tquote->strlen();
+         // see if we are either at the end of the string
+         len = sl + (ostr - ststr);
+
+         if (!len)
+            break;
+
+         // or a separator string comes next
+         if (len < pl || memcmp(tpattern, ststr, pl)) {
+            xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field "QSD, tpattern, l->size());
+            return 0;
+         }
+         ststr += pl;
+         len -= pl;
+         continue;
+      }
+
+      const char *p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
+      if (!p) {
+         if (ststr != ostr)
+            l->push(new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding()));
+         break;
+      }
+
+      l->push(new QoreStringNode(ststr, p - ststr, sep->getEncoding()));
+      len -= (p - ststr);
+      ststr = p + pl;
+   }
+
+   return l.release();
+}
+
+QoreStringNode *join_intern(const QoreStringNode *p0, const QoreListNode *l, int offset, ExceptionSink* xsink) {
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
 
    for (unsigned i = offset; i < l->size(); i++) {
@@ -604,8 +686,8 @@ nothing chr() [flags=RUNTIME_NOOP] {
 
 //! Splits a string into a list of components based on a separator string
 /** 
-    @param str the string to split; if this string has a different @ref character_encoding "character encoding" than \a sep, then it will be converted to <em>sep</em>'s @ref character_encoding "character encoding"
-    @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned
+    @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned'; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
+    @param str the string to split
     @param with_separator include the separator string in every element
 
     @return a list of each component of a string separated by a separator string, with the separator removed; the separator pattern will not be included in the elements of the list returned unless the \a with_separator argument is @ref True
@@ -616,6 +698,8 @@ my list $list = split(":", "some:text:here"); # returns ("some", "text", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+
+    @note equivalent to <string>::split(string, bool)
  */
 list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE_ONLY] {
    // convert pattern encoding to string if necessary
@@ -629,8 +713,8 @@ list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE
 //! Splits a string into a list of components based on a separator string and a quote character
 /** The quote character can appear as the first part of a field, in which case it is assumed to designate the entire field. If instances of the quote character are found in the field preceded by a backquote character (\c "\"), then these quote characters are included as part of the field's text and not treated as quote characters
 
-    @param str the string to split; if this string has a different @ref character_encoding "character encoding" than \a sep, then it will be converted to <em>sep</em>'s @ref character_encoding "character encoding"
-    @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned
+    @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned'; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
+    @param str the string to split
     @param quote the quote character
 
     @return a list of each component of a string separated by a separator string, with the separator and any enclosing quote characters removed
@@ -642,87 +726,11 @@ my list $list = split(",", "some,'text with spaces',here", "'"); # returns ("som
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
     @throw SPLIT-ERROR field missing closing quote character; extra text following quoted field
+
+    @note equivalent to <string>::split(string, string)
  */
 list split(string sep, string str, string quote) [flags=RET_VALUE_ONLY] {
-   // convert pattern encoding to string if necessary
-   TempEncodingHelper pat(sep, str->getEncoding(), xsink);
-   if (*xsink)
-      return 0;
-   
-   // convert quote to string if necessary
-   TempEncodingHelper tquote(quote, str->getEncoding(), xsink);
-   if (*xsink)
-      return 0;
-
-   if (!tquote->strlen() || tquote->strlen() > sep->strlen())
-      return split_intern(pat->getBuffer(), pat->strlen(), str->getBuffer(), str->strlen(), str->getEncoding());
-   
-   ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
-   const char *ostr = str->getBuffer();
-   qore_size_t sl = str->strlen();
-   const char *tpattern = pat->getBuffer();
-   qore_size_t pl = pat->strlen();
-
-   const char *ststr = ostr;
-
-   // remaining byte length
-   qore_size_t len = sl;
-
-   while (len > 0) {
-      // see if the field begins with the quote string
-      // and if the remaining string length is at least big enough for two quote strings
-      if ((tquote->strlen() * 2) <= len
-	  && !memcmp(tquote->getBuffer(), ststr, tquote->strlen())) {
-	 // advance pointer past quote
-	 ststr += tquote->strlen();
-	 // find next quote character, ignore escaped quotes
-	 const char *tstr = ststr;
-	 const char *p;
-	 while (true) {
-	    p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
-	    if (!p) {
-	       xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field "QSD, tquote->getBuffer(), l->size() + 1);
-	       return 0;
-	    }
-	    if (p == tstr)
-	       break;
-	    if (*(p - 1) != '\\')
-	       break;
-	    tstr = p + 1;
-	 }
-	 // optimistically add the field to the list
-	 l->push(new QoreStringNode(ststr, p - ststr, sep->getEncoding()));
-
-	 ststr = p + tquote->strlen();
-	 // see if we are either at the end of the string
-	 len = sl + (ostr - ststr);
-
-	 if (!len)
-	    break;
-
-	 // or a separator string comes next
-	 if (len < pl || memcmp(tpattern, ststr, pl)) {
-	    xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field "QSD, tpattern, l->size());
-	    return 0;
-	 }
-	 ststr += pl;
-	 len -= pl;
-	 continue;
-      }
-      
-      const char *p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
-      if (!p) {
-	 if (ststr != ostr)
-	    l->push(new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding()));
-	 break;
-      }
-
-      l->push(new QoreStringNode(ststr, p - ststr, sep->getEncoding()));
-      len -= (p - ststr);
-      ststr = p + pl;      
-   }
-   
-   return l.release();
+   return split_with_quote(sep, str, quote, xsink);
 }
 
 //! Returns a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
@@ -734,8 +742,10 @@ list split(string sep, string str, string quote) [flags=RET_VALUE_ONLY] {
     
     @par Example:
     @code
-my list $l = split($bin, $sep);
+my list $l = split($sep, $bin);
     @endcode
+
+    @note equivalent to <binary>::split(binary)
  */
 list split(binary sep, binary data) [flags=CONSTANT] {
    return split_intern((const char*)sep->getPtr(), sep->size(), (const char*)data->getPtr(), data->size(), 0);
@@ -836,6 +846,8 @@ my bool $b = regex("hello", "^hel"); # returns True
     @throw REGEX-OPTION-ERROR the option argument contains invalid option bits
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given strings to UTF-8
 
+    @note equivalent to <string>::regex(string, int)
+
     @see @ref qore_regex for more information about regular expression support in Qore
  */
 bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
@@ -916,6 +928,8 @@ my *list $rv = regex_extract("ns:element", "(\\w+):(\\w+)");
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
     @throw REGEX-OPTION-ERROR the option argument contains invalid option bits
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given strings to UTF-8
+
+    @note equivalent <string>::regexExtract(string, int)
 
     @see @ref qore_regex for more information about regular expression support in Qore
  */
@@ -1017,13 +1031,16 @@ string join(string str, ...) [flags=RET_VALUE_ONLY] {
     @param str the separator string
     @param l the list of arguments to join; each argument will be converted to a string if necessary to be concatenated to the return value string; additionally if any string argument has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding" before concatentation to the return value string
 
-    @return a string created from a list and a seperator string, each element in the list will be present in the return value separated by the separator string
+    @return a string created from a list and a separator string, each element in the list will be present in the return value separated by the separator string; the string returned with have the same @ref character_encoding "character encoding" as \a str
+
     @par Example:
     @code
 my string $str = join(":", ("a", "b", "c")); # returns "a:b:c"
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+
+    @note equivalent to <list>::join(string)
  */
 string join(string str, list l) [flags=RET_VALUE_ONLY] {
    return join_intern(str, l, 0, xsink);

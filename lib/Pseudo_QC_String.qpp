@@ -325,4 +325,109 @@ string <string>::substr(softint start, softint len) [flags=RET_VALUE_ONLY] {
    return str->substr(start, len, xsink);
 }
 
+//! Splits a string into a list of components based on a separator string
+/**
+    @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned'; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
+    @param with_separator include the separator string in every element
+
+    @return a list of each component of a string separated by a separator string, with the separator removed; the separator pattern will not be included in the elements of the list returned unless the \a with_separator argument is @ref True
+
+    @par Example:
+    @code
+my string $str = "some:text:here";
+my list $list = $str.split(":"); # returns ("some", "text", "here")
+    @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+
+    @note equivalent to split(string, string, bool)
+ */
+list <string>::split(string sep, bool with_separator = False) [flags=RET_VALUE_ONLY] {
+   // convert pattern encoding to string if necessary
+   TempEncodingHelper temp(sep, str->getEncoding(), xsink);
+   if (*xsink)
+      return 0;
+
+   return split_intern(temp->getBuffer(), temp->strlen(), str->getBuffer(), str->strlen(), str->getEncoding(), with_separator);
+}
+
+//! Splits a string into a list of components based on a separator string and a quote character
+/** The quote character can appear as the first part of a field, in which case it is assumed to designate the entire field. If instances of the quote character are found in the field preceded by a backquote character (\c "\"), then these quote characters are included as part of the field's text and not treated as quote characters
+
+    @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned'; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
+    @param quote the quote character
+
+    @return a list of each component of a string separated by a separator string, with the separator and any enclosing quote characters removed
+
+    @par Example:
+    @code
+my list $list = "some,'text with spaces',here".split(",", "'"); # returns ("some", "text with spaces", "here")
+    @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+    @throw SPLIT-ERROR field missing closing quote character; extra text following quoted field
+
+    @note equivalent to split(string, string)
+ */
+list <string>::split(string sep, string quote) [flags=RET_VALUE_ONLY] {
+   return split_with_quote(sep, str, quote, xsink);
+}
+
+//! Returns @ref True if the regular expression matches the string passed, otherwise returns @ref False
+/** Strings are converted to UTF-8 for pattern-matching; if any invalid encodings are encountered, an ENCODING-CONVERSION-ERROR is raised
+
+    @param regex the regular expression pattern
+    @param options regular expression options; see @ref regex_constants for possible values
+
+    @return @ref True if the regular expression matches the string passed, otherwise returns @ref False
+
+    @par Example:
+    @code
+my bool $b = "hello".regex("^hel"); # returns True
+    @endcode
+
+    @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
+    @throw REGEX-OPTION-ERROR the option argument contains invalid option bits
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given strings to UTF-8
+
+    @note equivalent to regex(string, string, int)
+
+    @see @ref qore_regex for more information about regular expression support in Qore
+ */
+bool <string>::regex(string regex, int options = 0) [flags=RET_VALUE_ONLY] {
+   QoreRegexNode qr(*regex, options, xsink);
+   if (*xsink)
+      return 0;
+
+   return qr.exec(str, xsink);
+}
+
+//! Returns a list of substrings in a string based on matching patterns defined by a regular expression
+/** Strings are converted to UTF-8 for pattern-matching; if any invalid encodings are encountered, an ENCODING-CONVERSION-ERROR is raised
+
+    @param regex the regular expression to use for matching, elements should be given in parentheses
+    @param options regular expression options; see @ref regex_constants for possible values
+
+    @return a list of substrings in a string based on matching patterns defined by a regular expression or @ref nothing if no match was made
+
+    @par Example:
+    @code
+my *list $rv = regex_extract("ns:element", "(\\w+):(\\w+)");
+    @endcode
+
+    @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
+    @throw REGEX-OPTION-ERROR the option argument contains invalid option bits
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given strings to UTF-8
+
+    @note equivalent regex_extract(string, string, int)
+
+    @see @ref qore_regex for more information about regular expression support in Qore
+ */
+*list <string>::regexExtract(string regex, int options = 0) [flags=RET_VALUE_ONLY] {
+   QoreRegexNode qr(*regex, options, xsink);
+   if (*xsink)
+      return 0;
+
+   return qr.extractSubstrings(str, xsink);
+}
 
