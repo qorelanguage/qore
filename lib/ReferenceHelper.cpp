@@ -55,7 +55,7 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
    mutable AbstractQoreNode *dummy;
    mutable bool assign_dummy : 1;
 
-   DLLLOCAL qore_type_safe_ref_helper_priv_t(const ReferenceNode *ref, ExceptionSink *xsink) : LValueHelper(ref->getExpression(), xsink), dummy(0), assign_dummy(false) {
+   DLLLOCAL qore_type_safe_ref_helper_priv_t(const ReferenceNode *ref, ExceptionSink *xsink) : LValueHelper(*ref, xsink), dummy(0), assign_dummy(false) {
    }
 
    DLLLOCAL qore_type_safe_ref_helper_priv_t(const AbstractQoreNode *exp, ExceptionSink *xsink) : LValueHelper(exp, xsink), dummy(0) {

@@ -47,7 +47,7 @@ struct qore_avl_private {
 	 delete notify_list;
    }
    DLLLOCAL void add(QoreObject *obj, const char *mem) {
-      //printd(5, "qore_avl_private::add(%08x, '%s')\n", obj, mem);
+      //printd(5, "qore_avl_private::add(%p, '%s')\n", obj, mem);
       if (!notify_list)
 	 notify_list = new qore_notify_list_t;
       else {

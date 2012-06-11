@@ -34,19 +34,41 @@
     @see TypeSafeReferenceHelper
     @see ReferenceArgumentHelper
  */
-class ReferenceNode : public SimpleValueQoreNode {
+class ReferenceNode : public AbstractQoreNode {
+   friend class RuntimeReferenceHelper;
+   friend class lvalue_ref;
+
+private:
+   //! private implementation
+   class lvalue_ref* priv;
+
+   DLLLOCAL ReferenceNode(lvalue_ref* p);
+
 protected:
-   //! lvalue expression for reference
-   AbstractQoreNode *lvexp;
+   //! returns the value of the reference; caller owns any reference count returned for non-NULL return values
+   DLLEXPORT virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+
+   //! returns the value of the reference
+   DLLEXPORT virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+
+   //! returns the value of the reference as an int64
+   DLLEXPORT virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+
+   //! returns the value of the reference as an int
+   DLLEXPORT virtual int integerEvalImpl(ExceptionSink *xsink) const;
+
+   //! returns the value of the reference as a bool
+   DLLEXPORT virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+
+   //! returns the value of the reference as a double
+   DLLEXPORT virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
    //! frees all memory and destroys the object
    DLLEXPORT virtual ~ReferenceNode();
 
 public:
-   //! creates the ReferenceNode object with the given lvalue expression
-   /** @param exp must be a parse expression for an lvalue
-    */
-   DLLLOCAL ReferenceNode(AbstractQoreNode *exp);
+   //! creates the ReferenceNode object - internal function, not exported, not part of the Qore API
+   DLLLOCAL ReferenceNode(AbstractQoreNode* exp, QoreObject* self);
 
    //! concatenate the verbose string representation of the value to an existing QoreString
    /** used for %n and %N printf formatting
@@ -55,7 +77,7 @@ public:
        @param xsink ignored in this version of the function
        @return this implementation of the function always returns 0 for no error raised
    */
-   DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+   DLLEXPORT virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
    //! returns a QoreString giving the verbose string representation of the value
    /** Used for %n and %N printf formatting.  Do not call this function directly; use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead
@@ -64,29 +86,21 @@ public:
        @param xsink ignored in this version of the function
        @see QoreNodeAsStringHelper
    */
-   DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+   DLLEXPORT virtual QoreString *getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
    //! returns a copy of the object
    DLLEXPORT virtual AbstractQoreNode *realCopy() const;
 
-   //! always returns false
-   DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+   //! compares the values
+   DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink* xsink) const;
 
-   //! always returns false
-   DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+   //! compares the values
+   DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink* xsink) const;
 
    //! returns the type name as a c string
    DLLEXPORT virtual const char *getTypeName() const;
 
-   //! initializes during parsing
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-
-   //! returns the lvalue expression for this object
-   /** @return the lvalue expression for this object
-    */
-   DLLLOCAL AbstractQoreNode *getExpression() const {
-      return lvexp;
-   }
+   DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
 };
 
 #endif

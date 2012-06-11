@@ -34,8 +34,6 @@
 
 // these data structures are all private to the library
 
-DLLLOCAL AbstractQoreNode* doPartialEval(AbstractQoreNode* n, bool& is_self_ref, bool for_closure, ExceptionSink* xsink);
-
 class LocalVar;
 class VarRefNode;
 class BCAList;

@@ -22,25 +22,33 @@
 
 #include <qore/Qore.h>
 
-ClosureRuntimeEnvironment::ClosureRuntimeEnvironment(const lvar_set_t *vlist) {
+ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t *vlist) {
    for (lvar_set_t::const_iterator i = vlist->begin(), e = vlist->end(); i != e; ++i) {
-      ClosureVarValue *cvar = thread_find_closure_var((*i)->getName());
+      ClosureVarValue* cvar = thread_find_closure_var((*i)->getName());
       cmap[*i] = cvar;
       cvar->ref();
    }
 }
 
-ClosureRuntimeEnvironment::~ClosureRuntimeEnvironment() {
+ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment(LocalVar* lv) {
+   if (lv) {
+      ClosureVarValue* cvar = thread_find_closure_var(lv->getName());
+      cmap[lv] = cvar;
+      cvar->ref();
+   }
+}
+
+ThreadSafeLocalVarRuntimeEnvironment::~ThreadSafeLocalVarRuntimeEnvironment() {
    assert(cmap.empty());
 }
 
-ClosureVarValue *ClosureRuntimeEnvironment::find(const LocalVar *id) {
+ClosureVarValue *ThreadSafeLocalVarRuntimeEnvironment::find(const LocalVar *id) {
    cvar_map_t::iterator i = cmap.find(id);
    assert(i != cmap.end());
    return i->second;
 }
 
-void ClosureRuntimeEnvironment::del(ExceptionSink *xsink) {
+void ThreadSafeLocalVarRuntimeEnvironment::del(ExceptionSink *xsink) {
    for (cvar_map_t::iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
       i->second->deref(xsink);
 
@@ -57,7 +65,7 @@ bool QoreClosureNode::derefImpl(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *QoreClosureNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   QoreClosureRuntimeEnvironmentHelper ch(&closure_env);
+   ThreadSafeLocalVarRuntimeEnvironmentHelper ch(&closure_env);
    return closure->exec(args, 0, xsink);
 }
 
@@ -75,6 +83,6 @@ bool QoreObjectClosureNode::derefImpl(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *QoreObjectClosureNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   QoreClosureRuntimeEnvironmentHelper ch(&closure_env);
+   ThreadSafeLocalVarRuntimeEnvironmentHelper ch(&closure_env);
    return closure->exec(args, obj, xsink);
 }

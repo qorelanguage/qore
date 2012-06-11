@@ -130,10 +130,28 @@ void Var::deref(ExceptionSink* xsink) {
    }
 }
 
+LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), val(0), typeInfo(0) {
+   RuntimeReferenceHelper rh(ref, xsink);
+   doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
+}
+
 LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), val(0), typeInfo(0) {
    // exp can be 0 when called from LValueRefHelper if the attach to the Program fails, for example
+   //printd(5, "LValueHelper::LValueHelper() exp: %p (%s %d)\n", exp, get_type_name(exp), get_node_type(exp));
    if (exp)
       doLValue(exp, for_remove);
+}
+
+void LValueHelper::setValue(QoreLValueGeneric& nv) {
+   assert(!v);
+   assert(!val);
+   if (nv.type == QV_Node) {
+      if (!nv.assigned)
+         nv.assigned = true;
+      v = &(nv.v.n);
+   }
+   else
+      val = &nv;
 }
 
 static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, ExceptionSink* xsink) {
@@ -202,7 +220,7 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
    QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject*>(*v) : 0;
    QoreHashNode* h = 0;
 
-   //printd(0, "LValueHelper::doHashObjLValue() h=%p v: %p ('%s', refs: %d)\n", h, v, v ? v->getTypeName() : "(null)", v ? v->reference_count() : 0);
+   //printd(5, "LValueHelper::doHashObjLValue() h=%p v: %p ('%s', refs: %d)\n", h, v, v ? v->getTypeName() : "(null)", v ? v->reference_count() : 0);
 
    if (!o) {
       if (t == NT_HASH) {
@@ -223,7 +241,7 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
          *v = h = new QoreHashNode;
       }
 
-      //printd(0, "LValueHelper::doHashObjLValue() def=%s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
+      //printd(5, "LValueHelper::doHashObjLValue() def=%s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
       resetPtr(h->getKeyValuePtr(mem->getBuffer()));
       return 0;
    }
@@ -243,11 +261,12 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
 
 int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
    qore_type_t ntype = n->getType();
-   //printd(0, "setup_lvalue(exp: %p) %s\n", n, n->getTypeName());
+   //printd(5, "LValueHelper::doLValue(exp: %p) %s %d\n", n, get_type_name(n), get_node_type(n));
    if (ntype == NT_VARREF) {
       const VarRefNode* v = reinterpret_cast<const VarRefNode*>(n);
-      //printd(5, "get_var_value_ptr(): vref=%s (%p)\n", v->name, v);
-      return v->getLValue(*this, for_remove);
+      //printd(5, "LValueHelper::doLValue(): vref=%s (%p)\n", v->name, v);
+      if (v->getLValue(*this, for_remove))
+         return -1;
    }
    else if (ntype == NT_SELF_VARREF) {
       const SelfVarrefNode* v = reinterpret_cast<const SelfVarrefNode*>(n);
@@ -255,20 +274,44 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       QoreObject* obj = runtime_get_stack_object();
       assert(obj);
       // true is for "internal"
-      return qore_object_private::getLValue(*obj, v->str, *this, true, for_remove, vl.xsink);
+      if (qore_object_private::getLValue(*obj, v->str, *this, true, for_remove, vl.xsink))
+         return -1;
    }
-   else if (ntype == NT_CLASS_VARREF) {
-      const StaticClassVarRefNode* v = reinterpret_cast<const StaticClassVarRefNode*>(n);
-      v->getLValue(*this);
-      return 0;
+   else if (ntype == NT_CLASS_VARREF)
+      reinterpret_cast<const StaticClassVarRefNode*>(n)->getLValue(*this);
+   else if (ntype == NT_REFERENCE) {
+      const ReferenceNode *ref = reinterpret_cast<const ReferenceNode*>(n);
+      RuntimeReferenceHelper rh(*ref, vl.xsink);
+      if (doLValue(lvalue_ref::get(ref)->vexp, for_remove))
+         return -1;
+   }
+   else {
+      assert(n->getType() == NT_TREE);
+      // it must be a tree
+      const QoreTreeNode* tree = reinterpret_cast<const QoreTreeNode*>(n);
+      if (tree->getOp() == OP_LIST_REF) {
+         if (doListLValue(tree, for_remove))
+            return -1;
+      }
+      else if (doHashObjLValue(tree, for_remove))
+         return -1;
    }
 
-   assert(n->getType() == NT_TREE);
-   // it must be a tree
-   const QoreTreeNode* tree = reinterpret_cast<const QoreTreeNode*>(n);
-   if (tree->getOp() == OP_LIST_REF)
-      return doListLValue(tree, for_remove);
-   return doHashObjLValue(tree, for_remove);
+#if 0
+   if (v && *v)
+      printd(0, "LValueHelper::doLValue() v: %p %s %d\n", *v, get_type_name(*v), get_node_type(*v));
+   else if (val)
+      printd(0, "LValueHelper::doLValue() val: %s %d\n", val->getTypeName(), val->getType());
+#endif
+
+   if (v && *v && (*v)->getType() == NT_REFERENCE) {
+      const ReferenceNode *ref = reinterpret_cast<const ReferenceNode*>(*v);
+      RuntimeReferenceHelper rh(*ref, vl.xsink);
+      v = 0;
+      return doLValue(lvalue_ref::get(ref)->vexp, for_remove);
+   }
+
+   return 0;
 }
 
 void LValueHelper::setAndLock(QoreThreadLock& m) {
@@ -276,9 +319,14 @@ void LValueHelper::setAndLock(QoreThreadLock& m) {
    vl.set(&m);
 }
 
+void LValueHelper::set(QoreThreadLock& m) {
+   vl.set(&m);
+}
+
 AbstractQoreNode* LValueHelper::getReferencedValue() const {
    if (val)
       return val->eval();
+
    return *v ? (*v)->refSelf() : 0;
 }
 
@@ -292,6 +340,21 @@ const char* LValueHelper::getTypeName() const {
    if (val)
       return val->getTypeName();
    return get_type_name(*v);
+}
+
+int64 LValueHelper::getAsBigInt() const {
+   if (val) return val->getAsBigInt();
+   return (*v) ? (*v)->getAsBigInt() : 0;
+}
+
+bool LValueHelper::getAsBool() const {
+   if (val) return val->getAsBool();
+   return (*v) ? (*v)->getAsBool() : 0;
+}
+
+double LValueHelper::getAsFloat() const {
+   if (val) return val->getAsFloat();
+   return (*v) ? (*v)->getAsFloat() : 0;
 }
 
 int LValueHelper::assign(AbstractQoreNode* n, const char* desc) {
@@ -654,6 +717,12 @@ LValueRemoveHelper::LValueRemoveHelper(const AbstractQoreNode* exp, ExceptionSin
    doRemove(const_cast<AbstractQoreNode*>(exp));
 }
 
+LValueRemoveHelper::LValueRemoveHelper(const ReferenceNode& ref, ExceptionSink* n_xsink, bool fd) : xsink(n_xsink), for_del(fd) {
+   RuntimeReferenceHelper rrh(ref, xsink);
+   if (rrh)
+      doRemove(const_cast<AbstractQoreNode*>(lvalue_ref::get(&ref)->vexp));
+}
+
 int64 LValueRemoveHelper::removeBigInt() {
    assert(!*xsink);
    ReferenceHolder<> dr(xsink);
@@ -784,17 +853,12 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
    rv.assignInitial(o ? o->takeMember(mem->getBuffer(), xsink) : h->takeKeyValue(mem->getBuffer()));
 }
 
-lvar_ref::lvar_ref(AbstractQoreNode* n_vexp, QoreObject* n_obj, QoreProgram *n_pgm)
-  : vexp(n_vexp), obj(n_obj), pgm(n_pgm), 
-    is_vref(vexp->getType() == NT_VARREF && !reinterpret_cast<VarRefNode*>(vexp)->isGlobalVar()) {
-   if (n_obj)
-      n_obj->tRef();
-}
-
 int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
-   if (val.type == QV_Ref) {
-      LocalRefHelper<LocalVarValue> helper(const_cast<LocalVarValue*>(this), lvh.vl.xsink);
-      return helper ? lvh.doLValue(val.v.ref->vexp, for_remove) : -1;
+   //printd(5, "LocalVarValue::getLValue() this: %p type: '%s' %d\n", this, val.getTypeName(), val.getType());
+   if (val.getType() == NT_REFERENCE) {
+      ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+      LocalRefHelper<LocalVarValue> helper(this, *ref, lvh.vl.xsink);
+      return helper ? lvh.doLValue(lvalue_ref::get(ref)->vexp, for_remove) : -1;
    }
 
    lvh.setValue((QoreLValueGeneric&)val);
@@ -802,9 +866,10 @@ int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
 }
 
 void LocalVarValue::remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo) {
-   if (val.type == QV_Ref) {
+   if (val.getType() == NT_REFERENCE) {
       VarStackPointerHelper<LocalVarValue> helper(const_cast<LocalVarValue*>(this));
-      lvrh.doRemove(val.v.ref->vexp);
+      ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+      lvrh.doRemove(lvalue_ref::get(ref)->vexp);
       return;
    }
 
@@ -812,26 +877,33 @@ void LocalVarValue::remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInf
 }
 
 int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
-   if (val.type == QV_Ref) {
-      assert(val.v.ref->vexp->getType() != NT_VARREF || reinterpret_cast<VarRefNode*>(val.v.ref->vexp)->getType() != VT_LOCAL);
-      LocalRefHelper<ClosureVarValue> helper(const_cast<ClosureVarValue*>(this), lvh.vl.xsink);
-      return helper ? lvh.doLValue(val.v.ref->vexp, for_remove) : -1;
+   //printd(5, "ClosureVarValue::getLValue() this: %p type: '%s' %d\n", this, val.getTypeName(), val.getType());
+
+   SafeLocker sl(const_cast<ClosureVarValue*>(this));
+   if (val.getType() == NT_REFERENCE) {
+      ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), lvh.vl.xsink);
+      sl.unlock();
+      LocalRefHelper<ClosureVarValue> helper(this, **ref, lvh.vl.xsink);
+      return helper ? lvh.doLValue(lvalue_ref::get(*ref)->vexp, for_remove) : -1;
    }
 
    lvh.setTypeInfo(typeInfo);
-   lvh.setAndLock(*const_cast<ClosureVarValue*>(this));
+   lvh.set(*const_cast<ClosureVarValue*>(this));
+   sl.stay_locked();
    lvh.setValue((QoreLValueGeneric&)val);
    return 0;
 }
 
 void ClosureVarValue::remove(LValueRemoveHelper& lvrh) {
-   if (val.type == QV_Ref) {
+   SafeLocker sl(this);
+   if (val.getType() == NT_REFERENCE) {
+      ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), lvrh.getExceptionSink());
+      sl.unlock();
       // skip this entry in case it's a recursive reference
       VarStackPointerHelper<ClosureVarValue> helper(const_cast<ClosureVarValue*>(this));
-      lvrh.doRemove(val.v.ref->vexp);
+      lvrh.doRemove(lvalue_ref::get(*ref)->vexp);
       return;
    }
 
-   AutoLocker al(this);
    lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
 }

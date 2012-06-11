@@ -495,6 +495,10 @@ public:
       return 0.0;
    }
 
+   DLLLOCAL AbstractQoreNode* getInternalNode() const {
+      return type == QV_Node ? v.n : 0;
+   }
+
    DLLLOCAL AbstractQoreNode* eval() const {
       if (!assigned)
          return 0;

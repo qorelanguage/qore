@@ -325,7 +325,7 @@ public:
    ClosureParseEnvironment *closure_parse_env;
 
    // current runtime closure environment
-   ClosureRuntimeEnvironment *closure_rt_env;
+   ThreadSafeLocalVarRuntimeEnvironment *closure_rt_env;
 
    ArgvRefStack argv_refs;
 
@@ -728,23 +728,19 @@ ClosureVarValue *thread_instantiate_closure_var(const char *n_id, const QoreType
    return thread_data.get()->cvstack->instantiate(n_id, typeInfo, nval);
 }
 
-ClosureVarValue *thread_instantiate_closure_var(const char *n_id, AbstractQoreNode* vexp, QoreObject *obj, QoreProgram *pgm) {
-   return thread_data.get()->cvstack->instantiate(n_id, vexp, obj, pgm);
-}
-
 void thread_uninstantiate_closure_var(ExceptionSink *xsink) {
    thread_data.get()->cvstack->uninstantiate(xsink);
 }
 
-ClosureVarValue *thread_find_closure_var(const char *id) {
+ClosureVarValue* thread_find_closure_var(const char *id) {
    return thread_data.get()->cvstack->find(id);
 }
 
-ClosureRuntimeEnvironment *thread_get_runtime_closure_env() {
+ThreadSafeLocalVarRuntimeEnvironment *thread_get_runtime_closure_env() {
    return thread_data.get()->closure_rt_env;
 }
 
-void thread_set_runtime_closure_env(ClosureRuntimeEnvironment *cenv) {
+void thread_set_runtime_closure_env(ThreadSafeLocalVarRuntimeEnvironment *cenv) {
    thread_data.get()->closure_rt_env = cenv;
 }
 

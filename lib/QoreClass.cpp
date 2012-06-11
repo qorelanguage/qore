@@ -955,7 +955,7 @@ void BCANode::parseInit(BCList *bcl, const char* classname) {
 	 }
 	 else {
 	    if (args)
-	       args = args->parseInitList(0, PF_REFERENCE_OK, lvids, argTypeInfo);
+	       args = args->parseInitList(0, 0, lvids, argTypeInfo);
 	 }
 	 if (lvids) {
 	    parse_error(loc, "illegal local variable declaration in base class constructor argument");

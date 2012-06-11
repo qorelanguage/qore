@@ -31,10 +31,10 @@
 
 template <class T>
 class VarStackPointerHelper {
-   T* orig;
+   const T* orig;
 
 public:
-   DLLLOCAL VarStackPointerHelper(T* v) : orig(v) {
+   DLLLOCAL VarStackPointerHelper(const T* v) : orig(v) {
       v->skip = true;
    }
    DLLLOCAL ~VarStackPointerHelper() {
@@ -42,20 +42,17 @@ public:
    }
 };
 
-struct lvar_ref;
-
 template <class T>
-class LocalRefHelper {
+class LocalRefHelper : public RuntimeReferenceHelper {
 protected:
-   ObjectSubstitutionHelper osh;
-   ProgramThreadCountContextHelper pch;
    // used to skip the var entry in case it's a recursive reference
    VarStackPointerHelper<T> helper;
    bool valid;
 
 public:
-   DLLLOCAL LocalRefHelper(T* val, ExceptionSink* xsink) : osh(val->val.v.ref->obj), pch(xsink, val->val.v.ref->pgm, true), helper(val), valid(!*xsink) {
+   DLLLOCAL LocalRefHelper(const T* val, ReferenceNode& ref, ExceptionSink* xsink) : RuntimeReferenceHelper(ref, xsink), helper(val), valid(!*xsink) {
    }
+
    DLLLOCAL operator bool() const {
       return valid;
    }
@@ -67,7 +64,7 @@ protected:
    LValueHelper valp;
 
 public:
-   DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? val->val.v.ref->vexp : 0, xsink) {
+   DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? *((ReferenceNode*)val->v.n) : 0, xsink) {
    }
 
    DLLLOCAL operator bool() const {
@@ -77,29 +74,6 @@ public:
    DLLLOCAL LValueHelper *operator->() {
       return &valp;
    }
-};
-
-struct lvar_ref {
-   AbstractQoreNode* vexp;  // partially evaluated lvalue expression for references
-   QoreObject* obj;         // for references to object members
-   QoreProgram* pgm;
-   bool is_vref : 1;
-
-   DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
-      vexp->deref(xsink);
-      if (obj)
-         obj->tDeref();
-   }
-
-   DLLLOCAL lvar_ref(AbstractQoreNode* n_vexp, QoreObject* n_obj, QoreProgram* n_pgm);
-};
-
-union qore_value_ref_u {
-   bool b;
-   int64 i;
-   double f;
-   AbstractQoreNode* n;
-   lvar_ref* ref;
 };
 
 class VarValueBase {
@@ -113,9 +87,9 @@ protected:
    }
 
 public:
-   QoreLValue<qore_value_ref_u> val;
+   QoreLValueGeneric val;
    const char* id;
-   bool skip : 1;
+   mutable bool skip : 1;
    bool finalized : 1;
 
    DLLLOCAL VarValueBase(const char* n_id, valtype_t t = QV_Node, bool n_skip = false) : val(t), id(n_id), skip(n_skip), finalized(false) {
@@ -128,21 +102,11 @@ public:
    }
 
    DLLLOCAL void del(ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         //printd(5, "LocalVarValue::uninstantiate() this=%p uninstantiating local variable '%s' reference expression vexp=%p\n", this, id, val.v.ref->vexp);
-         val.v.ref->uninstantiate(xsink);
-         delete val.v.ref;
-#ifdef DEBUG
-         val.v.ref = 0;
-#endif
-         return;
-      }
-
       discard(val.remove(true), xsink);
    }
 
    DLLLOCAL bool isRef() const {
-      return val.type == QV_Ref;
+      return val.getType() == NT_REFERENCE;
    }
 };
 
@@ -161,7 +125,8 @@ struct SkipHelper {
 
 class LocalVarValue : public VarValueBase {
 public:
-   DLLLOCAL void set(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
+   DLLLOCAL void set(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue nval) {
+      //printd(5, "LocalVarValue::set() this: %p id: '%s' type: '%s' code: %d\n", this, n_id, typeInfo->getName(), nval.getType());
       skip = false;
       id = n_id;
 
@@ -177,34 +142,6 @@ public:
       // no exception is possible here as there was no previous value
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
       discard(val.assignInitial(nval), 0);
-   }
-
-   DLLLOCAL void set(const char* n_id, const QoreTypeInfo* typeInfo, AbstractQoreNode* value) {
-      skip = false;
-      id = n_id;
-
-      if (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)
-         val.set(QV_Int);
-      else if (typeInfo == floatTypeInfo || typeInfo == softFloatTypeInfo)
-         val.set(QV_Float);
-      else if (typeInfo == boolTypeInfo || typeInfo == softBoolTypeInfo)
-         val.set(QV_Bool);
-      else
-         val.set(QV_Node);
-      
-      // no exception is possible here as there was no previous value
-      // also since only basic value types could be returned, no exceptions can occur with the value passed either
-      discard(val.assign(value), 0);
-   }
-
-   DLLLOCAL void set(const char* n_id, AbstractQoreNode* vexp, QoreObject* obj, QoreProgram* pgm) {
-      assert(pgm);
-
-      skip = false;
-      id = n_id;
-
-      val.set(QV_Ref);
-      val.v.ref = new lvar_ref(vexp, obj, pgm);
    }
 
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
@@ -239,78 +176,82 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         LocalRefHelper<LocalVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->eval(xsink) : 0;
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+         LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
+         return helper ? lvalue_ref::get(ref)->vexp->eval(xsink) : 0;
       }
 
       return val.eval();
    }
 
    DLLLOCAL AbstractQoreNode* eval(bool& needs_deref, ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
+      if (val.getType() == NT_REFERENCE) {
          needs_deref = true;
-         LocalRefHelper<LocalVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->eval(xsink) : 0;
+         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+         LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
+         return helper ? lvalue_ref::get(ref)->vexp->eval(xsink) : 0;
       }
  
       return val.eval(needs_deref);
    }
 
    DLLLOCAL int64 bigIntEval(ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         LocalRefHelper<LocalVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->bigIntEval(xsink) : 0;
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+         LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
+         return helper ? lvalue_ref::get(ref)->vexp->bigIntEval(xsink) : 0;
       }
 
       return val.getAsBigInt();
    }
 
    DLLLOCAL int intEval(ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         LocalRefHelper<LocalVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->integerEval(xsink) : 0;
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+         LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
+         return helper ? lvalue_ref::get(ref)->vexp->integerEval(xsink) : 0;
       }
 
       return (int)val.getAsBigInt();
    }
 
    DLLLOCAL bool boolEval(ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         LocalRefHelper<LocalVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->boolEval(xsink) : 0;
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+         LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
+         return helper ? lvalue_ref::get(ref)->vexp->boolEval(xsink) : 0;
       }
 
       return val.getAsBool();
    }
 
    DLLLOCAL double floatEval(ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         LocalRefHelper<LocalVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->floatEval(xsink) : 0;
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+         LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
+         return helper ? lvalue_ref::get(ref)->vexp->floatEval(xsink) : 0;
       }
 
       return val.getAsFloat();
    }
 };
 
-/* NOTE: the proper threading behavior of this class depends on the fact that the
-   type (reference or value) can never change.  also the reference expression
-   and object will also not change.
-   only the value operations are locked.
-*/
 struct ClosureVarValue : public VarValueBase, public QoreReferenceCounter, public QoreThreadLock {
 public:
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
 
    DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), typeInfo(varTypeInfo) {
+      //printd(5, "ClosureVarValue::ClosureVarValue() this: %p pgm: %p\n", this, getProgram());
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
       discard(val.assignInitial(nval), 0);
    }
 
-   DLLLOCAL ClosureVarValue(const char* n_id, AbstractQoreNode* vexp, QoreObject* obj, QoreProgram* pgm) : VarValueBase(n_id, QV_Ref), typeInfo(0) {
-      val.v.ref = new lvar_ref(vexp, obj, pgm);
+#if 0
+   DLLLOCAL ~ClosureVarValue() {
+      //printd(5, "ClosureVarValue::~ClosureVarValue() this: %p\n", this);
    }
+#endif
 
    DLLLOCAL void ref() { ROreference(); }
 
@@ -321,7 +262,7 @@ public:
 
    DLLLOCAL void finalize(ExceptionSink* xsink) {
       SafeLocker sl(this);
-      if (!finalized && val.type != QV_Ref) {
+      if (!finalized) {
          AbstractQoreNode* dr = val.remove(true);
          finalized = true;
          sl.unlock();
@@ -330,62 +271,74 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->eval(xsink) : 0;
+      SafeLocker sl(this);
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
+         sl.unlock();
+         LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
+         return helper ? lvalue_ref::get(*ref)->vexp->eval(xsink) : 0;
       }
 
-      AutoLocker al(this);
       return val.eval();
    }
 
    DLLLOCAL AbstractQoreNode* eval(bool& needs_deref, ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->eval(needs_deref, xsink) : 0;
+      SafeLocker sl(this);
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
+         sl.unlock();
+         LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
+         return helper ? lvalue_ref::get(*ref)->vexp->eval(needs_deref, xsink) : 0;
       }
 
-      AutoLocker al(this);
       return val.eval(needs_deref);
    }
 
    DLLLOCAL int64 bigIntEval(ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->bigIntEval(xsink) : 0;
+      SafeLocker sl(this);
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
+         sl.unlock();
+         LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
+         return helper ? lvalue_ref::get(*ref)->vexp->bigIntEval(xsink) : 0;
       }
 
-      AutoLocker al(this);
       return val.getAsBigInt();
    }
 
    DLLLOCAL int intEval(ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->integerEval(xsink) : 0;
+      SafeLocker sl(this);
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
+         sl.unlock();
+         LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
+         return helper ? lvalue_ref::get(*ref)->vexp->integerEval(xsink) : 0;
       }
 
-      AutoLocker al(this);
       return (int)val.getAsBigInt();
    }
 
    DLLLOCAL bool boolEval(ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->boolEval(xsink) : 0;
+      SafeLocker sl(this);
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
+         sl.unlock();
+         LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
+         return helper ? lvalue_ref::get(*ref)->vexp->boolEval(xsink) : 0;
       }
 
-      AutoLocker al(this);
       return val.getAsBool();
    }
 
    DLLLOCAL double floatEval(ExceptionSink* xsink) {
-      if (val.type == QV_Ref) {
-         LocalRefHelper<ClosureVarValue> helper(this, xsink);
-         return helper ? val.v.ref->vexp->floatEval(xsink) : 0;
+      SafeLocker sl(this);
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
+         sl.unlock();
+         LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
+         return helper ? lvalue_ref::get(*ref)->vexp->floatEval(xsink) : 0;
       }
 
-      AutoLocker al(this);
       return val.getAsFloat();
    }
 };
@@ -436,23 +389,11 @@ public:
       value->ref();
    }
 
-   DLLLOCAL void instantiate(AbstractQoreNode* vexp, QoreObject* obj, QoreProgram* pgm) {
-      //printd(5, "LocalVar::instantiate(%p, %p) this=%p '%s'\n", vexp, obj, this, name.c_str());
-
-      if (!closure_use) {
-         LocalVarValue* val = thread_instantiate_lvar();
-         val->set(name.c_str(), vexp, obj, pgm);
-      }
-      else
-         thread_instantiate_closure_var(name.c_str(), vexp, obj, pgm);
-   }
-
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) const  {
       //printd(5, "LocalVar::uninstantiate() this=%p '%s' closure_use=%s pgm=%p\n", this, name.c_str(), closure_use ? "true" : "false", getProgram());
 
-      if (!closure_use) {
+      if (!closure_use)
          thread_uninstantiate_lvar(xsink);
-      }
       else
          thread_uninstantiate_closure_var(xsink);
    }
@@ -538,6 +479,7 @@ public:
    }
 
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const {
+      //printd(5, "LocalVar::getLValue() this: %p '%s' closure_use: %d\n", this, getName(), closure_use);
       if (!closure_use) {
          lvh.setTypeInfo(typeInfo);
          return get_var()->getLValue(lvh, for_remove);

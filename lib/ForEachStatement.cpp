@@ -165,14 +165,10 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
 
-   // get list evaluation (although may be a single node)
-   bool is_self_ref = false;
+   ParseReferenceNode* r = reinterpret_cast<ParseReferenceNode*>(list);
 
-   ReferenceNode *r = reinterpret_cast<ReferenceNode *>(list);
-
-   // here we do a "doPartialEval()" to evaluate all parts of the expression not related to the lvalue so
-   // that these parts will only be executed once (and not again when this lvalue is actually assigned)
-   ReferenceHolder<AbstractQoreNode> vr(doPartialEval(r->getExpression(), is_self_ref, false, xsink), xsink);
+   // here we get the runtime reference
+   ReferenceHolder<ReferenceNode> vr(r->evalToRef(xsink), xsink);
    if (*xsink)
       return 0;
 
@@ -190,7 +186,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    unsigned i = 0;
 
    if (l_tlist)
-      ln = new QoreListNode();
+      ln = new QoreListNode;
 
    while (true) {
       {
@@ -244,7 +240,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    }
 
    // write the value back to the lvalue
-   LValueHelper val(*vr, xsink);
+   LValueHelper val(**vr, xsink);
    if (!val)
       return 0;
    
@@ -266,7 +262,7 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       parse_error("foreach variable expression is not a variable reference (got type '%s' instead)", get_type_name(var));
 
    if (list)
-      list = list->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo);
+      list = list->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (code)
       code->parseInitImpl(oflag, pflag);
    
@@ -276,7 +272,7 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    qore_type_t typ = list->getType();
 
-   is_ref = (typ == NT_REFERENCE);
+   is_ref = (typ == NT_PARSEREFERENCE);
 
    // check for "keys <hash>" specialization
    if (!is_ref && typ == NT_TREE) {

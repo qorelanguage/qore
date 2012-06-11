@@ -91,7 +91,7 @@ AbstractQoreNode *QoreCastOperatorNode::parseInitImpl(LocalVar *oflag, int pflag
    //printd(5, "QoreCastOperatorNode::parseInit() this=%p resolved %s->%s\n", this, path->getIdentifier(), qc ? qc->getName() : "<generic object cast>");
 
    if (exp)
-      exp = exp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, typeInfo);
+      exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
 
    if (typeInfo->hasType()) {
       if (!objectTypeInfo->parseAccepts(typeInfo)) {

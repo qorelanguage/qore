@@ -1218,30 +1218,13 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 
    for (unsigned i = 0; i < num_params; ++i) {
       AbstractQoreNode* np = args ? const_cast<AbstractQoreNode*>(args->retrieve_entry(i)) : 0;
-      AbstractQoreNode* n = 0;
-      //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p (%s) (exp nt=%d %p %s)\n", i, signature.lv[i], signature.lv[i]->getName(), get_node_type(np), np, get_type_name(np));
-      if (!is_nothing(np)) {
-	 if (np->getType() == NT_REFERENCE) {
-	    const ReferenceNode* r = reinterpret_cast<const ReferenceNode*>(np);
-	    //printd(5, "UserVariantBase::setupCall() eval %d: instantiating (%s) as reference (ref exp nt=%d %p %s)\n", i, signature.lv[i]->getName(), get_node_type(r->getExpression()), r->getExpression(), get_type_name(r->getExpression()));
-	    bool is_self_ref = false;
-	    n = doPartialEval(r->getExpression(), is_self_ref, for_closure, xsink);
-	    // ceh can only be 0 with a destructor, in which case there are no arguments
-	    assert(ceh);
-	    if (!*xsink)
-	       signature.lv[i]->instantiate(n, is_self_ref ? runtime_get_stack_object() : 0, ceh->getSourceProgram());
-	 }
-	 else
-	    signature.lv[i]->instantiate(np->refSelf());
-      }
-      else
-	 signature.lv[i]->instantiate(n);
+      //printd(0, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d %p '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), get_node_type(np), np, get_type_name(np));
+      signature.lv[i]->instantiate(np ? np->refSelf() : 0);
 
       // the above if block will only instantiate the local variable if no
       // exceptions have occured. therefore here we cleanup the rest
       // of any already instantiated local variables if an exception does occur
       if (*xsink) {
-	 if (n) n->deref(xsink);
 	 while (i) signature.lv[--i]->uninstantiate(xsink);
 	 return -1;
       }
@@ -1705,34 +1688,4 @@ void UserClosureVariant::parseInit(QoreFunction* f) {
    statements->parseInitClosure(this, cf->getClassType(), cf->getVList());
 
    // only one variant is possible, no need to recheck types
-}
-
-// this will only be called with lvalue expressions
-AbstractQoreNode* doPartialEval(AbstractQoreNode* n, bool& is_self_ref, bool for_closure, ExceptionSink* xsink) {
-   // make sure is_self ref was initialized
-   assert(!is_self_ref);
-
-   AbstractQoreNode* rv = 0;
-   qore_type_t ntype = n->getType();
-   if (ntype == NT_TREE) {
-      QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(n);
-      ReferenceHolder<AbstractQoreNode> nn(tree->right->eval(xsink), xsink);
-      if (*xsink)
-	 return 0;
-
-      SimpleRefHolder<QoreTreeNode> t(new QoreTreeNode(doPartialEval(tree->left, is_self_ref, for_closure, xsink), tree->getOp(), nn ? nn.release() : nothing()));
-      if (t->left)
-	 rv = t.release();
-   }
-   else {
-      rv = n->refSelf();
-      if (ntype == NT_SELF_VARREF)
-	 is_self_ref = true;
-      if (for_closure && ntype == NT_VARREF) {
-         VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
-         if (v->getType() == VT_LOCAL)
-            xsink->raiseException("RUNTIME-REFERENCE-ERROR", "cannot pass a reference to local variable '%s' as an argument to a closure parameter", v->getName());
-      }
-   }
-   return rv;
 }

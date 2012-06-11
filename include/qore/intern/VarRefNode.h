@@ -30,6 +30,7 @@ class VarRefNewObjectNode;
 class LocalVar;
 class LocalVarValue;
 class Var;
+struct ClosureVarValue;
 
 class VarRefNode : public ParseNode {
    friend class VarRefNodeEvalOptionalRefHolder;
@@ -73,10 +74,22 @@ protected:
       return 0;
    }
 
+   DLLLOCAL void setThreadSafeIntern() {
+      ref.id->setClosureUse();
+      type = VT_CLOSURE;
+   }
+
+   DLLLOCAL VarRefNode(char* n, ClosureVarValue* cvv) : ParseNode(NT_VARREF, true, false), name(n), new_decl(false), explicit_scope(false) {
+      ref.cvv = cvv;
+      type = VT_IMMEDIATE;
+      cvv->ref();
+   }
+
 public:
    union var_u {
-      LocalVar *id;   // for local variables
-      Var *var;       // for global variables
+      LocalVar *id;         // for local variables
+      Var *var;             // for global variables
+      ClosureVarValue* cvv; // for immediate values; used with references
    } ref;
 
    // takes over memory for "n"
@@ -98,7 +111,7 @@ public:
       else
          type = VT_LOCAL;
    }      
-   
+
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
@@ -141,6 +154,8 @@ public:
    DLLLOCAL bool isRef() const {
       if (type == VT_LOCAL)
          return ref.id->isRef();
+      if (type == VT_IMMEDIATE)
+         return true;
       assert(type == VT_GLOBAL);
       return ref.var->isRef();
    }
@@ -163,6 +178,11 @@ public:
    DLLLOCAL char *takeName() {
       assert(name.ostr);
       return name.takeName();
+   }
+
+   DLLLOCAL void setThreadSafe() {
+      if (type == VT_LOCAL)
+         setThreadSafeIntern();
    }
 
    DLLLOCAL void setPublic() {
@@ -201,6 +221,9 @@ protected:
 
    // initializes during parsing
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   DLLLOCAL VarRefDeclNode(char* n, ClosureVarValue* cvv, const QoreTypeInfo* n_typeInfo) : VarRefNode(n, cvv), loc(RunTimeLocation), parseTypeInfo(0), typeInfo(n_typeInfo) {
+   }
 
 public:
    DLLLOCAL VarRefDeclNode(int sl, int el, char *n, qore_var_t t, const QoreTypeInfo *n_typeInfo) :
@@ -254,6 +277,32 @@ public:
    DLLLOCAL virtual void makeGlobal();
 
    void parseInitCommon(LocalVar *oflag, int pflag, int &lvids, bool is_new = false);
+};
+
+class VarRefImmediateNode : public VarRefDeclNode {
+private:
+   DLLLOCAL void deref() {
+      assert(false);
+      if (ROdereference())
+         delete this;
+   }
+
+protected:
+   DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink) {
+      ref.cvv->deref(xsink);
+#ifdef DEBUG
+      ref.cvv = 0;
+#endif
+      return true;
+   }
+
+public:
+   DLLLOCAL VarRefImmediateNode(char* n, ClosureVarValue* cvv, const QoreTypeInfo* n_typeInfo) : VarRefDeclNode(n, cvv, n_typeInfo) {
+   }
+
+   DLLLOCAL virtual ~VarRefImmediateNode() {
+      assert(!ref.cvv);
+   }
 };
 
 class VarRefFunctionCallBase : public FunctionCallBase {

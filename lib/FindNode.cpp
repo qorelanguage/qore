@@ -127,7 +127,6 @@ AbstractQoreNode *FindNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids
    typeInfo = 0;
 
    push_cvar(0);
-   pflag &= ~PF_REFERENCE_OK;
    const QoreTypeInfo *argTypeInfo = 0;
    if (find_exp)
       find_exp = find_exp->parseInit(oflag, pflag, lvids, argTypeInfo);

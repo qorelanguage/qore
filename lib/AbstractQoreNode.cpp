@@ -415,14 +415,6 @@ static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, Exce
    return new CallReferenceCallNode(exp.release(), args);
 }
 
-static AbstractQoreNode* crlr_reference_copy(const ReferenceNode* r, ExceptionSink* xsink) {
-   ReferenceHolder<AbstractQoreNode> exp(copy_and_resolve_lvar_refs(r->getExpression(), xsink), xsink);
-   if (*xsink)
-      return 0;
-
-   return new ReferenceNode(exp.release());
-}
-
 static AbstractQoreNode* eval_notnull(const AbstractQoreNode* n, ExceptionSink* xsink) {
    ReferenceHolder<AbstractQoreNode> exp(n->eval(xsink), xsink);
    if (*xsink)
@@ -462,8 +454,8 @@ AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, Exceptio
       return crlr_mcall_copy(reinterpret_cast<const MethodCallNode*>(n), xsink);
    else if (ntype == NT_STATIC_METHOD_CALL)
       return crlr_smcall_copy(reinterpret_cast<const StaticMethodCallNode*>(n), xsink);
-   else if (ntype == NT_REFERENCE)
-      return crlr_reference_copy(reinterpret_cast<const ReferenceNode*>(n), xsink);
+   else if (ntype == NT_PARSEREFERENCE)
+      return reinterpret_cast<const ParseReferenceNode*>(n)->evalToIntermediate(xsink);
 
    return n->refSelf();
 }

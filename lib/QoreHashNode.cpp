@@ -640,7 +640,7 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
 
 	 //printd(5, "QoreHashNode::parseInit() this=%p initializing key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
 
-         (*val) = (*val)->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
+         (*val) = (*val)->parseInit(oflag, pflag, lvids, argTypeInfo);
          if (!needs_eval_flag && *val && (*val)->needs_eval()) {
             //printd(5, "setting needs_eval on hash %p key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
             setNeedsEval();

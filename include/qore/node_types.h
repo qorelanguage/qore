@@ -72,9 +72,10 @@ const qore_type_t NT_OPERATOR           = 37; //!< type value for QoreOperatorNo
 const qore_type_t NT_IMPLICIT_ELEMENT   = 38; //!< type value for QoreImplicitElementNode (private clas)
 const qore_type_t NT_CLASS_VARREF       = 39; //!< type value for StaticClassVarRefNode (private class)
 const qore_type_t NT_PROGRAM_FUNC_CALL  = 40; //!< type value for ProgramFunctionCallNode (private class)
+const qore_type_t NT_PARSEREFERENCE     = 41; //!< type value for ParseReferenceNode (private class)
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 40
+#define QORE_NUM_TYPES 41
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8

@@ -104,7 +104,7 @@ AbstractQoreNode *CallReferenceCallNode::parseInitImpl(LocalVar *oflag, int pfla
    // call references calls can return any value
    typeInfo = 0;
 
-   pflag &= ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
+   pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
    const QoreTypeInfo *expTypeInfo = 0;
    if (exp) {
@@ -130,10 +130,7 @@ AbstractQoreNode *CallReferenceCallNode::parseInitImpl(LocalVar *oflag, int pfla
 	 AbstractQoreNode **n = li.getValuePtr();
 	 if (*n) {
 	    const QoreTypeInfo *argTypeInfo = 0;
-	    if ((*n)->getType() == NT_REFERENCE)
-	       (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo);
-	    else
-	       (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
+	    (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
 	    
 	    if (!needs_eval && (*n)->needs_eval()) {
 	       args->setNeedsEval();
@@ -281,7 +278,7 @@ AbstractQoreNode *ParseObjectMethodReferenceNode::parseInitImpl(LocalVar *oflag,
    typeInfo = callReferenceTypeInfo;
    if (exp) {
       const QoreTypeInfo *argTypeInfo = 0;
-      exp = exp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
+      exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
 
       if (argTypeInfo->hasType()) {
 	 if (!objectTypeInfo->parseAccepts(argTypeInfo)) {

@@ -135,7 +135,7 @@ public:
 class ThreadClosureVariableStack : public ThreadLocalData<ClosureVarValue*> {
 private:
    DLLLOCAL void instantiate(ClosureVarValue *cvar) {
-      //printd(5, "ThreadClosureVariableStack::instantiate(%p = %s) this=%p pgm=%p\n", cvar->id, cvar->id, this, getProgram());
+      //printd(5, "ThreadClosureVariableStack::instantiate(%p = '%s') this: %p pgm: %p\n", cvar->id, cvar->id, this, getProgram());
 
       if (curr->pos == QORE_THREAD_STACK_BLOCK) {
 	 if (curr->next)
@@ -169,18 +169,12 @@ public:
       return cvar;
    }
 
-   DLLLOCAL ClosureVarValue *instantiate(const char* id, AbstractQoreNode* vexp, QoreObject *obj, QoreProgram *pgm) {
-      ClosureVarValue *cvar = new ClosureVarValue(id, vexp, obj, pgm);
-      instantiate(cvar);
-      return cvar;
-   }
-
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
-#ifdef DEBUG_1
+#if 0
       if (!curr->pos)
-         printd(5, "ThreadClosureVariableStack::uninstantiate() this=%p pos=%d %p %s\n", this, curr->prev->pos - 1, curr->prev->var[curr->prev->pos - 1]->id, curr->prev->var[curr->prev->pos - 1]->id);
+         printd(5, "ThreadClosureVariableStack::uninstantiate() this: %p pos: %d %p %s\n", this, curr->prev->pos - 1, curr->prev->var[curr->prev->pos - 1]->id, curr->prev->var[curr->prev->pos - 1]->id);
       else
-         printd(5, "ThreadClosureVariableStack::uninstantiate() this=%p pos=%d %p %s\n", this, curr->pos - 1, curr->var[curr->pos - 1]->id, curr->var[curr->pos - 1]->id);
+         printd(5, "ThreadClosureVariableStack::uninstantiate() this: %p pos: %d %p %s\n", this, curr->pos - 1, curr->var[curr->pos - 1]->id, curr->var[curr->pos - 1]->id);
 #endif
       if (!curr->pos) {
 	 if (curr->next) {
@@ -198,13 +192,15 @@ public:
       while (true) {
 	 int p = w->pos;
 	 while (p) {
-	    if (w->var[--p]->id == id && !w->var[p]->skip)
+	    if (w->var[--p]->id == id && !w->var[p]->skip) {
+	       //printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, w->var[p]);
 	       return w->var[p];
+	    }
 	 }
 	 w = w->prev;
 #ifdef DEBUG
 	 if (!w) {
-            printd(0, "ThreadClosureVariableStack::find() this=%p no local variable '%s' (%p) on stack (pgm=%p) p=%d curr->prev=%p\n", this, id, id, getProgram(), p, curr->prev);
+            printd(0, "ThreadClosureVariableStack::find() this: %p no local variable '%s' (%p) on stack (pgm: %p) p: %d curr->prev: %p\n", this, id, id, getProgram(), p, curr->prev);
             p = curr->pos - 1;
             while (p >= 0) {
                printd(0, "var p=%d: %s (%p) (skip=%d)\n", p, curr->var[p]->id, curr->var[p]->id, curr->var[p]->skip);

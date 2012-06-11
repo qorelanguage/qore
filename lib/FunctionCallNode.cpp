@@ -141,7 +141,7 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction 
       bool needs_eval = args->needs_eval();
 
       // turn off reference ok and retval ignored flags
-      int n_pflag = pflag & ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
+      int n_pflag = pflag & ~(PF_RETURN_VALUE_IGNORED);
       
       // loop through all args
       for (unsigned i = 0; i < num_args; ++i) {
@@ -149,10 +149,7 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction 
 	 assert(*n);
 	 argTypeInfo.push_back(0);
 	 //printd(5, "FunctionCallBase::parseArgsVariant() this=%p (%s) oflag=%p pflag=%d func=%p i=%d/%d arg=%p (%d %s)\n", this, func ? func->getName() : "n/a", oflag, pflag, func, i, num_args, *n, (*n)->getType(), (*n)->getTypeName());
-	 if ((*n)->getType() == NT_REFERENCE)
-	    (*n) = (*n)->parseInit(oflag, n_pflag | PF_REFERENCE_OK, lvids, argTypeInfo[i]);
-	 else
-	    (*n) = (*n)->parseInit(oflag, n_pflag, lvids, argTypeInfo[i]);
+	 (*n) = (*n)->parseInit(oflag, n_pflag, lvids, argTypeInfo[i]);
 	 if (!have_arg_type_info && argTypeInfo[i])
 	    have_arg_type_info = true;
 	 if (!needs_eval && (*n)->needs_eval()) {

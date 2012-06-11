@@ -93,7 +93,7 @@ AbstractQoreNode *QoreTreeNode::parseInitImpl(LocalVar *oflag, int pflag, int &l
       pflag |= PF_BACKGROUND;
 
    // turn off "reference ok" and "return value ignored" flags
-   pflag &= ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
+   pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
    // check argument types for operator   
    AbstractQoreNode *n = op->parseInit(this, oflag, pflag, lvids, typeInfo);

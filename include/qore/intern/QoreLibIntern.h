@@ -385,6 +385,7 @@ DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
 #include <qore/intern/ContextStatement.h>
 #include <qore/intern/SwitchStatement.h>
 #include <qore/intern/QorePseudoMethods.h>
+#include <qore/intern/ParseReferenceNode.h>
 
 DLLLOCAL extern int qore_library_options;
 
@@ -497,7 +498,7 @@ private:
 public:
    DLLLOCAL QorePossibleListNodeParseInitHelper(AbstractQoreNode** n, LocalVar *n_oflag, int n_pflag, int &n_lvids) :
       oflag(n_oflag), 
-      pflag(n_pflag & ~PF_REFERENCE_OK), 
+      pflag(n_pflag),
       lvids(n_lvids), 
       l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode* >(*n) : 0),
       finished(!l),

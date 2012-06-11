@@ -1534,7 +1534,8 @@ public:
    BCList* scl;                  // base class list
 
    hm_method_t hm,               // "normal" (non-static) method map
-      shm;                       // static method map
+      shm,                       // static method map
+      ahm;                       // abstract method map, holding abstract variants with no implementation in the current class
 
    ConstantList pend_pub_const,  // pending public constants
       pend_priv_const,           // pending private constants
@@ -1573,7 +1574,7 @@ public:
    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
    QoreReferenceCounter nref;       // namespace references
 
-   int num_methods, num_user_methods, num_static_methods, num_static_user_methods;
+   unsigned num_methods, num_user_methods, num_static_methods, num_static_user_methods;
 
    // type information for the class, may not have a pointer to the same QoreClass
    // as the actual owning class in case of a copy
@@ -1587,7 +1588,7 @@ public:
    SignatureHash hash;
 
    // user-specific data
-   const void *ptr;
+   const void* ptr;
 
    // pointer to new class when copying
    mutable QoreClass* new_copy;

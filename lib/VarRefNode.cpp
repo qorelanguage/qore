@@ -47,23 +47,20 @@ const char *VarRefNode::getTypeName() const {
    return "variable reference";
 }
 
-void VarRefNode::resolve(const QoreTypeInfo *typeInfo) {
-   LocalVar *id;
+void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
+   LocalVar* id;
 
    bool in_closure;
    if (name.size() == 1 && (id = find_local_var(name.ostr, in_closure))) {
       if (typeInfo)
 	 parse_error("type definition given for existing local variable '%s'", id->getName());
 
-      if (in_closure) {
-	 id->setClosureUse();
-	 type = VT_CLOSURE;
-	 ref.id = id;
-      }
-      else {
+      ref.id = id;
+      if (in_closure)
+         setThreadSafeIntern();
+      else
 	 type = VT_LOCAL;
-	 ref.id = id;
-      }
+
       printd(5, "VarRefNode::resolve(): local var %s resolved (id=%p, in_closure=%d)\n", name.ostr, ref.id, in_closure);
    }
    else {
@@ -83,6 +80,9 @@ AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const {
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->eval(xsink);
    }
+   if (type == VT_IMMEDIATE)
+      return ref.cvv->eval(xsink);
+
    printd(5, "VarRefNode::evalImpl() this=%p global var=%p (%s)\n", this, ref.var, ref.var->getName());
    return ref.var->eval();
 }
@@ -94,6 +94,9 @@ AbstractQoreNode *VarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) 
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->eval(needs_deref, xsink);
    }
+   if (type == VT_IMMEDIATE)
+      return ref.cvv->eval(needs_deref, xsink);
+
    return ref.var->eval(needs_deref);
 }
 
@@ -104,6 +107,9 @@ int64 VarRefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->bigIntEval(xsink);
    }
+   if (type == VT_IMMEDIATE)
+      return ref.cvv->bigIntEval(xsink);
+
    return ref.var->bigIntEval();
 }
 
@@ -114,6 +120,8 @@ int VarRefNode::integerEvalImpl(ExceptionSink *xsink) const {
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->intEval(xsink);
    }
+   if (type == VT_IMMEDIATE)
+      return ref.cvv->intEval(xsink);
 
    return (int)ref.var->bigIntEval();
 }
@@ -125,6 +133,9 @@ bool VarRefNode::boolEvalImpl(ExceptionSink *xsink) const {
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->boolEval(xsink);
    }
+   if (type == VT_IMMEDIATE)
+      return ref.cvv->boolEval(xsink);
+
    return (bool)ref.var->bigIntEval();
 }
 
@@ -135,6 +146,9 @@ double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->floatEval(xsink);
    }
+   if (type == VT_IMMEDIATE)
+      return ref.cvv->floatEval(xsink);
+
    return ref.var->floatEval();
 }
 
@@ -208,6 +222,8 @@ int VarRefNode::getLValue(LValueHelper& lvh, bool for_remove) const {
       return ref.id->getLValue(lvh, for_remove);
    if (type == VT_CLOSURE)
       return thread_get_runtime_closure_var(ref.id)->getLValue(lvh, for_remove);
+   if (type == VT_IMMEDIATE)
+      return ref.cvv->getLValue(lvh, for_remove);
    assert(type == VT_GLOBAL);
    return ref.var->getLValue(lvh, for_remove);
 }
@@ -217,6 +233,8 @@ DLLLOCAL void VarRefNode::remove(LValueRemoveHelper& lvrh) {
       return ref.id->remove(lvrh);
    if (type == VT_CLOSURE)
       return thread_get_runtime_closure_var(ref.id)->remove(lvrh);
+   if (type == VT_IMMEDIATE)
+      return ref.cvv->remove(lvrh);
    assert(type == VT_GLOBAL);
    return ref.var->remove(lvrh);
 }
@@ -322,6 +340,8 @@ AbstractQoreNode *VarRefNewObjectNode::evalImpl(ExceptionSink *xsink) const {
 
    QoreObject *rv = *obj;
    LValueHelper lv(this, xsink);
+   if (!lv)
+      return 0;
    lv.assign(obj.release());
    if (*xsink)
       return 0;

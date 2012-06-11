@@ -72,7 +72,7 @@ class CallNode;
 class CallStack;
 class LocalVarValue;
 class ClosureParseEnvironment;
-class ClosureRuntimeEnvironment;
+class ThreadSafeLocalVarRuntimeEnvironment;
 struct ClosureVarValue;
 class VLock;
 class ConstantEntry;
@@ -369,13 +369,12 @@ DLLLOCAL void thread_set_closure_parse_env(ClosureParseEnvironment* cenv);
 DLLLOCAL ClosureParseEnvironment* thread_get_closure_parse_env();
 
 DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval);
-DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char* id, AbstractQoreNode* vexp, QoreObject* obj, QoreProgram* pgm);
 DLLLOCAL void thread_uninstantiate_closure_var(ExceptionSink* xsink);
 DLLLOCAL ClosureVarValue *thread_find_closure_var(const char* id);
 DLLLOCAL ClosureVarValue *thread_get_runtime_closure_var(const LocalVar* id);
 
-DLLLOCAL ClosureRuntimeEnvironment* thread_get_runtime_closure_env();
-DLLLOCAL void thread_set_runtime_closure_env(ClosureRuntimeEnvironment* cenv);
+DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment* thread_get_runtime_closure_env();
+DLLLOCAL void thread_set_runtime_closure_env(ThreadSafeLocalVarRuntimeEnvironment* cenv);
 
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);
@@ -415,18 +414,19 @@ public:
    }
 };
 
-class QoreClosureRuntimeEnvironmentHelper {
+class ThreadSafeLocalVarRuntimeEnvironmentHelper {
 private:
-   ClosureRuntimeEnvironment* cenv;
+   ThreadSafeLocalVarRuntimeEnvironment* cenv;
       
 public:
-   DLLLOCAL QoreClosureRuntimeEnvironmentHelper(ClosureRuntimeEnvironment* n_cenv) {
-      cenv = thread_get_runtime_closure_env();
-      thread_set_runtime_closure_env(n_cenv);
+   DLLLOCAL ThreadSafeLocalVarRuntimeEnvironmentHelper(ThreadSafeLocalVarRuntimeEnvironment* n_cenv) : cenv(n_cenv ? thread_get_runtime_closure_env() : 0) {
+      if (n_cenv)
+         thread_set_runtime_closure_env(n_cenv);
    }
    
-   DLLLOCAL ~QoreClosureRuntimeEnvironmentHelper() {
-      thread_set_runtime_closure_env(cenv);
+   DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironmentHelper() {
+      if (cenv)
+         thread_set_runtime_closure_env(cenv);
    }
 };
 
@@ -502,6 +502,43 @@ public:
    DLLLOCAL const qore_class_private* getClass() const;
 };
 
+struct ClosureVarValue;
+
+class lvalue_ref {
+public:
+   AbstractQoreNode* vexp;
+   QoreObject* self;
+   QoreProgram* pgm;
+
+   DLLLOCAL lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self) : vexp(n_lvexp), self(n_self), pgm(getProgram()) {
+      if (self)
+         self->tRef();
+   }
+
+   DLLLOCAL lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self) {
+      if (self)
+         self->tRef();
+   }
+
+   DLLLOCAL ~lvalue_ref() {
+      if (self)
+         self->tDeref();
+      if (vexp)
+         vexp->deref(0);
+   }
+
+   DLLLOCAL void del(ExceptionSink* xsink) {
+      if (vexp) {
+         vexp->deref(xsink);
+         vexp = 0;
+      }
+   }
+
+   static lvalue_ref* get(const ReferenceNode* r) {
+      return r->priv;
+   }
+};
+
 class CodeContextHelper {
 private:
    const char* old_code;
@@ -522,22 +559,22 @@ public:
    DLLLOCAL ~ObjectSubstitutionHelper();
 };
 
+typedef std::map<const LocalVar*, ClosureVarValue*> cvar_map_t;
+
+class ThreadSafeLocalVarRuntimeEnvironment {
+private:
+   cvar_map_t cmap;
+
+public:
+   DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t* vlist);
+   DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment(LocalVar* lv);
+   DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironment();
+   DLLLOCAL ClosureVarValue* find(const LocalVar* id);
+   DLLLOCAL void del(ExceptionSink* xsink);
+};
+
 class ThreadLocalVariableData;
 class ThreadClosureVariableStack;
-
-/*
-class ProgramContextHelper {
-private:
-   QoreProgram* old_pgm;
-   ThreadLocalVariableData* old_lvstack;
-   ThreadClosureVariableStack *old_cvstack;
-   bool restore;
-   
-public:
-   DLLLOCAL ProgramContextHelper(QoreProgram* pgm, bool runtime = true);
-   DLLLOCAL ~ProgramContextHelper();
-};
-*/
 
 class ProgramThreadCountContextHelper {
 protected:
@@ -549,6 +586,30 @@ protected:
 public:
    DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
    DLLLOCAL ~ProgramThreadCountContextHelper();
+};
+
+class RuntimeReferenceHelper {
+protected:
+   ProgramThreadCountContextHelper pch;
+   ObjectSubstitutionHelper osh;
+   ExceptionSink* xsink;
+
+public:
+   DLLLOCAL RuntimeReferenceHelper(const ReferenceNode& r, ExceptionSink* n_xsink)
+      : pch(n_xsink, r.priv->pgm, true), osh(r.priv->self), xsink(n_xsink) {
+      //printd(5, "RuntimeReferenceHelper::RuntimeReferenceHelper() this: %p vexp: %p %s %d\n", this, r.priv->vexp, get_type_name(r.priv->vexp), get_node_type(r.priv->vexp));
+   }
+
+   DLLLOCAL RuntimeReferenceHelper(const lvalue_ref& r, ExceptionSink* n_xsink)
+      : pch(n_xsink, r.pgm, true), osh(r.self), xsink(n_xsink) {
+   }
+
+   DLLLOCAL ~RuntimeReferenceHelper() {
+   }
+
+   DLLLOCAL operator bool() const {
+      return !(*xsink);
+   }
 };
 
 class ArgvContextHelper {

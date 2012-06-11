@@ -34,18 +34,18 @@ struct lvih_intern {
       lv.instantiate(val);
       VarRefNode *vr = new VarRefNode(strdup("ref_arg_helper"), VT_LOCAL);
       vr->ref.id = &lv;
-      ref = new ReferenceNode(vr);
+      ref = new ReferenceNode(vr, 0);
    }
 
    DLLLOCAL ~lvih_intern() {
-      ref->deref();
+      ref->deref(0);
       lv.uninstantiate(xsink);
    }
 
    DLLLOCAL AbstractQoreNode* getOutputValue() {
       // there will be no locking here, because it's our temporary local "variable"
       ExceptionSink xsink2;
-      LValueRemoveHelper vp(ref->getExpression(), &xsink2, true);
+      LValueRemoveHelper vp(ref, &xsink2, true);
 
       // no exception should be possible here
       assert(!xsink2);

@@ -33,11 +33,10 @@
 
 #define PF_RETURN_VALUE_IGNORED  (1 << 0)
 #define PF_BACKGROUND            (1 << 1)
-#define PF_REFERENCE_OK          (1 << 2)
-#define PF_RETHROW_OK            (1 << 3)
-#define PF_FOR_ASSIGNMENT        (1 << 4)
-#define PF_CONST_EXPRESSION      (1 << 5)
-#define PF_TOP_LEVEL             (1 << 6) //!< parsing at the top-level of the program
+#define PF_RETHROW_OK            (1 << 2)
+#define PF_FOR_ASSIGNMENT        (1 << 3)
+#define PF_CONST_EXPRESSION      (1 << 4)
+#define PF_TOP_LEVEL             (1 << 5) //!< parsing at the top-level of the program
 
 // all definitions in this file are private to the library and subject to change
 

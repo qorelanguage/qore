@@ -26,7 +26,7 @@ QoreString QoreMinusEqualsOperatorNode::op_str("-= operator expression");
 
 AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) { 
    // turn off "reference ok" and "return value ignored" flags
-   pflag &= ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
+   pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
    left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
    checkLValue(left);

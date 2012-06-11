@@ -51,7 +51,7 @@ public:
 
    DLLLOCAL void parseInitIntLValue(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       // turn off "reference ok" and "return value ignored" flags
-      pflag &= ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
+      pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
       typeInfo = bigIntTypeInfo;
 

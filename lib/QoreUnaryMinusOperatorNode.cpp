@@ -78,7 +78,7 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::evalImpl(bool &needs_deref, Except
 
 AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    if (exp) {
-      exp = exp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, typeInfo);
+      exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
 
       // evaluate immediately if possible
       if (exp->is_value()) {

@@ -29,7 +29,7 @@ enum qore_var_t {
    VT_LOCAL      = 2, 
    VT_GLOBAL     = 3,
    VT_CLOSURE    = 4,
-   VT_OBJECT     = 5 // used for references only
+   VT_IMMEDIATE  = 5   // used in references with immediate variable storage
 };
 
 #include <qore/intern/VRMutex.h>
@@ -352,6 +352,7 @@ public:
    QoreLValueGeneric* val;
    const QoreTypeInfo* typeInfo;
 
+   DLLLOCAL LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove = false);
    DLLLOCAL LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove = false);
 
    DLLLOCAL ~LValueHelper() {
@@ -378,6 +379,7 @@ public:
    DLLLOCAL int doLValue(const AbstractQoreNode* exp, bool for_remove);
 
    DLLLOCAL void setAndLock(QoreThreadLock& m);
+   DLLLOCAL void set(QoreThreadLock& m);
 
    DLLLOCAL AutoVLock& getAutoVLock() {
       return vl;
@@ -393,17 +395,7 @@ public:
       v = &ptr;
    }
 
-   DLLLOCAL void setValue(QoreLValueGeneric& nv) {
-      assert(!v);
-      assert(!val);
-      if (nv.type == QV_Node) {
-         if (!nv.assigned)
-            nv.assigned = true;
-         v = &(nv.v.n);
-      }
-      else
-         val = &nv;
-   }
+   DLLLOCAL void setValue(QoreLValueGeneric& nv);
 
    DLLLOCAL bool isNode() const {
       return (bool)v;
@@ -430,7 +422,7 @@ public:
       return (bool)val;
    }
 
-   const QoreTypeInfo *getTypeInfo() const {
+   const QoreTypeInfo* getTypeInfo() const {
       return typeInfo;
    }
 
@@ -445,18 +437,18 @@ public:
       return checkType(NT_NOTHING);
    }
 
-   DLLLOCAL AbstractQoreNode *getReferencedValue() const;
+   DLLLOCAL AbstractQoreNode* getReferencedValue() const;
 
    // only call after calling checkType() to ensure the type is correct and cannot be optimized
    // FIXME: port operators to LValueHelper instead and remove this function
-   DLLLOCAL AbstractQoreNode *getValue() {
+   DLLLOCAL AbstractQoreNode* getValue() {
       assert(*v);
       return *v;
    }
 
    // only call after calling checkType() to ensure the type is correct and cannot be optimized
    // FIXME: port operators to LValueHelper instead and remove this function
-   DLLLOCAL const AbstractQoreNode *getValue() const {
+   DLLLOCAL const AbstractQoreNode* getValue() const {
       assert(*v);
       return *v;
    }
@@ -473,6 +465,10 @@ public:
          saveTemp(old);
       }
    }
+
+   DLLLOCAL int64 getAsBigInt() const;
+   DLLLOCAL bool getAsBool() const;
+   DLLLOCAL double getAsFloat() const;
 
    DLLLOCAL int64 plusEqualsBigInt(int64 v, const char* desc = "<lvalue>");
    DLLLOCAL int64 minusEqualsBigInt(int64 v, const char* desc = "<lvalue>");
@@ -523,6 +519,7 @@ protected:
    bool for_del;
 
 public:
+   DLLLOCAL LValueRemoveHelper(const ReferenceNode& ref, ExceptionSink* n_xsink, bool fd);
    DLLLOCAL LValueRemoveHelper(const AbstractQoreNode* exp, ExceptionSink* n_xsink, bool fd);
 
    DLLLOCAL void doRemove(AbstractQoreNode* exp);

@@ -36,7 +36,7 @@ protected:
    DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
    DLLLOCAL void parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo*& outTypeInfo) {
       // turn off "reference ok" and "return value ignored" flags
-      pflag &= ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
+      pflag &= ~(PF_RETURN_VALUE_IGNORED);
       
       exp = exp->parseInit(oflag, pflag, lvids, outTypeInfo);
       checkLValue(exp);
