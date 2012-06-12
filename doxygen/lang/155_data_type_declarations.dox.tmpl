@@ -29,7 +29,7 @@
     |@ref softlist_type "softlist"|all types|@ref list|Accepts all types; @ref nothing is returned as an empty list; a list is returned unchanged, and any other type is returned as the first element of a new list
     |@ref data_type "data"|@ref string or @ref binary|same as received|Restricts input to @ref string and @ref binary and returns the same type
     |@ref code_type "code"|@ref closure, @ref call_reference|same as received|Restricts values to @ref closure "closures" and @ref call_reference "call references"
-    |@ref reference_type "reference"|@ref lvalue_references|@ref lvalue_references|Restricts values to references to lvalues; currently only usable in function or method parameters
+    |@ref reference_type "reference"|@ref lvalue_references|@ref lvalue_references|Restricts values to references to lvalues
     |@ref int_or_nothing_type "*int"|@ref integer or @ref nothing|same as received|Restricts values to %Qore's @ref integer or @ref nothing types
     |@ref float_or_nothing_type "*float"|@ref float or @ref nothing|same as received|Restricts values to %Qore's @ref float or @ref nothing types
     |@ref bool_or_nothing_type "*bool"|@ref boolean or @ref nothing|same as received|Restricts values to %Qore's @ref boolean or @ref nothing types
@@ -349,13 +349,16 @@ sub foo(code $c) {
 
     <b>reference Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c reference|@ref reference|@ref reference|Requires a reference to an lvalue to be assigned; this type is only usable in parameter lists
+    |\c reference|@ref reference|@ref reference|Requires a reference to an lvalue to be assigned
 
     @par Example
     @code
 sub foo(reference $f) {
     $f = 10;
 }
+
+my int $i;
+foo(\$i);
     @endcode
 
     <hr>

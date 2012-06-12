@@ -437,6 +437,7 @@ LANG_DOXYFILES_SRC = \
 	doxygen/lang/150_container_data_types.dox.tmpl \
 	doxygen/lang/152_code_data_types.dox.tmpl \
 	doxygen/lang/155_data_type_declarations.dox.tmpl \
+	doxygen/lang/157_lvalue_references.dox.tmpl \
 	doxygen/lang/160_overloading.dox.tmpl \
 	doxygen/lang/165_time_zones.dox.tmpl \
 	doxygen/lang/170_character_encoding.dox.tmpl \
@@ -475,6 +476,7 @@ LANG_TMP_DOXYFILES_SRC = doxygen/lang/Doxyfile \
 	doxygen/lang/150_container_data_types.dox \
 	doxygen/lang/152_code_data_types.dox \
 	doxygen/lang/155_data_type_declarations.dox \
+	doxygen/lang/157_lvalue_references.dox \
 	doxygen/lang/160_overloading.dox \
 	doxygen/lang/165_time_zones.dox \
 	doxygen/lang/170_character_encoding.dox \
@@ -552,6 +554,9 @@ doxygen/lang/152_code_data_types.dox: doxygen/lang/152_code_data_types.dox.tmpl 
 	$(QPP) -t $< -o $@
 
 doxygen/lang/155_data_type_declarations.dox: doxygen/lang/155_data_type_declarations.dox.tmpl lib $(QPP)
+	$(QPP) -t $< -o $@
+
+doxygen/lang/157_lvalue_references.dox: doxygen/lang/157_lvalue_references.dox.tmpl lib $(QPP)
 	$(QPP) -t $< -o $@
 
 doxygen/lang/160_overloading.dox: doxygen/lang/160_overloading.dox.tmpl lib $(QPP)

@@ -25,7 +25,7 @@
 
     Variables may be assigned any value unless restricted with a type declaration. If no type declaration is given, then the variable is assumed to be type @ref any_type "any". Note that type declarations are required for all variables (and for function and method parameters and class members) when the @ref require-types "%require-types" parse option is set.
 
-    @ref local_variables "Local variables" are not shared between threads (local variables have a distinct value in each thread), however global variables are. See @ref threading (and in particular @ref threading_and_variables) for more information.
+    @ref local_variables "Local variables" are not shared between threads (local variables have a distinct value in each thread, with some very particular exceptions), however global variables are. See @ref threading (and in particular @ref threading_and_variables) for more information.
 
     Global variables are members of @ref qore_namespaces "namespaces"; if a global variable is declared anywhere outside a namespace declaration, and a namespace path is not given, then the global variable will be assumed to be in the root namespace.
 
@@ -64,7 +64,7 @@ global a = 1@endverbatim
     @section local_variables Local Variables
     Local variables are local to the block in which they are declared; they are also thread-local, meaning that each thread will have its own value of a local variable.
 
-    Local variables are generally accessed without any mutual-exclusion locking (with the exception of local variables bound in @ref closure "closures").
+    Local variables are generally accessed without any mutual-exclusion locking (with the exception of local variables bound in @ref closure "closures" and local variables that have a @ref lvalue_references "reference" taken of them).
     
     @note Declaring a variable with \b my at the top-level of a program creates a local variable with global scope; in effect this is a global thread-local variable; see @ref threading_and_variables for more information.
 
