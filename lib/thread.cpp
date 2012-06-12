@@ -278,6 +278,9 @@ struct ParseConditionalStack {
    }
 };
 
+// for detecting circular references at runtime
+typedef std::set<const lvalue_ref*> ref_set_t;
+
 // this structure holds all thread-specific data
 class ThreadData {
 public:
@@ -297,6 +300,9 @@ public:
    QoreException *catchException;
    std::list<block_list_t::iterator> on_block_exit_list;
    ThreadResourceList* trlist;
+
+   // for detecting circular references at runtime
+   ref_set_t ref_set;
 
    // current function/method name
    const char *current_code;
@@ -703,11 +709,22 @@ int thread_push_container(const AbstractQoreNode* n) {
 }
 
 void thread_pop_container(const AbstractQoreNode* n) {
-   ThreadData *td = thread_data.get();
+   ThreadData* td = thread_data.get();
    
    const_node_set_t::iterator i = td->node_set.find(n);
    assert(i != td->node_set.end());
    td->node_set.erase(i);
+}
+
+int thread_ref_set(const lvalue_ref* r) {
+   ThreadData* td = thread_data.get();
+   return !td->ref_set.insert(r).second ? -1 : 0;
+}
+
+void thread_ref_remove(const lvalue_ref* r) {
+   ThreadData* td = thread_data.get();
+   assert(td->ref_set.find(r) != td->ref_set.end());
+   td->ref_set.erase(r);
 }
 
 LocalVarValue *thread_instantiate_lvar() {

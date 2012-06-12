@@ -359,7 +359,7 @@ public:
       // first free any locks
       vl.del();
 
-      // now delete temporary value (if any)
+      // now delete temporary values (if any)
       for (nvec_t::iterator i = tvec.begin(), e = tvec.end(); i != e; ++i)
          discard(*i, vl.xsink);
    }

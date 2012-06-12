@@ -269,6 +269,9 @@ DLLLOCAL QoreModuleContext* get_module_context();
 DLLLOCAL QoreModuleDefContext* set_module_def_context(QoreModuleDefContext* qmd);
 DLLLOCAL QoreModuleDefContext* get_module_def_context();
 
+DLLLOCAL int thread_ref_set(const lvalue_ref* r);
+DLLLOCAL void thread_ref_remove(const lvalue_ref* r);
+
 // pushes a new argv reference counter
 DLLLOCAL void new_argv_ref();
 
@@ -515,7 +518,7 @@ public:
          self->tRef();
    }
 
-   DLLLOCAL lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self) {
+   DLLLOCAL lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm) {
       if (self)
          self->tRef();
    }
@@ -588,27 +591,42 @@ public:
    DLLLOCAL ~ProgramThreadCountContextHelper();
 };
 
-class RuntimeReferenceHelper {
+//int thread_ref_set(const lvalue_ref* r);
+//void thread_ref_remove(const lvalue_ref* r);
+
+class RuntimeReferenceHelperBase {
 protected:
+   const lvalue_ref* ref;
    ProgramThreadCountContextHelper pch;
    ObjectSubstitutionHelper osh;
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL RuntimeReferenceHelper(const ReferenceNode& r, ExceptionSink* n_xsink)
-      : pch(n_xsink, r.priv->pgm, true), osh(r.priv->self), xsink(n_xsink) {
-      //printd(5, "RuntimeReferenceHelper::RuntimeReferenceHelper() this: %p vexp: %p %s %d\n", this, r.priv->vexp, get_type_name(r.priv->vexp), get_node_type(r.priv->vexp));
+   DLLLOCAL RuntimeReferenceHelperBase(const lvalue_ref& r, ExceptionSink* n_xsink)
+      : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self), xsink(n_xsink) {
+      //printd(5, "RuntimeReferenceHelperBase::RuntimeReferenceHelperBase() this: %p vexp: %p %s %d\n", this, r.vexp, get_type_name(r.vexp), get_node_type(r.vexp));
+      if (thread_ref_set(&r)) {
+         ref = 0;
+         xsink->raiseException("CIRCULAR-REFERENCE-ERROR", "a circular lvalue reference was detected");
+      }
    }
 
-   DLLLOCAL RuntimeReferenceHelper(const lvalue_ref& r, ExceptionSink* n_xsink)
-      : pch(n_xsink, r.pgm, true), osh(r.self), xsink(n_xsink) {
-   }
-
-   DLLLOCAL ~RuntimeReferenceHelper() {
+   DLLLOCAL ~RuntimeReferenceHelperBase() {
+      if (ref)
+         thread_ref_remove(ref);
    }
 
    DLLLOCAL operator bool() const {
       return !(*xsink);
+   }
+};
+
+class RuntimeReferenceHelper : public RuntimeReferenceHelperBase {
+public:
+   DLLLOCAL RuntimeReferenceHelper(const ReferenceNode& r, ExceptionSink* n_xsink) : RuntimeReferenceHelperBase(*lvalue_ref::get(&r), n_xsink) {
+   }
+
+   DLLLOCAL RuntimeReferenceHelper(const lvalue_ref& r, ExceptionSink* n_xsink) : RuntimeReferenceHelperBase(r, n_xsink) {
    }
 };
 
