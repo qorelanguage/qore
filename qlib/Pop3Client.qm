@@ -1,0 +1,443 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file Pop3Client.qm POP3 client module definition
+
+/*  Pop3Client.qm Copyright 2012 David Nichols
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum qore version
+%requires qore >= 0.8.5
+
+# need mime definitions
+%requires Mime >= 1.0
+
+module Pop3Client {
+    version = "1.0";
+    desc = "POP3 client support module";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+}
+
+/*  Version History
+    * 2012-06-12 v1.0: David Nichols <david@qore.org>: initial release
+
+    based on:
+    - http://tools.ietf.org/html/rfc1939 (POP3)
+
+    - xxx http://tools.ietf.org/html/rfc2449 (POP3 extensions)
+    - xxx http://tools.ietf.org/html/rfc1734 (POP3 AUTH)
+*/
+
+/** @mainpage Pop3Client Module
+
+*/
+
+#! the main namespace for the Pop3Client module
+/** To use this module, use \c "%requires Pop3Client" in your code.
+
+    See examples/pop3client.q for an example program using this module
+    
+    All the public symbols in the module are defined in this namespace
+ */
+public namespace Pop3Client {
+    #! 15 second read timeout
+    public const DefaultReadTimeout = 15s;
+
+    #! 30 second connect timeout
+    public const DefaultConnectTimeout = 30s;
+
+    public class Pop3Client {
+        #! @cond nodoc
+	private {
+	    Socket $.sock();
+
+	    # connect string
+	    string $.connect;
+
+	    # ensures exclusive access to the object
+	    Mutex $.mutex();
+
+	    # optional info log closure
+	    *code $.log_info;
+
+	    # optional debug log closure
+	    *code $.log_debug;
+
+	    # tls flag
+	    bool $.tls = False;
+
+	    # authentication credentials
+	    string $.user;
+	    string $.pass;
+
+	    # logged in flag
+	    bool $.logged_in = False;
+
+            # read timeout in milliseconds
+            timeout $.readTimeout = DefaultReadTimeout;
+
+            # connect timeout in milliseconds
+            timeout $.connectTimeout = DefaultConnectTimeout;    
+
+            const MaxDebugLine = 2048;
+        }
+
+        public {
+	    #! default POP3 port
+	    const POP3Port = 110;
+
+            #! default POP3S port
+            const POP3SPort = 995;
+
+            #! accepted protocols
+            const Protocols = (
+                "pop3": ("tls": False, "port": POP3Port),
+                "pop3s": ("tls": True, "port": POP3SPort),
+                );
+        }
+
+	#! creates the Pop3Client object
+	/** @param url the URL of the POP3 server including at least the username, password, and a target host or port on the local system (enclose the address or hostname in square brackets like \c "[ipv6.host.com]" to connect using the IPv6 protocol or use square brackets to delineate an IPv6 address from the port number as in ex: \c "[fe80::21c:42ff:fe00:8]:1110"); accepted protocols are as follows:
+            - \c "pop3": non-encrypted POP3 connections
+            - \c "pop3s": encrypted POP3 connections
+            .
+            If no protocol is given in the URL (ex: \c "pop.gmail.com") then \c "pop3" is assumed; if no port is given, then either POP3Port (for \c "pop3") or POP3SPort (for \c "pop3s") is as the default port number depending on the protocol.
+
+	    @param log an optional closure or call reference for log messages
+	    @param dbglog an optional closure or call reference for debugging/technical log messages
+
+            @par Example:
+            @code
+Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
+            @endcode
+
+            @throw PARSE-URL-ERROR the URL given could not be parsed
+            @throw POP3-URL-ERROR the protocol given was unknown, no target, username or password in URL
+	 */
+	constructor(string $url, *code $log, *code $dbglog) {
+	    $.log_info = $log;
+	    $.log_debug = $dbglog;
+
+            my hash $hurl = parse_url($url, True);
+
+            if (!$hurl.protocol.val()) {
+                if (!$hurl.port)
+                    $hurl.port = POP3Port;
+            }
+            else {
+                my *hash $conf = Protocols.($hurl.protocol);
+                if (!exists $conf)
+                    throw "POP3-URL-ERROR", sprintf("unknown protocol %y in %y; known protocols: %y", $hurl.protocol, $url, keys Protocols);
+                $.tls = $conf.tls;
+                if (!$hurl.port)
+                    $hurl.port = $conf.port;
+            }
+
+            if (!$hurl.host.val())
+                throw "POP3-URL-ERROR", sprintf("no hostname was given in URL %y", $url);
+
+            # if the hostname is an integer, then assume the given port on localhost
+            if ($hurl.host.val()) {
+                if (string(int($hurl.host)) == $hurl.host)
+                    $.connect = sprintf("localhost:%d", $hurl.host);
+                else
+                    $.connect = sprintf("%s:%d", $hurl.host, $hurl.port);
+            }
+            else # here $hurl.path must be set
+                $.connect = $hurl.path;
+
+            if (!exists $hurl.username)
+                throw "POP3-URL-ERROR", sprintf("missing username in POP3 URL: %y", $url);
+
+            if (!exists $hurl.password)
+                throw "POP3-URL-ERROR", sprintf("missing password in POP3 URL: %y", $url);
+
+            $.user = $hurl.username;
+            $.pass = $hurl.password;            
+
+	    $.logDbg("Pop3Client user: %y server: %y", $.user, $.connect);
+	}
+
+	#! disconnects if connected and destroys the object
+        /** if any exceptions occur during the disconnection, they are sent to the debug log closure/call reference
+         */
+  	destructor() {
+	    try {
+		$.disconnect();
+	    }
+	    catch (hash $ex) {
+		$.logDbg("Pop3Client disconnect: %s: %s", $ex.err, $ex.desc);
+	    }
+  	}
+
+        #! sets the TLS/SSL flag
+        /** @param tls if @ref Qore::True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a STARTTLS command after connecting and negotiate a secure TLS/SSL connection to the server
+         */
+	tls(bool $tls) {
+	    $.tls = $tls;
+	}
+
+        #! returns the TLS/SSL flag
+	bool tls() {
+	    return $.tls;
+	}
+
+	#! Connect to the server with the connection parameters set in the @ref constructor()
+        /** @note
+            - For possible exceptions, see %Qore's @ref Qore::Socket::connect() "Socket::connect()" method
+            - This method is subject to thread serialization
+         */
+  	connect() {
+	    my AutoLock $am($.mutex);
+            $.connectIntern();
+        }
+
+        getMail() {
+	    my AutoLock $am($.mutex);
+            if (!$.isConnected())
+                $.connectIntern();
+
+            my string $r = $.sendCommand("STAT");
+            my (softint $num, softint $size) = ($r =~ x/\+OK ([0-9]+) ([0-9]+)/);
+            $.logDbg("messages: %d total size: %d bytes", $num, $size);
+
+            my list $l = $.sendCommandMulti("LIST");
+            # ignore first line (status line)
+            shift $l;
+            # message info hash
+            my hash $mih;
+            foreach my string $ml in ($l) {
+                my (string $id, softint $size) = ($ml =~ x/^([0-9]+) ([0-9]+)/);
+                $mih.$id.size = $size;
+            }
+
+            #$.logDbg("messages: %N", $mih);
+            # retrieve messages
+            foreach my string $id in (keys $mih) {
+                $.log("retrieving msg %s (%d bytes)", $id, $mih.$id.size);
+                my date $start = now_us();
+                $mih.$id.msg = $.sendCommandMultiStr("RETR %s", $id);
+                $.log("got msg %s (%d bytes) in %y", $id, $mih.$id.size, now_us() - $start);
+            }
+        }
+
+	#! return connection status
+  	bool isConnected() {
+	    return $.sock.isOpen();
+  	}
+  	
+	#! disconnect from the server
+        /** @note This method is subject to thread serialization
+         */
+  	disconnect() {
+	    my AutoLock $am($.mutex);
+            $.disconnectIntern();
+  	}
+
+        #! sets the read timeout
+        setReadTimeout(timeout $to) {
+            $.readTimeout = $to;
+        }
+
+        #! returns the read timeout as an integer giving milliseconds
+        int getReadTimeoutMs() {
+            return $.readTimeout;
+        }
+        
+        #! returns the read timeout as a relative time value
+        date getReadTimeoutDate() {
+            return milliseconds($.readTimeout);
+        }
+
+        #! sets the connect timeout
+        setConnectTimeout(timeout $to) {
+            $.connectTimeout = $to;
+        }
+
+        #! returns the connect timeout as an integer giving milliseconds
+        int getConnectTimeoutMs() {
+            return $.connectTimeout;
+        }
+        
+        #! returns the connect timeout as a relative time value
+        date getConnectTimeoutDate() {
+            return milliseconds($.connectTimeout);
+        }
+
+	#! force disconnect of socket without error
+        /** @note This method is subject to thread serialization
+         */
+        forceDisconnect() {
+	    my AutoLock $am($.mutex);
+            $.forceDisconnectIntern();
+	}
+
+        #! @cond nodoc
+        # don't reimplement this method; fix/enhance it in the module
+        final private disconnectIntern() {
+	    if ($.isConnected()) {
+                # send QUIT command and ignore error
+                #try { $.sendCommand("QUIT"); } catch (hash $ex) { }
+		$.sock.close();
+		$.sock.shutdown();
+	    }
+        }
+
+	# read a line from the socket (terminated with \n)
+	private string readLine(timeout $to) {
+	    my string $str;
+	    my int $c = 0;
+	    do {
+		$c = $.sock.recvu1($to);
+		$str += chr($c);
+	    } while ($c != 10);
+
+	    return $str;
+	}
+
+  	# gets a trimmed one-line response from the server, throws an exception if an error response is received
+        # don't reimplement this method; fix/enhance it in the module
+        private final string getResponse() {
+            my string $r = $.readLine($.readTimeout);
+            trim $r;
+            $.logDbg("read: %y", $r.size() ? $r : "EOF");
+            if ($r !~ /^\+OK/)
+                throw "POP3-SERVER-ERROR", $r;
+            return $r;
+        }
+
+  	# gets a trimmed multi-line response from the server, throws an exception if an error response is received
+        # don't reimplement this method; fix/enhance it in the module
+        private final list getResponseMulti() {
+            my list $l = ();
+            $l += $.getResponse();
+            while (True) {
+                my string $r = $.readLine($.readTimeout);
+                trim $r;
+                $.logDbg("read: %y", $r);
+                if ($r == ".")
+                    break;
+                $l += $r;
+            }
+            return $l;
+        }
+
+  	# gets a multi-line response from the server, throws an exception if an error response is received
+        # does not include the first line in the response
+        # don't reimplement this method; fix/enhance it in the module
+        private final string getResponseMultiStr() {
+            $.getResponse();
+            my string $rv;
+            while (True) {
+                my string $r = $.readLine($.readTimeout);
+                if ($r == ".\r\n")
+                    break;
+                $rv += $r;
+            }
+            $.logDbg("read data: %d bytes", $rv.size());
+            return $rv;
+        }
+
+	private log(string $msg) {
+	    if ($.log_info.val())
+		call_function($.log_info, "Pop3Client: " + trim(vsprintf($msg, $argv)));
+	}
+
+	private logDbg(string $msg) {
+	    if ($.log_debug.val()) {
+                $msg = vsprintf($msg, $argv);
+                trim $msg;
+                if ($msg.size() > MaxDebugLine) {
+                    splice $msg, MaxDebugLine;
+                    $msg += "...";
+                }
+		call_function($.log_debug, "Pop3Client: " + $msg);
+            }
+	}
+
+        # don't reimplement this method; fix/enhance it in the module
+        private final sendCommandIntern(string $str) {
+	    if ($.log_debug.val())
+		$.logDbg("send: %y", trim($str));
+
+            $.sock.send($str);
+        }
+
+        # don't reimplement this method; fix/enhance it in the module
+        private final list sendCommandMulti(string $str) {
+            $str = vsprintf($str + "\r\n", $argv);
+            $.sendCommandIntern($str);
+            return $.getResponseMulti();
+        }
+
+        # don't reimplement this method; fix/enhance it in the module
+        private final string sendCommandMultiStr(string $str) {
+            $str = vsprintf($str + "\r\n", $argv);
+            $.sendCommandIntern($str);
+            return $.getResponseMultiStr();
+        }
+
+        # don't reimplement this method; fix/enhance it in the module
+        private final string sendCommand(string $str) {
+            $str = vsprintf($str + "\r\n", $argv);
+            $.sendCommandIntern($str);
+            return $.getResponse();
+        }
+
+        # when this method returns without an exception, the object is in the TRANSACTION state
+        private connectIntern() {
+            $.logDbg("connecting to %s (timeout %y)", $.connect, milliseconds($.connectTimeout));
+            $.sock.connect($.connect, $.connectTimeout);
+            #$.logDbg("connected");
+            if ($.tls)
+                $.sock.upgradeClientToSSL();
+            my string $r = $.getResponse();
+
+            # AUTHORIZATION state - now log in
+            # try to login with APOP if an RFC822-compliant msg-id is included in the last part of the login string
+            my *string $apop = ($r =~ x/<(.*)>$/)[0];
+            if ($apop.val()) {
+                # make APOP secret
+                my string $secret = $apop + $.pass;
+                $.sendCommand("APOP %s %s", $.user, $secret);
+                $.log("logged in with APOP as %y", $.user);
+            }
+            else {
+                # login with USER and PASS
+                $.sendCommand("USER %s", $.user);
+                $.sendCommand("PASS %s", $.pass);
+                $.log("logged in with USER and PASS as %y", $.user);
+            }
+            # TRANSACTION state
+  	}
+  	
+	private forceDisconnectIntern() {
+	    if ($.isConnected()) {
+		try {
+		    $.disconnectIntern();
+		}
+		catch($ex) {
+		    # ignore
+		}
+	    }
+	}
+        #! @endcond
+    }
+}
