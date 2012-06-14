@@ -1363,7 +1363,8 @@ void qore_exit_process(int rc) {
          //printf("qore_exit_process() canceling TID %d ptid: %p (this TID: %d)\n", i, thread_list[i].ptid, tid);
 	 int trc = pthread_cancel(thread_list[i].ptid);
 	 if (!trc) {
-#ifdef DARWIN
+#if 1
+//#ifdef DARWIN
 	    // for some reason we cannot call pthread_join() on the main thread in Darwin or we get a segfault
 	    // at least in 10.7.4 - but only when debugging is disabled for some reason
 	    if (i == 1)
