@@ -57,7 +57,7 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
 
       ref.id = id;
       if (in_closure)
-         setThreadSafeIntern();
+         setClosureIntern();
       else
 	 type = VT_LOCAL;
 
@@ -80,6 +80,11 @@ AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const {
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->eval(xsink);
    }
+   if (type == VT_LOCAL_TS) {
+      printd(5, "VarRefNode::evalImpl() this=%p local thread-safe var %p (%s)\n", this, ref.id, ref.id->getName());
+      ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
+      return val->eval(xsink);
+   }
    if (type == VT_IMMEDIATE)
       return ref.cvv->eval(xsink);
 
@@ -92,6 +97,10 @@ AbstractQoreNode *VarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) 
       return ref.id->eval(needs_deref, xsink);
    if (type == VT_CLOSURE) {
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->eval(needs_deref, xsink);
+   }
+   if (type == VT_LOCAL_TS) {
+      ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
       return val->eval(needs_deref, xsink);
    }
    if (type == VT_IMMEDIATE)
@@ -107,6 +116,10 @@ int64 VarRefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->bigIntEval(xsink);
    }
+   if (type == VT_LOCAL_TS) {
+      ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
+      return val->bigIntEval(xsink);
+   }
    if (type == VT_IMMEDIATE)
       return ref.cvv->bigIntEval(xsink);
 
@@ -118,6 +131,10 @@ int VarRefNode::integerEvalImpl(ExceptionSink *xsink) const {
       return ref.id->intEval(xsink);
    if (type == VT_CLOSURE) {
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->intEval(xsink);
+   }
+   if (type == VT_LOCAL_TS) {
+      ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
       return val->intEval(xsink);
    }
    if (type == VT_IMMEDIATE)
@@ -133,6 +150,10 @@ bool VarRefNode::boolEvalImpl(ExceptionSink *xsink) const {
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->boolEval(xsink);
    }
+   if (type == VT_LOCAL_TS) {
+      ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
+      return val->boolEval(xsink);
+   }
    if (type == VT_IMMEDIATE)
       return ref.cvv->boolEval(xsink);
 
@@ -144,6 +165,10 @@ double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
       return ref.id->floatEval(xsink);
    if (type == VT_CLOSURE) {
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->floatEval(xsink);
+   }
+   if (type == VT_LOCAL_TS) {
+      ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
       return val->floatEval(xsink);
    }
    if (type == VT_IMMEDIATE)
@@ -158,7 +183,7 @@ AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
 
    //printd(5, "VarRefNode::parseInitIntern() this=%p '%s' type=%d\n", this, name.ostr, type);
    // if it is a new variable being declared
-   if (type == VT_LOCAL || type == VT_CLOSURE) {
+   if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS) {
       if (!ref.id) {
 	 ref.id = push_local_var(name.ostr, typeInfo, true, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
 	 ++lvids;
@@ -222,6 +247,8 @@ int VarRefNode::getLValue(LValueHelper& lvh, bool for_remove) const {
       return ref.id->getLValue(lvh, for_remove);
    if (type == VT_CLOSURE)
       return thread_get_runtime_closure_var(ref.id)->getLValue(lvh, for_remove);
+   if (type == VT_LOCAL_TS)
+      return thread_find_closure_var(ref.id->getName())->getLValue(lvh, for_remove);
    if (type == VT_IMMEDIATE)
       return ref.cvv->getLValue(lvh, for_remove);
    assert(type == VT_GLOBAL);
@@ -233,6 +260,8 @@ DLLLOCAL void VarRefNode::remove(LValueRemoveHelper& lvrh) {
       return ref.id->remove(lvrh);
    if (type == VT_CLOSURE)
       return thread_get_runtime_closure_var(ref.id)->remove(lvrh);
+   if (type == VT_LOCAL_TS)
+      return thread_find_closure_var(ref.id->getName())->remove(lvrh);
    if (type == VT_IMMEDIATE)
       return ref.cvv->remove(lvrh);
    assert(type == VT_GLOBAL);

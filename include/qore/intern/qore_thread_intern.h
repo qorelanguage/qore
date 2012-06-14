@@ -570,7 +570,6 @@ private:
 
 public:
    DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t* vlist);
-   DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment(LocalVar* lv);
    DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironment();
    DLLLOCAL ClosureVarValue* find(const LocalVar* id);
    DLLLOCAL void del(ExceptionSink* xsink);

@@ -22,23 +22,17 @@
 
 #include <qore/Qore.h>
 
-ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t *vlist) {
+ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t* vlist) {
    for (lvar_set_t::const_iterator i = vlist->begin(), e = vlist->end(); i != e; ++i) {
       ClosureVarValue* cvar = thread_find_closure_var((*i)->getName());
+      //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p '%s' %p\n", this, (*i)->getName(), cvar);
       cmap[*i] = cvar;
       cvar->ref();
    }
 }
 
-ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment(LocalVar* lv) {
-   if (lv) {
-      ClosureVarValue* cvar = thread_find_closure_var(lv->getName());
-      cmap[lv] = cvar;
-      cvar->ref();
-   }
-}
-
 ThreadSafeLocalVarRuntimeEnvironment::~ThreadSafeLocalVarRuntimeEnvironment() {
+   //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::~ThreadSafeLocalVarRuntimeEnvironment() this: %p\n", this);
    assert(cmap.empty());
 }
 

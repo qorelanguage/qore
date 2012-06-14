@@ -297,7 +297,8 @@ LocalVar *find_local_var(const char *name, bool &in_closure) {
       if (cenv && !in_closure && cenv->getHighWaterMark() == vnode)
 	 in_closure = true;
       if (!strcmp(vnode->getName(), name)) {
-	 if (in_closure)
+         //printd(5, "find_local_var() %s in_closure: %d\n", name, in_closure);
+         if (in_closure)
 	    cenv->add(vnode->lvar);
 	 vnode->setRef();
 	 return vnode->lvar;

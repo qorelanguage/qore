@@ -51,7 +51,7 @@
     @par Description
     %Qore if statements work like if statements in C or Java. If the result of evaluating the expression converted to a @ref boolean value is @ref Qore::True "True", then the first statement (which can also be a block) is executed. If the result is @ref Qore::False "False", and there is an <tt><b>else</b></tt> keyword after the first statement, the following statement is executed.
 
-    @note Any expression that evaluates to a non-zero integer value will be converted to a @ref boolean @ref Qore::True "True". Any expression that evaluates to zero value is interpreted as @ref Qore::False "False". This is more like C and Java's behavior and not like Perl's (where any non-null string except "0" is @ref Qore::True "True").
+    @note Any expression that evaluates to a non-zero integer value will be converted to a @ref boolean @ref Qore::True "True". Any expression that evaluates to zero value is interpreted as @ref Qore::False "False". This is more like C and Java's behavior and not like Perl's (where any non-null string except "0" is @ref Qore::True "True").  To simulate Perl's boolean evaluation, use <value>::val().
 
     <hr>
     @section for for Statements

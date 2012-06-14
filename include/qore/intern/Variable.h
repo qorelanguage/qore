@@ -29,7 +29,8 @@ enum qore_var_t {
    VT_LOCAL      = 2, 
    VT_GLOBAL     = 3,
    VT_CLOSURE    = 4,
-   VT_IMMEDIATE  = 5   // used in references with immediate variable storage
+   VT_LOCAL_TS   = 5,  // thread-safe variables, not closure-bound
+   VT_IMMEDIATE  = 6   // used in references with immediate variable storage
 };
 
 #include <qore/intern/VRMutex.h>

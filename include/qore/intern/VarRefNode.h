@@ -67,7 +67,7 @@ protected:
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL virtual const QoreTypeInfo *parseGetTypeInfo() const {
-      if (type == VT_LOCAL || type == VT_CLOSURE)
+      if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
          return ref.id->getTypeInfo();
       if (type == VT_GLOBAL)
          return ref.var->parseGetTypeInfo();
@@ -75,6 +75,11 @@ protected:
    }
 
    DLLLOCAL void setThreadSafeIntern() {
+      ref.id->setClosureUse();
+      type = VT_LOCAL_TS;
+   }
+
+   DLLLOCAL void setClosureIntern() {
       ref.id->setClosureUse();
       type = VT_CLOSURE;
    }
@@ -104,10 +109,8 @@ public:
 
    DLLLOCAL VarRefNode(char *n, LocalVar *n_id, bool in_closure) : ParseNode(NT_VARREF, true, false), name(n), new_decl(false), explicit_scope(false) {
       ref.id = n_id;
-      if (in_closure) {
-	 n_id->setClosureUse();
-	 type = VT_CLOSURE;
-      }
+      if (in_closure)
+         setClosureIntern();
       else
          type = VT_LOCAL;
    }      
@@ -116,7 +119,7 @@ public:
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-      if (type == VT_LOCAL || type == VT_CLOSURE)
+      if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
          return ref.id->getTypeInfo();
       if (type == VT_GLOBAL)
          return ref.var->getTypeInfo();
@@ -183,6 +186,11 @@ public:
    DLLLOCAL void setThreadSafe() {
       if (type == VT_LOCAL)
          setThreadSafeIntern();
+   }
+
+   DLLLOCAL void setClosure() {
+      if (type == VT_LOCAL || type == VT_LOCAL_TS)
+         setClosureIntern();
    }
 
    DLLLOCAL void setPublic() {

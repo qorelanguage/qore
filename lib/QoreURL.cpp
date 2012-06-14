@@ -29,16 +29,16 @@
 
 struct qore_url_private {
 private:
-   DLLLOCAL void parse_intern(const char *buf) {
+   DLLLOCAL void parse_intern(const char* buf, bool keep_brackets) {
       if (!buf || !buf[0])
 	 return;
    
       printd(5, "QoreURL::parse_intern(%s)\n", buf);
    
-      char *p = (char *)strstr(buf, "://");
-      const char *pos;
+      char* p = (char* )strstr(buf, "://");
+      const char* pos;
    
-      // get protocol
+      // get scheme, aka protocol
       if (p) {
 	 protocol = new QoreStringNode(buf, p - buf);
 	 // convert to lower case
@@ -49,15 +49,15 @@ private:
       else
 	 pos = buf;
    
-      char *nbuf;
+      char* nbuf;
    
       // find end of hostname
-      if ((p = (char *)strchr(pos, '/'))) {
+      if ((p = (char* )strchr(pos, '/'))) {
 	 // get pathname if not at EOS
 	 path = new QoreStringNode(p);
 	 printd(5, "QoreURL::parse_intern path=%s\n", path->getBuffer());
 	 // get copy of hostname string for localized searching and invasive parsing
-	 nbuf = (char *)malloc(sizeof(char) * (p - pos + 1));
+	 nbuf = (char* )malloc(sizeof(char) * (p - pos + 1));
 	 strncpy(nbuf, pos, p - pos);
 	 nbuf[p - pos] = '\0';
       }
@@ -82,15 +82,15 @@ private:
       else
 	 pos = nbuf;
 
-      // see if the "hostname" is an ipv6 address in brackets
-      if (*pos == '[' && (p = (char *)strchr(pos, ']'))) {
-	 host = new QoreStringNode(pos + 1, p - pos - 1);
+      // see if the "hostname" is enclosed in square brackets, denoting an ipv6 address
+      if (*pos == '[' && (p = (char* )strchr(pos, ']'))) {
+	 host = new QoreStringNode(pos + (keep_brackets ? 0 : 1), p - pos - (keep_brackets ? -1 : 1));
 	 pos = p + 1;
       }
 
       bool has_port = false;
       // see if there's a port
-      if ((p = (char *)strrchr(pos, ':'))) {
+      if ((p = (char* )strrchr(pos, ':'))) {
 	 *p = '\0';
 	 port = atoi(p + 1);
 	 has_port = true;
@@ -113,7 +113,7 @@ private:
    }
 
 public:
-   QoreStringNode *protocol, *path, *username, *password, *host;
+   QoreStringNode* protocol, *path, *username, *password, *host;
    int port;
 
    DLLLOCAL qore_url_private() {
@@ -142,10 +142,10 @@ public:
 	 host->deref();
    }
 
-   DLLLOCAL int parse(const char *url) {
+   DLLLOCAL int parse(const char* url, bool keep_brackets = false) {
       reset();
       zero();
-      parse_intern(url);
+      parse_intern(url, keep_brackets);
       return isValid() ? 0 : -1;
    }
 
@@ -154,8 +154,8 @@ public:
    }
 
    // destructive
-   DLLLOCAL QoreHashNode *getHash() {
-      QoreHashNode *h = new QoreHashNode;
+   DLLLOCAL QoreHashNode* getHash() {
+      QoreHashNode* h = new QoreHashNode;
       if (protocol) {
 	 h->setKeyValue("protocol", protocol, 0);
 	 protocol = 0;
@@ -186,47 +186,63 @@ public:
 QoreURL::QoreURL() : priv(new qore_url_private) {
 }
 
-QoreURL::QoreURL(const char *url) : priv(new qore_url_private) {
+QoreURL::QoreURL(const char* url) : priv(new qore_url_private) {
    parse(url);
 }
 
-QoreURL::QoreURL(const QoreString *url) : priv(new qore_url_private) {
+QoreURL::QoreURL(const QoreString* url) : priv(new qore_url_private) {
    parse(url->getBuffer());
+}
+
+QoreURL::QoreURL(const char* url, bool keep_brackets) : priv(new qore_url_private) {
+   parse(url, keep_brackets);
+}
+
+QoreURL::QoreURL(const QoreString* url, bool keep_brackets) : priv(new qore_url_private) {
+   parse(url->getBuffer(), keep_brackets);
 }
 
 QoreURL::~QoreURL() {
    delete priv;
 }
 
-int QoreURL::parse(const char *url) {
+int QoreURL::parse(const char* url) {
    return priv->parse(url);
 }
 
-int QoreURL::parse(const QoreString *url) {
+int QoreURL::parse(const QoreString* url) {
    return priv->parse(url->getBuffer());
+}
+
+int QoreURL::parse(const char* url, bool keep_brackets) {
+   return priv->parse(url, keep_brackets);
+}
+
+int QoreURL::parse(const QoreString* url, bool keep_brackets) {
+   return priv->parse(url->getBuffer(), keep_brackets);
 }
 
 bool QoreURL::isValid() const {
    return (priv->host && priv->host->strlen()) || (priv->path && priv->path->strlen());
 }
 
-const QoreString *QoreURL::getProtocol() const {
+const QoreString* QoreURL::getProtocol() const {
    return priv->protocol;
 }
 
-const QoreString *QoreURL::getUserName() const {
+const QoreString* QoreURL::getUserName() const {
    return priv->username;
 }
 
-const QoreString *QoreURL::getPassword() const {
+const QoreString* QoreURL::getPassword() const {
    return priv->password;
 }
 
-const QoreString *QoreURL::getPath() const {
+const QoreString* QoreURL::getPath() const {
    return priv->path;
 }
 
-const QoreString *QoreURL::getHost() const {
+const QoreString* QoreURL::getHost() const {
    return priv->host;
 }
 
@@ -235,22 +251,22 @@ int QoreURL::getPort() const {
 }
 
 // destructive
-QoreHashNode *QoreURL::getHash() {
+QoreHashNode* QoreURL::getHash() {
    return priv->getHash();
 }
 
-char *QoreURL::take_path() {
+char* QoreURL::take_path() {
    return priv->path ? priv->path->giveBuffer() : 0;
 }
 
-char *QoreURL::take_username() {
+char* QoreURL::take_username() {
    return priv->username ? priv->username->giveBuffer() : 0;
 }
 
-char *QoreURL::take_password() {
+char* QoreURL::take_password() {
    return priv->password ? priv->password->giveBuffer() : 0;
 }
 
-char *QoreURL::take_host() {
+char* QoreURL::take_host() {
    return priv->host ? priv->host->giveBuffer() : 0;
 }

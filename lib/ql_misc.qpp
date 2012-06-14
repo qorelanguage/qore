@@ -759,11 +759,11 @@ string getClassName(object obj) {
 nothing getClassName() [flags=RUNTIME_NOOP] {
 }
 
-//! Parses a URL string and returns a hash of the components; throws an exception if the string cannot be parsed as URL
-/**
-   @param url the URL to parse (ex: \c "https://user:pass@host:8080/path"); either a hostname or path is required at a minimum or a \c PARSE-URL-ERROR exception is raised
+//! Parses a URL string and returns a hash of the components; throws an exception if the string cannot be parsed as a URL
+/** @param url the URL to parse (ex: \c "https://user:pass@host:8080/path"); either a hostname or path is required at a minimum or a \c PARSE-URL-ERROR exception is raised
+    @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well; square brackets are used by some %Qore methods to denote IPv6 addresses; for example see @ref Qore::Socket::connect() "Socket::connect()"
 
-   @return a hash of the components of the URL with the following keys (if data in the URL is present):
+    @return a hash of the components of the URL with the following keys (if data in the URL is present; note that at least either the \c "host" or the \c "path" keys will always be returned if no \c PARSE-URL-ERROR is raised):
     - \c protocol: the scheme in the URL (ex: \c "http")
     - \c path: any path given in the URL; the path will be prefixed by \c "/" if a hostname is found in the URL argument string, otherwise it will not if it was not given as such in the argument string
     - \c username: any username given in the URL
@@ -780,8 +780,8 @@ my hash $hash = parse_url($url_string);
 
     @see parseURL() for a version of this function that does not throw exceptions if the URL cannot be parsed
 */
-hash parse_url(string url) {
-   QoreURL qurl(url);
+hash parse_url(string url, bool keep_brackets = False) {
+   QoreURL qurl(url, keep_brackets);
    if (!qurl.isValid()) {
       xsink->raiseException("PARSE-URL-ERROR", "URL '%s' cannot be parsed", url->getBuffer());
       return 0;
@@ -791,10 +791,10 @@ hash parse_url(string url) {
 }
 
 //! Parses a URL string and returns a hash of the components; if the URL cannot be parsed then @ref nothing is returned
-/**
-   @param url the URL to parse (ex: \c "https://user:pass@host:8080/path"); either a hostname or path is required at a minimum or the function will return @ref nothing
+/** @param url the URL to parse (ex: \c "https://user:pass@host:8080/path"); either a hostname or path is required at a minimum or the function will return @ref nothing
+    @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well; square brackets are used by some %Qore methods to denote IPv6 addresses; for example see @ref Qore::Socket::connect() "Socket::connect()"
 
-   @return @ref nothing (in case the URL cannot be parsed) or a hash of the components of the URL with the following keys (if data in the URL is present):
+    @return a hash of the components of the URL with the following keys (if data in the URL is present; note that at least either the \c "host" or the \c "path" keys will always be returned if a hash is returned):
     - \c protocol: the scheme in the URL (ex: \c "http")
     - \c path: any path given in the URL; the path will be prefixed by \c "/" if a hostname is found in the URL argument string, otherwise it will not if it was not given as such in the argument string
     - \c username: any username given in the URL
@@ -809,8 +809,8 @@ my *hash $hash = parseURL($url_string);
 
     @see parse_url() for a version of this function that throws exceptions if the URL cannot be parsed
 */
-*hash parseURL(string url) {
-   QoreURL qurl(url);
+*hash parseURL(string url, bool keep_brackets = False) {
+   QoreURL qurl(url, keep_brackets);
    return qurl.isValid() ? qurl.getHash() : 0;
 }
 

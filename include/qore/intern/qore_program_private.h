@@ -163,7 +163,7 @@ public:
          uninstantiate(xsink);
    }
 
-   DLLLOCAL ClosureVarValue *instantiate(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
+   DLLLOCAL ClosureVarValue* instantiate(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
       ClosureVarValue *cvar = new ClosureVarValue(id, typeInfo, nval);
       instantiate(cvar);
       return cvar;
@@ -188,10 +188,12 @@ public:
    }
 
    DLLLOCAL ClosureVarValue *find(const char* id) {
+      //printd(5, "ThreadClosureVariableStack::find() this: %p id: %p\n", this, id);
       Block *w = curr;
       while (true) {
 	 int p = w->pos;
 	 while (p) {
+	    //printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, w->var[p - 1]->id, w->var[p - 1]->id, w->var[p - 1]->skip);
 	    if (w->var[--p]->id == id && !w->var[p]->skip) {
 	       //printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, w->var[p]);
 	       return w->var[p];
@@ -200,10 +202,10 @@ public:
 	 w = w->prev;
 #ifdef DEBUG
 	 if (!w) {
-            printd(0, "ThreadClosureVariableStack::find() this: %p no local variable '%s' (%p) on stack (pgm: %p) p: %d curr->prev: %p\n", this, id, id, getProgram(), p, curr->prev);
+	    //printd(5, "ThreadClosureVariableStack::find() this: %p no closure-bound local variable '%s' (%p) on stack (pgm: %p) p: %d curr->prev: %p\n", this, id, id, getProgram(), p, curr->prev);
             p = curr->pos - 1;
             while (p >= 0) {
-               printd(0, "var p=%d: %s (%p) (skip=%d)\n", p, curr->var[p]->id, curr->var[p]->id, curr->var[p]->skip);
+               //printd(5, "var p=%d: %s (%p) (skip=%d)\n", p, curr->var[p]->id, curr->var[p]->id, curr->var[p]->skip);
                --p;
             }
          }
