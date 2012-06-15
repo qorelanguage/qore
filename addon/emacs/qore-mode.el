@@ -207,7 +207,7 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; Fontify keywords, except those fontified otherwise.
     (concat "\\<"
 	    (regexp-opt '("if" "while" "else" "splice" "where"
-			  "do" "for" "foreach" "NULL" "NOTHING"
+			  "do" "final" "for" "foreach" "NULL" "NOTHING"
 			  "private" "public" "new" "shift"
 			  "unshift" "in" "elements" "keys" "const"
 			  "returns" "try" "throw" "rethrow" "catch"

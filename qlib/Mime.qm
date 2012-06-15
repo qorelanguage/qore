@@ -25,14 +25,15 @@
 %requires qore >= 0.8.4
 
 module Mime {
-    version = "1.1";
+    version = "1.2";
     desc = "Mime module giving MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
 }
 
 /*  Version History
-    * 2012-05-31 v1.1: David Nichols <david@qore.org>: added initial MultiPartMessage classes to module
+    * 2012-06-14 v1.2: David Nichols <david@qore.org>: added MIME decoding functions
+    * 2012-05-31 v1.1: David Nichols <david@qore.org>: added initial MultiPartMessage classes
     * 2012-05-24 v1.0: David Nichols <david@qore.org>: pulled MIME implementation out of other code and made a user module to aggregate MIME definitions and functions
 
     based on:
@@ -53,6 +54,7 @@ module Mime {
     - @ref MimeTypeDefinitions "MimeTypeDefinitions": constant for common MIME types
     - @ref Mime::MimeTypes "MimeTypes": a map of common file name extensions to the default MIME type
     - @ref MimeEncodingFunctions "MimeEncodingFunctions": functions for encoding MIME data
+    - @ref MimeDecodingFunctions "MimeDecodingFunctions": functions for decoding MIME data
     - @ref MultiPartConstants "MultiPartConstants": constants for the MultiPartMessage classes
     - @ref Mime::MultiPartMessage "MultiPartMessage": the base class for MultiPartMessage classes
     - @ref Mime::MultiPartRelatedMessage "MultiPartRelatedMessage": a class for handling multipart/related messages
@@ -344,7 +346,7 @@ public namespace Mime {
 
     /** @defgroup MimeEncodingFunctions MIME Encoding Functions
      */
-    #@{    
+    #@{ 
     #! returns a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to encode
 	@param len the maximum line length
@@ -355,7 +357,7 @@ public namespace Mime {
 	return makeBase64String($str, $len);
     }
 
-    #! returns a string in "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
+    #! returns a string in "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
     /** @param str the string to encode
 	@param hdr use rules for a MIME header (<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>)
      */
@@ -384,14 +386,14 @@ public namespace Mime {
 
 	    # new string to append
 	    my string $nc;
-	    # if we are enconding a header and we have a space, transform to "_"
+	    # if we are encoding a header and we have a space, transform to "_"
 	    if ($hdr && $c == 32)
 		$nc = "_";
-	    # check if the high bit is set or if it's an ASCII control character or '=', or we are enconding a header and the char is not '?' and '_', encode
-	    else if (!($c & 0x80) || $c < 32 || $c == 61 || ($hdr && ($c == 63 || $c == 95)))
-		$nc = chr($c);
-	    else
+	    # check if the high bit is set or if it's an ASCII control character or '=', or we are encoding a header and the char is not '?' and '_', encode
+	    else if (($c & 0x80) || $c < 32 || $c == 61 || ($hdr && ($c == 63 || $c == 95)))
 		$nc = sprintf("=%02x", $c).upr();
+	    else
+		$nc = chr($c);
 
 	    # we MUST break up lines longer than 76 characters (the line length includes the '=' but not the CRLF
 	    if (($nc.size() + $lp) >= (MimeQuotedPrintableLineLen - 1)) {
@@ -408,11 +410,12 @@ public namespace Mime {
 
     #! encodes data according to the given encoding
     /** @param data the data to encode
-        @param enc the encoding to use; see @ref MimeContentTransferEncodingConstants for possible values
+        @param enc the encoding to use; see @ref MimeContentTransferEncodingConstants for possible values (case is ignored)
 
         @throw MIME-TRANSFER-ENCODING-ERROR unknown transfer encoding
      */
     public data sub mime_encode_transfer_data(data $data, string $enc) {
+        $enc = $enc.lwr();
         switch ($enc) {
             case ContentTransEnc7Bit:
             case ContentTransEnc8Bit:
@@ -440,6 +443,112 @@ public namespace Mime {
     }
     #@}
 
+    /** @defgroup MimeDecodingFunctions MIME Decoding Functions
+     */
+    #@{ 
+    #! returns a binary value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
+    /** @param str the string to decode
+
+	@note this function is basically just a wrapper for the standard %Qore function parseBase64String()
+     */
+    public binary sub mime_decode_base64(data $str) {
+	return parseBase64String($str);
+    }
+
+    #! returns a string value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
+    /** @param str the string to decode
+        @param encoding the character encoding to use for the string returned (if not present the default encoding is used)
+
+	@note this function is basically just a wrapper for the standard %Qore function parseBase64StringtoString()
+     */
+    public binary sub mime_decode_base64_to_string(data $str, *string $encoding) {
+	return parseBase64StringToString($str, $encoding);
+    }
+
+    #! returns a string parsed from "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
+    /** @param str the string to decode
+        @param encoding the character encoding to use for the string returned (if not present the default encoding is used)
+
+        @throw QUOTED-PRINTABLE-DECODE-ERROR an error occurred decoding the quoted-printable string
+     */
+    public string sub mime_decode_quoted_printable(string $str, *string $encoding) {
+        $str = force_encoding($str, "us-ascii");
+
+        if ($encoding.empty())
+            $encoding = get_default_encoding();
+
+	my string $rv;
+	my int $lp = 0;
+
+        # recombine broken lines
+        $str = replace($str, "=\r\n", "");
+
+%ifdef Unix
+        # substitute all \r\n occurrences with \n
+        $str = replace($str, "\r\n", "\n");
+%endif
+
+        # substitute all "_" occurrences with " "
+        $str = replace($str, "_", " ");
+
+        my int $i = 0;
+        while (True) {
+            $i = $str.find("=", $i);
+            if ($i == -1)
+                break;
+
+            my string $hex = extract $str, $i + 1, 2;
+            # according to RFC 2045 sec 6.7 rule (1): we have to use upper-case characters
+            if ($hex !~ /[0-9A-Z][0-9A-Z]/)
+                throw "QUOTED-PRINTABLE-DECODE-ERROR", sprintf("invalid hex byte code found: %y", $hex);
+            # replace the code with the given character
+            splice $str, $i, 1, chr(int($hex, 16), "us-ascii");
+            ++$i;
+        }
+
+        return force_encoding($str, $encoding);
+    }
+
+    #! decodes data according to the given encoding
+    /** @param data the data to decode
+        @param enc the decoding to use; see @ref MimeContentTransferEncodingConstants for possible values (case is ignored)
+        @param ct the content-type of the data; if there is a \c "charset=xxx" component and the data is decoded to a string, then it will be returned in the given character encoding
+
+        @throw MIME-TRANSFER-ENCODING-ERROR unknown transfer encoding
+     */
+    public data sub mime_decode_transfer_data(data $data, string $enc, *string $ct) {
+        $enc = $enc.lwr();
+        switch ($enc) {
+            case ContentTransEnc7Bit:
+            case ContentTransEnc8Bit:
+            case ContentTransEncBinary:
+                break;
+
+            case ContentTransEncBase64: {
+                $data = mime_decode_base64($data);
+                break;
+            }
+
+            case ContentTransEncQuotedPrintable: {
+                $data = mime_decode_quoted_printable($data);
+                break;
+            }
+
+            default:
+                throw "MIME-TRANSFER-ENCODING-ERROR", sprintf("Content-Transfer-Encoding: %y is unknown", $enc);
+        }
+
+        if ($data.typeCode() == NT_STRING) {
+            # see if there is a character encoding specification in the content-type
+            my *string $enc = ($ct =~ x/charset="?([^"]+)"?/)[0];
+            if (exists $enc)
+                $data = force_encoding($data, $enc);
+        }
+
+        return $data;
+    }
+    #@}
+    
     /** @defgroup MultiPartConstants MultiPartMessage Constants
      */
     #@{

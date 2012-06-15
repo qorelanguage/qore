@@ -659,6 +659,7 @@ int ord() [flags=RUNTIME_NOOP] {
 
 //! Returns a string containing a single ASCII character represented by the numeric value passed
 /** @param val the byte value of the character; only the least-significant byte is used
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
 
     @return a string containing a single ASCII character represented by the numeric value passed
 
@@ -666,9 +667,14 @@ int ord() [flags=RUNTIME_NOOP] {
     @code
 my string $char = chr(13);
     @endcode
+
+    @since %Qore 0.8.5 the encoding argument is supported
  */
-string chr(softint val) [flags=CONSTANT] {
-   return new QoreStringNode((char)val);
+string chr(softint val, *string encoding) [flags=CONSTANT] {
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   QoreStringNode* rv = new QoreStringNode(qe);
+   rv->concat((char)val);
+   return rv;
 }
 
 //! This function variant returns a string with a single ASCII NULL ('\\0'); it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

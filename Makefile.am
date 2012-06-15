@@ -11,11 +11,13 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-USER_MODS = HttpServer SmtpClient Mime TelnetClient
+USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client
 USER_MODULES = qlib/HttpServer.qm \
 	qlib/SmtpClient.qm \
 	qlib/Mime.qm \
-	qlib/TelnetClient.qm
+	qlib/TelnetClient.qm \
+	qlib/MailMessage.qm \
+	qlib/Pop3Client.qm
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC
@@ -403,7 +405,7 @@ dummy:
 	./next_build.sh
 
 if COND_DOXYGEN
-DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html
+DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html
 
 LIB_DOXYFILES = \
 	doxygen/lib/Doxyfile \
@@ -629,10 +631,14 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	doxygen/qlib/Mime.qm.dox.h \
 	doxygen/qlib/TelnetClient.qm.dox.h \
 	doxygen/qlib/SmtpClient.qm.dox.h \
+	doxygen/qlib/MailMessage.qm.dox.h \
+	doxygen/qlib/Pop3Client.qm.dox.h \
 	HttpServer.tag \
 	Mime.tag \
 	TelnetClient.tag \
-	SmtpClient.tag
+	SmtpClient.tag \
+	MailMessage.tag \
+	Pop3Client.tag
 
 lib/libqore.la: dummy
 	cd lib; make
@@ -663,6 +669,18 @@ doxygen/qlib/Doxyfile.SmtpClient: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/h
 doxygen/qlib/SmtpClient.qm.dox.h: qlib/SmtpClient.qm $(QDX)
 	$(QDX) $< $@
 
+doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
+	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm.dox.h -tMime.tag=../../Mime/html $< $@
+
+doxygen/qlib/MailMessage.qm.dox.h: qlib/MailMessage.qm $(QDX)
+	$(QDX) $< $@
+
+doxygen/qlib/Doxyfile.Pop3Client: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
+	$(QDX) -M=qlib/Pop3Client.qm:doxygen/qlib/Pop3Client.qm.dox.h -tMime.tag=../../Mime/html $< $@
+
+doxygen/qlib/Pop3Client.qm.dox.h: qlib/Pop3Client.qm $(QDX)
+	$(QDX) $< $@
+
 DX_CLEANFILES = $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
 
 docs/library/html: $(include_HEADERS) $(LIB_DOXYFILES)
@@ -687,6 +705,14 @@ docs/modules/TelnetClient/html: docs/lang/html doxygen/qlib/TelnetClient.qm.dox.
 docs/modules/SmtpClient/html: docs/lang/html doxygen/qlib/SmtpClient.qm.dox.h doxygen/qlib/Doxyfile.SmtpClient
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.SmtpClient
 	$(top_srcdir)/doxygen/pdox docs/modules/SmtpClient/html docs/modules/SmtpClient/html/search
+
+docs/modules/MailMessage/html: docs/lang/html doxygen/qlib/MailMessage.qm.dox.h doxygen/qlib/Doxyfile.MailMessage
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.MailMessage
+	$(top_srcdir)/doxygen/pdox docs/modules/MailMessage/html docs/modules/MailMessage/html/search
+
+docs/modules/Pop3Client/html: docs/lang/html doxygen/qlib/Pop3Client.qm.dox.h doxygen/qlib/Doxyfile.Pop3Client
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.Pop3Client
+	$(top_srcdir)/doxygen/pdox docs/modules/Pop3Client/html docs/modules/Pop3Client/html/search
 
 doxygen-doc: $(DOXYGEN_OUTPUT)
 

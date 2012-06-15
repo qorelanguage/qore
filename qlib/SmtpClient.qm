@@ -28,15 +28,19 @@
 # need mime definitions
 %requires Mime >= 1.0
 
+# need MailMessage classes
+%requires MailMessage >= 1.0
+
 module SmtpClient {
-    version = "1.0";
+    version = "1.1";
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
 }
 
 /*  Version History
-    * 1.0: David Nichols <david@qore.org>: updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + the bane of all developers: documentation :)
+    * 2012-06-14 v1.1: David Nichols <david@qore.org>: removed the Message and Attachment classes to the MailMessage module to be reused in the Pop3Client module
+    * 2012-05-21 v1.0: David Nichols <david@qore.org>: updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + the bane of all developers: documentation :)
 
     ritzinwo, 20090716
 
@@ -57,16 +61,17 @@ module SmtpClient {
     
     All the public symbols in the module are defined in the SmtpClient namespace
 
-    The main classes are:
-    - @ref SmtpClient::SmtpClient "SmtpClient": manages a connection to an SMTP server
-    - @ref SmtpClient::Message "Message": wraps a message to be sent via an @ref SmtpClient::SmtpClient "SmtpClient" object
-    - @ref SmtpClient::Attachment "Attachment": used to attach files to a @ref SmtpClient::Message "Message"
+    The main class is: @ref SmtpClient::SmtpClient "SmtpClient": manages a connection to an SMTP server
+
+    The following supporting classes are provided by the MailMessage module:
+    - MailMessage::Message: wraps a message to be sent via an @ref SmtpClient::SmtpClient "SmtpClient" object
+    - MailMessage::Attachment: used to attach files to a MailMessage::Message object
 
     @par Example:
     @code
 %requires SmtpClient
 
-my SmtpClient::Message $msg("The Sender <sender@email.com>", "My Subject");
+my MailMessage::Message $msg("The Sender <sender@email.com>", "My Subject");
 $msg.setBody($body);
 $msg.addTO("My Best Friend <you@friend.com>");
 $msg.attach($filename, MimeTypeText, $data);
@@ -79,544 +84,22 @@ $smtp.sendMessage($msg);@endcode
 #! the %SmtpClient namespace holds all public definitions in the %SmtpClient module
 /** This includes:
     - SmtpClient: manages a connection to an SMTP server
+
+    Note that the MailMessage module ("required" above) implements the following classes:
     - Message: wraps a message to be sent via an SmtpClient object
     - Attachment: used to attach files to a Message
 */
 public namespace SmtpClient {
-    /** @defgroup MessageEncodings Smtp Message Encodings
-     */
-    #@{
-    #! default content transfer encoding depending on attachment type
-    /** The default encodings are as follows per file type:
-        - text data: @ref EncQuotedPrintable
-        - binary data: @ref EncBase64
-     */
-    public const EncDefault = "default";
-
-    #! no content transfer encoding (not recommended as SMTP servers break up long lines automatically)
-    public const EncNone = "none";
-
-    #! base-64 content transfer encoding
-    public const EncBase64 = ContentTransEncBase64;
-
-    #! "quoted-printable" content transfer encoding
-    public const EncQuotedPrintable = ContentTransEncQuotedPrintable;
-
-    #! a list of all known content encoding schemes encodings
-    public const Encodings = (
-	EncDefault,
-	EncNone,
-	EncBase64,
-	EncQuotedPrintable,
-	);       
-    #@}
-
     #! 15 second read timeout
     public const DefaultReadTimeout = 15s;
 
     #! 30 second connect timeout
     public const DefaultConnectTimeout = 30s;
 
-    #! The %Message class holds the information for a single email %Message to be sent via an SmtpClient object
-    /** @par Example:
-        @code
-my SmtpClient::Message $msg("The Sender <sender@email.com>", "My Subject");
-$msg.setBody($body);
-$msg.addTO("My Best Friend <you@friend.com>");
-@endcode
-
-        Each message must have a body and at least one destination address before it can be sent.
-
-        Set the body text with:
-        - Message::setBody(): set/replace the message body
-        - Message::addBody(): or add a line to the body with 
- 
-        Add recipients with:
-        - Message::addTO()
-        - Message::addCC()
-        - Message::addBCC()
-
-        Each of the above methods takes email addresses like the sender address in Message::constructor()
-
-        To get a text summary of the Message; try:
-        - Message::toString(): returns a multi-line summary of the message for display purposes
-        - Message::toLine(): returns a single line summary of the message for display purposes
-        
-        Additional header lines (eg: \c "X-SPAM-Status: No") can be added with addHeader(string) or
-        set with setHeader()
-
-        For example, to set the messageid:
-        @code
-$m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
-
-        Other useful methods:
-        - attach(): add attachments
-        - important(): sets the given importance or returns the current setting (depending on the variant used)
-        - receiptDelivery(): sets the delivery receipt or returns the current setting (depending on the variant used)
-        - receiptRead(): sets the read receipt request or returns the setting (depending on the variant used)
-    */
-    public class Message {
-        #! @cond nodoc
-	private {
-	    # the sender
-	    string $.from;
-	    # subject is a header field
-	    string $.subject;
-
-	    # additional headers
-	    list $.headers = (); # list for additional headers except the ones below
-	    # message statuses
-	    bool $.importance = False;
-	    bool $.deliveryReceipt = False;
-	    bool $.readReceipt = False;
-
-	    # names
-	    #$.from; # will be prefilled (and overwritten) with the sender
-	    list $.to = (); # list of names for to (header only) will be prefilled (and overwritten) with the recipients
-	    list $.cc = (); # list of cc's
-	    list $.bcc = (); # list of bcc's
-
-	    # message data itself
-	    string $.messageData = "";
-
-	    # message body content transfer encoding
-	    string $.messageEncoding = EncDefault;
-
-	    list $.attachments = ();
-	    string $.sender;
-	}
-        #! @endcond
-
-	public {}
-
-	#! creates a Message to send in the SmtpClient
-	/** Use the Message::addTo() method to add message recipients
-
-	    @param sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
-	    @param subject the subject line for the email; the subject will be encoded with <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
-
-	    @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
-	 */
-	constructor(string $sender, string $subject) {
-	    my *string $se = Message::getEmailAddress($sender);
-	    if (!exists $se)
-		throw "MESSAGE-CONSTRUCTOR-ERROR", sprintf("cannot get email address out of: %y", $sender);
-
-	    # subject
-	    if ($subject.empty())
-		throw "MESSAGE-CONSTRUCTOR-ERROR", "subject must be not empty string";
-
-	    $.sender = $se;   # used for sending
-	    $.from = $sender; # used for displaying
-	    $.subject = $subject;
-	}
-
-	#! fetch the email address out of a sender/rcpt string
-	static *string getEmailAddress(string $str) {
-	    return ($str =~ x/([a-zA-Z0-9\-\._\+\ = ]+@[a-zA-Z0-9\-\._]+)/)[0];
-	}
-
-	#! returns @ref Qore::True "True" if the string contains an email address, @ref Qore::False "False" if not
-	static bool checkEmailAddress(string $str) {
-	    return !Message::getEmailAddress($str).empty();
-	}
-
-	#! add a recipient to the Message's recipient list
-	/** @param recipient the email address to send the message to
-	    @return the list of "To:" addresses
-
-	    @throw MESSAGE-ADDTO-ERROR the recipient's email address is invalid
-	*/
-	list addTO(string $recipient) {
-	    if (!Message::checkEmailAddress($recipient))
-		throw "MESSAGE-ADDTO-ERROR", sprintf("cannot determine email address in %y", $recipient);
-
-	    return $.to += $recipient;
-	}
-	
-	#! add a recipient to the Message's cc list
-	/** @param recipient the email address to send the message to (cc)
-	    @return the list of "CC:" addresses
-
-	    @throw MESSAGE-ADDCC-ERROR the recipient's email address is invalid
-	*/
-	list addCC(string $recipient) {
-	    if (!Message::checkEmailAddress($recipient))
-		throw "MESSAGE-ADDCC-ERROR", sprintf("cannot determine email address in %y", $recipient);
-
-	    return $.cc += $recipient;
-	}
-
-	#! add a recipient to the Message's bcc list
-	/** @param recipient the email address to send the message to (bcc)
-	    @return the list of "BCC:" addresses
-
-	    @throw MESSAGE-ADDBCC-ERROR the recipient's email address is invalid
-	 */
-	list addBCC(string $recipient) {
-	    if (!Message::checkEmailAddress($recipient))
-		throw "MESSAGE-ADDBCC-ERROR", sprintf("cannot determine email address in %y", $recipient);
-
-	    return $.bcc += $recipient;
-	}
-
-	#! returns the sender's address in display format
-	string getSender() {
-	    return $.from;
-	}
-
-	#! returns the sender's email address
-	string getFrom() {
-	    return $.sender;
-	}
-
-	#! returns the list of "To:" addresses
-	list getTO() {
-	    return $.to;
-	}
-
-	#! returns the list of "CC:" addresses
-	list getCC() {
-	    return $.cc;
-	}
-
-	#! returns the list of "BCC:" addresses
-	list getBCC() {
-	    return $.bcc;
-	}
-
-	#! returns the subject of the Message
-	string getSubject() {
-	    return $.subject;
-	}
-
-	#! return all the email addresses the message will be sent to, a combination of the "To:", "CC:", and "BCC:" lists
-	list getRecipients() {
-	    my list $recpt = ();
-	    foreach my string $e in ($.to + $.cc + $.bcc)
-		$recpt += $.getEmailAddress($e);
-	    return $recpt;
-	}
-
-	#! returns @ref Qore::True "True" if the message can be sent, @ref Qore::False "False" if not
-	/** To be able to send a message, there must be at least one recipient in the "To:" or the "CC:" or the "BCC:" lists
-	    and there must be a message body 
-
-	    @return @ref Qore::True "True" if the message can be sent, @ref Qore::False "False" if not
-
-            @see checkSendPossible()
-	 */
-	bool sendPossible() {
-	    if ($.to.empty() && $.cc.empty() && $.bcc.empty())
-		return False;
-
-	    return $.messageData.empty() ? False : True;
-	}
-
-	#! throw a \c MESSAGE-ERROR exception if the Message cannot be sent
-	/** To be able to send a message, there must be at least one recipient in the "To:" or the "CC:" or the "BCC:" lists
-	    and there must be a message body 
-
-            @see sendPossible()
-         */
-	checkSendPossible() {
-	    if ($.to.empty() && $.cc.empty() && $.bcc.empty())
-		throw "MESSAGE-ERROR", "the Message cannot be sent because there is no target address";
-	    
-	    if ($.messageData.empty())
-		throw "MESSAGE-ERROR", "the Message cannot be sent because there is no message body set";
-	}
-
-	#! sets or replaces the Message body
-	/** @param str the Message body to set
-	    @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
-
-	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
-	 */
-	setBody(string $str, string $enc = EncDefault) {
-	    $.messageEncoding = SmtpClient::checkEncoding($str, $enc, True);
-	    $.messageData = $str;
-	}
-
-	#! concatenates a string to the message body
-	/** @param str the string to concatenate to the Message body
-	 */
-	addBody(string $str) {
-	    $.messageData += $str;
-	}
-
-	#! returns the Message body
-	string getBody() {
-	    return $.messageData;
-	}
-
-	#! returns the transfer encoding for the mssage body (see @ref MessageEncodings for possible values)
-	string getBodyTransferEncoding() {
-	    return $.messageEncoding;
-	}
-
-	#! sets/replaces the list of Message headers
-	/** @param hdr the list of Message headers to set
-	    
-	    @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
-         */
-	setHeader(softlist $hdr) {
-	    $.headers = $hdr;
-	}
-
-	#! adds a header to the Message
-	/** @param hdr a header to add to the Message
-	    
-	    @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
-	 */
-	addHeader(string $hdr) {
-	    push $.headers, $hdr;
-	}
-
-	#! returns the current user header list
-	list getHeader() {
-	    return $.headers;
-	}
-
-	#! returns the current importance setting
-	/** if this is @ref Qore::True "True", then the following headers will be sent:
-	    - \c Importance: high
-	    - \c X-Priority: 1
-	    - \c Priority: Urgent
-	 */
-	bool important() {
-	    return $.importance;
-	}
-
-	#! sets the importance setting
-	/** if this is @ref Qore::True "True", then the following headers will be sent:
-	    - \c Importance: high
-	    - \c X-Priority: 1
-	    - \c Priority: Urgent
-	 */
-	important(softbool $i) {
-	    $.importance = $i;
-	}
-
-	#! returns the current read delivery receipt setting
-	/** if this is @ref Qore::True "True", then the following header will be sent:
-	    - \c Return-Receipt-To: <sender's email address>
-	  */
-	bool receiptRead() {
-	    return $.deliveryReceipt;
-	}
-
-	#! sets the read delivery receipt setting
-	/** if this is @ref Qore::True "True", then the following header will be sent:
-	    - \c Return-Receipt-To: <sender's email address>
-	  */
-	receiptRead(bool $arg) {
-	    $.deliveryReceipt = $arg;
-	}
-
-	#! returns the delivery receipt setting
-	/** if this is @ref Qore::True "True", then the following header will be sent:
-	    - \c Disposition-Notification-To: <sender's email address>
-	  */
-	bool receiptDelivery() {
-	    return $.readReceipt;
-	}
-
-	#! sets the delivery receipt setting
-	/** if this is @ref Qore::True "True", then the following header will be sent:
-	    - \c Disposition-Notification-To: <sender's email address>
-	  */
-	receiptDelivery(bool $arg) {
-	    $.readReceipt = $arg;
-	}
-
-	#! creates an attachment for the Message
-	/** @param name the name of the attachment to be displayed in the message, normally a file name without any path
-	    @param mime the mime type for the message
-	    @param att the attachment itself
-	    @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
-
-	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
-	    @throw INVALID-ENCODING the encoding given cannot be used with data given
-	 */
-	attach(string $name, string $mime, data $att, string $enc = EncDefault) {
-	    $.attachments += new SmtpClient::Attachment($name, $mime, $att, $enc);
-	}
-
-	#! adds an Attachment to the Message
-	/** @param att the Attachment to add to the Message
-	  */
-	attach(Attachment $att) {
-	    $.attachments += $att;
-	}
-
-	#! returns a list of Attachment objects for the Message
-	list getAttachments() {
-	    return $.attachments;
-	}
-
-	#! returns a multi-line string representing the Message
-	/** @param body if @ref Qore::True "True" the Message body will be included in the string output
-	 */
-	string toString(bool $body = False) {
-	    my list $attarr = ();
-	    foreach my Attachment $att in ($.attachments)
-		$attarr += sprintf("%s (%s,%d)", $att.getName(), $att.getMime(), $att.getData().size());
-
-	    # sending envelope: from, to, subject
-	    my list $env = $.getEnvelopeList();
-
-	    # the main string
-	    my string $str = sprintf("Message (%s)\n", $.sendPossible() ? "ok": "unfinished");
-
-	    # from/to/subject
-	    foreach my string $l in ($env)
-		$str += "  " + trim($l) + "\n";
-
-	    # important or not...
-	    $str += sprintf("%s%s%s",
-			    $.important() ? "  Important\n": "",
-			    $.receiptDelivery() ? "  ReceiptDelivery\n": "",
-			    $.receiptRead() ? "  ReceiptRead\n": "");
-
-	    # add headers
-	    foreach my string $l in ($.headers)
-		$str += "  " + trim($l) + "\n";
-
-	    # add attachments
-	    if (elements $attarr) {
-		$str += "  Attachments:\n";
-		foreach my $l in ($attarr) {
-		    $str += "    " + trim($l) + "\n";
-		}
-	    }
-	    
-	    # the user wants to see the body also...
-	    if ($body)
-		$str += "--\n" + trim($.messageData) + "\n";
-
-	    return $str;
-	}
-
-	#! returns a single line string summarizing the Message
-	/** @return a single line string summarizing the Message
-	 */
-	string toLine() {
-	    # attachments
-	    my list $attarr = ();
-	    foreach my Attachment $att in ($.attachments)
-		$attarr += sprintf("%s (%s,%d)", $att.getName(), $att.getMime(), $att.getData().size());
-
-	    # sending envelope: from, to, subject
-	    my list $env = $.getEnvelopeList();
-
-	    # the main string
-	    my string $str = sprintf("[Message (%s), %s, %simportant, %sdelivery, %sread",
-			 $.sendPossible()? "ok": "unfinished",
-			 join(", ", $env),
-			 $.important()? "": "not ",
-			 $.receiptDelivery()? "": "not ",
-			 $.receiptRead()? "": "not "
-		);
-	    # add headers
-	    if (elements $.headers)
-		$str += sprintf(", %s", join(", ", $.headers));
-
-	    # add attachments
-	    if (elements $attarr)
-		$str += sprintf(", %s", join(", ", $attarr));
-
-	    $str += "]";
-
-	    return $str;
-	}
-
-        #! @cond nodoc
-	private list getEnvelopeList() {
-	    my list $env = (sprintf("Sender: '%s'", $.from), sprintf("Subject: '%s'", $.subject));
-	    # add To addresses
-	    map $env += sprintf("To: %s", $1), $.to;
-	    # add CC addresses
-	    map $env += sprintf("CC: %s", $1), $.cc;
-	    # add BCC addresses
-	    map $env += sprintf("BCC: %s", $1), $.bcc;
-	    return $env;
-	}
-        #! @endcond
-    }
-
-    #! class representing an Attachment for the Message
-    /** this class wraps all the data for the attachment, including:
-        - the attachment's name; ie the file name which will be shown
-	- the mime type which will be sent (ex: @ref MimeTypeJpeg ie \c "image/jpeg")
-	- the data for the attachment; either binary object or as str
-	- the encoding type for the attachment
-
-	@par Example:
-	@code
-my File $f();
-$f.open2("file.jpg");
-my Attachment $att("file.jpg", MimeTypeJpeg, $f.readBinary(-1));
-$f.close();
-$msg.addAttachment($att);
-        @endcode
-    */
-    class Attachment {
-        #! @cond nodoc
-	private {
-	    string $.name;
-	    string $.mime;
-	    data $.data;
-	    #! content-transfer encoding
-	    string $.enc;
-	}
-        #! @endcond
-
-	# no public members
-	public {}
-
-	#! creates an Attachment object for a Message object
-	/** @param name the name of the attachment to be displayed in the message, normally a file name without any path
-	    @param mime the mime type for the message
-	    @param data the attachment data itself
-	    @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
-
-	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
-	    @throw INVALID-ENCODING the encoding given cannot be used with data given
-	 */
-	constructor(string $name, string $mime, data $data, string $enc = EncDefault) {
-	    $.name = $name;
-	    $.mime = $mime;
-	    $.data = $data;
-
-	    $.enc = SmtpClient::checkEncoding($data, $enc);
-	}
-
-	#! returns the name of the Attachment
-	string getName() {
-	    return $.name;
-	}
-
-	#! returns the mime type of the Attachment
-	string getMime() {
-	    return $.mime;
-	}
-
-	#! returns the data of the Attachment
-	data getData() {
-	    return $.data;
-	}
-
-	#! returns the encoding of the Attachment
-	string getEncoding() {
-	    return $.enc;
-	}
-
-        #! adds itself to a multipart/mixed message
-        add(MultiPartMixedMessage $mpm) {
-            $mpm.addEncodePart($.data, $.enc, $.mime, sprintf("attachment; filename=%y", $.name));
-        }
-    }
+    #! for backwards-compatibility and convenience
+    public class Message inherits MailMessage::Message;
+    #! for backwards-compatibility only
+    public class Attachment inherits MailMessage::Attachment;
 
     #! the class that's used to communicate with an SMTP server
     /** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and its internal configuration, 
@@ -809,82 +292,6 @@ $msg.addAttachment($att);
             return milliseconds($.connectTimeout);
         }
 
-	#! returns a string of message data according to the encoding passed
-        /** @param data the data to encode
-            @param enc the encoding type for the data (see @ref MessageEncodings for possible values)
-            @param hdr a reference to a hash for header information
-
-            @throw ENCODE-TRANSFER-DATA-ERROR unknown encoding passed
-         */
-	static string encodeTransferData(data $data, string $enc, reference $hdr) {
-	    switch ($enc) {
-		case EncBase64: {
-		    $hdr."Content-Transfer-Encoding" = $enc;
-                    return mime_encode_base64($data, 72);
-                }
-
-		case EncNone:
-                    return $data;
-
-		case EncQuotedPrintable: {
-		    $hdr."Content-Transfer-Encoding" = $enc;
-                    return mime_encode_quoted_printable($data);
-                }
-	    }
-
-            throw "ENCODE-TRANSFER-DATA-ERROR", sprintf("unknown Content-Transfer-Encoding: %y", $enc);
-	}
-
-	#! returns a string of message data according to the encoding passed
-	static string encodeData(data $data, string $mime, string $disp, string $enc) {
-	    my string $str = sprintf("Content-Type: %s\r\nContent-Disposition: %s\r\n", $mime, $disp);
-	    switch ($enc) {
-		case EncBase64: {
-		    $str += "Content-Transfer-Encoding: base64\r\n\r\n";
-		    $str += mime_encode_base64($data, 72);
-		    $str += "\r\n";
-		    break;
-		}
-		case EncNone: {
-		    $str += "\r\n";
-		    $str += $data;
-		    $str += "\r\n";
-		    break;
-		}
-		case EncQuotedPrintable: {
-		    $str += sprintf("Content-Transfer-Encoding: quoted-printable\r\n\r\n");
-		    $str += mime_encode_quoted_printable($data);
-		    $str += "\r\n";
-		    break;
-		}
-	    }
-
-	    return $str;
-	}
-
-	#! checks the data against the encoding and returns the new encoding (if the encoding is @ref EncDefault for example)
-	/** @param data the data to be encoded
-	    @param enc the encoding type for the data (see @ref MessageEncodings for possible values)
-            @param noneok if this argument is True, then @ref EncNone may be given as an argument
-
-	    @return the new encoding to use in case the input data was @ref EncDefault
-
-	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
-	    @throw INVALID-ENCODING the encoding given cannot be used with data given
-	 */
-	static string checkEncoding(data $data, string $enc, bool $noneok = False) {
-	    if ($enc == EncDefault)
-		$enc = $data.typeCode() == NT_STRING ? EncQuotedPrintable : EncBase64; 
-            else if (!$noneok && $enc == EncNone)
-                throw "INVALID-ENCODING", "\"none\" may not be used; a valid encoding is required in this context";
-	    else if (!inlist($enc, Encodings))
-		throw "UNKNOWN-ENCODING", sprintf("%y is not a known encoding; known encodings: %y", $enc, Encodings);
-            else if ($data.typeCode() == NT_BINARY && $enc == EncNone)
-		throw "INVALID-ENCODING", sprintf("%y cannot be used with binary data", $enc);
-
-	    return $enc;
-	}
-
 	#! send a Message to the server
 	/** @param message the Message to send
 
@@ -896,7 +303,7 @@ $msg.addAttachment($att);
 
             @note This method is subject to thread serialization
 	 */
-	hash sendMessage(SmtpClient::Message $message) {
+	hash sendMessage(MailMessage::Message $message) {
 	    if (!$message.sendPossible())
 		throw "ARGUMENT-EXCEPTION", "Message is not ready to be sent";
 
@@ -919,19 +326,19 @@ $msg.addAttachment($att);
                 my bool $multipart = !$atts.empty();
 
 		# see if we need to send a MIME msg: multipart message or need body encoding
-                my bool $mime = $multipart || $be != SmtpClient::EncNone;
+                my bool $mime = $multipart || $be != MailMessage::EncNone;
 
                 if ($mime) {
                     my MultiPartMixedMessage $mpm($.mpboundary);
 
-                    if ($be == SmtpClient::EncNone)
+                    if ($be == MailMessage::EncNone)
                         $be = ContentTransEnc7Bit;
 
                     # add the message body
                     $mpm.addEncodePart($message.getBody(), $be, MimeTypeText, "inline");
                    
                     # add attachments
-                    foreach my SmtpClient::Attachment $att in ($atts)
+                    foreach my MailMessage::Attachment $att in ($atts)
                         $att.add($mpm);
 
                     $.sendData($mpm.serialize());
@@ -1094,7 +501,7 @@ $msg.addAttachment($att);
 
         # sends the message header (without body & attachments) to the SMTP server
         # don't reimplement this method; fix/enhance it in the module
-        final private hash sendMessageHeaderIntern(SmtpClient::Message $message) {
+        final private hash sendMessageHeaderIntern(MailMessage::Message $message) {
 	    # open connection to server
 	    if (!$.isConnected()) {
 		$.connectIntern();
@@ -1177,8 +584,9 @@ $msg.addAttachment($att);
 		$.sendData("Disposition-Notification-To: %s\r\n", $message.getSender());
 
 	    # additional headers
-	    foreach my string $hdr in ($message.getHeader())
-		$.sendData(trim($hdr)+"\r\n");
+            my hash $hdrs = $message.getHeaders();
+	    foreach my string $k in (keys $hdrs)
+		$.sendData(sprintf("%s: %s\r\n", $k, $hdrs.$k);
 
 	    return $reply;
 	}

@@ -28,6 +28,9 @@
 # need mime definitions
 %requires Mime >= 1.0
 
+# need MailMessage classes
+%requires MailMessage >= 1.0
+
 module Pop3Client {
     version = "1.0";
     desc = "POP3 client support module";
@@ -209,33 +212,59 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
             $.connectIntern();
         }
 
-        getMail() {
+        #! returns a hash of mail messages keyed by message ID or @ref nothing if no messages are available on the server
+        /** @return a hash of mail messages keyed by message ID or @ref nothing if no messages are available on the server; the value of each hash key will have the following keys:
+            - \c size: the original raw message size in bytes
+            - \c msg: a MailMessage::Message object representing the message and any attachments
+         */
+        *hash getMail() {
 	    my AutoLock $am($.mutex);
             if (!$.isConnected())
                 $.connectIntern();
 
-            my string $r = $.sendCommand("STAT");
-            my (softint $num, softint $size) = ($r =~ x/\+OK ([0-9]+) ([0-9]+)/);
-            $.logDbg("messages: %d total size: %d bytes", $num, $size);
+            my hash $mih = $.listIntern();
+            if ($mih.empty())
+                return;
 
-            my list $l = $.sendCommandMulti("LIST");
-            # ignore first line (status line)
-            shift $l;
-            # message info hash
-            my hash $mih;
-            foreach my string $ml in ($l) {
-                my (string $id, softint $size) = ($ml =~ x/^([0-9]+) ([0-9]+)/);
-                $mih.$id.size = $size;
-            }
-
-            #$.logDbg("messages: %N", $mih);
             # retrieve messages
             foreach my string $id in (keys $mih) {
                 $.log("retrieving msg %s (%d bytes)", $id, $mih.$id.size);
-                my date $start = now_us();
-                $mih.$id.msg = $.sendCommandMultiStr("RETR %s", $id);
-                $.log("got msg %s (%d bytes) in %y", $id, $mih.$id.size, now_us() - $start);
+                $mih.$id.msg = $.retrIntern($id);
             }
+
+            return $mih;
+        }
+
+        #! returns a hash with status information from the \c "STAT" command (<a href="http://tools.ietf.org/html/rfc1939#page-6">http://tools.ietf.org/html/rfc1939#page-6</a>)
+        /** if the object is not already connected, then a connection is made and authenticated to place the connection in the \c "TRANSACTION" state before executing the POP3 command
+
+            @return a hash with status information from the \c "STAT" command with the following keys:
+            - \c num: the number of messages available
+            - \c size: the size of data available in bytes
+
+             @note This method is subject to thread serialization
+         */
+        hash stat() {
+	    my AutoLock $am($.mutex);
+            if (!$.isConnected())
+                $.connectIntern();
+
+            return $.statIntern();
+        }
+
+        #! returns a hash with message information from the \c "LIST" command (<a href="http://tools.ietf.org/html/rfc1939#page-6">http://tools.ietf.org/html/rfc1939#page-6</a>)
+        /** if the object is not already connected, then a connection is made and authenticated to place the connection in the \c "TRANSACTION" state before executing the POP3 command
+
+             @return a hash with message information from the \c "LIST" command, where each hash key is a unique message ID, and the value of each key is a hash with a single key: \c "size", giving the size of the message in bytes
+
+             @note This method is subject to thread serialization
+         */
+        hash list() {
+	    my AutoLock $am($.mutex);
+            if (!$.isConnected())
+                $.connectIntern();
+
+            return $.listIntern();
         }
 
 	#! return connection status
@@ -300,6 +329,40 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
 	    }
         }
 
+        # don't reimplement this method; fix/enhance it in the module
+        final private MailMessage::Message retrIntern(softstring $id) {
+            my date $start = now_us();
+            my string $msg = $.sendCommandMultiStr("RETR %s", $id);
+            $.log("got msg %s (%d bytes) in %y", $id, $msg.size(), now_us() - $start);
+            return new MailMessage::Message($msg);
+        }
+
+        # don't reimplement this method; fix/enhance it in the module
+        final private hash statIntern() {
+            my string $r = $.sendCommand("STAT");
+            my (softint $num, softint $size) = ($r =~ x/\+OK ([0-9]+) ([0-9]+)/);
+            $.logDbg("messages: %d total size: %d bytes", $num, $size);
+            return (
+                "num": $num,
+                "size": $size,
+                );
+        }
+
+        # don't reimplement this method; fix/enhance it in the module
+        final private hash listIntern() {
+            my list $l = $.sendCommandMulti("LIST");
+            # ignore first line (status line)
+            shift $l;
+            # message info hash
+            my hash $mih;
+            foreach my string $ml in ($l) {
+                my (string $id, softint $size) = ($ml =~ x/^([0-9]+) ([0-9]+)/);
+                $mih.$id.size = $size;
+            }
+            #$.logDbg("messages: %y", $mih);
+            return $mih;
+        }
+
 	# read a line from the socket (terminated with \n)
 	private string readLine(timeout $to) {
 	    my string $str;
@@ -314,7 +377,7 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
 
   	# gets a trimmed one-line response from the server, throws an exception if an error response is received
         # don't reimplement this method; fix/enhance it in the module
-        private final string getResponse() {
+        final private string getResponse() {
             my string $r = $.readLine($.readTimeout);
             trim $r;
             $.logDbg("read: %y", $r.size() ? $r : "EOF");
@@ -325,7 +388,7 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
 
   	# gets a trimmed multi-line response from the server, throws an exception if an error response is received
         # don't reimplement this method; fix/enhance it in the module
-        private final list getResponseMulti() {
+        final private list getResponseMulti() {
             my list $l = ();
             $l += $.getResponse();
             while (True) {
@@ -342,7 +405,7 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
   	# gets a multi-line response from the server, throws an exception if an error response is received
         # does not include the first line in the response
         # don't reimplement this method; fix/enhance it in the module
-        private final string getResponseMultiStr() {
+        final private string getResponseMultiStr() {
             $.getResponse();
             my string $rv;
             while (True) {
@@ -373,7 +436,7 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
 	}
 
         # don't reimplement this method; fix/enhance it in the module
-        private final sendCommandIntern(string $str) {
+        final private sendCommandIntern(string $str) {
 	    if ($.log_debug.val())
 		$.logDbg("send: %y", trim($str));
 
@@ -381,21 +444,21 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         }
 
         # don't reimplement this method; fix/enhance it in the module
-        private final list sendCommandMulti(string $str) {
+        final private list sendCommandMulti(string $str) {
             $str = vsprintf($str + "\r\n", $argv);
             $.sendCommandIntern($str);
             return $.getResponseMulti();
         }
 
         # don't reimplement this method; fix/enhance it in the module
-        private final string sendCommandMultiStr(string $str) {
+        final private string sendCommandMultiStr(string $str) {
             $str = vsprintf($str + "\r\n", $argv);
             $.sendCommandIntern($str);
             return $.getResponseMultiStr();
         }
 
         # don't reimplement this method; fix/enhance it in the module
-        private final string sendCommand(string $str) {
+        final private string sendCommand(string $str) {
             $str = vsprintf($str + "\r\n", $argv);
             $.sendCommandIntern($str);
             return $.getResponse();
@@ -414,9 +477,8 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
             # try to login with APOP if an RFC822-compliant msg-id is included in the last part of the login string
             my *string $apop = ($r =~ x/(<.*>)$/)[0];
             if ($apop.val()) {
-                # make APOP secret
-                my string $secret = $apop + $.pass;
-                $.sendCommand("APOP %s %s", $.user, $secret.toMD5());
+                # send APOP command with APOP secret
+                $.sendCommand("APOP %s %s", $.user, ($apop + $.pass).toMD5());
                 $.log("logged in with APOP as %y", $.user);
             }
             else {
