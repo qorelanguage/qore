@@ -98,7 +98,211 @@ my list $l = $bin.split($sep);
     @endcode
 
     @note equivalent to split(binary, binary)
+
+    @since %Qore 0.8.5
  */
 list <binary>::split(binary sep) [flags=CONSTANT] {
    return split_intern((const char*)sep->getPtr(), sep->size(), (const char*)b->getPtr(), b->size(), 0);
+}
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a> of the binary data as a hex string
+/** The trailing null character is not included in the digest returned.
+
+    @return a hex string of the digest (ex: \c "5d41402abc4b2a76b9719d911017c592")
+
+    @par Example:
+    @code
+my string $str = binary("hello").toMD5(); # returns "5d41402abc4b2a76b9719d911017c592"
+    @endcode
+
+    @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @note
+    - equivalent to MD5()
+    - the MD5 algorithm is not collision-resistant; it's recommended to use another hash algorithm (like SHA-256) if cryptographic security is important
+
+    @see
+    - MD5_bin()
+    - <string>::toMD5()
+
+    @since %Qore 0.8.5
+ */
+string <binary>::toMD5() [flags=RET_VALUE_ONLY] {
+   DigestHelper dh(*b);
+   if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
+      return 0;
+
+   return dh.getString();
+}
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the binary data as a hex string
+/** The trailing null character is not included in the digest returned.
+
+    @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
+
+    @par Example:
+    @code
+my string $str = binary("hello").toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    @endcode
+
+    @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @note equivalent to SHA1()
+
+    @see
+    - SHA1_bin()
+    - <string>::toSHA1()
+
+    @since %Qore 0.8.5
+ */
+string <binary>::toSHA1() [flags=RET_VALUE_ONLY] {
+   DigestHelper dh(*b);
+   if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
+      return 0;
+
+   return dh.getString();
+}
+
+//! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the binary data as a hex string
+/** The trailing null character is not included in the digest returned.
+
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_SHA224
+
+    @return a hex string of the digest (ex: \c "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193")
+
+    @par Example:
+    @code
+my string $str = binary("hello").toSHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
+    @endcode
+
+    @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @note equivalent to SHA224()
+
+    @see
+    - SHA224_bin()
+    - <string>::toSHA224()
+
+    @since %Qore 0.8.5
+ */
+string <binary>::toSHA224() [flags=RET_VALUE_ONLY] {
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh(*b);
+   if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
+      return 0;
+
+   return dh.getString();
+#else
+   missing_openssl_feature("SHA224", xsink);
+   return 0;
+#endif
+}
+
+//! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the binary data as a hex string
+/** The trailing null character is not included in the digest returned.
+
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_SHA256
+
+    @return a hex string of the digest (ex: \c "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
+
+    @par Example:
+    @code
+my string $str = binary("hello").toSHA256(); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+    @endcode
+
+    @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @note equivalent to SHA256()
+
+    @see
+    - SHA256_bin()
+    - <string>::toSHA256()
+
+    @since %Qore 0.8.5
+ */
+string <binary>::toSHA256() [flags=RET_VALUE_ONLY] {
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh(*b);
+   if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
+      return 0;
+
+   return dh.getString();
+#else
+   missing_openssl_feature("SHA256", xsink);
+   return 0;
+#endif
+}
+
+//! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the binary data as a hex string
+/** The trailing null character is not included in the digest returned.
+
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_SHA384
+
+    @return a hex string of the digest (ex: \c "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f")
+
+    @par Example:
+    @code
+my string $str = binary("hello").toSHA384(); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
+    @endcode
+
+    @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @note equivalent to SHA384()
+
+    @see
+    - SHA384_bin()
+    - <string>::toSHA384()
+
+    @since %Qore 0.8.5
+ */
+string <binary>::toSHA384() [flags=RET_VALUE_ONLY] {
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh(*b);
+   if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
+      return 0;
+
+   return dh.getString();
+#else
+   missing_openssl_feature("SHA384", xsink);
+   return 0;
+#endif
+}
+
+//! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the binary data as a hex string
+/** The trailing null character is not included in the digest returned.
+
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_SHA512
+
+    @return a hex string of the digest (ex: \c "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043")
+
+    @par Example:
+    @code
+my string $str = binary("hello").toSHA512(); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
+    @endcode
+
+    @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @note equivalent to SHA512()
+
+    @see
+    - SHA512_bin()
+    - <string>::toSHA512()
+
+    @since %Qore 0.8.5
+ */
+string <binary>::toSHA512() [flags=RET_VALUE_ONLY] {
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh(*b);
+   if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
+      return 0;
+
+   return dh.getString();
+#else
+   missing_openssl_feature("SHA512", xsink);
+   return 0;
+#endif
 }

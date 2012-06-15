@@ -95,6 +95,8 @@ my any $e = $l.first();
     @endcode
 
     @see <list>::last()
+
+    @since %Qore 0.8.5
  */
 any <list>::first() [flags=CONSTANT] {
    return l->get_referenced_entry(0);
@@ -109,6 +111,8 @@ my any $e = $l.last();
     @endcode
 
     @see <list>::first()
+
+    @since %Qore 0.8.5
  */
 any <list>::last() [flags=CONSTANT] {
    return l->get_referenced_entry((qore_size_t)(l->size() - 1));
@@ -129,8 +133,9 @@ my string $str = ("a", "b", "c").join(":"); # returns "a:b:c"
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
 
     @note equivalent to join(string, list)
+
+    @since %Qore 0.8.5
  */
 string <list>::join(string str) [flags=RET_VALUE_ONLY] {
    return join_intern(str, l, 0, xsink);
 }
-

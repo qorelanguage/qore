@@ -412,11 +412,11 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
 
             # AUTHORIZATION state - now log in
             # try to login with APOP if an RFC822-compliant msg-id is included in the last part of the login string
-            my *string $apop = ($r =~ x/<(.*)>$/)[0];
+            my *string $apop = ($r =~ x/(<.*>)$/)[0];
             if ($apop.val()) {
                 # make APOP secret
                 my string $secret = $apop + $.pass;
-                $.sendCommand("APOP %s %s", $.user, $secret);
+                $.sendCommand("APOP %s %s", $.user, $secret.toMD5());
                 $.log("logged in with APOP as %y", $.user);
             }
             else {

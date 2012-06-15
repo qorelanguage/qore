@@ -254,7 +254,7 @@ my binary $bin = blowfish_encrypt_cbc($data, $key);
     @throw BLOWFISH-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("BLOWFISH-ENCRYPT-PARAM-ERROR", args, xsink)
@@ -279,7 +279,7 @@ my binary $bin = blowfish_decrypt_cbc($data, $key);
     @throw BLOWFISH-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary blowfish_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary blowfish_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", args, xsink)
@@ -307,7 +307,7 @@ my string $str = blowfish_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string blowfish_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) {
+string blowfish_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", args, xsink, true)
@@ -333,7 +333,7 @@ my binary $bin = des_encrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
@@ -360,7 +360,7 @@ my binary $bin = des_decrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -390,7 +390,7 @@ my string $bin = des_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) {
+string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
@@ -417,7 +417,7 @@ my binary $bin = des_ede_encrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
@@ -444,7 +444,7 @@ my binary $bin = des_ede_decrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -474,7 +474,7 @@ my string $bin = des_ede_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) {
+string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
@@ -501,7 +501,7 @@ my binary $bin = des_ede3_encrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
@@ -528,7 +528,7 @@ my binary $bin = des_ede3_decrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -558,7 +558,7 @@ my string $bin = des_ede3_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) {
+string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
@@ -585,7 +585,7 @@ my binary $bin = desx_encrypt_cbc($data, $key);
     @throw DESX-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DESX-ENCRYPT-PARAM-ERROR", args, xsink) 
@@ -612,7 +612,7 @@ my binary $bin = desx_decrypt_cbc($data, $key);
     @throw DESX-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -642,7 +642,7 @@ my string $str = desx_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) {
+string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink, true)
@@ -668,7 +668,7 @@ my binary $bin = rc4_encrypt($data, $key);
     @throw RC4-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC4-ENCRYPT-PARAM-ERROR", args, xsink)
@@ -693,7 +693,7 @@ my binary $bin = rc4_decrypt($data, $key);
     @throw RC4-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary rc4_decrypt(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary rc4_decrypt(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC4-DECRYPT-PARAM-ERROR", args, xsink)
@@ -721,7 +721,7 @@ my string $str = rc4_decrypt_to_string($encrypted_data, $key, NOTHING, "iso-8859
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) {
+string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC4-DECRYPT-PARAM-ERROR", args, xsink, true)
@@ -746,7 +746,7 @@ my binary $bin = rc2_encrypt_cbc($data, $key);
     @throw RC2-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC2-ENCRYPT-PARAM-ERROR", args, xsink)
@@ -771,7 +771,7 @@ my binary $bin = rc2_decrypt_cbc($data, $key);
     @throw RC2-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary rc2_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary rc2_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC2-DECRYPT-PARAM-ERROR", args, xsink)
@@ -799,7 +799,7 @@ my string $str = rc2_decrypt_cbc_to_string($data, $key);
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) {
+string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC2-DECRYPT-PARAM-ERROR", args, xsink, true)
@@ -824,7 +824,7 @@ my binary $bin = cast5_encrypt_cbc($data, $key);
     @throw CAST5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("CAST5-ENCRYPT-PARAM-ERROR", args, xsink)
@@ -849,7 +849,7 @@ my binary $bin = cast5_decrypt_cbc($data, $key);
     @throw CAST5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary cast5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary cast5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("CAST5-DECRYPT-PARAM-ERROR", args, xsink)
@@ -877,7 +877,7 @@ my string $bin = cast5_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1")
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) {
+string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
    if (ch.setSingleKey("CAST5-DECRYPT-PARAM-ERROR", args, xsink, true)
@@ -905,7 +905,7 @@ my binary $bin = rc2_encrypt_cbc($data, $key);
     @throw RC5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
 #ifndef OPENSSL_NO_RC5
    CryptoHelper ch;
 
@@ -938,7 +938,7 @@ my binary $bin = rc2_decrypt_cbc($data, $key);
     @throw RC5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) {
+binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
 #ifndef OPENSSL_NO_RC5
    CryptoHelper ch;
 
@@ -974,7 +974,7 @@ my string $str = rc2_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) {
+string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
 #ifndef OPENSSL_NO_RC5
    CryptoHelper ch;
 
@@ -1035,7 +1035,7 @@ my string $str = MD4("hello"); # returns "866437cb7a794bce2b727acc0362ee27"
 
     @see MD4_bin()
  */
-string MD4(data[doc] data) {
+string MD4(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD4_ERR, EVP_md4(), xsink))
       return 0;
@@ -1056,9 +1056,13 @@ my string $str = MD5("hello"); # returns "5d41402abc4b2a76b9719d911017c592"
 
     @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
 
+    @note
+    - equivalent to <string>::toMD5()
+    - the MD5 algorithm is not collision-resistant; it's recommended to use another hash algorithm (like SHA-256) if cryptographic security is important
+
     @see MD5_bin()
  */
-string MD5(data[doc] data) {
+string MD5(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
       return 0;
@@ -1082,7 +1086,7 @@ my string $str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152
 
     @see SHA_bin()
  */
-string SHA(data[doc] data) {
+string SHA(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA_ERR, EVP_sha(), xsink))
       return 0;
@@ -1103,9 +1107,11 @@ my string $str = SHA1("hello"); # "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
 
     @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
 
+    @note equivalent to <string>::toSHA1()
+
     @see SHA1_bin()
  */
-string SHA1(data[doc] data) {
+string SHA1(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
       return 0;
@@ -1129,9 +1135,11 @@ my string $str = SHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bf
 
     @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
 
+    @note equivalent to <string>::toSHA224()
+
     @see SHA224_bin()
  */
-string SHA224(data[doc] data) {
+string SHA224(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
@@ -1160,9 +1168,11 @@ my string $str = SHA256("hello"); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b1
 
     @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
 
+    @note equivalent to <string>::toSHA256()
+
     @see SHA256_bin()
  */
-string SHA256(data[doc] data) {
+string SHA256(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
@@ -1191,9 +1201,11 @@ my string $str = SHA384("hello"); # returns "59e1748777448c69de6b800d7a33bbfb9ff
 
     @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
 
+    @note equivalent to <string>::toSHA384()
+
     @see SHA384_bin()
  */
-string SHA384(data[doc] data) {
+string SHA384(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
@@ -1222,9 +1234,11 @@ my string $str = SHA512("hello"); # returns "9b71d224bd62f3785d96d46ad3ea3d73319
 
     @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
 
+    @note equivalent to <string>::toSHA512()
+
     @see SHA512_bin()
  */
-string SHA512(data[doc] data) {
+string SHA512(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
@@ -1254,7 +1268,7 @@ my string $str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea943
 
     @note this digest algorithm is considered outdated and is included for backwards-compatibility
  */
-string DSS(data[doc] data) {
+string DSS(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return 0;
@@ -1279,7 +1293,7 @@ my string $str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea94
 
     @note this digest algorithm is considered outdated and is included for backwards-compatibility
  */
-string DSS1(data[doc] data) {
+string DSS1(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return 0;
@@ -1305,7 +1319,7 @@ my string $str = MDC2("hello"); # returns "4517036cf97b2407d6fe22aa5ab878a3"
 
     @see MDC2_bin()
  */
-string MDC2(data[doc] data) {
+string MDC2(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifndef OPENSSL_NO_MDC2
    DigestHelper dh(args);
    if (dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
@@ -1333,7 +1347,7 @@ my string $str = RIPEMD160("hello"); # returns "108f07b8382412612c048d07d13f8141
 
     @see RIPEMD160_bin()
  */
-string RIPEMD160(data[doc] data) {
+string RIPEMD160(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
       return 0;
@@ -1359,7 +1373,7 @@ my binary $bin = MD2_bin("hello");
 
     @see MD2()
  */
-binary MD2_bin(data[doc] data) {
+binary MD2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    DigestHelper dh(args);
    if (dh.doDigest(MD2_ERR, EVP_md2(), xsink))
@@ -1387,7 +1401,7 @@ my binary $bin = MD4_bin("hello");
 
     @see MD4()
  */
-binary MD4_bin(data[doc] data) {
+binary MD4_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD4_ERR, EVP_md4(), xsink))
       return 0;
@@ -1410,7 +1424,7 @@ my binary $bin = MD5_bin("hello");
 
     @see MD5()
  */
-binary MD5_bin(data[doc] data) {
+binary MD5_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
       return 0;
@@ -1434,7 +1448,7 @@ my binary $bin = SHA_bin("hello");
 
     @see SHA()
  */
-binary SHA_bin(data[doc] data) {
+binary SHA_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA_ERR, EVP_sha(), xsink))
       return 0;
@@ -1457,7 +1471,7 @@ my binary $bin = SHA1_bin("hello");
 
     @see SHA1()
  */
-binary SHA1_bin(data[doc] data) {
+binary SHA1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
       return 0;
@@ -1483,7 +1497,7 @@ my binary $bin = SHA224_bin("hello");
 
     @see SHA224()
  */
-binary SHA224_bin(data[doc] data) {
+binary SHA224_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
@@ -1514,7 +1528,7 @@ my binary $bin = SHA256_bin("hello");
 
     @see SHA256()
  */
-binary SHA256_bin(data[doc] data) {
+binary SHA256_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
@@ -1545,7 +1559,7 @@ my binary $bin = SHA384_bin("hello");
 
     @see SHA384()
  */
-binary SHA384_bin(data[doc] data) {
+binary SHA384_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
@@ -1576,7 +1590,7 @@ my binary $bin = SHA512_bin("hello");
 
     @see SHA512()
  */
-binary SHA512_bin(data[doc] data) {
+binary SHA512_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
@@ -1606,7 +1620,7 @@ my binary $bin = DSS_bin("hello");
 
     @note this digest algorithm is considered outdated and is included for backwards-compatibility
  */
-binary DSS_bin(data[doc] data) {
+binary DSS_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return 0;
@@ -1631,7 +1645,7 @@ my binary $bin = DSS1_bin("hello");
 
     @note this digest algorithm is considered outdated and is included for backwards-compatibility
  */
-binary DSS1_bin(data[doc] data) {
+binary DSS1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return 0;
@@ -1657,7 +1671,7 @@ my binary $bin = MDC2_bin("hello");
 
     @see MDC2_bin()
  */
-binary MDC2_bin(data[doc] data) {
+binary MDC2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifndef OPENSSL_NO_MDC2
    DigestHelper dh(args);
    if (dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
@@ -1685,7 +1699,7 @@ my binary $bin = RIPEMD160_bin("hello");
 
     @see RIPEMD160()
  */
-binary RIPEMD160_binary(data[doc] data) {
+binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
       return 0;
@@ -1701,7 +1715,7 @@ binary RIPEMD160_binary(data[doc] data) {
 my binary $bin = des_random_key();
     @endcode
  */
-binary des_random_key() [flags=CONSTANT] {
+binary des_random_key() [flags=CONSTANT] [flags=CONSTANT] {
    DES_cblock *db = (DES_cblock *)malloc(sizeof(DES_cblock));
    DES_random_key(db);
    return new BinaryNode(db, sizeof(DES_cblock));

@@ -37,18 +37,23 @@ protected:
    unsigned char *input;
    size_t input_len;
 
-   DLLLOCAL void setInput(const AbstractQoreNode *pt) {
-      if (pt->getType() == NT_STRING) {
-	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(pt);
-	 input = (unsigned char *)str->getBuffer();
-	 input_len = str->strlen();
-	 return;
-      }
-      assert(pt->getType() == NT_BINARY);
+   DLLLOCAL void setInput(const QoreStringNode& str) {
+      input = (unsigned char *)str.getBuffer();
+      input_len = str.strlen();
+   }
 
-      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(pt);
-      input = (unsigned char *)b->getPtr();
-      input_len = b->size();
+   DLLLOCAL void setInput(const BinaryNode& b) {
+      input = (unsigned char *)b.getPtr();
+      input_len = b.size();
+   }
+
+   DLLLOCAL void setInput(const AbstractQoreNode *pt) {
+      if (pt->getType() == NT_STRING)
+         setInput(*reinterpret_cast<const QoreStringNode *>(pt));
+      else {
+         assert(pt->getType() == NT_BINARY);
+         setInput(*reinterpret_cast<const BinaryNode *>(pt));
+      }
    }
 };
 
@@ -60,6 +65,14 @@ private:
 public:
    DLLLOCAL DigestHelper(const QoreListNode *params) {
       setInput(get_param(params, 0));
+   }
+
+   DLLLOCAL DigestHelper(const QoreStringNode& str) {
+      setInput(str);
+   }
+
+   DLLLOCAL DigestHelper(const BinaryNode& b) {
+      setInput(b);
    }
 
    DLLLOCAL DigestHelper(const void* buf, size_t len) {
