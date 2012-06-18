@@ -461,7 +461,7 @@ public namespace Mime {
 
 	@note this function is basically just a wrapper for the standard %Qore function parseBase64StringtoString()
      */
-    public binary sub mime_decode_base64_to_string(data $str, *string $encoding) {
+    public string sub mime_decode_base64_to_string(data $str, *string $encoding) {
 	return parseBase64StringToString($str, $encoding);
     }
 
@@ -540,9 +540,9 @@ public namespace Mime {
 
         if ($data.typeCode() == NT_STRING) {
             # see if there is a character encoding specification in the content-type
-            my *string $enc = ($ct =~ x/charset="?([^"]+)"?/)[0];
-            if (exists $enc)
-                $data = force_encoding($data, $enc);
+            my *string $senc = ($ct =~ x/charset="?([^"]+)"?/)[0];
+            if (exists $senc)
+                $data = force_encoding($data, $senc);
         }
 
         return $data;

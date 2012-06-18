@@ -1121,12 +1121,14 @@ QoreModuleDefContext* get_module_def_context() {
 
 void ModuleContextNamespaceList::clear() {
    for (mcnl_t::iterator i = begin(), e = end(); i != e; ++i)
-      delete (*i).nns;      
+      delete (*i).nns;
+   mcnl_t::clear();
 }
 
 void ModuleContextFunctionList::clear() {
    for (mcfl_t::iterator i = begin(), e = end(); i != e; ++i)
       (*i).v->deref();
+   mcfl_t::clear();
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {
