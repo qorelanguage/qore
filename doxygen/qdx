@@ -186,6 +186,7 @@ class qdx {
 
 	    line =~ s/__1_/[/g;
             line =~ s/__2_/]/g;
+            line =~ s/__3_/*/g;
 	    line =~ s/__4_/./g;
 	    line =~ s/__5_/-/g;
 	    line =~ s/__6_//g;
