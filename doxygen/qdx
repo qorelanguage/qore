@@ -13,6 +13,7 @@ const opts = (
     "tag": "t,tag=s",
     "tex": "x,posttex",          # use TeX syntax for "post" processing
     "dox": "d,dox",
+    "nmp": "N,no-mainpage",
     "help": "h,help"
     );
 
@@ -77,6 +78,7 @@ class qdx {
       printf("usage: %s [options] <infile> <outfile>
   -d,--dox            process doxygen files
   -M,--module-dx=ARG  prepare doxyfile module template; ARG=<src>:<trg>
+  -N,--no-mainpage    change @mainpage to @page
   -p,--post           post process files
   -t,--tag=ARG        tag argument for doxyfile
   -h,--help           this help text
@@ -282,6 +284,9 @@ class qdx {
             #line =~ s/\$/__6_/g;
             #line =~ s/\$//g;
 
+            if (o.nmp)
+                line =~ s/@mainpage ([\w]+)/@page $1 $1/;
+
 	    if (in_doc) {
 		if (line =~ /\*\//)
 		    in_doc = False;
@@ -334,6 +339,7 @@ class qdx {
 
                 # make into a declaration (also remove any parent class constructor calls)
                 line =~ s/[[:blank:]]*([^:]:[^:].*)?{[[:blank:]]*$/;/;
+
                 # read until closing curly bracket '}'
                 readUntilCloseBracket(inf);
             }
@@ -361,10 +367,12 @@ class qdx {
 		}
 		trim(xl[0]);
 		line = xl[0] + " : " + join(",", xl[1]) + xl[2] + "\n";
+
+                # add {} to any inline empty class declaration
                 if (line =~ /;[ \t]*/) #/)
                     line =~ s/;[ \t]*/ {};/; #/;# this comment is only needed for emacs' broken qore-mode :(
 
-		#printf("x=%n line=%s\n", xl, line);
+		#printf("x: %y line: %y\n", xl, line);
 		#of.print(line);
 		#continue;
 	    }
@@ -399,10 +407,14 @@ class qdx {
 		    if (cbc)
 			throw "ERROR", sprintf("class found but cbc=%d\nline=%n\n", cbc, line);
 
-		    if (line =~ /{/ && line !~ /}/) {
-			line += "\npublic:\n";
-			++cbc;
-		    }
+		    if (line =~ /{/) {
+                        if (line !~ /}/) {
+                            line += "\npublic:\n";
+                            ++cbc;
+                        }
+                        else
+                            delete class_name;                            
+                    }
 		    
 		    of.print(line);
 		    continue;
@@ -497,12 +509,22 @@ class qdx {
         int cnt = 1;
         string quote;
         bool need = True;
+        int regex = 0;
         string c;
         while (True) {
             if (need)
                 c = inf.read(1);
             else
                 need = True;
+
+            if (regex) {
+                if (c == "\\")
+                    inf.read(1);
+                if (c == "/")
+                    --regex;
+                continue;
+            }
+            
             #printf("%s", c);
             if (c == "'" || c == '"') {
                 if (quote.val()) {
@@ -518,6 +540,21 @@ class qdx {
                     inf.read(1);
                 continue;
             }
+            if (c == "!" || c == "=") {
+                c = inf.read(1);
+                if (c == "~") {
+                    regex = 1;
+                    while (True) {
+                        c = inf.read(1);
+                        if (c == "s")
+                            ++regex;
+                        else if (c == "/")
+                            break;
+                    }
+                }
+                continue;
+            }
+
             if (c == "{")
                 ++cnt;
             else if (c == "}") {

@@ -412,7 +412,29 @@ struct NSNode {
    }
 
    DLLLOCAL void deref() {
-      assert(false);
+      switch (type) {
+         case NSN_OCD:
+            delete n.ocd;
+            break;
+         case NSN_CONST:
+            delete n.cn;
+            break;
+         case NSN_NS:
+            delete n.ns;
+            break;
+         case NSN_FUNC:
+            delete n.func;
+            break;
+         case NSN_SFUNC:
+            delete n.sfunc;
+            break;
+         case NSN_VAR:
+            delete n.gv;
+            break;
+         default:
+            assert(false);
+            // no break
+      }
       delete this;
    }
 

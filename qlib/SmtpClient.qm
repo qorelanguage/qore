@@ -70,11 +70,12 @@ module SmtpClient {
     @par Example:
     @code
 %requires SmtpClient
+%requires Mime
 
 my MailMessage::Message $msg("The Sender <sender@email.com>", "My Subject");
 $msg.setBody($body);
 $msg.addTO("My Best Friend <you@friend.com>");
-$msg.attach($filename, MimeTypeText, $data);
+$msg.attach($filename, Mime::MimeTypeText, $data);
 
 my code $log = sub (string str) {printf("%y: %s\n", now_us(), str);}
 my SmtpClient::SmtpClient $smtp("smtp.example.com", $log, $log);
@@ -586,7 +587,7 @@ public namespace SmtpClient {
 	    # additional headers
             my hash $hdrs = $message.getHeaders();
 	    foreach my string $k in (keys $hdrs)
-		$.sendData(sprintf("%s: %s\r\n", $k, $hdrs.$k);
+		$.sendData("%s: %s\r\n", $k, $hdrs.$k);
 
 	    return $reply;
 	}

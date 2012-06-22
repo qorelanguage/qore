@@ -43,7 +43,7 @@ module MailMessage {
 
     The %MailMessage module provides the MailMessage class for representing represents an email message.  This module is used by the SmtpClient and Pop3Client modules.
 
-    To use this module, use \c "%requires MailMessage" in your code.  See the SmtpClient and Pop2Client modules for examples of Qore code using this module
+    To use this module, use \c "%requires MailMessage" in your code.  See the SmtpClient and Pop3Client modules for examples of Qore code using this module
     
     All the public symbols in the module are defined in the MailMessage namespace
 
