@@ -83,10 +83,9 @@ static void do_call_name(QoreString &desc, const QoreFunction* func) {
 }
 
 static void addArgs(QoreStringNode &desc, const QoreListNode* args) {
-   if (!args || !args->size()) {
-      desc.concat(NO_TYPE_INFO);
+   if (!args || !args->size())
       return;
-   }   
+
    for (unsigned i = 0; i < args->size(); ++i) {
       const AbstractQoreNode* n = args->retrieve_entry(i);
       if (is_nothing(n))
@@ -573,7 +572,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
 	    }
 	 }
       }
-      // if we have a useable match, then do not search base classes
+      // if we have a usable match, then do not search base classes
       if (variant)
 	 break;
    }

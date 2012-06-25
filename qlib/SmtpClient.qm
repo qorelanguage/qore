@@ -98,9 +98,22 @@ public namespace SmtpClient {
     public const DefaultConnectTimeout = 30s;
 
     #! for backwards-compatibility and convenience
-    public class Message inherits MailMessage::Message;
+    public class Message inherits MailMessage::Message {
+	#! creates a Message object from the arguments given; this variant of the constructor is designed to be used to create a Message object for sending with the SmtpClient class
+	/** Use the Message::addTo() method to add message recipients
+
+	    @param sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
+	    @param subject the subject line for the email; the subject will be encoded with <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
+
+	    @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
+	 */
+	constructor(string $sender, string $subject) : MailMessage::Message($sender, $subject) {
+        }
+    }
+
     #! for backwards-compatibility only
-    public class Attachment inherits MailMessage::Attachment;
+    public class Attachment inherits MailMessage::Attachment {
+    }
 
     #! the class that's used to communicate with an SMTP server
     /** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and its internal configuration, 
@@ -540,7 +553,7 @@ public namespace SmtpClient {
 	    if ($rh.code >= 500)
 		throw "SMTP-DATA-EXCEPTION", sprintf("error sending FROM command: %y", $rh);
 
-	    # send receipient
+	    # send recipient
 	    foreach my string $rcpt in ($message.getRecipients()) {
 		$rh = $.sendCommand("RCPT TO: <%s>", $rcpt);
 		$reply.RCPT.$rcpt = $rh;
@@ -553,41 +566,7 @@ public namespace SmtpClient {
 	    if ($rh.code != 354)
 		throw "SMTP-DATA-EXCEPTION", sprintf("error sending DATA command (expected code 354): %y", $rh);
 
-	    # From: (sender)
-	    $.sendData("From: %s\r\n", $message.getSender());
-
-	    # To:
-	    foreach my string $l in ($message.getTO())
-		$.sendData("To: %s\r\n", $l);
-
-	    # CC:
-	    foreach my string $l in ($message.getCC())
-		$.sendData("CC: %s\r\n", $l);
-
-	    # BCC:
-	    foreach my $l in ($message.getBCC())
-		$.sendData("BCC: %s\r\n", $l);
-
-	    # add the subject - use "QP" encoding to ensure correct transmission & display of special characters through all SMTP servers
-	    $.sendData("Subject: %s\r\n", Mime::mime_encode_header_word_q($message.getSubject()));
-
-	    # importance
-	    if ($message.important()) {
-		$.sendData("Importance: high\r\n");
-		$.sendData("X-Priority: 1\r\n");
-		$.sendData("Priority: Urgent\r\n");
-	    }
-
-	    if ($message.receiptRead())
-		$.sendData("Return-Receipt-To: %s\r\n", $message.getSender());
-
-	    if ($message.receiptDelivery())
-		$.sendData("Disposition-Notification-To: %s\r\n", $message.getSender());
-
-	    # additional headers
-            my hash $hdrs = $message.getHeaders();
-	    foreach my string $k in (keys $hdrs)
-		$.sendData("%s: %s\r\n", $k, $hdrs.$k);
+            $.sendData($message.getHeaderString());
 
 	    return $reply;
 	}

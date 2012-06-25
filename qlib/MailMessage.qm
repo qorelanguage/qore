@@ -217,8 +217,43 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 		    $ct = $h.firstValue();
 		else if ($lk == "content-transfer-encoding")
 		    $cte = $h.firstValue();
+                else if ($lk == "from") {
+                    $.from = $h.firstValue();
+                    continue;
+                }
+                else if ($lk == "to") {
+                    $.to += $h.firstValue();
+                    continue;
+                }
+                else if ($lk == "cc") {
+                    $.cc += $h.firstValue();
+                    continue;
+                }
+                else if ($lk == "bcc") {
+                    $.bcc += $h.firstValue();
+                    continue;
+                }
+                else if ($lk == "subject") {
+                    $.subject = $h.firstValue();
+                    continue;
+                }
+                else if (($lk == "importance" && $h.firstValue() =~ /^high$/i)
+                         || ($lk =~ /^(x-)?priority$/ && $h.firstValue() =~ /^urgent$/i)) {
+                    $.importance = True;
+                    continue;
+                }
+                else if ($lk == "return-receipt-to") {
+                    # FIXME: we do not check if the return receipt is the same as the sender
+                    $.deliveryReceipt = True;
+                    continue;
+                }
+                else if ($lk == "Disposition-Notification-To") {
+                    # FIXME: we do not check if the read receipt is the same as the sender
+                    $.readReceipt = True;
+                    continue;
+                }
 
-		$.addHeader($hdr);
+                $.headers += $h;
 	    }
 
 	    #printf("got %d headers: %N\n", $.headers.size(), $.headers);
@@ -274,7 +309,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 		    # if it's a normal boundary, then remove the \r\n characters only
 		    if ($mmsg =~ /^\r\n/)
 			splice $mmsg, 0, 2;
-		    else
+		    else if ($mmsg.size())
 			throw "MESSAGE-PARSE-ERROR", sprintf("expecting \\r\\n after boundary; got: %y", extract $mmsg, 2);
 
 		    # get the headers for the part
@@ -519,12 +554,13 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
 	#! parses the given string representing a header line and returns a single key - value hash for the header
 	/** @param hdr a string representing a single line in a Message header
-	    
+	    @param decode decode any Q or B encoded header words (<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>)
+
 	    @return a single key - value hash for the header
 
 	    @throw HEADER-ERROR no ':' separator character found in header, no key or value found
 	 */
-	static hash parseHeader(string $hdr) {
+	static hash parseHeader(string $hdr, bool $decode = True) {
 	    trim $hdr;
 	    my int $i = $hdr.find(":");
 	    if ($i == -1)
@@ -533,7 +569,11 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 		throw "HEADER-ERROR", sprintf("no header name found in header: %y", $hdr);
 	    if ($i == ($hdr.size() - 1))
 		throw "HEADER-ERROR", sprintf("no header value found in header: %y", $hdr);
-	    my hash $rv.($hdr.substr(0, $i)) = trim($hdr.substr($i + 1));
+
+            my string $val = trim($hdr.substr($i + 1));
+            if ($decode)
+                $val = mime_decode_header($val);
+	    my hash $rv.($hdr.substr(0, $i)) = $val;
 	    return $rv;
 	}
 
@@ -545,7 +585,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
          */
 	setHeader(string $hdr) {
-	    $.headers = $.parseHeader($hdr);
+	    $.headers = $.parseHeader($hdr, False);
 	}
 
 	#! sets/replaces the list of Message headers
@@ -557,7 +597,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
          */
 	setHeader(list $hdrs) {
 	    $.headers = hash();
-	    map $.headers += $.parseHeader($1), $hdrs;
+	    map $.headers += $.parseHeader($1. False), $hdrs;
 	}
 
 	#! sets/replaces the list of Message headers
@@ -575,7 +615,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
 	 */
 	addHeader(string $hdr) {	    
-	    $.headers += $.parseHeader($hdr);
+	    $.headers += $.parseHeader($hdr, False);
 	}
 
 	#! adds a header to the Message
@@ -584,7 +624,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
 	 */
 	addHeader(list $hdrs) {
-	    $.headers += map $.parseHeader($1), $hdrs;
+	    $.headers += map $.parseHeader($1, False), $hdrs;
 	}
 
 	#! adds a header to the Message
@@ -690,6 +730,61 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	list getParts() {
 	    return $.parts;
 	}
+
+        #! encodes a header value according to the parameters
+        /** @param hdr the header to encode (ex: \c "Subject")
+            @param val the value to encode
+            @param eol the End-Of-Line marker for the string
+            @param encode encode non-ASCII values with quoted printable encoding (http://tools.ietf.org/html/rfc2047)
+
+            @return a header string (ex: \c "Subject: =?UTF-8?Q?testing?=\r\n")
+         */
+        static string doHeaderValue(string $hdr, string $val, string $eol = "\r\n", bool $encode = True) {
+            if ($encode && $val =~ /[^\x{80}-\x{ff}]/)
+                $val = mime_encode_header_word_q($val);
+            return sprintf("%s: %s%s", $hdr, $val, $eol);
+        }
+
+        #! returns a string of the message headers
+        /** @param eol the End-Of-Line marker for the string
+            @param encode encode non-ASCII values with quoted printable encoding (http://tools.ietf.org/html/rfc2047)
+
+            @return a string with all the message headers separated by the EOL marker
+         */
+        string getHeaderString(string $eol = "\r\n", bool $encode = True) {
+            my string $hdr = Message::doHeaderValue("From", $.from, $eol, $encode);
+
+	    # To:
+	    foreach my string $l in ($.to)
+                $hdr += Message::doHeaderValue("To", $l, $eol, $encode);
+
+	    # CC:
+	    foreach my string $l in ($.cc)
+                $hdr += Message::doHeaderValue("CC", $l, $eol, $encode);
+
+	    # BCC:
+	    foreach my string $l in ($.bcc)
+		$hdr += Message::doHeaderValue("BCC", $l, $eol, $encode);
+
+	    # add the subject - use "QP" encoding to ensure correct transmission & display of special characters through all SMTP servers
+	    $hdr += Message::doHeaderValue("Subject", $.subject, $eol, $encode);
+
+	    # importance
+	    if ($.importance)
+		$hdr += sprintf("Importance: high%sX-Priority: 1%sPriority: Urgent%s", $eol, $eol, $eol);
+
+	    if ($.deliveryReceipt)
+		$hdr += Message::doHeaderValue("Return-Receipt-To", $.from, $eol, $encode);
+
+	    if ($.readReceipt)
+		$hdr += Message::doHeaderValue("Disposition-Notification-To", $.from, $eol, $encode);
+
+	    # additional headers
+	    foreach my string $k in (keys $.headers)
+		$hdr += Message::doHeaderValue($k, $.headers.$k, $eol, $encode);
+
+            return $hdr;
+        }
 
 	#! returns a multi-line string representing the Message
 	/** @param body if @ref Qore::True "True" the Message body will be included in the string output
@@ -910,6 +1005,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    $.name = $name;
 	    $.mime = $mime;
 	    $.data = $data;
+            $.enc = $enc;
 	    $.headers = $hdr;
 	}
         #! @endcond

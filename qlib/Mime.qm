@@ -434,12 +434,12 @@ public namespace Mime {
 
     #! returns a string in "B" ("BASE64") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
     public string sub mime_encode_header_word_b(string $str) {
-	return makeBase64String(sprintf("=?%s?B?%s?=", get_encoding($str), $str, MimeBase64LineLen));
+	return sprintf("=?%s?B?%s?=", get_encoding($str), makeBase64String($str, MimeBase64LineLen));
     }
 
     #! returns a string in "Q" ("quoted-printable") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
     public string sub mime_encode_header_word_q(string $str) {
-	return mime_encode_quoted_printable(sprintf("=?%s?Q?%s?=", get_encoding($str), $str), True);
+	return sprintf("=?%s?Q?%s?=", get_encoding($str), mime_encode_quoted_printable($str), True);
     }
     #@}
 
@@ -546,6 +546,22 @@ public namespace Mime {
         }
 
         return $data;
+    }
+
+    #! decodes a header string; if any part of the string is encoded with "B" ("BASE64") or "Q" ("quoted-printable") encodings according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>, then those parts are decoded and the decoded string is returned
+    /** @param data the header value string to decode
+        @return the decoded value of the header
+     */
+    public string sub mime_decode_header(string $hdr) {
+        while (True) {
+            my (*string $enc, *string $he, *string $hw) = ($hdr =~ x/=\?([^?]+)\?(Q|B)\?(.+)\?=/i);
+            if (!$enc.val() || !$he.val() || !$hw.val())
+                break;
+            my string $dv = $he.upr() == "Q" ? mime_decode_quoted_printable($hw, $enc) : mime_decode_base64_to_string($hw, $enc);
+            my string $os = sprintf("=?%s?%s?%s?=", $enc, $he, $hw);
+            $hdr = replace($hdr, $os, $dv);
+        }
+        return $hdr;
     }
     #@}
     

@@ -80,12 +80,27 @@ class pop3 {
 	    *hash h = pop3.getMail();
 	    foreach string k in (keys h) {
 		Message msg = h{k}.msg;
-		# save message body
-		saveFile(k, "body", msg.getBody());
+		# save message body with headers
+		string body = msg.getHeaderString("\n", False);
+		body += "\n";
+		*data mb = msg.getBody();
+		if (mb.typeCode() == NT_BINARY) {
+		    saveFile(k, "headers", body);
+		    saveFile(k, "body", mb);
+		}
+		else {
+		    if (mb.empty())
+			body += "<empty message body>\n";
+		    else
+			body += mb;
+		    saveFile(k, "headers+body", body);
+		}
+
 		# save attachments
 		foreach Attachment att in (msg.getAttachments()) {
 		    saveFile(k, att.getName(), att.getData());
 		}
+
 		# save other parts as alternative message body representations
 		int c = 0;
 		foreach Part p in (msg.getParts()) {
@@ -95,6 +110,7 @@ class pop3 {
 	}
 	catch (hash ex) {
 	    printf("%s: %s\n", ex.err, ex.desc);
+	    rethrow;
 	}
     }
 
