@@ -150,7 +150,12 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    # message body content transfer encoding
 	    string $.bodyEncoding = EncDefault;
 
+            # list of Attachments
 	    list $.attachments = ();
+
+            # list of Parts that are not Attachments (and not the main Message body - could be alternative representations of the body, for example)
+            list $.parts = ();
+
 	    string $.sender;
 	}
         #! @endcond
@@ -257,12 +262,13 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 		    # remove boundary for next part
 		    splice $mmsg, 0, $b.size();
 
-		    # if this is a termination boundary, then stop looking for parts
+                    # "break at end" flag
+                    my bool $bae = False;
+
+		    # if this is a termination boundary, then exit after processing this part
 		    if ($mmsg =~ /^--\r\n/) {
 			splice $mmsg, 0, 4;
-			# add any remaining text to the message body text
-			$msg += $mmsg;
-			break;
+                        $bae = True;
 		    }
 			
 		    # if it's a normal boundary, then remove the \r\n characters only
@@ -298,7 +304,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 			else if ($lk == "content-type")
 			    $pct = $val.lwr();
 			else if ($lk == "content-disposition")
-			    $pct = $val;
+			    $pcd = $val;
 
 			#printf("got header: %y\n", $h);
 			$ph += $h;
@@ -307,19 +313,8 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 		    # get the part's body
 		    my data $pb = mime_decode_transfer_data($part, $pcte, $pct);
 
-		    #printf("DBG: got part: pcte: %y pct: %y body: %d bytes: %y\n", $pcte, $pct, $pb.size(), $pb);
-
-		    # if not an attachment, then set as the msg body
-		    if ($pcd !~ /attachment/i) {
-			$.body = $pb;
-			continue;
-		    }
-
-		    # get the part's name
-		    my string $pn = ($pcd =~ x/filename="?([^"]+)"?/)[0];
-		    # generate a name for the part if no filename is available
-		    if (!exists $pn)
-			$pn = "unnamed-attachment-" + $pnum;
+		    # get the part's name if possible
+		    my *string $pn = ($pcd =~ x/filename="?([^"]+)"?/)[0];
 
 		    # get the content type
 		    # strip off any additional information from the content-type
@@ -327,15 +322,40 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 		    if ($ct.empty())
 			$ct = MimeTypeUnknown;
 
-		    ++$pnum;
+		    #printf("DBG: got part: pcte: %y pct: %y pcd: %y body: %d bytes: %y\n", $pcte, $pct, $pcd, $pb.size(), $pb);
+
+		    # if not an attachment, then set as the msg body
+		    if ($pcd !~ /attachment/i) {
+                        if (!$.body.val())
+                            $.body = $pb;
+                        else                            
+                            $.parts += new Part($pn.val() ? $pn : "", $ct, $pb, $pcte, $ph);
+		    }
+                    else {
+                        # generate a name for the part if no filename is available
+                        if (!$pn.val())
+                            $pn = "unnamed-attachment-" + $pnum;
+
+                        ++$pnum;
 		    
-		    $.attach(new Attachment($pn, $ct, $pb, $pcte, $ph));
-		}
+                        $.attachments += new Attachment($pn, $ct, $pb, $pcte, $ph);
+                    }
+                    if ($bae) {
+			# add any remaining text to the message body text
+                        $msg += $mmsg;
+			break;
+                    }
+                }
 	    }
 
 	    # assign the message body to what's left of the message, if anything
-	    if ($msg.val() && $.body.empty())
-		$.body = mime_decode_transfer_data($msg, $cte, $ct);
+	    if ($msg.val()) {
+                my data $pb = mime_decode_transfer_data($msg, $cte, $ct);
+                if ($.body.empty())
+                    $.body = $pb;
+                else
+                    $.parts += new Part("", $ct.val() ? $ct : MimeTypeUnknown, $pb, $cte);
+            }
 	}
 
 	#! fetch the email address out of a sender/rcpt string
@@ -649,6 +669,13 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    return $.attachments;
 	}
 
+	#! returns a list of non-attachment Part objects for the Message
+        /** these could represent alternative representations of the message body, for example
+         */
+	list getParts() {
+	    return $.attachments;
+	}
+
 	#! returns a multi-line string representing the Message
 	/** @param body if @ref Qore::True "True" the Message body will be included in the string output
 	 */
@@ -832,23 +859,17 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         #! @endcond
     }
 
-    #! class representing an Attachment for the Message
-    /** this class wraps all the data for the attachment, including:
-        - the attachment's name; ie the file name which will be shown
-	- the mime type which will be sent (ex: @ref MimeTypeJpeg ie \c "image/jpeg")
-	- the data for the attachment; either binary object or as str
+    #! class representing a non-Attachment part of a Message
+    /** this class wraps all the data for the Part, including:
+        - the part's name if any is known or can be derived
+	- the mime type of the Part (ex: @ref MimeTypeJpeg ie \c "image/jpeg")
+	- the data for the Part; either binary object or as a string
 	- the encoding type for the attachment
-
-	@par Example:
-	@code
-my File $f();
-$f.open2("file.jpg");
-my Attachment $att("file.jpg", MimeTypeJpeg, $f.readBinary(-1));
-$f.close();
-$msg.attach($att);
-        @endcode
     */
-    public class Attachment {
+    class Part {
+	# no public members
+	public {}
+
         #! @cond nodoc
 	private {
 	    string $.name;
@@ -859,29 +880,15 @@ $msg.attach($att);
 	    # any extra headers for the message
 	    *hash $.headers;
 	}
-        #! @endcond
 
-	# no public members
-	public {}
-
-	#! creates an Attachment object for a Message object
-	/** @param name the name of the attachment to be displayed in the message, normally a file name without any path
-	    @param mime the mime type for the message
-	    @param data the attachment data itself
-	    @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
-	    @param hdr optional headers for the MIME part for the attachment
-
-	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
-	    @throw INVALID-ENCODING the encoding given cannot be used with data given
-	 */
+        # will only be called internally when parsing a Message
 	constructor(string $name, string $mime, data $data, string $enc = EncDefault, *hash $hdr) {
 	    $.name = $name;
 	    $.mime = $mime;
 	    $.data = $data;
 	    $.headers = $hdr;
-
-	    $.enc = Message::checkEncoding($data, $enc);
 	}
+        #! @endcond
 
 	#! returns the name of the Attachment
 	string getName() {
@@ -912,5 +919,40 @@ $msg.attach($att);
         add(MultiPartMixedMessage $mpm) {
             $mpm.addEncodePart($.data, $.enc, $.mime, sprintf("attachment; filename=%y", $.name));
         }
+    }
+
+    #! class representing an Attachment for the Message
+    /** this class wraps all the data for the attachment, including:
+        - the attachment's name; ie the file name which will be shown
+	- the mime type of the Attachment (ex: @ref MimeTypeJpeg ie \c "image/jpeg")
+	- the data for the attachment; either binary object or as a string
+	- the encoding type for the attachment
+
+	@par Example:
+	@code
+my File $f();
+$f.open2("file.jpg");
+my Attachment $att("file.jpg", MimeTypeJpeg, $f.readBinary(-1));
+$f.close();
+$msg.attach($att);
+        @endcode
+    */
+    public class Attachment inherits Part {
+	# no public members
+	public {}
+
+	#! creates an Attachment object for a Message object
+	/** @param name the name of the attachment to be displayed in the message, normally a file name without any path
+	    @param mime the mime type for the message
+	    @param data the attachment data itself
+	    @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
+	    @param hdr optional headers for the MIME part for the attachment
+
+	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
+	    @throw INVALID-ENCODING the encoding given cannot be used with data given
+	 */
+	constructor(string $name, string $mime, data $data, string $enc = EncDefault, *hash $hdr) : Part($name, $mime, $data, $enc, $hdr) {
+	    $.enc = Message::checkEncoding($data, $enc);
+	}
     }
 }

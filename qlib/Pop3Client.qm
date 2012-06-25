@@ -346,8 +346,10 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         final private MailMessage::Message retrIntern(softstring $id) {
             my date $start = now_us();
             my string $msg = $.sendCommandMultiStr("RETR %s", $id);
-            $.log("got msg %s (%d bytes) in %y", $id, $msg.size(), now_us() - $start);
-            return new MailMessage::Message($msg);
+            my Message $mmsg = new MailMessage::Message($msg);
+            my int $na = $mmsg.getAttachments().size();
+            $.log("got msg %s (%d bytes, %d attachment%s) in %y", $id, $msg.size(), $na, $na == 1 ? "" : "s", now_us() - $start);
+            return $mmsg;
         }
 
         # don't reimplement this method; fix/enhance it in the module
