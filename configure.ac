@@ -447,9 +447,15 @@ set_zlib_cppflags() {
 find_zlib() {
     dir="$1"
     if test -z "$dir" -o "$dir" = "/"; then
-        dir=/
-	lib=/lib
-	inc=/usr/include
+        if test -h /lib${LIBSUFFIX}; then
+            dir=/usr
+            lib=/usr/lib${LIBSUFFIX}
+            inc=/usr/include
+        else
+	    dir=/
+	    lib=/lib${LIBSUFFIX}
+	    inc=/usr/include
+        fi
     else
         lib="$dir/lib${LIBSUFFIX}"
         inc="$dir/include"
@@ -538,9 +544,15 @@ set_pcre_cppflags() {
 find_pcre() {
     dir="$1"
     if test -z "$dir" -o "$dir" = "/"; then
-        dir="/"
-	lib=/lib
-	inc=/usr/include
+        if test -h /lib${LIBSUFFIX}; then
+            dir=/usr
+            lib=/usr/lib${LIBSUFFIX}
+            inc=/usr/include
+        else
+	    dir="/"
+	    lib=/lib${LIBSUFFIX}
+	    inc=/usr/include
+        fi
     else
         lib="$dir/lib${LIBSUFFIX}"
         inc="$dir/include"
@@ -624,9 +636,15 @@ set_bz2lib_cppflags() {
 find_bz2lib() {
     dir="$1"
     if test -z "$dir" -o "$dir" = "/"; then
-        dir="/"
-	lib=/lib
-	inc=/usr/include
+        if test -h /lib${LIBSUFFIX}; then
+            dir=/usr
+            lib=/usr/lib${LIBSUFFIX}
+            inc=/usr/include
+        else
+	    dir="/"
+	    lib=/lib${LIBSUFFIX}
+	    inc=/usr/include
+	fi
     else
         lib="$dir/lib${LIBSUFFIX}"
         inc="$dir/include"
@@ -696,9 +714,15 @@ set_openssl_cppflags() {
 find_openssl() {
     dir="$1"
     if test -z "$dir" -o "$dir" = "/"; then
-        dir="/"
-	lib=/lib
-	inc=/usr/include
+        if test -h /lib${LIBSUFFIX}; then
+            dir=/usr
+            lib=/usr/lib${LIBSUFFIX}
+            inc=/usr/include
+        else
+	    dir="/"
+	    lib=/lib${LIBSUFFIX}
+	    inc=/usr/include
+ 	fi
     else
         lib="$dir/lib${LIBSUFFIX}"
         inc="$dir/include"
@@ -816,9 +840,15 @@ set_dl_cppflags() {
 find_dl() {
     dir="$1"
     if test -z "$dir" -o "$dir" = "/"; then
-        dir="/"
-	lib=/lib
-	inc=/usr/include
+        if test -h /lib${LIBSUFFIX}; then
+            dir=/usr
+            lib=/usr/lib${LIBSUFFIX}
+            inc=/usr/include
+        else
+	    dir="/"
+	    lib=/lib${LIBSUFFIX}
+	    inc=/usr/include
+	fi
     else
         lib="$dir/lib${LIBSUFFIX}"
         inc="$dir/include"
@@ -866,9 +896,15 @@ find_lib() {
     libname="$1"
     dir="$2"
     if test -z "$dir" -o "$dir" = "/"; then
-        dir="/"
-	lib=/lib
-	inc=/usr/include
+        if test -h /lib${LIBSUFFIX}; then
+            dir=/usr
+            lib=/usr/lib${LIBSUFFIX}
+            inc=/usr/include
+        else
+	    dir="/"
+	    lib=/lib${LIBSUFFIX}
+	    inc=/usr/include
+	fi
     else
         lib="$dir/lib${LIBSUFFIX}"
         inc="$dir/include"
