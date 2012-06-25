@@ -43,14 +43,11 @@ module Pop3Client {
 
     based on:
     - http://tools.ietf.org/html/rfc1939 (POP3)
-
-    - xxx http://tools.ietf.org/html/rfc2449 (POP3 extensions)
-    - xxx http://tools.ietf.org/html/rfc1734 (POP3 AUTH)
 */
 
 /** @mainpage Pop3Client Module
 
-    The %Pop3Client module provides the Pop3Client class for retrieving emails from a <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> server.
+    The %Pop3Client module provides the Pop3Client class for retrieving emails from a <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> server, with or without TLS/SSL encryption.
 
     To use this module, use \c "%requires Pop3Client" in your code.  See examples/pop3.q for an example program using this module.
     
@@ -74,7 +71,7 @@ public namespace Pop3Client {
     #! 30 second connect timeout
     public const DefaultConnectTimeout = 30s;
 
-    #! this class provides the interface to <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> servers
+    #! this class provides the interface to <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> servers and supports optional TLS/SSL encryption
     /** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and its internal configuration, 
         so it is safe to access in a multithreaded context.
      */
@@ -219,6 +216,8 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         /** @note
             - For possible exceptions, see %Qore's @ref Qore::Socket::connect() "Socket::connect()" method
             - This method is subject to thread serialization
+
+            @throw POP3-SERVER-ERROR the POP3 server responded with an error message
          */
   	connect() {
 	    my AutoLock $am($.mutex);
@@ -229,13 +228,15 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         /** @return a hash of mail messages keyed by message ID or @ref nothing if no messages are available on the server; the value of each hash key will have the following keys:
             - \c size: the original raw message size in bytes
             - \c msg: a MailMessage::Message object representing the message and any attachments
+
+            @throw POP3-SERVER-ERROR the POP3 server responded with an error message
          */
         *hash getMail() {
 	    my AutoLock $am($.mutex);
             if (!$.isConnected())
                 $.connectIntern();
 
-            my hash $mih = $.listIntern();
+            my *hash $mih = $.listIntern();
             if ($mih.empty())
                 return;
 
@@ -255,7 +256,9 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
             - \c num: the number of messages available
             - \c size: the size of data available in bytes
 
-             @note This method is subject to thread serialization
+            @throw POP3-SERVER-ERROR the POP3 server responded with an error message
+
+            @note This method is subject to thread serialization
          */
         hash stat() {
 	    my AutoLock $am($.mutex);
@@ -268,16 +271,73 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         #! returns a hash with message information from the \c "LIST" command (<a href="http://tools.ietf.org/html/rfc1939#page-6">http://tools.ietf.org/html/rfc1939#page-6</a>)
         /** if the object is not already connected, then a connection is made and authenticated to place the connection in the \c "TRANSACTION" state before executing the POP3 command
 
-             @return a hash with message information from the \c "LIST" command, where each hash key is a unique message ID, and the value of each key is a hash with a single key: \c "size", giving the size of the message in bytes
+            @return @ref nothing "NOTHING" if no messages are available, or a hash with message information from the \c "LIST" command, where each hash key is a unique message ID, and the value of each key is a hash with a single key: \c "size", giving the size of the message in bytes
 
-             @note This method is subject to thread serialization
+            @throw POP3-SERVER-ERROR the POP3 server responded with an error message
+
+            @note This method is subject to thread serialization
          */
-        hash list() {
+        *hash list() {
 	    my AutoLock $am($.mutex);
             if (!$.isConnected())
                 $.connectIntern();
 
             return $.listIntern();
+        }
+
+        #! sends a \c "DELE" command (<a href="http://tools.ietf.org/html/rfc1939#page-8">http://tools.ietf.org/html/rfc1939#page-8</a>) to the POP3 server to mark the given message as deleted
+        /** @param msg the message number to delete
+
+            @throw POP3-SERVER-ERROR the POP3 server responded with an error message
+            
+            @note This method is subject to thread serialization
+         */
+        del(softstring $msg) {
+	    my AutoLock $am($.mutex);
+            if (!$.isConnected())
+                $.connectIntern();
+
+            $.sendCommand("DELE %s", $msg);
+        }
+
+        #! sends a \c "DELE" command (<a href="http://tools.ietf.org/html/rfc1939#page-8">http://tools.ietf.org/html/rfc1939#page-8</a>) to the POP3 server to mark the given message as deleted
+        /** @param l the list of message numbers to delete
+            
+            @note This method is subject to thread serialization
+         */
+        del(list $l) {
+	    my AutoLock $am($.mutex);
+            if (!$.isConnected())
+                $.connectIntern();
+
+            foreach my softstring $msg in ($l)
+                $.sendCommand("DELE %s", $msg);
+        }
+
+        #! send a \c "NOOP" command (<a href="http://tools.ietf.org/html/rfc1939#page-9">http://tools.ietf.org/html/rfc1939#page-9</a>) to the POP3 server
+        /** @throw POP3-SERVER-ERROR the POP3 server responded with an error message
+            
+            @note This method is subject to thread serialization
+         */
+        noop() {
+	    my AutoLock $am($.mutex);
+            if (!$.isConnected())
+                $.connectIntern();
+
+            $.sendCommand("NOOP");
+        }
+
+        #! send a \c "RSET" command (<a href="http://tools.ietf.org/html/rfc1939#page-9">http://tools.ietf.org/html/rfc1939#page-9</a>) to the POP3 server which will unmark messages marked for deletion
+        /** @throw POP3-SERVER-ERROR the POP3 server responded with an error message
+            
+            @note This method is subject to thread serialization
+         */
+        reset() {
+	    my AutoLock $am($.mutex);
+            if (!$.isConnected())
+                $.connectIntern();
+
+            $.sendCommand("RSET");
         }
 
 	#! return connection status
@@ -336,7 +396,7 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         final private disconnectIntern() {
 	    if ($.isConnected()) {
                 # send QUIT command and ignore error
-                #try { $.sendCommand("QUIT"); } catch (hash $ex) { }
+                try { $.sendCommand("QUIT"); } catch (hash $ex) { }
 		$.sock.close();
 		$.sock.shutdown();
 	    }
@@ -364,7 +424,7 @@ Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         }
 
         # don't reimplement this method; fix/enhance it in the module
-        final private hash listIntern() {
+        final private *hash listIntern() {
             my list $l = $.sendCommandMulti("LIST");
             # ignore first line (status line)
             shift $l;

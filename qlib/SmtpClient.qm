@@ -55,7 +55,7 @@ module SmtpClient {
 
 /** @mainpage SmtpClient Module
 
-    The %SmtpClient module provides a set of classes that can be used for easy communication with SMTP servers for sending emails.
+    The %SmtpClient module provides a set of classes that can be used for easy communication with SMTP servers for sending emails, with or without TLS/SSL encryption.
 
     To use this module, use \c "%requires SmtpClient" in your code.  See examples/email.q for an example program using this module
     
@@ -115,7 +115,7 @@ public namespace SmtpClient {
     public class Attachment inherits MailMessage::Attachment {
     }
 
-    #! the class that's used to communicate with an SMTP server
+    #! the class that's used to communicate with an SMTP server and supports optional TLS/SSL encryption
     /** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and its internal configuration, 
         so it is safe to access in a multithreaded context.
      */

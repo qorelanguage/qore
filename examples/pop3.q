@@ -39,6 +39,7 @@ class pop3 {
     private {
 	# command-line option hash
         const opts = (
+	    "del": "d,delete",
             "help": "h,help",
             "user": "u,user=s",
             "pass": "p,pass=s",
@@ -107,10 +108,14 @@ class pop3 {
 		    saveFile(k, sprintf("part-%d-%s", ++c, p.getTransferEncoding()), p.getData());
 		}
 	    }
+	    if (opt.del) {
+		foreach string k in (keys h)
+		    pop3.del(k);
+		log("%d message%s removed from the server", h.size(), h.size() == 1 ? "" : "s");
+	    }
 	}
 	catch (hash ex) {
 	    printf("%s: %s\n", ex.err, ex.desc);
-	    rethrow;
 	}
     }
 
@@ -143,6 +148,7 @@ class pop3 {
         printf("usage: %s [options]\n"
                "  -u, -p, and -s are required arguments\n"
                "options:\n"
+	       " -d,--delete       remove messages on the server\n"
                " -h,--help         this help text\n"
                " -p,--pass=ARG     password for the POP3 mailbox\n"
 	       " -s,--server=ARG   the POP3 server for the connection; include a port number if\n"

@@ -56,6 +56,7 @@ module MailMessage {
 /** This includes:
     - Message: wraps an email message
     - Attachment: used to attach files to a Message
+    - Part: used to represent alternate representations of the message body
 */
 public namespace MailMessage {
     /** @defgroup MessageEncodings Message Encodings
@@ -1041,7 +1042,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         }
     }
 
-    #! class representing an Attachment for the Message
+    #! class representing a MIME Attachment for the Message
     /** this class wraps all the data for the attachment, including:
         - the attachment's name; ie the file name which will be shown
 	- the mime type of the Attachment (ex: @ref MimeTypeJpeg ie \c "image/jpeg")
