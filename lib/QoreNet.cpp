@@ -162,27 +162,21 @@ int q_gethostbyname(const char *host, struct in_addr *sin_addr) {
    return 0;
 }
 
-void q_af_to_hash(int af, QoreHashNode& h, ExceptionSink* xsink) {
-   h.setKeyValue("type", new QoreBigIntNode(af), xsink);
-   QoreStringNode* str;
+static const char* q_af_to_str(int af) {
    switch (af) {
       case AF_INET:
-	 str = new QoreStringNode("ipv4");
-	 break;
-
+         return "ipv4";
       case AF_INET6:
-	 str = new QoreStringNode("ipv6");
-	 break;
-
+         return "ipv6";
       case AF_UNIX:
-	 str = new QoreStringNode("unix");
-	 break;
-
-      default:
-	 str = new QoreStringNode("unknown");
-	 break;
+         return "unix";
    }
-   h.setKeyValue("typename", str, xsink);
+   return "unknown";
+}
+
+void q_af_to_hash(int af, QoreHashNode& h, ExceptionSink* xsink) {
+   h.setKeyValue("type", new QoreBigIntNode(af), xsink);
+   h.setKeyValue("typename", new QoreStringNode(q_af_to_str(af)), xsink);
 }
 
 static QoreHashNode *he_to_hash(struct hostent &he) {
@@ -210,6 +204,7 @@ static QoreHashNode *he_to_hash(struct hostent &he) {
 
       default:
 	 h->setKeyValue("typename", new QoreStringNode("unknown"), 0);
+	 // no break
    }
    h->setKeyValue("len", new QoreBigIntNode(he.h_length), 0);
 
@@ -218,8 +213,7 @@ static QoreHashNode *he_to_hash(struct hostent &he) {
 
       QoreListNode *l = new QoreListNode();
       char **a = he.h_addr_list;
-      while (*a)
-      {
+      while (*a) {
 	 if (inet_ntop(he.h_addrtype, *(a++), buf, QORE_NET_ADDR_BUF_LEN))
 	    l->push(new QoreStringNode(buf));
       }
@@ -504,7 +498,7 @@ int QoreAddrInfo::getInfo(ExceptionSink *xsink, const char *node, const char *se
    int status = getaddrinfo(node, service, &hints, &ai);
    if (status) {
       if (xsink)
-	 xsink->raiseException("QOREADDRINFO-GETINFO-ERROR", "getaddrinfo() error: %s", gai_strerror(status));
+	 xsink->raiseException("QOREADDRINFO-GETINFO-ERROR", "getaddrinfo(node='%s', service='%s', address_family='%s', flags=%d) error: %s", node ? node : "", service ? service : "", q_af_to_str(family), flags, gai_strerror(status));
       return -1;
    }
 
