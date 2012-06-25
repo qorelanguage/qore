@@ -516,15 +516,7 @@ QoreListNode *QoreAddrInfo::getList() const {
    for (struct addrinfo *p = ai; p; p = p->ai_next) {
       QoreHashNode *h = new QoreHashNode;
 
-      const char *family;
-
-      // get the pointer to the address itself, different fields in IPv4 and IPv6:
-      if (p->ai_family == AF_INET)
-	 family = "ipv4";
-      else if (p->ai_family == AF_INET6)
-	 family = "ipv6";
-      else // should never happen, but just in case, for extreme/partial forwards-compatibility... :-)
-	 family = "unknown";
+      const char *family = q_af_to_str(p->ai_family);
 
       if (p->ai_canonname && *p->ai_canonname)
 	 h->setKeyValue("canonname", new QoreStringNode(p->ai_canonname), 0);
@@ -551,20 +543,7 @@ QoreListNode *QoreAddrInfo::getList() const {
 }
 
 const char *QoreAddrInfo::getFamilyName(int family) {
-   family = q_get_af(family);
-
-   switch (family) {
-      case AF_INET:
-	 return "ipv4";
-	 break;
-      case AF_INET6:
-	 return "ipv6";
-	 break;
-      case AF_UNIX:
-	 return "unix";
-	 break;
-   }
-   return "unknown";
+   return q_af_to_str(q_get_af(family));
 }
 
 QoreStringNode *QoreAddrInfo::getAddressDesc(int family, const char *addr) {
