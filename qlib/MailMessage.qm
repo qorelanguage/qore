@@ -145,7 +145,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    list $.bcc = (); # list of bcc's
 
 	    # message data itself
-	    string $.body = "";
+	    *data $.body;
 
 	    # message body content transfer encoding
 	    string $.bodyEncoding = EncDefault;
@@ -480,20 +480,35 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
 	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
 	 */
-	setBody(string $str, string $enc = EncDefault) {
-	    $.bodyEncoding = Message::checkEncoding($str, $enc, True);
-	    $.body = $str;
+	setBody(data $body, string $enc = EncDefault) {
+	    $.bodyEncoding = Message::checkEncoding($body, $enc, True);
+	    $.body = $body;
 	}
 
 	#! concatenates a string to the message body
 	/** @param str the string to concatenate to the Message body
+
+            @throw BODY-ERROR cannot concatenate a string to a binary body
 	 */
 	addBody(string $str) {
+            if ($.body.typeCode() == NT_BINARY)
+                throw "BODY-ERROR", sprintf("cannot concatenate a string to a binary body");
 	    $.body += $str;
 	}
 
+	#! concatenates a binary object to the message body
+	/** @param bin the binary object to concatenate to the Message body
+
+            @throw BODY-ERROR cannot concatenate a binary object to a string body
+	 */
+	addBody(binary $bin) {
+            if ($.body.typeCode() == NT_STRING)
+                throw "BODY-ERROR", sprintf("cannot concatenate a binary object to a string body");
+	    $.body += $bin;
+	}
+
 	#! returns the Message body
-	string getBody() {
+	*data getBody() {
 	    return $.body;
 	}
 
@@ -673,7 +688,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         /** these could represent alternative representations of the message body, for example
          */
 	list getParts() {
-	    return $.attachments;
+	    return $.parts;
 	}
 
 	#! returns a multi-line string representing the Message
@@ -712,8 +727,17 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    }
 	    
 	    # the user wants to see the body also...
-	    if ($body)
-		$str += "--\n" + trim($.body) + "\n";
+	    if ($body) {
+                $str += "--\n";
+                if ($.body.empty())
+                    $str += "<empty message body>";
+                else if ($.body.typeCode() == NT_STRING)
+                    $str += trim($.body);
+                else
+                    $str += sprintf("<binary body: %d bytes>", $.body.size());
+
+                $str += "\n";
+            }
 
 	    return $str;
 	}
@@ -859,14 +883,14 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         #! @endcond
     }
 
-    #! class representing a non-Attachment part of a Message
+    #! class representing a MIME part of a Message
     /** this class wraps all the data for the Part, including:
         - the part's name if any is known or can be derived
 	- the mime type of the Part (ex: @ref MimeTypeJpeg ie \c "image/jpeg")
 	- the data for the Part; either binary object or as a string
 	- the encoding type for the attachment
     */
-    class Part {
+    public class Part {
 	# no public members
 	public {}
 
@@ -890,27 +914,27 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	}
         #! @endcond
 
-	#! returns the name of the Attachment
+	#! returns the name of the Part
 	string getName() {
 	    return $.name;
 	}
 
-	#! returns the mime type of the Attachment
+	#! returns the mime type of the Part
 	string getMime() {
 	    return $.mime;
 	}
 
-	#! returns the data of the Attachment
+	#! returns the data of the Part
 	data getData() {
 	    return $.data;
 	}
 
-	#! returns the encoding of the Attachment
-	string getEncoding() {
+	#! returns the transfer encoding of the Part
+	string getTransferEncoding() {
 	    return $.enc;
 	}
 
-	#! returns any headers for the Attachment
+	#! returns any headers for the Part
 	*hash getHeaders() {
 	    return $.headers;
 	}

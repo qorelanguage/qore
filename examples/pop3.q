@@ -1,0 +1,141 @@
+#!/usr/bin/env qore
+
+# @file pop3.q example program using the Pop3Client module
+
+/*  pop3.q Copyright 2012 David Nichols
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+/*  Version History
+    * 2012-06-23 v1.0: simple example program using the Pop3Client user module to retrieve emails from the command line from a POP3 server
+*/
+
+%new-style
+%enable-all-warnings
+%exec-class pop3
+
+%requires Pop3Client >= 1.0
+%requires MailMessage >= 1.0
+%requires Mime >= 1.0
+
+class pop3 {
+    private {
+	# command-line option hash
+        const opts = (
+            "help": "h,help",
+            "user": "u,user=s",
+            "pass": "p,pass=s",
+	    "svr": "s,server=s",
+            "ssl": "S,ssl",
+	    "verbose": "v,verbose",
+            );
+
+        # command-line options
+        hash opt;
+
+        # SMTP server
+        string server;
+    }
+
+    public {}
+
+    constructor() {
+	GetOpt g(opts);
+        opt = g.parse3(\ARGV);
+        if (opt.help)
+            usage();
+        if (opt.user.empty()) {
+            stderr.print("missing user argument\n");
+            usage();
+        }
+        if (opt.pass.empty()) {
+            stderr.print("missing password argument\n");
+            usage();
+        }
+        if (opt.svr.empty()) {
+            stderr.print("missing POP3 server address\n");
+            usage();
+        }
+	
+	try {
+	    string url = sprintf("pop3%s://%s:%s@%s", opt.ssl ? "s" : "", opt.user, opt.pass, opt.svr);
+	    Pop3Client pop3(url, \log(), opt.verbose ? \log() : NOTHING);
+	    *hash h = pop3.getMail();
+	    foreach string k in (keys h) {
+		Message msg = h{k}.msg;
+		# save message body
+		saveFile(k, "body", msg.getBody());
+		# save attachments
+		foreach Attachment att in (msg.getAttachments()) {
+		    saveFile(k, att.getName(), att.getData());
+		}
+		# save other parts as alternative message body representations
+		int c = 0;
+		foreach Part p in (msg.getParts()) {
+		    saveFile(k, sprintf("part-%d-%s", ++c, p.getTransferEncoding()), p.getData());
+		}
+	    }
+	}
+	catch (hash ex) {
+	    printf("%s: %s\n", ex.err, ex.desc);
+	}
+    }
+
+    log(string msg) {
+	printf("%y: %s\n", now_ms(), vsprintf(msg, argv));
+    }
+
+    saveFile(string msgid, string tag, *data data) {
+	if (data.empty())
+	    return;
+
+	# create a new directory for each message, if it doesn't already exist
+	if (!is_dir(msgid))
+	    mkdir(msgid);
+
+	int cnt = 0;
+	string fn = sprintf("%s/%s", msgid, tag);
+	
+	while (exists stat(fn)) {
+	    fn = sprintf("%s/%s.%d", msgid, tag, ++cnt);
+	}
+
+	File f();
+	f.open2(fn, O_CREAT|O_WRONLY|O_TRUNC);
+	f.write(data);
+	log("saved file for msgid %y as %y (%d bytes)", msgid, fn, data.size());
+    }
+
+    static usage() {
+        printf("usage: %s [options]\n"
+               "  -u, -p, and -s are required arguments\n"
+               "options:\n"
+               " -h,--help         this help text\n"
+               " -p,--pass=ARG     password for the POP3 mailbox\n"
+	       " -s,--server=ARG   the POP3 server for the connection; include a port number if\n"
+	       "                   not connecting from the default port (%d) like:\n"
+	       "                   ex: \"-s=pop3.com:1110\"\n"
+               " -S,--ssl          use a TLS/SSL connection to the POP3 server\n"
+               " -u,--user=ARG     username for the POP3 mailbox\n",
+	       " -v,--verbose      show detailed technical information\n",
+               get_script_name(), Pop3Client::POP3Port);
+        exit(1);
+    }
+}
