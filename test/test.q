@@ -1748,6 +1748,43 @@ sub closure_tests() {
     test_value($dec(3), "test-3-2", "third closure");
 }
 
+sub format_date_tests() {
+    my date $d = 2005-04-01T08:02:05.001;
+
+    test_value(format_date("YY", $d), "05", "last two digits of year");
+    test_value(format_date("YYYY", $d), "2005", "four-digit year");
+    test_value(format_date("M", $d), "4", "non zero-padded month number (1-12)");
+    test_value(format_date("MM", $d), "04", "zero-padded month number (01-12)");
+    test_value(format_date("Month", $d), "April", "long month string (ex: \"January\")");
+    test_value(format_date("MONTH", $d), "APRIL", "long month string capitalized (ex: \"JANUARY\")");
+    test_value(format_date("Mon", $d), "Apr", "abbreviated month (ex: \"Jan\")");
+    test_value(format_date("MON", $d), "APR", "abbreviated month, capitalized (ex: \"JAN\")");
+    test_value(format_date("D", $d), "1", "non zero-padded day number (1 - 31)");
+    test_value(format_date("DD", $d), "01", "zero-padded day number (01 - 31)");
+    test_value(format_date("Day", $d), "Friday", "long day of week string (ex: \"Monday\")");
+    test_value(format_date("DAY", $d), "FRIDAY", "long day of week string, capitalized (ex: \"MONDAY\")");
+    test_value(format_date("Dy", $d), "Fri", "abbreviated day of week string (ex: \"Mon\")");
+    test_value(format_date("DY", $d), "FRI", "abbreviated day of week string capitalised (ex: \"MON\")");
+    test_value(format_date("H", $d), "8", "non zero-padded hour number (0 - 23)");
+    test_value(format_date("HH", $d), "08", "zero-padded hour number (00 - 23)");
+    test_value(format_date("h", $d), "8", "non zero-padded hour number, 12-hour clock (1 - 12)");
+    test_value(format_date("hh", $d), "08", "zero-padded hour number, 12-hour clock (01 - 12)");
+    test_value(format_date("m", $d), "2", "non zero-padded minute number (0 - 59)");
+    test_value(format_date("mm", $d), "02", "zero-padded minute number (00 - 59)");
+    test_value(format_date("S", $d), "5", "non zero-padded second number (0 - 59)");
+    test_value(format_date("SS", $d), "05", "zero-padded second number (00 - 59)");
+    test_value(format_date("P", $d), "AM", "\"AM\" or \"PM\" (upper-case)");
+    test_value(format_date("p", $d), "am", "\"am\" or \"pm\" (lower-case)");
+    test_value(format_date("u", $d), "1", "non zero-padded millisecond number (0 - 999)");
+    test_value(format_date("uu", $d), "001", "zero-padded millisecond number (000 - 999)");
+    test_value(format_date("ms", $d), "001", "zero-padded millisecond number (000 - 999)");
+    test_value(format_date("x", $d), "1000", "non zero-padded microsecond number (0 - 999999)");
+    test_value(format_date("xx", $d), "001000", "zero-padded microsecond number (000000 - 999999)");
+    test_value(format_date("y", $d), "001", "microseconds, with trailing zeros removed (suitable for use after the '.')");
+    test_value(format_date("z", $d), "CEST", "local time zone name (ex: \"EST\") if available, otherwise the UTC offset (ex: \"+01:00\")");
+    test_value(format_date("Z", $d), "+02:00", "time zone UTC offset like +HH:mm[:SS] (ex: \"+01:00\"), seconds are only included if non-zero");
+}
+
 sub do_tests() {
     on_exit $counter.dec();
     try {
@@ -1768,6 +1805,7 @@ sub do_tests() {
 	    crypto_tests();
 	    digest_tests();
 	    closure_tests();
+	    format_date_tests();
 	    if ($o.bq)
 		backquote_tests();
 	}

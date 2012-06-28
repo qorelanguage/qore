@@ -37,33 +37,35 @@ const int qore_date_info::negative_months[] = { 0, -31, -61, -92, -122, -153, -1
 struct date_s {
    const char *long_name;
    const char *abbr;
+   const char *upper_long_name;
+   const char *upper_abbr;
 };
 
 // month names (in English)
 static const struct date_s months[] = {
-   { "January", "Jan", },
-   { "February", "Feb" },
-   { "March", "Mar" },
-   { "April", "Apr" },
-   { "May", "May" },
-   { "June", "Jun" },
-   { "July", "Jul" },
-   { "August", "Aug" },
-   { "September", "Sep" },
-   { "October", "Oct" },
-   { "November", "Nov" },
-   { "December", "Dec" }
+   { "January", "Jan", "JANUARY", "JAN" },
+   { "February", "Feb", "FEBRUARY", "FEB" },
+   { "March", "Mar", "MARCH", "MAR" },
+   { "April", "Apr", "APRIL", "APR" },
+   { "May", "May", "MAY", "MAY" },
+   { "June", "Jun", "JUNE", "JUN" },
+   { "July", "Jul", "JULY", "JUL" },
+   { "August", "Aug", "AUGUST", "AUG" },
+   { "September", "Sep", "SEPTEMBER", "SEP" },
+   { "October", "Oct", "OCTOBER", "OCT" },
+   { "November", "Nov", "NOVEMBER", "NOV" },
+   { "December", "Dec", "DECEMBER", "DEC" }
 };
 
 // day names (in English!) FIXME: add locale-awareness!
 static const struct date_s days[] = {
-   { "Sunday", "Sun" },
-   { "Monday", "Mon" },
-   { "Tuesday", "Tue" },
-   { "Wednesday", "Wed" },
-   { "Thursday", "Thu" },
-   { "Friday", "Fri" },
-   { "Saturday", "Sat" }
+   { "Sunday", "Sun", "SUNDAY", "SUN" },
+   { "Monday", "Mon", "MONDAY", "MON" },
+   { "Tuesday", "Tue", "TUESDAY", "TUE" },
+   { "Wednesday", "Wed", "WEDNESDAY", "WED" },
+   { "Thursday", "Thu", "THURSDAY", "THU" },
+   { "Friday", "Fri", "FRIDAY", "FRI" },
+   { "Saturday", "Sat", "SATURDAY", "SAT" }
 };
 
 static int ampm(int hour) {
@@ -271,18 +273,14 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
                if ((s[1] == 'T') && (s[2] == 'H')) {
                   s += 2;
                   if (i.month && (i.month <= 12)) {
-                     char *t = (char *)str.getBuffer() + str.strlen();
-                     str.sprintf("%s", months[(int)i.month - 1].long_name);
-                     strtoupper(t);
+                     str.sprintf("%s", months[(int)i.month - 1].upper_long_name);
                   }
                   else
                      str.sprintf("MONTH%d", i.month);
                   break;
                }
                if (i.month && (i.month <= 12)) {
-                  char *t = (char *)str.getBuffer() + str.strlen();
-                  str.sprintf("%s", months[(int)i.month - 1].abbr);
-                  strtoupper(t);
+                  str.sprintf("%s", months[(int)i.month - 1].upper_abbr);
                }
                else
                   str.sprintf("M%02d", i.month);
@@ -298,25 +296,20 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
             }
             if ((s[1] == 'a') && (s[2] == 'y')) {
                s += 2;
-	       int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
-	       str.sprintf("%s", days[wday].long_name);
+               int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
+               str.sprintf("%s", days[wday].long_name);
                break;
             }
             if ((s[1] == 'A') && (s[2] == 'Y')) {
                s += 2;
-	       int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
-	       char *t = (char *)str.getBuffer() + str.strlen();
-	       str.sprintf("%s", days[wday].long_name);
-	       strtoupper(t);
+               int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
+               str.sprintf("%s", days[wday].upper_long_name);
                break;
             }
             if ((s[1] == 'y') || (s[1] == 'Y')) {
-               s++;;
-	       int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
-	       char *t = (char *)str.getBuffer() + str.strlen();
-	       str.sprintf("%s", days[wday].abbr);
-	       if (*s == 'Y')
-		  strtoupper(t);
+               s++;
+               int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
+               str.sprintf("%s", *s == 'Y' ? days[wday].upper_abbr : days[wday].abbr);
                break;
             }
             str.sprintf("%d", i.day);
