@@ -480,6 +480,7 @@ public:
 
    DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
       assert(false);
+      return 0;
    }
 };
 
