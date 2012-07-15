@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/QoreClassIntern.h>
 
 QoreString QoreDotEvalOperatorNode::name("dot eval expression");
 
@@ -194,7 +195,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    }
 
    // make sure method arguments and return types are resolved
-   qc->parseInitPartial();
+   qore_class_private::parseInitPartial(*qc);
 
    if (!m)
       return this;

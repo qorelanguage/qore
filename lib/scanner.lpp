@@ -1031,8 +1031,6 @@ RTIME           PT(-?[0-9]+[HMSu])+
 where					return TOK_WHERE;
 private                                 return TOK_PRIVATE;
 public                                  return TOK_PUBLIC;
-interface                               return TOK_INTERFACE;
-implements                              return TOK_IMPLEMENTS;
 abstract                                return TOK_ABSTRACT;
 unreference                             return TOK_UNREFERENCE;
 new                                     return TOK_NEW;
@@ -1060,7 +1058,6 @@ throw                                   return TOK_THROW;
 rethrow                                 return TOK_RETHROW;
 catch                                   return TOK_CATCH;
 final                                   return TOK_FINAL;
-finally                                 return TOK_FINALLY;
 find                                    return TOK_FIND;
 delete                                  return TOK_DELETE;
 remove                                  return TOK_REMOVE;
@@ -1099,7 +1096,6 @@ foldr                                   { push_ignore_numeric_argv_ref(); return
 foldl                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDL; }
 select                                  { push_ignore_numeric_argv_ref(); return TOK_SELECT; }
 static                                  return TOK_STATIC;
-interface\(                             yylval->string = strdup("interface"); return KW_IDENTIFIER_OPENPAREN;
 class\(                                 yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN;
 private\(                               yylval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN;
 new\(                                   yylval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN;
@@ -1188,7 +1184,6 @@ module{WS}*\(                           yylval->string = strdup("module"); retur
 \.try[^A-Za-z_0-9]                      DO_DOT_KW_IDENTIFIER("try")
 \.where[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("where")
 \.while[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("while")
-\.interface[^A-Za-z_0-9]                DO_DOT_KW_IDENTIFIER("interface")
 \.module[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("module")
 
 {YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeDateTime(yytext, true); return DATETIME;

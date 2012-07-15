@@ -33,7 +33,7 @@ class BCEAList;
 
 class BuiltinSignature : public AbstractFunctionSignature {
 public:
-   DLLLOCAL BuiltinSignature(const QoreTypeInfo *n_returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList, const name_vec_t& n_names) : AbstractFunctionSignature(n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
+   DLLLOCAL BuiltinSignature(bool extra_args, const QoreTypeInfo *n_returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList, const name_vec_t& n_names) : AbstractFunctionSignature(n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
       for (unsigned i = 0; i < typeList.size(); ++i) {
          bool hasDefaultArg = i < defaultArgList.size() && defaultArgList[i];
 	 if (typeList[i]) {
@@ -55,8 +55,11 @@ public:
 	 if (i != (typeList.size() - 1))
 	    str.append(", ");
       }
-      if (!typeList.size())
-         str = NO_TYPE_INFO;
+      if (extra_args) {
+         if (!typeList.empty())
+            str.append(", ");
+         str.append("...");
+      }
    }
 
    DLLLOCAL virtual ~BuiltinSignature() {
@@ -83,7 +86,7 @@ public:
    int64 functionality;
 
    DLLLOCAL BuiltinFunctionVariantBase(int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) :
-      signature(n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), functionality(n_functionality) {
+      signature(n_functionality & QC_USES_EXTRA_ARGS, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), functionality(n_functionality) {
       //printd(0, "BuiltinFunctionVariantBase::BuiltinFunctionVariantBase() this=%p flags=%lld (%lld) functionality=%lld\n", this, flags, n_flags, functionality);
    }
 };

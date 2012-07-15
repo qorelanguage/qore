@@ -77,25 +77,25 @@
 
 class HashElement {
 public:
-   char *key;
-   AbstractQoreNode *value;
+   char* key;
+   AbstractQoreNode* value;
  
-   DLLLOCAL HashElement(AbstractQoreNode *k, AbstractQoreNode *v) {
+   DLLLOCAL HashElement(AbstractQoreNode* k, AbstractQoreNode* v) {
       //tracein("HashElement::HashElement()");
       if (!k || k->getType() != NT_STRING) {
 	 parse_error("hash member name must be a string value!");
 	 key = strdup("");
       }
       else
-	 key = strdup(reinterpret_cast<QoreStringNode *>(k)->getBuffer());
+	 key = strdup(reinterpret_cast<QoreStringNode*>(k)->getBuffer());
       k->deref(0);
       value = v;
       //traceout("HashElement::HashElement()");
    }
 
-   DLLLOCAL HashElement(int tag, char *constant, AbstractQoreNode *v) {
+   DLLLOCAL HashElement(int tag, char* constant, AbstractQoreNode* v) {
       //tracein("HashElement::HashElement()");
-      key = (char *)malloc(sizeof(char) * strlen(constant) + 2);
+      key = (char* )malloc(sizeof(char) * strlen(constant) + 2);
       key[0] = tag; // mark as constant
       strcpy(key + 1, constant);
       value = v;
@@ -108,7 +108,7 @@ public:
    }
 };
 
-static AbstractQoreNode *makeErrorTree(AbstractQoreNode *left, AbstractQoreNode *right) {
+static AbstractQoreNode* makeErrorTree(AbstractQoreNode* left, AbstractQoreNode* right) {
    discard(left, 0);
    discard(right, 0);
    return &False;
@@ -118,16 +118,16 @@ static AbstractQoreNode *makeErrorTree(AbstractQoreNode *left, AbstractQoreNode 
 class ConstNode {
 public:
    NamedScope name;
-   AbstractQoreNode *value;
+   AbstractQoreNode* value;
    bool pub;
 
-   DLLLOCAL ConstNode(char *n, AbstractQoreNode *v, bool p = false) : name(n), value(v), pub(p) {
+   DLLLOCAL ConstNode(char* n, AbstractQoreNode* v, bool p = false) : name(n), value(v), pub(p) {
       // see if constant definitions are allowed
       if (checkParseOption(PO_NO_CONSTANT_DEFS))
          parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", n);
    }
-   DLLLOCAL AbstractQoreNode *takeValue() {
-      AbstractQoreNode *rv = value;
+   DLLLOCAL AbstractQoreNode* takeValue() {
+      AbstractQoreNode* rv = value;
       value = 0;
       return rv;
    }
@@ -145,7 +145,7 @@ public:
    QoreClass *oc;
 
    DLLLOCAL inline ObjClassDef(NamedScope *n, QoreClass *o) : name(n), oc(o) {}
-   DLLLOCAL inline ObjClassDef(char *n, QoreClass *o) : name(new NamedScope(n)), oc(o) {}
+   DLLLOCAL inline ObjClassDef(char* n, QoreClass *o) : name(new NamedScope(n)), oc(o) {}
    DLLLOCAL inline ~ObjClassDef() { delete name; }
 };
 
@@ -290,15 +290,15 @@ struct GVarListDecl : public GVarDecl {
 
       ListIterator li(l);
       while (li.next()) {
-         AbstractQoreNode *n = li.getValue();
+         AbstractQoreNode* n = li.getValue();
          qore_type_t t = get_node_type(n);
          if (t == NT_BAREWORD) {
-            BarewordNode *b = reinterpret_cast<BarewordNode *>(n);
+            BarewordNode* b = reinterpret_cast<BarewordNode*>(n);
             if (!bareok)
                parse_error("global variable '%s' in global variable declaration list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", b->str);
          }
          else if (t == NT_VARREF) {
-            VarRefNode* vrn = reinterpret_cast<VarRefNode *>(n);
+            VarRefNode* vrn = reinterpret_cast<VarRefNode*>(n);
             if (vrn->explicitScope()) {
                if (vrn->getType() == VT_LOCAL)
                   parse_error("illegal use of 'my %s' in global variable declaration list", vrn->getName());
@@ -325,14 +325,14 @@ struct GVarListDecl : public GVarDecl {
    DLLLOCAL virtual void add(qore_ns_private& ns) {
       ListIterator li(l);
       while (li.next()) {
-         AbstractQoreNode *n = li.getValue();
+         AbstractQoreNode* n = li.getValue();
          qore_type_t t = get_node_type(n);
          if (t == NT_BAREWORD) {
-            BarewordNode *b = reinterpret_cast<BarewordNode *>(n);
+            BarewordNode* b = reinterpret_cast<BarewordNode*>(n);
             ns.parseAddGlobalVarDecl(b->takeString(), 0, 0, pub);
          }
          else if (t == NT_VARREF) {
-            VarRefNode* vrn = reinterpret_cast<VarRefNode *>(n);
+            VarRefNode* vrn = reinterpret_cast<VarRefNode*>(n);
             if (!vrn->explicitScope()) {
                VarRefDeclNode* vrdn = dynamic_cast<VarRefDeclNode*>(vrn);
                if (vrdn)
@@ -350,18 +350,18 @@ struct GVarListDecl : public GVarDecl {
       l->setVariableList();
       ListIterator li(l);
       while (li.next()) {
-         AbstractQoreNode *n = li.getValue();
+         AbstractQoreNode* n = li.getValue();
          qore_type_t t = get_node_type(n);
          VarRefNode* vrn = 0;
          if (t == NT_BAREWORD) {
-            BarewordNode *b = reinterpret_cast<BarewordNode *>(n);
-            GlobalVarRefNode *v = new GlobalVarRefNode(b->takeString());
+            BarewordNode* b = reinterpret_cast<BarewordNode*>(n);
+            GlobalVarRefNode* v = new GlobalVarRefNode(b->takeString());
             b->deref();
-            AbstractQoreNode **p = li.getValuePtr();
+            AbstractQoreNode** p = li.getValuePtr();
             *p = vrn = v;
          }
          else if (t == NT_VARREF) {
-            vrn = reinterpret_cast<VarRefNode *>(n);
+            vrn = reinterpret_cast<VarRefNode*>(n);
             if (!vrn->explicitScope()) {
                vrn->makeGlobal();
                vrn->setExplicitScope();
@@ -390,7 +390,7 @@ struct NSNode {
    int type;
    union {
       ObjClassDef *ocd;
-      ConstNode *cn;
+      ConstNode* cn;
       QoreNamespace *ns;
       ParseUserFunction* func;
       ParseScopedUserFunction* sfunc;
@@ -468,7 +468,7 @@ struct NSNode {
    }
 };
 
-typedef std::vector<NSNode*> nsnode_list_t;
+typedef std::vector<NSNode*>nsnode_list_t;
 
 struct NSNodeList : public nsnode_list_t {
    DLLLOCAL void deref() {
@@ -484,17 +484,17 @@ struct NSNodeList : public nsnode_list_t {
    }
 };
 
-static QoreListNode *make_list(AbstractQoreNode *a1, AbstractQoreNode *a2) {
-   QoreListNode *l = new QoreListNode;
+static QoreListNode* make_list(AbstractQoreNode* a1, AbstractQoreNode* a2) {
+   QoreListNode* l = new QoreListNode;
    l->push(a1);
    l->push(a2);
    return l;
 }
 
-static QoreListNode *splice_expressions(AbstractQoreNode *a1, AbstractQoreNode *a2) {
+static QoreListNode* splice_expressions(AbstractQoreNode* a1, AbstractQoreNode* a2) {
    //tracein("splice_expressions()");
    if (a1 && a1->getType() == NT_LIST) {
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(a1);
+      QoreListNode* l = reinterpret_cast<QoreListNode*>(a1);
       if (!l->isFinalized()) {
 	 //printd(5, "LIST x\n");
 	 l->push(a2);
@@ -504,8 +504,8 @@ static QoreListNode *splice_expressions(AbstractQoreNode *a1, AbstractQoreNode *
    return make_list(a1, a2);
 }
 
-typedef std::pair<char *, QoreMemberInfo *> member_pair_t;
-typedef std::pair<char *, QoreVarInfo *> var_pair_t;
+typedef std::pair<char* , QoreMemberInfo *> member_pair_t;
+typedef std::pair<char* , QoreVarInfo *> var_pair_t;
 
 struct MemberInfo {
 protected:
@@ -515,25 +515,25 @@ protected:
 public:
    enum mi_e { Member, Constant, Var };
 
-   char *name;
+   char* name;
    mi_e type;
    union {
       QoreMemberInfo *memberInfo;
       QoreVarInfo *varInfo;
-      AbstractQoreNode *exp;      
+      AbstractQoreNode* exp;
    } u;
 
-   DLLLOCAL MemberInfo(char *n, QoreMemberInfo *mi) : name(n), type(Member)  {
+   DLLLOCAL MemberInfo(char* n, QoreMemberInfo *mi) : name(n), type(Member)  {
       u.memberInfo = mi; 
       if (!mi->parseHasTypeInfo() && getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
 	 parse_error("member $.%s declared without type information, but parse options require type information for all declarations", name);
    }
-   DLLLOCAL MemberInfo(char *n) : name(n), type(Member)  {
+   DLLLOCAL MemberInfo(char* n) : name(n), type(Member)  {
       u.memberInfo = 0; 
       if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
 	 parse_error("member $.%s declared without type information, but parse options require type information for all declarations", name);
    }
-   DLLLOCAL MemberInfo(char *n, AbstractQoreNode *exp) : name(n), type(Constant) {
+   DLLLOCAL MemberInfo(char* n, AbstractQoreNode* exp) : name(n), type(Constant) {
       u.exp = exp;
    }
    DLLLOCAL ~MemberInfo() {
@@ -566,16 +566,16 @@ public:
       u.varInfo = 0;
       return m;
    }
-   DLLLOCAL AbstractQoreNode *takeExp() {
+   DLLLOCAL AbstractQoreNode* takeExp() {
       assert(type == Constant);
-      AbstractQoreNode *rv = u.exp;
+      AbstractQoreNode* rv = u.exp;
       u.exp = 0;
       return rv;
    }
 };
 
 struct ClassVarInfo : public MemberInfo {
-   DLLLOCAL ClassVarInfo(char *n, QoreVarInfo *vi) {
+   DLLLOCAL ClassVarInfo(char* n, QoreVarInfo *vi) {
       name = n;
       type = Var;
       u.varInfo = vi; 
@@ -583,7 +583,7 @@ struct ClassVarInfo : public MemberInfo {
 	 parse_error("class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
    }
 /*
-   DLLLOCAL ClassVarInfo(char *n) {
+   DLLLOCAL ClassVarInfo(char* n) {
       name = n;
       type = Var;
       u.varInfo = 0; 
@@ -591,8 +591,8 @@ struct ClassVarInfo : public MemberInfo {
 	 parse_error("class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
    }
 */
-   DLLLOCAL char *takeName() {
-      char *n = name;
+   DLLLOCAL char* takeName() {
+      char* n = name;
       name = 0;
       return n;
    }
@@ -752,7 +752,7 @@ public:
    DLLLOCAL ParserTypeStruct(const QoreTypeInfo *n_typeInfo) : typeInfo(n_typeInfo), parseTypeInfo(0) {
    }
 
-   DLLLOCAL ParserTypeStruct(char *id) {
+   DLLLOCAL ParserTypeStruct(char* id) {
       const QoreTypeInfo *t = getBuiltinUserTypeInfo(id);
       if (t) {
 	 free(id);
@@ -785,7 +785,7 @@ public:
       return rv;
    }
 
-   DLLLOCAL const char *getClassName() {
+   DLLLOCAL const char* getClassName() {
       assert(this);
       assert(parseTypeInfo);
       return parseTypeInfo->cscope->ostr;
@@ -793,12 +793,12 @@ public:
 };
 
 struct ParserScopedTypeStruct : public ParserTypeStruct {
-   DLLLOCAL ParserScopedTypeStruct(char *sr) : ParserTypeStruct(new QoreParseTypeInfo(sr)) {
+   DLLLOCAL ParserScopedTypeStruct(char* sr) : ParserTypeStruct(new QoreParseTypeInfo(sr)) {
    }
 };
 
 struct ParserOrNothingTypeStruct : public ParserTypeStruct {
-   DLLLOCAL ParserOrNothingTypeStruct(char *id) {
+   DLLLOCAL ParserOrNothingTypeStruct(char* id) {
       const QoreTypeInfo *t = getBuiltinUserOrNothingTypeInfo(id);
       if (t) {
 	 free(id);
@@ -813,24 +813,24 @@ struct ParserOrNothingTypeStruct : public ParserTypeStruct {
 };
 
 struct ParserScopedOrNothingTypeStruct : public ParserTypeStruct {
-   DLLLOCAL ParserScopedOrNothingTypeStruct(char *sr) : ParserTypeStruct(new QoreParseTypeInfo(sr, true)) {
+   DLLLOCAL ParserScopedOrNothingTypeStruct(char* sr) : ParserTypeStruct(new QoreParseTypeInfo(sr, true)) {
    }
 };
 
-static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
+static AbstractQoreNode* process_dot(AbstractQoreNode* l, AbstractQoreNode* r) {
    qore_type_t rtype = r->getType();
    if (rtype == NT_BAREWORD) {
-      BarewordNode *b = reinterpret_cast<BarewordNode *>(r);
-      AbstractQoreNode *rv = new QoreTreeNode(l, OP_OBJECT_REF, b->makeQoreStringNode());
+      BarewordNode* b = reinterpret_cast<BarewordNode*>(r);
+      AbstractQoreNode* rv = new QoreTreeNode(l, OP_OBJECT_REF, b->makeQoreStringNode());
       b->deref();
       return rv;
    }
 
    if (rtype == NT_FUNCTION_CALL) {
-      FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(r);
+      FunctionCallNode* f = reinterpret_cast<FunctionCallNode*>(r);
       assert(!f->getFunction());
       if (!f->isFinalized()) {
-         MethodCallNode *m = new MethodCallNode(f->takeName(), f->take_args());
+         MethodCallNode* m = new MethodCallNode(f->takeName(), f->take_args());
          f->deref();
 
          return new QoreDotEvalOperatorNode(l, m);
@@ -841,7 +841,7 @@ static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
 }
 
 // returns true if the node needs run-time evaluation, false if not
-static bool needsEval(AbstractQoreNode *n) {
+static bool needsEval(AbstractQoreNode* n) {
    if (!n)
       return false;
 
@@ -852,7 +852,7 @@ static bool needsEval(AbstractQoreNode *n) {
       return false;
 
    if (ntype == NT_LIST) {
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(n);
+      QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
       if (l->needs_eval()) {
 	 for (unsigned i = 0; i <l->size(); i++) {
 	    if (needsEval(l->retrieve_entry(i)))
@@ -865,7 +865,7 @@ static bool needsEval(AbstractQoreNode *n) {
    }
 
    if (ntype == NT_HASH) {
-      QoreHashNode *h = reinterpret_cast<QoreHashNode *>(n);
+      QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
       if (h->needs_eval()) {
 	 HashIterator hi(h);
 	 while (hi.next())
@@ -878,7 +878,7 @@ static bool needsEval(AbstractQoreNode *n) {
    }
    
    if (ntype == NT_TREE) {
-      QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
+      QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(n);
 
       if (needsEval(tree->left) || (tree->right && needsEval(tree->right)))
 	 return true;
@@ -890,7 +890,7 @@ static bool needsEval(AbstractQoreNode *n) {
    return !n->is_value();
 }
 
-static int check_case(const char *op, AbstractQoreNode *exp) {
+static int check_case(const char* op, AbstractQoreNode* exp) {
    // ignore if NULL (= NOTHING)
    if (exp && needsEval(exp)) {
       if (op)
@@ -955,15 +955,15 @@ static void check_nsmod(int mod, qore_ns_private& ns) {
       parse_error("illegal 'abstract' modifier in namespace declaration");
 }
 
-static bool hasEffect(AbstractQoreNode *n) {
+static bool hasEffect(AbstractQoreNode* n) {
    if (!n || n->is_value())
       return false;
 
-   ParseNode *pn = dynamic_cast<ParseNode *>(n);
+   ParseNode* pn = dynamic_cast<ParseNode*>(n);
    return pn ? pn->has_effect() : true;
 }
 
-static int checkMethod(const char *name, BCAList *bcal, RetTypeInfo *returnTypeInfo) {
+static int checkMethod(const char* name, BCAList* bcal, RetTypeInfo *returnTypeInfo) {
    bool con = !strcmp(name, "constructor");
    bool dst = !con && !strcmp(name, "destructor");
 
@@ -981,7 +981,9 @@ static int checkMethod(const char *name, BCAList *bcal, RetTypeInfo *returnTypeI
    return 0;
 }
 
-static inline MethodVariantBase* newMethodVariant(const char *name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b, int64 flags = QC_NO_FLAGS) {
+static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b, int64 flags = QC_NO_FLAGS) {
+   //printd(5, "newMethodVariant() '%s' b: %p\n", name, b);
+
    if (get_pop_argv_ref())
       flags |= QC_USES_EXTRA_ARGS;
 
@@ -1032,15 +1034,17 @@ static inline MethodVariantBase* newMethodVariant(const char *name, int mod, int
    if (!strcmp(name, "methodGate") || !strcmp(name, "memberGate") || !strcmp(name, "memberNotification")) {
       if (mod & OFM_FINAL)
          parse_error("%s() methods cannot be declared final; they are not inherited anyway", name);
+      if (mod & OFM_ABSTRACT)
+         parse_error("%s() methods cannot be declared abstract; they are not inherited anyway", name);
    }
 
    if (mod & OFM_FINAL && mod & OFM_ABSTRACT)
       parse_error("method '%s()' is declared both final and abstract", name);
 
-   return new UserMethodVariant(mod & OFM_PRIVATE, mod & OFM_FINAL, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags);
+   return new UserMethodVariant(mod & OFM_PRIVATE, mod & OFM_FINAL, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags, mod & OFM_ABSTRACT);
 }
 
-static inline void tryAddMethod(int mod, char *n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b) {
+static inline void tryAddMethod(int mod, char* n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b) {
    std::auto_ptr<NamedScope> name(new NamedScope(n));
 
    if (checkMethod(name->getIdentifier(), bcal, returnTypeInfo)) {
@@ -1060,29 +1064,29 @@ static inline void tryAddMethod(int mod, char *n, int n_sig_first_line, int n_si
 struct MethodNode {
 public:
    // name of method
-   char *name;
+   char* name;
    // method variant to add to class
    MethodVariantBase *m;
    // static flag
    bool static_flag;
 
-   DLLLOCAL inline MethodNode(char *mname, MethodVariantBase *v, bool n_static) : name(mname), m(v), static_flag(n_static) {
+   DLLLOCAL inline MethodNode(char* mname, MethodVariantBase *v, bool n_static) : name(mname), m(v), static_flag(n_static) {
    }
    DLLLOCAL inline ~MethodNode() {
       free(name);
       delete m;
    }
    DLLLOCAL inline void addAndDelete(QoreClass *qc) {
-      qc->addUserMethod(name, m, static_flag);
+      qore_class_private::addUserMethod(*qc, name, m, static_flag);
       m = 0;
       delete this;
    }
 };
 
-static AbstractQoreNode *is_rewritable_op(AbstractQoreNode *n) {
+static AbstractQoreNode* is_rewritable_op(AbstractQoreNode* n) {
    qore_type_t nt = get_node_type(n);
    if (nt == NT_OPERATOR) {
-      QoreBinaryLValueOperatorNode *op = dynamic_cast<QoreBinaryLValueOperatorNode *>(n);
+      QoreBinaryLValueOperatorNode* op = dynamic_cast<QoreBinaryLValueOperatorNode*>(n);
       if (op)
          return op->getRight();
    }
@@ -1090,21 +1094,21 @@ static AbstractQoreNode *is_rewritable_op(AbstractQoreNode *n) {
    return 0;
 }
 
-static AbstractQoreNode *checkRewriteList(QoreListNode *l) {
+static AbstractQoreNode* checkRewriteList(QoreListNode* l) {
    // rewrite expression if it's a list without parentheses and
    // the first expression has one of the following operators:
    // =, +=, -=
    if (l->isFinalized())
       return l;
 
-   AbstractQoreNode *e0 = l->retrieve_entry(0);
+   AbstractQoreNode* e0 = l->retrieve_entry(0);
 
-   AbstractQoreNode *r = is_rewritable_op(e0);
+   AbstractQoreNode* r = is_rewritable_op(e0);
    if (r) {
-      AbstractQoreNode *last = e0;
-      AbstractQoreNode *top = e0;
+      AbstractQoreNode* last = e0;
+      AbstractQoreNode* top = e0;
       while (true) {
-         AbstractQoreNode *nr = is_rewritable_op(r);
+         AbstractQoreNode* nr = is_rewritable_op(r);
          if (!nr)
             break;
          last = r;
@@ -1112,7 +1116,7 @@ static AbstractQoreNode *checkRewriteList(QoreListNode *l) {
       }
       assert(dynamic_cast<QoreBinaryLValueOperatorNode*>(last));
       // take first element from list (the tree) and make it the new expression
-      QoreBinaryLValueOperatorNode *op = reinterpret_cast<QoreBinaryLValueOperatorNode*>(last);
+      QoreBinaryLValueOperatorNode* op = reinterpret_cast<QoreBinaryLValueOperatorNode*>(last);
       l->swap(0, op->swapRight(l));
       return top;
    }
@@ -1120,12 +1124,12 @@ static AbstractQoreNode *checkRewriteList(QoreListNode *l) {
    return l;
 }
 
-void ignore_return_value(AbstractQoreNode *n) {
+void ignore_return_value(AbstractQoreNode* n) {
    qore_type_t t = get_node_type(n);
    if (t == NT_TREE)
-      reinterpret_cast<QoreTreeNode *>(n)->ignoreReturnValue();
+      reinterpret_cast<QoreTreeNode*>(n)->ignoreReturnValue();
    else if (t == NT_OPERATOR)
-      reinterpret_cast<QoreOperatorNode *>(n)->ignoreReturnValue();
+      reinterpret_cast<QoreOperatorNode*>(n)->ignoreReturnValue();
 }
 
 static qore_var_t get_var_type() {
@@ -1145,40 +1149,40 @@ static qore_var_t get_var_type() {
    int i4;
    int64 integer;
    double decimal;
-   QoreStringNode *String;
-   char *string;
-   BinaryNode *binary;
-   AbstractQoreNode *node;
-   QoreHashNode *hash;
-   QoreListNode *list;
+   QoreStringNode* String;
+   char* string;
+   BinaryNode* binary;
+   AbstractQoreNode* node;
+   QoreHashNode* hash;
+   QoreListNode* list;
    AbstractStatement *statement;
    struct MemberInfo *memberinfo;
    struct ClassVarInfo *classvarinfo;
    StatementBlock *sblock;
-   ContextModList *cmods;
+   ContextModList* cmods;
    ContextMod *cmod;
    class HashElement *hashelement;
    QoreFunction *userfunc;	
-   struct MethodNode *methodnode;
-   class MemberList *memberlist;
+   struct MethodNode* methodnode;
+   class MemberList* memberlist;
    QoreClass *qoreclass;
-   class ConstNode *constnode;
+   class ConstNode* constnode;
    QoreNamespace *ns;
    struct NSNodeList* nsnlist;
-   struct NSNode *nsn;
+   struct NSNode* nsn;
    class ObjClassDef *classdef;
-   DateTimeNode *datetime;
-   RegexSubstNode *RegexSubst;
-   RegexTransNode *RegexTrans;
+   DateTimeNode* datetime;
+   RegexSubstNode* RegexSubst;
+   RegexTransNode* RegexTrans;
    SwitchStatement *switchstmt;
-   CaseNode *casenode;
-   BCList *sclist;
-   class BCNode *sclnode;
-   BCAList *bcalist;
-   BCANode *bcanode;
+   CaseNode* casenode;
+   BCList* sclist;
+   class BCNode* sclnode;
+   BCAList* bcalist;
+   BCANode* bcanode;
    NamedScope *nscope;
-   QoreRegexNode *Regex;
-   QoreImplicitArgumentNode *implicit_arg;
+   QoreRegexNode* Regex;
+   QoreImplicitArgumentNode* implicit_arg;
    RetTypeInfo *returnTypeInfo;
    struct ParserTypeStruct *parsertype;
    class ParseUserFunction* parsefunc;
@@ -1192,7 +1196,7 @@ static qore_var_t get_var_type() {
 
 DLLLOCAL int yylex(LEX_PARAMETERS);
 
-DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
+DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
    //printd(5, "yyerror() location: %d-%d: \"%s\"\n", loc->first_line, loc->last_line, str);
    parse_error("%s", str);
 }
@@ -1212,7 +1216,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_IF "if"
 %token TOK_FOR "for"
 %token TOK_SUB "sub"
-%token TOK_THREAD_EXIT "thread_exit" 
+%token TOK_THREAD_EXIT "thread_exit"
 %token TOK_BREAK "break"
 %token TOK_CONTINUE "continue"
 %token TOK_CONTEXT_ROW "%%"
@@ -1243,12 +1247,11 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_NAMESPACE "namespace"
 %token TOK_MODULE "module"
 %token TOK_FINAL "final"
+%token TOK_ABSTRACT "abstract"
 
 // currently unused tokens
-%token TOK_FINALLY "finally"
-%token TOK_INTERFACE "interface"
-%token TOK_IMPLEMENTS "implements"
-%token TOK_ABSTRACT "abstract"
+//%token TOK_FINALLY "finally"
+//%token TOK_INTERFACE "interface"
 %token TOK_UNREFERENCE "unreference"
 
 // operator tokens
@@ -1646,7 +1649,7 @@ statement:
 	   qore_type_t t = $1 ? $1->getType() : 0;
 	   bool ok = false;
 	   if (t == NT_LIST) {
-	      QoreListNode *l = reinterpret_cast<QoreListNode *>($1);
+	      QoreListNode* l = reinterpret_cast<QoreListNode*>($1);
 	      // rewrite expression if it's a list without parentheses under certain conditions
 	      $1 = checkRewriteList(l);
 
@@ -1884,12 +1887,12 @@ case_code:
 
 try_statement:
         TOK_TRY statement_or_block TOK_CATCH '(' myexp ')' statement_or_block {
-	   char *param = 0;
+	   char* param = 0;
 	   if ($5) {
 	      if ($5->getType() == NT_VARREF) 
-		 param = reinterpret_cast<VarRefNode *>($5)->takeName();
+		 param = reinterpret_cast<VarRefNode*>($5)->takeName();
 	      else if ($5->getType() == NT_BAREWORD) {
-		 param = reinterpret_cast<BarewordNode *>($5)->takeString();
+		 param = reinterpret_cast<BarewordNode*>($5)->takeString();
 		 if (!checkParseOption(PO_ALLOW_BARE_REFS))
 		    parse_error("local variable '%s' in catch parameter list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", param);
 	      }
@@ -2103,7 +2106,7 @@ classvardecl:
 	}
         | TOK_STATIC uncqtypedef IDENTIFIER '(' myexp ')' ';' {
 	   const QoreTypeInfo *t = $2->getTypeInfo();
-	   ScopedObjectCallNode *new_call = 0;
+	   ScopedObjectCallNode* new_call = 0;
 
 	   if (t)
 	      parse_error("cannot call constructor for non-class base type '%s'", t->getName());
@@ -2133,7 +2136,7 @@ member2:
         | qtypedef SELF_REF '(' myexp ')' ';' {
 	   int fl = $1 ? @1.first_line : @2.first_line;
 	   const QoreTypeInfo *t = $1->getTypeInfo();
-	   ScopedObjectCallNode *new_call = 0;
+	   ScopedObjectCallNode* new_call = 0;
 
 	   if (!$1)
 	      parse_error("cannot call constructor without declaring the class");
@@ -2165,7 +2168,7 @@ member2:
         | uncqtypedef IDENTIFIER '(' myexp ')' ';' {
 	   int fl = @1.first_line;
 	   const QoreTypeInfo *t = $1->getTypeInfo();
-	   ScopedObjectCallNode *new_call = 0;
+	   ScopedObjectCallNode* new_call = 0;
 
 	   if (!$1)
 	      parse_error("cannot call constructor without declaring the class");
@@ -2247,10 +2250,22 @@ ident_openparen:
 
 method_definition:
         nsc_modifiers ident_openparen myexp ')' base_constructor_list return_value block {
+           if ($1 & OFM_ABSTRACT) {
+              if ($7)
+                 parse_error("'abstract' can only be used with no implementation (remove the body and terminate the declaration with ';' or remove the 'abstract')");
+              else
+                 parse_error("'abstract' can only be used with no implementation (terminate the declaration with ';' instead of '{}')");
+           }
 	   checkMethod($2, $5, $6);
 	   $$ = new MethodNode($2, newMethodVariant($2, $1, @3.first_line, @3.last_line, $3, $5, $6, $7, $1 & OFM_DEPRECATED), $1 & OFM_STATIC);
 	}
         | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list block {
+           if ($1 & OFM_ABSTRACT) {
+              if ($7)
+                 parse_error("'abstract' can only be used with no implementation (remove the body and terminate the declaration with ';' or remove the 'abstract')");
+              else
+                 parse_error("'abstract' can only be used with no implementation (terminate the declaration with ';' instead of '{}')");
+           }
 	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 	   
@@ -2258,18 +2273,59 @@ method_definition:
 
 	   $$ = new MethodNode($3, newMethodVariant($3, $1, @4.first_line, @4.last_line, $4, $6, rt, $7, $1 & OFM_DEPRECATED), $1 & OFM_STATIC);
 	}
+        | nsc_modifiers ident_openparen myexp ')' base_constructor_list return_value ';' {
+           if (!($1 & OFM_ABSTRACT))
+              parse_error("non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
+           checkMethod($2, $5, $6);
+           $$ = new MethodNode($2, newMethodVariant($2, $1, @3.first_line, @3.last_line, $3, $5, $6, 0, $1 & OFM_DEPRECATED), $1 & OFM_STATIC);
+        }
+        | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list ';' {
+           if (!($1 & OFM_ABSTRACT))
+              parse_error("non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
+           RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+           delete $2;
+
+           checkMethod($3, $6, rt);
+
+           $$ = new MethodNode($3, newMethodVariant($3, $1, @4.first_line, @4.last_line, $4, $6, rt, 0, $1 & OFM_DEPRECATED), $1 & OFM_STATIC);
+        }
 	;
 
 object_outofline_function_def:
 	method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
+           if ($1 & OFM_ABSTRACT) {
+              if ($8)
+                 parse_error("'abstract' can only be used with no implementation (remove the body and terminate the declaration with ';' or remove the 'abstract')");
+              else
+                 parse_error("'abstract' can only be used with no implementation (terminate the declaration with ';' instead of '{}')");
+           }
 	   tryAddMethod($1, $2, @4.first_line, @4.last_line, $4, $6, $7, $8);
 	}
 	| method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
+           if ($1 & OFM_ABSTRACT) {
+              if ($8)
+                 parse_error("'abstract' can only be used with no implementation (remove the body and terminate the declaration with ';' or remove the 'abstract')");
+              else
+                 parse_error("'abstract' can only be used with no implementation (terminate the declaration with ';' instead of '{}')");
+           }
 	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 
 	   tryAddMethod($1, $3, @5.first_line, @5.last_line, $5, $7, rt, $8);
 	}
+        | method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value ';' {
+           if (!$1 & OFM_ABSTRACT)
+              parse_error("non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
+           tryAddMethod($1, $2, @4.first_line, @4.last_line, $4, $6, $7, 0);
+        }
+        | method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list ';' {
+           if (!$1 & OFM_ABSTRACT)
+              parse_error("non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
+           RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+           delete $2;
+
+           tryAddMethod($1, $3, @5.first_line, @5.last_line, $5, $7, rt, 0);
+        }
 	| SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
 	   tryAddMethod(0, $1, @3.first_line, @3.last_line, $3, $5, $6, $7);
 	}
@@ -2332,6 +2388,7 @@ method_modifier:
         | TOK_DEPRECATED { $$ = OFM_DEPRECATED; }
         | TOK_PUBLIC { $$ = OFM_PUBLIC; }
         | TOK_FINAL { $$ = OFM_FINAL; }
+        | TOK_ABSTRACT { $$ = OFM_ABSTRACT; }
         ;
 
 return_value:
@@ -2437,9 +2494,9 @@ list:
 	exp ',' exp
         { $$ = splice_expressions($1, $3); }
         | exp ',' {
-	   QoreListNode *l;
+	   QoreListNode* l;
 	   if ($1 && $1->getType() == NT_LIST) 
-	      l = reinterpret_cast<QoreListNode *>($1);
+	      l = reinterpret_cast<QoreListNode*>($1);
 	   else {
 	      l = new QoreListNode;
 	      l->push($1);
@@ -2517,7 +2574,7 @@ exp:    scalar
 	   delete $1;
 	}
         | TOK_MY uncqtypedef IDENTIFIER {
-	   VarRefDeclNode *v = new VarRefDeclNode(@2.first_line, @3.last_line, $3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
+	   VarRefDeclNode* v = new VarRefDeclNode(@2.first_line, @3.last_line, $3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
 	   v->setExplicitScope();
 	   $$ = v;
 	   delete $2;
@@ -2528,14 +2585,14 @@ exp:    scalar
 	   // see if types are required
 	   if (checkParseOption(PO_REQUIRE_TYPES))
 	      parse_error("local variable '%s' declared without type information, but parse options require all declarations to have type information", $2);
-	   VarRefNode *v = new VarRefNode($2, VT_LOCAL);
+	   VarRefNode* v = new VarRefNode($2, VT_LOCAL);
 	   v->setExplicitScope();
 	   $$ = v;
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("local variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $2);
 	}
         | TOK_MY qtypedef VAR_REF {
-	   VarRefNode *v; 
+	   VarRefNode* v;
 	   if ($2) {
 	      v = new VarRefDeclNode(@3.first_line, @3.last_line, $3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
 	      delete $2;
@@ -2555,22 +2612,22 @@ exp:    scalar
 	   $3->setVariableList();
 	   ListIterator li($3);
 	   while (li.next()) {
-	      AbstractQoreNode *n = li.getValue();
+	      AbstractQoreNode* n = li.getValue();
 	      qore_type_t t = get_node_type(n);
 	      if (t == NT_BAREWORD) {
-		 BarewordNode *b = reinterpret_cast<BarewordNode *>(n);
+		 BarewordNode* b = reinterpret_cast<BarewordNode*>(n);
 		 if (checkParseOption(PO_REQUIRE_TYPES))
 		    parse_error("local variable '%s' declared without type information, but parse options require all declarations to have type information", b->str);
 		 if (!checkParseOption(PO_ALLOW_BARE_REFS))
 		    parse_error("local variable '%s' in local variable declaration list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", b->str);
-		 VarRefNode *v = new VarRefNode(b->takeString(), VT_LOCAL);
+		 VarRefNode* v = new VarRefNode(b->takeString(), VT_LOCAL);
 		 v->setExplicitScope();
 		 b->deref();
-		 AbstractQoreNode **p = li.getValuePtr();
+		 AbstractQoreNode** p = li.getValuePtr();
 		 *p = v;
 	      }
 	      else if (t == NT_VARREF) {
-		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
+		 VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
 		 // see if types are required
 		 if (checkParseOption(PO_REQUIRE_TYPES) && !v->isDecl())
 		    parse_error("local variable '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
@@ -2659,13 +2716,13 @@ exp:    scalar
         | TOK_KEYS exp
         { $$ = new QoreTreeNode($2, OP_KEYS, 0); }
         | TOK_UNSHIFT exp {  // unshift list, element
-	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to unshift, expected: lvalue, expression (%s)", $2->getTypeName());
 	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
-	      AbstractQoreNode *lv = l->shift();
+	      AbstractQoreNode* lv = l->shift();
 	      $$ = new QoreTreeNode(lv, OP_UNSHIFT, l->shift());
 	      $2->deref(0);
 	   }
@@ -2674,13 +2731,13 @@ exp:    scalar
 	   $$ = new QoreTreeNode($2, OP_SHIFT, 0); 
 	}
         | TOK_PUSH exp {  // push lvalue-list, element
-	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to push, expected: lvalue, expression (%s)", $2->getTypeName());
 	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
-	      AbstractQoreNode *lv = l->shift();
+	      AbstractQoreNode* lv = l->shift();
 	      $$ = new QoreTreeNode(lv, OP_PUSH, l->shift());
 	      $2->deref(0);
 	   }
@@ -2695,7 +2752,7 @@ exp:    scalar
 	   $$ = new QoreTreeNode($2, OP_TRIM, 0); 
 	}
         | TOK_SPLICE exp {  // splice lvalue-list, offset, [length, list]
-	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
 	   if (!l) {
 	      parse_error("invalid arguments to splice, expected: lvalue, offset exp[, length exp[, list exp]] (got %s)", get_type_name($2));
 	      $$ = makeErrorTree($2, 0);
@@ -2709,13 +2766,13 @@ exp:    scalar
 	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
-	      AbstractQoreNode *lv = l->shift();
+	      AbstractQoreNode* lv = l->shift();
 	      $$ = new QoreSpliceOperatorNode(lv, l->shift(), l->shift(), l->shift());
 	      discard(l, 0);
 	   }
 	}
         | TOK_EXTRACT exp {  // extract lvalue-list, offset, [length, list]
-	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
 	   if (!l) {
 	      parse_error("invalid arguments to extract, expected: lvalue, offset exp[, length exp[, list exp]] (got %s)", get_type_name($2));
 	      $$ = makeErrorTree($2, 0);
@@ -2729,68 +2786,68 @@ exp:    scalar
 	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
-	      AbstractQoreNode *lv = l->shift();
+	      AbstractQoreNode* lv = l->shift();
 	      $$ = new QoreExtractOperatorNode(lv, l->shift(), l->shift(), l->shift());
 	      discard(l, 0);
 	   }
 	}
         | TOK_MAP exp {
 	   pop_ignore_numeric_argv_ref();
-	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
 	   int len = l ? (int)l->size() : 0;
 	   if (!l || len < 2 || len > 3) {
 	      parse_error("invalid arguments to map operator, expected: 2 or 3 element list (code expression, list argument, [select expression]), got: '%s'", get_type_name($2));
 	      $$ = makeErrorTree($2, 0);
 	   }
 	   else if (len == 2) {
-	      AbstractQoreNode *map_exp = l->shift();
-	      AbstractQoreNode *arg = l->shift();
+	      AbstractQoreNode* map_exp = l->shift();
+	      AbstractQoreNode* arg = l->shift();
 	      $$ = new QoreTreeNode(map_exp, OP_MAP, arg);
 	      $2->deref(0);
 	   }
 	   else {
-	      AbstractQoreNode *map_exp = l->shift();
+	      AbstractQoreNode* map_exp = l->shift();
 	      $$ = new QoreTreeNode(map_exp, OP_MAP_SELECT, l);
 	   }
 	}
         | TOK_FOLDR exp {
 	   pop_ignore_numeric_argv_ref();
-	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to foldr operator, expected: 2-element list expected: 2-element list (fold expression and list expression), got: '%s'", get_type_name($2));
 	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
-	      AbstractQoreNode *code_exp = l->shift();
-	      AbstractQoreNode *arg = l->shift();
+	      AbstractQoreNode* code_exp = l->shift();
+	      AbstractQoreNode* arg = l->shift();
 	      $$ = new QoreTreeNode(code_exp, OP_FOLDR, arg);
 	      $2->deref(0);
 	   }
 	}
         | TOK_FOLDL exp {
 	   pop_ignore_numeric_argv_ref();
-	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to foldl operator, expected: 2-element list (fold expression and list expression), got: '%s'", get_type_name($2));
 	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
-	      AbstractQoreNode *code_exp = l->shift();
-	      AbstractQoreNode *arg = l->shift();
+	      AbstractQoreNode* code_exp = l->shift();
+	      AbstractQoreNode* arg = l->shift();
 	      $$ = new QoreTreeNode(code_exp, OP_FOLDL, arg);
 	      $2->deref(0);
 	   }
 	}
         | TOK_SELECT exp {
 	   pop_ignore_numeric_argv_ref();
-	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to select operator, expected: 2-element list (list expression and select expression) got: '%s'", get_type_name($2));
 	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
-	      AbstractQoreNode *arg = l->shift();
-	      AbstractQoreNode *select_exp = l->shift();
+	      AbstractQoreNode* arg = l->shift();
+	      AbstractQoreNode* select_exp = l->shift();
 	      $$ = new QoreTreeNode(arg, OP_SELECT, select_exp);
 	      $2->deref(0);
 	   }
@@ -2813,15 +2870,15 @@ exp:    scalar
 	   //printd(5, "1=%s (%p), 3=%s (%p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
 	   qore_type_t t = get_node_type($1);
 	   if (t == NT_BAREWORD) {
-	      BarewordNode *b = reinterpret_cast<BarewordNode *>($1);
+	      BarewordNode* b = reinterpret_cast<BarewordNode*>($1);
 	      // take string from node and delete node
-	      char *str = b->takeString();
+	      char* str = b->takeString();
 	      b->deref();
 	      printd(5, "parsing call %s() args=%p %s\n", str, $3, $3 ? $3->getTypeName() : "n/a");
 	      $$ = new FunctionCallNode(str, makeArgs($3));
 	   }
 	   else if (t == NT_CONSTANT) {
-	      ScopedRefNode *c = reinterpret_cast<ScopedRefNode *>($1);
+	      ScopedRefNode* c = reinterpret_cast<ScopedRefNode*>($1);
 	      // take NamedScope from node and delete node
 	      NamedScope *ns = c->takeName();
 	      c->deref();
@@ -2830,18 +2887,18 @@ exp:    scalar
 	      $$ = new StaticMethodCallNode(ns, makeArgs($3));
 	   }
 	   else if (t == NT_SELF_VARREF) {
-	      SelfVarrefNode *v = reinterpret_cast<SelfVarrefNode *>($1);
+	      SelfVarrefNode* v = reinterpret_cast<SelfVarrefNode*>($1);
 	      // take string from node and delete node
-	      char *str = v->takeString();
+	      char* str = v->takeString();
 	      v->deref();
 	      printd(5, "parsing in-object method call %s()\n", str);
 	      $$ = new SelfFunctionCallNode(str, makeArgs($3));
 	   }
 	   else {
-	      QoreTreeNode *tree;
+	      QoreTreeNode* tree;
 	      
 	      if (t == NT_TREE) {
-		 tree = reinterpret_cast<QoreTreeNode *>($1);
+		 tree = reinterpret_cast<QoreTreeNode*>($1);
 		 if (!(tree->getOp() == OP_OBJECT_REF && tree->right && tree->right->getType() == NT_STRING))
 		    tree = 0;
 	      }
@@ -2851,17 +2908,17 @@ exp:    scalar
 	      if (tree) {
 		 // create an object method call node
 		 // take the string
-		 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(tree->right);
-		 char *cstr = str->giveBuffer();
+		 QoreStringNode* str = reinterpret_cast<QoreStringNode*>(tree->right);
+		 char* cstr = str->giveBuffer();
 		 str->deref();
 		 
 		 //printd(5, "method call to %s: tree=%s, args=%p %s\n", cstr, tree->left->getTypeName(), $3, $3 ? $3->getTypeName() : "n/a");
 
-		 MethodCallNode *mc = new MethodCallNode(cstr, makeArgs($3));
+		 MethodCallNode* mc = new MethodCallNode(cstr, makeArgs($3));
                  
                  // destroy the tree and create a new operator object
                  assert(tree->is_unique());
-                 AbstractQoreNode *l = tree->left;
+                 AbstractQoreNode* l = tree->left;
                  tree->right = 0;
                  tree->left = 0;
                  tree->deref(0);
@@ -2871,7 +2928,7 @@ exp:    scalar
 	      else {
 		 $$ = 0;
 		 if ($1 && $1->getType() == NT_VARREF) {
-		    VarRefNode *r = reinterpret_cast<VarRefNode *>($1);
+		    VarRefNode* r = reinterpret_cast<VarRefNode*>($1);
 		    qore_var_t vartype = r->getType();
 
 		    if (vartype != VT_UNRESOLVED) {
@@ -2954,19 +3011,19 @@ exp:    scalar
 	   //printd(5, "backslash exp line %d, type %s\n", @2.first_line, $2->getTypeName());
 
 	   if (t == NT_FUNCTION_CALL || t == NT_PROGRAM_FUNC_CALL) {
-	      $$ = reinterpret_cast<FunctionCallNode *>($2)->makeReferenceNodeAndDeref();
+	      $$ = reinterpret_cast<FunctionCallNode*>($2)->makeReferenceNodeAndDeref();
 	   }
 	   else if (t == NT_SELF_CALL) {
-	      $$ = reinterpret_cast<SelfFunctionCallNode *>($2)->makeReferenceNodeAndDeref();
+	      $$ = reinterpret_cast<SelfFunctionCallNode*>($2)->makeReferenceNodeAndDeref();
 	   }
 	   else if (t == NT_STATIC_METHOD_CALL) {
-	      $$ = reinterpret_cast<StaticMethodCallNode *>($2)->makeReferenceNodeAndDeref();
+	      $$ = reinterpret_cast<StaticMethodCallNode*>($2)->makeReferenceNodeAndDeref();
 	   }
 	   else {
 	      bool make_ref = true;
 
 	      if (t == NT_OPERATOR) {
-                 QoreDotEvalOperatorNode *deon = dynamic_cast<QoreDotEvalOperatorNode*>($2);
+                 QoreDotEvalOperatorNode* deon = dynamic_cast<QoreDotEvalOperatorNode*>($2);
                  if (deon) {
                     $$ = deon->makeCallReference();
                     make_ref = false;
@@ -3015,15 +3072,15 @@ exp:    scalar
 	   if ($2) {
               switch ($2->getType()) {
                  case NT_LIST:
-                    reinterpret_cast<QoreListNode *>($2)->setFinalized();
+                    reinterpret_cast<QoreListNode*>($2)->setFinalized();
                     break;
                  case NT_FUNCTION_CALL:
-                    reinterpret_cast<FunctionCallNode *>($2)->setFinalized(); 
+                    reinterpret_cast<FunctionCallNode*>($2)->setFinalized();
                     break;
               }
            }
 	}
-        | '(' ')' { QoreListNode *l = new QoreListNode; l->setFinalized(); $$ = l; }
+        | '(' ')' { QoreListNode* l = new QoreListNode; l->setFinalized(); $$ = l; }
         | TOK_SUB '(' myexp ')' return_value block {
 	   int ar = get_pop_argv_ref();
 	   $$ = new QoreClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));

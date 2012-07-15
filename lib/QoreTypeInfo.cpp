@@ -455,8 +455,10 @@ bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo *typeInfo) const {
 
    // from this point on, we know that both have types and are not NULL
    if ((returns_mult && !typeInfo->returns_mult)
-       || (!returns_mult && typeInfo->returns_mult))
+       || (!returns_mult && typeInfo->returns_mult)) {
+      //printd(5, "QoreTypeInfo::isOutputIdentical() lrm: %d rrm: %d\n", returns_mult, typeInfo->returns_mult);
       return false;
+   }
 
    // from here on, we know either both accept single types or both accept multiple types
    if (!returns_mult)
@@ -465,21 +467,25 @@ bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo *typeInfo) const {
    const type_vec_t &my_rt = getReturnTypeList();
    const type_vec_t &their_rt = typeInfo->getReturnTypeList();
 
-   if (my_rt.size() != their_rt.size())
+   if (my_rt.size() != their_rt.size()) {
+      //printd(5, "QoreTypeInfo::isOutputIdentical() lrts: %d rrts: %d\n", my_rt.size(), their_rt.size());
       return false;
+   }
 
    // check all types to see if there is an identical type
+   // FIXME: this is not very efficient (also only works properly if all types are unique in the list, which they should be)
    for (type_vec_t::const_iterator i = my_rt.begin(), e = my_rt.end(); i != e; ++i) {
-
       bool ident = false;
-      for (type_vec_t::const_iterator j = their_rt.begin(), je = their_rt.end(); i != je; ++i) {
+      for (type_vec_t::const_iterator j = their_rt.begin(), je = their_rt.end(); j != je; ++j) {
 	 if ((*i)->isOutputIdentical(*j)) {
 	    ident = true;
 	    break;
 	 }
       }
-      if (!ident)
+      if (!ident) {
+         //printd(5, "QoreTypeInfo::isOutputIdentical() cannot find match for %s in rhs\n", (*i)->getName());
 	 return false;
+      }
    }
 
    return true;

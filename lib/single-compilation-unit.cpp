@@ -177,6 +177,8 @@
 #include "QC_Dir.cpp"
 #include "QC_GetOpt.cpp"
 #include "QC_FtpClient.cpp"
+#include "QC_AbstractIterator.cpp"
+#include "QC_AbstractDatasource.cpp"
 #include "QC_Datasource.cpp"
 #include "QC_DatasourcePool.cpp"
 #include "QC_SQLStatement.cpp"

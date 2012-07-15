@@ -420,7 +420,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! will be called when a request is received that should be directed to the handler
     /**
         @param cx call context hash; this hash will have the following keys:
-        - \c socket: the bind address used to gind the listener (\c "socket-info" provides more detailed information)
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by Socket::getSocketInfo())
         - \c peer-info: a hash of socket information for the remote socket (as returned by Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from parseURL())

@@ -48,6 +48,139 @@ typedef HASH_MAP<std::string, QoreMethod*> hm_method_t;
 typedef std::map<std::string, QoreMethod*> hm_method_t;
 #endif
 
+class qore_class_private;
+
+// map from abstract signature to variant for fast tracking of abstract variants
+typedef std::map<const char*, MethodVariantBase*, ltstr> vmap_t;
+
+// we do not keep references in these lists; the variants are referenced in the lists that own them
+struct AbstractMethod {
+   // committed abstract methods from this class and parent classes
+   vmap_t vlist;
+   // pending abstract methods from this class and parent classes
+   vmap_t pending_vlist;
+   // save temporarily removed committed variants while parsing; to be moved back to vlist on parse rollback or purged on parse commit
+   vmap_t pending_save;
+   // save pending non-abstract variants
+   vmap_t pending_new;
+
+   DLLLOCAL AbstractMethod() {
+   }
+
+   DLLLOCAL AbstractMethod(const AbstractMethod& old) {
+      assert(!old.vlist.empty());
+      for (vmap_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
+         assert(vlist.find(i->first) == vlist.end());
+         vlist.insert(vmap_t::value_type(i->first, i->second));
+      }
+   }
+
+   // merge committed variants from parent classes to this vlist during one-time class initialization
+   DLLLOCAL void parseMergeCommitted(AbstractMethod& m);
+
+   // merge committed variants from parent classes to this vlist during one-time class initialization and merge in pending uncommitted local variants
+   DLLLOCAL void parseMergeCommitted(AbstractMethod& m, MethodFunctionBase* f);
+
+   // merge changes from parent class method of the same name during parse initialization
+   DLLLOCAL void parseMergeBase(AbstractMethod& m);
+
+   // merge changes from parent class method of the same name during parse initialization
+   DLLLOCAL void parseMergeBase(AbstractMethod& m, MethodFunctionBase* f);
+
+   DLLLOCAL void parseAdd(MethodVariantBase* v);
+
+   DLLLOCAL void parseOverride(MethodVariantBase* v);
+
+   DLLLOCAL void parseInit(const char* cname, const char* mname);
+
+   // delete/purge all saved variants in the pending_save list, returns 0 if the AbstractMethod still has abstract variants, -1 if not and therefore can be removed from the map
+   DLLLOCAL int parseCommit() {
+      pending_save.clear();
+      pending_new.clear();
+      for (vmap_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+         assert(vlist.find(i->first) == vlist.end());
+         vlist.insert(vmap_t::value_type(i->first, i->second));
+      }
+      pending_vlist.clear();
+      return vlist.empty() ? -1 : 0;
+   }
+
+   // move all saved variants back from the pending_save list to the committed list (vlist)
+   DLLLOCAL void parseRollback() {
+      assert(!pending_save.empty());
+      for (vmap_t::iterator i = pending_save.begin(), e = pending_save.end(); i != e; ++i) {
+         assert(vlist.find(i->first) == vlist.end());
+         vlist.insert(vmap_t::value_type(i->first, i->second));
+      }
+      pending_save.clear();
+      pending_new.clear();
+      assert(!vlist.empty());
+   }
+
+   DLLLOCAL static void parseCheckAbstract(const char* cname, const char* mname, vmap_t& vlist, QoreStringNode*& desc);
+
+   DLLLOCAL void add(MethodVariantBase* v);
+   DLLLOCAL void override(MethodVariantBase* v);
+};
+
+#ifdef HAVE_QORE_HASH_MAP
+typedef HASH_MAP<std::string, AbstractMethod*> amap_t;
+#else
+typedef std::map<std::string, AbstractMethod*> amap_t;
+#endif
+
+struct AbstractMethodMap : amap_t {
+   DLLLOCAL AbstractMethodMap(const AbstractMethodMap& old) {
+      for (amap_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
+         if (i->second->vlist.empty())
+            continue;
+         insert(amap_t::value_type(i->first, new AbstractMethod(*(i->second))));
+      }
+   }
+
+   DLLLOCAL AbstractMethodMap() {
+   }
+
+   DLLLOCAL ~AbstractMethodMap() {
+      for (amap_t::iterator i = begin(), e = end(); i != e; ++i)
+         delete i->second;
+   }
+
+   // adds a pending abstract variant if it doesn't already exist
+   DLLLOCAL void parseAddAbstractVariant(const char* name, MethodVariantBase* f);
+
+   DLLLOCAL void parseOverrideAbstractVariant(const char* name, MethodVariantBase* f);
+
+   // adds a committed abstract variant if it doesn't already exist
+   DLLLOCAL void addAbstractVariant(const char* name, MethodVariantBase* f);
+
+   // adds a committed non-abstract variant
+   DLLLOCAL void overrideAbstractVariant(const char* name, MethodVariantBase* f);
+
+   DLLLOCAL void parseCommit() {
+      for (amap_t::iterator i = begin(), e = end(); i != e;) {
+         if (i->second->parseCommit()) {
+            //printd(5, "AbstractMethodMap::parseCommit() removing abstract ???::%s()\n", i->first.c_str());
+            delete i->second;
+            erase(i++);
+            continue;
+         }
+         ++i;
+      }
+   }
+
+   DLLLOCAL void parseRollback() {
+      for (amap_t::iterator i = begin(), e = end(); i != e; ++i)
+         i->second->parseRollback();
+   }
+
+   DLLLOCAL void parseInit(const char* name) {
+   }
+
+   // we check if there are any abstract method variants still in the committed lists
+   DLLLOCAL void parseCheckAbstractNew(const char* name) const;
+};
+
 class SignatureHash;
 
 static inline const char* privpub(bool priv) { return priv ? "private" : "public"; }
@@ -65,12 +198,15 @@ class qore_class_private;
 class MethodVariantBase : public AbstractQoreFunctionVariant {
 protected:
    const QoreMethod* qmethod;    // pointer to method that owns the variant
-   bool priv_flag,               // is the method private or not
-      final;                     // is the method final or not
+   bool priv_flag,               // is the variant private or not
+      final,                     // is the variant final or not
+      abstract;                  // is the variant abstract or not
+   std::string asig;             // abstract signature, only set for abstract method variants
 
 public:
-   DLLLOCAL MethodVariantBase(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false) :
-      AbstractQoreFunctionVariant(n_flags, n_is_user), qmethod(0), priv_flag(n_priv_flag), final(n_final) {
+   // add QC_USES_EXTRA_ARGS to abstract methods by default as derived methods could use extra arguments
+   DLLLOCAL MethodVariantBase(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false, bool is_abstract = false) :
+      AbstractQoreFunctionVariant(n_flags | (is_abstract ? QC_USES_EXTRA_ARGS : 0), n_is_user), qmethod(0), priv_flag(n_priv_flag), final(n_final), abstract(is_abstract) {
    }
 
    DLLLOCAL bool isPrivate() const {
@@ -79,6 +215,15 @@ public:
 
    DLLLOCAL bool isFinal() const {
       return final;
+   }
+
+   DLLLOCAL bool isAbstract() const {
+      return abstract;
+   }
+
+   DLLLOCAL void clearAbstract() {
+      assert(abstract);
+      abstract = false;
    }
 
    DLLLOCAL void setMethod(QoreMethod* n_qm) {
@@ -94,6 +239,8 @@ public:
       return qmethod->getClass();
    }
 
+   DLLLOCAL const char* getAbstractSignature();
+
    DLLLOCAL const qore_class_private* getClassPriv() const;
 };
 
@@ -102,7 +249,7 @@ public:
 
 class MethodVariant : public MethodVariantBase {
 public:
-   DLLLOCAL MethodVariant(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false) : MethodVariantBase(n_priv_flag, n_final, n_flags, n_is_user) {
+   DLLLOCAL MethodVariant(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false, bool is_abstract = false) : MethodVariantBase(n_priv_flag, n_final, n_flags, n_is_user, is_abstract) {
    }
    DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const = 0;
    DLLLOCAL virtual int64 bigIntEvalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
@@ -187,7 +334,7 @@ public:
 
 class UserMethodVariant : public MethodVariant, public UserVariantBase {
 public:
-   DLLLOCAL UserMethodVariant(bool n_priv_flag, bool n_final, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags) : MethodVariant(n_priv_flag, n_final, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserMethodVariant(bool n_priv_flag, bool n_final, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_priv_flag, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -197,7 +344,7 @@ public:
       MethodFunctionBase* mf = static_cast<MethodFunctionBase*>(f);
 
       signature.resolve();
-      // resolve and push current return type on stack
+      // parseResolve and push current return type on stack
       ParseCodeInfoHelper rtih(mf->getName(), signature.getReturnTypeInfo());
       
       // must be called even if "statements" is NULL
@@ -323,6 +470,17 @@ public:
 
    // the following defines the pure virtual functions that are common to all builtin variants
    COMMON_BUILTIN_VARIANT_FUNCTIONS
+};
+
+class BuiltinAbstractMethodVariant : public BuiltinMethodVariant {
+public:
+   DLLLOCAL BuiltinAbstractMethodVariant(bool n_priv_flag, int64 n_flags, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, false, n_flags, QDOM_DEFAULT, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
+      abstract = true;
+   }
+
+   DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
+      assert(false);
+   }
 };
 
 class BuiltinNormalMethodVariantBase : public BuiltinMethodVariant {
@@ -1178,7 +1336,7 @@ class QoreVarMap : public var_map_t {
 public:
    DLLLOCAL ~QoreVarMap() {
       for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
-         //printd(0, "QoreVarMap::~QoreVarMap() deleting static var %s\n", i->first);
+         //printd(5, "QoreVarMap::~QoreVarMap() deleting static var %s\n", i->first);
          assert(i->second->empty());
          i->second->del();
          free(i->first);
@@ -1288,7 +1446,7 @@ public:
    DLLLOCAL void execSystemDestructors(QoreObject *o, ExceptionSink* xsink) const;
    DLLLOCAL void execCopyMethods(QoreObject *self, QoreObject *old, ExceptionSink* xsink) const;
 
-   // resolve classes to the new class pointer after all namespaces and classes have been copied
+   // parseResolve classes to the new class pointer after all namespaces and classes have been copied
    DLLLOCAL void resolveCopy();
 };
 
@@ -1334,7 +1492,7 @@ public:
 
    DLLLOCAL bool isPrivate() const { return priv; }
    // returns -1 if a recursive reference is found, 0 if not
-   DLLLOCAL int parseInit(QoreClass* cls, bool &has_delete_blocker, qcp_set_t& qcp_set);
+   DLLLOCAL int initialize(QoreClass* cls, bool &has_delete_blocker, qcp_set_t& qcp_set);
    DLLLOCAL const QoreClass* getClass(qore_classid_t cid, bool &n_priv) const {
       // sclass can be 0 if the class could not be found during parse initialization
       if (!sclass)
@@ -1349,7 +1507,7 @@ public:
    DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, bool& n_priv) const;
 };
 
-typedef std::vector<BCNode* > bclist_t;
+typedef std::vector<BCNode*> bclist_t;
 
 //  BCList
 //  linked list of base classes, constructors called head->tail, 
@@ -1371,7 +1529,7 @@ public:
    DLLLOCAL BCList() : valid(true) {
    }
 
-   DLLLOCAL BCList(const BCList &old) : sml(old.sml), valid(true) {
+   DLLLOCAL BCList(const BCList& old) : sml(old.sml), valid(true) {
       assert(old.valid);
       reserve(old.size());
       for (bclist_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i)
@@ -1383,7 +1541,7 @@ public:
          delete *i;
    }
 
-   DLLLOCAL int parseInit(QoreClass* thisclass, bool& has_delete_blocker, qcp_set_t& qcp_set);
+   DLLLOCAL int initialize(QoreClass* thisclass, bool& has_delete_blocker, qcp_set_t& qcp_set);
    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* name);
 
    // only looks in committed method lists
@@ -1534,8 +1692,9 @@ public:
    BCList* scl;                  // base class list
 
    hm_method_t hm,               // "normal" (non-static) method map
-      shm,                       // static method map
-      ahm;                       // abstract method map, holding abstract variants with no implementation in the current class
+      shm;                       // static method map
+
+   AbstractMethodMap ahm;        // holds abstract variants with no implementation in the current class
 
    ConstantList pend_pub_const,  // pending public constants
       pend_priv_const,           // pending private constants
@@ -1599,6 +1758,15 @@ public:
    DLLLOCAL qore_class_private(const qore_class_private &old, QoreClass* n_cls);
 
    DLLLOCAL ~qore_class_private();
+
+   DLLLOCAL bool hasAbstract() const {
+      return !ahm.empty();
+   }
+
+   DLLLOCAL void parseCheckAbstractNew() {
+      parseInit();
+      ahm.parseCheckAbstractNew(name.c_str());
+   }
 
    DLLLOCAL void setNamespace(qore_ns_private* n) {
       ns = n;
@@ -1832,7 +2000,7 @@ public:
    }
 
    DLLLOCAL const QoreClass* parseFindPublicPrivateVar(const QoreProgramLocation*& loc, const char* dname, const QoreTypeInfo*& varTypeInfo, bool &var_has_type_info, bool &priv) const {
-      //printd(0, "parseFindPublicPrivateVar() this=%p cls=%p (%s) scl=%p\n", this, cls, cls->getName(), scl);
+      //printd(5, "parseFindPublicPrivateVar() this=%p cls=%p (%s) scl=%p\n", this, cls, cls->getName(), scl);
 
       QoreVarInfo* vi = private_vars.find(const_cast<char* >(dname));
       if (!vi)
@@ -1869,7 +2037,7 @@ public:
       bool is_priv;
       const QoreProgramLocation* loc = 0;
       const QoreClass* sclass = parseFindPublicPrivateVar(loc, dname, varTypeInfo, has_type_info, is_priv);
-      //printd(0, "parseCheckVar() %s cls=%p (%s)\n", dname, sclass, sclass ? sclass->getName() : "n/a");
+      //printd(5, "parseCheckVar() %s cls=%p (%s)\n", dname, sclass, sclass ? sclass->getName() : "n/a");
       if (!sclass) {
          if (parseHasConstant(dname)) {
             parse_error("'%s' has already been declared as a constant in this class and therefore cannot be also declared as a static class variable in the same class with the same name", dname);
@@ -1982,7 +2150,7 @@ public:
          val->deref(0);
          return;
       }
-      //printd(0, "parseAddPublicConstant() this=%p cls=%p const=%s\n", this, cls, cname.c_str());
+      //printd(5, "parseAddPublicConstant() this=%p cls=%p const=%s\n", this, cls, cname.c_str());
       
       pend_pub_const.parseAdd(cname, val, pub_const, priv_const, pend_priv_const, false, name.c_str());
    }
@@ -2020,7 +2188,7 @@ public:
 	 }
       }
 
-      //printd(0, "qore_class_private::parseFindLocalConstantValue(%s) this=%p (cls=%p %s) rv=%p\n", cname, this, cls, name.c_str(), rv);      
+      //printd(5, "qore_class_private::parseFindLocalConstantValue(%s) this=%p (cls=%p %s) rv=%p\n", cname, this, cls, name.c_str(), rv);
       return rv;
    }
 
@@ -2514,6 +2682,34 @@ public:
          if (!has_new_user_changes)
             has_new_user_changes = true;
       }
+   }
+
+   DLLLOCAL static void parseCheckAbstractNew(QoreClass& qc) {
+      qc.priv->parseCheckAbstractNew();
+   }
+
+   DLLLOCAL static void parseInit(QoreClass& qc) {
+      qc.priv->parseInit();
+   }
+
+   DLLLOCAL static void parseInitPartial(QoreClass& qc) {
+      qc.priv->parseInitPartial();
+   }
+
+   DLLLOCAL static void parseCommit(QoreClass& qc) {
+      qc.priv->parseCommit();
+   }
+
+   DLLLOCAL static void parseRollback(QoreClass& qc) {
+      qc.priv->parseRollback();
+   }
+
+   DLLLOCAL static void resolveCopy(QoreClass& qc) {
+      qc.priv->resolveCopy();
+   }
+
+   DLLLOCAL static int addUserMethod(QoreClass& qc, const char* mname, MethodVariantBase *f, bool n_static) {
+      return qc.priv->addUserMethod(mname, f, n_static);
    }
 
    DLLLOCAL static void initialize(QoreClass& qc) {

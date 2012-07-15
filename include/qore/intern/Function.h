@@ -42,8 +42,8 @@ class BarewordNode;
 class QoreFunction;
 class qore_class_private;
 
-typedef std::vector<QoreParseTypeInfo* > ptype_vec_t;
-typedef std::vector<LocalVar* > lvar_vec_t;
+typedef std::vector<QoreParseTypeInfo*> ptype_vec_t;
+typedef std::vector<LocalVar*> lvar_vec_t;
 
 class AbstractFunctionSignature {
 protected:
@@ -95,6 +95,14 @@ public:
       return str.c_str();
    }
 
+   DLLLOCAL void addAbtractParameterSignature(std::string& str) const {
+      for (unsigned i = 0; i < typeList.size(); ++i) {
+         str.append(typeList[i]->getName());
+         if (i != typeList.size() - 1)
+            str.append(",");
+      }
+   }
+
    DLLLOCAL unsigned numParams() const {
       return (unsigned)typeList.size();
    }
@@ -122,6 +130,8 @@ public:
    DLLLOCAL const char* getName(unsigned i) const {
       return i < names.size() ? names[i].c_str() : 0;
    }
+
+   DLLLOCAL bool operator==(const AbstractFunctionSignature& sig) const;
 };
 
 // used to store return type info during parsing for user code
@@ -303,12 +313,15 @@ public:
       assert(false);
    }
 
+   DLLLOCAL void parseResolveUserSignature();
+
    DLLLOCAL virtual UserVariantBase* getUserVariantBase() {
       return 0;
    }
 
    DLLLOCAL const UserVariantBase* getUserVariantBase() const {
-      return const_cast<AbstractQoreFunctionVariant* >(this)->getUserVariantBase();
+      // avoid the virtual function call if possible
+      return is_user ? const_cast<AbstractQoreFunctionVariant*>(this)->getUserVariantBase() : 0;
    }
 
    DLLLOCAL virtual AbstractQoreNode* evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
@@ -345,12 +358,19 @@ public:
       return qc ? qc->getName() : 0;
    }
 
+   DLLLOCAL bool isSignatureIdentical(const AbstractFunctionSignature& sig) const {
+      //printd(5, "AbstractQoreFunctionVariant::isSignatureIdentical() this: %p '%s' == '%s': %d\n", this, getSignature()->getSignatureText(), sig.getSignatureText(), *(getSignature()) == sig);
+      return *(getSignature()) == sig;
+   }
+
    DLLLOCAL AbstractQoreFunctionVariant* ref() { ROreference(); return this; }
    DLLLOCAL void deref() { if (ROdereference()) { delete this; } }
 
    DLLLOCAL bool isUser() const {
       return is_user;
    }
+
+   DLLLOCAL bool hasBody() const;
 
    DLLLOCAL virtual bool isModulePublic() const {
       return false;
@@ -401,6 +421,10 @@ public:
 
    DLLLOCAL bool getInit() const {
       return init;
+   }
+
+   DLLLOCAL bool hasBody() const {
+      return (bool)statements;
    }
 
    DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo);
@@ -473,7 +497,7 @@ public:
 
 // type for lists of function variants
 // this type will be read at runtime and could be appended to simultaneously at parse time (under a lock)
-typedef safe_dslist<AbstractQoreFunctionVariant* > vlist_t;
+typedef safe_dslist<AbstractQoreFunctionVariant*> vlist_t;
 
 class VList : public vlist_t {
 public:
@@ -573,7 +597,7 @@ protected:
    // returns QTI_NOT_EQUAL, QTI_AMBIGUOUS, or QTI_IDENT
    DLLLOCAL static int parseCompareResolvedSignature(const VList& vlist, const AbstractFunctionSignature* sig, const AbstractFunctionSignature*& vs);
 
-   // returns 0 for OK, -1 for error
+   // returns 0 for OK (not a duplicate), -1 for error (duplicate) - parse exceptions are raised if a duplicate is found
    DLLLOCAL int parseCheckDuplicateSignature(AbstractQoreFunctionVariant* variant);
 
    // FIXME: does not check unparsed types properly
@@ -882,7 +906,7 @@ public:
    DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), all_private(true), pending_all_private(true), is_static(n_is_static), has_final(false), pending_has_final(false), qc(n_qc), new_copy(0) {
    }
 
-   // copy constructor, only copies comitted variants
+   // copy constructor, only copies committed variants
    DLLLOCAL MethodFunctionBase(const MethodFunctionBase& old, const QoreClass* n_qc) 
       : QoreFunction(old), 
         all_private(old.all_private), 
@@ -924,7 +948,24 @@ public:
    // maintains all_private flag and commits the builtin variant
    DLLLOCAL void addBuiltinMethodVariant(MethodVariantBase* variant);
    // maintains all_private flag and commits user variants
-   DLLLOCAL void parseCommitMethod(QoreString& csig, bool is_static);
+   DLLLOCAL void parseCommitMethod(QoreString& csig, const char* mod);
+
+   // if an identical signature is found to the passed variant, then it is removed from the abstract list
+   DLLLOCAL bool parseHasVariantWithSignature(AbstractQoreFunctionVariant* v) const {
+      v->parseResolveUserSignature();
+      AbstractFunctionSignature& sig = *(v->getSignature());
+      for (vlist_t::const_iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+         (*i)->parseResolveUserSignature();
+         if ((*i)->isSignatureIdentical(sig))
+            return true;
+      }
+      for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+         if ((*i)->isSignatureIdentical(sig))
+            return true;
+      }
+      return false;
+   }
+
    DLLLOCAL void parseRollbackMethod();
    DLLLOCAL bool isUniquelyPrivate() const {
       return all_private;

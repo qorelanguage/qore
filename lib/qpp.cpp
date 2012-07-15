@@ -140,6 +140,7 @@ typedef std::vector<Param> paramlist_t;
 #define QCA_STATIC          (1 << 2)
 #define QCA_SYNCHRONIZED    (1 << 3)
 #define QCA_USES_EXTRA_ARGS (1 << 4)
+#define QCA_ABSTRACT        (1 << 5)
 
 #define BUFSIZE 1024
 
@@ -411,17 +412,22 @@ int parse_properties(const char* fileName, unsigned lineNumber, std::string &pro
    return add_element(fileName, lineNumber, propstr, props, start, propstr.size());
 }
 
-int parse_params_and_flags(const char* fileName, unsigned& lineNumber, strmap_t& flags, paramlist_t& params, attr_t& attr, std::string& sc, size_t p, const std::string& dn) {
+int parse_params_and_flags(const char* fileName, unsigned& lineNumber, strmap_t& flags, paramlist_t& params, attr_t& attr, std::string& sc, size_t p, const std::string& dn, bool abstract = false) {
    size_t i = sc.find(')', p);
    if (i == std::string::npos) {
       error("%s:%d: premature EOL reading parameters for %s()\n", fileName, lineNumber, dn.c_str());
       return -1;
    }
 
-   size_t cs = sc.find('{', i + 1);
-   if (cs == std::string::npos) {
-      error("%s:%d: premature EOL looking for open brace for %s()\n", fileName, lineNumber, dn.c_str());
-      return -1;
+   size_t cs;
+   if (abstract)
+      cs = sc.size() - 1;
+   else {
+      cs = sc.find('{', i + 1);
+      if (cs == std::string::npos) {
+         error("%s:%d: premature EOL looking for open brace for %s()\n", fileName, lineNumber, dn.c_str());
+         return -1;
+      }
    }
 
    // get flags if any
@@ -514,12 +520,14 @@ int parse_params_and_flags(const char* fileName, unsigned& lineNumber, strmap_t&
       sc.erase(0, 1);
    }
 
-   // remove trailing '}' and newlines
-   size_t len = sc.size();
-   assert(sc[len - 1] == '}');
-   do {
-      sc.erase(--len);
-   } while (len && (sc[len - 1] == ' ' || sc[len - 1] == '\n'));
+   if (!abstract) {
+      // remove trailing '}' and newlines
+      size_t len = sc.size();
+      assert(sc[len - 1] == '}');
+      do {
+         sc.erase(--len);
+      } while (len && (sc[len - 1] == ' ' || sc[len - 1] == '\n'));
+   }
 
    return 0;
 }
@@ -1734,6 +1742,11 @@ protected:
       if (i && parse_attributes(fileName, lineNumber, attr, return_type, code, i))
          return -1;
 
+      if (attr & QCA_ABSTRACT) {
+         error("invalid 'abstract' defining function %s()\n", fn.c_str());
+         return -1;
+      }
+
       strmap_t flags;
       paramlist_t params;
 
@@ -2226,7 +2239,12 @@ protected:
       serializeQoreAttrComment(fp, indent);
       fprintf(fp, "%s %s::%s(", return_type.empty() ? "nothing" : return_type.c_str(), cname, name.c_str());
       serializeQoreParams(fp);
-      fputs(") {}\n", fp);
+      fputs(")",fp);
+      if (attr & QCA_ABSTRACT)
+         fputc(';', fp);
+      else
+         fputs("{}", fp);
+      fputc('\n', fp);
    }
 
    const char *getMethodType() const {
@@ -2273,6 +2291,9 @@ public:
          return;
       }
 
+      if (attr & QCA_ABSTRACT)
+         return;
+
       serializeQorePrototypeComment(fp, cname);
 
       fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
@@ -2307,14 +2328,20 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   QC_%s->addMethodExtended3(\"%s\", (%s)%s_%s, %s, ", UC, 
-              name.c_str(),
-              getMethodType(), cname, vname.c_str(),
-              attr & QCA_PRIVATE ? "true" : "false");
+      fprintf(fp, "   QC_%s->", UC);
+      if (attr & QCA_ABSTRACT)
+         fprintf(fp, "addAbstractMethodVariantExtended3(\"%s\", %s, ", name.c_str(), attr & QCA_PRIVATE ? "true" : "false");
+      else
+         fprintf(fp, "addMethodExtended3(\"%s\", (%s)%s_%s, %s, ", name.c_str(),
+               getMethodType(), cname, vname.c_str(),
+               attr & QCA_PRIVATE ? "true" : "false");
       flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
       fputs(", ", fp);
-      dom_output_cpp(fp, dom);
-      fprintf(fp, ", %s", cppt.c_str());
+      if (!(attr & QCA_ABSTRACT)) {
+         dom_output_cpp(fp, dom);
+         fprintf(fp, ", ");
+      }
+      fprintf(fp, "%s", cppt.c_str());
 
       if (serializeBindingArgs(fp))
          return -1;
@@ -2386,6 +2413,8 @@ public:
       //fputs("   ", fp);
       if (attr & QCA_STATIC)
          fputs("static ", fp);
+      else if (attr & QCA_ABSTRACT)
+         fputs("abstract ", fp);
 
       serializeQoreCppType(fp, return_type);
       fprintf(fp, " %s(", name.c_str());
@@ -2553,7 +2582,7 @@ public:
       return valid;
    }
 
-   const char *getName() const {
+   const char* getName() const {
       return name.c_str();
    }
 
@@ -2585,9 +2614,9 @@ public:
 
       //log(LL_INFO, "+ method %s::%s() attr: 0x%x (static: %d)\n", name.c_str(), mname.c_str(), attr, attr & QCA_STATIC);
 
-      mmap_t &mmap = (attr & QCA_STATIC) ? static_mmap : normal_mmap;
+      mmap_t& mmap = (attr & QCA_STATIC) ? static_mmap : normal_mmap;
 
-      Method *m = new Method(fileName, mname, attr, params, doc, return_type, cf, dom, code, line, doconly);
+      Method* m = new Method(fileName, mname, attr, params, doc, return_type, cf, dom, code, line, doconly);
       mmap.insert(mmap_t::value_type(mname, m));
       return !*m;
    }
@@ -2613,7 +2642,7 @@ public:
          lname.insert(0, "Pseudo");
       }
 
-      fprintf(fp, "qore_classid_t CID_%s;\nQoreClass *QC_%s;\n\n", UC.c_str(), UC.c_str());
+      fprintf(fp, "qore_classid_t CID_%s;\nQoreClass* QC_%s;\n\n", UC.c_str(), UC.c_str());
 
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
          i->second->serializeNormalCppMethod(fp, lname.c_str(), arg.c_str());
@@ -2626,7 +2655,7 @@ public:
       if (is_pseudo)
          fprintf(fp, "DLLLOCAL QoreClass* init%sClass() {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
       else
-         fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace &ns) {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
+         fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace& ns) {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
       dom_output_cpp(fp, dom);
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
 
@@ -2894,12 +2923,22 @@ protected:
                continue;
             }
 
-            if (strstr(sc.c_str(), "::") && strchr(sc.c_str(), '{')) {
-               if (parseMethod(sc, fp, str)) {
-                  valid = false;
-                  break;
+            if (strstr(sc.c_str(), "::")) {
+               trim_end(sc);
+               if (sc[sc.size() - 1] == ';') {
+                  if (parseMethod(sc, fp, str, true)) {
+                     valid = false;
+                     break;
+                  }
+                  continue;
                }
-               continue;
+               if (strchr(sc.c_str(), '{')) {
+                  if (parseMethod(sc, fp, str)) {
+                     valid = false;
+                     break;
+                  }
+                  continue;
+               }
             }
 
             continue;
@@ -2915,11 +2954,13 @@ protected:
       return rc;
    }
 
-   int parseMethod(std::string &sc, FILE *fp, std::string &doc) {
+   int parseMethod(std::string &sc, FILE *fp, std::string &doc, bool abstract = false) {
       unsigned sl = lineNumber;
-      if (read_until_close(fileName, lineNumber, sc, fp)) {
-         error("%s:%d: premature EOF reading method definition starting on line %d\n", fileName, lineNumber, sl);
-         return -1;
+      if (!abstract) {
+         if (read_until_close(fileName, lineNumber, sc, fp)) {
+            error("%s:%d: premature EOF reading method definition starting on line %d\n", fileName, lineNumber, sl);
+            return -1;
+         }
       }
 
       size_t i = sc.find("::");
@@ -2954,6 +2995,11 @@ protected:
       if (i && parse_attributes(fileName, lineNumber, attr, return_type, sc, i))
          return -1;
 
+      if (abstract && !(attr & QCA_ABSTRACT)) {
+         error("%s:%d: non-abstract method with no implementation for class '%s'\n", fileName, lineNumber, cn.c_str());
+         return -1;
+      }
+
       // get method name
       p += 2;
       i = p;
@@ -2981,7 +3027,7 @@ protected:
       dn += "::";
       dn += mn;
 
-      if (parse_params_and_flags(fileName, lineNumber, flags, params, attr, sc, p, dn))
+      if (parse_params_and_flags(fileName, lineNumber, flags, params, attr, sc, p, dn, abstract))
          return -1;
 
       return ci->second->addMethod(mn, attr, return_type, params, flags, sc, doc, sl);
@@ -3112,6 +3158,7 @@ void init() {
    amap["private"] = QCA_PRIVATE;
    amap["static"] = QCA_STATIC;
    amap["synchronized"] = QCA_SYNCHRONIZED;
+   amap["abstract"] = QCA_ABSTRACT;
 
    // initialize qore type to c++ typeinfo map
    tmap["int"] = "bigIntTypeInfo";

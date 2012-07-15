@@ -65,6 +65,215 @@ void SignatureHash::update(const QoreString& str) {
 #endif
 }
 
+// merge committed variants from parent classes to this vlist during one-time class initialization
+void AbstractMethod::parseMergeCommitted(AbstractMethod& m) {
+   for (vmap_t::iterator i = m.vlist.begin(), e = m.vlist.end(); i != e; ++i) {
+      const char* sig = i->second->getAbstractSignature();
+      // add to vlist
+      assert(vlist.find(sig) == vlist.end());
+      vlist.insert(vmap_t::value_type(sig, i->second));
+      // remove from pending_vlist if present because we've already added it to the committed list
+      vmap_t::iterator vi = pending_vlist.find(sig);
+      if (vi != pending_vlist.end())
+         pending_vlist.erase(vi);
+   }
+}
+
+// merge committed variants from parent classes to this vlist during one-time class initialization and merge in pending uncommitted local variants
+void AbstractMethod::parseMergeCommitted(AbstractMethod& m, MethodFunctionBase* f) {
+   for (vmap_t::iterator i = m.vlist.begin(), e = m.vlist.end(); i != e; ++i) {
+      const char* sig = i->second->getAbstractSignature();
+      if (f && f->parseHasVariantWithSignature(i->second)) {
+         // we already have a pending variant with this signature, so we can ignore the parent's abstract variant
+         // if there is a parse commit - the pending variant is committed and we don't need the parent's abstract record
+         // if there is a parse rollback - the current class is rolled back entirely (this function is only executed
+         // in one time class initialization)
+         continue;
+      }
+      else {
+         //printd(5, "AbstractMethod::parseMergeCommitted() inheriting abstract method variant %s::%s asig: %s\n", f ? f->getClassName() : "xxx", f ? f->getName() : "xxx", sig);
+         // insert in the committed list for this class
+         assert(vlist.find(sig) == vlist.end());
+         vlist.insert(vmap_t::value_type(sig, i->second));
+         // cannot be in pending_vlist
+         assert(pending_vlist.find(sig) == pending_vlist.end());
+      }
+   }
+}
+
+// merge changes from parent class method of the same name during parse initialization
+void AbstractMethod::parseMergeBase(AbstractMethod& m) {
+   //printd(5, "AbstractMethod::parseMergeBase(m: %p) this: %p m.pending_save: %d m.pending_vlist: %d\n", &m, this, !m.pending_save.empty(), !m.pending_vlist.empty());
+   // move pending committed variants from our vlist that are in parent's pending_save list to our pending_save
+   for (vmap_t::iterator i = m.pending_save.begin(), e = m.pending_save.end(); i != e; ++i) {
+      const char* sig = i->second->getAbstractSignature();
+      vmap_t::iterator vi = vlist.find(sig);
+      if (vi != vlist.end()) {
+         pending_save.insert(vmap_t::value_type(sig, i->second));
+         vlist.erase(vi);
+      }
+   }
+
+   // add new pending abstract methods from parent to our list - if they are not already in our pending_vlist or in our pending_save list
+   for (vmap_t::iterator i = m.pending_vlist.begin(), e = m.pending_vlist.end(); i != e; ++i) {
+      const char* sig = i->second->getAbstractSignature();
+      //printd(5, "AbstractMethod::parseMergeBase(m: %p) this: %p checking parent: '%s'\n", &m, this, sig);
+      if (pending_save.find(sig) != pending_save.end()) {
+         continue;
+      }
+      if (pending_vlist.find(sig) != pending_vlist.end()) {
+         continue;
+      }
+      //printd(5, "AbstractMethod::parseMergeBase(m: %p) this: %p adding to pending_vlist from parent: '%s'\n", &m, this, sig);
+      pending_vlist.insert(vmap_t::value_type(sig, i->second));
+   }
+}
+
+// merge changes from parent class method of the same name during parse initialization
+void AbstractMethod::parseMergeBase(AbstractMethod& m, MethodFunctionBase* f) {
+   //printd(5, "AbstractMethod::parseMergeBase(m: %p, f: %p) this: %p m.pending_save: %d m.pending_vlist: %d\n", &m, f, this, !m.pending_save.empty(), !m.pending_vlist.empty());
+   // move pending committed variants from our vlist that are in parent's pending_save list to our pending_save
+   for (vmap_t::iterator i = m.pending_save.begin(), e = m.pending_save.end(); i != e; ++i) {
+      const char* sig = i->second->getAbstractSignature();
+      vmap_t::iterator vi = vlist.find(sig);
+      if (vi != vlist.end()) {
+         pending_save.insert(vmap_t::value_type(sig, i->second));
+         vlist.erase(vi);
+      }
+   }
+
+   // add new pending abstract methods from parent to our list - if they are not already in our pending_vlist or in our pending_save list
+   for (vmap_t::iterator i = m.pending_vlist.begin(), e = m.pending_vlist.end(); i != e; ++i) {
+      const char* sig = i->second->getAbstractSignature();
+      //printd(5, "AbstractMethod::parseMergeBase(m: %p) this: %p checking parent: '%s' (f: %p: %d) '%s'\n", &m, this, sig, f, f && f->parseHasVariantWithSignature(i->second), sig);
+
+      if (f && f->parseHasVariantWithSignature(i->second)) {
+         // add to our pending_save
+         pending_save.insert(vmap_t::value_type(sig, i->second));
+         continue;
+      }
+
+      if (pending_save.find(sig) != pending_save.end()) {
+         continue;
+      }
+      if (pending_vlist.find(sig) != pending_vlist.end()) {
+         continue;
+      }
+      //printd(5, "AbstractMethod::parseMergeBase(m: %p) this: %p adding to pending_vlist from parent: '%s'\n", &m, this, sig);
+      pending_vlist.insert(vmap_t::value_type(sig, i->second));
+   }
+}
+
+void AbstractMethod::parseAdd(MethodVariantBase* v) {
+   // see if there is already an committed variant matching this signature
+   // in this case it must be inherited
+   const char* sig = v->getAbstractSignature();
+   if (vlist.find(sig) != vlist.end())
+      return;
+   pending_vlist.insert(vmap_t::value_type(sig, v));
+}
+
+void AbstractMethod::parseOverride(MethodVariantBase* v) {
+   // see if there is already an committed variant matching this signature
+   // in this case it must be inherited
+   const char* sig = v->getAbstractSignature();
+   vmap_t::iterator vi = vlist.find(sig);
+   if (vi != vlist.end()) {
+      pending_save.insert(vmap_t::value_type(sig, vi->second));
+      // move from vlist to pending_save
+      vlist.erase(vi);
+      // if override is true, then we know we have a variant in a base class, so we can do nothing here
+      return;
+   }
+}
+
+void AbstractMethod::add(MethodVariantBase* v) {
+   // see if there is already an committed variant matching this signature
+   // in this case it must be inherited
+   const char* sig = v->getAbstractSignature();
+   if (vlist.find(sig) != vlist.end())
+      return;
+   vlist.insert(vmap_t::value_type(sig, v));
+   //printd(5, "AbstractMethod::add() adding xxx::xxx(%s)\n", sig);
+}
+
+void AbstractMethod::override(MethodVariantBase* v) {
+   // see if there is already an committed variant matching this signature
+   // in this case it must be inherited
+   const char* sig = v->getAbstractSignature();
+   vmap_t::iterator vi = vlist.find(sig);
+   if (vi != vlist.end())
+      vlist.erase(vi);
+}
+
+void AbstractMethod::parseCheckAbstract(const char* cname, const char* mname, vmap_t& vlist, QoreStringNode*& desc) {
+   //printd(5, "AbstractMethod::parseCheckAbstract() checking %s::%s() vlist: %d\n", cname, mname, !vlist.empty());
+   if (!vlist.empty()) {
+      if (!desc)
+         desc = new QoreStringNodeMaker("class '%s' cannot be instantiated because it has the following unimplemented abstract variants:", cname);
+      for (vmap_t::const_iterator vi = vlist.begin(), ve = vlist.end(); vi != ve; ++vi) {
+         MethodVariantBase* v = vi->second;
+         desc->sprintf("\n * abstract %s %s::%s(%s);", v->getReturnTypeInfo()->getName(), cname, mname, v->getSignature()->getSignatureText());
+      }
+   }
+}
+
+void AbstractMethodMap::parseAddAbstractVariant(const char* name, MethodVariantBase* f) {
+   amap_t::iterator i = amap_t::find(name);
+   if (i == end()) {
+      AbstractMethod* m = new AbstractMethod;
+      m->pending_vlist.insert(vmap_t::value_type(f->getAbstractSignature(), f));
+      //printd(5, "AbstractMethodMap::parseAddAbstractVariant(name: '%s', v: %p) this: %p\n", name, f, this);
+      insert(amap_t::value_type(name, m));
+      return;
+   }
+   i->second->parseAdd(f);
+}
+
+void AbstractMethodMap::parseOverrideAbstractVariant(const char* name, MethodVariantBase* f) {
+   amap_t::iterator i = amap_t::find(name);
+   if (i == end())
+      return;
+   i->second->parseOverride(f);
+}
+
+void AbstractMethodMap::addAbstractVariant(const char* name, MethodVariantBase* f) {
+   amap_t::iterator i = amap_t::find(name);
+   if (i == end()) {
+      AbstractMethod* m = new AbstractMethod;
+      m->vlist.insert(vmap_t::value_type(f->getAbstractSignature(), f));
+      //printd(5, "AbstractMethodMap::addAbstractVariant(name: xxx::%s asig: %s, v: %p) this: %p (new)\n", name, f->getAbstractSignature(), f, this);
+      insert(amap_t::value_type(name, m));
+      return;
+   }
+   //printd(5, "AbstractMethodMap::addAbstractVariant(name: xxx::%s asig: %s, v: %p) this: %p\n", name, f->getAbstractSignature(), f, this);
+   i->second->add(f);
+}
+
+void AbstractMethodMap::overrideAbstractVariant(const char* name, MethodVariantBase* f) {
+   amap_t::iterator i = amap_t::find(name);
+   if (i == end())
+      return;
+   i->second->override(f);
+}
+
+// we check if there are any abstract method variants still in the committed lists
+void AbstractMethodMap::parseCheckAbstractNew(const char* name) const {
+   if (empty())
+      return;
+
+   QoreStringNode* desc = 0;
+   for (amap_t::const_iterator i = begin(), e = end(); i != e; ++i) {
+      AbstractMethod::parseCheckAbstract(name, i->first.c_str(), i->second->vlist, desc);
+      AbstractMethod::parseCheckAbstract(name, i->first.c_str(), i->second->pending_vlist, desc);
+   }
+
+   //printd(5, "AbstractMethodMap::parseCheckAbstractNew() class: %s desc: %p (%s)\n", name, desc, desc ? desc->getBuffer() : "n/a");
+
+   if (desc)
+      parseException("ABSTRACT-CLASS-ERROR", desc);
+}
+
 // FIXME: check private method variant access at runtime
 
 struct SelfLocalVarParseHelper {
@@ -333,11 +542,12 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
 }
 
 // only called while the parse lock for the QoreProgram owning "old" is held
-qore_class_private::qore_class_private(const qore_class_private &old, QoreClass* n_cls)
+qore_class_private::qore_class_private(const qore_class_private& old, QoreClass* n_cls)
    : name(old.name), 
      cls(n_cls),
      ns(0),
      scl(0), // parent class list must be copied after new_copy set in old
+     ahm(old.ahm),
      pend_pub_const(this),              // pending public constants
      pend_priv_const(this),             // pending private constants
      pub_const(old.pub_const, this),    // committed public constants
@@ -449,11 +659,13 @@ qore_class_private::~qore_class_private() {
    }
    */
 
+   // delete normal methods
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
       //printd(5, "QoreClass::~QoreClass() deleting method %p %s::%s()\n", m, name, m->getName());
       delete i->second;
    }      
 
+   // delete static methods
    for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
       //printd(5, "QoreClass::~QoreClass() deleting static method %p %s::%s()\n", m, name, m->getName());
       delete i->second;
@@ -490,12 +702,14 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    printd(5, "QoreClass::initialize() %s class=%p scl=%p\n", name.c_str(), cls, scl);
 
    // first resolve types in pending variants in all method signatures (incl. return types)
+   // since abstract method functions are copied by reference from the normal list; this resolves all pending
+   // method function signatures as well
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
       i->second->priv->func->resolvePendingSignatures();
    for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
       i->second->priv->func->resolvePendingSignatures();
 
-   QoreProgram *pgm = getProgram();
+   QoreProgram* pgm = getProgram();
    if (pgm && !sys && (qore_program_private::parseAddDomain(pgm, domain)))
       parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name.c_str());
 
@@ -505,7 +719,42 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
       return -1;
    }
 
-   return scl ? scl->parseInit(cls, has_delete_blocker, qcp_set) : 0;
+   // initialize parent classes
+   if (scl) {
+      if (scl->initialize(cls, has_delete_blocker, qcp_set))
+         return -1;
+
+      // copy direct base class abstract method lists to ourselves
+      for (BCList::iterator i = scl->begin(), e = scl->end(); i != e; ++i) {
+         if ((*i)->sclass) {
+            // called during class initialization to copy committed abstract variants to our variant lists
+            AbstractMethodMap& mm = (*i)->sclass->priv->ahm;
+            for (amap_t::iterator i = mm.begin(), e = mm.end(); i != e; ++i) {
+               // skip if vlist is empty
+               if (i->second->vlist.empty())
+                  continue;
+               amap_t::iterator vi = ahm.find(i->first);
+               if (vi != ahm.end()) {
+                  vi->second->parseMergeCommitted(*(i->second));
+                  continue;
+               }
+               // now we import the abstract method to our class
+               AbstractMethod* m = new AbstractMethod;
+               // see if there are pending normal variants...
+               hm_method_t::iterator mi = hm.find(i->first);
+               // merge committed parent abstract variants with any pending local variants
+               m->parseMergeCommitted((*i->second), mi == hm.end() ? 0 : mi->second->getFunction());
+               if (m->vlist.empty())
+                  delete m;
+               else
+                  ahm.insert(amap_t::value_type(i->first, m));
+               //printd(5, "qore_class_private::initializeIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), name.c_str(), i->first.c_str());
+            }
+         }
+      }
+   }
+
+   return 0;
 }
 
 // returns a non-static method if it exists in the local class and has been committed to the class
@@ -552,6 +801,9 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList *bc
 }
 
 QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode* args, ExceptionSink* xsink) const {
+   // instantiation checks have to be made a parse time
+   assert(ahm.empty());
+
    // create new object
    QoreObject* self = new QoreObject(cls, getProgram());
 
@@ -626,7 +878,7 @@ void qore_class_private::parseCommit() {
       // commit pending "normal" (non-static) method variants
       for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
 	 bool is_new = i->second->priv->func->committedEmpty();
-	 i->second->priv->func->parseCommitMethod(csig, false);
+	 i->second->priv->func->parseCommitMethod(csig, 0);
 	 if (is_new) {
 	    checkAssignSpecial(i->second);
 	    ++num_methods;
@@ -637,12 +889,15 @@ void qore_class_private::parseCommit() {
       // commit pending static method variants
       for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
 	 bool is_new = i->second->priv->func->committedEmpty();
-	 i->second->priv->func->parseCommitMethod(csig, true);
+	 i->second->priv->func->parseCommitMethod(csig, "static");
 	 if (is_new) {
 	    ++num_static_methods;
 	    ++num_static_user_methods;
 	 }
       }
+
+      // commit abstract method variant list changes
+      ahm.parseCommit();
 
       {
 	 // add all pending private members to real member list
@@ -766,7 +1021,7 @@ void qore_class_private::parseCommit() {
       has_public_memdecl = true;
 }
 
-void qore_class_private::addBuiltinMethod(const char* mname, MethodVariantBase *variant) {
+void qore_class_private::addBuiltinMethod(const char* mname, MethodVariantBase* variant) {
    assert(strcmp(mname, "constructor"));
    assert(strcmp(mname, "destructor"));
    assert(strcmp(mname, "copy"));
@@ -786,9 +1041,14 @@ void qore_class_private::addBuiltinMethod(const char* mname, MethodVariantBase *
    variant->setMethod(nm);
 
    nm->priv->addBuiltinVariant(variant);
+
+   if (variant->isAbstract())
+      ahm.addAbstractVariant(mname, variant);
+   else
+      ahm.overrideAbstractVariant(mname, variant);
 }
 
-void qore_class_private::addBuiltinStaticMethod(const char* mname, MethodVariantBase *variant) {
+void qore_class_private::addBuiltinStaticMethod(const char* mname, MethodVariantBase* variant) {
    assert(strcmp(mname, "constructor"));
    assert(strcmp(mname, "destructor"));
 
@@ -966,7 +1226,7 @@ void BCANode::parseInit(BCList *bcl, const char* classname) {
    }
 }
 
-int BCNode::parseInit(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_set) {
+int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_set) {
    if (!sclass) {
       if (cname) {
 	 // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
@@ -1012,10 +1272,10 @@ const QoreClass* BCNode::getClass(const qore_class_private& qc, bool &n_priv) co
    return rv;
 }
 
-int BCList::parseInit(QoreClass* cls, bool &has_delete_blocker, qcp_set_t& qcp_set) {
+int BCList::initialize(QoreClass* cls, bool &has_delete_blocker, qcp_set_t& qcp_set) {
    printd(5, "BCList::parseInit(%s) this=%p empty=%d\n", cls->getName(), this, empty());
    for (bclist_t::iterator i = begin(), e = end(); i != e;) {
-      if ((*i)->parseInit(cls, has_delete_blocker, qcp_set)) {
+      if ((*i)->initialize(cls, has_delete_blocker, qcp_set)) {
          valid = false;
          delete *i;
          erase(i++);
@@ -1417,6 +1677,10 @@ bool QoreClass::runtimeGetMemberInfo(const char* mem, const QoreTypeInfo *&membe
    return priv->runtimeGetMemberInfo(mem, memberTypeInfo, priv_member);
 }
 
+bool QoreClass::hasAbstract() const {
+   return priv->hasAbstract();
+}
+
 const QoreMethod* QoreClass::parseGetConstructor() const {
    const_cast<QoreClass* >(this)->priv->initialize();
    if (priv->constructor)
@@ -1559,11 +1823,6 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
    priv->scl->push_back(new BCNode(qc, true));
 }
 
-// deletes all pending user methods
-void QoreClass::parseRollback() {
-   priv->parseRollback();
-}
-
 void qore_class_private::parseRollback() {
    if (parse_init_called)
       parse_init_called = false;
@@ -1572,6 +1831,7 @@ void qore_class_private::parseRollback() {
       parse_init_partial_called = false;
    
    if (!has_new_user_changes) {
+      // verify status
       for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
 	 assert(i->second->priv->func->pendingEmpty());
       for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
@@ -1598,13 +1858,16 @@ void qore_class_private::parseRollback() {
       // if there are no committed variants, then the method must be deleted
       if (i->second->priv->func->committedEmpty()) {
 	 delete i->second;
-	 hm.erase(i++);
+	 shm.erase(i++);
 	 continue;
       }
 
       i->second->priv->func->parseRollbackMethod();
       ++i;
    }
+
+   // rollback pending abstract method variant changes
+   ahm.parseRollback();
 
    // rollback pending constants
    pend_priv_const.parseDeleteAll();
@@ -2388,11 +2651,6 @@ const QoreMethod* qore_class_private::parseResolveSelfMethod(NamedScope* nme) {
    return qc->priv->parseResolveSelfMethod(nme->getIdentifier());
 }
 
-// for adding user-defined (qore language) methods to a class
-int QoreClass::addUserMethod(const char* mname, MethodVariantBase *f, bool n_static) {
-   return priv->addUserMethod(mname, f, n_static);
-}
-
 int qore_class_private::addUserMethod(const char* mname, MethodVariantBase *f, bool n_static) {
    // FIXME: set class name at parse time
    const char* tname = name.c_str();
@@ -2400,13 +2658,20 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase *f, b
 
    std::auto_ptr<MethodVariantBase> func(f);
 
+   if (f->isAbstract() && initialized) {
+      parseException("ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);
+      return -1;
+   }
+
    bool dst = !strcmp(mname, "destructor");
    bool con = dst ? false : !strcmp(mname, "constructor");
 
    // check for illegal static method
-   if (n_static && (con || dst || checkSpecialStaticIntern(mname))) {
-      parseException("ILLEGAL-STATIC-METHOD", "%s methods cannot be static", mname);
-      return -1;
+   if (n_static) {
+      if ((con || dst || checkSpecialStaticIntern(mname))) {
+         parseException("ILLEGAL-STATIC-METHOD", "%s methods cannot be static", mname);
+         return -1;
+      }
    }
 
    bool cpy = dst || con ? false : !strcmp(mname, "copy");
@@ -2444,7 +2709,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase *f, b
       MethodFunctionBase *mfb;
       if (con) {
 	 mfb = new ConstructorMethodFunction(cls);
-	 // set selfid immediately if adding a cosntructor variant
+	 // set selfid immediately if adding a constructor variant
 	 reinterpret_cast<UserConstructorVariant *>(f)->getUserSignature()->setSelfId(&selfid);
       }
       else if (dst)
@@ -2460,7 +2725,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase *f, b
    }
 
    // add this variant to the method
-   if (m->priv->addUserVariant(func.release())) {      
+   if (m->priv->addUserVariant(func.release())) {
       if (is_new)
 	 delete m;
       return -1;
@@ -2472,13 +2737,45 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase *f, b
    // add the new method to the class if it's a new method
    if (is_new) {
       if (n_static) {
-	 shm[m->getName()] = m;
+         shm[m->getName()] = m;
       }
       else {
-	 hm[m->getName()] = m;
+         hm[m->getName()] = m;
       }
    }
+
+   // add this variant to the abstract map if it's an abstract variant
+   if (f->isAbstract()) {
+      assert(!n_static);
+      if (!f->hasBody()) {
+         //printd(5, "qore_class_private::addUserMethod() this: %p adding abstract method variant %s::%s()\n", this, name.c_str(), mname);
+         ahm.parseAddAbstractVariant(mname, f);
+      }
+      else {
+         // this is a concrete method variant that must have an abstract implementation in a parent class
+         f->clearAbstract();
+         ahm.parseOverrideAbstractVariant(mname, f);
+      }
+   }
+   else if (!n_static)
+      ahm.parseOverrideAbstractVariant(mname, f);
+
    return 0;
+}
+
+void QoreClass::addAbstractMethodVariantExtended3(const char *n_name, bool n_priv, int64 n_flags, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   name_vec_t nameList;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+      va_end(args);
+   }
+   //printd(5, "QoreClass::addAbstractMethodVariantExtended3() %s::%s() num_params: %d\n", getName(), n_name, num_params);
+
+   priv->addBuiltinMethod(n_name, new BuiltinAbstractMethodVariant(n_priv, n_flags, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 // adds a builtin method to the class (duplicate checking is made in debug mode and causes an abort)
@@ -2792,7 +3089,7 @@ void QoreClass::setSystemConstructor2(q_system_constructor2_t m) {
 }
 
 QoreListNode* QoreClass::getMethodList() const {
-   QoreListNode* l = new QoreListNode();
+   QoreListNode* l = new QoreListNode;
 
    for (hm_method_t::const_iterator i = priv->hm.begin(), e = priv->hm.end(); i != e; ++i)
       l->push(new QoreStringNode(i->first));
@@ -2800,20 +3097,11 @@ QoreListNode* QoreClass::getMethodList() const {
 }
 
 QoreListNode* QoreClass::getStaticMethodList() const {
-   QoreListNode* l = new QoreListNode();
+   QoreListNode* l = new QoreListNode;
 
    for (hm_method_t::const_iterator i = priv->shm.begin(), e = priv->shm.end(); i != e; ++i)
       l->push(new QoreStringNode(i->first));
    return l;
-}
-
-// initializes all user methods
-void QoreClass::parseInit() {
-   priv->parseInit();
-}
-
-void QoreClass::parseInitPartial() {
-   priv->parseInitPartial();
 }
 
 void qore_class_private::parseInitPartial() {
@@ -2832,6 +3120,39 @@ void qore_class_private::parseInitPartialIntern() {
    QoreParseClassHelper qpch(cls);
 
    initialize();
+
+   // initialize parents first for abstract method handling
+   if (scl) {
+      for (bclist_t::iterator i = scl->begin(), e = scl->end(); i != e; ++i) {
+         if ((*i)->sclass) {
+            (*i)->sclass->priv->parseInit();
+            //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' merging base class abstract methods from %p '%s'\n", this, name.c_str(), (*i)->sclass, (*i)->sclass->getName());
+
+            // copy pending abstract changes from parent classes to the local class
+
+            // get parent's abstract method map
+            AbstractMethodMap& mm = (*i)->sclass->priv->ahm;
+
+            // iterate parent's method map and merge parent changes to our method map
+            for (amap_t::iterator ai = mm.begin(), ae = mm.end(); ai != ae; ++ai) {
+               amap_t::iterator vi = ahm.find(ai->first);
+               //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' checking '%s::%s()' found: %d\n", this, name.c_str(), (*i)->sclass->getName(), ai->first.c_str(), vi != ahm.end());
+               if (vi != ahm.end()) {
+                  vi->second->parseMergeBase(*(ai->second));
+                  continue;
+               }
+               AbstractMethod* m = new AbstractMethod;
+               // see if there are pending normal variants...
+               hm_method_t::iterator mi = hm.find(ai->first);
+               //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' looking for local '%s': %d\n", this, name.c_str(), ai->first.c_str(), mi != hm.end());
+               m->parseMergeBase(*(ai->second), mi == hm.end() ? 0 : mi->second->getFunction());
+               ahm.insert(amap_t::value_type(ai->first, m));
+               //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), name.c_str(), ai->first.c_str());
+            }
+         }
+      }
+   }
+   ahm.parseInit(name.c_str());
 
    if (!has_new_user_changes)
       return;
@@ -3161,11 +3482,6 @@ bool QoreClass::hasParentClass() const {
    return (bool)priv->scl;
 }
 
-// commits all pending user methods and pending private members
-void QoreClass::parseCommit() {
-   priv->parseCommit();
-}
-
 bool QoreClass::parseCheckHierarchy(const QoreClass* cls) const {
    if (cls == this)
       return true;
@@ -3255,10 +3571,6 @@ void QoreClass::unsetPublicMemberFlag() {
    priv->has_public_memdecl = false;
 }
 
-void QoreClass::resolveCopy() {
-   priv->resolveCopy();
-}
-
 void QoreClass::parseAssimilatePublicConstants(ConstantList &cmap) {
    priv->parseAssimilatePublicConstants(cmap);
 }
@@ -3345,15 +3657,17 @@ int MethodFunctionBase::parseAddUserMethodVariant(MethodVariantBase *variant) {
    return rc;
 }
 
-void MethodFunctionBase::parseCommitMethod(QoreString& csig, bool is_static) {
+void MethodFunctionBase::parseCommitMethod(QoreString& csig, const char* mod) {
    // add to signature
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       MethodVariantBase* v = METHVB(*i);
       if (v->isFinal())
          csig.concat("final ");
       csig.concat(v->isPrivate() ? "priv " : "pub ");
-      if (is_static)
-	 csig.concat("static ");
+      if (mod) {
+         csig.concat(mod);
+         csig.concat(' ');
+      }
       csig.concat(name);
       csig.concat('(');
       csig.concat(v->getSignature()->getSignatureText());
@@ -3685,6 +3999,19 @@ double StaticMethodFunction::floatEvalMethod(const AbstractQoreFunctionVariant *
 
 const qore_class_private* MethodVariantBase::getClassPriv() const {
    return qore_class_private::get(*(qmethod->getClass()));
+}
+
+const char* MethodVariantBase::getAbstractSignature() {
+   if (asig.empty()) {
+      // make sure signature is resolved before building signature string
+      parseResolveUserSignature();
+      AbstractFunctionSignature* sig = getSignature();
+      asig = getReturnTypeInfo()->getName();
+      asig += '(';
+      sig->addAbtractParameterSignature(asig);
+      asig += ')';
+   }
+   return asig.c_str();
 }
 
 AbstractQoreNode* BuiltinNormalMethodVariantBase::evalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {

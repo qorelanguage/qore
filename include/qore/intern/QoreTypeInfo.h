@@ -737,9 +737,9 @@ public:
    }
 
    // used when parsing user code to find duplicate signatures after types are resolved
-   DLLLOCAL bool isInputIdentical(const QoreTypeInfo *typeInfo) const;
+   DLLLOCAL bool isInputIdentical(const QoreTypeInfo* typeInfo) const;
 
-   DLLLOCAL bool isOutputIdentical(const QoreTypeInfo *typeInfo) const;
+   DLLLOCAL bool isOutputIdentical(const QoreTypeInfo* typeInfo) const;
 
    // returns false if there is no type or if the type can be converted to a numeric value, true if otherwise
    DLLLOCAL bool nonNumericValue() const {

@@ -167,7 +167,7 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction 
       if (pflag & PF_CONST_EXPRESSION) {
 	 const QoreClass *qc = func->getClass();
 	 if (qc)
-	    const_cast<QoreClass *>(qc)->parseInit();
+	    qore_class_private::parseInit(*const_cast<QoreClass *>(qc));
 	 else
 	    func->parseInit();
       }
@@ -510,9 +510,12 @@ AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag
    lvids += parseArgs(oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
 
    if (oc) {
+      // parse init the class and check if we're trying to instantiate an abstract class
+      qore_class_private::parseCheckAbstractNew(*const_cast<QoreClass*>(oc));
+
       // initialize class immediately, in case the class will be instantiated immediately after during parsing
       // to be assigned to a constant
-      qore_class_private::initialize(*const_cast<QoreClass *>(oc));
+      //qore_class_private::parseInit(*const_cast<QoreClass *>(oc));
 
       typeInfo = oc->getTypeInfo();
       desc.sprintf("new %s", oc->getName());

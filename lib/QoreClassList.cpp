@@ -87,25 +87,25 @@ void QoreClassList::mergePublic(const QoreClassList& old, qore_ns_private* ns) {
 
 void QoreClassList::resolveCopy() {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      i->second->resolveCopy();
+      qore_class_private::resolveCopy(*(i->second));
 }
 
 void QoreClassList::parseInit() {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
       //printd(5, "QoreClassList::parseInit() this: %p initializing %p '%s'\n", this, i->second, i->first);
-      i->second->parseInit();
+      qore_class_private::parseInit(*(i->second));
    }
 }
 
 void QoreClassList::parseRollback() {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      i->second->parseRollback();
+      qore_class_private::parseRollback(*(i->second));
 }
 
 void QoreClassList::parseCommit(QoreClassList& l) {
    assimilate(l);
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      i->second->parseCommit();
+      qore_class_private::parseCommit(*(i->second));
 }
 
 void QoreClassList::reset() {

@@ -1,6 +1,4 @@
 * add domain to constant definitions
-* implement common initialization for global thead-local variables in all
-  threads 
 * implement new calling convention for functions & methods with ignore rv param
 * fix class member initialization order to be same as declaration order
   (currently is alphabetic)
@@ -55,6 +53,8 @@
 * implement GZFile and BZFile classes
 
 done 0.8.4:
+* implement common initialization for global thead-local variables in all
+  threads 
 * implement optimized foreach statement for hash key iteration
 * add warning for "." and {} operators where operand cannot be converted to a
   string

@@ -44,6 +44,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_AutoWriteLock.qpp \
 	lib/QC_Condition.qpp \
 	lib/QC_Counter.qpp \
+	lib/QC_AbstractIterator.qpp \
+	lib/QC_AbstractDatasource.qpp \
 	lib/QC_Datasource.qpp \
 	lib/QC_DatasourcePool.qpp \
 	lib/QC_Dir.qpp \

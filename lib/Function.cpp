@@ -41,6 +41,37 @@ static inline void ambiguousDuplicateSignatureException(const char* cname, const
    parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant %s(%s)", cname ? cname : "", cname ? "::" : "", name, sig2->getSignatureText(), name, sig1->getSignatureText());
 }
 
+bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig) const {
+   if (num_param_types != sig.num_param_types || min_param_types != sig.min_param_types) {
+      //printd(5, "AbstractFunctionSignature::operator==() pt: %d != %d || mpt %d != %d\n", num_param_types, sig.num_param_types, min_param_types, sig.min_param_types);
+      return false;
+   }
+
+   if (!returnTypeInfo->isOutputIdentical(sig.returnTypeInfo)) {
+      printd(0, "AbstractFunctionSignature::operator==() rt: %s != %s (%p %p)\n", returnTypeInfo->getName(), sig.returnTypeInfo->getName(), returnTypeInfo, sig.returnTypeInfo);
+      return false;
+   }
+
+   for (unsigned i = 0; i < typeList.size(); ++i)
+      if (!typeList[i]->isInputIdentical(sig.typeList[i])) {
+         //printd(5, "AbstractFunctionSignature::operator==() param %d %s != %s\n", i, typeList[i]->getName(), sig.typeList[i]->getName());
+         return false;
+      }
+
+   //printd(5, "AbstractFunctionSignature::operator==() '%s' == '%s' TRUE\n", str.c_str(), sig.str.c_str());
+   return true;
+}
+
+void AbstractQoreFunctionVariant::parseResolveUserSignature() {
+   UserVariantBase* uvb = getUserVariantBase();
+   if (uvb)
+      uvb->getUserSignature()->resolve();
+}
+
+bool AbstractQoreFunctionVariant::hasBody() const {
+   return is_user ? getUserVariantBase()->hasBody() : true;
+}
+
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const char* n_class_name, qore_call_t n_ct)
    : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()) {
    tmp.assignEval(args);
@@ -1217,7 +1248,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 
    for (unsigned i = 0; i < num_params; ++i) {
       AbstractQoreNode* np = args ? const_cast<AbstractQoreNode*>(args->retrieve_entry(i)) : 0;
-      //printd(0, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d %p '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), get_node_type(np), np, get_type_name(np));
+      //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d %p '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), get_node_type(np), np, get_type_name(np));
       signature.lv[i]->instantiate(np ? np->refSelf() : 0);
 
       // the above if block will only instantiate the local variable if no

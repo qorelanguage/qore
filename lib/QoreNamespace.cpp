@@ -85,6 +85,9 @@
 #  include "tests/builtin_inheritance_tests.cpp"
 #endif
 
+DLLLOCAL QoreClass* initAbstractDatasourceClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initAbstractIteratorClass(QoreNamespace& ns);
+
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
 DLLLOCAL void init_compression_constants(QoreNamespace& ns);
 DLLLOCAL void init_crypto_constants(QoreNamespace& ns);
@@ -591,6 +594,8 @@ void StaticSystemNamespace::init() {
    // add HTTPClient namespace
    qns.addSystemClass(initHTTPClientClass(qns));
 
+   qns.addSystemClass(initAbstractIteratorClass(qns));
+
 #ifdef DEBUG_TESTS
    { // tests
       QoreClass* base = initBuiltinInheritanceTestBaseClass();
@@ -624,6 +629,7 @@ void StaticSystemNamespace::init() {
    // create Qore::SQL namespace
    QoreNamespace* sqlns = new QoreNamespace("SQL");
 
+   sqlns->addSystemClass(initAbstractDatasourceClass(*sqlns));
    sqlns->addSystemClass(initDatasourceClass(*sqlns));
    sqlns->addSystemClass(initDatasourcePoolClass(*sqlns));
    sqlns->addSystemClass(initSQLStatementClass(*sqlns));
@@ -684,7 +690,7 @@ int qore_root_ns_private::parseAddMethodToClassIntern(const NamedScope& scname, 
    if (!oc)
       return -1;
 
-   return oc->addUserMethod(scname.getIdentifier(), v.release(), static_flag);
+   return qore_class_private::addUserMethod(*oc, scname.getIdentifier(), v.release(), static_flag);
 }
 
 // returns 0 for success, non-zero for error

@@ -326,6 +326,9 @@ void VarRefDeclNode::makeGlobal() {
 
 void VarRefFunctionCallBase::parseInitConstructorCall(LocalVar *oflag, int pflag, int &lvids, const QoreClass *qc) {
    if (qc) {
+      // throw an exception if trying to instantiate a class with abstract method variants
+      qore_class_private::parseCheckAbstractNew(*const_cast<QoreClass*>(qc));
+
       if (qore_program_private::parseAddDomain(getProgram(), qc->getDomain()))
 	 parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", qc->getName());
 
@@ -356,6 +359,7 @@ AbstractQoreNode *VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag,
    const QoreClass *qc = typeInfo->getUniqueReturnClass();
    if (!qc)
       parse_error("cannot instantiate type '%s' as a class", typeInfo->getName());
+
    parseInitConstructorCall(oflag, pflag, lvids, qc);
    outTypeInfo = typeInfo;
    return this;

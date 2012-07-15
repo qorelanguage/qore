@@ -339,6 +339,9 @@ public:
    //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
    DLLEXPORT void addMethodExtended3(const char *n_name, q_method_double_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
 
+   //! adds an unimplemented abstract method variant to the class with extended information; with return and parameter type info
+   DLLEXPORT void addAbstractMethodVariantExtended3(const char *n_name, bool priv = false, int64 n_flags = QC_NO_FLAGS, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
    //! adds a builtin static method to a class
    /**
       @param n_name the name of the method, must be unique in the class
@@ -801,6 +804,11 @@ public:
     */
    DLLEXPORT void addBuiltinStaticVar(const char *name, AbstractQoreNode *value, bool priv = false, const QoreTypeInfo *typeInfo = 0);
 
+   //! returns true if the class has at least one abstract method variant
+   /** @return true if the class has at least one abstract method variant
+    */
+   DLLEXPORT bool hasAbstract() const;
+
    //! constructor not exported in library's API
    DLLLOCAL QoreClass();
 
@@ -819,10 +827,6 @@ public:
    // only called when parsing, sets the name of the class
    DLLLOCAL void setName(const char *n);
 
-   DLLLOCAL void parseInit();
-   DLLLOCAL void parseCommit();
-   DLLLOCAL void parseRollback();
-   DLLLOCAL void resolveCopy();
    DLLLOCAL qore_classid_t getIDForMethod() const;
    // get base class list to add virtual class indexes for private data
    DLLLOCAL BCSMList *getBCSMList() const;
@@ -842,7 +846,6 @@ public:
    DLLLOCAL bool runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const;
    DLLLOCAL bool runtimeHasPublicMembersInHierarchy() const;
    DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const;
-   DLLLOCAL int addUserMethod(const char *mname, MethodVariantBase *f, bool n_static);
    // returns true if the class has one or more parent classes
    DLLLOCAL bool hasParentClass() const;
    DLLLOCAL QoreObject *execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const;
@@ -856,7 +859,6 @@ public:
    DLLLOCAL void parseSetEmptyPublicMemberDeclaration();
    // unsets the public member flag for builtin classes
    DLLLOCAL void unsetPublicMemberFlag();
-   DLLLOCAL void parseInitPartial();
 };
 
 //! To be used to iterate through a class' normal (non-static) methods
@@ -865,10 +867,10 @@ private:
    void *priv;
 
 public:
-   DLLEXPORT QoreMethodIterator(const QoreClass *qc);
+   DLLEXPORT QoreMethodIterator(const QoreClass* qc);
    DLLEXPORT ~QoreMethodIterator();
    DLLEXPORT bool next();
-   DLLEXPORT const QoreMethod *getMethod() const;
+   DLLEXPORT const QoreMethod* getMethod() const;
 };
 
 //! To be used to iterate through a class' static methods

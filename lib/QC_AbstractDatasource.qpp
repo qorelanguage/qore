@@ -1,0 +1,350 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractDatasource.qpp AbstractDatasource class (interface) definition */
+/*
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+
+//! This class defines an abstract interface for database access, inherited by both the Datasource and DatasourcePool classes
+/**
+ */
+qclass AbstractDatasource [dom=DATABASE; arg=AbstractDatasource* ds; ns=Qore::SQL];
+
+//! Commits the current transaction and releases any thread resources associated with the transaction
+/**
+    @par Example:
+    @code
+$db.commit();
+    @endcode
+ */
+abstract nothing AbstractDatasource::commit();
+
+//! Rolls the current transaction back and releases any thread resources associated with the transaction
+/**
+    @par Example:
+    @code
+$db.rollback();
+    @endcode
+ */
+abstract nothing AbstractDatasource::rollback();
+
+//! Executes an %SQL command on the server and returns either the integer row count (for example, for updates, inserts, and deletes) or the data retrieved (for example, if a stored procedure is executed that returns values)
+/** @param sql The %SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+
+    @par Example:
+    @code
+my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
+    @endcode
+ */
+abstract any AbstractDatasource::exec(string sql, ...);
+
+//! Executes an %SQL command on the server and returns either the integer row count (for example, for updates, inserts, and deletes) or the data retrieved (for example, if a stored procedure is executed that returns values), taking a list for all bind arguments
+/** Same as AbstractDatasource::exec() except takes an explicit list for bind arguments
+
+    @param sql The %SQL command to execute on the server
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+
+    @par Example:
+    @code
+my int $rows = $db.vexec("insert into example_table value (%v, %v, %v)", $arg_list);
+    @endcode
+ */
+abstract any AbstractDatasource::vexec(string sql, *softlist vargs);
+
+//! Executes an %SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
+/** This method does not do any variable binding, so it's useful for example for DDL statements etc
+
+    @par Warning:
+    Using this method to execute pure dynamic %SQL many times with different %SQL strings (as opposed to using the same string and binding by value instead of dynamic %SQL) can affect application performance by prohibiting the efficient usage of the DB server's statement cache. See DB server documentation for variable binding and the %SQL statement cache for more information.
+
+    @param sql The %SQL command to execute on the server; this string will not be subjected to any transformations for variable binding
+
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+
+    @par Example:
+    @code
+$db.execRaw("create table my_tab (id number, some_text varchar2(30))");
+    @endcode
+ */
+abstract any AbstractDatasource::execRaw(string sql);
+
+//! Executes an %SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)
+/** The return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
+
+    Additionally, this format is a more efficient format than that returned by the AbstractDatasource::selectRows() method, because the column names are not repeated for each row returned. Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of AbstractDatasource::selectRows().
+
+    To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
+    this is particularly important when the object is shared among more than one thread.
+
+    @param sql The %SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
+
+    @par Example:
+    @code
+# bind a string and a date/time value by value in a query
+$query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
+    @endcode
+ */
+abstract any AbstractDatasource::select(string sql, ...);
+
+//! Executes an %SQL select statement on the server and returns the first row as a hash (the column values)
+/** If more than one row is returned, then it is treated as an error and a \c DBI-SELECT-ROW-ERROR is returned (however the DBI driver should raise its own exception here to avoid retrieving more than one row from the server). For a similar method taking a list for all bind arguments, see AbstractDatasource::vselectRow().
+
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
+    this is particularly important when the object is shared among more than one thread.
+
+    @param sql The %SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
+    @par Example:
+    @code
+my *hash $h = $db.selectRow("select * from example_table where id = 1");
+    @endcode
+
+    @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
+ */
+abstract any AbstractDatasource::selectRow(string sql, ...);
+
+//! Executes an %SQL select statement on the server and returns the result as a list (rows) of hashes (the column values)
+/** The return format of this method is not as memory efficient as that returned by the AbstractDatasource::select() method, therefore for larger amounts of data, it is recommended to use AbstractDatasource::select().
+
+   This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
+    this is particularly important when the object is shared among more than one thread.
+
+    @param sql The %SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
+    @par Example:
+    @code
+my *list $list = $db.selectRows("select * from example_table");
+    @endcode
+
+    @see AbstractDatasource::select()
+ */
+abstract any AbstractDatasource::selectRows(string sql, ...);
+
+//! Executes a select statement on the server and returns the results in a hash (column names) of lists (column values per row), taking a list for all bind arguments
+/** This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
+    this is particularly important when the object is shared among more than one thread.
+
+    @param sql The %SQL command to execute on the server
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
+    @par Example:
+    @code
+my *hash $query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);
+    @endcode
+
+    @see AbstractDatasource::select()
+ */
+abstract any AbstractDatasource::vselect(string sql, *softlist vargs);
+
+//! Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments
+/** This method is the same as the AbstractDatasource::selectRow() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters
+
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
+    this is particularly important when the object is shared among more than one thread.
+
+    @param sql The %SQL command to execute on the server
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
+    @par Example:
+    @code
+my *hash $h = $db.vselectRow("select * from example_table where id = %v and type = %v", $arg_list);
+    @endcode
+
+    @see AbstractDatasource::selectRow()
+ */
+abstract any AbstractDatasource::vselectRow(string sql, *softlist vargs);
+
+//! Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments
+/** Same as the AbstractDatasource::selectRows() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters.
+
+    The return format of this method is not as memory efficient as that returned by the AbstractDatasource::select() method, therefore for larger amounts of data, it is recommended to use AbstractDatasource::select().
+
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
+    this is particularly important when the object is shared among more than one thread.
+
+    @param sql The %SQL command to execute
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
+    @par Example:
+    @code
+my *list $list = $db.vselectRows("select * from example_table where id = %v and type = %v", $arg_list);
+    @endcode
+
+    @see AbstractDatasource::selectRows()
+ */
+abstract any AbstractDatasource::vselectRows(string sql, *softlist vargs);
+
+//! Manually signals the start of transaction management on the AbstractDatasource
+/** This method should be called when the AbstractDatasource object will be shared between more than 1 thread, and a transaction will be started with a AbstractDatasource::select() method or the like.
+
+    This method does not make any communication with the server to start a transaction; it only allocates the transaction lock to the current thread in %Qore.
+
+    @par Example:
+    @code
+$db.beginTransaction();
+    @endcode
+ */
+abstract nothing AbstractDatasource::beginTransaction();
+
+//! Returns the username parameter as a string or @ref nothing if none is set
+/** @return the username parameter as a string or @ref nothing if none is set
+
+    @par Example:
+    @code
+my *string $user = $db.getUserName();
+    @endcode
+ */
+abstract *string AbstractDatasource::getUserName();
+
+//! Returns the password parameter as a string or @ref nothing if none is set
+/** @return the password parameter as a string or @ref nothing if none is set
+
+    @par Example:
+    @code
+my *string $pass = $db.getPassword();
+    @endcode
+ */
+abstract *string AbstractDatasource::getPassword();
+
+//! Returns the database name parameter as a string or @ref nothing if none is set
+/** @return the database name parameter as a string or @ref nothing if none is set
+
+    @par Example:
+    @code
+my *string $db = $db.getDBName();
+    @endcode
+ */
+abstract *string AbstractDatasource::getDBName();
+
+//! Retrieves the database-specific charset set encoding for the object
+/** @return the database-specific charset set encoding for the object
+
+    @par Example:
+    @code
+my string $enc = $db.getDBEncoding();
+    @endcode
+
+    @see AbstractDatasource::getOSEncoding();
+ */
+abstract string AbstractDatasource::getDBEncoding();
+
+//! Returns the %Qore character encoding name for the object as a string or @ref nothing if none is set
+/** @return the %Qore character encoding name for the object as a string or @ref nothing if none is set
+
+    @par Example:
+    @code
+my *string $enc = $db.getOSEncoding();
+    @endcode
+ */
+abstract *string AbstractDatasource::getOSEncoding();
+
+//! Returns the hostname parameter as a string or @ref nothing if none is set
+/** @return the hostname parameter as a string or @ref nothing if none is set
+
+    @par Example:
+    @code
+my *string $host = $db.getHostName();
+    @endcode
+ */
+abstract *string AbstractDatasource::getHostName();
+
+//! Gets the port number that will be used for the next connection to the server
+/** Invalid port numbers will cause an exception to be thrown when the connection is opened
+
+    @par Example:
+    @code
+my *int $port = $db.getPort();
+    @endcode
+ */
+abstract *int AbstractDatasource::getPort();
+
+//! Returns the name of the driver used for the object
+/** @return the name of the driver used for the object
+
+    @par Example:
+    @code
+my string $driver = $db.getDriverName();
+    @endcode
+ */
+abstract string AbstractDatasource::getDriverName();
+
+//! Returns the driver-specific server version data for the current connection
+/** @return the driver-specific server version data for the current connection
+
+    @par Example:
+    @code
+my any $ver = $db.getServerVersion();
+    @endcode
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions
+ */
+abstract any AbstractDatasource::getServerVersion();
+
+//! Retrieves the driver-specific client library version information
+/** @return the driver-specific client library version information
+
+    @par Example:
+    @code
+my any $ver = $db.getClientVersion();
+    @endcode
+
+    @note see the documentation for the DBI driver being used for possible exceptions
+ */
+abstract any AbstractDatasource::getClientVersion();
+
+//! Returns @ref True if a transaction is currently in progress
+/** @return @ref True if a transaction is currently in progress
+
+    @par Example:
+    @code
+my bool $b = $db.inTransaction();
+    @endcode
+ */
+abstract bool AbstractDatasource::inTransaction();
