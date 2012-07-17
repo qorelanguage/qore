@@ -61,8 +61,6 @@ struct AbstractMethod {
    vmap_t pending_vlist;
    // save temporarily removed committed variants while parsing; to be moved back to vlist on parse rollback or purged on parse commit
    vmap_t pending_save;
-   // save pending non-abstract variants
-   vmap_t pending_new;
 
    DLLLOCAL AbstractMethod() {
    }
@@ -96,7 +94,6 @@ struct AbstractMethod {
    // delete/purge all saved variants in the pending_save list, returns 0 if the AbstractMethod still has abstract variants, -1 if not and therefore can be removed from the map
    DLLLOCAL int parseCommit() {
       pending_save.clear();
-      pending_new.clear();
       for (vmap_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
          assert(vlist.find(i->first) == vlist.end());
          vlist.insert(vmap_t::value_type(i->first, i->second));
@@ -113,7 +110,6 @@ struct AbstractMethod {
          vlist.insert(vmap_t::value_type(i->first, i->second));
       }
       pending_save.clear();
-      pending_new.clear();
       assert(!vlist.empty());
    }
 
@@ -123,7 +119,7 @@ struct AbstractMethod {
    DLLLOCAL void override(MethodVariantBase* v);
 
    DLLLOCAL bool empty() const {
-      return vlist.empty() && pending_vlist.empty() && pending_save.empty() && pending_new.empty();
+      return vlist.empty() && pending_vlist.empty() && pending_save.empty();
    }
 };
 

@@ -255,6 +255,10 @@ void AbstractMethodMap::overrideAbstractVariant(const char* name, MethodVariantB
    if (i == end())
       return;
    i->second->override(f);
+   if (i->second->empty()) {
+      delete i->second;
+      erase(i);
+   }
 }
 
 // we check if there are any abstract method variants still in the committed lists
@@ -801,8 +805,25 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList *bc
 }
 
 QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode* args, ExceptionSink* xsink) const {
-   // instantiation checks have to be made a parse time
+#ifdef DEBUG
+   // instantiation checks have to be made at parse time
+   for (amap_t::const_iterator i = ahm.begin(), e = ahm.end(); i != e; ++i) {
+      printd(0, "qore_class_private::execConstructor() %s::constructor() abstract error '%s':\n", name.c_str(), i->first.c_str());
+      vmap_t& v = i->second->vlist;
+      for (vmap_t::const_iterator vi = v.begin(), ve = v.end(); vi != ve; ++vi) {
+	 printd(0, " + vlist: %s\n", vi->first);
+      }
+      v = i->second->pending_vlist;
+      for (vmap_t::const_iterator vi = v.begin(), ve = v.end(); vi != ve; ++vi) {
+	 printd(0, " + pending_vlist: %s\n", vi->first);
+      }
+      v = i->second->pending_save;
+      for (vmap_t::const_iterator vi = v.begin(), ve = v.end(); vi != ve; ++vi) {
+	 printd(0, " + pending_save: %s\n", vi->first);
+      }
+   }
    assert(ahm.empty());
+#endif
 
    // create new object
    QoreObject* self = new QoreObject(cls, getProgram());
@@ -3146,7 +3167,10 @@ void qore_class_private::parseInitPartialIntern() {
                hm_method_t::iterator mi = hm.find(ai->first);
                //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' looking for local '%s': %d\n", this, name.c_str(), ai->first.c_str(), mi != hm.end());
                m->parseMergeBase(*(ai->second), mi == hm.end() ? 0 : mi->second->getFunction());
-               ahm.insert(amap_t::value_type(ai->first, m));
+	       if (m->empty())
+		  delete m;
+	       else
+		  ahm.insert(amap_t::value_type(ai->first, m));
                //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), name.c_str(), ai->first.c_str());
             }
          }
@@ -3661,8 +3685,7 @@ void MethodFunctionBase::parseCommitMethod(QoreString& csig, const char* mod) {
    // add to signature
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       MethodVariantBase* v = METHVB(*i);
-      if (v->isFinal())
-         csig.concat("final ");
+      csig.concat("abstract ");
       csig.concat(v->isPrivate() ? "priv " : "pub ");
       if (mod) {
          csig.concat(mod);
