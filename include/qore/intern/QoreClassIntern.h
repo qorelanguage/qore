@@ -121,6 +121,10 @@ struct AbstractMethod {
 
    DLLLOCAL void add(MethodVariantBase* v);
    DLLLOCAL void override(MethodVariantBase* v);
+
+   DLLLOCAL bool empty() const {
+      return vlist.empty() && pending_vlist.empty() && pending_save.empty() && pending_new.empty();
+   }
 };
 
 #ifdef HAVE_QORE_HASH_MAP
