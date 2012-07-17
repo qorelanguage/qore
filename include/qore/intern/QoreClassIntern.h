@@ -348,8 +348,10 @@ public:
       ParseCodeInfoHelper rtih(mf->getName(), signature.getReturnTypeInfo());
       
       // must be called even if "statements" is NULL
-      if (!mf->isStatic())
-	 statements->parseInitMethod(mf->MethodFunctionBase::getClass()->getTypeInfo(), this);
+      if (!mf->isStatic()) {
+         if (!isAbstract())
+            statements->parseInitMethod(mf->MethodFunctionBase::getClass()->getTypeInfo(), this);
+      }
       else
 	 statements->parseInit(this);
 
