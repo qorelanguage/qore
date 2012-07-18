@@ -1020,6 +1020,31 @@ static AbstractQoreNode* op_trim(const AbstractQoreNode* arg, const AbstractQore
    return ref_rv ? val.getReferencedValue() : 0;
 }
 
+static QoreListNode* op_map_iterator(const AbstractQoreNode *left, QoreObject* o, const QoreMethod& m, const QoreExternalMethodVariant* variant, bool ref_rv, ExceptionSink* xsink) {
+   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode : 0, xsink);
+
+   // set offset in thread-local data for "$#"
+   ImplicitElementHelper eh(-1);
+   while (true) {
+      bool b = m.boolEvalNormalVariant(o, variant, 0, xsink);
+      if (!b)
+         return rv.release();
+      if (*xsink)
+         return 0;
+
+      SingleArgvContextHelper argv_helper(o, xsink);
+      //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
+      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
+      if (*xsink)
+         return 0;
+      if (ref_rv)
+          rv->push(val.release());
+   }
+   return rv.release();
+}
+
+extern QoreClass* QC_ABSTRACTITERATOR;
+
 static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink) {
    // conditionally evaluate argument
    QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
@@ -1027,6 +1052,34 @@ static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQore
       return 0;
 
    if (arg->getType() != NT_LIST) {
+      // check if it's an AbstractIterator object
+      if (arg->getType() == NT_OBJECT) {
+         QoreObject* o = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg));
+         bool priv;
+         const QoreClass* qc = o->getClass()->getClass(*QC_ABSTRACTITERATOR, priv);
+         if (qc) {
+            // get "next" method if accessible
+            bool priv;
+            const QoreMethod* m = qore_class_private::get(*o->getClass())->findMethod("next", priv);
+            // method must be found because we have an instance of AbstractIterator
+            assert(m);
+            const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->findVariant(0, false, xsink));
+            // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
+            if (*xsink)
+               return 0;
+            // we must have a variant here because we have an instance of AbstractIterator
+            assert(variant);
+            if (variant->isPrivate()) {
+               // check for access to the class holding the private method
+               if (!qore_class_private::runtimeCheckPrivateClassAccess(*(variant->method()->getClass()))) {
+                  xsink->raiseException("MAP-ITERATOR-ERROR", "cannot access private %s::next() iterator method with the map operator", variant->method()->getClass()->getName());
+                  return 0;
+               }
+            }
+
+            return op_map_iterator(left, o, *m, reinterpret_cast<const QoreExternalMethodVariant*>(variant), ref_rv, xsink);
+         }
+      }
       SingleArgvContextHelper argv_helper(*arg, xsink);
       return left->eval(xsink);
    }

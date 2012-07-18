@@ -320,11 +320,11 @@ public:
 
 class ObjectCycleHelper {
 protected:
-   ObjMap &omap;
-   QoreObject *obj;
+   ObjMap& omap;
+   QoreObject* obj;
 
 public:
-   DLLLOCAL ObjectCycleHelper(ObjMap &n_omap, QoreObject *n_obj) : omap(n_omap), obj(n_obj) {
+   DLLLOCAL ObjectCycleHelper(ObjMap& n_omap, QoreObject* n_obj) : omap(n_omap), obj(n_obj) {
    }
    DLLLOCAL ~ObjectCycleHelper() {
       omap.erase(obj);
@@ -340,6 +340,31 @@ DLLLOCAL int check_lvalue_int_float(const QoreTypeInfo *&typeInfo, const char* n
 DLLLOCAL bool checkParseOption(int64 o);
 
 DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
+
+class QoreIteratorBase : public AbstractPrivateData {
+protected:
+   int tid;
+
+public:
+   DLLLOCAL QoreIteratorBase() : tid(gettid()) {
+   }
+
+   DLLLOCAL int check(ExceptionSink* xsink) {
+      if (tid != gettid()) {
+         xsink->raiseException("ITERATOR-THREAD-ERROR", "this %s object was created in TID %d; it is an error to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
+         return -1;
+      }
+      return 0;
+   }
+
+#ifdef DEBUG
+   DLLLOCAL virtual void deref() {
+      assert(false);
+   }
+#endif
+
+   DLLLOCAL virtual const char* getName() const = 0;
+};
 
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>

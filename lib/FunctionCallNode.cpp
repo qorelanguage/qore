@@ -123,7 +123,7 @@ static void check_flags(QoreFunction *func, int64 flags, int64 pflag) {
       warn_deprecated(func);
 }
 
-int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
+int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo, bool final) {
    // number of local variables declared in arguments
    int lvids = 0;
 
@@ -163,60 +163,70 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction 
    if (func) {
       func->resolvePendingSignatures();
 
-      // initialize function or class immediately if parsing a constant initialization expression
-      if (pflag & PF_CONST_EXPRESSION) {
-	 const QoreClass *qc = func->getClass();
-	 if (qc)
-	    qore_class_private::parseInit(*const_cast<QoreClass *>(qc));
-	 else
-	    func->parseInit();
+      // initialize function or class immediately for possible error messages later (also in case of constant expressions for immediate evaluation)
+      const QoreClass* qc = func->getClass();
+      if (qc)
+         qore_class_private::parseInit(*const_cast<QoreClass*>(qc));
+      else
+         func->parseInit();
+   
+      // find variant
+      variant = func->parseFindVariant(argTypeInfo);
+
+      QoreProgram* pgm = getProgram();
+
+      //printd(5, "FunctionCallBase::parseArgsVariant() this=%p po=%lld, ign=%d func=%p have_arg_type_info=%d variant=%p\n", this, po, pflag & PF_RETURN_VALUE_IGNORED, func, have_arg_type_info, variant);
+
+      if (variant) {
+         //printd(5, "FunctionCallBase::parseArgsVariant() this=%p variant=%p f=%lld (%lld) c=%lld (%lld)\n", this, variant, variant->getFunctionality(), variant->getFunctionality() & po, variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY);
+         if (qc) {
+            assert(dynamic_cast<const MethodVariantBase*>(variant));
+            const MethodVariantBase* mv = reinterpret_cast<const MethodVariantBase*>(variant);
+            if (mv->isAbstract()) {
+               if (final)
+                  parse_error("cannot reference abstract %s::%s(%s)", mv->method()->getClass()->getName(), mv->method()->getName(), mv->getSignature()->getSignatureText());
+               else
+                  variant = 0;
+            }
+         }
+         if (variant) {
+            if (qore_program_private::parseAddDomain(pgm, variant->getFunctionality()))
+               invalid_access(func);
+            int64 flags = variant->getFlags();
+            check_flags(func, flags, pflag);
+         }
+      }
+      else {
+         //printd(5, "FunctionCallBase::parseArgsVariant() this=%p func=%p f=%lld (%lld) c=%lld (%lld)\n", this, func, func->getUniqueFunctionality(), func->getUniqueFunctionality() & po, func->getUniqueFlags(), func->getUniqueFlags() & QC_RET_VALUE_ONLY);
+
+         int64 po = pgm->getParseOptions64();
+         if (func->getUniqueFunctionality() & po)
+            invalid_access(func);
+         check_flags(func, func->getUniqueFlags(), pflag);
+      }
+
+      returnTypeInfo = variant ? variant->parseGetReturnTypeInfo() : func->parseGetUniqueReturnTypeInfo();
+
+      //printd(5, "FunctionCallBase::parseArgsVariant() this=%p func=%s variant=%p pflag=%d pe=%d\n", this, func ? func->getName() : "n/a", variant, pflag, func ? func->pendingEmpty() : -1);
+
+      // if the function call is being made as a part of a constant expression and
+      // there are uncommitted user variants in the function, then raise an error
+      if ((pflag & PF_CONST_EXPRESSION) && !variant && !func->pendingEmpty()) {
+         const char *name = func->getName();
+         const char *cname = func->className();
+         QoreStringNode *desc = new QoreStringNode("cannot ");
+         if (cname && !strcmp(name, "constructor"))
+            desc->sprintf("instantiate class %s", cname);
+         else
+            desc->sprintf("cannot call %s%s%s()", cname ? cname : "", cname ? "::" : "", name);
+
+         desc->concat(" in an expression initializing a constant value at parse time when the function has uncommitted variants and the variant cannot be matched at parse time; to fix this error, add enough type information to the call to allow the variant to be resolved");
+
+         parseException("ILLEGAL-CALL", desc);
       }
    }
-   
-   // find variant
-   //variant = func && have_arg_type_info ? func->parseFindVariant(argTypeInfo) : 0;
-   variant = func ? func->parseFindVariant(argTypeInfo) : 0;
-
-   QoreProgram* pgm = getProgram();
-
-   //printd(5, "FunctionCallBase::parseArgsVariant() this=%p po=%lld, ign=%d func=%p have_arg_type_info=%d variant=%p\n", this, po, pflag & PF_RETURN_VALUE_IGNORED, func, have_arg_type_info, variant);
-
-   if (variant) {
-      //printd(5, "FunctionCallBase::parseArgsVariant() this=%p variant=%p f=%lld (%lld) c=%lld (%lld)\n", this, variant, variant->getFunctionality(), variant->getFunctionality() & po, variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY);
-
-      if (qore_program_private::parseAddDomain(pgm, variant->getFunctionality()))
-	 invalid_access(func);
-      int64 flags = variant->getFlags();
-      check_flags(func, flags, pflag);
-   }
-   else if (func) {
-      //printd(5, "FunctionCallBase::parseArgsVariant() this=%p func=%p f=%lld (%lld) c=%lld (%lld)\n", this, func, func->getUniqueFunctionality(), func->getUniqueFunctionality() & po, func->getUniqueFlags(), func->getUniqueFlags() & QC_RET_VALUE_ONLY);
-
-      int64 po = pgm->getParseOptions64();
-      if (func->getUniqueFunctionality() & po)
-	 invalid_access(func);
-      check_flags(func, func->getUniqueFlags(), pflag);
-   }
-
-   returnTypeInfo = variant ? variant->parseGetReturnTypeInfo() : (func ? func->parseGetUniqueReturnTypeInfo() : 0);
-
-   //printd(5, "FunctionCallBase::parseArgsVariant() this=%p func=%s variant=%p pflag=%d pe=%d\n", this, func ? func->getName() : "n/a", variant, pflag, func ? func->pendingEmpty() : -1);
-
-   // if the function call is being made as a part of a constant expression and 
-   // there are uncommitted user variants in the function, then raise an error
-   if (func && (pflag & PF_CONST_EXPRESSION) && !variant && !func->pendingEmpty()) {
-      const char *name = func->getName();
-      const char *cname = func->className();
-      QoreStringNode *desc = new QoreStringNode("cannot ");
-      if (cname && !strcmp(name, "constructor"))
-	 desc->sprintf("instantiate class %s", cname);
-      else
-	 desc->sprintf("cannot call %s%s%s()", cname ? cname : "", cname ? "::" : "", name);
-
-      desc->concat(" in an expression initializing a constant value at parse time when the function has uncommitted variants and the variant cannot be matched at parse time; to fix this error, add enough type information to the call to allow the variant to be resolved");
-
-      parseException("ILLEGAL-CALL", desc);
-   }
+   else
+      returnTypeInfo = 0;
 
    return lvids;
 }
@@ -261,7 +271,7 @@ AbstractQoreNode *SelfFunctionCallNode::evalImpl(ExceptionSink *xsink) const {
 }
 
 void SelfFunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
-   lvids += parseArgs(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo);
+   lvids += parseArgs(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo, true);
 
    if (method)
       printd(5, "SelfFunctionCallNode::parseInitCall() this=%p resolved '%s' to %p\n", this, method->getName(), method);

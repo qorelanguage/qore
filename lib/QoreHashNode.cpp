@@ -675,10 +675,12 @@ QoreString *HashIterator::getKeyString() const {
 }
 
 bool HashIterator::next() { 
-   if (ptr) 
-      ptr = ptr->next;
-   else
-      ptr = h->priv->member_list;
+   ptr = ptr ? ptr->next : h->priv->member_list;
+   return ptr;
+}
+
+bool HashIterator::prev() {
+   ptr = ptr ? ptr->prev : h->priv->tail;
    return ptr;
 }
 
@@ -745,15 +747,30 @@ bool HashIterator::first() const {
    return (bool)(ptr ? !ptr->prev : false); 
 } 
 
+bool HashIterator::empty() const {
+   return h->empty();
+}
+
 ReverseHashIterator::ReverseHashIterator(QoreHashNode *h) : HashIterator(h) {
 }
 
 ReverseHashIterator::ReverseHashIterator(QoreHashNode &h) : HashIterator(h) {
 }
 
+bool ReverseHashIterator::last() const {
+   return HashIterator::first();
+}
+
+bool ReverseHashIterator::first() const {
+   return HashIterator::last();
+}
+
 bool ReverseHashIterator::next() { 
-   ptr = ptr ? ptr->prev : h->priv->tail;
-   return ptr;
+   return HashIterator::prev();
+}
+
+bool ReverseHashIterator::prev() {
+   return HashIterator::next();
 }
 
 ConstHashIterator::ConstHashIterator(const QoreHashNode *qh) : h(qh), ptr(0) {
@@ -774,10 +791,12 @@ QoreString *ConstHashIterator::getKeyString() const {
 }
 
 bool ConstHashIterator::next() { 
-   if (ptr) 
-      ptr = ptr->next;
-   else
-      ptr = h->priv->member_list;
+   ptr = ptr ? ptr->next : h->priv->member_list;
+   return ptr;
+}
+
+bool ConstHashIterator::prev() {
+   ptr = ptr ? ptr->prev : h->priv->tail;
    return ptr;
 }
 
@@ -802,15 +821,30 @@ bool ConstHashIterator::first() const {
    return (bool)(ptr ? !ptr->prev : false); 
 } 
 
+bool ConstHashIterator::empty() const {
+   return h->empty();
+}
+
 ReverseConstHashIterator::ReverseConstHashIterator(const QoreHashNode *h) : ConstHashIterator(h) {
 }
 
 ReverseConstHashIterator::ReverseConstHashIterator(const QoreHashNode &h) : ConstHashIterator(h) {
 }
 
+bool ReverseConstHashIterator::last() const {
+   return ConstHashIterator::first();
+}
+
+bool ReverseConstHashIterator::first() const {
+   return ConstHashIterator::last();
+}
+
 bool ReverseConstHashIterator::next() { 
-   ptr = ptr ? ptr->prev : h->priv->tail;
-   return ptr;
+   return ConstHashIterator::prev();
+}
+
+bool ReverseConstHashIterator::prev() {
+   return ConstHashIterator::next();
 }
 
 hash_assignment_priv::hash_assignment_priv(qore_hash_private &n_h, const char *key, bool must_already_exist) : h(n_h), om(must_already_exist ? h.findMember(key) : h.findCreateMember(key)) {

@@ -57,11 +57,16 @@ public:
    DLLLOCAL VNode(LocalVar *lv, int n_refs = 0, bool n_top_level = false) : refs(n_refs), file(get_parse_file()), block_start(false), top_level(n_top_level), lvar(lv), next(getVStack()) {
       get_parse_location(first_line, last_line);
       updateVStack(this);
-      //printd(5, "VNode::VNode() id=%p %s\n", lvar, lvar ? lvar->getName() : "n/a");
+
+      if (top_level)
+         save_global_vnode(this);
+
+      //printd(5, "VNode::VNode() '%s' %p top_level: %d\n", lvar ? lvar->getName() : "n/a", lvar, top_level);
    }
 
    DLLLOCAL ~VNode() {
-      //printd(5, "VNode::~VNode() id=%p %s\n", lvar, lvar ? lvar->getName() : "n/a");
+      //printd(5, "VNode::~VNode() '%s' %p top_level: %d\n", lvar ? lvar->getName() : "n/a", lvar, top_level);
+
       if (lvar && !refs)
 	 qore_program_private::makeParseWarning(getProgram(), first_line, last_line, file, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
    }
@@ -98,7 +103,7 @@ public:
 
    // searches to marker and then jumps to global thread-local variables
    DLLLOCAL VNode* nextSearch() const {
-      if (!next || next->lvar)
+      if ((next && next->lvar) || top_level)
 	 return next;
 
       // skip to global thread-local variables
@@ -293,9 +298,14 @@ LocalVar *find_local_var(const char *name, bool &in_closure) {
    ClosureParseEnvironment *cenv = thread_get_closure_parse_env();
    in_closure = false;
 
+   //printd(5, "find_local_var('%s' %p) vnode: %p\n", name, name, vnode);
+
    while (vnode) {
       if (cenv && !in_closure && cenv->getHighWaterMark() == vnode)
 	 in_closure = true;
+
+      //printd(5, "find_local_var('%s' %p) v: '%s' %p in_closure: %d match: %d\n", name, name, vnode->getName(), vnode->getName(), in_closure, !strcmp(vnode->getName(), name));
+
       if (!strcmp(vnode->getName(), name)) {
          //printd(5, "find_local_var() %s in_closure: %d\n", name, in_closure);
          if (in_closure)
@@ -459,9 +469,9 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    }
 
    // save local variable position for searches
-   VNode* vn = getVStack();
+   //VNode* vn = getVStack();
    //printd(5, "TopLevelStatementBlock::parseInit() saving global vnode=%p\n", vn);
-   save_global_vnode(vn);
+   //save_global_vnode(vn);
    
    // now initialize root namespace and functions before local variables are popped off the stack
    qore_root_ns_private::parseInit();

@@ -949,20 +949,23 @@ ListIterator::ListIterator(QoreListNode &lst, qore_size_t n_pos) : l(&lst) {
 }
 
 bool ListIterator::next() {
-   if (l->size() == 0) return false; // empty
-   if (pos == l->size()) {
-      pos = 0;
-      return true;
+   if (++pos == l->size()) {
+      pos = -1;
+      return false; // finished
    }
-   if (++pos == l->size()) return false; // finished
    return true;
 }
 
 bool ListIterator::prev() {
-   if (l->size() == 0) return false; // empty
-   if (!pos) { // finished
-      pos = l->size();
-      return false;
+   if (l->empty())
+      return false; // empty
+   if (pos == -1) {
+      pos = l->size() - 1;
+      return true;
+   }
+   if (!pos) {
+      pos = -1;
+      return false; // finished
    }
    --pos;
    return true;
@@ -970,7 +973,7 @@ bool ListIterator::prev() {
 
 int ListIterator::set(qore_size_t n_pos) {
    if (n_pos >= l->size()) {
-      pos = l->size();
+      pos = -1;
       return -1;
    }
    pos = n_pos;
@@ -1020,20 +1023,23 @@ ConstListIterator::ConstListIterator(const QoreListNode &lst, qore_size_t n_pos)
 }
 
 bool ConstListIterator::next() {
-   if (l->size() == 0) return false; // empty
-   if (pos == l->size()) {
-      pos = 0;
-      return true;
+   if (++pos == l->size()) {
+      pos = -1;
+      return false; // finished
    }
-   if (++pos == l->size()) return false; // finished
    return true;
 }
 
 bool ConstListIterator::prev() {
-   if (l->size() == 0) return false; // empty
-   if (!pos) { // finished
-      pos = l->size();
-      return false;
+   if (l->empty())
+      return false; // empty
+   if (pos == -1) {
+      pos = l->size() - 1;
+      return true;
+   }
+   if (!pos) {
+      pos = -1;
+      return false; // finished
    }
    --pos;
    return true;
@@ -1041,7 +1047,7 @@ bool ConstListIterator::prev() {
 
 int ConstListIterator::set(qore_size_t n_pos) {
    if (n_pos >= l->size()) {
-      pos = l->size();
+      pos = -1;
       return -1;
    }
    pos = n_pos;

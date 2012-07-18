@@ -290,8 +290,8 @@ public:
    }
 };
 
-#define METHV(f) (reinterpret_cast<MethodVariant* >(f))
-#define METHV_const(f) (reinterpret_cast<const MethodVariant* >(f))
+#define METHV(f) (reinterpret_cast<MethodVariant*>(f))
+#define METHV_const(f) (reinterpret_cast<const MethodVariant*>(f))
 
 class ConstructorMethodVariant : public MethodVariantBase {
 protected:
@@ -305,8 +305,8 @@ public:
    DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, CodeEvaluationHelper &ceh, BCList *bcl, BCEAList *bceal, ExceptionSink* xsink) const = 0;
 };
 
-#define CONMV(f) (reinterpret_cast<ConstructorMethodVariant* >(f))
-#define CONMV_const(f) (reinterpret_cast<const ConstructorMethodVariant* >(f))
+#define CONMV(f) (reinterpret_cast<ConstructorMethodVariant*>(f))
+#define CONMV_const(f) (reinterpret_cast<const ConstructorMethodVariant*>(f))
 
 class DestructorMethodVariant : public MethodVariantBase {
 protected:
@@ -317,8 +317,8 @@ public:
    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink* xsink) const = 0;
 };
 
-#define DESMV(f) (reinterpret_cast<DestructorMethodVariant* >(f))
-#define DESMV_const(f) (reinterpret_cast<const DestructorMethodVariant* >(f))
+#define DESMV(f) (reinterpret_cast<DestructorMethodVariant*>(f))
+#define DESMV_const(f) (reinterpret_cast<const DestructorMethodVariant*>(f))
 
 class CopyMethodVariant : public MethodVariantBase {
 protected:
@@ -329,8 +329,8 @@ public:
    DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink* xsink) const = 0;
 };
 
-#define COPYMV(f) (reinterpret_cast<CopyMethodVariant* >(f))
-#define COPYMV_const(f) (reinterpret_cast<const CopyMethodVariant* >(f))
+#define COPYMV(f) (reinterpret_cast<CopyMethodVariant*>(f))
+#define COPYMV_const(f) (reinterpret_cast<const CopyMethodVariant*>(f))
 
 class UserMethodVariant : public MethodVariant, public UserVariantBase {
 public:
@@ -365,8 +365,8 @@ public:
    }
 };
 
-#define UMV(f) (reinterpret_cast<UserMethodVariant* >(f))
-#define UMV_const(f) (reinterpret_cast<const UserMethodVariant* >(f))
+#define UMV(f) (reinterpret_cast<UserMethodVariant*>(f))
+#define UMV_const(f) (reinterpret_cast<const UserMethodVariant*>(f))
 
 class UserConstructorVariant : public ConstructorMethodVariant, public UserVariantBase {
 protected:
@@ -411,8 +411,8 @@ public:
    DLLLOCAL virtual void parseInit(QoreFunction* f);
 };
 
-#define UCONV(f) (reinterpret_cast<UserConstructorVariant* >(f))
-#define UCONV_const(f) (reinterpret_cast<const UserConstructorVariant* >(f))
+#define UCONV(f) (reinterpret_cast<UserConstructorVariant*>(f))
+#define UCONV_const(f) (reinterpret_cast<const UserConstructorVariant*>(f))
 
 class UserDestructorVariant : public DestructorMethodVariant, public UserVariantBase {
 protected:
@@ -447,8 +447,8 @@ public:
    }
 };
 
-#define UDESV(f) (reinterpret_cast<UserDestructorVariant* >(f))
-#define UDESV_const(f) (reinterpret_cast<const UserDestructorVariant* >(f))
+#define UDESV(f) (reinterpret_cast<UserDestructorVariant*>(f))
+#define UDESV_const(f) (reinterpret_cast<const UserDestructorVariant*>(f))
 
 class UserCopyVariant : public CopyMethodVariant, public UserVariantBase {
 protected:
@@ -464,7 +464,7 @@ public:
    DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink* xsink) const;
 };
 
-#define UCOPYV(f) (reinterpret_cast<UserCopyVariant* >(f))
+#define UCOPYV(f) (reinterpret_cast<UserCopyVariant*>(f))
 
 class BuiltinMethodVariant : public MethodVariant, public BuiltinFunctionVariantBase {
 public:
@@ -947,7 +947,7 @@ public:
    DLLLOCAL double floatEvalPseudoMethod(const AbstractQoreFunctionVariant* variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const;
 };
 
-#define NMETHF(f) (reinterpret_cast<NormalMethodFunction* >(f))
+#define NMETHF(f) (reinterpret_cast<NormalMethodFunction*>(f))
 
 // abstract class for method functions (static and non-static)
 class StaticMethodFunction : public MethodFunctionBase {
@@ -966,7 +966,7 @@ public:
    DLLLOCAL double floatEvalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
 };
 
-#define SMETHF(f) (reinterpret_cast<StaticMethodFunction* >(f))
+#define SMETHF(f) (reinterpret_cast<StaticMethodFunction*>(f))
 
 // abstract class for constructor method functions
 class ConstructorMethodFunction : public MethodFunctionBase {
@@ -983,7 +983,7 @@ public:
    }
 };
 
-#define CONMF(f) (reinterpret_cast<ConstructorMethodFunction* >(f))
+#define CONMF(f) (reinterpret_cast<ConstructorMethodFunction*>(f))
 
 // abstract class for destructor method functions
 class DestructorMethodFunction : public MethodFunctionBase {
@@ -999,7 +999,7 @@ public:
    }
 };
 
-#define DESMF(f) (reinterpret_cast<DestructorMethodFunction* >(f))
+#define DESMF(f) (reinterpret_cast<DestructorMethodFunction*>(f))
 
 // abstract class for copy method functions
 class CopyMethodFunction : public MethodFunctionBase {
@@ -1015,7 +1015,7 @@ public:
    }
 };
 
-#define COPYMF(f) (reinterpret_cast<CopyMethodFunction* >(f))
+#define COPYMF(f) (reinterpret_cast<CopyMethodFunction*>(f))
 
 class BuiltinSystemConstructorBase : public MethodFunctionBase {
 public:
@@ -1402,8 +1402,8 @@ public:
    DLLLOCAL void parseInit(BCList *bcl, const char* classname);
 };
 
-//typedef safe_dslist<BCANode* > bcalist_t;
-typedef std::vector<BCANode* > bcalist_t;
+//typedef safe_dslist<BCANode*> bcalist_t;
+typedef std::vector<BCANode*> bcalist_t;
 
 // BCAList
 // base class constructor argument list
@@ -1614,7 +1614,7 @@ struct ltqc {
 };
 */
 
-typedef std::map<qore_classid_t, BCEANode* > bceamap_t;
+typedef std::map<qore_classid_t, BCEANode*> bceamap_t;
 
 /*
   BCEAList
@@ -1947,14 +1947,14 @@ public:
 
    // returns true = found, false = not found
    DLLLOCAL bool runtimeGetMemberInfo(const char* mem, const QoreTypeInfo*& memberTypeInfo, bool &priv) const {
-      member_map_t::const_iterator i = private_members.find(const_cast<char* >(mem));
+      member_map_t::const_iterator i = private_members.find(const_cast<char*>(mem));
       if (i != private_members.end()) {
 	 priv = true;
 	 memberTypeInfo = i->second->getTypeInfo();
 	 return true;
       }
       
-      i = public_members.find(const_cast<char* >(mem));
+      i = public_members.find(const_cast<char*>(mem));
       if (i != public_members.end()) {
 	 priv = false;
 	 memberTypeInfo = i->second->getTypeInfo();
@@ -1966,11 +1966,11 @@ public:
 
    DLLLOCAL const QoreClass* parseFindPublicPrivateMember(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, bool &has_type_info, bool &priv) const {
       bool found = false;
-      member_map_t::const_iterator i = private_members.find(const_cast<char* >(mem));
+      member_map_t::const_iterator i = private_members.find(const_cast<char*>(mem));
       if (i != private_members.end())
 	 found = true;
       else {
-	 i = pending_private_members.find(const_cast<char* >(mem));
+	 i = pending_private_members.find(const_cast<char*>(mem));
 	 if (i != pending_private_members.end())
 	    found = true;
       }
@@ -1982,11 +1982,11 @@ public:
 	 return cls;
       }
 
-      i = public_members.find(const_cast<char* >(mem));
+      i = public_members.find(const_cast<char*>(mem));
       if (i != public_members.end())
 	 found = true;
       else {
-	 i = pending_public_members.find(const_cast<char* >(mem));
+	 i = pending_public_members.find(const_cast<char*>(mem));
 	 if (i != pending_public_members.end())
 	    found = true;
       }
@@ -2005,9 +2005,9 @@ public:
    DLLLOCAL const QoreClass* parseFindPublicPrivateVar(const QoreProgramLocation*& loc, const char* dname, const QoreTypeInfo*& varTypeInfo, bool &var_has_type_info, bool &priv) const {
       //printd(5, "parseFindPublicPrivateVar() this=%p cls=%p (%s) scl=%p\n", this, cls, cls->getName(), scl);
 
-      QoreVarInfo* vi = private_vars.find(const_cast<char* >(dname));
+      QoreVarInfo* vi = private_vars.find(const_cast<char*>(dname));
       if (!vi)
-	 vi = pending_private_vars.find(const_cast<char* >(dname));
+	 vi = pending_private_vars.find(const_cast<char*>(dname));
 
       if (vi) {
 	 priv = true;
@@ -2017,9 +2017,9 @@ public:
 	 return cls;
       }
 
-      vi = public_vars.find(const_cast<char* >(dname));
+      vi = public_vars.find(const_cast<char*>(dname));
       if (!vi)
-	 vi = pending_public_vars.find(const_cast<char* >(dname));
+	 vi = pending_public_vars.find(const_cast<char*>(dname));
 
       if (vi) {
 	 priv = false;
@@ -2374,12 +2374,12 @@ public:
    }
 
    DLLLOCAL bool isPublicOrPrivateMember(const char* mem, bool &priv) const {
-      if (private_members.find(const_cast<char* >(mem)) != private_members.end()) {
+      if (private_members.find(const_cast<char*>(mem)) != private_members.end()) {
 	 priv = true;
 	 return true;
       }
 
-      if (public_members.find(const_cast<char* >(mem)) != public_members.end()) {
+      if (public_members.find(const_cast<char*>(mem)) != public_members.end()) {
 	 priv = false;
 	 return true;
       }

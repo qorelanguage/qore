@@ -50,6 +50,8 @@ const char *VarRefNode::getTypeName() const {
 void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
    LocalVar* id;
 
+   printd(5, "VarRefNode::resolve() name: '%s' size: %d\n", name.ostr, name.size());
+
    bool in_closure;
    if (name.size() == 1 && (id = find_local_var(name.ostr, in_closure))) {
       if (typeInfo)
@@ -66,7 +68,7 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
    else {
       ref.var = qore_root_ns_private::parseCheckImplicitGlobalVar(name, typeInfo);
       type = VT_GLOBAL;
-      printd(5, "VarRefNode::resolve(): global var %s resolved (var=%p)\n", name.ostr, ref.var);
+      printd(5, "VarRefNode::resolve(): implicit global var %s resolved (var=%p)\n", name.ostr, ref.var);
    }
 }
 

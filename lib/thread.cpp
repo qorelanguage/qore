@@ -1319,7 +1319,9 @@ VNode* getVStack() {
 
 void save_global_vnode(VNode* vn) {
    ThreadData *td = thread_data.get();
-   td->global_vnode = vn;
+   // only update if the global_vnode is not already set or we are clearing it
+   if (!vn || !td->global_vnode)
+      td->global_vnode = vn;
 }
 
 VNode* get_global_vnode() {

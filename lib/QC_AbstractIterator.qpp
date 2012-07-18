@@ -88,5 +88,7 @@ while ($i.next()) {
     printf("+ %y\n", $i.getValue());
 }
     @endcode
+
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
  */
 abstract any AbstractIterator::getValue();

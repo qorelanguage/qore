@@ -3891,7 +3891,13 @@ AbstractQoreNode* NormalMethodFunction::evalMethod(const AbstractQoreFunctionVar
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
    if (*xsink) return 0;
 
-   return METHV_const(variant)->evalMethod(self, ceh, xsink);      
+   const MethodVariant* mv = METHV_const(variant);
+   if (variant && mv->isAbstract()) {
+      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
+      return 0;
+   }
+
+   return mv->evalMethod(self, ceh, xsink);
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
