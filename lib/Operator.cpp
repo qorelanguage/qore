@@ -1367,7 +1367,31 @@ static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQo
    return result.release();
 }
 
-static AbstractQoreNode *op_fold_iterator(const AbstractQoreNode *select, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink *xsink) {
+static AbstractQoreNode *op_select_iterator(const AbstractQoreNode *select, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink *xsink) {
+   // set offset in thread-local data for "$#"
+   ImplicitElementHelper eh(-1);
+
+   ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
+   while (true) {
+      bool b = h.nextMethod->boolEvalNormalVariant(h.obj, h.next, 0, xsink);
+      if (*xsink)
+         return 0;
+      if (!b)
+         break;
+
+      SingleArgvContextHelper argv_helper(h.obj, xsink);
+      b = select->boolEval(xsink);
+      if (*xsink)
+         return 0;
+      if (b) {
+         // get next argument value
+         ReferenceHolder<AbstractQoreNode> arg(h.getValueMethod->evalNormalVariant(h.obj, h.getValue, 0, xsink), xsink);
+         if (*xsink)
+            return 0;
+         rv->push(arg.release());
+      }
+   }
+   return rv.release();
 }
 
 static AbstractQoreNode *op_select(const AbstractQoreNode *arg_exp, const AbstractQoreNode *select, bool ref_rv, ExceptionSink *xsink) {
@@ -1376,11 +1400,20 @@ static AbstractQoreNode *op_select(const AbstractQoreNode *arg_exp, const Abstra
    if (!arg || *xsink)
       return 0;
 
-   if (arg->getType() != NT_LIST) {
+   // return the argument if there is no list
+   qore_type_t t = arg->getType();
+   if (t != NT_LIST) {
+      if (t == NT_OBJECT) {
+         AbstractIteratorHelper h;
+         if (!AbstractIteratorHelper::get("select", h, const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), xsink, true, true))
+            return op_select_iterator(select, h, ref_rv, xsink);
+         if (*xsink)
+            return 0;
+      }
       SingleArgvContextHelper argv_helper(*arg, xsink);
       bool b = select->boolEval(xsink);
       if (*xsink)
-	 return 0;
+         return 0;
 
       return b ? arg.getReferencedValue() : 0;
    }
