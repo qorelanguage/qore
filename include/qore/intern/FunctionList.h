@@ -114,15 +114,15 @@ public:
    DLLLOCAL FunctionList() {
    }
 
-   DLLLOCAL FunctionList(const FunctionList& old, int64 po);
+   DLLLOCAL FunctionList(const FunctionList& old, qore_ns_private* ns, int64 po);
 
    DLLLOCAL ~FunctionList() {
       del();
    }
 
    DLLLOCAL FunctionEntry* add(QoreFunction* func);
-   DLLLOCAL FunctionEntry* import(QoreFunction* func);
-   DLLLOCAL FunctionEntry* import(const char* new_name, QoreFunction* func);
+   DLLLOCAL FunctionEntry* import(QoreFunction* func, qore_ns_private* ns);
+   DLLLOCAL FunctionEntry* import(const char* new_name, QoreFunction* func, qore_ns_private* ns);
    DLLLOCAL QoreFunction* find(const char* name, bool runtime) const;
    DLLLOCAL FunctionEntry* findNode(const char* name) const;
 

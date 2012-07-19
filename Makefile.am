@@ -45,6 +45,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_Condition.qpp \
 	lib/QC_Counter.qpp \
 	lib/QC_AbstractIterator.qpp \
+	lib/QC_AbstractBidirectionalIterator.qpp \
 	lib/QC_ListIterator.qpp \
 	lib/QC_ListReverseIterator.qpp \
 	lib/QC_AbstractDatasource.qpp \

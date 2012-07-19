@@ -1020,19 +1020,82 @@ static AbstractQoreNode* op_trim(const AbstractQoreNode* arg, const AbstractQore
    return ref_rv ? val.getReferencedValue() : 0;
 }
 
-static QoreListNode* op_map_iterator(const AbstractQoreNode *left, QoreObject* o, const QoreMethod& m, const QoreExternalMethodVariant* variant, bool ref_rv, ExceptionSink* xsink) {
+extern QoreClass* QC_ABSTRACTITERATOR;
+extern QoreClass* QC_ABSTRACTBIDIRECTIONALITERATOR;
+
+struct AbstractIteratorHelper {
+   QoreObject* obj;
+   const QoreMethod* nextMethod;
+   const QoreExternalMethodVariant* next;
+   const QoreMethod* getValueMethod;
+   const QoreExternalMethodVariant* getValue;
+
+   static const QoreExternalMethodVariant* getCheckVariant(const char* op, const QoreMethod* m, ExceptionSink* xsink) {
+      const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->findVariant(0, false, xsink));
+      // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
+      if (*xsink)
+         return 0;
+      // we must have a variant here because we have an instance of AbstractIterator
+      assert(variant);
+      if (variant->isPrivate()) {
+         // check for access to the class holding the private method
+         if (!qore_class_private::runtimeCheckPrivateClassAccess(*(variant->method()->getClass()))) {
+            QoreString opstr(op);
+            opstr.toupr();
+            opstr.concat("-ITERATOR-ERROR");
+            xsink->raiseException(opstr.getBuffer(), "cannot access private %s::next() iterator method with the %s operator", variant->method()->getClass()->getName(), op);
+            return 0;
+         }
+      }
+      return reinterpret_cast<const QoreExternalMethodVariant*>(variant);
+   }
+
+   static int get(const char* op, AbstractIteratorHelper& h, QoreObject* o, ExceptionSink* xsink, bool fwd = true, bool get_value = false) {
+      bool priv;
+      const QoreClass* qc = o->getClass()->getClass(fwd ? *QC_ABSTRACTITERATOR : *QC_ABSTRACTBIDIRECTIONALITERATOR, priv);
+      if (qc) {
+         h.obj = o;
+         // get "next" method if accessible
+         bool priv;
+         h.nextMethod = qore_class_private::get(*o->getClass())->findMethod(fwd ? "next" : "prev", priv);
+         // method must be found because we have an instance of AbstractIterator/AbstractBidirectionalIterator
+         assert(h.nextMethod);
+         h.next = getCheckVariant(op, h.nextMethod, xsink);
+         if (!h.next)
+            return -1;
+         if (get_value) {
+            h.getValueMethod = qore_class_private::get(*o->getClass())->findMethod("getValue", priv);
+            // method must be found because we have an instance of AbstractIterator
+            assert(h.getValueMethod);
+            h.getValue = getCheckVariant(op, h.getValueMethod, xsink);
+            if (!h.getValue)
+               return -1;
+         }
+#ifdef DEBUG
+         else {
+            h.getValueMethod = 0;
+            h.getValue = 0;
+         }
+#endif
+         return 0;
+      }
+      return -1;
+   }
+};
+
+static QoreListNode* op_map_iterator(const AbstractQoreNode *left, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
    ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode : 0, xsink);
 
    // set offset in thread-local data for "$#"
    ImplicitElementHelper eh(-1);
    while (true) {
-      bool b = m.boolEvalNormalVariant(o, variant, 0, xsink);
+      bool b = h.nextMethod->boolEvalNormalVariant(h.obj, h.next, 0, xsink);
       if (!b)
          return rv.release();
       if (*xsink)
          return 0;
 
-      SingleArgvContextHelper argv_helper(o, xsink);
+      SingleArgvContextHelper argv_helper(h.obj, xsink);
       //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
       ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
       if (*xsink)
@@ -1043,8 +1106,6 @@ static QoreListNode* op_map_iterator(const AbstractQoreNode *left, QoreObject* o
    return rv.release();
 }
 
-extern QoreClass* QC_ABSTRACTITERATOR;
-
 static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink) {
    // conditionally evaluate argument
    QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
@@ -1054,31 +1115,11 @@ static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQore
    if (arg->getType() != NT_LIST) {
       // check if it's an AbstractIterator object
       if (arg->getType() == NT_OBJECT) {
-         QoreObject* o = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg));
-         bool priv;
-         const QoreClass* qc = o->getClass()->getClass(*QC_ABSTRACTITERATOR, priv);
-         if (qc) {
-            // get "next" method if accessible
-            bool priv;
-            const QoreMethod* m = qore_class_private::get(*o->getClass())->findMethod("next", priv);
-            // method must be found because we have an instance of AbstractIterator
-            assert(m);
-            const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->findVariant(0, false, xsink));
-            // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
-            if (*xsink)
-               return 0;
-            // we must have a variant here because we have an instance of AbstractIterator
-            assert(variant);
-            if (variant->isPrivate()) {
-               // check for access to the class holding the private method
-               if (!qore_class_private::runtimeCheckPrivateClassAccess(*(variant->method()->getClass()))) {
-                  xsink->raiseException("MAP-ITERATOR-ERROR", "cannot access private %s::next() iterator method with the map operator", variant->method()->getClass()->getName());
-                  return 0;
-               }
-            }
-
-            return op_map_iterator(left, o, *m, reinterpret_cast<const QoreExternalMethodVariant*>(variant), ref_rv, xsink);
-         }
+         AbstractIteratorHelper h;
+         if (!AbstractIteratorHelper::get("map", h, const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), xsink))
+            return op_map_iterator(left, h, ref_rv, xsink);
+         if (*xsink)
+            return 0;
       }
       SingleArgvContextHelper argv_helper(*arg, xsink);
       return left->eval(xsink);
@@ -1100,6 +1141,36 @@ static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQore
    return rv.release();
 }
 
+static AbstractQoreNode* op_map_select_iterator(const AbstractQoreNode* left, const AbstractQoreNode* select, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
+   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
+
+   // set offset in thread-local data for "$#"
+   ImplicitElementHelper eh(-1);
+   while (true) {
+      bool b = h.nextMethod->boolEvalNormalVariant(h.obj, h.next, 0, xsink);
+      if (!b)
+         return rv.release();
+      if (*xsink)
+         return 0;
+
+      // check if value can be mapped
+      SingleArgvContextHelper argv_helper(h.obj, xsink);
+      b = select->boolEval(xsink);
+      if (*xsink)
+         return 0;
+      if (!b)
+         continue;
+
+      //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
+      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
+      if (*xsink)
+         return 0;
+      if (ref_rv)
+          rv->push(val.release());
+   }
+   return rv.release();
+}
+
 static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink) {
    assert(arg_exp->getType() == NT_LIST);
 
@@ -1112,16 +1183,22 @@ static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const Abstr
 
    const AbstractQoreNode *select = arg_list->retrieve_entry(1);
 
-   if (!marg || marg->getType() != NT_LIST) {
-      // check if value can be mapped
-      {
-	 SingleArgvContextHelper argv_helper(*marg, xsink);
-	 bool b = select->boolEval(xsink);
-	 if (*xsink || !b)
-	    return 0;
+   qore_type_t t = get_node_type(*marg);
+   if (t != NT_LIST) {
+      if (t == NT_OBJECT) {
+         AbstractIteratorHelper h;
+         if (!AbstractIteratorHelper::get("map", h, const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*marg)), xsink))
+            return op_map_select_iterator(left, select, h, ref_rv, xsink);
+         if (*xsink)
+            return 0;
       }
 
+      // check if value can be mapped
       SingleArgvContextHelper argv_helper(*marg, xsink);
+      bool b = select->boolEval(xsink);
+      if (*xsink || !b)
+         return 0;
+
       ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
       return *xsink ? 0 : val.release();
    }
@@ -1133,16 +1210,13 @@ static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const Abstr
       ImplicitElementHelper eh(li.index());
       const AbstractQoreNode *elem = li.getValue();
       // check if value can be mapped
-      {
-	 SingleArgvContextHelper argv_helper(elem, xsink);
-	 bool b = select->boolEval(xsink);
-	 if (*xsink)
-	    return 0;
-	 if (!b)
-	    continue;
-      }
-
       SingleArgvContextHelper argv_helper(elem, xsink);
+      bool b = select->boolEval(xsink);
+      if (*xsink)
+         return 0;
+      if (!b)
+         continue;
+
       ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
       if (*xsink)
 	 return 0;
@@ -1152,6 +1226,46 @@ static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const Abstr
    return rv.release();
 }
 
+static AbstractQoreNode *op_fold_iterator(const AbstractQoreNode *left, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink *xsink) {
+   // set offset in thread-local data for "$#"
+   ImplicitElementHelper eh(-1);
+
+   // first try to get first argument
+   bool b = h.nextMethod->boolEvalNormalVariant(h.obj, h.next, 0, xsink);
+   // if there is no first argument or an exception occurred, then return 0
+   if (!b || *xsink)
+      return 0;
+
+   // get first argument value
+   ReferenceHolder<AbstractQoreNode> result(h.getValueMethod->evalNormalVariant(h.obj, h.getValue, 0, xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   while (true) {
+      bool b = h.nextMethod->boolEvalNormalVariant(h.obj, h.next, 0, xsink);
+      if (*xsink)
+         return 0;
+      if (!b)
+         break;
+
+      // get next argument value
+      ReferenceHolder<AbstractQoreNode> arg(h.getValueMethod->evalNormalVariant(h.obj, h.getValue, 0, xsink), xsink);
+      if (*xsink)
+         return 0;
+
+      // create argument list for fold expression
+      QoreListNode* args = new QoreListNode;
+      args->push(result.release());
+      args->push(arg.release());
+      ArgvContextHelper argv_helper(args, xsink);
+      result = left->eval(xsink);
+      if (*xsink)
+         return 0;
+   }
+
+   return result.release();
+}
+
 static AbstractQoreNode *op_foldl(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink) {
    // conditionally evaluate argument
    QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
@@ -1159,8 +1273,17 @@ static AbstractQoreNode *op_foldl(const AbstractQoreNode *left, const AbstractQo
       return 0;
 
    // return the argument if there is no list
-   if (arg->getType() != NT_LIST)
+   qore_type_t t = arg->getType();
+   if (t != NT_LIST) {
+      if (t == NT_OBJECT) {
+         AbstractIteratorHelper h;
+         if (!AbstractIteratorHelper::get("foldl", h, const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), xsink, true, true))
+            return op_fold_iterator(left, h, ref_rv, xsink);
+         if (*xsink)
+            return 0;
+      }
       return arg.getReferencedValue();
+   }
 
    const QoreListNode *l = reinterpret_cast<const QoreListNode *>(*arg);
 
@@ -1200,8 +1323,17 @@ static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQo
       return 0;
 
    // return the argument if there is no list
-   if (arg->getType() != NT_LIST)
-      return arg->refSelf();
+   qore_type_t t = arg->getType();
+   if (t != NT_LIST) {
+      if (t == NT_OBJECT) {
+         AbstractIteratorHelper h;
+         if (!AbstractIteratorHelper::get("foldr", h, const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), xsink, false, true))
+            return op_fold_iterator(left, h, ref_rv, xsink);
+         if (*xsink)
+            return 0;
+      }
+      return arg.getReferencedValue();
+   }
 
    const QoreListNode *l = reinterpret_cast<const QoreListNode *>(*arg);
 
@@ -1233,6 +1365,9 @@ static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQo
 	 return 0;
    }
    return result.release();
+}
+
+static AbstractQoreNode *op_fold_iterator(const AbstractQoreNode *select, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink *xsink) {
 }
 
 static AbstractQoreNode *op_select(const AbstractQoreNode *arg_exp, const AbstractQoreNode *select, bool ref_rv, ExceptionSink *xsink) {

@@ -1673,6 +1673,8 @@ void QoreFunction::parseInit() {
 
    parse_same_return_type = same_return_type;
 
+   OptionalNamespaceParseContextHelper pch(ns);
+
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       (*i)->parseInit(this);
    }

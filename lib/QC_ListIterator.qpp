@@ -61,7 +61,7 @@ public:
 
     @see ListReverseIterator
  */
-qclass ListIterator [arg=QoreListIterator* i; ns=Qore; vparent=AbstractIterator];
+qclass ListIterator [arg=QoreListIterator* i; ns=Qore; vparent=AbstractBidirectionalIterator];
 
 //! Creates the list iterator object
 /** @param l the list to iterate

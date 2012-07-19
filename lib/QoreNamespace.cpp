@@ -87,6 +87,7 @@
 
 DLLLOCAL QoreClass* initAbstractDatasourceClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initAbstractBidirectionalIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListReverseIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initHashIteratorClass(QoreNamespace& ns);
@@ -177,7 +178,7 @@ FunctionEntry* qore_ns_private::addPendingVariantIntern(const char* fname, Abstr
    FunctionEntry* fe = func_list.findNode(fname);
 
    if (!fe) {
-      QoreFunction* u = new QoreFunction(fname);
+      QoreFunction* u = new QoreFunction(fname, this);
       u->addPendingVariant(vh.release());
       fe = func_list.add(u);
       new_func = true;
@@ -295,7 +296,7 @@ void qore_ns_private::addBuiltinVariantIntern(const char* fname, AbstractQoreFun
       return;
    }
 
-   QoreFunction* u = new QoreFunction(fname);
+   QoreFunction* u = new QoreFunction(fname, this);
    u->addBuiltinVariant(vh.release());
    fe = func_list.add(u);
 
@@ -599,6 +600,7 @@ void StaticSystemNamespace::init() {
    qns.addSystemClass(initHTTPClientClass(qns));
 
    qns.addSystemClass(initAbstractIteratorClass(qns));
+   qns.addSystemClass(initAbstractBidirectionalIteratorClass(qns));
    qns.addSystemClass(initListIteratorClass(qns));
    qns.addSystemClass(initListReverseIteratorClass(qns));
    qns.addSystemClass(initHashIteratorClass(qns));

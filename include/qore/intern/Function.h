@@ -41,6 +41,7 @@ class QoreOperatorNode;
 class BarewordNode;
 class QoreFunction;
 class qore_class_private;
+class qore_ns_private;
 
 typedef std::vector<QoreParseTypeInfo*> ptype_vec_t;
 typedef std::vector<LocalVar*> lvar_vec_t;
@@ -140,7 +141,6 @@ class RetTypeInfo {
    const QoreTypeInfo* typeInfo;
 
 public:
-
    DLLLOCAL RetTypeInfo(QoreParseTypeInfo* n_parseTypeInfo, const QoreTypeInfo* n_typeInfo) : parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
    }
    DLLLOCAL ~RetTypeInfo() {
@@ -204,7 +204,7 @@ public:
 
    // called at parse time to ensure types are resolved
    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const {
-      const_cast<UserSignature* >(this)->resolve();
+      const_cast<UserSignature*>(this)->resolve();
       return returnTypeInfo;
    }
 
@@ -412,7 +412,7 @@ public:
    DLLLOCAL UserVariantBase(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced);
    DLLLOCAL virtual ~UserVariantBase();
    DLLLOCAL UserSignature* getUserSignature() const {
-      return const_cast<UserSignature* >(&signature);
+      return const_cast<UserSignature*>(&signature);
    }
 
    DLLLOCAL void setInit() {
@@ -435,8 +435,8 @@ public:
 // the following defines the pure virtual functions that are common to all user variants
 #define COMMON_USER_VARIANT_FUNCTIONS DLLLOCAL virtual int64 getFunctionality() const { return QDOM_DEFAULT; } \
    using AbstractQoreFunctionVariant::getUserVariantBase; \
-   DLLLOCAL virtual UserVariantBase* getUserVariantBase() { return static_cast<UserVariantBase* >(this); } \
-   DLLLOCAL virtual AbstractFunctionSignature* getSignature() const { return const_cast<UserSignature* >(&signature); } \
+   DLLLOCAL virtual UserVariantBase* getUserVariantBase() { return static_cast<UserVariantBase*>(this); } \
+   DLLLOCAL virtual AbstractFunctionSignature* getSignature() const { return const_cast<UserSignature*>(&signature); } \
    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const { return signature.parseGetReturnTypeInfo(); } \
    DLLLOCAL virtual void setRecheck() { recheck = true; }
 
@@ -492,8 +492,8 @@ public:
    }
 };
 
-#define UFV(f) (reinterpret_cast<UserFunctionVariant* >(f))
-#define UFV_const(f) (reinterpret_cast<const UserFunctionVariant* >(f))
+#define UFV(f) (reinterpret_cast<UserFunctionVariant*>(f))
+#define UFV_const(f) (reinterpret_cast<const UserFunctionVariant*>(f))
 
 // type for lists of function variants
 // this type will be read at runtime and could be appended to simultaneously at parse time (under a lock)
@@ -515,9 +515,10 @@ public:
 class QoreFunction : protected QoreReferenceCounter {
 protected:
    std::string name;
+   qore_ns_private* ns;
 
    // inheritance list type
-   typedef std::vector<QoreFunction* > ilist_t;
+   typedef std::vector<QoreFunction*> ilist_t;
 
    // list of function variants
    VList vlist;
@@ -556,7 +557,7 @@ protected:
          return;         
 
       for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-         reinterpret_cast<UserSignature* >((*i)->getUserVariantBase()->getUserSignature())->resolve();
+         reinterpret_cast<UserSignature*>((*i)->getUserVariantBase()->getUserSignature())->resolve();
          const QoreTypeInfo* rti = (*i)->getReturnTypeInfo();
 
          if (i == pending_vlist.begin()) {
@@ -643,7 +644,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreFunction(const char* n_name) : name(n_name), same_return_type(true), parse_same_return_type(true),
+   DLLLOCAL QoreFunction(const char* n_name, qore_ns_private* n = 0) : name(n_name), ns(n), same_return_type(true), parse_same_return_type(true),
                                                unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
                                                nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT),
                                                nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true), 
@@ -652,8 +653,8 @@ public:
    }
 
    // copy constructor (used by method functions when copied)
-   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = PO_INHERIT_USER_FUNC_VARIANTS) 
-      : name(old.name), same_return_type(old.same_return_type), 
+   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = PO_INHERIT_USER_FUNC_VARIANTS, qore_ns_private* n = 0)
+      : name(old.name), ns(n), same_return_type(old.same_return_type),
         parse_same_return_type(true), 
         unique_functionality(old.unique_functionality),
         unique_flags(old.unique_flags),
@@ -695,8 +696,8 @@ public:
    }
 
    // copy constructor when importing public user variants from user modules into Program objects
-   DLLLOCAL QoreFunction(bool ignore, const QoreFunction& old) 
-      : name(old.name), same_return_type(old.same_return_type), 
+   DLLLOCAL QoreFunction(bool ignore, const QoreFunction& old)
+      : name(old.name), ns(0), same_return_type(old.same_return_type),
         parse_same_return_type(true), 
         unique_functionality(old.unique_functionality),
         unique_flags(old.unique_flags),
@@ -728,6 +729,10 @@ public:
 
       // the rest of ilist is copied in method base class
       // do not copy pending variants
+   }
+
+   DLLLOCAL qore_ns_private* getNamespace() const {
+      return ns;
    }
 
    // returns 0 for OK, -1 for error
@@ -1019,8 +1024,8 @@ public:
    }
 };
 
-#define UCLOV(f) (reinterpret_cast<UserClosureVariant* >(f))
-#define UCLOV_const(f) (reinterpret_cast<const UserClosureVariant* >(f))
+#define UCLOV(f) (reinterpret_cast<UserClosureVariant*>(f))
+#define UCLOV_const(f) (reinterpret_cast<const UserClosureVariant*>(f))
 
 class UserClosureFunction : public QoreFunction {
 protected:
@@ -1033,7 +1038,7 @@ public:
    }
 
    DLLLOCAL bool parseStage1HasReturnTypeInfo() const {
-      return reinterpret_cast<const UserClosureVariant* >(pending_first())->getUserSignature()->hasReturnTypeInfo();
+      return reinterpret_cast<const UserClosureVariant*>(pending_first())->getUserSignature()->hasReturnTypeInfo();
    }
 
    DLLLOCAL void parseInitClosure(const QoreTypeInfo* classTypeInfo);

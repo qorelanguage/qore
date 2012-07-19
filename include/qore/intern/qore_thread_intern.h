@@ -322,14 +322,13 @@ DLLLOCAL QoreListNode* getCallStackList();
 class QoreParseClassHelper {
 protected:
    QoreClass* old;
+   qore_ns_private* oldns;
+   bool rn; // restore namespace
+
 public:
-   DLLLOCAL QoreParseClassHelper(QoreClass* cls) {
-      old = getParseClass();
-      setParseClass(cls);
-   }
-   DLLLOCAL ~QoreParseClassHelper() {
-      setParseClass(old);
-   }
+   DLLLOCAL QoreParseClassHelper(QoreClass* cls);
+
+   DLLLOCAL ~QoreParseClassHelper();
 };
 
 class QoreProgramLocationHelper {
@@ -788,6 +787,26 @@ public:
    DLLLOCAL NamespaceParseContextHelper(qore_ns_private* n_ns) : ns(parse_set_ns(n_ns)), restore(ns != n_ns) {
    }
    DLLLOCAL ~NamespaceParseContextHelper() {
+      if (restore)
+         parse_set_ns(ns);
+   }
+};
+
+class OptionalNamespaceParseContextHelper {
+private:
+   qore_ns_private* ns;
+   bool restore;
+
+public:
+   DLLLOCAL OptionalNamespaceParseContextHelper(qore_ns_private* n_ns) {
+      if (n_ns) {
+         ns = parse_set_ns(n_ns);
+         restore = (ns != n_ns);
+      }
+      else
+         restore = false;
+   }
+   DLLLOCAL ~OptionalNamespaceParseContextHelper() {
       if (restore)
          parse_set_ns(ns);
    }

@@ -29,7 +29,7 @@ ResolvedCallReferenceNode* FunctionEntry::makeCallReference() const {
    return new LocalFunctionCallReferenceNode(func);
 }
 
-FunctionList::FunctionList(const FunctionList& old, int64 po) {
+FunctionList::FunctionList(const FunctionList& old, qore_ns_private* ns, int64 po) {
    bool no_user = !(po & PO_INHERIT_USER_FUNC_VARIANTS);
    bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
    for (fl_map_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
@@ -39,7 +39,7 @@ FunctionList::FunctionList(const FunctionList& old, int64 po) {
       if (no_builtin && !f->hasUser())
 	 continue;
 
-      FunctionEntry* fe = new FunctionEntry(i->first, new QoreFunction(*f, po));
+      FunctionEntry* fe = new FunctionEntry(i->first, new QoreFunction(*f, po, ns));
       insert(std::make_pair(fe->getName(), fe));
       //printd(0, "FunctionList::FunctionList() this: %p copying function %s user: %d builtin: %d\n", this, i->first, f->hasUser(), f->hasBuiltin());
    }
@@ -53,32 +53,32 @@ void FunctionList::del() {
 
 FunctionEntry* FunctionList::add(QoreFunction* func) {
    QORE_TRACE("FunctionList::add()");
-
    assert(!findNode(func->getName()));
-   
+   assert(func->getNamespace());
+
    FunctionEntry* n = new FunctionEntry(func);
    insert(std::make_pair(func->getName(), n));
    return n;
 }
 
-FunctionEntry* FunctionList::import(QoreFunction* func) {
+FunctionEntry* FunctionList::import(QoreFunction* func, qore_ns_private* ns) {
    QORE_TRACE("FunctionList::import()");
-
    assert(!findNode(func->getName()));
+   assert(func->getNamespace());
 
    // copy function entry for import and insert into map
-   FunctionEntry* fe = new FunctionEntry(new QoreFunction(*func));
+   FunctionEntry* fe = new FunctionEntry(new QoreFunction(*func, PO_INHERIT_USER_FUNC_VARIANTS, ns));
    insert(std::make_pair(fe->getName(), fe));
    return fe;
 }
 
-FunctionEntry* FunctionList::import(const char* new_name, QoreFunction* func) {
+FunctionEntry* FunctionList::import(const char* new_name, QoreFunction* func, qore_ns_private* ns) {
    QORE_TRACE("FunctionList::add()");
 
    assert(!findNode(new_name));
 
    // copy function entry for import and insert into map
-   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func));
+   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func, PO_INHERIT_USER_FUNC_VARIANTS, ns));
    insert(std::make_pair(fe->getName(), fe));
    return fe;
 }

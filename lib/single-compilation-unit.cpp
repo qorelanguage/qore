@@ -178,6 +178,7 @@
 #include "QC_GetOpt.cpp"
 #include "QC_FtpClient.cpp"
 #include "QC_AbstractIterator.cpp"
+#include "QC_AbstractBidirectionalIterator.cpp"
 #include "QC_ListIterator.cpp"
 #include "QC_ListReverseIterator.cpp"
 #include "QC_HashIterator.cpp"

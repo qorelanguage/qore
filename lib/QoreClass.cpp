@@ -3875,7 +3875,7 @@ void CopyMethodFunction::evalCopy(const QoreClass &thisclass, QoreObject* self, 
 void DestructorMethodFunction::evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const {
    assert(vlist.singular());
 
-   const AbstractQoreFunctionVariant *variant = first();
+   const AbstractQoreFunctionVariant* variant = first();
    qore_call_t ct = variant->getCallType();
 
    // setup call, save runtime position
@@ -4182,16 +4182,14 @@ void QoreVarInfo::parseInit(const char* name, bool priv) {
    }
 }
 
-// this is the "noop" function for class methods that do nothing if the
-// incorrect argument types are passed - for backwards compatibility
-AbstractQoreNode* class_noop(QoreObject* self, AbstractPrivateData* ptr, const QoreListNode* args, ExceptionSink* xsink) {
-   return 0;
+QoreParseClassHelper::QoreParseClassHelper(QoreClass* cls) : old(getParseClass()), oldns(cls ? parse_get_ns() : 0), rn(cls) {
+   setParseClass(cls);
+   if (cls)
+      parse_set_ns(qore_class_private::get(*cls)->ns);
 }
 
-AbstractQoreNode* class_string_noop(QoreObject* self, AbstractPrivateData* ptr, const QoreListNode* args, ExceptionSink* xsink) {
-   return null_string();
-}
-
-AbstractQoreNode* class_int_noop(QoreObject* self, AbstractPrivateData* ptr, const QoreListNode* args, ExceptionSink* xsink) {
-   return zero();
+QoreParseClassHelper::~QoreParseClassHelper() {
+   if (rn)
+      parse_set_ns(oldns);
+   setParseClass(old);
 }

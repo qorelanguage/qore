@@ -69,7 +69,7 @@ public:
 
     @see HashReverseIterator
  */
-qclass HashIterator [arg=QoreHashIterator* i; ns=Qore; vparent=AbstractIterator];
+qclass HashIterator [arg=QoreHashIterator* i; ns=Qore; vparent=AbstractBidirectionalIterator];
 
 //! Creates the hash iterator object
 /** @param h the hash to iterate

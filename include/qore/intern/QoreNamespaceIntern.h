@@ -129,7 +129,7 @@ public:
         constant(old.constant, this),
         pendConstant(this),
         nsl(old.nsl, po, *this),
-        func_list(old.func_list, po),
+        func_list(old.func_list, this, po),
         var_list(old.var_list, po),
         depth(old.depth),
         root(old.root),
@@ -218,7 +218,7 @@ public:
       if (checkImportFunction(fn, xsink))
          return 0;
 
-      return func_list.import(fn, u);
+      return func_list.import(fn, u, this);
    }
 
    DLLLOCAL const QoreFunction* runtimeFindFunction(const char* name) {
