@@ -1,5 +1,7 @@
 /** @page container_data_types Container Data Types
 
+    @tableofcontents
+
     %Qore supports three types of container types (see also @ref basic_data_types and @ref code_data_types):
     - @ref list "lists"
     - @ref hash "hashes" (associative arrays)
@@ -136,7 +138,7 @@ $element3 = $hash{"keys"};
 
     @note each %Qore type has a "pseudo-class" associated with it (the default is @ref Qore::zzz8valuezzz9); methods from the data type's "pseudo-class" can be run on any value of that type; see "Pseudo Class for Type" headings in @ref basic_data_types for more information.  Pseudo-methods can be overridden in classes; if a class implements a method with the same name and signature as an object pseudo-method, then the class' method will be executed instead of the pseudo-method.
 
-    @section object_overview Object Overview
+    @subsection object_overview Object Overview
     The recommend way to instantiate an object is to declare its type and give constructor arguments after the variable name in parentheses as follows:
     @code
 my class_name_or_path $var_name([argument list])
@@ -207,7 +209,7 @@ method_name([argument_list])
 
     @see @ref object_type
 
-    @section object_references Object References
+    @subsection object_references Object References
 
     In %Qore objects are treated differently from all other data types in that they are by default passed as arguments to functions and methods by passing a copy of a reference to the object (similar to Java's handling of objects). That means that passing an object to a function that modifies the object will by default modify the original object and not a copy, however reassigning a local parameter variable assigned an object passed as an argument (that is only assigned to a local variable in the calling function) will not result in deleting the object, but rather decrement its scope reference count (note that if the object were created as a part of the call and reassigning the variable would cause the object's scope reference count to reach zero, then the object would be deleted in this case).
 
@@ -269,7 +271,7 @@ sub test() {
 
     @note that when parse option @ref allow-bare-refs "%allow-bare-refs" is set, then variable references as in the above examples are made without the \c "$" character.
 
-    @section object_scope Object Scope
+    @subsection object_scope Object Scope
 
     Objects are automatically deleted when their scope-relevant reference count reaches zero (note that objects can be deleted manually at any time by using the @ref delete "delete operator"). Whenever an object is deleted, the object's class' destructor method is run on the object.
 
@@ -282,7 +284,7 @@ sub test() {
     The fact that object threads and closures can prolong object scope means, for example, that objects assigned to local variables can exist for longer than the scope of their host variable if they have one or more methods running in other threads or if closures created from within the object still exist at the time the local variable goes out of scope.\n\n
     For more information about threading, please see @ref threading
 
-    @section copying_objects Copying Objects
+    @subsection copying_objects Copying Objects
 
     To explicitly generate a copy of an object, the \c copy() constructor must be called. This is a special method that exists implicitly for every class even if it is not explicitly defined (like \c constructor() and \c destructor() methods). The implicit behavior of the \c copy() constructor is to create a new object with new members that are copies of the original members (except objects are created as copies of references to the object). Then, if any \c copy() method exists, it will be executed in the new object, passing a copy of a reference to the old object as the first argument to the \c copy() method.
 

@@ -1,5 +1,7 @@
 /** @page basic_data_types Basic Data Types
 
+    @tableofcontents
+
     The following are the basic data types in %Qore (see @ref container_data_types and @ref code_data_types):
 
     <b>Basic Data Types</b>
@@ -129,7 +131,7 @@ on more than 1 line";
     - @ref date_time_arithmetic
     - @ref time_zones
 
-    @section absolute_dates Absolute Date/Time Values
+    @subsection absolute_dates Absolute Date/Time Values
     Absolute date/time values specify a specific point in time in a certain time zone, such as January 1, 2005 10:35:00 +01:00. They are stored interally as a 64-bit signed offset from the %Qore epoch (\c 1970-01-01Z), a non-negative 4-byte integer for microseconds, and a pointer to a time zone description object that provides the UTC offset and daylight savings time information (see @ref time_zones for more information). Note that all absolute date/time values in %Qore are stored internally in UTC and are converted for display purposes to the representation of wall time in their tagged time zone.
 
     Absolute date/time values can be specified with a syntax based on ISO-8601 date formats as follows:
@@ -169,7 +171,7 @@ prompt% qore -X '18:35:26+08:00'
 
     @note The default local time zone for qore is set when the qore library is initialized; see @ref time_zones for more information.
 
-    @section relative_dates Relative Date/Time Values (Durations)
+    @subsection relative_dates Relative Date/Time Values (Durations)
     Relative dates (durations) are normally used for date addition and subtraction. See @ref date_time_arithmetic for more information.
 
     Internally, durations are stored as a set of seven discrete signed integer values, one each for years, months, days, hours, minutes, seconds, and microseconds.

@@ -1,5 +1,7 @@
 /** @page event_handling I/O Event Handling
 
+    @tableofcontents
+
     %Qore supports a simple event-handling mechanism to provide notification and details of socket and network events in higher-level classes. Classes currently supporting events are the @ref Qore::Socket "Socket", @ref Qore::HTTPClient "HTTPClient", @ref Qore::FtpClient "FtpClient", and @ref Qore::File "File" classes.
 
     See @ref event_constants for a list of all event constants; details about each event are documented in the following sections.
@@ -12,7 +14,7 @@
     |\c id|The value of this key is a unique integer that can be used to uniquely identify the object generating the event.
 
     <hr>
-    @section EVENT_PACKET_READ
+    @section EVENT_PACKET_READ EVENT_PACKET_READ
 
     @par Event
     @ref Qore::EVENT_PACKET_READ
@@ -31,7 +33,7 @@
     |\c [total_to_read]|The total number of bytes to read in the read loop (this key is only present if the total number of bytes to read is known).
 
     <hr>
-    @section EVENT_PACKET_SENT
+    @section EVENT_PACKET_SENT EVENT_PACKET_SENT
 
     @par Event
     @ref Qore::EVENT_PACKET_SENT
@@ -51,7 +53,7 @@
     |\c total_to_send|The total number of bytes to send in the send loop.
 
     <hr>
-    @section EVENT_HTTP_CONTENT_LENGTH
+    @section EVENT_HTTP_CONTENT_LENGTH EVENT_HTTP_CONTENT_LENGTH
 
     @par Event
     @ref Qore::EVENT_HTTP_CONTENT_LENGTH
@@ -68,7 +70,7 @@
     |\c len|The number of bytes given for the content length.
 
     <hr>
-    @section EVENT_HTTP_CHUNKED_START
+    @section EVENT_HTTP_CHUNKED_START EVENT_HTTP_CHUNKED_START
 
     @par Event
     @ref Qore::EVENT_HTTP_CHUNKED_START
@@ -84,7 +86,7 @@
     |\c id|A unique integer ID for the socket object.
 
     <hr>
-    @section EVENT_HTTP_CHUNKED_END
+    @section EVENT_HTTP_CHUNKED_END EVENT_HTTP_CHUNKED_END
 
     @par Event
     @ref Qore::EVENT_HTTP_CHUNKED_END
@@ -100,7 +102,7 @@
     |\c id|A unique integer ID for the socket object.
 
     <hr>
-    @section EVENT_HTTP_REDIRECT
+    @section EVENT_HTTP_REDIRECT EVENT_HTTP_REDIRECT
 
     @par Event
     @ref Qore::EVENT_HTTP_REDIRECT
@@ -118,7 +120,7 @@
     |\c [status_message]|Any status message sent by the HTTP server; if no message was sent, then this key will not be present in the event hash.
 
     <hr>
-    @section EVENT_CHANNEL_CLOSED
+    @section EVENT_CHANNEL_CLOSED EVENT_CHANNEL_CLOSED
 
     @par Event
     @ref Qore::EVENT_CHANNEL_CLOSED
@@ -134,7 +136,7 @@
     |\c id|A unique integer ID for the underlying socket object
 
     <hr>
-    @section EVENT_DELETED
+    @section EVENT_DELETED EVENT_DELETED
 
     @par Event
     @ref Qore::EVENT_DELETED
@@ -150,7 +152,7 @@
     |\c id|A unique integer ID for the underlying socket object
 
     <hr>
-    @section EVENT_FTP_SEND_MESSAGE
+    @section EVENT_FTP_SEND_MESSAGE EVENT_FTP_SEND_MESSAGE
 
     @par Event
     @ref Qore::EVENT_FTP_SEND_MESSAGE
@@ -168,7 +170,7 @@
     |\c [arg]|The argument to the command; if no argument is sent, then this key will not be present.
 
     <hr>
-    @section EVENT_FTP_MESSAGE_RECEIVED
+    @section EVENT_FTP_MESSAGE_RECEIVED EVENT_FTP_MESSAGE_RECEIVED
 
     @par Event
     @ref Qore::EVENT_FTP_MESSAGE_RECEIVED
@@ -186,7 +188,7 @@
     |\c [arg]|The argument to the command; if no argument is sent, then this key will not be present.
 
     <hr>
-    @section EVENT_HOSTNAME_LOOKUP
+    @section EVENT_HOSTNAME_LOOKUP EVENT_HOSTNAME_LOOKUP
 
     @par Event
     @ref Qore::EVENT_HOSTNAME_LOOKUP
@@ -203,7 +205,7 @@
     |\c name|A string giving the name to be looked up.
 
     <hr>
-    @section EVENT_HOSTNAME_RESOLVED
+    @section EVENT_HOSTNAME_RESOLVED EVENT_HOSTNAME_RESOLVED
 
     @par Event
     @ref Qore::EVENT_HOSTNAME_RESOLVED
@@ -222,7 +224,7 @@
     |\c address|A string giving the network address the name was resolved to.
 
     <hr>
-    @section EVENT_HTTP_SEND_MESSAGE
+    @section EVENT_HTTP_SEND_MESSAGE EVENT_HTTP_SEND_MESSAGE
 
     @par Event
     @ref Qore::EVENT_HTTP_SEND_MESSAGE
@@ -239,7 +241,7 @@
     |\c headers|a hash of all headers to send in the message.
 
     <hr>
-    @section EVENT_HTTP_MESSAGE_RECEIVED
+    @section EVENT_HTTP_MESSAGE_RECEIVED EVENT_HTTP_MESSAGE_RECEIVED
 
     @par Event
     @ref Qore::EVENT_HTTP_MESSAGE_RECEIVED
@@ -255,7 +257,7 @@
     |\c headers|A hash of all headers received in the message, plus the following headers giving additional information about the message:\n - \c "http_version": giving the HTTP protocol version in the message\n - \c "status_code": giving the HTTP status code if the message is a response\n - \c "status_message": giving any HTTP status message if the message is a response\n - \c "method": giving the HTTP method if the message is a request\n - \c "path": providing the path in request messages.
 
     <hr>
-    @section EVENT_HTTP_FOOTERS_RECEIVED
+    @section EVENT_HTTP_FOOTERS_RECEIVED EVENT_HTTP_FOOTERS_RECEIVED
 
     @par Event
     @ref Qore::EVENT_HTTP_FOOTERS_RECEIVED
@@ -271,7 +273,7 @@
     |\c headers|A hash of all footers received in the message.
 
     <hr>
-    @section EVENT_HTTP_CHUNKED_DATA_RECEIVED
+    @section EVENT_HTTP_CHUNKED_DATA_RECEIVED EVENT_HTTP_CHUNKED_DATA_RECEIVED
 
     @par Event
     @ref Qore::EVENT_HTTP_CHUNKED_DATA_RECEIVED
@@ -288,7 +290,7 @@
     |\c total_read|An integer giving the total number of bytes of chunked data read in the current message.
 
     <hr>
-    @section EVENT_HTTP_CHUNK_SIZE
+    @section EVENT_HTTP_CHUNK_SIZE EVENT_HTTP_CHUNK_SIZE
 
     @par Event
     @ref Qore::EVENT_HTTP_CHUNK_SIZE
@@ -305,7 +307,7 @@
     |\c total_read|An integer giving the total number of bytes of chunked data read in the current message.
 
     <hr>
-    @section EVENT_CONNECTING
+    @section EVENT_CONNECTING EVENT_CONNECTING
 
     @par Event
     @ref Qore::EVENT_CONNECTING
@@ -326,7 +328,7 @@
     |\c [port]|The target port for the connection; if not applicable for the address family then this hash key is not included.
 
     <hr>
-    @section EVENT_CONNECTED
+    @section EVENT_CONNECTED EVENT_CONNECTED
 
     @par Event
     @ref Qore::EVENT_CONNECTED
@@ -342,7 +344,7 @@
     |\c id|A unique integer ID for the underlying socket object
 
     <hr>
-    @section EVENT_START_SSL
+    @section EVENT_START_SSL EVENT_START_SSL
 
     @par Event
     @ref Qore::EVENT_START_SSL
@@ -358,7 +360,7 @@
     |\c id|A unique integer ID for the underlying socket object
 
     <hr>
-    @section EVENT_SSL_ESTABLISHED
+    @section EVENT_SSL_ESTABLISHED EVENT_SSL_ESTABLISHED
 
     @par Event
     @ref Qore::EVENT_SSL_ESTABLISHED
@@ -376,7 +378,7 @@
     |\c cipher_version|A string giving the version of the cipher algorithm used for the connection.
 
     <hr>
-    @section EVENT_OPEN_FILE
+    @section EVENT_OPEN_FILE EVENT_OPEN_FILE
 
     @par Event
     @ref Qore::EVENT_OPEN_FILE
@@ -396,7 +398,7 @@
     |\c encoding|The @ref character_encoding "character encoding" given used for reading from or writing to the file.
 
     <hr>
-    @section EVENT_FILE_OPENED
+    @section EVENT_FILE_OPENED EVENT_FILE_OPENED
 
     @par Event
     @ref Qore::EVENT_FILE_OPENED
@@ -416,7 +418,7 @@
     |\c encoding|The @ref character_encoding "character encoding" given used for reading from or writing to the file.
 
     <hr>
-    @section EVENT_DATA_READ
+    @section EVENT_DATA_READ EVENT_DATA_READ
 
     @par Event
     @ref Qore::EVENT_DATA_READ
@@ -435,7 +437,7 @@
     |\c total_to_read|The total number of bytes to read in the read loop.
 
     <hr>
-    @section EVENT_DATA_WRITTEN
+    @section EVENT_DATA_WRITTEN EVENT_DATA_WRITTEN
 
     @par Event
     @ref Qore::EVENT_DATA_WRITTEN

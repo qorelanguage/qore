@@ -1,5 +1,7 @@
 /** @page warnings Warnings
 
+    @tableofcontents
+
     Warnings give the programmer information about possible errors in %Qore code.
 
     Warnings can be enabled using the \c -W command-line option (see @ref command_line_processing for more information) or by using the @ref enable-all-warnings "%enable-all-warnings" or @ref enable-warning "%enable-warning" parse directives.
@@ -42,63 +44,63 @@
     @since %Qore 0.8.0
 
     <hr>
-    @section duplicate-block-vars
+    @section duplicate-block-vars duplicate-block-vars
     Raised when a program declares a local variable more than once in the same block; note that this is not a warning but rather an error when @ref assume-local "%assume-local" or @ref new-style "%new-style" parse options are set
     @since %Qore 0.8.2
 
     <hr>
-    @section duplicate-global-vars
+    @section duplicate-global-vars duplicate-global-vars
     Raised when a program declares a global variable more than once
     @since %Qore 0.5.2
 
     <hr>
-    @section duplicate-hash-key
+    @section duplicate-hash-key duplicate-hash-key
     Raised when an immediate hash is declared and at least one of the keys is repeated
     @since %Qore 0.8.0
 
     <hr>
-    @section duplicate-local-vars
+    @section duplicate-local-vars duplicate-local-vars
     This warning is raised when a local variable with the same name is declared in a subblock (ie another local variable with the same name is reachable in the same lexical scope); note that this warning can raise false positives if the programmer is used to redeclaring the same variable names in subblocks
     @see @ref duplicate-block-vars
     @since %Qore 0.5.2
 
     <hr>
-    @section excess-args
+    @section excess-args excess-args
     Raised when a function or method call is made with more arguments than are used by the function or method
     @since %Qore 0.8.0
 
     <hr>
-    @section invalid-operation
+    @section invalid-operation invalid-operation
     Raised when the parser determins that the types of an operation are such that the operation is guaranteed to produce no value; this warning can only be raised when type information is available at parse time
     @since %Qore 0.8.0
 
     <hr>
-    @section non-existent-method-call
+    @section non-existent-method-call non-existent-method-call
     Warning is raised when the given method cannot be found in the class at parse time; this is a warning because the object could be a subclass that has the given method implemented, in which case the call will succeed at run time. Use the @ref cast "cast<>() operator" to avoid this warning
     @since %Qore 0.8.0
 
     <hr>
-    @section return-value-ignored
+    @section return-value-ignored return-value-ignored
     Raised when a function or method call is made with no side effects and the return value is ignored
     @since %Qore 0.8.0
 
     <hr>
-    @section undeclared-var
+    @section undeclared-var undeclared-var
     This warning is raised when a program uses a variable that has not been declared with @ref my "my" or @ref our "our"
     @since %Qore 0.5.2
 
     <hr>
-    @section unknown-warning
+    @section unknown-warning unknown-warning
     This warning is raised when a program tries to enable or disable an unknown warning
     @since %Qore 0.5.2
 
     <hr>
-    @section unreachable-code
+    @section unreachable-code unreachable-code
     Raised when code is defined that can never be executed (for example, code following a @ref return "return" or @ref thread_exit "thread_exit statement")
     @since %Qore 0.5.2
 
     <hr>
-    @section warning-mask-unchanged
+    @section warning-mask-unchanged warning-mask-unchanged
     This warning is raised when a program tries to change the warning mask with parse options, but the warnings are locked
     @since %Qore 0.5.2
 */

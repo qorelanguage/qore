@@ -511,7 +511,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	}
 
 	#! sets or replaces the Message body
-	/** @param str the Message body to set
+	/** @param body the Message body to set
 	    @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
 
 	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
@@ -589,8 +589,8 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    $.headers = $.parseHeader($hdr, False);
 	}
 
-	#! sets/replaces the list of Message headers
-	/** @param hdr a list of Message header strings to set (replaces all message headers with the given list of strings)
+	#! sets/replaces the list of Message headers from a list of header strings
+	/** @param hdrs a list of Message header strings to set (replaces all message headers with the given list of strings)
 	    
 	    @throw HEADER-ERROR no ':' separator character found in header string
 	    
@@ -601,8 +601,8 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    map $.headers += $.parseHeader($1. False), $hdrs;
 	}
 
-	#! sets/replaces the list of Message headers
-	/** @param hdr a hash of Message headers to set (replaces all message headers with the given hash)
+	#! sets/replaces the list of Message headers from a hash of header info
+	/** @param hdrs a hash of Message headers to set (replaces all message headers with the given hash)
 
 	    @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
          */
@@ -619,8 +619,8 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    $.headers += $.parseHeader($hdr, False);
 	}
 
-	#! adds a header to the Message
-	/** @param hdr a header to add to the Message
+	#! adds a list of headers to the Message
+	/** @param hdrs a list of headers to add to the Message
 	    
 	    @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
 	 */
@@ -628,8 +628,8 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    $.headers += map $.parseHeader($1, False), $hdrs;
 	}
 
-	#! adds a header to the Message
-	/** @param hdr a header to add to the Message
+	#! adds a hash of headers to the Message
+	/** @param hdrs a hash of headers to add to the Message
 	    
 	    @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
 	 */
@@ -944,10 +944,10 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    return $str;
 	}
 
-	#! returns the first \r\n-terminated line from the argument, updates the byte position argument
+	#! returns the first \c "\r\n" terminated line from the argument, updates the byte position argument
 	/** @param msg the text to process; the first line found will be removed from this argument as well
 	    @param pos the byte position to update
-	    @return the first \r\n-terminated line from the argument
+	    @return the first \c "\r\n" terminated line from the argument
 
 	    @throw MESSAGE-PARSE-ERROR invalid message data
 	 */

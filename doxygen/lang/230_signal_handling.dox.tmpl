@@ -1,5 +1,7 @@
 /** @page signal_handling Signal Handling
 
+    @tableofcontents
+
     %Qore implements safe signal handling on UNIX platforms (not available on native Microsoft Windows ports). Signals do not interrupt %Qore threads, rather %Qore uses a special signal handling thread with TID 0, dedicated to handling signals. The signal handling thread uses very few resources; it stays blocked (using no processor time and very little memory) until a signal with a %Qore signal handler is raised; it then executes the handler and resumes waiting for signals.
 
     Because %Qore's signal handling thread is not a normal thread, it does not affect num_threads() and does not appear in the list returned by thread_list().

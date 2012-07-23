@@ -549,7 +549,7 @@ public namespace Mime {
     }
 
     #! decodes a header string; if any part of the string is encoded with "B" ("BASE64") or "Q" ("quoted-printable") encodings according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>, then those parts are decoded and the decoded string is returned
-    /** @param data the header value string to decode
+    /** @param hdr the header value string to decode
         @return the decoded value of the header
      */
     public string sub mime_decode_header(string $hdr) {
