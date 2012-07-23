@@ -130,20 +130,17 @@ public:
    }
 };
 
-// pushes a marker on the local variable parse stack so that searches can skip to global thread-local variables when the search hits the marker
-class VariableBlockHelper {
-public:
-   DLLLOCAL VariableBlockHelper() {
-      new VNode(0);
-      //printd(5, "VariableBlockHelper::VariableBlockHelper() this=%p pushed %p\n", this, 0);
-   }
-   DLLLOCAL ~VariableBlockHelper() {
-      std::auto_ptr<VNode> vnode(getVStack()); 
-      assert(vnode.get()); 
-      updateVStack(vnode->next);
-      //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
-   }
-};
+VariableBlockHelper::VariableBlockHelper() {
+   new VNode(0);
+   //printd(5, "VariableBlockHelper::VariableBlockHelper() this=%p pushed %p\n", this, 0);
+}
+
+VariableBlockHelper::~VariableBlockHelper() {
+   std::auto_ptr<VNode> vnode(getVStack());
+   assert(vnode.get());
+   updateVStack(vnode->next);
+   //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
+}
 
 AbstractQoreNode* StatementBlock::exec(ExceptionSink* xsink) {
    AbstractQoreNode* return_value = 0;

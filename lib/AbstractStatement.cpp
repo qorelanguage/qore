@@ -29,7 +29,7 @@
 AbstractStatement::AbstractStatement(int start_line, int end_line) : LineNumber(start_line), EndLineNumber(end_line) {
    QoreProgram *pgm = getProgram();
    if (pgm)
-      pwo = qore_program_private::getParseWarnOptions(getProgram());
+      pwo = qore_program_private::getParseWarnOptions(pgm);
    FileName = get_parse_file();
 }
 

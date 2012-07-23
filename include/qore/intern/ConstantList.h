@@ -68,6 +68,7 @@ class ConstantEntry {
 
 public:
    QoreProgramLocation loc;
+   ParseWarnOptions pwo;
    std::string name;
    const QoreTypeInfo *typeInfo;
    AbstractQoreNode *node;
@@ -75,8 +76,8 @@ public:
       init,       // already initialized
       pub;        // public constant (modules only)
 
-   DLLLOCAL ConstantEntry() : typeInfo(0), node(0), in_init(false), init(false), pub(false) {}
-   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false, bool n_pub = false) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init), pub(n_pub) {}
+   DLLLOCAL ConstantEntry();
+   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_init = false, bool n_pub = false) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init), pub(n_pub) {}
    DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
    DLLLOCAL ~ConstantEntry() {

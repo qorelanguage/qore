@@ -62,6 +62,12 @@ static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
    }
 }
 
+ConstantEntry::ConstantEntry() : typeInfo(0), node(0), in_init(false), init(false), pub(false) {
+   QoreProgram* pgm = getProgram();
+   if (pgm)
+      pwo = qore_program_private::getParseWarnOptions(pgm);
+}
+
 ConstantEntry::ConstantEntry(const ConstantEntry& old) : loc(old.loc), name(old.name), typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : 0), 
 							 in_init(false), init(true), pub(false) {
    assert(!old.in_init);
@@ -106,6 +112,12 @@ int ConstantEntry::parseInit(ClassNs ptr) {
       // push parse class context
       qore_class_private* p = ptr.getClass();
       QoreParseClassHelper qpch(p ? p->cls : 0);
+
+      // ensure that there is no accessible local variable state
+      VariableBlockHelper vbh;
+
+      // set parse options and warning mask for this statement
+      ParseWarnHelper pwh(pwo);
 
       //printd(5, "ConstantEntry::parseInit() this: %p '%s' about to init node: %p '%s' class: %p '%s'\n", this, name.c_str(), node, get_type_name(node), p, p ? p->name.c_str() : "n/a");
       node = node->parseInit((LocalVar *)0, PF_CONST_EXPRESSION, lvids, typeInfo);

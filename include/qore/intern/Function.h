@@ -1041,8 +1041,6 @@ public:
       return reinterpret_cast<const UserClosureVariant*>(pending_first())->getUserSignature()->hasReturnTypeInfo();
    }
 
-   DLLLOCAL void parseInitClosure(const QoreTypeInfo* classTypeInfo);
-   
    DLLLOCAL AbstractQoreNode* evalClosure(const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
 
    DLLLOCAL void setClassType(const QoreTypeInfo* cti) {

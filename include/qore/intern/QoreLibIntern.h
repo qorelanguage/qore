@@ -840,6 +840,13 @@ public:
    }
 };
 
+// pushes a marker on the local variable parse stack so that searches can skip to global thread-local variables when the search hits the marker
+class VariableBlockHelper {
+public:
+   DLLLOCAL VariableBlockHelper();
+   DLLLOCAL ~VariableBlockHelper();
+};
+
 DLLLOCAL extern QoreString YamlNullString;
 
 DLLLOCAL AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString &arg, bool &ok);
