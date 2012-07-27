@@ -1,0 +1,65 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractQuantifiedIterator.qpp AbstractQuantifiedIterator class (interface) definition */
+/*
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+
+//! This class defines an abstract interface for iterators where the size of the object being iterated is known in advance
+/**
+ */
+qclass AbstractQuantifiedIterator [arg=AbstractQuantifiedIterator* i; ns=Qore; vparent=AbstractIterator];
+
+//! returns @ref True if the object to iterate is empty; @ref False if not
+/** @return @ref True if the object to iterate is empty; @ref False if not
+
+    @par Example:
+    @code
+if ($i.empty())
+    printf("object is empty\n");
+    @endcode
+ */
+abstract bool AbstractQuantifiedIterator::empty();
+
+//! returns @ref True if on the first element
+/** @return @ref True if on the first element
+
+    @par Example:
+    @code
+while ($i.next()) {
+    if ($i.first())
+        printf("START:\n");
+}
+    @endcode
+ */
+abstract bool AbstractQuantifiedIterator::first();
+
+//! returns @ref True if on the last element
+/** @return @ref True if on the last element
+
+    @par Example:
+    @code
+while ($i.next()) {
+    if ($i.last())
+        printf("END.\n");
+}
+    @endcode
+ */
+abstract bool AbstractQuantifiedIterator::last();

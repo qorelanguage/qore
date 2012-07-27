@@ -87,7 +87,9 @@
 
 DLLLOCAL QoreClass* initAbstractDatasourceClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initAbstractQuantifiedIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractBidirectionalIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initAbstractQuantifiedBidirectionalIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListReverseIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initHashIteratorClass(QoreNamespace& ns);
@@ -600,7 +602,9 @@ void StaticSystemNamespace::init() {
    qns.addSystemClass(initHTTPClientClass(qns));
 
    qns.addSystemClass(initAbstractIteratorClass(qns));
+   qns.addSystemClass(initAbstractQuantifiedIteratorClass(qns));
    qns.addSystemClass(initAbstractBidirectionalIteratorClass(qns));
+   qns.addSystemClass(initAbstractQuantifiedBidirectionalIteratorClass(qns));
    qns.addSystemClass(initListIteratorClass(qns));
    qns.addSystemClass(initListReverseIteratorClass(qns));
    qns.addSystemClass(initHashIteratorClass(qns));

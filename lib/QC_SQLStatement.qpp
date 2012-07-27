@@ -77,7 +77,7 @@
 
     @note This class is not available with the @ref PO_NO_DATABASE parse option
  */
-qclass SQLStatement [dom=DATABASE; arg=QoreSQLStatement* stmt; ns=Qore::SQL];
+qclass SQLStatement [dom=DATABASE; arg=QoreSQLStatement* stmt; ns=Qore::SQL; vparent=AbstractIterator];
 
 //! Creates the SQLStatement object based on the given Datasource object that provides the connection to the database
 /** This method will throw an exception only if the object passed as an argument uses a driver that does not support the prepared statement interface added in %Qore version 0.8.1.
@@ -576,7 +576,7 @@ bool SQLStatement::next() {
 }
 
 //! Retrieves the current row as a hash where the keys are the column names and the values are the column values
-/** Use with SQLStatement::next() to iterate through the results of a select statement onw row at a time
+/** Use with SQLStatement::next() to iterate through the results of a select statement one row at a time
 
     @return the current row as a hash where the keys are the column names and the values are the column values
 
@@ -592,6 +592,31 @@ while ($stmt.next()) {
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
  */
 *hash SQLStatement::fetchRow() {
+   return stmt->fetchRow(xsink);
+}
+
+//! Retrieves the current row as a hash where the keys are the column names and the values are the column values
+/** Use with SQLStatement::next() to iterate through the results of a select statement one row at a time
+
+    @return the current row as a hash where the keys are the column names and the values are the column values
+
+    @par Example:
+    @code
+while ($stmt.next()) {
+    my hash $h = $stmt.getValue();
+}
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+
+    @note
+    - Equivalent to SQLStatement::fetchRow()
+    - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
+    - This method has to have the same signature as AbstractIterator::getValue() therefore the return type is @ref any_type "any", however the method's return value are really restricted to @ref hash_or_nothing_type "*hash"
+
+    @since %Qore 0.8.5
+ */
+any SQLStatement::getValue() {
    return stmt->fetchRow(xsink);
 }
 

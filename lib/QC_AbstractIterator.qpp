@@ -42,43 +42,6 @@ while ($i.next()) {
  */
 abstract bool AbstractIterator::next();
 
-//! returns @ref True if the object to iterate is empty; @ref False if not
-/** @return @ref True if the object to iterate is empty; @ref False if not
-
-    @par Example:
-    @code
-if ($i.empty())
-    printf("object is empty\n");
-    @endcode
- */
-abstract bool AbstractIterator::empty();
-
-//! returns @ref True if on the first element
-/** @return @ref True if on the first element
-
-    @par Example:
-    @code
-while ($i.next()) {
-    if ($i.first())
-        printf("START:\n");
-}
-    @endcode
- */
-abstract bool AbstractIterator::first();
-
-//! returns @ref True if on the last element
-/** @return @ref True if on the last element
-
-    @par Example:
-    @code
-while ($i.next()) {
-    if ($i.last())
-        printf("END.\n");
-}
-    @endcode
- */
-abstract bool AbstractIterator::last();
-
 //! returns the current value
 /** @return the current value
 

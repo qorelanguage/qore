@@ -55,13 +55,14 @@ public:
 /** Call ListIterator::next() to iterate through the list; do not use the iterator if ListIterator::next() returns @ref False.
     A list can be iterated in reverse order by calling ListIterator::prev() instead of ListIterator::next()
 
-    @note In general, the ListIterator class is not safe to access from multiple threads; it was created without locking for
-    fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
-    such methods will cause an \c ITERATOR-THREAD-ERROR to be thrown.
+    @note
+    - In general, the ListIterator class is not designed to be accessed from multiple threads; it was created without locking for
+      fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
+      such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.
 
     @see ListReverseIterator
  */
-qclass ListIterator [arg=QoreListIterator* i; ns=Qore; vparent=AbstractBidirectionalIterator];
+qclass ListIterator [arg=QoreListIterator* i; ns=Qore; vparent=AbstractQuantifiedBidirectionalIterator];
 
 //! Creates the list iterator object
 /** @param l the list to iterate

@@ -393,6 +393,10 @@ static int add_element(const char* fileName, unsigned lineNumber, const std::str
       return missing_value_error(fileName, lineNumber, propstr);
 
    std::string key(propstr, start, eq - start);
+   if (props.find(key) != props.end()) {
+      error("%s:%d property '%s' set twice in property string '%s'\n", fileName, lineNumber, key.c_str(), propstr.c_str());
+      return -1;
+   }
    std::string value(propstr, eq + 1, end - eq -1);
    props[key] = value;
    return 0;
@@ -2449,8 +2453,10 @@ protected:
       arg,               // argument for non-static methods
       defbase,           // default builtin base class
       scons,             // system constructor
-      ns,                // namespace name
-      virt_parent;       // builtin virtual base/parent class
+      ns;                // namespace name
+
+   strlist_t vparents;   // builtin virtual base/parent classes
+
    paramlist_t public_members;  // public members
 
    strlist_t dom;        // functional domains
@@ -2478,7 +2484,7 @@ public:
 
       // process properties
       for (strmap_t::const_iterator i = props.begin(), e = props.end(); i != e; ++i) {
-         //log(LL_DEBUG, "+ prop: '%s': '%s'\n", i->first.c_str(), i->second.c_str());
+         log(LL_DEBUG, "+ prop: '%s': '%s'\n", i->first.c_str(), i->second.c_str());
 
          // parse domain
          if (i->first == "dom") {
@@ -2540,13 +2546,19 @@ public:
          }
 
          if (i->first == "vparent") {
-            virt_parent = i->second;
-            log(LL_DEBUG, "+ virtual base class: %s\n", virt_parent.c_str());
-            if (is_pseudo) {
-               size_t ps = virt_parent.size();
-               if (!ps || virt_parent[0] != '<' || virt_parent[ps - 1] != '>') {
-                  error("virtual parent '%s' is invalid for a pseudo-class (must be '<name>')\n", virt_parent.c_str());
-                  valid = false;
+            get_string_list(vparents, i->second);
+            for (unsigned i = 0; i < vparents.size(); ++i) {
+               log(LL_DEBUG, "+ virtual base class: %s\n", vparents[i].c_str());
+               if (is_pseudo) {
+                  size_t ps = vparents[i].size();
+                  if (!ps || vparents[i][0] != '<' || vparents[i][ps - 1] != '>') {
+                     error("virtual parent '%s' is invalid for a pseudo-class (must be '<name>')\n", vparents[i].c_str());
+                     valid = false;
+                  }
+                  else if (vparents.size() > 1) {
+                     error("pseudo-classes can only have 1 parent class\n");
+                     valid = false;
+                  }
                }
             }
             continue;
@@ -2662,12 +2674,12 @@ public:
       if (!defbase.empty())
          fprintf(fp, "\n   // set default builtin base class\n   assert(%s);\n  QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
 
-      if (!virt_parent.empty()) {
+      for (unsigned i = 0; i < vparents.size(); ++i) {
          std::string vp;
          if (is_pseudo)
-            vp.assign(virt_parent, 1, virt_parent.size() - 2);
+            vp.assign(vparents[i], 1, vparents[i].size() - 2);
          else
-            get_type_name(vp, virt_parent);
+            get_type_name(vp, vparents[i]);
          toupper(vp);
          if (is_pseudo)
             vp.insert(0, "PSEUDO");
@@ -2734,13 +2746,21 @@ public:
       }
       else
          fprintf(fp, "class %s", name.c_str());
-      if (!virt_parent.empty()) {
-         if (!is_pseudo)
-            fprintf(fp, " : public %s", virt_parent.c_str());
-         else {
-            std::string vp;
-            vp.assign(virt_parent, 1, virt_parent.size() - 2);
-            fprintf(fp, " : public zzz8%szzz9", vp.c_str());
+
+      if (!vparents.empty()) {
+         fprintf(fp, " : ");
+         for (unsigned i = 0; i < vparents.size(); ++i) {
+            if (!is_pseudo) {
+               fputs("public ", fp);
+               fputs(vparents[i].c_str(), fp);
+               if (i != (vparents.size() - 1))
+                  fputs(", ", fp);
+            }
+            else {
+               std::string vp;
+               vp.assign(vparents[i], 1, vparents[i].size() - 2);
+               fprintf(fp, "public zzz8%szzz9", vp.c_str());
+            }
          }
       }
 

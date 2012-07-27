@@ -67,9 +67,14 @@ public:
 /** Call HashIterator::next() to iterate through the hash; do not use the iterator if HashIterator::next() returns @ref False.
     A hash can be iterated in reverse order by calling HashIterator::prev() instead of HashIterator::next()
 
+    @note
+    - In general, the HashIterator class is not designed to be accessed from multiple threads; it was created without locking for
+      fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
+      such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.
+
     @see HashReverseIterator
  */
-qclass HashIterator [arg=QoreHashIterator* i; ns=Qore; vparent=AbstractBidirectionalIterator];
+qclass HashIterator [arg=QoreHashIterator* i; ns=Qore; vparent=AbstractQuantifiedBidirectionalIterator];
 
 //! Creates the hash iterator object
 /** @param h the hash to iterate

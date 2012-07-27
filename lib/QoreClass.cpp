@@ -69,8 +69,10 @@ void SignatureHash::update(const QoreString& str) {
 void AbstractMethod::parseMergeCommitted(AbstractMethod& m) {
    for (vmap_t::iterator i = m.vlist.begin(), e = m.vlist.end(); i != e; ++i) {
       const char* sig = i->second->getAbstractSignature();
+      // see if this method already exists in this class
+      if (vlist.find(sig) != vlist.end())
+         return;
       // add to vlist
-      assert(vlist.find(sig) == vlist.end());
       vlist.insert(vmap_t::value_type(sig, i->second));
       // remove from pending_vlist if present because we've already added it to the committed list
       vmap_t::iterator vi = pending_vlist.find(sig);

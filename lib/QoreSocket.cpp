@@ -238,7 +238,8 @@ static void qore_socket_error(ExceptionSink *xsink, const char *err, const char 
 
 int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink) {
    assert(!ssl);
-   ctx  = SSL_CTX_new(meth);
+   assert(!ctx);
+   ctx = SSL_CTX_new(meth);
    if (!ctx) {
       sslError(xsink, mname, "SSL_CTX_new");
       return -1;

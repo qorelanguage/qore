@@ -45,7 +45,13 @@ QC_File.cpp: QC_File.qpp qpp
 QC_AbstractIterator.cpp: QC_AbstractIterator.qpp qpp
 	$(QPP) $<
 
+QC_AbstractQuantifiedIterator.cpp: QC_AbstractQuantifiedIterator.qpp qpp
+	$(QPP) $<
+
 QC_AbstractBidirectionalIterator.cpp: QC_AbstractBidirectionalIterator.qpp qpp
+	$(QPP) $<
+
+QC_AbstractQuantifiedBidirectionalIterator.cpp: QC_AbstractQuantifiedBidirectionalIterator.qpp qpp
 	$(QPP) $<
 
 QC_ListIterator.cpp: QC_ListIterator.qpp qpp
@@ -236,8 +242,9 @@ QORE_GENERATED_SOURCES = \
 	QC_Queue.cpp QC_Socket.cpp QC_File.cpp QC_AbstractSmartLock.cpp QC_Mutex.cpp QC_AutoLock.cpp \
 	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp QC_AutoReadLock.cpp QC_AutoWriteLock.cpp \
 	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp QC_HTTPClient.cpp QC_FtpClient.cpp \
-	QC_AbstractIterator.cpp QC_AbstractBidirectionalIterator.cpp QC_ListIterator.cpp \
-	QC_ListReverseIterator.cpp \
+	QC_AbstractIterator.cpp QC_AbstractQuantifiedIterator.cpp \
+	QC_AbstractBidirectionalIterator.cpp QC_AbstractQuantifiedBidirectionalIterator.cpp \
+	QC_ListIterator.cpp QC_ListReverseIterator.cpp \
 	QC_HashIterator.cpp QC_HashReverseIterator.cpp \
 	QC_AbstractDatasource.cpp \
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \

@@ -56,9 +56,9 @@ public:
     A list can be iterated in reverse order by calling ListReverseIterator::prev() instead of ListReverseIterator::next()
 
     @note
-    - In general, the ListIterator class is not safe to access from multiple threads; it was created without locking for
+    - In general, the ListReverseIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
-      such methods will cause an \c ITERATOR-THREAD-ERROR to be thrown.
+      such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.
     - ListReverseIterator is functionally equivalent to ListIterator, but the effect of ListReverseIterator::next() and ListReverseIterator::prev()
       are the opposite of ListIterator::next() and ListIterator::prev(); that is ListReverseIterator::next() will
       iterate through the list in reverse order, while ListReverseIterator::prev() iterates in forward order.
@@ -67,7 +67,7 @@ public:
 
     @see ListIterator
  */
-qclass ListReverseIterator [arg=QoreListReverseIterator* i; ns=Qore; vparent=AbstractBidirectionalIterator];
+qclass ListReverseIterator [arg=QoreListReverseIterator* i; ns=Qore; vparent=AbstractQuantifiedBidirectionalIterator];
 
 //! Creates the list iterator object
 /** @param l the list to iterate
