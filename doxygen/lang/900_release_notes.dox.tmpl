@@ -43,6 +43,7 @@ class MyAbstractInterface {
     All restrictions on references have been removed from Qore; references to local variables may now be passed to the @ref background "background operator" and passed as arguments to @ref closures "closures".\n\n
     Basically when a reference is taken of a local variable that could result in the local variable being accessed in a multi-threaded context, the variable is treated as a closure-bound local variable in the sense that it's lifetime is reference-counted, and all accesses are wrapped in a dedicated mutual-exclusion lock to ensure thread safety.
 
+    <hr>
     @section qore_084 Qore 0.8.4
 
     <b>Release Summary</b>

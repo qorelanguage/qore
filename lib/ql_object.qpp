@@ -120,4 +120,23 @@ any callObjectMethodArgs(object obj, string method, *softlist varg) {
  */
 nothing callObjectMethodArgs() [flags=RUNTIME_NOOP] {
 }
+
+//! calls a pseudo-method on the given value
+/** @param val the value to call the pseudo-method on
+    @param meth the string method name of the pseudo-method to call
+    @param ... any other arguments to the method
+
+    @return the return value of the pseudo-method
+
+    @see Qore::zzz8valuezzz9 for the class hierarchy of pseudo-classes
+
+    @note this function can be used for security to ensure that a given pseudo-method of the Qore::zzz8objectzzz9 class is called,
+    as by default if a method of the same name is implemented by the object's class, the class method will be called instead.
+ */
+any call_pseudo(any val, string meth, ...) {
+   ReferenceHolder<QoreListNode> nargs(xsink);
+   if (args->size() > 2)
+      nargs = args->copyListFrom(2);
+   return pseudo_classes_eval(val, meth->getBuffer(), *nargs, xsink);
+}
 //@}
