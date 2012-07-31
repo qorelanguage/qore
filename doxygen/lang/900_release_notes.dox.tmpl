@@ -7,9 +7,9 @@
     <b>Release Summary</b>
     Major new features and a few bug fixes
 
-    @subsection qore_084_new_features New Features in Qore
+    @subsection qore_085_new_features New Features in Qore
     @par Abstract Methods and Interfaces
-    Qore now supports the <b>abstract</b> keyword when declaring methods; an <b>abstract</b> method has no implementation and must be
+    %Qore now supports the <b>abstract</b> keyword when declaring methods; an <b>abstract</b> method has no implementation and must be
     implemented in child classes with the same signature for the child class to be able to be instantiated.\n\n
     Classes with <b>abstract</b> methods define interfaces; a concrete implementation of the interface is a class that inherits the class with <b>abstract</b> methods and implements all the <b>abstract</b> methods.\n\n
     Abstract methods are defined with the following syntax:
@@ -19,7 +19,7 @@ class MyAbstractInterface {
     abstract bool checkSomething(string $arg);
 }
     @endcode
-    The following abstract classes now exist in Qore:
+    The following abstract classes now exist in %Qore:
     - @ref Qore::SQL::AbstractDatasource "AbstractDatasource"
     - @ref Qore::AbstractIterator "AbstractIterator"
     - @ref Qore::AbstractQuantifiedIterator "AbstractQuantifiedIterator"
@@ -27,12 +27,12 @@ class MyAbstractInterface {
     - @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator"
     - @ref Qore::Thread::AbstractSmartLock "AbstractSmartLock" (which was already present in Qore but now implements abstract methods)
     .
-    The following new iterator classes have been added to Qore:
+    The following new iterator classes have been added to %Qore:
     - @ref Qore::HashIterator "HashIterator"
     - @ref Qore::HashReverseIterator "HashReverseIterator"
     - @ref Qore::ListIterator "ListIterator"
     - @ref Qore::ListReverseIterator "ListReverseIterator"
-    - @ref Qore::SQL::SQLStatement "SQLStatement" (which was already present in Qore but now implements the @ref Qore::AbstractIterator "AbstractIterator" interface)
+    - @ref Qore::SQL::SQLStatement "SQLStatement" (which was already present in %Qore but now implements the @ref Qore::AbstractIterator "AbstractIterator" interface)
     .
     Classes inheriting @ref Qore::AbstractIterator "AbstractIterator" have special support so that objects can be easily iterated in the following list operators:
     - @ref map
@@ -40,8 +40,57 @@ class MyAbstractInterface {
     - @ref select
     .
     @par Universal References
-    All restrictions on references have been removed from Qore; references to local variables may now be passed to the @ref background "background operator" and passed as arguments to @ref closures "closures".\n\n
+    All restrictions on references have been removed from %Qore; references to local variables may now be passed to the @ref background "background operator" and passed as arguments to @ref closures "closures".\n\n
     Basically when a reference is taken of a local variable that could result in the local variable being accessed in a multi-threaded context, the variable is treated as a closure-bound local variable in the sense that it's lifetime is reference-counted, and all accesses are wrapped in a dedicated mutual-exclusion lock to ensure thread safety.
+
+    @par Pop3Client Module
+    A <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module has been added providing an API for communicating with <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> servers and retrieving email messages.\n\n
+    The module uses functionality provided by the new <a href="../../modules/MailMessage/html/index.html">MailMessage</a> module to represent email messages (and attachment data) downloaded from the server.
+
+    @par MailMessage Module
+    The <a href="../../modules/MailMessage/html/index.html">MailMessage</a> module provides common functionality to the <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> and <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> modules to represent email messages for receiving and sending, respectively.  This module was created mostly from functionality removed from the <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> and enhanced to provide support for reading email messages in the new <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module.
+
+    @par SmtpClient Module Changes
+    The Message and Attachment classes were removed from the <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module to the <a href="../../modules/MailMessage/html/index.html">MailMessage</a> module.  Backwards-compatible definitions for the Message and Attachment classes are provided in the <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module to rexport the removed functionality for backwards compatibility.
+
+    @par Other Minor Improvements and Changes
+    - qpp updated to support abstract methods and multiple inheritance (+ other minor qpp enhancements)
+    - improved the \c QOREADDRINFO-GETINFO-ERROR exception description by adding information about the arguments passed
+    - added a string argument to Qore::chr(int, string) to accept an output encoding
+    - added a Qore::int(string, int) variant to parse a string as a number and give the base
+    - added a new parameter to parse_url() and parseURL() to allow for any [] in the hostname to be included in the "host" output key for indicating that the ipv6 protocol be used
+    - added the following pseudo-methods:
+      - Qore::zzz8binaryzzz9::split()
+      - Qore::zzz8binaryzzz9::toMD5()
+      - Qore::zzz8binaryzzz9::toSHA1()
+      - Qore::zzz8binaryzzz9::toSHA224()
+      - Qore::zzz8binaryzzz9::toSHA256()
+      - Qore::zzz8binaryzzz9::toSHA384()
+      - Qore::zzz8binaryzzz9::toSHA512()
+      - Qore::zzz8listzzz9::first()
+      - Qore::zzz8listzzz9::join()
+      - Qore::zzz8listzzz9::last()
+      - Qore::zzz8stringzzz9::regex()
+      - Qore::zzz8stringzzz9::regexExtract()
+      - Qore::zzz8stringzzz9::split()
+      - Qore::zzz8stringzzz9::substr()
+      - Qore::zzz8stringzzz9::toMD5()
+      - Qore::zzz8stringzzz9::toSHA1()
+      - Qore::zzz8stringzzz9::toSHA224()
+      - Qore::zzz8stringzzz9::toSHA256()
+      - Qore::zzz8stringzzz9::toSHA384()
+      - Qore::zzz8stringzzz9::toSHA512()
+    - added the <a href="http://code.google.com/p/xxhash/">xxhash FAST algorithm</a> with unordered_map to %Qore resuling in nearly 2x haster hash lookups
+    - added the Qore::File::isOpen() method
+
+    @subsection qore_085_bug_fixes Bug Fixes in Qore
+    - fixed format_date() output for \c "MON" and \c "DAY", etc
+    - fixed a memory leak in the parser related to parse exception handling with namespace members
+    - fixed an invalid assert() in module handling when an error occurs loading the module (only affected debug builds)
+    - internal fix: tagged digest and cryptoi functions properly as RET_VALUE_ONLY
+    - do not kill TID 1 (the initial / main thread) when calling exit() in background threads as a crash can result with some 3rd party libraries that spawn their own threads on some platforms (observed on Darwin & Solaris 10 at least)
+    - fixed a memory bug in the new builtin function API used by modules built with qpp
+    - fixed a build bug that caused qore to be built twice
 
     <hr>
     @section qore_084 Qore 0.8.4
@@ -52,7 +101,7 @@ class MyAbstractInterface {
     @subsection qore_084_compatibility Changes That Can Affect Backwards-Compatibility
 
     @par Namespace Changes
-    Qore's internal namespace handling was nearly completely rewritten for %Qore 0.8.4.  This is because the old code was inefficient and applied namespaces inconsistently to @ref Qore::Program "Program" objects.\n\n
+    %Qore's internal namespace handling was nearly completely rewritten for %Qore 0.8.4.  This is because the old code was inefficient and applied namespaces inconsistently to @ref Qore::Program "Program" objects.\n\n
     The main change that can cause backwards-compatibility issues is that now functions are full namespace members.  If no namespace is explicitly given in a function definition, the function is a member of the unnamed root namespace.\n\n
     Also the distinction between builtin and user functions was removed.  Internally, there is only one kind of function object, which can contain both builtin and user function variants (overloaded variants of the same function with the same name but different arguments).\n\n
     All %Qore builtin functions were moved to the Qore namespace.\n\n
@@ -63,6 +112,7 @@ class MyAbstractInterface {
     - global variables are also now full namespace members, however this does not cause problems with backwards-compatibility
 
     @subsection qore_084_new_features New Features in Qore
+
     @par User Modules
     It is now possible to develop user modules in %Qore; several user modules are now included in the %Qore distribution, forming %Qore-language components of %Qore's runtime library.\n\n
     User modules delivered with %Qore 0.8.4:

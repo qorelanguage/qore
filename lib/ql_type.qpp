@@ -115,7 +115,7 @@ my int $i = int("fabc9", 16);
 
     @throw INVALID-BASE the base is invalid; must be 0 or 2 - 36 inclusive
 
-    @since %Qore 0.8.5 (this variant only)
+    @since %Qore 0.8.5, this variant with the \a base argument is supported
 */
 int int(string str, softint base) [flags=RET_VALUE_ONLY] {
    if (base < 0 || base == 1 || base > 36) {

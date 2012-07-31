@@ -132,6 +132,8 @@ nothing callObjectMethodArgs() [flags=RUNTIME_NOOP] {
 
     @note this function can be used for security to ensure that a given pseudo-method of the Qore::zzz8objectzzz9 class is called,
     as by default if a method of the same name is implemented by the object's class, the class method will be called instead.
+
+    @since %Qore 0.8.5
  */
 any call_pseudo(any val, string meth, ...) {
    ReferenceHolder<QoreListNode> nargs(xsink);

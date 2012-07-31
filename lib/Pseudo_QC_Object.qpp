@@ -29,9 +29,9 @@
  */
 qclass <object> [arg=QoreObject* obj;vparent=<value>];
 
-//! Returns NT_OBJECT
+//! Returns Qore::NT_OBJECT
 /** 
-    @return NT_OBJECT
+    @return Qore::NT_OBJECT
 
     @par Example:
     @code

@@ -1,3 +1,490 @@
+2012-07-19 15:07  david_nichols
+
+	* lib/Operator.cpp: added AbstractIterator support for the select
+	  operator
+
+2012-07-19 14:58  david_nichols
+
+	* Makefile.am, include/qore/intern/Function.h,
+	  include/qore/intern/FunctionList.h,
+	  include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/qore_thread_intern.h, lib/Function.cpp,
+	  lib/FunctionList.cpp, lib/Makefile.am, lib/Operator.cpp,
+	  lib/QC_AbstractBidirectionalIterator.qpp,
+	  lib/QC_HashIterator.qpp, lib/QC_HashReverseIterator.qpp,
+	  lib/QC_ListIterator.qpp, lib/QC_ListReverseIterator.qpp,
+	  lib/QoreClass.cpp, lib/QoreNamespace.cpp,
+	  lib/single-compilation-unit.cpp: * added
+	  AbstractBidirectionalIterator class (for the ...::prev() method)
+	  * implemented support in more list operators (map w/ select,
+	  foldl, foldr)
+	  * fixed more subtle bugs with on-demand, out-of-order parse
+	  initialization regarding resolving unscoped objects declared in
+	  the same namespace as the object being initialized
+
+2012-07-18 20:02  david_nichols
+
+	* Makefile.am, include/qore/QoreHashNode.h,
+	  include/qore/QoreListNode.h,
+	  include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreLibIntern.h, lib/FunctionCallNode.cpp,
+	  lib/Makefile.am, lib/Operator.cpp, lib/QC_AbstractIterator.qpp,
+	  lib/QC_HashIterator.qpp, lib/QC_HashReverseIterator.qpp,
+	  lib/QC_ListIterator.qpp, lib/QC_ListReverseIterator.qpp,
+	  lib/QoreClass.cpp, lib/QoreHashNode.cpp, lib/QoreListNode.cpp,
+	  lib/QoreNamespace.cpp, lib/StatementBlock.cpp,
+	  lib/VarRefNode.cpp, lib/single-compilation-unit.cpp,
+	  lib/thread.cpp: * implemented new iterator classes and support in
+	  the map iterator for classes derived from AbstractIterator
+	  * fixed a subtle and long-standing bug with out-of-order parsing
+	  and resolving global thread-local variables
+
+2012-07-17 11:08  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/QoreClass.cpp: *
+	  eliminated an unused list in the abstract method structure
+	  * fixed merging abstract variants from builtin parent classes
+
+2012-07-17 10:59  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h: added a new helper
+	  function
+
+2012-07-17 10:44  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h: do not try to initialize
+	  abstract method variants
+
+2012-07-15 19:08  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/Makefile.am: minor
+	  build fixes
+
+2012-07-15 18:45  david_nichols
+
+	* Makefile.am, TODO, doxygen/lang/255_keywords.dox.tmpl,
+	  doxygen/pdox, include/qore/QoreClass.h,
+	  include/qore/intern/BuiltinFunction.h,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreTypeInfo.h, lib/Function.cpp,
+	  lib/FunctionCallNode.cpp, lib/Makefile.am,
+	  lib/QC_AbstractDatasource.qpp, lib/QC_AbstractIterator.qpp,
+	  lib/QC_Datasource.qpp, lib/QC_DatasourcePool.qpp,
+	  lib/QoreClass.cpp, lib/QoreClassList.cpp,
+	  lib/QoreDotEvalOperatorNode.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreTypeInfo.cpp, lib/VarRefNode.cpp, lib/parser.ypp,
+	  lib/qpp.cpp, lib/scanner.lpp, lib/single-compilation-unit.cpp,
+	  qlib/HttpServer.qm: * initial abstract method implementation with
+	  2 new abstract classes: AbstractDatasource and AbstractIterator,
+	  no documentation yet
+	  * doxygen indexing fixes
+
+2012-06-28 11:45  subik
+
+	* lib/qore_date_private.cpp, test/test.q: fixed: format_date
+	  uppercased output for MON/DAY and related
+
+2012-06-25 13:51  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/220_threading.dox.tmpl, examples/pop3.q,
+	  qlib/MailMessage.qm, qlib/Pop3Client.qm, qlib/SmtpClient.qm: *
+	  minor Pop3Client fixes and updates
+	  * implemented -d,--delete for the pop3.q example to remove emails
+	  from the server on exit
+	  * minor doc updates
+
+2012-06-25 13:00  david_nichols
+
+	* examples/pop3.q, lib/Function.cpp, qlib/MailMessage.qm,
+	  qlib/Mime.qm, qlib/SmtpClient.qm: * many bugfixes after practical
+	  testing of the Pop3Client (bugfixes in MailMessage) and
+	  SmtpClient modules
+	  * fixed runtime type error message to not display "any" when no
+	  arguments were passed to a function/method/closure/call
+	  reference, etc
+
+2012-06-25 11:01  david_nichols
+
+	* examples/pop3.q, qlib/MailMessage.qm: added pop3 example, fixed a
+	  bug in the MailMessage module
+
+2012-06-25 10:29  david_nichols
+
+	* lib/QoreNet.cpp: eliminated some redundant code
+
+2012-06-25 10:26  david_nichols
+
+	* lib/QoreNet.cpp: improved QOREADDRINFO-GETINFO-ERROR exception
+	  description by adding information about the arguments passed
+
+2012-06-25 08:57  david_nichols
+
+	* configure.ac: updated logic to better deal with symlinks for /lib
+	  -> /usr/lib and /lib64 -> /usr/lib64 as with Fedora 17
+
+2012-06-25 07:43  david_nichols
+
+	* qlib/MailMessage.qm, qlib/Pop3Client.qm: mail message parsing
+	  improvements, doc updates
+
+2012-06-22 09:31  david_nichols
+
+	* qlib/Pop3Client.qm: fixed Pop3Client module documentation
+
+2012-06-22 09:16  david_nichols
+
+	* doxygen/qdx, lib/parser.ypp, qlib/MailMessage.qm,
+	  qlib/Pop3Client.qm, qlib/SmtpClient.qm: * qdx improvements and
+	  fixes - fixed a bug finding the close bracket "}" where text in
+	  regular expressions was not ignored
+	  * minor doc improvements
+	  * fixed a memory leak in the parser related to parse exception
+	  handling with namespace members
+	  * fixed a typo in the SmtpClient module
+
+2012-06-19 05:41  david_nichols
+
+	* doxygen/qdx: minor updates
+
+2012-06-18 14:04  david_nichols
+
+	* lib/thread.cpp, qlib/Mime.qm: * fixed an invalid assert() in
+	  module handling when an error occurs loading the module
+	  * minor fixes in the Mime module
+
+2012-06-15 18:29  david_nichols
+
+	* qlib/MailMessage.qm: mail msg parsing fixes
+
+2012-06-15 15:34  david_nichols
+
+	* Makefile.am, addon/emacs/qore-mode.el, lib/ql_string.qpp,
+	  lib/ql_type.qpp, qlib/MailMessage.qm, qlib/Mime.qm,
+	  qlib/Pop3Client.qm, qlib/SmtpClient.qm: * new MailMessage user
+	  module to implement the Message and Attachment class for
+	  Pop3Client (formerly in SmtpClient only)
+	  * added string argument to chr(int, string) to accept an output
+	  encoding
+	  * added int(string, int) variant to parse a string as a number
+	  and give the base
+
+2012-06-15 10:44  david_nichols
+
+	* include/qore/intern/ql_crypto.h, lib/Pseudo_QC_Binary.qpp,
+	  lib/Pseudo_QC_List.qpp, lib/Pseudo_QC_String.qpp,
+	  lib/ql_crypto.qpp, qlib/Pop3Client.qm: * added common digest
+	  functions as pseudo-methods to string and binary pseudo-classes
+	  * tagged digest and cryptoi functions properly as RET_VALUE_ONLY
+	  * fixed APOP authentication in new Pop3Client module
+
+2012-06-14 14:07  david_nichols
+
+	* lib/thread.cpp: do not kill TID 1 (the initial / main thread)
+	  when calling exit() as a crash can result with some 3rd party
+	  libraries that spawn their own threads (under some conditions -
+	  for example the TIBCO SDK with some adapters)
+
+2012-06-14 11:24  david_nichols
+
+	* doxygen/lang/155_data_type_declarations.dox.tmpl,
+	  doxygen/lang/157_lvalue_references.dox.tmpl,
+	  doxygen/lang/195_statements.dox.tmpl, include/qore/QoreURL.h,
+	  include/qore/intern/VarRefNode.h, include/qore/intern/Variable.h,
+	  include/qore/intern/qore_program_private.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  lib/QoreClosureNode.cpp, lib/QoreURL.cpp, lib/ReferenceNode.cpp,
+	  lib/StatementBlock.cpp, lib/VarRefNode.cpp, lib/ql_misc.qpp: *
+	  doc updates
+	  * reference fixes
+	  * added a new parameter to parse_url() and parseURL() to allow
+	  for any [] in the hostname to be included in the "host" output
+	  key for indicating that the ipv6 protocol be used
+
+2012-06-13 17:59  david_nichols
+
+	* qlib/Pop3Client.qm: initial not-totally-functional Pop3Client
+	  module
+
+2012-06-12 11:17  david_nichols
+
+	* Makefile.am, doxygen/lang/140_variables.dox.tmpl,
+	  doxygen/lang/155_data_type_declarations.dox.tmpl,
+	  doxygen/lang/157_lvalue_references.dox.tmpl,
+	  doxygen/lang/220_threading.dox.tmpl,
+	  doxygen/lang/mainpage.dox.tmpl, doxygen/lib/Doxyfile: updated
+	  docs for universal reference support
+
+2012-06-12 10:19  david_nichols
+
+	* include/qore/intern/Variable.h,
+	  include/qore/intern/qore_thread_intern.h, lib/thread.cpp: added
+	  code to detect circular references at runtime and throw an
+	  appropriate exception
+
+2012-06-11 20:03  david_nichols
+
+	* Makefile.am, include/qore/ReferenceNode.h,
+	  include/qore/intern/AbstractStatement.h,
+	  include/qore/intern/Function.h, include/qore/intern/LocalVar.h,
+	  include/qore/intern/ParseReferenceNode.h,
+	  include/qore/intern/QoreBinaryLValueOperatorNode.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreClosureNode.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QorePostIncrementOperatorNode.h,
+	  include/qore/intern/QorePreIncrementOperatorNode.h,
+	  include/qore/intern/QoreValue.h,
+	  include/qore/intern/VarRefNode.h, include/qore/intern/Variable.h,
+	  include/qore/intern/qore_program_private.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  include/qore/node_types.h, lib/AbstractQoreNode.cpp,
+	  lib/AbstractStatement.cpp, lib/CallReferenceNode.cpp,
+	  lib/FindNode.cpp, lib/ForEachStatement.cpp, lib/Function.cpp,
+	  lib/FunctionCallNode.cpp, lib/ParseOptionMap.cpp,
+	  lib/QoreAssignmentOperatorNode.cpp, lib/QoreCastOperatorNode.cpp,
+	  lib/QoreClass.cpp, lib/QoreClosureNode.cpp,
+	  lib/QoreDeleteOperatorNode.cpp, lib/QoreHashNode.cpp,
+	  lib/QoreLogicalGreaterThanOperatorNode.cpp,
+	  lib/QoreLogicalLessThanOperatorNode.cpp,
+	  lib/QoreMinusEqualsOperatorNode.cpp,
+	  lib/QorePlusEqualsOperatorNode.cpp,
+	  lib/QoreRemoveOperatorNode.cpp, lib/QoreTreeNode.cpp,
+	  lib/QoreUnaryMinusOperatorNode.cpp,
+	  lib/ReferenceArgumentHelper.cpp, lib/ReferenceHelper.cpp,
+	  lib/ReferenceNode.cpp, lib/VLock.cpp, lib/VarRefNode.cpp,
+	  lib/Variable.cpp, lib/parser.ypp, lib/thread.cpp: added support
+	  for completely universal references anywhere in qore, including
+	  references to local variables in a background expression, etc
+
+2012-06-09 09:50  david_nichols
+
+	* lib/parser.ypp: minor non-functional changes
+
+2012-06-09 06:27  david_nichols
+
+	* include/qore/intern/QoreLibIntern.h, lib/Pseudo_QC_Binary.qpp,
+	  lib/Pseudo_QC_List.qpp, lib/Pseudo_QC_String.qpp,
+	  lib/ql_string.qpp: added the following pseudo-methods:
+	  * <string>::split()
+	  * <string>::regex()
+	  * <string>::regexExtract()
+	  * <list>::join
+
+2012-06-08 15:24  david_nichols
+
+	* Makefile.am: build fixes
+
+2012-06-08 15:02  david_nichols
+
+	* README-WINDOWS, configure.ac: minor changes
+
+2012-06-08 14:44  david_nichols
+
+	* Makefile.am, README-LICENSE, include/qore/common.h,
+	  include/qore/intern/ConstantList.h,
+	  include/qore/intern/FunctionList.h,
+	  include/qore/intern/GlobalVariableList.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreClassList.h,
+	  include/qore/intern/QoreHashNodeIntern.h,
+	  include/qore/intern/QoreNamespaceList.h,
+	  include/qore/intern/xxhash.h, lib/GlobalVariableList.cpp,
+	  lib/Makefile.am, lib/single-compilation-unit.cpp, lib/xxhash.cpp,
+	  m4/stl_hash_map.m4, test/hash-test.q: use the xxhash algorithm
+	  instead of std::map - results in nearly 2x faster hash lookups
+	  for large hashes
+
+2012-06-08 12:59  david_nichols
+
+	* include/qore/QoreTypeSafeReferenceHelper.h: minor updates
+
+2012-06-08 06:14  david_nichols
+
+	* doxygen/pdox: another pseudo-method doc fix
+
+2012-06-07 08:27  subik
+
+	* include/qore/Datasource.h, include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/ManagedDatasource.h, lib/Datasource.cpp,
+	  lib/DatasourcePool.cpp, lib/ManagedDatasource.cpp,
+	  lib/QC_Datasource.qpp, lib/QC_DatasourcePool.qpp: fix for
+	  datasource's (pool) execRaw in some cases
+
+2012-06-07 07:43  david_nichols
+
+	* include/qore/QoreFile.h, lib/QC_File.qpp, lib/QoreFile.cpp: added
+	  the File::isOpen() method
+
+2012-06-05 14:07  david_nichols
+
+	* include/qore/intern/QoreTypeInfo.h: show "any" instead of "<no
+	  type info>" for the type name when no type restriction is present
+
+2012-06-01 13:10  david_nichols
+
+	* configure.ac, lib/thread.cpp: do not call pthread_join() on the
+	  initial thread on Darwin from a background thread because it
+	  crashes for some unexplained reason, but only when debugging is
+	  disabled; the error is:
+	  Program received signal EXC_BAD_ACCESS, Could not access memory.
+	  Reason: KERN_INVALID_ADDRESS at address: 0x0000000000000000
+	  [Switching to process 21522 thread 0x1a03]
+	  0x00007fff8e4c4800 in pthread_join ()
+	  (gdb) where
+	  #0 0x00007fff8e4c4800 in pthread_join ()
+	  #1 0x000000010013ba9f in qore_exit_process (rc=0) at
+	  thread.cpp:1358
+	  #2 0x0000000100172f2f in f_exit_vi (args=0x100d27e00,
+	  xsink=0x100f80ef0) at ql_lib.qpp:176
+	  #3 0x0000000100298b3e in BuiltinFunctionVariant::evalFunction
+	  (this=0x100e92280, name=0x100e92368 "exit", ceh=@0x100f80660,
+	  xsink=0x100f80ef0) at BuiltinFunction.h:110
+	  ...
+	  it works on other platforms...
+
+2012-06-01 09:09  david_nichols
+
+	* qlib/HttpServer.qm: minor updates
+
+2012-06-01 07:59  david_nichols
+
+	* lib/Pseudo_QC_List.qpp, lib/Pseudo_QC_String.qpp,
+	  lib/ql_string.qpp, qlib/HttpServer.qm: new pseudo-methods for
+	  list and string, HttpServer module updates
+
+2012-06-01 06:13  david_nichols
+
+	* include/qore/common.h, include/qore/intern/QoreLibIntern.h:
+	  include printf formatting defines in public header files
+
+2012-05-31 18:06  david_nichols
+
+	* qlib/Mime.qm: made constants public
+
+2012-05-31 16:18  david_nichols
+
+	* doxygen/qdx, qlib/HttpServer.qm, qlib/Mime.qm,
+	  qlib/SmtpClient.qm, qlib/TelnetClient.qm: * added new Mime
+	  functions and a new class: MultiPartMixedMessage
+	  * use the new Mime functionality in the SmtpClient class
+	  * doc corrections
+
+2012-05-31 11:51  david_nichols
+
+	* include/qore/ModuleManager.h, lib/Makefile.am,
+	  lib/ModuleManager.cpp, qore.spec: updated library version to
+	  5.7.1, updated module api to 0.13
+
+2012-05-31 11:25  david_nichols
+
+	* lib/qpp.cpp: qpp now tags internal binding functions as DLLLOCAL
+
+2012-05-31 10:48  david_nichols
+
+	* include/qore/intern/qore_thread_intern.h: mostly cosmetic changes
+
+2012-05-31 10:48  david_nichols
+
+	* lib/qpp.cpp: qpp updates fo rthe xml module
+
+2012-05-29 18:55  david_nichols
+
+	* next_build.sh: fixed an extraneous error message when building
+	  qore not from svn checkout
+
+2012-05-29 09:56  david_nichols
+
+	* doxygen/qdx, qlib/Mime.qm: qdx fixes and fixed a typo
+
+2012-05-28 11:56  david_nichols
+
+	* doxygen/lang/mainpage.dox.tmpl: add release notes page as a
+	  subpage
+
+2012-05-26 06:16  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: release note updates
+
+2012-05-25 16:59  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_program_private.h: * added release notes
+	  for qore 0.8.4 to doxygen docs
+	  * fixed a harmless warning in qore_program_private.h
+
+2012-05-25 04:22  david_nichols
+
+	* qore.spec: spec file fixes
+
+2012-05-24 11:57  david_nichols
+
+	* Makefile.am, configure.ac, lib/Makefile.am, qore.spec: updated
+	  build to support the html and install-html targets; fixed
+	  dependencies for buildin docs without library (in face generating
+	  the doxygen sources requires building the library anyway, but
+	  this is now supported automatically); updated spec file
+	  accordingly; docs are no longer built when making rpms from the
+	  spec file
+
+2012-05-24 08:08  david_nichols
+
+	* Makefile.am, lib/qpp.cpp, qore.spec: added qdx to distribution
+	  for use with generating documentation in modules
+
+2012-05-23 16:04  david_nichols
+
+	* lib/Makefile.am: hopefully fixed the "double build" issue that
+	  cropped up recently
+
+2012-05-23 13:38  david_nichols
+
+	* lib/qpp.cpp: allow 2 versions of qpp values to be given:
+	  {text}val where text is the version output for Doxygen only and
+	  val is the value used for generating the C++ value
+
+2012-05-23 11:40  david_nichols
+
+	* lib/ModuleManager.cpp, lib/QoreNamespace.cpp: * removed a debug
+	  msg
+	  * fixed a memory bug in the new builtin function API used by
+	  modules that use qpp
+
+2012-05-23 08:20  david_nichols
+
+	* qlib/HttpServer.qm: fixed a typo in an example
+
+2012-05-23 08:19  david_nichols
+
+	* RELEASE-NOTES, configure.ac, doxygen/lang/Doxyfile.tmpl,
+	  doxygen/lib/Doxyfile, qore.spec: updated to 0.8.5 for next
+	  release
+
+2012-05-23 06:30  david_nichols
+
+	* qore.spec: fixed spec bugs
+
+2012-05-22 19:11  david_nichols
+
+	* configure.ac: turn off strict aliasing on g++; we break the rules
+	  anyway
+
+2012-05-22 19:08  david_nichols
+
+	* lib/QoreNet.cpp: fixed a warning
+
+2012-05-22 17:29  david_nichols
+
+	* ChangeLog, README-WINDOWS: windows readme and changelog update
+
+2012-05-22 17:20  david_nichols
+
+	* configure.ac, include/qore/intern/ModuleInfo.h,
+	  lib/ModuleManager.cpp, lib/qpp.cpp: changes for Windows/mxe
+	  (mingw creoss-compiler) builds
+
 2012-05-22 08:52  david_nichols
 
 	* qore.spec: fixed minor grammatical mistake in description
