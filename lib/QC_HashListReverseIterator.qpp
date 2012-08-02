@@ -42,7 +42,19 @@
 
     @see HashListIterator
  */
-qclass HashListReverseIterator [arg=QoreHashListIterator* i; ns=Qore; default_base=QC_HASHLISTITERATOR];
+qclass HashListReverseIterator [arg=QoreHashListIterator* i; ns=Qore; vparent=HashListIterator];
+
+//! Creates the hash list iterator object
+/** @param h the hash of lists to iterate
+
+    @par Example:
+    @code
+my HashListIterator $i($h);
+    @endcode
+ */
+HashListReverseIterator::constructor(hash h) {
+   self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListIterator(h));
+}
 
 //! Moves the current position to the next element in the result list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the list if the list is not empty
 /** This method will return @ref True again after it returns @ref False once if list is not empty, otherwise it will always return @ref False.
