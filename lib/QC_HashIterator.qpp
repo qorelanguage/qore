@@ -81,7 +81,7 @@ qclass HashIterator [arg=QoreHashIterator* i; ns=Qore; vparent=AbstractQuantifie
 
     @par Example:
     @code
-HashIterator hi($h);
+my HashIterator $hi($h);
     @endcode
  */
 HashIterator::constructor(hash h) {

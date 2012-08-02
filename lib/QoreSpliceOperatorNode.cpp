@@ -46,6 +46,7 @@ AbstractQoreNode *QoreSpliceOperatorNode::evalImpl(bool &needs_deref, ExceptionS
 }
 
 AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   assert(!typeInfo);
    const QoreTypeInfo *expTypeInfo = 0;
    
    pflag &= ~PF_RETURN_VALUE_IGNORED;
@@ -82,8 +83,10 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
    }
 
    // check new value expression, if any
-   if (new_exp)
+   if (new_exp) {
+      expTypeInfo = 0;
       new_exp = new_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
+   }
 
    return this;
 }

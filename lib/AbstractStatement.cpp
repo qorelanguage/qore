@@ -47,7 +47,7 @@ int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsin
 }
 
 int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
-   printd(2, "AbstractStatement::parseInit() %08p type=%s line %d file %s\n", this, typeid(this).name(), LineNumber, FileName);
+   printd(2, "AbstractStatement::parseInit() %p type=%s line %d file %s\n", this, typeid(this).name(), LineNumber, FileName);
    // set parse options and warning mask for this statement
    ParseWarnHelper pwh(pwo);
 

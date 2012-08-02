@@ -69,7 +69,7 @@ qclass ListIterator [arg=QoreListIterator* i; ns=Qore; vparent=AbstractQuantifie
 
     @par Example:
     @code
-ListIterator li($l);
+my ListIterator $li($l);
     @endcode
  */
 ListIterator::constructor(list l) {

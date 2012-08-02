@@ -154,12 +154,18 @@ int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    // need to push something on the stack even if the context is not named
    push_cvar(name);
 
-   if (where_exp)
+   if (where_exp) {
+      argTypeInfo = 0;
       where_exp = where_exp->parseInit(oflag, pflag, lvids, argTypeInfo);
-   if (sort_ascending)
+   }
+   if (sort_ascending) {
+      argTypeInfo = 0;
       sort_ascending = sort_ascending->parseInit(oflag, pflag, lvids, argTypeInfo);
-   if (sort_descending)
+   }
+   if (sort_descending) {
+      argTypeInfo = 0;
       sort_descending = sort_descending->parseInit(oflag, pflag, lvids, argTypeInfo);
+   }
       
    // initialize statement block
    if (code)

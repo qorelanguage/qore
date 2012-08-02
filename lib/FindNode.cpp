@@ -130,10 +130,14 @@ AbstractQoreNode *FindNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids
    const QoreTypeInfo *argTypeInfo = 0;
    if (find_exp)
       find_exp = find_exp->parseInit(oflag, pflag, lvids, argTypeInfo);
-   if (where)
+   if (where) {
+      argTypeInfo = 0;
       where = where->parseInit(oflag, pflag, lvids, argTypeInfo);
-   if (exp)
+   }
+   if (exp) {
+      argTypeInfo = 0;
       exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
+   }
    pop_cvar();
    return this;
 }

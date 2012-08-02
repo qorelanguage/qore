@@ -74,7 +74,7 @@ qclass ListReverseIterator [arg=QoreListReverseIterator* i; ns=Qore; vparent=Abs
 
     @par Example:
     @code
-ListReverseIterator li($l);
+my ListReverseIterator $li($l);
     @endcode
  */
 ListReverseIterator::constructor(list l) {

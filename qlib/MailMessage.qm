@@ -815,9 +815,9 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    map $str += sprintf("  %s: %s\n", $1, $.headers.$1), keys $.headers;
 
 	    # add attachments
-	    if (elements $attarr) {
+	    if (!$attarr.empty()) {
 		$str += "  Attachments:\n";
-		foreach my $l in ($attarr) {
+		foreach my string $l in ($attarr) {
 		    $str += "    " + trim($l) + "\n";
 		}
 	    }
@@ -859,7 +859,6 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 		$str += sprintf(", %s", join(", ", (map sprintf("%s: %s", $1, $.headers.$1), keys $.headers)));
 
 	    # attachments
-	    my list $attarr = ();
 	    foreach my Attachment $att in ($.attachments)
 		$str += sprintf(", %s (%s,%d)", $att.getName(), $att.getMime(), $att.getData().size());
 

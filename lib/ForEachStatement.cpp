@@ -261,8 +261,10 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (t != NT_VARREF && t != NT_SELF_VARREF)
       parse_error("foreach variable expression is not a variable reference (got type '%s' instead)", get_type_name(var));
 
-   if (list)
+   if (list) {
+      argTypeInfo = 0;
       list = list->parseInit(oflag, pflag, lvids, argTypeInfo);
+   }
    if (code)
       code->parseInitImpl(oflag, pflag);
    

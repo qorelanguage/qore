@@ -66,6 +66,12 @@ QC_HashIterator.cpp: QC_HashIterator.qpp qpp
 QC_HashReverseIterator.cpp: QC_HashReverseIterator.qpp qpp
 	$(QPP) $<
 
+QC_HashListIterator.cpp: QC_HashListIterator.qpp qpp
+	$(QPP) $<
+
+QC_HashListReverseIterator.cpp: QC_HashListReverseIterator.qpp qpp
+	$(QPP) $<
+
 QC_AbstractSmartLock.cpp: QC_AbstractSmartLock.qpp qpp
 	$(QPP) $<
 
@@ -246,6 +252,7 @@ QORE_GENERATED_SOURCES = \
 	QC_AbstractBidirectionalIterator.cpp QC_AbstractQuantifiedBidirectionalIterator.cpp \
 	QC_ListIterator.cpp QC_ListReverseIterator.cpp \
 	QC_HashIterator.cpp QC_HashReverseIterator.cpp \
+	QC_HashListIterator.cpp QC_HashListReverseIterator.cpp \
 	QC_AbstractDatasource.cpp \
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \

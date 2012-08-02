@@ -271,6 +271,7 @@ AbstractQoreNode *SelfFunctionCallNode::evalImpl(ExceptionSink *xsink) const {
 }
 
 void SelfFunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+   assert(!returnTypeInfo);
    lvids += parseArgs(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo, true);
 
    if (method)
@@ -279,6 +280,7 @@ void SelfFunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, int &lvids,
 
 // called at parse time
 AbstractQoreNode *SelfFunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+   assert(!returnTypeInfo);
    if (!oflag) {
       parse_error("cannot call method '%s' outside of class code", getName());
       return this;
@@ -374,6 +376,7 @@ double FunctionCallNode::floatEvalImpl(ExceptionSink *xsink) const {
 }
 
 AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+   assert(!returnTypeInfo);
    if (func)
       return this;
    //assert(!func);
@@ -451,6 +454,7 @@ AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, in
 AbstractQoreNode *FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
    assert(!func);
    assert(c_str);
+   assert(!returnTypeInfo);
 
    bool abr = checkParseOption(PO_ALLOW_BARE_REFS);
 
@@ -488,6 +492,7 @@ AbstractQoreNode *FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, in
 }
 
 void FunctionCallNode::parseInitFinalizedCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+   assert(!returnTypeInfo);
    assert(func);
    lvids += parseArgs(oflag, pflag, const_cast<QoreFunction *>(func), returnTypeInfo);
 }
@@ -501,6 +506,7 @@ AbstractQoreNode *ProgramFunctionCallNode::makeReferenceNodeAndDerefImpl() {
 }
 
 AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   assert(!typeInfo);
    if (name) {
       assert(!oc);
       // find object class
@@ -530,6 +536,8 @@ AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag
       typeInfo = oc->getTypeInfo();
       desc.sprintf("new %s", oc->getName());
    }
+   else
+      typeInfo = 0;
 
    //printd(5, "ScopedObjectCallNode::parseInitImpl() this=%p constructor=%p variant=%p\n", this, constructor, variant);
 
@@ -602,6 +610,7 @@ AbstractQoreNode *StaticMethodCallNode::makeReferenceNodeAndDeref() {
 }
 
 AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   assert(!typeInfo);
    bool abr = checkParseOption(PO_ALLOW_BARE_REFS);
 
    QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(*scope, false);

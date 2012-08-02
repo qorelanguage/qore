@@ -82,8 +82,10 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    }
 
    // check new value expression, if any
-   if (new_exp)
+   if (new_exp) {
+      expTypeInfo = 0;
       new_exp = new_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
+   }
 
    return this;
 }

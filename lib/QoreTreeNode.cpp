@@ -88,6 +88,7 @@ double QoreTreeNode::floatEvalImpl(ExceptionSink *xsink) const {
 }
 
 AbstractQoreNode *QoreTreeNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   assert(!typeInfo);
    // set "parsing background" flag if the background operator is being parsed
    if (op == OP_BACKGROUND)
       pflag |= PF_BACKGROUND;

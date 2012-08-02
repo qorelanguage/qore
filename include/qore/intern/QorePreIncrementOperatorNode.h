@@ -35,6 +35,7 @@ protected:
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
    DLLLOCAL void parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo*& outTypeInfo) {
+      assert(!outTypeInfo);
       // turn off "reference ok" and "return value ignored" flags
       pflag &= ~(PF_RETURN_VALUE_IGNORED);
       

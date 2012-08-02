@@ -50,6 +50,10 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_AbstractQuantifiedBidirectionalIterator.qpp \
 	lib/QC_ListIterator.qpp \
 	lib/QC_ListReverseIterator.qpp \
+	lib/QC_HashIterator.qpp \
+	lib/QC_HashReverseIterator.qpp \
+	lib/QC_HashListIterator.qpp \
+	lib/QC_HashListReverseIterator.qpp \
 	lib/QC_AbstractDatasource.qpp \
 	lib/QC_Datasource.qpp \
 	lib/QC_DatasourcePool.qpp \
@@ -323,6 +327,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h \
 	include/qore/intern/QoreBinaryLValueOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
+	include/qore/intern/QoreHashListIterator.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \

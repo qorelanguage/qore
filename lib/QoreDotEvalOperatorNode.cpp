@@ -150,6 +150,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::evalImpl(bool &needs_deref, Exception
 }
 
 AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+   assert(!returnTypeInfo);
    const QoreTypeInfo *typeInfo = 0;
    left = left->parseInit(oflag, pflag, lvids, typeInfo);
 
@@ -186,6 +187,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
       }
 
 #ifdef DEBUG
+      typeInfo = 0;
       AbstractQoreNode *n = m->parseInit(oflag, pflag, lvids, typeInfo);
       assert(n == m);
 #else
@@ -215,6 +217,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
       // do not save method pointer for copy methods
       returnTypeInfo = qc->getTypeInfo();
 #ifdef DEBUG
+      typeInfo = 0;
       AbstractQoreNode *n = m->parseInit(oflag, pflag, lvids, typeInfo);
       assert(n == m);
 #else
@@ -239,6 +242,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
 
       if (!meth) {
 #ifdef DEBUG
+         typeInfo = 0;
 	 AbstractQoreNode *n = m->parseInit(oflag, pflag, lvids, typeInfo);
 	 assert(n == m);
 #else

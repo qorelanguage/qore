@@ -1054,7 +1054,7 @@ void qore_class_private::addBuiltinMethod(const char* mname, MethodVariantBase* 
    if (i == hm.end()) {
       MethodFunctionBase *m = new BuiltinNormalMethod(cls, mname);
       nm = new QoreMethod(cls, m, false);
-      insertBuiltinMethod(nm, true);
+      insertBuiltinMethod(nm);
    }
    else {
       nm = i->second;
@@ -2276,12 +2276,12 @@ void QoreClass::insertStaticMethod(QoreMethod* m) {
    priv->insertBuiltinStaticMethod(m);
 }      
 
-const QoreClass* qore_class_private::parseGetClass(qore_classid_t cid, bool &cpriv) const {
+const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc, bool &cpriv) const {
    cpriv = false;
    const_cast<qore_class_private*>(this)->initialize();
-   if (cid == classID)
-      return (QoreClass* )cls;
-   return scl ? scl->getClass(cid, cpriv) : 0;
+   if (qc.classID == classID || (qc.name == name && qc.hash == hash))
+      return (QoreClass*)cls;
+   return scl ? scl->getClass(qc, cpriv) : 0;
 }
 
 const QoreMethod* qore_class_private::getMethodForEval(const char* nme, ExceptionSink* xsink) const {
@@ -3456,11 +3456,11 @@ bool qore_class_private::parseCheckPrivateClassAccess() const {
    if (!pc)
       return false;
 
-   if (pc->priv->classID == classID)
+   if (pc->priv->classID == classID || (pc->priv->name == name && pc->priv->hash == hash))
       return true;
 
    bool pv;
-   return pc->priv->parseGetClass(classID, pv) || (scl && scl->sml.getClass(pc->priv->classID));
+   return pc->priv->parseGetClass(*this, pv) || (scl && scl->getClass(*(pc->priv), pv));
 }
 
 bool qore_class_private::runtimeCheckPrivateClassAccess() const {
@@ -3475,13 +3475,17 @@ bool qore_class_private::runtimeCheckPrivateClassAccess() const {
 }
 
 qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_class_private& oc) const {
+   // make sure both classes are initialized
    const_cast<qore_class_private*>(this)->initialize();
+   const_cast<qore_class_private&>(oc).initialize();
 
-   if (classID == oc.classID)
+   //printd(5, "qore_class_private::parseCheckCompatibleClass(%p '%s') this: %p '%s'\n", &oc, oc.name.c_str(), this, name.c_str());
+
+   if (classID == oc.classID || (oc.name == name && oc.hash == hash))
       return QTI_IDENT;
 
    bool priv = false;
-   if (!oc.parseGetClass(classID, priv))
+   if (!parseGetClass(oc, priv) && !oc.parseGetClass(*this, priv))
       return QTI_NOT_EQUAL;
 
    if (!priv)

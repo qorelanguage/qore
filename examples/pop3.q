@@ -156,7 +156,7 @@ class pop3 {
 	       "                   not connecting from the default port (%d) like:\n"
 	       "                   ex: \"-s=pop3.com:1110\"\n"
                " -S,--ssl          use a TLS/SSL connection to the POP3 server\n"
-               " -u,--user=ARG     username for the POP3 mailbox\n",
+               " -u,--user=ARG     username for the POP3 mailbox\n"
 	       " -v,--verbose      show detailed technical information\n",
                get_script_name(), Pop3Client::POP3Port);
         exit(1);

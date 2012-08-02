@@ -1811,6 +1811,7 @@ public:
       
       if (!memberGate && !strcmp(m->getName(), "memberGate")) {
 	 memberGate = m;
+	 //printd(5, "qore_class_private::checkAssignSpecialIntern() this: %p got %s::%s()\n", this, name.c_str(), m->getName());
 	 return true;
       }
       
@@ -2653,12 +2654,9 @@ public:
    DLLLOCAL qore_type_result_e runtimeCheckCompatibleClass(const qore_class_private& oc) const;
 
    DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, bool &priv) const {
-      if (qc.classID == classID)
-         return cls;
-
       // check hashes if names are the same
       // FIXME: check fully-qualified namespace name
-      if (qc.name == name && qc.hash == hash)
+      if (qc.classID == classID || (qc.name == name && qc.hash == hash))
          return cls;
 
       //printd(5, "qore_class_private::getClassIntern() this: %p '%s' != '%s' scl: %p\n", this, name.c_str(), qc.name.c_str(), scl);
@@ -2666,7 +2664,7 @@ public:
       return scl ? scl->getClass(qc, priv) : 0;
    }
 
-   DLLLOCAL const QoreClass* parseGetClass(qore_classid_t cid, bool& cpriv) const;
+   DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, bool& cpriv) const;
 
    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* nme);
    DLLLOCAL const QoreMethod* parseResolveSelfMethod(NamedScope* nme);

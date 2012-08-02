@@ -68,6 +68,7 @@ public:
    DLLLOCAL void ignoreReturnValue();
 
    DLLLOCAL void leftParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+      assert(!typeInfo);
       if (left) {
          bool for_assignment = pflag & PF_FOR_ASSIGNMENT;
          if (for_assignment && left->getType() == NT_TREE) {
@@ -92,6 +93,7 @@ public:
 
    DLLLOCAL void rightParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       if (right) {
+         typeInfo = 0;
          right = right->parseInit(oflag, pflag & ~PF_FOR_ASSIGNMENT, lvids, typeInfo);
          //printd(0, "QoreTreeNode::rightParseInit() this=%p new right=%p (%s, type: %s)\n", this, right, get_type_name(right), typeInfo->getName());
       }

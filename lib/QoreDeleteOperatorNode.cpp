@@ -49,6 +49,7 @@ AbstractQoreNode *QoreDeleteOperatorNode::evalImpl(bool &needs_deref, ExceptionS
 }
 
 AbstractQoreNode *QoreDeleteOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   assert(!typeInfo);
    if (exp) {
       exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
       if (exp && check_lvalue(exp))

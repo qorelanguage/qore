@@ -593,6 +593,7 @@ QoreHashNode *QoreHashNode::getSlice(const QoreListNode *value_list, ExceptionSi
 }
 
 AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   assert(!typeInfo);
    //printd(5, "QoreHashNode::parseInit() this=%p\n", this);
    typeInfo = hashTypeInfo;
 

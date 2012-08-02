@@ -68,6 +68,12 @@ ConstantEntry::ConstantEntry() : typeInfo(0), node(0), in_init(false), init(fals
       pwo = qore_program_private::getParseWarnOptions(pgm);
 }
 
+ConstantEntry::ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti, bool n_init, bool n_pub) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init), pub(n_pub) {
+   QoreProgram* pgm = getProgram();
+   if (pgm)
+      pwo = qore_program_private::getParseWarnOptions(pgm);
+}
+
 ConstantEntry::ConstantEntry(const ConstantEntry& old) : loc(old.loc), name(old.name), typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : 0), 
 							 in_init(false), init(true), pub(false) {
    assert(!old.in_init);
@@ -120,6 +126,8 @@ int ConstantEntry::parseInit(ClassNs ptr) {
       ParseWarnHelper pwh(pwo);
 
       //printd(5, "ConstantEntry::parseInit() this: %p '%s' about to init node: %p '%s' class: %p '%s'\n", this, name.c_str(), node, get_type_name(node), p, p ? p->name.c_str() : "n/a");
+      if (typeInfo)
+         typeInfo = 0;
       node = node->parseInit((LocalVar *)0, PF_CONST_EXPRESSION, lvids, typeInfo);
    }
 

@@ -60,7 +60,7 @@ int QoreGetOpt::add(const char* name, char short_opt, const char* long_opt, qore
    if (!short_opt && (!long_opt || !long_opt[0]))
       return QGO_ERR_NO_OPTION;
 
-   //printf("QoreGetOpt::add(%s, %03d (%c), %s, %d, %d)\n", name, short_opt, short_opt ? short_opt : '-', long_opt, argtype, option);
+   //printf("QoreGetOpt::add(name: '%s', short: %03d ('%c'), long: '%s', argtype: %d, opt: %d)\n", name, short_opt, short_opt ? short_opt : '-', long_opt ? long_opt : "n/a", argtype, option);
    // look for duplicate entries
    if (short_opt && find(short_opt))
       return QGO_ERR_DUP_SHORT_OPT;
@@ -73,7 +73,7 @@ int QoreGetOpt::add(const char* name, char short_opt, const char* long_opt, qore
    if (long_opt)
       long_map[n->long_opt.c_str()] = n;
    node_list.push_back(n);
-   
+
    return 0;
 }
 
@@ -216,6 +216,7 @@ void QoreGetOpt::processLongArg(const char* arg, QoreListNode* l, class QoreHash
    QoreGetOptNode* w = find(opt);
    if (!w) {
       QoreStringNode* err = new QoreStringNodeMaker("unknown long option '--%s'", opt);
+
       addError(h, err);
       return;
    }

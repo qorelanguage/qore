@@ -1591,6 +1591,28 @@ sub context_tests() {
         test_value(cx_value("name"), "david", "cx_value()");
 	break;
     }
+
+    my HashListIterator $qi($q);
+    while ($qi.next()) {
+	test_value($qi.getRow(), ("name" : "david", "age" : 37), "context row");
+        test_value($qi.first(), True, "HashListIterator::first()");
+        test_value($qi.last(), False, "HashListIterator::last()");
+        test_value($qi.index(), 0, "HashListIterator::index()");
+        test_value($qi.max(), 5, "HashListIterator::max()");
+        test_value($qi.name, "david", "HashListIterator::memberGate()");
+	break;
+    }
+
+    my HashListReverseIterator $rqi($q);
+    while ($rqi.next()) {
+	test_value($rqi.getRow(), ("name" : "isabella", "age" : 1), "context row");
+        test_value($rqi.first(), True, "HashListReverseIterator::first()");
+        test_value($rqi.last(), False, "HashListReverseIterator::last()");
+        test_value($rqi.index(), 4, "HashListReverseIterator::index()");
+        test_value($rqi.max(), 5, "HashListReverseIterator::max()");
+        test_value($rqi.name, "isabella", "HashListReverseIterator::memberGate()");
+	break;
+    }
 }
 
 const a = "key";

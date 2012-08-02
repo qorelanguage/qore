@@ -86,7 +86,7 @@ qclass HashReverseIterator [arg=QoreHashReverseIterator* i; ns=Qore; vparent=Abs
 
     @par Example:
     @code
-HashReverseIterator hi($h);
+my HashReverseIterator $hi($h);
     @endcode
  */
 HashReverseIterator::constructor(hash h) {

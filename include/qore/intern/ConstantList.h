@@ -77,7 +77,7 @@ public:
       pub;        // public constant (modules only)
 
    DLLLOCAL ConstantEntry();
-   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_init = false, bool n_pub = false) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init), pub(n_pub) {}
+   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_init = false, bool n_pub = false);
    DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
    DLLLOCAL ~ConstantEntry() {

@@ -82,9 +82,12 @@ int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
        // enable optimizations when return value is ignored for operator expressions
       ignore_return_value(assignment);
    }
-   if (cond)
+   if (cond) {
+      argTypeInfo = 0;
       cond = cond->parseInit(oflag, pflag, lvids, argTypeInfo);
+   }
    if (iterator) {
+      argTypeInfo = 0;
       iterator = iterator->parseInit(oflag, pflag | PF_RETURN_VALUE_IGNORED, lvids, argTypeInfo);
       // enable optimizations when return value is ignored for operator expressions
       ignore_return_value(iterator);

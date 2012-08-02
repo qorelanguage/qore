@@ -78,7 +78,7 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
    if (!lvexp)
       return this;
 
-   const QoreTypeInfo* argTypeInfo;
+   const QoreTypeInfo* argTypeInfo = 0;
    lvexp = lvexp->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (!lvexp)
       return this;

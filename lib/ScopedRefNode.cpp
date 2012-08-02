@@ -67,6 +67,7 @@ NamedScope *ScopedRefNode::takeName() {
 }
 
 AbstractQoreNode *ScopedRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   assert(!typeInfo);
    printd(5, "ScopedRefNode::parseInit() resolving scoped constant \"%s\"\n", scoped_ref->ostr);
 
    AbstractQoreNode* rv = qore_root_ns_private::parseResolveScopedReference(*scoped_ref, typeInfo);
@@ -74,5 +75,6 @@ AbstractQoreNode *ScopedRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &
       return this;
 
    deref(0);
+   typeInfo = 0;
    return rv->parseInit(oflag, pflag, lvids, typeInfo);
 }

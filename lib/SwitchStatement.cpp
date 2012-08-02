@@ -137,7 +137,8 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    QoreProgram *pgm = getProgram();
    while (w) {
       if (w->val) {
-	 w->val = w->val->parseInit(oflag, pflag | PF_CONST_EXPRESSION, lvids, argTypeInfo);
+         argTypeInfo = 0;
+         w->val = w->val->parseInit(oflag, pflag | PF_CONST_EXPRESSION, lvids, argTypeInfo);
 	 if (lvids) {
 	    parse_error("illegal local variable declaration in assignment expression for case block");
 	    while (lvids--)
