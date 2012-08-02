@@ -29,6 +29,7 @@
 
 %new-style
 %enable-all-warnings
+%require-types
 %exec-class pop3
 
 %requires Pop3Client >= 1.0

@@ -167,7 +167,7 @@ if test "x$acx_pthread_ok" = xyes; then
         flag=no
         case "${host_cpu}-${host_os}" in
                 *-aix* | *-freebsd* | *-darwin*) flag="-D_THREAD_SAFE";; 
-	        *-linux*) flag="-D_THREAD_SAFE";;
+	        *-linux*) flag="-D_THREAD_SAFE -pthread"; PTHREAD_LIBS="-pthread";;
                 *-osf* | *-hpux*) flag="-D_REENTRANT";;
 		*solaris*) flag="-D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS";;
         esac

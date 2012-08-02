@@ -114,7 +114,7 @@ const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_STACK_GUARD,
      "HAVE_STACK_GUARD",
      QO_OPTION,
-#ifdef HAVE_CHECK_STACK_POS
+#ifdef QORE_MANAGE_STACK
      true
 #else
      false
