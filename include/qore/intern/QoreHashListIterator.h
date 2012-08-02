@@ -42,7 +42,7 @@ protected:
       return 0;
    }
 
-   DLLLOCAL AbstractQoreNode* getValueIntern(const AbstractQoreNode* n, const char* key, ExceptionSink* xsink) const {
+   DLLLOCAL AbstractQoreNode* getReferencedValueIntern(const AbstractQoreNode* n, const char* key, ExceptionSink* xsink) const {
       if (get_node_type(n) != NT_LIST) {
          xsink->raiseException("HashListIterator-ERROR", "hash key '%s' is assigned to type '%s'; expecting 'list'", key, get_type_name(n));
          return 0;
@@ -51,7 +51,7 @@ protected:
    }
 
    DLLLOCAL AbstractQoreNode* getReferencedKeyValueIntern(const char* key, ExceptionSink* xsink) const {
-      return getValueIntern(h->getKeyValue(key), key, xsink);
+      return getReferencedValueIntern(h->getKeyValue(key), key, xsink);
    }
 
 public:
@@ -148,11 +148,11 @@ public:
 
       ConstHashIterator hi(h);
       while (hi.next()) {
-         const AbstractQoreNode* n = hi.getValue();
-         n = getValueIntern(n, hi.getKey(), xsink);
+         AbstractQoreNode* n = const_cast<AbstractQoreNode*>(hi.getValue());
+         n = getReferencedValueIntern(n, hi.getKey(), xsink);
          if (*xsink)
             return 0;
-         rv->setKeyValue(hi.getKey(), n ? n->refSelf() : 0, xsink);
+         rv->setKeyValue(hi.getKey(), n, xsink);
          // cannot have an exception here
          assert(!*xsink);
       }
@@ -172,10 +172,10 @@ public:
          if (*xsink)
             return 0;
          const char* key = str->getBuffer();
-         const AbstractQoreNode* n = getReferencedKeyValueIntern(key, xsink);
+         AbstractQoreNode* n = getReferencedKeyValueIntern(key, xsink);
          if (*xsink)
             return 0;
-         rv->setKeyValue(key, n ? n->refSelf() : 0, xsink);
+         rv->setKeyValue(key, n, xsink);
          // cannot have an exception here
          assert(!*xsink);
       }
