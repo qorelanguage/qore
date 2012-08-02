@@ -664,7 +664,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    int64 po = USER_MOD_PO;
    // add in parse options from the current program, if any
    if (tpgm)
-      po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_POSITIVE_OPTIONS));
+      po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_POSITIVE_OPTIONS|PO_REQUIRE_TYPES));
 
    ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
 
