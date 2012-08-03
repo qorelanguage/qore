@@ -21,46 +21,18 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreHashIterator.h>
 
-// the c++ object
-class QoreHashReverseIterator : public QoreIteratorBase, public ReverseConstHashIterator {
-protected:
-   DLLLOCAL virtual ~QoreHashReverseIterator() {
-   }
-
-   DLLLOCAL int checkPtr(ExceptionSink* xsink) const {
-      if (!ptr) {
-         xsink->raiseException("ITERATOR-ERROR", "the HashReverseIterator is not pointing at a valid element; make sure HashReverseIterator::next() returns True before calling this method");
-         return -1;
-      }
-      return 0;
-   }
-
+// internal reverse iterator class implementation only for the getName() function - the iterators remain
+// forwards and are used in the reverse sense by the Qore language class implementation below
+class QoreHashReverseIterator : public QoreHashIterator {
 public:
-   DLLLOCAL QoreHashReverseIterator(const QoreHashNode* h) : ReverseConstHashIterator(h->hashRefSelf()) {
+   DLLLOCAL QoreHashReverseIterator(const QoreHashNode* h) : QoreHashIterator(h) {
    }
 
-   using QoreIteratorBase::deref;
-   DLLLOCAL virtual void deref(ExceptionSink* xsink) {
-      if (ROdereference()) {
-         const_cast<QoreHashNode*>(h)->deref(xsink);
-         delete this;
-      }
+   DLLLOCAL virtual const char* getName() const {
+      return "HashReverseIterator";
    }
-
-   DLLLOCAL AbstractQoreNode* getReferencedValue(ExceptionSink* xsink) const {
-      if (checkPtr(xsink))
-         return 0;
-      return ConstHashIterator::getReferencedValue();
-   }
-
-   DLLLOCAL QoreStringNode* getKey(ExceptionSink* xsink) const {
-      if (checkPtr(xsink))
-         return 0;
-      return new QoreStringNode(ConstHashIterator::getKey());
-   }
-
-   DLLLOCAL virtual const char* getName() const { return "HashReverseIterator"; }
 };
 
 //! This class an iterator class for hashes
@@ -79,7 +51,7 @@ public:
 
     @see HashIterator
  */
-qclass HashReverseIterator [arg=QoreHashReverseIterator* i; ns=Qore; vparent=AbstractQuantifiedBidirectionalIterator];
+qclass HashReverseIterator [arg=QoreHashReverseIterator* i; ns=Qore; vparent=HashIterator];
 
 //! Creates the hash iterator object
 /** @param h the hash to iterate
@@ -114,7 +86,7 @@ while ($i.prev()) {
 bool HashReverseIterator::next() {
    if (i->check(xsink))
       return false;
-   return i->next();
+   return i->prev();
 }
 
 //! Moves the current position to the next element in the hash; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the hash if the hash is not empty
@@ -138,20 +110,7 @@ while ($i.next()) {
 bool HashReverseIterator::prev() {
    if (i->check(xsink))
       return false;
-   return i->prev();
-}
-
-//! returns @ref True if the hash is empty; @ref False if not
-/** @return @ref True if the hash is empty; @ref False if not
-
-    @par Example:
-    @code
-if ($i.empty())
-    printf("the hash is empty\n");
-    @endcode
- */
-bool HashReverseIterator::empty() [flags=CONSTANT] {
-   return i->empty();
+   return i->next();
 }
 
 //! returns @ref True if on the last element of the hash
@@ -166,7 +125,7 @@ while ($i.next()) {
     @endcode
  */
 bool HashReverseIterator::first() [flags=CONSTANT] {
-   return i->first();
+   return i->last();
 }
 
 //! returns @ref True if on the first element of the hash
@@ -181,43 +140,5 @@ while ($i.next()) {
     @endcode
  */
 bool HashReverseIterator::last() [flags=CONSTANT] {
-   return i->last();
-}
-
-//! returns the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-
-    @par Example:
-    @code
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
-}
-    @endcode
-
-    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
-    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
- */
-any HashReverseIterator::getValue() [flags=RET_VALUE_ONLY] {
-   if (i->check(xsink))
-      return 0;
-   return i->getReferencedValue(xsink);
-}
-
-//! returns the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-
-    @par Example:
-    @code
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
-}
-    @endcode
-
-    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
-    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
- */
-string HashReverseIterator::getKey() [flags=RET_VALUE_ONLY] {
-   if (i->check(xsink))
-      return 0;
-   return i->getKey(xsink);
+   return i->first();
 }

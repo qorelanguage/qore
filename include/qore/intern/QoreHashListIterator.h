@@ -36,7 +36,7 @@ protected:
 
    DLLLOCAL int checkPtr(ExceptionSink* xsink) const {
       if (i < 0) {
-         xsink->raiseException("ITERATOR-ERROR", "the HashListIterator is not pointing at a valid element; make sure HashListIterator::next() returns True before calling this method");
+         xsink->raiseException("ITERATOR-ERROR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
          return -1;
       }
       return 0;
@@ -44,7 +44,7 @@ protected:
 
    DLLLOCAL AbstractQoreNode* getReferencedValueIntern(const AbstractQoreNode* n, const char* key, ExceptionSink* xsink) const {
       if (get_node_type(n) != NT_LIST) {
-         xsink->raiseException("HashListIterator-ERROR", "hash key '%s' is assigned to type '%s'; expecting 'list'", key, get_type_name(n));
+         xsink->raiseException("HASHLISTITERATOR-ERROR", "hash key '%s' is assigned to type '%s'; expecting 'list'", key, get_type_name(n));
          return 0;
       }
       return reinterpret_cast<const QoreListNode*>(n)->get_referenced_entry(i);

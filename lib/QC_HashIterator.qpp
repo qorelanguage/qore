@@ -21,47 +21,7 @@
 */
 
 #include <qore/Qore.h>
-
-// the c++ object
-class QoreHashIterator : public QoreIteratorBase, public ConstHashIterator {
-protected:
-   DLLLOCAL virtual ~QoreHashIterator() {
-   }
-
-   DLLLOCAL int checkPtr(ExceptionSink* xsink) const {
-      if (!ptr) {
-         xsink->raiseException("ITERATOR-ERROR", "the HashIterator is not pointing at a valid element; make sure HashIterator::next() returns True before calling this method");
-         return -1;
-      }
-      return 0;
-   }
-
-public:
-   DLLLOCAL QoreHashIterator(const QoreHashNode* h) : ConstHashIterator(h->hashRefSelf()) {
-   }
-
-   using QoreIteratorBase::deref;
-   DLLLOCAL virtual void deref(ExceptionSink* xsink) {
-      if (ROdereference()) {
-         const_cast<QoreHashNode*>(h)->deref(xsink);
-         delete this;
-      }
-   }
-
-   DLLLOCAL AbstractQoreNode* getReferencedValue(ExceptionSink* xsink) const {
-      if (checkPtr(xsink))
-         return 0;
-      return ConstHashIterator::getReferencedValue();
-   }
-
-   DLLLOCAL QoreStringNode* getKey(ExceptionSink* xsink) const {
-      if (checkPtr(xsink))
-         return 0;
-      return new QoreStringNode(ConstHashIterator::getKey());
-   }
-
-   DLLLOCAL virtual const char* getName() const { return "HashIterator"; }
-};
+#include <qore/intern/QoreHashIterator.h>
 
 //! This class an iterator class for hashes
 /** Call HashIterator::next() to iterate through the hash; do not use the iterator if HashIterator::next() returns @ref False.

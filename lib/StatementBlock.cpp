@@ -104,10 +104,11 @@ public:
    // searches to marker and then jumps to global thread-local variables
    DLLLOCAL VNode* nextSearch() const {
       if ((next && next->lvar) || top_level)
-	 return next;
+	 return !next || next->lvar ? next : 0;
 
       // skip to global thread-local variables
       VNode* rv = get_global_vnode();
+      assert(!rv || rv->lvar);
       //printd(5, "VNode::nextSearch() returning global VNode %p\n", rv);
       return rv;
    }
@@ -295,9 +296,13 @@ LocalVar *find_local_var(const char *name, bool &in_closure) {
    ClosureParseEnvironment *cenv = thread_get_closure_parse_env();
    in_closure = false;
 
+   if (vnode && !vnode->lvar)
+      vnode = vnode->nextSearch();
+
    //printd(5, "find_local_var('%s' %p) vnode: %p\n", name, name, vnode);
 
    while (vnode) {
+      assert(vnode->lvar);
       if (cenv && !in_closure && cenv->getHighWaterMark() == vnode)
 	 in_closure = true;
 

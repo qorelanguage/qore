@@ -21,34 +21,18 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreListIterator.h>
 
-// the c++ object
-class QoreListReverseIterator : public QoreIteratorBase, public ConstListIterator {
-protected:
-   DLLLOCAL virtual ~QoreListReverseIterator() {
-   }
-
+// internal reverse iterator class implementation only for the getName() function - the iterators remain
+// forwards and are used in the reverse sense by the Qore language class implementation below
+class QoreListReverseIterator : public QoreListIterator {
 public:
-   DLLLOCAL QoreListReverseIterator(const QoreListNode* l) : ConstListIterator(l->listRefSelf()) {
+   DLLLOCAL QoreListReverseIterator(const QoreListNode* l) : QoreListIterator(l) {
    }
 
-   using QoreIteratorBase::deref;
-   DLLLOCAL virtual void deref(ExceptionSink* xsink) {
-      if (ROdereference()) {
-         const_cast<QoreListNode*>(l)->deref(xsink);
-         delete this;
-      }
+   DLLLOCAL virtual const char* getName() const {
+      return "ListReverseIterator";
    }
-
-   DLLLOCAL AbstractQoreNode* getReferencedValue(ExceptionSink* xsink) const {
-      if (pos == -1) {
-         xsink->raiseException("ITERATOR-ERROR", "the ListReverseIterator is not pointing at a valid element; make sure ListReverseIterator::next() returns True before calling this method");
-         return 0;
-      }
-      return ConstListIterator::getReferencedValue();
-   }
-
-   DLLLOCAL virtual const char* getName() const { return "ListReverseIterator"; }
 };
 
 //! This class an iterator class for lists
@@ -67,7 +51,7 @@ public:
 
     @see ListIterator
  */
-qclass ListReverseIterator [arg=QoreListReverseIterator* i; ns=Qore; vparent=AbstractQuantifiedBidirectionalIterator];
+qclass ListReverseIterator [arg=QoreListReverseIterator* i; ns=Qore; vparent=ListIterator];
 
 //! Creates the list iterator object
 /** @param l the list to iterate
@@ -129,19 +113,6 @@ bool ListReverseIterator::prev() {
    return i->next();
 }
 
-//! returns @ref True if the list is empty; @ref False if not
-/** @return @ref True if the list is empty; @ref False if not
-
-    @par Example:
-    @code
-if ($i.empty())
-    printf("the list is empty\n");
-    @endcode
- */
-bool ListReverseIterator::empty() [flags=CONSTANT] {
-   return i->empty();
-}
-
 //! returns @ref True if on the last element of the list (which is the first element to be iterated with this iterator)
 /** @return @ref True if on the last element of the list (which is the first element to be iterated with this iterator)
 
@@ -170,73 +141,4 @@ while ($i.next()) {
  */
 bool ListReverseIterator::last() [flags=CONSTANT] {
    return i->first();
-}
-
-//! returns the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-
-    @par Example:
-    @code
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
-}
-    @endcode
-
-    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
-    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
- */
-any ListReverseIterator::getValue() [flags=RET_VALUE_ONLY] {
-   if (i->check(xsink))
-      return 0;
-   return i->getReferencedValue(xsink);
-}
-
-//! returns the current iterator position in the list or -1 if not pointing at a valid element
-/** @return the current iterator position in the list or -1 if not pointing at a valid element
-
-    @par Example:
-    @code
-while ($i.next()) {
-    printf("+ %d/%d: %y\n", $i.index(), $i.max(), $i.getValue());
-}
-    @endcode
- */
-int ListReverseIterator::index() [flags=CONSTANT] {
-   return i->index();
-}
-
-//! returns the number of elements in the list
-/** @return the number of elements in the list
-
-    @par Example:
-    @code
-while ($i.next()) {
-    printf("+ %d/%d: %y\n", $i.index(), $i.max(), $i.getValue());
-}
-    @endcode
- */
-int ListReverseIterator::max() [flags=CONSTANT] {
-   return i->max();
-}
-
-//! sets the new absolute position in the list; if the position is invalid then the method returns @ref False, meaning the iterator is not valid, otherwise it returns @ref True
-/** @param pos the new position for the iterator with 0 as the first element
-
-    @return @ref False, meaning the iterator is not valid, otherwise it returns @ref True
-
-    @par Example:
-    @code
-if (!$i.set($pos))
-    throw "INVALID-POSITION", sprintf("%d is an invalid position", $pos);
-    @endcode
-
-    @note that the \c pos argument is the absolute position of the list, with 0 as the first element in the list, which is the last element iterated by this
-    iterator when using ListReverseIterator::next()
-
-    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
- */
-bool ListReverseIterator::set(int pos) {
-   if (i->check(xsink))
-      return false;
-   return !i->set(pos);
 }

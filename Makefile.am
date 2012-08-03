@@ -327,6 +327,8 @@ noinst_HEADERS = \
 	include/qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h \
 	include/qore/intern/QoreBinaryLValueOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
+	include/qore/intern/QoreHashIterator.h \
+	include/qore/intern/QoreListIterator.h \
 	include/qore/intern/QoreHashListIterator.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \

@@ -949,7 +949,7 @@ ListIterator::ListIterator(QoreListNode &lst, qore_size_t n_pos) : l(&lst) {
 }
 
 bool ListIterator::next() {
-   if (++pos == l->size()) {
+   if (++pos == (qore_offset_t)l->size()) {
       pos = -1;
       return false; // finished
    }
@@ -1001,13 +1001,13 @@ AbstractQoreNode *ListIterator::takeValue() {
 }
 
 AbstractQoreNode **ListIterator::getValuePtr() const {
-   if (pos > l->size())
+   if (pos > (qore_offset_t)l->size())
       return 0;
    return l->get_entry_ptr(pos);
 }
 
 bool ListIterator::last() const {
-   return (bool)(pos == (l->size() - 1)); 
+   return (bool)(pos == (qore_offset_t)(l->size() - 1));
 } 
 
 bool ListIterator::first() const {
@@ -1023,7 +1023,7 @@ ConstListIterator::ConstListIterator(const QoreListNode &lst, qore_size_t n_pos)
 }
 
 bool ConstListIterator::next() {
-   if (++pos == l->size()) {
+   if (++pos == (qore_offset_t)l->size()) {
       pos = -1;
       return false; // finished
    }
@@ -1064,7 +1064,7 @@ AbstractQoreNode *ConstListIterator::getReferencedValue() const {
 }
 
 bool ConstListIterator::last() const {
-   return (bool)(pos == (l->size() - 1)); 
+   return (bool)(pos == (qore_offset_t)(l->size() - 1));
 } 
 
 bool ConstListIterator::first() const {
