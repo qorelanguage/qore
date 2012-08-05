@@ -60,9 +60,9 @@ class MyAbstractInterface {
     @par Other Minor Improvements and Changes
     - qpp updated to support abstract methods and multiple inheritance (+ other minor qpp enhancements)
     - improved the \c QOREADDRINFO-GETINFO-ERROR exception description by adding information about the arguments passed
-    - added a string argument to chr(int, string) to accept an output encoding
-    - added a @ref int(string, int) variant to parse a string as a number and give the base
-    - added a new parameter to parse_url() and parseURL() to allow for any [] in the hostname to be included in the "host" output key for indicating that the ipv6 protocol be used
+    - added a string argument to @ref Qore::chr(softint, __7_ string) "char(softint, *string)" to accept an output encoding
+    - added a @ref Qore::int(string, softint) "int(string, softint)" variant to parse a string as a number and give the base
+    - added a new parameter to parse_url() and parseURL() to allow for any [] in the hostname to be included in the \c "host" output key for indicating that the <a href="http://wikipedia.org/wiki/IPv6">ipv6</a> protocol be used
     - added the following pseudo-methods:
       - Qore::zzz8binaryzzz9::split()
       - Qore::zzz8binaryzzz9::toMD5()
@@ -91,7 +91,7 @@ class MyAbstractInterface {
     - fixed format_date() output for \c "MON" and \c "DAY", etc
     - fixed a memory leak in the parser related to parse exception handling with namespace members
     - fixed an invalid assert() in module handling when an error occurs loading the module (only affected debug builds)
-    - internal fix: tagged digest and cryptoi functions properly as RET_VALUE_ONLY
+    - tagged digest and crypto functions internally as @ref RET_VALUE_ONLY
     - do not kill TID 1 (the initial / main thread) when calling exit() in background threads as a crash can result with some 3rd party libraries that spawn their own threads on some platforms (observed on Darwin & Solaris 10 at least)
     - fixed a memory bug in the new builtin function API used by modules built with qpp
     - fixed a build bug that caused qore to be built twice
