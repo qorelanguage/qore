@@ -4,13 +4,13 @@
 
     @section qore_085 Qore 0.8.5
 
-    <b>Release Summary</b>
+    @par Release Summary
     Major new features and a few bug fixes
 
     @subsection qore_085_new_features New Features in Qore
     @par Abstract Methods and Interfaces
     %Qore now supports the <b>abstract</b> keyword when declaring methods; an <b>abstract</b> method has no implementation and must be
-    implemented in child classes with the same signature for the child class to be able to be instantiated.\n\n
+    implemented in child classes with the same signature for the child class to be instantiated.\n\n
     Classes with <b>abstract</b> methods define interfaces; a concrete implementation of the interface is a class that inherits the class with <b>abstract</b> methods and implements all the <b>abstract</b> methods.\n\n
     Abstract methods are defined with the following syntax:
     @code
@@ -22,16 +22,20 @@ class MyAbstractInterface {
     The following abstract classes now exist in %Qore:
     - @ref Qore::SQL::AbstractDatasource "AbstractDatasource"
     - @ref Qore::AbstractIterator "AbstractIterator"
-    - @ref Qore::AbstractQuantifiedIterator "AbstractQuantifiedIterator"
-    - @ref Qore::AbstractBidirectionalIterator "AbstractBidirectionalIterator"
-    - @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator"
+      - @ref Qore::AbstractQuantifiedIterator "AbstractQuantifiedIterator"
+      - @ref Qore::AbstractBidirectionalIterator "AbstractBidirectionalIterator"
+      - @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator"
     - @ref Qore::Thread::AbstractSmartLock "AbstractSmartLock" (which was already present in Qore but now implements abstract methods)
     .
     The following new iterator classes have been added to %Qore:
     - @ref Qore::HashIterator "HashIterator"
-    - @ref Qore::HashReverseIterator "HashReverseIterator"
+      - @ref Qore::HashReverseIterator "HashReverseIterator"
+    - @ref Qore::HashListIterator "HashListIterator"
+      - @ref Qore::HashListReverseIterator "HashListReverseIterator"
+    - @ref Qore::ListHashIterator "ListHashIterator"
+      - @ref Qore::ListHashReverseIterator "ListHashReverseIterator"
     - @ref Qore::ListIterator "ListIterator"
-    - @ref Qore::ListReverseIterator "ListReverseIterator"
+      - @ref Qore::ListReverseIterator "ListReverseIterator"
     - @ref Qore::SQL::SQLStatement "SQLStatement" (which was already present in %Qore but now implements the @ref Qore::AbstractIterator "AbstractIterator" interface)
     .
     Classes inheriting @ref Qore::AbstractIterator "AbstractIterator" have special support so that objects can be easily iterated in the following list operators:
@@ -40,7 +44,7 @@ class MyAbstractInterface {
     - @ref select
     .
     @par Universal References
-    All restrictions on references have been removed from %Qore; references to local variables may now be passed to the @ref background "background operator" and passed as arguments to @ref closures "closures".\n\n
+    All restrictions on references have been removed from %Qore; references to local variables may now be passed to the @ref background "background operator" and passed as arguments to @ref closure "closures".\n\n
     Basically when a reference is taken of a local variable that could result in the local variable being accessed in a multi-threaded context, the variable is treated as a closure-bound local variable in the sense that it's lifetime is reference-counted, and all accesses are wrapped in a dedicated mutual-exclusion lock to ensure thread safety.
 
     @par Pop3Client Module
@@ -56,8 +60,8 @@ class MyAbstractInterface {
     @par Other Minor Improvements and Changes
     - qpp updated to support abstract methods and multiple inheritance (+ other minor qpp enhancements)
     - improved the \c QOREADDRINFO-GETINFO-ERROR exception description by adding information about the arguments passed
-    - added a string argument to Qore::chr(int, string) to accept an output encoding
-    - added a Qore::int(string, int) variant to parse a string as a number and give the base
+    - added a string argument to chr(int, string) to accept an output encoding
+    - added a @ref int(string, int) variant to parse a string as a number and give the base
     - added a new parameter to parse_url() and parseURL() to allow for any [] in the hostname to be included in the "host" output key for indicating that the ipv6 protocol be used
     - added the following pseudo-methods:
       - Qore::zzz8binaryzzz9::split()
@@ -95,7 +99,7 @@ class MyAbstractInterface {
     <hr>
     @section qore_084 Qore 0.8.4
 
-    <b>Release Summary</b>
+    @par Release Summary
     Major new features and changes that can affect backwards-compatibility, plus 40 bug fixes
 
     @subsection qore_084_compatibility Changes That Can Affect Backwards-Compatibility
