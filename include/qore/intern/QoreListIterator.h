@@ -31,6 +31,14 @@ protected:
    DLLLOCAL virtual ~QoreListIterator() {
    }
 
+   DLLLOCAL int checkPtr(ExceptionSink* xsink) const {
+      if (pos == -1) {
+         xsink->raiseException("ITERATOR-ERROR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
+         return -1;
+      }
+      return 0;
+   }
+
 public:
    DLLLOCAL QoreListIterator(const QoreListNode* l) : ConstListIterator(l->listRefSelf()) {
    }
@@ -44,14 +52,14 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* getReferencedValue(ExceptionSink* xsink) const {
-      if (pos == -1) {
-         xsink->raiseException("ITERATOR-ERROR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
+      if (checkPtr(xsink))
          return 0;
-      }
       return ConstListIterator::getReferencedValue();
    }
 
-   DLLLOCAL virtual const char* getName() const { return "ListIterator"; }
+   DLLLOCAL virtual const char* getName() const {
+      return "ListIterator";
+   }
 };
 
 #endif // _QORE_QORELISTITERATOR_H

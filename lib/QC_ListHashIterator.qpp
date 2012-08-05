@@ -1,0 +1,273 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_ListHashIterator.qpp ListHashIterator class definition */
+/*
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QoreListHashIterator.h>
+
+//! This class an iterator class for lists of hashes as returned by Qore::SQL::Datasource::selectRows() and Qore::SQL::DatasourcePool::selectRows(), both of which return lists of columns where each list entry is a hash of the current column values
+/** Call ListHashIterator::next() to iterate through the lists of column values; do not use the iterator if ListHashIterator::next() returns @ref False.
+    A result list can be iterated in reverse order by calling ListHashIterator::prev() instead of ListHashIterator::next()
+
+    @note
+    - In general, the ListHashIterator class is not designed to be accessed from multiple threads; it was created without locking for
+      fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
+      such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.
+
+    @see ListHashReverseIterator
+ */
+qclass ListHashIterator [arg=QoreListHashIterator* i; ns=Qore; vparent=AbstractQuantifiedBidirectionalIterator];
+
+//! Creates the hash list iterator object
+/** @param l the list of hashes to iterate
+
+    @par Example:
+    @code
+my ListHashIterator $i($l);
+    @endcode
+ */
+ListHashIterator::constructor(list l) {
+   self->setPrivate(CID_LISTHASHITERATOR, new QoreListHashIterator(l));
+}
+
+//! Moves the current position to the next element in the result list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the list if the list is not empty
+/** This method will return @ref True again after it returns @ref False once if list is not empty, otherwise it will always return @ref False.
+    The iterator object should not be used after this method returns @ref False
+
+    @return @ref False if there are no more elements in the result list (in which case the iterator object is invalid and should not be used); @ref True if successful (meaning that the iterator object is valid)
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+}
+    @endcode
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+bool ListHashIterator::next() {
+   if (i->check(xsink))
+      return false;
+   return i->next();
+}
+
+//! Moves the current position to the previous element in the result list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the last element in the list if the list is not empty
+/** This method will return @ref True again after it returns @ref False once if the list is not empty, otherwise it will always return @ref False.
+    The iterator object should not be used after this method returns @ref False
+
+    @return @ref False if there are no more elements in the result list (in which case the iterator object is invalid and should not be used); @ref True if successful (meaning that the iterator object is valid)
+
+    @par Example:
+    @code
+while ($i.prev()) {
+    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+}
+    @endcode
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+bool ListHashIterator::prev() {
+   if (i->check(xsink))
+      return false;
+   return i->prev();
+}
+
+//! returns @ref True if the result list is empty; @ref False if not
+/** @return @ref True if the result list is empty; @ref False if not
+
+    @par Example:
+    @code
+if ($i.empty())
+    printf("the result list is empty\n");
+    @endcode
+ */
+bool ListHashIterator::empty() [flags=CONSTANT] {
+   return i->empty();
+}
+
+//! returns @ref True if on the first element of the list
+/** @return @ref True if on the first element of the list
+
+    @par Example:
+    @code
+while ($i.next()) {
+    if ($i.first())
+        printf("START:\n");
+}
+    @endcode
+ */
+bool ListHashIterator::first() [flags=CONSTANT] {
+   return i->first();
+}
+
+//! returns @ref True if on the last element of the list
+/** @return @ref True if on the last element of the list
+
+    @par Example:
+    @code
+while ($i.next()) {
+    if ($i.last())
+        printf("END.\n");
+}
+    @endcode
+ */
+bool ListHashIterator::last() [flags=CONSTANT] {
+   return i->last();
+}
+
+//! returns the current row value as a hash or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current row value as a hash or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+}
+    @endcode
+
+    @note
+    - equivalent to ListHashIterator::getRow()
+    - the return value is @ref any_type "any" to match Qore::AbstractIterator::getValue()
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element or the list being iterated does not contain a hash element at the current iterator position
+ */
+any ListHashIterator::getValue() [flags=RET_VALUE_ONLY] {
+   if (i->check(xsink))
+      return 0;
+   return i->getRow(xsink);
+}
+
+//! returns the current row value as a hash or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current row value as a hash or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+}
+    @endcode
+
+    @note equivalent to ListHashIterator::getValue()
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element or the list being iterated does not contain a hash element at the current iterator position
+ */
+hash ListHashIterator::getRow() [flags=RET_VALUE_ONLY] {
+   if (i->check(xsink))
+      return 0;
+   return i->getRow(xsink);
+}
+
+//! returns the current iterator position in the list or -1 if not pointing at a valid element
+/** @return the current iterator position in the list or -1 if not pointing at a valid element
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("+ %d/%d: %y\n", $i.index(), $i.max(), $i.getValue());
+}
+    @endcode
+ */
+int ListHashIterator::index() [flags=CONSTANT] {
+   return i->index();
+}
+
+//! returns the number of elements in the list
+/** @return the number of elements in the list
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("+ %d/%d: %y\n", $i.index(), $i.max(), $i.getValue());
+}
+    @endcode
+ */
+int ListHashIterator::max() [flags=CONSTANT] {
+   return i->max();
+}
+
+//! sets the new position in the result list; if the position is invalid then the method returns @ref False, meaning the iterator is not valid, otherwise it returns @ref True
+/** @param pos the new position for the iterator with 0 as the first element
+
+    @return @ref False, meaning the iterator is not valid, otherwise it returns @ref True
+
+    @par Example:
+    @code
+if (!$i.set($pos))
+    throw "INVALID-POSITION", sprintf("%d is an invalid position", $pos);
+    @endcode
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+bool ListHashIterator::set(int pos) {
+   if (i->check(xsink))
+      return false;
+   return !i->set(pos);
+}
+
+//! This method allows the iterator to be dereferenced directly as a hash for the current row being iterated, as memberGate methods are called implicitly when an unknown member is accessed from outside the class.
+/** @param key the column name for the value to retrieve
+
+    @return the current column value of the given row
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("%d: value: %y", $i.index(), $i.value);
+}
+    @endcode
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element or the list being iterated does not contain a hash element at the current iterator position or the given hash key does not exist
+
+    @note equivalent to ListHashIterator::getKeyValue() when called explicitly
+ */
+any ListHashIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
+   if (i->check(xsink))
+      return 0;
+
+   return i->getReferencedKeyValue(key->getBuffer(), xsink);
+}
+
+//! Returns the current value for the column given as an argument
+/** @param key the column name for the value to retrieve
+
+    @return the current column value of the given row
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("%d: value: %y", $i.index(), $i.getKeyValue("value"));
+}
+    @endcode
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element or the list being iterated does not contain a hash element at the current iterator position or the given hash key does not exist
+
+    @note ListHashIterator::memberGate() allows for the iterator to act as if it is a hash with members equal to the current row being iterated
+ */
+any ListHashIterator::getKeyValue(string key) [flags=RET_VALUE_ONLY] {
+   if (i->check(xsink))
+      return 0;
+
+   return i->getReferencedKeyValue(key->getBuffer(), xsink);
+}

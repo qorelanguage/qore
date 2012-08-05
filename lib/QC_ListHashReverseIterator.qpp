@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_HashListIterator.qpp HashListIterator class definition */
+/** @file QC_ListHashIterator.qpp ListHashIterator class definition */
 /*
   Qore Programming Language
 
@@ -21,51 +21,48 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreHashListIterator.h>
+#include <qore/intern/QoreListHashIterator.h>
 
 // internal reverse iterator class implementation only for the getName() function - the iterators remain
 // forwards and are used in the reverse sense by the Qore language class implementation below
-class QoreHashListReverseIterator : public QoreHashListIterator {
+class QoreListHashReverseIterator : public QoreListHashIterator {
 public:
-   DLLLOCAL QoreHashListReverseIterator(const QoreHashNode* n_h) : QoreHashListIterator(n_h) {
+   DLLLOCAL QoreListHashReverseIterator(const QoreListNode* n_l) : QoreListHashIterator(n_l) {
    }
 
    DLLLOCAL virtual const char* getName() const {
-      return "HashListReverseIterator";
+      return "ListHashReverseIterator";
    }
 };
 
-//! This class a reverse iterator class for hashes of lists as returned by Qore::SQL::Datasource::select() and Qore::SQL::DatasourcePool::select(), both of which return hashes with keys giving column names where the key values are lists of column values
-/** Like the Qore::HashListIterator class, this class can be used as a more flexible alternative to the @ref context "context statement",
-    except this class will iterate the result list in reverse order.
-
-    Call HashListReverseIterator::next() to iterate through the lists of column values assigned to each hash key in reverse order; do not use the iterator if HashListReverseIterator::next() returns @ref False.
-    A result list can be iterated in reverse order by calling HashListReverseIterator::prev() instead of HashListReverseIterator::next()
+//! This class a reverse iterator class for lists of hashes as returned by Qore::SQL::Datasource::selectRows() and Qore::SQL::DatasourcePool::selectRows(), both of which return hashes with keys giving column names where the key values are lists of column values
+/** Call ListHashReverseIterator::next() to iterate through the lists of column values assigned to each hash key in reverse order; do not use the iterator if ListHashReverseIterator::next() returns @ref False.
+    A result list can be iterated in reverse order by calling ListHashReverseIterator::prev() instead of ListHashReverseIterator::next()
 
     @note
-    - In general, the HashListReverseIterator class is not designed to be accessed from multiple threads; it was created without locking for
+    - In general, the ListHashReverseIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
       such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.
-    - HashListReverseIterator is functionally equivalent to HashListIterator, but the effect of HashListReverseIterator::next() and HashListReverseIterator::prev()
-      are the opposite of HashListIterator::next() and HashListIterator::prev(); that is HashListReverseIterator::next() will
-      iterate through the hash in reverse order, while HashListReverseIterator::prev() iterates in forward order.
-      Additionally the meanings of the return values for HashListReverseIterator::first() and HashListReverseIterator::last()
-      are swapped in respect to HashListIterator::first() and HashListIterator::last().
+    - ListHashReverseIterator is functionally equivalent to ListHashIterator, but the effect of ListHashReverseIterator::next() and ListHashReverseIterator::prev()
+      are the opposite of ListHashIterator::next() and ListHashIterator::prev(); that is ListHashReverseIterator::next() will
+      iterate through the hash in reverse order, while ListHashReverseIterator::prev() iterates in forward order.
+      Additionally the meanings of the return values for ListHashReverseIterator::first() and ListHashReverseIterator::last()
+      are swapped in respect to ListHashIterator::first() and ListHashIterator::last().
 
-    @see HashListIterator
+    @see ListHashIterator
  */
-qclass HashListReverseIterator [arg=QoreHashListIterator* i; ns=Qore; vparent=HashListIterator];
+qclass ListHashReverseIterator [arg=QoreListHashIterator* i; ns=Qore; vparent=ListHashIterator];
 
-//! Creates the hash list iterator object
-/** @param h the hash of lists to iterate
+//! Creates the list hash iterator object
+/** @param l the list of hashes to iterate
 
     @par Example:
     @code
-my HashListIterator $i($h);
+my ListHashIterator $i($l);
     @endcode
  */
-HashListReverseIterator::constructor(hash h) {
-   self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator(h));
+ListHashReverseIterator::constructor(list l) {
+   self->setPrivate(CID_LISTHASHREVERSEITERATOR, new QoreListHashReverseIterator(l));
 }
 
 //! Moves the current position to the next element in the result list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the list if the list is not empty
@@ -83,7 +80,7 @@ while ($i.next()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
-bool HashListReverseIterator::next() {
+bool ListHashReverseIterator::next() {
    if (i->check(xsink))
       return false;
    return i->prev();
@@ -104,14 +101,14 @@ while ($i.prev()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
-bool HashListReverseIterator::prev() {
+bool ListHashReverseIterator::prev() {
    if (i->check(xsink))
       return false;
    return i->next();
 }
 
-//! returns @ref True if on the first element being iterated in the list (ie the last element in the list)
-/** @return @ref True if on the first element being iterated in the list (ie the last element in the list)
+//! returns @ref True if on the first element being iterated (ie the last element in the list)
+/** @return @ref True if on the first element being iterated (ie the last element in the list)
 
     @par Example:
     @code
@@ -121,12 +118,12 @@ while ($i.next()) {
 }
     @endcode
  */
-bool HashListReverseIterator::first() [flags=CONSTANT] {
+bool ListHashReverseIterator::first() [flags=CONSTANT] {
    return i->last();
 }
 
-//! returns @ref True if on the last element being iterated in the list (ie the first element in the list)
-/** @return @ref True if on the last element being iterated in the list (ie the first element in the list)
+//! returns @ref True if on the last element being iterated (ie the first element in the list)
+/** @return @ref True if on the last element being iterated (ie the first element in the list)
 
     @par Example:
     @code
@@ -136,7 +133,7 @@ while ($i.next()) {
 }
     @endcode
  */
-bool HashListReverseIterator::last() [flags=CONSTANT] {
+bool ListHashReverseIterator::last() [flags=CONSTANT] {
    return i->first();
 }
 
@@ -153,11 +150,11 @@ while ($i.next()) {
     @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
-    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element or the list being iterated does not contain a hash element at the current iterator position or the given hash key does not exist
 
-    @note equivalent to HashListIterator::getKeyValue() when called explicitly
+    @note equivalent to ListHashIterator::getKeyValue() when called explicitly
  */
-any HashListReverseIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
+any ListHashReverseIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
       return 0;
 

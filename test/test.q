@@ -1594,7 +1594,7 @@ sub context_tests() {
 
     my HashListIterator $qi($q);
     while ($qi.next()) {
-	test_value($qi.getRow(), ("name" : "david", "age" : 37), "context row");
+	test_value($qi.getRow(), ("name" : "david", "age" : 37), "HashListIterator::getRow()");
         test_value($qi.first(), True, "HashListIterator::first()");
         test_value($qi.last(), False, "HashListIterator::last()");
         test_value($qi.index(), 0, "HashListIterator::index()");
@@ -1605,12 +1605,38 @@ sub context_tests() {
 
     my HashListReverseIterator $rqi($q);
     while ($rqi.next()) {
-	test_value($rqi.getRow(), ("name" : "isabella", "age" : 1), "context row");
+	test_value($rqi.getRow(), ("name" : "isabella", "age" : 1), "HashListReverseIterator::getRow()");
         test_value($rqi.first(), True, "HashListReverseIterator::first()");
         test_value($rqi.last(), False, "HashListReverseIterator::last()");
         test_value($rqi.index(), 4, "HashListReverseIterator::index()");
         test_value($rqi.max(), 5, "HashListReverseIterator::max()");
         test_value($rqi.name, "isabella", "HashListReverseIterator::memberGate()");
+	break;
+    }
+
+    # convert the hash of lists to a list of hashes
+    $qi.set(-1);
+    my list $l = map $qi.getRow(), $qi;
+
+    my ListHashIterator $lqi($l);
+    while ($lqi.next()) {
+	test_value($lqi.getRow(), ("name" : "david", "age" : 37), "ListHashIterator::getRow()");
+        test_value($lqi.first(), True, "ListHashIterator::first()");
+        test_value($lqi.last(), False, "ListHashIterator::last()");
+        test_value($lqi.index(), 0, "ListHashIterator::index()");
+        test_value($lqi.max(), 5, "ListHashIterator::max()");
+        test_value($lqi.name, "david", "ListHashIterator::memberGate()");
+	break;
+    }
+
+    my ListHashReverseIterator $lrqi($l);
+    while ($lrqi.next()) {
+	test_value($lrqi.getRow(), ("name" : "isabella", "age" : 1), "ListHashReverseIterator::getRow()");
+        test_value($lrqi.first(), True, "ListHashReverseIterator::first()");
+        test_value($lrqi.last(), False, "ListHashReverseIterator::last()");
+        test_value($lrqi.index(), 4, "ListHashReverseIterator::index()");
+        test_value($lrqi.max(), 5, "ListHashReverseIterator::max()");
+        test_value($lrqi.name, "isabella", "ListHashReverseIterator::memberGate()");
 	break;
     }
 }

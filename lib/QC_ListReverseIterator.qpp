@@ -113,8 +113,8 @@ bool ListReverseIterator::prev() {
    return i->next();
 }
 
-//! returns @ref True if on the last element of the list (which is the first element to be iterated with this iterator)
-/** @return @ref True if on the last element of the list (which is the first element to be iterated with this iterator)
+//! returns @ref True if on the first element iterated with this iterator (ie the last element in the list)
+/** @return @ref True if on the first element iterated with this iterator (ie the last element in the list)
 
     @par Example:
     @code
@@ -128,8 +128,8 @@ bool ListReverseIterator::first() [flags=CONSTANT] {
    return i->last();
 }
 
-//! returns @ref True if on the first element of the list (which is the last element to be iterated with this iterator)
-/** @return @ref True if on the first element of the list (which is the last element to be iterated with this iterator)
+//! returns @ref True if on the last element iterated with this iterator (ie the first element in the list)
+/** @return @ref True if on the last element iterated with this iterator (ie the first element in the list)
 
     @par Example:
     @code
