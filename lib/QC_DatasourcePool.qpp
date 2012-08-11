@@ -310,6 +310,7 @@ any DatasourcePool::execRaw(string sql) {
 
 //! Executes an %SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)
 /** The return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
+    Alternatively, the HashListIterator class can be used to iterate the return value of this method.
 
     Additionally, this format is a more efficient format than that returned by the Datasource::selectRows() method, because the column names are not repeated for each row returned. Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of Datasource::selectRows().
 
@@ -326,7 +327,9 @@ any DatasourcePool::execRaw(string sql) {
 $query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
     @endcode
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions
+    @note
+    - See the documentation for the DBI driver being used for additional possible exceptions
+    - This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
  */
 any DatasourcePool::select(string sql, ...) {
    ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
@@ -362,6 +365,8 @@ any DatasourcePool::selectRow(string sql, ...) {
 //! Executes an %SQL select statement on the server and returns the result as a list (rows) of hashes (the column values)
 /** The return format of this method is not as memory efficient as that returned by the DatasourcePool::select() method, therefore for larger amounts of data, it is recommended to use DatasourcePool::select().
 
+    The usual return value of this method can be iterated with the ListHashIterator class.
+
     This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
@@ -386,7 +391,10 @@ any DatasourcePool::selectRows(string sql, ...) {
 }
 
 //! Executes a select statement on the server and returns the results in a hash (column names) of lists (column values per row), taking a list for all bind arguments
-/** This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+/** The return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
+    Alternatively, the HashListIterator class can be used to iterate the return value of this method.
+
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
 
@@ -400,7 +408,9 @@ any DatasourcePool::selectRows(string sql, ...) {
 my *hash $query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);
     @endcode
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions    
+    @note
+    - See the documentation for the DBI driver being used for additional possible exceptions
+    - This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
 
     @see DatasourcePool::select()
  */
@@ -436,9 +446,11 @@ any DatasourcePool::vselectRow(string sql, *softlist vargs) {
 //! Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments
 /** Same as the Datasource::selectRows() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters.
 
+    The usual return value of this method can be iterated with the ListHashIterator class.
+
     The return format of this method is not as memory efficient as that returned by the DatasourcePool::select() method, therefore for larger amounts of data, it is recommended to use DatasourcePool::select().
 
-   This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
 

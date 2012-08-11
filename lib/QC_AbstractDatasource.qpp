@@ -90,8 +90,9 @@ $db.execRaw("create table my_tab (id number, some_text varchar2(30))");
  */
 abstract any AbstractDatasource::execRaw(string sql);
 
-//! Executes an %SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)
-/** The return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
+//! Executes an %SQL select statement on the server and (normally) returns the result as a hash (column names) of lists (column values per row)
+/** The usual return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
+    Alternatively, the HashListIterator class can be used to iterate the return value of this method.
 
     Additionally, this format is a more efficient format than that returned by the AbstractDatasource::selectRows() method, because the column names are not repeated for each row returned. Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of AbstractDatasource::selectRows().
 
@@ -108,6 +109,8 @@ abstract any AbstractDatasource::execRaw(string sql);
 # bind a string and a date/time value by value in a query
 $query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
     @endcode
+
+    @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
  */
 abstract any AbstractDatasource::select(string sql, ...);
 
@@ -135,8 +138,9 @@ abstract any AbstractDatasource::selectRow(string sql, ...);
 
 //! Executes an %SQL select statement on the server and returns the result as a list (rows) of hashes (the column values)
 /** The return format of this method is not as memory efficient as that returned by the AbstractDatasource::select() method, therefore for larger amounts of data, it is recommended to use AbstractDatasource::select().
+    The usual return value of this method can be iterated with the ListHashIterator class.
 
-   This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
     this is particularly important when the object is shared among more than one thread.
@@ -152,11 +156,16 @@ my *list $list = $db.selectRows("select * from example_table");
     @endcode
 
     @see AbstractDatasource::select()
+
+    @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
  */
 abstract any AbstractDatasource::selectRows(string sql, ...);
 
 //! Executes a select statement on the server and returns the results in a hash (column names) of lists (column values per row), taking a list for all bind arguments
-/** This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+/** The usual return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
+    Alternatively, the HashListIterator class can be used to iterate the return value of this method.
+
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
     this is particularly important when the object is shared among more than one thread.
@@ -172,6 +181,8 @@ my *hash $query = $db.vselect("select * from example_table where id = %v and nam
     @endcode
 
     @see AbstractDatasource::select()
+
+    @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
  */
 abstract any AbstractDatasource::vselect(string sql, *softlist vargs);
 
@@ -200,6 +211,8 @@ abstract any AbstractDatasource::vselectRow(string sql, *softlist vargs);
 //! Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments
 /** Same as the AbstractDatasource::selectRows() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters.
 
+    The usual return value of this method can be iterated with the ListHashIterator class.
+
     The return format of this method is not as memory efficient as that returned by the AbstractDatasource::select() method, therefore for larger amounts of data, it is recommended to use AbstractDatasource::select().
 
     This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
@@ -218,6 +231,8 @@ my *list $list = $db.vselectRows("select * from example_table where id = %v and 
     @endcode
 
     @see AbstractDatasource::selectRows()
+
+    @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
  */
 abstract any AbstractDatasource::vselectRows(string sql, *softlist vargs);
 
