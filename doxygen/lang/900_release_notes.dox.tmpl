@@ -84,8 +84,10 @@ class MyAbstractInterface {
       - Qore::zzz8stringzzz9::toSHA256()
       - Qore::zzz8stringzzz9::toSHA384()
       - Qore::zzz8stringzzz9::toSHA512()
-    - added the <a href="http://code.google.com/p/xxhash/">xxhash FAST algorithm</a> with unordered_map to %Qore resuling in nearly 2x haster hash lookups
+    - added the <a href="http://code.google.com/p/xxhash/">xxhash FAST algorithm</a> with unordered_map to %Qore on supported platforms resuling in nearly 2x haster hash lookups
     - added the Qore::File::isOpen() method
+    - added the Qore::call_pseudo() function to explicitly call a pseudo method on a value
+    - added Qore::TypeCodeMap and Qore::TypeNameMap to lookup type codes from type names and vice versa
 
     @subsection qore_085_bug_fixes Bug Fixes in Qore
     - fixed format_date() output for \c "MON" and \c "DAY", etc
@@ -94,6 +96,7 @@ class MyAbstractInterface {
     - tagged digest and crypto functions internally as @ref RET_VALUE_ONLY
     - do not kill TID 1 (the initial / main thread) when calling exit() in background threads as a crash can result with some 3rd party libraries that spawn their own threads on some platforms (observed on Darwin & Solaris 10 at least)
     - fixed a memory bug in the new builtin function API used by modules built with qpp
+    - fixed memory bugs in the type system where uninitialized type pointers could be used causing a crash
     - fixed a build bug that caused qore to be built twice
 
     <hr>

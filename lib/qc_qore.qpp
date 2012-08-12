@@ -74,6 +74,46 @@ const NT_CLOSURE = NT_RUNTIME_CLOSURE;
 const NT_CALLREF = NT_FUNCREF;
 //@}
 
+/** @defgroup type_code_map_constants Type Code Map Constants
+    Type code map constants to look up type codes (as returned by <value>::typeCode()) from type
+    names (as returned by <value>::type()) and vice-versa.
+*/
+//@{
+//! type code map, looks up type names from type code values
+const TypeCodeMap = (
+      "0": "nothing",
+      "1": "integer",
+      "2": "float",
+      "3": "string",
+      "4": "date",
+      "5": "bool",
+      "6": "NULL",
+      "7": "binary",
+      "8": "list",
+      "9": "hash",
+      "10": "object",
+      "29": "call reference",
+      "32": "closure",
+      );
+
+//! type name map, looks up type codes from type names
+const TypeNameMap = (
+      "nothing": NT_NOTHING,
+      "integer": NT_INT,
+      "float": NT_FLOAT,
+      "string": NT_STRING,
+      "date": NT_DATE,
+      "bool": NT_BOOLEAN,
+      "NULL": NT_NULL,
+      "binary": NT_BINARY,
+      "list": NT_LIST,
+      "hash": NT_HASH,
+      "object": NT_OBJECT,
+      "call reference": NT_FUNCREF,
+      "closure": NT_RUNTIME_CLOSURE,
+      );
+//@}
+
 /** @defgroup boolean_constants Boolean Constants
  */
 //@{
