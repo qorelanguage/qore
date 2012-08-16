@@ -357,7 +357,9 @@ list <string>::split(string sep, bool with_separator = False) [flags=RET_VALUE_O
 }
 
 //! Splits a string into a list of components based on a separator string and a quote character
-/** The quote character can appear as the first part of a field, in which case it is assumed to designate the entire field. If instances of the quote character are found in the field preceded by a backquote character (\c "\"), then these quote characters are included as part of the field's text and not treated as quote characters
+/** The quote character can appear as the first part of a field, in which case it is assumed to designate the entire field. If instances of the quote character are found in the field preceded by a backquote character (\c "\"), then these quote characters are included as part of the field's text and not treated as quote characters.
+    Also the separator character can appear as a part of a field with this variant.
+    This variant is useful for parsing CSV files, for example.
 
     @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned'; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
     @param quote the quote character
@@ -366,7 +368,7 @@ list <string>::split(string sep, bool with_separator = False) [flags=RET_VALUE_O
 
     @par Example:
     @code
-my list $list = "some,'text with spaces',here".split(",", "'"); # returns ("some", "text with spaces", "here")
+my list $list = "some,'text with spaces, and commas, here is another one! ,',here".split(",", "'"); # returns ("some", ", and commas, here is another one! ,", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion

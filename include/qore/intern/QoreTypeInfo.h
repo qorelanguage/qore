@@ -111,15 +111,30 @@ protected:
 
       return matchClassIntern(n_qc);
    }
-   
-   DLLLOCAL qore_type_result_e parseAcceptsType(qore_type_t t, bool n_is_int) const { 
+
+   DLLLOCAL qore_type_result_e parseAcceptsType(qore_type_t t, bool n_is_int) const {
+      // set to true because value is ignored and can short-circuit logic in parseAcceptsMult() if called
+      bool may_not_match = true;
+      return parseAcceptsType(t, n_is_int, may_not_match);
+   }
+
+   DLLLOCAL qore_type_result_e parseAcceptsType(qore_type_t t, bool n_is_int, bool& may_not_match) const {
+      //printd(5, "QoreTypeInfo::parseAcceptsType() this: %p %s t: %d accepts_mult: %d\n", this, getName(), t, accepts_mult);
+
       if (!hasType() || accepts_all)
          return QTI_AMBIGUOUS;
 
       if (accepts_mult)
-	 return parseAcceptsTypeMult(t, n_is_int);
+	 return parseAcceptsTypeMult(t, n_is_int, may_not_match);
 
-      return matchTypeIntern(t, n_is_int);
+      qore_type_result_e rc = matchTypeIntern(t, n_is_int);
+      if (rc == QTI_IDENT && qc) {
+         rc = QTI_AMBIGUOUS;
+         if (!may_not_match)
+            may_not_match = true;
+      }
+      //printd(5, "QoreTypeInfo::parseAcceptsType() this: %p %s t: %d rc: %d may_not_match: %d\n", this, getName(), t, rc, may_not_match);
+      return rc;
    }
 
    DLLLOCAL qore_type_result_e runtimeAcceptsClass(const QoreClass *n_qc) const {
@@ -168,22 +183,34 @@ protected:
       return matchClassIntern(n_qc);
    }
 
-   DLLLOCAL qore_type_result_e parseAcceptsTypeMult(qore_type_t t, bool n_is_int) const {
+   DLLLOCAL qore_type_result_e parseAcceptsTypeMult(qore_type_t t, bool n_is_int, bool& may_not_match) const {
       if (!returns_mult) {
          qore_type_result_e rc = matchTypeIntern(t, n_is_int);
-         if (rc)
+         if (rc) {
+            if (rc == QTI_IDENT && qc) {
+               rc = QTI_AMBIGUOUS;
+               if (!may_not_match)
+                  may_not_match = true;
+            }
             return rc;
+         }
       }
 
       const type_vec_t &at = getAcceptTypeList();
 
       for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
-	 if ((*i)->parseAcceptsType(t, n_is_int))
+	 if ((*i)->parseAcceptsType(t, n_is_int, may_not_match))
 	    return QTI_AMBIGUOUS;
       }
 
       // now check fundamental type
-      return matchTypeIntern(t, n_is_int);
+      qore_type_result_e rc = matchTypeIntern(t, n_is_int);
+      if (rc == QTI_IDENT) {
+         rc = QTI_AMBIGUOUS;
+         if (qc && !may_not_match)
+            may_not_match = true;
+      }
+      return rc;
    }
 
    DLLLOCAL qore_type_result_e parseAcceptsClassMult(const QoreClass *n_qc) const {
@@ -216,11 +243,17 @@ protected:
       return runtimeMatchClassIntern(n_qc);
    }
 
-   DLLLOCAL qore_type_result_e parseAcceptsBasic(const QoreTypeInfo *typeInfo) const {
-      if (typeInfo->reverse_logic)
-         return parseAcceptsType(typeInfo->qt, typeInfo->is_int) ? QTI_NOT_EQUAL : QTI_AMBIGUOUS;
+   DLLLOCAL qore_type_result_e parseAcceptsBasic(const QoreTypeInfo *typeInfo, bool& may_not_match) const {
+      if (typeInfo->reverse_logic) {
+         // use a temporary "may not match" value
+         bool mnm = true;
+         return parseAcceptsType(typeInfo->qt, typeInfo->is_int, mnm) ? QTI_NOT_EQUAL : QTI_AMBIGUOUS;
+      }
 
-      return typeInfo->qc ? parseAcceptsClass(typeInfo->qc) : parseAcceptsType(typeInfo->qt, typeInfo->is_int);
+      if (typeInfo->qc)
+         return parseAcceptsClass(typeInfo->qc);
+
+      return parseAcceptsType(typeInfo->qt, typeInfo->is_int, may_not_match);
    }
 
    DLLLOCAL static bool parseAcceptsMultHelper(bool val, qore_type_result_e &rc, bool &may_not_match) {
@@ -250,20 +283,20 @@ protected:
                return rc;
 	 }
          // now check basic return type
-         if (parseAcceptsMultHelper((*i)->parseAcceptsBasic(typeInfo), rc, may_not_match))
+         if (parseAcceptsMultHelper((*i)->parseAcceptsBasic(typeInfo, may_not_match), rc, may_not_match))
             return rc;
       }
 
       // now check basic accept type against all return types
       for (type_vec_t::const_iterator j = rt.begin(), je = rt.end(); j != je; ++j) {
-         if (parseAcceptsMultHelper(parseAcceptsBasic(*j), rc, may_not_match))
+         if (parseAcceptsMultHelper(parseAcceptsBasic(*j, may_not_match), rc, may_not_match))
             return rc;
 
          //printd(0, "QoreTypeInfo::parseAcceptsMult() this=%p (%s) accepts %p (%s) testing may_not_match=%d rc=%d accepts %p (%s) = %d\n", this, getName(), typeInfo, typeInfo->getName(), may_not_match, rc, *j, (*j)->getName(), parseAcceptsBasic(*j));
       }
 
       // now check basic accept type against basic return types
-      parseAcceptsMultHelper(parseAcceptsBasic(typeInfo), rc, may_not_match);
+      parseAcceptsMultHelper(parseAcceptsBasic(typeInfo, may_not_match), rc, may_not_match);
       return rc;
    }
 
@@ -590,7 +623,7 @@ public:
 	 return parseAcceptsMult(typeInfo, may_not_match);
       }
 
-      return parseAcceptsBasic(typeInfo);
+      return parseAcceptsBasic(typeInfo, may_not_match);
    }
 
    DLLLOCAL const QoreClass *getUniqueReturnClass() const {

@@ -801,7 +801,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const type_vec
    const AbstractQoreFunctionVariant* pvariant = 0;
    unsigned num_args = argTypeInfo.size();
 
-   printd(5, "QoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
+   //printd(5, "QoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
 
    QoreFunction* aqf = 0;
    
@@ -1111,7 +1111,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const type_vec
 	 warn_excess_args(this, argTypeInfo, sig);
    }
 
-   printd(5, "QoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
+   //printd(5, "QoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
    return variant;
 }
 
@@ -1190,7 +1190,7 @@ void QoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant* variant) {
       if (tp != sig->numParams())
 	 continue;
       if (!tp) {
-	 printd(0, "BuiltinFunctionBase::addBuiltinVariant() this=%p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
+         printd(0, "BuiltinFunctionBase::addBuiltinVariant() this=%p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
 	 assert(false);
       }
       bool ok = false;
