@@ -103,13 +103,15 @@ public:
 
    // searches to marker and then jumps to global thread-local variables
    DLLLOCAL VNode* nextSearch() const {
+      //printd(5, "VNode::nextSearch() next->lvar: %p top_level: %d\n", next ? next->lvar : 0, top_level);
+
       if ((next && next->lvar) || top_level)
 	 return !next || next->lvar ? next : 0;
 
       // skip to global thread-local variables
       VNode* rv = get_global_vnode();
       assert(!rv || rv->lvar);
-      //printd(5, "VNode::nextSearch() returning global VNode %p\n", rv);
+      //printd(5, "VNode::nextSearch() returning global VNode %p '%s'\n", rv, rv ? rv->getName() : "n/a");
       return rv;
    }
 };
@@ -317,6 +319,8 @@ LocalVar *find_local_var(const char *name, bool &in_closure) {
       }
       vnode = vnode->nextSearch();
    }
+
+   //printd(5, "find_local_var('%s' %p) returning 0 NOT FOUND\n", name, name);
    return 0;
 }
 
@@ -454,7 +458,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    if (!first && lvars) {
       // push already-registered local variables on the stack
       for (unsigned i = 0; i < lvars->size(); ++i)
-	 push_top_level_local_var(lvars->lv[i]);
+         push_top_level_local_var(lvars->lv[i]);
    }
 
    // resolve global variables before initializing the top-level statements
@@ -469,11 +473,6 @@ void TopLevelStatementBlock::parseInit(int64 po) {
       for (int i = 0; i < lvids; ++i)
 	 pop_local_var();
    }
-
-   // save local variable position for searches
-   //VNode* vn = getVStack();
-   //printd(5, "TopLevelStatementBlock::parseInit() saving global vnode=%p\n", vn);
-   //save_global_vnode(vn);
    
    // now initialize root namespace and functions before local variables are popped off the stack
    qore_root_ns_private::parseInit();
