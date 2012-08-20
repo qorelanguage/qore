@@ -43,7 +43,11 @@ protected:
    }
 
    DLLLOCAL AbstractQoreNode* getReferencedValueIntern(const AbstractQoreNode* n, const char* key, ExceptionSink* xsink) const {
-      if (get_node_type(n) != NT_LIST) {
+      qore_type_t t = get_node_type(n);
+      if (t == NT_NOTHING)
+         return 0;
+
+      if (t != NT_LIST) {
          xsink->raiseException("HASHLISTITERATOR-ERROR", "hash key '%s' is assigned to type '%s'; expecting 'list'", key, get_type_name(n));
          return 0;
       }
@@ -68,10 +72,14 @@ public:
       limit = (qore_offset_t)reinterpret_cast<const QoreListNode*>(n)->size();
    }
 
+   DLLLOCAL QoreHashListIterator() : h(0), i(-1), limit(0) {
+   }
+
    using QoreIteratorBase::deref;
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {
-         h->deref(xsink);
+         if (h)
+            h->deref(xsink);
          delete this;
       }
    }

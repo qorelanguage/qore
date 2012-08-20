@@ -30,6 +30,9 @@ public:
    DLLLOCAL QoreHashReverseIterator(const QoreHashNode* h) : QoreHashIterator(h) {
    }
 
+   DLLLOCAL QoreHashReverseIterator() {
+   }
+
    DLLLOCAL virtual const char* getName() const {
       return "HashReverseIterator";
    }
@@ -63,6 +66,17 @@ my HashReverseIterator $hi($h);
  */
 HashReverseIterator::constructor(hash h) {
    self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator(h));
+}
+
+//! Creates an empty iterator object
+/** @par Example:
+    @code
+my *hash $h = get_hash_or_nothing();
+my HashReverseIterator $hi($h);
+    @endcode
+ */
+HashReverseIterator::constructor() {
+   self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator);
 }
 
 //! Moves the current position to the previous element in the hash; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the last element in the hash if the hash is not empty

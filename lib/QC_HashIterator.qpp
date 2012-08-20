@@ -48,6 +48,17 @@ HashIterator::constructor(hash h) {
    self->setPrivate(CID_HASHITERATOR, new QoreHashIterator(h));
 }
 
+//! Creates an empty hash iterator object
+/** @par Example:
+    @code
+my *hash $h = get_hash_or_nothing();
+my HashIterator $hi($h);
+    @endcode
+ */
+HashIterator::constructor() {
+   self->setPrivate(CID_HASHITERATOR, new QoreHashIterator);
+}
+
 //! Moves the current position to the next element in the hash; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the hash if the hash is not empty
 /** This method will return @ref True again after it returns @ref False once if hash is not empty, otherwise it will always return @ref False.
     The iterator object should not be used after this method returns @ref False

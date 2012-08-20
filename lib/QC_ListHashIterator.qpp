@@ -43,8 +43,10 @@ qclass ListHashIterator [arg=QoreListHashIterator* i; ns=Qore; vparent=AbstractQ
     @code
 my ListHashIterator $i($l);
     @endcode
+
+    @note the constructor's argument is @ref softlist_type "softlist" so that it can also accept @ref nothing
  */
-ListHashIterator::constructor(list l) {
+ListHashIterator::constructor(softlist l) {
    self->setPrivate(CID_LISTHASHITERATOR, new QoreListHashIterator(l));
 }
 

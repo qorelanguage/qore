@@ -30,6 +30,9 @@ public:
    DLLLOCAL QoreHashListReverseIterator(const QoreHashNode* n_h) : QoreHashListIterator(n_h) {
    }
 
+   DLLLOCAL QoreHashListReverseIterator() {
+   }
+
    DLLLOCAL virtual const char* getName() const {
       return "HashListReverseIterator";
    }
@@ -61,11 +64,22 @@ qclass HashListReverseIterator [arg=QoreHashListIterator* i; ns=Qore; vparent=Ha
 
     @par Example:
     @code
-my HashListIterator $i($h);
+my HashListReverseIterator $i($h);
     @endcode
  */
 HashListReverseIterator::constructor(hash h) {
    self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator(h));
+}
+
+//! Creates an empty hash list iterator object
+/** @par Example:
+    @code
+my *hash $q = $ds.select("select * from some_table");
+my HashListReverseIterator $i($q);
+    @endcode
+ */
+HashListReverseIterator::constructor() {
+   self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator);
 }
 
 //! Moves the current position to the next element in the result list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the list if the list is not empty
@@ -154,6 +168,7 @@ while ($i.next()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw HASHLISTITERATOR-ERROR the hash key given has a value that is not a list
 
     @note equivalent to HashListIterator::getKeyValue() when called explicitly
  */

@@ -44,8 +44,10 @@ class pop3 {
             "help": "h,help",
             "user": "u,user=s",
             "pass": "p,pass=s",
+	    "noquit": "N,no-quit",
 	    "svr": "s,server=s",
             "ssl": "S,ssl",
+	    "starttls": "T,starttls",
 	    "verbose": "v,verbose",
             );
 
@@ -79,6 +81,10 @@ class pop3 {
 	try {
 	    string url = sprintf("pop3%s://%s:%s@%s", opt.ssl ? "s" : "", opt.user, opt.pass, opt.svr);
 	    Pop3Client pop3(url, \log(), opt.verbose ? \log() : NOTHING);
+	    if (opt.noquit)
+		pop3.noquit(True);
+	    if (opt.starttls)
+		pop3.starttls(True);
 	    *hash h = pop3.getMail();
 	    foreach string k in (keys h) {
 		Message msg = h{k}.msg;
@@ -149,13 +155,16 @@ class pop3 {
         printf("usage: %s [options]\n"
                "  -u, -p, and -s are required arguments\n"
                "options:\n"
-	       " -d,--delete       remove messages on the server\n"
+	       " -d,--delete       remove messages on the server (none are deleted by default)\n"
                " -h,--help         this help text\n"
+	       " -N,--no-quit      do not send a QUIT message (ex: keeps gmail from marking\n"
+	       "                   messages as viewed)\n"
                " -p,--pass=ARG     password for the POP3 mailbox\n"
 	       " -s,--server=ARG   the POP3 server for the connection; include a port number if\n"
 	       "                   not connecting from the default port (%d) like:\n"
 	       "                   ex: \"-s=pop3.com:1110\"\n"
                " -S,--ssl          use a TLS/SSL connection to the POP3 server\n"
+	       " -T,--starttls     issue the STARTTLS command after an unencrypted connection\n"
                " -u,--user=ARG     username for the POP3 mailbox\n"
 	       " -v,--verbose      show detailed technical information\n",
                get_script_name(), Pop3Client::POP3Port);

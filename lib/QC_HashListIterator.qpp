@@ -50,6 +50,17 @@ HashListIterator::constructor(hash h) {
    self->setPrivate(CID_HASHLISTITERATOR, new QoreHashListIterator(h));
 }
 
+//! Creates an empty hash list iterator object
+/** @par Example:
+    @code
+my *hash $q = $ds.select("select * from some_table");
+my HashListIterator $i($q);
+    @endcode
+ */
+HashListIterator::constructor() {
+   self->setPrivate(CID_HASHLISTITERATOR, new QoreHashListIterator);
+}
+
 //! Moves the current position to the next element in the result list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the list if the list is not empty
 /** This method will return @ref True again after it returns @ref False once if list is not empty, otherwise it will always return @ref False.
     The iterator object should not be used after this method returns @ref False
@@ -151,6 +162,7 @@ while ($i.next()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw HASHLISTITERATOR-ERROR the one of the hash keys has a value that is not a list
  */
 any HashListIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
@@ -172,6 +184,7 @@ while ($i.next()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw HASHLISTITERATOR-ERROR the one of the hash keys has a value that is not a list
  */
 hash HashListIterator::getRow() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
@@ -240,6 +253,7 @@ while ($i.next()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw HASHLISTITERATOR-ERROR the hash key given has a value that is not a list
 
     @note equivalent to HashListIterator::getKeyValue() when called explicitly
  */
@@ -264,6 +278,7 @@ while ($i.next()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw HASHLISTITERATOR-ERROR the hash key given has a value that is not a list
 
     @note HashListIterator::memberGate() allows for the iterator to act as if it is a hash with members equal to the current row being iterated
  */

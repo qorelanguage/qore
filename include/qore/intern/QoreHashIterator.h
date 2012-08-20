@@ -43,10 +43,14 @@ public:
    DLLLOCAL QoreHashIterator(const QoreHashNode* h) : ConstHashIterator(h->hashRefSelf()) {
    }
 
+   DLLLOCAL QoreHashIterator() : ConstHashIterator(0) {
+   }
+
    using QoreIteratorBase::deref;
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {
-         const_cast<QoreHashNode*>(h)->deref(xsink);
+         if (h)
+            const_cast<QoreHashNode*>(h)->deref(xsink);
          delete this;
       }
    }
@@ -61,6 +65,22 @@ public:
       if (checkPtr(xsink))
          return 0;
       return new QoreStringNode(ConstHashIterator::getKey());
+   }
+
+   DLLLOCAL bool empty() const {
+      return !h || h->empty();
+   }
+
+   DLLLOCAL bool next() {
+      if (!h)
+         return false;
+      return ConstHashIterator::next();
+   }
+
+   DLLLOCAL bool prev() {
+      if (!h)
+         return false;
+      return ConstHashIterator::prev();
    }
 
    DLLLOCAL virtual const char* getName() const { return "HashIterator"; }

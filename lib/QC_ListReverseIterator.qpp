@@ -60,8 +60,10 @@ qclass ListReverseIterator [arg=QoreListReverseIterator* i; ns=Qore; vparent=Lis
     @code
 my ListReverseIterator $li($l);
     @endcode
+
+    @note the constructor's argument is @ref softlist_type "softlist" so that it can also accept @ref nothing
  */
-ListReverseIterator::constructor(list l) {
+ListReverseIterator::constructor(softlist l) {
    self->setPrivate(CID_LISTREVERSEITERATOR, new QoreListReverseIterator(l));
 }
 

@@ -681,7 +681,7 @@ doxygen/qlib/TelnetClient.qm.dox.h: qlib/TelnetClient.qm $(QDX)
 	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.SmtpClient: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
-	$(QDX) -M=qlib/SmtpClient.qm:doxygen/qlib/SmtpClient.qm.dox.h -tMime.tag=../../Mime/html $< $@
+	$(QDX) -M=qlib/SmtpClient.qm:doxygen/qlib/SmtpClient.qm.dox.h -tMime.tag=../../Mime/html -tMailMessage.tag=../../MailMessage/html $< $@
 
 doxygen/qlib/SmtpClient.qm.dox.h: qlib/SmtpClient.qm $(QDX)
 	$(QDX) $< $@
@@ -693,7 +693,7 @@ doxygen/qlib/MailMessage.qm.dox.h: qlib/MailMessage.qm $(QDX)
 	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.Pop3Client: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
-	$(QDX) -M=qlib/Pop3Client.qm:doxygen/qlib/Pop3Client.qm.dox.h -tMime.tag=../../Mime/html $< $@
+	$(QDX) -M=qlib/Pop3Client.qm:doxygen/qlib/Pop3Client.qm.dox.h -tMime.tag=../../Mime/html -tMailMessage.tag=../../MailMessage/html $< $@
 
 doxygen/qlib/Pop3Client.qm.dox.h: qlib/Pop3Client.qm $(QDX)
 	$(QDX) $< $@
