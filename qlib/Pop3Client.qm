@@ -80,8 +80,8 @@ public namespace Pop3Client {
         This class supports automatic recognition and use of APOP authentication (<a href="http://tools.ietf.org/html/rfc1939#page-15">RFC-1939 p15</a>) if an RFC822-compliant msg-id is included in the last part of the login string sent by the POP3 server when connecting.
 
         Encrypted connections to POP3 servers are also supported in the following ways:
-        - to connect immediately with a TLS/SSL connection, use the \c "pop3s" protocol (URI scheme) in the URL, or set the TLS/SSL flag manually by calling Pop3Client::tls(bool).
-        - to connect with an unencrypted connection and then upgrade to an encrypted connection using the \c "STLS" command, set the \c "starttls" flag by calling Pop3Client::starttls(bool)        
+        - to connect immediately with a TLS/SSL connection, use the \c "pop3s" protocol (URI scheme) in the URL, or set the TLS/SSL flag manually by calling @ref Pop3Client::Pop3Client::tls(bool) "Pop3Client::tls(bool)".
+        - to connect with an unencrypted connection and then upgrade to an encrypted connection using the \c "STLS" command, set the \c "starttls" flag by calling @ref Pop3Client::Pop3Client::starttls(bool) "Pop3Client::starttls(bool)"        
      */
     public class Pop3Client {
         #! @cond nodoc
@@ -145,7 +145,7 @@ public namespace Pop3Client {
             - \c "pop3": non-encrypted POP3 connections
             - \c "pop3s": encrypted POP3 connections
             .
-            If no protocol (URI scheme) is given in the URL (ex: \c "pop.gmail.com") then \c "pop3" is assumed; if no port is given, then either POP3Port (for \c "pop3") or POP3SPort (for \c "pop3s") is as the default port number depending on the protocol.
+            If no protocol (URI scheme) is given in the URL (ex: \c "pop.gmail.com") then \c "pop3" is assumed; if no port is given, then either @ref POP3Port (for \c "pop3") or @ref POP3SPort (for \c "pop3s") is as the default port number depending on the protocol.
 
 	    @param log an optional closure or call reference for log messages
 	    @param dbglog an optional closure or call reference for debugging/technical log messages
