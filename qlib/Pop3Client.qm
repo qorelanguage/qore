@@ -72,7 +72,7 @@ public namespace Pop3Client {
     public const DefaultConnectTimeout = 30s;
 
     #! this class provides the interface to <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> servers and supports optional TLS/SSL encryption
-    /** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and its internal configuration, 
+    /** This class uses a Mutex lock in each Pop3Client object to ensure thread serialization to the underlying socket and its internal configuration, 
         so it is safe to access in a multithreaded context.
      */
     public class Pop3Client {
