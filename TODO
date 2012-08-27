@@ -37,7 +37,6 @@
   hash
 * implement split operator taking regular expression
 * add support for ranges [2..9]
-* add context functions
 * track include files, make sure they are only included once
 * have QoreStringNode::getAsString() return a standard empty string ("") when
   possible (also should not be reference counted)
@@ -53,6 +52,7 @@
 * implement GZFile and BZFile classes
 
 done 0.8.4:
+* add context functions
 * implement common initialization for global thead-local variables in all
   threads 
 * implement optimized foreach statement for hash key iteration

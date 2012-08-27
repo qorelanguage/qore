@@ -35,7 +35,6 @@
 #include <qore/intern/glob.h>
 #endif
 
-
 bool check_stat(unsigned code, const QoreStringNode* path) {
    struct stat sbuf;
    int rc;
@@ -428,7 +427,7 @@ nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
 
    int rc = rename(old_path->getBuffer(), new_path->getBuffer());
    if (rc)
-      xsink->raiseException("RENAME-ERROR", q_strerror(errno));
+      xsink->raiseErrnoException("RENAME-ERROR", errno, "rename('%s', '%s') failed", old_path->getBuffer(), new_path->getBuffer());
 
    return 0;
 }
@@ -886,7 +885,7 @@ string readlink(string path) [dom=FILESYSTEM] {
    char buf[QORE_PATH_MAX + 1];
    qore_offset_t len = readlink(path->getBuffer(), buf, QORE_PATH_MAX);
    if (len < 0) {
-      xsink->raiseErrnoException("READLINK-ERROR", errno, path->getBuffer());
+      xsink->raiseErrnoException("READLINK-ERROR", errno, "readlink('%s') failed", path->getBuffer());
       return 0;
    }
    assert(len <= QORE_PATH_MAX);
@@ -894,6 +893,49 @@ string readlink(string path) [dom=FILESYSTEM] {
    return new QoreStringNode(buf);
 #else
    missing_function_error("readlink", "UNIX_FILEMGT", xsink);
+   return 0;
+#endif
+}
+
+//! Creates a symbolic link to a directory path. Note that for this call to function properly, the %Qore process must have sufficient permissions and access to the given filesystem path to create the symbolic link
+/** @par Platform Availability:
+    Qore::Option::HAVE_UNIX_FILEMGT
+
+    This function does not return any value; if any errors occur, an exception is thrown.
+    If the target of the symbolic link does not exist, it is not an error; the symbolic link is created anyway.
+
+    @param old_path The original path; the target of the link
+    @param new_path The path to the location of the new symbolic link to be created with this function call
+
+    @par Example:
+    @code
+symlink("/tmp/temporary-dir", "/users/oracle/install");
+    @endcode
+
+    @throw SYMLINK-ERROR empty string passed for one of the arguments or the operating system returned an error
+
+    @since %Qore 0.8.5
+ */
+nothing symlink(string old_path, string new_path) [dom=FILESYSTEM] {
+#ifdef HAVE_SYMLINK
+   if (old_path->empty()) {
+      xsink->raiseException("SYMLINK-ERROR", "empty path to current file name given as first argument");
+      return 0;
+   }
+
+   // new file name
+   if (new_path->empty()) {
+      xsink->raiseException("SYMLINK-ERROR", "empty new file path given as second argument");
+      return 0;
+   }
+
+   int rc = symlink(old_path->getBuffer(), new_path->getBuffer());
+   if (rc)
+      xsink->raiseErrnoException("SYMLINK-ERROR", errno, "symlink('%s', '%s') failed", old_path->getBuffer(), new_path->getBuffer());
+
+   return 0;
+#else
+   missing_function_error("symlink", "UNIX_FILEMGT", xsink);
    return 0;
 #endif
 }
