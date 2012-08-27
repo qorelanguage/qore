@@ -660,7 +660,10 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 lib/libqore.la: dummy
 	cd lib; make
 
+if COND_MINGWCC
+else
 $(QDX): qore
+endif
 
 doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
 	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html $< $@
