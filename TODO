@@ -4,7 +4,6 @@
   (currently is alphabetic)
 * make it so that a call ref/closure can be imported as a function in a
   Program
-* implement a way to tell if signal handling is enabled or not from qore code
 * implement warning for the case when an unquoted hash or object key is also a
   constant
 * implement support for implicit typing in the parser
@@ -14,20 +13,15 @@
   (join)
 * cover case when multiple types could be returned (? : operator, functions,
   etc)
-* implement pseudo-methods to run on lists, hashes, and strings as if they
-  were classes (ex: <hash>.lastKey(), etc)
 * fix memory leaks caused by circular references
 * implement support for specifying base class methods like this:
   $exp.Base::method()
-* implement support for universal references - removed checking for passing a
-  reference to user code with declared param
 * implement a new C++ API for adding functions internally, check
   BuiltinFunctionList::add*() for duplicates when used by modules
 * fix %n and %N to not output private members when called outside the class
 * fix parse directives to ignore comments after them
 * make sure exit() will exit - may need to interrupt threads (ex: thread
   waiting on accept() will not exit)
-* document Datasource::getAutoCommit()
 * fix crash on exit() with running threads on Darwin <- CANNOT REPRODUCE
 * optimize object method calls from the same object to avoid the reference and
   dereference
@@ -50,6 +44,15 @@
 * add error code to exceptions for XML-RPC fault reporting
 * allow customizable QORE_INCLUDE_DIR searches
 * implement GZFile and BZFile classes
+
+done 0.8.5:
+* implement pseudo-methods to run on lists, hashes, and strings as if they
+  were classes (ex: <hash>.lastKey(), etc)
+* add context functions
+* implement support for universal references - removed checking for passing a
+  reference to user code with declared param
+* document Datasource::getAutoCommit()
+* implement a way to tell if signal handling is enabled or not from qore code
 
 done 0.8.4:
 * add context functions
