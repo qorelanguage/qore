@@ -77,6 +77,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_SSLCertificate.qpp \
 	lib/QC_SSLPrivateKey.qpp \
 	lib/Pseudo_QC_All.qpp \
+	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
 	lib/Pseudo_QC_Object.qpp \
 	lib/Pseudo_QC_Hash.qpp \

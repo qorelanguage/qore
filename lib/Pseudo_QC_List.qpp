@@ -139,3 +139,20 @@ my string $str = ("a", "b", "c").join(":"); # returns "a:b:c"
 string <list>::join(string str) [flags=RET_VALUE_ONLY] {
    return join_intern(str, l, 0, xsink);
 }
+
+//! Returns the number of elements in the list
+/** For this type, this method is equivalent to size()
+
+    @return the number of elements in the list
+
+    @par Example:
+    @code
+printf("iterating %d element%s\n", $val.lsize(), $val.lsize() == 1 ? "" : "s");
+foreach my any $element in ($val) {
+    do_something($element);
+}
+    @endcode
+*/
+int <list>::lsize() [flags=CONSTANT] {
+   return l->size();
+}

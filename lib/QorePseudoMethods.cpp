@@ -25,6 +25,7 @@
 #include <map>
 
 #include "Pseudo_QC_All.cpp"
+#include "Pseudo_QC_Nothing.cpp"
 #include "Pseudo_QC_Bool.cpp"
 #include "Pseudo_QC_Int.cpp"
 #include "Pseudo_QC_Float.cpp"
@@ -43,9 +44,6 @@
 static QoreClass* po_list[NODE_ARRAY_LEN + 2];
 
 // int <x>.typeCode()
-static int64 PSEUDONOTHING_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
-   return NT_NOTHING;
-}
 static int64 PSEUDONULL_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
    return NT_NULL;
 }
@@ -64,7 +62,7 @@ void pseudo_classes_init() {
    assert(QC_PSEUDOVALUE);
 
    // initialize list of pseudo-classes for basic types
-   po_list[NT_NOTHING] = do_type_code("<nothing>", (q_method_int64_t)PSEUDONOTHING_typeCode);
+   po_list[NT_NOTHING] = initPseudoNothingClass(); //do_type_code("<nothing>", (q_method_int64_t)PSEUDONOTHING_typeCode);
    po_list[NT_NULL] = do_type_code("<null>", (q_method_int64_t)PSEUDONULL_typeCode);
 
    po_list[NT_INT] = initPseudoIntClass();

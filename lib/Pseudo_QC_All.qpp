@@ -151,3 +151,19 @@ if ($n.strp())
 bool <value>::strp() [flags=CONSTANT] {
    return false;
 }
+
+//! Returns 1; the return value of this method should give the list size of the value, which is normally 1 for non-lists (except for @ref nothing where the size will be 0) and the number of the elements in the list for lists; this method will be reimplemented in other types where it may return other values
+/**
+    @return 1; the return value of this method should give the list size of the value, which is normally 1 for non-lists (except for @ref nothing where the size will be 0) and the number of the elements in the list for lists; this method will be reimplemented in other types where it may return other values
+
+    @par Example:
+    @code
+printf("iterating %d element%s\n", $val.lsize(), $val.lsize() == 1 ? "" : "s");
+foreach my any $element in ($val) {
+    do_something($element);
+}
+    @endcode
+*/
+int <value>::lsize() [flags=CONSTANT] {
+   return 1;
+}
