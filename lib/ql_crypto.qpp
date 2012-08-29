@@ -219,7 +219,7 @@ const DefaultIV = <0000000000000000>;
 //@}
 
 /** @defgroup cryptographic_functions Crytographic Functions
-    Qore's cryptography support is provided by the OpenSSL library. Each of the encryption and decryption functions in this section accept an optional initialization vector, which is data used as initial input for the first block in chained encryption algorithms. Subsequent blocks take input from the last block encrypted/decrypted. If an initialization vector is not supplied, a default value of 8 zero bytes will be used (see @ref Qore::DefaultIV).
+    %Qore's cryptography support is provided by the OpenSSL library. Each of the encryption and decryption functions in this section accept an optional initialization vector, which is data used as initial input for the first block in chained encryption algorithms. Subsequent blocks take input from the last block encrypted/decrypted. If an initialization vector is not supplied, a default value of 8 zero bytes will be used (see @ref Qore::DefaultIV).
 
     Some functions require fixed-length keys, and some allow the use of variable-length keys. For functions requiring fixed-length keys any excess bytes are ignored. The same applies to initialization vector arguments.
 
