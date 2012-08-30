@@ -227,11 +227,15 @@ public:
    ThreadLocalVariableData lvstack;
    // closure variable stack
    ThreadClosureVariableStack cvstack;
+   // current thread's time zone locale (if any)
+   const AbstractQoreZoneInfo* tz;
+   // the "time zone set" flag
+   bool tz_set : 1;
 
    // top-level vars instantiated
-   bool inst;
+   bool inst : 1;
 
-   DLLLOCAL ThreadLocalProgramData() : inst(false) {
+   DLLLOCAL ThreadLocalProgramData() : tz(0), tz_set(false), inst(false) {
       //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this=%p\n", this);
    }
 
@@ -250,16 +254,28 @@ public:
       cvstack.del(xsink);
       delete this;
    }
+
+   DLLLOCAL void setTZ(const AbstractQoreZoneInfo* n_tz) {
+      tz_set = true;
+      tz = n_tz;
+   }
+
+   DLLLOCAL void clearTZ() {
+      tz_set = false;
+      tz = 0;
+   }
 };
 
 // maps from thread handles to thread-local data
-typedef std::map<ThreadProgramData *, ThreadLocalProgramData *> pgm_data_map_t;
+typedef std::map<ThreadProgramData*, ThreadLocalProgramData*> pgm_data_map_t;
 
 // map for "defines" in programs
 typedef std::map<std::string, AbstractQoreNode* > dmap_t;
 
 // map for pushed parse options
 typedef std::map<const char*, int64, ltstr> ppo_t;
+
+class AbstractQoreZoneInfo;
 
 class qore_program_private_base {
    friend class QoreProgramAccessHelper;
@@ -931,7 +947,10 @@ public:
       return false;
    }
 
-   DLLLOCAL const AbstractQoreZoneInfo* currentTZ() const {
+   DLLLOCAL const AbstractQoreZoneInfo* currentTZ(ThreadProgramData* tpd = get_thread_program_data()) const {
+      pgm_data_map_t::const_iterator i = pgm_data_map.find(tpd);
+      if (i != pgm_data_map.end() && i->second->tz_set)
+         return i->second->tz;
       return TZ;
    }
 
@@ -1251,6 +1270,41 @@ public:
          thr_init = n_thr_init ? n_thr_init->refRefSelf() : 0;
       }
       return (bool)old;
+   }
+
+   DLLLOCAL void setThreadTZ(ThreadProgramData* tpd, const AbstractQoreZoneInfo* tz) {
+      pgm_data_map_t::iterator i = pgm_data_map.find(tpd);
+      assert(i != pgm_data_map.end());
+      i->second->setTZ(tz);
+   }
+
+   DLLLOCAL const AbstractQoreZoneInfo* getThreadTZ(ThreadProgramData* tpd, bool& set) const {
+      pgm_data_map_t::const_iterator i = pgm_data_map.find(tpd);
+      assert(i != pgm_data_map.end());
+      set = i->second->tz_set;
+      return i->second->tz;
+   }
+
+   DLLLOCAL void clearThreadTZ(ThreadProgramData* tpd) {
+      pgm_data_map_t::iterator i = pgm_data_map.find(tpd);
+      assert(i != pgm_data_map.end());
+      i->second->clearTZ();
+   }
+
+   DLLLOCAL static const AbstractQoreZoneInfo* currentTZ(QoreProgram& pgm, ThreadProgramData* tpd) {
+      return pgm.priv->currentTZ(tpd);
+   }
+
+   DLLLOCAL static const AbstractQoreZoneInfo* getThreadTZ(QoreProgram& pgm, ThreadProgramData* tpd, bool& set) {
+      return pgm.priv->getThreadTZ(tpd, set);
+   }
+
+   DLLLOCAL static void clearThreadTZ(QoreProgram& pgm, ThreadProgramData* tpd) {
+      pgm.priv->clearThreadTZ(tpd);
+   }
+
+   DLLLOCAL static void setThreadTZ(QoreProgram& pgm, ThreadProgramData* tpd, const AbstractQoreZoneInfo* tz) {
+      pgm.priv->setThreadTZ(tpd, tz);
    }
 
    DLLLOCAL static int incThreadCount(QoreProgram& pgm, ExceptionSink* xsink) {

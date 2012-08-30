@@ -375,7 +375,8 @@ public:
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
       current_pgm(p), current_ns(0), current_implicit_arg(0), tpd(new ThreadProgramData(this)),
       closure_parse_env(0), closure_rt_env(0), 
-      returnTypeInfo(0), element(0), global_vnode(0), qmc(0), qmd(0) {
+      returnTypeInfo(0), element(0), global_vnode(0), qmc(0),
+      qmd(0) {
  
 #ifdef QORE_MANAGE_STACK
 
@@ -1031,15 +1032,52 @@ const QoreTypeInfo *getReturnTypeInfo() {
 }
 
 const QoreTypeInfo *saveReturnTypeInfo(const QoreTypeInfo *returnTypeInfo) {
-   ThreadData *td  = thread_data.get();
+   ThreadData *td = thread_data.get();
    const QoreTypeInfo *rv = td->returnTypeInfo;
    td->returnTypeInfo = returnTypeInfo;
    return rv;
 }
 
-const AbstractQoreZoneInfo *currentTZ() {
-   QoreProgram *pgm = (thread_data.get())->current_pgm;
-   return pgm ? pgm->currentTZ() : QTZM.getLocalZoneInfo();
+const AbstractQoreZoneInfo* currentTZ() {
+   ThreadData* td = thread_data.get();
+   return td->current_pgm ? qore_program_private::currentTZ(*(td->current_pgm), td->tpd) : QTZM.getLocalZoneInfo();
+}
+
+void set_thread_tz(const AbstractQoreZoneInfo* tz) {
+   ThreadData* td = thread_data.get();
+   QoreProgram* pgm = td->current_pgm;
+   if (!pgm) {
+      printd(0, "set_thread_tz(%p '%s') ignored - no current pgm\n", tz, tz ? tz->getRegionName() : "(null)");
+      return;
+   }
+   qore_program_private::setThreadTZ(*pgm, td->tpd, tz);
+}
+
+const AbstractQoreZoneInfo* get_thread_tz(bool& set) {
+   ThreadData* td = thread_data.get();
+   QoreProgram* pgm = td->current_pgm;
+   if (!pgm) {
+      printd(0, "get_thread_tz() ignored - no current pgm\n");
+      set = false;
+      return 0;
+   }
+   return qore_program_private::getThreadTZ(*pgm, td->tpd, set);
+}
+
+void clear_thread_tz() {
+   ThreadData* td = thread_data.get();
+   QoreProgram* pgm = td->current_pgm;
+   if (!pgm) {
+      printd(0, "clear_thread_tz() ignored - no current pgm\n");
+      return;
+   }
+   return qore_program_private::clearThreadTZ(*pgm, td->tpd);
+}
+
+ThreadProgramData* get_thread_program_data() {
+   ThreadData* td = thread_data.get();
+   assert(td);
+   return td->tpd;
 }
 
 // pushes a new argv reference counter

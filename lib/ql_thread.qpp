@@ -395,4 +395,73 @@ set_thread_init(sub () { $var = 123; });
 bool set_thread_init(code init) [dom=THREAD_CONTROL] {
    return qore_program_private::setThreadInit(*getProgram(), init, xsink);
 }
+
+//! Sets the default time zone for the current thread
+/** @param zone the TimeZone object for the current thread
+
+    This will cause the TimeZone::get() method to return the given TimeZone when called from the same thread
+
+    @par Example:
+    @code
+    my *TimeZone $tz = get_thread_tz();
+    set_thread_tz(new TimeZone("Europe/Prague"));
+    on_exit set_thread_tz($tz);
+    @endcode
+
+    @note The TimeZone will only be set for the current thread in the current Program
+
+    @see
+    - set_thread_tz()
+    - get_thread_tz()
+
+    @since %Qore 0.8.5
+ */
+nothing set_thread_tz(TimeZone[TimeZoneData] zone) [dom=THREAD_CONTROL,LOCALE_CONTROL] {
+   ReferenceHolder<TimeZoneData> holder(zone, xsink);
+   set_thread_tz(zone->get());
+}
+
+//! Clears the thread-local time zone for the current thread; after this call TimeZone::get() will return the value set for the current Program
+/** @par Example:
+    @code
+    my *TimeZone $tz = get_thread_tz();
+    set_thread_tz(new TimeZone("Europe/Prague"));
+    on_exit set_thread_tz($tz);
+    @endcode
+
+    @note The TimeZone will only be cleared in the current thread in the current Program
+
+    @see
+    - set_thread_tz(TimeZone)
+    - get_thread_tz()
+
+    @since %Qore 0.8.5
+ */
+nothing set_thread_tz() [dom=THREAD_CONTROL,LOCALE_CONTROL] {
+   clear_thread_tz();
+}
+
+//! Returns any TimeZone set for the current thread, @ref nothing if none is set
+/** @return any TimeZone set for the current thread, @ref nothing if none is set
+
+    @par Example:
+    @code
+    my *TimeZone $tz = get_thread_tz();
+    set_thread_tz(new TimeZone("Europe/Prague"));
+    on_exit set_thread_tz($tz);
+    @endcode
+
+    @see
+    - set_thread_tz(TimeZone)
+    - set_thread_tz()
+
+    @since %Qore 0.8.5
+ */
+*TimeZone get_thread_tz() [dom=THREAD_CONTROL,LOCALE_CONTROL] {
+   bool set;
+   const AbstractQoreZoneInfo* tz = get_thread_tz(set);
+   if (!set)
+      return 0;
+   return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(tz));
+}
 //@}

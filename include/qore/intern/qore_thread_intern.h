@@ -80,6 +80,8 @@ class qore_ns_private;
 class qore_root_ns_private;
 class qore_class_private;
 class AbstractQoreFunctionVariant;
+class AbstractQoreZoneInfo;
+class ThreadProgramData;
 
 DLLLOCAL extern Operator* OP_BACKGROUND;
 
@@ -268,6 +270,12 @@ DLLLOCAL void set_module_context(QoreModuleContext* qmc);
 DLLLOCAL QoreModuleContext* get_module_context();
 DLLLOCAL QoreModuleDefContext* set_module_def_context(QoreModuleDefContext* qmd);
 DLLLOCAL QoreModuleDefContext* get_module_def_context();
+
+DLLLOCAL void set_thread_tz(const AbstractQoreZoneInfo* tz);
+DLLLOCAL const AbstractQoreZoneInfo* get_thread_tz(bool& set);
+DLLLOCAL void clear_thread_tz();
+
+DLLLOCAL ThreadProgramData* get_thread_program_data();
 
 DLLLOCAL int thread_ref_set(const lvalue_ref* r);
 DLLLOCAL void thread_ref_remove(const lvalue_ref* r);

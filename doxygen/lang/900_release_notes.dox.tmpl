@@ -92,6 +92,9 @@ class MyAbstractInterface {
     - added the Qore::call_pseudo() function to explicitly call a pseudo method on a value
     - added the Qore::symlink() function to create symbolic links
     - added Qore::TypeCodeMap and Qore::TypeNameMap to lookup type codes from type names and vice versa
+    - added the following functions to allow the time zone to be set per thread:
+      - Qore::set_thread_tz()
+      - Qore::get_thread_tz()
 
     @subsection qore_085_bug_fixes Bug Fixes in Qore
     - fixed format_date() output for \c "MON" and \c "DAY", etc
