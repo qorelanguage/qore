@@ -323,7 +323,7 @@ AbstractQoreNode *QoreListNode::evalImpl(bool &needs_deref, ExceptionSink *xsink
 QoreListNode *QoreListNode::eval_intern(ExceptionSink *xsink) const {
    ReferenceHolder<QoreListNode> nl(new QoreListNode(), xsink);
    for (qore_size_t i = 0; i < priv->length; i++) {
-      nl->push(priv->entry[i] ? priv->entry[i]->eval(xsink) : 0);
+      nl->push(priv->entry[i] && priv->entry[i]->getType() != NT_NOTHING ? priv->entry[i]->eval(xsink) : 0);
       if (*xsink)
 	 return 0;
    }
