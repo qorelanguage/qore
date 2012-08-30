@@ -416,7 +416,7 @@ bool set_thread_init(code init) [dom=THREAD_CONTROL] {
 
     @since %Qore 0.8.5
  */
-nothing set_thread_tz(TimeZone[TimeZoneData] zone) [dom=THREAD_CONTROL,LOCALE_CONTROL] {
+nothing set_thread_tz(TimeZone[TimeZoneData] zone) [dom=LOCALE_CONTROL] {
    ReferenceHolder<TimeZoneData> holder(zone, xsink);
    set_thread_tz(zone->get());
 }
@@ -437,7 +437,7 @@ nothing set_thread_tz(TimeZone[TimeZoneData] zone) [dom=THREAD_CONTROL,LOCALE_CO
 
     @since %Qore 0.8.5
  */
-nothing set_thread_tz() [dom=THREAD_CONTROL,LOCALE_CONTROL] {
+nothing set_thread_tz() [dom=LOCALE_CONTROL] {
    clear_thread_tz();
 }
 
@@ -457,7 +457,7 @@ nothing set_thread_tz() [dom=THREAD_CONTROL,LOCALE_CONTROL] {
 
     @since %Qore 0.8.5
  */
-*TimeZone get_thread_tz() [dom=THREAD_CONTROL,LOCALE_CONTROL] {
+*TimeZone get_thread_tz() [dom=LOCALE_CONTROL] {
    bool set;
    const AbstractQoreZoneInfo* tz = get_thread_tz(set);
    if (!set)
