@@ -101,6 +101,7 @@ class MyAbstractInterface {
     - do not kill TID 1 (the initial / main thread) when calling exit() in background threads as a crash can result with some 3rd party libraries that spawn their own threads on some platforms (observed on Darwin & Solaris 10 at least)
     - fixed a memory bug in the new builtin function API used by modules built with qpp
     - fixed memory bugs in the type system where uninitialized type pointers could be used causing a crash
+    - fixed a memory bug in handling "or nothing" types where a non-null pointer would be assumed to be a pointer to the type, however it could actually be a pointer to the NOTHING object, the fix was to ensure that any NOTHING objects in argument lists would be substituted with a null pointer
     - fixed a bug in parse-time variant matching where an argument with parse-time type "object" would be matched as a perfect match to any parameter with any class restriction; this would cause run-time type errors if another valid class was passed that matched another variant of the method or function
     - fixed a build bug that caused qore to be built twice
 
