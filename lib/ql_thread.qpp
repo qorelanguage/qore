@@ -403,9 +403,9 @@ bool set_thread_init(code init) [dom=THREAD_CONTROL] {
 
     @par Example:
     @code
-    my *TimeZone $tz = get_thread_tz();
-    set_thread_tz(new TimeZone("Europe/Prague"));
-    on_exit set_thread_tz($tz);
+my *TimeZone $tz = get_thread_tz();
+set_thread_tz(new TimeZone("Europe/Prague"));
+on_exit set_thread_tz($tz);
     @endcode
 
     @note The TimeZone will only be set for the current thread in the current Program
@@ -424,9 +424,9 @@ nothing set_thread_tz(TimeZone[TimeZoneData] zone) [dom=LOCALE_CONTROL] {
 //! Clears the thread-local time zone for the current thread; after this call TimeZone::get() will return the value set for the current Program
 /** @par Example:
     @code
-    my *TimeZone $tz = get_thread_tz();
-    set_thread_tz(new TimeZone("Europe/Prague"));
-    on_exit set_thread_tz($tz);
+my *TimeZone $tz = get_thread_tz();
+set_thread_tz(new TimeZone("Europe/Prague"));
+on_exit set_thread_tz($tz);
     @endcode
 
     @note The TimeZone will only be cleared in the current thread in the current Program
@@ -446,9 +446,9 @@ nothing set_thread_tz() [dom=LOCALE_CONTROL] {
 
     @par Example:
     @code
-    my *TimeZone $tz = get_thread_tz();
-    set_thread_tz(new TimeZone("Europe/Prague"));
-    on_exit set_thread_tz($tz);
+my *TimeZone $tz = get_thread_tz();
+set_thread_tz(new TimeZone("Europe/Prague"));
+on_exit set_thread_tz($tz);
     @endcode
 
     @see

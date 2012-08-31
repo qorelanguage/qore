@@ -882,6 +882,9 @@ int get_microseconds(date dt) [flags=CONSTANT] {
     @code
 my date $midnight = get_midnight($dt);
     @endcode
+
+    @note equivalent to pseudo-method <date>::midnight()
+
 */
 date get_midnight(date dt) [flags=CONSTANT] {
    DateTimeNode *rv = new DateTimeNode(*dt);

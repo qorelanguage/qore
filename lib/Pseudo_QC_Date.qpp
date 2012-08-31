@@ -328,3 +328,22 @@ if ($n.strp())
 bool <date>::strp() [flags=CONSTANT] {
    return true;
 }
+
+//! Returns midnight on the given date (strips the time component on the new value)
+/**
+    @return midnight on the given date (strips the time component on the new value)
+
+    @par Example:
+    @code
+my date $midnight = $dt.midnight();
+    @endcode
+
+    @note equivalent to get_midnight()
+
+    @since %Qore 0.8.5
+*/
+date <date>::midnight() [flags=CONSTANT] {
+   DateTimeNode* rv = new DateTimeNode(*dt);
+   rv->setTime(0, 0, 0);
+   return rv;
+}
