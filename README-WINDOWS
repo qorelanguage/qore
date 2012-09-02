@@ -38,7 +38,7 @@ set PATH to the binary directory where qore.exe and qore.dll are located:
     set PATH=%PATH%;c:\qopre\bin
 
 set QORE_MODULE_PATH to the module directory where Qore was installed, don't forget the versioned subdirectory for user modules; ex:\    
-    set QORE_MODULE_PATH=c:\qore\lib\qore-modules:c:\qore\lib\qore-modules\0.8.4
+    set QORE_MODULE_PATH=c:\qore\lib\qore-modules:c:\qore\lib\qore-modules\0.8.5
 
 report any bugs to david@qore.org or post on the Qore forums:
     http://www.qore.org/forums

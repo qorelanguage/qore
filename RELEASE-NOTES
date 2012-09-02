@@ -1,6 +1,7 @@
 RELEASE NOTES for qore v0.8.5
 
-release in progress; see svn commit history for details
+see online release notes for more info:
+	http://qore.org/manual/current/lang/html/release_notes.html
 
 *** end of release notes
 
@@ -9,10 +10,9 @@ release in progress; see svn commit history for details
 *** KNOWN ISSUES
 ****************
 Darwin:
-  * the fork() function is only partially implemented on Darwin; it is only
-    useful for making an exec() after the fork() to replace the forked
-    process.  In particular, pthread object initialized before the fork() are	
-    not guaranteed to be valid after the fork() in the child process.  This is
+  * the fork() function on Darwin does not copy over the state of pthread
+    objects to the child process; it's not safe to use any threading
+    primitives on Darwin in a child process after a fork().  This is
     a limitation of Darwin's C library and/or kernel and cannot be worked
     around in Qore.  Qore programs using threading will encounter strange
     errors when threading primitives are used after a fork() - note that this
