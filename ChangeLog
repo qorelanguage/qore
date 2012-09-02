@@ -1,3 +1,298 @@
+2012-08-31 11:51  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, doxygen/pdox,
+	  lib/Pseudo_QC_Date.qpp, lib/ql_thread.qpp, lib/ql_time.qpp: *
+	  added <date>::midnight() pseudo-method
+	  * fixed regex for post-processing doxygen output to process
+	  pseudo-methods with arguments properly
+	  * doc updates
+
+2012-08-30 20:47  david_nichols
+
+	* lib/ql_thread.qpp: removed THREAD_CONTROL from new thread TZ
+	  functions as they only affect the current program
+
+2012-08-30 20:43  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_program_private.h,
+	  include/qore/intern/qore_thread_intern.h, lib/ql_thread.qpp,
+	  lib/thread.cpp: added the set_thread_tz() and get_thread_tz()
+	  functions to allow the time zone to be set per Program / thread
+
+2012-08-30 18:38  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: updated release notes
+	  for last bug fix
+
+2012-08-30 17:46  david_nichols
+
+	* lib/QoreListNode.cpp: fixed a bug where internal code would
+	  assume that a pointer was a valid pointer to a type even with a
+	  type restrictions of "or nothing" (ex: *hash, *list, etc) however
+	  it could be a pointer to the NOTHING object instead of a pointer
+	  to the "real" type - the fix was to make sure that all arguments
+	  are evaluated such that any NOTHING pointers are substituted with
+	  null pointers
+
+2012-08-29 17:06  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QC_DatasourcePool.qpp, lib/ql_crypto.qpp: doc updates
+
+2012-08-29 13:15  david_nichols
+
+	* Makefile.am, lib/Makefile.am, lib/Pseudo_QC_All.qpp,
+	  lib/Pseudo_QC_List.qpp, lib/Pseudo_QC_Nothing.qpp,
+	  lib/QorePseudoMethods.cpp: implemented the <value>::lsize()
+	  <nothing>::lsize() and <list>::lsize() pseudo-methods to quickly
+	  get the length of a list or a single element
+
+2012-08-27 15:43  david_nichols
+
+	* TODO: minor updates
+
+2012-08-27 15:18  david_nichols
+
+	* TODO, configure.ac, doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/ql_file.qpp: added the symlink() function
+
+2012-08-27 14:33  david_nichols
+
+	* test/test.q: commented out tests that only work when run in the
+	  European CET time zone
+
+2012-08-27 13:13  david_nichols
+
+	* Makefile.am: mingw compile fix
+
+2012-08-20 08:28  david_nichols
+
+	* qlib/Pop3Client.qm: module doc updates
+
+2012-08-20 08:23  david_nichols
+
+	* Makefile.am, examples/pop3.q,
+	  include/qore/intern/QoreHashIterator.h,
+	  include/qore/intern/QoreHashListIterator.h,
+	  lib/QC_HashIterator.qpp, lib/QC_HashListIterator.qpp,
+	  lib/QC_HashListReverseIterator.qpp,
+	  lib/QC_HashReverseIterator.qpp, lib/QC_ListHashIterator.qpp,
+	  lib/QC_ListHashReverseIterator.qpp, lib/QC_ListIterator.qpp,
+	  lib/QC_ListReverseIterator.qpp, qlib/Pop3Client.qm: * updated
+	  iterator classes to accept NOTHING to give empty iterators
+	  * updated the ListHash*Iterator classes to only throw an
+	  exception if a hash key is assigned a value and not a list (ie
+	  they no longer throw exceptions if assigned NOTHING; this is now
+	  treated like an empty list)
+	  * updated and corrected iterator documentation
+	  * updated the POP3 module to optionally support "STLS" (=
+	  STARTTLS); significantly updated module documentation
+	  * updated module docs to allow cross-referencing the MailMessage
+	  module in the Pop3Client and SmtpClient modules
+	  * updated the pop3.q example to support more options
+
+2012-08-20 05:32  david_nichols
+
+	* qlib/Pop3Client.qm: fixed a typo in the docs
+
+2012-08-18 07:04  david_nichols
+
+	* configure.ac: committed most of rurban's better multiarch support
+	  patch
+
+2012-08-18 06:27  david_nichols
+
+	* lib/StatementBlock.cpp, lib/thread.cpp: fixed a bug handling
+	  global thread-local variables where only the first such variable
+	  had true global scope
+
+2012-08-16 11:32  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreTypeInfo.h, lib/Function.cpp,
+	  lib/Pseudo_QC_String.qpp: * fixed a parse-time variant matching
+	  bug where an argument with parse-time type "object" would be
+	  matched as a perfect match to any parameter with any class
+	  restriction; this would cause run-time type errors if another
+	  valid class was passed that matched another variant of the method
+	  or function
+	  * updated release notes about this bug
+
+2012-08-12 16:13  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/qc_qore.qpp: * added
+	  new map constants for type info
+	  * release note updates
+
+2012-08-11 07:00  david_nichols
+
+	* doxygen/lang/195_statements.dox.tmpl,
+	  lib/QC_AbstractDatasource.qpp, lib/QC_Datasource.qpp,
+	  lib/QC_DatasourcePool.qpp: added cross-references to the
+	  ListHashIterator and HashListIterator classes for iterating query
+	  results in appropriate places
+
+2012-08-05 11:02  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: release notes updates
+
+2012-08-05 07:25  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: updated release notes
+
+2012-08-05 07:01  david_nichols
+
+	* Makefile.am, include/qore/intern/QoreListHashIterator.h,
+	  include/qore/intern/QoreListIterator.h, lib/Makefile.am,
+	  lib/QC_HashListReverseIterator.qpp, lib/QC_ListHashIterator.qpp,
+	  lib/QC_ListHashReverseIterator.qpp,
+	  lib/QC_ListReverseIterator.qpp, lib/QoreNamespace.cpp,
+	  lib/single-compilation-unit.cpp, test/test.q: added
+	  ListHash*Iterator classes and tests for iterating
+	  Datasource*::selectRows() results
+
+2012-08-03 07:15  david_nichols
+
+	* Makefile.am, include/qore/intern/QoreHashIterator.h,
+	  include/qore/intern/QoreHashListIterator.h,
+	  include/qore/intern/QoreListIterator.h, lib/QC_HashIterator.qpp,
+	  lib/QC_HashListReverseIterator.qpp,
+	  lib/QC_HashReverseIterator.qpp, lib/QC_ListIterator.qpp,
+	  lib/QC_ListReverseIterator.qpp, lib/QoreListNode.cpp,
+	  lib/StatementBlock.cpp: * fixed iterator inheritance for
+	  efficiency's sake
+	  * fixed local variable search alogrithm when out-of-order parsing
+	  is used
+
+2012-08-02 20:39  david_nichols
+
+	* include/qore/intern/QoreHashListIterator.h: fixed reference leaks
+	  in new HashList*Iterator classes
+
+2012-08-02 20:28  david_nichols
+
+	* lib/QC_HashListReverseIterator.qpp: fixed HashListReverseIterator
+	  constructor
+
+2012-08-02 20:23  david_nichols
+
+	* lib/QC_HashListReverseIterator.qpp: added missing file
+
+2012-08-02 20:22  david_nichols
+
+	* Makefile.am, examples/pop3.q, include/qore/intern/ConstantList.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreHashListIterator.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QorePreIncrementOperatorNode.h,
+	  include/qore/intern/QoreTreeNode.h, lib/AbstractStatement.cpp,
+	  lib/BarewordNode.cpp, lib/ConstantList.cpp,
+	  lib/ContextStatement.cpp, lib/FindNode.cpp,
+	  lib/ForEachStatement.cpp, lib/ForStatement.cpp,
+	  lib/FunctionCallNode.cpp, lib/Makefile.am,
+	  lib/QC_HashIterator.qpp, lib/QC_HashListIterator.qpp,
+	  lib/QC_HashReverseIterator.qpp, lib/QC_ListIterator.qpp,
+	  lib/QC_ListReverseIterator.qpp, lib/QoreCastOperatorNode.cpp,
+	  lib/QoreClass.cpp, lib/QoreDeleteOperatorNode.cpp,
+	  lib/QoreDotEvalOperatorNode.cpp, lib/QoreExtractOperatorNode.cpp,
+	  lib/QoreGetOpt.cpp, lib/QoreHashNode.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreRemoveOperatorNode.cpp, lib/QoreSpliceOperatorNode.cpp,
+	  lib/QoreTreeNode.cpp, lib/ReferenceNode.cpp,
+	  lib/ScopedRefNode.cpp, lib/SummarizeStatement.cpp,
+	  lib/SwitchStatement.cpp, lib/single-compilation-unit.cpp,
+	  qlib/MailMessage.qm, qlib/SmtpClient.qm, test/test.q: * added
+	  HashListIterator and HashListReverseIterator classes to iterate
+	  query results with an iterator class
+	  * fixed broken typeInfo initialization during parsing which could
+	  result in a crash
+	  * fixed typos in pop3.q
+
+2012-08-02 20:05  david_nichols
+
+	* examples/pop3.q, lib/QoreLib.cpp, m4/acx_pthread.m4: * fixed
+	  setting -pthread on Linux for getting access to all pthread
+	  functionality on recent versions of Linux (also works on old
+	  versions of Linux) - so stack guard works again
+	  * fixed typos in pop3.q
+
+2012-08-02 16:35  david_nichols
+
+	* lib/ModuleManager.cpp: fixed a bug where the 'require-types'
+	  parse option was being inherited by user modules, causing them to
+	  fail to load when 'require-types' was set in the loading program
+
+2012-07-31 12:38  david_nichols
+
+	* ChangeLog, doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/Pseudo_QC_Object.qpp, lib/ql_object.qpp, lib/ql_type.qpp:
+	  doc/release notes updates
+
+2012-07-30 17:47  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/ql_object.qpp: *
+	  added the call_pseudo() function to explicitly call
+	  pseudo-methods
+	  * updated the release notes for 0.8.5 (partially)
+
+2012-07-27 18:17  david_nichols
+
+	* Makefile.am, doxygen/lang/180_operators.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, lib/Makefile.am,
+	  lib/QC_AbstractIterator.qpp,
+	  lib/QC_AbstractQuantifiedBidirectionalIterator.qpp,
+	  lib/QC_AbstractQuantifiedIterator.qpp, lib/QC_HashIterator.qpp,
+	  lib/QC_HashReverseIterator.qpp, lib/QC_ListIterator.qpp,
+	  lib/QC_ListReverseIterator.qpp, lib/QC_SQLStatement.qpp,
+	  lib/QoreClass.cpp, lib/QoreNamespace.cpp, lib/QoreSocket.cpp,
+	  lib/qpp.cpp, lib/single-compilation-unit.cpp: * added new
+	  abstract iterator classes
+	  * added AbstractIterator as a base class of SQLStatement
+	  * updated qpp to allow for multiple inheritance of builtin
+	  classes
+	  * updated docs; started drafting release notes for 0.8.5
+
+2012-07-23 16:06  david_nichols
+
+	* include/qore/intern/ConstantList.h,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/QoreLibIntern.h, lib/AbstractStatement.cpp,
+	  lib/ConstantList.cpp, lib/StatementBlock.cpp: more on-demand /
+	  out of order parsing fixes
+
+2012-07-23 15:16  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/140_variables.dox.tmpl,
+	  doxygen/lang/145_basic_data_types.dox.tmpl,
+	  doxygen/lang/150_container_data_types.dox.tmpl,
+	  doxygen/lang/152_code_data_types.dox.tmpl,
+	  doxygen/lang/155_data_type_declarations.dox.tmpl,
+	  doxygen/lang/157_lvalue_references.dox.tmpl,
+	  doxygen/lang/165_time_zones.dox.tmpl,
+	  doxygen/lang/170_character_encoding.dox.tmpl,
+	  doxygen/lang/175_expressions.dox.tmpl,
+	  doxygen/lang/180_operators.dox.tmpl,
+	  doxygen/lang/185_qore_regex.dox.tmpl,
+	  doxygen/lang/190_date_time_arithmetic.dox.tmpl,
+	  doxygen/lang/195_statements.dox.tmpl,
+	  doxygen/lang/200_functions.dox.tmpl,
+	  doxygen/lang/202_code_flags.dox.tmpl,
+	  doxygen/lang/205_namespaces.dox.tmpl,
+	  doxygen/lang/210_constants.dox.tmpl,
+	  doxygen/lang/215_classes.dox.tmpl,
+	  doxygen/lang/220_threading.dox.tmpl,
+	  doxygen/lang/225_exception_handling.dox.tmpl,
+	  doxygen/lang/230_signal_handling.dox.tmpl,
+	  doxygen/lang/235_event_handling.dox.tmpl,
+	  doxygen/lang/240_command_line_processing.dox.tmpl,
+	  doxygen/lang/245_parse_directives.dox.tmpl,
+	  doxygen/lang/250_warnings.dox.tmpl,
+	  doxygen/lang/255_keywords.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, qlib/MailMessage.qm,
+	  qlib/Mime.qm, qlib/Pop3Client.qm: many minor doc updates + added
+	  docs for abstract methods
+
 2012-07-19 15:07  david_nichols
 
 	* lib/Operator.cpp: added AbstractIterator support for the select

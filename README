@@ -1,7 +1,7 @@
 Qore README
 
 author: David Nichols <david_nichols@users.sourceforge.net>
-updated: 2008-09-02
+updated: 2012-09-02
 
 This document contains some general information on the Qore language.  Please
 refer to the following files/locations for specific information:
@@ -16,7 +16,9 @@ WHATISQORE:
   general description of the Qore programming language
 
 RELEASE-NOTES: 
-  release notes, known issues, etc
+  release notes, known issues, etc - however see the following URL for full
+  release notes online:
+  	  http://qore.org/manual/current/lang/html/release_notes.html
 
 BUILD: 
   information on how to build and install qore from sources - some quick
@@ -44,7 +46,7 @@ examples/:
  * only UNIX-like platforms are currently supported
  * requires POSIX threading support
  * requires at least flex 2.5.31 (older distributions have flex 2.5.4, flex
-   2.5.35 recommended) in order to compile the multithreaded parser; you can
+   2.5.37 recommended) in order to compile the multithreaded parser; you can
    get this version at: 
       http://sourceforge.net/projects/flex
  * requires pcre headers and libraries for perl5-compatible regex support;
