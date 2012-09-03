@@ -67,7 +67,7 @@
     |!Header|!Default Value
     |\c Accept|\c "text/html"
     |\c Content-Type|\c "text/html"
-    |\c User-Agent|\c "Qore HTTP Client v0.8.0"
+    |\c User-Agent|\c "Qore-HTTP-Client/0.8.6"
     |\c Connection|\c "Keep-Alive"
     |\c Accept-Encoding|\c "deflate,gzip,bzip2"
 

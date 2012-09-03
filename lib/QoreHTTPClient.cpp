@@ -174,7 +174,7 @@ struct qore_qtc_private {
       default_headers["Accept"] = "text/html";
       default_headers["Content-Type"] = "text/html";
       default_headers["Connection"] = "Keep-Alive";
-      default_headers["User-Agent"] = "Qore HTTP Client v" PACKAGE_VERSION;
+      default_headers["User-Agent"] = "Qore-HTTP-Client/" PACKAGE_VERSION;
       default_headers["Accept-Encoding"] = "deflate,gzip,bzip2";
    }
 
