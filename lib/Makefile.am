@@ -484,6 +484,6 @@ if COND_HPUX_ACC_64BIT_IA64
 libqore_la_SOURCES += acc-64bit-ia64.s
 endif
 
-libqore_la_LDFLAGS = -version-info 12:1:7 -no-undefined ${QORE_LIB_LDFLAGS}
+libqore_la_LDFLAGS = -version-info 12:2:7 -no-undefined ${QORE_LIB_LDFLAGS}
 AM_CPPFLAGS = ${QORE_LIB_CPPFLAGS}
 AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
