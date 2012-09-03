@@ -58,7 +58,7 @@ void DatasourcePool::init_pool(DBIDriver *ndsl, const char *user, const char *pa
       pool[cmax]->setAutoCommit(false);
       pool[cmax]->open(xsink);
  
-      //printd(0, "DP::DP() open %s: %08p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
+      //printd(5, "DP::DP() open %s: %08p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
 
       // add to free list
       free_list.push_back(cmax);
@@ -73,7 +73,7 @@ void DatasourcePool::init_pool(DBIDriver *ndsl, const char *user, const char *pa
 }
 
 DatasourcePool::~DatasourcePool() {
-   //printd(0, "DatasourcePool::~DatasourcePool() trlist.remove() this=%08p\n", this);
+   //printd(5, "DatasourcePool::~DatasourcePool() trlist.remove() this=%08p\n", this);
    for (unsigned i = 0; i < cmax; ++i)
       delete pool[i];
    delete [] tid_list;
@@ -112,7 +112,7 @@ void DatasourcePool::cleanup(ExceptionSink *xsink) {
 }
 
 void DatasourcePool::destructor(ExceptionSink *xsink) {
-   SafeLocker sl((QoreThreadLock *)this);
+   SafeLocker sl((QoreThreadLock*)this);
 
    // mark object as invalid in case any threads are waiting on a free Datasource
    valid = false;
@@ -165,7 +165,7 @@ QoreString *DatasourcePool::getAndResetSQL() {
 
 void DatasourcePool::freeDS() {
    // remove from thread resource list
-   //printd(0, "DatasourcePool::freeDS() remove_thread_resource(this=%08p), tid=%d\n", this, tid);
+   //printd(5, "DatasourcePool::freeDS() remove_thread_resource(this=%08p), tid=%d\n", this, tid);
    remove_thread_resource(this);
 
    int tid = gettid();
@@ -256,7 +256,7 @@ Datasource *DatasourcePool::getDSIntern(bool &new_ds, ExceptionSink *xsink) {
    sl.unlock();
    
    // add to thread resource list
-   //printd(0, "DatasourcePool::getDS() set_thread_resource(this=%08p), tid=%d\n", this, gettid());
+   //printd(5, "DatasourcePool::getDS() set_thread_resource(this=%08p), tid=%d\n", this, gettid());
    set_thread_resource(this);
 
    return ds;
@@ -299,6 +299,8 @@ AbstractQoreNode *DatasourcePool::exec_internal(bool doBind, const QoreString *s
    if (!dpah)
       return 0;
 
+   //printd(5, "DatasourcePool::exec_internal() this: %p ds: %p: %s\n", this, *dpah, sql->getBuffer());
+
    return doBind ? dpah->exec(sql, args, xsink) : dpah->execRaw(sql, args, xsink);;
 }
 
@@ -315,6 +317,8 @@ int DatasourcePool::commit(ExceptionSink *xsink) {
    if (!dpah)
       return -1;
 
+   //printd(5, "DatasourcePool::commit() this: %p ds: %p: %s@%s\n", this, *dpah, dpah->getUsername(), dpah->getDBName());
+
    return dpah->commit(xsink);
 }
 
@@ -322,6 +326,8 @@ int DatasourcePool::rollback(ExceptionSink *xsink) {
    DatasourcePoolActionHelper dpah(*this, xsink, DAH_RELEASE);
    if (!dpah)
       return -1;
+
+   //printd(5, "DatasourcePool::rollback() this: %p ds: %p\n", this, *dpah);
 
    return dpah->rollback(xsink);
 }

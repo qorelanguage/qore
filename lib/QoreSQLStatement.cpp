@@ -47,7 +47,7 @@ public:
          first = true;
       }
 
-      //printd(0, "DBActionHelper::DBActionHelper() ds=%p cmd=%s stat=%s nt=%d\n", stmt.priv->ds, DAH_TEXT(cmd), STMT_TRANS_TEXT(stmt.trans_status), nt);
+      //printd(5, "DBActionHelper::DBActionHelper() ds=%p cmd=%s stat=%s nt=%d\n", stmt.priv->ds, DAH_TEXT(cmd), STMT_TRANS_TEXT(stmt.trans_status), nt);
       valid = *xsink ? false : true;
    }
 
@@ -74,7 +74,7 @@ public:
          if (cmd == DAH_RELEASE)
             stmt.trans_status = STMT_TRANS_UNKNOWN;
 
-         //printd(0, "DBActionHelper::~DBActionHelper() ds=%p cmd=%s stat=%s nt=%d xsink=%d\n", stmt.priv->ds, DAH_TEXT(cmd), STMT_TRANS_TEXT(stmt.trans_status), nt, xsink->isEvent());
+         //printd(5, "DBActionHelper::~DBActionHelper() ds=%p cmd=%s stat=%s nt=%d xsink=%d\n", stmt.priv->ds, DAH_TEXT(cmd), STMT_TRANS_TEXT(stmt.trans_status), nt, xsink->isEvent());
       }
    }
 
@@ -279,8 +279,15 @@ int QoreSQLStatement::exec(const QoreListNode *args, ExceptionSink *xsink) {
 
 int QoreSQLStatement::execIntern(DBActionHelper &dba, ExceptionSink *xsink) {
    int rc = priv->ds->getDriver()->stmt_exec(this, xsink);
-   if (!rc)
+   if (!rc) {
       status = STMT_EXECED;
+      // mark as transaction already existed to ensure that the
+      // Datasource is not released after the statement is closed
+      if (trans_status != STMT_TRANS_EXISTED)
+        trans_status = STMT_TRANS_EXISTED;
+   }
+
+   //printd(5, "QoreSQLStatement::execIntern() this: %p ds: %p: %s@%s: %s\n", this, priv->ds, priv->ds->getUsername(), priv->ds->getDBName(), str.getBuffer());
 
    priv->ds->priv->statementExecuted(rc, xsink);
    return rc;
@@ -400,7 +407,7 @@ int QoreSQLStatement::commit(ExceptionSink *xsink) {
 
    int rc = closeIntern(xsink);
    rc = priv->ds->commit(xsink);
-   //printd(5, "QoreSQLStatement::commit() ds=%p rc=%d\n", priv->ds, rc);
+   //printd(5, "QoreSQLStatement::commit() this: %p ds: %p rc: %d\n", this, priv->ds, rc);
    return rc;
 }
 
@@ -411,7 +418,7 @@ int QoreSQLStatement::rollback(ExceptionSink *xsink) {
 
    int rc = closeIntern(xsink);
    rc = priv->ds->rollback(xsink);
-   //printd(5, "QoreSQLStatement::rollback() d=%p rc=%d\n", priv->ds, rc);
+   //printd(5, "QoreSQLStatement::rollback() this: %p ds: %p rc: %d\n", this, priv->ds, rc);
    return rc;
 }
 
