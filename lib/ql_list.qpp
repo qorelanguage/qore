@@ -33,6 +33,19 @@ ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink
    return qore_program_private::runtimeGetCallReference(getProgram(), tmp->getBuffer(), xsink);
 }
 
+bool inlist_intern(const AbstractQoreNode *arg, const QoreListNode *l, ExceptionSink *xsink) {
+   ConstListIterator li(l);
+   while (li.next()) {
+      bool b = QoreLogicalEqualsOperatorNode::softEqual(arg, li.getValue(), xsink);
+      if (*xsink)
+         return false;
+      if (b)
+         return true;
+   }
+   return false;
+}
+
+
 /** @defgroup list_functions List Functions
     List functions
  */
@@ -526,15 +539,7 @@ if (inlist($str, $strlist))
     @see inlist_hard(any, softlist)
 */
 bool inlist(any arg, softlist l) [flags=RET_VALUE_ONLY] {
-   ConstListIterator li(l);
-   while (li.next()) {
-      bool b = QoreLogicalEqualsOperatorNode::softEqual(arg, li.getValue(), xsink);
-      if (*xsink)
-	 return false;
-      if (b)
-	 return true;
-   }
-   return false;
+   return inlist_intern(arg, l, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

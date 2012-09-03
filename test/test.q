@@ -271,6 +271,18 @@ sub array_tests() {
     test_value($astr[2], "l", "string element dereference");
     my binary $bin = binary($astr);
     test_value($bin[4], ord("o"), "binary byte dereference");
+
+    # pseudomethods
+    my list $pseudoList = (1, 2, 3, 4, 'a');
+    test_value($pseudoList.typeCode(), NT_LIST, "<list>::typeCode");
+    test_value($pseudoList.size(), 5, "<list>::size");
+    test_value($pseudoList.empty(), False, "<list>::empty");
+    test_value($pseudoList.val(), True, "<list>::val");
+    test_value($pseudoList.first(), 1, "<list>::first");
+    test_value($pseudoList.last(), 'a', "<list>::last");
+    test_value($pseudoList.join('-'), '1-2-3-4-a', "<list>::join");
+    test_value($pseudoList.lsize(), 5, "<list>::lsize");
+    test_value($pseudoList.contains(2), True, "<list>::contains");
 }
 
 sub hash_tests() {
