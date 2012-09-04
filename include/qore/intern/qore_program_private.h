@@ -50,7 +50,7 @@ public:
 };
 
 // local variable container
-typedef safe_dslist<LocalVar *> local_var_list_t;
+typedef safe_dslist<LocalVar*> local_var_list_t;
 
 class LocalVariableList : public local_var_list_t {
 public:
@@ -902,7 +902,7 @@ public:
    }
 
    // returns true if setting for the first time, false if not
-   DLLLOCAL bool setThreadVarData(ThreadProgramData *td, ThreadLocalVariableData *&lvstack, ThreadClosureVariableStack *&cvstack, bool run) {
+   DLLLOCAL bool setThreadVarData(ThreadProgramData* td, ThreadLocalProgramData*& new_tlpd, bool run) {
       SafeLocker sl(tlock);
       // wait for data to finished being cleared if applicable
       while (tclear) {
@@ -917,8 +917,7 @@ public:
 
          //printd(5, "qore_program_private::setThreadVarData() (first) this=%p pgm=%p td=%p run=%s inst=%s\n", this, pgm, td, run ? "true" : "false", tlpd->inst ? "true" : "false");
 
-         lvstack = &tlpd->lvstack;
-         cvstack = &tlpd->cvstack;
+         new_tlpd = tlpd;
 
          pgm_data_map.insert(pgm_data_map_t::value_type(td, tlpd));
 
@@ -933,8 +932,7 @@ public:
       }
       
       ThreadLocalProgramData *tlpd = pgm_data_map[td];
-      lvstack = &tlpd->lvstack;
-      cvstack = &tlpd->cvstack;
+      new_tlpd = tlpd;
       
       sl.unlock();
 
@@ -1291,20 +1289,8 @@ public:
       i->second->clearTZ();
    }
 
-   DLLLOCAL static const AbstractQoreZoneInfo* currentTZ(QoreProgram& pgm, ThreadProgramData* tpd) {
-      return pgm.priv->currentTZ(tpd);
-   }
-
-   DLLLOCAL static const AbstractQoreZoneInfo* getThreadTZ(QoreProgram& pgm, ThreadProgramData* tpd, bool& set) {
-      return pgm.priv->getThreadTZ(tpd, set);
-   }
-
-   DLLLOCAL static void clearThreadTZ(QoreProgram& pgm, ThreadProgramData* tpd) {
-      pgm.priv->clearThreadTZ(tpd);
-   }
-
-   DLLLOCAL static void setThreadTZ(QoreProgram& pgm, ThreadProgramData* tpd, const AbstractQoreZoneInfo* tz) {
-      pgm.priv->setThreadTZ(tpd, tz);
+   DLLLOCAL static const AbstractQoreZoneInfo* currentTZIntern(QoreProgram& pgm) {
+      return pgm.priv->TZ;
    }
 
    DLLLOCAL static int incThreadCount(QoreProgram& pgm, ExceptionSink* xsink) {
@@ -1355,8 +1341,8 @@ public:
       pgm->priv->pwo = new_opts;
    }
 
-   DLLLOCAL static bool setThreadVarData(QoreProgram *pgm, ThreadProgramData *td, ThreadLocalVariableData *&lvstack, ThreadClosureVariableStack *&cvstack, bool run) {
-      return pgm->priv->setThreadVarData(td, lvstack, cvstack, run);
+   DLLLOCAL static bool setThreadVarData(QoreProgram *pgm, ThreadProgramData *td, ThreadLocalProgramData *&tlpd, bool run) {
+      return pgm->priv->setThreadVarData(td, tlpd, run);
    }
 
    DLLLOCAL static void endThread(QoreProgram *pgm, ThreadProgramData *td, ExceptionSink* xsink) {

@@ -319,13 +319,11 @@ public:
    // current implicit argument
    QoreListNode* current_implicit_arg;
 
-   // local variable data slots
-   ThreadLocalVariableData *lvstack;
+   // this data structure is stored in the current Program object on a per-thread basis
+   ThreadLocalProgramData* tlpd;
 
-   // closure variable stack
-   ThreadClosureVariableStack *cvstack;
-
-   ThreadProgramData *tpd;
+   // this data structure contains the set of Program objects that this thread has data in
+   ThreadProgramData* tpd;
 
    // current parsing closure environment
    ClosureParseEnvironment *closure_parse_env;
@@ -373,7 +371,7 @@ public:
       pgm_counter_start(0), pgm_counter_end(0), pgm_file(0), 
       parse_code(0), parseState(0), vstack(0), cvarstack(0),
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
-      current_pgm(p), current_ns(0), current_implicit_arg(0), tpd(new ThreadProgramData(this)),
+      current_pgm(p), current_ns(0), current_implicit_arg(0), tlpd(0), tpd(new ThreadProgramData(this)),
       closure_parse_env(0), closure_rt_env(0), 
       returnTypeInfo(0), element(0), global_vnode(0), qmc(0),
       qmd(0) {
@@ -459,7 +457,7 @@ void ThreadProgramData::delProgram(QoreProgram *pgm) {
 }
 
 void ThreadProgramData::saveProgram(bool runtime) {
-   if (!qore_program_private::setThreadVarData(td->current_pgm, this, td->lvstack, td->cvstack, runtime))
+   if (!qore_program_private::setThreadVarData(td->current_pgm, this, td->tlpd, runtime))
       return;
    ref();
    td->current_pgm->depRef();
@@ -729,29 +727,29 @@ void thread_ref_remove(const lvalue_ref* r) {
 }
 
 LocalVarValue *thread_instantiate_lvar() {
-   return thread_data.get()->lvstack->instantiate();
+   return thread_data.get()->tlpd->lvstack.instantiate();
 }
 
 void thread_uninstantiate_lvar(ExceptionSink *xsink) {
    ThreadData *td = thread_data.get();
-   td->lvstack->uninstantiate(xsink);
+   td->tlpd->lvstack.uninstantiate(xsink);
 }
 
 LocalVarValue *thread_find_lvar(const char *id) {
    ThreadData *td = thread_data.get();
-   return td->lvstack->find(id);
+   return td->tlpd->lvstack.find(id);
 }
 
 ClosureVarValue *thread_instantiate_closure_var(const char *n_id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
-   return thread_data.get()->cvstack->instantiate(n_id, typeInfo, nval);
+   return thread_data.get()->tlpd->cvstack.instantiate(n_id, typeInfo, nval);
 }
 
 void thread_uninstantiate_closure_var(ExceptionSink *xsink) {
-   thread_data.get()->cvstack->uninstantiate(xsink);
+   thread_data.get()->tlpd->cvstack.uninstantiate(xsink);
 }
 
 ClosureVarValue* thread_find_closure_var(const char *id) {
-   return thread_data.get()->cvstack->find(id);
+   return thread_data.get()->tlpd->cvstack.find(id);
 }
 
 ThreadSafeLocalVarRuntimeEnvironment *thread_get_runtime_closure_env() {
@@ -1040,38 +1038,38 @@ const QoreTypeInfo *saveReturnTypeInfo(const QoreTypeInfo *returnTypeInfo) {
 
 const AbstractQoreZoneInfo* currentTZ() {
    ThreadData* td = thread_data.get();
-   return td->current_pgm ? qore_program_private::currentTZ(*(td->current_pgm), td->tpd) : QTZM.getLocalZoneInfo();
+   if (td->tlpd && td->tlpd->tz_set)
+      return td->tlpd->tz;
+   return td->current_pgm ? qore_program_private::currentTZIntern(*(td->current_pgm)) : QTZM.getLocalZoneInfo();
 }
 
 void set_thread_tz(const AbstractQoreZoneInfo* tz) {
    ThreadData* td = thread_data.get();
-   QoreProgram* pgm = td->current_pgm;
-   if (!pgm) {
-      printd(0, "set_thread_tz(%p '%s') ignored - no current pgm\n", tz, tz ? tz->getRegionName() : "(null)");
+   if (!td->tlpd) {
+      printd(0, "set_thread_tz(%p '%s') ignored - no current thread-local program data\n", tz, tz ? tz->getRegionName() : "(null)");
       return;
    }
-   qore_program_private::setThreadTZ(*pgm, td->tpd, tz);
+   td->tlpd->setTZ(tz);
 }
 
 const AbstractQoreZoneInfo* get_thread_tz(bool& set) {
    ThreadData* td = thread_data.get();
-   QoreProgram* pgm = td->current_pgm;
-   if (!pgm) {
-      printd(0, "get_thread_tz() ignored - no current pgm\n");
+   if (!td->tlpd) {
+      printd(0, "get_thread_tz() ignored - no current thread-local program data\n");
       set = false;
       return 0;
    }
-   return qore_program_private::getThreadTZ(*pgm, td->tpd, set);
+   set = td->tlpd->tz_set;
+   return td->tlpd->tz;
 }
 
 void clear_thread_tz() {
    ThreadData* td = thread_data.get();
-   QoreProgram* pgm = td->current_pgm;
-   if (!pgm) {
-      printd(0, "clear_thread_tz() ignored - no current pgm\n");
+   if (!td->tlpd) {
+      printd(0, "clear_thread_tz() ignored - no current thread-local program data\n");
       return;
    }
-   return qore_program_private::clearThreadTZ(*pgm, td->tpd);
+   td->tlpd->clearTZ();
 }
 
 ThreadProgramData* get_thread_program_data() {
@@ -1281,7 +1279,7 @@ const qore_class_private* runtime_get_class() {
 }
 
 ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) :
-            old_pgm(0), old_lvstack(0), old_cvstack(0), restore(false) {
+            old_pgm(0), old_tlpd(0), restore(false) {
    if (!pgm)
       return;
 
@@ -1295,8 +1293,7 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
       // set up thread stacks
       restore = true;
       old_pgm = td->current_pgm;
-      old_lvstack = td->lvstack;
-      old_cvstack = td->cvstack;
+      old_tlpd = td->tlpd;
       td->current_pgm = pgm;
       td->tpd->saveProgram(runtime);
    }
@@ -1310,10 +1307,9 @@ ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
    ThreadData *td = thread_data.get();
 
    QoreProgram* pgm = td->current_pgm;
-   //printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm=%p restoring old pgm=%p old lvstack=%p\n", td->current_pgm, old_pgm, old_lvstack);
+   //printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
    td->current_pgm = old_pgm;
-   td->lvstack     = old_lvstack;
-   td->cvstack     = old_cvstack;
+   td->tlpd        = old_tlpd;
 
    qore_program_private::decThreadCount(*pgm);
 }

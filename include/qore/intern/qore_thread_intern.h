@@ -582,14 +582,12 @@ public:
    DLLLOCAL void del(ExceptionSink* xsink);
 };
 
-class ThreadLocalVariableData;
-class ThreadClosureVariableStack;
+struct ThreadLocalProgramData;
 
 class ProgramThreadCountContextHelper {
 protected:
    QoreProgram* old_pgm;
-   ThreadLocalVariableData* old_lvstack;
-   ThreadClosureVariableStack *old_cvstack;
+   ThreadLocalProgramData* old_tlpd;
    bool restore;
 
 public:
