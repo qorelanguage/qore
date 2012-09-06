@@ -39,6 +39,7 @@ module Pop3Client {
 }
 
 /*  Version History
+    * 2012-09-04 v1.0: David Nichols <david@qore.org>: doc updates only
     * 2012-06-12 v1.0: David Nichols <david@qore.org>: initial release
 
     based on:
@@ -71,17 +72,19 @@ public namespace Pop3Client {
     #! 30 second connect timeout
     public const DefaultConnectTimeout = 30s;
 
-    #! this class provides the interface to <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> servers and supports optional TLS/SSL encryption
-    /** This class uses a Mutex lock in each Pop3Client object to ensure thread serialization to the underlying socket and its internal configuration, 
+    #! This class provides the interface to <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> servers and supports optional TLS/SSL encryption
+    /** This class uses a @ref Qore::Thread::Mutex "Mutex" lock in each Pop3Client object to ensure thread serialization to the underlying socket and its internal configuration, 
         so it is safe to access in a multithreaded context.
 
-        Connection to and uthentication with the POP3 server is made implicitly by calling a Pop3Client method that requires a connection; it is not necessary to call Pop3Client::connect() explicitly.
+        Connection to and authentication with the POP3 server is made implicitly by calling a Pop3Client method that requires a connection; it is not necessary to call @ref Pop3Client::Pop3Client::connect() "Pop3Client::connect()" explicitly.
 
         This class supports automatic recognition and use of APOP authentication (<a href="http://tools.ietf.org/html/rfc1939#page-15">RFC-1939 p15</a>) if an RFC822-compliant msg-id is included in the last part of the login string sent by the POP3 server when connecting.
 
         Encrypted connections to POP3 servers are also supported in the following ways:
         - to connect immediately with a TLS/SSL connection, use the \c "pop3s" protocol (URI scheme) in the URL, or set the TLS/SSL flag manually by calling @ref Pop3Client::Pop3Client::tls(bool) "Pop3Client::tls(bool)".
-        - to connect with an unencrypted connection and then upgrade to an encrypted connection using the \c "STLS" command, set the \c "starttls" flag by calling @ref Pop3Client::Pop3Client::starttls(bool) "Pop3Client::starttls(bool)"        
+        - to connect with an unencrypted connection and then upgrade to an encrypted connection using the \c "STLS" command, set the \c "starttls" flag by calling @ref Pop3Client::Pop3Client::starttls(bool) "Pop3Client::starttls(bool)"
+
+        This class will not mark messages for deletion automatically; to mark messages for deletion, call the @ref Pop3Client::Pop3Client::del() "Pop3Client::del()" method with the message ID to delete or a list of message IDs.  Note that some SMTP servers (for example gmail), will mark the messages as read anyway and make them unavailable on the next request after disconnecting even if the messages were not marked for deletion manually.  To avoid this, set the \c "noquit" flag by calling @ref Pop3Client::Pop3Client::noquit(bool) "Pop3Client::noquit(bool)".  This will suppress the \c "QUIT" message when disconnecting which should keep any compiant SMTP server from committing any changes related to the current POP3 session.
      */
     public class Pop3Client {
         #! @cond nodoc
@@ -295,7 +298,7 @@ $pop3.connect();
             @note
             - It is not necessary to call this method explicitly; connections are made implicitly by calling a method that requires a connection
             - For possible exceptions, see %Qore's @ref Qore::Socket::connect() "Socket::connect()" method
-            - This method is subject to thread serialization
+            - This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
          */
@@ -348,7 +351,7 @@ my hash $h = $pop3.stat();
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-            @note This method is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         hash stat() {
 	    my AutoLock $am($.mutex);
@@ -372,7 +375,7 @@ map printf("%s: %d byte%s\n", $1.getKey(), $1.getValue(), $1.getValue() == 1 ? "
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-            @note This method is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         *hash list() {
 	    my AutoLock $am($.mutex);
@@ -392,7 +395,7 @@ $pop3.del($msgid);
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
             
-            @note This method is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         del(softstring $msg) {
 	    my AutoLock $am($.mutex);
@@ -410,7 +413,7 @@ $pop3.del($msgid);
 $pop3.del($msgidlist);
             @endcode
 
-            @note This method is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         del(list $l) {
 	    my AutoLock $am($.mutex);
@@ -429,7 +432,7 @@ $pop3.noop();
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
             
-            @note This method is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         noop() {
 	    my AutoLock $am($.mutex);
@@ -447,7 +450,7 @@ $pop3.reset();
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
             
-            @note This method is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         reset() {
 	    my AutoLock $am($.mutex);
@@ -545,7 +548,7 @@ my date $timeout = $pop3.getConnectTimeoutDate();
 $pop3.forceDisconnect();
             @endcode
             
-            @note This method is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         forceDisconnect() {
 	    my AutoLock $am($.mutex);

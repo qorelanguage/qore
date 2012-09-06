@@ -390,7 +390,7 @@ public namespace Mime {
 	    if ($hdr && $c == 32)
 		$nc = "_";
 	    # check if the high bit is set or if it's an ASCII control character or '=', or we are encoding a header and the char is not '?' and '_', encode
-	    else if (($c & 0x80) || $c < 32 || $c == 61 || ($hdr && ($c == 63 || $c == 95)))
+	    else if (($c & 0x80) || $c < 32 || $c == 61 || ($hdr && ($c == 63 || $c == 95 || $c == 137)))
 		$nc = sprintf("=%02x", $c).upr();
 	    else
 		$nc = chr($c);
@@ -439,7 +439,7 @@ public namespace Mime {
 
     #! returns a string in "Q" ("quoted-printable") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
     public string sub mime_encode_header_word_q(string $str) {
-	return sprintf("=?%s?Q?%s?=", get_encoding($str), mime_encode_quoted_printable($str), True);
+	return sprintf("=?%s?Q?%s?=", get_encoding($str), mime_encode_quoted_printable($str, True));
     }
     #@}
 
