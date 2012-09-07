@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.5
+%requires qore >= 0.8.6
 
 # need mime definitions
 %requires Mime >= 1.0
@@ -741,7 +741,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             @return a header string (ex: \c "Subject: =?UTF-8?Q?testing?=\r\n")
          */
         static string doHeaderValue(string $hdr, string $val, string $eol = "\r\n", bool $encode = True) {
-            if ($encode && $val =~ /[^\x{80}-\x{ff}]/)
+            if ($encode && !$val.isDataPrintableAscii())
                 $val = mime_encode_header_word_q($val);
             return sprintf("%s: %s%s", $hdr, $val, $eol);
         }

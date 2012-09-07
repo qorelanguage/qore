@@ -590,6 +590,16 @@ public:
    //! returns the byte position of a substring within the string
    DLLEXPORT qore_offset_t brindex(const std::string& needle, qore_offset_t pos) const;
 
+   //! returns true if the string is empty or only contains printable non-control ASCII characters (ie all characters > 31 && < 127)
+   /** @note the string's encoding is ignored and the data itself is scanned for the return value
+   */
+   DLLEXPORT bool isDataPrintableAscii() const;
+
+   //! returns true if the string is empty or has no characters with the high bit set (ie all characters < 128)
+   /** @note the string's encoding is ignored and the data itself is scanned for the return value
+   */
+   DLLEXPORT bool isDataAscii() const;
+
    // concatenates a qorestring without converting encodings - internal only
    DLLLOCAL void concat(const QoreString* str);
 

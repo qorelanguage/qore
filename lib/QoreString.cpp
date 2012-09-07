@@ -1954,3 +1954,12 @@ qore_offset_t QoreString::brindex(const char *needle, qore_offset_t pos) const {
 qore_offset_t QoreString::brindex(const std::string &needle, qore_offset_t pos) const {
    return priv->brindex(needle, pos);
 }
+
+bool QoreString::isDataPrintableAscii() const {
+   return priv->isDataPrintableAscii();
+}
+
+bool QoreString::isDataAscii() const {
+   return priv->isDataAscii();
+}
+

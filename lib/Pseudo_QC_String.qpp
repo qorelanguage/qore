@@ -645,3 +645,31 @@ string <string>::toSHA512() [flags=RET_VALUE_ONLY] {
    return 0;
 #endif
 }
+
+//! returns @ref True if the string is empty or has no characters with the high bit set (ie all characters < 128)
+/** @return @ref True if the string is empty or has no characters with the high bit set (ie all characters < 128)
+
+    @par Example:
+    @code
+my bool $b = $str.isDataAscii();
+    @endcode
+
+    @since %Qore 0.8.6
+ */
+bool <string>::isDataAscii() [flags=CONSTANT] {
+   return str->isDataAscii();
+}
+
+//! returns @ref True if the string is empty or only contains printable non-control ASCII characters (ie all characters > 31 && < 127)
+/** @return @ref True if the string is empty or only contains printable non-control ASCII characters (ie all characters > 31 && < 127)
+
+    @par Example:
+    @code
+my bool $b = $str.isDataPrintableAscii();
+    @endcode
+
+    @since %Qore 0.8.6
+ */
+bool <string>::isDataPrintableAscii() [flags=CONSTANT] {
+   return str->isDataPrintableAscii();
+}

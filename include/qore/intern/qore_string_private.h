@@ -48,7 +48,7 @@ public:
 
    DLLLOCAL qore_string_private(const qore_string_private &p) {
       allocated = p.len + STR_CLASS_EXTRA;
-      buf = (char *)malloc(sizeof(char) * allocated);
+      buf = (char*)malloc(sizeof(char) * allocated);
       len = p.len;
       if (len)
          memcpy(buf, p.buf, len);
@@ -67,7 +67,7 @@ public:
          allocated = i + (d < STR_CLASS_BLOCK ? STR_CLASS_BLOCK : d);
          //allocated = i + STR_CLASS_BLOCK;
          allocated = (allocated / 16 + 1) * 16; // use complete cache line
-         buf = (char *)realloc(buf, allocated * sizeof(char));
+         buf = (char*)realloc(buf, allocated * sizeof(char));
       }
    }
 
@@ -264,6 +264,22 @@ public:
          return -1;
       
       return rindex_simple(buf, len, needle, needle_len, pos);      
+   }
+
+   DLLLOCAL bool isDataPrintableAscii() const {
+      for (qore_size_t i = 0; i < len; ++i) {
+         if (buf[i] < 32 || buf[i] > 126)
+            return false;
+      }
+      return true;
+   }
+
+   DLLLOCAL bool isDataAscii() const {
+      for (qore_size_t i = 0; i < len; ++i) {
+         if ((unsigned char)(buf[i]) > 127)
+            return false;
+      }
+      return true;
    }
 };
 
