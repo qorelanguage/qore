@@ -213,7 +213,7 @@ foreach my hash $h in ($l) {
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
     
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
@@ -244,7 +244,7 @@ foreach my hash $h in ($l) {
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
     
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
@@ -273,7 +273,7 @@ $stmt.bindPlaceholders(Type::Date);
 my date $d = $stmt.getOutput().sd;
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
     
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
@@ -303,7 +303,7 @@ $stmt.bindPlaceholdersArgs($l);
 my date $d = $stmt.getOutput().sd;
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
     
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
@@ -333,7 +333,7 @@ foreach my hash $h in ($l) {
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
     
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
@@ -364,7 +364,7 @@ foreach my hash $h in ($l) {
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
     
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
  */
@@ -393,7 +393,7 @@ foreach my hash $h in ($l) {
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
     
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
 
@@ -425,7 +425,7 @@ foreach my hash $h in ($l) {
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
     
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
 
@@ -443,7 +443,7 @@ nothing SQLStatement::execArgs(softlist vargs) {
 my int $rc = $stmt.affectedRows();
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
  */
@@ -459,7 +459,7 @@ int SQLStatement::affectedRows() {
 my hash $h = $stmt.getOutput();
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when output values are retrieved; see the relevant DBI driver docs for more information
  */
@@ -475,7 +475,7 @@ hash SQLStatement::getOutput() {
 my hash $h = $stmt.getOutputRows();
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when output values are retrieved; see the relevant DBI driver docs for more information
  */
@@ -567,7 +567,7 @@ while ($stmt.next()) {
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
  */
@@ -587,7 +587,7 @@ while ($stmt.next()) {
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
  */
@@ -607,7 +607,7 @@ while ($stmt.next()) {
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @note
     - Equivalent to SQLStatement::fetchRow()
@@ -632,7 +632,7 @@ any SQLStatement::getValue() {
 my list $l = $stmt.fetchRows(-1);
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
  */
@@ -652,7 +652,7 @@ list SQLStatement::fetchRows(softint rows = -1) {
 my hash $h = $stmt.fetchColumns(-1);
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
  */

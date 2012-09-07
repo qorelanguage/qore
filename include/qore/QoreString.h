@@ -111,7 +111,7 @@ public:
    //! creates a new string as the base64-encoded value of the binary object passed and ensures the maximum line length for the base64-encoded output
    DLLEXPORT QoreString(const BinaryNode* bin, qore_size_t maxlinelen);
 
-   //! takes ownership of the char*  passed
+   //! takes ownership of the char* passed
    DLLEXPORT QoreString(char* nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding* enc);
 
    //! frees any memory allocated by the string
@@ -532,13 +532,13 @@ public:
    DLLEXPORT void prepend(const char* str, qore_size_t size);
 
    //! assigns the value of one string to another
-   DLLEXPORT QoreString&  operator=(const QoreString& other);
+   DLLEXPORT QoreString& operator=(const QoreString& other);
 
    //! assigns the value of one string to another; note that in this case the string is assigned the default envcoding (QCS_DEFAULT)
-   DLLEXPORT QoreString&  operator=(const char* other);
+   DLLEXPORT QoreString& operator=(const char* other);
 
    //! assigns the value of one string to another; note that in this case the string is assigned the default envcoding (QCS_DEFAULT)
-   DLLEXPORT QoreString&  operator=(const std::string& other);
+   DLLEXPORT QoreString& operator=(const std::string& other);
 
    //! returns true if the other string is equal to this string (encodings also must be equal)
    DLLEXPORT bool operator==(const QoreString& other) const;
@@ -627,7 +627,7 @@ private:
    TempString(const TempString& );
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   TempString&  operator=(const TempString& );
+   TempString& operator=(const TempString& );
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    void* operator new(size_t);
