@@ -685,10 +685,16 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
 
    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
    char *p = strchr(str, ':');
+   // make sure this is the driver name and not the port at the end
    if (p) {
       *p = '\0';
-      h->setKeyValue("type", new QoreStringNode(str), 0);
-      str = p + 1;
+      if (strchrs(str, "@/%"))
+         // this is the port at the end, so skip it
+         *p = ':';
+      else {
+         h->setKeyValue("type", new QoreStringNode(str), 0);
+         str = p + 1;
+      }
    }
 
    bool has_pass = false;
