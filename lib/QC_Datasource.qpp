@@ -85,6 +85,12 @@ const DBI_CAP_BIND_BY_PLACEHOLDER = DBI_CAP_BIND_BY_PLACEHOLDER;
 
 //! Indicates that the DBI driver supports the Datasource::execRaw() and DatasourcePool::execRaw() methods
 const DBI_CAP_HAS_EXECRAW = DBI_CAP_HAS_EXECRAW;
+
+//! Indicates that the DBI driver supports the prepared statement interface (the SQLStatement class)
+const DBI_CAP_HAS_STATEMENT = DBI_CAP_HAS_STATEMENT;
+
+//! Indicates that the DBI driver supports a native selectRow() method implementation
+const DBI_CAP_HAS_SELECT_ROW = DBI_CAP_HAS_SELECT_ROW;
 //@}
 
 //! This class provides the %Qore interface to databases
