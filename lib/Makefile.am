@@ -319,6 +319,7 @@ libqore_la_SOURCES = \
 	QoreBigIntNode.cpp \
 	QoreBoolNode.cpp \
 	QoreFloatNode.cpp \
+	QoreNumberNode.cpp \
 	QoreNullNode.cpp \
 	QoreNothingNode.cpp \
 	Function.cpp \

@@ -47,9 +47,6 @@ class QoreTypeInfo;
 class AbstractQoreNode : public QoreReferenceCounter {
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL AbstractQoreNode(const AbstractQoreNode&);
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL AbstractQoreNode& operator=(const AbstractQoreNode&);
 
    //! default implementation, returns false
@@ -179,6 +176,9 @@ public:
        @param n_custom_reference_handlers if true then the class implements its own reference handlers
    */
    DLLEXPORT AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false, bool n_custom_reference_handlers = false);
+
+   //! copy constructor
+   DLLEXPORT AbstractQoreNode(const AbstractQoreNode& v);
 
    //! returns the boolean value of the object
    /**
@@ -401,7 +401,7 @@ public:
    DLLLOCAL SimpleQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false) : AbstractQoreNode(t, n_value, n_needs_eval, n_there_can_be_only_one) { }
 
    //! copy constructor
-   DLLLOCAL SimpleQoreNode(const SimpleQoreNode &) : AbstractQoreNode(type, value, needs_eval_flag, there_can_be_only_one) { }
+   DLLLOCAL SimpleQoreNode(const SimpleQoreNode& v) : AbstractQoreNode(v) { }
 
    //! decrements the reference count and deletes the object when references = 0
    /**
@@ -450,7 +450,7 @@ public:
    //! creates the object by assigning the type code and setting the "value" flag, unsetting the "needs_eval" flag, and setting "there_can_be_only_one"
    DLLLOCAL SimpleValueQoreNode(qore_type_t t, bool n_there_can_be_only_one = false) : SimpleQoreNode(t, true, false, n_there_can_be_only_one) { }
 
-   DLLLOCAL SimpleValueQoreNode(const SimpleValueQoreNode &v) : SimpleQoreNode(type, true, false, there_can_be_only_one) { }
+   DLLLOCAL SimpleValueQoreNode(const SimpleValueQoreNode &v) : SimpleQoreNode(v) { }
 };
 
 //! this class is for value types that will exists only once in the Qore library, reference counting is disabled

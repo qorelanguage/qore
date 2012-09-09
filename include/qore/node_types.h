@@ -42,7 +42,7 @@ const qore_type_t NT_BINARY             = 7;  //!< type value for BinaryNode
 const qore_type_t NT_LIST               = 8;  //!< type value for QoreListNode
 const qore_type_t NT_HASH               = 9;  //!< type value for QoreHashNode
 const qore_type_t NT_OBJECT             = 10; //!< type value for QoreObject
-const qore_type_t NT_BACKQUOTE          = 11; //!< type value for BackquoteNode
+const qore_type_t NT_NUMBER             = 11; //!< type value for QoreNumberNode
 const qore_type_t NT_CONTEXTREF         = 12; //!< type value for ContextrefNode
 const qore_type_t NT_COMPLEXCONTEXTREF  = 13; //!< type value for ComplexContextrefNode
 const qore_type_t NT_VARREF             = 14; //!< type value for VarRefNode
@@ -73,14 +73,15 @@ const qore_type_t NT_IMPLICIT_ELEMENT   = 38; //!< type value for QoreImplicitEl
 const qore_type_t NT_CLASS_VARREF       = 39; //!< type value for StaticClassVarRefNode (private class)
 const qore_type_t NT_PROGRAM_FUNC_CALL  = 40; //!< type value for ProgramFunctionCallNode (private class)
 const qore_type_t NT_PARSEREFERENCE     = 41; //!< type value for ParseReferenceNode (private class)
+const qore_type_t NT_BACKQUOTE          = 42; //!< type value for BackquoteNode
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 41
+#define QORE_NUM_TYPES 42
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8
 
 //! number of potential value types (including container types)
-#define NUM_VALUE_TYPES 11
+#define NUM_VALUE_TYPES 12
 
 #endif

@@ -50,6 +50,8 @@ BuildRequires: bison
 BuildRequires: openssl-devel
 BuildRequires: pcre-devel
 BuildRequires: zlib-devel
+BuildRequires: gmp-devel
+BuildRequires: mpfr-devel
 BuildRequires: doxygen
 %if 0%{?suse_version}
 BuildRequires: pkg-config
@@ -75,6 +77,7 @@ development but is also useful as a general purpose language.
 %package -n libqore5
 Summary: The libraries for the qore runtime and qore clients
 Group: Development/Languages/Other
+Provides: qore-module-api-0.14
 Provides: qore-module-api-0.13
 Provides: qore-module-api-0.12
 Provides: qore-module-api-0.11

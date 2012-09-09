@@ -517,6 +517,140 @@ find_zlib() {
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $ZLIB_CPPFLAGS"
 }
 
+set_gmp_cppflags() {
+    if test "$1" != "/usr/include"; then
+        GMP_CPPFLAGS=-I$1
+    fi
+    with_gmp_includes="$1"
+}
+
+find_gmp() {
+    dir="$1"
+    if test -z "$dir" -o "$dir" = "/"; then
+        if test -h /lib${LIBSUFFIX}; then
+            dir=/usr
+            lib=/usr/lib${LIBSUFFIX}
+            inc=/usr/include
+        else
+	    dir=/
+	    lib=/lib${LIBSUFFIX}
+	    inc=/usr/include
+        fi
+    else
+        lib="$dir/lib${LIBSUFFIX}"
+        inc="$dir/include"
+    fi
+    # if we only want the static gmp libraries
+    if test -n "$gmp_static"; then
+    	if test -f "$lib/libgmp.a"; then
+	    GMP_LDFLAGS="$lib/libgmp.a"
+	    with_gmp_libs="$lib"
+	    gmp_static=1
+    	fi
+    else
+        if test -f "$lib/libgmp.${SHLIB_SUFFIX}"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        GMP_LDFLAGS="-L$lib"
+    	    fi
+	    GMP_LDFLAGS="$GMP_LDFLAGS -lgmp"
+	    with_gmp_libs="$lib"
+    	elif test -f "$lib/libgmp.a"; then	
+	    if test "$mingw" = yes -a "$make_dll" = yes; then
+	    	GMP_LDFLAGS="-Wl,$lib/libgmp.a"
+	    else
+		if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	            GMP_LDFLAGS="-L$lib"
+    	        fi
+	        GMP_LDFLAGS="$GMP_LDFLAGS -lgmp"
+            fi
+	    with_gmp_libs="$lib"
+	    gmp_static=1
+    	fi
+    fi
+    if test -z "$GMP_LDFLAGS"; then
+        return
+    fi
+    # try to find include files
+    if test -f "$inc/gmp.h"; then
+        set_gmp_cppflags $inc
+    elif test -f "$inc/gmp/gmp.h"; then
+        set_gmp_cppflags $inc/gmp
+    else
+        unset GMP_LDFLAGS
+	unset with_gmp_libs
+	return
+    fi
+    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $GMP_LDFLAGS"
+    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $GMP_CPPFLAGS"
+}
+
+set_mpfr_cppflags() {
+    if test "$1" != "/usr/include"; then
+        MPFR_CPPFLAGS=-I$1
+    fi
+    with_mpfr_includes="$1"
+}
+
+find_mpfr() {
+    dir="$1"
+    if test -z "$dir" -o "$dir" = "/"; then
+        if test -h /lib${LIBSUFFIX}; then
+            dir=/usr
+            lib=/usr/lib${LIBSUFFIX}
+            inc=/usr/include
+        else
+	    dir=/
+	    lib=/lib${LIBSUFFIX}
+	    inc=/usr/include
+        fi
+    else
+        lib="$dir/lib${LIBSUFFIX}"
+        inc="$dir/include"
+    fi
+    # if we only want the static mpfr libraries
+    if test -n "$mpfr_static"; then
+    	if test -f "$lib/libmpfr.a"; then
+	    MPFR_LDFLAGS="$lib/libmpfr.a"
+	    with_mpfr_libs="$lib"
+	    mpfr_static=1
+    	fi
+    else
+        if test -f "$lib/libmpfr.${SHLIB_SUFFIX}"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        MPFR_LDFLAGS="-L$lib"
+    	    fi
+	    MPFR_LDFLAGS="$MPFR_LDFLAGS -lmpfr"
+	    with_mpfr_libs="$lib"
+    	elif test -f "$lib/libmpfr.a"; then	
+	    if test "$mingw" = yes -a "$make_dll" = yes; then
+	    	MPFR_LDFLAGS="-Wl,$lib/libmpfr.a"
+	    else
+		if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	            MPFR_LDFLAGS="-L$lib"
+    	        fi
+	        MPFR_LDFLAGS="$MPFR_LDFLAGS -lmpfr"
+            fi
+	    with_mpfr_libs="$lib"
+	    mpfr_static=1
+    	fi
+    fi
+    if test -z "$MPFR_LDFLAGS"; then
+        return
+    fi
+    # try to find include files
+    if test -f "$inc/mpfr.h"; then
+        set_mpfr_cppflags $inc
+    elif test -f "$inc/mpfr/mpfr.h"; then
+        set_mpfr_cppflags $inc/mpfr
+    else
+        unset MPFR_LDFLAGS
+	unset with_mpfr_libs
+	return
+    fi
+    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $MPFR_LDFLAGS"
+    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $MPFR_CPPFLAGS"
+}
+
 # allow the user to set a generic search prefix for libraries, includes, etc
 AC_ARG_WITH([lib-prefix],
   [AS_HELP_STRING([--with-lib-prefix@<:@=DIR@:>@],
@@ -545,6 +679,38 @@ if test -n "$zlib_static"; then
    AC_MSG_RESULT([includes $with_zlib_includes libs $with_zlib_libs (static)])
 else
    AC_MSG_RESULT([includes $with_zlib_includes libs $with_zlib_libs (shared)])
+fi
+
+AC_MSG_CHECKING([for gmp libraries and header files])
+for dir in "${with_gmp_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/gmp /usr/local/gmp /opt/local /sw /usr/sfw /opt/sfw; do
+    find_gmp $dir
+    if test -n "$GMP_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$GMP_LDFLAGS"; then
+    AC_MSG_ERROR([no gmp library found])
+fi
+if test -n "$gmp_static"; then
+   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (static)])
+else
+   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (shared)])
+fi
+
+AC_MSG_CHECKING([for mpfr libraries and header files])
+for dir in "${with_mpfr_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/mpfr /usr/local/mpfr /opt/local /sw /usr/sfw /opt/sfw; do
+    find_mpfr $dir
+    if test -n "$MPFR_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$MPFR_LDFLAGS"; then
+    AC_MSG_ERROR([no mpfr library found])
+fi
+if test -n "$mpfr_static"; then
+   AC_MSG_RESULT([includes $with_mpfr_includes libs $with_mpfr_libs (static)])
+else
+   AC_MSG_RESULT([includes $with_mpfr_includes libs $with_mpfr_libs (shared)])
 fi
 
 set_pcre_cppflags() {
@@ -1405,6 +1571,7 @@ AM_CONDITIONAL([COND_HAVE_TERMIOS],            [test "$ac_cv_header_termios_h" =
 AM_CONDITIONAL([COND_NEED_INET_NTOP],          [test "$ac_cv_func_inet_ntop" != yes])
 AM_CONDITIONAL([COND_NEED_INET_PTON],          [test "$ac_cv_func_inet_pton" != yes])
 AM_CONDITIONAL([COND_NEED_GETOPT_LONG],        [test "$ac_cv_header_getopt_h" != yes])
+AM_CONDITIONAL([COND_HAVE_MPFR],               [test "$have_mpfr_h" = yes])
 AM_CONDITIONAL([COND_MINGWCC],                 [test "$mingw" = yes])
 
 # find prefix
@@ -1522,4 +1689,3 @@ if test "$mingw" = yes; then
    sed -e 's/deplibs_check_method=.*/deplibs_check_method=pass_all/g' -e 's/libext=.*/libext=a/g' libtool > libtool.tmp
    mv libtool.tmp libtool
 fi
-

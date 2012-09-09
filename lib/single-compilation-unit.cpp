@@ -22,6 +22,7 @@
 #include "QoreBigIntNode.cpp"
 #include "QoreBoolNode.cpp"
 #include "QoreFloatNode.cpp"
+#include "QoreNumberNode.cpp"
 #include "QoreNullNode.cpp"
 #include "QoreNothingNode.cpp"
 #include "VarRefNode.cpp"

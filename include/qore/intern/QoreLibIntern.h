@@ -29,6 +29,7 @@
 
 #include <stdarg.h>
 #include <sys/types.h>
+
 #ifdef HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>
 #endif
@@ -74,6 +75,9 @@
 #include <netinet/tcp.h>
 #endif
 
+// for arbitrary-precision numeric support
+#include <mpfr.h>
+
 // printf format for size_t or qore_size_t integers
 #if TARGET_BITS == 64
 #define QSD QLLD
@@ -92,12 +96,13 @@
 #define NT_CODE         -3
 #define NT_SOFTINT      -4
 #define NT_SOFTFLOAT    -5
-#define NT_SOFTBOOLEAN  -6
-#define NT_SOFTSTRING   -7
-#define NT_SOFTDATE     -8
-#define NT_SOFTLIST     -9
-#define NT_TIMEOUT      -10
-#define NT_INTORFLOAT   -11
+#define NT_SOFTNUMBER   -6
+#define NT_SOFTBOOLEAN  -7
+#define NT_SOFTSTRING   -8
+#define NT_SOFTDATE     -9
+#define NT_SOFTLIST     -10
+#define NT_TIMEOUT      -11
+#define NT_INTORFLOAT   -12
 
 #define NT_SOMETHING    -101 // i.e. "not NOTHING"
 #define NT_DATA         -102 // either QoreStringNode or BinaryNode

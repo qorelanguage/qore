@@ -54,6 +54,7 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
    *listTypeInfo, 
    *nothingTypeInfo, 
    *nullTypeInfo, 
+   *numberTypeInfo,
    *runTimeClosureTypeInfo,
    *callReferenceTypeInfo, 
    *referenceTypeInfo, 
@@ -61,6 +62,7 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
    *codeTypeInfo,              // either closure or callref
    *softBigIntTypeInfo,        // converts to int from float, string, and bool
    *softFloatTypeInfo,         // converts to float from int, string, and bool
+   *softNumberTypeInfo,        // xxx
    *softBoolTypeInfo,          // converts to bool from int, float, and string
    *softStringTypeInfo,        // converts to string from int, float, and bool
    *softDateTypeInfo,          // converts to date from int, float, bool, and string
@@ -72,6 +74,7 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
 
    *bigIntOrNothingTypeInfo, 
    *floatOrNothingTypeInfo, 
+   *numberOrNothingTypeInfo,
    *stringOrNothingTypeInfo,
    *boolOrNothingTypeInfo,
    *binaryOrNothingTypeInfo,
@@ -85,6 +88,7 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
 
    *softBigIntOrNothingTypeInfo,
    *softFloatOrNothingTypeInfo,
+   *softNumberOrNothingTypeInfo,
    *softBoolOrNothingTypeInfo,
    *softStringOrNothingTypeInfo,
    *softDateOrNothingTypeInfo,
@@ -210,6 +214,5 @@ DLLEXPORT bool typeInfoHasType(const QoreTypeInfo *typeInfo);
 DLLEXPORT const char *typeInfoGetName(const QoreTypeInfo *typeInfo);
 DLLEXPORT qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo);
 DLLEXPORT qore_type_result_e typeInfoReturnsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo);
-
 
 #endif // _QORE_QORETYPE_H

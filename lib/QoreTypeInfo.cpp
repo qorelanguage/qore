@@ -81,6 +81,12 @@ static FloatOrNothingTypeInfo staticFloatOrNothingTypeInfo;
 const QoreTypeInfo *floatTypeInfo = &staticFloatTypeInfo,
    *floatOrNothingTypeInfo = &staticFloatOrNothingTypeInfo;
 
+// xxx
+static NumberTypeInfo staticNumberTypeInfo;
+static NumberOrNothingTypeInfo staticNumberOrNothingTypeInfo;
+const QoreTypeInfo *numberTypeInfo = &staticNumberTypeInfo,
+   *numberOrNothingTypeInfo = &staticNumberOrNothingTypeInfo;
+
 // provides equal compatibility with closures and all types of code references
 static CodeTypeInfo staticCodeTypeInfo;
 static CodeOrNothingTypeInfo staticCodeOrNothingTypeInfo;
@@ -104,6 +110,12 @@ static SoftFloatTypeInfo staticSoftFloatTypeInfo;
 static SoftFloatOrNothingTypeInfo staticSoftFloatOrNothingTypeInfo;
 const QoreTypeInfo *softFloatTypeInfo = &staticSoftFloatTypeInfo,
    *softFloatOrNothingTypeInfo = &staticSoftFloatOrNothingTypeInfo;
+
+// xxx
+static SoftNumberTypeInfo staticSoftNumberTypeInfo;
+static SoftNumberOrNothingTypeInfo staticSoftNumberOrNothingTypeInfo;
+const QoreTypeInfo *softNumberTypeInfo = &staticSoftNumberTypeInfo,
+   *softNumberOrNothingTypeInfo = &staticSoftNumberOrNothingTypeInfo;
 
 // provides bool compatibility with and conversions from float, string, date, and int
 static SoftBoolTypeInfo staticSoftBoolTypeInfo;
@@ -217,6 +229,7 @@ void init_qore_types() {
    do_maps(NT_STRING,      "string", stringTypeInfo, stringOrNothingTypeInfo);
    do_maps(NT_BOOLEAN,     "bool", boolTypeInfo, boolOrNothingTypeInfo);
    do_maps(NT_FLOAT,       "float", floatTypeInfo, floatOrNothingTypeInfo);
+   do_maps(NT_NUMBER,      "number", numberTypeInfo, numberOrNothingTypeInfo);
    do_maps(NT_BINARY,      "binary", binaryTypeInfo, binaryOrNothingTypeInfo);
    do_maps(NT_LIST,        "list", listTypeInfo, listOrNothingTypeInfo);
    do_maps(NT_HASH,        "hash", hashTypeInfo, hashOrNothingTypeInfo);
@@ -231,6 +244,7 @@ void init_qore_types() {
 
    do_maps(NT_SOFTINT,     "softint", softBigIntTypeInfo, softBigIntOrNothingTypeInfo);
    do_maps(NT_SOFTFLOAT,   "softfloat", softFloatTypeInfo, softFloatOrNothingTypeInfo);
+   do_maps(NT_SOFTNUMBER,  "softnumber", softNumberTypeInfo, softNumberOrNothingTypeInfo);
    do_maps(NT_SOFTBOOLEAN, "softbool", softBoolTypeInfo, softBoolOrNothingTypeInfo);
    do_maps(NT_SOFTSTRING,  "softstring", softStringTypeInfo, softStringOrNothingTypeInfo);
    do_maps(NT_SOFTDATE,    "softdate", softDateTypeInfo, softDateOrNothingTypeInfo);

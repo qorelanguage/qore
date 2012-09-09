@@ -39,6 +39,12 @@ AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eva
 #endif
 }
 
+AbstractQoreNode::AbstractQoreNode(const AbstractQoreNode& v) : type(v.type), value(v.value), needs_eval_flag(v.needs_eval_flag), there_can_be_only_one(v.there_can_be_only_one), custom_reference_handlers(v.custom_reference_handlers) {
+#if TRACK_REFS
+   printd(REF_LVL, "AbstractQoreNode::ref() %p type=%d (0->1)\n", this, type);
+#endif
+}
+
 AbstractQoreNode::~AbstractQoreNode() {
 #if 0
    printd(5, "AbstractQoreNode::~AbstractQoreNode() type=%d (%s)\n", type, getTypeName());

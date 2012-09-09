@@ -1146,6 +1146,85 @@ public:
    }
 };
 
+class NumberOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
+protected:
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "*number";
+   }
+
+   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      qore_type_t t = get_node_type(n);
+
+      if (t == NT_NUMBER || t == NT_NOTHING)
+         return true;
+
+      if (t == NT_FLOAT) {
+         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
+         n->deref(xsink);
+         n = nn;
+         return true;
+      }
+
+      // only perform dynamic cast if type is external
+      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n)))
+         return false;
+
+      QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode *>(n)->val);
+      n->deref(xsink);
+      n = nn;
+      return true;
+   }
+
+public:
+   DLLLOCAL NumberOrNothingTypeInfo() : AcceptsReturnsMultiFilterTypeInfo(0, NT_NUMBER, false, true, false, false) {
+      assert(numberTypeInfo);
+      at.push_back(numberTypeInfo);
+      assert(bigIntTypeInfo);
+      at.push_back(bigIntTypeInfo);
+      assert(floatTypeInfo);
+      at.push_back(floatTypeInfo);
+      assert(nothingTypeInfo);
+      at.push_back(nothingTypeInfo);
+
+      rt.push_back(numberTypeInfo);
+      rt.push_back(nothingTypeInfo);
+   }
+};
+
+class NumberTypeInfo : public AcceptsMultiFilterTypeInfo {
+protected:
+   DLLLOCAL bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
+      qore_type_t t = get_node_type(n);
+
+      if (t == NT_NUMBER)
+         return true;
+
+      if (t == NT_FLOAT) {
+         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
+         n->deref(xsink);
+         n = nn;
+         return true;
+      }
+
+      // only perform dynamic cast if type is external
+      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n)))
+         return false;
+
+      QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
+      n->deref(xsink);
+      n = nn;
+      return true;
+   }
+
+public:
+   DLLLOCAL NumberTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_NUMBER, false, false, false, false, false, true) {
+      assert(bigIntTypeInfo);
+      at.push_back(bigIntTypeInfo);
+      assert(floatTypeInfo);
+      at.push_back(floatTypeInfo);
+   }
+};
+
 class IntTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL IntTypeInfo(qore_type_t n_qt, bool n_accepts_mult = false, bool n_input_filter = false,
@@ -1440,6 +1519,102 @@ public:
    DLLLOCAL SoftFloatOrNothingTypeInfo() : SoftFloatTypeInfo(true) {
       at.push_back(nothingTypeInfo);
       rt.push_back(floatTypeInfo);
+      rt.push_back(nothingTypeInfo);
+   }
+};
+
+// accepts int, float, number, string, date, null, or boolean and returns a number
+class SoftNumberTypeInfo : public AcceptsMultiFilterTypeInfo {
+protected:
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "softnumber";
+   }
+
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      qore_type_t t = get_node_type(n);
+
+      if (t == NT_NUMBER)
+         return true;
+
+      if (t == NT_FLOAT) {
+         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
+         n->deref(xsink);
+         n = nn;
+         return true;
+      }
+
+      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
+          && t != NT_STRING
+          && t != NT_BOOLEAN
+          && t != NT_DATE
+          && t != NT_NULL)
+         return false;
+
+      double rv = n->getAsFloat();
+      n->deref(xsink);
+      n = new QoreNumberNode(rv);
+      return true;
+   }
+
+   // must be reimplemented in subclasses if has_defval is true
+   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+      // XXX return zero_number();
+      return 0;
+   }
+
+public:
+   DLLLOCAL SoftNumberTypeInfo(bool n_returns_mult = false) : AcceptsMultiFilterTypeInfo(0, NT_NUMBER, n_returns_mult, false, true, n_returns_mult ? false : true, false, n_returns_mult ? false : true) {
+      at.push_back(floatTypeInfo);
+      at.push_back(bigIntTypeInfo);
+      at.push_back(stringTypeInfo);
+      at.push_back(boolTypeInfo);
+      at.push_back(dateTypeInfo);
+      at.push_back(nullTypeInfo);
+   }
+};
+
+class SoftNumberOrNothingTypeInfo : public SoftNumberTypeInfo {
+protected:
+   type_vec_t rt;
+
+   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
+      return rt;
+   }
+
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "*softnumber";
+   }
+
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      qore_type_t t = get_node_type(n);
+
+      if (t == NT_NUMBER || t == NT_NOTHING)
+         return true;
+
+      if (t == NT_FLOAT) {
+         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
+         n->deref(xsink);
+         n = nn;
+         return true;
+      }
+
+      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
+          && t != NT_STRING
+          && t != NT_BOOLEAN
+          && t != NT_DATE
+          && t != NT_NULL)
+         return false;
+
+      double rv = n->getAsFloat();
+      n->deref(xsink);
+      n = new QoreNumberNode(rv);
+      return true;
+   }
+
+public:
+   DLLLOCAL SoftNumberOrNothingTypeInfo() : SoftNumberTypeInfo(true) {
+      at.push_back(nothingTypeInfo);
+      rt.push_back(numberTypeInfo);
       rt.push_back(nothingTypeInfo);
    }
 };
