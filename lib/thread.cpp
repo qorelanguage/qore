@@ -1507,6 +1507,10 @@ void register_thread(int tid, pthread_t ptid, QoreProgram *p) {
       td->tpd->saveProgram(true);
 }
 
+static void qore_thread_cleanup(void* n) {
+   mpfr_free_cache();
+}
+
 // put "op_background_thread" in an unnamed namespace to make it 'static extern "C"'
 namespace {
    extern "C" void* op_background_thread(void* x) {
@@ -1515,6 +1519,8 @@ namespace {
       register_thread(btp->tid, pthread_self(), btp->pgm);
       printd(5, "op_background_thread() btp=%p TID %d started\n", btp, btp->tid);
       //printf("op_background_thread() btp=%p TID %d started\n", btp, btp->tid);
+
+      pthread_cleanup_push(qore_thread_cleanup, (void*)0);
 
       {
          ExceptionSink xsink;
@@ -1570,6 +1576,8 @@ namespace {
             delete btp;
          }
       }
+
+      pthread_cleanup_pop(1);
 
       pthread_exit(0);
       return 0;

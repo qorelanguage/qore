@@ -1359,7 +1359,7 @@ public:
    }
 };
 
-// accepts int, float, string, date, null, or boolean and returns an int
+// accepts int, float, number, string, date, null, or boolean and returns an int
 class SoftBigIntTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
    DLLLOCAL virtual const char *getNameImpl() const {
@@ -1373,10 +1373,11 @@ protected:
          return true;
 
       if (t != NT_FLOAT
-          && t != NT_STRING
-          && t != NT_BOOLEAN
-          && t != NT_DATE
-          && t != NT_NULL)
+            && t != NT_NUMBER
+            && t != NT_STRING
+            && t != NT_BOOLEAN
+            && t != NT_DATE
+            && t != NT_NULL)
          return false;
 
       int64 rv = n->getAsBigInt();
@@ -1392,6 +1393,7 @@ protected:
 
    DLLLOCAL void init() {
       at.push_back(floatTypeInfo);
+      at.push_back(numberTypeInfo);
       at.push_back(stringTypeInfo);
       at.push_back(boolTypeInfo);
       at.push_back(dateTypeInfo);
@@ -1423,10 +1425,11 @@ protected:
          return true;
 
       if (t != NT_FLOAT
-          && t != NT_STRING
-          && t != NT_BOOLEAN
-          && t != NT_DATE
-          && t != NT_NULL)
+            && t != NT_NUMBER
+            && t != NT_STRING
+            && t != NT_BOOLEAN
+            && t != NT_DATE
+            && t != NT_NULL)
          return false;
 
       int64 rv = n->getAsBigInt();
@@ -1443,7 +1446,7 @@ public:
    }
 };
 
-// accepts int, float, string, date, null, or boolean and returns a float
+// accepts int, float, number, string, date, null, or boolean and returns a float
 class SoftFloatTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
    DLLLOCAL virtual const char *getNameImpl() const {
@@ -1457,10 +1460,11 @@ protected:
          return true;
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
-          && t != NT_STRING
-          && t != NT_BOOLEAN
-          && t != NT_DATE
-          && t != NT_NULL)
+            && t != NT_NUMBER
+            && t != NT_STRING
+            && t != NT_BOOLEAN
+            && t != NT_DATE
+            && t != NT_NULL)
          return false;
 
       double rv = n->getAsFloat();
@@ -1476,6 +1480,7 @@ protected:
 
 public:
    DLLLOCAL SoftFloatTypeInfo(bool n_returns_mult = false) : AcceptsMultiFilterTypeInfo(0, NT_FLOAT, n_returns_mult, false, true, n_returns_mult ? false : true, false, n_returns_mult ? false : true) {
+      at.push_back(numberTypeInfo);
       at.push_back(bigIntTypeInfo);
       at.push_back(stringTypeInfo);
       at.push_back(boolTypeInfo);
@@ -1503,10 +1508,11 @@ protected:
          return true;
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
-          && t != NT_STRING
-          && t != NT_BOOLEAN
-          && t != NT_DATE
-          && t != NT_NULL)
+            && t != NT_NUMBER
+            && t != NT_STRING
+            && t != NT_BOOLEAN
+            && t != NT_DATE
+            && t != NT_NULL)
          return false;
 
       double rv = n->getAsFloat();
@@ -1543,9 +1549,21 @@ protected:
          return true;
       }
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
-          && t != NT_STRING
-          && t != NT_BOOLEAN
+      if (t == NT_STRING) {
+         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
+         n->deref(xsink);
+         n = nn;
+         return true;
+      }
+
+      if (t == NT_INT || (t > QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n))) {
+         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
+         n->deref(xsink);
+         n = nn;
+         return true;
+      }
+
+      if (t != NT_BOOLEAN
           && t != NT_DATE
           && t != NT_NULL)
          return false;
@@ -1598,9 +1616,21 @@ protected:
          return true;
       }
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
-          && t != NT_STRING
-          && t != NT_BOOLEAN
+      if (t == NT_STRING) {
+         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
+         n->deref(xsink);
+         n = nn;
+         return true;
+      }
+
+      if (t == NT_INT || (t > QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n))) {
+         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
+         n->deref(xsink);
+         n = nn;
+         return true;
+      }
+
+      if (t != NT_BOOLEAN
           && t != NT_DATE
           && t != NT_NULL)
          return false;
@@ -1619,7 +1649,7 @@ public:
    }
 };
 
-// accepts int, float, string, date, null, or boolean and returns a boolean
+// accepts int, float, number, string, date, null, or boolean and returns a boolean
 class SoftBoolTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
    DLLLOCAL virtual const char *getNameImpl() const {
@@ -1633,10 +1663,11 @@ protected:
          return true;
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
-          && t != NT_FLOAT
-          && t != NT_STRING
-          && t != NT_DATE
-          && t != NT_NULL)
+            && t != NT_FLOAT
+            && t != NT_NUMBER
+            && t != NT_STRING
+            && t != NT_DATE
+            && t != NT_NULL)
          return false;
 
       bool rv = n->getAsBool();
@@ -1654,6 +1685,7 @@ public:
    DLLLOCAL SoftBoolTypeInfo(bool n_returns_mult = false) : AcceptsMultiFilterTypeInfo(0, NT_BOOLEAN, n_returns_mult, false, true, n_returns_mult ? false : true, false, n_returns_mult ? false : true) {
       at.push_back(bigIntTypeInfo);
       at.push_back(floatTypeInfo);
+      at.push_back(numberTypeInfo);
       at.push_back(stringTypeInfo);
       at.push_back(dateTypeInfo);
       at.push_back(nullTypeInfo);
@@ -1679,10 +1711,11 @@ protected:
          return true;
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
-          && t != NT_FLOAT
-          && t != NT_STRING
-          && t != NT_DATE
-          && t != NT_NULL)
+            && t != NT_NUMBER
+            && t != NT_FLOAT
+            && t != NT_STRING
+            && t != NT_DATE
+            && t != NT_NULL)
          return false;
 
       bool rv = n->getAsBool();
@@ -1699,7 +1732,7 @@ public:
    }
 };
 
-// accepts int, float, string, date, bool, or null and returns a date
+// accepts int, float, number, string, date, bool, or null and returns a date
 class SoftDateTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
    DLLLOCAL virtual const char *getNameImpl() const {
@@ -1712,8 +1745,9 @@ protected:
       if (t == NT_DATE)
          return true;
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
+      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
           && t != NT_FLOAT
+          && t != NT_NUMBER
           && t != NT_STRING
           && t != NT_BOOLEAN
           && t != NT_NULL)
@@ -1735,6 +1769,7 @@ public:
    DLLLOCAL SoftDateTypeInfo(bool n_returns_mult = false) : AcceptsMultiFilterTypeInfo(0, NT_DATE, n_returns_mult, false, true, n_returns_mult ? false : true, false, n_returns_mult ? false : true) {
       at.push_back(bigIntTypeInfo);
       at.push_back(floatTypeInfo);
+      at.push_back(numberTypeInfo);
       at.push_back(stringTypeInfo);
       at.push_back(boolTypeInfo);
       at.push_back(nullTypeInfo);
@@ -1761,6 +1796,7 @@ protected:
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
           && t != NT_FLOAT
+          && t != NT_NUMBER
           && t != NT_STRING
           && t != NT_BOOLEAN
           && t != NT_NULL)
@@ -1781,7 +1817,7 @@ public:
    }
 };
 
-// accepts int, float, string, date, null, or boolean and returns a string
+// accepts int, float, number, string, date, null, or boolean and returns a string
 class SoftStringTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
    DLLLOCAL virtual const char *getNameImpl() const {
@@ -1796,6 +1832,7 @@ protected:
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
           && t != NT_FLOAT
+          && t != NT_NUMBER
           && t != NT_BOOLEAN
           && t != NT_DATE
           && t != NT_NULL)
@@ -1817,6 +1854,7 @@ public:
    DLLLOCAL SoftStringTypeInfo(bool n_returns_mult = false) : AcceptsMultiFilterTypeInfo(0, NT_STRING, n_returns_mult, false, true, n_returns_mult ? false : true, false, n_returns_mult ? false : true) {
       at.push_back(bigIntTypeInfo);
       at.push_back(floatTypeInfo);
+      at.push_back(numberTypeInfo);
       at.push_back(boolTypeInfo);
       at.push_back(dateTypeInfo);
       at.push_back(nullTypeInfo);
@@ -1843,6 +1881,7 @@ protected:
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
           && t != NT_FLOAT
+          && t != NT_NUMBER
           && t != NT_BOOLEAN
           && t != NT_DATE
           && t != NT_NULL)

@@ -450,9 +450,27 @@ public:
    //! returns the string's buffer; this data should not be changed
    DLLEXPORT const char* getBuffer() const;
 
-   // Make sure the internal buffer has at least expected size in bytes. 
-   // Useful to eliminate repeated reallocate() when data are appended in a loop.
+   //! Ensure the internal buffer has at least expected size in bytes
+   /** Useful to eliminate repeated buffer reallocations when data are appended in a loop
+    */
    DLLEXPORT void allocate(unsigned requested_size);
+
+   //! insert a character at a certain position in the string a number of times
+   /** @param c the character to insert
+       @param pos the position to insert the character(s) (first position is 0)
+       @param times the number of times the character should be inserted
+
+       @return 0 = OK, -1 = error (pos is greater than the string's length)
+    */
+   DLLEXPORT int insertch(char c, qore_size_t pos, unsigned times);
+
+   //! inserts a character string at a certain position in the string
+   /** @param str the string to insert
+       @param pos the position to insert the string (first position is 0)
+
+       @return 0 = OK, -1 = error (pos is greater than the string's length)
+    */
+   DLLEXPORT int insert(const char* str, qore_size_t pos);
 
    //! append a character to the string a number of times
    DLLEXPORT void addch(char c, unsigned times);

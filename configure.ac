@@ -681,22 +681,6 @@ else
    AC_MSG_RESULT([includes $with_zlib_includes libs $with_zlib_libs (shared)])
 fi
 
-AC_MSG_CHECKING([for gmp libraries and header files])
-for dir in "${with_gmp_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/gmp /usr/local/gmp /opt/local /sw /usr/sfw /opt/sfw; do
-    find_gmp $dir
-    if test -n "$GMP_LDFLAGS"; then
-        break
-    fi
-done
-if test -z "$GMP_LDFLAGS"; then
-    AC_MSG_ERROR([no gmp library found])
-fi
-if test -n "$gmp_static"; then
-   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (static)])
-else
-   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (shared)])
-fi
-
 AC_MSG_CHECKING([for mpfr libraries and header files])
 for dir in "${with_mpfr_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/mpfr /usr/local/mpfr /opt/local /sw /usr/sfw /opt/sfw; do
     find_mpfr $dir
@@ -711,6 +695,22 @@ if test -n "$mpfr_static"; then
    AC_MSG_RESULT([includes $with_mpfr_includes libs $with_mpfr_libs (static)])
 else
    AC_MSG_RESULT([includes $with_mpfr_includes libs $with_mpfr_libs (shared)])
+fi
+
+AC_MSG_CHECKING([for gmp libraries and header files])
+for dir in "${with_gmp_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/gmp /usr/local/gmp /opt/local /sw /usr/sfw /opt/sfw; do
+    find_gmp $dir
+    if test -n "$GMP_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$GMP_LDFLAGS"; then
+    AC_MSG_ERROR([no gmp library found])
+fi
+if test -n "$gmp_static"; then
+   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (static)])
+else
+   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (shared)])
 fi
 
 set_pcre_cppflags() {
@@ -1270,7 +1270,7 @@ AC_SEARCH_LIBS(rt, clock_gettime)
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h])
 
 # check for umem.h
 AC_CHECK_HEADER([umem.h], have_umem_h=yes, have_umem_h=no)

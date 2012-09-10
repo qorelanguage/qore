@@ -1591,17 +1591,39 @@ const char *QoreString::getBuffer() const {
 }
 
 void QoreString::addch(char c, unsigned times) {
-   if (priv->allocated) {
-      priv->check_char(priv->len + times + STR_CLASS_BLOCK); // more data will follow the padding
-      memset(priv->buf + priv->len, c, times);
-   } else {
-      priv->allocated = times + STR_CLASS_BLOCK;
-      priv->allocated = (priv->allocated / 16 + 1) * 16; // use complete cache line
-      priv->buf = (char*)malloc(sizeof(char) * priv->allocated);
-      memset(priv->buf, c, times);
-   }
+   priv->check_char(priv->len + times); // more data will follow the padding
+   memset(priv->buf + priv->len, c, times);
    priv->len += times;
    priv->buf[priv->len] = 0;
+}
+
+int QoreString::insertch(char c, qore_size_t pos, unsigned times) {
+   //printd(5, "QoreString::insertch(c: %c pos: "QLLD" times: %d) this: %p\n", c, pos, times, this);
+   if (pos > priv->len || !times)
+      return -1;
+
+   priv->check_char(priv->len + times); // more data will follow the padding
+   if (pos < priv->len)
+      memmove(priv->buf + pos + times, priv->buf + pos, priv->len - pos);
+   memset(priv->buf + pos, c, times);
+   priv->len += times;
+   priv->buf[priv->len] = 0;
+   return 0;
+}
+
+int QoreString::insert(const char* str, qore_size_t pos) {
+   if (pos > priv->len)
+      return -1;
+
+   size_t sl = ::strlen(str);
+
+   priv->check_char(priv->len + sl); // more data will follow the padding
+   if (pos < priv->len)
+      memmove(priv->buf + pos + sl, priv->buf + pos, priv->len - pos);
+   strncpy(priv->buf + pos, str, sl);
+   priv->len += sl;
+   priv->buf[priv->len] = 0;
+   return 0;
 }
 
 int QoreString::concatUnicode(unsigned code, ExceptionSink *xsink) {

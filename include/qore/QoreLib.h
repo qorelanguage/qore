@@ -396,6 +396,9 @@ DLLEXPORT QoreStringNode *qore_reassign_signal(int sig, const char *name);
 //! macro to return the maximum of 2 numbers
 #define QORE_MAX(a, b) ((a) > (b) ? (a) : (b))
 
+//! macro to return the minimum of 2 numbers
+#define QORE_MIN(a, b) ((a) < (b) ? (a) : (b))
+
 #define QORE_PARAM_NO_ARG (NULL)
 
 // define QORE_PATH_MAX

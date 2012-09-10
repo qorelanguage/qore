@@ -400,6 +400,10 @@ static double op_minus_float(double left, double right) {
    return left - right;
 }
 
+static QoreNumberNode* op_plus_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
+   return left->doPlus(right);
+}
+
 static double op_plus_float(double left, double right) {
    return left + right;
 }
@@ -1475,6 +1479,9 @@ static AbstractQoreNode *get_node_type(const AbstractQoreNode *n, qore_type_t t)
 
    if (t == NT_FLOAT)
       return new QoreFloatNode(n->getAsFloat());
+
+   if (t == NT_NUMBER)
+      return new QoreNumberNode(n);
 
    if (t == NT_BOOLEAN)
       return get_bool_node(n->getAsBool());
@@ -2585,6 +2592,122 @@ double FloatOperatorFunction::float_eval(const AbstractQoreNode *left, const Abs
    return op_func(left, right, xsink);
 }
 
+AbstractQoreNode *NumberOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   if (args == 1) {
+      QoreNumberNode* rv = op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink);
+      assert(!(*xsink && rv));
+      if (!ref_rv || *xsink)
+         return 0;
+      return rv;
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   QoreNumberNode* rv = op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink);
+   assert(!(*xsink && rv));
+   if (!ref_rv || xsink->isException())
+      return 0;
+   return rv;
+}
+
+bool NumberOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   if (args == 1) {
+      SimpleRefHolder<QoreNumberNode> rv(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink));
+      assert(!(*xsink && rv));
+      return !rv->zero();
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   SimpleRefHolder<QoreNumberNode> rv(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink));
+   assert(!(*xsink && rv));
+   return !rv->zero();
+}
+
+int64 NumberOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   if (args == 1) {
+      SimpleRefHolder<QoreNumberNode> rv(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink));
+      assert(!(*xsink && rv));
+      return rv->getAsBigInt();
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   SimpleRefHolder<QoreNumberNode> rv(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink));
+   assert(!(*xsink && rv));
+   return rv->getAsBigInt();
+}
+
+double NumberOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   if (args == 1) {
+      SimpleRefHolder<QoreNumberNode> rv(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink));
+      assert(!(*xsink && rv));
+      return rv->getAsFloat();
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   SimpleRefHolder<QoreNumberNode> rv(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink));
+   assert(!(*xsink && rv));
+   return rv->getAsFloat();
+}
+
 Operator::~Operator() {
    // erase all functions
    for (unsigned i = 0, size = functions.size(); i < size; i++)
@@ -2604,7 +2727,7 @@ void Operator::init() {
 }
 
 AbstractQoreNode *Operator::parseInit(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo) {
-   // check for illegal changes to local variables in background expressions                                                                                        
+   // check for illegal changes to local variables in background expressions
    if (pflag & PF_BACKGROUND && lvalue) {
       if (tree->left && tree->left->getType() == NT_VARREF && reinterpret_cast<VarRefNode *>(tree->left)->getType() == VT_LOCAL)
 	 parse_error("illegal local variable modification in background expression");
@@ -2612,7 +2735,7 @@ AbstractQoreNode *Operator::parseInit(QoreTreeNode *tree, LocalVar *oflag, int p
 
    if (!check_args)
       return tree->defaultParseInit(oflag, pflag, lvids, resultTypeInfo);
-   
+
    return check_args(tree, oflag, pflag, lvids, resultTypeInfo, name, description);
 }
 
@@ -2635,7 +2758,7 @@ int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, Exception
       t = opMatrix[nleft->getType()][NT_NOTHING];
    else
       t = findFunction(nleft->getType(), NT_NOTHING);
-   
+
    printd(5, "Operator::get_function() found function %d\n", t);
    return t;
 }
@@ -2682,11 +2805,11 @@ AbstractQoreNode *Operator::eval(const AbstractQoreNode *left_side, const Abstra
 	 return 0;
       if (!nright)
 	 nright.assign(false, &Nothing);
-      
+
       // find operator function
       if ((t = get_function(nleft, nright, xsink)) == -1)
 	 return 0;
-      
+
       return functions[t]->eval(*nleft, *nright, ref_rv, 2, xsink);
    }
 
@@ -2708,7 +2831,7 @@ bool Operator::bool_eval(const AbstractQoreNode *left_side, const AbstractQoreNo
 	 return 0;
       if (!nleft)
 	 nleft.assign(false, &Nothing);
-      
+
       int t;
       if (args == 1) {
 	 if ((t = get_function(nleft, xsink)) == -1)
@@ -2722,11 +2845,11 @@ bool Operator::bool_eval(const AbstractQoreNode *left_side, const AbstractQoreNo
 	 return 0;
       if (!nright)
 	 nright.assign(false, &Nothing);
-      
+
       // find operator function
       if ((t = get_function(nleft, nright, xsink)) == -1)
 	 return 0;
-      
+
       return functions[t]->bool_eval(*nleft, *nright, 2, xsink);
    }
 
@@ -2763,11 +2886,11 @@ int64 Operator::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode
 	 return 0;
       if (!nright)
 	 nright.assign(false, &Nothing);
-	 
+
       // find operator function
       if ((t = get_function(nleft, nright, xsink)) == -1)
 	 return 0;
-      
+
       return functions[t]->bigint_eval(*nleft, *nright, 2, xsink);
    }
 
@@ -2804,7 +2927,7 @@ double Operator::float_eval(const AbstractQoreNode *left, const AbstractQoreNode
 	 return 0;
       if (!nright)
 	 nright.assign(false, &Nothing);
-	 
+
       // find operator function
       if ((t = get_function(nleft, nright, xsink)) == -1)
 	 return 0;
@@ -2819,10 +2942,10 @@ double Operator::float_eval(const AbstractQoreNode *left, const AbstractQoreNode
 
 int Operator::findFunction(qore_type_t ltype, qore_type_t rtype) const {
    int m = -1;
-   
+
    //QORE_TRACE("Operator::findFunction()");
    // loop through all operator functions
-   
+
    for (int i = 0, size = functions.size(); i < size; i++) {
       AbstractOperatorFunction *f = functions[i];
 
@@ -2837,20 +2960,20 @@ int Operator::findFunction(qore_type_t ltype, qore_type_t rtype) const {
       if (match(ltype, f->ltype)) {
 	 /* if there is only one operator or there is also
 	 * a match on the right side, return */
-	 if ((args == 1) || 
-	     ((args == 2) && match(rtype, f->rtype))) {  
+	 if ((args == 1) ||
+	     ((args == 2) && match(rtype, f->rtype))) {
 	    return i;
 	 }
 	 if (!f->needsExactMatch() && m == -1)
 	    m = i;
 	 continue;
       }
-      if ((args == 2) && !f->needsExactMatch() && match(rtype, f->rtype) 
+      if ((args == 2) && !f->needsExactMatch() && match(rtype, f->rtype)
 	  && (m == -1))
 	 m = i;
    }
    /* if there is no match of any kind, take the highest priority function
-      * (row 0), and try to convert the arguments, otherwise return the best 
+      * (row 0), and try to convert the arguments, otherwise return the best
       * partial match
       */
 
@@ -2889,9 +3012,9 @@ Operator *OperatorList::add(Operator *o) {
    return o;
 }
 
-// checks for illegal $self assignments in an object context                                        
+// checks for illegal $self assignments in an object context
 void check_self_assignment(AbstractQoreNode *n, LocalVar *selfid) {
-   // if it's a variable reference                                                                                                                                        
+   // if it's a variable reference
    qore_type_t ntype = n->getType();
    if (ntype == NT_VARREF) {
       VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
@@ -2905,7 +3028,7 @@ void check_self_assignment(AbstractQoreNode *n, LocalVar *selfid) {
 
    QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
 
-   // otherwise it's a tree: go to root expression                                                                                                                        
+   // otherwise it's a tree: go to root expression
    while (tree->left->getType() == NT_TREE) {
       n = tree->left;
       tree = reinterpret_cast<QoreTreeNode *>(n);
@@ -2916,8 +3039,8 @@ void check_self_assignment(AbstractQoreNode *n, LocalVar *selfid) {
 
    VarRefNode *v = reinterpret_cast<VarRefNode *>(tree->left);
 
-   // left must be variable reference, check if the tree is                                                                                                               
-   // a list reference; if so, it's invalid                                                                                                                               
+   // left must be variable reference, check if the tree is
+   // a list reference; if so, it's invalid
    if (v->getType() == VT_LOCAL && v->ref.id == selfid  && tree->getOp() == OP_LIST_REF)
       parse_error("illegal conversion of 'self' to a list");
 }
@@ -2942,7 +3065,7 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
       // check for illegal assignment to $self
       if (oflag)
 	 check_self_assignment(v, oflag);
-      
+
       ri.parseInit(argInfo);
 
       if (prototypeInfo->hasType()) {
@@ -3042,25 +3165,25 @@ static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int
       return tree->evalSubst(returnTypeInfo);
 
    // if either side is a date, then the return type is date (highest priority)
-   if (leftTypeInfo->isType(NT_DATE) 
+   if (leftTypeInfo->isType(NT_DATE)
        || rightTypeInfo->isType(NT_DATE))
       returnTypeInfo = dateTypeInfo;
    // otherwise we have to make sure types are known on both sides of the expression
    else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_FLOAT) 
+      if (leftTypeInfo->isType(NT_FLOAT)
 	  || rightTypeInfo->isType(NT_FLOAT))
 	 returnTypeInfo = floatTypeInfo;
-      else if (leftTypeInfo->isType(NT_INT) 
+      else if (leftTypeInfo->isType(NT_INT)
 	       || rightTypeInfo->isType(NT_INT))
 	 returnTypeInfo = bigIntTypeInfo;
-      else if ((leftTypeInfo->isType(NT_HASH) 
+      else if ((leftTypeInfo->isType(NT_HASH)
 		|| leftTypeInfo->isType(NT_OBJECT))
 	       && (rightTypeInfo->isType(NT_STRING)
 		   || rightTypeInfo->isType(NT_LIST)))
 	 returnTypeInfo = hashTypeInfo;
-      else if (leftTypeInfo->returnsSingle() && rightTypeInfo->returnsSingle()) 
+      else if (leftTypeInfo->returnsSingle() && rightTypeInfo->returnsSingle())
 	 // only return type nothing if both types are available and return a single type
-	 returnTypeInfo = nothingTypeInfo;   
+	 returnTypeInfo = nothingTypeInfo;
    }
    else
       returnTypeInfo = 0;
@@ -3080,41 +3203,45 @@ static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int 
       return tree->evalSubst(returnTypeInfo);
 
    // if either side is a list, then the return type is list (highest priority)
-   if (leftTypeInfo->isType(NT_LIST) 
+   if (leftTypeInfo->isType(NT_LIST)
        || rightTypeInfo->isType(NT_LIST))
 	 returnTypeInfo = listTypeInfo;
 
    // otherwise only set return type if return types on both sides are known at parse time
    else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
 
-      if (leftTypeInfo->isType(NT_STRING) 
+      if (leftTypeInfo->isType(NT_STRING)
 	       || rightTypeInfo->isType(NT_STRING))
 	 returnTypeInfo = stringTypeInfo;
 
-      else if (leftTypeInfo->isType(NT_DATE) 
+      else if (leftTypeInfo->isType(NT_DATE)
 	       || rightTypeInfo->isType(NT_DATE))
 	 returnTypeInfo = dateTypeInfo;
 
-      else if (leftTypeInfo->isType(NT_FLOAT) 
+      else if (leftTypeInfo->isType(NT_NUMBER)
+               || rightTypeInfo->isType(NT_NUMBER))
+         returnTypeInfo = numberTypeInfo;
+
+      else if (leftTypeInfo->isType(NT_FLOAT)
 	       || rightTypeInfo->isType(NT_FLOAT))
 	 returnTypeInfo = floatTypeInfo;
 
-      else if (leftTypeInfo->isType(NT_INT) 
+      else if (leftTypeInfo->isType(NT_INT)
 	       || rightTypeInfo->isType(NT_INT))
 	 returnTypeInfo = bigIntTypeInfo;
 
       else if (leftTypeInfo->isType(NT_HASH)
 	       || leftTypeInfo->isType(NT_OBJECT))
 	 returnTypeInfo = hashTypeInfo;
-      
+
       else if (rightTypeInfo->isType(NT_OBJECT))
 	 returnTypeInfo = objectTypeInfo;
 
-      else if (leftTypeInfo->isType(NT_BINARY) 
+      else if (leftTypeInfo->isType(NT_BINARY)
 	       || rightTypeInfo->isType(NT_BINARY))
 	 returnTypeInfo = binaryTypeInfo;
 
-      else if (leftTypeInfo->returnsSingle() && rightTypeInfo->returnsSingle()) 
+      else if (leftTypeInfo->returnsSingle() && rightTypeInfo->returnsSingle())
 	 // only return type nothing if both types are available and return a single type
 	 returnTypeInfo = nothingTypeInfo;
    }
@@ -3393,19 +3520,19 @@ static AbstractQoreNode *check_op_chomp_trim(QoreTreeNode *tree, LocalVar *oflag
 // registers the system operators and system operator functions
 void OperatorList::init() {
    QORE_TRACE("OperatorList::init()");
-   
+
    OP_LOG_AND = add(new Operator(2, "&&", "logical-and", 0, false, false, check_op_logical));
    OP_LOG_AND->addEffectFunction(op_log_and);
 
    OP_LOG_OR = add(new Operator(2, "||", "logical-or", 0, false, false, check_op_logical));
    OP_LOG_OR->addEffectFunction(op_log_or);
-   
+
    OP_LOG_LT = add(new Operator(2, "<", "less-than", 1, false, false, check_op_logical));
    OP_LOG_LT->addFunction(op_log_lt_float);
    OP_LOG_LT->addFunction(op_log_lt_bigint);
    OP_LOG_LT->addFunction(op_log_lt_string);
    OP_LOG_LT->addFunction(op_log_lt_date);
-   
+
    OP_LOG_GT = add(new Operator(2, ">", "greater-than", 1, false, false, check_op_logical));
    OP_LOG_GT->addFunction(op_log_gt_float);
    OP_LOG_GT->addFunction(op_log_gt_bigint);
@@ -3427,7 +3554,7 @@ void OperatorList::init() {
    OP_LOG_NE->addFunction(op_log_ne_boolean);
    OP_LOG_NE->addFunction(op_log_ne_date);
    OP_LOG_NE->addNoConvertFunction(NT_ALL, NT_ALL, op_log_ne_all);
- 
+
    OP_LOG_LE = add(new Operator(2, "<=", "less-than-or-equals", 1, false, false, check_op_logical));
    OP_LOG_LE->addFunction(op_log_le_float);
    OP_LOG_LE->addFunction(op_log_le_bigint);
@@ -3442,25 +3569,25 @@ void OperatorList::init() {
 
    OP_ABSOLUTE_EQ = add(new Operator(2, "===", "absolute logical-equals", 0, false, false, check_op_logical));
    OP_ABSOLUTE_EQ->addFunction(NT_ALL, NT_ALL, op_absolute_log_eq);
-   
+
    OP_ABSOLUTE_NE = add(new Operator(2, "!==", "absolute logical-not-equals", 0, false, false, check_op_logical));
    OP_ABSOLUTE_NE->addFunction(NT_ALL, NT_ALL, op_absolute_log_neq);
-   
+
    OP_REGEX_MATCH = add(new Operator(2, "=~", "regular expression match", 0, false, false, check_op_logical));
    OP_REGEX_MATCH->addFunction(op_regex_match);
-   
+
    OP_REGEX_NMATCH = add(new Operator(2, "!~", "regular expression negative match", 0, false, false, check_op_logical));
    OP_REGEX_NMATCH->addFunction(op_regex_nmatch);
 
    OP_EXISTS = add(new Operator(1, "exists", "exists", 1, false, false, check_op_logical));
    OP_EXISTS->addFunction(NT_ALL, NT_NONE, op_exists);
-   
+
    OP_INSTANCEOF = add(new Operator(2, "instanceof", "instanceof", 0, false, false, check_op_logical));
    OP_INSTANCEOF->addFunction(NT_ALL, NT_CLASSREF, op_instanceof);
-   
+
    OP_NOT = add(new Operator(1, "!", "logical-not", 1, false, false, check_op_logical));
    OP_NOT->addBoolNotFunction();
-      
+
    // bigint operators
    OP_LOG_CMP = add(new Operator(2, "<=>", "logical-comparison", 1, false, false, check_op_returns_integer));
    OP_LOG_CMP->addFunction(op_cmp_string);
@@ -3477,7 +3604,7 @@ void OperatorList::init() {
    // non-boolean operators
    OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true, check_op_list_assignment));
    OP_LIST_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_list_assignment);
-   
+
    OP_BIN_AND = add(new Operator(2, "&", "binary-and", 1, false, false, check_op_returns_integer));
    OP_BIN_AND->addFunction(op_bin_and_int);
 
@@ -3502,6 +3629,7 @@ void OperatorList::init() {
    OP_PLUS->addFunction(NT_LIST,    NT_LIST,   op_plus_list);
    OP_PLUS->addFunction(op_plus_string);
    OP_PLUS->addFunction(op_plus_date);
+   OP_PLUS->addFunction(op_plus_number);
    OP_PLUS->addFunction(op_plus_float);
    OP_PLUS->addFunction(op_plus_bigint);
    OP_PLUS->addFunction(NT_HASH,    NT_HASH,   op_plus_hash_hash);
@@ -3531,7 +3659,7 @@ void OperatorList::init() {
 
    // cannot validate return type here yet
    OP_OBJECT_REF = add(new Operator(2, ".", "hash/object-reference", 0, false, false, check_op_object_ref));
-   OP_OBJECT_REF->addFunction(NT_ALL, NT_ALL, op_object_ref); 
+   OP_OBJECT_REF->addFunction(NT_ALL, NT_ALL, op_object_ref);
 
    // can return a list or NOTHING
    OP_KEYS = add(new Operator(1, "keys", "list of keys", 0, false, false, check_op_keys));

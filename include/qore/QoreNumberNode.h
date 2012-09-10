@@ -53,7 +53,13 @@ protected:
    */
    DLLEXPORT virtual ~QoreNumberNode();
 
+   // private
+   DLLLOCAL QoreNumberNode(struct qore_number_private* p);
+
 public:
+   //! creates a new number value from the node, if not possible then the new number will be assigned 0
+   DLLEXPORT QoreNumberNode(const AbstractQoreNode* n);
+
    //! creates a new number value and assigns the initial value to it
    /**
       @param f the value for the object
@@ -153,6 +159,12 @@ public:
       @return the type name as a c string
    */
    DLLEXPORT virtual const char* getTypeName() const;
+
+   //! add the argument to this value and return the result
+   DLLEXPORT QoreNumberNode* doPlus(const QoreNumberNode* right) const;
+
+   //! returns true if the number is zero
+   DLLEXPORT bool zero() const;
 
    //! returns the type information
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);

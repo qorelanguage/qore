@@ -94,6 +94,8 @@ typedef bool (*op_bool_func_t)(const AbstractQoreNode *l, const AbstractQoreNode
 typedef int64 (*op_bigint_func_t)(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink);
 typedef double (*op_float_func_t)(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink);
 
+typedef QoreNumberNode *(*op_number_func_t)(const QoreNumberNode* l, const QoreNumberNode* r, ExceptionSink* xsink);
+
 class AbstractOperatorFunction {
    public:
       qore_type_t ltype, rtype;
@@ -568,6 +570,20 @@ class FloatOperatorFunction : public AbstractOperatorFunction {
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
 };
 
+class NumberOperatorFunction : public AbstractOperatorFunction {
+   private:
+      op_number_func_t op_func;
+
+   public:
+      DLLLOCAL NumberOperatorFunction(op_number_func_t f) : AbstractOperatorFunction(NT_NUMBER, NT_NUMBER), op_func(f) {
+      }
+      DLLLOCAL virtual ~NumberOperatorFunction() {}
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
 class DefaultNothingOperatorFunction : public AbstractOperatorFunction {
 public:
     DLLLOCAL DefaultNothingOperatorFunction() : AbstractOperatorFunction(NT_ALL, NT_ALL) {
@@ -703,6 +719,9 @@ class Operator {
       }
       DLLLOCAL void addFunction(op_compare_float_func_t f) {
 	 functions.push_back(new CompareFloatOperatorFunction(f));
+      }
+      DLLLOCAL void addFunction(op_number_func_t f) {
+         functions.push_back(new NumberOperatorFunction(f));
       }
       DLLLOCAL void addFunction(op_logic_func_t f) {
 	 functions.push_back(new LogicOperatorFunction(f));

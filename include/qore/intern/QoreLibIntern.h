@@ -75,6 +75,13 @@
 #include <netinet/tcp.h>
 #endif
 
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 // for arbitrary-precision numeric support
 #include <mpfr.h>
 
@@ -187,7 +194,6 @@ void ensure_unique(AbstractQoreNode** v, ExceptionSink *xsink);
 
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX
-#include <inttypes.h>
 static inline long long atoll(const char* str) {
    return strtoimax(str, 0, 10);
 }

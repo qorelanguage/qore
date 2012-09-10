@@ -1188,6 +1188,7 @@ static qore_var_t get_var_type() {
    class ParseUserFunction* parsefunc;
    class ParseScopedUserFunction* sparsefunc;
    struct GVarDecl* gv;
+   QoreNumberNode* num;
 }
 
 %{
@@ -1306,6 +1307,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
  // tokens returning data
 %token <integer> INTEGER "integer value"
 %token <decimal> QFLOAT "floating-point value"
+%token <num> NUMBER "arbitrary-precision number"
 %token <string> IDENTIFIER "identifier"
 %token <string> VAR_REF "variable reference"
 %token <string> BACKQUOTE "backquote expression"
@@ -3145,6 +3147,7 @@ scalar:
         | INTEGER     { $$ = new QoreBigIntNode($1); }
         | string      { $$ = $1; }
         | DATETIME    { $$ = $1; }
+        | NUMBER      { $$ = $1; }
 	;
 
 %%
