@@ -283,6 +283,8 @@ sub array_tests() {
     test_value($pseudoList.join('-'), '1-2-3-4-a', "<list>::join");
     test_value($pseudoList.lsize(), 5, "<list>::lsize");
     test_value($pseudoList.contains(2), True, "<list>::contains");
+    $pseudoList.append(6);
+    test_value($pseudoList, (1, 2, 3, 4, 'a', 6), "<list>::append");
 }
 
 sub hash_tests() {
