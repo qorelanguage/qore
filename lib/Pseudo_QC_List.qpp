@@ -175,15 +175,15 @@ bool <list>::contains(any arg) [flags=RET_VALUE_ONLY] {
    return inlist_intern(arg, l, xsink);
 }
 
-//! Append a value to the oend of the list
-/**
+// Append a value to the oend of the list
+/*
     @param arg @ref any value to be appended
 */
-nothing <list>::append(any arg) {
-    QoreNodeEvalOptionalRefHolder value(arg, xsink);
-    if (*xsink)
-       return 0;
-    l->push(value.getReferencedValue());
-    return nothing();
-}
+//nothing <list>::append(any arg) {
+//    QoreNodeEvalOptionalRefHolder value(arg, xsink);
+//    if (*xsink)
+//       return 0;
+//    l->push(value.getReferencedValue());
+//    return nothing();
+//}
 
