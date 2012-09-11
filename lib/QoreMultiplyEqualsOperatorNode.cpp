@@ -27,9 +27,6 @@ QoreString QoreMultiplyEqualsOperatorNode::op_str("*= operator expression");
 AbstractQoreNode *QoreMultiplyEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 
-   if (ti == bigIntTypeInfo || ti == softBigIntTypeInfo)
-      return makeSpecialization<QoreIntMultiplyEqualsOperatorNode>();
-
    return this;
 }
 
@@ -43,12 +40,16 @@ AbstractQoreNode *QoreMultiplyEqualsOperatorNode::evalImpl(ExceptionSink *xsink)
    if (!v)
       return 0;
 
+   // is either side a number?
+   if ((res && res->getType() == NT_NUMBER) || v.getType() == NT_NUMBER) {
+      v.multiplyEqualsNumber(*res, "<*= operator>");
+   }
    // is either side a float?
-   if (v.getType() == NT_FLOAT)
-      v.multiplyEqualsFloat(res ? res->getAsFloat() : 0.0);
+   else if (v.getType() == NT_FLOAT)
+      v.multiplyEqualsFloat(res ? res->getAsFloat() : 0.0, "<*= operator>");
    else {
       if (res && res->getType() == NT_FLOAT) {
-	 v.multiplyEqualsFloat((reinterpret_cast<const QoreFloatNode *>(*res))->f);
+	 v.multiplyEqualsFloat((reinterpret_cast<const QoreFloatNode*>(*res))->f, "<*= operator>");
       }
       else { // do integer multiply equals
         if (v.getType() == NT_NOTHING || !res) {
@@ -56,7 +57,7 @@ AbstractQoreNode *QoreMultiplyEqualsOperatorNode::evalImpl(ExceptionSink *xsink)
               return 0;
         }
         else
-	    v.multiplyEqualsBigInt(res->getAsBigInt());
+	    v.multiplyEqualsBigInt(res->getAsBigInt(), "<*= operator>");
       }
    }
 

@@ -1206,6 +1206,7 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 {DIGIT}+"."{DIGIT}+			yylval->decimal = strtod(yytext, 0); return QFLOAT;
 {DIGIT}+[eE][+-]?{DIGIT}+               yylval->decimal = strtod(yytext, 0); return QFLOAT;
 {DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+    yylval->decimal = strtod(yytext, 0); return QFLOAT;
+{DIGIT}+n                               yylval->num = new QoreNumberNode(yytext); return NUMBER;
 {DIGIT}+"."{DIGIT}+n                    yylval->num = new QoreNumberNode(yytext); return NUMBER;
 {DIGIT}+[eE][+-]?{DIGIT}+n              yylval->num = new QoreNumberNode(yytext); return NUMBER;
 {DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+n   yylval->num = new QoreNumberNode(yytext); return NUMBER;

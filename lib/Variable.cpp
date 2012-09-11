@@ -35,6 +35,7 @@ QoreHashNode* ENV;
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/QoreValue.h>
+#include <qore/intern/qore_number_private.h>
 
 int qore_gvar_ref_u::write(ExceptionSink* xsink) const {
    if (_refptr & 1) {
@@ -660,8 +661,13 @@ double LValueHelper::minusEqualsFloat(double va, const char* desc) {
 }
 
 double LValueHelper::multiplyEqualsFloat(double va, const char* desc) {
-   if (val)
+   if (val) {
+      if (val->getType() != NT_FLOAT) {
+         typeInfo->doTypeException(0, desc, floatTypeInfo->getName(), vl.xsink);
+         return 0.0;
+      }
       return val->multiplyEqualsFloat(va, getTempRef());
+   }
 
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
@@ -673,8 +679,13 @@ double LValueHelper::multiplyEqualsFloat(double va, const char* desc) {
 
 double LValueHelper::divideEqualsFloat(double va, const char* desc) {
    assert(va);
-   if (val)
+   if (val) {
+      if (val->getType() != NT_FLOAT) {
+         typeInfo->doTypeException(0, desc, floatTypeInfo->getName(), vl.xsink);
+         return 0.0;
+      }
       return val->divideEqualsFloat(va, getTempRef());
+   }
 
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
@@ -682,6 +693,88 @@ double LValueHelper::divideEqualsFloat(double va, const char* desc) {
       return 0.0;
    f->f /= va;
    return f->f;
+}
+
+void LValueHelper::preIncrementNumber(const char* desc) {
+   QoreNumberNode* n = ensureUniqueNumber(desc);
+   if (n)
+      qore_number_private::inc(*n);
+}
+
+void LValueHelper::preDecrementNumber(const char* desc) {
+   QoreNumberNode* n = ensureUniqueNumber(desc);
+   if (n)
+      qore_number_private::dec(*n);
+}
+
+QoreNumberNode* LValueHelper::postIncrementNumber(bool ref_rv, const char* desc) {
+   QoreNumberNode* n = ensureUniqueNumber(desc);
+   if (!n)
+      return 0;
+   QoreNumberNode* rv = ref_rv ? new QoreNumberNode(*n) : 0;
+   qore_number_private::inc(*n);
+   return rv;
+}
+
+QoreNumberNode* LValueHelper::postDecrementNumber(bool ref_rv, const char* desc) {
+   QoreNumberNode* n = ensureUniqueNumber(desc);
+   if (!n)
+      return 0;
+   QoreNumberNode* rv = ref_rv ? new QoreNumberNode(*n) : 0;
+   qore_number_private::dec(*n);
+   return rv;
+}
+
+void LValueHelper::plusEqualsNumber(const AbstractQoreNode* r, const char* desc) {
+   SimpleRefHolder<QoreNumberNode> rn_holder;
+   QoreNumberNode* rn;
+   if (get_node_type(r) == NT_NUMBER)
+      rn = const_cast<QoreNumberNode*>(reinterpret_cast<const QoreNumberNode*>(r));
+   else
+      rn_holder = (rn = new QoreNumberNode(r));
+
+   QoreNumberNode* n = ensureUniqueNumber(desc);
+   if (n)
+      qore_number_private::plusEquals(*n, *rn);
+}
+
+void LValueHelper::minusEqualsNumber(const AbstractQoreNode* r, const char* desc) {
+   SimpleRefHolder<QoreNumberNode> rn_holder;
+   QoreNumberNode* rn;
+   if (get_node_type(r) == NT_NUMBER)
+      rn = const_cast<QoreNumberNode*>(reinterpret_cast<const QoreNumberNode*>(r));
+   else
+      rn_holder = (rn = new QoreNumberNode(r));
+
+   QoreNumberNode* n = ensureUniqueNumber(desc);
+   if (n)
+      qore_number_private::minusEquals(*n, *rn);
+}
+
+void LValueHelper::multiplyEqualsNumber(const AbstractQoreNode* r, const char* desc) {
+   SimpleRefHolder<QoreNumberNode> rn_holder;
+   QoreNumberNode* rn;
+   if (get_node_type(r) == NT_NUMBER)
+      rn = const_cast<QoreNumberNode*>(reinterpret_cast<const QoreNumberNode*>(r));
+   else
+      rn_holder = (rn = new QoreNumberNode(r));
+
+   QoreNumberNode* n = ensureUniqueNumber(desc);
+   if (n)
+      qore_number_private::multiplyEquals(*n, *rn);
+}
+
+void LValueHelper::divideEqualsNumber(const AbstractQoreNode* r, const char* desc) {
+   SimpleRefHolder<QoreNumberNode> rn_holder;
+   QoreNumberNode* rn;
+   if (get_node_type(r) == NT_NUMBER)
+      rn = const_cast<QoreNumberNode*>(reinterpret_cast<const QoreNumberNode*>(r));
+   else
+      rn_holder = (rn = new QoreNumberNode(r));
+
+   QoreNumberNode* n = ensureUniqueNumber(desc);
+   if (n)
+      qore_number_private::divideEquals(*n, *rn);
 }
 
 int64 LValueHelper::removeBigInt() {

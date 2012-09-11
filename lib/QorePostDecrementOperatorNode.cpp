@@ -36,6 +36,9 @@ AbstractQoreNode *QorePostDecrementOperatorNode::evalImpl(ExceptionSink *xsink) 
    LValueHelper n(exp, xsink);
    if (!n)
       return 0;
+   if (n.getType() == NT_NUMBER)
+      return n.postDecrementNumber(ref_rv, "<-- (post) operator>");
+
    if (n.getType() == NT_FLOAT) {
       double f = n.postDecrementFloat("<-- (post) operator>");
       assert(!*xsink);

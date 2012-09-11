@@ -32,6 +32,8 @@
 
 DLLLOCAL OperatorList oplist;
 
+DLLLOCAL extern const QoreTypeInfo* bigIntOrFloatTypeInfo, * bigIntFloatOrNumberTypeInfo, * floatOrNumberTypeInfo;
+
 // the standard, system-default operator pointers
 Operator *OP_MODULA, 
    *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
@@ -400,10 +402,6 @@ static double op_minus_float(double left, double right) {
    return left - right;
 }
 
-static QoreNumberNode* op_plus_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
-   return left->doPlus(right);
-}
-
 static double op_plus_float(double left, double right) {
    return left + right;
 }
@@ -414,10 +412,54 @@ static double op_multiply_float(double left, double right) {
 
 static double op_divide_float(double left, double right, ExceptionSink *xsink) {
    if (!right) {
-      xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression!");
+      xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression");
       return 0.0;
    }
    return left / right;
+}
+
+static bool op_log_lt_number(const QoreNumberNode* left, const QoreNumberNode* right) {
+   return left->compare(*right) < 0;
+}
+
+static bool op_log_le_number(const QoreNumberNode* left, const QoreNumberNode* right) {
+   return left->compare(*right) <= 0;
+}
+
+static bool op_log_gt_number(const QoreNumberNode* left, const QoreNumberNode* right) {
+   return left->compare(*right) > 0;
+}
+
+static bool op_log_ge_number(const QoreNumberNode* left, const QoreNumberNode* right) {
+   return left->compare(*right) >= 0;
+}
+
+static bool op_log_eq_number(const QoreNumberNode* left, const QoreNumberNode* right) {
+   return !left->compare(*right);
+}
+
+static bool op_log_ne_number(const QoreNumberNode* left, const QoreNumberNode* right) {
+   return (bool)left->compare(*right);
+}
+
+static int64 op_cmp_number(const QoreNumberNode* left, const QoreNumberNode* right) {
+   return (int64)left->compare(*right);
+}
+
+static QoreNumberNode* op_plus_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
+   return left->doPlus(*right);
+}
+
+static QoreNumberNode* op_minus_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
+   return left->doMinus(*right);
+}
+
+static QoreNumberNode* op_multiply_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
+   return left->doMultiply(*right);
+}
+
+static QoreNumberNode* op_divide_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
+   return left->doDivideBy(*right, xsink);
 }
 
 static QoreStringNode *op_plus_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink) {
@@ -2601,14 +2643,6 @@ AbstractQoreNode *NumberOperatorFunction::eval(const AbstractQoreNode *left, con
       left = *l;
    }
 
-   if (args == 1) {
-      QoreNumberNode* rv = op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink);
-      assert(!(*xsink && rv));
-      if (!ref_rv || *xsink)
-         return 0;
-      return rv;
-   }
-
    ReferenceHolder<AbstractQoreNode> r(xsink);
 
    // convert node type to required argument types for operator if necessary
@@ -2633,12 +2667,6 @@ bool NumberOperatorFunction::bool_eval(const AbstractQoreNode *left, const Abstr
       left = *l;
    }
 
-   if (args == 1) {
-      SimpleRefHolder<QoreNumberNode> rv(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink));
-      assert(!(*xsink && rv));
-      return !rv->zero();
-   }
-
    ReferenceHolder<AbstractQoreNode> r(xsink);
 
    // convert node type to required argument types for operator if necessary
@@ -2659,12 +2687,6 @@ int64 NumberOperatorFunction::bigint_eval(const AbstractQoreNode *left, const Ab
    if ((left->getType() != ltype) && (ltype != NT_ALL)) {
       l = get_node_type(left, ltype);
       left = *l;
-   }
-
-   if (args == 1) {
-      SimpleRefHolder<QoreNumberNode> rv(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink));
-      assert(!(*xsink && rv));
-      return rv->getAsBigInt();
    }
 
    ReferenceHolder<AbstractQoreNode> r(xsink);
@@ -2689,12 +2711,6 @@ double NumberOperatorFunction::float_eval(const AbstractQoreNode *left, const Ab
       left = *l;
    }
 
-   if (args == 1) {
-      SimpleRefHolder<QoreNumberNode> rv(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink));
-      assert(!(*xsink && rv));
-      return rv->getAsFloat();
-   }
-
    ReferenceHolder<AbstractQoreNode> r(xsink);
 
    // convert node type to required argument types for operator if necessary
@@ -2706,6 +2722,166 @@ double NumberOperatorFunction::float_eval(const AbstractQoreNode *left, const Ab
    SimpleRefHolder<QoreNumberNode> rv(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink));
    assert(!(*xsink && rv));
    return rv->getAsFloat();
+}
+
+AbstractQoreNode* BoolNumberOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   return get_bool_node(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right)));
+}
+
+bool BoolNumberOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   return op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right));
+}
+
+int64 BoolNumberOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   return (int64)op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right));
+}
+
+double BoolNumberOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   return (double)op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right));
+}
+
+AbstractQoreNode* IntNumberOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   return new QoreBigIntNode(op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right)));
+}
+
+bool IntNumberOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   return (bool)op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right));
+}
+
+int64 IntNumberOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   return op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right));
+}
+
+double IntNumberOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
+   ReferenceHolder<AbstractQoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
+      l = get_node_type(left, ltype);
+      left = *l;
+   }
+
+   ReferenceHolder<AbstractQoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
+      r = get_node_type(right, rtype);
+      right = *r;
+   }
+
+   return (double)op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right));
 }
 
 Operator::~Operator() {
@@ -3108,7 +3284,7 @@ int check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name) {
       if (getProgram()->getParseExceptionSink()) {
 	 QoreStringNode *desc = new QoreStringNode("lvalue has type ");
 	 typeInfo->getThisType(*desc);
-	 desc->sprintf(", but the %s operator will assign it an integer value", name);
+	 desc->sprintf(", but the %s will assign it an integer value", name);
 	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
       return -1;
@@ -3122,34 +3298,60 @@ int check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name) {
    if (!typeInfo->parseAcceptsReturns(NT_FLOAT) && getProgram()->getParseExceptionSink()) {
       QoreStringNode *desc = new QoreStringNode("lvalue has type ");
       typeInfo->getThisType(*desc);
-      desc->sprintf(", but the %s operator will assign it a float value", name);
+      desc->sprintf(", but the %s will assign it a float value", name);
       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       return -1;
    }
    return 0;
 }
 
-int check_lvalue_int_float(const QoreTypeInfo*& typeInfo, const char *name) {
+int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char *name) {
    // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!typeInfo->parseAcceptsReturns(NT_INT) && !typeInfo->parseAcceptsReturns(NT_FLOAT)) {
+   if (!typeInfo->parseAcceptsReturns(NT_INT)
+         && !typeInfo->parseAcceptsReturns(NT_FLOAT)
+         && !typeInfo->parseAcceptsReturns(NT_NUMBER)) {
       if (getProgram()->getParseExceptionSink()) {
          QoreStringNode *desc = new QoreStringNode("lvalue has type ");
          typeInfo->getThisType(*desc);
-         desc->sprintf(", but the %s operator only works with integer or floating-point lvalues", name);
+         desc->sprintf(", but the %s only works with integer, floating-point, or numeric lvalues", name);
          qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
       return -1;
    }
    if (typeInfo->parseReturnsType(NT_INT)) {
-      if (typeInfo->parseReturnsType(NT_FLOAT))
-         typeInfo = bigIntOrFloatTypeInfo;
+      if (typeInfo->parseReturnsType(NT_FLOAT)) {
+         if (typeInfo->parseReturnsType(NT_NUMBER))
+            typeInfo = bigIntFloatOrNumberTypeInfo;
+         else
+            typeInfo = bigIntOrFloatTypeInfo;
+      }
       else
          typeInfo = bigIntTypeInfo;
    }
-   else
-      typeInfo = floatTypeInfo;
+   else {
+      if (typeInfo->parseReturnsType(NT_FLOAT))
+         if (typeInfo->parseReturnsType(NT_NUMBER))
+            typeInfo = floatOrNumberTypeInfo;
+         else
+            typeInfo = floatTypeInfo;
+      else
+         typeInfo = numberTypeInfo;
+   }
 
+   return 0;
+}
+
+int check_lvalue_number(const QoreTypeInfo*& typeInfo, const char* name) {
+   // make sure the lvalue can be assigned a floating-point value
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!typeInfo->parseAcceptsReturns(NT_NUMBER) && getProgram()->getParseExceptionSink()) {
+      QoreStringNode *desc = new QoreStringNode("lvalue has type ");
+      typeInfo->getThisType(*desc);
+      desc->sprintf(", but the %s will assign it a number value", name);
+      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      return -1;
+   }
    return 0;
 }
 
@@ -3528,12 +3730,14 @@ void OperatorList::init() {
    OP_LOG_OR->addEffectFunction(op_log_or);
 
    OP_LOG_LT = add(new Operator(2, "<", "less-than", 1, false, false, check_op_logical));
+   OP_LOG_LT->addFunction(op_log_lt_number);
    OP_LOG_LT->addFunction(op_log_lt_float);
    OP_LOG_LT->addFunction(op_log_lt_bigint);
    OP_LOG_LT->addFunction(op_log_lt_string);
    OP_LOG_LT->addFunction(op_log_lt_date);
 
    OP_LOG_GT = add(new Operator(2, ">", "greater-than", 1, false, false, check_op_logical));
+   OP_LOG_LT->addFunction(op_log_gt_number);
    OP_LOG_GT->addFunction(op_log_gt_float);
    OP_LOG_GT->addFunction(op_log_gt_bigint);
    OP_LOG_GT->addFunction(op_log_gt_string);
@@ -3541,6 +3745,7 @@ void OperatorList::init() {
 
    OP_LOG_EQ = add(new Operator(2, "==", "logical-equals", 1, false, false, check_op_logical));
    OP_LOG_EQ->addFunction(op_log_eq_string);
+   OP_LOG_LT->addFunction(op_log_eq_number);
    OP_LOG_EQ->addFunction(op_log_eq_float);
    OP_LOG_EQ->addFunction(op_log_eq_bigint);
    OP_LOG_EQ->addFunction(op_log_eq_boolean);
@@ -3549,6 +3754,7 @@ void OperatorList::init() {
 
    OP_LOG_NE = add(new Operator(2, "!=", "not-equals", 1, false, false, check_op_logical));
    OP_LOG_NE->addFunction(op_log_ne_string);
+   OP_LOG_LT->addFunction(op_log_ne_number);
    OP_LOG_NE->addFunction(op_log_ne_float);
    OP_LOG_NE->addFunction(op_log_ne_bigint);
    OP_LOG_NE->addFunction(op_log_ne_boolean);
@@ -3556,12 +3762,14 @@ void OperatorList::init() {
    OP_LOG_NE->addNoConvertFunction(NT_ALL, NT_ALL, op_log_ne_all);
 
    OP_LOG_LE = add(new Operator(2, "<=", "less-than-or-equals", 1, false, false, check_op_logical));
+   OP_LOG_LT->addFunction(op_log_le_number);
    OP_LOG_LE->addFunction(op_log_le_float);
    OP_LOG_LE->addFunction(op_log_le_bigint);
    OP_LOG_LE->addFunction(op_log_le_string);
    OP_LOG_LE->addFunction(op_log_le_date);
 
    OP_LOG_GE = add(new Operator(2, ">=", "greater-than-or-equals", 1, false, false, check_op_logical));
+   OP_LOG_LT->addFunction(op_log_ge_number);
    OP_LOG_GE->addFunction(op_log_ge_float);
    OP_LOG_GE->addFunction(op_log_ge_bigint);
    OP_LOG_GE->addFunction(op_log_ge_string);
@@ -3591,6 +3799,7 @@ void OperatorList::init() {
    // bigint operators
    OP_LOG_CMP = add(new Operator(2, "<=>", "logical-comparison", 1, false, false, check_op_returns_integer));
    OP_LOG_CMP->addFunction(op_cmp_string);
+   OP_LOG_CMP->addFunction(op_cmp_number);
    OP_LOG_CMP->addFunction(op_cmp_double);
    OP_LOG_CMP->addFunction(op_cmp_bigint);
    OP_LOG_CMP->addCompareDateFunction();
@@ -3619,6 +3828,7 @@ void OperatorList::init() {
 
    OP_MINUS = add(new Operator(2, "-", "minus", 1, false, false, check_op_minus));
    OP_MINUS->addFunction(op_minus_date);
+   OP_MINUS->addFunction(op_minus_number);
    OP_MINUS->addFunction(op_minus_float);
    OP_MINUS->addFunction(op_minus_bigint);
    OP_MINUS->addFunction(op_minus_hash_string);
@@ -3639,11 +3849,13 @@ void OperatorList::init() {
    OP_PLUS->addDefaultNothing();
 
    OP_MULT = add(new Operator(2, "*", "multiply", 1, false, false, check_op_multiply));
+   OP_MULT->addFunction(op_multiply_number);
    OP_MULT->addFunction(op_multiply_float);
    OP_MULT->addFunction(op_multiply_bigint);
 
    // return value is the same as with *
    OP_DIV = add(new Operator(2, "/", "divide", 1, false, false, check_op_multiply));
+   OP_DIV->addFunction(op_divide_number);
    OP_DIV->addFunction(op_divide_float);
    OP_DIV->addFunction(op_divide_bigint);
 

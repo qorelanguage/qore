@@ -495,6 +495,40 @@ public:
    DLLLOCAL double postIncrementFloat(const char* desc = "<lvalue>");
    DLLLOCAL double postDecrementFloat(const char* desc = "<lvalue>");
 
+   DLLLOCAL void plusEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
+   DLLLOCAL void minusEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
+   DLLLOCAL void multiplyEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
+   DLLLOCAL void divideEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
+   DLLLOCAL void preIncrementNumber(const char* desc = "<lvalue>");
+   DLLLOCAL void preDecrementNumber(const char* desc = "<lvalue>");
+   DLLLOCAL QoreNumberNode* postIncrementNumber(bool ref_rv, const char* desc = "<lvalue>");
+   DLLLOCAL QoreNumberNode* postDecrementNumber(bool ref_rv, const char* desc = "<lvalue>");
+
+   DLLLOCAL QoreNumberNode* ensureUniqueNumber(const char* desc = "<lvalue>") {
+      if (val) {
+         typeInfo->doTypeException(0, desc, numberTypeInfo->getName(), vl.xsink);
+         return 0;
+      }
+
+      if (get_node_type(*v) == NT_NUMBER) {
+         if (!(*v)->is_unique()) {
+            AbstractQoreNode* old = (*v);
+            (*v) = (*v)->realCopy();
+            saveTemp(old);
+         }
+      }
+      else {
+         if (!typeInfo->parseAccepts(numberTypeInfo)) {
+            typeInfo->doTypeException(0, desc, numberTypeInfo->getName(), vl.xsink);
+            return 0;
+         }
+
+         saveTemp(*v);
+         *v = new QoreNumberNode(*v);
+      }
+      return reinterpret_cast<QoreNumberNode*>(*v);
+   }
+
    //DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>");
 
    DLLLOCAL int assign(AbstractQoreNode *val, const char* desc = "<lvalue>");

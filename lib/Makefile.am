@@ -425,9 +425,7 @@ libqore_la_SOURCES = \
         QoreAndEqualsOperatorNode.cpp \
         QoreModulaEqualsOperatorNode.cpp \
         QoreMultiplyEqualsOperatorNode.cpp \
-        QoreIntMultiplyEqualsOperatorNode.cpp \
         QoreDivideEqualsOperatorNode.cpp \
-        QoreIntDivideEqualsOperatorNode.cpp \
         QoreXorEqualsOperatorNode.cpp \
         QoreShiftLeftEqualsOperatorNode.cpp \
         QoreShiftRightEqualsOperatorNode.cpp \

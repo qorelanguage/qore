@@ -182,9 +182,7 @@ public:
 #include <qore/intern/QoreAndEqualsOperatorNode.h>
 #include <qore/intern/QoreModulaEqualsOperatorNode.h>
 #include <qore/intern/QoreMultiplyEqualsOperatorNode.h>
-#include <qore/intern/QoreIntMultiplyEqualsOperatorNode.h>
 #include <qore/intern/QoreDivideEqualsOperatorNode.h>
-#include <qore/intern/QoreIntDivideEqualsOperatorNode.h>
 #include <qore/intern/QoreXorEqualsOperatorNode.h>
 #include <qore/intern/QoreShiftLeftEqualsOperatorNode.h>
 #include <qore/intern/QoreShiftRightEqualsOperatorNode.h>

@@ -27,9 +27,6 @@ QoreString QoreDivideEqualsOperatorNode::op_str("/= operator expression");
 AbstractQoreNode *QoreDivideEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 
-   if (ti == bigIntTypeInfo || ti == softBigIntTypeInfo)
-      return makeSpecialization<QoreIntDivideEqualsOperatorNode>();
-
    return this;
 }
 
@@ -43,14 +40,18 @@ AbstractQoreNode *QoreDivideEqualsOperatorNode::evalImpl(ExceptionSink *xsink) c
    if (!v)
       return 0;
 
+   // is either side a number?
+   if ((res && res->getType() == NT_NUMBER) || v.getType() == NT_NUMBER) {
+      v.divideEqualsNumber(*res, "</= operator>");
+   }
    // is either side a float?
-   if ((res && res->getType() == NT_FLOAT) || v.getType() == NT_FLOAT) {
+   else if ((res && res->getType() == NT_FLOAT) || v.getType() == NT_FLOAT) {
       double val = res ? res->getAsFloat() : 0.0;
       if (val == 0.0) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression");
 	 return 0;
       }
-      v.divideEqualsFloat(val);
+      v.divideEqualsFloat(val, "</= operator>");
    }
    else { // do integer divide equals
       int64 val = res ? res->getAsBigInt() : 0;
@@ -59,7 +60,7 @@ AbstractQoreNode *QoreDivideEqualsOperatorNode::evalImpl(ExceptionSink *xsink) c
 	 return 0;
       }
       // get new value if necessary
-      v.divideEqualsBigInt(val);
+      v.divideEqualsBigInt(val, "</= operator>");
    }
 
    // reference return value and return

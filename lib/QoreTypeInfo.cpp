@@ -153,6 +153,12 @@ const QoreTypeInfo *timeoutTypeInfo = &staticTimeoutTypeInfo,
 static IntOrFloatTypeInfo staticIntOrFloatTypeInfo;
 const QoreTypeInfo* bigIntOrFloatTypeInfo = &staticIntOrFloatTypeInfo;
 
+static IntFloatOrNumberTypeInfo staticIntFloatOrNumberTypeInfo;
+const QoreTypeInfo* bigIntFloatOrNumberTypeInfo = &staticIntFloatOrNumberTypeInfo;
+
+static FloatOrNumberTypeInfo staticFloatOrNumberTypeInfo;
+const QoreTypeInfo* floatOrNumberTypeInfo = &staticFloatOrNumberTypeInfo;
+
 QoreListNode *emptyList;
 QoreHashNode *emptyHash;
 QoreStringNode *NullString;

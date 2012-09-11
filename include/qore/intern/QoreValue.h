@@ -369,7 +369,6 @@ public:
       }
    }
 
-
    DLLLOCAL AbstractQoreNode* assignInitial(QoreValue& n) {
       assert(!assigned);
       return assign(n);

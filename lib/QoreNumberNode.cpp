@@ -21,151 +21,7 @@
 */
 
 #include <qore/Qore.h>
-
-#define QORE_DEFAULT_PREC 128
-#define QORE_MAX_PREC 8192
-// round to nearest (roundTiesToEven in IEEE 754-2008)
-#define QORE_MPFR_RND MPFR_RNDN
-// MPFR_RNDA
-
-struct qore_number_private_intern {
-   mpfr_t num;
-
-   DLLLOCAL qore_number_private_intern() {
-      mpfr_init2(num, QORE_DEFAULT_PREC);
-   }
-
-   DLLLOCAL qore_number_private_intern(mpfr_prec_t prec) {
-      if (prec > QORE_MAX_PREC)
-         prec = QORE_MAX_PREC;
-      mpfr_init2(num, prec);
-   }
-
-   DLLLOCAL ~qore_number_private_intern() {
-      mpfr_clear(num);
-   }
-};
-
-struct qore_number_private : public qore_number_private_intern {
-   DLLLOCAL explicit qore_number_private(mpfr_prec_t prec) : qore_number_private_intern(prec) {
-   }
-
-   DLLLOCAL qore_number_private(double f) {
-      mpfr_set_d(num, f, QORE_MPFR_RND);
-   }
-
-   DLLLOCAL qore_number_private(int64 i) {
-      mpfr_set_sj(num, i, QORE_MPFR_RND);
-   }
-
-   DLLLOCAL qore_number_private(const char* str) : qore_number_private_intern(QORE_MAX(QORE_DEFAULT_PREC, strlen(str)*10)) {
-      mpfr_set_str(num, str, 10, QORE_MPFR_RND);
-   }
-
-   DLLLOCAL qore_number_private(const qore_number_private& old) : qore_number_private_intern(mpfr_get_prec(old.num)) {
-      mpfr_set(num, old.num, QORE_MPFR_RND);
-   }
-
-   DLLLOCAL double getAsFloat() const {
-      return mpfr_get_d(num, QORE_MPFR_RND);
-   }
-
-   DLLLOCAL int64 getAsBigInt() const {
-      return mpfr_get_sj(num, QORE_MPFR_RND);
-   }
-
-   DLLLOCAL bool getAsBool() const {
-      return !zero();
-   }
-
-   DLLLOCAL bool zero() const {
-      return (bool)mpfr_zero_p(num);
-   }
-
-   DLLLOCAL bool nan() const {
-      return (bool)mpfr_nan_p(num);
-   }
-
-   DLLLOCAL bool inf() const {
-      return (bool)mpfr_inf_p(num);
-   }
-
-   DLLLOCAL bool number() const {
-      return (bool)mpfr_number_p(num);
-   }
-
-   // regular and not zero
-   DLLLOCAL bool regular() const {
-      return (bool)mpfr_regular_p(num);
-   }
-
-   DLLLOCAL void getAsString(QoreString& str) const {
-      // first check if it's zero
-      if (zero()) {
-         str.concat("0n");
-         return;
-      }
-      mpfr_exp_t exp;
-      char* buf = mpfr_get_str(0, &exp, 10, 0, num, QORE_MPFR_RND);
-      if (!buf) {
-         str.concat("<number error>");
-         return;
-      }
-
-      // if it's a regular number, then format accordingly
-      if (number()) {
-         qore_size_t len = str.size();
-         //printd(0, "QoreNumberNode::getAsString() this: %p '%s' exp "QLLD" len: "QLLD"\n", this, buf, exp, len);
-
-         str.concat(buf);
-         // trim the trailing zeros off the end
-         str.trim_trailing('0');
-         if (exp <= 0) {
-            exp = -exp;
-            str.insert("0.", len);
-            if (exp)
-               str.insertch('0', len + 2, exp);
-         }
-         else {
-            // get remaining length of string (how many characters were added)
-            qore_size_t rlen = str.size() - len;
-
-            //printd(0, "QoreNumberNode::getAsString() this: %p str: '%s' rlen: "QLLD"\n", this, str.getBuffer(), rlen);
-
-            // assert that we have added at least 1 character
-            assert(rlen > 0);
-            if (exp > rlen)
-               str.insertch('0', str.size(), exp - rlen);
-            else if (exp < rlen)
-               str.insertch('.', len + exp, 1);
-         }
-         str.concat('n');
-      }
-
-      mpfr_free_str(buf);
-   }
-
-   DLLLOCAL int compare(const qore_number_private& right) const {
-      return mpfr_cmp(num, right.num);
-   }
-
-   DLLLOCAL int compare(double right) const {
-      return mpfr_cmp_d(num, right);
-   }
-
-   DLLLOCAL int compare(int64 right) const {
-      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
-      mpfr_set_sj(r, right, QORE_MPFR_RND);
-      return mpfr_cmp(num, r);
-   }
-
-   DLLLOCAL qore_number_private* doPlus(const qore_number_private& r) const {
-      mpfr_prec_t prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num));
-      qore_number_private* p = new qore_number_private(prec);
-      mpfr_add(p->num, num, r.num, QORE_MPFR_RND);
-      return p;
-   }
-};
+#include <qore/intern/qore_number_private.h>
 
 QoreNumberNode::QoreNumberNode(struct qore_number_private* p) : SimpleValueQoreNode(NT_NUMBER), priv(p) {
 }
@@ -310,6 +166,35 @@ bool QoreNumberNode::zero() const {
    return priv->zero();
 }
 
-QoreNumberNode* QoreNumberNode::doPlus(const QoreNumberNode* right) const {
-   return new QoreNumberNode(priv->doPlus(*right->priv));
+QoreNumberNode* QoreNumberNode::doPlus(const QoreNumberNode& right) const {
+   return new QoreNumberNode(priv->doPlus(*right.priv));
+}
+
+//! add the argument to this value and return the result
+QoreNumberNode* QoreNumberNode::doMinus(const QoreNumberNode& n) const {
+   return new QoreNumberNode(priv->doMinus(*n.priv));
+}
+
+//! add the argument to this value and return the result
+QoreNumberNode* QoreNumberNode::doMultiply(const QoreNumberNode& n) const {
+   return new QoreNumberNode(priv->doMultiply(*n.priv));
+}
+
+//! add the argument to this value and return the result
+QoreNumberNode* QoreNumberNode::doDivideBy(const QoreNumberNode& n, ExceptionSink* xsink) const {
+   qore_number_private* p = priv->doDivideBy(*n.priv, xsink);
+   return p ? new QoreNumberNode(p) : 0;
+}
+
+QoreNumberNode* QoreNumberNode::negate() const {
+   return new QoreNumberNode(priv->negate());
+}
+
+int QoreNumberNode::compare(const QoreNumberNode& n) const {
+   return priv->compare(*n.priv);
+}
+
+QoreNumberNode* QoreNumberNode::numberRefSelf() const {
+   ref();
+   return const_cast<QoreNumberNode*>(this);
 }

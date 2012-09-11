@@ -42,17 +42,23 @@ public:
       const QoreTypeInfo *rightTypeInfo = 0;
       right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);
 
-      if (!ti->isType(NT_FLOAT)) {
-         if (rightTypeInfo->isType(NT_FLOAT)) {
-            check_lvalue_float(ti, name);
-            ti = floatTypeInfo;
+      if (!ti->isType(NT_NUMBER)) {
+         if (rightTypeInfo->isType(NT_NUMBER)) {
+            check_lvalue_number(ti, name);
+            ti = numberTypeInfo;
          }
-         else if (ti->returnsSingle()) {
-            check_lvalue_int(ti, name);
-            ti = bigIntTypeInfo;
+         else if (!ti->isType(NT_FLOAT)) {
+            if (rightTypeInfo->isType(NT_FLOAT)) {
+               check_lvalue_float(ti, name);
+               ti = floatTypeInfo;
+            }
+            else if (ti->returnsSingle()) {
+               check_lvalue_int(ti, name);
+               ti = bigIntTypeInfo;
+            }
+            else
+               ti = 0;
          }
-         else
-            ti = 0;
       }
 
       typeInfo = ti;

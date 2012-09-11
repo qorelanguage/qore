@@ -30,6 +30,7 @@ class QoreTypeInfo;
 
 //! Qore's arbitrary-precision number value type, dynamically-allocated only, reference counted
 class QoreNumberNode : public SimpleValueQoreNode {
+   friend struct qore_number_private;
 private:
    //! returns the value as a bool
    DLLLOCAL virtual bool getAsBoolImpl() const;
@@ -161,10 +162,28 @@ public:
    DLLEXPORT virtual const char* getTypeName() const;
 
    //! add the argument to this value and return the result
-   DLLEXPORT QoreNumberNode* doPlus(const QoreNumberNode* right) const;
+   DLLEXPORT QoreNumberNode* doPlus(const QoreNumberNode& n) const;
+
+   //! add the argument to this value and return the result
+   DLLEXPORT QoreNumberNode* doMinus(const QoreNumberNode& n) const;
+
+   //! add the argument to this value and return the result
+   DLLEXPORT QoreNumberNode* doMultiply(const QoreNumberNode& n) const;
+
+   //! add the argument to this value and return the result
+   DLLEXPORT QoreNumberNode* doDivideBy(const QoreNumberNode& n, ExceptionSink* xsink) const;
+
+   //! returns the negative of the current object (this)
+   DLLEXPORT QoreNumberNode* negate() const;
 
    //! returns true if the number is zero
    DLLEXPORT bool zero() const;
+
+   //! compares the argument to the current object, returns -1 if the current object is less than the argument, 0 if equals, and 1 if greater than the argument
+   DLLEXPORT int compare(const QoreNumberNode& n) const;
+
+   //! returns a pointer to this with the reference count incremented
+   DLLEXPORT QoreNumberNode* numberRefSelf() const;
 
    //! returns the type information
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);

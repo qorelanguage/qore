@@ -72,6 +72,9 @@
 //! defined because this version of Qore supports the DBI selectRow() function
 #define _QORE_HAS_DBI_SELECT_ROW 1
 
+//! defined because this version of Qore supports the number type (QoreNumberNode)
+#define _QORE_HAS_NUMBER_TYPE 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types

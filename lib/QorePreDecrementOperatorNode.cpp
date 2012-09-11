@@ -36,7 +36,11 @@ AbstractQoreNode *QorePreDecrementOperatorNode::evalImpl(ExceptionSink *xsink) c
    LValueHelper n(exp, xsink);
    if (!n)
       return 0;
-   if (n.getType() == NT_FLOAT) {
+   if (n.getType() == NT_NUMBER) {
+      n.preDecrementNumber("<-- (pre) operator>");
+      assert(!*xsink);
+   }
+   else if (n.getType() == NT_FLOAT) {
       n.preDecrementFloat("<-- (pre) operator>");
       assert(!*xsink);
    }

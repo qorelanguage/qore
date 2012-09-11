@@ -37,6 +37,7 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, in
    if (!ti->isType(NT_HASH)
        && !ti->isType(NT_OBJECT)
        && !ti->isType(NT_FLOAT)
+       && !ti->isType(NT_NUMBER)
        && !ti->isType(NT_DATE)) {
       // if the lhs type is not one of the above types, 
       // there are 2 possibilities: the lvalue has no value, in which
@@ -86,6 +87,10 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) co
 	    const QoreFloatNode *f = reinterpret_cast<const QoreFloatNode *>(*new_right);
 	    v.assign(new QoreFloatNode(-f->f));
 	 }
+	 else if (new_right->getType() == NT_NUMBER) {
+            const QoreNumberNode* num = reinterpret_cast<const QoreNumberNode*>(*new_right);
+            v.assign(num->negate());
+         }
 	 else {
 	    // optimization to eliminate a virtual function call in the most common case
 	    int64 i = new_right->getAsBigInt();
@@ -103,6 +108,9 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) co
 
    if (vtype == NT_FLOAT) {
       v.minusEqualsFloat(new_right->getAsFloat());
+   }
+   else if (vtype == NT_NUMBER) {
+      v.minusEqualsNumber(*new_right, "<-= operator>");
    }
    else if (vtype == NT_DATE) {
       DateTimeValueHelper date(*new_right);

@@ -282,6 +282,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreImplicitArgumentNode.h \
 	include/qore/intern/QoreImplicitElementNode.h \
 	include/qore/intern/qore_string_private.h \
+	include/qore/intern/qore_number_private.h \
 	include/qore/intern/qore_date_private.h \
 	include/qore/intern/sql_statement_private.h \
 	include/qore/intern/qore_program_private.h \
@@ -310,9 +311,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreAndEqualsOperatorNode.h \
 	include/qore/intern/QoreModulaEqualsOperatorNode.h \
 	include/qore/intern/QoreMultiplyEqualsOperatorNode.h \
-	include/qore/intern/QoreIntMultiplyEqualsOperatorNode.h \
 	include/qore/intern/QoreDivideEqualsOperatorNode.h \
-	include/qore/intern/QoreIntDivideEqualsOperatorNode.h \
 	include/qore/intern/QoreXorEqualsOperatorNode.h \
 	include/qore/intern/QoreShiftLeftEqualsOperatorNode.h \
 	include/qore/intern/QoreShiftRightEqualsOperatorNode.h \

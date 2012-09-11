@@ -39,6 +39,7 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int
        && !ti->isType(NT_OBJECT)
        && !ti->isType(NT_STRING)
        && !ti->isType(NT_FLOAT)
+       && !ti->isType(NT_NUMBER)
        && !ti->isType(NT_DATE)
        && !ti->isType(NT_BINARY)) {
       // if the lhs type is not one of the above types, 
@@ -128,6 +129,9 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) con
 	 QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(v.getValue());
 	 vs->concat(*str, xsink);
       }
+   }
+   else if (vtype == NT_NUMBER) {
+      v.plusEqualsNumber(*new_right, "<+= operator>");
    }
    else if (vtype == NT_FLOAT) {
       double f = new_right ? new_right->getAsFloat() : 0.0;

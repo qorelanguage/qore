@@ -1321,6 +1321,33 @@ public:
    }
 };
 
+class IntFloatOrNumberTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
+protected:
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "int|float|number";
+   }
+
+public:
+   DLLLOCAL IntFloatOrNumberTypeInfo() : AcceptsReturnsSameMultiTypeInfo(0, NT_INTFLOATORNUMBER) {
+      at.push_back(bigIntTypeInfo);
+      at.push_back(floatTypeInfo);
+      at.push_back(numberTypeInfo);
+   }
+};
+
+class FloatOrNumberTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
+protected:
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "float|number";
+   }
+
+public:
+   DLLLOCAL FloatOrNumberTypeInfo() : AcceptsReturnsSameMultiTypeInfo(0, NT_FLOATORNUMBER) {
+      at.push_back(floatTypeInfo);
+      at.push_back(numberTypeInfo);
+   }
+};
+
 // accepts any type
 class UserReferenceTypeInfo : public ReverseTypeInfo {
 protected:
