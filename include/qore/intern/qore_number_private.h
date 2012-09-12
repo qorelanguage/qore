@@ -188,27 +188,24 @@ struct qore_number_private : public qore_number_private_intern {
       return mpfr_cmp(num, r);
    }
 
+   template <int (*F)(mpfr_t, const mpfr_t, const mpfr_t, mpfr_rnd_t)>
+   DLLLOCAL qore_number_private* doCalcArg(const qore_number_private& r) const {
+      mpfr_prec_t prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num));
+      qore_number_private* p = new qore_number_private(prec);
+      F(p->num, num, r.num, QORE_MPFR_RND);
+      return p;
+   }
+
    DLLLOCAL qore_number_private* doPlus(const qore_number_private& r) const {
-      mpfr_prec_t prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num));
-      qore_number_private* p = new qore_number_private(prec);
-      mpfr_add(p->num, num, r.num, QORE_MPFR_RND);
-      return p;
+      return doCalcArg<mpfr_add>(r);
    }
 
-   //! add the argument to this value and return the result
    DLLLOCAL qore_number_private* doMinus(const qore_number_private& r) const {
-      mpfr_prec_t prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num));
-      qore_number_private* p = new qore_number_private(prec);
-      mpfr_sub(p->num, num, r.num, QORE_MPFR_RND);
-      return p;
+      return doCalcArg<mpfr_sub>(r);
    }
 
-   //! add the argument to this value and return the result
    DLLLOCAL qore_number_private* doMultiply(const qore_number_private& r) const {
-      mpfr_prec_t prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num));
-      qore_number_private* p = new qore_number_private(prec);
-      mpfr_mul(p->num, num, r.num, QORE_MPFR_RND);
-      return p;
+      return doCalcArg<mpfr_mul>(r);
    }
 
    //! add the argument to this value and return the result
@@ -217,22 +214,22 @@ struct qore_number_private : public qore_number_private_intern {
          xsink->raiseException("DIVISION-BY-ZERO", "division by zero in numeric expression");
          return 0;
       }
-      mpfr_prec_t prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num));
-      qore_number_private* p = new qore_number_private(prec);
-      mpfr_div(p->num, num, r.num, QORE_MPFR_RND);
+      return doCalcArg<mpfr_div>(r);
+   }
+
+   template <int (*F)(mpfr_t, const mpfr_t, mpfr_rnd_t)>
+   DLLLOCAL qore_number_private* doCalcUnary() const {
+      qore_number_private* p = new qore_number_private(*this);
+      F(p->num, num, QORE_MPFR_RND);
       return p;
    }
 
    DLLLOCAL qore_number_private* negate() const {
-      qore_number_private* p = new qore_number_private(*this);
-      mpfr_neg(p->num, p->num, QORE_MPFR_RND);
-      return p;
+      return doCalcUnary<mpfr_neg>();
    }
 
    DLLLOCAL qore_number_private* absolute() const {
-      qore_number_private* p = new qore_number_private(*this);
-      mpfr_abs(p->num, p->num, QORE_MPFR_RND);
-      return p;
+      return doCalcUnary<mpfr_abs>();
    }
 
    DLLLOCAL void inc() {
@@ -247,33 +244,29 @@ struct qore_number_private : public qore_number_private_intern {
       mpfr_sub_si(num, tmp, 1, QORE_MPFR_RND);
    }
 
-   DLLLOCAL void plusEquals(const qore_number_private& r) {
+   template <int (*F)(mpfr_t, const mpfr_t, const mpfr_t, mpfr_rnd_t)>
+   DLLLOCAL void doCalcArgInplace(const qore_number_private& r) {
       checkPrec(r.num);
       MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
       mpfr_set(tmp, num, QORE_MPFR_RND);
-      mpfr_add(num, tmp, r.num, QORE_MPFR_RND);
+      F(num, tmp, r.num, QORE_MPFR_RND);
+   }
+
+   DLLLOCAL void plusEquals(const qore_number_private& r) {
+      doCalcArgInplace<mpfr_add>(r);
    }
 
    DLLLOCAL void minusEquals(const qore_number_private& r) {
-      checkPrec(r.num);
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
-      mpfr_set(tmp, num, QORE_MPFR_RND);
-      mpfr_sub(num, tmp, r.num, QORE_MPFR_RND);
+      doCalcArgInplace<mpfr_sub>(r);
    }
 
    DLLLOCAL void multiplyEquals(const qore_number_private& r) {
-      checkPrec(r.num);
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
-      mpfr_set(tmp, num, QORE_MPFR_RND);
-      mpfr_mul(num, tmp, r.num, QORE_MPFR_RND);
+      doCalcArgInplace<mpfr_mul>(r);
    }
 
    DLLLOCAL void divideEquals(const qore_number_private& r) {
       assert(!r.zero());
-      checkPrec(r.num);
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
-      mpfr_set(tmp, num, QORE_MPFR_RND);
-      mpfr_div(num, tmp, r.num, QORE_MPFR_RND);
+      doCalcArgInplace<mpfr_div>(r);
    }
 
    // static accessor methods
