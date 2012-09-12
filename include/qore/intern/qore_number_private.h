@@ -108,8 +108,12 @@ struct qore_number_private : public qore_number_private_intern {
       return (bool)mpfr_regular_p(num);
    }
 
+   DLLLOCAL int sign() const {
+      return mpfr_sgn(num);
+   }
+
    DLLLOCAL void getAsString(QoreString& str) const {
-      // first check if it's zero
+      // first check for zero
       if (zero()) {
          str.concat("0n");
          return;
@@ -135,7 +139,8 @@ struct qore_number_private : public qore_number_private_intern {
 
       // if it's a regular number, then format accordingly
       if (number()) {
-         qore_size_t len = str.size();
+         int sgn = sign();
+         qore_size_t len = str.size() + (sgn < 0 ? 1 : 0);
          //printd(0, "QoreNumberNode::getAsString() this: %p '%s' exp "QLLD" len: "QLLD"\n", this, buf, exp, len);
 
          str.concat(buf);
@@ -162,6 +167,8 @@ struct qore_number_private : public qore_number_private_intern {
          }
          str.concat('n');
       }
+      else
+         str.concat(buf);
 
       mpfr_free_str(buf);
 #endif

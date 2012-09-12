@@ -53,6 +53,18 @@ static const struct code_table html_codes[] =
 
 #define NUM_HTML_CODES (sizeof(html_codes) / sizeof (struct code_table))
 
+QoreStringMaker::QoreStringMaker(const char* fmt, ...) {
+   va_list args;
+
+   while (true) {
+      va_start(args, fmt);
+      int rc = vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+}
+
 QoreString::QoreString() : priv(new qore_string_private) {
    priv->len = 0;
    priv->allocated = STR_CLASS_BLOCK;

@@ -627,6 +627,18 @@ public:
 
 DLLEXPORT QoreString* checkEncoding(const QoreString* str, const QoreEncoding* enc, ExceptionSink* xsink);
 
+class QoreStringMaker : public QoreString {
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreStringMaker(const QoreStringMaker& str);
+
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreStringMaker& operator=(const QoreStringMaker&);
+
+public:
+   DLLLOCAL QoreStringMaker(const char* fmt, ...);
+};
+
 //! class used to hold a possibly temporary QoreString pointer, stack only, cannot be dynamically allocated
 /**
    @code

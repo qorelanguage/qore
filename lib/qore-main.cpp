@@ -51,6 +51,9 @@ int qore_library_options = QLO_NONE;
 
 qore_license_t qore_license;
 
+const QoreStringMaker mpfrInfo("runtime: %s built with: %s (%d.%d.%d)", mpfr_get_version(), MPFR_VERSION_STRING, MPFR_VERSION_MAJOR,
+      MPFR_VERSION_MINOR, MPFR_VERSION_PATCHLEVEL);
+
 void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
    qore_license = license;
    qore_library_options = n_qore_library_options;

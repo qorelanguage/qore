@@ -84,7 +84,7 @@
 #include <qore/qore-version.h>
 
 //! the complete version string of the qore library
-DLLEXPORT extern const char *qore_version_string;
+DLLEXPORT extern const char* qore_version_string;
 
 //! the major version number of the qore library
 DLLEXPORT extern int qore_version_major;
@@ -102,25 +102,30 @@ DLLEXPORT extern int qore_build_number;
 DLLEXPORT extern int qore_target_bits;
 
 //! the build target Operating System name
-DLLEXPORT extern const char *qore_target_os;
+DLLEXPORT extern const char* qore_target_os;
 
 //! the build target machine architecture name
-DLLEXPORT extern const char *qore_target_arch;
+DLLEXPORT extern const char* qore_target_arch;
 
 //! the qore module directory
-DLLEXPORT extern const char *qore_module_dir;
+DLLEXPORT extern const char* qore_module_dir;
 
 //! the c++ compiler used to build qore
-DLLEXPORT extern const char *qore_cplusplus_compiler;
+DLLEXPORT extern const char* qore_cplusplus_compiler;
 
 //! the compiler flags used to build qore
-DLLEXPORT extern const char *qore_cflags;
+DLLEXPORT extern const char* qore_cflags;
 
 //! the linker flags used to link qore
-DLLEXPORT extern const char *qore_ldflags;
+DLLEXPORT extern const char* qore_ldflags;
 
 //! information about the build host
-DLLEXPORT extern const char *qore_build_host;
+DLLEXPORT extern const char* qore_build_host;
+
+//! information about the MPFR library used by the qore library
+/** this pointer is null until after qore_init() has been called
+ */
+DLLEXPORT extern const char* qore_mpfr_info;
 
 //! if the qore library includes debugging or not
 DLLEXPORT bool qore_has_debug();
@@ -130,6 +135,9 @@ DLLEXPORT extern int qore_min_mod_api_major;
 
 //! the recommended minimum module api minor number to use
 DLLEXPORT extern int qore_min_mod_api_minor;
+
+//! a string giving information about the MPFR library used by the qore library
+DLLEXPORT extern const QoreStringMaker mpfrInfo;
 
 #define QLO_NONE                    0       //!< no options (default)
 #define QLO_DISABLE_SIGNAL_HANDLING 1 << 0  //!< disable qore signal handling entirely
@@ -144,7 +152,7 @@ DLLEXPORT extern int qore_min_mod_api_minor;
     @note The license value must be QL_LGPL unless the program using Qore is a GPL program, in which case QL_GPL may be used (the default)
     @see qore_cleanup()
  */
-DLLEXPORT void qore_init(qore_license_t license = QL_GPL, const char *default_encoding = 0, bool show_module_errors = false, int init_options = QLO_NONE);
+DLLEXPORT void qore_init(qore_license_t license = QL_GPL, const char* default_encoding = 0, bool show_module_errors = false, int init_options = QLO_NONE);
 
 //! frees all memory allocated by the library
 /** @note The openssl library is cleaned up as well

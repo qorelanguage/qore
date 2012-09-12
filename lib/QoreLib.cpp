@@ -42,25 +42,25 @@ FeatureList qoreFeatureList;
 #define cpp_xstr(s) cpp_str(s)
 
 // global library variables
-const char *qore_version_string      = VERSION "-" cpp_xstr(BUILD);
+const char* qore_version_string      = VERSION "-" cpp_xstr(BUILD);
 int qore_version_major               = VERSION_MAJOR;
 int qore_version_minor               = VERSION_MINOR;
 int qore_version_sub                 = VERSION_SUB;
 int qore_build_number                = BUILD;
 int qore_target_bits                 = TARGET_BITS;
-const char *qore_target_os           = TARGET_OS;
-const char *qore_target_arch         = TARGET_ARCH;
-const char *qore_module_dir          = MODULE_DIR;
-const char *qore_cplusplus_compiler  = QORE_LIB_CXX;
-const char *qore_cflags              = QORE_LIB_CFLAGS;
-const char *qore_ldflags             = QORE_LIB_LDFLAGS;
-const char *qore_build_host          = QORE_BUILD_HOST;
+const char* qore_target_os           = TARGET_OS;
+const char* qore_target_arch         = TARGET_ARCH;
+const char* qore_module_dir          = MODULE_DIR;
+const char* qore_cplusplus_compiler  = QORE_LIB_CXX;
+const char* qore_cflags              = QORE_LIB_CFLAGS;
+const char* qore_ldflags             = QORE_LIB_LDFLAGS;
+const char* qore_build_host          = QORE_BUILD_HOST;
 
 int qore_min_mod_api_major = QORE_MODULE_COMPAT_API_MAJOR;
 int qore_min_mod_api_minor = QORE_MODULE_COMPAT_API_MINOR;
 
-DLLLOCAL QoreListNode *ARGV = 0;
-DLLLOCAL QoreListNode *QORE_ARGV = 0;
+DLLLOCAL QoreListNode* ARGV = 0;
+DLLLOCAL QoreListNode* QORE_ARGV = 0;
 
 #ifndef HAVE_LOCALTIME_R
 DLLLOCAL QoreThreadLock lck_localtime;
@@ -350,7 +350,7 @@ const qore_option_s *qore_option_list = qore_option_list_l;
 
 size_t qore_option_list_size = QORE_OPTION_LIST_SIZE;
 
-static inline int get_number(char **param) {
+static inline int get_number(char* *param) {
    int num = 0;
    while (isdigit(**param)) {
       num = num*10 + (**param - '0');
@@ -387,8 +387,8 @@ FeatureList::~FeatureList() {
 }
 
 // if type = 0 then field widths are soft limits, otherwise they are hard
-static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *node, int type, int *taken, ExceptionSink *xsink) {
-   char *str = param;
+static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* node, int type, int *taken, ExceptionSink *xsink) {
+   char* str = param;
    int opts = 0;
    int width = -1;
    int decimals = -1;
@@ -400,7 +400,7 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
 	  param, type, node, node ? node->getTypeName() : "(null)", node ? node->reference_count() : -1);
 #ifdef DEBUG
    if (node && node->getType() == NT_STRING) {
-      const QoreStringNode *nstr = reinterpret_cast<const QoreStringNode *>(node);
+      const QoreStringNode* nstr = reinterpret_cast<const QoreStringNode* >(node);
       printd(5, "process_opt() %08p (%d) \"%s\"\n", nstr->getBuffer(), nstr->strlen(), nstr->getBuffer());
    }
 #endif
@@ -553,9 +553,9 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
    return (int)(param - str);
 }
 
-QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink) {
+QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink *xsink) {
    unsigned i, j, l;
-   const QoreStringNode *p;
+   const QoreStringNode* p;
 
    if (!(p = test_string_param(params, offset)))
       return new QoreStringNode();
@@ -564,13 +564,13 @@ QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, Exc
 
    j = 1 + offset;
 
-   const char *pstr = p->getBuffer();
+   const char* pstr = p->getBuffer();
    l = strlen(pstr);
    for (i = 0; i < l; i++) {
       int taken = 1;
       if ((pstr[i] == '%') && (j < params->size())) {
-	 const AbstractQoreNode *node = get_param(params, j++);
-	 i += process_opt(*buf, (char *)&pstr[i], node, field, &taken, xsink);	 
+	 const AbstractQoreNode* node = get_param(params, j++);
+	 i += process_opt(*buf, (char* )&pstr[i], node, field, &taken, xsink);
 	 if (*xsink)
 	    return 0;
 	 if (!taken)
@@ -586,15 +586,15 @@ QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, Exc
    return buf.release();
 }
 
-QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink) {
-   const QoreStringNode *fmt;
-   const AbstractQoreNode *args;
+QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink *xsink) {
+   const QoreStringNode* fmt;
+   const AbstractQoreNode* args;
 
    if (!(fmt = test_string_param(params, offset)))
       return new QoreStringNode();
 
    args = get_param(params, offset + 1);
-   const QoreListNode *arg_list = dynamic_cast<const QoreListNode *>(args);
+   const QoreListNode* arg_list = dynamic_cast<const QoreListNode* >(args);
 
    SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
    unsigned j = 0;
@@ -602,7 +602,7 @@ QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, Ex
    for (unsigned i = 0; i < l; i++) {
       int taken = 1;
       bool havearg = false;
-      const AbstractQoreNode *arg = 0;
+      const AbstractQoreNode* arg = 0;
 
       if ((fmt->getBuffer()[i] == '%')) {
 	 if (args) {
@@ -618,7 +618,7 @@ QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, Ex
 	 }
       }
       if (havearg) {
-	 i += process_opt(*buf, (char *)&fmt->getBuffer()[i], arg, field, &taken, xsink);
+	 i += process_opt(*buf, (char* )&fmt->getBuffer()[i], arg, field, &taken, xsink);
 	 if (*xsink)
 	    return 0;
 	 if (!taken)
@@ -636,7 +636,7 @@ static void concatASCII(QoreString &str, unsigned char c) {
       str.sprintf(" ('%c')", c);
 }
 
-static inline char getBase64Value(const char *buf, qore_size_t &offset, bool end_ok, ExceptionSink *xsink) {
+static inline char getBase64Value(const char* buf, qore_size_t &offset, bool end_ok, ExceptionSink *xsink) {
    while (buf[offset] == '\n' || buf[offset] == '\r')
       ++offset;
 
@@ -658,7 +658,7 @@ static inline char getBase64Value(const char *buf, qore_size_t &offset, bool end
 	 xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string at string byte offset %d", offset);
    }
    else {
-      QoreStringNode *desc = new QoreStringNode;
+      QoreStringNode* desc = new QoreStringNode;
       concatASCII(*desc, c);
       desc->concat(" is an invalid base64 character");
       xsink->raiseException("BASE64-PARSE-ERROR", desc);
@@ -667,8 +667,8 @@ static inline char getBase64Value(const char *buf, qore_size_t &offset, bool end
 }
 
 // see: RFC-1421: http://www.ietf.org/rfc/rfc1421.txt and RFC-2045: http://www.ietf.org/rfc/rfc2045.txt
-BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink) {
-   char *binbuf = (char *)malloc(sizeof(char) * (len + 3));
+BinaryNode* parseBase64(const char* buf, int len, ExceptionSink *xsink) {
+   char* binbuf = (char* )malloc(sizeof(char) * (len + 3));
    int blen = 0;
 
    qore_size_t pos = 0;
@@ -743,7 +743,7 @@ int get_nibble(char c, ExceptionSink *xsink) {
    return -1;
 }
 
-BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink) {
+BinaryNode* parseHex(const char* buf, int len, ExceptionSink *xsink) {
    if (!len)
       return new BinaryNode();
 
@@ -752,10 +752,10 @@ BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink) {
       return 0;
    }
 
-   char *binbuf = (char *)malloc(sizeof(char) * (len / 2));
+   char* binbuf = (char* )malloc(sizeof(char) * (len / 2));
    int blen = 0;
 
-   const char *end = buf + len;
+   const char* end = buf + len;
    while (buf < end) {
       int b = get_nibble(*buf, xsink);
       if (b < 0) {
@@ -787,14 +787,14 @@ static inline int parse_get_nibble(char c) {
 }
 
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors
-BinaryNode *parseHex(const char *buf, int len) {
+BinaryNode* parseHex(const char* buf, int len) {
    if (!buf || !(*buf))
       return new BinaryNode();
 
-   char *binbuf = (char *)malloc(sizeof(char) * (len / 2));
+   char* binbuf = (char* )malloc(sizeof(char) * (len / 2));
    int blen = 0;
 
-   const char *end = buf + len;
+   const char* end = buf + len;
    while (buf < end) {
       int b = parse_get_nibble(*buf);
       if (b < 0) {
@@ -822,9 +822,9 @@ BinaryNode *parseHex(const char *buf, int len) {
    return new BinaryNode(binbuf, blen);
 }
 
-char *make_class_name(const char *str) {
-   char *cn = q_basename(str);
-   char *p = strrchr(cn, '.');
+char* make_class_name(const char* str) {
+   char* cn = q_basename(str);
+   char* p = strrchr(cn, '.');
    if (p && p != cn)
       *p = '\0';
    p = cn;
@@ -836,13 +836,13 @@ char *make_class_name(const char *str) {
    return cn;
 }
 
-void print_node(FILE *fp, const AbstractQoreNode *node) {
+void print_node(FILE *fp, const AbstractQoreNode* node) {
    printd(5, "print_node() node=%08p (%s)\n", node, node ? node->getTypeName() : "(null)");
    QoreStringValueHelper str(node);
    fputs(str->getBuffer(), fp);
 }
 
-void qore_setup_argv(int pos, int argc, char *argv[]) {
+void qore_setup_argv(int pos, int argc, char* argv[]) {
    ARGV = new QoreListNode();
    QORE_ARGV = new QoreListNode();
    int end = argc - pos;
@@ -853,12 +853,12 @@ void qore_setup_argv(int pos, int argc, char *argv[]) {
    }
 }
 
-void init_lib_intern(char *env[]) {
+void init_lib_intern(char* env[]) {
    // set up environment hash
    int i = 0;
    ENV = new QoreHashNode;
    while (env[i]) {
-      char *p;
+      char* p;
 
       if ((p = strchr(env[i], '='))) {
 	 char save = *p;
@@ -921,31 +921,31 @@ struct tm *q_gmtime(const time_t *clock, struct tm *tms) {
 }
 
 // thread-safe basename function (resulting pointer must be free()ed)
-char *q_basename(const char *path) {
-   const char *p = strrchr(path, QORE_DIR_SEP);
+char* q_basename(const char* path) {
+   const char* p = strrchr(path, QORE_DIR_SEP);
    if (!p)
       return strdup(path);
    return strdup(p + 1);
 }
 
 // returns a pointer within the same string
-char *q_basenameptr(const char *path) {
-   const char *p = strrchr(path, QORE_DIR_SEP);
+char* q_basenameptr(const char* path) {
+   const char* p = strrchr(path, QORE_DIR_SEP);
    if (!p)
-      return (char *)path;
-   return (char *)p + 1;   
+      return (char* )path;
+   return (char* )p + 1;
 }
 
 // thread-safe basename function (resulting pointer must be free()ed)
-char *q_dirname(const char *path) {
-   const char *p = strrchr(path, QORE_DIR_SEP);
+char* q_dirname(const char* path) {
+   const char* p = strrchr(path, QORE_DIR_SEP);
    if (!p || p == path) {
-      char *x = (char *)malloc(sizeof(char) * 2);
+      char* x = (char* )malloc(sizeof(char) * 2);
       x[0] = !p ? '.' : QORE_DIR_SEP;
       x[1] = '\0';
       return x;
    }
-   char *x = (char *)malloc(sizeof(char) * (p - path + 1));
+   char* x = (char* )malloc(sizeof(char) * (p - path + 1));
    strncpy(x, path, p - path);
    x[p - path] = '\0';
    return x;
@@ -958,17 +958,17 @@ void *q_realloc(void *ptr, size_t size) {
    return p;
 }
 
-static inline void assign_hv(QoreHashNode *h, const char *key, char *val) {
+static inline void assign_hv(QoreHashNode* h, const char* key, char* val) {
    h->setKeyValue(key, new QoreStringNode(val), 0);
 }
 
-static inline void assign_hv(QoreHashNode *h, const char *key, int val) {
+static inline void assign_hv(QoreHashNode* h, const char* key, int val) {
    h->setKeyValue(key, new QoreBigIntNode(val), 0);
 }
 
 #ifdef HAVE_PWD_H
-static QoreHashNode *pwd2hash(const struct passwd &pw) {
-   QoreHashNode *h = new QoreHashNode;
+static QoreHashNode* pwd2hash(const struct passwd &pw) {
+   QoreHashNode* h = new QoreHashNode;
    // assign values
    assign_hv(h, "pw_name", pw.pw_name);
    assign_hv(h, "pw_passwd", pw.pw_passwd);
@@ -980,11 +980,11 @@ static QoreHashNode *pwd2hash(const struct passwd &pw) {
    return h;
 }
 
-QoreHashNode *q_getpwuid(uid_t uid) {
+QoreHashNode* q_getpwuid(uid_t uid) {
    struct passwd *pw;
 #ifdef HAVE_GETPWUID_R
    struct passwd pw_rec;
-   char *buf = (char *)malloc(pwsize * sizeof(char));
+   char* buf = (char* )malloc(pwsize * sizeof(char));
    ON_BLOCK_EXIT(free, buf);
    int rc = getpwuid_r(uid, &pw_rec, buf, pwsize, &pw);
    if (rc)
@@ -996,11 +996,11 @@ QoreHashNode *q_getpwuid(uid_t uid) {
    return !pw ? 0 : pwd2hash(*pw);
 }
 
-QoreHashNode *q_getpwnam(const char *name) {
+QoreHashNode* q_getpwnam(const char* name) {
    struct passwd *pw;
 #ifdef HAVE_GETPWNAM_R
    struct passwd pw_rec;
-   char *buf = (char *)malloc(pwsize * sizeof(char));
+   char* buf = (char* )malloc(pwsize * sizeof(char));
    ON_BLOCK_EXIT(free, buf);
    int rc = getpwnam_r(name, &pw_rec, buf, pwsize, &pw);
    if (rc)
@@ -1012,11 +1012,11 @@ QoreHashNode *q_getpwnam(const char *name) {
    return !pw ? 0 : pwd2hash(*pw);
 }
 
-int q_uname2uid(const char *name, uid_t &uid) {
+int q_uname2uid(const char* name, uid_t &uid) {
    struct passwd *pw;
 #ifdef HAVE_GETPWNAM_R
    struct passwd pw_rec;
-   char *buf = (char *)malloc(pwsize * sizeof(char));
+   char* buf = (char* )malloc(pwsize * sizeof(char));
    ON_BLOCK_EXIT(free, buf);
    int rc = getpwnam_r(name, &pw_rec, buf, pwsize, &pw);
    if (!rc)
@@ -1032,26 +1032,26 @@ int q_uname2uid(const char *name, uid_t &uid) {
 #endif
 }
 
-static QoreHashNode *gr2hash(struct group &gr) {
-   QoreHashNode *h = new QoreHashNode;
+static QoreHashNode* gr2hash(struct group &gr) {
+   QoreHashNode* h = new QoreHashNode;
    // assign values
    assign_hv(h, "gr_name", gr.gr_name);
    assign_hv(h, "gr_passwd", gr.gr_passwd);
    assign_hv(h, "gr_gid", gr.gr_gid);
 
-   QoreListNode *l = new QoreListNode;
-   for (char **p = gr.gr_mem; *p; ++p)
+   QoreListNode* l = new QoreListNode;
+   for (char* *p = gr.gr_mem; *p; ++p)
       l->push(new QoreStringNode(*p));
 
    h->setKeyValue("gr_mem", l, 0);
    return h;
 }
 
-QoreHashNode *q_getgrgid(gid_t gid) {
+QoreHashNode* q_getgrgid(gid_t gid) {
    struct group *gr;
 #ifdef HAVE_GETGRGID_R
    struct group gr_rec;
-   char *buf = (char *)malloc(grsize * sizeof(char));
+   char* buf = (char* )malloc(grsize * sizeof(char));
    ON_BLOCK_EXIT(free, buf);
    int rc = getgrgid_r(gid, &gr_rec, buf, grsize, &gr);
    if (rc)
@@ -1063,11 +1063,11 @@ QoreHashNode *q_getgrgid(gid_t gid) {
    return !gr ? 0 : gr2hash(*gr);
 }
 
-QoreHashNode *q_getgrnam(const char *name) {
+QoreHashNode* q_getgrnam(const char* name) {
    struct group *gr;
 #ifdef HAVE_GETGRNAM_R
    struct group gr_rec;
-   char *buf = (char *)malloc(grsize * sizeof(char));
+   char* buf = (char* )malloc(grsize * sizeof(char));
    ON_BLOCK_EXIT(free, buf);
    int rc = getgrnam_r(name, &gr_rec, buf, grsize, &gr);
    if (rc)
@@ -1079,11 +1079,11 @@ QoreHashNode *q_getgrnam(const char *name) {
    return !gr ? 0 : gr2hash(*gr);
 }
 
-int q_gname2gid(const char *name, gid_t &gid) {
+int q_gname2gid(const char* name, gid_t &gid) {
    struct group *gr;
 #ifdef HAVE_GETGRNAM_R
    struct group gr_rec;
-   char *buf = (char *)malloc(grsize * sizeof(char));
+   char* buf = (char* )malloc(grsize * sizeof(char));
    ON_BLOCK_EXIT(free, buf);
    int rc = getgrnam_r(name, &gr_rec, buf, grsize, &gr);
    if (!rc)
@@ -1104,7 +1104,7 @@ qore_license_t qore_get_license() {
    return qore_license;
 }
 
-long long q_atoll(const char *str) {
+long long q_atoll(const char* str) {
    return atoll(str);
 }
 
@@ -1170,13 +1170,13 @@ int64 q_epoch_ns(int &ns) {
    return ts.tv_sec;
 }
 
-QoreListNode *makeArgs(AbstractQoreNode *arg) {
+QoreListNode* makeArgs(AbstractQoreNode* arg) {
    if (!arg)
       return 0;
 
-   QoreListNode *l;
+   QoreListNode* l;
    if (arg->getType() == NT_LIST) {
-      l = reinterpret_cast<QoreListNode *>(arg);
+      l = reinterpret_cast<QoreListNode* >(arg);
       if (!l->isFinalized())
          return l;
    }
@@ -1186,8 +1186,8 @@ QoreListNode *makeArgs(AbstractQoreNode *arg) {
    return l;
 }
 
-const char *check_hash_key(const QoreHashNode *h, const char *key, const char *err, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = h->getKeyValue(key);
+const char* check_hash_key(const QoreHashNode* h, const char* key, const char* err, ExceptionSink *xsink) {
+   const AbstractQoreNode* p = h->getKeyValue(key);
    if (is_nothing(p))
       return 0;
    
@@ -1195,7 +1195,7 @@ const char *check_hash_key(const QoreHashNode *h, const char *key, const char *e
       xsink->raiseException(err, "'%s' key is not type 'string' but is type '%s'", key, get_type_name(p));
       return 0;
    }
-   return reinterpret_cast<const QoreStringNode *>(p)->getBuffer();
+   return reinterpret_cast<const QoreStringNode* >(p)->getBuffer();
 }
 
 void q_strerror(QoreString &str, int err) {
@@ -1210,10 +1210,10 @@ void q_strerror(QoreString &str, int err) {
 #if defined(_GNU_SOURCE) && defined(LINUX)
    // we can't help but get this version because some of the Linux
    // header files define _GNU_SOURCE for us :-(
-   str.concat(strerror_r(err, (char *)(str.getBuffer() + str.strlen()), STRERR_BUFSIZE));
+   str.concat(strerror_r(err, (char* )(str.getBuffer() + str.strlen()), STRERR_BUFSIZE));
 #else
    // use portable XSI version of strerror_r()
-   int rc = strerror_r(err, (char *)(str.getBuffer() + str.strlen()), STRERR_BUFSIZE);
+   int rc = strerror_r(err, (char* )(str.getBuffer() + str.strlen()), STRERR_BUFSIZE);
    if (rc && rc != EINVAL && rc != ERANGE)
       str.sprintf("unable to retrieve error code %d: strerror() returned unexpected error code %d", err, rc);
    else
@@ -1229,20 +1229,20 @@ void q_strerror(QoreString &str, int err) {
 #endif
 }
 
-QoreStringNode *q_strerror(int err) {
-   QoreStringNode *rv = new QoreStringNode;
+QoreStringNode* q_strerror(int err) {
+   QoreStringNode* rv = new QoreStringNode;
    q_strerror(*rv, err);
    return rv;
 }
 
 #ifdef HAVE_SIGNAL_HANDLING
-QoreStringNode *qore_reassign_signal(int sig, const char *name) {
+QoreStringNode* qore_reassign_signal(int sig, const char* name) {
    return QSM.reassign_signal(sig, name);
 }
 #endif
 
 /*
-static int qoreCheckHash(QoreHashNode *h, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
+static int qoreCheckHash(QoreHashNode* h, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
    int rc = 0;
 
    HashIterator hi(h);
@@ -1253,7 +1253,7 @@ static int qoreCheckHash(QoreHashNode *h, ObjMap &omap, AutoVLock &vl, Exception
    return rc;
 }
 
-static int qoreCheckList(QoreListNode *l, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
+static int qoreCheckList(QoreListNode* l, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
    int rc = 0;
 
    ListIterator li(l);
@@ -1264,7 +1264,7 @@ static int qoreCheckList(QoreListNode *l, ObjMap &omap, AutoVLock &vl, Exception
    return rc;
 }
 
-int qoreCheckContainer(AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
+int qoreCheckContainer(AbstractQoreNode* v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
    printd(0, "qoreCheckContainer() v=%p (%s) omap size=%d\n", v, get_type_name(v), omap.size());
    if (!v || omap.empty())
       return 0;
@@ -1279,21 +1279,21 @@ int qoreCheckContainer(AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, Excepti
    }
 
    if (t == NT_HASH)
-      return qoreCheckHash(reinterpret_cast<QoreHashNode *>(v), omap, vl, xsink);
+      return qoreCheckHash(reinterpret_cast<QoreHashNode* >(v), omap, vl, xsink);
 
    if (t == NT_LIST)
-      return qoreCheckList(reinterpret_cast<QoreListNode *>(v), omap, vl, xsink);
+      return qoreCheckList(reinterpret_cast<QoreListNode* >(v), omap, vl, xsink);
 
    return 0;
 }
 
-void ObjMap::set(QoreObject *obj, const char *key) {
+void ObjMap::set(QoreObject *obj, const char* key) {
    assert(omap.find(obj) == omap.end());
    obj_map_t::iterator i = omap.insert(obj_map_t::value_type(obj, key)).first;
    ovec.push_back(i);
 }
 
-void ObjMap::reset(QoreObject *obj, const char *key) {
+void ObjMap::reset(QoreObject *obj, const char* key) {
    obj_map_t::iterator i = omap.find(obj);
    if (i == omap.end()) {
       set(obj, key);
@@ -1352,14 +1352,14 @@ int ObjMap::check(QoreObject *obj) {
 */
 
 // returns 0 for OK, -1 for error
-int check_lvalue(const AbstractQoreNode *node) {
+int check_lvalue(const AbstractQoreNode* node) {
    qore_type_t ntype = node->getType();
    //printd(5, "type=%s\n", node->getTypeName());
    if (ntype == NT_VARREF || ntype == NT_SELF_VARREF || ntype == NT_CLASS_VARREF)
       return 0;
 
    if (ntype == NT_TREE) {
-      const QoreTreeNode *t = reinterpret_cast<const QoreTreeNode *>(node);
+      const QoreTreeNode* t = reinterpret_cast<const QoreTreeNode* >(node);
       if (t->getOp() == OP_LIST_REF || t->getOp() == OP_OBJECT_REF)
 	 return check_lvalue(t->left);
       else
@@ -1381,8 +1381,8 @@ static void stat_get_blocks(const struct stat &sbuf, int64& blksize, int64& bloc
 #endif
 }
 
-QoreListNode *stat_to_list(const struct stat &sbuf) {
-   QoreListNode *l = new QoreListNode;
+QoreListNode* stat_to_list(const struct stat &sbuf) {
+   QoreListNode* l = new QoreListNode;
 
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
    l->push(new QoreBigIntNode((int64)sbuf.st_dev));
@@ -1407,8 +1407,8 @@ QoreListNode *stat_to_list(const struct stat &sbuf) {
    return l;
 }
 
-QoreHashNode *stat_to_hash(const struct stat &sbuf) {
-   QoreHashNode *h = new QoreHashNode;
+QoreHashNode* stat_to_hash(const struct stat &sbuf) {
+   QoreHashNode* h = new QoreHashNode;
 
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
    h->setKeyValue("dev",     new QoreBigIntNode((int64)sbuf.st_dev), 0);
@@ -1431,9 +1431,9 @@ QoreHashNode *stat_to_hash(const struct stat &sbuf) {
    h->setKeyValue("blocks",  new QoreBigIntNode(blocks), 0);
 
    // process permissions
-   QoreStringNode *perm = new QoreStringNode;
+   QoreStringNode* perm = new QoreStringNode;
 
-   const char *type;
+   const char* type;
    if (S_ISBLK(sbuf.st_mode)) {
       type = "BLOCK-DEVICE";
       perm->concat('b');
@@ -1523,8 +1523,8 @@ QoreHashNode *stat_to_hash(const struct stat &sbuf) {
 }
 
 #ifdef HAVE_SYS_STATVFS_H
-QoreHashNode *statvfs_to_hash(const struct statvfs &vfs) {
-   QoreHashNode *h = new QoreHashNode;
+QoreHashNode* statvfs_to_hash(const struct statvfs &vfs) {
+   QoreHashNode* h = new QoreHashNode;
 
 #ifdef DARWIN
 #else
