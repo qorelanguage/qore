@@ -41,6 +41,8 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::evalImpl(ExceptionSink *xsink) con
       return 0;
 
    if (v) {
+      if (v->getType() == NT_NUMBER)
+         return reinterpret_cast<const QoreNumberNode*>(*v)->negate();
       if (v->getType() == NT_FLOAT)
 	 return new QoreFloatNode(-reinterpret_cast<const QoreFloatNode *>(*v)->f);
       if (v->getType() == NT_DATE)
@@ -89,6 +91,10 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int
 	    typeInfo = bigIntTypeInfo;
 	    return new QoreBigIntNode(-reinterpret_cast<const QoreBigIntNode *>(exp)->val);
 	 }
+         if (t == NT_NUMBER) {
+            typeInfo = numberTypeInfo;
+            return reinterpret_cast<const QoreNumberNode*>(exp)->negate();
+         }
 	 if (t == NT_FLOAT) {
 	    typeInfo = floatTypeInfo;
 	    return new QoreFloatNode(-reinterpret_cast<const QoreFloatNode *>(exp)->f);
@@ -104,6 +110,8 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int
       if (typeInfo->hasType()) {
 	 if (typeInfo->isType(NT_FLOAT))
 	    typeInfo = floatTypeInfo;
+	 else if (typeInfo->isType(NT_NUMBER))
+            typeInfo = numberTypeInfo;
 	 else if (typeInfo->isType(NT_DATE))
 	    typeInfo = dateTypeInfo;
 	 else if (typeInfo->isType(NT_INT))

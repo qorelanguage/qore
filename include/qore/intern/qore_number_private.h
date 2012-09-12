@@ -224,8 +224,14 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL qore_number_private* negate() const {
-      qore_number_private* p = new qore_number_private(mpfr_get_prec(num));
-      mpfr_neg(p->num, num, QORE_MPFR_RND);
+      qore_number_private* p = new qore_number_private(*this);
+      mpfr_neg(p->num, p->num, QORE_MPFR_RND);
+      return p;
+   }
+
+   DLLLOCAL qore_number_private* absolute() const {
+      qore_number_private* p = new qore_number_private(*this);
+      mpfr_abs(p->num, p->num, QORE_MPFR_RND);
       return p;
    }
 
