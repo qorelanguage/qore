@@ -23,10 +23,11 @@
 #include <qore/Qore.h>
 #include <qore/QoreRWLock.h>
 #include <qore/intern/QoreNamespaceIntern.h>
+#include <qore/intern/qore_number_private.h>
 
 // provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
 static BigIntTypeInfo staticBigIntTypeInfo;
-const QoreTypeInfo *bigIntTypeInfo = &staticBigIntTypeInfo;
+const QoreTypeInfo* bigIntTypeInfo = &staticBigIntTypeInfo;
 
 // static reference types
 static QoreTypeInfo staticAnyTypeInfo,
@@ -45,7 +46,7 @@ static QoreTypeInfo staticAnyTypeInfo,
    ;
 
 // const pointers to static reference types
-const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
+const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *stringTypeInfo = &staticStringTypeInfo,
    *boolTypeInfo = &staticBoolTypeInfo,
    *binaryTypeInfo = &staticBinaryTypeInfo,
@@ -73,81 +74,81 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
 
 // provides for run-time assignment capability from any type
 static UserReferenceTypeInfo staticUserReferenceTypeInfo;
-const QoreTypeInfo *userReferenceTypeInfo = &staticUserReferenceTypeInfo;
+const QoreTypeInfo* userReferenceTypeInfo = &staticUserReferenceTypeInfo;
 
 // provides limited compatibility with integers
 static FloatTypeInfo staticFloatTypeInfo;
 static FloatOrNothingTypeInfo staticFloatOrNothingTypeInfo;
-const QoreTypeInfo *floatTypeInfo = &staticFloatTypeInfo,
+const QoreTypeInfo* floatTypeInfo = &staticFloatTypeInfo,
    *floatOrNothingTypeInfo = &staticFloatOrNothingTypeInfo;
 
 // xxx
 static NumberTypeInfo staticNumberTypeInfo;
 static NumberOrNothingTypeInfo staticNumberOrNothingTypeInfo;
-const QoreTypeInfo *numberTypeInfo = &staticNumberTypeInfo,
+const QoreTypeInfo* numberTypeInfo = &staticNumberTypeInfo,
    *numberOrNothingTypeInfo = &staticNumberOrNothingTypeInfo;
 
 // provides equal compatibility with closures and all types of code references
 static CodeTypeInfo staticCodeTypeInfo;
 static CodeOrNothingTypeInfo staticCodeOrNothingTypeInfo;
-const QoreTypeInfo *codeTypeInfo = &staticCodeTypeInfo,
+const QoreTypeInfo* codeTypeInfo = &staticCodeTypeInfo,
    *codeOrNothingTypeInfo = &staticCodeOrNothingTypeInfo;
 
 // either string or binary
 static DataTypeInfo staticDataTypeInfo;
 static DataOrNothingTypeInfo staticDataOrNothingTypeInfo;
-const QoreTypeInfo *dataTypeInfo = &staticDataTypeInfo,
+const QoreTypeInfo* dataTypeInfo = &staticDataTypeInfo,
    *dataOrNothingTypeInfo = &staticDataOrNothingTypeInfo;
 
 // provides int compatibility with and conversions from float, string, date, and bool
 static SoftBigIntTypeInfo staticSoftBigIntTypeInfo;
 static SoftBigIntOrNothingTypeInfo staticBigIntOrNothingTypeInfo;
-const QoreTypeInfo *softBigIntTypeInfo = &staticSoftBigIntTypeInfo,
+const QoreTypeInfo* softBigIntTypeInfo = &staticSoftBigIntTypeInfo,
    *softBigIntOrNothingTypeInfo = &staticBigIntOrNothingTypeInfo;
 
 // provides float compatibility with and conversions from int, string, date, and bool
 static SoftFloatTypeInfo staticSoftFloatTypeInfo;
 static SoftFloatOrNothingTypeInfo staticSoftFloatOrNothingTypeInfo;
-const QoreTypeInfo *softFloatTypeInfo = &staticSoftFloatTypeInfo,
+const QoreTypeInfo* softFloatTypeInfo = &staticSoftFloatTypeInfo,
    *softFloatOrNothingTypeInfo = &staticSoftFloatOrNothingTypeInfo;
 
 // xxx
 static SoftNumberTypeInfo staticSoftNumberTypeInfo;
 static SoftNumberOrNothingTypeInfo staticSoftNumberOrNothingTypeInfo;
-const QoreTypeInfo *softNumberTypeInfo = &staticSoftNumberTypeInfo,
+const QoreTypeInfo* softNumberTypeInfo = &staticSoftNumberTypeInfo,
    *softNumberOrNothingTypeInfo = &staticSoftNumberOrNothingTypeInfo;
 
 // provides bool compatibility with and conversions from float, string, date, and int
 static SoftBoolTypeInfo staticSoftBoolTypeInfo;
 static SoftBoolOrNothingTypeInfo staticSoftBoolOrNothingTypeInfo;
-const QoreTypeInfo *softBoolTypeInfo = &staticSoftBoolTypeInfo,
+const QoreTypeInfo* softBoolTypeInfo = &staticSoftBoolTypeInfo,
    *softBoolOrNothingTypeInfo = &staticSoftBoolOrNothingTypeInfo;
 
 // provides string compatibility with and conversions from float, int, date, and bool
 static SoftStringTypeInfo staticSoftStringTypeInfo;
 static SoftStringOrNothingTypeInfo staticSoftStringOrNothingTypeInfo;
-const QoreTypeInfo *softStringTypeInfo = &staticSoftStringTypeInfo,
+const QoreTypeInfo* softStringTypeInfo = &staticSoftStringTypeInfo,
    *softStringOrNothingTypeInfo = &staticSoftStringOrNothingTypeInfo;
 
 static SoftDateTypeInfo staticSoftDateTypeInfo;
 static SoftDateOrNothingTypeInfo staticSoftDateOrNothingTypeInfo;
-const QoreTypeInfo *softDateTypeInfo = &staticSoftDateTypeInfo,
+const QoreTypeInfo* softDateTypeInfo = &staticSoftDateTypeInfo,
    *softDateOrNothingTypeInfo = &staticSoftDateOrNothingTypeInfo;
 
 // provides automatic conversion to a list
 static SoftListTypeInfo staticSoftListTypeInfo;
 static SoftListOrNothingTypeInfo staticListOrNothingTypeInfo;
-const QoreTypeInfo *softListTypeInfo = &staticSoftListTypeInfo,
+const QoreTypeInfo* softListTypeInfo = &staticSoftListTypeInfo,
    *softListOrNothingTypeInfo = &staticListOrNothingTypeInfo;
 
 // somethingTypeInfo means "not NOTHING"
 static SomethingTypeInfo staticSomethingTypeInfo;
-const QoreTypeInfo *somethingTypeInfo = &staticSomethingTypeInfo;
+const QoreTypeInfo* somethingTypeInfo = &staticSomethingTypeInfo;
 
 // timeout type info accepts int or date and returns an int giving milliseconds
 static TimeoutTypeInfo staticTimeoutTypeInfo;
 static TimeoutOrNothingTypeInfo staticTimeoutOrNothingTypeInfo;
-const QoreTypeInfo *timeoutTypeInfo = &staticTimeoutTypeInfo,
+const QoreTypeInfo* timeoutTypeInfo = &staticTimeoutTypeInfo,
    *timeoutOrNothingTypeInfo = &staticTimeoutOrNothingTypeInfo;
 
 static IntOrFloatTypeInfo staticIntOrFloatTypeInfo;
@@ -159,24 +160,25 @@ const QoreTypeInfo* bigIntFloatOrNumberTypeInfo = &staticIntFloatOrNumberTypeInf
 static FloatOrNumberTypeInfo staticFloatOrNumberTypeInfo;
 const QoreTypeInfo* floatOrNumberTypeInfo = &staticFloatOrNumberTypeInfo;
 
-QoreListNode *emptyList;
-QoreHashNode *emptyHash;
-QoreStringNode *NullString;
-DateTimeNode *ZeroDate;
-QoreBigIntNode *Zero;
-QoreFloatNode *ZeroFloat;
+QoreListNode* emptyList;
+QoreHashNode* emptyHash;
+QoreStringNode* NullString;
+DateTimeNode* ZeroDate;
+QoreBigIntNode* Zero;
+QoreFloatNode* ZeroFloat;
+QoreNumberNode* ZeroNumber, * NaNumber, * InfinityNumber;
 
 // map from types to default values
-typedef std::map<qore_type_t, AbstractQoreNode *> def_val_map_t;
+typedef std::map<qore_type_t, AbstractQoreNode* > def_val_map_t;
 static def_val_map_t def_val_map;
 
 // map from names used when parsing to types
-typedef std::map<const char *, const QoreTypeInfo *, ltstr> str_typeinfo_map_t;
+typedef std::map<const char* , const QoreTypeInfo* , ltstr> str_typeinfo_map_t;
 static str_typeinfo_map_t str_typeinfo_map;
 static str_typeinfo_map_t str_ornothingtypeinfo_map;
 
 // map from types to type info
-typedef std::map<qore_type_t, const QoreTypeInfo *> type_typeinfo_map_t;
+typedef std::map<qore_type_t, const QoreTypeInfo* > type_typeinfo_map_t;
 static type_typeinfo_map_t type_typeinfo_map;
 static type_typeinfo_map_t type_ornothingtypeinfo_map;
 
@@ -184,13 +186,13 @@ static type_typeinfo_map_t type_ornothingtypeinfo_map;
 static type_typeinfo_map_t extern_type_info_map;
 
 // map from types to names
-typedef std::map<qore_type_t, const char *> type_str_map_t;
+typedef std::map<qore_type_t, const char* > type_str_map_t;
 static type_str_map_t type_str_map;
 
 // rwlock for global type map
 static QoreRWLock extern_type_info_map_lock;
 
-static void do_maps(qore_type_t t, const char *name, const QoreTypeInfo *typeInfo, const QoreTypeInfo *orNothingTypeInfo = 0) {
+static void do_maps(qore_type_t t, const char* name, const QoreTypeInfo* typeInfo, const QoreTypeInfo* orNothingTypeInfo = 0) {
    str_typeinfo_map[name]          = typeInfo;
    str_ornothingtypeinfo_map[name] = orNothingTypeInfo;
    type_typeinfo_map[t]            = typeInfo;
@@ -201,19 +203,23 @@ static void do_maps(qore_type_t t, const char *name, const QoreTypeInfo *typeInf
 // at least the NullString must be created after the default character encoding is set
 void init_qore_types() {
    // initialize global default values
-   NullString    = new QoreStringNode;
-   ZeroDate      = DateTimeNode::makeAbsolute(0, 0, 0);
-   Zero          = new QoreBigIntNode;
-   ZeroFloat     = new QoreFloatNode;
+   NullString     = new QoreStringNode;
+   ZeroDate       = DateTimeNode::makeAbsolute(0, 0, 0);
+   Zero           = new QoreBigIntNode;
+   ZeroFloat      = new QoreFloatNode;
+   ZeroNumber     = new QoreNumberNode;
+   NaNumber       = qore_number_private::getNaNumber();
+   InfinityNumber = qore_number_private::getInfinity();
 
-   emptyList     = new QoreListNode;
-   emptyHash     = new QoreHashNode;
+   emptyList      = new QoreListNode;
+   emptyHash      = new QoreHashNode;
 
    def_val_map[NT_INT]     = Zero->refSelf();
    def_val_map[NT_STRING]  = NullString->refSelf();
    def_val_map[NT_BOOLEAN] = &False;
    def_val_map[NT_DATE]    = ZeroDate->refSelf();
    def_val_map[NT_FLOAT]   = ZeroFloat->refSelf();
+   def_val_map[NT_NUMBER]  = ZeroNumber->refSelf();
    def_val_map[NT_LIST]    = emptyList->refSelf();
    def_val_map[NT_HASH]    = emptyHash->refSelf();
    def_val_map[NT_BINARY]  = new BinaryNode;
@@ -271,6 +277,9 @@ void delete_qore_types() {
 
    // dereference global default values
    NullString->deref();
+   InfinityNumber->deref();
+   NaNumber->deref();
+   ZeroNumber->deref();
    ZeroFloat->deref();
    Zero->deref();
    ZeroDate->deref();
@@ -289,31 +298,31 @@ void delete_qore_types() {
    delete nullOrNothingTypeInfo;
 }
 
-void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo) {
+void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo) {
    QoreAutoRWWriteLocker al(extern_type_info_map_lock);
    assert(extern_type_info_map.find(t) == extern_type_info_map.end());
    extern_type_info_map[t] = typeInfo;
 }
 
-static const QoreTypeInfo *getExternalTypeInfoForType(qore_type_t t) {
+static const QoreTypeInfo* getExternalTypeInfoForType(qore_type_t t) {
    QoreAutoRWReadLocker al(extern_type_info_map_lock);
    type_typeinfo_map_t::iterator i = extern_type_info_map.find(t);
    return (i == extern_type_info_map.end() ? 0 : i->second);
 }
 
-const QoreTypeInfo *getTypeInfoForType(qore_type_t t) {
+const QoreTypeInfo* getTypeInfoForType(qore_type_t t) {
    type_typeinfo_map_t::iterator i = type_typeinfo_map.find(t);
    return i != type_typeinfo_map.end() ? i->second : getExternalTypeInfoForType(t);
 }
 
-const QoreTypeInfo *getTypeInfoForValue(const AbstractQoreNode *n) {
+const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n) {
    qore_type_t t = n ? n->getType() : NT_NOTHING;
    if (t != NT_OBJECT)
       return getTypeInfoForType(t);
    return reinterpret_cast<const QoreObject *>(n)->getClass()->getTypeInfo();
 }
 
-AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t) {
+AbstractQoreNode* getDefaultValueForBuiltinValueType(qore_type_t t) {
    def_val_map_t::iterator i = def_val_map.find(t);
    assert(i != def_val_map.end());
    return i->second->refSelf();
@@ -323,7 +332,7 @@ bool builtinTypeHasDefaultValue(qore_type_t t) {
    return def_val_map.find(t) != def_val_map.end();
 }
 
-const QoreTypeInfo *getBuiltinUserTypeInfo(const char *str) {
+const QoreTypeInfo* getBuiltinUserTypeInfo(const char* str) {
    // user exceptions here
    if (!strcmp(str, "reference"))
       return userReferenceTypeInfo;
@@ -332,7 +341,7 @@ const QoreTypeInfo *getBuiltinUserTypeInfo(const char *str) {
    return i != str_typeinfo_map.end() ? i->second : 0;
 }
 
-const QoreTypeInfo *getBuiltinUserOrNothingTypeInfo(const char *str) {
+const QoreTypeInfo* getBuiltinUserOrNothingTypeInfo(const char* str) {
    // user exceptions here
    if (!strcmp(str, "reference"))
       return anyTypeInfo;
@@ -341,12 +350,12 @@ const QoreTypeInfo *getBuiltinUserOrNothingTypeInfo(const char *str) {
    return i != str_ornothingtypeinfo_map.end() ? i->second : 0;
 }
 
-const char *getBuiltinTypeName(qore_type_t type) {
+const char* getBuiltinTypeName(qore_type_t type) {
    type_str_map_t::iterator i = type_str_map.find(type);
    if (i != type_str_map.end())
       return i->second;
 
-   const QoreTypeInfo *typeInfo = getExternalTypeInfoForType(type);
+   const QoreTypeInfo* typeInfo = getExternalTypeInfoForType(type);
    if (typeInfo)
       return typeInfo->getName();
 
@@ -367,14 +376,14 @@ const char *getBuiltinTypeName(qore_type_t type) {
    return "<unknown type>";
 }
 
-int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode *n) const {
+int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode* n) const {
    qore_type_t nt = get_node_type(n);
 
    if (reverse_logic)
       return qt == nt ? -1 : 0;
 
    if (qt != nt)
-      return is_int && nt > QORE_NUM_TYPES && dynamic_cast<QoreBigIntNode *>(n) ? 0 : -1;
+      return is_int && nt > QORE_NUM_TYPES && dynamic_cast<QoreBigIntNode* >(n) ? 0 : -1;
 
    if (qt != NT_OBJECT || !qc)
       return 0;
@@ -416,7 +425,7 @@ int QoreTypeInfo::acceptInputDefault(bool& priv_error, AbstractQoreNode* n) cons
    return runtimeAcceptInputIntern(priv_error, n);
 }
 
-bool QoreTypeInfo::isInputIdentical(const QoreTypeInfo *typeInfo) const {
+bool QoreTypeInfo::isInputIdentical(const QoreTypeInfo* typeInfo) const {
    bool thisnt = (!hasType());
    bool typent = (!typeInfo->hasType());
 
@@ -463,7 +472,7 @@ bool QoreTypeInfo::isInputIdentical(const QoreTypeInfo *typeInfo) const {
    return true;
 }
 
-bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo *typeInfo) const {
+bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo* typeInfo) const {
    bool thisnt = (!hasType());
    bool typent = (!typeInfo->hasType());
 
@@ -543,28 +552,28 @@ qore_type_result_e QoreTypeInfo::runtimeMatchClassIntern(const QoreClass *n_qc) 
    return rc;
 }
 
-void QoreTypeInfo::doNonNumericWarning(const char *preface) const {
-   QoreStringNode *desc = new QoreStringNode(preface);
+void QoreTypeInfo::doNonNumericWarning(const char* preface) const {
+   QoreStringNode* desc = new QoreStringNode(preface);
    getThisType(*desc);
    desc->sprintf(", which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime");
    qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::doNonBooleanWarning(const char *preface) const {
-   QoreStringNode *desc = new QoreStringNode(preface);
+void QoreTypeInfo::doNonBooleanWarning(const char* preface) const {
+   QoreStringNode* desc = new QoreStringNode(preface);
    getThisType(*desc);
    desc->sprintf(", which does not evaluate to a numeric or boolean type, therefore will always evaluate to False at runtime");
    qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::doNonStringWarning(const char *preface) const {
-   QoreStringNode *desc = new QoreStringNode(preface);
+void QoreTypeInfo::doNonStringWarning(const char* preface) const {
+   QoreStringNode* desc = new QoreStringNode(preface);
    getThisType(*desc);
    desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
    qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
+const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
    if (!this)
       return 0;
 
@@ -575,7 +584,7 @@ const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocatio
    delete this;
 
    if (qc && my_or_nothing) {
-      const QoreTypeInfo *rv = qc->getOrNothingTypeInfo();
+      const QoreTypeInfo* rv = qc->getOrNothingTypeInfo();
       if (!rv) {
 	 parse_error(loc, "class %s cannot be typed with '*' as the class' type handler has an input filter and the filter does not accept NOTHING", qc->getName());
 	 return objectOrNothingTypeInfo;
@@ -587,7 +596,7 @@ const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocatio
    return qc ? qc->getTypeInfo() : objectTypeInfo;
 }
 /*
-AbstractVirtualMethod::AbstractVirtualMethod(const char *n_name, bool n_requires_lvalue, const QoreTypeInfo *n_return_type, ...) 
+AbstractVirtualMethod::AbstractVirtualMethod(const char* n_name, bool n_requires_lvalue, const QoreTypeInfo* n_return_type, ...)
    : name(n_name), requires_value(n_requires_lvalue), return_type(n_return_type) {
    va_list args;
    va_start(args, n_return_type);

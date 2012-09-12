@@ -23,6 +23,6 @@
 #include <qore/Qore.h>
 
 //! This class defines an abstract interface for bidirectional iterators where the size of the object is known in advance
-/** This class does not define any new methods but rather just combines two abstract interfaces into a one.
+/** This class does not define any new methods but rather just combines two abstract interfaces into one.
  */
 qclass AbstractQuantifiedBidirectionalIterator [arg=AbstractQuantifiedBidirectionalIterator* i; ns=Qore; vparent=AbstractBidirectionalIterator,AbstractQuantifiedIterator];

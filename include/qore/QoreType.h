@@ -31,18 +31,19 @@
 #include <map>
 
 // global default values
-DLLEXPORT extern QoreListNode *emptyList;
-DLLEXPORT extern QoreHashNode *emptyHash;
-DLLEXPORT extern QoreStringNode *NullString;
-DLLEXPORT extern DateTimeNode *ZeroDate;
-DLLEXPORT extern QoreBigIntNode *Zero;
-DLLEXPORT extern QoreFloatNode *ZeroFloat;
+DLLEXPORT extern QoreListNode* emptyList;
+DLLEXPORT extern QoreHashNode* emptyHash;
+DLLEXPORT extern QoreStringNode* NullString;
+DLLEXPORT extern DateTimeNode* ZeroDate;
+DLLEXPORT extern QoreBigIntNode* Zero;
+DLLEXPORT extern QoreFloatNode* ZeroFloat;
+DLLEXPORT extern QoreNumberNode* ZeroNumber, * InfinityNumber, * NaNumber;
 
 DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString, 
    FalseString, EmptyHashString, EmptyListString;
 
 class QoreTypeInfo;
-DLLEXPORT extern const QoreTypeInfo *anyTypeInfo, 
+DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *bigIntTypeInfo, 
    *floatTypeInfo, 
    *boolTypeInfo, 
@@ -97,43 +98,43 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
 
 DLLEXPORT qore_type_t get_next_type_id();
 
-DLLEXPORT bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink);
-DLLEXPORT bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink);
+DLLEXPORT bool compareHard(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink* xsink);
+DLLEXPORT bool compareSoft(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink* xsink);
 
-static inline AbstractQoreNode *boolean_false() {
+static inline AbstractQoreNode* boolean_false() {
    return &False;
 }
 
-static inline AbstractQoreNode *boolean_true() {
+static inline AbstractQoreNode* boolean_true() {
    return &True;
 }
 
-static inline QoreBigIntNode *zero() {
+static inline QoreBigIntNode* zero() {
    Zero->ref();
    return Zero;
 }
 
-static inline QoreFloatNode *zero_float() {
+static inline QoreFloatNode* zero_float() {
    ZeroFloat->ref();
    return ZeroFloat;
 }
 
-static inline DateTimeNode *zero_date() {
+static inline DateTimeNode* zero_date() {
    ZeroDate->ref();
    return ZeroDate;
 }
 
-static inline class QoreStringNode *null_string() {
+static inline class QoreStringNode* null_string() {
    NullString->ref();
    return NullString;
 }
 
-static inline QoreListNode *empty_list() {
+static inline QoreListNode* empty_list() {
    emptyList->ref();
    return emptyList;
 }
 
-static inline QoreHashNode *empty_hash() {
+static inline QoreHashNode* empty_hash() {
    emptyHash->ref();
    return emptyHash;
 }
@@ -158,27 +159,27 @@ class QoreTypeInfoHelper {
    friend class ExternalTypeInfo;
 
 protected:
-   ExternalTypeInfo *typeInfo;
+   ExternalTypeInfo* typeInfo;
 
-   DLLLOCAL QoreTypeInfoHelper(ExternalTypeInfo *n_typeInfo) : typeInfo(n_typeInfo) {
+   DLLLOCAL QoreTypeInfoHelper(ExternalTypeInfo* n_typeInfo) : typeInfo(n_typeInfo) {
    }
 
    //! this function must be reimplemented if setInputFilter() is called
-   DLLEXPORT virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const;
+   DLLEXPORT virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const;
 
 public:
    //! allocates a QoreTypeInfo object with no type information
-   DLLEXPORT QoreTypeInfoHelper(const char *n_tname);
+   DLLEXPORT QoreTypeInfoHelper(const char* n_tname);
    //! allocates a QoreTypeInfo object of the requested type
-   DLLEXPORT QoreTypeInfoHelper(qore_type_t id, const char *n_tname);
+   DLLEXPORT QoreTypeInfoHelper(qore_type_t id, const char* n_tname);
    //! deallocates the managed QoreTypeInfo object
    DLLEXPORT virtual ~QoreTypeInfoHelper();
    //! returns a pointer to the object
-   DLLEXPORT const QoreTypeInfo *getTypeInfo() const;
+   DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
    //! assigns the typeid to the object
    DLLEXPORT void assign(qore_type_t id);
    //! add another type that the type accepts
-   DLLEXPORT void addAcceptsType(const QoreTypeInfo *n_typeInfo);
+   DLLEXPORT void addAcceptsType(const QoreTypeInfo* n_typeInfo);
    //! set a flag that means the type is equivalent to an integer
    DLLEXPORT void setInt();
    //! set a flag that means that if the return type is matched on input, it matches with QTI_AMBIGUOUS instead of QTI_IDENT
@@ -188,17 +189,17 @@ public:
    //! set a flag so that any NT_INT in an accept list will match any type with is_int set with QTI_AMBIGUOUS
    DLLEXPORT void setIntMatch();
 
-   DLLEXPORT int doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const;
+   DLLEXPORT int doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink* xsink) const;
 };
 
 //! note that the QoreClass object created by this class must be deleted externally
 class AbstractQoreClassTypeInfoHelper : public QoreTypeInfoHelper {
 protected:
-   QoreClass *qc;
+   QoreClass* qc;
 
 public:
    //! allocates a QoreTypeInfo object and creates the QoreClass
-   DLLEXPORT AbstractQoreClassTypeInfoHelper(const char *name, int n_domain = QDOM_DEFAULT);
+   DLLEXPORT AbstractQoreClassTypeInfoHelper(const char* name, int n_domain = QDOM_DEFAULT);
    //! delets the QoreClass object managed if it has not been retrieved
    DLLEXPORT ~AbstractQoreClassTypeInfoHelper();
    //! returns the QoreClass object created and zeros out the class ptr; can only be called once
@@ -209,10 +210,10 @@ public:
 
 DLLEXPORT int testObjectClassAccess(const QoreObject *obj, const QoreClass *classtoaccess);
 
-DLLEXPORT const QoreClass *typeInfoGetUniqueReturnClass(const QoreTypeInfo *typeInfo);
-DLLEXPORT bool typeInfoHasType(const QoreTypeInfo *typeInfo);
-DLLEXPORT const char *typeInfoGetName(const QoreTypeInfo *typeInfo);
-DLLEXPORT qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo);
-DLLEXPORT qore_type_result_e typeInfoReturnsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo);
+DLLEXPORT const QoreClass *typeInfoGetUniqueReturnClass(const QoreTypeInfo* typeInfo);
+DLLEXPORT bool typeInfoHasType(const QoreTypeInfo* typeInfo);
+DLLEXPORT const char* typeInfoGetName(const QoreTypeInfo* typeInfo);
+DLLEXPORT qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo);
+DLLEXPORT qore_type_result_e typeInfoReturnsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo);
 
 #endif // _QORE_QORETYPE_H

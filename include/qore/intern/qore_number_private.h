@@ -31,6 +31,13 @@
 #define QORE_MPFR_RND MPFR_RNDN
 // MPFR_RNDA
 
+// for binary operations on MPFR data
+typedef int (*q_mpfr_binary_func_t)(mpfr_t, const mpfr_t, const mpfr_t, mpfr_rnd_t);
+// for unary operations on MPFR data
+typedef int (*q_mpfr_unary_func_t)(mpfr_t, const mpfr_t, mpfr_rnd_t);
+// for unary operations on MPFR data without a rounding argument
+typedef int (*q_mpfr_unary_nr_func_t)(mpfr_t, const mpfr_t);
+
 struct qore_number_private_intern {
    mpfr_t num;
 
@@ -52,6 +59,17 @@ struct qore_number_private_intern {
       mpfr_prec_t p = mpfr_get_prec(r);
       if (p > mpfr_get_prec(num))
          mpfr_prec_round(num, p, QORE_MPFR_RND);
+   }
+
+   DLLLOCAL static void checkFlags(ExceptionSink* xsink) {
+      if (mpfr_divby0_p()) {
+         mpfr_clear_divby0();
+         xsink->raiseException("DIVISION-BY-ZERO", "division by zero error in numeric operatior");
+      }
+      if (mpfr_erangeflag_p()) {
+         mpfr_clear_erangeflag();
+         xsink->raiseException("INVALID-NUMERIC-OPERATION", "invalid numeric operation attempted");
+      }
    }
 };
 
@@ -188,48 +206,57 @@ struct qore_number_private : public qore_number_private_intern {
       return mpfr_cmp(num, r);
    }
 
-   template <int (*F)(mpfr_t, const mpfr_t, const mpfr_t, mpfr_rnd_t)>
-   DLLLOCAL qore_number_private* doCalcArg(const qore_number_private& r) const {
+   DLLLOCAL qore_number_private* doBinary(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) const {
       mpfr_prec_t prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num));
       qore_number_private* p = new qore_number_private(prec);
-      F(p->num, num, r.num, QORE_MPFR_RND);
+      func(p->num, num, r.num, QORE_MPFR_RND);
+      if (xsink)
+         checkFlags(xsink);
+
       return p;
    }
 
    DLLLOCAL qore_number_private* doPlus(const qore_number_private& r) const {
-      return doCalcArg<mpfr_add>(r);
+      return doBinary(mpfr_add, r);
    }
 
    DLLLOCAL qore_number_private* doMinus(const qore_number_private& r) const {
-      return doCalcArg<mpfr_sub>(r);
+      return doBinary(mpfr_sub, r);
    }
 
    DLLLOCAL qore_number_private* doMultiply(const qore_number_private& r) const {
-      return doCalcArg<mpfr_mul>(r);
+      return doBinary(mpfr_mul, r);
    }
 
    //! add the argument to this value and return the result
    DLLLOCAL qore_number_private* doDivideBy(const qore_number_private& r, ExceptionSink* xsink) const {
-      if (r.zero()) {
-         xsink->raiseException("DIVISION-BY-ZERO", "division by zero in numeric expression");
-         return 0;
-      }
-      return doCalcArg<mpfr_div>(r);
+      return doBinary(mpfr_div, r, xsink);
    }
 
-   template <int (*F)(mpfr_t, const mpfr_t, mpfr_rnd_t)>
-   DLLLOCAL qore_number_private* doCalcUnary() const {
+   DLLLOCAL qore_number_private* doUnary(q_mpfr_unary_func_t func, ExceptionSink* xsink = 0) const {
       qore_number_private* p = new qore_number_private(*this);
-      F(p->num, num, QORE_MPFR_RND);
+      func(p->num, num, QORE_MPFR_RND);
+      if (xsink)
+         checkFlags(xsink);
+
       return p;
    }
 
    DLLLOCAL qore_number_private* negate() const {
-      return doCalcUnary<mpfr_neg>();
+      return doUnary(mpfr_neg);
    }
 
    DLLLOCAL qore_number_private* absolute() const {
-      return doCalcUnary<mpfr_abs>();
+      return doUnary(mpfr_abs);
+   }
+
+   DLLLOCAL qore_number_private* doUnaryNR(q_mpfr_unary_nr_func_t func, ExceptionSink* xsink = 0) const {
+      qore_number_private* p = new qore_number_private(*this);
+      func(p->num, num);
+      if (xsink)
+         checkFlags(xsink);
+
+      return p;
    }
 
    DLLLOCAL void inc() {
@@ -244,54 +271,78 @@ struct qore_number_private : public qore_number_private_intern {
       mpfr_sub_si(num, tmp, 1, QORE_MPFR_RND);
    }
 
-   template <int (*F)(mpfr_t, const mpfr_t, const mpfr_t, mpfr_rnd_t)>
-   DLLLOCAL void doCalcArgInplace(const qore_number_private& r) {
+   DLLLOCAL void doBinaryInplace(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) {
       checkPrec(r.num);
       MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
       mpfr_set(tmp, num, QORE_MPFR_RND);
-      F(num, tmp, r.num, QORE_MPFR_RND);
+      func(num, tmp, r.num, QORE_MPFR_RND);
+      if (xsink)
+         checkFlags(xsink);
    }
 
    DLLLOCAL void plusEquals(const qore_number_private& r) {
-      doCalcArgInplace<mpfr_add>(r);
+      doBinaryInplace(mpfr_add, r);
    }
 
    DLLLOCAL void minusEquals(const qore_number_private& r) {
-      doCalcArgInplace<mpfr_sub>(r);
+      doBinaryInplace(mpfr_sub, r);
    }
 
    DLLLOCAL void multiplyEquals(const qore_number_private& r) {
-      doCalcArgInplace<mpfr_mul>(r);
+      doBinaryInplace(mpfr_mul, r);
    }
 
    DLLLOCAL void divideEquals(const qore_number_private& r) {
       assert(!r.zero());
-      doCalcArgInplace<mpfr_div>(r);
+      doBinaryInplace(mpfr_div, r);
    }
 
    // static accessor methods
-   static void inc(QoreNumberNode& n) {
+   DLLLOCAL static void inc(QoreNumberNode& n) {
       n.priv->inc();
    }
 
-   static void dec(QoreNumberNode& n) {
+   DLLLOCAL static void dec(QoreNumberNode& n) {
       n.priv->dec();
    }
 
-   static void plusEquals(QoreNumberNode& n, const QoreNumberNode& r) {
+   DLLLOCAL static void plusEquals(QoreNumberNode& n, const QoreNumberNode& r) {
       n.priv->plusEquals(*r.priv);
    }
 
-   static void minusEquals(QoreNumberNode& n, const QoreNumberNode& r) {
+   DLLLOCAL static void minusEquals(QoreNumberNode& n, const QoreNumberNode& r) {
       n.priv->minusEquals(*r.priv);
    }
 
-   static void multiplyEquals(QoreNumberNode& n, const QoreNumberNode& r) {
+   DLLLOCAL static void multiplyEquals(QoreNumberNode& n, const QoreNumberNode& r) {
       n.priv->multiplyEquals(*r.priv);
    }
 
-   static void divideEquals(QoreNumberNode& n, const QoreNumberNode& r) {
+   DLLLOCAL static void divideEquals(QoreNumberNode& n, const QoreNumberNode& r) {
       n.priv->divideEquals(*r.priv);
+   }
+
+   DLLLOCAL static QoreNumberNode* doUnary(const QoreNumberNode& n, q_mpfr_unary_func_t func, ExceptionSink* xsink = 0) {
+      qore_number_private* p = n.priv->doUnary(func, xsink);
+      return p ? new QoreNumberNode(p) : 0;
+   }
+
+   DLLLOCAL static QoreNumberNode* doBinary(const QoreNumberNode& n, q_mpfr_binary_func_t func, const QoreNumberNode& r, ExceptionSink* xsink = 0) {
+      qore_number_private* p = n.priv->doBinary(func, *r.priv, xsink);
+      return p ? new QoreNumberNode(p) : 0;
+   }
+
+   DLLLOCAL static QoreNumberNode* doUnaryNR(const QoreNumberNode& n, q_mpfr_unary_nr_func_t func, ExceptionSink* xsink = 0) {
+      qore_number_private* p = n.priv->doUnaryNR(func, xsink);
+      return p ? new QoreNumberNode(p) : 0;
+   }
+
+   DLLLOCAL static QoreNumberNode* getNaNumber() {
+      return new QoreNumberNode(new qore_number_private("@NaN@"));
+   }
+
+   DLLLOCAL static QoreNumberNode* getInfinity() {
+      return new QoreNumberNode(new qore_number_private("@Inf@"));
    }
 };
 

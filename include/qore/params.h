@@ -275,6 +275,9 @@ static inline void HARD_QORE_DATA(const QoreListNode *n, qore_size_t i, const vo
 //! returns a double from a hard typed float param
 #define HARD_QORE_FLOAT(list, i) get_hard_param<const QoreFloatNode>(list, i)->f
 
+//! returns a const QoreNumberNode* from a hard typed number or softnumber param
+#define HARD_QORE_NUMBER(list, i) get_hard_param<const QoreNumberNode>(list, i)
+
 //! returns a bool from a hard typed bool param
 #define HARD_QORE_BOOL(list, i) get_hard_param<const QoreBoolNode>(list, i)->getValue()
 

@@ -1304,6 +1304,10 @@ protected:
             fprintf(fp, "   double %s = HARD_QORE_FLOAT(args, %d);\n", p.name.c_str(), i);
             continue;
          }
+         if (p.type == "number" || p.type == "softnumber") {
+            fprintf(fp, "   const QoreNumberNode* %s = HARD_QORE_NUMBER(args, %d);\n", p.name.c_str(), i);
+            continue;
+         }
          if (p.type == "bool" || p.type == "softbool") {
             fprintf(fp, "   bool %s = HARD_QORE_BOOL(args, %d);\n", p.name.c_str(), i);
             continue;
@@ -3204,6 +3208,18 @@ void init() {
 
    tmap["*softfloat"] = "softFloatOrNothingTypeInfo";
    mtmap["*softfloat"] = "nf";
+
+   tmap["number"] = "numberTypeInfo";
+   mtmap["number"] = "Vn";
+
+   tmap["softnumber"] = "softNumberTypeInfo";
+   mtmap["softnumber"] = "vn";
+
+   tmap["*number"] = "numberOrNothingTypeInfo";
+   mtmap["*number"] = "Nn";
+
+   tmap["*softnumber"] = "softNumberOrNothingTypeInfo";
+   mtmap["*softnumber"] = "nn";
 
    tmap["bool"] = "boolTypeInfo";
    mtmap["bool"] = "Vb";
