@@ -133,9 +133,12 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int
 }
 
 // static function
-AbstractQoreNode *QoreUnaryMinusOperatorNode::makeNode(AbstractQoreNode *v) {
+AbstractQoreNode* QoreUnaryMinusOperatorNode::makeNode(AbstractQoreNode *v) {
    if (v) {
       assert(v->is_unique());
+      if (v->getType() == NT_NUMBER)
+         return reinterpret_cast<QoreNumberNode*>(v)->negate();
+
       if (v->getType() == NT_FLOAT) {
 	 QoreFloatNode *f = reinterpret_cast<QoreFloatNode *>(v);
 	 f->f = -f->f;
