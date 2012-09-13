@@ -122,6 +122,7 @@ include_HEADERS = \
 	include/qore/QoreBigIntNode.h \
 	include/qore/QoreBoolNode.h \
 	include/qore/QoreFloatNode.h \
+	include/qore/QoreNumberNode.h \
 	include/qore/QoreNothingNode.h \
 	include/qore/QoreNullNode.h \
 	include/qore/params.h \
