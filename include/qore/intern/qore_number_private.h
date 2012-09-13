@@ -133,7 +133,7 @@ struct qore_number_private : public qore_number_private_intern {
    DLLLOCAL void getAsString(QoreString& str) const {
       // first check for zero
       if (zero()) {
-         str.concat("0n");
+         str.concat("0");
          return;
       }
 
@@ -143,7 +143,7 @@ struct qore_number_private : public qore_number_private_intern {
       int len = mpfr_sprintf((char*)(str.getBuffer() + str.size()), "%Re", num);
       if (len > 0) {
          str.terminate(str.size() + len);
-         str.concat('n');
+         //str.concat('n');
       }
       else
          str.concat("<error>");
@@ -178,12 +178,12 @@ struct qore_number_private : public qore_number_private_intern {
 
             // assert that we have added at least 1 character
             assert(rlen > 0);
-            if (exp > rlen)
+            if ((qore_size_t)exp > rlen)
                str.insertch('0', str.size(), exp - rlen);
-            else if (exp < rlen)
+            else if ((qore_size_t)exp < rlen)
                str.insertch('.', len + exp, 1);
          }
-         str.concat('n');
+         //str.concat('n');
       }
       else
          str.concat(buf);
