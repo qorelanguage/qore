@@ -262,7 +262,7 @@ struct qore_number_private : public qore_number_private_intern {
    DLLLOCAL void inc() {
       //MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
       qore_number_private tmp(mpfr_get_prec(num));
-      mpfr_set(tmp,num, num, QORE_MPFR_RND);
+      mpfr_set(tmp.num, num, QORE_MPFR_RND);
       mpfr_add_si(num, tmp.num, 1, QORE_MPFR_RND);
    }
 
