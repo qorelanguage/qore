@@ -260,22 +260,25 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL void inc() {
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
-      mpfr_set(tmp, num, QORE_MPFR_RND);
-      mpfr_add_si(num, tmp, 1, QORE_MPFR_RND);
+      //MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      qore_number_private tmp(mpfr_get_prec(num));
+      mpfr_set(tmp,num, num, QORE_MPFR_RND);
+      mpfr_add_si(num, tmp.num, 1, QORE_MPFR_RND);
    }
 
    DLLLOCAL void dec() {
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
-      mpfr_set(tmp, num, QORE_MPFR_RND);
-      mpfr_sub_si(num, tmp, 1, QORE_MPFR_RND);
+      //MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      qore_number_private tmp(mpfr_get_prec(num));
+      mpfr_set(tmp.num, num, QORE_MPFR_RND);
+      mpfr_sub_si(num, tmp.num, 1, QORE_MPFR_RND);
    }
 
    DLLLOCAL void doBinaryInplace(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) {
       checkPrec(r.num);
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
-      mpfr_set(tmp, num, QORE_MPFR_RND);
-      func(num, tmp, r.num, QORE_MPFR_RND);
+      //MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      qore_number_private tmp(mpfr_get_prec(num));
+      mpfr_set(tmp.num, num, QORE_MPFR_RND);
+      func(num, tmp.num, r.num, QORE_MPFR_RND);
       if (xsink)
          checkFlags(xsink);
    }
