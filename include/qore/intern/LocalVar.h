@@ -291,7 +291,7 @@ public:
          return helper ? lvalue_ref::get(*ref)->vexp->eval(needs_deref, xsink) : 0;
       }
 
-      return val.eval(needs_deref);
+      return val.eval(needs_deref, true);
    }
 
    DLLLOCAL int64 bigIntEval(ExceptionSink* xsink) {

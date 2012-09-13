@@ -513,15 +513,19 @@ public:
       return 0;
    }
 
-   DLLLOCAL AbstractQoreNode* eval(bool &needs_deref) const {
+   DLLLOCAL AbstractQoreNode* eval(bool &needs_deref, bool in_lock = false) const {
       if (!assigned) {
          needs_deref = false;
          return 0;
       }
 
       if (type == QV_Node) {
-         needs_deref = false;
-	 return v.n;
+         if (!in_lock || !v.n) {
+            needs_deref = false;
+            return v.n;
+         }
+         needs_deref = true;
+         return v.n->refSelf();
       }
       needs_deref = true;
 

@@ -681,6 +681,13 @@ else
    AC_MSG_RESULT([includes $with_zlib_includes libs $with_zlib_libs (shared)])
 fi
 
+# see if we can figure out where the mpfr library is
+AC_ARG_WITH([mpfr-dir],
+  [AS_HELP_STRING([--with-mpfr-dir@<:@=DIR@:>@],
+                  [MPFR directory])],
+  [if test ! -d "${with_mpfr_dir}"; then AC_MSG_ERROR([bad value ${with_mpfr_dir} for --with-mpfr-dir]); unset with_mpfr_dir; fi],
+  [with_mpfr_dir="$MPFR_DIR"])
+
 AC_MSG_CHECKING([for mpfr libraries and header files])
 for dir in "${with_mpfr_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/mpfr /usr/local/mpfr /opt/local /sw /usr/sfw /opt/sfw; do
     find_mpfr $dir
@@ -696,6 +703,13 @@ if test -n "$mpfr_static"; then
 else
    AC_MSG_RESULT([includes $with_mpfr_includes libs $with_mpfr_libs (shared)])
 fi
+
+# see if we can figure out where the gmp library is
+AC_ARG_WITH([gmp-dir],
+  [AS_HELP_STRING([--with-gmp-dir@<:@=DIR@:>@],
+                  [GMP directory])],
+  [if test ! -d "${with_gmp_dir}"; then AC_MSG_ERROR([bad value ${with_gmp_dir} for --with-gmp-dir]); unset with_gmp_dir; fi],
+  [with_gmp_dir="$GMP_DIR"])
 
 AC_MSG_CHECKING([for gmp libraries and header files])
 for dir in "${with_gmp_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/gmp /usr/local/gmp /opt/local /sw /usr/sfw /opt/sfw; do
