@@ -32,7 +32,6 @@
 
 DLLLOCAL OperatorList oplist;
 
-DLLLOCAL extern const QoreTypeInfo* bigIntOrFloatTypeInfo;
 DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumberTypeInfo;
 
 // the standard, system-default operator pointers
