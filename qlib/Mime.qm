@@ -25,13 +25,14 @@
 %requires qore >= 0.8.4
 
 module Mime {
-    version = "1.2";
+    version = "1.2.1";
     desc = "Mime module giving MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2012-09-17 v1.2.1: David Nichols <david@qore.org>: fixed q-encoding mail headers (always encode '_' chars otherwise they will be decoded as spaces)
     * 2012-06-14 v1.2: David Nichols <david@qore.org>: added MIME decoding functions
     * 2012-05-31 v1.1: David Nichols <david@qore.org>: added initial MultiPartMessage classes
     * 2012-05-24 v1.0: David Nichols <david@qore.org>: pulled MIME implementation out of other code and made a user module to aggregate MIME definitions and functions

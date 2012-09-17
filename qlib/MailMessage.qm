@@ -26,16 +26,18 @@
 %requires qore >= 0.8.6
 
 # need mime definitions
-%requires Mime >= 1.0
+%requires Mime >= 1.0.1
 
 module MailMessage {
-    version = "1.0";
+    version = "1.0.2";
     desc = "defines the MailMessage class and supporting definitions";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2012-09-17 v1.0.2: David Nichols <david@qore.org>: use <string>::isPrintableAscii() to determine which mail headers need encoding
+    * 2012-09-17 v1.0.1: David Nichols <david@qore.org>: fixed a bug encoding mail headers where mail headers requiring encoding were not encoded and those not requiring encoding were encoded with Q encoding
     * 2012-06-14 v1.0: David Nichols <david@qore.org>: moved from the SmtpClient module to an independent module to also support the Pop3Client class
 */
 
