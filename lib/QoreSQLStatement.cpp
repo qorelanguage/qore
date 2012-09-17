@@ -279,8 +279,13 @@ int QoreSQLStatement::exec(const QoreListNode *args, ExceptionSink *xsink) {
 
 int QoreSQLStatement::execIntern(DBActionHelper &dba, ExceptionSink *xsink) {
    int rc = priv->ds->getDriver()->stmt_exec(this, xsink);
-   if (!rc)
+   if (!rc) {
       status = STMT_EXECED;
+      // mark as transaction already existed to ensure that the
+      // Datasource is not released after the statement is closed
+      if (trans_status != STMT_TRANS_EXISTED)
+         trans_status = STMT_TRANS_EXISTED;
+   }
 
    priv->ds->priv->statementExecuted(rc, xsink);
    return rc;

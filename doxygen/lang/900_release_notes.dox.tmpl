@@ -2,6 +2,17 @@
 
     @tableofcontents
 
+    @section qore_0851 Qore 0.8.5.1
+
+    @par Release Summary
+    Bugfix release
+
+    @subsection qore_0851_bug_fixes Bug Fixes in Qore
+    - fixed a race condition accessing global and closure-bound thread-local variables in multithreaded contexts
+    - fixed a bug in transaction management with the DatasourcePool class when used with the SQLStatement class
+    - fixed an error in the MailMessage.qm user module where mail headers requiring encoding were not encoded and those not requiring encoding were encoded with Q encoding
+    - fixed an error in the Mime.qm user module where \c "_" characters in q-encoded headers were not encoded correctly
+
     @section qore_085 Qore 0.8.5
 
     @par Release Summary
@@ -302,7 +313,7 @@ our int $i1;
     - fixed Qore::File::getchar() to always retrieve 1 character (even for multi-byte character encodings)
     - fixed string evaluation in a boolean context to return @ref Qore::True "True" with floating-point numbers between -1.0 and 1.0 exclusive
     - printf formatting fix: output YAML-style \c "null" for @ref nothing with %%y
-    - scanner fix: accept \r as whitespace to allow better parsing of sources with Windows EOL markers
+    - scanner fix: accept \c "\r" as whitespace to allow better parsing of sources with Windows EOL markers
     - fixed parse-time type processing/checks for the keys, + and * operators
     - foreach statement fix: unconditionally evaluate the hash when iterating as otherwise it could change during iteration which could cause a crash
     - fixed another parse-time variant matching bug where the variant-matching algorithm was too aggressive and excluded possible matches at parse time which could result in a false parse-time definitive match even though a better match could be available at runtime

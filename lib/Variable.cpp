@@ -101,10 +101,9 @@ AbstractQoreNode* Var::eval() const {
 AbstractQoreNode* Var::eval(bool &needs_deref) const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->eval(needs_deref);
-
    
    AutoLocker al(m);
-   return val.eval(needs_deref);
+   return val.eval(needs_deref, true);
 }
 
 int64 Var::bigIntEval() const {

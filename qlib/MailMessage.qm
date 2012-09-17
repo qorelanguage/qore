@@ -29,13 +29,14 @@
 %requires Mime >= 1.0
 
 module MailMessage {
-    version = "1.0";
+    version = "1.0.1";
     desc = "defines the MailMessage class and supporting definitions";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2012-09-17 v1.0.1: David Nichols <david@qore.org>: fixed a bug encoding mail headers where mail headers requiring encoding were not encoded and those not requiring encoding were encoded with Q encoding
     * 2012-06-14 v1.0: David Nichols <david@qore.org>: moved from the SmtpClient module to an independent module to also support the Pop3Client class
 */
 
@@ -741,7 +742,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             @return a header string (ex: \c "Subject: =?UTF-8?Q?testing?=\r\n")
          */
         static string doHeaderValue(string $hdr, string $val, string $eol = "\r\n", bool $encode = True) {
-            if ($encode && $val =~ /[^\x{80}-\x{ff}]/)
+            if ($encode && $val =~ /[\x{80}-\x{ff}]/)
                 $val = mime_encode_header_word_q($val);
             return sprintf("%s: %s%s", $hdr, $val, $eol);
         }
