@@ -161,7 +161,7 @@ int <list>::lsize() [flags=CONSTANT] {
 //! Returns @ref True if the list contains arg, @ref False if it does not.
 /** 
  
-    @param arg @ref any value to check its presence in the list
+    @param arg any value to check its presence in the list
 
     @return @ref True if the list contains arg, @ref False if it does not
 
