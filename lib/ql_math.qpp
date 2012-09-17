@@ -235,7 +235,7 @@ int abs(int i) [flags=CONSTANT] {
 
 //! Returns the absolute value of the argument passed
 /** 
-    @param i the value to process
+    @param n the value to process
 
     @return the absolute value of the argument passed
 
