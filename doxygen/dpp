@@ -1,5 +1,7 @@
 #!/bin/sh
 
-nd="`echo $2|sed 's/\//\\\\\//g'`"
+ver="$1"
 
-sed "s/MYDOT/$nd/" $1
+nd="`echo $3|sed 's/\//\\\\\//g'`"
+
+sed -e "s/MYDOT/$nd/" -e "s/QORE_VERSION/$ver/" $2

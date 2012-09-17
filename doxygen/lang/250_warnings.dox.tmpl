@@ -25,11 +25,13 @@
     - @ref duplicate-local-vars
     - @ref excess-args
     - @ref invalid-operation
+    - @ref module-only
     - @ref non-existent-method-call
     - @ref return-value-ignored
     - @ref undeclared-var
     - @ref unknown-warning
     - @ref unreachable-code
+    - @ref unreferenced-variable
     - @ref warning-mask-unchanged
 
     <hr>
@@ -75,6 +77,11 @@
     @since %Qore 0.8.0
 
     <hr>
+    @section module-only module-only
+    This warning is raised when a feature that is only valid in a user module is used in code that is not in a user module, for example, declaring a class or namespace @ref mod_public
+    @since %Qore 0.8.4
+
+    <hr>
     @section non-existent-method-call non-existent-method-call
     Warning is raised when the given method cannot be found in the class at parse time; this is a warning because the object could be a subclass that has the given method implemented, in which case the call will succeed at run time. Use the @ref cast "cast<>() operator" to avoid this warning
     @since %Qore 0.8.0
@@ -98,6 +105,11 @@
     @section unreachable-code unreachable-code
     Raised when code is defined that can never be executed (for example, code following a @ref return "return" or @ref thread_exit "thread_exit statement")
     @since %Qore 0.5.2
+
+    <hr>
+    @section unreferenced-variable unreferenced-variable
+    Raised when a variable is declared but never referenecd
+    @since %Qore 0.8.2
 
     <hr>
     @section warning-mask-unchanged warning-mask-unchanged

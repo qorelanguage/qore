@@ -378,55 +378,7 @@ noinst_HEADERS = \
 	lib/getopt_long.h \
 	command-line.h
 
-EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
-	ChangeLog AUTHORS BUILD \
-	README README-LICENSE README-MODULES \
-	COPYING.LGPL COPYING.GPL \
-        test/thread-object-test.q \
-        test/create-iso-8859-1-file.q \
-        test/empty.q \
-        test/file-test.q \
-        test/ftp-test.q \
-        test/max-threads-test.q \
-        test/stack-test.q \
-        test/object-test.q \
-        test/rwlock-test.q \
-        test/socket-test.q \
-        test/subprogram-thread-test.q \
-        test/system-test.q \
-        test/test-exception.q \
-        test/test.q \
-        test/Test.qc \
-        test/unlocked-thread-test.q \
-	test/regex.q \
-	test/deadlock.q \
-	test/optest.q \
-	examples/stmt.q \
-	examples/exp.q \
-	examples/obj2.q \
-	examples/hash.q \
-	examples/clisrv.q \
-	examples/inherit.q \
-	examples/inherit2.q \
-	examples/getopt.q \
-	examples/getch.q \
-	qore.spec \
-	$(LIB_DOXYFILES) \
-	$(LANG_DOXYFILES_SRC) \
-	$(LANG_QPP_SRC)
-
-dist_modver_DATA = $(USER_MODULES)
-
-BUILT_SOURCES = dummy
-
-dummy:
-	./next_build.sh
-
-if COND_DOXYGEN
-DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html
-
-LIB_DOXYFILES = \
-	doxygen/lib/Doxyfile \
+LIB_DOXYFILES_FIXED = \
 	doxygen/lib/mainpage.doxygen \
 	doxygen/lib/10_embedding.doxygen \
 	doxygen/lib/20_qore_data.doxygen \
@@ -435,6 +387,10 @@ LIB_DOXYFILES = \
 	doxygen/lib/70_qore_modules.doxygen \
 	doxygen/lib/75_dbi_drivers.doxygen
 
+LIB_DOXYFILES_SRC = \
+	$(LIB_DOXYFILES_FIXED) \
+	doxygen/lib/Doxyfile.tmpl
+
 LANG_DOXYFILES_SRC = \
 	doxygen/dot \
 	doxygen/dpp \
@@ -442,6 +398,7 @@ LANG_DOXYFILES_SRC = \
 	doxygen/pdox \
 	doxygen/qdx \
 	doxygen/qlib/Doxyfile.tmpl \
+	doxygen/lib/Doxyfile.tmpl \
 	doxygen/lang/Doxyfile.tmpl \
 	doxygen/lang/mainpage.dox.tmpl \
 	doxygen/lang/000_intro.dox.tmpl \
@@ -480,6 +437,60 @@ LANG_DOXYFILES_SRC = \
 	doxygen/lang/250_warnings.dox.tmpl \
 	doxygen/lang/255_keywords.dox.tmpl \
 	doxygen/lang/900_release_notes.dox.tmpl
+
+EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
+	ChangeLog AUTHORS BUILD \
+	README README-LICENSE README-MODULES \
+	COPYING.LGPL COPYING.GPL \
+        test/thread-object-test.q \
+        test/create-iso-8859-1-file.q \
+        test/empty.q \
+        test/file-test.q \
+        test/ftp-test.q \
+        test/max-threads-test.q \
+        test/stack-test.q \
+        test/object-test.q \
+        test/rwlock-test.q \
+        test/socket-test.q \
+        test/subprogram-thread-test.q \
+        test/system-test.q \
+        test/test-exception.q \
+        test/test.q \
+        test/Test.qc \
+        test/unlocked-thread-test.q \
+	test/regex.q \
+	test/deadlock.q \
+	test/optest.q \
+	examples/stmt.q \
+	examples/exp.q \
+	examples/obj2.q \
+	examples/hash.q \
+	examples/clisrv.q \
+	examples/inherit.q \
+	examples/inherit2.q \
+	examples/getopt.q \
+	examples/getch.q \
+	qore.spec \
+	$(LIB_DOXYFILES_SRC) \
+	$(LANG_DOXYFILES_SRC) \
+	$(LANG_QPP_SRC)
+
+dist_modver_DATA = $(USER_MODULES)
+
+BUILT_SOURCES = dummy
+
+dummy:
+	./next_build.sh
+
+if COND_DOXYGEN
+DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html
+
+LIB_TMP_DOXYFILES_SRC = \
+	doxygen/lib/Doxyfile
+
+LIB_TMP_DOXYFILES = $(LIB_TMP_DOXYFILES_SRC)
+
+LIB_DOXYFILES = doxygen/lib/Doxyfile $(LIB_TMP_DOXYFILES_SRC) $(LIB_DOXYFILES_FIXED)
 
 LANG_TMP_DOXYFILES_SRC = doxygen/lang/Doxyfile \
 	doxygen/lang/mainpage.dox \
@@ -528,11 +539,14 @@ LANG_DOXYFILES = doxygen/lang/Doxyfile $(LANG_TMP_DOXYFILES_SRC)
 $(QPP): dummy
 	cd lib; make $(QPP_PGM)
 
+doxygen/lib/Doxyfile: doxygen/lib/Doxyfile.tmpl
+	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen/" > $@
+
 lang-dox-src: dummy
 	cd lib; make dox-src
 
 doxygen/lang/Doxyfile: doxygen/lang/Doxyfile.tmpl
-	doxygen/dpp $< "$(top_srcdir)/doxygen/" > $@
+	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen/" > $@
 
 doxygen/lang/mainpage.dox: doxygen/lang/mainpage.dox.tmpl lib $(QPP) lang-dox-src
 	$(QPP) -t $< -o $@
@@ -702,7 +716,7 @@ doxygen/qlib/Doxyfile.Pop3Client: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/h
 doxygen/qlib/Pop3Client.qm.dox.h: qlib/Pop3Client.qm $(QDX)
 	$(QDX) $< $@
 
-DX_CLEANFILES = $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
+DX_CLEANFILES = $(LIB_TMP_DOXYFILES) $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
 
 docs/library/html: $(include_HEADERS) $(LIB_DOXYFILES)
 	$(DOXYGEN_CMD) doxygen/lib/Doxyfile
@@ -794,7 +808,6 @@ qore_SOURCES = \
 	main.cpp \
 	command-line.cpp
 endif
-
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = qore.pc
