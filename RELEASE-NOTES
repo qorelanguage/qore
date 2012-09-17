@@ -19,7 +19,7 @@ Darwin:
     includes threading primitives needed by the Qore language itself.  This
     was apparently a conscious design decision in Darwin development and is
     not likely to change.
-    (tested with Darwin 11.3.0 = OSX 10.7.3)
+    (tested with Darwin 11.3.0/OSX 10.7.3 - 12.1.0/OSX 10.8.1)
   * Darwin does not seem to have complete support for signaling in threads;
     for example, sigprocmask() has to be called after pthread_sigmask() in
     order to effect changes in the thread signal mask (this is only necessary
@@ -27,9 +27,9 @@ Darwin:
     Additionally, SIGINFO and SIGWINCH are never delivered to Qore's signal
     handling thread even though the signal mask is set up appropriately (other
     signals are delivered correctly though) - this only happens on Darwin
-    (tested with Darwin 11.3.0 = OSX 10.7.3)
+    (tested with Darwin 11.3.0/OSX 10.7.3 - 12.1.0/OSX 10.8.1)
   * pthread_create() on Darwin (on <= Darwin 10 - however this problem is
-    fixed on Darwin 11.3.0+ = OSX 10.7.3+) returns 0 (= success) even though
+    fixed on Darwin 11.3.0+/OSX 10.7.3+) returns 0 (= success) even though
     thread creation fails - the background thread is never started.  Therefore
     on Darwin < 11 the maximum number of threads is set to 2560 which is the
     empirically tested maximum number of threads where pthread_create() still

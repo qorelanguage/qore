@@ -87,6 +87,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/Pseudo_QC_Bool.qpp \
 	lib/Pseudo_QC_Int.qpp \
 	lib/Pseudo_QC_Float.qpp \
+	lib/Pseudo_QC_Number.qpp \
 	lib/Pseudo_QC_Closure.qpp \
 	lib/Pseudo_QC_Callref.qpp \
 	lib/ql_misc.qpp \

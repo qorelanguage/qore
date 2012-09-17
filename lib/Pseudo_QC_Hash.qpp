@@ -28,7 +28,7 @@
 //! Methods in this pseudo-class can be executed on @ref hash "hash values"
 /** 
  */
-qclass <hash> [arg=QoreHashNode* h;vparent=<value>];
+qclass <hash> [arg=const QoreHashNode* h;vparent=<value>];
 
 //! Returns Qore::NT_HASH
 /** 

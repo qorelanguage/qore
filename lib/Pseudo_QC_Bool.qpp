@@ -26,7 +26,7 @@
 //! Methods in this pseudo-class can be executed on @ref boolean "booling-point values"
 /** 
  */
-qclass <bool> [arg=QoreBoolNode* b;vparent=<value>];
+qclass <bool> [arg=const QoreBoolNode* b;vparent=<value>];
 
 //! Returns Qore::NT_BOOLEAN
 /** 

@@ -259,6 +259,10 @@ struct qore_number_private : public qore_number_private_intern {
       return p;
    }
 
+   DLLLOCAL mpfr_prec_t getPrec() const {
+      return mpfr_get_prec(num);
+   }
+
    DLLLOCAL void inc() {
       //MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
       qore_number_private tmp(mpfr_get_prec(num));
@@ -346,6 +350,10 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL static QoreNumberNode* getInfinity() {
       return new QoreNumberNode(new qore_number_private("@Inf@"));
+   }
+
+   DLLLOCAL static qore_number_private* get(const QoreNumberNode& n) {
+      return n.priv;
    }
 };
 

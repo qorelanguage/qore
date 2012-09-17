@@ -42,6 +42,9 @@ const Int = "integer";
 //! Gives the type for @ref float "float" values
 const Float = "float";
 
+//! Gives the type for @ref number "number" values
+const Number = "number";
+
 //! Gives the type for @ref string "string" values
 const String = "string";
 
@@ -171,6 +174,30 @@ float float(softfloat f) [flags=CONSTANT] {
 */
 float float() [flags=CONSTANT] {
    return 0.0;
+}
+
+//! Converts the argument to a @ref number "number" value
+/**
+    @param n the argument to convert to a @ref number "number"
+
+    @return the @ref number "number" value corresponding to the argument
+
+    @par Example:
+    @code
+my number $n = number("2.23040945718005e35");
+    @endcode
+*/
+number number(softnumber n) [flags=CONSTANT] {
+   return n->refSelf();
+}
+
+//! Always returns 0.0
+/** The number() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
+
+    @see number(softnumber)
+*/
+number number() [flags=CONSTANT] {
+   return ZeroNumber->refSelf();
 }
 
 //! Converts the argument to a string

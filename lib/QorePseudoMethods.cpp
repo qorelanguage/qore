@@ -29,6 +29,7 @@
 #include "Pseudo_QC_Bool.cpp"
 #include "Pseudo_QC_Int.cpp"
 #include "Pseudo_QC_Float.cpp"
+#include "Pseudo_QC_Number.cpp"
 #include "Pseudo_QC_String.cpp"
 #include "Pseudo_QC_List.cpp"
 #include "Pseudo_QC_Hash.cpp"
@@ -74,6 +75,7 @@ void pseudo_classes_init() {
    po_list[NT_LIST] = initPseudoListClass();
    po_list[NT_HASH] = initPseudoHashClass();
    po_list[NT_OBJECT] = initPseudoObjectClass();
+   po_list[NT_NUMBER] = initPseudoNumberClass();
 
    // + 2 pseudo classes with runtime type values outside the value type range
    po_list[NODE_ARRAY_LEN] = initPseudoCallrefClass();

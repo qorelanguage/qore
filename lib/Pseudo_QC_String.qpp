@@ -29,7 +29,7 @@
 //! Methods in this pseudo-class can be executed on @ref string "strings"
 /** 
  */
-qclass <string> [arg=QoreStringNode* str;vparent=<value>];
+qclass <string> [arg=const QoreStringNode* str;vparent=<value>];
 
 //! Returns Qore::NT_STRING
 /** 

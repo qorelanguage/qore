@@ -34,7 +34,7 @@ DLLLOCAL double pseudo_classes_double_eval(const AbstractQoreNode *n, const char
 DLLLOCAL const QoreMethod *pseudo_classes_find_method(qore_type_t t, const char *mname, QoreClass *&qc);
 DLLLOCAL const QoreMethod *pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const char *mname, QoreClass *&qc, bool &possible_match);
 
-#define NODE_ARRAY_LEN (NT_OBJECT + 1)
+#define NODE_ARRAY_LEN (NT_NUMBER + 1)
 DLLLOCAL extern QoreBigIntNode *Node_NT_Array[NODE_ARRAY_LEN];
 
 #endif

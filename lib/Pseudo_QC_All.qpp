@@ -26,7 +26,7 @@
 //! Methods in this pseudo-class are available to be executed on any value type (even @ref nothing); this is the root class for all pseudo-classes
 /** 
  */
-qclass <value> [arg=AbstractQoreNode* node];
+qclass <value> [arg=const AbstractQoreNode* node];
 
 //! Returns the type code for the value
 /** This method is recommended over <value>::type() or the type(any) or typename(any) functions for comparing data types as it is much faster and more efficient than the other alternatives (which work with string values instead of integer codes).

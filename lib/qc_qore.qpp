@@ -43,6 +43,9 @@ const NT_INT = NT_INT;
 //! type code for @ref float "float values"
 const NT_FLOAT = NT_FLOAT;
 
+//! type code for @ref number "number values"
+const NT_NUMBER = NT_NUMBER;
+
 //! type code for @ref string "string values"
 const NT_STRING = NT_STRING;
 
@@ -92,6 +95,7 @@ const TypeCodeMap = (
       "8": "list",
       "9": "hash",
       "10": "object",
+      "11": "number",
       "29": "call reference",
       "32": "closure",
       );
@@ -101,6 +105,7 @@ const TypeNameMap = (
       "nothing": NT_NOTHING,
       "integer": NT_INT,
       "float": NT_FLOAT,
+      "number": NT_NUMBER,
       "string": NT_STRING,
       "date": NT_DATE,
       "bool": NT_BOOLEAN,

@@ -12,6 +12,7 @@
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
     |@ref int_type "int"|@ref integer|@ref integer|Restricts values @ref integer values
     |@ref float_type "float"|@ref float|@ref float|Restricts values to @ref float values
+    |@ref number_type "number"|@ref number|@ref number|Restricts values to @ref number values
     |@ref bool_type "bool"|@ref boolean|@ref boolean|Restricts values to @ref boolean values
     |@ref string_type "string"|@ref string|@ref string|Restricts values to @ref string values
     |@ref date_type "date"|@ref date|@ref date|Restricts values to @ref date values; values may be either @ref absolute_dates "absolute" or @ref relative_dates "relative"
@@ -23,11 +24,12 @@
     |@ref null_type "null"|@ref null|@ref null|Restricts values to %Qore's @ref null type; this type has few (if any) practical applications and has been included for completeness' sake
     |@ref nothing_type "nothing"|@ref nothing|@ref nothing|Restricts values to %Qore's @ref nothing type; this type is mostly useful for declaring that a function or method returns no value
     |@ref timeout_type "timeout"|@ref integer, @ref date|@ref integer|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds
-    |@ref softint_type "softint"|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref integer|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer
-    |@ref softfloat_type "softfloat"|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value
-    |@ref softbool_type "softbool"|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref boolean|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-boolean values to a boolean and returns the new value
-    |@ref softstring_type "softstring"|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref string|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value
-    |@ref softdate_type "softdate"|@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null|@ref date|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value
+    |@ref softint_type "softint"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref integer|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer
+    |@ref softfloat_type "softfloat"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value
+    |@ref softnumber_type "softnumber"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value
+    |@ref softbool_type "softbool"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref boolean|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-boolean values to a boolean and returns the new value
+    |@ref softstring_type "softstring"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref string|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value
+    |@ref softdate_type "softdate"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null|@ref date|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value
     |@ref softlist_type "softlist"|all types|@ref list|Accepts all types; @ref nothing is returned as an empty list; a list is returned unchanged, and any other type is returned as the first element of a new list
     |@ref data_type "data"|@ref string or @ref binary|same as received|Restricts input to @ref string and @ref binary and returns the same type
     |@ref code_type "code"|@ref closure, @ref call_reference|same as received|Restricts values to @ref closure "closures" and @ref call_reference "call references"
@@ -45,11 +47,12 @@
     |@ref data_or_nothing_type "*data"|@ref string, @ref binary, or @ref nothing|same as received|Restricts input to @ref string, @ref binary, or @ref nothing and returns the same type
     |@ref code_or_nothing_type "*code"|@ref closure, @ref call_reference, @ref nothing|same as received|Restricts values to @ref closure "closures", @ref call_reference "call references" and @ref nothing
     |@ref timeout_or_nothing_type "*timeout"|@ref integer, @ref date or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds. If no value is passed, then @ref nothing is returned
-    |@ref softint_or_nothing_type "*softint"|@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer. If no value is passed, then @ref nothing is returned
-    |@ref softfloat_or_nothing_type "*softfloat"|@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value. If no value is passed, then @ref nothing is returned
-    |@ref softbool_or_nothing_type "*softbool"|@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing|@ref boolean or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-boolean values to a boolean and returns the new value. If no value is passed, then @ref nothing is returned
-    |@ref softstring_or_nothing_type "*softstring"|@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value. If no value is passed, then @ref nothing is returned
-    |@ref softdate_or_nothing_type "*softdate"|@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null or @ref nothing|@ref date or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value. If no value is passed, then @ref nothing is returned
+    |@ref softint_or_nothing_type "*softint"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer. If no value is passed, then @ref nothing is returned
+    |@ref softfloat_or_nothing_type "*softfloat"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value. If no value is passed, then @ref nothing is returned
+    |@ref softnumber_or_nothing_type "*softnumber"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref number or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-number values to a number and returns the new value. If no value is passed, then @ref nothing is returned
+    |@ref softbool_or_nothing_type "*softbool"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref boolean or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-boolean values to a boolean and returns the new value. If no value is passed, then @ref nothing is returned
+    |@ref softstring_or_nothing_type "*softstring"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value. If no value is passed, then @ref nothing is returned
+    |@ref softdate_or_nothing_type "*softdate"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null or @ref nothing|@ref date or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value. If no value is passed, then @ref nothing is returned
     |@ref softlist_or_nothing_type "*softlist"|all types|@ref list or @ref nothing|Accepts all types; @ref nothing and list values are returned as the same value; any other type is returned as the first element of a new list
     |@ref any_type "any"|any|same as received|Provides no restrictions on the type of value it receives and returns the same value
 
@@ -80,6 +83,22 @@ float sub foo(float $f = M_PI) {
     return $f;
 }
     @endcode
+
+    <hr>
+    @section number_type number
+
+    <b>number Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c number|@ref number|@ref number|Restricts values to %Qore's @ref number type
+
+    @par Example
+    @code
+number sub foo(number $n = 2.35e40) {
+    return $n;
+}
+    @endcode
+
+    @since %Qore 0.8.6 introduced the number type
 
     <hr>
     @section bool_type bool
@@ -239,7 +258,7 @@ timeout sub foo(timeout $to = 1250ms) {
 
     <b>softint Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c softint|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref integer|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer
+    |\c softint|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref integer|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer
 
     @par Example
     @code
@@ -254,7 +273,7 @@ softint sub foo(softint $i = "1000") {
 
     <b>softfloat Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c softfloat|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float
+    |\c softfloat|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float
 
     @par Example
     @code
@@ -265,11 +284,28 @@ softfloat sub foo(softfloat $f = "1000") {
     @endcode
 
     <hr>
+    @section softnumber_type softnumber
+
+    <b>softnumber Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c softnumber|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-number values to a number and returns the number
+
+    @par Example
+    @code
+softnumber sub foo(softnumber $n = "1000") {
+    # note that "200" will be converted to a number on return
+    return $n > 500.0n ? "200" : $n;
+}
+    @endcode
+
+    @since %Qore 0.8.6 introduced the softnumber type
+
+    <hr>
     @section softbool_type softbool
 
     <b>softbool Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c softbool|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref boolean|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean
+    |\c softbool|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref boolean|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean
 
     @par Example
     @code
@@ -281,7 +317,7 @@ my softbool $b = "0.5";
 
     <b>softstring Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c softstring|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref string|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-string values to a string and returns the string
+    |\c softstring|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref string|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-string values to a string and returns the string
 
     @par Example
     @code
@@ -293,7 +329,7 @@ my softstring $str = 200;
 
     <b>softdate Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c softdate|@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null|@ref date|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date
+    |\c softdate|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null|@ref date|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date
 
     @par Example
     @code
@@ -315,6 +351,8 @@ softlist sub foo(softlist $l) {
     return $l;
 }
     @endcode
+
+    @since %Qore 0.8.3 introduced the softlist type
 
     <hr>
     @section data_type data
@@ -392,11 +430,27 @@ foo(\$i);
     @endcode
 
     <hr>
+    @section number_or_nothing_type *number
+
+    <b>*number Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *number|@ref number or @ref nothing|same as received|Restricts values to @ref number and @ref nothing
+
+    @par Example
+    @code
+*number sub foo(*number $n) {
+    return $n;
+}
+    @endcode
+
+    @since %Qore 0.8.6 introduced the *number type
+
+    <hr>
     @section bool_or_nothing_type *bool
 
     <b>*bool Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *bool|@ref float or @ref nothing|same as received|Restricts values to @ref boolean and @ref nothing
+    |\c *bool|@ref boolean or @ref nothing|same as received|Restricts values to @ref boolean and @ref nothing
 
     @par Example
     @code
@@ -545,7 +599,7 @@ sub foo(*timeout $c) {
 
     <b>*softint Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *softint|@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer; also accepts @ref nothing and returns @ref nothing
+    |\c *softint|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer; also accepts @ref nothing and returns @ref nothing
 
     @par Example
     @code
@@ -558,7 +612,7 @@ sub foo(*softint $i) {
 
     <b>*softfloat Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *softfloat|@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float; also accepts @ref nothing and returns @ref nothing
+    |\c *softfloat|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float; also accepts @ref nothing and returns @ref nothing
 
     @par Example
     @code
@@ -567,11 +621,26 @@ sub foo(*softfloat $f) {
     @endcode
 
     <hr>
+    @section softnumber_or_nothing_type *softnumber
+
+    <b>*softnumber Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *softnumber|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref number or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-number values to a number and returns the number; also accepts @ref nothing and returns @ref nothing
+
+    @par Example
+    @code
+sub foo(*softnumber $n) {
+}
+    @endcode
+
+    @since %Qore 0.8.6 introduced the *softnumber type
+
+    <hr>
     @section softbool_or_nothing_type *softbool
 
     <b>*softbool Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *softbool|@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing|@ref boolean or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean; also accepts @ref nothing and returns @ref nothing
+    |\c *softbool|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref boolean or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean; also accepts @ref nothing and returns @ref nothing
 
     @par Example
     @code
@@ -584,7 +653,7 @@ sub foo(*softbool $b) {
 
     <b>*softstring Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *softstring|@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-string values to a string and returns the string; also accepts @ref nothing and returns @ref nothing
+    |\c *softstring|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-string values to a string and returns the string; also accepts @ref nothing and returns @ref nothing
 
     @par Example
     @code
@@ -597,7 +666,7 @@ sub foo(*softstring $str) {
 
     <b>*softdate Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *softdate|@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null, @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date; also accepts @ref nothing and returns @ref nothing
+    |\c *softdate|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null, @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date; also accepts @ref nothing and returns @ref nothing
 
     @par Example
     @code
@@ -616,6 +685,8 @@ sub foo(*softdate $d) {
     @code
 my *softlist $d = $v;
     @endcode
+
+    @since %Qore 0.8.3 introduced the *softlist type
 
     <hr>
     @section any_type any

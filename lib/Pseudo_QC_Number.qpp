@@ -1,0 +1,140 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Pseudo_QC_Number.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/qore_number_private.h>
+
+//! Methods in this pseudo-class can be executed on @ref number "arbitrary precision number values"
+/** 
+ */
+qclass <number> [arg=const QoreNumberNode* n;vparent=<value>];
+
+//! Returns Qore::NT_NUMBER
+/** 
+    @return Qore::NT_NUMBER
+
+    @par Example:
+    @code
+switch ($f.typeCode()) {
+    case NT_NUMBER:
+        printf("%y: is a number\n", $f);
+        break;
+}
+    @endcode
+*/
+int <number>::typeCode() [flags=CONSTANT] {
+   return NT_NUMBER;
+}
+
+//! Returns @ref True if the number is non-zero, @ref False if zero
+/** 
+    @return @ref True if the number is non-zero, @ref False if zero
+
+    @par Example:
+    @code
+my bool $b = $f.val();
+    @endcode
+*/
+bool <number>::val() [flags=CONSTANT] {
+   return !n->zero();
+}
+
+//! Returns @ref True because number values can be converted to integers
+/**
+    @return @ref True because number values can be converted to integers
+
+    @par Example:
+    @code
+if ($n.intp())
+    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+    @endcode
+*/
+bool <number>::intp() [flags=CONSTANT] {
+   return true;
+}
+
+//! Returns @ref True because number values can be converted to strings
+/**
+    @return @ref True because number values can be converted to strings
+
+    @par Example:
+    @code
+if ($n.strp())
+    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+    @endcode
+*/
+bool <number>::strp() [flags=CONSTANT] {
+   return true;
+}
+
+//! Returns @ref True if the number is NaN (not a number)
+/**
+    @return @ref True if the number is NaN (not a number)
+
+    @par Example:
+    @code
+if ($n.nan())
+    print("the operation resulted in NaN\n");
+    @endcode
+*/
+bool <number>::nan() [flags=CONSTANT] {
+   return qore_number_private::get(*n)->nan();
+}
+
+//! Returns @ref True if the number is infinity (+ or -)
+/**
+    @return @ref True if the number is infinity (+ or -)
+
+    @par Example:
+    @code
+if ($n.inf())
+    print("the operation resulted in infinity\n");
+    @endcode
+*/
+bool <number>::inf() [flags=CONSTANT] {
+   return qore_number_private::get(*n)->inf();
+}
+
+//! Returns -1 if the number is negative, 0 if it is zero, or 1 if it is positive
+/** @return -1 if the number is negative, 0 if it is zero, or 1 if it is positive
+
+    @par Example:
+    @code
+printf("sign: %d\n", $n.sign());
+    @endcode
+*/
+int <number>::sign() [flags=CONSTANT] {
+   return qore_number_private::get(*n)->sign();
+}
+
+//! Returns the precision of the current number
+/** @return the precision of the current number
+
+    @par Example:
+    @code
+printf("precision: %d\n", $n.prec());
+    @endcode
+*/
+int <number>::prec() [flags=CONSTANT] {
+   return (int64)qore_number_private::get(*n)->getPrec();
+}

@@ -165,6 +165,9 @@ Pseudo_QC_Int.cpp: Pseudo_QC_Int.qpp qpp
 Pseudo_QC_Float.cpp: Pseudo_QC_Float.qpp qpp
 	$(QPP) $<
 
+Pseudo_QC_Number.cpp: Pseudo_QC_Number.qpp qpp
+	$(QPP) $<
+
 Pseudo_QC_Date.cpp: Pseudo_QC_Date.qpp qpp
 	$(QPP) $<
 
@@ -250,7 +253,7 @@ QORE_PSEUDO_SRC = Pseudo_QC_All.cpp Pseudo_QC_Bool.cpp Pseudo_QC_Int.cpp \
 	Pseudo_QC_Float.cpp Pseudo_QC_Date.cpp Pseudo_QC_Object.cpp \
 	Pseudo_QC_Hash.cpp Pseudo_QC_String.cpp Pseudo_QC_Binary.cpp \
 	Pseudo_QC_List.cpp Pseudo_QC_Closure.cpp Pseudo_QC_Callref.cpp \
-	Pseudo_QC_Nothing.cpp
+	Pseudo_QC_Nothing.cpp Pseudo_QC_Number.cpp
 
 QorePseudoMethods.cpp: $(QORE_PSEUDO_SRC)
 

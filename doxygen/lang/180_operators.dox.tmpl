@@ -729,16 +729,17 @@ foreach my string $key in (keys $hash)
     \a expression1 <tt>*</tt> \a expression2
 
     @par Return Type
-    @ref int_type "int" or @ref float_type "float"
+    @ref int_type "int", @ref float_type "float", or @ref number_type "number"
 
     @par Example
     @code $value = $x * $y;@endcode
 
     <b>Arguments Processed by * (in order of precedence)</b>
     |!Argument|!Processing
-    |@ref float_type "float"|Gives the result of multiplying its arguments; if either of the arguments is a @ref float "float" then the result is also a @ref float "float"
+    |@ref number_type "number"|Gives the result of multiplying its arguments; @ref integer "ints" and @ref float "floats" are converted to @ref number "numbers" if at least one of the arguments is a @ref number "number"
+    |@ref float_type "float"|Gives the result of multiplying its arguments; @ref integer "ints" are converted to @ref float "floats" if at least one of the arguments is a @ref float "float"
     |@ref int_type "int"|Gives the result of multiplying its arguments
-    |any other type|Converts argument to a float and performs the multiplication
+    |any other type|Converts argument to a @ref number "number" and performs the multiplication
 
     This operator does not throw any exceptions.
 
@@ -752,16 +753,17 @@ foreach my string $key in (keys $hash)
     \a expression1 <tt>/</tt> \a expression2
 
     @par Return Type
-    @ref int_type "int" or @ref float_type "float"
+    @ref int_type "int", @ref float_type "float", or @ref number_type "number"
 
     @par Example
     @code $value = $x / $y;@endcode
 
     <b>Arguments Processed by / (in order of precedence)</b>
     |!Argument|!Processing
-    |@ref float_type "float"|Gives the result of dividing its arguments; if either of the arguments is a @ref float "float" then the result is also a @ref float "float"
+    |@ref number_type "number"|Gives the result of dividing its arguments; @ref integer "ints" and @ref float "floats" are converted to @ref number "numbers" if at least one of the arguments is a @ref number "number"
+    |@ref float_type "float"|Gives the result of dividing its arguments; @ref integer "ints" are converted to @ref float "floats" if at least one of the arguments is a @ref float "float"
     |@ref int_type "int"|Gives the result of dividing its arguments
-    |any other type|Converts argument to a float and performs the division
+    |any other type|Converts argument to a @ref number "number" and performs the division
 
     @throw DIVISION-BY-ZERO division by zero error
 
@@ -796,7 +798,7 @@ foreach my string $key in (keys $hash)
     \a expression1 <tt>+</tt> \a expression2
 
     @par Return Type
-    @ref int_type "int", @ref float_type "float", @ref date_type "date", @ref list_type "list", @ref string_type "string", @ref binary_type "binary", or @ref hash_type "hash"
+    @ref int_type "int", @ref float_type "float", @ref number_type "number", @ref date_type "date", @ref list_type "list", @ref string_type "string", @ref binary_type "binary", or @ref hash_type "hash"
 
     @par Example
     @code $a = 1 + 2;@endcode
@@ -810,6 +812,7 @@ foreach my string $key in (keys $hash)
     |@ref list_type list|Gives the result of concatenating its arguments, i.e. <tt>(1, 2) + (3, 4) = (1, 2, 3, 4)</tt>
     |@ref string_type "string"|Gives the result of concatenating its arguments
     |@ref date_type "date"|Gives the result of adding date/time values (see @ref date_time_arithmetic)
+    |@ref number_type "number"|Gives the result of adding its arguments
     |@ref float_type "float"|Gives the result of adding its arguments
     |@ref int_type "int"|Gives the result of adding its arguments
     |@ref hash_type "hash"|Gives the result of concatenating/merging its arguments. Any common keys will be overwritten by the values in the second hash (\a expression2)
@@ -820,15 +823,15 @@ foreach my string $key in (keys $hash)
     @section minus_operator Minus Operator (-)
 
     @par Synopsis
-    With float or integer arguments, subtracts one number from another.\n\n
-    With date arguments, subtracts one date from another; if both date arguments are absolute dates, the result is a relative date (duration) giving the time between them; if the first date argument is an absolute date and the second is a relative date (duration), then the result is an absolute date. If both date arguments are relative dates, then the result is a relative date. If the first argument is a relative date and the second date is an absolute date, the result is an absolute date as if the operands were reversed.\n\n
-    However, if the left-hand side is a hash, and the right-hand side is a string, then the hash key represented by the string will be removed from the hash. If the left-hand side is a hash and the right-hand side is a list, then each element in the list will be converted to a string and any hash key with that name will be deleted from the hash.
+    With @ref float "float", @ref integer "integer", or @ref number "number" arguments, subtracts one number from another.\n\n
+    With @ref date "date" arguments, subtracts one date from another; if both date arguments are absolute dates, the result is a relative date (duration) giving the time between them; if the first date argument is an absolute date and the second is a relative date (duration), then the result is an absolute date. If both date arguments are relative dates, then the result is a relative date. If the first argument is a relative date and the second date is an absolute date, the result is an absolute date as if the operands were reversed.\n\n
+    However, if the left-hand side is a @ref hash "hash", and the right-hand side is a string, then the hash key represented by the string will be removed from the hash. If the left-hand side is a hash and the right-hand side is a list, then each element in the list will be converted to a string and any hash key with that name will be deleted from the hash.
 
     @par Syntax
     \a expression1 <tt>-</tt> \a expression2
 
     @par Return Type
-    @ref int_type "int", @ref float_type "float", @ref date_type "date", or @ref hash_type "hash"
+    @ref int_type "int", @ref float_type "float", @ref number_type "number", @ref date_type "date", or @ref hash_type "hash"
 
     @par Example
     @code $num = $x - $y;@endcode
@@ -839,6 +842,7 @@ foreach my string $key in (keys $hash)
     <b>Arguments Processed by - (in order of precedence)</b>
     |!Argument|!Processing
     |@ref date_type "date"|date subtraction: \a expression1 - \a expression2
+    |@ref number_type "number"|arithmetic subtraction: \a expression1 - \a expression2
     |@ref float_type "float"|arithmetic subtraction: \a expression1 - \a expression2
     |@ref int_type "int"|arithmetic subtraction: \a expression1 - \a expression2
     |@ref hash_type "hash" - @ref string_type "string"|hash key deletion: \a expression1 - \a expression2
@@ -956,6 +960,7 @@ if ($x < $y)
 
     <b>Arguments Processed by < (in order of precedence)</b>
     |!Argument|!Processing
+    |@ref number_type "number"|If \a expression1 is numerically less than \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref float_type "float"|If \a expression1 is numerically less than \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref int_type "int"|If \a expression1 is numerically less than \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref string_type "string"|If \a expression1 comes before \a expression2 in string sort order, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
@@ -983,6 +988,7 @@ if ($x > $y)
 
     <b>Arguments Processed by > (in order of precedence)</b>
     |!Argument|!Processing
+    |@ref number_type "number"|If \a expression1 is numerically greater than \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref float_type "float"|If \a expression1 is numerically greater than \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref int_type "int"|If \a expression1 is numerically greater than \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref string_type "string"|If \a expression1 comes after \a expression2 in string sort order, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
@@ -1011,6 +1017,7 @@ if ($x == $y)
     <b>Arguments Processed by == (in order of precedence)</b>
     |!Argument|!Processing
     |@ref string_type "string"|If \a expression1 is equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref number_type "number"|If \a expression1 is equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
     |@ref float_type "float"|If \a expression1 is equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
     |@ref int_type "int"|If \a expression1 is equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
     |@ref date_type "date"|If \a expression1 is equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
@@ -1044,6 +1051,7 @@ if ($x != $y)
     <b>Arguments Processed by != (in order of precedence)</b>
     |!Argument|!Processing
     |@ref string_type "string"|If \a expression1 is not equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
+    |@ref number_type "number"|If \a expression1 is not equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
     |@ref float_type "float"|If \a expression1 is not equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
     |@ref int_type "int"|If \a expression1 is not equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
     |@ref date_type "date"|If \a expression1 is not equal to \a expression2, returns @ref Qore::True "True", otherwise @ref Qore::False "False"
@@ -1076,6 +1084,7 @@ if ($x <= $y)
 
     <b>Arguments Processed by <= (in order of precedence)</b>
     |!Argument|!Processing
+    |@ref number_type "number"|If \a expression1 is numerically less than or equal to \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref float_type "float"|If \a expression1 is numerically less than or equal to \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref int_type "int"|If \a expression1 is numerically less than or equal to \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref string_type "string"|If \a expression1 comes before in string sort order or is the same as \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
@@ -1103,6 +1112,7 @@ if ($x >= $y)
 
     <b>Arguments Processed by >= (in order of precedence)</b>
     |!Argument|!Processing
+    |@ref number_type "number"|If \a expression1 is numerically greater than or equal to \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref float_type "float"|If \a expression1 is numerically greater than or equal to \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref int_type "int"|If \a expression1 is numerically greater than or equal to \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
     |@ref string_type "string"|If \a expression1 comes after in string sort order or is the same as \a expression2, returns @ref Qore::True "True", otherwise returns @ref Qore::False "False"
@@ -1142,6 +1152,7 @@ switch ($x <=> $y) {
     <b>Arguments Processed by <=> (in order of precedence)</b>
     |!Argument|!Processing
     |@ref string_type "string"|If \a expression1 comes after in string sort order as \a expression2, returns \c 1, otherwise if they are equal, returns \c 0, otherwise if \a expression1 comes before \a expression2, returns \c -1
+    |@ref number_type "number"|If \a expression1 is numerically greater than \a expression2, returns \c 1, otherwise if they are equal returns \c 0, otherwise returns \c -1
     |@ref float_type "float"|If \a expression1 is numerically greater than \a expression2, returns \c 1, otherwise if they are equal returns \c 0, otherwise returns \c -1
     |@ref int_type "int"|If \a expression1 is numerically greater than \a expression2, returns \c 1, otherwise if they are equal returns \c 0, otherwise returns \c -1
     |@ref date_type "date"|If \a expression1 is after \a expression2, returns \c 1, otherwise if they are equal returns \c 0, otherwise returns \c -1
@@ -1588,7 +1599,7 @@ if ($x || $y)
     \a lvalue <tt>+=</tt> \a expression
 
     @par Return Type
-    @ref int_type "int", @ref float_type "float", @ref date_type "date", @ref list_type "list", @ref string_type "string", @ref binary_type "binary", @ref hash_type "hash", or @ref object_type "object"
+    @ref int_type "int", @ref float_type "float", @ref number_type "number", @ref date_type "date", @ref list_type "list", @ref string_type "string", @ref binary_type "binary", @ref hash_type "hash", or @ref object_type "object"
 
     @par Example
     @code $a += 10;@endcode
@@ -1604,6 +1615,7 @@ if ($x || $y)
     |\a lvalue (@ref list_type "list")|the expression will be evaluated and concatenated to the lvalue. If \a expression is a list, the lists will be concatenated, to ensure adding a single element to a list, use the @ref push "push operator"
     |\a lvalue (@ref hash_type "hash" or (@ref object_type "object")|the \a expression will be evaluated, and, if it is a hash or object, then it's members will be added to the \a lvalue, any duplicate elements in the \a lvalue will be overridden by elements in the \a expression.
     |\a lvalue (@ref string_type "string")|the \a expression will be evaluated and converted to a string if necessary and concatenated to the \a lvalue.
+    |\a lvalue (@ref number_type "number")|the \a expression will be evaluated and converted to a number if necessary and added to the \a lvalue.
     |\a lvalue (@ref float_type "float")|the \a expression will be evaluated and converted to a float if necessary and added to the \a lvalue.
     |\a lvalue (@ref binary_type "binary")|the \a expression will be evaluated and converted to a binary if necessary and added to the \a lvalue.
     |\a lvalue (@ref date_type "date")|the \a expression will be evaluated and converted to a date if necessary and added to the \a lvalue.
@@ -1620,7 +1632,7 @@ if ($x || $y)
     \a lvalue <tt>-=</tt> \a expression
 
     @par Return Type
-    @ref int_type "int", @ref float_type "float", @ref date_type "date", @ref hash_type "hash", or @ref object_type "object"
+    @ref int_type "int", @ref float_type "float", @ref number_type "number", @ref date_type "date", @ref hash_type "hash", or @ref object_type "object"
 
     @par Example
     @code $a -= 10;@endcode
@@ -1632,6 +1644,7 @@ if ($x || $y)
 
     <b>Arguments Processed by -=</b>
     |!Argument|!Processing
+    |\a lvalue (@ref number_type "number")|the \a expression will be evaluated and converted to a number if necessary and subtracted from the \a lvalue
     |\a lvalue (@ref float_type "float")|the \a expression will be evaluated and converted to a float if necessary and subtracted from the \a lvalue
     |\a lvalue (@ref date_type "date")|the \a expression will be evaluated and converted to a date if necessary and subtracted from the \a lvalue
     |\a lvalue (@ref hash_type "hash" or (@ref object_type "object"), \a expression (@ref string_type "string")|the hash key represented by \a expression will be removed from the \a lvalue
@@ -1706,14 +1719,14 @@ if ($x || $y)
     \a lvalue <tt>*=</tt> \a expression
 
     @par Return Type
-    @ref int_type "int" or @ref float_type "float"
+    @ref int_type "int", @ref float_type "float", or @ref number_type "number"
 
     @par Example
     @code $a *= 10;@endcode
 
     <b>Arguments Processed by *=</b>
     |!Argument|!Processing
-    |All|If either side of the operator is a float, the result will be a float as well. Otherwise the result is an integer value. The \a expression will be evaluated and multiplied by the \a lvalue, and the result will be saved to the \a lvalue.
+    |All|The type precedence from highest to lowest is @ref number "number", @ref float "float" float, and @ref integer "int", other types are converted to @ref integer "int". The \a expression will be evaluated and multiplied by the \a lvalue, and the result will be saved to the \a lvalue.
 
     <hr>
     @section divide_equals_operator Divide Equals Operator (/=)
@@ -1725,14 +1738,14 @@ if ($x || $y)
     \a lvalue <tt>/=</tt> \a expression
 
     @par Return Type
-    @ref int_type "int" or @ref float_type "float"
+    @ref int_type "int", @ref float_type "float", or @ref number_type "number"
 
     @par Example
     @code $a /= 10;@endcode
 
     <b>Arguments Processed by /=</b>
     |!Argument|!Processing
-    |All|If either side of the operator is a float, the result will be a float as well. Otherwise the result is an integer value. The \a expression will be evaluated and used to divide the \a lvalue, and the result will be saved to the \a lvalue.
+    |All|The type precedence from highest to lowest is @ref number "number", @ref float "float" float, and @ref integer "int", other types are converted to @ref integer "int"; The \a expression will be evaluated and multiplied by the \a lvalue, and the result will be saved to the \a lvalue. The \a expression will be evaluated and used to divide the \a lvalue, and the result will be saved to the \a lvalue.
 
     @throw DIVISION-BY-ZERO If the divisor expression evaluates to zero, this exception is thrown
 

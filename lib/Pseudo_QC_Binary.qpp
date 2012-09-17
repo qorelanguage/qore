@@ -26,7 +26,7 @@
 //! Methods in this pseudo-class can be executed on @ref binary "binary values"
 /** 
  */
-qclass <binary> [arg=BinaryNode* b;vparent=<value>];
+qclass <binary> [arg=const BinaryNode* b;vparent=<value>];
 
 //! Returns Qore::NT_BINARY
 /** 

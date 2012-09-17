@@ -26,7 +26,7 @@
 //! Methods in this pseudo-class can be executed on @ref float "floating-point values"
 /** 
  */
-qclass <float> [arg=QoreFloatNode* f;vparent=<value>];
+qclass <float> [arg=const QoreFloatNode* f;vparent=<value>];
 
 //! Returns Qore::NT_FLOAT
 /** 
@@ -41,7 +41,7 @@ switch ($f.typeCode()) {
 }
     @endcode
 */
-float <float>::typeCode() [flags=CONSTANT] {
+int <float>::typeCode() [flags=CONSTANT] {
    return NT_FLOAT;
 }
 
