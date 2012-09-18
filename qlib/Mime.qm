@@ -59,8 +59,6 @@ module Mime {
     - @ref MultiPartConstants "MultiPartConstants": constants for the MultiPartMessage classes
     - @ref Mime::MultiPartMessage "MultiPartMessage": the base class for MultiPartMessage classes
     - @ref Mime::MultiPartRelatedMessage "MultiPartRelatedMessage": a class for handling multipart/related messages
-
-    @bug There aren't any decoding functions (yet)
  */
 
 #! public Mime namespace defines constants and functions relevant to MIME
@@ -335,12 +333,12 @@ public namespace Mime {
     public const ContentTransEncQuotedPrintable = "quoted-printable";
 
     #! maximum line length for base64 encoding
-    /** <a href="http://tools.ietf.org/html/rfc2045#section-6.8>RFC 2045 section 6.8</a>
+    /** <a href="http://tools.ietf.org/html/rfc2045#section-6.8">RFC 2045 section 6.8</a>
      */
     public const MimeBase64LineLen = 76;
 
     #! maximum line length for quoted-printable encoding
-    /** <a href="http://tools.ietf.org/html/rfc2045#section-6.7>RFC 2045 section 6.7</a>
+    /** <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
      */
     public const MimeQuotedPrintableLineLen = 76;
     #@}
