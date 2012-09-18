@@ -47,7 +47,7 @@ public:
 	 args->deref(0);
    }
    DLLLOCAL const QoreListNode *getArgs() const { return args; }
-   DLLLOCAL int parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo, bool final = false);
+   DLLLOCAL int parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo);
    DLLLOCAL const AbstractQoreFunctionVariant *getVariant() const {
       return variant;
    }
@@ -90,8 +90,8 @@ public:
       }
    }
 
-   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo, bool final = false) {
-      int lvids = parseArgsVariant(oflag, pflag, func, returnTypeInfo, final);
+   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
+      int lvids = parseArgsVariant(oflag, pflag, func, returnTypeInfo);
       // clear "effect" flag if possible, only if QC_CONSTANT is set on the variant or function
       if (variant)
          doFlags(variant->getFlags());

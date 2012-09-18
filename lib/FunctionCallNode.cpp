@@ -123,7 +123,7 @@ static void check_flags(QoreFunction *func, int64 flags, int64 pflag) {
       warn_deprecated(func);
 }
 
-int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo, bool final) {
+int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
    // number of local variables declared in arguments
    int lvids = 0;
 
@@ -182,12 +182,8 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction 
          if (qc) {
             assert(dynamic_cast<const MethodVariantBase*>(variant));
             const MethodVariantBase* mv = reinterpret_cast<const MethodVariantBase*>(variant);
-            if (mv->isAbstract()) {
-               if (final)
-                  parse_error("cannot reference abstract %s::%s(%s)", mv->method()->getClass()->getName(), mv->method()->getName(), mv->getSignature()->getSignatureText());
-               else
-                  variant = 0;
-            }
+            if (mv->isAbstract())
+               variant = 0;
          }
          if (variant) {
             if (qore_program_private::parseAddDomain(pgm, variant->getFunctionality()))
@@ -272,7 +268,7 @@ AbstractQoreNode *SelfFunctionCallNode::evalImpl(ExceptionSink *xsink) const {
 
 void SelfFunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
    assert(!returnTypeInfo);
-   lvids += parseArgs(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo, true);
+   lvids += parseArgs(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo);
 
    if (method)
       printd(5, "SelfFunctionCallNode::parseInitCall() this=%p resolved '%s' to %p\n", this, method->getName(), method);
