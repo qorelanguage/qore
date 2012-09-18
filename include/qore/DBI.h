@@ -27,17 +27,18 @@
 //! @file DBI.h describes Qore's DBI interface for writing database drivers
 
 // DBI Driver capabilities
-#define DBI_CAP_NONE                     0
-#define DBI_CAP_TIME_ZONE_SUPPORT        (1 << 0)
-#define DBI_CAP_CHARSET_SUPPORT          (1 << 1)
-#define DBI_CAP_TRANSACTION_MANAGEMENT   (1 << 2)
-#define DBI_CAP_STORED_PROCEDURES        (1 << 3)
-#define DBI_CAP_LOB_SUPPORT              (1 << 4)
-#define DBI_CAP_BIND_BY_VALUE            (1 << 5)
-#define DBI_CAP_BIND_BY_PLACEHOLDER      (1 << 6)
-#define DBI_CAP_HAS_EXECRAW              (1 << 7)
-#define DBI_CAP_HAS_STATEMENT            (1 << 8)
-#define DBI_CAP_HAS_SELECT_ROW           (1 << 9)
+#define DBI_CAP_NONE                     0         //!< no capabilities
+#define DBI_CAP_TIME_ZONE_SUPPORT        (1 << 0)  //!< supports time zones in date/time values
+#define DBI_CAP_CHARSET_SUPPORT          (1 << 1)  //!< support tagging/converting character encoding in strings
+#define DBI_CAP_TRANSACTION_MANAGEMENT   (1 << 2)  //!< supports transaction management (commit/rollback)
+#define DBI_CAP_STORED_PROCEDURES        (1 << 3)  //!< supports calling stored procedures/functions
+#define DBI_CAP_LOB_SUPPORT              (1 << 4)  //!< supports large objects in binding and retrieving
+#define DBI_CAP_BIND_BY_VALUE            (1 << 5)  //!< supports bind by value
+#define DBI_CAP_BIND_BY_PLACEHOLDER      (1 << 6)  //!< supports or requires placeholder buffer specifications for output variables
+#define DBI_CAP_HAS_EXECRAW              (1 << 7)  //!< provides the Datasource*::execRaw() method
+#define DBI_CAP_HAS_STATEMENT            (1 << 8)  //!< supports the SQLStatement class
+#define DBI_CAP_HAS_SELECT_ROW           (1 << 9)  //!< provides a native selectRow() method
+#define DBI_CAP_HAS_NUMBER_SUPPORT       (1 << 10) //!< supports arbitrary-precision numeric support for binding and retrieving values; if this is not true then any QoreNumberNode bind arguments will be converted to QoreFloatNode before binding
 
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1

@@ -51,6 +51,7 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_HAS_EXECRAW,            "HasExecRaw" },
   { DBI_CAP_HAS_STATEMENT,          "HasStatementApi" },
   { DBI_CAP_HAS_SELECT_ROW,         "HasSelectRow" },
+  { DBI_CAP_HAS_NUMBER_SUPPORT,     "HasNumberSupport" },
 };
 
 #define NUM_DBI_CAPS (sizeof(dbi_cap_list) / sizeof(dbi_cap_hash))
@@ -209,10 +210,54 @@ dbi_method_list_t *qore_dbi_method_list::getMethods() const {
    return &priv->l;
 }
 
+// helper class that will edit argument lists and convert number values to floats if the driver does not support the "number" type (QoreNumberNode)
+class DbiArgHelper {
+protected:
+   const QoreListNode* orig;
+   QoreListNode* nl;
+   ExceptionSink* xsink;
+
+public:
+   DLLLOCAL DbiArgHelper(const QoreListNode* ol, bool numeric, ExceptionSink* xs) : orig(ol), nl(0), xsink(xs) {
+      if (numeric || !orig)
+         return;
+
+      // scan input list
+      ConstListIterator li(orig);
+      while (li.next()) {
+         if (get_node_type(li.getValue()) == NT_NUMBER) {
+            if (!nl) {
+               nl = new QoreListNode;
+               for (unsigned i = 0; i < li.index(); ++i)
+                  nl->push(orig->get_referenced_entry(i));
+            }
+            nl->push(new QoreFloatNode(li.getValue()->getAsFloat()));
+            continue;
+         }
+         if (nl)
+            nl->push(li.getReferencedValue());
+      }
+   }
+
+   DLLLOCAL ~DbiArgHelper() {
+      if (nl)
+         nl->deref(xsink);
+   }
+
+   DLLLOCAL const QoreListNode* get() const {
+      return nl ? nl : orig;
+   }
+
+   DLLLOCAL const QoreListNode* operator*() const {
+      return nl ? nl : orig;
+   }
+};
+
 struct qore_dbi_private {
    DBIDriverFunctions f;
    int caps;
    const char *name;
+
    DLLLOCAL qore_dbi_private(const char *nme, const dbi_method_list_t &methods, int cps) {
       // add methods to internal data structure
       for (dbi_method_list_t::const_iterator i = methods.begin(), e = methods.end(); i != e; ++i) {
@@ -398,18 +443,22 @@ int DBIDriver::close(Datasource *ds) const {
 }
 
 AbstractQoreNode *DBIDriver::select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
-   return priv->f.select(ds, sql, args, xsink);
+   DbiArgHelper dargs(args, (priv->caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
+   return priv->f.select(ds, sql, *dargs, xsink);
 }
 
 AbstractQoreNode *DBIDriver::selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
-   return priv->f.selectRows(ds, sql, args, xsink);
+   DbiArgHelper dargs(args, (priv->caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
+   return priv->f.selectRows(ds, sql, *dargs, xsink);
 }
 
 QoreHashNode *DBIDriver::selectRow(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
-   if (priv->f.selectRow)
-      return priv->f.selectRow(ds, sql, args, xsink);
+   DbiArgHelper dargs(args, (priv->caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
 
-   ReferenceHolder<AbstractQoreNode> res(priv->f.selectRows(ds, sql, args, xsink), xsink);
+   if (priv->f.selectRow)
+      return priv->f.selectRow(ds, sql, *dargs, xsink);
+
+   ReferenceHolder<AbstractQoreNode> res(priv->f.selectRows(ds, sql, *dargs, xsink), xsink);
    if (!res)
       return 0;
 
@@ -430,7 +479,8 @@ QoreHashNode *DBIDriver::selectRow(Datasource *ds, const QoreString *sql, const 
 }
 
 AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
-   return priv->f.execSQL(ds, sql, args, xsink);
+   DbiArgHelper dargs(args, (priv->caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
+   return priv->f.execSQL(ds, sql, *dargs, xsink);
 }
 
 AbstractQoreNode *DBIDriver::execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink) const {
@@ -483,7 +533,8 @@ AbstractQoreNode *DBIDriver::getClientVersion(const Datasource *ds, ExceptionSin
 }
 
 int DBIDriver::stmt_prepare(SQLStatement *stmt, const QoreString &str, const QoreListNode *args, ExceptionSink *xsink) const {
-   return priv->f.stmt.prepare(stmt, str, args, xsink);
+   DbiArgHelper dargs(args, (priv->caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
+   return priv->f.stmt.prepare(stmt, str, *dargs, xsink);
 }
 
 int DBIDriver::stmt_prepare_raw(SQLStatement *stmt, const QoreString &str, ExceptionSink *xsink) const {
@@ -646,8 +697,13 @@ void DBI_concat_numeric(QoreString *str, const AbstractQoreNode *v) {
       return;
    }
 
-   if (v->getType() == NT_FLOAT || (v->getType() == NT_STRING && strchr((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), '.'))) {
+   qore_type_t t = v->getType();
+   if (t == NT_FLOAT || (t == NT_STRING && strchr((reinterpret_cast<const QoreStringNode*>(v))->getBuffer(), '.'))) {
       str->sprintf("%g", v->getAsFloat());
+      return;
+   }
+   else if (t == NT_NUMBER) {
+      reinterpret_cast<const QoreNumberNode*>(v)->getStringRepresentation(*str);
       return;
    }
    str->sprintf("%lld", v->getAsBigInt());
