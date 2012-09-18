@@ -712,15 +712,15 @@ fi
 AC_MSG_CHECKING([for mpfr_divby0_p])
 if test -n "$mpfr_db0"; then
    AC_DEFINE([HAVE_MPFR_DIVBY0], 1, [define if the mpfr library supports mpfr_divby0_p and associated functions])
-   AC_MSG_RESULT([ok])
+   AC_MSG_RESULT([yes])
 else
    AC_MSG_RESULT([not found])
 fi
 
-AC_MSG_CHECKING([for mpfr_ext_t])
-if test -n "$mpfr_ext_t"; then
-   AC_DEFINE([HAVE_MPFR_EXT_T], 1, [define if the mpfr library supports mpfr_ext_t])
-   AC_MSG_RESULT([ok])
+AC_MSG_CHECKING([for mpfr_exp_t])
+if test -n "$mpfr_exp_t"; then
+   AC_DEFINE([HAVE_MPFR_EXP_T], 1, [define if the mpfr library supports mpfr_exp_t])
+   AC_MSG_RESULT([yes])
 else
    AC_MSG_RESULT([not found])
 fi
@@ -728,7 +728,7 @@ fi
 AC_MSG_CHECKING([for mpfr_regular_p])
 if test -n "$mpfr_regular"; then
    AC_DEFINE([HAVE_MPFR_REGULAR], 1, [define if the mpfr library supports mpfr_regular_p])
-   AC_MSG_RESULT([ok])
+   AC_MSG_RESULT([yes])
 else
    AC_MSG_RESULT([not found])
 fi
