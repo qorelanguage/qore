@@ -27,9 +27,16 @@
 
 #define QORE_DEFAULT_PREC 128
 #define QORE_MAX_PREC 8192
+#ifndef MPFR_RNDN
+#define MPFR_RNDN GMP_RNDN
+#endif
 // round to nearest (roundTiesToEven in IEEE 754-2008)
 #define QORE_MPFR_RND MPFR_RNDN
 // MPFR_RNDA
+
+#ifndef HAVE_MPFR_EXP_T
+typedef mp_exp_t mpfr_exp_t;
+#endif
 
 // for binary operations on MPFR data
 typedef int (*q_mpfr_binary_func_t)(mpfr_t, const mpfr_t, const mpfr_t, mpfr_rnd_t);
@@ -61,11 +68,17 @@ struct qore_number_private_intern {
          mpfr_prec_round(num, p, QORE_MPFR_RND);
    }
 
+   DLLLOCAL static void do_divide_by_zero(ExceptionSink* xsink) {
+      xsink->raiseException("DIVISION-BY-ZERO", "division by zero error in numeric operatior");
+   }
+
    DLLLOCAL static void checkFlags(ExceptionSink* xsink) {
+#ifdef HAVE_MPFR_DIVBY0
       if (mpfr_divby0_p()) {
          mpfr_clear_divby0();
-         xsink->raiseException("DIVISION-BY-ZERO", "division by zero error in numeric operatior");
+         do_divide_by_zero(xsink);
       }
+#endif
       if (mpfr_erangeflag_p()) {
          mpfr_clear_erangeflag();
          xsink->raiseException("INVALID-NUMERIC-OPERATION", "invalid numeric operation attempted");
@@ -121,10 +134,12 @@ struct qore_number_private : public qore_number_private_intern {
       return (bool)mpfr_number_p(num);
    }
 
+#ifdef HAVE_MPFR_REGULAR
    // regular and not zero
    DLLLOCAL bool regular() const {
       return (bool)mpfr_regular_p(num);
    }
+#endif
 
    DLLLOCAL int sign() const {
       return mpfr_sgn(num);
@@ -230,6 +245,12 @@ struct qore_number_private : public qore_number_private_intern {
 
    //! add the argument to this value and return the result
    DLLLOCAL qore_number_private* doDivideBy(const qore_number_private& r, ExceptionSink* xsink) const {
+#ifndef HAVE_MPFR_DIVBY0
+      if (r.zero()) {
+         do_divide_by_zero(xsink);
+         return 0;
+      }
+#endif
       return doBinary(mpfr_div, r, xsink);
    }
 

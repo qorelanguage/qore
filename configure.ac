@@ -647,6 +647,11 @@ find_mpfr() {
 	unset with_mpfr_libs
 	return
     fi
+    # see if mpfr_divby0_p is supported
+    mpfr_db0=`grep mpfr_divby0_p "$with_mpfr_includes/mpfr.h" 2>/dev/null`
+    mpfr_exp_t=`grep mpfr_exp_t "$with_mpfr_includes/mpfr.h" 2>/dev/null`
+    mpfr_regular=`grep mpfr_regular_p "$with_mpfr_includes/mpfr.h" 2>/dev/null`
+
     QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $MPFR_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $MPFR_CPPFLAGS"
 }
@@ -702,6 +707,30 @@ if test -n "$mpfr_static"; then
    AC_MSG_RESULT([includes $with_mpfr_includes libs $with_mpfr_libs (static)])
 else
    AC_MSG_RESULT([includes $with_mpfr_includes libs $with_mpfr_libs (shared)])
+fi
+
+AC_MSG_CHECKING([for mpfr_divby0_p])
+if test -n "$mpfr_db0"; then
+   AC_DEFINE([HAVE_MPFR_DIVBY0], 1, [define if the mpfr library supports mpfr_divby0_p and associated functions])
+   AC_MSG_RESULT([ok])
+else
+   AC_MSG_RESULT([not found])
+fi
+
+AC_MSG_CHECKING([for mpfr_ext_t])
+if test -n "$mpfr_ext_t"; then
+   AC_DEFINE([HAVE_MPFR_EXT_T], 1, [define if the mpfr library supports mpfr_ext_t])
+   AC_MSG_RESULT([ok])
+else
+   AC_MSG_RESULT([not found])
+fi
+
+AC_MSG_CHECKING([for mpfr_regular_p])
+if test -n "$mpfr_regular"; then
+   AC_DEFINE([HAVE_MPFR_REGULAR], 1, [define if the mpfr library supports mpfr_regular_p])
+   AC_MSG_RESULT([ok])
+else
+   AC_MSG_RESULT([not found])
 fi
 
 # see if we can figure out where the gmp library is

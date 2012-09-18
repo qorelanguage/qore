@@ -82,6 +82,9 @@
 #include <inttypes.h>
 #endif
 
+// make sure that intmax support is available from mpfr
+#define MPFR_USE_INTMAX_T 1
+
 // for arbitrary-precision numeric support
 #include <mpfr.h>
 
