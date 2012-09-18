@@ -179,6 +179,9 @@ public:
    //! returns true if the number is zero
    DLLEXPORT bool zero() const;
 
+   //! returns -1 if the number is negative, 0 if zero, or 1 if the number is positive
+   DLLEXPORT int sign() const;
+
    //! compares the argument to the current object, returns -1 if the current object is less than the argument, 0 if equals, and 1 if greater than the argument
    DLLEXPORT int compare(const QoreNumberNode& n) const;
 

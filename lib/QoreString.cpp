@@ -1968,7 +1968,6 @@ qore_offset_t QoreString::bindex(const char *needle, qore_offset_t pos) const {
    return priv->bindex(needle, pos);
 }
 
-
 qore_offset_t QoreString::bindex(const std::string &needle, qore_offset_t pos) const {
    return priv->bindex(needle, pos);
 }
@@ -1987,6 +1986,14 @@ qore_offset_t QoreString::brindex(const char *needle, qore_offset_t pos) const {
 
 qore_offset_t QoreString::brindex(const std::string &needle, qore_offset_t pos) const {
    return priv->brindex(needle, pos);
+}
+
+qore_offset_t QoreString::find(char c, qore_offset_t pos) const {
+   return priv->find(c, pos);
+}
+
+qore_offset_t QoreString::rfind(char c, qore_offset_t pos) const {
+   return priv->rfind(c, pos);
 }
 
 bool QoreString::isDataPrintableAscii() const {

@@ -584,29 +584,35 @@ public:
    //! returns true if the string is empty, false if not
    DLLEXPORT bool empty() const;
 
-   //! returns the character position of a substring within the string
+   //! returns the character position of a substring within the string or -1 if not found
    DLLEXPORT qore_offset_t index(const QoreString& needle, qore_offset_t pos, ExceptionSink* xsink) const;
 
-   //! returns the byte position of a substring within the string
+   //! returns the byte position of a substring within the string or -1 if not found
    DLLEXPORT qore_offset_t bindex(const QoreString& needle, qore_offset_t pos) const;
 
-   //! returns the byte position of a substring within the string
+   //! returns the byte position of a substring within the string or -1 if not found
    DLLEXPORT qore_offset_t bindex(const char* needle, qore_offset_t pos) const;
 
-   //! returns the byte position of a substring within the string
+   //! returns the byte position of a substring within the string or -1 if not found
    DLLEXPORT qore_offset_t bindex(const std::string& needle, qore_offset_t pos) const;
 
-   //! returns the character position of a substring from the end of the string
+   //! returns the character position of a substring searching in reverse from a given position or -1 if not found
    DLLEXPORT qore_offset_t rindex(const QoreString& needle, qore_offset_t pos, ExceptionSink* xsink) const;
 
-   //! returns the byte position of a substring within the string
+   //! returns the byte position of a substring within the string searching in reverse from a given position or -1 if not found
    DLLEXPORT qore_offset_t brindex(const QoreString& needle, qore_offset_t pos) const;
 
-   //! returns the byte position of a substring within the string
+   //! returns the byte position of a substring within the string searching in reverse from a given position or -1 if not found
    DLLEXPORT qore_offset_t brindex(const char* needle, qore_offset_t pos) const;
 
-   //! returns the byte position of a substring within the string
+   //! returns the byte position of a substring within the string searching in reverse from a given position or -1 if not found
    DLLEXPORT qore_offset_t brindex(const std::string& needle, qore_offset_t pos) const;
+
+   //! returns the byte position of a character (byte) within the string or -1 if not found
+   DLLEXPORT qore_offset_t find(char c, qore_offset_t pos = 0) const;
+
+   //! returns the byte position of a character (byte) within the string or -1 if not found
+   DLLEXPORT qore_offset_t rfind(char c, qore_offset_t pos = -1) const;
 
    //! returns true if the string is empty or only contains printable non-control ASCII characters (ie all characters > 31 && < 127)
    /** @note the string's encoding is ignored and the data itself is scanned for the return value

@@ -97,11 +97,43 @@ public:
       n_num = num;
    }
 
+   DLLLOCAL qore_offset_t find(char c, qore_offset_t pos = 0) {
+      if (pos < 0) {
+         pos = len + pos;
+         if (pos < 0)
+            pos = 0;
+      }
+      else if (pos > 0 && pos > len)
+         return -1;
+      const char* p;
+      if (!(p = strchr(buf + pos, c)))
+         return -1;
+      return (qore_offset_t)(p - buf);
+   }
+
+   DLLLOCAL qore_offset_t rfind(char c, qore_offset_t pos = -1) {
+      if (pos < 0) {
+         pos = len + pos;
+         if (pos < 0)
+            return -1;
+      }
+      else if (pos > 0 && pos > len)
+         pos = len - 1;
+
+      const char* p = buf + pos;
+      while (p >= buf) {
+         if (*p == c)
+            return (qore_offset_t)(p - buf);
+         --p;
+      }
+      return -1;
+   }
+
    DLLLOCAL static qore_offset_t index_simple(const char *haystack, const char *needle, qore_offset_t pos = 0) {
       const char *p;
       if (!(p = strstr(haystack + pos, needle)))
          return -1;
-      return (int)(p - haystack);
+      return (qore_offset_t)(p - haystack);
    }
 
    DLLLOCAL qore_offset_t index(const QoreString &orig_needle, qore_offset_t pos, ExceptionSink *xsink) const {

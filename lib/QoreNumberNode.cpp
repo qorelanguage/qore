@@ -166,6 +166,10 @@ bool QoreNumberNode::zero() const {
    return priv->zero();
 }
 
+int QoreNumberNode::sign() const {
+   return priv->sign();
+}
+
 QoreNumberNode* QoreNumberNode::doPlus(const QoreNumberNode& right) const {
    return new QoreNumberNode(priv->doPlus(*right.priv));
 }
