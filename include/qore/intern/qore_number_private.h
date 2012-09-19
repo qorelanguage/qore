@@ -27,7 +27,7 @@
 
 #define QORE_DEFAULT_PREC 128
 #define QORE_MAX_PREC 8192
-#ifndef MPFR_RNDN
+#ifndef HAVE_MPFR_RNDN
 #define MPFR_RNDN GMP_RNDN
 #endif
 // round to nearest (roundTiesToEven in IEEE 754-2008)
@@ -145,6 +145,23 @@ struct qore_number_private : public qore_number_private_intern {
       return mpfr_sgn(num);
    }
 
+   DLLLOCAL void sprintf(QoreString& str, const char* fmt) const {
+      int len = mpfr_snprintf(0, 0, fmt, num);
+      if (!len)
+         return;
+      if (len < 0) {
+         numError(str);
+         return;
+      }
+      str.allocate(str.size() + len + 1);
+      mpfr_sprintf((char*)(str.getBuffer() + str.size()), fmt, num);
+      str.terminate(str.size() + len);
+   }
+
+   DLLLOCAL void getScientificString(QoreString& str) const {
+      sprintf(str, "%Re");
+   }
+
    DLLLOCAL void getAsString(QoreString& str) const {
       // first check for zero
       if (zero()) {
@@ -153,20 +170,14 @@ struct qore_number_private : public qore_number_private_intern {
       }
 
 #ifdef DO_MPFR_PRINTF
-#define QORE_MPFR_BUFSIZE 512
-      str.allocate(str.size() + QORE_MPFR_BUFSIZE);
-      int len = mpfr_sprintf((char*)(str.getBuffer() + str.size()), "%Re", num);
-      if (len > 0) {
-         str.terminate(str.size() + len);
-         //str.concat('n');
-      }
-      else
-         str.concat("<error>");
+      getScientificString(str);
+      return;
 #else
       mpfr_exp_t exp;
+
       char* buf = mpfr_get_str(0, &exp, 10, 0, num, QORE_MPFR_RND);
       if (!buf) {
-         str.concat("<number error>");
+         numError(str);
          return;
       }
 
@@ -285,25 +296,46 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL void inc() {
-      //MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      // some compilers (sun/oracle pro c++ notably) do not support arrays with a variable size
+      // if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
+#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
+      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      mpfr_set(tmp, num, QORE_MPFR_RND);
+      mpfr_add_si(num, tmp, 1, QORE_MPFR_RND);
+#else
       qore_number_private tmp(mpfr_get_prec(num));
       mpfr_set(tmp.num, num, QORE_MPFR_RND);
       mpfr_add_si(num, tmp.num, 1, QORE_MPFR_RND);
+#endif
    }
 
    DLLLOCAL void dec() {
-      //MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      // some compilers (sun/oracle pro c++ notably) do not support arrays with a variable size
+      // if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
+#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
+      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      mpfr_set(tmp, num, QORE_MPFR_RND);
+      mpfr_sub_si(num, tmp, 1, QORE_MPFR_RND);
+#else
       qore_number_private tmp(mpfr_get_prec(num));
       mpfr_set(tmp.num, num, QORE_MPFR_RND);
       mpfr_sub_si(num, tmp.num, 1, QORE_MPFR_RND);
+#endif
    }
 
    DLLLOCAL void doBinaryInplace(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) {
       checkPrec(r.num);
-      //MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      // some compilers (sun/oracle pro c++ notably) do not support arrays with a variable size
+      // if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
+#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
+      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      mpfr_set(tmp, num, QORE_MPFR_RND);
+      func(num, tmp, r.num, QORE_MPFR_RND);
+#else
       qore_number_private tmp(mpfr_get_prec(num));
       mpfr_set(tmp.num, num, QORE_MPFR_RND);
       func(num, tmp.num, r.num, QORE_MPFR_RND);
+#endif
       if (xsink)
          checkFlags(xsink);
    }
@@ -323,6 +355,10 @@ struct qore_number_private : public qore_number_private_intern {
    DLLLOCAL void divideEquals(const qore_number_private& r) {
       assert(!r.zero());
       doBinaryInplace(mpfr_div, r);
+   }
+
+   DLLLOCAL static numError(QoreString& str) {
+      str.concat("<number error>");
    }
 
    // static accessor methods

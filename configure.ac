@@ -651,6 +651,7 @@ find_mpfr() {
     mpfr_db0=`grep mpfr_divby0_p "$with_mpfr_includes/mpfr.h" 2>/dev/null`
     mpfr_exp_t=`grep mpfr_exp_t "$with_mpfr_includes/mpfr.h" 2>/dev/null`
     mpfr_regular=`grep mpfr_regular_p "$with_mpfr_includes/mpfr.h" 2>/dev/null`
+    mpfr_rndn=`grep MPFR_RNDN "$with_mpfr_includes/mpfr.h" 2>/dev/null`
 
     QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $MPFR_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $MPFR_CPPFLAGS"
@@ -728,6 +729,14 @@ fi
 AC_MSG_CHECKING([for mpfr_regular_p])
 if test -n "$mpfr_regular"; then
    AC_DEFINE([HAVE_MPFR_REGULAR], 1, [define if the mpfr library supports mpfr_regular_p])
+   AC_MSG_RESULT([yes])
+else
+   AC_MSG_RESULT([not found])
+fi
+
+AC_MSG_CHECKING([for MPFR_RNDN])
+if test -n "$mpfr_rndn"; then
+   AC_DEFINE([HAVE_MPFR_RNDN], 1, [define if the mpfr library defines MPFR_RNDN])
    AC_MSG_RESULT([yes])
 else
    AC_MSG_RESULT([not found])
@@ -1500,6 +1509,15 @@ then
   AC_DEFINE([HAVE_GETHOSTBYNAME_R_RETURN_INT], [1],
             [In OSF 4.0f the 3'd argument to gethostname_r is hostent_data *])
 fi
+
+# check if the compiler supports variadic local arrays
+AC_MSG_CHECKING([c++ compiler supports local variadic arrays])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+  [[]],
+  [[int x = 2; int y[x];]])],
+     [AC_MSG_RESULT([yes])
+      AC_DEFINE([HAVE_LOCAL_VARIADIC_ARRAYS], 1, [Define if the c++ compiler supports local variadic arrays])],
+     [AC_MSG_RESULT([no])])
 
 # turn on optimizations if we know how
 if test "$enable_optimization" = "yes"; then
