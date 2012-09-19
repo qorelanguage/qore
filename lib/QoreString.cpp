@@ -442,6 +442,13 @@ void QoreString::replace(qore_size_t offset, qore_size_t dlen, const QoreString 
    splice_simple(offset, dlen);
 }
 
+void QoreString::replaceChar(qore_size_t offset, char c) {
+   if (priv->len <= offset)
+      return;
+
+   priv->buf[offset] = c;
+}
+
 void QoreString::splice(qore_offset_t offset, ExceptionSink *xsink) {
    if (!priv->charset->isMultiByte()) {
       qore_size_t n_offset = priv->check_offset(offset);
@@ -2004,3 +2011,6 @@ bool QoreString::isDataAscii() const {
    return priv->isDataAscii();
 }
 
+int64 QoreString::toBigInt() const {
+   return strtoll(priv->buf, 0, 10);
+}

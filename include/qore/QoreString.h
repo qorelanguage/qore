@@ -342,6 +342,11 @@ public:
     */
    DLLEXPORT void replace(qore_size_t offset, qore_size_t len, const QoreString* str, ExceptionSink* xsink);
 
+   //! replaces a byte with the byte passed
+   /** offsets and size are in bytes, not characters
+    */
+   DLLEXPORT void replaceChar(qore_size_t offset, char c);
+
    //! removes characters from the string starting at position "offset"
    /** values are for characters, not bytes
        @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
@@ -575,10 +580,10 @@ public:
     */
    DLLEXPORT char operator[](qore_offset_t pos) const;
 
-   //! concatenates the characters to the string; assumes the string to be concantenated is already in the character encoding of the "this" string
+   //! concatenates the characters to the string; assumes the string to be concatenated is already in the character encoding of the "this" string
    DLLEXPORT QoreString& operator+=(const char* str);
 
-   //! concatenates the characters to the string; assumes the string to be concantenated is already in the character encoding of the "this" string
+   //! concatenates the characters to the string; assumes the string to be concatenated is already in the character encoding of the "this" string
    DLLEXPORT QoreString& operator+=(const std::string& str);
 
    //! returns true if the string is empty, false if not
@@ -623,6 +628,9 @@ public:
    /** @note the string's encoding is ignored and the data itself is scanned for the return value
    */
    DLLEXPORT bool isDataAscii() const;
+
+   //! returns the value of the string as an int64
+   DLLEXPORT int64 toBigInt() const;
 
    // concatenates a qorestring without converting encodings - internal only
    DLLLOCAL void concat(const QoreString* str);

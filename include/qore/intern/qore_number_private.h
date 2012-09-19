@@ -25,6 +25,9 @@
 
 #define _QORE_QORE_NUMBER_PRIVATE_H
 
+// the number of consecutive trailing 0 or 9 digits that will be rounded in string output
+#define QORE_MPFR_ROUND_THRESHOLD 9
+
 #define QORE_DEFAULT_PREC 128
 #define QORE_MAX_PREC 8192
 #ifndef HAVE_MPFR_RNDN
@@ -162,61 +165,7 @@ struct qore_number_private : public qore_number_private_intern {
       sprintf(str, "%Re");
    }
 
-   DLLLOCAL void getAsString(QoreString& str) const {
-      // first check for zero
-      if (zero()) {
-         str.concat("0");
-         return;
-      }
-
-#ifdef DO_MPFR_PRINTF
-      getScientificString(str);
-      return;
-#else
-      mpfr_exp_t exp;
-
-      char* buf = mpfr_get_str(0, &exp, 10, 0, num, QORE_MPFR_RND);
-      if (!buf) {
-         numError(str);
-         return;
-      }
-
-      // if it's a regular number, then format accordingly
-      if (number()) {
-         int sgn = sign();
-         qore_size_t len = str.size() + (sgn < 0 ? 1 : 0);
-         //printd(0, "QoreNumberNode::getAsString() this: %p '%s' exp "QLLD" len: "QLLD"\n", this, buf, exp, len);
-
-         str.concat(buf);
-         // trim the trailing zeros off the end
-         str.trim_trailing('0');
-         if (exp <= 0) {
-            exp = -exp;
-            str.insert("0.", len);
-            if (exp)
-               str.insertch('0', len + 2, exp);
-         }
-         else {
-            // get remaining length of string (how many characters were added)
-            qore_size_t rlen = str.size() - len;
-
-            //printd(0, "QoreNumberNode::getAsString() this: %p str: '%s' rlen: "QLLD"\n", this, str.getBuffer(), rlen);
-
-            // assert that we have added at least 1 character
-            assert(rlen > 0);
-            if ((qore_size_t)exp > rlen)
-               str.insertch('0', str.size(), exp - rlen);
-            else if ((qore_size_t)exp < rlen)
-               str.insertch('.', len + exp, 1);
-         }
-         //str.concat('n');
-      }
-      else
-         str.concat(buf);
-
-      mpfr_free_str(buf);
-#endif
-   }
+   DLLLOCAL void getAsString(QoreString& str) const;
 
    DLLLOCAL int compare(const qore_number_private& right) const {
       return mpfr_cmp(num, right.num);
@@ -407,6 +356,12 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL static QoreNumberNode* getInfinity() {
       return new QoreNumberNode(new qore_number_private("@Inf@"));
+   }
+
+   DLLLOCAL static QoreNumberNode* getPi() {
+      qore_number_private* p = new qore_number_private(0ll);
+      mpfr_const_pi(p->num, QORE_MPFR_RND);
+      return new QoreNumberNode(p);
    }
 
    DLLLOCAL static qore_number_private* get(const QoreNumberNode& n) {

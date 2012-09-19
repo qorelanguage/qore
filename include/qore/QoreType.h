@@ -37,7 +37,7 @@ DLLEXPORT extern QoreStringNode* NullString;
 DLLEXPORT extern DateTimeNode* ZeroDate;
 DLLEXPORT extern QoreBigIntNode* Zero;
 DLLEXPORT extern QoreFloatNode* ZeroFloat;
-DLLEXPORT extern QoreNumberNode* ZeroNumber, * InfinityNumber, * NaNumber;
+DLLEXPORT extern QoreNumberNode* ZeroNumber, * InfinityNumber, * NaNumber, * piNumber;
 
 DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString, 
    FalseString, EmptyHashString, EmptyListString;
@@ -119,6 +119,11 @@ static inline QoreFloatNode* zero_float() {
    return ZeroFloat;
 }
 
+static inline QoreNumberNode* zero_number() {
+   ZeroNumber->ref();
+   return ZeroNumber;
+}
+
 static inline DateTimeNode* zero_date() {
    ZeroDate->ref();
    return ZeroDate;
@@ -137,6 +142,11 @@ static inline QoreListNode* empty_list() {
 static inline QoreHashNode* empty_hash() {
    emptyHash->ref();
    return emptyHash;
+}
+
+static inline QoreNumberNode* pi_number() {
+   piNumber->ref();
+   return piNumber;
 }
 
 //! return type for type matching functions

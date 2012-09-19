@@ -23,6 +23,120 @@
 #include <qore/Qore.h>
 #include <qore/intern/qore_number_private.h>
 
+void qore_number_private::getAsString(QoreString& str) const {
+   // first check for zero
+   if (zero()) {
+      str.concat("0");
+      return;
+   }
+
+#ifdef DO_MPFR_PRINTF
+   getScientificString(str);
+   return;
+#else
+   mpfr_exp_t exp;
+
+   char* buf = mpfr_get_str(0, &exp, 10, 0, num, QORE_MPFR_RND);
+   if (!buf) {
+      numError(str);
+      return;
+   }
+   ON_BLOCK_EXIT(mpfr_free_str, buf);
+
+   //printd(5, "QoreNumberNode::getAsString() buf: '%s'\n", buf);
+
+   // if it's a regular number, then format accordingly
+   if (number()) {
+      int sgn = sign();
+      qore_size_t len = str.size() + (sgn < 0 ? 1 : 0);
+      //printd(5, "QoreNumberNode::getAsString() this: %p '%s' exp "QLLD" len: "QLLD"\n", this, buf, exp, len);
+
+      qore_size_t dp = 0;
+
+      str.concat(buf);
+      // trim the trailing zeros off the end
+      str.trim_trailing('0');
+      if (exp <= 0) {
+	 exp = -exp;
+	 str.insert("0.", len);
+	 dp = len + 2;
+	 if (exp)
+	    str.insertch('0', len + 2, exp);
+      }
+      else {
+	 // get remaining length of string (how many characters were added)
+	 qore_size_t rlen = str.size() - len;
+
+	 //printd(0, "QoreNumberNode::getAsString() this: %p str: '%s' rlen: "QLLD"\n", this, str.getBuffer(), rlen);
+
+	 // assert that we have added at least 1 character
+	 assert(rlen > 0);
+	 if ((qore_size_t)exp > rlen)
+	    str.insertch('0', str.size(), exp - rlen);
+	 else if ((qore_size_t)exp < rlen) {
+	    str.insertch('.', len + exp, 1);
+	    dp = len + exp + 1;
+	 }
+      }
+      // try to do some rounding
+      if (dp) {
+	 qore_size_t i = dp;
+	 char lc = 0;
+	 // 0 or 9 count
+	 unsigned cnt = 0;
+	 qore_size_t last = str.size() - 1;
+	 // check all except the last digit
+	 while (i < last) {
+	    char c = str[i];
+	    if (c == '0' || c == '9') {
+	       if (c == lc)
+		  ++cnt;
+	       else {
+		  // reset count
+		  lc = c;
+		  cnt = 0;
+	       }
+	    }
+	    else {
+	       // reset count
+	       lc = 0;
+	       cnt = 0;
+	    }
+
+	    ++i;
+	 }
+
+	 // round the number for display
+	 if (cnt > QORE_MPFR_ROUND_THRESHOLD) {
+	    //printd(5, "ROUND BEFORE: (cnt: %d) %s\n", cnt, str.getBuffer()); 
+	    qore_offset_t i = str.size() - 2 - cnt;
+	    str.terminate(i);
+	    // rounding down is easy; the truncation is enough
+	    if (lc == '9') {
+	       // round up
+	       --i;
+	       for (; i > 0; --i) {
+		  char c = str[i];
+		  if (c == '.')
+		     continue;
+		  if (c < '9') {
+		     str.replaceChar(i, c + 1);
+		     break;
+		  }
+		  str.replaceChar(i, '0');
+	       }
+	       if (i == -1)
+		  str.insertch('1', 0, 1);
+	    }
+	    //printd(5, "ROUND AFTER: %s\n", str.getBuffer());
+	 }
+      }
+   }
+   else
+      str.concat(buf);
+#endif
+}
+
 QoreNumberNode::QoreNumberNode(struct qore_number_private* p) : SimpleValueQoreNode(NT_NUMBER), priv(p) {
 }
 

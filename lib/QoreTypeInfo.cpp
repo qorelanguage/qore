@@ -166,7 +166,7 @@ QoreStringNode* NullString;
 DateTimeNode* ZeroDate;
 QoreBigIntNode* Zero;
 QoreFloatNode* ZeroFloat;
-QoreNumberNode* ZeroNumber, * NaNumber, * InfinityNumber;
+QoreNumberNode* ZeroNumber, * NaNumber, * InfinityNumber, * piNumber;
 
 // map from types to default values
 typedef std::map<qore_type_t, AbstractQoreNode* > def_val_map_t;
@@ -210,6 +210,7 @@ void init_qore_types() {
    ZeroNumber     = new QoreNumberNode;
    NaNumber       = qore_number_private::getNaNumber();
    InfinityNumber = qore_number_private::getInfinity();
+   piNumber       = qore_number_private::getPi();
 
    emptyList      = new QoreListNode;
    emptyHash      = new QoreHashNode;
@@ -277,6 +278,7 @@ void delete_qore_types() {
 
    // dereference global default values
    NullString->deref();
+   piNumber->deref();
    InfinityNumber->deref();
    NaNumber->deref();
    ZeroNumber->deref();

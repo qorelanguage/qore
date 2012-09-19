@@ -42,8 +42,23 @@ static double minus_infinity() {
     Math constants
  */
 //@{
-//! PI
+//! PI (floating-point)
 const M_PI = 3.14159265358979323846;
+
+//! PI (arbitrary-precision numeric)
+/** @since %Qore 0.8.6
+ */
+const M_PIn = qore(pi_number());
+
+//! largest integer
+/** @since %Qore 0.8.6
+ */
+const MAXINT = LLONG_MAX;
+
+//! smallest integer
+/** @since %Qore 0.8.6
+ */
+const MININT = qore(new QoreBigIntNode(-LLONG_MAX - 1));
 //@}
 
 /** @defgroup math_functions Math Functions
