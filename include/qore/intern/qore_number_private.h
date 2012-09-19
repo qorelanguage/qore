@@ -357,7 +357,7 @@ struct qore_number_private : public qore_number_private_intern {
       doBinaryInplace(mpfr_div, r);
    }
 
-   DLLLOCAL static numError(QoreString& str) {
+   DLLLOCAL static void numError(QoreString& str) {
       str.concat("<number error>");
    }
 
