@@ -51,7 +51,7 @@ AbstractQoreNode *QoreAssignmentOperatorNode::parseInitImpl(LocalVar *oflag, int
 	 ti->getThisType(*edesc);
 	 edesc->concat(", but right-hand side is ");
 	 r->getThisType(*edesc);
-	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
+	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
       }
    }
 

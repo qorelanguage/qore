@@ -182,7 +182,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
 	    // issue an error if there was no match and it's not a hash
 	    QoreStringNode *edesc = new QoreStringNode;
 	    edesc->sprintf("no pseudo-method <%s>.%s() can be found", typeInfo->getName(), mname);
-	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
+	    qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
 	 }
       }
 
