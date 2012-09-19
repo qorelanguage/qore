@@ -103,7 +103,7 @@ public:
          if (pos < 0)
             pos = 0;
       }
-      else if (pos > 0 && pos > len)
+      else if (pos > 0 && pos > (qore_offset_t)len)
          return -1;
       const char* p;
       if (!(p = strchr(buf + pos, c)))
@@ -117,7 +117,7 @@ public:
          if (pos < 0)
             return -1;
       }
-      else if (pos > 0 && pos > len)
+      else if (pos > 0 && pos > (qore_offset_t)len)
          pos = len - 1;
 
       const char* p = buf + pos;
