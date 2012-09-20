@@ -24,6 +24,29 @@
 #include <qore/Qore.h>
 #include <qore/intern/qore_number_private.h>
 
+#define NF_Default    0
+#define NF_Scientific (1 << 0)
+#define NF_Raw        (1 << 1)
+
+/** @defgroup number_formatting_constants Number Formatting Constants
+*/
+//@{
+//! for the default format with a rounding heuristic to try to remove noise in insignificant digits from the binary to digital conversion of high-precision numbers
+const NF_Default = NF_Default;
+
+//! for the scientific format (exponential notation)
+const NF_Scientific = NF_Scientific;
+
+//! for the raw format without the noise reduction heuristic in the @ref NF_Default format
+/** note that this can be combined with binary or with @ref NF_Scientific as well to get an exponential output without rounding
+    @par Example:
+    @code
+    my string $str = $n.toString(NF_Scientific|NF_Raw);
+    @endcode
+ */
+const NF_Raw = NF_Raw;
+//@}
+
 //! Methods in this pseudo-class can be executed on @ref number "arbitrary precision number values"
 /** 
  */
@@ -41,6 +64,8 @@ switch ($f.typeCode()) {
         break;
 }
     @endcode
+
+    @since %Qore 0.8.6
 */
 int <number>::typeCode() [flags=CONSTANT] {
    return NT_NUMBER;
@@ -54,6 +79,8 @@ int <number>::typeCode() [flags=CONSTANT] {
     @code
 my bool $b = $f.val();
     @endcode
+
+    @since %Qore 0.8.6
 */
 bool <number>::val() [flags=CONSTANT] {
    return !n->zero();
@@ -68,6 +95,8 @@ bool <number>::val() [flags=CONSTANT] {
 if ($n.intp())
     printf("%y: can be converted to an integer: %d\n", $n, int($n));
     @endcode
+
+    @since %Qore 0.8.6
 */
 bool <number>::intp() [flags=CONSTANT] {
    return true;
@@ -82,6 +111,8 @@ bool <number>::intp() [flags=CONSTANT] {
 if ($n.strp())
     printf("%y: can be converted to a string: '%s'\n", $n, string($n));
     @endcode
+
+    @since %Qore 0.8.6
 */
 bool <number>::strp() [flags=CONSTANT] {
    return true;
@@ -96,6 +127,8 @@ bool <number>::strp() [flags=CONSTANT] {
 if ($n.nan())
     print("the operation resulted in NaN\n");
     @endcode
+
+    @since %Qore 0.8.6
 */
 bool <number>::nan() [flags=CONSTANT] {
    return qore_number_private::get(*n)->nan();
@@ -110,6 +143,8 @@ bool <number>::nan() [flags=CONSTANT] {
 if ($n.inf())
     print("the operation resulted in infinity\n");
     @endcode
+
+    @since %Qore 0.8.6
 */
 bool <number>::inf() [flags=CONSTANT] {
    return qore_number_private::get(*n)->inf();
@@ -122,6 +157,8 @@ bool <number>::inf() [flags=CONSTANT] {
     @code
 printf("sign: %d\n", $n.sign());
     @endcode
+
+    @since %Qore 0.8.6
 */
 int <number>::sign() [flags=CONSTANT] {
    return qore_number_private::get(*n)->sign();
@@ -134,7 +171,27 @@ int <number>::sign() [flags=CONSTANT] {
     @code
 printf("precision: %d\n", $n.prec());
     @endcode
+
+    @since %Qore 0.8.6
 */
 int <number>::prec() [flags=CONSTANT] {
    return (int64)qore_number_private::get(*n)->getPrec();
 }
+
+//! Returns the string representation of the number according to the format argument
+/** @param fmt see @ref number_formatting_constants for possible values; note that this argument is interpreted as a bit field; if the format argument is not a valid format value (i.e. if none of the formatting bits are set in the argument) then @ref NF_Default is assumed instead
+
+    @return the string representation of the number according to the format argument
+
+    @since %Qore 0.8.6
+*/
+string <number>::toString(int fmt) [flags=CONSTANT] {
+   bool raw = !(fmt & NF_Raw);
+   QoreStringNode* rv = new QoreStringNode;
+   if (fmt & NF_Scientific)
+      qore_number_private::get(*n)->getScientificString(*rv, raw);
+   else
+      qore_number_private::get(*n)->getAsString(*rv, raw);
+   return rv;
+}
+

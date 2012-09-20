@@ -756,7 +756,7 @@ static int get_val_type(const std::string &str) {
       char c = str[i];
       if (isdigit(c))
          pint = true;
-      else if (isupper(c) || c == '_')
+      else if (isupper(c) || c == '_' || (i != start && islower(c)))
          pucus = true;
       else if (c == '.')
          pdec = true;

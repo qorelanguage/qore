@@ -23,17 +23,13 @@
 #include <qore/Qore.h>
 #include <qore/intern/qore_number_private.h>
 
-void qore_number_private::getAsString(QoreString& str) const {
+void qore_number_private::getAsString(QoreString& str, bool round) const {
    // first check for zero
    if (zero()) {
       str.concat("0");
       return;
    }
 
-#ifdef DO_MPFR_PRINTF
-   getScientificString(str);
-   return;
-#else
    mpfr_exp_t exp;
 
    char* buf = mpfr_get_str(0, &exp, 10, 0, num, QORE_MPFR_RND);
@@ -78,63 +74,98 @@ void qore_number_private::getAsString(QoreString& str) const {
 	    dp = len + exp + 1;
 	 }
       }
-      // try to do some rounding
-      if (dp) {
-	 qore_size_t i = dp;
-	 char lc = 0;
-	 // 0 or 9 count
-	 unsigned cnt = 0;
-	 qore_size_t last = str.size() - 1;
-	 // check all except the last digit
-	 while (i < last) {
-	    char c = str[i];
-	    if (c == '0' || c == '9') {
-	       if (c == lc)
-		  ++cnt;
-	       else {
-		  // reset count
-		  lc = c;
-		  cnt = 0;
-	       }
-	    }
-	    else {
-	       // reset count
-	       lc = 0;
-	       cnt = 0;
-	    }
-
-	    ++i;
-	 }
-
-	 // round the number for display
-	 if (cnt > QORE_MPFR_ROUND_THRESHOLD) {
-	    //printd(5, "ROUND BEFORE: (cnt: %d) %s\n", cnt, str.getBuffer()); 
-	    qore_offset_t i = str.size() - 2 - cnt;
-	    str.terminate(i);
-	    // rounding down is easy; the truncation is enough
-	    if (lc == '9') {
-	       // round up
-	       --i;
-	       for (; i > 0; --i) {
-		  char c = str[i];
-		  if (c == '.')
-		     continue;
-		  if (c < '9') {
-		     str.replaceChar(i, c + 1);
-		     break;
-		  }
-		  str.replaceChar(i, '0');
-	       }
-	       if (i == -1)
-		  str.insertch('1', 0, 1);
-	    }
-	    //printd(5, "ROUND AFTER: %s\n", str.getBuffer());
-	 }
-      }
+      // try to do some rounding (noise reduction with binary->decimal conversions)
+      if (dp && round)
+         applyRoundingHeuristic(str, dp, str.size());
    }
    else
       str.concat(buf);
-#endif
+}
+
+void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp, qore_size_t last) {
+   // if there are some significant digits after the decimal point (signal)
+   bool signal = false;
+   // the position of the last significant digit
+   qore_offset_t pos = (qore_offset_t)dp;
+   qore_size_t i = dp;
+   // the last digit found in the sequence
+   char lc = 0;
+   // 0 or 9 count
+   unsigned cnt = 0;
+   // don't check the last character
+   --last;
+   // check all except the last digit
+   while (i < last) {
+      char c = str[i++];
+
+      if (c == '0' || c == '9') {
+         // continue the sequence
+         if (c == lc) {
+            ++cnt;
+            continue;
+         }
+         // check for 2nd threshold
+         if ((i == last) && cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
+            ++cnt;
+            break;
+         }
+
+         // set last digit to digit found
+         lc = c;
+         // if first digit, then do not set signal flag
+         if (i == (dp + 1))
+            continue;
+      }
+      else {
+         // check for 2nd threshold
+         if ((i == last) && cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
+            ++cnt;
+            break;
+         }
+         // no 0 or 9 digit found
+         lc = 0;
+      }
+
+      // mark position of the last significant digit
+      pos = i - 2;
+      //printd(5, "qore_number_private::applyRoundingHeuristic() set pos: %lld ('%c')\n", pos, str[pos]);
+
+      // found a non-noise digit
+      if (!signal)
+         signal = true;
+      // reset count
+      cnt = 0;
+   }
+
+   // round the number for display
+   if (signal && cnt > QORE_MPFR_ROUND_THRESHOLD) {
+      //printd(5, "ROUND BEFORE: (cnt: %d) %s\n", cnt, str.getBuffer());
+      // if rounding right after the decimal point, then remove the decimal point
+      if (pos == dp)
+         --pos;
+      // remove the excess digits
+      str.replace(pos + 1, cnt + 3, (const char*)0);
+      //str.terminate(i);
+
+      // rounding down is easy; the truncation is enough
+      if (lc == '9') {
+         // round up
+         --i;
+         for (; i > 0; --pos) {
+            char c = str[pos];
+            if (c == '.')
+               continue;
+            if (c < '9') {
+               str.replaceChar(pos, c + 1);
+               break;
+            }
+            str.replaceChar(i, '0');
+         }
+         if (pos == -1)
+            str.insertch('1', 0, 1);
+      }
+      //printd(5, "ROUND AFTER: %s\n", str.getBuffer());
+   }
 }
 
 QoreNumberNode::QoreNumberNode(struct qore_number_private* p) : SimpleValueQoreNode(NT_NUMBER), priv(p) {

@@ -616,7 +616,7 @@ public:
    //! returns the byte position of a character (byte) within the string or -1 if not found
    DLLEXPORT qore_offset_t find(char c, qore_offset_t pos = 0) const;
 
-   //! returns the byte position of a character (byte) within the string or -1 if not found
+   //! returns the last byte position of a character (byte) within the string or -1 if not found
    DLLEXPORT qore_offset_t rfind(char c, qore_offset_t pos = -1) const;
 
    //! returns true if the string is empty or only contains printable non-control ASCII characters (ie all characters > 31 && < 127)

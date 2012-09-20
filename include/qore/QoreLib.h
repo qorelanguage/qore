@@ -75,6 +75,9 @@
 //! defined because this version of Qore supports the number type (QoreNumberNode)
 #define _QORE_HAS_NUMBER_TYPE 1
 
+//! defined because this version of Qore has the q_path_is_readable() function
+#define _QORE_HAS_PATH_IS_READABLE 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
@@ -420,5 +423,8 @@ DLLEXPORT void parse_set_time_zone(const char *zone);
 
 //! use this function instead of usleep(), as usleep() is not signal-safe on some platforms (ex: Solaris 8, 9)
 DLLEXPORT int qore_usleep(int64 usecs);
+
+//! platform-independent API that tells if the given path is readable by the current user
+DLLEXPORT bool q_path_is_readable(const char* path);
 
 #endif // _QORE_QORELIB_H

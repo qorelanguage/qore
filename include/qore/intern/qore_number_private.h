@@ -27,6 +27,8 @@
 
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output
 #define QORE_MPFR_ROUND_THRESHOLD 9
+// the number of consecutive trailing 0 or 9 digits that will be rounded in string output if there are 2 trailing non-0/9 digits
+#define QORE_MPFR_ROUND_THRESHOLD_2 15
 
 #define QORE_DEFAULT_PREC 128
 #define QORE_MAX_PREC 8192
@@ -161,11 +163,19 @@ struct qore_number_private : public qore_number_private_intern {
       str.terminate(str.size() + len);
    }
 
-   DLLLOCAL void getScientificString(QoreString& str) const {
+   DLLLOCAL void getScientificString(QoreString& str, bool round = true) const {
       sprintf(str, "%Re");
+      if (round) {
+         qore_offset_t i = str.find('.');
+         if (i != -1) {
+            qore_offset_t e = str.rfind('e');
+            if (e != -1)
+               applyRoundingHeuristic(str, i, e - 1);
+         }
+      }
    }
 
-   DLLLOCAL void getAsString(QoreString& str) const;
+   DLLLOCAL void getAsString(QoreString& str, bool round = true) const;
 
    DLLLOCAL int compare(const qore_number_private& right) const {
       return mpfr_cmp(num, right.num);
@@ -309,6 +319,9 @@ struct qore_number_private : public qore_number_private_intern {
    DLLLOCAL static void numError(QoreString& str) {
       str.concat("<number error>");
    }
+
+   // try to remove noise from the binary -> decimal conversion process in insignificant digits
+   DLLLOCAL static void applyRoundingHeuristic(QoreString& str, qore_size_t dp, qore_size_t last);
 
    // static accessor methods
    DLLLOCAL static void inc(QoreNumberNode& n) {

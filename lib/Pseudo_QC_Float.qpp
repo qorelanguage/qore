@@ -85,3 +85,26 @@ if ($n.strp())
 bool <float>::strp() [flags=CONSTANT] {
    return true;
 }
+
+//! Returns a string of a formatted number according to a format string
+/** @param fmt the format string has the following format:\n
+    <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>\<decimals\></em><tt>]</tt>\n
+    where:\n
+    - \a thousands_separator and \a decimal_separator are single ASCII characters defining the thousands and decimal separator characters respectively, and
+    - \a decimals is a single digit defining how may decimals should appear after the decimal point
+
+    @return a string of a formatted number according to a format string; if the format string does not follow the given format, then an empty string is returned
+
+    @par Example:
+    @code
+my float $f = -48392093894.2349;
+my string $nstr = $f.format(".,3"); # returns "-48.392.093.894,235"
+    @endcode
+
+    @note equivalent to format_number(string, softfloat)
+
+    @since %Qore 0.8.6
+ */
+string <float>::format(string fmt) [flags=CONSTANT] {
+   return format_float_intern(*fmt, f->f);
+}

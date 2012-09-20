@@ -112,6 +112,9 @@ DLLLOCAL void init_errno_constants(QoreNamespace& ns);
 DLLLOCAL void init_dbi_functions(QoreNamespace& ns);
 DLLLOCAL void init_dbi_constants(QoreNamespace& ns);
 
+// constants defined in pseudo-class implementations
+DLLLOCAL void init_QC_Number_constants(QoreNamespace& ns);
+
 StaticSystemNamespace staticSystemNamespace;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
@@ -668,6 +671,8 @@ void StaticSystemNamespace::init() {
    QoreNamespace* tns = new QoreNamespace("Type");
    init_type_constants(*tns);
    qore_ns_private::addNamespace(qns, tns);
+
+   init_QC_Number_constants(qns);
 
    init_type_constants(qns);
    init_compression_constants(qns);

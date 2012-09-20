@@ -296,41 +296,7 @@ my bool $b = is_readable("/etc/hosts");
     @bug on Windows this function always returns @ref Qore::True "True" for directories; this will be fixed in a later version of Qore
  */
 bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
-#ifdef HAVE_PWD_H
-   struct stat sbuf;
-   int rc;
-   
-   if ((rc = stat(path->getBuffer(), &sbuf)))
-      return false;
-   
-   uid_t euid = geteuid();
-   if (!euid || sbuf.st_mode & S_IROTH 
-       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IRUSR)) 
-       || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IRGRP)))
-      return true;
-   
-   return false;
-#else
-   // FIXME: implement properly for windows
-   
-   // check if it's a directory
-   struct stat sbuf;
-   int rc;   
-   if ((rc = stat(path->getBuffer(), &sbuf)))
-      return false;
-
-   // just return true on windows if it's a directory
-   if ((sbuf.st_mode & S_IFMT) == S_IFDIR)
-      return true;
-
-   // otherwise try to open file, if successful, then the file is readable
-   rc = open(path->getBuffer(), O_RDONLY);
-   if (rc != -1) {
-      close(rc);
-      return true;
-   }
-   return false;
-#endif
+   return q_path_is_readable(path->getBuffer());
 }
 
 //! Returns @ref True if the string passed identifies a file writable by the current user, @ref False if not

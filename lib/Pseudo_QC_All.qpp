@@ -26,7 +26,7 @@
 //! Methods in this pseudo-class are available to be executed on any value type (even @ref nothing); this is the root class for all pseudo-classes
 /** 
  */
-qclass <value> [arg=const AbstractQoreNode* node];
+qclass <value> [arg=const AbstractQoreNode* n];
 
 //! Returns the type code for the value
 /** This method is recommended over <value>::type() or the type(any) or typename(any) functions for comparing data types as it is much faster and more efficient than the other alternatives (which work with string values instead of integer codes).
@@ -51,7 +51,7 @@ switch ($v.typeCode()) {
     @endcode    
  */
 int <value>::typeCode() [flags=CONSTANT] {
-   return get_node_type(node);
+   return get_node_type(n);
 }
 
 //! Returns the string type for the value
@@ -66,7 +66,7 @@ my string $t = $n.type();
     @note It is faster and more efficient to use <value>::typeCode() for comparing data types
 */
 string <value>::type() [flags=CONSTANT] {
-   return new QoreStringNode(node ? node->getTypeName() : "nothing");
+   return new QoreStringNode(n ? n->getTypeName() : "nothing");
 }
 
 //! Returns @ref True; this method will be reimplemented in container types where it may return @ref False
@@ -166,4 +166,51 @@ foreach my any $element in ($val) {
 */
 int <value>::lsize() [flags=CONSTANT] {
    return 1;
+}
+
+//! Returns the string representation of the value; the default is an empty string
+/** Use <value>::strp() to determine if the current value can be converted to a string
+
+    @return the string representation of the value; the default is an empty string
+
+    @note check pseudo-classes for each type for other variants of this method; some may take arguments to affect the output format
+
+    @since %Qore 0.8.6
+*/
+string <value>::toString() [flags=CONSTANT] {
+   QoreStringNodeValueHelper str(n);
+   return str.getReferencedValue();
+}
+
+//! Returns the integer representation of the value; the default is 0
+/** Use <value>::intp() to determine if the current value can be converted to an integer
+
+    @return the integer representation of the value; the default is 0
+
+    @since %Qore 0.8.6
+*/
+int <value>::toInt() [flags=CONSTANT] {
+   return n ? n->getAsBigInt() : 0;
+}
+
+//! Returns the floating-point representation of the value; the default is 0.0
+/** @return the floating-point representation of the value; the default is 0.0
+
+    @note if <value>::intp() returns @ref True, then the value can also be converted to a floating-point value
+
+    @since %Qore 0.8.6
+*/
+float <value>::toFloat() [flags=CONSTANT] {
+   return n ? n->getAsFloat() : 0.0;
+}
+
+//! Returns the boolean representation of the value; the default is @ref False
+/** @return the boolean representation of the value; the default is @ref False
+
+    @note if <value>::intp() returns @ref True, then the value can also be converted to a boolean value
+
+    @since %Qore 0.8.6
+*/
+bool <value>::toBool() [flags=CONSTANT] {
+   return n ? n->getAsBool() : false;
 }

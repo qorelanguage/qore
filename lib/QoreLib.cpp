@@ -35,6 +35,8 @@
 #include <sys/time.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 FeatureList qoreFeatureList;
 
@@ -1574,6 +1576,44 @@ int qore_usleep(int64 usecs) {
    return qore_nanosleep(usecs * 1000);
 #else
    return ::usleep(usecs);
+#endif
+}
+
+bool q_path_is_readable(const char* path) {
+#ifdef HAVE_PWD_H
+   struct stat sbuf;
+   int rc;
+
+   if ((rc = stat(path, &sbuf)))
+      return false;
+
+   uid_t euid = geteuid();
+   if (!euid || sbuf.st_mode & S_IROTH
+         || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IRUSR))
+         || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IRGRP)))
+      return true;
+
+   return false;
+#else
+   // FIXME: implement properly for windows
+
+   // check if it's a directory
+   struct stat sbuf;
+   int rc;
+   if ((rc = stat(path, &sbuf)))
+      return false;
+
+   // just return true on windows if it's a directory
+   if ((sbuf.st_mode & S_IFMT) == S_IFDIR)
+      return true;
+
+   // otherwise try to open file, if successful, then the file is readable
+   rc = open(path, O_RDONLY);
+   if (rc != -1) {
+      close(rc);
+      return true;
+   }
+   return false;
 #endif
 }
 
