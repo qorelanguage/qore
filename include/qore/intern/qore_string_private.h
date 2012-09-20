@@ -77,10 +77,7 @@ public:
          return offset < 0 ? 0 : offset;
       }
 
-      if ((qore_size_t)offset > len)
-         return len;
-
-      return offset;
+      return ((qore_size_t)offset > len) ? len : offset;
    }
 
    DLLLOCAL void check_offset(qore_offset_t offset, qore_offset_t num, qore_size_t &n_offset, qore_size_t &n_num) {
@@ -97,6 +94,7 @@ public:
       n_num = num;
    }
 
+   // NOTE: this is purely byte oriented - no character semantics here
    DLLLOCAL qore_offset_t find(char c, qore_offset_t pos = 0) {
       if (pos < 0) {
          pos = len + pos;
@@ -111,6 +109,7 @@ public:
       return (qore_offset_t)(p - buf);
    }
 
+   // NOTE: this is purely byte oriented - no character semantics here
    DLLLOCAL qore_offset_t rfind(char c, qore_offset_t pos = -1) {
       if (pos < 0) {
          pos = len + pos;
@@ -147,36 +146,24 @@ public:
             pos = len + pos;
             if (pos < 0)
                pos = 0;
-            return index_simple(buf, needle->getBuffer(), pos);
          }
-
-         if (pos >= (qore_offset_t)len)
+         else if (pos >= (qore_offset_t)len)
             return -1;
 
          return index_simple(buf, needle->getBuffer(), pos);
       }
 
       // do multibyte index()
-      qore_size_t start;
-      if (pos < 0) {
-         pos = len + pos;
-         if (pos < 0)
-            pos = 0;
-      }
-      if (pos) {
-         start = charset->getByteLen(buf, buf + len, pos, xsink);
-         if (*xsink)
-            return -1;
+      if (findBytePosition(pos, xsink))
+         return -1;
+      if (pos < 0)
+         pos = 0;
+      else if (pos >= (qore_offset_t)len)
+         return -1;
 
-         if (start == len)
-            return -1;
-      }
-      else
-         start = 0;
-
-      qore_offset_t ind = index_simple(buf + start, needle->getBuffer());
+      qore_offset_t ind = index_simple(buf + pos, needle->getBuffer());
       if (ind != -1) {         
-         ind = charset->getCharPos(buf, buf + start + ind, xsink);
+         ind = charset->getCharPos(buf, buf + pos + ind, xsink);
          if (*xsink)
             return -1;
       }
@@ -203,10 +190,8 @@ public:
          pos = len + pos;
          if (pos < 0)
             pos = 0;
-         return index_simple(buf, needle, pos);
       }
-
-      if (pos >= (qore_offset_t)len)
+      else if (pos >= (qore_offset_t)len)
          return -1;
 
       return index_simple(buf, needle, pos);
@@ -214,7 +199,7 @@ public:
 
    // finds the last occurrence of needle in haystack at or before position pos
    // pos must be a non-negative valid byte offset in haystack
-   static DLLLOCAL qore_offset_t rindex_simple(const char *haystack, qore_size_t hlen, const char *needle, qore_size_t nlen, qore_offset_t pos) {
+   DLLLOCAL static qore_offset_t rindex_simple(const char *haystack, qore_size_t hlen, const char *needle, qore_size_t nlen, qore_offset_t pos) {
       // if the offset does not allow for the needle string to be present, then adjust
       if ((pos + nlen) > hlen) {
          pos = hlen - nlen;
@@ -230,42 +215,46 @@ public:
       return -1;
    }
 
+   DLLLOCAL int findBytePosition(qore_offset_t& pos, ExceptionSink* xsink) const {
+      assert(charset->isMultiByte());
+      if (!pos)
+         return 0;
+      // get positive character offset if negative
+      if (pos < 0) {
+         // get the length of the string in characters
+         qore_size_t clen = charset->getLength(buf, buf + len, xsink);
+         if (*xsink)
+            return -1;
+         pos = clen + pos;
+      }
+      // now get the byte position from this character offset
+      pos = charset->getByteLen(buf, buf + len, pos, xsink);
+      return *xsink ? -1 : 0;
+   }
+
    DLLLOCAL qore_offset_t rindex(const QoreString &orig_needle, qore_offset_t pos, ExceptionSink *xsink) const {
       TempEncodingHelper needle(orig_needle, charset, xsink);
       if (!needle)
          return -1;
 
-      qore_offset_t ind;
       if (!charset->isMultiByte()) {
-         if (pos == -1)
-            pos = len - 1;
-         else if (pos < 0)
+         if (pos < 0) {
             pos = len + pos;
-
-         if (pos < 0)
-            return -1;
+            if (pos < 0)
+               return -1;
+         }
 
          return rindex_simple(buf, len, needle->getBuffer(), needle->strlen(), pos);      
       }
 
       // do multi-byte rindex
-      int l = len;
-      if (pos == -1)
-         pos = l - 1;
-      else if (pos < 0)
-         pos = l + pos;
-
+      if (findBytePosition(pos, xsink))
+         return -1;
       if (pos < 0)
          return -1;
-         
-      // calculate byte position from character position
-      if (pos) {
-         pos = charset->getByteLen(buf, buf + len, pos, xsink);
-         if (*xsink)
-            return 0;
-      }
+
       // get byte rindex position
-      ind = rindex_simple(buf, len, needle->getBuffer(), needle->strlen(), pos);
+      qore_offset_t ind = rindex_simple(buf, len, needle->getBuffer(), needle->strlen(), pos);
 
       // calculate character position from byte position
       if (ind && ind != -1) {
@@ -312,6 +301,99 @@ public:
             return false;
       }
       return true;
+   }
+
+   DLLLOCAL void concat_intern(const char* p, qore_size_t plen) {
+      assert(p);
+      assert(plen);
+      check_char(len + plen);
+      memcpy(buf + len, p, plen);
+      len += plen;
+      buf[len] = '\0';
+   }
+
+   DLLLOCAL void concat_simple(const qore_string_private& str, qore_offset_t pos) {
+      if (pos < 0) {
+         pos = str.len + pos;
+         if (pos < 0)
+            pos = 0;
+      }
+      else if (pos >= str.len)
+         return;
+
+      concat_intern(str.buf + pos, str.len - pos);
+   }
+
+   DLLLOCAL int concat(const qore_string_private& str, qore_offset_t pos, ExceptionSink* xsink) {
+      assert(str.charset == charset);
+
+      if (!charset->isMultiByte()) {
+         concat_simple(str, pos);
+         return 0;
+      }
+
+      // find byte positions from character positions
+      if (pos) {
+         if (str.findBytePosition(pos, xsink))
+            return -1;
+         if (pos < 0)
+            pos = 0;
+         else if (pos > str.len)
+            return 0;
+      }
+
+      concat_intern(str.buf + pos, str.len - pos);
+      return 0;
+   }
+
+   DLLLOCAL void concat_simple(const qore_string_private& str, qore_offset_t pos, qore_offset_t plen) {
+      if (pos < 0) {
+         pos = str.len + pos;
+         if (pos < 0)
+            pos = 0;
+      }
+      else if (pos >= str.len)
+         return;
+
+      if (plen < 0) {
+         plen = str.len + plen;
+         if (plen <= 0)
+            return;
+      }
+      else if (plen > str.len)
+         plen = str.len;
+
+      concat_intern(str.buf + pos, plen);
+   }
+
+   DLLLOCAL int concat(const qore_string_private& str, qore_offset_t pos, qore_offset_t plen, ExceptionSink* xsink) {
+      assert(str.charset == charset);
+      assert(plen);
+
+      if (!charset->isMultiByte()) {
+         concat_simple(str, pos);
+         return 0;
+      }
+
+      // find byte positions from character positions
+      if (pos) {
+         if (str.findBytePosition(pos, xsink))
+            return -1;
+         if (pos < 0)
+            pos = 0;
+         else if (pos > str.len)
+            return 0;
+      }
+
+      if (str.findBytePosition(plen, xsink))
+         return -1;
+      if (plen <= 0)
+         return 0;
+      else if (plen > str.len)
+         plen = str.len;
+
+      concat_intern(str.buf + pos, plen);
+      return 0;
    }
 };
 

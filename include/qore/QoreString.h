@@ -155,6 +155,25 @@ public:
    //! concatenates a string and converts encodings if necessary
    DLLEXPORT void concat(const QoreString* str, ExceptionSink* xsink);
 
+   //! concatenates a string and converts encodings if necessary
+   /** @param str the string to concatenate to the current string (this)
+       @param pos the starting character position (not byte) for concatenation (negative values are from the end)
+       @param xsink if an error occurs converting character encodings, it will be raised here
+
+       @return 0 for OK, -1 for exception raised
+    */
+   DLLEXPORT int concat(const QoreString& str, qore_offset_t pos, ExceptionSink* xsink);
+
+   //! concatenates a string and converts encodings if necessary
+   /** @param str the string to concatenate to the current string (this)
+       @param pos the starting character (not byte) position for concatenation (negative values are from the end)
+       @param len the number of characters (not bytes) to concatenate from the starting position (negative values indicate all except that many characters from the end)
+       @param xsink if an error occurs converting character encodings, it will be raised here
+
+       @return 0 for OK, -1 for exception raised
+    */
+   DLLEXPORT int concat(const QoreString& str, qore_offset_t pos, qore_offset_t len, ExceptionSink* xsink);
+
    //! concatenates a QoreString up to character "len"
    /** An exception could be thrown if the string to concatenate requires character set encoding conversion and the conversion fails
        @param str the QoreString to concatenate
@@ -602,6 +621,11 @@ public:
    DLLEXPORT qore_offset_t bindex(const std::string& needle, qore_offset_t pos) const;
 
    //! returns the character position of a substring searching in reverse from a given position or -1 if not found
+   /** @param needle the string to find
+       @param pos the character position to start the search; if pos is < 0 then it gives an offset from the end of the string (-1 = last character)
+
+       @return -1 for not found otherwise the character position of the last occurrence of the search string
+    */
    DLLEXPORT qore_offset_t rindex(const QoreString& needle, qore_offset_t pos, ExceptionSink* xsink) const;
 
    //! returns the byte position of a substring within the string searching in reverse from a given position or -1 if not found

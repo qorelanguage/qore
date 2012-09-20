@@ -1029,6 +1029,28 @@ void QoreString::concat(const QoreString *str, qore_size_t size, ExceptionSink *
    }
 }
 
+int QoreString::concat(const QoreString& str, qore_offset_t pos, ExceptionSink* xsink) {
+   if (str.empty())
+      return 0;
+
+   TempEncodingHelper cstr(str, priv->charset, xsink);
+   if (*xsink)
+      return -1;
+
+   return priv->concat(*(cstr->priv), pos, xsink);
+}
+
+int QoreString::concat(const QoreString& str, qore_offset_t pos, qore_offset_t len, ExceptionSink* xsink) {
+   if (str.empty() || !len)
+      return 0;
+
+   TempEncodingHelper cstr(str, priv->charset, xsink);
+   if (*xsink)
+      return -1;
+
+   return priv->concat(*(cstr->priv), pos, len, xsink);
+}
+
 void QoreString::concat(char c) {
    if (priv->allocated) {
       priv->buf[priv->len] = c;
