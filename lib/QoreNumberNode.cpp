@@ -141,7 +141,7 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
    if (signal && cnt > QORE_MPFR_ROUND_THRESHOLD) {
       //printd(5, "ROUND BEFORE: (cnt: %d) %s\n", cnt, str.getBuffer());
       // if rounding right after the decimal point, then remove the decimal point
-      if (pos == dp)
+      if (pos == (qore_offset_t)dp)
          --pos;
       // remove the excess digits
       str.replace(pos + 1, cnt + 3, (const char*)0);
