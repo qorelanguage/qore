@@ -34,6 +34,7 @@ module HttpServer {
 }
 
 /*  Version History
+    * 2012-09-20 v0.3.5: David Nichols <david@qore.org>: xxx
     * 2012-06-01 v0.3.4: David Nichols <david@qore.org>: added public parse_uri_query() function
     * 2012-05-24 v0.3.3: David Nichols <david@qore.org>: updated to a user module
                                                          added support for custom redirects from user handlers
@@ -718,7 +719,13 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	    #$.log("accepting HTTP connection from %s", $info.address_desc);
 	    
 	    $.cThreads.inc();
-	    background $.connectionThread($r, $info);
+            try {
+                background $.connectionThread($r, $info);
+            }
+            catch (hash $ex) {
+                my string $err = sprintf("failed to start connection thread: %s: %s", $ex.err, $ex.desc);
+                $.serv.sendHttpError($r, 500, $err, True);
+            }
 	}
 	#printf("HTTP DEBUG: HttpListener::mainThread() closing socket %s\n", $.socket_info.address_desc);
 	$.shutdown();
