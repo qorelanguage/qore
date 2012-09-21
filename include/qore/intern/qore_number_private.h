@@ -177,6 +177,11 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL void getAsString(QoreString& str, bool round = true) const;
 
+   DLLLOCAL int format(QoreString& str, const QoreString& fmt, ExceptionSink* xsink) {
+      getAsString(str, false);
+      return formatNumberString(str, fmt, xsink);
+   }
+
    DLLLOCAL int compare(const qore_number_private& right) const {
       return mpfr_cmp(num, right.num);
    }
@@ -316,12 +321,17 @@ struct qore_number_private : public qore_number_private_intern {
       doBinaryInplace(mpfr_div, r);
    }
 
+   DLLLOCAL static int formatNumberString(QoreString& num, const QoreString& fmt, ExceptionSink* xsink);
+
    DLLLOCAL static void numError(QoreString& str) {
       str.concat("<number error>");
    }
 
    // try to remove noise from the binary -> decimal conversion process in insignificant digits
    DLLLOCAL static void applyRoundingHeuristic(QoreString& str, qore_size_t dp, qore_size_t last);
+
+   // returns number of digits inserted
+   DLLLOCAL static int roundUp(QoreString& str, qore_offset_t pos);
 
    // static accessor methods
    DLLLOCAL static void inc(QoreNumberNode& n) {

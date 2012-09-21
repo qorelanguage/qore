@@ -2036,3 +2036,7 @@ bool QoreString::isDataAscii() const {
 int64 QoreString::toBigInt() const {
    return strtoll(priv->buf, 0, 10);
 }
+
+qore_offset_t QoreString::getByteOffset(qore_size_t i, ExceptionSink* xsink) const {
+   return priv->getByteOffset(i, xsink);
+}

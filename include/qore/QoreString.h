@@ -656,6 +656,14 @@ public:
    //! returns the value of the string as an int64
    DLLEXPORT int64 toBigInt() const;
 
+   //! returns the byte position of the given character position in the string or -1 if the string does not have that many characters (or if an invalid encoding exception is raised); may be different than the byte number for multi-byte character encodings such as UTF-8
+   /** @param i the character offset to find the byte offset for
+       @param xsink if invalid encoded data is found the error is raised here
+
+       @return the byte position of the given character position in the string or -1 if the string does not have that many characters (or if an invalid encoding exception is raised); may be different than the byte number for multi-byte character encodings such as UTF-8
+    */
+   DLLEXPORT qore_offset_t getByteOffset(qore_size_t i, ExceptionSink* xsink) const;
+
    // concatenates a qorestring without converting encodings - internal only
    DLLLOCAL void concat(const QoreString* str);
 

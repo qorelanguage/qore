@@ -154,7 +154,7 @@ public:
       }
 
       // do multibyte index()
-      if (findBytePosition(pos, xsink))
+      if (findByteOffset(pos, xsink))
          return -1;
       if (pos < 0)
          pos = 0;
@@ -215,20 +215,21 @@ public:
       return -1;
    }
 
-   DLLLOCAL int findBytePosition(qore_offset_t& pos, ExceptionSink* xsink) const {
+   // start is a byte offset that has to point to the start of a valid character
+   DLLLOCAL int findByteOffset(qore_offset_t& pos, ExceptionSink* xsink, qore_size_t start = 0) const {
       assert(charset->isMultiByte());
       if (!pos)
          return 0;
       // get positive character offset if negative
       if (pos < 0) {
          // get the length of the string in characters
-         qore_size_t clen = charset->getLength(buf, buf + len, xsink);
+         qore_size_t clen = charset->getLength(buf + start, buf + len, xsink);
          if (*xsink)
             return -1;
          pos = clen + pos;
       }
       // now get the byte position from this character offset
-      pos = charset->getByteLen(buf, buf + len, pos, xsink);
+      pos = charset->getByteLen(buf + start, buf + len, pos, xsink);
       return *xsink ? -1 : 0;
    }
 
@@ -248,7 +249,7 @@ public:
       }
 
       // do multi-byte rindex
-      if (findBytePosition(pos, xsink))
+      if (findByteOffset(pos, xsink))
          return -1;
       if (pos < 0)
          return -1;
@@ -334,7 +335,7 @@ public:
 
       // find byte positions from character positions
       if (pos) {
-         if (str.findBytePosition(pos, xsink))
+         if (str.findByteOffset(pos, xsink))
             return -1;
          if (pos < 0)
             pos = 0;
@@ -377,7 +378,7 @@ public:
 
       // find byte positions from character positions
       if (pos) {
-         if (str.findBytePosition(pos, xsink))
+         if (str.findByteOffset(pos, xsink))
             return -1;
          if (pos < 0)
             pos = 0;
@@ -385,15 +386,28 @@ public:
             return 0;
       }
 
-      if (str.findBytePosition(plen, xsink))
+      // find the byte position from the starting byte
+      if (str.findByteOffset(plen, xsink, pos))
          return -1;
       if (plen <= 0)
          return 0;
-      else if (plen > str.len)
+      if (plen > str.len)
          plen = str.len;
 
       concat_intern(str.buf + pos, plen);
       return 0;
+   }
+
+   DLLLOCAL qore_offset_t getByteOffset(qore_size_t i, ExceptionSink* xsink) const {
+      qore_size_t rc;
+      if (i) {
+         rc = charset->getByteLen(buf, buf + len, i, xsink);
+         if (*xsink)
+            return -1;
+      }
+      else
+         rc = 0;
+      return rc > len ? -1 : (qore_offset_t)rc;
    }
 };
 
