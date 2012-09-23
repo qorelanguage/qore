@@ -207,10 +207,12 @@ string <number>::toString(int fmt) [flags=CONSTANT] {
     @par Example:
     @code
 my number $n = -48392093894.2349n;
-my string $nstr = $f.format(".,3"); # returns "-48.392.093.894,235"
+my string $nstr = $n.format(".,3"); # returns "-48.392.093.894,235"
     @endcode
 
-    @see @ref <float>::format(string)
+    @see
+    - @ref <float>::format(string)
+    - @ref <int>::format(string)
 
     @since %Qore 0.8.6
  */

@@ -22,6 +22,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_number_private.h>
 
 //! Methods in this pseudo-class can be executed on @ref integer "integer values"
 /** 
@@ -84,4 +85,31 @@ if ($n.strp())
 */
 bool <int>::strp() [flags=CONSTANT] {
    return true;
+}
+
+//! Returns a string of a formatted number according to a format string
+/** @param fmt the format string has the following format:\n
+    <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>\<decimals\></em><tt>]</tt>\n
+    where:\n
+    - \a thousands_separator and \a decimal_separator are single ASCII characters defining the thousands and decimal separator characters respectively, and
+    - \a decimals is a single digit defining how may decimals should appear after the decimal point - if this is non-zero then the decimals will all be \c "0"
+
+    @return a string of a formatted number according to a format string; if the format string does not follow the given format, then an empty string is returned
+
+    @par Example:
+    @code
+my int $i = -48392093894;
+my string $nstr = $i.format(".,3"); # returns "-48.392.093.894,000"
+    @endcode
+
+    @see
+    - @ref <float>::format(string)
+    - @ref <number>::format(string)
+
+    @since %Qore 0.8.6
+ */
+string <int>::format(string fmt) [flags=CONSTANT] {
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(fmt->getEncoding()));
+   rv->sprintf(QLLD, i->val);
+   return qore_number_private::formatNumberString(**rv, *fmt, xsink) ? 0 : rv.release();
 }

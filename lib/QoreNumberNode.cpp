@@ -203,9 +203,11 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
          return -1;
       assert(i >= 2);
       prec = atoi(fmt.getBuffer() + i);
+      if (!prec)
+         dsep.clear();
    }
 
-   //printd(0, "qore_number_private::formatNumberString() tsep: '%s' dsep: '%s' prec: %d '%s'\n", tsep.getBuffer(), dsep.getBuffer(), prec, num.getBuffer());
+   //printd(5, "qore_number_private::formatNumberString() tsep: '%s' dsep: '%s' prec: %d '%s'\n", tsep.getBuffer(), dsep.getBuffer(), prec, num.getBuffer());
 
    // find decimal point
    qore_offset_t dp = num.find('.');
@@ -235,6 +237,7 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
       }
    }
 
+   // now insert thousands separator
    // start of digits before the decimal point
    qore_offset_t ds = num[0] == '-' ? 1 : 0;
 

@@ -400,8 +400,9 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 
    printd(5, "process_opt(): param=%s type=%d node=%08p node->getType()=%s refs=%d\n",
 	  param, type, node, node ? node->getTypeName() : "(null)", node ? node->reference_count() : -1);
+   qore_type_t t = get_node_type(node);
 #ifdef DEBUG
-   if (node && node->getType() == NT_STRING) {
+   if (t == NT_STRING) {
       const QoreStringNode* nstr = reinterpret_cast<const QoreStringNode* >(node);
       printd(5, "process_opt() %08p (%d) \"%s\"\n", nstr->getBuffer(), nstr->strlen(), nstr->getBuffer());
    }
@@ -465,11 +466,6 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
       case 'o':
       case 'x':
       case 'X': {
-	 int64 val;
-	 if (!node)
-	    val = 0;
-	 else
-	    val = node->getAsBigInt();
 	 // recreate the sprintf format argument
 	 f = fmt;
 	 *(f++) = '%';
@@ -494,18 +490,20 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 #endif
 	 *(f++) = p; // 'd', etc;
 	 *f = '\0';
+         int64 val = !node ? 0 : node->getAsBigInt();
 	 tbuf.sprintf(fmt, val);
 	 if (type && (width != -1))
 	    tbuf.terminate(width);
 	 break;
       }
+      case 'A':
+      case 'a':
+      case 'G':
+      case 'g':
+      case 'F':
       case 'f':
+      case 'E':
       case 'e': {
-	 double val;
-	 if (!node)
-	    val = 0.0;
-	 else 
-	    val = node->getAsFloat();
 	 // recreate the sprintf format argument
 	 f = fmt;
 	 *(f++) = '%';
@@ -524,9 +522,18 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 	    *(f++) = '.';
 	    f += sprintf(f, "%d", decimals);
 	 }
-	 *(f++) = *param; // 'f';
-	 *f = '\0';
-	 tbuf.sprintf(fmt, val);
+	 if (t == NT_NUMBER) {
+	    *(f++) = 'R';
+            *(f++) = *param; // a|A|e|E|f|F|g|G
+            *f = '\0';
+            qore_number_private::sprintf(*reinterpret_cast<const QoreNumberNode*>(node), tbuf, fmt);
+	 }
+	 else {
+	    *(f++) = *param; // a|A|e|E|f|F|g|G
+	    *f = '\0';
+	    double val = !node ? 0.0 : node->getAsFloat();
+	    tbuf.sprintf(fmt, val);
+	 }
 	 if (type && (width != -1))
 	    tbuf.terminate(width);
 	 break;

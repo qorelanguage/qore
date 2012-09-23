@@ -151,6 +151,7 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL void sprintf(QoreString& str, const char* fmt) const {
+      //printd(5, "qore_number_private::sprintf() fmt: '%s'\n", fmt);
       int len = mpfr_snprintf(0, 0, fmt, num);
       if (!len)
          return;
@@ -334,6 +335,10 @@ struct qore_number_private : public qore_number_private_intern {
    DLLLOCAL static int roundUp(QoreString& str, qore_offset_t pos);
 
    // static accessor methods
+   DLLLOCAL static void sprintf(const QoreNumberNode& n, QoreString& str, const char* fmt) {
+      n.priv->sprintf(str, fmt);
+   }
+
    DLLLOCAL static void inc(QoreNumberNode& n) {
       n.priv->inc();
    }
