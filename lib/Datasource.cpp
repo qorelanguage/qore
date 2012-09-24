@@ -24,10 +24,28 @@
  */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_dbi_private.h>
 #include <qore/intern/qore_ds_private.h>
 
 #include <stdlib.h>
 #include <string.h>
+
+bool qore_ds_private::statementExecuted(int rc, ExceptionSink *xsink) {
+   if (!in_transaction) {
+      if (!rc) {
+         assert(!active_transaction);
+         in_transaction = true;
+         active_transaction = true;
+         return true;
+      }
+      else
+         qore_dbi_private::get(*dsl)->abortTransactionStart(ds, xsink);
+   }
+   else if (!rc && !active_transaction) {
+      active_transaction = true;
+   }
+   return false;
+}
 
 Datasource::Datasource(DBIDriver *ndsl) : priv(new qore_ds_private(this, ndsl)) {
 }
@@ -49,11 +67,11 @@ void Datasource::setTransactionStatus(bool t) {
 }
 
 QoreListNode *Datasource::getCapabilityList() const {
-   return priv->dsl->getCapList();
+   return qore_dbi_private::get(*priv->dsl)->getCapList();
 }
 
 int Datasource::getCapabilities() const {
-   return priv->dsl->getCaps();
+   return qore_dbi_private::get(*priv->dsl)->getCaps();
 }
 
 bool Datasource::isInTransaction() const { 
@@ -73,7 +91,7 @@ bool Datasource::isOpen() const {
 }
 
 Datasource *Datasource::copy() const {
-   class Datasource *nds = new Datasource(priv->dsl);
+   Datasource *nds = new Datasource(priv->dsl);
    nds->priv->setPendingConnectionValues(priv);
 
    return nds;
@@ -88,7 +106,7 @@ void Datasource::setAutoCommit(bool ac) {
 }
 
 AbstractQoreNode *Datasource::select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
-   AbstractQoreNode *rv = priv->dsl->select(this, query_str, args, xsink);
+   AbstractQoreNode *rv = qore_dbi_private::get(*priv->dsl)->select(this, query_str, args, xsink);
    autoCommit(xsink);
 
    // set active_transaction flag if in a transaction and the active_transaction flag
@@ -100,7 +118,7 @@ AbstractQoreNode *Datasource::select(const QoreString *query_str, const QoreList
 }
 
 AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
-   AbstractQoreNode *rv = priv->dsl->selectRows(this, query_str, args, xsink);
+   AbstractQoreNode *rv = qore_dbi_private::get(*priv->dsl)->selectRows(this, query_str, args, xsink);
    autoCommit(xsink);
 
    // set active_transaction flag if in a transaction and the active_transaction flag
@@ -112,7 +130,7 @@ AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const Qore
 }
 
 QoreHashNode *Datasource::selectRow(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
-   QoreHashNode *rv = priv->dsl->selectRow(this, query_str, args, xsink);
+   QoreHashNode *rv = qore_dbi_private::get(*priv->dsl)->selectRow(this, query_str, args, xsink);
    autoCommit(xsink);
 
    // set active_transaction flag if in a transaction and the active_transaction flag
@@ -129,8 +147,8 @@ AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query
 
    assert(priv->isopen && priv->private_data);
 
-   AbstractQoreNode *rv = doBind ? priv->dsl->execSQL(this, query_str, args, xsink)
-      : priv->dsl->execRawSQL(this, query_str, xsink);;
+   AbstractQoreNode *rv = doBind ? qore_dbi_private::get(*priv->dsl)->execSQL(this, query_str, args, xsink)
+      : qore_dbi_private::get(*priv->dsl)->execRawSQL(this, query_str, xsink);;
    //printd(5, "Datasource::exec_internal() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
 
    if (priv->connection_aborted) {
@@ -140,7 +158,7 @@ AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query
    }
 
    if (priv->autocommit)
-      priv->dsl->autoCommit(this, xsink);
+      qore_dbi_private::get(*priv->dsl)->autoCommit(this, xsink);
    else 
       priv->statementExecuted(*xsink, xsink);
 
@@ -149,7 +167,7 @@ AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query
 
 int Datasource::autoCommit(ExceptionSink *xsink) {
    if (priv->autocommit && !priv->connection_aborted)
-      return priv->dsl->autoCommit(this, xsink);
+      return qore_dbi_private::get(*priv->dsl)->autoCommit(this, xsink);
    return 0;
 }
 
@@ -167,7 +185,7 @@ int Datasource::beginImplicitTransaction(ExceptionSink *xsink) {
       xsink->raiseException("AUTOCOMMIT-ERROR", "%s:%s@%s: transaction management is not available because autocommit is enabled for this Datasource", getDriverName(), priv->username.c_str(), priv->dbname.c_str());
       return -1;
    }
-   return priv->dsl->beginTransaction(this, xsink);
+   return qore_dbi_private::get(*priv->dsl)->beginTransaction(this, xsink);
 }
 
 int Datasource::beginTransaction(ExceptionSink *xsink) {
@@ -183,7 +201,7 @@ int Datasource::commit(ExceptionSink *xsink) {
    if (!priv->in_transaction && beginImplicitTransaction(xsink))
       return -1;
 
-   int rc = priv->dsl->commit(this, xsink);
+   int rc = qore_dbi_private::get(*priv->dsl)->commit(this, xsink);
    priv->in_transaction = false;
    priv->active_transaction = false;
 
@@ -194,7 +212,7 @@ int Datasource::rollback(ExceptionSink *xsink) {
    if (!priv->in_transaction && beginImplicitTransaction(xsink))
       return -1;
 
-   int rc = priv->dsl->rollback(this, xsink);
+   int rc = qore_dbi_private::get(*priv->dsl)->rollback(this, xsink);
    priv->in_transaction = false;
    priv->active_transaction = false;
    return rc;
@@ -209,7 +227,7 @@ int Datasource::open(ExceptionSink *xsink) {
       
       priv->connection_aborted = false;
 
-      rc = priv->dsl->init(this, xsink);
+      rc = qore_dbi_private::get(*priv->dsl)->init(this, xsink);
       if (!*xsink) {
 	 assert(priv->qorecharset);
 	 priv->isopen = true;
@@ -223,7 +241,7 @@ int Datasource::open(ExceptionSink *xsink) {
 
 int Datasource::close() {
    if (priv->isopen) {
-      priv->dsl->close(this);
+      qore_dbi_private::get(*priv->dsl)->close(this);
       priv->isopen = false;
       priv->in_transaction = false;
       priv->active_transaction = false;
@@ -246,7 +264,7 @@ bool Datasource::wasConnectionAborted() const {
 void Datasource::reset(ExceptionSink *xsink) {
    if (priv->isopen) {
       // close the Datasource
-      priv->dsl->close(this);
+      qore_dbi_private::get(*priv->dsl)->close(this);
       priv->isopen = false;
       
       // open the connection
@@ -387,9 +405,9 @@ const DBIDriver *Datasource::getDriver() const {
 }
 
 AbstractQoreNode *Datasource::getServerVersion(ExceptionSink *xsink) {
-   return priv->dsl->getServerVersion(this, xsink);
+   return qore_dbi_private::get(*priv->dsl)->getServerVersion(this, xsink);
 }
 
 AbstractQoreNode *Datasource::getClientVersion(ExceptionSink *xsink) const {
-   return priv->dsl->getClientVersion(this, xsink);
+   return qore_dbi_private::get(*priv->dsl)->getClientVersion(this, xsink);
 }

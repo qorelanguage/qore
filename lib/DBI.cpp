@@ -24,20 +24,22 @@
 
 #include <qore/Qore.h>
 
+#include <qore/intern/qore_dbi_private.h>
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <ctype.h>
 
-typedef safe_dslist<DBIDriver *> dbi_list_t;
+typedef safe_dslist<DBIDriver* > dbi_list_t;
 
 // global qore library class for DBI driver management
 DBIDriverList DBI;
 
 struct dbi_cap_hash {
    int cap;
-   const char *desc;
+   const char* desc;
 };
 
 struct dbi_cap_hash dbi_cap_list[] =
@@ -52,60 +54,23 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_HAS_STATEMENT,          "HasStatementApi" },
   { DBI_CAP_HAS_SELECT_ROW,         "HasSelectRow" },
   { DBI_CAP_HAS_NUMBER_SUPPORT,     "HasNumberSupport" },
+  { DBI_CAP_HAS_OPTION_SUPPORT,     "HasOptionSupport" },
 };
 
 #define NUM_DBI_CAPS (sizeof(dbi_cap_list) / sizeof(dbi_cap_hash))
 
-struct dbi_driver_stmt {
-   q_dbi_stmt_prepare_t prepare;
-   q_dbi_stmt_prepare_raw_t prepare_raw;
-   q_dbi_stmt_bind_t bind, bind_placeholders, bind_values;
-   q_dbi_stmt_exec_t exec;
-   q_dbi_stmt_fetch_row_t fetch_row;
-   q_dbi_stmt_fetch_rows_t fetch_rows;
-   q_dbi_stmt_fetch_columns_t fetch_columns;
-   q_dbi_stmt_next_t next;
-   q_dbi_stmt_define_t define;
-   q_dbi_stmt_close_t close;
-   q_dbi_stmt_affected_rows_t affected_rows;
-   q_dbi_stmt_get_output_t get_output;
-   q_dbi_stmt_get_output_rows_t get_output_rows;
-   
-   DLLLOCAL dbi_driver_stmt() : prepare(0), prepare_raw(0), bind(0), bind_placeholders(0), 
-				bind_values(0), exec(0), fetch_row(0), fetch_rows(0),
-				fetch_columns(0), next(0), define(0),
-				close(0), affected_rows(0), get_output(0), get_output_rows(0) {
-   }
-};
-
-struct DBIDriverFunctions {
-   q_dbi_open_t open;
-   q_dbi_close_t close;
-   q_dbi_select_t select;
-   q_dbi_select_rows_t selectRows;
-   q_dbi_select_row_t selectRow;
-   q_dbi_exec_t execSQL;
-   q_dbi_execraw_t execRawSQL;
-   q_dbi_commit_t commit;
-   q_dbi_rollback_t rollback;
-   q_dbi_begin_transaction_t begin_transaction; // for DBI drivers that require explicit transaction starts
-   q_dbi_abort_transaction_start_t abort_transaction_start;  // for DBI drivers that require a rollback in order to use
-   // the connection after an exception as the first statement
-   // in a transaction
-   q_dbi_get_server_version_t get_server_version;
-   q_dbi_get_client_version_t get_client_version;
-
-   dbi_driver_stmt stmt;
-
-   DLLLOCAL DBIDriverFunctions() : open(0), close(0), select(0), selectRows(0), selectRow(0), 
-				   execSQL(0), execRawSQL(0), commit(0), rollback(0), 
-				   begin_transaction(0), abort_transaction_start(0),
-				   get_server_version(0), get_client_version(0) {
-   }
-};
-
 struct qore_dbi_mlist_private {
-      dbi_method_list_t l;
+   dbi_method_list_t l;
+   dbi_opt_map_t omap;
+
+   DLLLOCAL void registerOption(const char* name, const QoreTypeInfo* type = 0) {
+      assert(omap.find(name) == omap.end());
+      omap[name] = type;
+   }
+
+   DLLLOCAL static qore_dbi_mlist_private* get(const qore_dbi_method_list& ml) {
+      return ml.priv;
+   }
 };
 
 qore_dbi_method_list::qore_dbi_method_list() : priv(new qore_dbi_mlist_private) {
@@ -119,487 +84,334 @@ qore_dbi_method_list::~qore_dbi_method_list() {
 void qore_dbi_method_list::add(int code, q_dbi_open_t method) {
    assert(code == QDBI_METHOD_OPEN || code == QDBI_METHOD_COMMIT || code == QDBI_METHOD_ROLLBACK || code == QDBI_METHOD_BEGIN_TRANSACTION
       || code == QDBI_METHOD_ABORT_TRANSACTION_START);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // for close
 void qore_dbi_method_list::add(int code, q_dbi_close_t method) {
    assert(code == QDBI_METHOD_CLOSE);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers select, select_rows. and exec
 void qore_dbi_method_list::add(int code, q_dbi_select_t method) {
    assert(code == QDBI_METHOD_SELECT || code == QDBI_METHOD_SELECT_ROWS || code == QDBI_METHOD_EXEC);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers select_row
 void qore_dbi_method_list::add(int code, q_dbi_select_row_t method) {
    assert(code == QDBI_METHOD_SELECT_ROW);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers execRaw
 void qore_dbi_method_list::add(int code, q_dbi_execraw_t method) {
    assert(code == QDBI_METHOD_EXECRAW);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers get_server_version
 void qore_dbi_method_list::add(int code, q_dbi_get_server_version_t method) {
    assert(code == QDBI_METHOD_GET_SERVER_VERSION);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers get_client_version
 void qore_dbi_method_list::add(int code, q_dbi_get_client_version_t method) {
    assert(code == QDBI_METHOD_GET_CLIENT_VERSION);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers stmt prepare
 void qore_dbi_method_list::add(int code, q_dbi_stmt_prepare_t method) {
    assert(code == QDBI_METHOD_STMT_PREPARE);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers stmt prepare_raw
 void qore_dbi_method_list::add(int code, q_dbi_stmt_prepare_raw_t method) {
    assert(code == QDBI_METHOD_STMT_PREPARE_RAW);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers stmt bind
 void qore_dbi_method_list::add(int code, q_dbi_stmt_bind_t method) {
    assert(code == QDBI_METHOD_STMT_BIND || code == QDBI_METHOD_STMT_BIND_PLACEHOLDERS || code == QDBI_METHOD_STMT_BIND_VALUES);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers stmt exec, close, define, and affectedRows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_exec_t method) {
    assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers stmt fetch_row, get_output and get_output_rows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_fetch_row_t method) {
    assert(code == QDBI_METHOD_STMT_FETCH_ROW || code == QDBI_METHOD_STMT_GET_OUTPUT_ROWS || code == QDBI_METHOD_STMT_GET_OUTPUT);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers stmt fetch_rows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_fetch_rows_t method) {
    assert(code == QDBI_METHOD_STMT_FETCH_ROWS);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers stmt fetch_columns
 void qore_dbi_method_list::add(int code, q_dbi_stmt_fetch_columns_t method) {
    assert(code == QDBI_METHOD_STMT_FETCH_COLUMNS);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
 // covers stmt next
 void qore_dbi_method_list::add(int code, q_dbi_stmt_next_t method) {
    assert(code == QDBI_METHOD_STMT_NEXT);
-   priv->l.push_back(std::make_pair(code, (void *)method));
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
-dbi_method_list_t *qore_dbi_method_list::getMethods() const {
-   return &priv->l;
+void qore_dbi_method_list::add(int code, q_dbi_option_set_t method) {
+   assert(code == QDBI_METHOD_OPT_SET);
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
 }
 
-// helper class that will edit argument lists and convert number values to floats if the driver does not support the "number" type (QoreNumberNode)
-class DbiArgHelper {
-protected:
-   const QoreListNode* orig;
-   QoreListNode* nl;
-   ExceptionSink* xsink;
+void qore_dbi_method_list::add(int code, q_dbi_option_get_t method) {
+   assert(code == QDBI_METHOD_OPT_GET);
+   assert(priv->l.find(code) == priv->l.end());
+   priv->l[code] = (void*)method;
+}
 
-public:
-   DLLLOCAL DbiArgHelper(const QoreListNode* ol, bool numeric, ExceptionSink* xs) : orig(ol), nl(0), xsink(xs) {
-      if (numeric || !orig)
-         return;
+void qore_dbi_method_list::registerOption(const char* name, const QoreTypeInfo* type) {
+   priv->registerOption(name, type);
+}
 
-      // scan input list
-      ConstListIterator li(orig);
-      while (li.next()) {
-         if (get_node_type(li.getValue()) == NT_NUMBER) {
-            if (!nl) {
-               nl = new QoreListNode;
-               for (unsigned i = 0; i < li.index(); ++i)
-                  nl->push(orig->get_referenced_entry(i));
-            }
-            nl->push(new QoreFloatNode(li.getValue()->getAsFloat()));
-            continue;
+DbiArgHelper::DbiArgHelper(const QoreListNode* ol, bool numeric, ExceptionSink* xs) : orig(ol), nl(0), xsink(xs) {
+   if (numeric || !orig)
+      return;
+
+   // scan input list
+   ConstListIterator li(orig);
+   while (li.next()) {
+      if (get_node_type(li.getValue()) == NT_NUMBER) {
+         if (!nl) {
+            nl = new QoreListNode;
+            for (unsigned i = 0; i < li.index(); ++i)
+               nl->push(orig->get_referenced_entry(i));
          }
-         if (nl)
-            nl->push(li.getReferencedValue());
+         nl->push(new QoreFloatNode(li.getValue()->getAsFloat()));
+         continue;
       }
-   }
-
-   DLLLOCAL ~DbiArgHelper() {
       if (nl)
-         nl->deref(xsink);
+         nl->push(li.getReferencedValue());
    }
+}
 
-   DLLLOCAL const QoreListNode* get() const {
-      return nl ? nl : orig;
-   }
+qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private &methods, int cps) {
+   // add methods to internal data structure
+   for (dbi_method_list_t::const_iterator i = methods.l.begin(), e = methods.l.end(); i != e; ++i) {
+      assert((*i).first > 0 && (*i).first <= QDBI_VALID_CODES);
+      switch ((*i).first) {
+         case QDBI_METHOD_OPEN:
+            assert(!f.open);
+            f.open = (q_dbi_open_t)(*i).second;
+            break;
+         case QDBI_METHOD_CLOSE:
+            assert(!f.close);
+            f.close = (q_dbi_close_t)(*i).second;
+            break;
+         case QDBI_METHOD_SELECT:
+            assert(!f.select);
+            f.select = (q_dbi_select_t)(*i).second;
+            break;
+         case QDBI_METHOD_SELECT_ROWS:
+            assert(!f.selectRows);
+            f.selectRows = (q_dbi_select_rows_t)(*i).second;
+            break;
+         case QDBI_METHOD_SELECT_ROW:
+            assert(!f.selectRow);
+            f.selectRow = (q_dbi_select_row_t)(*i).second;
+            cps |= DBI_CAP_HAS_SELECT_ROW;
+            break;
+         case QDBI_METHOD_EXEC:
+            assert(!f.execSQL);
+            f.execSQL = (q_dbi_exec_t)(*i).second;
+            break;
+         case QDBI_METHOD_EXECRAW:
+            assert(!f.execRawSQL);
+            f.execRawSQL = (q_dbi_execraw_t)(*i).second;
+            cps |= DBI_CAP_HAS_EXECRAW;
+            break;
+         case QDBI_METHOD_COMMIT:
+            assert(!f.commit);
+            f.commit = (q_dbi_commit_t)(*i).second;
+            break;
+         case QDBI_METHOD_ROLLBACK:
+            assert(!f.rollback);
+            f.rollback = (q_dbi_rollback_t)(*i).second;
+            break;
+         case QDBI_METHOD_BEGIN_TRANSACTION:
+            assert(!f.begin_transaction);
+            f.begin_transaction = (q_dbi_begin_transaction_t)(*i).second;
+            break;
+         case QDBI_METHOD_ABORT_TRANSACTION_START:
+            assert(!f.abort_transaction_start);
+            f.abort_transaction_start = (q_dbi_abort_transaction_start_t)(*i).second;
+            break;
+         case QDBI_METHOD_GET_SERVER_VERSION:
+            assert(!f.get_server_version);
+            f.get_server_version = (q_dbi_get_server_version_t)(*i).second;
+            break;
+         case QDBI_METHOD_GET_CLIENT_VERSION:
+            assert(!f.get_client_version);
+            f.get_client_version = (q_dbi_get_client_version_t)(*i).second;
+            break;
 
-   DLLLOCAL const QoreListNode* operator*() const {
-      return nl ? nl : orig;
-   }
-};
+         case QDBI_METHOD_STMT_PREPARE:
+            assert(!f.stmt.prepare);
+            f.stmt.prepare = (q_dbi_stmt_prepare_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_PREPARE_RAW:
+            assert(!f.stmt.prepare_raw);
+            f.stmt.prepare_raw = (q_dbi_stmt_prepare_raw_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_BIND:
+            assert(!f.stmt.bind);
+            f.stmt.bind = (q_dbi_stmt_bind_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_BIND_PLACEHOLDERS:
+            assert(!f.stmt.bind_placeholders);
+            f.stmt.bind_placeholders = (q_dbi_stmt_bind_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_BIND_VALUES:
+            assert(!f.stmt.bind_values);
+            f.stmt.bind_values = (q_dbi_stmt_bind_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_EXEC:
+            assert(!f.stmt.exec);
+            f.stmt.exec = (q_dbi_stmt_exec_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_FETCH_ROW:
+            assert(!f.stmt.fetch_row);
+            f.stmt.fetch_row = (q_dbi_stmt_fetch_row_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_FETCH_ROWS:
+            assert(!f.stmt.fetch_rows);
+            f.stmt.fetch_rows = (q_dbi_stmt_fetch_rows_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_FETCH_COLUMNS:
+            assert(!f.stmt.fetch_columns);
+            f.stmt.fetch_columns = (q_dbi_stmt_fetch_columns_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_NEXT:
+            assert(!f.stmt.next);
+            f.stmt.next = (q_dbi_stmt_next_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_DEFINE:
+            assert(!f.stmt.define);
+            f.stmt.define = (q_dbi_stmt_define_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_CLOSE:
+            assert(!f.stmt.close);
+            f.stmt.close = (q_dbi_stmt_close_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_AFFECTED_ROWS:
+            assert(!f.stmt.affected_rows);
+            f.stmt.affected_rows = (q_dbi_stmt_affected_rows_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_GET_OUTPUT:
+            assert(!f.stmt.get_output);
+            f.stmt.get_output = (q_dbi_stmt_get_output_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_GET_OUTPUT_ROWS:
+            assert(!f.stmt.get_output_rows);
+            f.stmt.get_output_rows = (q_dbi_stmt_get_output_rows_t)(*i).second;
+            break;
 
-struct qore_dbi_private {
-   DBIDriverFunctions f;
-   int caps;
-   const char *name;
-
-   DLLLOCAL qore_dbi_private(const char *nme, const dbi_method_list_t &methods, int cps) {
-      // add methods to internal data structure
-      for (dbi_method_list_t::const_iterator i = methods.begin(), e = methods.end(); i != e; ++i) {
-	 assert((*i).first > 0 && (*i).first <= QDBI_VALID_CODES);
-	 switch ((*i).first) {
-	    case QDBI_METHOD_OPEN:
-	       assert(!f.open);
-	       f.open = (q_dbi_open_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_CLOSE:
-	       assert(!f.close);
-	       f.close = (q_dbi_close_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_SELECT:
-	       assert(!f.select);
-	       f.select = (q_dbi_select_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_SELECT_ROWS:
-	       assert(!f.selectRows);
-	       f.selectRows = (q_dbi_select_rows_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_SELECT_ROW:
-	       assert(!f.selectRow);
-	       f.selectRow = (q_dbi_select_row_t)(*i).second;
-	       cps |= DBI_CAP_HAS_SELECT_ROW;
-	       break;
-	    case QDBI_METHOD_EXEC:
-	       assert(!f.execSQL);
-	       f.execSQL = (q_dbi_exec_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_EXECRAW:
-               assert(!f.execRawSQL);
-               f.execRawSQL = (q_dbi_execraw_t)(*i).second;
-	       cps |= DBI_CAP_HAS_EXECRAW;
-               break;
-	    case QDBI_METHOD_COMMIT:
-	       assert(!f.commit);
-	       f.commit = (q_dbi_commit_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_ROLLBACK:
-	       assert(!f.rollback);
-	       f.rollback = (q_dbi_rollback_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_BEGIN_TRANSACTION:
-	       assert(!f.begin_transaction);
-	       f.begin_transaction = (q_dbi_begin_transaction_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_ABORT_TRANSACTION_START:
-	       assert(!f.abort_transaction_start);
-	       f.abort_transaction_start = (q_dbi_abort_transaction_start_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_GET_SERVER_VERSION:
-	       assert(!f.get_server_version);
-	       f.get_server_version = (q_dbi_get_server_version_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_GET_CLIENT_VERSION:
-	       assert(!f.get_client_version);
-	       f.get_client_version = (q_dbi_get_client_version_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_PREPARE:
-	       assert(!f.stmt.prepare);
-	       f.stmt.prepare = (q_dbi_stmt_prepare_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_PREPARE_RAW:
-	       assert(!f.stmt.prepare_raw);
-	       f.stmt.prepare_raw = (q_dbi_stmt_prepare_raw_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_BIND:
-	       assert(!f.stmt.bind);
-	       f.stmt.bind = (q_dbi_stmt_bind_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_BIND_PLACEHOLDERS:
-	       assert(!f.stmt.bind_placeholders);
-	       f.stmt.bind_placeholders = (q_dbi_stmt_bind_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_BIND_VALUES:
-	       assert(!f.stmt.bind_values);
-	       f.stmt.bind_values = (q_dbi_stmt_bind_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_EXEC:
-	       assert(!f.stmt.exec);
-	       f.stmt.exec = (q_dbi_stmt_exec_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_FETCH_ROW:
-	       assert(!f.stmt.fetch_row);
-	       f.stmt.fetch_row = (q_dbi_stmt_fetch_row_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_FETCH_ROWS:
-	       assert(!f.stmt.fetch_rows);
-	       f.stmt.fetch_rows = (q_dbi_stmt_fetch_rows_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_FETCH_COLUMNS:
-	       assert(!f.stmt.fetch_columns);
-	       f.stmt.fetch_columns = (q_dbi_stmt_fetch_columns_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_NEXT:
-	       assert(!f.stmt.next);
-	       f.stmt.next = (q_dbi_stmt_next_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_DEFINE:
-	       assert(!f.stmt.define);
-	       f.stmt.define = (q_dbi_stmt_define_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_CLOSE:
-	       assert(!f.stmt.close);
-	       f.stmt.close = (q_dbi_stmt_close_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_AFFECTED_ROWS:
-	       assert(!f.stmt.affected_rows);
-	       f.stmt.affected_rows = (q_dbi_stmt_affected_rows_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_GET_OUTPUT:
-	       assert(!f.stmt.get_output);
-	       f.stmt.get_output = (q_dbi_stmt_get_output_t)(*i).second;
-	       break;
-	    case QDBI_METHOD_STMT_GET_OUTPUT_ROWS:
-	       assert(!f.stmt.get_output_rows);
-	       f.stmt.get_output_rows = (q_dbi_stmt_get_output_rows_t)(*i).second;
-	       break;
+         case QDBI_METHOD_OPT_SET:
+            assert(!f.opt.set);
+            f.opt.set = (q_dbi_option_set_t)(*i).second;
+            break;
+         case QDBI_METHOD_OPT_GET:
+            assert(!f.opt.get);
+            f.opt.get = (q_dbi_option_get_t)(*i).second;
+            break;
 
 #ifdef DEBUG
-	    default:
-	       assert(false);
+         default:
+            assert(false);
 #endif
-	 }
       }
-      // ensure minimum methods are defined
-      assert(f.open);
-      assert(f.close);
-      assert(f.select);
-      assert(f.selectRows);
-      assert(f.execSQL);
-      assert(f.commit);
-      assert(f.rollback);
-
-      // ensure either no or minimum stmt methods are defined
-      assert(!f.stmt.prepare || (f.stmt.prepare_raw && f.stmt.bind && f.stmt.bind_values
-				 && f.stmt.exec && f.stmt.fetch_row && f.stmt.fetch_rows
-				 && f.stmt.fetch_columns && f.stmt.next && f.stmt.close
-				 && f.stmt.affected_rows && f.stmt.get_output
-				 && f.stmt.get_output_rows && f.stmt.define));
-   
-      name = nme;
-      caps = cps;
-      if (f.stmt.prepare)
-	 caps |= DBI_CAP_HAS_STATEMENT;
-#ifdef DEBUG
-      else
-	 assert(!(caps & DBI_CAP_HAS_STATEMENT));
-#endif
    }
-};
+   // ensure minimum methods are defined
+   assert(f.open);
+   assert(f.close);
+   assert(f.select);
+   assert(f.selectRows);
+   assert(f.execSQL);
+   assert(f.commit);
+   assert(f.rollback);
 
-DBIDriver::DBIDriver(const char *nme, const dbi_method_list_t &methods, int cps) : priv(new qore_dbi_private(nme, methods, cps)) {
+   // ensure either no or minimum stmt methods are defined
+   assert(!f.stmt.prepare || (f.stmt.prepare_raw && f.stmt.bind && f.stmt.bind_values
+         && f.stmt.exec && f.stmt.fetch_row && f.stmt.fetch_rows
+         && f.stmt.fetch_columns && f.stmt.next && f.stmt.close
+         && f.stmt.affected_rows && f.stmt.get_output
+         && f.stmt.get_output_rows && f.stmt.define));
+
+   // ensure either no or minimum opt methods are defined
+   assert(!f.opt.set || (f.opt.set && f.opt.get));
+
+   name = nme;
+   caps = cps;
+   if (f.stmt.prepare)
+      caps |= DBI_CAP_HAS_STATEMENT;
+#ifdef DEBUG
+   else
+      assert(!(caps & DBI_CAP_HAS_STATEMENT));
+#endif
+
+   if (f.opt.set)
+      caps |= DBI_CAP_HAS_OPTION_SUPPORT;
+}
+
+QoreListNode* qore_dbi_private::getCapList() const {
+   QoreListNode* l = new QoreListNode;
+   for (unsigned i = 0; i < NUM_DBI_CAPS; ++i)
+      if (caps & dbi_cap_list[i].cap)
+         l->push(new QoreStringNode(dbi_cap_list[i].desc));
+   return l;
+}
+
+DBIDriver::DBIDriver(qore_dbi_private* p) : priv(p) {
 }
 
 DBIDriver::~DBIDriver() {
    delete priv;
 }
 
-const char *DBIDriver::getName() const {
+const char* DBIDriver::getName() const {
    return priv->name;
 }
 
-int DBIDriver::getCaps() const {
-   return priv->caps;
-}
-
-QoreListNode *DBIDriver::getCapList() const {
-   QoreListNode *l = new QoreListNode;
-   for (unsigned i = 0; i < NUM_DBI_CAPS; ++i)
-      if (priv->caps & dbi_cap_list[i].cap)
-	 l->push(new QoreStringNode(dbi_cap_list[i].desc));
-   return l;
-}
-
-int DBIDriver::init(Datasource *ds, ExceptionSink *xsink) const {
-   return priv->f.open(ds, xsink);
-}
-
-int DBIDriver::close(Datasource *ds) const {
-   return priv->f.close(ds);
-}
-
-AbstractQoreNode *DBIDriver::select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
-   DbiArgHelper dargs(args, (priv->caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
-   return priv->f.select(ds, sql, *dargs, xsink);
-}
-
-AbstractQoreNode *DBIDriver::selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
-   DbiArgHelper dargs(args, (priv->caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
-   return priv->f.selectRows(ds, sql, *dargs, xsink);
-}
-
-QoreHashNode *DBIDriver::selectRow(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
-   DbiArgHelper dargs(args, (priv->caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
-
-   if (priv->f.selectRow)
-      return priv->f.selectRow(ds, sql, *dargs, xsink);
-
-   ReferenceHolder<AbstractQoreNode> res(priv->f.selectRows(ds, sql, *dargs, xsink), xsink);
-   if (!res)
-      return 0;
-
-   if (res->getType() != NT_LIST) {
-      xsink->raiseException("DBI-SELECT-ROW-ERROR", "the call to selectRow() did not return a single row; type returned: %s", res->getTypeName());
-      return 0;
-   }
-
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(*res);
-   if (l->size() > 1) {
-      xsink->raiseException("DBI-SELECT-ROW-ERROR", "the call to selectRow() returned %lld rows; SQL passed to this method must return not more than 1 row", l->size());
-      return 0;
-   }
-
-   AbstractQoreNode *rv = l->shift();
-   assert(!rv || rv->getType() == NT_HASH);
-   return reinterpret_cast<QoreHashNode *>(rv);
-}
-
-AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
-   DbiArgHelper dargs(args, (priv->caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
-   return priv->f.execSQL(ds, sql, *dargs, xsink);
-}
-
-AbstractQoreNode *DBIDriver::execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink) const {
-   if (!priv->f.execRawSQL) {
-      xsink->raiseException("DBI-EXEC-RAW-SQL-ERROR", "this driver does not implement the Datasource::execRawSQL() method");
-      return 0;
-   }
-   return priv->f.execRawSQL(ds, sql, xsink);
-}
-
-int DBIDriver::commit(Datasource *ds, ExceptionSink *xsink) const {
-   return priv->f.commit(ds, xsink);
-}
-
-int DBIDriver::rollback(Datasource *ds, ExceptionSink *xsink) const {
-   return priv->f.rollback(ds, xsink);
-}
-
-int DBIDriver::beginTransaction(Datasource *ds, ExceptionSink *xsink) const {
-   if (priv->f.begin_transaction)
-      return priv->f.begin_transaction(ds, xsink);
-   return 0; // 0 = OK
-}
-
-int DBIDriver::autoCommit(Datasource *ds, ExceptionSink *xsink) const {
-   // if the driver does not require explicit "begin" statements to
-   // start a transaction, then we have to explicitly call "commit" here
-   if (!priv->f.begin_transaction)
-      return priv->f.commit(ds, xsink);
-
-   return 0; // 0 = OK
-}
-
-int DBIDriver::abortTransactionStart(Datasource *ds, ExceptionSink *xsink) const {
-   if (priv->f.abort_transaction_start)
-      return priv->f.abort_transaction_start(ds, xsink);
-   return 0; // 0 = OK
-}
-
-AbstractQoreNode *DBIDriver::getServerVersion(Datasource *ds, ExceptionSink *xsink) const {
-   if (priv->f.get_server_version)
-      return priv->f.get_server_version(ds, xsink);
-   return 0;
-}
-
-AbstractQoreNode *DBIDriver::getClientVersion(const Datasource *ds, ExceptionSink *xsink) const {
-   if (priv->f.get_client_version)
-      return priv->f.get_client_version(ds, xsink);
-   return 0;
-}
-
-int DBIDriver::stmt_prepare(SQLStatement *stmt, const QoreString &str, const QoreListNode *args, ExceptionSink *xsink) const {
-   DbiArgHelper dargs(args, (priv->caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
-   return priv->f.stmt.prepare(stmt, str, *dargs, xsink);
-}
-
-int DBIDriver::stmt_prepare_raw(SQLStatement *stmt, const QoreString &str, ExceptionSink *xsink) const {
-   return priv->f.stmt.prepare_raw(stmt, str, xsink);
-}
-
-int DBIDriver::stmt_bind(SQLStatement *stmt, const QoreListNode &l, ExceptionSink *xsink) const {
-   return priv->f.stmt.bind(stmt, l, xsink);
-}
-
-int DBIDriver::stmt_bind_placeholders(SQLStatement *stmt, const QoreListNode &l, ExceptionSink *xsink) const {
-   if (!priv->f.stmt.bind_placeholders) {
-      xsink->raiseException("SQLSTATEMENT-BIND-PLACEHOLDERS-ERROR", "the '%s' driver does not require placeholder buffer specifications so the SQLStatement::bindPlaceholders() method is not supported", getName());
-      return -1;
-   }
-
-   return priv->f.stmt.bind_placeholders(stmt, l, xsink);
-}
-
-int DBIDriver::stmt_bind_values(SQLStatement *stmt, const QoreListNode &l, ExceptionSink *xsink) const {
-   return priv->f.stmt.bind_values(stmt, l, xsink);
-}
-
-int DBIDriver::stmt_define(SQLStatement *stmt, ExceptionSink *xsink) const {
-   return priv->f.stmt.define(stmt, xsink);
-}
-
-int DBIDriver::stmt_exec(SQLStatement *stmt, ExceptionSink *xsink) const {
-   return priv->f.stmt.exec(stmt, xsink);
-}
-
-int DBIDriver::stmt_affected_rows(SQLStatement *stmt, ExceptionSink *xsink) const {
-   return priv->f.stmt.affected_rows(stmt, xsink);
-}
-
-QoreHashNode *DBIDriver::stmt_get_output(SQLStatement *stmt, ExceptionSink *xsink) const {
-   return priv->f.stmt.get_output(stmt, xsink);
-}
-
-QoreHashNode *DBIDriver::stmt_get_output_rows(SQLStatement *stmt, ExceptionSink *xsink) const {
-   return priv->f.stmt.get_output_rows(stmt, xsink);
-}
-
-QoreHashNode *DBIDriver::stmt_fetch_row(SQLStatement *stmt, ExceptionSink *xsink) const {
-   return priv->f.stmt.fetch_row(stmt, xsink);
-}
-
-QoreListNode *DBIDriver::stmt_fetch_rows(SQLStatement *stmt, int rows, ExceptionSink *xsink) const {
-   return priv->f.stmt.fetch_rows(stmt, rows, xsink);
-}
-
-QoreHashNode *DBIDriver::stmt_fetch_columns(SQLStatement *stmt, int rows, ExceptionSink *xsink) const {
-   return priv->f.stmt.fetch_columns(stmt, rows, xsink);
-}
-
-bool DBIDriver::stmt_next(SQLStatement *stmt, ExceptionSink *xsink) const {
-   return priv->f.stmt.next(stmt, xsink);
-}
-
-int DBIDriver::stmt_close(SQLStatement *stmt, ExceptionSink *xsink) const {
-   return priv->f.stmt.close(stmt, xsink);
-}
-
 bool DBIDriver::hasStatementAPI() const {
-   return priv->caps & DBI_CAP_HAS_STATEMENT;
+   return priv->hasStatementAPI();
 }
 
 /* it's not necessary to lock this object because it will only be written to in one thread at a time
@@ -615,13 +427,13 @@ struct qore_dbi_dlist_private {
    DLLLOCAL ~qore_dbi_dlist_private() {
       dbi_list_t::iterator i;
       while ((i = l.begin()) != l.end()) {
-	 DBIDriver *driv = *i;
+	 DBIDriver* driv = *i;
 	 l.erase(i);
 	 delete driv;
       }
    }
 
-   DLLLOCAL DBIDriver *find_intern(const char *name) const {
+   DLLLOCAL DBIDriver* find_intern(const char* name) const {
       for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
 	 if (!strcmp(name, (*i)->getName()))
 	    return *i;
@@ -629,11 +441,11 @@ struct qore_dbi_dlist_private {
       return 0;
    }
 
-   DLLLOCAL QoreListNode *getDriverList() const {
+   DLLLOCAL QoreListNode* getDriverList() const {
       if (l.empty())
 	 return 0;
 	 
-      QoreListNode *lst = new QoreListNode;
+      QoreListNode* lst = new QoreListNode;
 	 
       for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
 	 lst->push(new QoreStringNode((*i)->getName()));
@@ -649,12 +461,12 @@ DBIDriverList::~DBIDriverList() {
    delete priv;
 }
 
-DBIDriver *DBIDriverList::find_intern(const char *name) const {
+DBIDriver* DBIDriverList::find_intern(const char* name) const {
    return priv->find_intern(name);
 }
 
-DBIDriver *DBIDriverList::find(const char *name) const {
-   DBIDriver *d = priv->find_intern(name);
+DBIDriver* DBIDriverList::find(const char* name) const {
+   DBIDriver* d = priv->find_intern(name);
    if (d)
       return d;
 
@@ -667,8 +479,8 @@ DBIDriver *DBIDriverList::find(const char *name) const {
    return priv->find_intern(name);
 }
 
-DBIDriver *DBIDriverList::find(const char *name, ExceptionSink *xsink) const {
-   DBIDriver *d = priv->find_intern(name);
+DBIDriver* DBIDriverList::find(const char* name, ExceptionSink* xsink) const {
+   DBIDriver* d = priv->find_intern(name);
    if (d)
       return d;
 
@@ -679,19 +491,19 @@ DBIDriver *DBIDriverList::find(const char *name, ExceptionSink *xsink) const {
    return priv->find_intern(name);
 }
 
-DBIDriver *DBIDriverList::registerDriver(const char *name, const qore_dbi_method_list &methods, int caps) {
+DBIDriver* DBIDriverList::registerDriver(const char* name, const qore_dbi_method_list& methods, int caps) {
    assert(!priv->find_intern(name));
    
-   DBIDriver *dd = new DBIDriver(name, *(methods.getMethods()), caps);
+   DBIDriver* dd = new DBIDriver(new qore_dbi_private(name, *qore_dbi_mlist_private::get(methods), caps));
    priv->l.push_back(dd);
    return dd;
 }
 
-QoreListNode *DBIDriverList::getDriverList() const {
+QoreListNode* DBIDriverList::getDriverList() const {
    return priv->getDriverList();
 }
 
-void DBI_concat_numeric(QoreString *str, const AbstractQoreNode *v) {
+void DBI_concat_numeric(QoreString* str, const AbstractQoreNode* v) {
    if (is_nothing(v) || is_null(v)) {
       str->concat("null");
       return;
@@ -709,7 +521,7 @@ void DBI_concat_numeric(QoreString *str, const AbstractQoreNode *v) {
    str->sprintf("%lld", v->getAsBigInt());
 }
 
-int DBI_concat_string(QoreString *str, const AbstractQoreNode *v, ExceptionSink *xsink) {
+int DBI_concat_string(QoreString* str, const AbstractQoreNode* v, ExceptionSink* xsink) {
    if (is_nothing(v) || is_null(v))
       return 0;
 
@@ -726,8 +538,8 @@ int DBI_concat_string(QoreString *str, const AbstractQoreNode *v, ExceptionSink 
   parses strings of the form: driver:user/pass@db(encoding)%host:post
   everything except "@db" is optional
 */
-QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
-   static const char *DATASOURCE_PARSE_ERROR = "DATASOURCE-PARSE-ERROR";
+QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
+   static const char* DATASOURCE_PARSE_ERROR = "DATASOURCE-PARSE-ERROR";
 
    if (!ds || !ds[0]) {
       xsink->raiseException(DATASOURCE_PARSE_ERROR, "empty text passed to parseDatasource()");
@@ -737,10 +549,10 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
    // use a QoreString to create a temporary buffer
    QoreString tmp(ds);
    tmp.trim();
-   char *str = const_cast<char *>(tmp.getBuffer());
+   char* str = const_cast<char*>(tmp.getBuffer());
 
    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
-   char *p = strchr(str, ':');
+   char* p = strchr(str, ':');
    // make sure this is the driver name and not the port at the end
    if (p) {
       *p = '\0';
@@ -779,10 +591,10 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
    }
    str = p + 1;
 
-   char *db = str;
+   char* db = str;
    p = strchr(str, '(');
    if (p) {
-      char *end = strchr(p, ')');
+      char* end = strchr(p, ')');
       if (!end) {
 	 xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing parenthesis in charset specification in '%s'", ds);
 	 return 0;
@@ -813,7 +625,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
 	    return 0;
 	 }
 
-	 const char *hstr = str;
+	 const char* hstr = str;
 
 	 if (p) {
 	    tok = *p;
@@ -834,7 +646,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
 	 }
 	 h->setKeyValue("port", new QoreBigIntNode(port), 0);
 
-	 const char *pstr = str;
+	 const char* pstr = str;
 	 p = strchr(str, '{');
 	 if (p) {
 	    tok = *p;
@@ -854,7 +666,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
       }
 
       if (tok == '{') {
-	 char *end = strchr(str, '}');
+	 char* end = strchr(str, '}');
 	 if (!end) {
 	    xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing curly bracket '}' in option specification in '%s'", ds);
 	    return 0;
@@ -869,7 +681,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
 	 while (true) {
 	    if (!*p)
 	       break;
-	    char *eq = strchr(p, '=');
+	    char* eq = strchr(p, '=');
 	    if (!eq) {
 	       xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing '=' in option specification in '%s'", ds);
 	       return 0;
@@ -880,7 +692,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
 	    }
 	    *eq = '\0';
 	    ++eq;
-	    char *oend = strchr(eq, ',');
+	    char* oend = strchr(eq, ',');
 	    qore_size_t len = oend ? oend - eq : strlen(eq);
 	    if (opt->existsKey(p)) {
 	       xsink->raiseException(DATASOURCE_PARSE_ERROR, "option '%s' repeated in '%s'", p, ds);

@@ -78,6 +78,9 @@
 //! defined because this version of Qore has the q_path_is_readable() function
 #define _QORE_HAS_PATH_IS_READABLE 1
 
+//! defined because this version of Qore supports the DBI option APIs
+#define _QORE_HAS_DBI_OPTIONS 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types

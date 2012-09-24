@@ -91,6 +91,12 @@ const DBI_CAP_HAS_STATEMENT = DBI_CAP_HAS_STATEMENT;
 
 //! Indicates that the DBI driver supports a native selectRow() method implementation
 const DBI_CAP_HAS_SELECT_ROW = DBI_CAP_HAS_SELECT_ROW;
+
+//! Indicates that the DBI driver supports arbitrary-precision numeric support for binding and retrieving values
+const DBI_CAP_HAS_NUMBER_SUPPORT = DBI_CAP_HAS_NUMBER_SUPPORT;
+
+//! Indicates that the DBI driver supports the new driver option API
+const DBI_CAP_HAS_OPTION_SUPPORT = DBI_CAP_HAS_OPTION_SUPPORT;
 //@}
 
 //! This class provides the %Qore interface to databases

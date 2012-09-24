@@ -54,7 +54,8 @@ struct qore_ds_private {
       hostname;
    int port; // port number (0 = default port)
 
-   DLLLOCAL qore_ds_private(Datasource *n_ds, DBIDriver *ndsl) : ds(n_ds), in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0), p_port(0), port(0) { }
+   DLLLOCAL qore_ds_private(Datasource *n_ds, DBIDriver *ndsl) : ds(n_ds), in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0), p_port(0), port(0) {
+   }
       
    DLLLOCAL ~qore_ds_private() {
       assert(!private_data);
@@ -80,22 +81,7 @@ struct qore_ds_private {
    }
 
    // returns true if a new transaction was started
-   DLLLOCAL bool statementExecuted(int rc, ExceptionSink *xsink) {      
-      if (!in_transaction) {
-	 if (!rc) {
-	    assert(!active_transaction);
-	    in_transaction = true;    
-	    active_transaction = true;
-	    return true;
-	 }
-	 else
-	    dsl->abortTransactionStart(ds, xsink);
-      }
-      else if (!rc && !active_transaction) {
-	 active_transaction = true;
-      }
-      return false;
-   }
+   DLLLOCAL bool statementExecuted(int rc, ExceptionSink *xsink);
 };
 
 #endif

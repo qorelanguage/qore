@@ -26,6 +26,7 @@
 #include <qore/intern/DatasourceStatementHelper.h>
 #include <qore/intern/sql_statement_private.h>
 #include <qore/intern/qore_ds_private.h>
+#include <qore/intern/qore_dbi_private.h>
 
 const char *QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "executed", "defined" };
 
@@ -166,7 +167,7 @@ int QoreSQLStatement::closeIntern(ExceptionSink *xsink) {
 
    assert(priv->ds);
 
-   int rc = priv->ds->getDriver()->stmt_close(this, xsink);
+   int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
    assert(!priv->data);
    status = STMT_IDLE;
 
@@ -190,7 +191,7 @@ int QoreSQLStatement::prepareArgs(bool n_raw, const QoreString &n_str, const Qor
 }
 
 int QoreSQLStatement::prepareIntern(ExceptionSink *xsink) {
-   int rc = priv->ds->getDriver()->stmt_prepare(this, str, prepare_args, xsink);
+   int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_prepare(this, str, prepare_args, xsink);
    if (!rc)
       status = STMT_PREPARED;
    else
@@ -238,7 +239,7 @@ int QoreSQLStatement::bind(const QoreListNode &l, ExceptionSink *xsink) {
    if (checkStatus(dba, STMT_PREPARED, "bind", xsink))
       return -1;
 
-   return priv->ds->getDriver()->stmt_bind(this, l, xsink);
+   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind(this, l, xsink);
 }
 
 int QoreSQLStatement::bindPlaceholders(const QoreListNode &l, ExceptionSink *xsink) {
@@ -249,7 +250,7 @@ int QoreSQLStatement::bindPlaceholders(const QoreListNode &l, ExceptionSink *xsi
    if (checkStatus(dba, STMT_PREPARED, "bindPlaceholders", xsink))
       return -1;
 
-   return priv->ds->getDriver()->stmt_bind_placeholders(this, l, xsink);
+   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind_placeholders(this, l, xsink);
 }
 
 int QoreSQLStatement::bindValues(const QoreListNode &l, ExceptionSink *xsink) {
@@ -260,7 +261,7 @@ int QoreSQLStatement::bindValues(const QoreListNode &l, ExceptionSink *xsink) {
    if (checkStatus(dba, STMT_PREPARED, "bindValues", xsink))
       return -1;
 
-   return priv->ds->getDriver()->stmt_bind_values(this, l, xsink);
+   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind_values(this, l, xsink);
 }
 
 int QoreSQLStatement::exec(const QoreListNode *args, ExceptionSink *xsink) {
@@ -271,14 +272,14 @@ int QoreSQLStatement::exec(const QoreListNode *args, ExceptionSink *xsink) {
    if (checkStatus(dba, STMT_PREPARED, "exec", xsink))
       return -1;
 
-   if (args && args->size() && priv->ds->getDriver()->stmt_bind(this, *args, xsink))
+   if (args && args->size() && qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind(this, *args, xsink))
       return -1;
 
    return execIntern(dba, xsink);
 }
 
 int QoreSQLStatement::execIntern(DBActionHelper &dba, ExceptionSink *xsink) {
-   int rc = priv->ds->getDriver()->stmt_exec(this, xsink);
+   int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_exec(this, xsink);
    if (!rc) {
       status = STMT_EXECED;
       // mark as transaction already existed to ensure that the
@@ -301,7 +302,7 @@ int QoreSQLStatement::affectedRows(ExceptionSink *xsink) {
    if (checkStatus(dba, STMT_EXECED, "affectedRows", xsink))
       return -1;
 
-   return priv->ds->getDriver()->stmt_affected_rows(this, xsink);
+   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_affected_rows(this, xsink);
 }
 
 QoreHashNode *QoreSQLStatement::getOutput(ExceptionSink *xsink) {
@@ -312,7 +313,7 @@ QoreHashNode *QoreSQLStatement::getOutput(ExceptionSink *xsink) {
    if (checkStatus(dba, STMT_EXECED, "getOutput", xsink))
       return 0;
 
-   return priv->ds->getDriver()->stmt_get_output(this, xsink);
+   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_get_output(this, xsink);
 }
 
 QoreHashNode *QoreSQLStatement::getOutputRows(ExceptionSink *xsink) {
@@ -323,7 +324,7 @@ QoreHashNode *QoreSQLStatement::getOutputRows(ExceptionSink *xsink) {
    if (checkStatus(dba, STMT_EXECED, "getOutputRows", xsink))
       return 0;
 
-   return priv->ds->getDriver()->stmt_get_output_rows(this, xsink);
+   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_get_output_rows(this, xsink);
 }
 
 bool QoreSQLStatement::next(ExceptionSink *xsink) {
@@ -334,7 +335,7 @@ bool QoreSQLStatement::next(ExceptionSink *xsink) {
    if (checkStatus(dba, STMT_DEFINED, "next", xsink))
       return false;
 
-   return priv->ds->getDriver()->stmt_next(this, xsink);
+   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_next(this, xsink);
 }
 
 int QoreSQLStatement::define(ExceptionSink *xsink) {
@@ -349,7 +350,7 @@ int QoreSQLStatement::define(ExceptionSink *xsink) {
 }
 
 int QoreSQLStatement::defineIntern(ExceptionSink *xsink) {
-   int rc = priv->ds->getDriver()->stmt_define(this, xsink);
+   int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_define(this, xsink);
    if (!rc)
       status = STMT_DEFINED;
    return rc;
@@ -363,7 +364,7 @@ QoreHashNode *QoreSQLStatement::fetchRow(ExceptionSink *xsink) {
    if (checkStatus(dba, STMT_DEFINED, "fetchRow", xsink))
       return 0;
 
-   return priv->ds->getDriver()->stmt_fetch_row(this, xsink);
+   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_row(this, xsink);
 }
 
 QoreListNode *QoreSQLStatement::fetchRows(int rows, ExceptionSink *xsink) {
@@ -374,7 +375,7 @@ QoreListNode *QoreSQLStatement::fetchRows(int rows, ExceptionSink *xsink) {
    if (checkStatus(dba, STMT_DEFINED, "fetchRows", xsink))
       return 0;
 
-   return priv->ds->getDriver()->stmt_fetch_rows(this, rows, xsink);
+   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_rows(this, rows, xsink);
 }
 
 QoreHashNode *QoreSQLStatement::fetchColumns(int rows, ExceptionSink *xsink) {
@@ -385,7 +386,7 @@ QoreHashNode *QoreSQLStatement::fetchColumns(int rows, ExceptionSink *xsink) {
    if (checkStatus(dba, STMT_DEFINED, "fetchColumns", xsink))
       return 0;
 
-   return priv->ds->getDriver()->stmt_fetch_columns(this, rows, xsink);
+   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_columns(this, rows, xsink);
 }
 
 bool QoreSQLStatement::active() const {

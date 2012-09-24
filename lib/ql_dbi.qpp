@@ -22,6 +22,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_dbi_private.h>
 
 /** @defgroup dbi_functions DBI Functions
     DBI functions
@@ -91,7 +92,7 @@ my *list $l = getDBIDriverCapabilityList("pgsql");
  */
 *list getDBIDriverCapabilityList(string driver) [flags=CONSTANT] {
    DBIDriver *dd = DBI.find(driver->getBuffer());
-   return !dd ? 0 : dd->getCapList();
+   return !dd ? 0 : qore_dbi_private::get(*dd)->getCapList();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -112,8 +113,8 @@ my *int getDBIDriverCapabilities("pgsql");
     @endcode
  */
 *int getDBIDriverCapabilities(string driver) [flags=CONSTANT] {
-   DBIDriver *dd = DBI.find(driver->getBuffer());
-   return !dd ? 0 : new QoreBigIntNode(dd->getCaps());
+   DBIDriver* dd = DBI.find(driver->getBuffer());
+   return !dd ? 0 : new QoreBigIntNode(qore_dbi_private::get(*dd)->getCaps());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -132,14 +133,20 @@ namespace Qore::SQL;
 //! for binding string values
 const VARCHAR = "string";
 
-//! for binding number values as a string
-const NUMBER = "string";
+//! for binding number values as a number
+/** @since %Qore 0.8.6 the value of this constant is \c "number" instead of \c "string"
+ */
+const NUMBER = "number";
 
-//! for binding numeric values as a string
-const NUMERIC = "string";
+//! for binding numeric values as a number
+/** @since %Qore 0.8.6 the value of this constant is \c "number" instead of \c "string"
+ */
+const NUMERIC = "number";
 
-//! for binding decimal values as a string
-const DECIMAL = "string";
+//! for binding decimal values as a number
+/** @since %Qore 0.8.6 the value of this constant is \c "number" instead of \c "string"
+ */
+const DECIMAL = "number";
 
 //! for binding CLOB values
 const CLOB = "clob";
