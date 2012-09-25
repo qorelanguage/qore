@@ -94,6 +94,7 @@ Datasource *Datasource::copy() const {
    Datasource *nds = new Datasource(priv->dsl);
    nds->priv->setPendingConnectionValues(priv);
 
+   qore_dbi_private::get(*priv->dsl)->cloneOptions(nds, this);
    return nds;
 }
 

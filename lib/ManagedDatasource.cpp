@@ -380,3 +380,24 @@ AbstractQoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink) {
 AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink) const {
    return Datasource::getClientVersion(xsink);
 }
+
+QoreHashNode* ManagedDatasource::getOptionHash(ExceptionSink* xsink) {
+   DatasourceActionHelper dbah(*this, xsink);
+   if (!dbah)
+      return 0;
+   return Datasource::getOptionHash();
+}
+
+int ManagedDatasource::setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {
+   DatasourceActionHelper dbah(*this, xsink);
+   if (!dbah)
+      return 0;
+   return Datasource::setOption(opt, val, xsink);
+}
+
+AbstractQoreNode* ManagedDatasource::getOption(const char* opt, ExceptionSink* xsink) {
+   DatasourceActionHelper dbah(*this, xsink);
+   if (!dbah)
+      return 0;
+   return Datasource::getOption(opt, xsink);
+}

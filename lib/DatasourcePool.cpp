@@ -23,57 +23,73 @@
 #include <qore/Qore.h>
 #include <qore/intern/DatasourcePool.h>
 
-DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, unsigned mn, unsigned mx, ExceptionSink *xsink) {
-   init_pool(ndsl, user, pass, db, charset, hostname, mn, mx, 0, xsink);
-}
-
-DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, unsigned mn, unsigned mx, int port, ExceptionSink *xsink) {
-   init_pool(ndsl, user, pass, db, charset, hostname, mn, mx, port, xsink);
-}
-
-void DatasourcePool::init_pool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, unsigned mn, unsigned mx, int port, ExceptionSink *xsink) {
+DatasourcePool::DatasourcePool(ExceptionSink *xsink, DBIDriver *ndsl, const char *user, const char *pass,
+      const char *db, const char *charset, const char *hostname, unsigned mn, unsigned mx, int port, const QoreHashNode* opts) :
+      pool(new Datasource*[mx]),
+      tid_list(new int[mx]),
+      min(mn),
+      max(mx),
+      cmax(0),
+      wait_count(0),
+      valid(false) {
    //assert(mn > 0);
    //assert(mx > min);   
    //assert(db != 0 && db[0]);
 
-   wait_count = 0;
-   min = mn;
-   max = mx;
-   // allocate memory for lists
-   pool     = new Datasource *[max];
-   tid_list = new int[max];
 
    // create minimum datasources if possible
-   printd(5, "DatasourcePool::DatasourcePool(driver=%08p user=%s pass=%s db=%s charset=%s host=%s min=%d max=%d port=%d) pool=%08p\n", 
+   printd(5, "DatasourcePool::DatasourcePool(driver=%p user=%s pass=%s db=%s charset=%s host=%s min=%d max=%d port=%d) pool=%p\n",
           ndsl, user ? user : "(null)", pass ? pass : "(null)", db ? db : "(null)", charset ? charset : "(null)", hostname ? hostname : "(null)", min, max, port, pool);
-   cmax = 0;
-   do {
-      pool[cmax] = new Datasource(ndsl);
-      if (user)     pool[cmax]->setPendingUsername(user);
-      if (pass)     pool[cmax]->setPendingPassword(pass);
-      if (db)       pool[cmax]->setPendingDBName(db);
-      if (charset)  pool[cmax]->setPendingDBEncoding(charset);
-      if (hostname) pool[cmax]->setPendingHostName(hostname);
-      if (port)     pool[cmax]->setPendingPort(port);
-      pool[cmax]->setAutoCommit(false);
-      pool[cmax]->open(xsink);
- 
-      //printd(5, "DP::DP() open %s: %08p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
 
+   // open initial datasource manually
+   pool[0] = new Datasource(ndsl);
+   if (user)     pool[0]->setPendingUsername(user);
+   if (pass)     pool[0]->setPendingPassword(pass);
+   if (db)       pool[0]->setPendingDBName(db);
+   if (charset)  pool[0]->setPendingDBEncoding(charset);
+   if (hostname) pool[0]->setPendingHostName(hostname);
+   if (port)     pool[0]->setPendingPort(port);
+
+   // set initial options
+   ConstHashIterator hi(opts);
+   while (hi.next()) {
+      // skip "min" and "max" options
+      if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
+         continue;
+
+      if (pool[0]->setOption(hi.getKey(), hi.getValue(), xsink))
+         return;
+   }
+
+   // turn off autocommit
+   pool[0]->setAutoCommit(false);
+   // open connection to server
+   pool[0]->open(xsink);
+   if (*xsink)
+      return;
+   //printd(5, "DP::DP() open %s: %p (%d)\n", ndsl->getName(), pool[0], xsink->isEvent());
+
+   // add to free list
+   free_list.push_back(0);
+
+   while (++cmax < min) {
+      pool[cmax] = pool[0]->copy();
+      // turn off autocommit
+      pool[cmax]->setAutoCommit(false);
+      // open connection to server
+      pool[cmax]->open(xsink);
+      if (*xsink)
+         return;
+
+      //printd(5, "DP::DP() open %s: %p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
       // add to free list
       free_list.push_back(cmax);
-
-      ++cmax;
-      
-      if (*xsink)
-	 break;
-   } while (cmax < min);
-
+   }
    valid = true;
 }
 
 DatasourcePool::~DatasourcePool() {
-   //printd(5, "DatasourcePool::~DatasourcePool() trlist.remove() this=%08p\n", this);
+   //printd(5, "DatasourcePool::~DatasourcePool() trlist.remove() this=%p\n", this);
    for (unsigned i = 0; i < cmax; ++i)
       delete pool[i];
    delete [] tid_list;
@@ -165,7 +181,7 @@ QoreString *DatasourcePool::getAndResetSQL() {
 
 void DatasourcePool::freeDS() {
    // remove from thread resource list
-   //printd(5, "DatasourcePool::freeDS() remove_thread_resource(this=%08p), tid=%d\n", this, tid);
+   //printd(5, "DatasourcePool::freeDS() remove_thread_resource(this=%p), tid=%d\n", this, tid);
    remove_thread_resource(this);
 
    int tid = gettid();
@@ -256,7 +272,7 @@ Datasource *DatasourcePool::getDSIntern(bool &new_ds, ExceptionSink *xsink) {
    sl.unlock();
    
    // add to thread resource list
-   //printd(5, "DatasourcePool::getDS() set_thread_resource(this=%08p), tid=%d\n", this, gettid());
+   //printd(5, "DatasourcePool::getDS() set_thread_resource(this=%p), tid=%d\n", this, gettid());
    set_thread_resource(this);
 
    return ds;
@@ -336,7 +352,7 @@ QoreStringNode *DatasourcePool::toString() {
    QoreStringNode *str = new QoreStringNode();
 
    SafeLocker sl((QoreThreadLock *)this);
-   str->sprintf("this=%08p, min=%d, max=%d, cmax=%d, wait_count=%d, thread_map = (", this, min, max, cmax, wait_count);
+   str->sprintf("this=%p, min=%d, max=%d, cmax=%d, wait_count=%d, thread_map = (", this, min, max, cmax, wait_count);
    thread_use_t::const_iterator ti = tmap.begin();
    while (ti != tmap.end()) {
       str->sprintf("tid %d=%d, ", ti->first, ti->second);

@@ -82,6 +82,9 @@ struct qore_ds_private {
 
    // returns true if a new transaction was started
    DLLLOCAL bool statementExecuted(int rc, ExceptionSink *xsink);
+
+   DLLLOCAL void copyOptions(const Datasource* ods);
+
 };
 
 #endif

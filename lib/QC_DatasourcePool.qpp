@@ -26,10 +26,90 @@
 
 #include <qore/intern/QC_DatasourcePool.h>
 
-#define DP_MIN 5
-#define DP_MAX 20
+#define DP_MIN 3
+#define DP_MAX 10
 
 static const char *DSPC_ERR = "DATASOURCEPOOL-CONSTRUCTOR-ERROR";
+
+static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, ExceptionSink* xsink) {
+   const char *str = check_hash_key(opts, "type", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   if (!str) {
+      xsink->raiseException(DSPC_ERR, "expecting a string value with the 'type' key giving the driver name");
+      return;
+   }
+
+   DBIDriver *db_driver = DBI.find(str);
+   if (!db_driver) {
+      if (!*xsink)
+         xsink->raiseException("DATASOURCEPOOL-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type '%s'", str);
+      return;
+   }
+
+   const char *user = check_hash_key(opts, "user", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *pass = check_hash_key(opts, "pass", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *db = check_hash_key(opts, "db", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *charset = check_hash_key(opts, "charset", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *host = check_hash_key(opts, "host", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   bool found;
+   int port = (int)opts->getKeyAsBigInt("port", found);
+   if (port < 0) {
+      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
+      return;
+   }
+
+   // get options
+   int min = 0, max = 0;
+
+   const AbstractQoreNode *p = opts->getKeyValue("options");
+   if (!is_nothing(p)) {
+      if (p->getType() != NT_HASH) {
+         xsink->raiseException(DSPC_ERR, "'options' key is not hash, instead got type '%s'", p->getTypeName());
+         return;
+      }
+
+      const QoreHashNode* h = reinterpret_cast<const QoreHashNode *>(p);
+
+      min = (int)h->getKeyAsBigInt("min", found);
+      if (found) {
+         if (min < 0) {
+            xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: %d)", min);
+            return;
+         }
+      }
+
+      max = (int)h->getKeyAsBigInt("max", found);
+      if (found ) {
+         if (max < min) {
+            xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
+            return;
+         }
+      }
+   }
+   // here we cast either a non-hash NULL pointer to a hash or a hash to a hash
+   const QoreHashNode* oh = reinterpret_cast<const QoreHashNode*>(p);
+
+   if (!min)
+      min = DP_MIN;
+
+   if (!max)
+      max = DP_MAX;
+
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, oh));
+   if (!*xsink)
+      self->setPrivate(CID_DATASOURCEPOOL, ds.release());
+}
 
 //! Provides transparent per-thread, per-transaction datasource connection pooling
 /** In most cases, the %DatasourcePool class can be used as a drop-in replacement for the Datasource class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object. If no datasource is available, the calling thread will block until a datasource comes available.
@@ -78,7 +158,17 @@ my DatasourcePool $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 
     @throw DATASOURCEPOOL-UNSUPPORTED-DATABASE DBI driver cannot be found
     @throw DATASOURCEPOOL-CONSTRUCTOR-ERROR invalid min, max, or port argument
  */
-DatasourcePool::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, softint min = 5, softint max = 20, softint port = 0) {
+DatasourcePool::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, softint min = 3, softint max = 10, softint port = 0) {
+   if (!port && min == 3 && max == 10 && driver->find(':') != -1) {
+      ReferenceHolder<QoreHashNode> h(parseDatasource(driver->getBuffer(), xsink), xsink);
+      if (!h) {
+         assert(*xsink);
+         return;
+      }
+      dsp_constructor_hash(*h, self, xsink);
+      return;
+   }
+
    DBIDriver *db_driver = DBI.find(driver->getBuffer());
    if (!db_driver) {
       xsink->raiseException("DATASOURCEPOOL-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type '%s'", driver->getBuffer());
@@ -100,11 +190,28 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
       return;
    }
 
-   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(db_driver, user ? user->getBuffer() : 0, pass ? pass->getBuffer() : 0, 
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user ? user->getBuffer() : 0, pass ? pass->getBuffer() : 0,
 							 db ? db->getBuffer() : 0, encoding ? encoding->getBuffer() : 0, host ? host->getBuffer() : 0, 
-							 min, max, port, xsink));
+							 min, max, port));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
+}
+
+//! Creates a DatasourcePool object from a single string giving all parameters that can be parsed by parseDatasource()
+/** @param desc a datasource description string in the format that can be parsed by parseDatasource()
+
+    @par Example:
+    @code
+my DatasourcePool ds("pgsql:user/pass@db01(utf8)%localhost:5432");
+    @endcode
+
+    @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
+    @throw DATASOURCE-CONSTRUCTOR-ERRO missing required parameter for connection; port value is \<= 0
+    @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
+ */
+DatasourcePool::constructor(string desc) [doconly=true] {
+   // this code should never be output - this function is only here for documentation
+   assert(false);
 }
 
 //! Creates a Datasource object from a hash argument giving parameters for the constructor
@@ -127,81 +234,7 @@ my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db"
     @throw DATASOURCEPOOL-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; \c "port" value is \<= 0; invalid \c "min" or \c "max" keys
  */
 DatasourcePool::constructor(hash opts) {
-   const char *str = check_hash_key(opts, "type", DSPC_ERR, xsink);
-   if (*xsink) return;
-   
-   if (!str) {
-      xsink->raiseException(DSPC_ERR, "expecting a string value with the 'type' key giving the driver name");
-      return;
-   }
-
-   DBIDriver *db_driver = DBI.find(str);
-   if (!db_driver) {
-      if (!*xsink)
-	 xsink->raiseException("DATASOURCEPOOL-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type '%s'", str);
-      return;
-   }
-
-   const char *user = check_hash_key(opts, "user", DSPC_ERR, xsink);
-   if (*xsink) return;
-
-   const char *pass = check_hash_key(opts, "pass", DSPC_ERR, xsink);
-   if (*xsink) return;
-
-   const char *db = check_hash_key(opts, "db", DSPC_ERR, xsink);
-   if (*xsink) return;
-
-   const char *charset = check_hash_key(opts, "charset", DSPC_ERR, xsink);
-   if (*xsink) return;
-
-   const char *host = check_hash_key(opts, "host", DSPC_ERR, xsink);
-   if (*xsink) return;
-
-   bool found;
-   int port = (int)opts->getKeyAsBigInt("port", found);
-   if (port < 0) {
-      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
-      return;
-   }
-
-   // get options
-   int min = 0, max = 0;
-
-   const AbstractQoreNode *p = opts->getKeyValue("options");
-   if (!is_nothing(p)) {
-      if (p->getType() != NT_HASH) {
-	 xsink->raiseException(DSPC_ERR, "'options' key is not hash, instead got type '%s'", p->getTypeName());
-	 return;
-      }
-      
-      const QoreHashNode* h = reinterpret_cast<const QoreHashNode *>(p);
-
-      min = (int)h->getKeyAsBigInt("min", found);
-      if (found) {
-	 if (min < 0) {
-	    xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: %d)", min);
-	    return;
-	 }
-      }
-
-      max = (int)h->getKeyAsBigInt("max", found);
-      if (found ) {
-	 if (max < min) {
-	    xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
-	    return;
-	 }
-      }
-   }
-
-   if (!min)
-      min = DP_MIN;
-   
-   if (!max)
-      max = DP_MAX;
-   
-   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(db_driver, user, pass, db, charset, host, min, max, port, xsink));
-   if (!*xsink)
-      self->setPrivate(CID_DATASOURCEPOOL, ds.release());
+   dsp_constructor_hash(opts, self, xsink);
 }
 
 //! Throws an exception if any transactions are in progress and returns immediately; the object is destroyed after any in-progress requests are completed

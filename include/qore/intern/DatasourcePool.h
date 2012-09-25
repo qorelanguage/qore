@@ -43,8 +43,8 @@ typedef std::deque<int> free_list_t;       // for the free list
 class DatasourcePool : public AbstractThreadResource, public QoreCondition, public QoreThreadLock, public DatasourceStatementHelper {
    friend class DatasourcePoolActionHelper;
 protected:
-   Datasource **pool;
-   int *tid_list;            // list of thread IDs per pool index
+   Datasource** pool;
+   int* tid_list;            // list of thread IDs per pool index
    thread_use_t tmap;        // map from tids to pool index
    free_list_t free_list;
    unsigned min, 
@@ -63,7 +63,6 @@ protected:
    DLLLOCAL Datasource *getDSIntern(bool &new_ds, ExceptionSink *xsink);
    DLLLOCAL Datasource *getDS(bool &new_ds, ExceptionSink *xsink);
    DLLLOCAL void freeDS();
-   DLLLOCAL void init_pool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, unsigned mn, unsigned mx, int port, ExceptionSink *xsink);
    // share the code for exec() and execRaw()
    DLLLOCAL AbstractQoreNode *exec_internal(bool doBind, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
       
@@ -73,8 +72,7 @@ public:
 #endif
 
    // min must be 1 or more, max must be greater than min
-   DLLLOCAL DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, unsigned mn, unsigned mx, ExceptionSink *xsink);
-   DLLLOCAL DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, unsigned mn, unsigned mx, int port, ExceptionSink *xsink);
+   DLLLOCAL DatasourcePool(ExceptionSink *xsink, DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, unsigned mn, unsigned mx, int port = 0, const QoreHashNode* opts = 0);
    DLLLOCAL virtual ~DatasourcePool();
    DLLLOCAL void destructor(ExceptionSink *xsink);
    DLLLOCAL virtual void cleanup(ExceptionSink *xsink);

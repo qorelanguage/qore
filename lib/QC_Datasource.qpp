@@ -25,6 +25,85 @@
 
 static const char *DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
 
+static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, ExceptionSink* xsink) {
+   ConstHashIterator hi(opts);
+   while (hi.next()) {
+      // skip "min" and "max" options
+      if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
+         continue;
+
+      if (ds->setOption(hi.getKey(), hi.getValue(), xsink))
+         return -1;
+   }
+   return 0;
+}
+
+static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, ExceptionSink* xsink) {
+   const char *str = check_hash_key(opts, "type", DSC_ERR, xsink);
+   if (*xsink) return;
+
+   if (!str) {
+      xsink->raiseException(DSC_ERR, "expecting a string value with the 'type' key giving the driver name");
+      return;
+   }
+
+   DBIDriver *db_driver = DBI.find(str, xsink);
+   if (!db_driver) {
+      if (!*xsink)
+         xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", str);
+      return;
+   }
+
+   ReferenceHolder<ManagedDatasource> ds(new ManagedDatasource(db_driver), xsink);
+
+   str = check_hash_key(opts, "user", DSC_ERR, xsink);
+   if (*xsink) return;
+   if (str) ds->setPendingUsername(str);
+
+   str = check_hash_key(opts, "pass", DSC_ERR, xsink);
+   if (*xsink) return;
+   if (str) ds->setPendingPassword(str);
+
+   str = check_hash_key(opts, "db", DSC_ERR, xsink);
+   if (*xsink) return;
+   if (str) ds->setPendingDBName(str);
+
+   str = check_hash_key(opts, "charset", DSC_ERR, xsink);
+   if (*xsink) return;
+   if (str) ds->setPendingDBEncoding(str);
+
+   str = check_hash_key(opts, "host", DSC_ERR, xsink);
+   if (*xsink) return;
+   if (str) ds->setPendingHostName(str);
+
+   bool found;
+   int port = (int)opts->getKeyAsBigInt("port", found);
+   if (port) {
+      if (port < 0) {
+         xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
+         return;
+      }
+
+      ds->setPendingPort(port);
+   }
+
+   {
+      const AbstractQoreNode* p = opts->getKeyValue("options");
+
+      if (!is_nothing(p)) {
+         if (get_node_type(p) != NT_HASH) {
+            xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", get_type_name(p));
+            return;
+         }
+         const QoreHashNode *oh = reinterpret_cast<const QoreHashNode*>(p);
+         if (ds_set_options(*ds, oh, xsink))
+            return;
+      }
+   }
+
+   self->setPrivate(CID_DATASOURCE, ds.release());
+}
+
 /** @defgroup database_driver_constants Database Driver Constants
     These are contants that stand for database driver names known to Qore
 */
@@ -161,6 +240,7 @@ qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=Qore::SQL; vparen
     @param encoding The database-specific name of the @ref character_encoding "character encoding" to use for the new connection. Also see Datasource::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the @ref default_encoding "default character encoding" will be used instead.
     @param host The host name for the new connection. Also see Datasource::setHostName() for a method that allows this parameter to be set after the constructor.
     @param port The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor.
+    @param options Any options for the database driver for the new connection
 
     @par Example:
     @code
@@ -169,8 +249,19 @@ my Datasource $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432
 
     @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
     @throw DATASOURCE-CONSTRUCTOR-ERROR port value is \<= 0
+    @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, softint port = 0) {
+Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash options) {
+   if (!port && driver->find(':') != -1) {
+      ReferenceHolder<QoreHashNode> h(parseDatasource(driver->getBuffer(), xsink), xsink);
+      if (!h) {
+         assert(*xsink);
+         return;
+      }
+      ds_constructor_hash(*h, self, xsink);
+      return;
+   }
+
    DBIDriver *db_driver = DBI.find(driver->getBuffer(), xsink);
    if (!db_driver) {
       if (!*xsink)
@@ -200,10 +291,30 @@ Datasource::constructor(string driver, *string user, *string pass, *string db, *
 	 xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
 	 return;
       }
-      ds->setPendingPort(port);
+      ds->setPendingPort((int)port);
    }
 
+   if (options)
+      ds_set_options(*ds, options, xsink);
+
    self->setPrivate(CID_DATASOURCE, ds.release());
+}
+
+//! Creates a Datasource object from a single string giving all parameters that can be parsed by parseDatasource()
+/** @param desc a datasource description string in the format that can be parsed by parseDatasource()
+
+    @par Example:
+    @code
+my Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
+    @endcode
+
+    @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
+    @throw DATASOURCE-CONSTRUCTOR-ERRO missing required parameter for connection; port value is \<= 0
+    @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
+ */
+Datasource::constructor(string desc) [doconly=true] {
+   // this code should never be output - this function is only here for documentation
+   assert(false);
 }
 
 //! Creates a Datasource object from a hash argument giving parameters for the constructor
@@ -223,57 +334,10 @@ my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db"
 
     @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
     @throw DATASOURCE-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; port value is \<= 0
+    @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
 Datasource::constructor(hash opts) {   
-   const char *str = check_hash_key(opts, "type", DSC_ERR, xsink);
-   if (*xsink) return;
-   
-   if (!str) {
-      xsink->raiseException(DSC_ERR, "expecting a string value with the 'type' key giving the driver name");
-      return;
-   }
-   
-   DBIDriver *db_driver = DBI.find(str, xsink);
-   if (!db_driver) {
-      if (!*xsink)
-         xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", str);
-      return;
-   }
-   
-   ReferenceHolder<ManagedDatasource> ds(new ManagedDatasource(db_driver), xsink);
-
-   str = check_hash_key(opts, "user", DSC_ERR, xsink);
-   if (*xsink) return;
-   if (str) ds->setPendingUsername(str);
-
-   str = check_hash_key(opts, "pass", DSC_ERR, xsink);
-   if (*xsink) return;
-   if (str) ds->setPendingPassword(str);
-
-   str = check_hash_key(opts, "db", DSC_ERR, xsink);
-   if (*xsink) return;
-   if (str) ds->setPendingDBName(str);
-
-   str = check_hash_key(opts, "charset", DSC_ERR, xsink);
-   if (*xsink) return;
-   if (str) ds->setPendingDBEncoding(str);
-
-   str = check_hash_key(opts, "host", DSC_ERR, xsink);
-   if (*xsink) return;
-   if (str) ds->setPendingHostName(str);
-
-   bool found;
-   int port = (int)opts->getKeyAsBigInt("port", found);
-   if (port) {
-      if (port < 0) {
-	 xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
-	 return;
-      }
-
-      ds->setPendingPort(port);
-   }
-
-   self->setPrivate(CID_DATASOURCE, ds.release());
+   ds_constructor_hash(opts, self, xsink);
 }
 
 //! Closes the datasource if it's open (if any operations are in progress, will block until the operations complete) and destroys the object
@@ -984,3 +1048,42 @@ my bool $b = $db.inTransaction();
 bool Datasource::inTransaction() [flags=CONSTANT] {
    return ds->isInTransaction();
 }
+
+//! returns the valid options for the driver associated with the Datasource with descriptions and current values for the current Datasource object
+/** @return a hash where the keys are valid option names, and the values are hashes with the following keys:
+    - \c "desc": a string description of the option
+    - \c "type": a string giving the data type restriction for the option
+    - \c "value": the current value of the option
+
+    @note in order to ensure atomicity when dealing with Datasource options, the transaction lock is acquired before executing this method if it was not already owned by the calling thread
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+ */
+hash Datasource::getOptionHash() [flags=RET_VALUE_ONLY] {
+   return ds->getOptionHash(xsink);
+}
+
+//! sets an option for the datasource
+/** @param opt the option to set
+    @param val the value to set
+    @param xsink if any errors are raised (invalid option, etc), the exception info is raised here
+
+    @note in order to ensure atomicity when dealing with Datasource options, the transaction lock is acquired before executing this method if it was not already owned by the calling thread
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+ */
+Datasource::setOption(string opt, any val) {
+   ds->setOption(opt->getBuffer(), val, xsink);
+}
+
+//! Returns the current value for the given option
+/** @param opt the option to get
+
+    @note in order to ensure atomicity when dealing with Datasource options, the transaction lock is acquired before executing this method if it was not already owned by the calling thread
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+ */
+any Datasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
+   return ds->getOption(opt->getBuffer(), xsink);
+}
+

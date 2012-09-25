@@ -117,6 +117,10 @@ public:
    DLLLOCAL AbstractQoreNode *getServerVersion(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *getClientVersion(ExceptionSink *xsink) const;
 
+   DLLLOCAL QoreHashNode* getOptionHash(ExceptionSink* xsink);
+   DLLLOCAL int setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink);
+   DLLLOCAL AbstractQoreNode* getOption(const char* opt, ExceptionSink* xsink);
+
    // functions supporting DatasourceStatementHelper
    DLLLOCAL DatasourceStatementHelper *getReferencedHelper(QoreSQLStatement *s) {
       ref();
