@@ -28,7 +28,17 @@
 
 // internal DBI definitions
 typedef std::map<int, void*> dbi_method_list_t;
-typedef std::map<const char*, const QoreTypeInfo*> dbi_opt_map_t;
+struct DbiOptInfo {
+   const char* desc;
+   const QoreTypeInfo *typeInfo;
+
+   DLLLOCAL DbiOptInfo() : desc(0), typeInfo(0) {
+   }
+
+   DLLLOCAL DbiOptInfo(const char* d, const QoreTypeInfo* t) : desc(d), typeInfo(t) {
+   }
+};
+typedef std::map<const char*, DbiOptInfo, ltcstrcase> dbi_opt_map_t;
 
 struct dbi_driver_stmt {
    q_dbi_stmt_prepare_t prepare;
@@ -111,6 +121,23 @@ public:
    }
 };
 
+struct OptInputHelper {
+   ExceptionSink* xsink;
+   AbstractQoreNode* val;
+   bool tmp;
+
+   DLLLOCAL OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver, const char* opt, bool set = false, const AbstractQoreNode* v = 0);
+
+   DLLLOCAL ~OptInputHelper() {
+      if (tmp)
+         val->deref(xsink);
+   }
+
+   DLLLOCAL operator bool() const {
+      return !*xsink;
+   }
+};
+
 struct qore_dbi_private {
    DBIDriverFunctions f;
    int caps;
@@ -121,17 +148,6 @@ struct qore_dbi_private {
 
    DLLLOCAL bool hasStatementAPI() const {
       return caps & DBI_CAP_HAS_STATEMENT;
-   }
-
-   DLLLOCAL int opt_check(ExceptionSink* xsink, const char* opt, const AbstractQoreNode* val = 0) const {
-      dbi_opt_map_t::const_iterator i = omap.find(opt);
-      if (i == omap.end()) {
-         xsink->raiseException("OPTION-ERROR", "driver '%s' does not support option '%s'", name, opt);
-         return -1;
-      }
-      // FIXME: check type here
-
-      return 0;
    }
 
    DLLLOCAL int init(Datasource* ds, ExceptionSink* xsink) const {
@@ -305,16 +321,33 @@ struct qore_dbi_private {
    }
 
    DLLLOCAL int opt_set(Datasource* ds, const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {
-      if (opt_check(xsink, opt, val))
+      OptInputHelper oh(xsink, *this, opt, true, val);
+      if (!oh)
          return -1;
 
-      return 0;
+      return f.opt.set(ds, opt, oh.val, xsink);
    }
 
    DLLLOCAL AbstractQoreNode* opt_get(const Datasource* ds, const char* opt, ExceptionSink* xsink) {
-      if (opt_check(xsink, opt))
+      OptInputHelper oh(xsink, *this, opt);
+      if (!oh)
          return 0;
-      return 0;
+
+      return f.opt.get(ds, opt);
+   }
+
+   DLLLOCAL QoreHashNode* getOptionHash(const Datasource* ds) const {
+      QoreHashNode* rv = new QoreHashNode;
+
+      for (dbi_opt_map_t::const_iterator i = omap.begin(), e = omap.end(); i != e; ++i) {
+         QoreHashNode* h = new QoreHashNode;
+         h->setKeyValue("desc", new QoreStringNode(i->second.desc), 0);
+         h->setKeyValue("type", new QoreStringNode(i->second.typeInfo->getName()), 0);
+         h->setKeyValue("value", f.opt.get(ds, i->first), 0);
+
+         rv->setKeyValue(i->first, h, 0);
+      }
+      return rv;
    }
 
    DLLLOCAL static qore_dbi_private* get(const DBIDriver& d) {

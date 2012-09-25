@@ -63,9 +63,9 @@ struct qore_dbi_mlist_private {
    dbi_method_list_t l;
    dbi_opt_map_t omap;
 
-   DLLLOCAL void registerOption(const char* name, const QoreTypeInfo* type = 0) {
+   DLLLOCAL void registerOption(const char* name, const char* desc, const QoreTypeInfo* type = 0) {
       assert(omap.find(name) == omap.end());
-      omap[name] = type;
+      omap[name] = DbiOptInfo(desc, type);
    }
 
    DLLLOCAL static qore_dbi_mlist_private* get(const qore_dbi_method_list& ml) {
@@ -198,8 +198,8 @@ void qore_dbi_method_list::add(int code, q_dbi_option_get_t method) {
    priv->l[code] = (void*)method;
 }
 
-void qore_dbi_method_list::registerOption(const char* name, const QoreTypeInfo* type) {
-   priv->registerOption(name, type);
+void qore_dbi_method_list::registerOption(const char* name, const char* desc, const QoreTypeInfo* type) {
+   priv->registerOption(name, desc, type);
 }
 
 DbiArgHelper::DbiArgHelper(const QoreListNode* ol, bool numeric, ExceptionSink* xs) : orig(ol), nl(0), xsink(xs) {
@@ -221,6 +221,25 @@ DbiArgHelper::DbiArgHelper(const QoreListNode* ol, bool numeric, ExceptionSink* 
       if (nl)
          nl->push(li.getReferencedValue());
    }
+}
+
+OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver, const char* opt, bool set, const AbstractQoreNode* v) : xsink(xs), val(const_cast<AbstractQoreNode*>(v)), tmp(false) {
+   dbi_opt_map_t::const_iterator i = driver.omap.find(opt);
+   if (i == driver.omap.end()) {
+      xsink->raiseException("OPTION-ERROR", "driver '%s' does not support option '%s'", driver.name, opt);
+      return;
+   }
+   if (!set)
+      return;
+
+   const QoreTypeInfo* ti = i->second.typeInfo;
+
+   if (!ti->mayRequireFilter(v))
+      return;
+
+   tmp = true;
+   val->ref();
+   val = ti->acceptInputParam(-1, "<dbi driver option>", val, xsink);
 }
 
 qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private &methods, int cps) {

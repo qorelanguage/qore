@@ -428,6 +428,33 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT int autoCommit(ExceptionSink *xsink);
+
+   //! returns the valid options for this driver with descriptions and current values for the current datasource
+   /** @return a hash where the keys are valid option names, and the values are hashes with the following keys:
+       - \c "desc": a string description of the option
+       - \c "type": a string giving the data type restriction for the option
+       - \c "value": the current value of the option
+
+       The caller owns the reference count for the hash returned
+    */
+   DLLEXPORT QoreHashNode* getOptionHash() const;
+
+   //! sets an option for the datasource
+   /** @param opt the option to set
+       @param val the value to set
+       @param xsink if any errors are raised (invalid option, etc), the exception info is raised here
+
+       @return -1 for error (exception raised), 0 for OK
+    */
+   DLLEXPORT int setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink);
+
+   //! Returns the current value for the given option
+   /** @param opt the option to get
+       @param xsink if any errors are raised (invalid option, etc), the exception info is raised here
+
+       The caller owns the reference count for the value returned
+    */
+   DLLEXPORT AbstractQoreNode* getOption(const char* opt, ExceptionSink* xsink);
 };
 
 #endif // _QORE_DATASOURCE_H

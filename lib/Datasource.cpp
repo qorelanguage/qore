@@ -411,3 +411,15 @@ AbstractQoreNode *Datasource::getServerVersion(ExceptionSink *xsink) {
 AbstractQoreNode *Datasource::getClientVersion(ExceptionSink *xsink) const {
    return qore_dbi_private::get(*priv->dsl)->getClientVersion(this, xsink);
 }
+
+QoreHashNode* Datasource::getOptionHash() const {
+   return qore_dbi_private::get(*priv->dsl)->getOptionHash(this);
+}
+
+int Datasource::setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {
+   return qore_dbi_private::get(*priv->dsl)->opt_set(this, opt, val, xsink);
+}
+
+AbstractQoreNode* Datasource::getOption(const char* opt, ExceptionSink* xsink) {
+   return qore_dbi_private::get(*priv->dsl)->opt_get(this, opt, xsink);
+}

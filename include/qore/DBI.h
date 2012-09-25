@@ -309,7 +309,7 @@ public:
    DLLEXPORT void add(int code, q_dbi_option_get_t method);
 
    // for registering valid options
-   DLLEXPORT void registerOption(const char* name, const QoreTypeInfo* type = 0);
+   DLLEXPORT void registerOption(const char* name, const char* desc, const QoreTypeInfo* type = 0);
 };
 
 //! this class provides the internal link to the database driver for Qore's DBI layer
