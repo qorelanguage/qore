@@ -1070,6 +1070,7 @@ hash Datasource::getOptionHash() [flags=RET_VALUE_ONLY] {
 
     @note in order to ensure atomicity when dealing with Datasource options, the transaction lock is acquired before executing this method if it was not already owned by the calling thread
 
+    @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
  */
 Datasource::setOption(string opt, any val) {
@@ -1081,9 +1082,9 @@ Datasource::setOption(string opt, any val) {
 
     @note in order to ensure atomicity when dealing with Datasource options, the transaction lock is acquired before executing this method if it was not already owned by the calling thread
 
+    @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
  */
 any Datasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
    return ds->getOption(opt->getBuffer(), xsink);
 }
-

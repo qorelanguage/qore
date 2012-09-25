@@ -157,6 +157,7 @@ my DatasourcePool $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 
 
     @throw DATASOURCEPOOL-UNSUPPORTED-DATABASE DBI driver cannot be found
     @throw DATASOURCEPOOL-CONSTRUCTOR-ERROR invalid min, max, or port argument
+    @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
 DatasourcePool::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, softint min = 3, softint max = 10, softint port = 0) {
    if (!port && min == 3 && max == 10 && driver->find(':') != -1) {
@@ -232,6 +233,7 @@ my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db"
 
     @throw DATASOURCEPOOL-UNSUPPORTED-DATABASE DBI driver cannot be loaded
     @throw DATASOURCEPOOL-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; \c "port" value is \<= 0; invalid \c "min" or \c "max" keys
+    @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
 DatasourcePool::constructor(hash opts) {
    dsp_constructor_hash(opts, self, xsink);
@@ -728,4 +730,23 @@ my bool $b = $db.inTransaction();
  */
 bool DatasourcePool::inTransaction() [flags=CONSTANT] {
    return ds->inTransaction();
+}
+
+//! returns the valid options for the driver associated with the Datasource with descriptions and current values for the current Datasource object
+/** @return a hash where the keys are valid option names, and the values are hashes with the following keys:
+    - \c "desc": a string description of the option
+    - \c "type": a string giving the data type restriction for the option
+    - \c "value": the current value of the option
+ */
+hash DatasourcePool::getOptionHash() [flags=CONSTANT] {
+   return ds->getOptionHash();
+}
+
+//! Returns the current value for the given option
+/** @param opt the option to get
+
+    @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
+ */
+any DatasourcePool::getOption(string opt) [flags=RET_VALUE_ONLY] {
+   return ds->getOption(opt->getBuffer(), xsink);
 }

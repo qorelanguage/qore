@@ -108,6 +108,14 @@ public:
    }
    DLLLOCAL bool inTransaction();
 
+   DLLLOCAL QoreHashNode* getOptionHash() const {
+      return pool[0]->getOptionHash();
+   }
+
+   DLLLOCAL AbstractQoreNode* getOption(const char* opt, ExceptionSink* xsink) {
+      return pool[0]->getOption(opt, xsink);
+   }
+
    // functions supporting DatasourceStatementHelper
    DLLLOCAL DatasourceStatementHelper *getReferencedHelper(QoreSQLStatement *s) {
       ref();
