@@ -47,7 +47,10 @@ bool qore_ds_private::statementExecuted(int rc, ExceptionSink *xsink) {
    return false;
 }
 
-Datasource::Datasource(DBIDriver *ndsl) : priv(new qore_ds_private(this, ndsl)) {
+Datasource::Datasource(DBIDriver* ndsl) : priv(new qore_ds_private(this, ndsl)) {
+}
+
+Datasource::Datasource(const Datasource& old) : priv(new qore_ds_private(*old.priv, this)) {
 }
 
 Datasource::~Datasource() {
@@ -91,11 +94,7 @@ bool Datasource::isOpen() const {
 }
 
 Datasource *Datasource::copy() const {
-   Datasource *nds = new Datasource(priv->dsl);
-   nds->priv->setPendingConnectionValues(priv);
-
-   qore_dbi_private::get(*priv->dsl)->cloneOptions(nds, this);
-   return nds;
+   return new Datasource(*this);
 }
 
 void Datasource::setConnectionValues() {
@@ -414,11 +413,18 @@ AbstractQoreNode *Datasource::getClientVersion(ExceptionSink *xsink) const {
 }
 
 QoreHashNode* Datasource::getOptionHash() const {
-   return qore_dbi_private::get(*priv->dsl)->getOptionHash(this);
+   return priv->private_data ? qore_dbi_private::get(*priv->dsl)->getOptionHash(this) : priv->opt->hashRefSelf();
 }
 
 int Datasource::setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {
-   return qore_dbi_private::get(*priv->dsl)->opt_set(this, opt, val, xsink);
+   // maintain a copy of the option internally
+   priv->setOption(opt, val, xsink);
+   // only set options in private data if private data is already set
+   return priv->private_data ? qore_dbi_private::get(*priv->dsl)->opt_set(this, opt, val, xsink) : 0;
+}
+
+const QoreHashNode* Datasource::getConnectOptions() const {
+   return priv->opt;
 }
 
 AbstractQoreNode* Datasource::getOption(const char* opt, ExceptionSink* xsink) {

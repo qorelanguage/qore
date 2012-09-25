@@ -121,7 +121,7 @@ public:
    */
    DLLEXPORT virtual QoreString* getAsString(bool &del, int foff, ExceptionSink* xsink) const;
 
-   //! performs a deep copy of the hash and returns the new hash
+   //! performs a copy of the hash and returns the new hash
    /** @return a copy of the QoreHashNode
     */
    DLLEXPORT virtual AbstractQoreNode* realCopy() const;
@@ -254,7 +254,7 @@ public:
    */
    DLLEXPORT bool getKeyAsBool(const char* key, bool &found) const;
 
-   //! performs a deep copy of the hash and returns the new hash
+   //! performs a copy of the hash and returns the new hash
    /** @return a copy of the current QoreHashNode
     */
    DLLEXPORT QoreHashNode* copy() const;

@@ -430,4 +430,10 @@ DLLEXPORT int qore_usleep(int64 usecs);
 //! platform-independent API that tells if the given path is readable by the current user
 DLLEXPORT bool q_path_is_readable(const char* path);
 
+//! tries to parse a boolean value - standard conversion or uses q_parse_bool(const char*) if it's a string
+DLLEXPORT bool q_parse_bool(const AbstractQoreNode* n);
+
+//! parses a string and returns a boolean (ie case-insensitive "on","true","enable*","yes" are True, the rest is interpreted as a number where 0=false, everything else=true)
+DLLEXPORT bool q_parse_bool(const char* str);
+
 #endif // _QORE_QORELIB_H

@@ -49,9 +49,6 @@ private:
    struct qore_ds_private *priv; // private implementation
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL Datasource(const Datasource&);
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL Datasource& operator=(const Datasource&);
 
    //! this helper method shares code for exec() and execRaw() methods
@@ -78,7 +75,10 @@ public:
    /**
       @param driver the DBIDriver object to use for the connection
    */
-   DLLEXPORT Datasource(DBIDriver *driver);
+   DLLEXPORT Datasource(DBIDriver* driver);
+
+   //! copy constructor
+   DLLEXPORT Datasource(const Datasource& old);
 
    //! the Datasource is closed if it's still open and the object is destroyed
    DLLEXPORT virtual ~Datasource();
@@ -453,8 +453,21 @@ public:
        @param xsink if any errors are raised (invalid option, etc), the exception info is raised here
 
        The caller owns the reference count for the value returned
+
+       @note this function is only safe to call when a connection is established
     */
    DLLEXPORT AbstractQoreNode* getOption(const char* opt, ExceptionSink* xsink);
+
+   //! returns the valid options for this driver with descriptions and current values for the current datasource
+   /** @return a hash where the keys are valid option names, and the values are hashes with the following keys:
+       - \c "desc": a string description of the option
+       - \c "type": a string giving the data type restriction for the option
+       - \c "value": the current value of the option
+
+       This function returns the same value as getOptionHash() but the caller should not modify the value returned, also
+       this function is meant to be used during the open() call to read any options that may be relevant for opening a new connection
+    */
+   DLLEXPORT const QoreHashNode* getConnectOptions() const;
 };
 
 #endif // _QORE_DATASOURCE_H

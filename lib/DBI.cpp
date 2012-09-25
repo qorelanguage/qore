@@ -248,7 +248,7 @@ OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver
    val = ti->acceptInputParam(-1, "<dbi driver option>", val, xsink);
 }
 
-qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private &methods, int cps) {
+qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private& methods, int cps) {
    // add methods to internal data structure
    for (dbi_method_list_t::const_iterator i = methods.l.begin(), e = methods.l.end(); i != e; ++i) {
       assert((*i).first > 0 && (*i).first <= QDBI_VALID_CODES);
@@ -418,6 +418,9 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
 
    if (f.opt.set)
       caps |= DBI_CAP_HAS_OPTION_SUPPORT;
+
+   // copy options
+   omap = methods.omap;
 }
 
 QoreListNode* qore_dbi_private::getCapList() const {
@@ -711,34 +714,41 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
 	    if (!*p)
 	       break;
 	    char* eq = strchr(p, '=');
+
+	    char* oend = 0;
+	    qore_size_t len = 0;
 	    if (!eq) {
-	       xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing '=' in option specification in '%s'", ds);
-	       return 0;
+	       opt->setKeyValue(p, &True, 0);
+	       oend = strchr(p, ',');
+               len = oend ? oend - p : strlen(p);
+               p += len;
 	    }
-	    if (eq == p) {
-	       xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing value before '=' in option specification in '%s'", ds);
-	       return 0;
+	    else {
+	       if (eq == p) {
+	          xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing value before '=' in option specification in '%s'", ds);
+	          return 0;
+	       }
+	       *eq = '\0';
+	       ++eq;
+	       oend = strchr(eq, ',');
+	       len = oend ? oend - eq : strlen(eq);
+	       if (opt->existsKey(p)) {
+	          xsink->raiseException(DATASOURCE_PARSE_ERROR, "option '%s' repeated in '%s'", p, ds);
+	          return 0;
+	       }
+
+	       QoreString key(p);
+	       key.trim();
+
+	       QoreString value(eq, len);
+	       value.trim();
+
+	       opt->setKeyValue(key.getBuffer(), new QoreStringNode(value), 0);
+
+	       p = eq + len;
 	    }
-	    *eq = '\0';
-	    ++eq;
-	    char* oend = strchr(eq, ',');
-	    qore_size_t len = oend ? oend - eq : strlen(eq);
-	    if (opt->existsKey(p)) {
-	       xsink->raiseException(DATASOURCE_PARSE_ERROR, "option '%s' repeated in '%s'", p, ds);
-	       return 0;
-	    }
-	    
-	    QoreString key(p);
-	    key.trim();
-	    
-	    QoreString value(eq, len);
-	    value.trim();
-	    
-	    opt->setKeyValue(key.getBuffer(), new QoreStringNode(value), 0);
-	    
-	    p = eq + len;
-	    if (oend)
-	       ++p;
+            if (oend)
+               ++p;
 	 }
 
 	 h->setKeyValue("options", opt.release(), 0);

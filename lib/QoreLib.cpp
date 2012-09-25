@@ -1636,3 +1636,17 @@ QoreProgramLocation::QoreProgramLocation(prog_loc_e loc) {
 void QoreProgramLocation::parseSet() const {
    update_parse_location(start_line, end_line, file);
 }
+
+bool q_parse_bool(const AbstractQoreNode* n) {
+   if (get_node_type(n) == NT_STRING)
+      return q_parse_bool(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
+
+   return n->getAsBool();
+}
+
+bool q_parse_bool(const char* str) {
+   if (!strcasecmp(str, "true") || !strcasecmp(str, "on") || !strcasecmp(str, "yes") || !strncasecmp(str, "enable", 6))
+      return true;
+
+   return (bool)atoi(str);
+}

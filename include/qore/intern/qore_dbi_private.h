@@ -152,7 +152,15 @@ struct qore_dbi_private {
    }
 
    DLLLOCAL int init(Datasource* ds, ExceptionSink* xsink) const {
-      return f.open(ds, xsink);
+      int rc = f.open(ds, xsink);
+      assert((!rc && !*xsink) || (rc && *xsink));
+      // set option if init was successful
+      if (!rc && f.opt.set) {
+         ConstHashIterator hi(ds->getConnectOptions());
+         while (hi.next())
+            f.opt.set(ds, hi.getKey(), hi.getValue(), xsink);
+      }
+      return rc;
    }
 
    DLLLOCAL int close(Datasource* ds) const {
