@@ -77,9 +77,8 @@
 #define QDBI_METHOD_SELECT_ROW               28
 #define QDBI_METHOD_OPT_SET                  29
 #define QDBI_METHOD_OPT_GET                  30
-#define QDBI_METHOD_OPT_CLONE                31
 
-#define QDBI_VALID_CODES 31
+#define QDBI_VALID_CODES 30
 
 class Datasource;
 class ExceptionSink;
@@ -251,7 +250,6 @@ typedef int (*q_dbi_stmt_close_t)(SQLStatement* stmt, ExceptionSink* xsink);
 
 typedef int (*q_dbi_option_set_t)(Datasource* ds, const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink);
 typedef AbstractQoreNode* (*q_dbi_option_get_t)(const Datasource* ds, const char* opt);
-typedef void (*q_dbi_option_clone_t)(Datasource* ds, const Datasource* ods);
 
 #define DBI_OPT_NUMBER_OPT "optimal-numbers"      //!< numeric/decimal/number values converted to optimal Qore type (either int or number)
 #define DBI_OPT_NUMBER_STRING "string-numbers"    //!< numeric/decimal/number values converted to Qore strings (original solution)
@@ -310,8 +308,6 @@ public:
    DLLEXPORT void add(int code, q_dbi_option_set_t method);
    // covers get option
    DLLEXPORT void add(int code, q_dbi_option_get_t method);
-   // covers clone option
-   DLLEXPORT void add(int code, q_dbi_option_clone_t method);
 
    // for registering valid options
    DLLEXPORT void registerOption(const char* name, const char* desc, const QoreTypeInfo* type = 0);

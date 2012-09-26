@@ -198,12 +198,6 @@ void qore_dbi_method_list::add(int code, q_dbi_option_get_t method) {
    priv->l[code] = (void*)method;
 }
 
-void qore_dbi_method_list::add(int code, q_dbi_option_clone_t method) {
-   assert(code == QDBI_METHOD_OPT_CLONE);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
-}
-
 void qore_dbi_method_list::registerOption(const char* name, const char* desc, const QoreTypeInfo* type) {
    priv->registerOption(name, desc, type);
 }
@@ -377,10 +371,6 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
             assert(!f.opt.get);
             f.opt.get = (q_dbi_option_get_t)(*i).second;
             break;
-         case QDBI_METHOD_OPT_CLONE:
-            assert(!f.opt.clone);
-            f.opt.clone = (q_dbi_option_clone_t)(*i).second;
-            break;
 
 #ifdef DEBUG
          default:
@@ -405,7 +395,7 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
          && f.stmt.get_output_rows && f.stmt.define));
 
    // ensure either no or minimum opt methods are defined
-   assert(!f.opt.set || (f.opt.set && f.opt.get && f.opt.clone));
+   assert(!f.opt.set || (f.opt.set && f.opt.get));
 
    name = nme;
    caps = cps;

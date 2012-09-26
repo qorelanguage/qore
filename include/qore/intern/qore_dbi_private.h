@@ -65,9 +65,8 @@ struct dbi_driver_stmt {
 struct dbi_driver_opt {
    q_dbi_option_set_t set;
    q_dbi_option_get_t get;
-   q_dbi_option_clone_t clone;
 
-   DLLLOCAL dbi_driver_opt() : set(0), get(0), clone(0) {
+   DLLLOCAL dbi_driver_opt() : set(0), get(0) {
    }
 };
 
@@ -357,11 +356,6 @@ struct qore_dbi_private {
          rv->setKeyValue(i->first, h, 0);
       }
       return rv;
-   }
-
-   DLLLOCAL void cloneOptions(Datasource* ds, const Datasource* ods) {
-      if (f.opt.clone)
-         f.opt.clone(ds, ods);
    }
 
    DLLLOCAL static qore_dbi_private* get(const DBIDriver& d) {
