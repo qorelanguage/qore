@@ -319,7 +319,7 @@ public:
          if (pos < 0)
             pos = 0;
       }
-      else if (pos >= str.len)
+      else if (pos >= (qore_offset_t)str.len)
          return;
 
       concat_intern(str.buf + pos, str.len - pos);
@@ -339,7 +339,7 @@ public:
             return -1;
          if (pos < 0)
             pos = 0;
-         else if (pos > str.len)
+         else if (pos > (qore_offset_t)str.len)
             return 0;
       }
 
@@ -353,7 +353,7 @@ public:
          if (pos < 0)
             pos = 0;
       }
-      else if (pos >= str.len)
+      else if (pos >= (qore_offset_t)str.len)
          return;
 
       if (plen < 0) {
@@ -361,7 +361,7 @@ public:
          if (plen <= 0)
             return;
       }
-      else if (plen > str.len)
+      else if (plen > (qore_offset_t)str.len)
          plen = str.len;
 
       concat_intern(str.buf + pos, plen);
@@ -382,7 +382,7 @@ public:
             return -1;
          if (pos < 0)
             pos = 0;
-         else if (pos > str.len)
+         else if (pos > (qore_offset_t)str.len)
             return 0;
       }
 
@@ -391,7 +391,7 @@ public:
          return -1;
       if (plen <= 0)
          return 0;
-      if (plen > str.len)
+      if (plen > (qore_offset_t)str.len)
          plen = str.len;
 
       concat_intern(str.buf + pos, plen);
