@@ -341,6 +341,15 @@ public:
    //! returns true if the driver supports the statement API
    DLLEXPORT bool hasStatementAPI() const;
 
+   //! returns the valid options for this driver with descriptions
+   /** @return a hash where the keys are valid option names, and the values are hashes with the following keys:
+       - \c "desc": a string description of the option
+       - \c "type": a string giving the data type restriction for the option
+
+       The caller owns the reference count for the hash returned
+    */
+   DLLEXPORT QoreHashNode* getOptionHash() const;
+
    DLLLOCAL DBIDriver(struct qore_dbi_private* p);
    DLLLOCAL ~DBIDriver();
 };

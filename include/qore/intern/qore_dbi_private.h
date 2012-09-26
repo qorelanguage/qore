@@ -358,6 +358,19 @@ struct qore_dbi_private {
       return rv;
    }
 
+   DLLLOCAL QoreHashNode* getOptionHash() const {
+      QoreHashNode* rv = new QoreHashNode;
+
+      for (dbi_opt_map_t::const_iterator i = omap.begin(), e = omap.end(); i != e; ++i) {
+         QoreHashNode* h = new QoreHashNode;
+         h->setKeyValue("desc", new QoreStringNode(i->second.desc), 0);
+         h->setKeyValue("type", new QoreStringNode(i->second.typeInfo->getName()), 0);
+
+         rv->setKeyValue(i->first, h, 0);
+      }
+      return rv;
+   }
+
    DLLLOCAL static qore_dbi_private* get(const DBIDriver& d) {
       return d.priv;
    }

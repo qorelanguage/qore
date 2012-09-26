@@ -436,6 +436,10 @@ bool DBIDriver::hasStatementAPI() const {
    return priv->hasStatementAPI();
 }
 
+QoreHashNode* DBIDriver::getOptionHash() const {
+   return priv->getOptionHash();
+}
+
 /* it's not necessary to lock this object because it will only be written to in one thread at a time
    (within the module lock)
    note that a safe_dslist is used because it can be safely read in multiple threads while

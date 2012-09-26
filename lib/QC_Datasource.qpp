@@ -311,6 +311,8 @@ my Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
     @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
     @throw DATASOURCE-CONSTRUCTOR-ERRO missing required parameter for connection; port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
+
+    @since %Qore 0.8.6
  */
 Datasource::constructor(string desc) [doconly=true] {
    // this code should never be output - this function is only here for documentation
@@ -1058,6 +1060,8 @@ bool Datasource::inTransaction() [flags=CONSTANT] {
     @note in order to ensure atomicity when dealing with Datasource options, the transaction lock is acquired before executing this method if it was not already owned by the calling thread
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @since %Qore 0.8.6
  */
 hash Datasource::getOptionHash() [flags=RET_VALUE_ONLY] {
    return ds->getOptionHash(xsink);
@@ -1072,6 +1076,8 @@ hash Datasource::getOptionHash() [flags=RET_VALUE_ONLY] {
 
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @since %Qore 0.8.6
  */
 Datasource::setOption(string opt, any val) {
    ds->setOption(opt->getBuffer(), val, xsink);
@@ -1084,6 +1090,8 @@ Datasource::setOption(string opt, any val) {
 
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @since %Qore 0.8.6
  */
 any Datasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
    return ds->getOption(opt->getBuffer(), xsink);

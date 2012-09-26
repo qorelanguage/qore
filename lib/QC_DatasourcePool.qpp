@@ -209,6 +209,8 @@ my DatasourcePool ds("pgsql:user/pass@db01(utf8)%localhost:5432");
     @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
     @throw DATASOURCE-CONSTRUCTOR-ERRO missing required parameter for connection; port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
+
+    @since %Qore 0.8.6
  */
 DatasourcePool::constructor(string desc) [doconly=true] {
    // this code should never be output - this function is only here for documentation
@@ -737,6 +739,8 @@ bool DatasourcePool::inTransaction() [flags=CONSTANT] {
     - \c "desc": a string description of the option
     - \c "type": a string giving the data type restriction for the option
     - \c "value": the current value of the option
+
+    @since %Qore 0.8.6
  */
 hash DatasourcePool::getOptionHash() [flags=CONSTANT] {
    return ds->getOptionHash();
@@ -746,6 +750,8 @@ hash DatasourcePool::getOptionHash() [flags=CONSTANT] {
 /** @param opt the option to get
 
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
+
+    @since %Qore 0.8.6
  */
 any DatasourcePool::getOption(string opt) [flags=RET_VALUE_ONLY] {
    return ds->getOption(opt->getBuffer(), xsink);
