@@ -676,12 +676,12 @@ QoreString *HashIterator::getKeyString() const {
 }
 
 bool HashIterator::next() { 
-   ptr = ptr ? ptr->next : h->priv->member_list;
+   ptr = ptr ? ptr->next : (h ? h->priv->member_list : 0);
    return ptr;
 }
 
 bool HashIterator::prev() {
-   ptr = ptr ? ptr->prev : h->priv->tail;
+   ptr = ptr ? ptr->prev : (h ? h->priv->tail : 0);
    return ptr;
 }
 
@@ -792,12 +792,12 @@ QoreString *ConstHashIterator::getKeyString() const {
 }
 
 bool ConstHashIterator::next() { 
-   ptr = ptr ? ptr->next : h->priv->member_list;
+   ptr = ptr ? ptr->next : (h ? h->priv->member_list : 0);
    return ptr;
 }
 
 bool ConstHashIterator::prev() {
-   ptr = ptr ? ptr->prev : h->priv->tail;
+   ptr = ptr ? ptr->prev : (h ? h->priv->tail : 0);
    return ptr;
 }
 
