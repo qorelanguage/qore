@@ -3,16 +3,17 @@
 *************************************************
 
 see README-SVN to lean how to build qore from svn sources
+see README-WINDOWS for info specific to the windows builds
 
 Build Requirements
 ------------------
-*) flex 2.5.31 (or greater -- 2.5.4 or before will NOT work, sorry.  flex 2.5.35 or greater is recommended)
-qore requires this very new version of flex in order to build a reentrant parser.  I was not able to build a reentrant parser with earler versions of flex (including 2.5.4).  many older linux distributions ship with flex 2.5.4; this version will not work and the configure script will exit an error message if only this version is found.  You can download flex 2.5.35 at:
+*) flex 2.5.31 (or greater -- 2.5.4 or before will NOT work, sorry.  flex 2.5.37 or greater is recommended)
+qore requires this very new version of flex in order to build a reentrant parser.  I was not able to build a reentrant parser with earler versions of flex (including 2.5.4).  many older linux distributions ship with flex 2.5.4; this version will not work and the configure script will exit an error message if only this version is found.  You can download flex 2.5.37 at:
 	 http://sourceforge.net/projects/flex
 To use a flex in an alternative location, set the environment variable LEX before running configure (i.e.: LEX=/usr/local/bin/flex configure ...)
 
 *) bison 1.85 (or better, 2.* versions are fine)
-qore requires bison 1.85 or greater to be able to interface properly with the scanner produced by flex 2.5.3*
+qore requires bison 1.85+ to be able to interface properly with the scanner produced by flex 2.5.3*+
 
 *) POSIX threads
 OS-level POSIX thread support is required to build qore.
@@ -30,6 +31,11 @@ if you have the open headers and libraries in a location the configure script ca
 
 *) zlib 1.1.3 or higher (some earlier versions will work as well)
 
+*) mpfr 2.4.1 or higher (some eariler versions may work but have not been tested) - version 3.1+ recommended + note that the gmp library is also required to build mpfr
+   	http://www.mpfr.org/
+	http://gmplib.org/
+This is for the arbitrary-precision numeric type introduced with Qore 0.8.6
+
 (note that libxml2 is no longer a build requirement as all xml functionality has been moved to the xml module)
 
 "configure" Option Overview
@@ -41,13 +47,15 @@ if you have the open headers and libraries in a location the configure script ca
 --with-openssl-dir=<dir>            : directory of openssl installation
 --with-pcre-dir=<dir>               : directory of pcre installation
 --with-zlib-dir=<dir>               : directory of zlib installation
+--with-mpfr-dir=<dir>               : directory of mpfr installation
+--with-gmp-dir=<dir>                : directory of gmp installation
 
 rarely used options
 -------------------
 --disable-single-compilation-unit   : to disable building all related files at once in each directory.  This is enabled by default because it normally makes for much quicker compiles and also allows the compiler to optimize based on the entire source at the same time.  However if you don't have enough memory (at least 1G RAM) then you should turn it off, otherwise leave it on.
 
 ********************************
-recommended configure arguments: configure --disable-static --disable-debug --prefix=/usr   ( add --enable-64bit on 64-bit platforms for 64-bit builds)
+recommended configure arguments: configure --disable-static --disable-debug --prefix=/usr
 ********************************
 
 To build qore, run the following commands:
@@ -71,7 +79,7 @@ Various distributions have been tested: FC3-8, Gentoo, Ubuntu, ARCH, etc
 
 *) Darwin - OS/X
 One of the main development platforms for Qore.  There are no particular issues on newer version of OS/X (10.5+), just make sure you have the prerequisite libraries and header files available - this applies to PCRE on newer versions of OS/X.  On older versions (10.4 and earlier), you'll also need to ensure that you have at least libtool 1.5.10 when building from svn, get it from fink or macports as you like.
-NOTE that pthread_create() on Darwin 8.7.1 (OS X 10.4.7) returns 0 (no error) on i386 at least, even when it appears that thread resources are exhausted and the new thread is never started.  This happens after 2560 threads are started, so normally this will not be an issue for most programs.  To make sure that this doesn't happen, when qore is compiled on Darwin MAX_QORE_THREADS is automatically set to 2560 (otherwise the default is normally 4096)
+NOTE that pthread_create() on Darwin 8.7.1 (OS X 10.4.7) < OS X 10.7 returns 0 (no error) on i386 at least, even when it appears that thread resources are exhausted and the new thread is never started.  This happens after 2560 threads are started, so normally this will not be an issue for most programs.  To make sure that this doesn't happen, when qore is compiled on Darwin MAX_QORE_THREADS is automatically set to 2560 (otherwise the default is normally 4096).  This issue was fixed in OS X 10.7 - MAX_QORE_THREADS is set automatically when building on the appropriate platform, this is just for your information.
 
 *) Solaris:
 One of the main development platforms for Qore.  g++ and CC static and shared builds work fine (tested with many versions of g++ and CC).
@@ -89,6 +97,7 @@ Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.
 Currently there is no fast atomic reference count support on PA-RISC platforms.
 when compiling on Itanium 64-bit binaries are produced by default
 Note that as of qore 0.8.0, building with aCC A.03.90 (for HP-UX PA-RISC 11.23) failed; unfortunately I don't have access to a newer OS and compiler combination to try
+Note that I have not made an HP-UX build for quite some time now.
 
 *) Windows
 As of 0.8.3, a fully functional version of Qore can now be build for Windows; see README-WINDOWS for more information
@@ -102,6 +111,6 @@ The cache invalidation optimization is not safe on platforms without an atomic r
 
 Modules
 -------
-On platforms that support building shared libraries, modules are stored in a subdirectory named "qore-modules" of the library directoy.
-Modules are installed with the extension *.qmod
-Note that modules are (as of version 0.7.0 of qore) delivered separately from the qore library, see the file README-MODULES for more information.
+On platforms that support building shared libraries, binary modules are stored in a subdirectory named "qore-modules" of the library directoy.
+Binary modules are installed with the extension *.qmod
+Note that binary modules are (as of version 0.7.0 of qore) delivered separately from the qore library, see the file README-MODULES for more information.

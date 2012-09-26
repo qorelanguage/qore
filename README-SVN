@@ -15,14 +15,12 @@ make install
 as usual...
 
 ** NOTE: now that qore has stable API and ABIs, modules have been moved to separate svn projects; you can find module source here:
-* https://qore.svn.sourceforge.net/svnroot/qore/module-qt
-* https://qore.svn.sourceforge.net/svnroot/qore/module-glut
-* https://qore.svn.sourceforge.net/svnroot/qore/module-opengl
-* https://qore.svn.sourceforge.net/svnroot/qore/module-asn1
-* https://qore.svn.sourceforge.net/svnroot/qore/module-xmlsec
+   * svn://svn.code.sf.net/p/qore/code
+** NOTE: this is the root of the entire qore svn tree; modules are found rooted in the same tree in subdirectories named: "module-xxx"
 
 ** NOTE: modules from different svn versions of qore may not be compatible even though they have the same API version label.  This is because when I start a new release where I know I'm going to update the module API I will increase the API numbers immediately, but the actual binary format may change until the release date.  Therefore if you are building code from qore svn, it's best to delete all binary modules before installing a new release, just in case.
 
 ** NOTE: as of qore 0.6.2 no modules are in the "$libdir/qore-$ver/auto" (ex: /usr/lib/qore-0.6.2/auto), so any svn modules there should be deleted
 
-for any problems or questions send me an email at: david_nichols@users.sourceforge.net
+for any problems or questions send me an email at: david@qore.org
+
