@@ -562,7 +562,7 @@ int DBI_concat_string(QoreString* str, const AbstractQoreNode* v, ExceptionSink*
 
 /*
   parseDatasource()
-  parses strings of the form: driver:user/pass@db(encoding)%host:post
+  parses strings of the form: driver:user/pass@db(encoding)%host:post{option1,option2=value}
   everything except "@db" is optional
 */
 QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
@@ -709,38 +709,46 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
 	    if (!*p)
 	       break;
 	    char* eq = strchr(p, '=');
-
-	    char* oend = 0;
+	    char* oend = strchr(p, ',');
 	    qore_size_t len = 0;
-	    if (!eq) {
+	    // if there is only an option left with no more options and no value
+	    if (!eq && !oend) {
 	       opt->setKeyValue(p, &True, 0);
-	       oend = strchr(p, ',');
-               len = oend ? oend - p : strlen(p);
-               p += len;
+               p += strlen(p);
 	    }
 	    else {
-	       if (eq == p) {
-	          xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing value before '=' in option specification in '%s'", ds);
-	          return 0;
+	       // if there is more than one option and the next option to be parsed has no value
+	       if (oend && (!eq || oend < eq)) {
+                  len = oend - p;
+                  QoreString tmp(p, len);
+	          opt->setKeyValue(tmp.getBuffer(), &True, 0);
+	          p += len;
 	       }
-	       *eq = '\0';
-	       ++eq;
-	       oend = strchr(eq, ',');
-	       len = oend ? oend - eq : strlen(eq);
-	       if (opt->existsKey(p)) {
-	          xsink->raiseException(DATASOURCE_PARSE_ERROR, "option '%s' repeated in '%s'", p, ds);
-	          return 0;
+	       else {
+	          // here we must have an equals sign
+	          assert(eq);
+	          if (eq == p) {
+	             xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing value after '=' in option specification in '%s'", ds);
+	             return 0;
+	          }
+	          *eq = '\0';
+	          ++eq;
+	          len = oend ? oend - eq : strlen(eq);
+	          if (opt->existsKey(p)) {
+	             xsink->raiseException(DATASOURCE_PARSE_ERROR, "option '%s' repeated in '%s'", p, ds);
+	             return 0;
+	          }
+
+	          QoreString key(p);
+	          key.trim();
+
+	          QoreString value(eq, len);
+	          value.trim();
+
+	          opt->setKeyValue(key.getBuffer(), new QoreStringNode(value), 0);
+
+	          p = eq + len;
 	       }
-
-	       QoreString key(p);
-	       key.trim();
-
-	       QoreString value(eq, len);
-	       value.trim();
-
-	       opt->setKeyValue(key.getBuffer(), new QoreStringNode(value), 0);
-
-	       p = eq + len;
 	    }
             if (oend)
                ++p;
