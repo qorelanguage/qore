@@ -40,6 +40,7 @@
 #define DBI_CAP_HAS_SELECT_ROW           (1 << 9)  //!< provides a native selectRow() method (set automatically by the Qore library)
 #define DBI_CAP_HAS_NUMBER_SUPPORT       (1 << 10) //!< supports arbitrary-precision numeric support for binding and retrieving values; if this is not true then any QoreNumberNode bind arguments will be converted to QoreFloatNode before binding
 #define DBI_CAP_HAS_OPTION_SUPPORT       (1 << 11) //!< supports the new driver option API (set automatically by the Qore library)
+#define DBI_CAP_SERVER_TIME_ZONE         (1 << 12) //!< supports automatically converting date/time values to the server's presumed time zone (can be set with options) and tagging date/time values with the same; this is independent from the client's current time zone setting
 
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1
@@ -254,6 +255,7 @@ typedef AbstractQoreNode* (*q_dbi_option_get_t)(const Datasource* ds, const char
 #define DBI_OPT_NUMBER_OPT "optimal-numbers"      //!< numeric/decimal/number values converted to optimal Qore type (either int or number)
 #define DBI_OPT_NUMBER_STRING "string-numbers"    //!< numeric/decimal/number values converted to Qore strings (original solution)
 #define DBI_OPT_NUMBER_NUMERIC "numeric-numbers"  //!< numeric/decimal/number values converted to arbitrary-precision number values
+#define DBI_OPT_TIMEZONE "timezone"               //!< set server=side timezone rules for automatic conversions/date-time value tagging
 
 //! this is the data structure Qore DBI drivers will use to pass the supported DBI methods
 /** the minimum methods that must be supported are: open, close, select, selectRows, execSQL, execRawSQL, commit, and rollback

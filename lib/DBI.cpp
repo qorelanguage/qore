@@ -55,6 +55,7 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_HAS_SELECT_ROW,         "HasSelectRow" },
   { DBI_CAP_HAS_NUMBER_SUPPORT,     "HasNumberSupport" },
   { DBI_CAP_HAS_OPTION_SUPPORT,     "HasOptionSupport" },
+  { DBI_CAP_SERVER_TIME_ZONE,       "ServerTimeZone" },
 };
 
 #define NUM_DBI_CAPS (sizeof(dbi_cap_list) / sizeof(dbi_cap_hash))

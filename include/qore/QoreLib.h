@@ -81,6 +81,9 @@
 //! defined because this version of Qore supports the DBI option APIs
 #define _QORE_HAS_DBI_OPTIONS 1
 
+//! defined because this version of Qore has the find_create_timezone() function
+#define _QORE_HAS_FIND_CREATE_TIMEZONE 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
@@ -313,7 +316,22 @@ DLLEXPORT BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink);
 class AbstractQoreZoneInfo;
 
 //! returns a time zone for the given time zone UTC offset
-DLLEXPORT const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east);
+DLLEXPORT const AbstractQoreZoneInfo* findCreateOffsetZone(int seconds_east);
+
+//! returns a time zone for the given region name or UTC offset given as a string ("+01:00")
+/** @param name the name of the region to find or a UTC offset given as a string ("+01:00")
+    @param xsink if the given region is not found or valid or any error occur finding or loading the given region, exception info is stored here and the function returns 0
+
+    @return the time zone region found or 0 if the timezone is UTC (also in case of an exception 0 is returned - check xsink after calling)
+ */
+DLLEXPORT const AbstractQoreZoneInfo* find_create_timezone(const char* name, ExceptionSink* xsink);
+
+//! returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
+DLLEXPORT int tz_get_utc_offset(const AbstractQoreZoneInfo* tz, int64 epoch_offset, bool &is_dst, const char *&zone_name);
+//! returns true if the zone has daylight savings time ever
+DLLEXPORT bool tz_has_dst(const AbstractQoreZoneInfo* tz);
+//! returns the reion name for the given time zone
+DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 
 //! option: atomic operations
 #define QORE_OPT_ATOMIC_OPERATIONS       "atomic operations"

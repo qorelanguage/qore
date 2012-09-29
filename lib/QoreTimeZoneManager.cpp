@@ -967,3 +967,25 @@ const AbstractQoreZoneInfo *QoreTimeZoneManager::findLoadRegion(const char *name
 const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east) {
    return QTZM.findCreateOffsetZone(seconds_east);
 }
+
+const AbstractQoreZoneInfo* find_create_timezone(const char* name, ExceptionSink* xsink) {
+   assert(name);
+   // see if it's a UTC offset
+   if ((name[0] == '+' || name[0] == '-')
+         && isdigit(name[1] && isdigit(name[2])))
+      return QTZM.findCreateOffsetZone(name, xsink);
+
+   return QTZM.findLoadRegion(name, xsink);
+}
+
+int tz_get_utc_offset(const AbstractQoreZoneInfo* tz, int64 epoch_offset, bool &is_dst, const char *&zone_name) {
+   return tz->getUTCOffset(epoch_offset, is_dst, zone_name);
+}
+
+bool tz_has_dst(const AbstractQoreZoneInfo* tz) {
+   return tz->hasDST();
+}
+
+const char* tz_get_region_name(const AbstractQoreZoneInfo* tz) {
+   return tz->getRegionName();
+}
