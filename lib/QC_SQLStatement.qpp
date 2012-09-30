@@ -45,7 +45,10 @@
 }
     @endcode
 
-    Note that most commands are executed implicitly; for example, in the example above there is no call to SQLStatement::exec() as it is executed implicitly in the call to SQLStatement::next().
+    @note
+    - Most commands are executed implicitly; for example, in the example above there is no call to SQLStatement::exec() as it is executed implicitly in the initial call to SQLStatement::next().
+    - Current column values in query results iterated with SQLStatement::next() as above can also be dereferenced directly from the SQLStatement object by using the column name in lower case as a member name (using SQLStatement::memberGate(), see that method for an example)
+    - Query results can also be returned in blocks using SQLStatement::fetchRows() and SQLStatement::fetchColumns() ("rows" and "columns" in this case refer to the output data format; also using these methods there is no need to call SQLStatement::next())
 
     The following methods are useful when executing all statements:
     - SQLStatement::prepare()
@@ -634,7 +637,9 @@ my list $l = $stmt.fetchRows(-1);
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
-    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
+    @note
+    - There is no need to call SQLStatement::next() when calling this method; the method automatically iterates through the given number of rows
+    - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
  */
 list SQLStatement::fetchRows(softint rows = -1) {
    return stmt->fetchRows((int)rows, xsink);
@@ -654,7 +659,9 @@ my hash $h = $stmt.fetchColumns(-1);
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
-    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
+    @note
+    - There is no need to call SQLStatement::next() when calling this method; the method automatically iterates through the given number of rows
+    - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
  */
 hash SQLStatement::fetchColumns(softint rows = -1) {
    return stmt->fetchColumns((int)rows, xsink);
@@ -683,4 +690,51 @@ if ($stmt.active())
  */
 bool SQLStatement::active() [flags=CONSTANT] {
    return stmt->active();
+}
+
+//! This method allows SQLStatement objects to be dereferenced directly as a hash for the current row being iterated, as memberGate methods are called implicitly when an unknown member is accessed from outside the class.
+/** @param key the column name for the value to retrieve
+
+    @return the current column value of the given row
+
+    @par Example:
+    @code
+my SQLStatement $stmt($ds);
+# release transaction lock on exit
+on_exit $stmt.commit();
+$stmt.prepare("select name, birthdate from table");
+while ($stmt.next()) {
+    printf("name: %s birthdate: %y", $stmt.name, $stmt.birthdate);
+}
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+    @throw SQLSTATEMENT-ITERATION-ERROR Cannot dereference statement iteration context; make sure and call SQLStatement::next() before trying to dereference the current row being iterated
+    @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
+    @throw SQLSTATEMENT-COLUMN-ERROR The given column name does not exist in the current row data
+
+    @note Column values can only be dereferenced using the automatic SQLStatement::memberGate() method while iterating a result set with SQLStatement::next(); the hash that will be dereferenced is equivalent to that returned by SQLStatement::fetchRow()
+
+    @since %Qore 0.8.6
+ */
+any SQLStatement::memberGate(string key) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<QoreHashNode> h(stmt->fetchRow(xsink), xsink);
+   if (*xsink)
+      return 0;
+   if (!h) {
+      xsink->raiseException("SQLSTATEMENT-ITERATION-ERROR", "Cannot dereference statement iteration context to get current '%s' column value; make sure and call SQLStatement::next() before trying to dereference the current row being iterated", key->getBuffer());
+      return 0;
+   }
+
+   bool exists = false;
+   const AbstractQoreNode* rv = h->getKeyValueExistence(key, exists, xsink);
+   if (*xsink)
+      return 0;
+
+   if (!exists) {
+      xsink->raiseException("SQLSTATEMENT-COLUMN-ERROR", "The given column name ('%s') does not exist in the current row data", key->getBuffer());
+      return 0;
+   }
+
+   return rv ? rv->refSelf() : 0;
 }
