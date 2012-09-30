@@ -23,39 +23,39 @@
     |@ref ifndef "%ifndef"|Opens a @ref conditional_parsing "conditionally-parsed" block; if the given @ref conditional_parsing "parse define" is not defined, then the block after the @ref ifdef "%ifdef" is parsed until either an @ref else "%else" or an @ref endif "%endif" <br><br>Since %Qore 0.8.3
     |@ref include "%include" <em>file_name</em>|Starts parsing \a file_name immediately. Parsing resumes with the current input after \a file_name has been completely parsed
     |@ref lockdown "%lockdown"|Made up of @ref no-external-access "%no-external-access", @ref no-threads "%no-threads", and @ref no-io "%no-io"; equivalent to parse option @ref Qore::PO_LOCKDOWN and the \c --lockdown command line option
-    |@ref lock-options "%lock-options"|Prohibits further changes to parse options (equivalent to the <tt>--lock-options</tt> command line option)
-    |@ref lock-warnings "%lock-warnings"|Prohibits further changes to the warning mask (equivalent to the <tt>--lock-warnings</tt> command line option)
+    |@ref lock-options "%lock-options"|Prohibits further changes to parse options (equivalent to the <tt>-</tt><tt>-lock-options</tt> command line option)
+    |@ref lock-warnings "%lock-warnings"|Prohibits further changes to the warning mask (equivalent to the <tt>-</tt><tt>-lock-warnings</tt> command line option)
     |@ref new-style "%new-style"|Sets both @ref allow-bare-refs "%allow-bare-refs" and @ref assume-local "%assume-local". These two options together make programming in %Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the \c "$" sign, for example; see also @ref old-style "%old-style" <br><br>Since %Qore 0.8.1
     |@ref old-style "%old-style"|Resets default %Qore parsing behavior by setting @ref require-dollar "%require-dollar" and @ref assume-global "%assume-global"; this option is the opposite of @ref new-style "%new-style" <br><br>Since %Qore 0.8.4
-    |@ref no-class-defs "%no-class-defs"|Disallows @ref qore_classes "class definitions"; equivalent to @ref Qore::PO_NO_CLASS_DEFS and the <tt>--no-class-defs</tt> command line option
-    |@ref no-child-restrictions "%no-child-restrictions"|Allows child program objects to have parse option restrictions that are not a strict subset of the parents'; equivalent to parse option @ref Qore::PO_NO_CHILD_PO_RESTRICTIONS and the <tt>--no-child-restrictions</tt> command line option
-    |@ref no-constant-defs "%no-constant-defs"|Disallows @ref constants "constant definitions"; equivalent to parse option @ref Qore::PO_NO_CONSTANT_DEFS and the <tt>--no-constant-defs</tt> command line option
-    |@ref no-database "%no-database"|Disallows access to database functionality (for example the @ref Qore::SQL::Datasource "Datasource class"; equivalent to parse option @ref Qore::PO_NO_DATABASE and the <tt>--no-database</tt> command line option
-    |@ref no-external-access "%no-external-access"|made up of @ref no-process-control "%no-process-control", @ref no-network "%no-network", @ref no-filesystem "%no-filesystem", @ref no-database "%no-database", @ref no-external-info "%no-external-info", and @ref no-modules "%no-modules"; equivalent to parse option @ref Qore::PO_NO_EXTERNAL_ACCESS and the <tt>--no-external-access</tt> command line option
-    |@ref no-external-info "%no-external-info"|Disallows any access to functionality that provides external information (see @ref no-external-info "%no-external-info" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_EXTERNAL_INFO and the <tt>--no-external-info</tt> command line option
-    |@ref no-external-process "%no-external-process"|Disallows any access to external processes (see @ref no-external-process "%no-external-process" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_EXTERNAL_PROCESS and the <tt>--no-external-process</tt> command line option
-    |@ref no-filesystem "%no-filesystem"|Disallows access to the local filesystem; equivalent to parse option @ref Qore::PO_NO_FILESYSTEM and the <tt>--no-filesystem</tt> command line option
-    |@ref no-global-vars "%no-global-vars"|Disallows the use of global variables; equivalent to parse option @ref Qore::PO_NO_GLOBAL_VARS and the <tt>--no-global-vars</tt> command line option
+    |@ref no-class-defs "%no-class-defs"|Disallows @ref qore_classes "class definitions"; equivalent to @ref Qore::PO_NO_CLASS_DEFS and the <tt>-</tt><tt>-no-class-defs</tt> command line option
+    |@ref no-child-restrictions "%no-child-restrictions"|Allows child program objects to have parse option restrictions that are not a strict subset of the parents'; equivalent to parse option @ref Qore::PO_NO_CHILD_PO_RESTRICTIONS and the <tt>-</tt><tt>-no-child-restrictions</tt> command line option
+    |@ref no-constant-defs "%no-constant-defs"|Disallows @ref constants "constant definitions"; equivalent to parse option @ref Qore::PO_NO_CONSTANT_DEFS and the <tt>-</tt><tt>-no-constant-defs</tt> command line option
+    |@ref no-database "%no-database"|Disallows access to database functionality (for example the @ref Qore::SQL::Datasource "Datasource class"; equivalent to parse option @ref Qore::PO_NO_DATABASE and the <tt>-</tt><tt>-no-database</tt> command line option
+    |@ref no-external-access "%no-external-access"|made up of @ref no-process-control "%no-process-control", @ref no-network "%no-network", @ref no-filesystem "%no-filesystem", @ref no-database "%no-database", @ref no-external-info "%no-external-info", and @ref no-modules "%no-modules"; equivalent to parse option @ref Qore::PO_NO_EXTERNAL_ACCESS and the <tt>-</tt><tt>-no-external-access</tt> command line option
+    |@ref no-external-info "%no-external-info"|Disallows any access to functionality that provides external information (see @ref no-external-info "%no-external-info" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_EXTERNAL_INFO and the <tt>-</tt><tt>-no-external-info</tt> command line option
+    |@ref no-external-process "%no-external-process"|Disallows any access to external processes (see @ref no-external-process "%no-external-process" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_EXTERNAL_PROCESS and the <tt>-</tt><tt>-no-external-process</tt> command line option
+    |@ref no-filesystem "%no-filesystem"|Disallows access to the local filesystem; equivalent to parse option @ref Qore::PO_NO_FILESYSTEM and the <tt>-</tt><tt>-no-filesystem</tt> command line option
+    |@ref no-global-vars "%no-global-vars"|Disallows the use of global variables; equivalent to parse option @ref Qore::PO_NO_GLOBAL_VARS and the <tt>-</tt><tt>-no-global-vars</tt> command line option
     |@ref no-gui "%no-gui"|Disallows functionality that draws graphics to the display; equivalent to parse option @ref Qore::PO_NO_GUI and the <tt>-pno-gui</tt> command line option
     |@ref no-io "%no-io"|Made up of @ref no-gui "%no-gui" \| @ref no-terminal-io "%no-terminal-io" \| @ref no-filesystem "%no-filesystem" \| @ref no-network "%no-network" \| @ref no-database "%no-database"; equivalent to parse option @ref Qore::PO_NO_IO and the \c --no-io command line option
-    |@ref no-locale-control "%no-locale-control"|Disallows access to functionality that changes locale information (see %no-locale-control for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_LOCALE_CONTROL and the <tt>--no-locale-control</tt> command line option
+    |@ref no-locale-control "%no-locale-control"|Disallows access to functionality that changes locale information (see %no-locale-control for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_LOCALE_CONTROL and the <tt>-</tt><tt>-no-locale-control</tt> command line option
     |@ref no-modules "%no-modules"|Disallows loading @ref qore_modules "modules" with the @ref requires "%requires" directive or at runtime with load_module(); equivalent to @ref Qore::PO_NO_MODULES and the <tt>-pno-modules</tt> command line option <br><br>Since %Qore 0.8.4
-    |@ref no-namespace-defs "%no-namespace-defs"|Disallows new @ref qore_namespaces "namespace definitions"; equivalent to @ref Qore::PO_NO_NAMESPACE_DEFS and the <tt>--no-namespace-defs</tt> command line option
-    |@ref no-network "%no-network"|Disallows access to the network; equivalent to parse option @ref Qore::PO_NO_NETWORK and the <tt>--no-network</tt> command line option
-    |@ref no-new "%no-new"|Disallows use of the @ref new "new operator"; equivalent to parse option @ref Qore::PO_NO_NEW and the <tt>--no-new</tt> command line option
-    |@ref no-process-control "%no-process-control"|Disallows access to functions that would affect the current process (see @ref no-process-control "%no-process-control" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_PROCESS_CONTROL and the <tt>--no-process-control</tt> command line option
-    |@ref no-subroutine-defs "%no-subroutine-defs"|Disallows subroutine (function) definitions; equivalent to parse option @ref Qore::PO_NO_SUBROUTINE_DEFS and the <tt>--no-subroutine-defs</tt> command line option
+    |@ref no-namespace-defs "%no-namespace-defs"|Disallows new @ref qore_namespaces "namespace definitions"; equivalent to @ref Qore::PO_NO_NAMESPACE_DEFS and the <tt>-</tt><tt>-no-namespace-defs</tt> command line option
+    |@ref no-network "%no-network"|Disallows access to the network; equivalent to parse option @ref Qore::PO_NO_NETWORK and the <tt>-</tt><tt>-no-network</tt> command line option
+    |@ref no-new "%no-new"|Disallows use of the @ref new "new operator"; equivalent to parse option @ref Qore::PO_NO_NEW and the <tt>-</tt><tt>-no-new</tt> command line option
+    |@ref no-process-control "%no-process-control"|Disallows access to functions that would affect the current process (see @ref no-process-control "%no-process-control" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_PROCESS_CONTROL and the <tt>-</tt><tt>-no-process-control</tt> command line option
+    |@ref no-subroutine-defs "%no-subroutine-defs"|Disallows subroutine (function) definitions; equivalent to parse option @ref Qore::PO_NO_SUBROUTINE_DEFS and the <tt>-</tt><tt>-no-subroutine-defs</tt> command line option
     |@ref no-terminal-io "%no-terminal-io"|Disallows access to terminal I/O (see @ref no-terminal-io "%no-terminal-io" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_TERMINAL_IO and the <tt>-pno-terminal-io</tt> command line option
-    |@ref no-thread-classes "%no-thread-classes"|Disallows access to thread classes (see @ref no-thread-classes "%no-thread-classes" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_CLASSES and the <tt>--no-thread-classes</tt> command line option
-    |@ref no-thread-control "%no-thread-control"|Disallows access to thread control operations (see @ref no-thread-control "%no-thread-control" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_CONTROL and the <tt>--no-thread-control</tt> command line option
-    |@ref no-thread-info "%no-thread-info"|Disallows any access to functionality that provides threading information (see @ref no-thread-info "%no-thread-info" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_INFO and the <tt>--no-thread-info</tt> command line option
-    |@ref no-threads "%no-threads"|Disallows access to all thread control operations and thread classes (equivalent to <tt>--no-thread-control</tt> and <tt>--no-thread-classes</tt> together); equivalent to parse option @ref Qore::PO_NO_THREADS and the <tt>--no-threads</tt> command line option
-    |@ref no-top-level "%no-top-level"|Disallows top level code; equivalent to parse option @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS and the <tt>--no-top-level</tt> command line option
+    |@ref no-thread-classes "%no-thread-classes"|Disallows access to thread classes (see @ref no-thread-classes "%no-thread-classes" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_CLASSES and the <tt>-</tt><tt>-no-thread-classes</tt> command line option
+    |@ref no-thread-control "%no-thread-control"|Disallows access to thread control operations (see @ref no-thread-control "%no-thread-control" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_CONTROL and the <tt>-</tt><tt>-no-thread-control</tt> command line option
+    |@ref no-thread-info "%no-thread-info"|Disallows any access to functionality that provides threading information (see @ref no-thread-info "%no-thread-info" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_INFO and the <tt>-</tt><tt>-no-thread-info</tt> command line option
+    |@ref no-threads "%no-threads"|Disallows access to all thread control operations and thread classes (equivalent to <tt>-</tt><tt>-no-thread-control</tt> and <tt>-</tt><tt>-no-thread-classes</tt> together); equivalent to parse option @ref Qore::PO_NO_THREADS and the <tt>-</tt><tt>-no-threads</tt> command line option
+    |@ref no-top-level "%no-top-level"|Disallows top level code; equivalent to parse option @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS and the <tt>-</tt><tt>-no-top-level</tt> command line option
     |@ref push-parse-options "%push-parse-options"|Stores parse options so that they will be restored when the current file is done parsing; use in include files to ensure parse options are set appropriately for the file being parsed
     |@ref require-dollar "%require-dollar"|Resets the default %Qore behavior where the use of the \c "$" character in variable names, method calls, and object member references is required; use after @ref allow-bare-refs "%allow-bare-refs" to reset the default parsing behavior <br><br>Since %Qore 0.8.4
-    |@ref require-our "%require-our"|Requires global variables to be declared with @ref our "our" prior to use (like perl's <tt>use strict vars</tt> pragma); equivalent to parse option @ref Qore::PO_REQUIRE_OUR and the <tt>--require-our</tt> command line option
-    |@ref require-prototypes "%require-prototypes"|Requires type declarations for all function and method parameters and return types. Variables and object members do not need to have type declarations; equivalent to parse option @ref Qore::PO_REQUIRE_PROTOTYPES and the <tt>--require-prototypes</tt> command line option <br><br>Since %Qore 0.8.0
-    |@ref require-types "%require-types"|Requires type declarations for all function and method parameters, return types, variables, and object members; equivalent to parse option @ref Qore::PO_REQUIRE_TYPES and the <tt>--require-types</tt> command line option; also implies @ref strict-args "%strict-args" <br><br>Since %Qore 0.8.0
+    |@ref require-our "%require-our"|Requires global variables to be declared with @ref our "our" prior to use (like perl's <tt>use strict vars</tt> pragma); equivalent to parse option @ref Qore::PO_REQUIRE_OUR and the <tt>-</tt><tt>-require-our</tt> command line option
+    |@ref require-prototypes "%require-prototypes"|Requires type declarations for all function and method parameters and return types. Variables and object members do not need to have type declarations; equivalent to parse option @ref Qore::PO_REQUIRE_PROTOTYPES and the <tt>-</tt><tt>-require-prototypes</tt> command line option <br><br>Since %Qore 0.8.0
+    |@ref require-types "%require-types"|Requires type declarations for all function and method parameters, return types, variables, and object members; equivalent to parse option @ref Qore::PO_REQUIRE_TYPES and the <tt>-</tt><tt>-require-types</tt> command line option; also implies @ref strict-args "%strict-args" <br><br>Since %Qore 0.8.0
     |@ref requires "%requires" <em>feature</em> <tt>[\<\|\<=\|=\|\>=\|\></tt> <em>version</em><tt>]</tt>|If the named feature is not already present in %Qore, then the \c QORE_MODULE_DIR environment variable is used to provide a list of directories to seach for a module with the same name (<em>feature</em><tt>.qmod</tt>). If the module is not found, then the qore default module directory is checked. This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time). If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised. See also @ref Qore::load_module() for a function providing run-time module loading
     |@ref set-time-zone "%set-time-zone"|Sets the time zone for the current program from a UTC offset (with format \c "+/-[00[:00[:00]]"; \c ":" characters are optional) or a time zone region name (ex: \c "Europe/Prague") <br><br>Since %Qore 0.8.3
     |@ref strict-args "%strict-args"|Prohibits access to builtin functions and methods flagged with @ref RUNTIME_NOOP and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments <br><br>Since %Qore 0.8.0
@@ -67,7 +67,7 @@
     <tt>%%allow-bare-refs</tt>
 
     @par Command Line:
-    <tt>--allow-bare-refs, -B</tt>
+    <tt>-</tt><tt>-allow-bare-refs, -B</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_ALLOW_BARE_REFS
@@ -112,7 +112,7 @@
     <tt>%%assume-local</tt>
 
     @par Command Line:
-    <tt>--assume-local</tt>
+    <tt>-</tt><tt>-assume-local</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_ASSUME_LOCAL
@@ -131,7 +131,7 @@
     <tt>%%define</tt>
 
     @par Command Line:
-    <tt>--define, -D</tt>
+    <tt>-</tt><tt>-define, -D</tt>
 
     @par Parse Option Constant:
     n/a
@@ -195,7 +195,7 @@
     <tt>%%enable-all-warnings</tt>
 
     @par Command Line:
-    <tt>--enable-all-warnings, -W</tt>
+    <tt>-</tt><tt>-enable-all-warnings, -W</tt>
 
     @par Parse Option Constant:
     n/a
@@ -210,7 +210,7 @@
     <tt>%%enable-warning</tt>
 
     @par Command Line:
-    <tt>--enable-warning, -w</tt>
+    <tt>-</tt><tt>-enable-warning, -w</tt>
 
     @par Parse Option Constant:
     n/a
@@ -242,7 +242,7 @@
     <tt>%%exec-class</tt>
 
     @par Command Line:
-    <tt>--exec-class, -x</tt>
+    <tt>-</tt><tt>-exec-class, -x</tt>
 
     @par Parse Option Constant:
     n/a
@@ -306,7 +306,7 @@
     <tt>%%lockdown</tt>
 
     @par Command Line:
-    <tt>--lockdown</tt>
+    <tt>-</tt><tt>-lockdown</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_LOCKDOWN
@@ -321,7 +321,7 @@
     <tt>%%lock-options</tt>
 
     @par Command Line:
-    <tt>--lock-options, -K</tt>
+    <tt>-</tt><tt>-lock-options, -K</tt>
 
     @par Parse Option Constant:
     n/a
@@ -336,7 +336,7 @@
     <tt>%%lock-warnings</tt>
 
     @par Command Line:
-    <tt>--lock-warnings, -A</tt>
+    <tt>-</tt><tt>-lock-warnings, -A</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_LOCK_WARNINGS
@@ -351,7 +351,7 @@
     <tt>%%new-style</tt>
 
     @par Command Line:
-    <tt>--new-style, -n</tt>
+    <tt>-</tt><tt>-new-style, -n</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NEW_STYLE
@@ -389,7 +389,7 @@
     <tt>%%no-child-restrictions</tt>
 
     @par Command Line:
-    <tt>--no-child-restrictions, -I</tt>
+    <tt>-</tt><tt>-no-child-restrictions, -I</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_CHILD_PO_RESTRICTIONS
@@ -404,7 +404,7 @@
     <tt>%%no-class-defs</tt>
 
     @par Command Line:
-    <tt>--no-class-defs</tt>
+    <tt>-</tt><tt>-no-class-defs</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_CLASS_DEFS
@@ -419,7 +419,7 @@
     <tt>%%no-constant-defs</tt>
 
     @par Command Line:
-    <tt>--no-constant-defs</tt>
+    <tt>-</tt><tt>-no-constant-defs</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_CONSTANT_DEFS
@@ -434,7 +434,7 @@
     <tt>%%no-database</tt>
 
     @par Command Line:
-    <tt>--no-database</tt>
+    <tt>-</tt><tt>-no-database</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_DATABASE
@@ -452,7 +452,7 @@
     <tt>%%no-external-access</tt>
 
     @par Command Line:
-    <tt>--no-external-access</tt>
+    <tt>-</tt><tt>-no-external-access</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_EXTERNAL_ACCESS
@@ -469,7 +469,7 @@
     <tt>%%no-external-info</tt>
 
     @par Command Line:
-    <tt>--no-external-info</tt>
+    <tt>-</tt><tt>-no-external-info</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_EXTERNAL_INFO
@@ -506,7 +506,7 @@
     <tt>%%no-external-process</tt>
 
     @par Command Line:
-    <tt>--no-external-process, -E</tt>
+    <tt>-</tt><tt>-no-external-process, -E</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_EXTERNAL_PROCESS
@@ -526,7 +526,7 @@
     <tt>%%no-filesystem</tt>
 
     @par Command Line:
-    <tt>--no-filesystem, -F</tt>
+    <tt>-</tt><tt>-no-filesystem, -F</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_FILESYSTEM
@@ -580,7 +580,7 @@
     <tt>%%no-global-vars</tt>
 
     @par Command Line:
-    <tt>--no-global-vars, -G</tt>
+    <tt>-</tt><tt>-no-global-vars, -G</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_GLOBAL_VARS
@@ -595,7 +595,7 @@
     <tt>%%no-gui</tt>
 
     @par Command Line:
-    <tt>--no-gui, --set-parse-option=no-gui, -pno-gui</tt>
+    <tt>-</tt><tt>-no-gui, --set-parse-option=no-gui, -pno-gui</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_GUI
@@ -610,7 +610,7 @@
     <tt>%%no-io</tt>
 
     @par Command Line:
-    <tt>--no-io, --set-parse-option=no-io, -pno-io</tt>
+    <tt>-</tt><tt>-no-io, --set-parse-option=no-io, -pno-io</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_IO
@@ -625,7 +625,7 @@
     <tt>%%no-locale-control</tt>
 
     @par Command Line:
-    <tt>--no-locale-control, -P</tt>
+    <tt>-</tt><tt>-no-locale-control, -P</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_LOCALE_CONTROL
@@ -660,7 +660,7 @@
     <tt>%%no-namespace-defs</tt>
 
     @par Command Line:
-    <tt>--no-namespace-defs, -M</tt>
+    <tt>-</tt><tt>-no-namespace-defs, -M</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_NAMESPACE_DEFS
@@ -675,7 +675,7 @@
     <tt>%%no-network</tt>
 
     @par Command Line:
-    <tt>--no-network, -Y</tt>
+    <tt>-</tt><tt>-no-network, -Y</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_NETWORK
@@ -693,7 +693,7 @@
     <tt>%%no-new</tt>
 
     @par Command Line:
-    <tt>--no-new, -N</tt>
+    <tt>-</tt><tt>-no-new, -N</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_NEW
@@ -708,7 +708,7 @@
     <tt>%%no-process-control</tt>
 
     @par Command Line:
-    <tt>--no-process-control, -P</tt>
+    <tt>-</tt><tt>-no-process-control, -P</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_PROCESS_CONTROL
@@ -741,7 +741,7 @@
     <tt>%%no-subroutine-defs</tt>
 
     @par Command Line:
-    <tt>--no-subroutine-defs, -S</tt>
+    <tt>-</tt><tt>-no-subroutine-defs, -S</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_SUBROUTINE_DEFS
@@ -756,7 +756,7 @@
     <tt>%%no-terminal-io</tt>
 
     @par Command Line:
-    <tt>--no-terminal-io,--set-parse-option=no-terminal-io, -pno-terminal-io</tt>
+    <tt>-</tt><tt>-no-terminal-io,-</tt><tt>-set-parse-option=no-terminal-io, -pno-terminal-io</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_TERMINAL_IO
@@ -782,7 +782,7 @@
     <tt>%%no-thread-classes</tt>
 
     @par Command Line:
-    <tt>--no-thread-classes</tt>
+    <tt>-</tt><tt>-no-thread-classes</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_THREAD_CLASSES
@@ -808,7 +808,7 @@
     <tt>%%no-thread-control</tt>
 
     @par Command Line:
-    <tt>--no-thread-control, -R</tt>
+    <tt>-</tt><tt>-no-thread-control, -R</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_THREAD_CONTROL
@@ -835,7 +835,7 @@
     <tt>%%no-thread-info</tt>
 
     @par Command Line:
-    <tt>--no-thread-info</tt>
+    <tt>-</tt><tt>-no-thread-info</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_THREAD_INFO
@@ -856,7 +856,7 @@
     <tt>%%no-threads</tt>
 
     @par Command Line:
-    <tt>--no-threads, -T</tt>
+    <tt>-</tt><tt>-no-threads, -T</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_THREADS
@@ -871,7 +871,7 @@
     <tt>%%no-top-level</tt>
 
     @par Command Line:
-    <tt>--no-top-level, -L</tt>
+    <tt>-</tt><tt>-no-top-level, -L</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS
@@ -923,7 +923,7 @@
     <tt>%%require-our</tt>
 
     @par Command Line:
-    <tt>--require-our, -O</tt>
+    <tt>-</tt><tt>-require-our, -O</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_REQUIRE_OUR
@@ -938,7 +938,7 @@
     <tt>%%require-prototypes</tt>
 
     @par Command Line:
-    <tt>--require-prototypes</tt>
+    <tt>-</tt><tt>-require-prototypes</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_REQUIRE_PROTOTYPES
@@ -955,7 +955,7 @@
     <tt>%%require-types</tt>
 
     @par Command Line:
-    <tt>--require-types</tt>
+    <tt>-</tt><tt>-require-types</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_REQUIRE_TYPES
@@ -972,7 +972,7 @@
     <tt>%%requires</tt>
 
     @par Command Line:
-    <tt>--load, -l</tt>
+    <tt>-</tt><tt>-load, -l</tt>
 
     @par Parse Option Constant:
     n/a
@@ -994,7 +994,7 @@
     <tt>%%set-time-zone</tt>
 
     @par Command Line:
-    <tt>--time-zone, -z</tt>
+    <tt>-</tt><tt>-time-zone, -z</tt>
 
     @par Parse Option Constant:
     none; this is set by calling @ref Qore::TimeZone::setRegion() or @ref Qore::TimeZone::setUTCOffset()
@@ -1009,7 +1009,7 @@
     <tt>%%strict-args</tt>
 
     @par Command Line:
-    <tt>--strict-args</tt>
+    <tt>-</tt><tt>-strict-args</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_STRICT_ARGS

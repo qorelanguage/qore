@@ -1,3 +1,4 @@
+* do not show module paths (with getModuleHash() for example) and do not allow access to ENV and QORE_ENV with NO_EXTERNAL_INFO
 * add domain to constant definitions
 * implement new calling convention for functions & methods with ignore rv param
 * fix class member initialization order to be same as declaration order

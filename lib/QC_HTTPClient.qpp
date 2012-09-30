@@ -37,7 +37,7 @@
 
     By default \c "Connection: Keep-Alive" is always sent regardless of the HTTP protocol level set for the object, however if a server response contains \c "Connection: close", the connection will be closed as soon as the full response (including any message body if present) has been read.
 
-    HTTP redirect responses are supported and can be limited with the max_redirects constructor hash key or by using the HTTPClient::setMaxRedirects() method. The default number of redirects is 5.
+    HTTP redirect responses are supported and can be limited with the \c max_redirects constructor hash key or by using the HTTPClient::setMaxRedirects() method. The default maximum number of redirects allowed is 5.
 
     HTTP basic authentication is supported; set the username and password in the URL (ex: \c "http://username:password@host:port/path"). To change the URL from the one set by the constructor, call HTTPClient::setURL().
 
@@ -49,7 +49,7 @@
 
     The default read timeout value is 300,000 milliseconds (5 minutes). Note that the read timeout value applies to individual packets; for this reason for large transfers the overall read time could exceed the read timeout value.
 
-    When an exception is thrown (for example, a response code of < \c 200 or >= \c 400 is received from the server), any message body returned will be in the "arg" key of the exception hash.
+    When an exception is thrown (for example, a response code of < \c 200 or >= \c 400 is received from the server), any message body returned will be in the \c "arg" key of the exception hash.
 
     This class understands the protocols in the following table.\n\n
     <b>%HTTPClient Class Protocols</b>
@@ -71,7 +71,7 @@
     |\c Connection|\c "Keep-Alive"
     |\c Accept-Encoding|\c "deflate,gzip,bzip2"
 
-    This class supports posting network events to a Queue. See @ref event_handling for more information.
+    This class supports posting network events to a @ref Qore::Thread::Queue "Queue". See @ref event_handling for more information.
 
     The events raised by this object are listed in the following table:
     <b>HTTPClient Events</b>
