@@ -169,6 +169,12 @@
 #define QORE_CONST_HAVE_RC5 0
 #endif
 
+#ifdef HAVE_SYMLINK
+#define QORE_CONST_HAVE_SYMLINK 1
+#else
+#define QORE_CONST_HAVE_SYMLINK 0
+#endif
+
 /** @defgroup option_constants Option Constants
     Option constants
 */
@@ -242,6 +248,13 @@ const HAVE_SETSID = bool(QORE_CONST_HAVE_SETSID);
 /** @note Currently this function is only available when running on UNIX or UNIX-like platforms
  */
 const HAVE_IS_EXECUTABLE = bool(QORE_CONST_HAVE_PWD_H);
+
+//! Indicates if the symlink() function is available
+/** @note This constant is always @ref False on native Windows ports
+
+    @since %Qore 0.8.6 although the symlink() function was added in 0.8.5
+ */
+const HAVE_SYMLINK = bool(QORE_CONST_HAVE_SYMLINK);
 
 //! Indicates if the TermIOS class is available
 /** @note This constant is always @ref False on native Windows ports
