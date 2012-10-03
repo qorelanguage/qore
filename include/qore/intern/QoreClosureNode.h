@@ -80,6 +80,11 @@ public:
       return pgm;
    }
 
+   //! returns false unless perl-boolean-evaluation is enabled, in which case it returns true
+   /** @return false unless perl-boolean-evaluation is enabled, in which case it returns true
+    */
+   DLLEXPORT virtual bool getAsBoolImpl() const;
+
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
       str.sprintf("function closure (%slambda, 0x%08p)", closure->isLambda() ? "" : "non-", this);
       return 0;

@@ -80,6 +80,8 @@ int <number>::typeCode() [flags=CONSTANT] {
 my bool $b = $f.val();
     @endcode
 
+    @see @ref perl-bool-eval "%perl-bool-eval"
+
     @since %Qore 0.8.6
 */
 bool <number>::val() [flags=CONSTANT] {

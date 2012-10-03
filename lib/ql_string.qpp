@@ -156,7 +156,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          l->push(new QoreStringNode(ststr, p - ststr, sep->getEncoding()));
 
          ststr = p + tquote->strlen();
-         // see if we are either at the end of the string
+         // see if we are at the end of the string
          len = sl + (ostr - ststr);
 
          if (!len)

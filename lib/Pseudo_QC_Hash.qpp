@@ -227,6 +227,8 @@ int <hash>::size() [flags=CONSTANT] {
     @code
 my bool $b = $h.val();
     @endcode
+
+    @see @ref perl-bool-eval "%perl-bool-eval"
  */
 bool <hash>::val() [flags=CONSTANT] {
    return !h->empty();

@@ -52,6 +52,8 @@ int <callref>::typeCode() [flags=CONSTANT] {
     @code
 my bool $b = $c.val();
     @endcode
+
+    @see @ref perl-bool-eval "%perl-bool-eval"
 */
 bool <callref>::val() [flags=CONSTANT] {
    return true;

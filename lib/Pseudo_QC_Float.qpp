@@ -53,6 +53,8 @@ int <float>::typeCode() [flags=CONSTANT] {
     @code
 my bool $b = $f.val();
     @endcode
+
+    @see @ref perl-bool-eval "%perl-bool-eval"
 */
 bool <float>::val() [flags=CONSTANT] {
    return (bool)f->f == 0.0 ? false : true;

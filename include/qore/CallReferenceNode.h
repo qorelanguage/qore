@@ -84,6 +84,11 @@ public:
 
    DLLLOCAL virtual ~AbstractCallReferenceNode();
 
+   //! returns false unless perl-boolean-evaluation is enabled, in which case it returns true
+   /** @return false unless perl-boolean-evaluation is enabled, in which case it returns true
+    */
+   DLLEXPORT virtual bool getAsBoolImpl() const;
+
    //! concatenate the verbose string representation of the value to an existing QoreString
    /** used for %n and %N printf formatting
        @param str the string representation of the type will be concatenated to this QoreString reference

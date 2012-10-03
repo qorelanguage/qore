@@ -1023,3 +1023,15 @@ void QoreObject::execMemberNotification(const char *member, ExceptionSink *xsink
 AbstractQoreNode **QoreObject::getMemberValuePtrForInitialization(const char *member) {
    return priv->data->getKeyValuePtr(member);
 }
+
+bool QoreObject::getAsBoolImpl() const {
+   // check if we should do perl-style boolean evaluation
+   QoreProgram* pgm = getProgram();
+   if (pgm && (pgm->getParseOptions64() & PO_PERL_BOOLEAN_EVAL)) {
+      AutoLocker al(priv->mutex);
+
+      return priv->status == OS_DELETED ? false : !priv->data->empty();
+   }
+   return false;
+}
+

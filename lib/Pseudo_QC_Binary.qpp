@@ -81,6 +81,8 @@ bool <binary>::empty() [flags=CONSTANT] {
     @code
 my bool $b = $bin.val();
     @endcode
+
+    @see @ref perl-bool-eval "%perl-bool-eval"
 */
 bool <binary>::val() [flags=CONSTANT] {
    return !b->empty();

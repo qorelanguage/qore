@@ -45,14 +45,16 @@ bool <bool>::typeCode() [flags=CONSTANT] {
    return NT_BOOLEAN;
 }
 
-//! Returns @ref True if the bool is non-zero, @ref False if zero
+//! Returns itself
 /** 
-    @return @ref True if the bool is non-zero, @ref False if zero
+    @return itself
 
     @par Example:
     @code
 my bool $bool = $b.val();
     @endcode
+
+    @see @ref perl-bool-eval "%perl-bool-eval"
 */
 bool <bool>::val() [flags=CONSTANT] {
    return (bool)b->getValue();

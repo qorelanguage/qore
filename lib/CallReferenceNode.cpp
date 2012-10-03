@@ -219,6 +219,14 @@ const char *AbstractCallReferenceNode::getTypeName() const {
    return getStaticTypeName();
 }
 
+bool AbstractCallReferenceNode::getAsBoolImpl() const {
+   // check if we should do perl-style boolean evaluation
+   QoreProgram* pgm = getProgram();
+   if (pgm && (pgm->getParseOptions64() & PO_PERL_BOOLEAN_EVAL))
+      return true;
+   return false;
+}
+
 ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(AbstractQoreNode *n_exp, char *n_method) : exp(n_exp), method(n_method), qc(0), m(0) {
 }
 

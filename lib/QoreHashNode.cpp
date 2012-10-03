@@ -658,6 +658,14 @@ void QoreHashNode::doDuplicateKeyWarning(const char *key) {
    qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
 }
 
+bool QoreHashNode::getAsBoolImpl() const {
+   // check if we should do perl-style boolean evaluation
+   QoreProgram* pgm = getProgram();
+   if (pgm && (pgm->getParseOptions64() & PO_PERL_BOOLEAN_EVAL))
+      return !empty();
+   return false;
+}
+
 HashIterator::HashIterator(QoreHashNode *qh) : h(qh), ptr(0) {
 }
 

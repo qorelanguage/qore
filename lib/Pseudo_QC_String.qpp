@@ -245,6 +245,8 @@ int <string>::rfind(softstring substr, softint pos = -1) [flags=RET_VALUE_ONLY] 
     @code
 my bool $b = $str.val();
     @endcode
+
+    @see @ref perl-bool-eval "%perl-bool-eval"
 */
 bool <string>::val() [flags=CONSTANT] {
    return !str->empty();

@@ -90,18 +90,11 @@ const Closure = "closure";
     @code
 my bool $b = boolean(1); # returns True
     @endcode
-*/
-bool boolean(softbool b) [flags=CONSTANT] {
-   return b;
-}
 
-//! Always returns @ref False
-/** The boolean() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
-
-    @see boolean(softbool)
+    @note this function behaves differently when @ref perl-bool-eval "%perl-bool-eval" is set
 */
-bool boolean() [flags=CONSTANT] {
-   return false;
+bool boolean(any arg) [flags=CONSTANT] {
+   return arg ? arg->getAsBool() : false;
 }
 
 //! Converts the argument to an integer value

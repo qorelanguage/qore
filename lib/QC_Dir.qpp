@@ -73,13 +73,13 @@ Dir::copy() {
 //! Changes the current directory of the Dir object to the path given
 /** If this method returns @ref False then the directory can be created by calling Dir::create()
 
-    @param path The path can be either an absolute path (leading with '/') or a directory realtive to the actual path
+    @param path The path can be either an absolute path (leading with '/') or a directory relative to the actual path
 
     @return @ref True if the new path is openable as directory (see Dir::exists())
 
     @par Example:
     @code
-if ($d.chdir("../doc")) {
+if (!$d.chdir("../doc")) {
     $d.create(0755);
 }
     @endcode
@@ -119,6 +119,7 @@ bool Dir::exists() {
 
 //! Creates the directory tree the Dir object points to, if it does not exist
 /** @param mode The mode of the directory
+    @return the number of directories actually created
 
     @par Example:
     @code

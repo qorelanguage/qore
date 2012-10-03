@@ -52,6 +52,8 @@ int <closure>::typeCode() [flags=CONSTANT] {
     @code
 my bool $b = $c.val();
     @endcode
+
+    @see @ref perl-bool-eval "%perl-bool-eval"
 */
 bool <closure>::val() [flags=CONSTANT] {
    return true;

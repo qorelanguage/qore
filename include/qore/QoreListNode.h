@@ -120,6 +120,11 @@ protected:
 public:
    DLLEXPORT QoreListNode();
 
+   //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
+   /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
+    */
+   DLLEXPORT virtual bool getAsBoolImpl() const;
+
    //! concatenate the verbose string representation of the list (including all contained values) to an existing QoreString
    /** used for %n and %N printf formatting
        @param str the string representation of the type will be concatenated to this QoreString reference

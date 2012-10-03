@@ -83,7 +83,8 @@ void DateTimeNode::getDateTimeRepresentation(DateTime &dt) const {
 }
 
 bool DateTimeNode::getAsBoolImpl() const {
-   return getEpochSeconds() ? true : false;
+   // always the same logic with or without perl-style boolean evaluation
+   return hasValue();
 }
 
 int DateTimeNode::getAsIntImpl() const {
