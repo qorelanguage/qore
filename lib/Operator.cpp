@@ -1219,8 +1219,7 @@ static AbstractQoreNode* op_map_select_iterator(const AbstractQoreNode* left, co
 
 static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink) {
    assert(arg_exp->getType() == NT_LIST);
-
-   const QoreListNode *arg_list = reinterpret_cast<const QoreListNode *>(arg_exp);
+   const QoreListNode *arg_list = reinterpret_cast<const QoreListNode*>(arg_exp);
 
    // conditionally evaluate argument expression
    QoreNodeEvalOptionalRefHolder marg(arg_list->retrieve_entry(0), xsink);
@@ -1238,6 +1237,8 @@ static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const Abstr
          if (*xsink)
             return 0;
       }
+      if (t == NT_NOTHING)
+         return 0;
 
       // check if value can be mapped
       SingleArgvContextHelper argv_helper(*marg, xsink);
