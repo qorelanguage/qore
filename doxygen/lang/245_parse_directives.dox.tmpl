@@ -885,7 +885,7 @@
     @section perl-bool-eval %perl-bool-eval
     
     @par Parse Directive:
-    <tt>%perl-bool-eval</tt>
+    <tt>%%perl-bool-eval</tt>
 
     @par Command Line:
     <tt>-v, -</tt><tt>-perl-bool-eval, -pperl-bool-eval, -</tt><tt>-set-parse-option=perl-bool-eval</tt>
@@ -902,8 +902,8 @@ if ($str)
     printf("string is: %y\n", $str);
     @endcode \n
     With this option set, the above prints out: @verbatim string is: "hello"@endverbatim When it's not set, nothing is printed out as the string expression evaluates to @ref Qore::False "False" due to qore's default strict mathematical boolean evaluation.\n\n
-    By default (when this option is not set), qore uses strict mathematic boolean evaluation, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True", so in the above example, %Qore's default boolean evaluation will evaluate \c "hello" in a strict mathematical sense and convert it to 0, which is @ref Qore::False "False", so nothing would be printed out, but when <tt>%perl-bool-eval</tt> is enabled, this will be @ref Qore::True "True" (following the rules for <string>::val()).\n\n
-    %Qore's default strict mathematical boolean evaluation is considered a bug; setting <tt>%perl-bool-eval</tt> results in more intuitive behavior for most programmers.
+    By default (when this option is not set), qore uses strict mathematic boolean evaluation, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True", so in the above example, %Qore's default boolean evaluation will evaluate \c "hello" in a strict mathematical sense and convert it to 0, which is @ref Qore::False "False", so nothing would be printed out, but when <tt>%%perl-bool-eval</tt> is enabled, this will be @ref Qore::True "True" (following the rules for <string>::val()).\n\n
+    %Qore's default strict mathematical boolean evaluation is considered a bug; setting <tt>%%perl-bool-eval</tt> results in more intuitive behavior for most programmers.
 
     @see @ref qore-bool-eval "%qore-bool-eval"
 
@@ -951,7 +951,7 @@ my string $str = "hello";
 if ($str)
     printf("string is: %y\n", $str);
     @endcode \n
-    By default %Qore's boolean evaluation will evaluate \c "hello" in a strict mathematical sense and convert it to 0, which is @ref Qore::False "False", so nothing would be printed out, but when <tt>%perl-bool-eval</tt> is enabled, this will be @ref Qore::True "True" (following the rules for <string>::val()).\n\n
+    By default %Qore's boolean evaluation will evaluate \c "hello" in a strict mathematical sense and convert it to 0, which is @ref Qore::False "False", so nothing would be printed out, but when <tt>%%perl-bool-eval</tt> is enabled, this will be @ref Qore::True "True" (following the rules for <string>::val()).\n\n
     %Qore's default strict mathematical boolean evaluation is considered a bug but unfortunately is the established behavior of the language.
 
     @see @ref perl-bool-eval "perl-bool-eval"
