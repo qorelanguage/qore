@@ -11,8 +11,8 @@
     <b>Data Type Declaration Names</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
     |@ref int_type "int"|@ref integer|@ref integer|Restricts values @ref integer values
-    |@ref float_type "float"|@ref float|@ref float|Restricts values to @ref float values
-    |@ref number_type "number"|@ref number|@ref number|Restricts values to @ref number values
+    |@ref float_type "float"|@ref float or @ref integer|@ref float|Restricts values to @ref float values
+    |@ref number_type "number"|@ref number, @ref float, or @ref integer|@ref number|Restricts values to @ref number values
     |@ref bool_type "bool"|@ref boolean|@ref boolean|Restricts values to @ref boolean values
     |@ref string_type "string"|@ref string|@ref string|Restricts values to @ref string values
     |@ref date_type "date"|@ref date|@ref date|Restricts values to @ref date values; values may be either @ref absolute_dates "absolute" or @ref relative_dates "relative"
@@ -75,7 +75,7 @@ int sub foo(int $i) {
 
     <b>float Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c float|@ref float|@ref float|Restricts values to %Qore's @ref float type
+    |\c float|@ref float or @ref integer|@ref float|Restricts values to %Qore's @ref float type
 
     @par Example
     @code
@@ -89,7 +89,7 @@ float sub foo(float $f = M_PI) {
 
     <b>number Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c number|@ref number|@ref number|Restricts values to %Qore's @ref number type
+    |\c number|@ref number, @ref float, or @ref integer|@ref number|Restricts values to %Qore's @ref number type
 
     @par Example
     @code

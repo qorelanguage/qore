@@ -357,7 +357,12 @@ const RE_Global = QRE_GLOBAL;
     |!Character|!Description
     |\c s|string
     |\c d|Integer, output in base 10 format
-    |\c f|Floating point value
+    |\c f|Literal floating point value
+    |\c F|Literat floating point value
+    |\c a|Hexadecimal floating-point output with lower-case \c "0x" and \c "abcdef"
+    |\c A|Hexadecimal floating-point output with upper-case \c "0X" and \c "ABCDEF"
+    |\c g|compact floating-point output using a lower-case \c "e" for exponential output when necessary
+    |\c G|compact floating-point output using an upper-case \c "E" for exponential output when necessary
     |\c n|Any %Qore value, formatted as a string, without any line breaks
     |\c N|Any %Qore value, formatted as a string, with line breaks and whitespace formatting for complex objects
     |\c x|Integer, output in base 16 (hexadecimal) format with lower-case a-f

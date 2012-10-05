@@ -2,6 +2,66 @@
 
     @tableofcontents
 
+    @section qore_086 Qore 0.8.6
+
+    @par Release Summary
+    Major new features and a few bug fixes
+
+    @subsection qore_086_new_features New Features in Qore
+    @par Arbitrary-Precision Numeric Support
+    %Qore now uses the <a href="http://www.mpfr.org/">MPFR</a> and <a href="http://gmplib.org">GMP</a> libraries to provide arbitrary-precision numeric support.  This type can be used for high-precision mathematics or for storing \c NUMERIC (ie \c DECIMAL or \c NUMBER) column values when retrieved from databases by %Qore DBI drivers that support the new capability @ref Qore::SQL::DBI_CAP_HAS_NUMBER_SUPPORT "DBI_CAP_HAS_NUMBER_SUPPORT" (previously these values would be retrieved as %Qore strings in order to avoid information loss).\n\n
+    For more information, see the new @ref number "number" type, @ref number_type, and @ref Qore::zzz8numberzzz9
+
+    @par DBI Improvements
+    Three new DBI capailities were implemented, including a new option API as follows:
+    - @ref Qore::SQL::DBI_CAP_HAS_NUMBER_SUPPORT "DBI_CAP_HAS_NUMBER_SUPPORT": DBI drivers declaring this capability can accept @ref number "number" values and can also return @ref number "number" values, if a DBI driver does not declare this capability, then @ref number "number" values sent for binding by value are automatically converted to @ref float "float" values before being sent to the driver
+    - @ref Qore::SQL::DBI_CAP_HAS_OPTION_SUPPORT "DBI_CAP_HAS_OPTION_SUPPORT": this indicates that the driver supports the new option API, allowing options to be set on each connection.  See the following for more information:
+      - @ref Qore::SQL::Datasource::constructor(hash) "Datasource::constructor(hash)": now passes options to the DBI driver if the driver supports the option API
+      - @ref Qore::SQL::Datasource::constructor(string) "Datasource::constructor(string)": (new in 0.8.6) passes options to the DBI driver if the driver supports the option API
+      - @ref Qore::SQL::Datasource::getOption(string) "Datasource::getOption(string)": (new in 0.8.6) returns the value of the given option if the driver supports the option API
+      - @ref Qore::SQL::Datasource::getOptionHash() "Datasource::getOptionHash()": (new in 0.8.6) returns a hash of the current option values for the current connection if the driver supports the option API
+      - @ref Qore::SQL::Datasource::setOption() "Datasource::setOption()": (new in 0.8.6) allows options to be changed after the object is created
+      - @ref Qore::SQL::DatasourcePool::constructor(hash) "DatasourcePool::constructor(hash)": now passes options to the DBI driver if the driver supports the option API
+      - @ref Qore::SQL::DatasourcePool::constructor(string) "DatasourcePool::constructor(string)": (new in 0.8.6) passes options to the DBI driver if the driver supports the option API
+      - @ref Qore::SQL::DatasourcePool::getOption(string) "DatasourcePool::getOption(string)": (new in 0.8.6) returns the value of the given option if the driver supports the option API
+      - @ref Qore::SQL::DatasourcePool::getOptionHash() "DatasourcePool::getOptionHash()": (new in 0.8.6) returns a hash of the current option values for the current connection if the driver supports the option API
+      - @ref Qore::SQL::dbi_get_driver_options(string) "dbi_get_driver_options(string)": (new in 0.8.6) returns a hash of driver option information without values
+    - @ref Qore::SQL::DBI_CAP_SERVER_TIME_ZONE "DBI_CAP_SERVER_TIME_ZONE": indicates that the DBI driver will convert any bound date/time values to the server's time zone before binding and also will tag date/time values retrieved from the server with the server's time zone.  This capability also implies that the driver supports the new \c "timezone" option.
+
+    @par Other Minor Improvements and Changes
+    - added a @ref Qore::Option::HAVE_SYMLINK "HAVE_SYMLINK" constant for the symlink() function added in 0.8.5
+    - added the @ref Qore::SQL::SQLStatement::memberGate() "SQLStatement::memberGate()" method so @ref Qore::SQL::SQLStatement "SQLStatement" objects can be dereferenced directly to a column value when iterated with @ref Qore::SQL::SQLStatement::next() "SQLStatement::next()"
+    - implemented @ref Qore::SQL::Datasource::constructor(string) "Datasource::constructor(string)" and @ref Qore::SQL::DatasourcePool::constructor(string) "DatasourcePool::constructor(string)" variants to allow for creating datasources from a string that can be parsed by Qore::SQL::parse_datasource(string) "parse_datasource(string)"
+    - added the following new DBI-related functions:
+      - @ref Qore::SQL::dbi_get_driver_list() "dbi_get_driver_list()"
+      - @ref Qore::SQL::dbi_get_driver_capability_list(string) "dbi_get_driver_capability_list(string)"
+      - @ref Qore::SQL::dbi_get_driver_capabilities(string) "dbi_get_driver_capabilities(string)"
+      - @ref Qore::SQL::dbi_get_driver_options(string) "dbi_get_driver_options(string)"
+      - @ref Qore::SQL::parse_datasource(string) "parse_datasource(string)"
+    - implemented support for \c A and \c a, (hexadecimal floating-point output) \c G, \c g, (compact floating-point output) \c F, (non-scientific floating-point output) and \c E and \e (scientific/exponential floating-point output) format arguments for @ref float "floats" and @ref number "numbers" (new arbitrary-precision @ref number "number type values")
+    - new pseudo-methods:
+      - <value>::toString()
+      - <value>::toInt()
+      - <value>::toFloat()
+      - <value>::toBool()
+      - <float>::format(string fmt)
+      - <int>::format(string fmt)
+      - <string>::isDataAscii()
+      - <string>::isDataPrintableAscii()
+    - the values of the @ref Qore::SQL::NUMBER "NUMBER", @ref Qore::SQL::NUMERIC "NUMERIC", and @ref Qore::SQL::DECIMAL "DECIMAL" @ref sql_constants is now \c "number" instead of \c "string" (see also @ref sql_binding)
+    - new constants:
+      - @ref Qore::M_PIn "M_PIn"
+      - @ref Qore::MAXINT "MAXINT"
+      - @ref Qore::MININT "MININT"
+
+    @subsection qore_086_bug_fixes Bug Fixes in Qore
+    - fixed a bug in the @ref map "map operator" with a select expression when the list operand is @ref nothing; it was returning a list with one @ref nothing element instead of @ref nothing
+    - applied a patch by Reini Urban to allow for multi-arch builds on Debian
+    - fixed bugs calculating the byte offset for string searches in the c++ %QoreString::index() and %QoreString::rindex() functions when the offset is negative and the strings have a multi-byte character encoding (such as UTF-8)
+    - fixed a bug where calling an abstract method from a class where the abstract method is implemented was causing a parse error to be thrown
+    - fixed a bug where the wrong source code location was displayed when raising a parse exception in operator expression parse initialization for some operators
+    - made many minor documentation fixes
+
     @section qore_0851 Qore 0.8.5.1
 
     @par Release Summary

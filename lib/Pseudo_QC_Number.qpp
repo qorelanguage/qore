@@ -126,13 +126,13 @@ bool <number>::strp() [flags=CONSTANT] {
 
     @par Example:
     @code
-if ($n.nan())
+if ($n.nanp())
     print("the operation resulted in NaN\n");
     @endcode
 
     @since %Qore 0.8.6
 */
-bool <number>::nan() [flags=CONSTANT] {
+bool <number>::nanp() [flags=CONSTANT] {
    return qore_number_private::get(*n)->nan();
 }
 
@@ -142,13 +142,13 @@ bool <number>::nan() [flags=CONSTANT] {
 
     @par Example:
     @code
-if ($n.inf())
+if ($n.infp())
     print("the operation resulted in infinity\n");
     @endcode
 
     @since %Qore 0.8.6
 */
-bool <number>::inf() [flags=CONSTANT] {
+bool <number>::infp() [flags=CONSTANT] {
    return qore_number_private::get(*n)->inf();
 }
 

@@ -198,8 +198,8 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
 }
 
-//! Creates a DatasourcePool object from a single string giving all parameters that can be parsed by parseDatasource()
-/** @param desc a datasource description string in the format that can be parsed by parseDatasource()
+//! Creates a DatasourcePool object from a single string giving all parameters that can be parsed by parse_datasource()
+/** @param desc a datasource description string in the format that can be parsed by parse_datasource()
 
     @par Example:
     @code
@@ -218,7 +218,7 @@ DatasourcePool::constructor(string desc) [doconly=true] {
 }
 
 //! Creates a Datasource object from a hash argument giving parameters for the constructor
-/** @param opts a hash giving parameters for the new datasource with the following possible keys (the \c "type" key is mandatory, also usable with the output of the parseDatasource() function):
+/** @param opts a hash giving parameters for the new datasource with the following possible keys (the \c "type" key is mandatory, also usable with the output of the parse_datasource() function):
     - \c type: (@ref string_or_nothing_type "*string") The name of the database driver to use; this key is mandatory; if not present, an exception will be raised. See @ref sql_constants for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
     - \c user: (@ref string_or_nothing_type "*string") The user name for the new connection
     - \c pass: (@ref string_or_nothing_type "*string") The password for the new connection

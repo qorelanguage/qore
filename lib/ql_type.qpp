@@ -82,7 +82,7 @@ const Closure = "closure";
 
 //! Converts the argument to a boolean value
 /** 
-    @param b the argument to convert to a boolean
+    @param arg the argument to convert to a boolean
 
     @return the boolean value corresponding to the argument
 
