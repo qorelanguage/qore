@@ -21,7 +21,8 @@
 
     @par Description:
     The Boolean type can have two values, @ref Qore::True "True" and @ref Qore::False "False".\n\n
-    When converting other types to a Boolean, any value that converts to a non-zero integer or floating-point value (in the case of @ref string "strings" and @ref float "floats") will be evaluated as @ref Qore::True "True". Otherwise the result of the conversion will be @ref Qore::False "False".
+    When converting other types to a Boolean, %Qore uses strict mathematical conversions by default; that is; any value that converts to a non-zero integer, floating-point, or arbitrary-precision numeric value (in the case of @ref string "strings", @ref float "floats", and @ref number "numbers") will be evaluated as @ref Qore::True "True". Otherwise the result of the conversion will be @ref Qore::False "False".\n\n
+    For programmers that find qore's default strict mathematic boolean conversion logic unintuitive, parse option @ref perl-bool-eval "%perl-bool-eval" can be set, in which case the conversion to boolean values is performed like perl does, based on an interpretation of the source value and taking into account its type (for example, when this option is set, an empty @ref string "string", @ref hash "hash", or @ref list "list" is always @ref Qore::False, whereas if these are not empty they are interpreted as @ref Qore::True "True"); this way is considered to be more intuitive by most prorammers, so much so that the original strict mathematical interpretation of boolean values is considered to be a design bug in qore; see @ref perl-bool-eval "%perl-bool-eval" for more information.
 
     @par Immediate Value Example:
     @ref Qore::True
@@ -41,7 +42,7 @@
     @section string String
 
     @par Description:
-    String values are specified with text between double or single quotes. Text between double quotes is subject to interpretation of escape characters; text between single quotes is not with the exception of the single quote character, which may be escaped (ex: <tt>'hello \'there\''</tt>).\n\n
+    String values are specified with text between double or single quotes. Text between double quotes is subject to interpretation of escape characters; text between single quotes is not with the exception of the single quote character, which is the only character that may be escaped (ex: <tt>'hello \'there\''</tt>).\n\n
     Strings are assumed by default to have the encoding given by the \c QORE_CHARSET or the \c LANG environment variable (see @ref environment_variables). If neither of these variables is set, then all strings will be assumed to have \c UTF-8 encoding.\n\n
     For detailed information on %Qore character encoding handling, please see @ref character_encoding.\n\n
     It is legal to specify a string literal with newline characters like the following:\n
@@ -49,7 +50,9 @@
 $str = "this string is
 on more than 1 line";
     @endcode \n
-    Internally, strings are stored as a pointer to the string data, an unsigned integer giving the length of the string, and a pointer to an encoding object, giving the string's character encoding.
+    See @ref string_escape_chars "string escape characters" for a description of escape characters in double-quoted strings.\n\n
+    Internally, strings are stored as a pointer to a sequence of bytes terminated by a null (or zero byte), an unsigned integer giving the length of the string, and a pointer to an object giving the string's @ref character_encoding "character encoding".\n\n
+    <string>::strlen() is a constant-time operation (ie <i>O(1)</i>), however if the string has a multi-byte encoding, then <string>::length() (returning the length of the string in characters, not bytes) computational complexity is <i>O(n)</i> (however if the character encoding is a single-byte encoding <string>::length() is also <i>O(1)</i>).\n\n
 
     @par Immediate Value Example:
     \c "this is a string"
@@ -91,7 +94,7 @@ on more than 1 line";
     @section float Float
 
     @par Description:
-    %Qore floats are double precision floating-point numbers (C/C++ type double), normally a 64-bit value.
+    %Qore floats are double precision floating-point numbers (C/C++ type \a double), normally a 64-bit value.
 
     @par Immediate Value Examples:
     - \c -500.494
@@ -175,8 +178,11 @@ YYYY-MM-DD[THH:mm:SS[.n*]][Z|[+-]HH[:mm[:SS]]]@endverbatim
     @verbatim
 YYYY-MM-DD[-HH:mm:SS[.n*]][Z|[+-]HH[:mm[:SS]]]@endverbatim
 
-    for example, for just the date in UTC, without a time component:
+    for example, for just the date without a time component (assumed to be midnight on the given date in the local time zone):
     - \c <tt>2010-05-26</tt>
+
+    for just the date in UTC, without a time component:
+    - \c <tt>2010-05-26Z</tt>
 
     or, for just the time, without a date component (note that in this case the date component will be set to Jan 1, 1970, in order for time arithmetic to function properly and will also be tagged with the local time zone):
     - <tt>20:05:10.458342</tt>
@@ -207,10 +213,23 @@ prompt% qore -X '18:35:26+08:00'
 
     There are 3 different formats understood by the %Qore parser for describing literal durations in %Qore.
 
-    <b>Single Relative Time Format</b>\n
+    @par Single Relative Time Format
     A single relative date/time value (or a duration) may be specified as follows (note that this format is specific to %Qore and not based on ISO-8601):
     - @verbatim <integer><date component specifier>@endverbatim
-
+    .
+    <b>Examples:</b>
+    - \c 250ms: 250 milliseconds
+    - \c 30s: 30 seconds
+    - \c 2m: 2 minutes
+    .
+    Such values are recommended to give to functions and methods taking a timeout value as the units are then clear in the source code (whereas if an integer is given, it may not be clear that the function or method expects a value in milliseconds, for example); for example:
+    @code
+my any $val = $q.pop(20s);
+    @endcode \n
+    is clearer than the alternative with an argument given as a value in implied milliseconds to the @ref Qore::Thread::Queue::pop(timeout) "Queue::pop()" method:
+    @code
+my any $val = $q.pop(20000);
+    @endcode \n
     <b>Date Specifiers For Single Values For Relative Dates (non-ISO-8601 syntax)</b>
     |!Component|!Meaning|!Example|!Description
     |\c Y|Years|\c 2Y|2 Years
@@ -222,16 +241,13 @@ prompt% qore -X '18:35:26+08:00'
     |\c ms|Milliseconds|\c 250ms|250 milliseconds
     |\c us|Microseconds|\c 21194us|21194 microseconds
 
-    <b>Short Relative Time Format</b>\n
-    This and the next duration format for composite relative date/time values are both based on ISO-8601.
-
+    @par Short Relative Time Format
+    This and the next duration format for composite relative date/time values are both based on ISO-8601.\n\n
     This first format has the following syntax:
     - \c PnYnMnDTnHnMnSnu
-
-    Each element above is optional, but at least one element must be present. Note that "M" means months when before the "T" and minutes when found after the "T". The other elements are years, days, hours, seconds, and, as an extension to ISO-8601, "u" for microseconds. Additionally, the values may be negative.
-
+    .
+    Each element above is optional, but at least one element must be present. Note that \c "M" means months when before the \c "T" and minutes when found after the \c "T". The other elements are years, days, hours, seconds, and, as an extension to ISO-8601, \c "u" for microseconds. Additionally, the values may be negative.\n\n
     Here are some examples (using qore's -X command-line option to evaluate and expression and print out the result):
-
     @code
 prompt% qore -X 'P1Y3MT4S'
 <time: 1 year 3 months 4 seconds>
@@ -241,14 +257,12 @@ prompt% qore -X 'P3DT21H'
 <time: 3 days 21 hours>
     @endcode
 
-    <b>Long Relative Time Format</b>\n
+    @par Long Relative Time Format
     The second ISO-8601-based format for specifing complex durations with multiple time units has the following syntax:
     - \c PYYYY-MM-DDTHH:mm:SS
-
-    This format is more limited than the first format, in that all values must be non-negative, and furthermore, all values must be present (although they may be zero).
-
-    Here are some examples of the second format (equivalent to the first examples):
-
+    .
+    This format is more limited than the first format, in that all values must be non-negative, and furthermore, all values must be present (although they may be zero).\n\n
+    Here are some examples of the second format (equivalent to the first examples):\n\n
     @code
 prompt% qore -X 'P0001-03-00T00:00:04'
 <time: 1 year 3 months 4 seconds>
@@ -256,8 +270,7 @@ prompt% qore -X 'P0000-00-00T00:04:00.000551'
 <time: 4 minutes 551 microseconds>
 prompt% qore -X 'P0000-00-03T21:00:00'
 <time: 3 days 21 hours>
-    @endcode
-
+    @endcode \n
     @see @ref date_type, @ref softdate_type
 
     <hr>
@@ -332,13 +345,13 @@ False@endverbatim
 
     @section conversions Data Conversions
 
-    Boolean, string, integer, date, and floating point data types can be freely converted from one type to the other, although data loss is possible depending on the conversion (particularly when converting to the boolan type as only two possible values are supported).
+    Boolean, string, integer, date, floating point, and arbitrary-percision numeric data types can be freely converted from one type to the other, although data loss is possible depending on the conversion (particularly when converting to the boolan type as only two possible values are supported).
 
     The special types @ref null and @ref nothing are not equivalent and cannot be converted to or from any other type.
 
     When date types are converted from strings, any of the following formats can be used: \c "YYYYMMDDHHmmSS[.us][Z|+-HH[:MM[:SS]]]", \c "YYYY-MM-DD HH:mm:SS.us", \c "YYYY-MM-DDTHH:mm:SS", \c "YYYY-MM-DDTHH:mm:SS[.us][Z|+-HH[:MM[:SS]]]", and most reasonable combinations thereof. If the time zone component is missing, then the local time zone will be assumed (see @ref time_zones).
 
-    When dates are converted to and from integer values, the a 64-bit second offset from January 1, 1970 in the local time zone is used for the conversion. For example @code int(2006-01-01)@endcode gives \c 1136073600 (regardless of the local time zone the date is in). This is for backwards-compatibility with %Qore before @ref time_zones "time zone support" was available; to get the second offset of a date from \c 1970-01-01Z (i.e. the true epoch offset), call get_epoch_seconds() instead.
+    When dates are converted to and from integer, floating-point, and arbitrary-percision numeric values, the a 64-bit second offset from January 1, 1970 in the local time zone is used for the conversion. For example @code int(2006-01-01)@endcode gives \c 1136073600 (regardless of the local time zone the date is in). This is for backwards-compatibility with %Qore before @ref time_zones "time zone support" was available; to get the second offset of a date from \c 1970-01-01Z (i.e. the true epoch offset), call get_epoch_seconds() instead.
 
     When an expression requires a certain data type and the source data type cannot be converted to the desired data type, the default value for the desired data type will be used. The default values are given in @ref basic_data_types.
 */

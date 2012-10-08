@@ -57,7 +57,9 @@ int <string>::typeCode() [flags=CONSTANT] {
 my int $len = $str.strlen();
     @endcode
 
-    @note equivalent to <string>::size()
+    @note
+    - this operation is always executed in constant time (ie <i>O(1)</i>) because the string's byte length is always stored with the string
+    - equivalent to <string>::size() and @ref Qore::strlen(softstring)
 
     @see <string>::length()
 */
@@ -74,7 +76,9 @@ int <string>::strlen() [flags=CONSTANT] {
 my int $len = $str.size();
     @endcode
 
-    @note equivalent to <string>::strlen()
+    @note
+    - this operation is always executed in constant time (ie <i>O(1)</i>) because the string's byte length is always stored with the string
+    - equivalent to <string>::strlen() and @ref Qore::strlen(softstring)
 
     @see <string>::length()
 */
@@ -90,6 +94,10 @@ int <string>::size() [flags=CONSTANT] {
     @code
 my int $len = $str.length();
     @endcode
+
+    @note
+    - this operation has <i>O(n)</i> complexity if the string has a multi-byte @ref character_encoding "character encoding", otherwise it is <i>O(1)</i>
+    - equivalent to @ref Qore::length(softstring)
 
     @see
     - <string>::strlen()

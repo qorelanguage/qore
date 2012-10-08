@@ -369,6 +369,7 @@ const RE_Global = QRE_GLOBAL;
     |\c X|Integer, output in base 16 (hexadecimal) format with upper-case A-F
     |\c y|Any %Qore value, formatted as a pseudo-YAML string, without any line breaks; this format option is similar to \c "%n", but uses a YAML-like format.  Note that the output is not guaranteed to be parsed by the yaml module's parseYAML() function; it is for display purposes only; to get real YAML functionality, use the yaml module.
 
+    @anchor string_escape_chars
     <b>String Escape Characters</b>
     |!Escape Characters|!Description
     |\c \\n|a newline character
@@ -376,7 +377,7 @@ const RE_Global = QRE_GLOBAL;
     |\c \\t|a tab character
     |\c \\b|a backspace character
     |\c \\f|a form-feed character
-    |\c \\<em>num</em>|an 8-bit character whose value is the 1, 2, or 3 digit octal number num
+    |\c \\<em>num</em>|an 8-bit character whose value is the 1, 2, or 3 digit octal number \a num
     |\c \\\"|a double-quote character (\c \")
  */
 //@{
@@ -393,7 +394,9 @@ const RE_Global = QRE_GLOBAL;
 my int $len = length($str);
     @endcode
 
-    @note equivalent to <string>::length()
+    @note
+    - this operation has <i>O(n)</i> complexity if called on a string with a multi-byte @ref character_encoding "character encoding", otherwise it is <i>O(1)</i>
+    - equivalent to <string>::length()
 
     @see
     - strlen()
