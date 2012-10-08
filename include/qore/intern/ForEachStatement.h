@@ -26,23 +26,26 @@
 #define _QORE_FOREACHSTATEMENT_H
 
 #include "intern/AbstractStatement.h"
+#include "intern/AbstractIteratorHelper.h"
 
 class ForEachStatement : public AbstractStatement {
 private:
-   class AbstractQoreNode *var;
-   class AbstractQoreNode *list;
-   class StatementBlock *code;
-   class LVList *lvars;
+   AbstractQoreNode* var,
+      * list;
+   StatementBlock* code;
+   LVList* lvars;
    bool is_ref,
-      is_keys;
+      is_keys,
+      is_iterator;
    
-   DLLLOCAL int execRef(AbstractQoreNode **return_value, ExceptionSink *xsink);
-   DLLLOCAL int execKeys(AbstractQoreNode **return_value, ExceptionSink *xsink);
-   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL int execRef(AbstractQoreNode** return_value, ExceptionSink* xsink);
+   DLLLOCAL int execKeys(AbstractQoreNode** return_value, ExceptionSink* xsink);
+   DLLLOCAL int execIterator(AbstractIteratorHelper& aih, AbstractQoreNode** return_value, ExceptionSink* xsink);
+   DLLLOCAL virtual int execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
    
 public:
-   DLLLOCAL ForEachStatement(int start_line, int end_line, class AbstractQoreNode *v, class AbstractQoreNode *l, class StatementBlock *cd);
+   DLLLOCAL ForEachStatement(int start_line, int end_line, AbstractQoreNode* v, AbstractQoreNode* l, StatementBlock* cd);
    DLLLOCAL virtual ~ForEachStatement();
    // faked here, checked at runtime
    DLLLOCAL virtual bool hasFinalReturn() const {

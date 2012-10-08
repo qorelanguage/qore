@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/AbstractIteratorHelper.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -1066,80 +1067,17 @@ static AbstractQoreNode* op_trim(const AbstractQoreNode* arg, const AbstractQore
    return ref_rv ? val.getReferencedValue() : 0;
 }
 
-extern QoreClass* QC_ABSTRACTITERATOR;
-extern QoreClass* QC_ABSTRACTBIDIRECTIONALITERATOR;
-
-struct AbstractIteratorHelper {
-   QoreObject* obj;
-   const QoreMethod* nextMethod;
-   const QoreExternalMethodVariant* next;
-   const QoreMethod* getValueMethod;
-   const QoreExternalMethodVariant* getValue;
-
-   static const QoreExternalMethodVariant* getCheckVariant(const char* op, const QoreMethod* m, ExceptionSink* xsink) {
-      const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->findVariant(0, false, xsink));
-      // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
-      if (*xsink)
-         return 0;
-      // we must have a variant here because we have an instance of AbstractIterator
-      assert(variant);
-      if (variant->isPrivate()) {
-         // check for access to the class holding the private method
-         if (!qore_class_private::runtimeCheckPrivateClassAccess(*(variant->method()->getClass()))) {
-            QoreString opstr(op);
-            opstr.toupr();
-            opstr.concat("-ITERATOR-ERROR");
-            xsink->raiseException(opstr.getBuffer(), "cannot access private %s::next() iterator method with the %s operator", variant->method()->getClass()->getName(), op);
-            return 0;
-         }
-      }
-      return reinterpret_cast<const QoreExternalMethodVariant*>(variant);
-   }
-
-   static int get(const char* op, AbstractIteratorHelper& h, QoreObject* o, ExceptionSink* xsink, bool fwd = true, bool get_value = false) {
-      bool priv;
-      const QoreClass* qc = o->getClass()->getClass(fwd ? *QC_ABSTRACTITERATOR : *QC_ABSTRACTBIDIRECTIONALITERATOR, priv);
-      if (qc) {
-         h.obj = o;
-         // get "next" method if accessible
-         bool priv;
-         h.nextMethod = qore_class_private::get(*o->getClass())->findMethod(fwd ? "next" : "prev", priv);
-         // method must be found because we have an instance of AbstractIterator/AbstractBidirectionalIterator
-         assert(h.nextMethod);
-         h.next = getCheckVariant(op, h.nextMethod, xsink);
-         if (!h.next)
-            return -1;
-         if (get_value) {
-            h.getValueMethod = qore_class_private::get(*o->getClass())->findMethod("getValue", priv);
-            // method must be found because we have an instance of AbstractIterator
-            assert(h.getValueMethod);
-            h.getValue = getCheckVariant(op, h.getValueMethod, xsink);
-            if (!h.getValue)
-               return -1;
-         }
-#ifdef DEBUG
-         else {
-            h.getValueMethod = 0;
-            h.getValue = 0;
-         }
-#endif
-         return 0;
-      }
-      return -1;
-   }
-};
-
 static QoreListNode* op_map_iterator(const AbstractQoreNode *left, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
    ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode : 0, xsink);
 
    // set offset in thread-local data for "$#"
    ImplicitElementHelper eh(-1);
    while (true) {
-      bool b = h.nextMethod->boolEvalNormalVariant(h.obj, h.next, 0, xsink);
-      if (!b)
-         return rv.release();
+      bool b = h.next(xsink);
       if (*xsink)
          return 0;
+      if (!b)
+         return rv.release();
 
       SingleArgvContextHelper argv_helper(h.obj, xsink);
       //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
@@ -1161,11 +1099,11 @@ static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQore
    if (arg->getType() != NT_LIST) {
       // check if it's an AbstractIterator object
       if (arg->getType() == NT_OBJECT) {
-         AbstractIteratorHelper h;
-         if (!AbstractIteratorHelper::get("map", h, const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), xsink))
-            return op_map_iterator(left, h, ref_rv, xsink);
+         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)));
          if (*xsink)
             return 0;
+         if (h)
+            return op_map_iterator(left, h, ref_rv, xsink);
       }
       SingleArgvContextHelper argv_helper(*arg, xsink);
       return left->eval(xsink);
@@ -1193,11 +1131,11 @@ static AbstractQoreNode* op_map_select_iterator(const AbstractQoreNode* left, co
    // set offset in thread-local data for "$#"
    ImplicitElementHelper eh(-1);
    while (true) {
-      bool b = h.nextMethod->boolEvalNormalVariant(h.obj, h.next, 0, xsink);
-      if (!b)
-         return rv.release();
+      bool b = h.next(xsink);
       if (*xsink)
          return 0;
+      if (!b)
+         return rv.release();
 
       // check if value can be mapped
       SingleArgvContextHelper argv_helper(h.obj, xsink);
@@ -1231,11 +1169,11 @@ static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const Abstr
    qore_type_t t = get_node_type(*marg);
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
-         AbstractIteratorHelper h;
-         if (!AbstractIteratorHelper::get("map", h, const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*marg)), xsink))
-            return op_map_select_iterator(left, select, h, ref_rv, xsink);
+         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*marg)));
          if (*xsink)
             return 0;
+         if (h)
+            return op_map_select_iterator(left, select, h, ref_rv, xsink);
       }
       if (t == NT_NOTHING)
          return 0;
@@ -1278,25 +1216,25 @@ static AbstractQoreNode *op_fold_iterator(const AbstractQoreNode *left, Abstract
    ImplicitElementHelper eh(-1);
 
    // first try to get first argument
-   bool b = h.nextMethod->boolEvalNormalVariant(h.obj, h.next, 0, xsink);
+   bool b = h.next(xsink);
    // if there is no first argument or an exception occurred, then return 0
    if (!b || *xsink)
       return 0;
 
    // get first argument value
-   ReferenceHolder<AbstractQoreNode> result(h.getValueMethod->evalNormalVariant(h.obj, h.getValue, 0, xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> result(h.getValue(xsink), xsink);
    if (*xsink)
       return 0;
 
    while (true) {
-      bool b = h.nextMethod->boolEvalNormalVariant(h.obj, h.next, 0, xsink);
+      bool b = h.next(xsink);
       if (*xsink)
          return 0;
       if (!b)
          break;
 
       // get next argument value
-      ReferenceHolder<AbstractQoreNode> arg(h.getValueMethod->evalNormalVariant(h.obj, h.getValue, 0, xsink), xsink);
+      ReferenceHolder<AbstractQoreNode> arg(h.getValue(xsink), xsink);
       if (*xsink)
          return 0;
 
@@ -1323,11 +1261,11 @@ static AbstractQoreNode *op_foldl(const AbstractQoreNode *left, const AbstractQo
    qore_type_t t = arg->getType();
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
-         AbstractIteratorHelper h;
-         if (!AbstractIteratorHelper::get("foldl", h, const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), xsink, true, true))
-            return op_fold_iterator(left, h, ref_rv, xsink);
+         AbstractIteratorHelper h(xsink, "foldl operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), true, true);
          if (*xsink)
             return 0;
+         if (h)
+            return op_fold_iterator(left, h, ref_rv, xsink);
       }
       return arg.getReferencedValue();
    }
@@ -1373,11 +1311,11 @@ static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQo
    qore_type_t t = arg->getType();
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
-         AbstractIteratorHelper h;
-         if (!AbstractIteratorHelper::get("foldr", h, const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), xsink, false, true))
-            return op_fold_iterator(left, h, ref_rv, xsink);
+         AbstractIteratorHelper h(xsink, "foldr operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), false, true);
          if (*xsink)
             return 0;
+         if (h)
+            return op_fold_iterator(left, h, ref_rv, xsink);
       }
       return arg.getReferencedValue();
    }
@@ -1420,7 +1358,7 @@ static AbstractQoreNode *op_select_iterator(const AbstractQoreNode *select, Abst
 
    ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
    while (true) {
-      bool b = h.nextMethod->boolEvalNormalVariant(h.obj, h.next, 0, xsink);
+      bool b = h.next(xsink);
       if (*xsink)
          return 0;
       if (!b)
@@ -1432,7 +1370,7 @@ static AbstractQoreNode *op_select_iterator(const AbstractQoreNode *select, Abst
          return 0;
       if (b) {
          // get next argument value
-         ReferenceHolder<AbstractQoreNode> arg(h.getValueMethod->evalNormalVariant(h.obj, h.getValue, 0, xsink), xsink);
+         ReferenceHolder<AbstractQoreNode> arg(h.getValue(xsink), xsink);
          if (*xsink)
             return 0;
          rv->push(arg.release());
@@ -1451,11 +1389,11 @@ static AbstractQoreNode *op_select(const AbstractQoreNode *arg_exp, const Abstra
    qore_type_t t = arg->getType();
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
-         AbstractIteratorHelper h;
-         if (!AbstractIteratorHelper::get("select", h, const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), xsink, true, true))
-            return op_select_iterator(select, h, ref_rv, xsink);
+         AbstractIteratorHelper h(xsink, "select operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), true, true);
          if (*xsink)
             return 0;
+         if (h)
+            return op_select_iterator(select, h, ref_rv, xsink);
       }
       SingleArgvContextHelper argv_helper(*arg, xsink);
       bool b = select->boolEval(xsink);

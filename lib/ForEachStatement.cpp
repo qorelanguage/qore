@@ -23,8 +23,9 @@
 #include <qore/Qore.h>
 #include <qore/intern/ForEachStatement.h>
 #include <qore/intern/StatementBlock.h>
+#include <qore/intern/AbstractIteratorHelper.h>
 
-ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode *v, AbstractQoreNode *l, StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0), is_ref(false), is_keys(false) {
+ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode* v, AbstractQoreNode* l, StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0), is_ref(false), is_keys(false) {
 }
 
 ForEachStatement::~ForEachStatement() {
@@ -36,7 +37,7 @@ ForEachStatement::~ForEachStatement() {
    delete lvars;
 }
 
-int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int ForEachStatement::execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink) {
    if (is_ref)
       return execRef(return_value, xsink);
 
@@ -51,9 +52,20 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
    if (!code || *xsink || is_nothing(*tlist))
       return 0;
 
-   QoreListNode *l_tlist = tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(*tlist) : 0;
-   if (l_tlist && l_tlist->empty())
-      return 0;
+   qore_type_t t = tlist->getType();
+   QoreListNode* l_tlist = t == NT_LIST ? reinterpret_cast<QoreListNode*>(*tlist) : 0;
+   if (l_tlist) {
+      if (l_tlist->empty())
+         return 0;
+   }
+   else if (t == NT_OBJECT) {
+      // check for an object derived from AbstractIterator
+      AbstractIteratorHelper aih(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*tlist)), true, true);
+      if (*xsink)
+         return 0;
+      if (aih)
+         return execIterator(aih, return_value, xsink);
+   }
 
    // execute "foreach" body
    unsigned i = 0;
@@ -94,12 +106,12 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
 }
 
 // specialization for foreach ... in (keys <hash>) {}
-int ForEachStatement::execKeys(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int ForEachStatement::execKeys(AbstractQoreNode** return_value, ExceptionSink* xsink) {
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
 
    assert(get_node_type(list) == NT_TREE);
-   QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(list);
+   QoreTreeNode* t = reinterpret_cast<QoreTreeNode*>(list);
 
    QoreHashNodeHolder hash(reinterpret_cast<QoreHashNode*>(t->left->eval(xsink)), xsink);
    if (*xsink || !code)
@@ -109,7 +121,7 @@ int ForEachStatement::execKeys(AbstractQoreNode **return_value, ExceptionSink *x
 
    // create an empty reference holder for a temporary hash in case the operand is an object
    ReferenceHolder<QoreHashNode> hh(xsink);
-   const QoreHashNode *h;
+   const QoreHashNode* h;
 
    // if the result is not a hash, then return
    if (hnt == NT_OBJECT) {
@@ -122,7 +134,7 @@ int ForEachStatement::execKeys(AbstractQoreNode **return_value, ExceptionSink *x
       return 0;
    }
    else
-      h = reinterpret_cast<const QoreHashNode *>(*hash);
+      h = reinterpret_cast<const QoreHashNode*>(*hash);
 
    ConstHashIterator hi(h);
 
@@ -159,7 +171,7 @@ int ForEachStatement::execKeys(AbstractQoreNode **return_value, ExceptionSink *x
    return rc;
 }
 
-int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int ForEachStatement::execRef(AbstractQoreNode** return_value, ExceptionSink* xsink) {
    int rc = 0;
 
    // instantiate local variables
@@ -177,7 +189,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    if (!code || *xsink || is_nothing(*tlist))
       return 0;
 
-   QoreListNode *l_tlist = tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(*tlist) : 0;
+   QoreListNode* l_tlist = tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>(*tlist) : 0;
    if (l_tlist && l_tlist->empty())
       return 0;
 
@@ -208,13 +220,13 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
 	 return 0;
 
       // get value of foreach variable
-      AbstractQoreNode *nv = var->eval(xsink);
+      AbstractQoreNode* nv = var->eval(xsink);
       if (*xsink)
 	 return 0;
 
       // assign new value to temporary variable for later assignment to referenced lvalue
       if (l_tlist)
-	 reinterpret_cast<QoreListNode *>(*ln)->push(nv);
+	 reinterpret_cast<QoreListNode*>(*ln)->push(nv);
       else
 	 ln = nv;
       
@@ -222,7 +234,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
 	 // assign remaining values to list unchanged
 	 if (l_tlist)
 	    while (++i < l_tlist->size())
-	       reinterpret_cast<QoreListNode *>(*ln)->push(l_tlist->get_referenced_entry(i));
+	       reinterpret_cast<QoreListNode*>(*ln)->push(l_tlist->get_referenced_entry(i));
 
 	 rc = 0;
 	 break;
@@ -246,6 +258,53 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    
    if (val.assign(ln.release()))
       return 0;
+
+   return rc;
+}
+
+int ForEachStatement::execIterator(AbstractIteratorHelper& aih, AbstractQoreNode** return_value, ExceptionSink* xsink) {
+   // execute "foreach" body
+   unsigned i = 0;
+
+   int rc = 0;
+
+   while (true) {
+      bool b = aih.next(xsink);
+      if (*xsink)
+         return 0;
+      if (!b)
+         break;
+
+      // get next argument value
+      ReferenceHolder<AbstractQoreNode> arg(aih.getValue(xsink), xsink);
+      if (*xsink)
+         return 0;
+
+      {
+         LValueHelper n(var, xsink);
+         if (!n)
+            break;
+
+         // assign variable to current value in list
+         if (n.assign(arg.release()))
+            break;
+      }
+
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh((int)i);
+
+      // execute "foreach" body
+      if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
+         rc = 0;
+         break;
+      }
+
+      if (rc == RC_RETURN)
+         break;
+      else if (rc == RC_CONTINUE)
+         rc = 0;
+      i++;
+   }
 
    return rc;
 }
@@ -278,9 +337,9 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    // check for "keys <hash>" specialization
    if (!is_ref && typ == NT_TREE) {
-      QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(list);
+      QoreTreeNode* t = reinterpret_cast<QoreTreeNode*>(list);
       if (t->getOp() == OP_KEYS)
-	 is_keys = true;
+         is_keys = true;
    }
 
    return 0;

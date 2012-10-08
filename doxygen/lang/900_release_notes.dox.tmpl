@@ -29,8 +29,9 @@
     - @ref Qore::SQL::DBI_CAP_SERVER_TIME_ZONE "DBI_CAP_SERVER_TIME_ZONE": indicates that the DBI driver will convert any bound date/time values to the server's time zone before binding and also will tag date/time values retrieved from the server with the server's time zone.  This capability also implies that the driver supports the new \c "timezone" option.
 
     @par Other Minor Improvements and Changes
+    - the @ref foreach "foreach statement" now iterates objects derived from @ref Qore::AbstractIterator "AbstractIterator"
     - added a @ref Qore::Option::HAVE_SYMLINK "HAVE_SYMLINK" constant for the symlink() function added in 0.8.5
-    - added the @ref Qore::SQL::SQLStatement::memberGate() "SQLStatement::memberGate()" method so @ref Qore::SQL::SQLStatement "SQLStatement" objects can be dereferenced directly to a column value when iterated with @ref Qore::SQL::SQLStatement::next() "SQLStatement::next()"
+    - added the @ref Qore::SQL::SQLStatement::memberGate() "SQLStatement::memberGate()" method so @ref Qore::SQL::SQLStatement "SQLStatement" objects can be dereferenced directly to a column value when iterated with @ref Qore::SQL::SQLStatement::next() "SQLStatement::next()"; also this method will throw exceptions when an unknown column name is used so that typos in column names can be caught (instead of being silently ignored producing hard to find bugs)
     - implemented @ref Qore::SQL::Datasource::constructor(string) "Datasource::constructor(string)" and @ref Qore::SQL::DatasourcePool::constructor(string) "DatasourcePool::constructor(string)" variants to allow for creating datasources from a string that can be parsed by Qore::SQL::parse_datasource(string) "parse_datasource(string)"
     - added the following new DBI-related functions:
       - @ref Qore::SQL::dbi_get_driver_list() "dbi_get_driver_list()"
@@ -53,6 +54,8 @@
       - @ref Qore::M_PIn "M_PIn"
       - @ref Qore::MAXINT "MAXINT"
       - @ref Qore::MININT "MININT"
+    - new function:
+      - @ref Qore::range() "range()"
 
     @subsection qore_086_bug_fixes Bug Fixes in Qore
     - fixed a bug in the @ref map "map operator" with a select expression when the list operand is @ref nothing; it was returning a list with one @ref nothing element instead of @ref nothing

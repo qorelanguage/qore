@@ -23,7 +23,11 @@
 #include <qore/Qore.h>
 
 //! This class defines an abstract interface for iterators
-/**
+/** Classes inheriting this class can be used to iterate abstract or complex objects with @ref while (using AbstractIterator::next()) or directly in the following language constructs:
+    - @ref map
+    - @ref foldr and @ref foldl
+    - @ref select
+    - @ref foreach
  */
 qclass AbstractIterator [arg=AbstractIterator* i; ns=Qore];
 
