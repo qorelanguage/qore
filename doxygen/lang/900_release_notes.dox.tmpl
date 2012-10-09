@@ -13,7 +13,7 @@
     For more information, see the new @ref number "number" type, @ref number_type, and @ref Qore::zzz8numberzzz9
 
     @par DBI Improvements
-    Three new DBI capailities were implemented, including a new option API as follows:
+    Three new DBI capabilities were implemented, including a new option API as follows:
     - @ref Qore::SQL::DBI_CAP_HAS_NUMBER_SUPPORT "DBI_CAP_HAS_NUMBER_SUPPORT": DBI drivers declaring this capability can accept @ref number "number" values and can also return @ref number "number" values, if a DBI driver does not declare this capability, then @ref number "number" values sent for binding by value are automatically converted to @ref float "float" values before being sent to the driver
     - @ref Qore::SQL::DBI_CAP_HAS_OPTION_SUPPORT "DBI_CAP_HAS_OPTION_SUPPORT": this indicates that the driver supports the new option API, allowing options to be set on each connection.  See the following for more information:
       - @ref Qore::SQL::Datasource::constructor(hash) "Datasource::constructor(hash)": now passes options to the DBI driver if the driver supports the option API
@@ -63,6 +63,7 @@
     - fixed bugs calculating the byte offset for string searches in the c++ %QoreString::index() and %QoreString::rindex() functions when the offset is negative and the strings have a multi-byte character encoding (such as UTF-8)
     - fixed a bug where calling an abstract method from a class where the abstract method is implemented was causing a parse error to be thrown
     - fixed a bug where the wrong source code location was displayed when raising a parse exception in operator expression parse initialization for some operators
+    - fixed bugs in regexes in the HttpServer::addListeners() and HttpServer::addListenersWithHandler() methods (HttpServer module version updated to 0.3.5)
     - made many minor documentation fixes
 
     @section qore_0851 Qore 0.8.5.1

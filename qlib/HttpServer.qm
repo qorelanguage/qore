@@ -27,14 +27,14 @@
 %requires Mime >= 1.0
 
 module HttpServer {
-    version = "0.3.4";
+    version = "0.3.5";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
-    * 2012-09-20 v0.3.5: David Nichols <david@qore.org>: xxx
+    * 2012-09-20 v0.3.5: David Nichols <david@qore.org>: fixed bugs in regexes in the HttpServer::addListeners() and HttpServer::addListenersWithHandler() methods
     * 2012-06-01 v0.3.4: David Nichols <david@qore.org>: added public parse_uri_query() function
     * 2012-05-24 v0.3.3: David Nichols <david@qore.org>: updated to a user module
                                                          added support for custom redirects from user handlers
@@ -1182,7 +1182,7 @@ public class HttpServer::HttpServer {
 	    return $.addINETListenersIntern(NOTHING, $lp.bind, $lp, $h, $logger, $errorlogger);
 	}
 
-        my (string $node, string $service) = ($lp.bind =~ x/(\w+):(\w+)/);
+        my (string $node, string $service) = ($lp.bind =~ x/(.+):(\w+)/);
         return $.addINETListenersIntern($node, $service, $lp, $h, $logger, $errorlogger);
     }
 
@@ -1216,7 +1216,7 @@ public class HttpServer::HttpServer {
             return $.addINETListeners(NOTHING, $sock, $cert_path, $key_path);
         }
 
-        my (string $node, string $service) = ($sock =~ x/(\w+):(\w+)/);
+        my (string $node, string $service) = ($sock =~ x/(.+):(\w+)/);
         return $.addINETListeners($node, $service, $cert_path, $key_path);
     }
 
