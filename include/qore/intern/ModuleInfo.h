@@ -188,8 +188,6 @@ public:
 
    DLLLOCAL QoreHashNode* getModuleHash();
    DLLLOCAL QoreListNode* getModuleList();
-
-
 };
 
 DLLLOCAL extern QoreModuleManager QMM;

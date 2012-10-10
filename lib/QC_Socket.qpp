@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <string.h>
 
+#if 0
 static int64 doReadResult(int rc, int64 val, const char *method_name, int timeout_ms, ExceptionSink *xsink) {
    if (rc > 0)
       return val;
@@ -38,6 +39,7 @@ static int64 doReadResult(int rc, int64 val, const char *method_name, int timeou
    QoreSocket::doException(rc, method_name, timeout_ms, xsink);
    return 0;
 }
+#endif
 
 static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsink) {
    if (*xsink)
@@ -306,7 +308,7 @@ const SOCK_RAW = SOCK_RAW;
 //! The Socket class allows %Qore programs safe access to network sockets
 /** @note This class is not available with the @ref PO_NO_NETWORK parse option.
 
-    Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the Socket::isDataAvailable() method with a timeout value in milliseconds (1000 ms = 1 second). Note that as with all %Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable, for example:
+    Non-blocking socket I/O can be performed by appending a timeout value in milliseconds all Socket methods performing I/O operations, or by using the Socket::isDataAvailable() method with a timeout value in milliseconds (1000 ms = 1 second). Note that as with all %Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable, for example:
 
     @code
     my bool $rc = $socket.isDataAvailable(1250ms); # times out in 1.25 seconds
@@ -389,7 +391,7 @@ $sock.connect("/tmp/socket");@endcode
     - If a colon appears in the string, the string will be assumed to be a \c "hostname:port" specification to connect to; where \c "port" can also be a service name (ex: \c "example.com:https")
     - If the string contains no colon, the socket will try to connect to a UNIX domain socket file on the local filesystem with the given name.
     - Enclose ipv6 addresses in square brackets (ex: \c "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", will connect to port 80 on the given ipv6 address); also if a hostname is enclosed in square brackets, it will be resolved as an ipv6 address (ex: \c "[localhost]:80" will connect to port \c 80 on \c ::1, assuming \c "localhost" can be resolved to the ipv6 loopback address on the system).
-    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, a \c "SOCKET-CONNECT-ERROR" exception is thrown.
+    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, a \c "SOCKET-CONNECT-ERROR" exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-CONNECT-ERROR An error occured connecting to the remote socket (cannot resolve hostname, no listener, timeout exceeded, etc).
 
@@ -415,7 +417,7 @@ $sock.connectINET("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);@endcode
 
     @param host The host name or IP address to connect to
     @param service The service name (ex: \c "http" or port number (given as or converted to a string) to connect to
-    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, a \c "SOCKET-CONNECT-ERROR" exception is thrown
+    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, a \c "SOCKET-CONNECT-ERROR" exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
     @param family The address family to use to connect to the remote socket; see @ref network_address_family_constants
     @param socktype The type of socket; see @ref socket_type_constants; typically @ref SOCK_STREAM for TCP sockets
     @param protocol The protocol number for the socket (if not sure leave this 0)
@@ -474,7 +476,7 @@ $sock.connectSSL("/tmp/socket"); @endcode
     - If a colon appears in the string, the string will be assumed to be a \c "hostname:port" specification to connect to; where \c "port" can also be a service name (ex: \c "example.com:https")
     - If the string contains no colon, the socket will try to connect to a UNIX domain socket file on the local filesystem with the given name.
     - Enclose ipv6 addresses in square brackets (ex: \c "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", will connect to port 80 on the given ipv6 address); also if a hostname is enclosed in square brackets, it will be resolved as an ipv6 address (ex: \c "[localhost]:80" will connect to port \c 80 on \c ::1, assuming \c "localhost" can be resolved to the ipv6 loopback address on the system).
-    @param timeout_ms if a timeout value is passed and the connection takes longer to establish than the timeout, an exception is thrown
+    @param timeout_ms if a timeout value is passed and the connection takes longer to establish than the timeout, an exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-CONNECT-ERROR An error occured connecting to the remote socket (cannot resolve hostname, no listener, timeout exceeded, etc)
     @throw SOCKET-SSL-ERROR An error occurred establishing the TLS/SSL connection
@@ -501,7 +503,7 @@ $sock.connectINETSSL("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s); @endco
 
     @param host The host name or IP address to connect to
     @param service The service name (ex: \c "http" or port number (given as or converted to a string) to connect to
-    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, a \c "SOCKET-CONNECT-ERROR" exception is thrown
+    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, a \c "SOCKET-CONNECT-ERROR" exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
     @param family The address family to use to connect to the remote socket; see @ref network_address_family_constants
     @param socktype The type of socket; see @ref socket_type_constants; typically @ref SOCK_STREAM for TCP sockets
     @param protocol The protocol number for the socket (if not sure leave this 0)
@@ -681,7 +683,7 @@ Socket Socket::accept() {
     @par Example:
     @code my *Socket $new_socket = $sock.accept(30s); @endcode
 
-    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then @ref nothing is returned
+    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then @ref nothing is returned.Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return If no connection is accepted within the timeout period, then @ref nothing is returned, otherwise a Socket object for the new connection is returned.
 
@@ -712,7 +714,7 @@ Socket Socket::accept() {
     @par Example:
     @code my Socket $new_socket = $sock.acceptSSL(); @endcode
 
-    @return When a new connection is accepted and a TLS/SSL session has been successfully negotated, a new Socket object is returned for the new connectio
+    @return When a new connection is accepted and a TLS/SSL session has been successfully negotiated, a new Socket object is returned for the new connectio
 
     @throw SOCKET-NOT-OPEN The socket is not bound
     @throw SOCKET-ACCEPT-ERROR Error in accepting connection
@@ -743,7 +745,7 @@ Socket Socket::acceptSSL() {
     @par Example:
     @code my *Socket $new_socket = $sock.acceptSSL(30s); @endcode
 
-    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then @ref nothing is returned
+    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then @ref nothing is returned. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return If no connection is accepted within the timeout period, then @ref nothing is returned, otherwise a Socket object for the new connection is returned.
 
@@ -780,116 +782,131 @@ int Socket::listen() {
    return checkOpenResult(s->listen(), "listen", xsink);
 }
 
-//! Sends binary data over the socket
-/** If an error occurs, -1 will be returned; in this case check errno() for the error number.
-
-    @note In case of SSL errors, errno() will not provide any information; use Socket::send2() instead
-
+//! Sends binary data over the socket; if any errors occur, an exception is thrown
+/**
     @par Example:
     @code
-if ($sock.send($data))
-    printf("error sending data: %s\n", strerror(errno()));
+$sock.send($data, 20s);
     @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
 
     @param bin Sends the binary data over the socket
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
-    @return 0 for success, -1 for error; in this case check errno() for the error number
+    @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
     @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
 
     @see
-    - Socket::sendBinary2()
-    - Socket::send2()
+    - Socket::sendBinary()
+
+    @note this method is as of %Qore 0.8.6+ equivalent to Socket::send2() except for the return value
+
+    @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error like Socket::send2(); this change was
+    made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::send(binary bin) {
-   return checkOpenResult(s->send(bin), "send", xsink);
+int Socket::send(binary bin, int timeout_ms = -1) {
+   return s->send(bin, timeout_ms, xsink);
 }
 
-//! Sends string data over the socket; string data is converted to the socket's encoding if necessary
-/** String data will be converted to the encoding set for the socket if necessary. If an error occurs, -1 will be returned; in this case check errno() for the error number.
-
-    @note In case of SSL errors, errno() will not provide any information; use Socket::send2() instead
+//! Sends string data over the socket; string data is converted to the socket's encoding if necessary; if any errors occur, an exception is thrown
+/** String data will be converted to the encoding set for the socket if necessary.
 
     @par Example:
     @code
-if ($sock.send($str) == -1)
-    printf("error sending data: %s\n", strerror(errno())); @endcode
+$sock.send($str, 20s);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
 
-    @param str dends the string data over the socket without the trailing null ('\0') character; the string's encoding is converted to the socket's encoding if necessary
+    @param str sends the string data over the socket without the trailing null ('\0') character; the string's encoding is converted to the socket's encoding if necessary
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
-    @return 0 for success, -1 for error; in this case check errno() for the error number
+    @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
     @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
 
     @see
     - Socket::sendBinary2()
-    - Socket::send2()
- */
-int Socket::send(string str) {
-   TempEncodingHelper tmp(str, s->getEncoding(), xsink);
-   if (!tmp)
-      return 0;
 
-   return checkOpenResult(s->send(tmp->getBuffer(), tmp->size()), "send", xsink);
+    @note this method is as of %Qore 0.8.6+ equivalent to Socket::send2() except for the return value
+
+    @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error like Socket::send2(); this change was
+    made because it was not possible to catch SSL errors with this method with the previous implementation
+ */
+int Socket::send(string str, timeout timeout_ms = -1) {
+   return s->send(str, timeout_ms, xsink);
 }
 
-//! Sends string data over the socket without converting the string to the socket's encoding, but instead is sent exactly as-is
-/** If an error occurs, -1 will be returned; in this case check errno() for the error number.
-
-    @note In case of SSL errors, errno() will not provide any information; use Socket::sendBinary2() instead
-
+//! Sends string data over the socket without converting the string to the socket's encoding, but instead is sent exactly as-is; if any errors occur, an exception is thrown
+/**
     @par Example:
     @code
-if ($sock.sendBinary($str) == -1)
-    printf("error sending data: %s\n", strerror(errno())); @endcode
+$sock.sendBinary($str);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
 
-    @param str dends the string data over the socket without the trailing null ('\0') character
+    @param str string data to be sent (without any conversion to the socket's encoding) over the socket without the trailing null ('\0') character
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
-    @return 0 for success, -1 for error; in this case check errno() for the error number
+    @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
     @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
 
-    @see
-    - Socket::send2()
-    - Socket::sendBinary2()
+    @see Socket::send2()
+
+    @note this method is as of %Qore 0.8.6+ equivalent to Socket::sendBinary2() except for the return value
+
+    @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error like Socket::send2(); this change was
+    made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::sendBinary(string str) {
-   return checkOpenResult(s->send(str->getBuffer(), str->strlen()), "send", xsink);
+int Socket::sendBinary(string str, timeout timeout_ms = -1) {
+   return s->send(str->getBuffer(), str->strlen(), timeout_ms, xsink);
 }
 
-//! Sends binary data over the socket
-/** If an error occurs, -1 will be returned; in this case check errno() for the error number.
-
-    @note In case of SSL errors, errno() will not provide any information; use Socket::sendBinary2() instead
-
+//! Sends binary data over the socket; if any errors occur, an exception is thrown
+/**
     @par Example:
-    @code if ($sock.sendBinary($data) == -1)
-    printf("error sending data: %s\n", strerror(errno())); @endcode
+    @code
+$sock.sendBinary2($data);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
 
     @param bin Sends the binary data over the socket
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
-    @return 0 for success, -1 for error; in this case check errno() for the error number
+    @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
     @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
 
-    @see
-    - Socket::send2()
-    - Socket::sendBinary2()
+    @see Socket::send2()
+
+    @note this method is as of %Qore 0.8.6+ equivalent to Socket::sendBinary2() except for the return value
+
+    @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error like Socket::send2(); this change was
+    made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::sendBinary(binary bin) {
-   return checkOpenResult(s->send(bin), "send", xsink);
+int Socket::sendBinary(binary bin, timeout timeout_ms = -1) {
+   return s->send(bin, timeout_ms, xsink);
 }
 
 //! Sends binary data over the socket; if any errors occur, an exception is thrown
@@ -903,18 +920,22 @@ $sock.send2($data);
     @ref EVENT_PACKET_SENT
 
     @param bin Sends the binary data over the socket
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
     @throw SOCKET-SEND-ERROR an error occurred sending the socket data
     @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
 
     @see
     - Socket::sendBinary2()
 
+    @note this method is as of %Qore 0.8.6+ equivalent to Socket::send() except for the lack of a return value (since errors cause exceptions to be thrown, no return value is necessary)
+
     @since %Qore 0.8.4
  */
-nothing Socket::send2(binary bin) {
-   s->send(bin, xsink);
+nothing Socket::send2(binary bin, timeout timeout_ms = -1) {
+   s->send(bin, timeout_ms, xsink);
 }
 
 //! Sends string data over the socket; string data is converted to the socket's encoding if necessary; if any errors occur, an exception is thrown
@@ -928,19 +949,23 @@ $sock.send2($str);
     @par Events:
     @ref EVENT_PACKET_SENT
 
-    @param str dends the string data over the socket without the trailing null ('\0') character; the string's encoding is converted to the socket's encoding if necessary
+    @param str sends the string data over the socket without the trailing null ('\0') character; the string's encoding is converted to the socket's encoding if necessary
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
     @throw SOCKET-SEND-ERROR an error occurred sending the socket data
     @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
 
     @see
     - Socket::sendBinary2()
 
+    @note this method is as of %Qore 0.8.6+ equivalent to Socket::send() except for the lack of a return value (since errors cause exceptions to be thrown, no return value is necessary)
+
     @since %Qore 0.8.4
  */
-nothing Socket::send2(string str) {
-   s->send(str, xsink);
+nothing Socket::send2(string str, timeout timeout_ms = -1) {
+   s->send(str, timeout_ms, xsink);
 }
 
 //! Sends string data over the socket without converting the string to the socket's encoding, but instead is sent exactly as-is; if any errors occur, an exception is thrown
@@ -953,18 +978,22 @@ $sock.sendBinary2($str);
     @par Events:
     @ref EVENT_PACKET_SENT
 
-    @param str dends the string data over the socket without the trailing null ('\0') character
+    @param str string data to be sent (without any conversion to the socket's encoding) over the socket without the trailing null ('\0') character
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
     @throw SOCKET-SEND-ERROR an error occurred sending the socket data
     @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
 
     @see Socket::send2()
 
+    @note this method is as of %Qore 0.8.6+ equivalent to Socket::sendBinary() except for the lack of a return value (since errors cause exceptions to be thrown, no return value is necessary)
+
     @since %Qore 0.8.4
  */
-nothing Socket::sendBinary2(string str) {
-   s->send(str->getBuffer(), str->strlen(), xsink);
+nothing Socket::sendBinary2(string str, timeout timeout_ms = -1) {
+   s->send(str->getBuffer(), str->strlen(), timeout_ms, xsink);
 }
 
 //! Sends binary data over the socket; if any errors occur, an exception is thrown
@@ -978,170 +1007,232 @@ $sock.sendBinary2($data);
     @ref EVENT_PACKET_SENT
 
     @param bin Sends the binary data over the socket
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
     @throw SOCKET-SEND-ERROR an error occurred sending the socket data
     @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
 
     @see Socket::send2()
 
+    @note this method is as of %Qore 0.8.6+ equivalent to Socket::sendBinary() except for the lack of a return value (since errors cause exceptions to be thrown, no return value is necessary)
+
     @since %Qore 0.8.4
  */
-nothing Socket::sendBinary2(binary bin) {
-   s->send(bin, xsink);
+nothing Socket::sendBinary2(binary bin, timeout timeout_ms = -1) {
+   s->send(bin, timeout_ms, xsink);
 }
 
 //! Sends a 1-byte integer over the socket
-/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+/** If any errors occur, an exception is thrown
 
     @par Example:
-    @code if ($sock.sendi1($val) == -1)
-    printf("error sending data: %s\n", strerror(errno())); @endcode
+    @code
+$sock.sendi1($val, 20s);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send; only the least-significant byte will be sent
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
-    @return 0 for success, -1 for error; in this case check errno() for the error number
+    @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
-    @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error; this change was
+    made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::sendi1(softint i = 0) {
-   return checkOpenResult(s->sendi1((char)i), "sendi1", xsink);
+int Socket::sendi1(softint i = 0, timeout timeout_ms = -1) {
+   return s->sendi1((char)i, timeout_ms, xsink);
 }
 
 //! Sends a 2-byte (16-bit) integer in big-endian format (network byte order) over the socket
-/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+/** If any errors occur, an exception is thrown
 
     @par Example:
-    @code if ($sock.sendi2($val) == -1)
-    printf("error sending data: %s\n", strerror(errno())); @endcode
+    @code
+$sock.sendi2($val, 20s);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send; only the least-significant 2 bytes will be sent
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
-    @return 0 for success, -1 for error; in this case check errno() for the error number
+    @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
     @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error; this change was
+    made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::sendi2(softint i = 0) {
-   return checkOpenResult(s->sendi2((short)i), "sendi2", xsink);
+int Socket::sendi2(softint i = 0, timeout timeout_ms = -1) {
+   return s->sendi2((short)i, timeout_ms, xsink);
 }
 
 //! Sends a 4-byte (32-bit) integer in big-endian format (network byte order) over the socket
-/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+/** If any errors occur, an exception is thrown
 
     @par Example:
-    @code if ($sock.sendi4($val) == -1)
-    printf("error sending data: %s\n", strerror(errno())); @endcode
+    @code
+$sock.sendi4($val, 20s);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send; only the least-significant 4 bytes will be sent
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
-    @return 0 for success, -1 for error; in this case check errno() for the error number
+    @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
     @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error; this change was
+    made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::sendi4(softint i = 0) {
-   return checkOpenResult(s->sendi4((int)i), "sendi4", xsink);
+int Socket::sendi4(softint i = 0, timeout timeout_ms = -1) {
+   return s->sendi4((int)i, timeout_ms, xsink);
 }
 
 //! Sends an 8-byte (64-bit) integer in big-endian format (network byte order) over the socket
-/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+/** If any errors occur, an exception is thrown
 
     @par Example:
-    @code if ($sock.sendi8($val) == -1)
-    printf("error sending data: %s\n", strerror(errno())); @endcode
+    @code
+$sock.sendi8($val, 20s);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
-    @return 0 for success, -1 for error; in this case check errno() for the error number
+    @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
     @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error; this change was
+    made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::sendi8(softint i = 0) {
-   return checkOpenResult(s->sendi8(i), "sendi8", xsink);
+int Socket::sendi8(softint i = 0, timeout timeout_ms = -1) {
+   return s->sendi8(i, timeout_ms, xsink);
 }
 
 //! Sends a 2-byte (16-bit) integer in little-endian format over the socket
-/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+/** If any errors occur, an exception is thrown
 
     @par Example:
-    @code if ($sock.sendi2LSB($val) == -1)
-    printf("error sending data: %s\n", strerror(errno())); @endcode
+    @code
+$sock.sendi2LSB($val, 20s);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send; only the least-significant 2 bytes will be sent
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
-    @return 0 for success, -1 for error; in this case check errno() for the error number
+    @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
     @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error; this change was
+    made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::sendi2LSB(softint i = 0) {
-   return checkOpenResult(s->sendi2LSB((short)i), "sendi2LSB", xsink);
+int Socket::sendi2LSB(softint i = 0, timeout timeout_ms = -1) {
+   return s->sendi2LSB((short)i, timeout_ms, xsink);
 }
 
 //! Sends a 4-byte (32-bit) integer in little-endian format over the socket
-/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+/** If any errors occur, an exception is thrown
 
     @par Example:
-    @code if ($sock.sendi4LSB($val) == -1)
-    printf("error sending data: %s\n", strerror(errno())); @endcode
+    @code
+$sock.sendi4LSB($val, 20s);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send; only the least-significant 4 bytes will be sent
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
-    @return 0 for success, -1 for error; in this case check errno() for the error number
+    @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
     @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error; this change was
+    made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::sendi4LSB(softint i = 0) {
-   return checkOpenResult(s->sendi4LSB((int)i), "sendi4LSB", xsink);
+int Socket::sendi4LSB(softint i = 0, timeout timeout_ms = -1) {
+   return s->sendi4LSB((int)i, timeout_ms, xsink);
 }
 
 //! Sends an 8-byte (64-bit) integer in little-endian format over the socket
-/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+/** If any errors occur, an exception is thrown
 
     @par Example:
-    @code if ($sock.sendi8LSB($val) == -1)
-    printf("error sending data: %s\n", strerror(errno())); @endcode
+    @code
+$sock.sendi8LSB($val, 20s);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection; the timeout value is the longest value that a single send() operation can take with non-blocking I/O. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
-    @return 0 for success, -1 for error; in this case check errno() for the error number
+    @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
     @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error; this change was
+    made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::sendi8LSB(softint i = 0) {
-   return checkOpenResult(s->sendi8LSB(i), "sendi8LSB", xsink);
+int Socket::sendi8LSB(softint i = 0, timeout timeout_ms = -1) {
+   return s->sendi8LSB(i, timeout_ms, xsink);
 }
 
 //! Receives data from the socket and returns a string tagged with the Socket's character encoding
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my string $data = $sock.recv(-1); # read all data available @endcode
+    @code
+my string $data = $sock.recv(-1); # read all data available
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
     
     @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1; a value of 0 means to read all data currently available or available up until the timeout period (if non-negative)
-    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return the data read, returned as a string tagged with the Socket's character encoding
 
@@ -1163,13 +1254,15 @@ string Socket::recv(softint size = 0, timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my binary $data = $sock.recvBinary(-1); # read all data available @endcode
+    @code
+my binary $data = $sock.recvBinary(-1); # read all data available
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
     
     @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1; a value of 0 means to read all data currently available or available up until the timeout period (if non-negative)
-    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return the data read, returned as a binary object
 
@@ -1189,12 +1282,14 @@ binary Socket::recvBinary(softint size = 0, timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvi1(); @endcode
+    @code
+my int $val = $sock.recvi1();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 1-byte signed integer read; if any errors occur reading from the socket, an exception is raised
 
@@ -1208,20 +1303,22 @@ binary Socket::recvBinary(softint size = 0, timeout timeout_ms = -1) {
  */
 int Socket::recvi1(timeout timeout_ms = -1) {
    char b;
-   int rc = s->recvi1(timeout_ms, &b);
-   return doReadResult(rc, (int64)b, "recvi1", timeout_ms, xsink);
+   s->recvi1(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Receives a 2-byte (16-bit) signed integer in big-endian format (network byte order) from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvi2(); @endcode
+    @code
+my int $val = $sock.recvi2();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 2-byte signed integer in big-endian format (network byte order) read; if any errors occur reading from the socket, an exception is raised
 
@@ -1235,20 +1332,22 @@ int Socket::recvi1(timeout timeout_ms = -1) {
  */
 int Socket::recvi2(timeout timeout_ms = -1) {
    short b;
-   int rc = s->recvi2(timeout_ms, &b);
-   return doReadResult(rc, (int64)b, "recvi2", timeout_ms, xsink);
+   s->recvi2(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Receives a 4-byte (32-bit) signed integer in big-endian format (network byte order) from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvi4(); @endcode
+    @code
+my int $val = $sock.recvi4();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 4-byte signed integer in big-endian format (network byte order) read; if any errors occur reading from the socket, an exception is raised
 
@@ -1262,20 +1361,22 @@ int Socket::recvi2(timeout timeout_ms = -1) {
  */
 int Socket::recvi4(timeout timeout_ms = -1) {
    int b;
-   int rc = s->recvi4(timeout_ms, &b);
-   return doReadResult(rc, (int64)b, "recvi4", timeout_ms, xsink);
+   s->recvi4(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Receives an 8-byte (64-bit) signed integer in big-endian format (network byte order) from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvi8(); @endcode
+    @code
+my int $val = $sock.recvi8();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 8-byte signed integer in big-endian format (network byte order) read; if any errors occur reading from the socket, an exception is raised
 
@@ -1289,20 +1390,22 @@ int Socket::recvi4(timeout timeout_ms = -1) {
  */
 int Socket::recvi8(timeout timeout_ms = -1) {
    int64 b;
-   int rc = s->recvi8(timeout_ms, &b);
-   return doReadResult(rc, b, "recvi8", timeout_ms, xsink);
+   s->recvi8(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Receives a 2-byte (16-bit) signed integer in little-endian format from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvi2LSB(); @endcode
+    @code
+my int $val = $sock.recvi2LSB();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 2-byte signed integer in little-endian format read; if any errors occur reading from the socket, an exception is raised
 
@@ -1316,20 +1419,22 @@ int Socket::recvi8(timeout timeout_ms = -1) {
  */
 int Socket::recvi2LSB(timeout timeout_ms = -1) {
    short b;
-   int rc = s->recvi2LSB(timeout_ms, &b);
-   return doReadResult(rc, (int64)b, "recvi2LSB", timeout_ms, xsink);
+   s->recvi2LSB(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Receives a 4-byte (32-bit) signed integer in little-endian format from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvi4LSB(); @endcode
+    @code
+my int $val = $sock.recvi4LSB();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 4-byte signed integer in little-endian format read; if any errors occur reading from the socket, an exception is raised
 
@@ -1343,20 +1448,22 @@ int Socket::recvi2LSB(timeout timeout_ms = -1) {
  */
 int Socket::recvi4LSB(timeout timeout_ms = -1) {
    int b;
-   int rc = s->recvi4LSB(timeout_ms, &b);
-   return doReadResult(rc, (int64)b, "recvi4LSB", timeout_ms, xsink);
+   s->recvi4LSB(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Receives an 8-byte (64-bit) signed integer in little-endian format from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvi8LSB(); @endcode
+    @code
+my int $val = $sock.recvi8LSB();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 8-byte signed integer in little-endian format read; if any errors occur reading from the socket, an exception is raised
 
@@ -1370,20 +1477,22 @@ int Socket::recvi4LSB(timeout timeout_ms = -1) {
  */
 int Socket::recvi8LSB(timeout timeout_ms = -1) {
    int64 b;
-   int rc = s->recvi8LSB(timeout_ms, &b);
-   return doReadResult(rc, b, "recvi8LSB", timeout_ms, xsink);
+   s->recvi8LSB(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Receives a 1-byte unsigned integer from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvu1(); @endcode
+    @code
+my int $val = $sock.recvu1();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 1-byte unsigned integer read; if any errors occur reading from the socket, an exception is raised
 
@@ -1397,20 +1506,22 @@ int Socket::recvi8LSB(timeout timeout_ms = -1) {
  */
 int Socket::recvu1(timeout timeout_ms = -1) {
    unsigned char b;
-   int rc = s->recvu1(timeout_ms, &b);
-   return doReadResult(rc, (int64)b, "recvu1", timeout_ms, xsink);
+   s->recvu1(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Receives a 2-byte (16-bit) unsigned integer in big-endian format (network byte order) from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvu2(); @endcode
+    @code
+my int $val = $sock.recvu2();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 2-byte unsigned integer in big-endian format (network byte order) read; if any errors occur reading from the socket, an exception is raised
 
@@ -1424,20 +1535,22 @@ int Socket::recvu1(timeout timeout_ms = -1) {
  */
 int Socket::recvu2(timeout timeout_ms = -1) {
    unsigned short b;
-   int rc = s->recvu2(timeout_ms, &b);
-   return doReadResult(rc, (int64)b, "recvu2", timeout_ms, xsink);
+   s->recvu2(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Receives a 4-byte (32-bit) unsigned integer in big-endian format (network byte order) from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvu4(); @endcode
+    @code
+my int $val = $sock.recvu4();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 4-byte unsigned integer in big-endian format (network byte order) read; if any errors occur reading from the socket, an exception is raised
 
@@ -1451,20 +1564,22 @@ int Socket::recvu2(timeout timeout_ms = -1) {
  */
 int Socket::recvu4(timeout timeout_ms = -1) {
    unsigned int b;
-   int rc = s->recvu4(timeout_ms, &b);
-   return doReadResult(rc, (int64)b, "recvu4", timeout_ms, xsink);
+   s->recvu4(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Receives a 2-byte (16-bit) unsigned integer in little-endian format from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvi2LSB(); @endcode
+    @code
+my int $val = $sock.recvi2LSB();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 2-byte unsigned integer in little-endian format read; if any errors occur reading from the socket, an exception is raised
 
@@ -1478,20 +1593,22 @@ int Socket::recvu4(timeout timeout_ms = -1) {
  */
 int Socket::recvu2LSB(timeout timeout_ms = -1) {
    unsigned short b;
-   int rc = s->recvu2LSB(timeout_ms, &b);
-   return doReadResult(rc, (int64)b, "recvu2LSB", timeout_ms, xsink);
+   s->recvu2LSB(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Receives a 4-byte (32-bit) unsigned integer in little-endian format from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code my int $val = $sock.recvu4LSB(); @endcode
+    @code
+my int $val = $sock.recvu4LSB();
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
 
-    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return The 4-byte unsigned integer in little-endian format read; if any errors occur reading from the socket, an exception is raised
 
@@ -1505,8 +1622,8 @@ int Socket::recvu2LSB(timeout timeout_ms = -1) {
  */
 int Socket::recvu4LSB(timeout timeout_ms = -1) {
    unsigned b;
-   int rc = s->recvu4LSB(timeout_ms, &b);
-   return doReadResult(rc, (int64)b, "recvu4LSB", timeout_ms, xsink);
+   s->recvu4LSB(timeout_ms, &b, xsink);
+   return b;
 }
 
 //! Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body
@@ -1514,7 +1631,9 @@ int Socket::recvu4LSB(timeout timeout_ms = -1) {
     To send a string without converting the encoding to the Socket's encoding, convert the string to a binary object using the binary() function and use the variant of this method that takes a binary object for the data argument.
 
     @par Example:
-    @code $sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml); @endcode
+    @code
+$sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
@@ -1526,28 +1645,32 @@ int Socket::recvu4LSB(timeout timeout_ms = -1) {
     @param body if present (and does not have a length of zero), the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set); string data will be automatically converted to the Socket's encoding if necessary
     @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with the following hash key:
     - \c request-uri: The request URI as sent in the output message
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR Send failed
     @throw SOCKET-SSL-ERROR there was an error sending SSL data
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
-nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string body, *reference info) {
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string body, *reference info, timeout timeout_ms = -1) {
    TempEncodingHelper tmp_data;
    if (body && !tmp_data.set(body, s->getEncoding(), xsink))
       return 0;
 
    OptHashRefHelper ohrh(info, xsink);
-   s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0);
+   s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0, timeout_ms);
 }
 
 //! Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body
 /** Creates a properly-formatted HTTP message and sends it over the Socket
 
     @par Example:
-    @code $sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml); @endcode
+    @code
+$sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
@@ -1559,16 +1682,18 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
     @param body if it does not have a length of zero, the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set)
     @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with the following hash key:
     - \c request-uri: The request URI as sent in the output message
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
     @throw SOCKET-SEND-ERROR Send failed
     @throw SOCKET-SSL-ERROR there was an error sending SSL data
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
-nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, binary body, *reference info) {
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, binary body, *reference info, timeout timeout_ms = -1) {
    OptHashRefHelper ohrh(info, xsink);
-   s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body->getPtr(), body->size());
+   s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body->getPtr(), body->size(), timeout_ms);
 }
 
 //! Sends an HTTP response with user-defined headers given as a hash and an optional message body
@@ -1576,7 +1701,9 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
     To send a string without converting the encoding to the Socket's encoding, convert the string to a binary object using the binary() function and use the variant of this method that takes a binary object for the data argument.
 
     @par Example:
-    @code $sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive")); @endcode
+    @code
+$sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"));
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
@@ -1586,13 +1713,15 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
     @param http_version the HTTP protocol version (normally \c "1.0" or \c "1.1", however this method allows any string to be sent)
     @param headers a hash of additional headers to send (key-value pairs)
     @param body if present (and does not have a length of zero), the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set); string data will be automatically converted to the Socket's encoding if necessary
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-SENDHTTPRESPONSE-STATUS-ERROR raised if the status_code (first argument) is < 100 or > 599
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
     @throw SOCKET-SEND-ERROR send failed
  */
-nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, *string body) {
+nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, *string body, timeout timeout_ms = -1) {
    if (status_code < 100 || status_code >= 600) {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
       return 0;
@@ -1602,14 +1731,16 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
    if (body && !tmp_data.set(body, s->getEncoding(), xsink))
       return 0;
 
-   s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0);
+   s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0, timeout_ms);
 }
 
 //! Sends an HTTP response with user-defined headers given as a hash and a message body as literal binary data
 /** Creates a properly-formatted HTTP response message and sends it over the Socket (must already be connected).  If any errors occur, an exception is raised.
 
     @par Example:
-    @code $sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"), $bin); @endcode
+    @code
+$sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"), $bin);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
@@ -1619,18 +1750,20 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
     @param http_version the HTTP protocol version (normally \c "1.0" or \c "1.1", however this method allows any string to be sent)
     @param headers a hash of additional headers to send (key-value pairs)
     @param body if the binary object given does not have a length of zero, the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set)
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-SENDHTTPRESPONSE-STATUS-ERROR raised if the status_code (first argument) is < 100 or > 599
     @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
     @throw SOCKET-SEND-ERROR send failed
  */
-nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, binary body) {
+nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, binary body, timeout timeout_ms = -1) {
    if (status_code < 100 || status_code >= 600) {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
       return 0;
    }
 
-   s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0);
+   s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0, timeout_ms);
 }
 
 //! Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, the data read is returned as a string
@@ -1644,7 +1777,7 @@ my hash $ans = $sock.readHTTPHeader(10s);
     @par Events:
     @ref EVENT_PACKET_READ, @ref EVENT_HTTP_MESSAGE_RECEIVED
 
-    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised.
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
     @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with one of the following two keys:
     - \c request-uri: (only set when parsing a request header) gives the request URI in an HTTP request
     - \c response-uri: (only set when parsing a response header) gives the response URI in an HTTP response
@@ -1673,10 +1806,15 @@ hash Socket::readHTTPHeader(timeout timeout_ms = -1, *reference info) {
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
 /** If any errors are encountered, an exception is raised
 
+    @par Example:
+    @code
+my hash $ans = $sock.readHTTPChunkedBody(20s);
+    @endcode
+
     @par Events:
     @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED
 
-    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised.
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return a hash of any HTTP footers received (with footer keys converted to lower case), with the body returned in the \c "body" key as a string in the Socket's encoding
 
@@ -1695,10 +1833,15 @@ hash Socket::readHTTPChunkedBody(timeout timeout_ms = -1) {
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a binary object in the \c "body" key of a hash (including footers received)
 /** If any errors are encountered, an exception is raised
 
+    @par Example:
+    @code
+my hash $ans = $sock.readHTTPChunkedBodyBinary(20s);
+    @endcode
+
     @par Events:
     @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED
 
-    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised.
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return a hash of any HTTP footers received (with footer keys converted to lower case), with the body returned in the \c "body" key as a binary object
 
@@ -1718,8 +1861,10 @@ hash Socket::readHTTPChunkedBodyBinary(timeout timeout_ms = -1) {
 /** Also deletes the UNIX domain socket file if it was created by a call to Socket::bind(). Returns 0 for success, -1 for error; in this case check errno() for the error number
 
     @par Example:
-    @code if ($sock.close())
-    stderr.printf("Error closing socket: %s\n", strerror(errno())); @endcode
+    @code
+if ($sock.close())
+    stderr.printf("Error closing socket: %s\n", strerror(errno()));
+    @endcode
 
     @par Events:
     @ref EVENT_CHANNEL_CLOSED
@@ -1734,8 +1879,10 @@ int Socket::close() {
 /** Does not throw any exceptions; returns an error code in case of an error
 
     @par Example:
-    @code if ($sock.shutdown())
-    stderr.printf("Error calling Socket::shutdown(): %s\n", strerror(errno())); @endcode
+    @code
+if ($sock.shutdown())
+    stderr.printf("Error calling Socket::shutdown(): %s\n", strerror(errno()));
+    @endcode
 
     @return 0 for success, -1 for error; in this case check errno() for the error number
  */
@@ -1747,7 +1894,9 @@ int Socket::shutdown() {
 /** If any errors occur, an exception is raised
 
     @par Example:
-    @code $sock.shutdownSSL(); @endcode
+    @code
+$sock.shutdownSSL();
+    @endcode
 
     @throw SOCKET-SSL-ERROR an error occurred shutting down the TLS/SSL connection
  */
@@ -1757,7 +1906,9 @@ nothing Socket::shutdownSSL() {
 
 //! Returns the port number of the socket for INET sockets
 /** @par Example:
-    @code my int $port = $sock.getPort(); @endcode
+    @code
+my int $port = $sock.getPort();
+    @endcode
 
     @return the port number for an INET connection, -1 if no INET connection has been established
  */
@@ -1767,7 +1918,9 @@ int Socket::getPort() [flags=CONSTANT] {
 
 //! Returns the socket file descriptor number
 /** @par Example:
-    @code my int $sock = $sock.getSocket(); @endcode
+    @code
+my int $sock = $sock.getSocket();
+    @endcode
 
     @return the socket file descriptor number or -1 if the socket is not open
  */
@@ -1779,8 +1932,10 @@ int Socket::getSocket() [flags=CONSTANT] {
 /** Returns 0 for success, -1 for error (check errno() for the actual error in this case)
 
     @par Example:
-    @code if ($sock.setSendTimeout(20s))
-    printf("error setting timeout on socket: %s\n", strerror(errno())); @endcode
+    @code
+if ($sock.setSendTimeout(20s))
+    printf("error setting timeout on socket: %s\n", strerror(errno()));
+    @endcode
 
     @param timeout_ms the send timeout to set with a resolution of milliseconds
 
@@ -1794,10 +1949,12 @@ int Socket::setSendTimeout(timeout timeout_ms) {
 /** Returns 0 for success, -1 for error (check errno() for the actual error in this case)
 
     @par Example:
-    @code if ($sock.setRecvTimeout(20s))
-    printf("error setting timeout on socket: %s\n", strerror(errno())); @endcode
+    @code
+if ($sock.setRecvTimeout(20s))
+    printf("error setting timeout on socket: %s\n", strerror(errno()));
+    @endcode
 
-    @param timeout_ms the receive timeout to set with a resolution of milliseconds
+    @param timeout_ms the receive timeout to set with a resolution of milliseconds; Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return 0 for success, -1 for error (check errno() for the actual error in this case)
  */
@@ -1807,7 +1964,9 @@ int Socket::setRecvTimeout(timeout timeout_ms) {
 
 //! Returns the send timeout socket option value as an integer in milliseconds
 /** @par Example:
-    @code my int $to = $sock.getSendTimeout(); @endcode
+    @code
+my int $to = $sock.getSendTimeout();
+    @endcode
 
     @return the send timeout socket option value as an integer in milliseconds
  */
@@ -1817,7 +1976,9 @@ int Socket::getSendTimeout() [flags=CONSTANT] {
 
 //! Returns the receive timeout socket option value as an integer in milliseconds
 /** @par Example:
-    @code my int $to = $sock.getRecvTimeout(); @endcode
+    @code
+my int $to = $sock.getRecvTimeout();
+    @endcode
 
     @return the receive timeout socket option value as an integer in milliseconds
  */
@@ -1858,9 +2019,11 @@ nothing Socket::setCharset(string encoding) {
 /** With a timeout of zero this method returns immediately and can be used for non-blocking polling the socket for data (can also be used to poll for new connections before Socket::accept()).
 
     @par Example:
-    @code my bool $b = $sock.isDataAvailable(); @endcode
+    @code
+my bool $b = $sock.isDataAvailable();
+    @endcode
 
-    @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately
+    @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately; Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return @ref True if data is available on the Socket within the timeout period, @ref False if not
  */
@@ -1872,9 +2035,11 @@ bool Socket::isDataAvailable(timeout timeout_ms = 0) {
 /** With a timeout of zero this method returns immediately.
 
     @par Example:
-    @code my bool $b = $sock.isWriteFinished(); @endcode
+    @code
+my bool $b = $sock.isWriteFinished();
+    @endcode
 
-    @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately
+    @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately; Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return @ref True if the send action completes within the timeout period, @ref False if not
  */
@@ -1884,7 +2049,9 @@ bool Socket::isWriteFinished(timeout timeout_ms = 0) {
 
 //! Returns @ref True if the socket is open
 /** @par Example:
-    @code my bool $b = $sock.isOpen(); @endcode
+    @code
+my bool $b = $sock.isOpen();
+    @endcode
 
     @return @ref True if the socket is open, @ref False if not
  */
@@ -1894,7 +2061,9 @@ bool Socket::isOpen() [flags=CONSTANT] {
 
 //! Returns the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
 /** @par Example:
-    @code my *string $str = $sock.getSSLCipherName(); @endcode
+    @code
+my *string $str = $sock.getSSLCipherName();
+    @endcode
 
     @return the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
  */
@@ -1905,7 +2074,9 @@ bool Socket::isOpen() [flags=CONSTANT] {
 
 //! Returns the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
 /** @par Example:
-    @code my *string $str = $sock.getSSLCipherVersion(); @endcode
+    @code
+my *string $str = $sock.getSSLCipherVersion();
+    @endcode
 
     @return the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
  */
@@ -1916,7 +2087,9 @@ bool Socket::isOpen() [flags=CONSTANT] {
 
 //! Returns @ref True if the connection is a secure TLS/SSL connection
 /** @par Example:
-    @code my bool $b = $sock.isSecure(); @endcode
+    @code
+my bool $b = $sock.isSecure();
+    @endcode
 
     @return @ref True if the connection is encrypted, @ref False if not
  */
@@ -1926,7 +2099,9 @@ bool Socket::isSecure() [flags=CONSTANT] {
 
 //! Returns a string code giving the result of verifying the remote certificate or @ref nothing if an encrypted connection is not currently established
 /** @par Example:
-    @code my *string $str = $sock.verifyPeerCertificate(); @endcode
+    @code
+my *string $str = $sock.verifyPeerCertificate();
+    @endcode
 
     @return A string code giving the result of verifying the peer's certificate. No value is returned if a secure connection has not been established.  The set of possible return values is made up of the keys of the @ref X509_VerificationReasons hash. This hash can also be used to generate a textual description of the verification result.
  */
@@ -1937,7 +2112,9 @@ bool Socket::isSecure() [flags=CONSTANT] {
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections
 /** @par Example:
-    @code $sock.setCertificate($cert); @endcode
+    @code
+$sock.setCertificate($cert);
+    @endcode
 
     @param cert This must be an SSLCertificate object
  */
@@ -1948,7 +2125,9 @@ nothing Socket::setCertificate(SSLCertificate[QoreSSLCertificate] cert) {
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections from the PEM-encoded string representing the X.509 certificate
 /** @par Example:
-    @code $sock.setCertificate($cert_string); @endcode
+    @code
+$sock.setCertificate($cert_string);
+    @endcode
 
     @param cert_pem the PEM-encoded string representing the X.509 certificate
  */
@@ -1963,7 +2142,9 @@ nothing Socket::setCertificate(string cert_pem) {
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections from the DER-encoded binary object representing the X.509 certificate
 /** @par Example:
-    @code $sock.setCertificate($cert_der); @endcode
+    @code
+$sock.setCertificate($cert_der);
+    @endcode
 
     @param cert_der the DER-encoded binary object representing the X.509 certificate
  */
@@ -1978,7 +2159,9 @@ nothing Socket::setCertificate(binary cert_der) {
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate
 /** @par Example:
-    @code $sock.setPrivateKey($key); @endcode
+    @code
+$sock.setPrivateKey($key);
+    @endcode
 
     @param key the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
  */
@@ -1989,7 +2172,9 @@ nothing Socket::setPrivateKey(SSLPrivateKey[QoreSSLPrivateKey] key) {
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate from a PEM-encoded string representing the private key and an optional password
 /** @par Example:
-    @code $sock.setPrivateKey($key_pem, $password); @endcode
+    @code
+$sock.setPrivateKey($key_pem, $password);
+    @endcode
 
     @param key_pem the PEM-encoded string representing the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
     @param pass the password for the private key, if needed
@@ -2004,7 +2189,9 @@ nothing Socket::setPrivateKey(string key_pem, *string pass) {
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate from a DER-encoded binary object representing the private key
 /** @par Example:
-    @code $sock.setPrivateKey($key_der); @endcode
+    @code
+$sock.setPrivateKey($key_der);
+    @endcode
 
     @param key_der the DER-encoded binary object representing the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
  */
@@ -2018,7 +2205,9 @@ nothing Socket::setPrivateKey(binary key_der) {
 
 //! Removes any @ref Qore::Thread::Queue "Queue" object from the Socket object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
 /** @par Example:
-    @code $sock.setEventQueue(); @endcode
+    @code
+$sock.setEventQueue();
+    @endcode
 
     @see @ref event_handling for more information
  */
@@ -2028,7 +2217,9 @@ nothing Socket::setEventQueue() {
 
 //! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
 /** @par Example:
-    @code $sock.setEventQueue($queue); @endcode
+    @code
+$sock.setEventQueue($queue);
+    @endcode
 
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
 
@@ -2054,8 +2245,10 @@ nothing Socket::setEventQueue(Queue[Queue] queue) {
     Note that if no value is given to the method, the argument will be assumed to be @ref True, and output buffering will be turned off for the socket.
 
     @par Example:
-    @code if ($sock.setNoDelay(True))
-    printf("error setting TCP_NODELAY: %s\n", strerror(errno())); @endcode
+    @code
+if ($sock.setNoDelay(True))
+    printf("error setting TCP_NODELAY: %s\n", strerror(errno()));
+    @endcode
 
     @param nd the boolean \c TCP_NODELAY setting for the socket
 
@@ -2069,7 +2262,9 @@ int Socket::setNoDelay(bool nd = True) {
 
 //! Returns the \c TCP_NODELAY setting for the socket
 /** @par Example:
-    @code my bool $b = $sock.getNoDelay(); @endcode
+    @code
+my bool $b = $sock.getNoDelay();
+    @endcode
 
     @return the \c TCP_NODELAY setting for the socket
 
@@ -2083,7 +2278,9 @@ bool Socket::getNoDelay() [flags=CONSTANT] {
 /** If the socket is not connected, an exception is thrown
 
     @par Example:
-    @code my hash $h = $sock.getPeerInfo(); @endcode
+    @code
+my hash $h = $sock.getPeerInfo();
+    @endcode
 
     @return a @ref socket_info_hash "hash of information" about the local socket
 
@@ -2097,7 +2294,9 @@ hash Socket::getPeerInfo() {
 /** If the socket is not open, an exception is thrown
 
     @par Example:
-    @code my hash $h = $sock.getSocketInfo(); @endcode
+    @code
+my hash $h = $sock.getSocketInfo();
+    @endcode
 
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
@@ -2108,7 +2307,9 @@ hash Socket::getSocketInfo() {
 
 //! Upgrades a client socket connection to a TLS/SSL connection
 /** @par Example:
-    @code $sock.upgradeClientToSSL(); @endcode
+    @code
+$sock.upgradeClientToSSL();
+    @endcode
  */
 nothing Socket::upgradeClientToSSL() {
    s->upgradeClientToSSL(xsink);
@@ -2116,7 +2317,9 @@ nothing Socket::upgradeClientToSSL() {
 
 //! Upgrades a server socket connection to a TLS/SSL connection
 /** @par Example:
-    @code $sock.upgradeServerToSSL(); @endcode
+    @code
+$sock.upgradeServerToSSL();
+    @endcode
  */
 nothing Socket::upgradeServerToSSL() {
    s->upgradeServerToSSL(xsink);

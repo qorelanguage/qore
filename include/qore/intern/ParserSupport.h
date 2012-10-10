@@ -47,6 +47,22 @@ public:
    }
 };
 
+struct TryModuleError {
+   char* var;
+   QoreException* ex;
+
+   DLLLOCAL TryModuleError(char* v, QoreException* e) : var(v), ex(e) {
+
+   }
+
+   DLLLOCAL ~TryModuleError() {
+      if (var)
+         free(var);
+      if (ex)
+         ex->del(0);
+   }
+};
+
 #define YYLTYPE class QoreParserLocation
 
 // private interface to bison/flex parser/scannertypedef void *yyscan_t;

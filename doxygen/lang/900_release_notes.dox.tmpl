@@ -7,6 +7,27 @@
     @par Release Summary
     Major new features and a few bug fixes
 
+    @subsection qore_086_compatibility Changes That Can Affect Backwards-Compatibility
+
+    @par Changes in the Socket Class
+    The @ref Qore::Socket "Socket" class was enhanced to support timeouts with non-blocking I/O on all send operations; 
+    many Socket methods that send data were originally implemented to return an error code on error, however they would
+    also throw exceptions if the socket were not open, so the error handling was inconsistent (exceptions versus return codes).\n\n
+    Additionally it was not possible to get error information at all for SSL errors if the socket was connected with SSL, which,
+    according to %Qore's socket design, should be transparent for the programmer.\n\n
+    For these reasons the implementation was inconsistent and unintuitive; the change was to add optional timeout parameters
+    to all send methods and to allow the methods to throw exceptions instead of returning a value of -1.\n\n
+    The following methods were updated to accept optional timeout parameters and throw exceptions on all errors rather than a return code for I/O errors:
+    - Qore::Socket::send()
+    - Qore::Socket::sendBinary()
+    - Qore::Socket::sendi1()
+    - Qore::Socket::sendi2()
+    - Qore::Socket::sendi4()
+    - Qore::Socket::sendi8()
+    - Qore::Socket::sendi2LSB()
+    - Qore::Socket::sendi4LSB()
+    - Qore::Socket::sendi8LSB()
+
     @subsection qore_086_new_features New Features in Qore
     @par Arbitrary-Precision Numeric Support
     %Qore now uses the <a href="http://www.mpfr.org/">MPFR</a> and <a href="http://gmplib.org">GMP</a> libraries to provide arbitrary-precision numeric support.  This type can be used for high-precision mathematics or for storing \c NUMERIC (ie \c DECIMAL or \c NUMBER) column values when retrieved from databases by %Qore DBI drivers that support the new capability @ref Qore::SQL::DBI_CAP_HAS_NUMBER_SUPPORT "DBI_CAP_HAS_NUMBER_SUPPORT" (previously these values would be retrieved as %Qore strings in order to avoid information loss).\n\n
@@ -27,6 +48,27 @@
       - @ref Qore::SQL::DatasourcePool::getOptionHash() "DatasourcePool::getOptionHash()": (new in 0.8.6) returns a hash of the current option values for the current connection if the driver supports the option API
       - @ref Qore::SQL::dbi_get_driver_options(string) "dbi_get_driver_options(string)": (new in 0.8.6) returns a hash of driver option information without values
     - @ref Qore::SQL::DBI_CAP_SERVER_TIME_ZONE "DBI_CAP_SERVER_TIME_ZONE": indicates that the DBI driver will convert any bound date/time values to the server's time zone before binding and also will tag date/time values retrieved from the server with the server's time zone.  This capability also implies that the driver supports the new \c "timezone" option.
+
+    @par Socket Improvements
+    The @ref Qore::Socket "Socket" class was updated to support non-blocking I/O on all send methods; the following methods were updated to accept optional timeout parameters:
+    - Qore::Socket::send2()
+    - Qore::Socket::sendBinary2()
+    - Qore::Socket::sendHTTPMessage()
+    - Qore::Socket::sendHTTPResponse()
+    .
+    The following methods were enhanced to provide better error information when throwing exceptions:
+    - Qore::Socket::recvi1()
+    - Qore::Socket::recvi2()
+    - Qore::Socket::recvi4()
+    - Qore::Socket::recvi8()
+    - Qore::Socket::recvi2LSB()
+    - Qore::Socket::recvi4LSB()
+    - Qore::Socket::recvi8LSB()
+    - Qore::Socket::recvu1()
+    - Qore::Socket::recvu2()
+    - Qore::Socket::recvu4()
+    - Qore::Socket::recvu2LSB()
+    - Qore::Socket::recvu4LSB()
 
     @par Other Minor Improvements and Changes
     - the @ref foreach "foreach statement" now iterates objects derived from @ref Qore::AbstractIterator "AbstractIterator"
@@ -64,6 +106,8 @@
     - fixed a bug where calling an abstract method from a class where the abstract method is implemented was causing a parse error to be thrown
     - fixed a bug where the wrong source code location was displayed when raising a parse exception in operator expression parse initialization for some operators
     - fixed bugs in regexes in the HttpServer::addListeners() and HttpServer::addListenersWithHandler() methods (HttpServer module version updated to 0.3.5)
+    - fixed bugs handling non-blocking reads in the @ref Qore::Socket "Socket" class; the timeout setting was only enforced for the first read; subsequent reads were made as blocking reads
+    - fixed a bug handling in the @ref Qore::Socket "Socket" class when the SSL session requires renegotiation during non-blocking I/O
     - made many minor documentation fixes
 
     @section qore_0851 Qore 0.8.5.1

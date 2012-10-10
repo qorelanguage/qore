@@ -105,21 +105,21 @@ int mySocket::send(const char *buf, int size) {
    return socket->send(buf, size);
 }
 
-int mySocket::send(const char *buf, int size, ExceptionSink* xsink) {
+int mySocket::send(const char *buf, int size, int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->send(buf, size, xsink);
+   return socket->send(buf, size, timeout_ms, xsink);
 }
 
 // send a null-terminated string
-int mySocket::send(const QoreString *msg, ExceptionSink *xsink) {
+int mySocket::send(const QoreString *msg, int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(m);
-   return socket->send(msg, xsink);
+   return socket->send(msg, timeout_ms, xsink);
 }
 
 // send a binary object
-int mySocket::send(const BinaryNode *b, ExceptionSink* xsink) {
+int mySocket::send(const BinaryNode *b, int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->send(b, xsink);
+   return socket->send(b, timeout_ms, xsink);
 }
 
 int mySocket::send(const BinaryNode *b) {
@@ -134,39 +134,39 @@ int mySocket::send(int fd, int size) {
 }
 
 // send bytes and convert to network order
-int mySocket::sendi1(char b) {
+int mySocket::sendi1(char b, int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->sendi1(b);
+   return socket->sendi1(b, timeout_ms, xsink);
 }
 
-int mySocket::sendi2(short b) {
+int mySocket::sendi2(short b, int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->sendi2(b);
+   return socket->sendi2(b, timeout_ms, xsink);
 }
 
-int mySocket::sendi4(int b) {
+int mySocket::sendi4(int b, int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->sendi4(b);
+   return socket->sendi4(b, timeout_ms, xsink);
 }
 
-int mySocket::sendi8(int64 b) {
+int mySocket::sendi8(int64 b, int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->sendi8(b);
+   return socket->sendi8(b, timeout_ms, xsink);
 }
 
-int mySocket::sendi2LSB(short b) {
+int mySocket::sendi2LSB(short b, int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->sendi2LSB(b);
+   return socket->sendi2LSB(b, timeout_ms, xsink);
 }
 
-int mySocket::sendi4LSB(int b) {
+int mySocket::sendi4LSB(int b, int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->sendi4LSB(b);
+   return socket->sendi4LSB(b, timeout_ms, xsink);
 }
 
-int mySocket::sendi8LSB(int64 b) {
+int mySocket::sendi8LSB(int64 b, int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->sendi8LSB(b);
+   return socket->sendi8LSB(b, timeout_ms, xsink);
 }
 
 // receive a packet of bytes as a string
@@ -200,77 +200,77 @@ int mySocket::recv(int fd, int size, int timeout_ms) {
 }
 
 // receive integers and convert from network byte order
-int mySocket::recvi1(int timeout_ms, char *b) {
+int64 mySocket::recvi1(int timeout_ms, char *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvi1(timeout_ms, b);
+   return socket->recvi1(timeout_ms, b, xsink);
 }
 
-int mySocket::recvi2(int timeout_ms, short *b) {
+int64 mySocket::recvi2(int timeout_ms, short *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvi2(timeout_ms, b);
+   return socket->recvi2(timeout_ms, b, xsink);
 }
 
-int mySocket::recvi4(int timeout_ms, int *b) {
+int64 mySocket::recvi4(int timeout_ms, int *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvi4(timeout_ms, b);
+   return socket->recvi4(timeout_ms, b, xsink);
 }
 
-int mySocket::recvi8(int timeout_ms, int64 *b) {
+int64 mySocket::recvi8(int timeout_ms, int64 *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvi8(timeout_ms, b);
+   return socket->recvi8(timeout_ms, b, xsink);
 }
 
-int mySocket::recvi2LSB(int timeout_ms, short *b) {
+int64 mySocket::recvi2LSB(int timeout_ms, short *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvi2LSB(timeout_ms, b);
+   return socket->recvi2LSB(timeout_ms, b, xsink);
 }
 
-int mySocket::recvi4LSB(int timeout_ms, int *b) {
+int64 mySocket::recvi4LSB(int timeout_ms, int *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvi4LSB(timeout_ms, b);
+   return socket->recvi4LSB(timeout_ms, b, xsink);
 }
 
-int mySocket::recvi8LSB(int timeout_ms, int64 *b) {
+int64 mySocket::recvi8LSB(int timeout_ms, int64 *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvi8LSB(timeout_ms, b);
+   return socket->recvi8LSB(timeout_ms, b, xsink);
 }
 
 // receive integers and convert from network byte order
-int mySocket::recvu1(int timeout_ms, unsigned char *b) {
+int64 mySocket::recvu1(int timeout_ms, unsigned char *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvu1(timeout_ms, b);
+   return socket->recvu1(timeout_ms, b, xsink);
 }
 
-int mySocket::recvu2(int timeout_ms, unsigned short *b) {
+int64 mySocket::recvu2(int timeout_ms, unsigned short *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvu2(timeout_ms, b);
+   return socket->recvu2(timeout_ms, b, xsink);
 }
 
-int mySocket::recvu4(int timeout_ms, unsigned int *b) {
+int64 mySocket::recvu4(int timeout_ms, unsigned int *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvu4(timeout_ms, b);
+   return socket->recvu4(timeout_ms, b, xsink);
 }
 
-int mySocket::recvu2LSB(int timeout_ms, unsigned short *b) {
+int64 mySocket::recvu2LSB(int timeout_ms, unsigned short *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvu2LSB(timeout_ms, b);
+   return socket->recvu2LSB(timeout_ms, b, xsink);
 }
 
-int mySocket::recvu4LSB(int timeout_ms, unsigned int *b) {
+int64 mySocket::recvu4LSB(int timeout_ms, unsigned int *b, ExceptionSink* xsink) {
    AutoLocker al(m);
-   return socket->recvu4LSB(timeout_ms, b);
+   return socket->recvu4LSB(timeout_ms, b, xsink);
 }
 
 // send HTTP message
-int mySocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *ptr, int size) {
+int mySocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int timeout_ms) {
    AutoLocker al(m);
-   return socket->sendHTTPMessage(xsink, info, method, path, http_version, headers, ptr, size);
+   return socket->sendHTTPMessage(xsink, info, method, path, http_version, headers, ptr, size, timeout_ms);
 }
 
 // send HTTP response
-int mySocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *ptr, int size) {
+int mySocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int timeout_ms) {
    AutoLocker al(m);
-   return socket->sendHTTPResponse(xsink, code, desc, http_version, headers, ptr, size);
+   return socket->sendHTTPResponse(xsink, code, desc, http_version, headers, ptr, size, timeout_ms);
 }
 
 // receive a binary message in HTTP chunked format

@@ -256,12 +256,16 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY *
 	 return -1;
       }
    }
-   
+
    ssl = SSL_new(ctx);
    if (!ssl) {
       sslError(xsink, mname, "SSL_new");
       return -1;
    }
+
+   // turn on SSL_MODE_ENABLE_PARTIAL_WRITE
+   SSL_set_mode(ssl, SSL_MODE_ENABLE_PARTIAL_WRITE);
+
    SSL_set_fd(ssl, sd);
    return 0;
 }
@@ -331,17 +335,15 @@ int SSLSocketHelper::shutdown(ExceptionSink *xsink) {
 }
 
 // returns 0 for success
-int SSLSocketHelper::write(ExceptionSink* xsink, const char* mname, const void* buf, int size) {
-   int rc;
-   if ((rc = SSL_write(ssl, buf, size)) <= 0) {
-      sslError(xsink, mname, "SSL_write");
-   }
-   return rc;
+int SSLSocketHelper::write(qore_socket_private &sock, const char* mname, const void* buf, int size, int timeout_ms, ExceptionSink* xsink) {
+   return doSSLRW(sock, mname, (void*)buf, size, timeout_ms, false, xsink);
 }
 
+/*
 int SSLSocketHelper::write(const void *buf, int size) {
    return SSL_write(ssl, buf, size);
 }
+*/
 
 const char *SSLSocketHelper::getCipherName() const {
    return SSL_get_cipher_name(ssl);
@@ -367,8 +369,8 @@ long SSLSocketHelper::verifyPeerCertificate() const {
 }
 
 struct qore_socketsource_private {
-   QoreStringNode *address;
-   QoreStringNode *hostname;
+   QoreStringNode* address;
+   QoreStringNode* hostname;
    
    DLLLOCAL qore_socketsource_private() : address(0), hostname(0) {
    }
@@ -474,13 +476,24 @@ void QoreSocket::doException(int rc, const char *meth, int timeout_ms, Exception
    }
 }
 
+struct qore_socket_private;
+class OptionalNonBlockingHelper {
+public:
+   qore_socket_private& sock;
+   ExceptionSink* xsink;
+   bool set;
+
+   DLLLOCAL OptionalNonBlockingHelper(qore_socket_private& s, bool n_set, ExceptionSink* xs);
+   DLLLOCAL ~OptionalNonBlockingHelper();
+};
+
 struct qore_socket_private {
    int sock, sfamily, port, stype, sprot; //, sendTimeout, recvTimeout;
-   const QoreEncoding *enc;
+   const QoreEncoding* enc;
    bool del;
    std::string socketname;
-   SSLSocketHelper *ssl;
-   Queue *cb_queue;
+   SSLSocketHelper* ssl;
+   Queue* cb_queue;
 
    DLLLOCAL qore_socket_private(int n_sock = QORE_INVALID_SOCKET, int n_sfamily = AF_UNSPEC, int n_stype = SOCK_STREAM, int n_prot = 0, const QoreEncoding *n_enc = QCS_DEFAULT) : sock(n_sock), sfamily(n_sfamily), port(-1), stype(n_stype), sprot(n_prot), enc(n_enc), del(false), ssl(0), cb_queue(0) {
       //sendTimeout = recvTimeout = -1
@@ -1599,7 +1612,7 @@ struct qore_socket_private {
 	 }
       }
       else
-	 rc = ssl->read(buf, bs, timeout, *this, meth, xsink);
+	 rc = ssl->read(*this, meth, buf, bs, timeout, xsink);
 
       if (rc > 0 && do_event) {
 	 // register event
@@ -1959,7 +1972,7 @@ struct qore_socket_private {
       return h;
    }
 
-   DLLLOCAL int send(ExceptionSink* xsink, const char* mname, const char *buf, qore_size_t size) {
+   DLLLOCAL int send(ExceptionSink* xsink, const char* mname, const char *buf, qore_size_t size, int timeout_ms = -1) {
       if (sock == QORE_INVALID_SOCKET) {
 	 if (xsink)
 	    se_not_open(mname, xsink);
@@ -1967,25 +1980,43 @@ struct qore_socket_private {
 	 return QSE_NOT_OPEN;
       }
 
+      // set the non-blocking flag (for use with non-ssl connections)
+      bool nb = (timeout_ms >= 0);
+      // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
+      OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
+      if (*xsink)
+         return -1;
+
+      qore_offset_t rc;
       qore_size_t bs = 0;
       while (true) {
-	 qore_offset_t rc;
-
-	 if (!ssl) {
-	    while (true) {
-	       rc = ::send(sock, buf + bs, size - bs, 0);
-	       // try again if we were interrupted by a signal
-	       if (rc >= 0)
-		  break;
-	       if (errno != EINTR) {
-		  if (xsink)
-		     xsink->raiseErrnoException("SOCKET-SEND-ERROR", errno, "error while executing Socket::%s()", mname);
-		  break;
-	       }
-	    }
-	 }
-	 else
-	    rc = ssl->write(xsink, mname, buf + bs, size - bs);
+         if (ssl) {
+            // SSL_MODE_ENABLE_PARTIAL_WRITE is enabled so we can get finer-grained socket events for do_send_event() below
+            rc = ssl->write(*this, mname, buf + bs, size - bs, timeout_ms, xsink);
+         }
+         else
+            while (true) {
+               rc = ::send(sock, buf + bs, size - bs, 0);
+               //printd(5, "qore_socket_private::send() this: %p Socket::%s() buf: %p size: "QLLD" timeout_ms: %d ssl: %p nb: %d bs: "QLLD" rc: "QLLD"\n", this, mname, buf, size, timeout_ms, ssl, nb, bs, rc);
+               // try again if we were interrupted by a signal
+               if (rc >= 0)
+                  break;
+               // check that the send finishes before the timeout if we are using non-blocking I/O
+               if (nb && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                  if (!isWriteFinished(timeout_ms)) {
+                     if (xsink)
+                        se_timeout(mname, timeout_ms, xsink);
+                     rc = QSE_TIMEOUT;
+                     break;
+                  }
+                  continue;
+               }
+               if (errno != EINTR) {
+                  if (xsink)
+                     xsink->raiseErrnoException("SOCKET-SEND-ERROR", errno, "error while executing Socket::%s()", mname);
+                  break;
+               }
+            }
 
 	 //printd(5, "qore_socket_private::send() bs=%ld rc="QSD" len="QSD" (total="QSD")\n", bs, rc, size - bs, size);
 	 if (rc < 0)
@@ -2003,7 +2034,7 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source) {
+   DLLLOCAL int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source, int timeout_ms = -1) {
       // prepare header string
       QoreString hdr(enc);
 
@@ -2022,13 +2053,13 @@ struct qore_socket_private {
       //printd(5, "qore_socket_private::sendHTTPMessage() hdr: %s\n", hdr.getBuffer());
 
       int rc;
-      if ((rc = send(xsink, "sendHTTPMessage", hdr.getBuffer(), hdr.strlen())))
+      if ((rc = send(xsink, "sendHTTPMessage", hdr.getBuffer(), hdr.strlen(), timeout_ms)))
 	 return rc;
       
-      return size && data ? send(xsink, "sendHTTPMessage", (char *)data, size) : 0;
+      return size && data ? send(xsink, "sendHTTPMessage", (char *)data, size, timeout_ms) : 0;
    }
 
-   DLLLOCAL int sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source) {
+   DLLLOCAL int sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source, int timeout_ms = -1) {
       // prepare header string
       QoreString hdr(enc);
 
@@ -2042,11 +2073,11 @@ struct qore_socket_private {
       //printd(5, "QoreSocket::sendHTTPResponse() data: %p size: %ld hdr: %s", data, size, hdr.getBuffer());
    
       int rc;
-      if ((rc = send(xsink, "sendHTTPResponse", hdr.getBuffer(), hdr.strlen())))
+      if ((rc = send(xsink, "sendHTTPResponse", hdr.getBuffer(), hdr.strlen(), timeout_ms)))
 	 return rc;
 
       if (size && data)
-	 return send(xsink, "sendHTTPResponse", (char *)data, size);
+	 return send(xsink, "sendHTTPResponse", (char *)data, size, timeout_ms);
       
       return 0;
    }
@@ -2096,80 +2127,104 @@ struct qore_socket_private {
    }
 };
 
-int SSLSocketHelper::read(char *buf, int size, int timeout_ms, qore_socket_private &sock, const char* mname, ExceptionSink* xsink) {
+int SSLSocketHelper::doSSLRW(qore_socket_private &sock, const char* mname, void* buf, int size, int timeout_ms, bool read, ExceptionSink* xsink) {
    if (timeout_ms < 0) {
-      int rc = SSL_read(ssl, buf, size);
-      if (rc < 0 && xsink) {
-	 if (!sslError(xsink, mname, "SSL_read", false))
-	    rc = 0;
+      while (true) {
+         int rc = read ? SSL_read(ssl, buf, size) : SSL_write(ssl, buf, size);
+         if (rc < 0) {
+            int err = SSL_get_error(ssl, rc);
+            if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE)
+               continue;
+
+            if (xsink && !sslError(xsink, mname, read ? "SSL_read" : "SSL_write", false))
+               rc = 0;
+         }
+         return rc;
       }
-      return rc;
    }
 
    // set non blocking
-   if (sock.set_non_blocking(true))
+   OptionalNonBlockingHelper(sock, true, xsink);
+   if (*xsink)
       return -1;
 
    int rc;
    while (true) {
-      rc = SSL_read(ssl, buf, size);
+      rc = read ? SSL_read(ssl, buf, size) : SSL_write(ssl, buf, size);
 
       if (rc >= 0)
-	 break;
+         break;
 
       if (rc < 0) {
-	 int err = SSL_get_error(ssl, rc);
+         int err = SSL_get_error(ssl, rc);
 
-	 if (err == SSL_ERROR_WANT_READ) {
-	    if (!sock.isDataAvailable(timeout_ms)) {
-	       if (xsink)
-		  se_timeout(mname, timeout_ms, xsink);
-	       rc = QSE_TIMEOUT;
-	       break;
-	    }
-	 }
-	 else if (err == SSL_ERROR_WANT_WRITE) {
-	    if (!sock.isWriteFinished(timeout_ms)) {
-	       if (xsink)
-		  se_timeout(mname, timeout_ms, xsink);
-	       rc = QSE_TIMEOUT;
-	       break;
-	    }
-	 }
-	 else if (err == SSL_ERROR_ZERO_RETURN) {
-	    rc = 0;
-	    break;
-	 }
-	 else if (err == SSL_ERROR_SYSCALL) {
-	    if (xsink) {
-	       if (!sslError(xsink, mname, "SSL_read", false)) {
-		  if (!rc) 
-		     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling SSL_read()", mname);
-		  else if (rc == -1)
-		     xsink->raiseErrnoException("SOCKET-SSL-ERROR", errno, "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_read()", meth);
-		  else
-		     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in SSL_read() but the error queue is empty", mname, rc);
-	       }
-	    }
+         if (err == SSL_ERROR_WANT_READ) {
+            if (!sock.isDataAvailable(timeout_ms)) {
+               if (xsink)
+                  se_timeout(mname, timeout_ms, xsink);
+               rc = QSE_TIMEOUT;
+               break;
+            }
+         }
+         else if (err == SSL_ERROR_WANT_WRITE) {
+            if (!sock.isWriteFinished(timeout_ms)) {
+               if (xsink)
+                  se_timeout(mname, timeout_ms, xsink);
+               rc = QSE_TIMEOUT;
+               break;
+            }
+         }
+         // here we allow the remote side to disconnect and return 0 the first time just like regular recv()
+         else if (read && err == SSL_ERROR_ZERO_RETURN) {
+            rc = 0;
+            break;
+         }
+         else if (err == SSL_ERROR_SYSCALL) {
+            if (xsink) {
+               if (!sslError(xsink, mname, read ? "SSL_read" : "SSL_write", false)) {
+                  if (!rc)
+                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling SSL_%s()", mname, read ? "read" : "write");
+                  else if (rc == -1)
+                     xsink->raiseErrnoException("SOCKET-SSL-ERROR", errno, "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_%s()", meth, read ? "read" : "write");
+                  else
+                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in SSL_%s() but the error queue is empty", mname, rc, read ? "read" : "write");
+               }
+            }
 
-	    rc = QSE_SSL_ERR;
-	    break;
-	 }
-	 else {
-	    //printd(0, "SSLSocketHelper::read(buf=%p, size=%d, to=%d) rc=%d err=%d\n", buf, size, timeout_ms, rc, err);
-	    if (xsink && !sslError(xsink, mname, "SSL_read", false))
-	       rc = 0;
-	    else
-	       rc = QSE_SSL_ERR;
-	    break;
-	 }	    
+            rc = QSE_SSL_ERR;
+            break;
+         }
+         else {
+            //printd(0, "SSLSocketHelper::doSSLRW(buf=%p, size=%d, to=%d) rc=%d err=%d\n", buf, size, timeout_ms, rc, err);
+            if (xsink && !sslError(xsink, mname, read ? "SSL_read" : "SSL_write", false))
+               rc = 0;
+            else
+               rc = QSE_SSL_ERR;
+            break;
+         }
       }
    }
 
-   sock.set_non_blocking(false);
-
-   //printd(5, "SSLSocketHelper::read(buf=%p, size=%d, to=%d) rc=%d\n", buf, size, timeout_ms, rc);
+   //printd(5, "SSLSocketHelper::doSSLRW(buf: %p, size: %d, to: %d, read: %d) rc: %d\n", buf, size, timeout_ms, (int)read, rc);
    return rc;
+}
+
+DLLLOCAL OptionalNonBlockingHelper::OptionalNonBlockingHelper(qore_socket_private& s, bool n_set, ExceptionSink* xs) : sock(s), xsink(xs), set(n_set) {
+   if (set) {
+      //printd(5, "OptionalNonBlockingHelper::OptionalNonBlockingHelper() this: %p\n", this);
+      sock.set_non_blocking(true, xsink);
+   }
+}
+
+DLLLOCAL OptionalNonBlockingHelper::~OptionalNonBlockingHelper() {
+   if (set) {
+      //printd(5, "OptionalNonBlockingHelper::~OptionalNonBlockingHelper() this: %p\n", this);
+      sock.set_non_blocking(false, xsink);
+   }
+}
+
+int SSLSocketHelper::read(qore_socket_private &sock, const char* mname, char *buf, int size, int timeout_ms, ExceptionSink* xsink) {
+   return doSSLRW(sock, mname, buf, size, timeout_ms, true, xsink);
 }
 
 QoreSocket::QoreSocket() : priv(new qore_socket_private) {
@@ -2445,6 +2500,46 @@ int QoreSocket::sendi8LSB(int64 i) {
    return priv->send(0, "sendi8LSB", (char *)&i, 8);
 }
 
+int QoreSocket::sendi1(char i, int timeout_ms, ExceptionSink* xsink) {
+   return priv->send(xsink, "sendi1", &i, 1, timeout_ms);
+}
+
+int QoreSocket::sendi2(short i, int timeout_ms, ExceptionSink* xsink) {
+   // convert to network byte order
+   i = htons(i);
+   return priv->send(xsink, "sendi2", (char *)&i, 2, timeout_ms);
+}
+
+int QoreSocket::sendi4(int i, int timeout_ms, ExceptionSink* xsink) {
+   // convert to network byte order
+   i = htonl(i);
+   return priv->send(xsink, "sendi4", (char *)&i, 4, timeout_ms);
+}
+
+int QoreSocket::sendi8(int64 i, int timeout_ms, ExceptionSink* xsink) {
+   // convert to network byte order
+   i = i8MSB(i);
+   return priv->send(xsink, "sendi8", (char *)&i, 8, timeout_ms);
+}
+
+int QoreSocket::sendi2LSB(short i, int timeout_ms, ExceptionSink* xsink) {
+   // convert to LSB byte order
+   i = i2LSB(i);
+   return priv->send(xsink, "sendi2LSB", (char *)&i, 2, timeout_ms);
+}
+
+int QoreSocket::sendi4LSB(int i, int timeout_ms, ExceptionSink* xsink) {
+   // convert to LSB byte order
+   i = i4LSB(i);
+   return priv->send(xsink, "sendi4LSB", (char *)&i, 4, timeout_ms);
+}
+
+int QoreSocket::sendi8LSB(int64 i, int timeout_ms, ExceptionSink* xsink) {
+   // convert to LSB byte order
+   i = i8LSB(i);
+   return priv->send(xsink, "sendi8LSB", (char *)&i, 8, timeout_ms);
+}
+
 // receive integer values and convert from network byte order
 int QoreSocket::recvi1(int timeout, char *val) {
    if (priv->sock == QORE_INVALID_SOCKET)
@@ -2680,6 +2775,204 @@ int QoreSocket::recvu4LSB(int timeout, unsigned int *val) {
    return 4;
 }
 
+int64 QoreSocket::recvi1(int timeout, char *val, ExceptionSink* xsink) {
+   return priv->recv(xsink, "recvi1", val, 1, 0, timeout);
+}
+
+int64 QoreSocket::recvi2(int timeout, short *val, ExceptionSink* xsink) {
+   char *buf = (char *)val;
+
+   qore_offset_t br = 0;
+   while (true) {
+      qore_offset_t rc = priv->recv(xsink, "recvi2", buf + br, 2 - br, 0, timeout);
+      if (rc <= 0)
+         return rc;
+
+      br += rc;
+
+      if (br >= 2)
+         break;
+   }
+
+   *val = ntohs(*val);
+   return 2;
+}
+
+int64 QoreSocket::recvi4(int timeout, int *val, ExceptionSink* xsink) {
+   char *buf = (char *)val;
+
+   qore_offset_t br = 0;
+   while (true) {
+      qore_offset_t rc = priv->recv(xsink, "recvi4", buf + br, 4 - br, 0, timeout);
+      if (rc <= 0)
+         return rc;
+
+      br += rc;
+
+      if (br >= 4)
+         break;
+   }
+
+   *val = ntohl(*val);
+   return 4;
+}
+
+int64 QoreSocket::recvi8(int timeout, int64 *val, ExceptionSink* xsink) {
+   char *buf = (char *)val;
+
+   qore_offset_t br = 0;
+   while (true) {
+      qore_offset_t rc = priv->recv(xsink, "recvi8", buf + br, 8 - br, 0, timeout);
+      if (rc <= 0)
+         return rc;
+
+      br += rc;
+
+      if (br >= 8)
+         break;
+   }
+
+   *val = MSBi8(*val);
+   return 8;
+}
+
+int64 QoreSocket::recvi2LSB(int timeout, short *val, ExceptionSink* xsink) {
+   char *buf = (char *)val;
+
+   qore_offset_t br = 0;
+   while (true) {
+      qore_offset_t rc = priv->recv(xsink, "recvi2LSB", buf + br, 2 - br, 0, timeout);
+      if (rc <= 0)
+         return rc;
+
+      br += rc;
+
+      if (br >= 2)
+         break;
+   }
+
+   *val = LSBi2(*val);
+   return 2;
+}
+
+int64 QoreSocket::recvi4LSB(int timeout, int *val, ExceptionSink* xsink) {
+   char *buf = (char *)val;
+
+   qore_offset_t br = 0;
+   while (true) {
+      qore_offset_t rc = priv->recv(xsink, "recvi4LSB", buf + br, 4 - br, 0, timeout);
+      if (rc <= 0)
+         return rc;
+
+      br += rc;
+
+      if (br >= 4)
+         break;
+   }
+
+   *val = LSBi4(*val);
+   return 4;
+}
+
+int64 QoreSocket::recvi8LSB(int timeout, int64 *val, ExceptionSink* xsink) {
+   char *buf = (char *)val;
+
+   qore_offset_t br = 0;
+   while (true) {
+      qore_offset_t rc = priv->recv(xsink, "recvi8LSB", buf + br, 8 - br, 0, timeout);
+      if (rc <= 0)
+         return rc;
+
+      br += rc;
+
+      if (br >= 8)
+         break;
+   }
+
+   *val = LSBi8(*val);
+   return 4;
+}
+
+int64 QoreSocket::recvu1(int timeout, unsigned char *val, ExceptionSink* xsink) {
+   return priv->recv(xsink, "recvu1", (char *)val, 1, 0, timeout);
+}
+
+int64 QoreSocket::recvu2(int timeout, unsigned short *val, ExceptionSink* xsink) {
+   char *buf = (char *)val;
+
+   qore_offset_t br = 0;
+   while (true) {
+      qore_offset_t rc = priv->recv(xsink, "recvu2", buf + br, 2 - br, 0, timeout);
+      if (rc <= 0)
+         return rc;
+
+      br += rc;
+
+      if (br >= 2)
+         break;
+   }
+
+   *val = ntohs(*val);
+   return 2;
+}
+
+int64 QoreSocket::recvu4(int timeout, unsigned int *val, ExceptionSink* xsink) {
+   char *buf = (char *)val;
+
+   qore_offset_t br = 0;
+   while (true) {
+      qore_offset_t rc = priv->recv(xsink, "recvu4", buf + br, 4 - br, 0, timeout);
+      if (rc <= 0)
+         return rc;
+
+      br += rc;
+
+      if (br >= 4)
+         break;
+   }
+
+   *val = ntohl(*val);
+   return 4;
+}
+
+int64 QoreSocket::recvu2LSB(int timeout, unsigned short *val, ExceptionSink* xsink) {
+   char *buf = (char *)val;
+
+   qore_offset_t br = 0;
+   while (true) {
+      qore_offset_t rc = priv->recv(xsink, "recvu2LSB", buf + br, 2 - br, 0, timeout);
+      if (rc <= 0)
+         return rc;
+
+      br += rc;
+
+      if (br >= 2)
+         break;
+   }
+
+   *val = LSBi2(*val);
+   return 2;
+}
+
+int64 QoreSocket::recvu4LSB(int timeout, unsigned int *val, ExceptionSink* xsink) {
+   char *buf = (char *)val;
+
+   qore_offset_t br = 0;
+   while (true) {
+      qore_offset_t rc = priv->recv(xsink, "recvu4LSB", buf + br, 4 - br, 0, timeout);
+      if (rc <= 0)
+         return rc;
+
+      br += rc;
+
+      if (br >= 4)
+         break;
+   }
+
+   *val = LSBi4(*val);
+   return 4;
+}
+
 int QoreSocket::send(int fd, qore_offset_t size) {
    if (priv->sock == QORE_INVALID_SOCKET || !size) {
       printd(5, "QoreSocket::send() ERROR: sock=%d size="QSD"\n", priv->sock, size);
@@ -2834,6 +3127,10 @@ int QoreSocket::sendHTTPMessage(QoreHashNode *info, const char *method, const ch
 
 int QoreSocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source) {
    return priv->sendHTTPMessage(xsink, info, method, path, http_version, headers, data, size, source);
+}
+
+int QoreSocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source, int timeout_ms) {
+   return priv->sendHTTPMessage(xsink, info, method, path, http_version, headers, data, size, source, timeout_ms);
 }
 
 // returns 0 for success
@@ -3329,6 +3626,10 @@ int QoreSocket::send(const char *buf, qore_size_t size, ExceptionSink* xsink) {
    return priv->send(xsink, "send", buf, size);
 }
 
+int QoreSocket::send(const char *buf, qore_size_t size, int timeout_ms, ExceptionSink* xsink) {
+   return priv->send(xsink, "send", buf, size, timeout_ms);
+}
+
 // converts to socket encoding if necessary
 int QoreSocket::send(const QoreString *msg, ExceptionSink *xsink) {
    TempEncodingHelper tstr(msg, priv->enc, xsink);
@@ -3338,12 +3639,25 @@ int QoreSocket::send(const QoreString *msg, ExceptionSink *xsink) {
    return priv->send(xsink, "send", (const char *)tstr->getBuffer(), tstr->strlen());
 }
 
+// converts to socket encoding if necessary
+int QoreSocket::send(const QoreString *msg, int timeout_ms, ExceptionSink *xsink) {
+   TempEncodingHelper tstr(msg, priv->enc, xsink);
+   if (!tstr)
+      return -1;
+
+   return priv->send(xsink, "send", (const char *)tstr->getBuffer(), tstr->strlen(), timeout_ms);
+}
+
 int QoreSocket::send(const BinaryNode *b) {
    return priv->send(0, "send", (char *)b->getPtr(), b->size());
 }
 
 int QoreSocket::send(const BinaryNode *b, ExceptionSink* xsink) {
    return priv->send(xsink, "send", (char *)b->getPtr(), b->size());
+}
+
+int QoreSocket::send(const BinaryNode *b, int timeout_ms, ExceptionSink* xsink) {
+   return priv->send(xsink, "send", (char *)b->getPtr(), b->size(), timeout_ms);
 }
 
 int QoreSocket::setSendTimeout(int ms) {

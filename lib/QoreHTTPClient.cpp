@@ -708,7 +708,7 @@ QoreHashNode *qore_qtc_private::getResponseHeader(const char *meth, const char *
       return 0;
 
    // send the message
-   int rc = m_socket.sendHTTPMessage(xsink, info, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, QORE_SOURCE_HTTPCLIENT);
+   int rc = m_socket.sendHTTPMessage(xsink, info, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, QORE_SOURCE_HTTPCLIENT, timeout);
 
    if (rc) {
       assert(*xsink);

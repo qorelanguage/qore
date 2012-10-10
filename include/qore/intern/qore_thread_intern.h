@@ -260,6 +260,8 @@ DLLLOCAL void parse_cond_push(bool mark = false);
 DLLLOCAL bool parse_cond_else();
 DLLLOCAL bool parse_cond_pop();
 DLLLOCAL void push_parse_options();
+DLLLOCAL void parse_try_module_inc();
+DLLLOCAL bool parse_try_module_dec();
 
 DLLLOCAL void parse_push_name(const char* name);
 DLLLOCAL std::string parse_pop_name();

@@ -93,8 +93,9 @@ module HttpServer {
     @code
 %requires HttpServer
 
-my code $log = sub (string str) {printf("%y: %s\n", now_us(), str);};
-my HttpServer $hs($log(), $log);
+my code $log = sub (string $str) {printf("%y: %s\n", now_us(), $str);};
+my HttpServer $hs($log, $log);
+# "$myHandler" must be an implementation of AbstractHttpRequestHandler
 $hs.setHandler("my-handler", "/", MimeTypeHtml, $myHandler);
 $hs.setDefaultHandler("my-handler", $myHandler);@endcode
  */
@@ -432,24 +433,29 @@ public class HttpServer::AbstractHttpRequestHandler {
         - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param body message body, if any
+
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response
         - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        @note the default implementation simply returns a 501 error code for all requests; reimplement this method in a subclass to provide the required functionality
     */
     hash handleRequest(hash $cx, hash $hdr, *data $body) {
-        return ("code": 501,
-                "body": "default handler has no implementation",
-                "close": True);        
+        return (
+            "code": 501,
+            "body": "default handler has no implementation",
+            "close": True,
+            );
     }
 
     #! helper method for handling log messages
-    /** 
-        @param cx the call context hash
+    /** @param cx the call context hash
         @param api the API description hash
         @param params a reference to the call parameters; the call context hash will be added as the first argument
         @param args an optional reference to a string describing the arguments
+
         @return a string if the message should be logged, otherwise NOTHING
     */
     static *string getLogMessage(hash $cx, hash $api, reference $params, *reference $args) {
@@ -499,13 +505,13 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 
     #! called before handleRequest() any data returned here will be given to restoreThreadLocalData() after the handleRequest() call
-    /** the default implementation does nothing
+    /** @note the default implementation does nothing
       */
     *hash saveThreadLocalData() {
     }
 
     #! called after handleRequest() with any data returned from saveThreadData()
-    /** the default implementation does nothing
+    /** @note the default implementation does nothing
       */
     restoreThreadLocalData(*hash $data) {
     }
@@ -1757,8 +1763,10 @@ public class HttpServer::HttpServer {
                 $close = boolean($rv.close);
 
             if ($rv.typeCode() == NT_STRING)
-                $rv = ("code": 200,
-                       "body": $rv);
+                $rv = (
+                    "code": 200,
+                    "body": $rv,
+                );
 
             $rv.close = $close;
 

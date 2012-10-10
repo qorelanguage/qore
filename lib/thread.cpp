@@ -237,6 +237,32 @@ public:
    }
 };
 
+struct ParseCountHelper {
+   unsigned count;
+
+   DLLLOCAL ParseCountHelper() : count (0) {
+   }
+
+   DLLLOCAL void inc() {
+      ++count;
+   }
+
+   DLLLOCAL bool dec() {
+      if (!count) {
+         parse_error("unmatched %%endif");
+         return false;
+      }
+      return !--count;
+   }
+
+   DLLLOCAL void purge() {
+      if (count) {
+         parse_error("%d %%catch-import-error block%s left open at end of file", count, count == 1 ? "" : "s");
+         count = 0;
+      }
+   }
+};
+
 struct ParseConditionalStack {
    unsigned count;
    unsigned mark;
@@ -352,8 +378,11 @@ public:
    // start of global thread-local variables for the current thread and program being parsed
    VNode* global_vnode;
 
-   // Maintaining the conditional parse block count for each file parsed
+   // Maintains the conditional parse block count for each file parsed
    ParseConditionalStack pcs;
+
+   // Maintains the %catch-import-error block count for each file
+   ParseCountHelper cie;
 
    // for capturing namespace and class names while parsing
    typedef std::vector<std::string> npvec_t;
@@ -373,8 +402,8 @@ public:
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
       current_pgm(p), current_ns(0), current_implicit_arg(0), tlpd(0), tpd(new ThreadProgramData(this)),
       closure_parse_env(0), closure_rt_env(0), 
-      returnTypeInfo(0), element(0), global_vnode(0), qmc(0),
-      qmd(0) {
+      returnTypeInfo(0), element(0), global_vnode(0),
+      qmc(0), qmd(0) {
  
 #ifdef QORE_MANAGE_STACK
 
@@ -839,6 +868,16 @@ void purge_thread_resources(ExceptionSink *xsink) {
    while (purge_thread_resources_to_mark(td, xsink));
 }
 
+void parse_try_module_inc() {
+   ThreadData *td = thread_data.get();
+   td->cie.inc();
+}
+
+bool parse_try_module_dec() {
+   ThreadData *td = thread_data.get();
+   return td->cie.dec();
+}
+
 void parse_cond_push(bool mark) {
    ThreadData *td = thread_data.get();
    td->pcs.push(mark);
@@ -903,6 +942,7 @@ void* endParsing() {
 
    // ensure there are no conditional blocks left open at EOF
    td->pcs.purge();
+   td->cie.purge();
    
    assert(td->plStack);
 

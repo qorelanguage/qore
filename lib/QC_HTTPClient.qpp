@@ -43,11 +43,11 @@
 
     HTTP proxies and basic proxy authentication are supported by setting the proxy constructor hash key to the proxy URL (with a proxy username and password if required) or by calling the HTTPClient::setProxyURL() method.
 
-    Objects of this class are thread-safe and support serializing multiple simultaneous requests from many threads. If a request is in progress and another thread attempts to make a request at the same time, the second thread will block until the first is complete. Therefore the total amount of time a thread could wait for a response in a multi-threaded context could be greater than the read timeout value.
+    Objects of this class are thread-safe and support serializing multiple simultaneous requests from many threads. If a request is in progress and another thread attempts to make a request at the same time, the second thread will block until the first is complete. Therefore the total amount of time a thread could wait for a response in a multi-threaded context could be greater than the timeout value (which applies to the maximum time a single internal send() or recv() action can take).
 
     This class understands and automatically decodes \c "deflate", \c "gzip", and \c "bzip2" content encodings as well.
 
-    The default read timeout value is 300,000 milliseconds (5 minutes). Note that the read timeout value applies to individual packets; for this reason for large transfers the overall read time could exceed the read timeout value.
+    The default I/O timeout value is 300,000 milliseconds (5 minutes). Note that the timeout value applies to individual internal send() or recv() operations; for this reason for large transfers the overall I/O time could exceed the timeout value.
 
     When an exception is thrown (for example, a response code of < \c 200 or >= \c 400 is received from the server), any message body returned will be in the \c "arg" key of the exception hash.
 
@@ -304,7 +304,7 @@ my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"applica
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
-    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
@@ -339,7 +339,7 @@ my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"applica
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
-    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
@@ -378,7 +378,7 @@ my *string $html = $httpclient.get("/path/file.html");
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
-    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
@@ -414,7 +414,7 @@ my hash $msg = $httpclient.head("/path");
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
-    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
@@ -453,7 +453,7 @@ $httpclient.post("/path", $body);
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
-    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
@@ -494,7 +494,7 @@ $httpclient.post("/path", $body);
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
-    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
@@ -509,8 +509,8 @@ $httpclient.post("/path", $body);
    return *xsink ? 0 : rv.release();
 }
 
-//! Sets the default read timeout in milliseconds
-/** @param timeout_ms 0 means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data). Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. 2m = two minutes, etc.).
+//! Sets the default I/O timeout value in milliseconds
+/** @param timeout_ms 0 means immediate timeout (when reading will return data only if it is already available), and negative numbers mean never timeout. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.).
 
     @par Example:
     @code
@@ -521,8 +521,8 @@ nothing HTTPClient::setTimeout(timeout timeout_ms = 0) {
    client->setTimeout((int)timeout_ms);
 }
 
-//! Returns the default read timeout as an integer in milliseconds
-/** @return the default read timeout as an integer in milliseconds; 0 means immediate timeout (only returns data if it is already available), and negative numbers mean never timeout (wait forever for data)
+//! Returns the default I/O timeout as an integer in milliseconds
+/** @return the default I/O timeout as an integer in milliseconds; 0 means immediate timeout (when reading only returns data if it is already available), and negative numbers mean never timeout
 
     @par Example:
     @code
@@ -723,7 +723,7 @@ nothing HTTPClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
 }
 
 //! Sets the connect timeout in milliseconds
-/** @param timeout_ms the connect timeout in milliseconds; negative numbers mean use the default system connect timeout. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. 30s = 30 seconds, etc.).
+/** @param timeout_ms the connect timeout in milliseconds; negative numbers mean use the default system connect timeout. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 30s = 30 seconds, etc.).
 
     @par Example:
     @code

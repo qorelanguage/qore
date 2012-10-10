@@ -45,8 +45,7 @@ bool inlist_intern(const AbstractQoreNode *arg, const QoreListNode *l, Exception
    return false;
 }
 
-QoreListNode *range_intern(int64 start, int64 stop, int64 step, ExceptionSink *xsink)
-{
+QoreListNode *range_intern(int64 start, int64 stop, int64 step, ExceptionSink *xsink) {
     if (step < 1) {
         xsink->raiseException("RANGE-ERROR", "Value of the 'step' argument has to be greater than 0");
         return 0;
@@ -66,7 +65,6 @@ QoreListNode *range_intern(int64 start, int64 stop, int64 step, ExceptionSink *x
     return l;
 }
 
-
 /** @defgroup list_functions List Functions
     List functions
  */
@@ -81,14 +79,14 @@ any sort(any arg) [flags=NOOP] {
 //! Performs an unstable sort in ascending order and returns the new list
 /** This variant will only sort basic data types
 
-    @param l the list to sort
-
-    @return the sorted list
-
     @par Example:
     @code
 my list $nl = sort($l);
     @endcode
+
+    @param l the list to sort
+
+    @return the sorted list
 
     @see
     - sortStable(list)
@@ -101,15 +99,15 @@ list sort(list l) [flags=CONSTANT] {
 
 //! Performs an unstable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the sorted list
-
     @par Example:
     @code
 my list $nl = sort($l, "my_sort_function");
     @endcode
+
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
 
     @see
     - sortStable(list, string)
@@ -123,16 +121,16 @@ list sort(list l, string func) [flags=RET_VALUE_ONLY] {
 
 //! Performs an unstable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the sorted list
-
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
 my list $nl = sort($l, $sort_func);
     @endcode
+
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
 
     @see
     - sortStable(list, code)
@@ -153,14 +151,14 @@ any sortDescending(any arg) [flags=NOOP] {
 //! Performs an unstable sort in descending order and returns the new list
 /** This variant will only sort basic data types
 
-    @param l the list to sort
-
-    @return the sorted list
-
     @par Example:
     @code
 my list $nl = sortDescending($l);
     @endcode
+
+    @param l the list to sort
+
+    @return the sorted list
 
     @see
     - sort(list)
@@ -173,15 +171,15 @@ list sortDescending(list l) [flags=CONSTANT] {
 
 //! Performs an unstable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the sorted list
-
     @par Example:
     @code
 my list $nl = sortDescending($l, "my_sort_function");
     @endcode
+
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
 
     @see
     - sortStable(list, string)
@@ -195,16 +193,16 @@ list sortDescending(list l, string func) [flags=CONSTANT] {
 
 //! Performs an unstable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the sorted list
-
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
 my list $nl = sortDescending($l, $sort_func);
     @endcode
+
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
 
     @see
     - sortStable(list, code)
@@ -225,14 +223,14 @@ any sortStable(any arg) [flags=NOOP] {
 //! Performs a stable sort in ascending order and returns the new list
 /** This variant will only sort basic data types
 
-    @param l the list to sort
-
-    @return the sorted list
-
     @par Example:
     @code
 my list $nl = sortStable($l);
     @endcode
+
+    @param l the list to sort
+
+    @return the sorted list
 
     @see
     - sort(list)
@@ -245,15 +243,15 @@ list sortStable(list l) [flags=CONSTANT] {
 
 //! Performs a stable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the sorted list
-
     @par Example:
     @code
 my list $nl = sortStable($l, "my_sort_function");
     @endcode
+
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
 
     @see
     - sort(list, string)
@@ -267,16 +265,16 @@ list sortStable(list l, string func) [flags=RET_VALUE_ONLY] {
 
 //! Performs a stable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the sorted list
-
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
 my list $nl = sortStable($l, $sort_func);
     @endcode
+
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
 
     @see
     - sort(list, code)
@@ -297,14 +295,14 @@ any sortDescendingStable(any arg) [flags=NOOP] {
 //! Performs a stable sort in descending order and returns the new list
 /** This variant will only sort basic data types
 
-    @param l the list to sort
-
-    @return the sorted list
-
     @par Example:
     @code
 my list $nl = sortDescendingStable($l);
     @endcode
+
+    @param l the list to sort
+
+    @return the sorted list
 
     @see
     - sort(list)
@@ -317,15 +315,15 @@ list sortDescendingStable(list l) [flags=CONSTANT] {
 
 //! Performs a stable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the sorted list
-
     @par Example:
     @code
 my list $nl = sortDescending($l, "my_sort_function");
     @endcode
+
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
 
     @see
     - sortStable(list, string)
@@ -339,16 +337,16 @@ list sortDescendingStable(list l, string func) [flags=RET_VALUE_ONLY] {
 
 //! Performs a stable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the sorted list
-
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
 my list $nl = sortDescending($l, $sort_func);
     @endcode
+
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
 
     @see
     - sortStable(list, code)
@@ -362,14 +360,14 @@ list sortDescendingStable(list l, code f) [flags=RET_VALUE_ONLY] {
 //! Returns the minumum value in a list
 /** This variant will only work on basic data types
 
-    @param l the list to process
-
-    @return the minumum value in a list
-
     @par Example:
     @code
 my any $v = min($l);
     @endcode
+
+    @param l the list to process
+
+    @return the minumum value in a list
 
     @see max(list)
 */
@@ -379,15 +377,15 @@ any min(list l) [flags=CONSTANT] {
 
 //! Returns the minumum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the minumum value in a list
-
     @par Example:
     @code
 my any $v = min($l, "my_sort_function");
     @endcode
+
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the minumum value in a list
 
     @see max(list, string)
 */
@@ -398,16 +396,16 @@ any min(list l, string func) [flags=RET_VALUE_ONLY] {
 
 //! Returns the minumum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the @ref call_reference "call reference" or a @ref closure "closure" must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the minumum value in a list
-
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
 my any $v = min($l, $sort_func);
     @endcode
+
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the @ref call_reference "call reference" or a @ref closure "closure" must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the minumum value in a list
 
     @see max(list, code)
 */
@@ -418,14 +416,14 @@ any min(list l, code f) [flags=RET_VALUE_ONLY] {
 //! Returns the minumum value of the arguments passed to the function
 /** This variant will only work on basic data types
 
-    @param ... the list of values to process given directly to the function
-
-    @return the minumum value in a list
-
     @par Example:
     @code
 my any $v = min($v1, $v2, $v3);
     @endcode
+
+    @param ... the list of values to process given directly to the function
+
+    @return the minumum value in a list
 
     @see max(...)
 */
@@ -436,14 +434,14 @@ any min(...) [flags=CONSTANT] {
 //! Returns the maximum value in a list
 /** This variant will only work on basic data types
 
-    @param l the list to process
-
-    @return the maximum value in a list
-
     @par Example:
     @code
 my any $v = max($l);
     @endcode
+
+    @param l the list to process
+
+    @return the maximum value in a list
 
     @see min(list)
 */
@@ -453,15 +451,15 @@ any max(list l) [flags=CONSTANT] {
 
 //! Returns the maximum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the maximum value in a list
-
     @par Example:
     @code
 my any $v = max($l, "my_sort_function");
     @endcode
+
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the maximum value in a list
 
     @see min(list, string)
 */
@@ -472,16 +470,16 @@ any max(list l, string func) [flags=RET_VALUE_ONLY] {
 
 //! Returns the maximum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
 /** 
-    @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the @ref call_reference "call reference" or a @ref closure "closure" must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
-
-    @return the maximum value in a list
-
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
 my any $v = max($l, $sort_func);
     @endcode
+
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the @ref call_reference "call reference" or a @ref closure "closure" must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the maximum value in a list
 
     @see min(list, code)
 */
@@ -492,14 +490,14 @@ any max(list l, code f) [flags=RET_VALUE_ONLY] {
 //! Returns the maximum value of the arguments passed to the function
 /** This variant will only work on basic data types
 
-    @param ... the list of values to process given directly to the function
-
-    @return the maximum value in a list
-
     @par Example:
     @code
 my any $v = max($v1, $v2, $v3);
     @endcode
+
+    @param ... the list of values to process given directly to the function
+
+    @return the maximum value in a list
 
     @see min(...)
 */
@@ -515,14 +513,14 @@ nothing reverse() [flags=NOOP] {
 
 //! Reverses a list and returns the new list
 /** 
-    @param l the list to reverse
-    
-    @return the given list with all elements in reverse order
-
     @par Example:
     @code
 my list $nl = reverse($l);
     @endcode
+
+    @param l the list to reverse
+
+    @return the given list with all elements in reverse order
 
     @see reverse(string)
 */
@@ -546,16 +544,16 @@ bool inlist(any[doc] arg, nothing[doc] x) [flags=NOOP] {
 
 //! Returns @ref True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), @ref False if not
 /** 
-    @param arg the argument to look for in the list
-    @param l the list to search for the first argument \a arg
-
-    @return @ref True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), @ref False if not
-
     @par Example:
     @code
 if (inlist($str, $strlist))
     printf("%y is in %y\n", $str, $strlist);
     @endcode
+
+    @param arg the argument to look for in the list
+    @param l the list to search for the first argument \a arg
+
+    @return @ref True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), @ref False if not
 
     @see inlist_hard(any, softlist)
 */
@@ -579,16 +577,16 @@ bool inlist_hard(any[doc] arg, nothing[doc] x) [flags=NOOP] {
 
 //! Returns @ref True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), @ref False if not
 /** 
-    @param arg the argument to look for in the list
-    @param l the list to search for the first argument \a arg
-
-    @return @ref True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), @ref False if not
-
     @par Example:
     @code
 if (inlist_hard($str, $strlist))
     printf("%y is in %y\n", $str, $strlist);
     @endcode
+
+    @param arg the argument to look for in the list
+    @param l the list to search for the first argument \a arg
+
+    @return @ref True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), @ref False if not
 
     @see inlist(any, softlist)
 */
@@ -618,18 +616,10 @@ bool inlist_hard(any arg, softlist l) [flags=RET_VALUE_ONLY] {
    return false;
 }
 
-
 //! Returns a list containing an arithmetic progression of integers.
 /**
-    @param start the initial value
-    @param stop the final value
-    @param step the step. Default is 1. It throws \c RANGE-ERROR exception if is the \c step < 1
-
-    @return Returns a list containing an arithmetic progression of integers.
-
     @par Example:
     @code
-range(1); # (0, 1,)
 range(2, 5); # (2, 3, 4, 5)
 range(2, -2); # (2, 1, 0, -1, -2)
 range(1, 10, 5); # (1, 6)
@@ -637,22 +627,34 @@ range(0, 10, 5); # (0, 5, 10)
 range(-10, 10, 5); # (-10, -5, 0, 5, 10)
 range(10, -10, 5); # (10, 5, 0, -5, -10)
     @endcode
+
+    @param start the initial value
+    @param stop the final value
+    @param step the step; the default is 1; must be greater than 0; the function throws a \c RANGE-ERROR exception when this argument is < 1
+
+    @return Returns a list containing an arithmetic progression of integers.
+
+    @throw RANGE-ERROR this exception is thrown if \c step < 1
 */
-list range(int start, int stop, int step=1) [flags=RET_VALUE_ONLY] {
+list range(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
     return range_intern(start, stop, step, xsink);
 }
 
 //! Returns a list containing an arithmetic progression of integers with start = 0 and step = 1.
 /**
-    This is an overloaded version of \c range(start, stop, step). With meaning \c range(0, stop, 1).
+    This is an overloaded version of range(int, int, int) meaning \c range(0, \c stop, 1)
+
+    @par Example:
+    @code
+range(1); # (0, 1)
+range(-3); # (0, -1, -2, -3)
+    @endcode
 
     @param stop the final value
 
     @return Returns a list containing an arithmetic progression of integers with start = 0 and step = 1.
  */
-list range(int stop) [flags=RET_VALUE_ONLY] {
+list range(int stop) [flags=CONSTANT] {
     return range_intern(0, stop, 1, xsink);
 }
-
-
 //@}

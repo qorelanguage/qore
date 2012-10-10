@@ -311,7 +311,7 @@ static int64 parse_get_integer(const char *str) {
    errno = 0;
    int64 rv = strtoll(str, 0, 10);
    if (errno == ERANGE)
-      parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point number instead (integers must be in the range "QLLD" to "QLLD")", str, -LLONG_MAX, LLONG_MAX);
+      parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range "QLLD" (MININT) to "QLLD" (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);
    return rv;
 }
 
@@ -555,7 +555,7 @@ bool parse_is_defined(const char *pstr, bool def = true) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd set_zone
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd set_zone try_module p_skip_to_endtry
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -665,6 +665,80 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
 ^%exec-class{WS}*$                      { parse_error("missing argument to %%exec-class"); }
 ^%exec-class{WS}*                       BEGIN(exec_class_state);
+^%try-module                            BEGIN(try_module);
+<try_module>[^\t\n\r]+                  {
+                                           parse_try_module_inc();
+                                           QoreString str(yytext);
+                                           str.trim();
+                                           const char *p = str.getBuffer();
+                                           const char *op = strchr(p, '(');
+                                           bool require_dollar = !(getProgram()->getParseOptions64() & PO_REQUIRE_BARE_REFS);
+                                           if (!op) {
+                                              parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing open parenthesis '(' before variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", p);
+                                              BEGIN(INITIAL);
+                                           }
+                                           else {
+                                              p = op + 1;
+                                              const char *cp = strchr(p, ')');
+                                              if (!cp) {
+                                                 parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                 BEGIN(INITIAL);
+                                              }
+                                              else {
+                                                 // get variablt name
+                                                 QoreString var(p, cp - p);
+                                                 var.trim();
+
+                                                 // remove preface from string leaving only the rest
+                                                 str.replace(0, cp - str.getBuffer() + 1, (const char *)0);
+                                                 str.trim();
+                                                 if (str.empty()) {
+                                                    parse_error("%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                    BEGIN(INITIAL);
+                                                 }
+                                                 else {
+                                                    //printd(5, "scanner requesting feature: '%s'\n", cn);
+                                                    QoreProgram* pgm = getProgram();
+                                                    ExceptionSink* xsink = pgm->getParseExceptionSink();
+                                                    assert(xsink);
+                                                    QMM.parseLoadModule(str.getBuffer(), pgm, *xsink);
+                                                    if (!*xsink) {
+                                                       BEGIN(p_skip_to_endtry);
+                                                    }
+                                                    else {
+                                                       BEGIN(INITIAL);
+                                                       // xxx
+                                                       yylval->trymod = new TryModuleError(var.giveBuffer(), xsink->catchException());
+                                                       return TRY_MODULE_ERROR;
+                                                    }
+                                                 }
+                                              }
+                                           }
+                                        }
+<p_skip_to_endtry>{
+   ^%endtry{WS}*$                       {
+                                           if (parse_try_module_dec()) {
+                                              //printd(5, "p_skip_to_endtry: found %%endtry (%s) (final)\n", yytext);
+                                              BEGIN(INITIAL);
+                                           }
+#ifdef DEBUG
+                                           //else
+                                           //printd(5, "p_skip_to_endif: found %%endif (%s) (not final)\n", yytext);
+#endif
+                                        }
+   ^.*                                  {
+                                           if (!strncmp("%try-module", yytext, 11)) {
+                                              //printd(5, "p_skip_to_endif: found %%ifdef (%s); skipping\n", yytext);
+                                              parse_try_module_inc();
+                                           }
+#ifdef DEBUG
+                                           // ignore other text
+                                           //printd(5, "p_skip_to_endif: %s\n", yytext);
+#endif
+                                        }
+   \n                                   // ignore
+}
+^%endtry{WS}*$                          parse_try_module_dec();
 ^%requires                              BEGIN(requires);
 <requires>[^\t\n\r]+                    {
                                            const char *cn = trim_inplace(yytext);

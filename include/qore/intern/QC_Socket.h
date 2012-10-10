@@ -98,22 +98,22 @@ public:
    DLLLOCAL int listen();
    // send a buffer of a particular size
    DLLLOCAL int send(const char *buf, int size);
-   DLLLOCAL int send(const char *buf, int size, ExceptionSink* xsink);
+   DLLLOCAL int send(const char *buf, int size, int timeout_ms, ExceptionSink* xsink);
    // send a null-terminated string
-   DLLLOCAL int send(const QoreString *msg, ExceptionSink *xsink);
+   DLLLOCAL int send(const QoreString *msg, int timeout_ms, ExceptionSink *xsink);
    // send a binary object
    DLLLOCAL int send(const BinaryNode *b);
-   DLLLOCAL int send(const BinaryNode *b, ExceptionSink* xsink);
+   DLLLOCAL int send(const BinaryNode *b, int timeout_ms, ExceptionSink* xsink);
    // send from a file descriptor
    DLLLOCAL int send(int fd, int size = -1);
    // send bytes and convert to network order
-   DLLLOCAL int sendi1(char b);
-   DLLLOCAL int sendi2(short b);
-   DLLLOCAL int sendi4(int b);
-   DLLLOCAL int sendi8(int64 b);
-   DLLLOCAL int sendi2LSB(short b);
-   DLLLOCAL int sendi4LSB(int b);
-   DLLLOCAL int sendi8LSB(int64 b);
+   DLLLOCAL int sendi1(char b, int timeout_ms, ExceptionSink* xsink);
+   DLLLOCAL int sendi2(short b, int timeout_ms, ExceptionSink* xsink);
+   DLLLOCAL int sendi4(int b, int timeout_ms, ExceptionSink* xsink);
+   DLLLOCAL int sendi8(int64 b, int timeout_ms, ExceptionSink* xsink);
+   DLLLOCAL int sendi2LSB(short b, int timeout_ms, ExceptionSink* xsink);
+   DLLLOCAL int sendi4LSB(int b, int timeout_ms, ExceptionSink* xsink);
+   DLLLOCAL int sendi8LSB(int64 b, int timeout_ms, ExceptionSink* xsink);
    // receive a message
    DLLLOCAL QoreStringNode* recv(int timeout, ExceptionSink* xsink);
    // receive a certain number of bytes as a string
@@ -125,22 +125,22 @@ public:
    // receive and write data to a file descriptor
    DLLLOCAL int recv(int fd, int size, int timeout);
    // receive integers and convert from network byte order
-   DLLLOCAL int recvi1(int timeout, char *b);
-   DLLLOCAL int recvi2(int timeout, short *b);
-   DLLLOCAL int recvi4(int timeout, int *b);
-   DLLLOCAL int recvi8(int timeout, int64 *b);
-   DLLLOCAL int recvi2LSB(int timeout, short *b);
-   DLLLOCAL int recvi4LSB(int timeout, int *b);
-   DLLLOCAL int recvi8LSB(int timeout, int64 *b);
-   DLLLOCAL int recvu1(int timeout, unsigned char *b);
-   DLLLOCAL int recvu2(int timeout, unsigned short *b);
-   DLLLOCAL int recvu4(int timeout, unsigned int *b);
-   DLLLOCAL int recvu2LSB(int timeout, unsigned short *b);
-   DLLLOCAL int recvu4LSB(int timeout, unsigned int *b);
+   DLLLOCAL int64 recvi1(int timeout, char *b, ExceptionSink* xsink);
+   DLLLOCAL int64 recvi2(int timeout, short *b, ExceptionSink* xsink);
+   DLLLOCAL int64 recvi4(int timeout, int *b, ExceptionSink* xsink);
+   DLLLOCAL int64 recvi8(int timeout, int64 *b, ExceptionSink* xsink);
+   DLLLOCAL int64 recvi2LSB(int timeout, short *b, ExceptionSink* xsink);
+   DLLLOCAL int64 recvi4LSB(int timeout, int *b, ExceptionSink* xsink);
+   DLLLOCAL int64 recvi8LSB(int timeout, int64 *b, ExceptionSink* xsink);
+   DLLLOCAL int64 recvu1(int timeout, unsigned char *b, ExceptionSink* xsink);
+   DLLLOCAL int64 recvu2(int timeout, unsigned short *b, ExceptionSink* xsink);
+   DLLLOCAL int64 recvu4(int timeout, unsigned int *b, ExceptionSink* xsink);
+   DLLLOCAL int64 recvu2LSB(int timeout, unsigned short *b, ExceptionSink* xsink);
+   DLLLOCAL int64 recvu4LSB(int timeout, unsigned int *b, ExceptionSink* xsink);
    // send HTTP message
-   DLLLOCAL int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *ptr, int size);
+   DLLLOCAL int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int timeout_ms);
    // send HTTP response
-   DLLLOCAL int sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *ptr, int size);
+   DLLLOCAL int sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int timeout_ms);
    // read and parse HTTP header
    DLLLOCAL AbstractQoreNode *readHTTPHeader(ExceptionSink* xsink, QoreHashNode* info, int timeout);
    // receive a binary message in HTTP chunked format

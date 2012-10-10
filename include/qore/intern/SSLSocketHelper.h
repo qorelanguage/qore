@@ -41,7 +41,10 @@ private:
    SSL_CTX *ctx;
    SSL *ssl;
 
-   DLLLOCAL int setIntern(const char* meth, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
+   DLLLOCAL int setIntern(const char* meth, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
+
+   // do blocking or non-blocking SSL I/O and handle SSL_ERROR_WANT_READ and SSL_ERROR_WANT_WRITE properly
+   DLLLOCAL int doSSLRW(qore_socket_private &sock, const char* mname, void* buf, int num, int timeout_ms, bool read, ExceptionSink* xsink);
 
 public:
    DLLLOCAL SSLSocketHelper() : meth(0), ctx(0), ssl(0) {
@@ -66,10 +69,9 @@ public:
    // returns 0 for success
    DLLLOCAL int shutdown(ExceptionSink *xsink);
    // read with optional timeout in milliseconds
-   DLLLOCAL int read(char *buf, int size, int timeout_ms, qore_socket_private &sock, const char* mname, ExceptionSink* xsink);
+   DLLLOCAL int read(qore_socket_private &sock, const char* mname, char *buf, int size, int timeout_ms, ExceptionSink* xsink);
    // returns 0 for success
-   DLLLOCAL int write(ExceptionSink* xsink, const char* mname, const void* buf, int size);
-   DLLLOCAL int write(const void *buf, int size);
+   DLLLOCAL int write(qore_socket_private &sock, const char* mname, const void* buf, int size, int timeout_ms, ExceptionSink* xsink);
    DLLLOCAL const char *getCipherName() const;
    DLLLOCAL const char *getCipherVersion() const;
    DLLLOCAL X509 *getPeerCertificate() const;
