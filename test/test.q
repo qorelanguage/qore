@@ -271,6 +271,15 @@ sub array_tests() {
     test_value($astr[2], "l", "string element dereference");
     my binary $bin = binary($astr);
     test_value($bin[4], ord("o"), "binary byte dereference");
+    
+    # range tests
+    test_value(range(1), (0, 1,), "range - basic test");
+    test_value(range(2, 5), (2, 3, 4, 5), "range - boundaries test");
+    test_value(range(2, -2), (2, 1, 0, -1, -2), "range - descending test");
+    test_value(range(1, 10, 5), (1, 6), "range - step test");
+    test_value(range(0, 10, 5), (0, 5, 10), "range - step from 0");
+    test_value(range(-10, 10, 5), (-10, -5, 0, 5, 10), "range - asc test");
+    test_value(range(10, -10, 5), (10, 5, 0, -5, -10), "range - descending step test");
 
     # pseudomethods
     my list $pseudoList = (1, 2, 3, 4, 'a');

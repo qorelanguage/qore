@@ -45,6 +45,27 @@ bool inlist_intern(const AbstractQoreNode *arg, const QoreListNode *l, Exception
    return false;
 }
 
+QoreListNode *range_intern(int64 start, int64 stop, int64 step, ExceptionSink *xsink)
+{
+    if (step < 1) {
+        xsink->raiseException("RANGE-ERROR", "Value of the 'step' argument has to be greater than 0");
+        return 0;
+    }
+
+    QoreListNode *l = new QoreListNode();
+    if (start < stop) {
+        for (int64 i = start; i <= stop; i += step) {
+            l->push(new QoreBigIntNode(i));
+        }
+    }
+    else {
+        for (int64 i = start; i >= stop; i -= step) {
+            l->push(new QoreBigIntNode(i));
+        }
+    }
+    return l;
+}
+
 
 /** @defgroup list_functions List Functions
     List functions
@@ -596,4 +617,42 @@ bool inlist_hard(any arg, softlist l) [flags=RET_VALUE_ONLY] {
    }
    return false;
 }
+
+
+//! Returns a list containing an arithmetic progression of integers.
+/**
+    @param start the initial value
+    @param stop the final value
+    @param step the step. Default is 1. It throws \c RANGE-ERROR exception if is the \c step < 1
+
+    @return Returns a list containing an arithmetic progression of integers.
+
+    @par Example:
+    @code
+range(1); # (0, 1,)
+range(2, 5); # (2, 3, 4, 5)
+range(2, -2); # (2, 1, 0, -1, -2)
+range(1, 10, 5); # (1, 6)
+range(0, 10, 5); # (0, 5, 10)
+range(-10, 10, 5); # (-10, -5, 0, 5, 10)
+range(10, -10, 5); # (10, 5, 0, -5, -10)
+    @endcode
+*/
+list range(int start, int stop, int step=1) [flags=RET_VALUE_ONLY] {
+    return range_intern(start, stop, step, xsink);
+}
+
+//! Returns a list containing an arithmetic progression of integers with start = 0 and step = 1.
+/**
+    This is an overloaded version of \c range(start, stop, step). With meaning \c range(0, stop, 1).
+
+    @param stop the final value
+
+    @return Returns a list containing an arithmetic progression of integers with start = 0 and step = 1.
+ */
+list range(int stop) [flags=RET_VALUE_ONLY] {
+    return range_intern(0, stop, 1, xsink);
+}
+
+
 //@}
