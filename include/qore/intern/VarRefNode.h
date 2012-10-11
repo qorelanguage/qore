@@ -313,6 +313,16 @@ public:
    }
 };
 
+// special thread-local variables with global scope used to handle module loading errors, created by the %try-module parse directive if module loading fails
+class VarRefTryModuleErrorNode : public VarRefDeclNode {
+public:
+   DLLLOCAL VarRefTryModuleErrorNode(int sl, int el, char* n) : VarRefDeclNode(sl, el, n, VT_LOCAL, hashTypeInfo) {
+   }
+
+   DLLLOCAL virtual ~VarRefTryModuleErrorNode() {
+   }
+};
+
 class VarRefFunctionCallBase : public FunctionCallBase {
 protected:
 

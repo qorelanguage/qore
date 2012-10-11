@@ -1475,6 +1475,22 @@ top_level_command:
 
            // registered internally
         }
+        | TRY_MODULE_ERROR {
+           bool has_dollar = $1->var[0] == '$';
+           if (!has_dollar) {
+              if (!checkParseOption(PO_ALLOW_BARE_REFS))
+                 parse_error("%%try-module variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $1->var);
+           }
+           else {
+              $1->fixName();
+              if (checkParseOption(PO_ALLOW_BARE_REFS))
+                 parse_error("%%try-module variable '%s' declared with '$' prefix, but parse option 'allow-bare-refs' is set", $1->var);
+           }
+
+           VarRefTryModuleErrorNode* left = new VarRefTryModuleErrorNode(@1.first_line, @1.last_line, $1->takeName());
+           QoreAssignmentOperatorNode* exp = new QoreAssignmentOperatorNode(left, $1->takeExceptionHash());
+           getProgram()->addStatement(new ExpressionStatement(@1.first_line, @1.last_line, exp));
+        }
 	;
 
 module_decls:

@@ -30,6 +30,8 @@
 #define HE_TAG_CONST        1
 #define HE_TAG_SCOPED_CONST 2
 
+#include <string.h>
+
 class QoreParserLocation {
 private:
    bool explicit_first;
@@ -52,7 +54,6 @@ struct TryModuleError {
    QoreException* ex;
 
    DLLLOCAL TryModuleError(char* v, QoreException* e) : var(v), ex(e) {
-
    }
 
    DLLLOCAL ~TryModuleError() {
@@ -61,11 +62,32 @@ struct TryModuleError {
       if (ex)
          ex->del(0);
    }
+
+   // move down string to remove '$' sign from beginning
+   DLLLOCAL void fixName() {
+      size_t len = strlen(var);
+      assert(len);
+      // move string + trailing null
+      memmove(var, var + 1, len);
+   }
+
+   DLLLOCAL QoreHashNode* takeExceptionHash() {
+      assert(ex);
+      QoreHashNode* h = ex->makeExceptionObjectAndDelete(0);
+      ex = 0;
+      return h;
+   }
+
+   DLLLOCAL char* takeName() {
+      char* str = var;
+      var = 0;
+      return str;
+   }
 };
 
 #define YYLTYPE class QoreParserLocation
 
-// private interface to bison/flex parser/scannertypedef void *yyscan_t;
+// private interface to bison/flex parser/scanner
 typedef void *yyscan_t;
 DLLLOCAL extern int yyparse(yyscan_t yyscanner);
 DLLLOCAL extern struct yy_buffer_state *yy_scan_string(const char *, yyscan_t scanner);

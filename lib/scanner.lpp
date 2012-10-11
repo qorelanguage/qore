@@ -685,31 +685,37 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                                  BEGIN(INITIAL);
                                               }
                                               else {
-                                                 // get variablt name
+                                                 // get variable name
                                                  QoreString var(p, cp - p);
                                                  var.trim();
 
-                                                 // remove preface from string leaving only the rest
-                                                 str.replace(0, cp - str.getBuffer() + 1, (const char *)0);
-                                                 str.trim();
-                                                 if (str.empty()) {
-                                                    parse_error("%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                 if (var.empty()) {
+                                                    parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
                                                     BEGIN(INITIAL);
                                                  }
                                                  else {
-                                                    //printd(5, "scanner requesting feature: '%s'\n", cn);
-                                                    QoreProgram* pgm = getProgram();
-                                                    ExceptionSink* xsink = pgm->getParseExceptionSink();
-                                                    assert(xsink);
-                                                    QMM.parseLoadModule(str.getBuffer(), pgm, *xsink);
-                                                    if (!*xsink) {
-                                                       BEGIN(p_skip_to_endtry);
+                                                    // remove preface from string leaving only the rest
+                                                    str.replace(0, cp - str.getBuffer() + 1, (const char *)0);
+                                                    str.trim();
+                                                    if (str.empty()) {
+                                                       parse_error("%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                       BEGIN(INITIAL);
                                                     }
                                                     else {
-                                                       BEGIN(INITIAL);
-                                                       // xxx
-                                                       yylval->trymod = new TryModuleError(var.giveBuffer(), xsink->catchException());
-                                                       return TRY_MODULE_ERROR;
+                                                       //printd(5, "scanner requesting feature: '%s'\n", cn);
+                                                       QoreProgram* pgm = getProgram();
+                                                       ExceptionSink* xsink = pgm->getParseExceptionSink();
+                                                       assert(xsink);
+                                                       QMM.parseLoadModule(str.getBuffer(), pgm, *xsink);
+                                                       if (!*xsink) {
+                                                          BEGIN(p_skip_to_endtry);
+                                                       }
+                                                       else {
+                                                          BEGIN(INITIAL);
+                                                          // xxx
+                                                          yylval->trymod = new TryModuleError(var.giveBuffer(), xsink->catchException());
+                                                          return TRY_MODULE_ERROR;
+                                                       }
                                                     }
                                                  }
                                               }
