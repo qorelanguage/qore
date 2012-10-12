@@ -699,6 +699,8 @@ select (1, 2, 3, 4, 5, 6), !($1 % 2);
 
     This operator does not throw any exceptions.
 
+    @see @ref <value>::size()
+
     <hr>
     @section keys Keys Operator (keys)
 
@@ -722,6 +724,10 @@ foreach my string $key in (keys $hash)
     |\a hash_expression|Returns a list of strings giving the keys in \a hash_expression, which must evaluate to a hash. If not, then no value is returned.
 
     This operator does not throw any exceptions.
+
+    @see
+    - @ref <hash>::keys()
+    - @ref <object>::keys()
 
     <hr>
     @section multiplication_operator Multiply Operator (*)

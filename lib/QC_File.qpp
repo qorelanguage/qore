@@ -1270,7 +1270,7 @@ nothing File::setCharset(*string encoding) {
 
     @return the @ref character_encoding "character encoding" for the %File
  */
-string File::getEncoding() {
+string File::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(f->getEncoding()->getCode());
 }
 
@@ -1282,7 +1282,7 @@ string File::getEncoding() {
 
     @return the @ref character_encoding "character encoding" for the %File
  */
-string File::getCharset() {
+string File::getCharset() [flags=CONSTANT] {
    return new QoreStringNode(f->getEncoding()->getCode());
 }
 
@@ -1295,6 +1295,8 @@ string File::getCharset() {
     @return the new offset in the file, -1 for error
 
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @see File::getPos()
  */
 int File::setPos(int pos = 0) {
    if (check_terminal_io(self, "setPos", xsink))
@@ -1310,8 +1312,10 @@ int File::setPos(int pos = 0) {
     @return the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
 
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @see File::setPos()
  */
-int File::getPos() {
+int File::getPos() [flags=RET_VALUE_ONLY] {
    if (check_terminal_io(self, "getPos", xsink))
       return 0;
 
@@ -1447,7 +1451,7 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
     @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref Qore::Option::HAVE_FILE_LOCKING before calling this function.
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
-hash File::getLockInfo() {
+hash File::getLockInfo() [flags=RET_VALUE_ONLY] {
 #ifdef HAVE_STRUCT_FLOCK
    if (check_terminal_io(self, "getLockInfo", xsink))
       return 0;
@@ -1505,7 +1509,7 @@ nothing File::chown(softint uid, softint gid = -1) {
 
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
-bool File::isDataAvailable(timeout timeout_ms = 0) {
+bool File::isDataAvailable(timeout timeout_ms = 0) [flags=RET_VALUE_ONLY] {
    if (check_terminal_io(self, "isDataAvailable", xsink))
       return 0;
 
@@ -1706,7 +1710,7 @@ hash File::statvfs() {
     @par Example:
     @code my bool $b = $file.isOpen();@endcode
 */
-bool File::isOpen() {
+bool File::isOpen() [flags=CONSTANT] {
    return f->isOpen();
 }
 

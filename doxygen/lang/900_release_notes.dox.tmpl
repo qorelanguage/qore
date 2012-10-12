@@ -108,6 +108,7 @@
     - fixed bugs in regexes in the HttpServer::addListeners() and HttpServer::addListenersWithHandler() methods (HttpServer module version updated to 0.3.5)
     - fixed bugs handling non-blocking reads in the @ref Qore::Socket "Socket" class; the timeout setting was only enforced for the first read; subsequent reads were made as blocking reads
     - fixed a bug handling in the @ref Qore::Socket "Socket" class when the SSL session requires renegotiation during non-blocking I/O
+    - added code tags to @ref Qore::File "File" methods without side effects
     - made many minor documentation fixes
 
     @section qore_0851 Qore 0.8.5.1
