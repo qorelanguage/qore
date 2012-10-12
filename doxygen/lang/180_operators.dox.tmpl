@@ -604,16 +604,20 @@ my list $l = map $1 * 2, (1, 2, 3);
     @par Return Type
     @ref any_type "any"
 
-    @par Example
+    @par Examples
+    The following returns <tt><b>foldl</b></tt> expression returns \c 5
     @code
-# returns 5
-foldl $1 - $2, (10, 4, 1);
+my int $result = foldl $1 - $2, (10, 4, 1);
+    @endcode
+    \n The following <tt><b>foldl</b></tt> expression joins a list with \c ", " or returns a single argument (if the second operand is not a list)
+    @code
+my string $str = foldl $1 + ", " + $2, $list;
     @endcode
 
     <b>Arguments Processed by foldl</b>
     |!Argument|!Processing
     |\a expression|The expression to fold on the list; the implicit argument <tt>$1</tt> represents the result of the last operation (or the first element in the list when beginning the fold), and <tt>$2</tt> represents the next element of the list.
-    |\a list_expression|The list to process
+    |\a list_expression|The list, @ref Qore::AbstractIterator "AbstractIterator" object or other value according to the rules above to process
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
 
@@ -640,7 +644,7 @@ foldr $1 - $2, (10, 4, 1);
     <b>Arguments Processed by foldr</b>
     |!Argument|!Processing
     |\a expression|The expression to fold on the list; the implicit argument <tt>$1</tt> represents the result of the last operation (or the last element in the list when beginning the fold), and <tt>$2</tt> represents the next element of the list in reverse order.
-    |\a list_expression|The list to process
+    |\a list_expression|The list, @ref Qore::AbstractIterator "AbstractIterator" object or other value according to the rules above to process
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
 

@@ -4,7 +4,7 @@
 
     Basically, the above allow for the existence (or lack thereof) of a parse define to affect which code is parsed into the program at parse time.
 
-    Parse defines are defined on the command-line (or through the C++ API when executed in embedded code), as well as created automatically based on sytem options; all library options (if the option is @ref Qore::True "True", then it is defined as @ref Qore::True "True", if the option is @ref Qore::False "False", then it is not defined at all).
+    Parse defines are defined on the command-line (or through the C++ API when executed in embedded code), as well as created automatically based on sytem options (see @ref Qore::Option for a list of option constants that are also defined as parse defines); all library options (if the option is @ref Qore::True "True", then it is defined as @ref Qore::True "True", if the option is @ref Qore::False "False", then it is not defined at all).
 
     Note that \c "Unix" is defined on all Unix platforms (also on Cygwin), while \c "Windows" is defined on native Windows ports (but not on Cygwin, as this is treated as Unix when compiling, as all Unix features are available).
 
@@ -26,6 +26,8 @@
     <b>%Qore Optional Parse Defines</b>
     |!Define|!Value
     |\c %QoreDebug|@ref Qore::True "True"
+
+    @see @ref Qore::Option for a list of option constants that are also defined as parse defines
 
     Here is an example of using parse defines in a program:
 
