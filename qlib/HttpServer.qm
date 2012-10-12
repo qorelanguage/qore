@@ -35,6 +35,8 @@ module HttpServer {
 
 /*  Version History
     * 2012-09-20 v0.3.5: David Nichols <david@qore.org>: fixed bugs in regexes in the HttpServer::addListeners() and HttpServer::addListenersWithHandler() methods
+                                                         updated module example code in summary
+                                                         added \c "listener-id" to request context hash
     * 2012-06-01 v0.3.4: David Nichols <david@qore.org>: added public parse_uri_query() function
     * 2012-05-24 v0.3.3: David Nichols <david@qore.org>: updated to a user module
                                                          added support for custom redirects from user handlers
@@ -91,13 +93,55 @@ module HttpServer {
 
     @par Example:
     @code
-%requires HttpServer
+#!/usr/bin/env qore
 
-my code $log = sub (string $str) {printf("%y: %s\n", now_us(), $str);};
-my HttpServer $hs($log, $log);
-# "$myHandler" must be an implementation of AbstractHttpRequestHandler
+%requires HttpServer
+%requires Mime
+
+class MyHandler inherits AbstractHttpRequestHandler {
+    hash handleRequest(hash $cx, hash $hdr, *data $body) {
+        # NOTE: change "%y" to "%N" to get a more readable multi-line output format for container values 
+        log("request received on %s from %s: context: %y hdr: %y body size: %d byte%s", $cx."peer-info".desc, $cx."socket-info".desc, $cx, $hdr, $body.size(), $body.size() == 1 ? "" : "s");
+        return (
+            "code": 200,
+            "body": sprintf("<title>Test Page</title><body><h1>Qore HTTP server v%s</h1><p>%y on %s PID %s TID %d connection %d</p><p>Qore %s</p></body>", HttpServer::Version, now_us(), gethostname(), getpid(), gettid(), $cx.id, Qore::VersionString),
+            "close": True,
+            );
+    }
+}
+
+sub log(string $str) {
+    printf("%y: %s\n", now_us(), vsprintf($str, $argv));
+}
+
+const MyHttpPort = 19001;
+
+# create our handler object
+my MyHandler $myHandler();
+
+# create the http server object
+my HttpServer $hs(\log(), \log());
+
+# add our handler to the server
 $hs.setHandler("my-handler", "/", MimeTypeHtml, $myHandler);
-$hs.setDefaultHandler("my-handler", $myHandler);@endcode
+
+# set our handler as the default handler
+$hs.setDefaultHandler("my-handler", $myHandler);
+
+# start a listener
+my hash $lh = $hs.addListener(MyHttpPort);
+
+# output a log message
+log("started listener on %s", $lh.desc);
+
+# do not exit this Program until the HTTP server has stopped; there is no code to stop it here,
+# so the program should be stopped with ctrl-c on the console or killed by a signal (on UNIX)
+# if we exit the program now, then the code in thie Program is unaccessible, so we have to make sure
+# that our Program stays in scope as long as the HTTP server is running (which runs in a different
+# Program object, because it's implemented as a user module)
+
+$hs.waitStop();
+    @endcode
  */
 
 #! the main namespace for the HttpServer module
@@ -423,10 +467,11 @@ public class HttpServer::AbstractHttpRequestHandler {
     /**
         @param cx call context hash; this hash will have the following keys:
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-        - \c socket-info: a hash of socket information for the listening socket (as returned by Socket::getSocketInfo())
-        - \c peer-info: a hash of socket information for the remote socket (as returned by Socket::getPeerInfo())
+        - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from parseURL())
         - \c id: the unique HTTP connection ID
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
         - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
@@ -747,8 +792,9 @@ class HttpServer::HttpListener inherits Qore::Socket {
             "socket": $.socket,
             "socket-info": $.socket_info,
             "peer-info": $info,
-            "id": $.ss.next(),
+            "id": $.ss.next(),            
             "ssl": $.ssl,
+            "listener-id": $.id,
             );
 	
 	my (hash $hdr, any $body);

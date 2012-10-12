@@ -27,7 +27,9 @@
     * 1.0: initial example program showing usage of the HttpServer user module
 
     This is a very simple HTTP server program using the HttpServer user module.
-    To exit the program, xxxx
+    To exit the program, send it an appropriate signal (SIGTERM, SIGINT, SIGHUP,
+    SIGUSR1, SIGUSR2) or interrupt it on the console (which sends the process a
+    SIGINT which is handled like other signals)
 */
 
 # do not use "$" signs for vars, etc
