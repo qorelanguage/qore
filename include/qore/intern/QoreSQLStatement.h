@@ -59,6 +59,8 @@ protected:
    char trans_status;
    // raw prepare flag
    bool raw;
+   // valid flag
+   bool validp;
 
    DLLLOCAL int checkStatus(DBActionHelper &dba, int stat, const char *action, ExceptionSink *xsink);
 
@@ -69,7 +71,7 @@ protected:
    DLLLOCAL int prepareArgs(bool n_raw, const QoreString &n_str, const QoreListNode *args, ExceptionSink *xsink);
       
 public:
-   DLLLOCAL QoreSQLStatement() : dsh(0), prepare_args(0), status(STMT_IDLE), trans_status(STMT_TRANS_UNKNOWN), raw(false) {
+   DLLLOCAL QoreSQLStatement() : dsh(0), prepare_args(0), status(STMT_IDLE), trans_status(STMT_TRANS_UNKNOWN), raw(false), validp(false) {
    }
 
    DLLLOCAL ~QoreSQLStatement();
@@ -96,6 +98,7 @@ public:
    DLLLOCAL QoreHashNode *getOutputRows(ExceptionSink *xsink);
 
    DLLLOCAL bool next(ExceptionSink *xsink);
+   DLLLOCAL bool valid();
 
    DLLLOCAL int define(ExceptionSink *xsink);
 

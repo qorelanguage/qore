@@ -578,6 +578,19 @@ bool SQLStatement::next() {
    return stmt->next(xsink);
 }
 
+//! returns @ref Qore::True "True" if the object is currently pointing at a valid element, @ref Qore::False "False" if not (use when iterating with SQLStatement::next())
+/** @return @ref Qore::True "True" if the object is currently pointing at a valid element, @ref Qore::False "False" if not
+
+    @par Example:
+    @code
+if ($i.valid())
+    printf("current value: %y\n", $i.getValue());
+    @endcode
+ */
+bool SQLStatement::valid() [flags=CONSTANT] {
+   return stmt->valid();
+}
+
 //! Retrieves the current row as a hash where the keys are the column names and the values are the column values
 /** Use with SQLStatement::next() to iterate through the results of a select statement one row at a time
 

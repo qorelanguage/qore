@@ -330,12 +330,16 @@ QoreHashNode *QoreSQLStatement::getOutputRows(ExceptionSink *xsink) {
 bool QoreSQLStatement::next(ExceptionSink *xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
-      return false;
+      return (validp = false);
 
    if (checkStatus(dba, STMT_DEFINED, "next", xsink))
-      return false;
+      return (validp = false);
 
-   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_next(this, xsink);
+   return (validp = qore_dbi_private::get(*priv->ds->getDriver())->stmt_next(this, xsink));
+}
+
+bool QoreSQLStatement::valid() {
+   return validp;
 }
 
 int QoreSQLStatement::define(ExceptionSink *xsink) {

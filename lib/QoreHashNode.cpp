@@ -760,6 +760,10 @@ bool HashIterator::empty() const {
    return h->empty();
 }
 
+bool HashIterator::valid() const {
+   return (bool)ptr;
+}
+
 ReverseHashIterator::ReverseHashIterator(QoreHashNode *h) : HashIterator(h) {
 }
 
@@ -832,6 +836,10 @@ bool ConstHashIterator::first() const {
 
 bool ConstHashIterator::empty() const {
    return h->empty();
+}
+
+bool ConstHashIterator::valid() const {
+   return (bool)ptr;
 }
 
 ReverseConstHashIterator::ReverseConstHashIterator(const QoreHashNode *h) : ConstHashIterator(h) {

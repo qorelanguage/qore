@@ -560,7 +560,8 @@ public:
    //! returns true if the hash is empty
    DLLEXPORT bool empty() const;
 
-   //DLLEXPORT void setValue(AbstractQoreNode* val, ExceptionSink* xsink);
+   //! returns true if the iterator is currently pointing at a valid element
+   DLLEXPORT bool valid() const;
 };
 
 //! reverse iterator class for QoreHashNode, to be only created on the stack
@@ -660,6 +661,9 @@ public:
 
    //! returns true if the hash is empty
    DLLEXPORT bool empty() const;
+
+   //! returns true if the iterator is currently pointing at a valid element
+   DLLEXPORT bool valid() const;
 };
 
 //! reverse constant iterator class for QoreHashNode, to be only created on the stack

@@ -181,3 +181,16 @@ string HashIterator::getKey() [flags=RET_VALUE_ONLY] {
       return 0;
    return i->getKey(xsink);
 }
+
+//! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+/** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+
+    @par Example:
+    @code
+if ($i.valid())
+    printf("current value: %y\n", $i.getValue());
+    @endcode
+ */
+bool HashIterator::valid() [flags=CONSTANT] {
+   return i->valid();
+}

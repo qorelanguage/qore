@@ -57,5 +57,18 @@ while ($i.next()) {
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+
+    @see AbstractIterator::valid()
  */
 abstract any AbstractIterator::getValue();
+
+//! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+/** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+
+    @par Example:
+    @code
+if ($i.valid())
+    printf("current value: %y\n", $i.getValue());
+    @endcode
+ */
+abstract bool AbstractIterator::valid();

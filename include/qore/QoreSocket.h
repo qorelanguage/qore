@@ -793,7 +793,7 @@ public:
        @see QoreSocket::recvu2()
        @see QoreSocket::recvu2LSB()
    **/
-   DLLEXPORT int recvi2(int timeout, short *val);
+   DLLEXPORT int recvi2(int timeout_ms, short *val);
 
    //! reads a 4-byte signed integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -804,7 +804,7 @@ public:
        @see QoreSocket::recvu4()
        @see QoreSocket::recvu4LSB()
    **/
-   DLLEXPORT int recvi4(int timeout, int *val);
+   DLLEXPORT int recvi4(int timeout_ms, int *val);
 
    //! reads an 8-byte signed integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -815,7 +815,7 @@ public:
        @see QoreSocket::recvu8()
        @see QoreSocket::recvu8LSB()
    **/
-   DLLEXPORT int recvi8(int timeout, int64 *val);
+   DLLEXPORT int recvi8(int timeout_ms, int64 *val);
 
    //! reads a 2-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -827,7 +827,7 @@ public:
        @see QoreSocket::recvu2()
        @see QoreSocket::recvu2LSB()
    **/
-   DLLEXPORT int recvi2LSB(int timeout, short *val);
+   DLLEXPORT int recvi2LSB(int timeout_ms, short *val);
 
    //! reads a 4-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -839,7 +839,7 @@ public:
        @see QoreSocket::recvu4()
        @see QoreSocket::recvu4LSB()
    **/
-   DLLEXPORT int recvi4LSB(int timeout, int *val);
+   DLLEXPORT int recvi4LSB(int timeout_ms, int *val);
 
    //! reads an 8-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -849,7 +849,7 @@ public:
        @return 0 for OK, not 0 for error
        @see QoreSocket::recvi8()
    **/
-   DLLEXPORT int recvi8LSB(int timeout, int64 *val);
+   DLLEXPORT int recvi8LSB(int timeout_ms, int64 *val);
 
    //! reads a 1-byte unsigned integer from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -858,7 +858,7 @@ public:
        @return 0 for OK, not 0 for error
        @see QoreSocket::recvi1()
    **/
-   DLLEXPORT int recvu1(int timeout, unsigned char *val);
+   DLLEXPORT int recvu1(int timeout_ms, unsigned char *val);
 
    //! reads a 2-byte unsigned integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -869,7 +869,7 @@ public:
        @see QoreSocket::recvu2LSB()
        @see QoreSocket::recvi2LSB()
    **/
-   DLLEXPORT int recvu2(int timeout, unsigned short *val);
+   DLLEXPORT int recvu2(int timeout_ms, unsigned short *val);
 
    //! reads a 4-byte unsigned integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -880,7 +880,7 @@ public:
        @see QoreSocket::recvu4LSB()
        @see QoreSocket::recvi4LSB()
    **/
-   DLLEXPORT int recvu4(int timeout, unsigned int *val);
+   DLLEXPORT int recvu4(int timeout_ms, unsigned int *val);
 
    //! reads a 2-byte unsigned integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -892,7 +892,7 @@ public:
        @see QoreSocket::recvi2()
        @see QoreSocket::recvi2LSB()
    **/
-   DLLEXPORT int recvu2LSB(int timeout, unsigned short *val);
+   DLLEXPORT int recvu2LSB(int timeout_ms, unsigned short *val);
 
    //! reads a 4-byte unsigned integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -904,7 +904,7 @@ public:
        @see QoreSocket::recvi4()
        @see QoreSocket::recvi4LSB()
    **/
-   DLLEXPORT int recvu4LSB(int timeout, unsigned int *val);
+   DLLEXPORT int recvu4LSB(int timeout_ms, unsigned int *val);
 
    //! reads a 1-byte signed integer from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -931,7 +931,7 @@ public:
        @see QoreSocket::recvu2()
        @see QoreSocket::recvu2LSB()
    **/
-   DLLEXPORT int64 recvi2(int timeout, short *val, ExceptionSink* xsink);
+   DLLEXPORT int64 recvi2(int timeout_ms, short *val, ExceptionSink* xsink);
 
    //! reads a 4-byte signed integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -946,7 +946,7 @@ public:
        @see QoreSocket::recvu4()
        @see QoreSocket::recvu4LSB()
    **/
-   DLLEXPORT int64 recvi4(int timeout, int *val, ExceptionSink* xsink);
+   DLLEXPORT int64 recvi4(int timeout_ms, int *val, ExceptionSink* xsink);
 
    //! reads an 8-byte signed integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -960,7 +960,7 @@ public:
        @see QoreSocket::recvu8()
        @see QoreSocket::recvu8LSB()
    **/
-   DLLEXPORT int64 recvi8(int timeout, int64 *val, ExceptionSink* xsink);
+   DLLEXPORT int64 recvi8(int timeout_ms, int64 *val, ExceptionSink* xsink);
 
    //! reads a 2-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -975,7 +975,7 @@ public:
        @see QoreSocket::recvu2()
        @see QoreSocket::recvu2LSB()
    **/
-   DLLEXPORT int64 recvi2LSB(int timeout, short *val, ExceptionSink* xsink);
+   DLLEXPORT int64 recvi2LSB(int timeout_ms, short *val, ExceptionSink* xsink);
 
    //! reads a 4-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -990,7 +990,7 @@ public:
        @see QoreSocket::recvu4()
        @see QoreSocket::recvu4LSB()
    **/
-   DLLEXPORT int64 recvi4LSB(int timeout, int *val, ExceptionSink* xsink);
+   DLLEXPORT int64 recvi4LSB(int timeout_ms, int *val, ExceptionSink* xsink);
 
    //! reads an 8-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -1004,7 +1004,7 @@ public:
 
        @see QoreSocket::recvi8()
    **/
-   DLLEXPORT int64 recvi8LSB(int timeout, int64 *val, ExceptionSink* xsink);
+   DLLEXPORT int64 recvi8LSB(int timeout_ms, int64 *val, ExceptionSink* xsink);
 
    //! reads a 1-byte unsigned integer from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -1017,7 +1017,7 @@ public:
 
        @see QoreSocket::recvi1()
    **/
-   DLLEXPORT int64 recvu1(int timeout, unsigned char *val, ExceptionSink* xsink);
+   DLLEXPORT int64 recvu1(int timeout_ms, unsigned char *val, ExceptionSink* xsink);
 
    //! reads a 2-byte unsigned integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -1032,7 +1032,7 @@ public:
        @see QoreSocket::recvu2LSB()
        @see QoreSocket::recvi2LSB()
    **/
-   DLLEXPORT int64 recvu2(int timeout, unsigned short *val, ExceptionSink* xsink);
+   DLLEXPORT int64 recvu2(int timeout_ms, unsigned short *val, ExceptionSink* xsink);
 
    //! reads a 4-byte unsigned integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -1047,7 +1047,7 @@ public:
        @see QoreSocket::recvu4LSB()
        @see QoreSocket::recvi4LSB()
    **/
-   DLLEXPORT int64 recvu4(int timeout, unsigned int *val, ExceptionSink* xsink);
+   DLLEXPORT int64 recvu4(int timeout_ms, unsigned int *val, ExceptionSink* xsink);
 
    //! reads a 2-byte unsigned integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -1064,7 +1064,7 @@ public:
        @see QoreSocket::recvi2()
        @see QoreSocket::recvi2LSB()
    **/
-   DLLEXPORT int64 recvu2LSB(int timeout, unsigned short *val, ExceptionSink* xsink);
+   DLLEXPORT int64 recvu2LSB(int timeout_ms, unsigned short *val, ExceptionSink* xsink);
 
    //! reads a 4-byte unsigned integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
    /** The socket must be connected before this call is made.
@@ -1081,17 +1081,17 @@ public:
        @see QoreSocket::recvi4()
        @see QoreSocket::recvi4LSB()
    **/
-   DLLEXPORT int64 recvu4LSB(int timeout, unsigned int *val, ExceptionSink* xsink);
+   DLLEXPORT int64 recvu4LSB(int timeout_ms, unsigned int *val, ExceptionSink* xsink);
 
    //! receive a certain number of bytes with a timeout value and return a QoreStringNode, caller owns the reference count returned
    /** The socket must be connected before this call is made.
        @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param prc output parameter: 0 for OK, not 0 for error
        @return the data read as a QoreStringNode tagged with the socket's QoreEncoding, caller owns the reference count returned (0 if an error occurs)
        @see QoreEncoding
    */
-   DLLEXPORT QoreStringNode *recv(qore_offset_t bufsize, int timeout, int *prc);
+   DLLEXPORT QoreStringNode *recv(qore_offset_t bufsize, int timeout_ms, int *prc);
 
    //! receive a certain number of bytes with a timeout value and return a QoreStringNode, caller owns the reference count returned
    /** The socket must be connected before this call is made.
@@ -1106,76 +1106,76 @@ public:
    //! receive a certain number of bytes with a timeout value and return a BinaryNode, caller owns the reference count returned
    /** The socket must be connected before this call is made.
        @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param prc output parameter: 0 for OK, not 0 for error
        @return the data read as a BinaryNode, caller owns the reference count returned (0 if an error occurs)
    */
-   DLLEXPORT BinaryNode *recvBinary(qore_offset_t bufsize, int timeout, int *prc);
+   DLLEXPORT BinaryNode *recvBinary(qore_offset_t bufsize, int timeout_ms, int *prc);
 
    //! receive a certain number of bytes with a timeout value and return a BinaryNode, caller owns the reference count returned
    /** The socket must be connected before this call is made.
        @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the data read as a BinaryNode, caller owns the reference count returned (0 if an error occurs)
    */
-   DLLEXPORT BinaryNode* recvBinary(qore_offset_t bufsize, int timeout, ExceptionSink* xsink);
+   DLLEXPORT BinaryNode* recvBinary(qore_offset_t bufsize, int timeout_ms, ExceptionSink* xsink);
 
    //! receive with a timeout value and return a QoreStringNode, caller owns the reference count returned
    /** The socket must be connected before this call is made.
        This call will read data, blocking according to the timeout value.  Then all data
        available on the socket will be read and returned as a QoreStringNode.  As soon as the
        first timeout occurs, the data will be returned immediately without blocking.
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param prc output parameter: 0 for OK, not 0 for error
        @return the data read as a QoreStringNode tagged with the socket's QoreEncoding, caller owns the reference count returned (0 if an error occurs)
        @see QoreEncoding
    */
-   DLLEXPORT QoreStringNode *recv(int timeout, int *prc);
+   DLLEXPORT QoreStringNode *recv(int timeout_ms, int *prc);
 
    //! receive with a timeout value and return a QoreStringNode, caller owns the reference count returned
    /** The socket must be connected before this call is made.
        This call will read data, blocking according to the timeout value.  Then all data
        available on the socket will be read and returned as a QoreStringNode.  As soon as the
        first timeout occurs, the data will be returned immediately without blocking.
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the data read as a QoreStringNode tagged with the socket's QoreEncoding, caller owns the reference count returned (0 if an error occurs)
        @see QoreEncoding
    */
-   DLLEXPORT QoreStringNode* recv(int timeout, ExceptionSink* xsink);
+   DLLEXPORT QoreStringNode* recv(int timeout_ms, ExceptionSink* xsink);
 
    //! receive with a timeout value and return a BinaryNode, caller owns the reference count returned
    /** The socket must be connected before this call is made.
        This call will read data, blocking according to the timeout value.  Then all data
        available on the socket will be read and returned as a BinaryNode.  As soon as the
        first timeout occurs, the data will be returned immediately without blocking.
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param prc output parameter: 0 for OK, not 0 for error
        @return the data read as a BinaryNode, caller owns the reference count returned (0 if an error occurs)
    */
-   DLLEXPORT BinaryNode *recvBinary(int timeout, int *prc);
+   DLLEXPORT BinaryNode *recvBinary(int timeout_ms, int *prc);
 
    //! receive with a timeout value and return a BinaryNode, caller owns the reference count returned
    /** The socket must be connected before this call is made.
        This call will read data, blocking according to the timeout value.  Then all data
        available on the socket will be read and returned as a BinaryNode.  As soon as the
        first timeout occurs, the data will be returned immediately without blocking.
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the data read as a BinaryNode, caller owns the reference count returned (0 if an error occurs)
    */
-   DLLEXPORT BinaryNode* recvBinary(int timeout, ExceptionSink* xsink);
+   DLLEXPORT BinaryNode* recvBinary(int timeout_ms, ExceptionSink* xsink);
 
    //! receive data on the socket and write it to a file descriptor
    /** The socket must be connected before this call is made.
        @param fd the file descriptor to write to, must be already opened for writing
        @param size the number of bytes to read from the socket, -1 to read until the socket is closed
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @return 0 for OK, not 0 for error
        @note the timeout value applies to each read from the socket
    */
-   DLLEXPORT int recv(int fd, qore_offset_t size, int timeout);
+   DLLEXPORT int recv(int fd, qore_offset_t size, int timeout_ms);
 
    //! send an HTTP request message on the socket
    /** The socket must be connected before this call is made.
@@ -1273,23 +1273,23 @@ public:
    //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
    /** The socket must be connected before this call is made.
        @note does not read the message body; message body must be read manually
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param prc output parameter: 0 or -2: remote end closed the connection, -1: receive error, -3: timeout
        @param source the event source code for socket events
        @return if 0 (and prc == 0), the socket was closed on the remote end without a response, if the type is NT_STRING, the response could not be parsed, if not 0, caller owns the reference count returned
    */
-   DLLEXPORT AbstractQoreNode *readHTTPHeader(int timeout, int *prc, int source = QORE_SOURCE_SOCKET);
+   DLLEXPORT AbstractQoreNode *readHTTPHeader(int timeout_ms, int *prc, int source = QORE_SOURCE_SOCKET);
 
    //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
    /** The socket must be connected before this call is made.
        @note does not read the message body; message body must be read manually
        @param info the request-uri or response-uri is written to this hash if non-null; neither of these keys should be present in the hash before the call
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param prc output parameter: 0 or -2: remote end closed the connection, -1: receive error, -3: timeout
        @param source the event source code for socket events
        @return if 0 (and prc == 0), the socket was closed on the remote end without a response, if the type is NT_STRING, the response could not be parsed, if not 0, caller owns the reference count returned
    */
-   DLLEXPORT AbstractQoreNode *readHTTPHeader(QoreHashNode *info, int timeout, int *prc, int source = QORE_SOURCE_SOCKET);
+   DLLEXPORT AbstractQoreNode *readHTTPHeader(QoreHashNode *info, int timeout_ms, int *prc, int source = QORE_SOURCE_SOCKET);
 
    //! read and parse HTTP header, caller owns QoreHashNode reference count returned
    /** The socket must be connected before this call is made.
@@ -1298,36 +1298,36 @@ public:
 
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param info the request-uri or response-uri is written to this hash if non-null; neither of these keys should be present in the hash before the call
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param source the event source code for socket events
 
        @return if 0, an exception was raised, if not 0, caller owns the reference count returned
    */
-   DLLEXPORT QoreHashNode *readHTTPHeader(ExceptionSink* xsink, QoreHashNode *info, int timeout, int source = QORE_SOURCE_SOCKET);
+   DLLEXPORT QoreHashNode *readHTTPHeader(ExceptionSink* xsink, QoreHashNode *info, int timeout_ms, int source = QORE_SOURCE_SOCKET);
 
    //! receive a binary message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
    /** The socket must be connected before this call is made.
        The message body is returned as a BinaryNode in the "body" key, any footers read after the body
        are returned as the other hash keys in the hash.
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms tieout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param source the event source code for socket events
        @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
        @see BinaryNode
    */
-   DLLEXPORT QoreHashNode *readHTTPChunkedBodyBinary(int timeout, ExceptionSink *xsink, int source = QORE_SOURCE_SOCKET);
+   DLLEXPORT QoreHashNode *readHTTPChunkedBodyBinary(int timeout_ms, ExceptionSink *xsink, int source = QORE_SOURCE_SOCKET);
 
    //! receive a string message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
    /** The socket must be connected before this call is made.
        The message body is returned as a QoreStringNode in the "body" key, any footers read after the body
        are returned as the other hash keys in the hash.
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param source the event source code for socket events
        @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
        @see QoreStringNode
    */
-   DLLEXPORT QoreHashNode *readHTTPChunkedBody(int timeout, ExceptionSink *xsink, int source = QORE_SOURCE_SOCKET);
+   DLLEXPORT QoreHashNode *readHTTPChunkedBody(int timeout_ms, ExceptionSink *xsink, int source = QORE_SOURCE_SOCKET);
 
    //! set send timeout in milliseconds
    DLLEXPORT int setSendTimeout(int ms);
@@ -1344,10 +1344,10 @@ public:
    //! returns true if data is available on the socket in the timeout period in milliseconds
    /** The socket must be connected before this call is made.
        use a timeout of 0 to see if there is any data available on the socket
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @return true if data is available within the timeout period
    */
-   DLLEXPORT bool isDataAvailable(int timeout = 0) const;
+   DLLEXPORT bool isDataAvailable(int timeout_ms = 0) const;
 
    //! closes the socket
    /** Deletes the socket file if it was a UNIX domain socket and was created with the QoreSocket::bind() call.
@@ -1435,10 +1435,10 @@ public:
    //! returns true if all write data has been written within the timeout period in milliseconds
    /** The socket must be connected before this call is made.
        use a timeout of 0 to receive an answer immediately
-       @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @return true if data is available within the timeout period
    */
-   DLLEXPORT bool isWriteFinished(int timeout = 0) const;
+   DLLEXPORT bool isWriteFinished(int timeout_ms = 0) const;
 
    //! returns peer information for a connected socket
    /** if the socket is not connected, a Qore-language exception is thrown
