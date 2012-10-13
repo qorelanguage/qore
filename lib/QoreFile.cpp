@@ -287,6 +287,157 @@ struct qore_qf_private {
       return bbuf;
    }
 
+   QoreStringNode* readLine(bool incl_eol, ExceptionSink* xsink) {
+      QoreStringNodeHolder str(new QoreStringNode(charset));
+
+      int rc = readLine(**str, incl_eol);
+
+      if (rc == -2) {
+         xsink->raiseException("FILE-READLINE-ERROR", "file has not been opened");
+         return 0;
+      }
+
+      return rc == -1 ? 0 : str.release();
+   }
+
+   DLLLOCAL int readLine(QoreString& str, bool incl_eol = true) {
+      str.clear();
+
+      AutoLocker al(m);
+
+      if (!is_open)
+         return -2;
+
+      int ch, rc = -1;
+
+      while ((ch = readChar()) >= 0) {
+         str.concat((char)ch);
+         if (rc == -1)
+            rc = 0;
+
+         if (ch == '\r') {
+            // see if next byte is \n'
+            ch = readChar();
+            if (ch >= 0) {
+               if (ch == '\n') {
+                  if (incl_eol)
+                     str.concat((char)ch);
+               }
+               else {
+                  // reset file to previous byte position
+                  lseek(fd, -1, SEEK_CUR);
+               }
+            }
+            if (!incl_eol)
+               str.terminate(str.strlen() - 1);
+            break;
+         }
+
+         if (ch == '\n') {
+            if (!incl_eol)
+               str.terminate(str.strlen() - 1);
+            break;
+         }
+      }
+
+      return rc;
+   }
+
+   DLLLOCAL int readUntil(char byte, QoreString& str, bool incl_byte = true) {
+      str.clear();
+
+      AutoLocker al(m);
+
+      if (!is_open)
+         return -2;
+
+      int ch, rc = -1;
+
+      while ((ch = readChar()) >= 0) {
+         char c = ch;
+         str.concat(c);
+         if (rc == -1)
+            rc = 0;
+         if (c == byte) {
+            if (!incl_byte)
+               str.terminate(str.strlen() - 1);
+            break;
+         }
+      }
+
+      return rc;
+   }
+
+   QoreStringNode* readUntil(const char* bytes, bool incl_bytes, ExceptionSink* xsink) {
+      QoreStringNodeHolder str(new QoreStringNode(charset));
+
+      int rc = readUntil(bytes, **str, incl_bytes);
+
+      if (rc == -2) {
+         xsink->raiseException("FILE-READLINE-ERROR", "file has not been opened");
+         return 0;
+      }
+
+      return rc == -1 ? 0 : str.release();
+   }
+
+   // not the most efficient search algorithm, restarts the search the byte after it fails for multi-byte patterns
+   DLLLOCAL int readUntil(const char* bytes, QoreString& str, bool incl_bytes) {
+      if (!bytes[1])
+         return readUntil(bytes[0], str, incl_bytes);
+
+      str.clear();
+
+      AutoLocker al(m);
+
+      if (!is_open)
+         return -2;
+
+      // offset in bytes
+      unsigned pos = 0;
+
+      int ch, rc = -1;
+
+      while ((ch = readChar()) >= 0) {
+         char c = ch;
+         str.concat(c);
+         if (rc == -1)
+            rc = 0;
+
+         if (c == bytes[pos]) {
+            ++pos;
+            if (!bytes[pos]) {
+               if (!incl_bytes)
+                  str.terminate(str.strlen() - pos);
+               break;
+            }
+         }
+         else if (pos) {
+            // bytes=aaac read=aaaac str=aaa pos=3
+            //          ^         ^
+            // restart search with characters already added to the string if more than 1 character was matched previously
+            if (pos > 1) {
+               unsigned ps = 1;
+               while (ps < pos) {
+                  if (!strncmp(str.getBuffer() + ps, bytes, pos - ps)) {
+                     pos -= ps;
+                     break;
+                  }
+                  ++ps;
+               }
+               if (pos == ps)
+                  pos = 0;
+            }
+            else {
+               // restart search if failed
+               pos = 0;
+            }
+         }
+      }
+
+      return rc;
+   }
+
    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink) {
       AutoLocker al(m);
       if (cb_queue)
@@ -647,36 +798,31 @@ int QoreFile::open2(ExceptionSink *xsink, const char *fn, int flags, int mode, c
 }
 
 int QoreFile::readLine(QoreString &str) {
-   str.clear();
-
-   AutoLocker al(priv->m);
-
-   if (!priv->is_open)
-      return -2;
-   
-   int ch;
-
-   while ((ch = priv->readChar()) >= 0) {
-      char c = ch;
-      str.concat(c);
-      if (c == '\n')
-	 break;
-   }
-
-   return !str.strlen() ? -1 : 0;
+   return priv->readLine(str);
 }
 
-QoreStringNode *QoreFile::readLine(ExceptionSink *xsink) {
-   QoreStringNodeHolder str(new QoreStringNode(priv->charset));
+QoreStringNode* QoreFile::readLine(ExceptionSink* xsink) {
+   return priv->readLine(true, xsink);
+}
 
-   int rc = readLine(**str);
+QoreStringNode* QoreFile::readLine(bool incl_eol, ExceptionSink* xsink) {
+   return priv->readLine(incl_eol, xsink);
+}
 
-   if (rc == -2) {
-      xsink->raiseException("FILE-READLINE-ERROR", "file has not been opened");
-      return 0;
-   }
+int QoreFile::readLine(QoreString &str, bool incl_eol) {
+   return priv->readLine(str, incl_eol);
+}
 
-   return rc == -1 ? 0 : str.release();
+QoreStringNode* QoreFile::readUntil(const char* bytes, bool incl_bytes, ExceptionSink* xsink) {
+   return priv->readUntil(bytes, incl_bytes, xsink);
+}
+
+int QoreFile::readUntil(char byte, QoreString& str, bool incl_byte) {
+   return priv->readUntil(byte, str, incl_byte);
+}
+
+int QoreFile::readUntil(const char* bytes, QoreString& str, bool incl_bytes) {
+   return priv->readUntil(bytes, str, incl_bytes);
 }
 
 qore_size_t QoreFile::setPos(qore_size_t pos) {

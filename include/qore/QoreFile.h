@@ -100,18 +100,88 @@ public:
    //! flushes the write buffer to disk
    DLLEXPORT int sync();
 
-   //! reads string data from the file up to a terminating '\\n' character and returns the string read
+   //! reads string data from the file up to and including the terminating EOL characters (can be '\n', '\r' or '\r\n') and returns the string read with the EOL characters
    /** if an error occurs (file is not open), a Qore-language exception is raised
-       @param xsink if an error occurs when opening the file, the Qore-language exception info will be added here
-       @return the string read including the terminating '\\n' (if any - if EOF is encountered then there may not be one) or 0 if there is an error or no data could be read.  caller owns the reference count returned
-   */
-   DLLEXPORT QoreStringNode *readLine(ExceptionSink *xsink);
 
-   //! clears the string passed, then reads string data from the file up to a terminating '\\n' character, returns 0 for no error, -1 for EOF, -2 for file not opened
-   /** @note strnig data will be appended to the string with the assumption that the string's encoding is the same as the file's
+       @param xsink if an error occurs when opening the file, the Qore-language exception info will be added here
+       @return the string read including the terminating EOL characters (if any - if EOF is encountered then there may not be any) or 0 if there is an error or no data could be read.  caller owns the reference count returned
+
+       @see QoreFile::readUntil()
+   */
+   DLLEXPORT QoreStringNode* readLine(ExceptionSink* xsink);
+
+   //! reads string data from the file up to and optionally including the terminating EOL characters (can be '\n', '\r' or '\r\n') and returns the string read
+   /** if an error occurs (file is not open), a Qore-language exception is raised
+
+       @param incl_eol if this parameter is true, then the EOL character(s) read will be written to the string, if false, then they are not
+       @param xsink if an error occurs when opening the file, the Qore-language exception info will be added here
+
+       @return the string read including the terminating EOL characters (if any - if EOF is encountered then there may not be any) or 0 if there is an error or no data could be read.  caller owns the reference count returned
+
+       @see QoreFile::readUntil()
+   */
+   DLLEXPORT QoreStringNode* readLine(bool incl_eol, ExceptionSink* xsink);
+
+   //! clears the string passed, then reads string data from the file up to and including the terminating EOL characters (can be '\n', '\r' or '\r\n'), returns 0 for no error, -1 for EOF, -2 for file not opened
+   /** @note string data will be appended to the string with the assumption that the string's encoding is the same as the file's
+
+       @param str the string container that will have the line from the file written into
+
        @return 0 for no error, -1 for EOF, -2 for file not opened
+
+       @see QoreFile::readUntil()
    */
    DLLEXPORT int readLine(QoreString &str);
+
+   //! clears the string passed, then reads string data from the file up to and optionally including the terminating EOL characters (can be '\n', '\r' or '\r\n'), returns 0 for no error, -1 for EOF, -2 for file not opened
+   /** @note string data will be appended to the string with the assumption that the string's encoding is the same as the file's
+
+       @param str the string container that will have the line from the file written into
+       @param incl_eol if this parameter is true, then the EOL character(s) read will be written to the string, if false, then they are not
+
+       @return 0 for no error, -1 for EOF, -2 for file not opened
+
+       @see QoreFile::readUntil()
+   */
+   DLLEXPORT int readLine(QoreString &str, bool incl_eol);
+
+   //! reads string data from the file up to and optionally including the terminating EOL characters passed as an argument and returns the string read
+   /** if an error occurs (file is not open), a Qore-language exception is raised
+
+       @param bytes the end of line characters that separate lines
+       @param incl_eol if this parameter is true, then the EOL character(s) read will be written to the string, if false, then they are not
+       @param xsink if an error occurs when opening the file, the Qore-language exception info will be added here
+
+       @return the string read including the terminating EOL characters (if any - if EOF is encountered then there may not be any) or 0 if there is an error or no data could be read.  caller owns the reference count returned
+
+       @see QoreFile::readLine()
+   */
+   DLLEXPORT QoreStringNode* readUntil(const char* bytes, bool incl_bytes, ExceptionSink* xsink);
+
+   //! clears the string passed, then reads string data from the file up to a terminating byte value, returns 0 for no error, -1 for EOF, -2 for file not opened
+   /** @note string data will be appended to the string with the assumption that the string's encoding is the same as the file's
+
+       @param byte the end of line byte
+       @param str the string to write the line read into
+       @param incl_bytes if this parameter is true, then the EOL character(s) read will be written to the string, if false, then they are not
+
+       @return 0 for no error, -1 for EOF, -2 for file not opened
+
+       @see QoreFile::readLine()
+   */
+   DLLEXPORT int readUntil(char byte, QoreString& str, bool incl_bytes = true);
+
+   //! clears the string passed, then reads string data from the file up to the given byte string, returns 0 for no error, -1 for EOF, -2 for file not opened
+   /** @param bytes the byte string giving the end of the data to read
+       @param str the string where the data read will be stored in (this string must already be tagged with the QoreFile's encoding)
+       @param incl_bytes include "bytes" in the string
+
+       @note string data will be appended to the string with the assumption that the string's encoding is the same as the file's
+       @return 0 for no error, -1 for EOF, -2 for file not opened
+
+       @see QoreFile::readLine()
+   */
+   DLLEXPORT int readUntil(const char* bytes, QoreString& str, bool incl_bytes = true);
 
    //! writes string data to the file, character encoding is converted if necessary, and returns the number of bytes written
    /** Qore-language exceptions can be thrown if the file is not opened or if encoding conversion fails

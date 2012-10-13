@@ -1090,7 +1090,7 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
    start = 0;
    while (true) {
       size_t i = buf.find("|!", start);
-      log(LL_DEBUG, "TextElement::serializeDox() looking for |! i: %d\n", i);
+      log(LL_DEBUG, "serialize_dox_comment() looking for |! i: %d\n", i);
       if (i == std::string::npos)
          break;
 
@@ -1100,7 +1100,7 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
 
       // find end of line
       size_t j = buf.find('\n', i + 2);
-      log(LL_DEBUG, "TextElement::serializeDox() looking for first EOL j: %d\n", j);
+      log(LL_DEBUG, "serialize_dox_comment() looking for first EOL j: %d\n", j);
       if (j == std::string::npos)
          break;
 
@@ -2739,7 +2739,7 @@ public:
       else
          fprintf(fp, "//! %s namespace\nnamespace %s {\n", ns.c_str(), ns.c_str());
 
-      serialize_dox_comment(fp, doc);
+      serialize_dox_comment(fp, doc, dom);
       
       size_t nl = name.size();
       if (name[0] == '<' && name[nl - 1] == '>') {

@@ -1207,7 +1207,7 @@ int File::f_vprintf() [flags=RUNTIME_NOOP] {
 }
 
 //! Reads until an EOL marker is found and returns the string read or @ref nothing if no data can be read
-/** Any string returned wiill be tagged with the %File's @ref character_encoding "character encoding".
+/** Any string returned will be tagged with the %File's @ref character_encoding "character encoding".
 
     @par Example:
     @code
@@ -1222,16 +1222,24 @@ while (exists (my *string $line = $f.readLine())) {
     @par Events:
     @ref EVENT_DATA_READ
 
+    @param incl_eol if this argument is @ref Qore::True "True", then the end of line characters read are included in the string returned
+    @param eol the end of line character(s); if not given, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"; if this string is passed and has a different @ref character_encoding "character encoding" from the File's, then it will be converted to the File's @ref character_encoding "character encoding"
+
     @return The line read from the file. @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.  Any string returned will be tagged with the %File's @ref character_encoding "character encoding".
 
-    @throw FILE-READLINE-ERROR %File is not open
+    @throw FILE-READLINE-ERROR %File is not open, eol argument is empty
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
-*string File::readLine() {
+*string File::readLine(bool incl_eol = True, *string eol) {
    if (check_terminal_io(self, "readLine", xsink))
       return 0;
 
-   return f->readLine(xsink);
+   if (eol && eol->empty()) {
+      xsink->raiseException("FILE-READLINE-ERROR", "the second argument (eol) to File::readLine() was empty");
+      return 0;
+   }
+
+   return eol ? f->readUntil(eol->getBuffer(), incl_eol, xsink) : f->readLine(incl_eol, xsink);
 }
 
 //! Sets the @ref character_encoding "character encoding" for the %File; if called with no argument, the @ref default_encoding "default encoding" is set
