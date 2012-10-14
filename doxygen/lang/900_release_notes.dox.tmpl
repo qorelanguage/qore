@@ -74,7 +74,9 @@
     - Qore::Socket::recvu4LSB()
 
     @par Text File Parsing Enhancements
-    - the @ref Qore::File::readLine() "File::readLine()" method was enhanced to accept 2 optional arguments, allowing the end of line character(s) to be stripped from the line returned, and also to allow the end of line characters to be specified.  If no end of line characters are specified, then the method automatically determines the end of line characters (can be \c "\n", \c "\r", or \c "\r\n"; the last one only if the underlying file is not a tty in order to avoid stalling I/O on an interactive TTY)
+    - the @ref Qore::ReadOnlyFile class was added as a parent class of @ref Qore::File to allow for a more convenient API for reading files (the @ref Qore::File class's API remains the same as it publically inherits  @ref Qore::ReadOnlyFile)
+    - the @ref Qore::ReadOnlyFile::readLine() "ReadOnlyFile::readLine()" method (formerlly a method of the @ref Qore::File class) was enhanced to accept 2 optional arguments, allowing the end of line character(s) to be stripped from the line returned, and also to allow the end of line characters to be specified.  If no end of line characters are specified, then the method automatically determines the end of line characters (can be \c "\n", \c "\r", or \c "\r\n"; the last one only if the underlying file is not a tty in order to avoid stalling I/O on an interactive TTY)
+    - the @ref file_stat_constants were moved from the @ref Qore::File class to the @ref Qore::ReadOnlyFile class
     - added a new @ref Qore::FileLineIterator "FileLineIterator" iterator class
 
     @par Other Improvements and Changes
@@ -106,7 +108,7 @@
     - new function:
       - @ref Qore::range() "range()"
     - new methods:
-      - @ref Qore::File::isTTY()
+      - @ref Qore::ReadOnlyFile::isTty() (the @ref Qore::ReadOnlyFile class was added in qore 0.8.6 otherwise made up of methods formerly belonging to the @ref Qore::File class)
     - updated docs to show functional restrictions tagged at the class level
 
     @subsection qore_086_bug_fixes Bug Fixes in Qore

@@ -111,14 +111,11 @@ qclass FileLineIterator [arg=FileLineIterator* i; ns=Qore; vparent=AbstractItera
  */
 FileLineIterator::constructor(string path, *string encoding, *string eol, bool trim = True) {
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   if (eol && eol->empty())
+      eol = 0;
    // make sure that we use the same encoding for the EOL marker as for the file, convert if necessary
    SimpleRefHolder<QoreStringNode> neol(eol ? new QoreStringNode(qe) : 0);
    if (eol) {
-      if (eol->empty()) {
-         xsink->raiseException("FILELINEITERATOR-EOL-ERROR", "the third argument (eol) to FileLineIterator::constructor() was empty");
-         return;
-      }
-
       neol->concat(eol, xsink);
       if (*xsink)
          return;
@@ -128,7 +125,7 @@ FileLineIterator::constructor(string path, *string encoding, *string eol, bool t
    if (*xsink)
       return;
 
-   if (fli->isTTY()) {
+   if (fli->isTty()) {
       xsink->raiseException("ILLEGAL-EXPRESSION", "FileLineIterator::constructor() cannot be called with a TTY target when 'no-terminal-io' is set");
       return;
    }
@@ -236,11 +233,11 @@ int FileLineIterator::getPos() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code
-my bool $b = $i.isTTY();
+my bool $b = $i.isTty();
     @endcode
 
     @since %Qore 0.8.6
 */
-bool FileLineIterator::isTTY() [flags=CONSTANT] {
-   return i->isTTY();
+bool FileLineIterator::isTty() [flags=CONSTANT] {
+   return i->isTty();
 }

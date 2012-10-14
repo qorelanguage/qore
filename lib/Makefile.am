@@ -39,6 +39,9 @@ QC_Queue.cpp: QC_Queue.qpp qpp
 QC_Socket.cpp: QC_Socket.qpp qpp
 	$(QPP) $<
 
+QC_ReadOnlyFile.cpp: QC_ReadOnlyFile.qpp qpp
+	$(QPP) $<
+
 QC_File.cpp: QC_File.qpp qpp
 	$(QPP) $<
 
@@ -261,7 +264,8 @@ QORE_PSEUDO_SRC = Pseudo_QC_All.cpp Pseudo_QC_Bool.cpp Pseudo_QC_Int.cpp \
 QorePseudoMethods.cpp: $(QORE_PSEUDO_SRC)
 
 QORE_GENERATED_SOURCES = \
-	QC_Queue.cpp QC_Socket.cpp QC_File.cpp QC_AbstractSmartLock.cpp QC_Mutex.cpp QC_AutoLock.cpp \
+	QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC_AbstractSmartLock.cpp \
+        QC_Mutex.cpp QC_AutoLock.cpp \
 	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp QC_AutoReadLock.cpp QC_AutoWriteLock.cpp \
 	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp QC_HTTPClient.cpp QC_FtpClient.cpp \
 	QC_AbstractIterator.cpp QC_AbstractQuantifiedIterator.cpp \

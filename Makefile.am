@@ -61,6 +61,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_Datasource.qpp \
 	lib/QC_DatasourcePool.qpp \
 	lib/QC_Dir.qpp \
+	lib/QC_ReadOnlyFile.qpp \
 	lib/QC_File.qpp \
 	lib/QC_FtpClient.qpp \
 	lib/QC_Gate.qpp \

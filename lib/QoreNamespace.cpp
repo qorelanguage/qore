@@ -85,6 +85,8 @@
 #  include "tests/builtin_inheritance_tests.cpp"
 #endif
 
+DLLLOCAL QoreClass* initReadOnlyFileClass(QoreNamespace& ns);
+
 DLLLOCAL QoreClass* initAbstractDatasourceClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractQuantifiedIteratorClass(QoreNamespace& ns);
@@ -601,6 +603,7 @@ void StaticSystemNamespace::init() {
    qns.addSystemClass(initProgramClass(qns));
 
    qns.addSystemClass(initTermIOSClass(qns));
+   qns.addSystemClass(initReadOnlyFileClass(qns));
    qns.addSystemClass(initFileClass(qns));
    qns.addSystemClass(initDirClass(qns));
    qns.addSystemClass(initGetOptClass(qns));

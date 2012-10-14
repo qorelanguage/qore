@@ -1,0 +1,950 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_ReadOnlyFile.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_File.h>
+#include <qore/intern/QC_Queue.h>
+
+/** @defgroup file_stat_constants File Stat Constants
+    These are values that can be and'ed with the \c "mode" element of a file's status as returned by Qore::ReadOnlyFile::hstat(), Qore::hstat(), etc, or with element 2 of the status list as returned from Qore::ReadOnlyFile::stat(), Qore::stat(), etc.
+*/
+//@{
+//! %File type bitmask
+const S_IFMT = S_IFMT;
+
+//! Bit signifying if the file is a character special (device) file
+const S_IFCHR = S_IFCHR;
+
+//! Bit signifying if the entry is a directory
+const S_IFDIR = S_IFDIR;
+
+//! Bitmask signifying if the file is a block special (device) file
+const S_IFBLK = S_IFBLK;
+
+//! Bit signifying if the file is a regular file
+const S_IFREG = S_IFREG;
+
+#ifndef S_IFLNK
+#define S_IFLNK 0
+#endif
+
+//! Bitmask signifying if the file is a symbolic link; equal to 0 on native Windows ports
+const S_IFLNK = S_IFLNK;
+
+#ifndef S_IFSOCK
+#define S_IFSOCK 0
+#endif
+
+//! Bitmask signifying if the file is a socket file; equal to 0 on native Windows ports
+const S_IFSOCK = S_IFSOCK;
+
+#ifndef S_IFWHT
+#define S_IFWHT S_IFREG
+#endif
+
+//! Bitmask signifying if the file is a whiteout file; equal to 0 on native Windows ports
+const S_IFWHT = S_IFWHT;
+
+//! Bitmask giving the RWX mask for the owner
+const S_IRWXU = S_IRWXU;
+
+//! Bit signifying if the file's owner has read permissions
+const S_IRUSR = S_IRUSR;
+
+//! Bit signifying if the file's owner has write permissions
+const S_IWUSR = S_IWUSR;
+
+//! Bit signifying if the file's owner has execute permissions
+const S_IXUSR = S_IXUSR;
+
+#ifndef S_IRWXG
+#define S_IRWXG 0
+#endif
+
+//! Bitmask giving the RWX mask for the group; equal to 0 on native Windows ports
+const S_IRWXG = S_IRWXG;
+
+#ifndef S_IRGRP
+#define S_IRGRP 0
+#endif
+
+//! Bit signifying if the file's group has read permissions; equal to 0 on native Windows ports
+const S_IRGRP = S_IRGRP;
+
+#ifndef S_IWGRP
+#define S_IWGRP 0
+#endif
+
+//! Bit signifying if the file's group has write permissions; equal to 0 on native Windows ports
+const S_IWGRP = S_IWGRP;
+
+#ifndef S_IXGRP
+#define S_IXGRP 0
+#endif
+
+//! Bit signifying if the file's group has execute permissions; equal to 0 on native Windows ports
+const S_IXGRP = S_IXGRP;
+
+#ifndef S_IRWXO
+#define S_IRWXO 0
+#endif
+
+//! Bitmask giving the RWX mask for other; equal to 0 on native Windows ports
+const S_IRWXO = S_IRWXO;
+
+#ifndef S_IROTH
+#define S_IROTH 0
+#endif
+
+//! Bit signifying if other has read permissions; equal to 0 on native Windows ports
+const S_IROTH = S_IROTH;
+
+#ifndef S_IWOTH
+#define S_IWOTH 0
+#endif
+
+//! Bit signifying if other has write permissions; equal to 0 on native Windows ports
+const S_IWOTH = S_IWOTH;
+
+#ifndef S_IXOTH
+#define S_IXOTH 0
+#endif
+
+//! Bit signifying if other has execute permissions; equal to 0 on native Windows ports
+const S_IXOTH = S_IXOTH;
+
+#ifndef S_ISUID
+#define S_ISUID 0
+#endif
+
+//! Bit signifying set user id on execution; equal to 0 on native Windows ports
+const S_ISUID = S_ISUID;
+
+#ifndef S_ISGID
+#define S_ISGID 0
+#endif
+
+//! Bit signifying set group id on execution; equal to 0 on native Windows ports
+const S_ISGID = S_ISGID;
+
+#ifndef S_ISVTX
+#define S_ISVTX 0
+#endif
+
+//! Bit signifying restricted deletes for directories; equal to 0 on native Windows ports
+const S_ISVTX = S_ISVTX;
+//@}
+
+//! The %ReadOnlyFile class allows %Qore programs to read existing files
+/** @note This class is not available with the @ref PO_NO_FILESYSTEM parse option
+
+    %ReadOnlyFile objects are opened with a specific @ref character_encoding "character encoding", meaning that any string read from the file will be tagged with the file's @ref character_encoding "character encoding".
+    If no @ref character_encoding "character encoding" is specified, then the @ref default_encoding "default character encoding" is assumed for the file.
+
+    This class supports posting read events to a @ref Qore::Thread::Queue "Queue". See @ref event_handling for more information.
+
+    The events raised by this object are listed in the following table:
+
+    @anchor file_events
+    <b>File Events</b>
+    |!Name|!Description
+    |@ref EVENT_DATA_READ|Raised when data is read from the file
+    |@ref EVENT_CHANNEL_CLOSED|Raised when the file is closed
+    |@ref EVENT_DELETED|Raised when the object being monitored is deleted
+    |@ref EVENT_OPEN_FILE|Raised right before an attempt to open a file is made
+    |@ref EVENT_FILE_OPENED|Raised when the file has been successfully opened
+
+    @since %Qore 0.8.6
+ */
+qclass ReadOnlyFile [arg=File* f; dom=FILESYSTEM];
+
+//! Creates the %ReadOnlyFile object
+/** The constructor takes the file path and one optional argument that will set the default @ref character_encoding "character encoding" for the file (only affects reading string data)
+    To open the file again with another file, call ReadOnlyFile::open(); the @ref character_encoding "character encoding" can also be set
+    or changed by the ReadOnlyFile::open() or ReadOnlyFile::setEncoding() methods.
+
+    @par Example:
+    @code
+my ReadOnlyFile $f("/tmp/my-file.txt", "iso-8859-1");
+    @endcode
+
+    @param path the path to open for reading
+    @param encoding The @ref character_encoding "character encoding" for the %ReadOnlyFile. Strings data read from the file will be tagged with this @ref character_encoding "character encoding"; if this argument is not given then the %ReadOnlyFile will receive the @ref default_encoding "default encoding"
+
+    @throw READONLYFILE-OPEN-ERROR the given file cannot be opened for reading (\c arg will be assigned to the errno value)
+    @throw ILLEGAL-EXPRESSION ReadOnlyFile::constructor() cannot be called with a TTY target when @ref no-terminal-io "%no-terminal-io" is set
+
+    @see ReadOnlyFile::open()
+ */
+ReadOnlyFile::constructor(string path, *string encoding) {
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+
+   SimpleRefHolder<File> f(new File(qe));
+   if (f->isTty()) {
+      xsink->raiseException("ILLEGAL-EXPRESSION", "ReadOnlyFile::constructor() cannot be called with a TTY target when 'no-terminal-io' is set");
+      return;
+   }
+
+   if (f->open(path->getBuffer(), O_RDONLY, 0, qe)) {
+      xsink->raiseErrnoException("READONLYFILE-OPEN-ERROR", errno, "cannot open '%s'", path->getBuffer());
+      return;
+   }
+
+   self->setPrivate(CID_READONLYFILE, f.release());
+}
+
+//! Closes the %ReadOnlyFile if it is open and destroys the %ReadOnlyFile object
+/** Closes the %ReadOnlyFile if it is open and destroys the %ReadOnlyFile object
+ */
+ReadOnlyFile::destructor() [doconly=true] {
+   // this code should never be output - this function is only here for documentation
+   assert(false);
+}
+
+//! Creates a new %ReadOnlyFile object with the same @ref character_encoding "character encoding" specification as the original, otherwise no other information is copied
+/** @par Example:
+    @code
+my ReadOnlyFile $f1 = $f.copy();
+    @endcode
+ */
+ReadOnlyFile::copy() {
+   self->setPrivate(CID_READONLYFILE, new File(f->getEncoding()));
+}
+
+//! Opens a file in a particular mode; throws an exception on failure
+/** Opens the file in the mode given; if the %ReadOnlyFile was previously open, it is closed first. Optionally the %ReadOnlyFile's default character encoding can be specified.
+
+    Note that if no encoding is specified, the %ReadOnlyFile will be tagged with the @ref character_encoding "character encoding" set in the %ReadOnlyFile's @ref ReadOnlyFile::constructor() "constructor".
+    Any string data written to the %ReadOnlyFile will be converted to the %ReadOnlyFile's encoding, and any string data read from the %ReadOnlyFile will be automatically tagged with the %ReadOnlyFile's encoding.
+
+    If an error occurs, a \c READONLYFILE-OPEN-ERROR exception is thrown.
+
+    @par Example:
+    @code
+try {
+    $f.open($fn, "iso-8859-1");
+}
+catch (hash $ex) {
+    printf("%s: %s: %s\n", $fn, $ex.err, $ex.desc);
+}
+    @endcode
+
+    @par Events:
+    @ref EVENT_OPEN_FILE, @ref EVENT_FILE_OPENED
+
+    @param path the path to the file
+    @param encoding the name of the @ref character_encoding "character encoding" for the %ReadOnlyFile; if this argument is not given, the %ReadOnlyFile will be tagged with the @ref character_encoding "character encoding" given in the @ref File::constructor() "constructor"
+
+    @throw READONLYFILE-OPEN-ERROR an error occurred opening the file
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+nothing ReadOnlyFile::open(string path, *string encoding) {
+   if (check_terminal_io(self, "ReadOnlyFile::open", xsink))
+      return 0;
+
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : f->getEncoding();
+   if (f->open(path->getBuffer(), O_RDONLY, 0, qe))
+      xsink->raiseErrnoException("READONLYFILE-OPEN-ERROR", errno, "cannot open '%s'", path->getBuffer());
+}
+
+//! Closes the %ReadOnlyFile object
+/** @par Example:
+    @code
+if ($f.close())
+    printf("error closing file: %s\n", strerror(errno()));
+    @endcode
+
+    @par Events:
+    @ref EVENT_CHANNEL_CLOSED
+
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @return 0 for success, -1 for an error (see errno() and strerror() for the error information)
+ */
+int ReadOnlyFile::close() {
+   if (check_terminal_io(self, "ReadOnlyFile::close", xsink))
+      return 0;
+
+   return f->close();
+}
+
+//! Reads a certain number of bytes from the %ReadOnlyFile within an optional timeout period and returns a string of the data read or @ref nothing if no data can be read
+/** Reads a certain amount of string data from the %ReadOnlyFile; the size argument is required. To read binary data, use the ReadOnlyFile::readBinary() method.
+
+    Note that the amount of data read from the file may be less than the size given, for example if the file does not contain enough data to fulfill the request. In this case, only the data available in the file is returned.
+
+    An optional timeout period in milliseconds can be passed as well (or a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear; ex: \c 25ms). If a timeout value is passed and the data cannot be read within the timeout period, then a \c READONLYFILE-READ-TIMEOUT exception is thrown. If no timeout value is passed or a negative value is given, then the call will never timeout until either the requested amount of data has been read from the %ReadOnlyFile or an end-of-file condition has been reached.
+
+    @par Example:
+    @code
+my *string $data = $f.read(-1); # read an entire text file into a variable
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @param size the number of bytes to read of the file, -1 will read the entire file
+    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out and will only return when the data has been read
+
+    @return the data read from the file, returned as a string tagged with the %ReadOnlyFile's @ref character_encoding "character encoding".  @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.
+
+    @throw READONLYFILE-READ-PARAMETER-ERROR zero size argument passed
+    @throw FILE-READ-ERROR file is not open
+    @throw FILE-READ-TIMEOUT timeout limit exceeded
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @see File::readBinary()
+ */
+*string ReadOnlyFile::read(softint size, timeout timeout_ms = -1) {
+   if (check_terminal_io(self, "ReadOnlyFile::read", xsink))
+      return 0;
+
+   if (!size) {
+      xsink->raiseException("READONLYFILE-READ-PARAMETER-ERROR", "expecting non-zero size as first parameter of ReadOnlyFile::read()");
+      return 0;
+   }
+
+   return f->read((qore_offset_t)size, timeout_ms, xsink);
+}
+
+//! Reads a 1-byte unsigned integer from the %ReadOnlyFile in binary format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readu1();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return a 1-byte unsigned integer as read from the %ReadOnlyFile in binary format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readu1() {
+   if (check_terminal_io(self, "ReadOnlyFile::readu1", xsink))
+      return 0;
+
+   unsigned char c;
+   if (f->readu1(&c, xsink))
+      return 0;
+   return new QoreBigIntNode(c);
+}
+
+//! Reads a 2-byte (16 bit) unsigned integer from the %ReadOnlyFile in binary big-endian format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readu2();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return a 2-byte unsigned integer as read from the file in binary big-endian format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readu2() {
+   if (check_terminal_io(self, "ReadOnlyFile::readu2", xsink))
+      return 0;
+
+   unsigned short s;
+   if (f->readu2(&s, xsink))
+      return 0;
+   return new QoreBigIntNode(s);
+}
+
+//! Reads a 4-byte (32 bit) unsigned integer from the file in big-endian format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readu4();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return a 4-byte unsigned integer as read from the file in binary big-endian format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readu4() {
+   if (check_terminal_io(self, "ReadOnlyFile::readu4", xsink))
+      return 0;
+
+   unsigned int i;
+   if (f->readu4(&i, xsink))
+      return 0;
+   return new QoreBigIntNode(i);
+}
+
+//! Reads a 2-byte (16 bit) unsigned integer from the file in binary little-endian format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readu2LSB();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return a 2-byte unsigned integer as read from the file in binary little-endian format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readu2LSB() {
+   if (check_terminal_io(self, "ReadOnlyFile::readu2LSB", xsink))
+      return 0;
+
+   unsigned short s;
+   if (f->readu2LSB(&s, xsink))
+      return 0;
+
+   return new QoreBigIntNode(s);
+}
+
+//! Reads a 4-byte (32 bit) unsigned integer from the file in binary little-endian format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readu4LSB();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return a 4-byte unsigned integer as read from the file in binary little-endian format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readu4LSB() {
+   if (check_terminal_io(self, "ReadOnlyFile::readu4LSB", xsink))
+      return 0;
+
+   unsigned int i;
+   if (f->readu4LSB(&i, xsink))
+      return 0;
+
+   return new QoreBigIntNode(i);
+}
+
+//! Reads a 1-byte signed integer from the file in binary format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readi1();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return a 1-byte signed integer as read from the file in binary format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readi1() {
+   if (check_terminal_io(self, "ReadOnlyFile::readi1", xsink))
+      return 0;
+
+   char c;
+   if (f->readi1(&c, xsink))
+      return 0;
+   return new QoreBigIntNode(c);
+}
+
+//! Reads a 2-byte (16 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readi2();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return a 2-byte signed integer as read from the file in binary big-endian format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readi2() {
+   if (check_terminal_io(self, "ReadOnlyFile::readi2", xsink))
+      return 0;
+
+   short s;
+   if (f->readi2(&s, xsink))
+      return 0;
+   return new QoreBigIntNode(s);
+}
+
+//! Reads a 4-byte (32 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readi4();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return a 4-byte signed integer as read from the file in binary big-endian format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readi4() {
+   if (check_terminal_io(self, "ReadOnlyFile::readi4", xsink))
+      return 0;
+
+   int i;
+   if (f->readi4(&i, xsink))
+      return 0;
+   return new QoreBigIntNode(i);
+}
+
+//! Reads an 8-byte (64 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readi8();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return a 8-byte signed integer as read from the file in binary big-endian format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readi8() {
+   if (check_terminal_io(self, "ReadOnlyFile::readi8", xsink))
+      return 0;
+
+   int64 i;
+   if (f->readi8(&i, xsink))
+      return 0;
+
+   return new QoreBigIntNode(i);
+}
+
+//! Reads a 2-byte (16 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readi2LSB();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return a 2-byte signed integer as read from the file in binary little-endian format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readi2LSB() {
+   if (check_terminal_io(self, "ReadOnlyFile::readi2LSB", xsink))
+      return 0;
+
+   short s;
+   if (f->readi2LSB(&s, xsink))
+      return 0;
+
+   return new QoreBigIntNode(s);
+}
+
+//! Reads a 4-byte (32 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readi4LSB();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return a 4-byte signed integer as read from the file in binary little-endian format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readi4LSB() {
+   if (check_terminal_io(self, "ReadOnlyFile::readi4LSB", xsink))
+      return 0;
+
+   int i;
+   if (f->readi4LSB(&i, xsink))
+      return 0;
+   return new QoreBigIntNode(i);
+}
+
+//! Reads an 8-byte (64 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
+/** @par Example:
+    @code
+my *int $i = $f.readi8LSB();
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @return an 8-byte signed integer as read from the file in binary little-endian format or @ref nothing if no data can be read
+
+    @throw FILE-READ-ERROR file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*int ReadOnlyFile::readi8LSB() {
+   if (check_terminal_io(self, "ReadOnlyFile::readi8LSB", xsink))
+      return 0;
+
+   int64 i;
+   if (f->readi8LSB(&i, xsink))
+      return 0;
+   return new QoreBigIntNode(i);
+}
+
+//! Reads a certain number of bytes from the file within an optional timeout period and returns a binary object of the data read or @ref nothing if no data can be read
+/** Reads a certain amount of string data from the file; the size argument is required. To read string data, use the ReadOnlyFile::read() method.
+
+    Note that the amount of data read from the file may be less than the size given, for example if the file does not contain enough data to fulfill the request. In this case, only the data available in the file is returned.
+
+    An optional timeout period in milliseconds can be passed as well (or a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear; ex: \c 25ms). If a timeout value is passed and the data cannot be read within the timeout period, then a \c FILE-READ-TIMEOUT exception is thrown. If no timeout value is passed or a negative value is given, then the call will never timeout until either the requested amount of data has been read from the file or an end-of-file condition has been reached.
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @par Example:
+    @code
+my *binary $data = $f.readBinary(-1); # read an entire file into a variable
+    @endcode
+
+    @param size the number of bytes to read of the file, -1 will read the entire file
+    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out and will only return when the data has been read
+
+    @return the data read from the file, returned as a binary object.  @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.
+
+    @throw READONLYFILE-READ-BINARY-PARAMETER-ERROR zero size argument passed
+    @throw FILE-READ-ERROR file is not open
+    @throw FILE-READ-TIMEOUT timeout limit exceeded
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @see ReadOnlyFile::read()
+ */
+*binary ReadOnlyFile::readBinary(softint size, timeout timeout_ms = -1) {
+   if (check_terminal_io(self, "ReadOnlyFile::readBinary", xsink))
+      return 0;
+
+   if (!size) {
+      xsink->raiseException("READONLYFILE-READ-BINARY-PARAMETER-ERROR", "expecting size as first parameter of File::readBinary()");
+      return 0;
+   }
+
+   return f->readBinary((qore_offset_t)size, timeout_ms, xsink);
+}
+
+//! Reads until an EOL marker is found and returns the string read or @ref nothing if no data can be read
+/** Any string returned will be tagged with the %ReadOnlyFile's @ref character_encoding "character encoding".
+
+    @par Example:
+    @code
+# remove EOL marker
+while (exists (my *string $line = $f.readLine(False))) {
+    # print out the line just read
+    printf("%s\n", $line);
+}
+    @endcode
+
+    @par Events:
+    @ref EVENT_DATA_READ
+
+    @param incl_eol if this argument is @ref Qore::True "True", then the end of line characters read are included in the string returned
+    @param eol the end of line character(s); if not given, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n" (the last one is only automatically detected when not connected to a terminal device in order to keep the I/O from stalling); if this string is passed and has a different @ref character_encoding "character encoding" from the File's, then it will be converted to the File's @ref character_encoding "character encoding"
+
+    @return The line read from the file. @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.  Any string returned will be tagged with the %ReadOnlyFile's @ref character_encoding "character encoding".
+
+    @throw READONLYFILE-READLINE-ERROR the file is not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @see
+    - @ref Qore::FileLineIterator
+ */
+*string ReadOnlyFile::readLine(bool incl_eol = True, *string eol) {
+   if (check_terminal_io(self, "ReadOnlyFile::readLine", xsink))
+      return 0;
+
+   if (eol && eol->empty())
+      eol = 0;
+
+   return eol ? f->readUntil(eol->getBuffer(), incl_eol, xsink) : f->readLine(incl_eol, xsink);
+}
+
+//! Sets the @ref character_encoding "character encoding" for the %ReadOnlyFile; if called with no argument, the @ref default_encoding "default encoding" is set
+/** @par Example:
+    @code
+$f.setEncoding("ISO-8859-1");
+    @endcode
+
+    @param encoding the @ref character_encoding "character encoding" for the file; if called with no argument, the @ref default_encoding "default encoding" is set
+
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+nothing ReadOnlyFile::setEncoding(*string encoding) {
+   if (check_terminal_io(self, "ReadOnlyFile::setEncoding", xsink))
+      return 0;
+
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   f->setEncoding(qe);
+}
+
+//! Returns the @ref character_encoding "character encoding" for the %ReadOnlyFile
+/** @par Example:
+    @code
+my string $encoding = $f.getEncoding();
+    @endcode
+
+    @return the @ref character_encoding "character encoding" for the %ReadOnlyFile
+ */
+string ReadOnlyFile::getEncoding() [flags=CONSTANT] {
+   return new QoreStringNode(f->getEncoding()->getCode());
+}
+
+//! Sets the current file position (in bytes from the beginning of the file)
+/** @par Example:
+    @code
+$f.setPos(0); # go to the beginning of the file
+    @endcode
+
+    @param pos the position in the file as offset from position 0
+
+    @return the new offset in the file, -1 for error
+
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @see ReadOnlyFile::getPos()
+ */
+int ReadOnlyFile::setPos(int pos = 0) {
+   if (check_terminal_io(self, "ReadOnlyFile::setPos", xsink))
+      return 0;
+
+   return f->setPos(pos);
+}
+
+//! Returns the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
+/** @par Example:
+    @code
+my int $pos = $f.getPos();
+    @endcode
+
+    @return the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
+
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @see ReadOnlyFile::setPos()
+ */
+int ReadOnlyFile::getPos() [flags=RET_VALUE_ONLY] {
+   if (check_terminal_io(self, "ReadOnlyFile::getPos", xsink))
+      return 0;
+
+   return f->getPos();
+}
+
+//! Reads one character from the file and returns it as a string; returns @ref nothing if no data can be read from the file
+/** Multi-byte characters are also read; use ReadOnlyFile::readu1() or ReadOnlyFile::readi1() to read a single byte from a file regardless of the %ReadOnlyFile's @ref character_encoding "character encoding".
+
+    @par Example:
+    @code
+my *string $str = $f.getchar();
+    @endcode
+
+    @return the single character read from the file or @ref nothing if no data can be read from the %ReadOnlyFile
+
+    @throw FILE-READ-ERROR file is not open
+    @throw FILE-GETCHAR-ERROR invalid multi-byte character read or EOF received while reading a multi-byte character
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+*string ReadOnlyFile::getchar() {
+   if (check_terminal_io(self, "ReadOnlyFile::getchar", xsink))
+      return 0;
+
+   return f->getchar(xsink);
+}
+
+//! Returns @ref Qore::True "True" if there is data available for reading from the file within the timeout period
+/** With a timeout of zero (the default if no timeout value is passed), this method can be used for non-blocking polling the file for data. Like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear (ex: \c 25ms).
+
+    @par Example:
+    @code
+if (!isDataAvailable(30s))
+    return;
+    @endcode
+
+    @param timeout_ms An optional timeout in milliseconds (1/1000 second); @ref relative_dates "relative date/time values" can be given instead of an integer in milliseconds to make the source more readable; ex: \c 20s
+
+    @return @ref Qore::True "True" if data becomes available for reading from the file within the timeout period, @ref Qore::False "False" if not
+
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+bool ReadOnlyFile::isDataAvailable(timeout timeout_ms = 0) [flags=RET_VALUE_ONLY] {
+   if (check_terminal_io(self, "ReadOnlyFile::isDataAvailable", xsink))
+      return 0;
+
+   return f->isDataAvailable(timeout_ms, xsink);
+}
+
+//! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref file_events "file events"
+/** @par Example:
+    @code
+$f.setEventQueue($queue);
+    @endcode
+
+    @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref file_events "file events"; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
+
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+    @throw QUEUE-ERROR the Queue passed has a maximum size set
+
+    @see @ref event_handling for more information
+ */
+nothing ReadOnlyFile::setEventQueue(Qore::Thread::Queue[Queue] queue) {
+   ReferenceHolder<Queue> q(queue, xsink);
+   if (check_terminal_io(self, "ReadOnlyFile::setEventQueue", xsink))
+      return 0;
+
+   if (queue->getMax() != -1) {
+      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the File object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+      return 0;
+   }
+
+   // pass reference from QoreObject::getReferencedPrivateData() to function
+   f->setEventQueue(q.release(), xsink);
+   return 0;
+}
+
+//! Removes any @ref Qore::Thread::Queue "Queue" object from the %ReadOnlyFile object so that @ref file_events "file events" are no longer added to the @ref Qore::Thread::Queue "Queue"
+/** @par Example:
+    @code
+$f.setEventQueue();
+    @endcode
+
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @see @ref event_handling for more information
+ */
+nothing ReadOnlyFile::setEventQueue() {
+   if (check_terminal_io(self, "ReadOnlyFile::setEventQueue", xsink))
+      return 0;
+
+   f->setEventQueue(0, xsink);
+   return 0;
+}
+
+//! Returns a @ref stat_list about the file's status or throws an exception if any errors occur
+/** If any errors occur, a \c FILE-STAT-ERROR exception is thrown.
+
+    @par Example:
+    @code
+my int $mode = $file.stat()[2];
+    @endcode
+
+    @return a @ref stat_list "list of file status values" for the current file (must be open).
+
+    @throw FILE-STAT-ERROR stat() call failed or file not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @see @ref file_stat_constants
+ */
+list ReadOnlyFile::stat() {
+   if (check_terminal_io(self, "ReadOnlyFile::stat", xsink))
+      return 0;
+
+   return f->stat(xsink);
+}
+
+//! Returns a @ref stat_hash about the file's status or throws an exception if any errors occur
+/** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
+
+    @par Example:
+    @code
+my hash $h = $file.hstat();
+    @endcode
+
+    @return a @ref stat_hash about the file's status
+
+    @throw FILE-HSTAT-ERROR stat() call failed or file not open
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @see @ref file_stat_constants
+ */
+hash ReadOnlyFile::hstat() {
+   if (check_terminal_io(self, "ReadOnlyFile::hstat", xsink))
+      return 0;
+
+   return f->hstat(xsink);
+}
+
+//! Returns a @ref filesystem_status_hash about the file's filesystem status or throws an exception if any errors occur
+/** If any errors occur, a \c FILE-STATVFS-ERROR exception is thrown
+
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_STATVFS
+
+    @par Example:
+    @code
+my hash $h = $file.statvfs();
+    @endcode
+
+    @return a @ref filesystem_status_hash about the filesystem where the file resides
+
+    @throw FILE-STATVFS-ERROR statvfs() call failed or file is not open
+    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_STATVFS before calling this method to avoid this exception
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+ */
+hash ReadOnlyFile::statvfs() {
+#ifdef HAVE_SYS_STATVFS_H
+   if (check_terminal_io(self, "ReadOnlyFile::statvfs", xsink))
+      return 0;
+
+   return f->statvfs(xsink);
+#else
+   return missing_method_error("ReadOnlyFile::statvfs", "STATVFS", xsink);
+#endif
+}
+
+//! returns @ref Qore::True "True" if the File is open, @ref Qore::False "False" if not
+/** @return @ref Qore::True "True" if the File is open, @ref Qore::False "False" if not
+
+    @par Example:
+    @code
+my bool $b = $file.isOpen();
+    @endcode
+*/
+bool ReadOnlyFile::isOpen() [flags=CONSTANT] {
+   return f->isOpen();
+}
+
+//! returns @ref Qore::True "True" if the File is connected to a terminal device, @ref Qore::False "False" if not
+/** @return @ref Qore::True "True" if the File is connected to a terminal device, @ref Qore::False "False" if not
+
+    @par Example:
+    @code
+my bool $b = $file.isTty();
+    @endcode
+*/
+bool ReadOnlyFile::isTty() [flags=CONSTANT] {
+   return f->isTty();
+}

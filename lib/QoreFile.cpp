@@ -442,7 +442,7 @@ struct qore_qf_private {
       return rc;
    }
 
-   DLLLOCAL bool isTTY() const {
+   DLLLOCAL bool isTty() const {
       AutoLocker al(m);
 
       if (!is_open)
@@ -1376,6 +1376,6 @@ QoreHashNode *QoreFile::statvfs(ExceptionSink *xsink) const {
 }
 #endif
 
-bool QoreFile::isTTY() const {
-   return priv->isTTY();
+bool QoreFile::isTty() const {
+   return priv->isTty();
 }
