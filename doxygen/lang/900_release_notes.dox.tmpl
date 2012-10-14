@@ -74,7 +74,7 @@
     - Qore::Socket::recvu4LSB()
 
     @par Text File Parsing Enhancements
-    - the @ref Qore::File::readLine() "File::readLine()" method was enhanced to accept 2 optional arguments, allowing the end of line character(s) to be stripped from the line returned, and also to allow the end of line characters to be specified.  If no end of line characters are specified, then the method automatically determines the end of line characters (can be \c "\n", \c "\r", or \c "\r\n")
+    - the @ref Qore::File::readLine() "File::readLine()" method was enhanced to accept 2 optional arguments, allowing the end of line character(s) to be stripped from the line returned, and also to allow the end of line characters to be specified.  If no end of line characters are specified, then the method automatically determines the end of line characters (can be \c "\n", \c "\r", or \c "\r\n"; the last one only if the underlying file is not a tty in order to avoid stalling I/O on an interactive TTY)
     - added a new @ref Qore::FileLineIterator "FileLineIterator" iterator class
 
     @par Other Improvements and Changes
