@@ -372,7 +372,7 @@ Socket::copy() {
 }
 
 //! Connects to a remote port (if the string has a format "host:port") or UNIX domain socket file with an optional timeout value with a millisecond resolution
-/** Connects the socket to a remote (or local) port or UNIX domain socket file, for network (ipv4 and ipv6) connections, accepts an optional timeout value in milliseconds (@ref relative_dates "relative date/time values" can be given instead of an integer in milliseconds to make the source more readable; ex: 20s). If any errors occur, an exception is thrown.
+/** Connects the socket to a remote (or local) port or UNIX domain socket file, for network (ipv4 and ipv6) connections, accepts an optional timeout value in milliseconds (@ref relative_dates "relative date/time values" can be given instead of an integer in milliseconds to make the source more readable; ex: \c 20s). If any errors occur, an exception is thrown.
 
     @par Examples:
     @code# connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout

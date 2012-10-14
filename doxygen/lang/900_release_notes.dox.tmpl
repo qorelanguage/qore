@@ -105,6 +105,8 @@
       - @ref Qore::MININT "MININT"
     - new function:
       - @ref Qore::range() "range()"
+    - new methods:
+      - @ref Qore::File::isTTY()
     - updated docs to show functional restrictions tagged at the class level
 
     @subsection qore_086_bug_fixes Bug Fixes in Qore
@@ -116,6 +118,7 @@
     - fixed bugs in regexes in the HttpServer::addListeners() and HttpServer::addListenersWithHandler() methods (HttpServer module version updated to 0.3.5)
     - fixed bugs handling non-blocking reads in the @ref Qore::Socket "Socket" class; the timeout setting was only enforced for the first read; subsequent reads were made as blocking reads
     - fixed a bug handling in the @ref Qore::Socket "Socket" class when the SSL session requires renegotiation during non-blocking I/O
+    - File::constructor() now throws an exception if called with a tty target and @ref no-terminal-io "%no-terminal-io" is set
     - added code tags to @ref Qore::File "File" methods without side effects
     - made many minor documentation fixes
 

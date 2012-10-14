@@ -526,6 +526,9 @@ public:
    //! returns true if the file is open, false if not
    DLLEXPORT bool isOpen() const;
 
+   //! returns true if the file is a tty
+   DLLEXPORT bool isTTY() const;
+
    //! sets terminal attributes
    DLLLOCAL int setTerminalAttributes(int action, QoreTermIOS *ios, ExceptionSink *xsink) const;
 

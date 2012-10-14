@@ -308,6 +308,8 @@ struct qore_qf_private {
       if (!is_open)
          return -2;
 
+      bool tty = (bool)isatty(fd);
+
       int ch, rc = -1;
 
       while ((ch = readChar()) >= 0) {
@@ -316,16 +318,18 @@ struct qore_qf_private {
             rc = 0;
 
          if (ch == '\r') {
-            // see if next byte is \n'
-            ch = readChar();
-            if (ch >= 0) {
-               if (ch == '\n') {
-                  if (incl_eol)
-                     str.concat((char)ch);
-               }
-               else {
-                  // reset file to previous byte position
-                  lseek(fd, -1, SEEK_CUR);
+            // see if next byte is \n' if we're not connected to a terminal device
+            if (!tty) {
+               ch = readChar();
+               if (ch >= 0) {
+                  if (ch == '\n') {
+                     if (incl_eol)
+                        str.concat((char)ch);
+                  }
+                  else {
+                     // reset file to previous byte position
+                     lseek(fd, -1, SEEK_CUR);
+                  }
                }
             }
             if (!incl_eol)
@@ -436,6 +440,15 @@ struct qore_qf_private {
       }
 
       return rc;
+   }
+
+   DLLLOCAL bool isTTY() const {
+      AutoLocker al(m);
+
+      if (!is_open)
+         return false;
+
+      return (bool)isatty(fd);
    }
 
    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink) {
@@ -1362,3 +1375,7 @@ QoreHashNode *QoreFile::statvfs(ExceptionSink *xsink) const {
    return priv->statvfs(xsink);
 }
 #endif
+
+bool QoreFile::isTTY() const {
+   return priv->isTTY();
+}
