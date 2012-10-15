@@ -36,7 +36,7 @@ protected:
    int64 m_position;
 
    bool m_increasing;
-   bool m_invalid;
+   bool m_valid;
 
    ExceptionSink *m_xsink;
 
@@ -48,12 +48,11 @@ public:
    	     m_step(step),
    	     m_position(-1),
    	     m_increasing(start<stop),
-   	     m_invalid(false),
+   	     m_valid(false),
    	     m_xsink(xsink)
    {
 	   if (step < 1) {
 		   m_xsink->raiseException("XRANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0; currently=%d", step);
-		   m_invalid = true;
 	   }
    }
 
@@ -68,14 +67,14 @@ public:
            ret = calculateCurrent() >= m_stop;
        }
 
-       if (!ret)
-           m_invalid = true;
+       if (ret)
+           m_valid = true;
 
        return ret;
    }
 
    DLLLOCAL AbstractQoreNode* getValue() {
-       if (m_invalid) {
+       if (!m_valid) {
            m_xsink->raiseException("INVALID-ITERATOR", "XRangeIterator is invalid. Position=%d", m_position);
            return 0;
        }
@@ -84,7 +83,7 @@ public:
 
    DLLLOCAL void reset() {
 	   m_position = -1;
-	   m_invalid = false;
+	   m_valid = false;
    }
 
    DLLLOCAL virtual const char* getName() const { return "XRangeIterator"; }
