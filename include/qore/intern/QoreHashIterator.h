@@ -39,6 +39,9 @@ protected:
       return 0;
    }
 
+   DLLLOCAL QoreHashIterator(QoreHashNode* h) : ConstHashIterator(h) {
+   }
+
 public:
    DLLLOCAL QoreHashIterator(const QoreHashNode* h) : ConstHashIterator(h->hashRefSelf()) {
    }

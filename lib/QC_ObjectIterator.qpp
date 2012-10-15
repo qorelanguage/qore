@@ -1,0 +1,60 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_HashIterator.qpp HashIterator class definition */
+/*
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QoreObjectIterator.h>
+
+//! This class a basic iterator class for objects
+/** Call ObjectIterator::next() to iterate through the object; do not use the iterator if ObjectIterator::next() returns @ref False.
+    An object can be iterated in reverse order by calling ObjectIterator::prev() instead of ObjectIterator::next()
+
+    @note
+    - In general, the ObjectIterator class is not designed to be accessed from multiple threads; it was created without locking for
+      fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
+      such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.
+
+    @see ObjectReverseIterator
+ */
+qclass ObjectIterator [arg=QoreObjectIterator* i; ns=Qore; vparent=HashIterator];
+
+//! Creates the object iterator object
+/** @param o the object to iterate
+
+    @par Example:
+    @code
+my ObjectIterator $i($obj);
+    @endcode
+ */
+ObjectIterator::constructor(object o) {
+   self->setPrivate(CID_OBJECTITERATOR, new QoreObjectIterator(o));
+}
+
+//! Creates an empty object iterator object
+/** @par Example:
+    @code
+my *object $obj = get_object_or_nothing();
+my ObjectIterator $i($obj);
+    @endcode
+ */
+ObjectIterator::constructor() {
+   self->setPrivate(CID_OBJECTITERATOR, new QoreObjectIterator);
+}

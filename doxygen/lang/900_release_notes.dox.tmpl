@@ -73,6 +73,20 @@
     - Qore::Socket::recvu2LSB()
     - Qore::Socket::recvu4LSB()
 
+    @par Iterator Improvements
+    - new iterator classes:
+      - @ref Qore::SingleValueIterator "SingleValueIterator": allows single values (or any value without an iterator class) to be iterated
+      - @ref Qore::FileLineIterator "FileLineIterator": allows files to be iterated line by line
+      - @ref Qore::ObjectIterator "ObjectIterator": a generic iterator for objects
+      - @ref Qore::ObjectReverseIterator "ObjectReverseIterator": a generic reverse iterator for objects
+    - new pseudo-methods were added to return iterator objects based on the value type:
+      - <value>::iterator()
+      - <hash>::iterator()
+      - <list>::iterator()
+      - <object>::iterator()
+      .
+      The base pseudo-method (<value>::iterator()) ensures that any value can be iterated, and the type-specific methods ensure that the most suitable iterator for container types is returned for container values; values without an iterator class are iterated with the @ref Qore::SingleValueIterator "SingleValueIterator"
+    
     @par Text File Parsing Enhancements
     - the @ref Qore::ReadOnlyFile class was added as a parent class of @ref Qore::File to allow for a more convenient API for reading files (the @ref Qore::File class's API remains the same as it publically inherits  @ref Qore::ReadOnlyFile)
     - the @ref Qore::ReadOnlyFile::readLine() "ReadOnlyFile::readLine()" method (formerlly a method of the @ref Qore::File class) was enhanced to accept 2 optional arguments, allowing the end of line character(s) to be stripped from the line returned, and also to allow the end of line characters to be specified.  If no end of line characters are specified, then the method automatically determines the end of line characters (can be \c "\n", \c "\r", or \c "\r\n"; the last one only if the underlying file is not a tty in order to avoid stalling I/O on an interactive TTY)

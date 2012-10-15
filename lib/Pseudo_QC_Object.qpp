@@ -23,6 +23,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreObjectIntern.h>
+#include <qore/intern/QoreObjectIterator.h>
 
 //! Methods in this pseudo-class can be executed on @ref object "objects"
 /** 
@@ -160,3 +161,17 @@ bool <object>::val() [flags=RET_VALUE_ONLY] {
 
 // bool <object>::hasKey(softstring $key) [flags=RET_VALUE_ONLY] {}
 // bool <object>::hasKeyValue(softstring $key) [flags=RET_VALUE_ONLY] {}
+
+//! Returns a @ref Qore::ObjectIterator "ObjectIterator" object for the hash
+/** @return a @ref Qore::ObjectIterator "ObjectIterator" object for the hash
+
+    @par Example:
+    @code
+map printf("+ %s: %y\n", $1.getKey(), $1.getValue()), $obj.iterator();
+    @endcode
+
+    @since %Qore 0.8.6
+ */
+AbstractIterator <object>::iterator() [flags=CONSTANT] {
+   return new QoreObject(QC_OBJECTITERATOR, 0, new QoreObjectIterator(obj));
+}
