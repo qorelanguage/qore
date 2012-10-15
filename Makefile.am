@@ -729,6 +729,7 @@ docs/library/html: $(include_HEADERS) $(LIB_DOXYFILES)
 docs/lang/html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
 	$(DOXYGEN_CMD) doxygen/lang/Doxyfile
 	$(top_srcdir)/doxygen/pdox docs/lang/html docs/lang/html/search
+	$(top_srcdir)/doxygen/pdox -t docs/lang/latex
 
 docs/modules/HttpServer/html: docs/lang/html doxygen/qlib/HttpServer.qm.dox.h doxygen/qlib/Doxyfile.HttpServer
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.HttpServer
