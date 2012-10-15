@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright 2003 - 2012 Qore Technologies s r.o.
+  Copyright 2003 - 2012 Qore Technologies s.r.o.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -24,27 +24,28 @@
 #include <qore/intern/XRangeIterator.h>
 
 //! This class defines a range-like iterator to be used to iterate numerical sequences
-/**
-   The main purpose is to provide resource friendly iterator to generate
-   numerical rows (sequences) with ascending and descending ordering.
+/** The main purpose is to provide resource friendly iterator to generate
+    numerical rows (sequences) with ascending and descending ordering.
 
-	XRangeIterator class provides an iterator for loop statements with functionality
-	similar to the function @ref range. Instead of @ref range the XRangeIterator objects
-	do not generate real @ref lists but calculate values for iteration on demand.
-	It results in memory friendly handling for huge "lists".
+    The XRangeIterator class provides an iterator for loop statements with functionality
+    similar to @ref range(). Unlike range() XRangeIterator objects
+    do not generate real @ref lists but calculate iteration values on demand.
 
-   @par Example
+    This results in memory-friendly handling for large numerical sequences compared to
+    generating a list in memory and iterating that list (as with @ref Qore::range()).
+
+   @par Example:
    @code
-XRangeIterator r(2);
-for int i in (r)
-    printf("i=%d\n", i);
+my XRangeIterator $r(2);
+for my int $i in ($r)
+    printf("i=%d\n", $i);
 # i=0
 # i=1
 # i=2
    @endcode
 
-   @see range
-   @see xrange
+   @see range()
+   @see xrange()
 
    @since %Qore 0.8.6
  */
@@ -57,18 +58,17 @@ qclass XRangeIterator [arg=XRangeIterator* i; ns=Qore; vparent=AbstractIterator]
 
     @par Example:
     @code
-my XRangeIterator i(5, 10, 2);
+my XRangeIterator $i(5, 10, 2);
     @endcode
 
-    @see xrange
+    @see xrange()
  */
 XRangeIterator::constructor(int start, int stop, int step=1) {
    self->setPrivate(CID_XRANGEITERATOR, new XRangeIterator(start, stop, step, xsink));
 }
 
-//! This method returns @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate.
-/** The iterator object should not be used after this method returns @ref False.
-    Except the \c XRangeIterator::reset() is called.
+//! This method returns @ref Qore::True "True" while there are more numbers to iterate and @ref Qore::False "False" when the range has been completed iterated
+/** The iterator object should not be used after this method returns @ref Qore::False "False".
 
     @return @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate.
 
@@ -82,6 +82,8 @@ while ($i.next()) {
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 bool XRangeIterator::next() {
+   if (i->check(xsink))
+       return false;
    return i->next();
 }
 
@@ -96,8 +98,11 @@ while ($i.next()) {
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 any XRangeIterator::getValue() [flags=RET_VALUE_ONLY] {
+   if (i->check(xsink))
+       return 0;
    return i->getValue();
 }
 
@@ -107,26 +112,29 @@ any XRangeIterator::getValue() [flags=RET_VALUE_ONLY] {
    @par Example
    @code
 # raw XRangeIterator object usage
-XRangeIterator r(2);
-for int i in (r)
-    printf("i=%d\n", i);
+XRangeIterator $r(2);
+foreach my int $i in ($r)
+    printf("i=%d\n", $i);
 # i=0
 # i=1
 # i=2
 
 # show the reset feature
 r.reset();
-foreach int i in (r)
-    printf("reused i=%d\n", i);
+foreach my int $i in (Rr)
+    printf("reused i=%d\n", $i);
 # reused i=0
 # reused i=1
 # reused i=2
    @endcode
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 XRangeIterator::reset() [flags=CONSTANT] {
+   if (i->check(xsink))
+       return 0;
    i->reset();
 }
-
 
 /** @defgroup xrange_functions XRangeIterator helper functions
     XRangeIterator helper functions allow to use XRangeItartor
@@ -134,8 +142,8 @@ XRangeIterator::reset() [flags=CONSTANT] {
 
     @par Example
     @code
-foreach int i in(xrange(5))
-    printf("i=%d\n", i);
+foreach my int $i in(xrange(5))
+    printf("i=%d\n", $i);
 # resulting in:
 # i=0
 # i=1
@@ -146,7 +154,7 @@ foreach int i in(xrange(5))
 	@endcode
  */
 //@{
-//! Returns a XRangeIterator containing an arithmetic progression of integers.
+//! Returns an XRangeIterator containing an arithmetic progression of integers.
 /**
     @par Example:
     @code
@@ -162,21 +170,21 @@ xrange(10, -10, 5); # 10, 5, 0, -5, -10
     @param stop the final value
     @param step the step; the default is 1; must be greater than 0; the function throws a \c RANGE-ERROR exception when this argument is < 1
 
-    @retval Returns a XRangeIterator containing an arithmetic progression of integers.
+    @retval Returns an XRangeIterator containing an arithmetic progression of integers.
 
     @throw XRANGEITERATOR-ERROR this exception is thrown if \c step < 1
 
     @see range
 
-    @note the main difference between range() and xrange() is that range returns real list and xrange returns a XRangeIterator
+    @note the main difference between range() and xrange() is that range returns a real list and xrange() returns an XRangeIterator
 
     @since %Qore 0.8.6
 */
-AbstractIterator xrange(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
-	return new QoreObject(QC_XRANGEITERATOR, 0, new XRangeIterator(start, stop, step, xsink));
+XRangeIterator xrange(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
+   return new QoreObject(QC_XRANGEITERATOR, 0, new XRangeIterator(start, stop, step, xsink));
 }
 
-//! Returns a XRangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
+//! Returns an XRangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
 /**
     This is an overloaded version of xrange(int, int, int) meaning \c xrange(0, \c stop, 1)
 
@@ -188,15 +196,15 @@ xrange(-3); # 0, -1, -2, -3
 
     @param stop the final value
 
-    @retval Returns a XRangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
+    @retval Returns an XRangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
 
     @see range
 
-    @note the main difference between range() and xrange() is that range returns real list and xrange returns a XRangeIterator
+    @note the main difference between range() and xrange() is that range() returns a real list and xrange() returns an XRangeIterator
 
     @since %Qore 0.8.6
  */
-AbstractIterator xrange(int stop) [flags=CONSTANT] {
-	return new QoreObject(QC_XRANGEITERATOR, 0, new XRangeIterator(0, stop, 1, xsink));
+XRangeIterator xrange(int stop) [flags=CONSTANT] {
+   return new QoreObject(QC_XRANGEITERATOR, 0, new XRangeIterator(0, stop, 1, xsink));
 }
 //@}

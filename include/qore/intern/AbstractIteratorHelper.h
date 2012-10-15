@@ -100,6 +100,13 @@ public:
       assert(getValueVariant);
       return getValueMethod->evalNormalVariant(obj, getValueVariant, 0, xsink);
    }
+
+   /*
+   DLLLOCAL QoreObject* getReferencedObject() const {
+      obj->ref();
+      return obj;
+   }
+   */
 };
 
 #endif

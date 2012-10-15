@@ -60,7 +60,7 @@ int ForEachStatement::execImpl(AbstractQoreNode** return_value, ExceptionSink* x
    }
    else if (t == NT_OBJECT) {
       // check for an object derived from AbstractIterator
-      AbstractIteratorHelper aih(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*tlist)), true, true);
+      AbstractIteratorHelper aih(xsink, "map operator", reinterpret_cast<QoreObject*>(*tlist), true, true);
       if (*xsink)
          return 0;
       if (aih)
