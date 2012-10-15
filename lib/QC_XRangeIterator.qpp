@@ -1,0 +1,202 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file XRangeIterator.qpp XRangeIterator class definition */
+/*
+  Qore Programming Language
+
+  Copyright 2003 - 2012 Qore Technologies s r.o.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/XRangeIterator.h>
+
+//! This class defines a range-like iterator to be used to iterate numerical sequences
+/**
+   The main purpose is to provide resource friendly iterator to generate
+   numerical rows (sequences) with ascending and descending ordering.
+
+	XRangeIterator class provides an iterator for loop statements with functionality
+	similar to the function @ref range. Instead of @ref range the XRangeIterator objects
+	do not generate real @ref lists but calculate values for iteration on demand.
+	It results in memory friendly handling for huge "lists".
+
+   @par Example
+   @code
+XRangeIterator r(2);
+for int i in (r)
+    printf("i=%d\n", i);
+# i=0
+# i=1
+# i=2
+   @endcode
+
+   @see range
+   @see xrange
+
+   @since %Qore 0.8.6
+ */
+qclass XRangeIterator [arg=XRangeIterator* i; ns=Qore; vparent=AbstractIterator];
+
+//! creates the numerical sequence iterator with the initial arguments
+/** @param start an initial value
+    @param stop a final value
+    @param step is the interval. Default = 1
+
+    @par Example:
+    @code
+my XRangeIterator i(5, 10, 2);
+    @endcode
+
+    @see xrange
+ */
+XRangeIterator::constructor(int start, int stop, int step=1) {
+   self->setPrivate(CID_XRANGEITERATOR, new XRangeIterator(start, stop, step, xsink));
+}
+
+//! This method returns @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate.
+/** The iterator object should not be used after this method returns @ref False.
+    Except the \c XRangeIterator::reset() is called.
+
+    @return @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate.
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("value: %y\n", $i.getValue());
+}
+    @endcode
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+bool XRangeIterator::next() {
+   return i->next();
+}
+
+//! returns the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("+ %y\n", $i.getValue());
+}
+    @endcode
+
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+ */
+any XRangeIterator::getValue() [flags=RET_VALUE_ONLY] {
+   return i->getValue();
+}
+
+//! Reset the iterator instance to its initial state (start, stop, and step).
+/** Reset the iterator instance to its initial state (start, stop, and step).
+
+   @par Example
+   @code
+# raw XRangeIterator object usage
+XRangeIterator r(2);
+for int i in (r)
+    printf("i=%d\n", i);
+# i=0
+# i=1
+# i=2
+
+# show the reset feature
+r.reset();
+foreach int i in (r)
+    printf("reused i=%d\n", i);
+# reused i=0
+# reused i=1
+# reused i=2
+   @endcode
+ */
+XRangeIterator::reset() [flags=CONSTANT] {
+   i->reset();
+}
+
+
+/** @defgroup xrange_functions XRangeIterator helper functions
+    XRangeIterator helper functions allow to use XRangeItartor
+    in easier usage in loop statements.
+
+    @par Example
+    @code
+foreach int i in(xrange(5))
+    printf("i=%d\n", i);
+# resulting in:
+# i=0
+# i=1
+# i=2
+# i=3
+# i=4
+# i=5
+	@endcode
+ */
+//@{
+//! Returns a XRangeIterator containing an arithmetic progression of integers.
+/**
+    @par Example:
+    @code
+xrange(2, 5); # 2, 3, 4, 5
+xrange(2, -2); # 2, 1, 0, -1, -2
+xrange(1, 10, 5); # 1, 6
+xrange(0, 10, 5); # 0, 5, 10
+xrange(-10, 10, 5); # -10, -5, 0, 5, 10
+xrange(10, -10, 5); # 10, 5, 0, -5, -10
+    @endcode
+
+    @param start the initial value
+    @param stop the final value
+    @param step the step; the default is 1; must be greater than 0; the function throws a \c RANGE-ERROR exception when this argument is < 1
+
+    @retval Returns a XRangeIterator containing an arithmetic progression of integers.
+
+    @throw XRANGEITERATOR-ERROR this exception is thrown if \c step < 1
+
+    @see range
+
+    @note the main difference between range() and xrange() is that range returns real list and xrange returns a XRangeIterator
+
+    @since %Qore 0.8.6
+*/
+AbstractIterator xrange(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
+	return new QoreObject(QC_XRANGEITERATOR, 0, new XRangeIterator(start, stop, step, xsink));
+}
+
+//! Returns a XRangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
+/**
+    This is an overloaded version of xrange(int, int, int) meaning \c xrange(0, \c stop, 1)
+
+    @par Example:
+    @code
+xrange(1); # 0, 1
+xrange(-3); # 0, -1, -2, -3
+    @endcode
+
+    @param stop the final value
+
+    @retval Returns a XRangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
+
+    @see range
+
+    @note the main difference between range() and xrange() is that range returns real list and xrange returns a XRangeIterator
+
+    @since %Qore 0.8.6
+ */
+AbstractIterator xrange(int stop) [flags=CONSTANT] {
+	return new QoreObject(QC_XRANGEITERATOR, 0, new XRangeIterator(0, stop, 1, xsink));
+}
+//@}

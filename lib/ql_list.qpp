@@ -635,6 +635,12 @@ range(10, -10, 5); # (10, 5, 0, -5, -10)
     @return Returns a list containing an arithmetic progression of integers.
 
     @throw RANGE-ERROR this exception is thrown if \c step < 1
+
+    @see xrange
+
+    @note the main difference between range() and xrange() is that range returns real list and xrange returns a XRangeIterator
+
+    @since %Qore 0.8.6
 */
 list range(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
     return range_intern(start, stop, step, xsink);
@@ -653,6 +659,12 @@ range(-3); # (0, -1, -2, -3)
     @param stop the final value
 
     @return Returns a list containing an arithmetic progression of integers with start = 0 and step = 1.
+
+    @see xrange
+
+    @note the main difference between range() and xrange() is that range returns real list and xrange returns a XRangeIterator
+
+    @since %Qore 0.8.6
  */
 list range(int stop) [flags=CONSTANT] {
     return range_intern(0, stop, 1, xsink);

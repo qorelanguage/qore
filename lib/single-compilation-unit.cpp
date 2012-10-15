@@ -193,6 +193,7 @@
 #include "QC_ObjectReverseIterator.cpp"
 #include "QC_FileLineIterator.cpp"
 #include "QC_SingleValueIterator.cpp"
+#include "QC_XRangeIterator.cpp"
 #include "QC_AbstractDatasource.cpp"
 #include "QC_Datasource.cpp"
 #include "QC_DatasourcePool.cpp"

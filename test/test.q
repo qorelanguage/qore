@@ -72,6 +72,22 @@ sub test_value(any $v1, any $v2, string $msg) {
     $thash.$msg = True;
 }
 
+sub test_xrange(list $correct, XRangeIterator $testing, string $message) {
+    my list $l;
+    foreach my int $i in ($testing)
+        push $l, $i;
+
+    if ($correct === $l) {
+        if ($o.verbose)
+            printf("OK: %s test\n", $message);
+    }
+    else {
+        printf("ERROR: $s test failed! (%N != %N)\n", $message, $correct, $l);
+        $errors++;
+    }
+    $thash.$message= True;
+}
+
 int sub test1() { return 1;} int sub test2() { return 2; } 
 list sub test3() { return (1, 2, 3); }
 
@@ -280,6 +296,14 @@ sub array_tests() {
     test_value(range(0, 10, 5), (0, 5, 10), "range - step from 0");
     test_value(range(-10, 10, 5), (-10, -5, 0, 5, 10), "range - asc test");
     test_value(range(10, -10, 5), (10, 5, 0, -5, -10), "range - descending step test");
+    # xrange tests
+    test_xrange(range(1), xrange(1), "xrange - basic test");
+    test_xrange(range(2, 5), xrange(2, 5), "xrange - boundaries test");
+    test_xrange(range(2, -2), xrange(2, -2), "xrange - descending test");
+    test_xrange(range(1, 10, 5), xrange(1, 10, 5), "xrange - step test");
+    test_xrange(range(0, 10, 5), xrange(0, 10, 5), "xrange - step from 0");
+    test_xrange(range(-10, 10, 5), xrange(-10, 10, 5), "xrange - asc test");
+    test_xrange(range(10, -10, 5), xrange(10, -10, 5), "xrange - descending step test");
 
     # pseudomethods
     my list $pseudoList = (1, 2, 3, 4, 'a');
