@@ -2504,6 +2504,7 @@ QoreObject* QoreClass::execConstructor(const QoreListNode* args, ExceptionSink* 
 
 QoreObject* qore_class_private::execSystemConstructor(QoreObject* self, int code, va_list args) const {
    assert(system_constructor);
+   const_cast<qore_class_private*>(this)->initialize();
    // no lock is sent with constructor, because no variable has been assigned yet
    system_constructor->priv->evalSystemConstructor(self, code, args);
    return self;

@@ -596,14 +596,18 @@ public:
    DLLLOCAL void addVirtualPrivateData(qore_classid_t key, AbstractPrivateData *apd) {
       // first get parent class corresponding to "key"
       QoreClass *qc = theclass->getClass(key);
+      //printd(5, "qore_object_private::addVirtualPrivateData() this: %p key: %d apd: %p qc: %p\n", this, key, apd, qc);
       assert(qc);
       BCSMList *sml = qc->getBCSMList();
+      //printd(5, "qore_object_private::addVirtualPrivateData() this: %p qc: %p '%s' sml: %p\n", this, qc, qc->getName(), sml);
       if (!sml)
 	 return;
 
-      for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i)
+      for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i) {
+         //printd(5, "qore_object_private::addVirtualPrivateData() this: %p i: %p '%s' %s\n", this, i->first, i->first->getName(), i->second ? "true" : "false");
 	 if ((*i).second)
 	    privateData->insertVirtual((*i).first->getID(), apd);
+      }
    }
 
    DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
