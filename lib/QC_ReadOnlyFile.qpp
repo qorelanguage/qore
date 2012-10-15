@@ -866,7 +866,9 @@ my int $mode = $file.stat()[2];
     @throw FILE-STAT-ERROR stat() call failed or file not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
-    @see @ref file_stat_constants
+    @see
+    - @ref File::hstat()
+    - @ref file_stat_constants
  */
 list ReadOnlyFile::stat() {
    if (check_terminal_io(self, "ReadOnlyFile::stat", xsink))
@@ -888,7 +890,9 @@ my hash $h = $file.hstat();
     @throw FILE-HSTAT-ERROR stat() call failed or file not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
-    @see @ref file_stat_constants
+    @see
+    - @ref File::stat()
+    - @ref file_stat_constants
  */
 hash ReadOnlyFile::hstat() {
    if (check_terminal_io(self, "ReadOnlyFile::hstat", xsink))

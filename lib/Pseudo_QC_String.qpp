@@ -130,7 +130,7 @@ bool <string>::empty() [flags=CONSTANT] {
 my string $enc = $str.encoding();
     @endcode
 
-    @note equivalent to get_encoding(string)
+    @note equivalent to @ref Qore::get_encoding(string)
 */
 string <string>::encoding() [flags=CONSTANT] {
    return new QoreStringNode(str->getEncoding()->getCode());
@@ -147,7 +147,7 @@ my string $lwr = $str.lwr();
 
     @note
     - this function only processes ASCII characters
-    - equivalent to tolower(string)
+    - equivalent to @ref Qore::tolower(string)
 
     @see
     - <string>::upr()
@@ -171,7 +171,7 @@ my string $upr = $str.upr();
 
     @note
     - this function only processes ASCII characters
-    - equivalent to toupper(string)
+    - equivalent to @ref Qore::toupper(string)
 
     @see
     - <string>::lwr()
@@ -202,7 +202,7 @@ if ($i == -1)
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
 
-    @note equivalent to index(softstring, softstring, softint)
+    @note equivalent to @ref Qore::index(softstring, softstring, softint)
 
     @see
     - <string>::rfind(softstring, softint)
@@ -232,7 +232,7 @@ if ($i == -1)
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
 
-    @note equivalent to rindex(softstring, softstring, softint)
+    @note equivalent to @ref Qore::rindex(softstring, softstring, softint)
 
     @see
     - <string>::find(softstring, softint)
@@ -308,7 +308,7 @@ my string $substr = $str.substr(-10);
 
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
 
-    @note equivalent to substr(softstring, softint)
+    @note equivalent to @ref Qore::substr(softstring, softint)
  */
 string <string>::substr(softint start) [flags=RET_VALUE_ONLY] {
    return str->substr(start, xsink);
@@ -330,7 +330,7 @@ my string $substr = $str.substr(10, -2);
 
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
 
-    @note equivalent to substr(softstring, softint, softint)
+    @note equivalent to @ref Qore::substr(softstring, softint, softint)
 
     @since %Qore 0.8.5
  */
@@ -353,7 +353,7 @@ my list $list = $str.split(":"); # returns ("some", "text", "here")
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
 
-    @note equivalent to split(string, string, bool)
+    @note equivalent to @ref Qore::split(string, string, bool)
 
     @since %Qore 0.8.5
  */
@@ -373,6 +373,7 @@ list <string>::split(string sep, bool with_separator = False) [flags=RET_VALUE_O
 
     @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned'; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
     @param quote the quote character
+    @param trim_unquoted remove leading and trailing whitespace from unquoted fields
 
     @return a list of each component of a string separated by a separator string, with the separator and any enclosing quote characters removed
 
@@ -384,12 +385,14 @@ my list $list = "some,'text with spaces, and commas, here is another one! ,',her
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
     @throw SPLIT-ERROR field missing closing quote character; extra text following quoted field
 
-    @note equivalent to split(string, string)
+    @note equivalent to @ref Qore::split(string, string, string, bool)
 
-    @since %Qore 0.8.5
+    @since
+    - %Qore 0.8.5 added this pseudo-method
+    - %Qore 0.8.6 added the \c trim_unquoted parameter
  */
-list <string>::split(string sep, string quote) [flags=RET_VALUE_ONLY] {
-   return split_with_quote(sep, str, quote, xsink);
+list <string>::split(string sep, string quote, bool trim_unquoted = False) [flags=RET_VALUE_ONLY] {
+   return split_with_quote(sep, str, quote, trim_unquoted, xsink);
 }
 
 //! Returns @ref True if the regular expression matches the string passed, otherwise returns @ref False
@@ -409,7 +412,7 @@ my bool $b = "hello".regex("^hel"); # returns True
     @throw REGEX-OPTION-ERROR the option argument contains invalid option bits
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given strings to UTF-8
 
-    @note equivalent to regex(string, string, int)
+    @note equivalent to @ref Qore::regex(string, string, int)
 
     @see @ref qore_regex for more information about regular expression support in Qore
 
@@ -440,7 +443,7 @@ my *list $rv = regex_extract("ns:element", "(\\w+):(\\w+)");
     @throw REGEX-OPTION-ERROR the option argument contains invalid option bits
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given strings to UTF-8
 
-    @note equivalent regex_extract(string, string, int)
+    @note equivalent Qore::regex_extract(string, string, int)
 
     @see @ref qore_regex for more information about regular expression support in Qore
 
@@ -467,7 +470,7 @@ my string $str = "hello".toMD5(); # returns "5d41402abc4b2a76b9719d911017c592"
     @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
 
     @note
-    - equivalent to MD5()
+    - equivalent to @ref Qore::MD5()
     - the MD5 algorithm is not collision-resistant; it's recommended to use another hash algorithm (like SHA-256) if cryptographic security is important
 
     @see
@@ -496,7 +499,7 @@ my string $str = "hello".toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9ae
 
     @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @note equivalent to SHA1()
+    @note equivalent to @ref Qore::SHA1()
 
     @see
     - SHA1_bin()
@@ -527,7 +530,7 @@ my string $str = "hello".toSHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed
 
     @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @note equivalent to SHA224()
+    @note equivalent to @ref Qore::SHA224()
 
     @see
     - SHA224_bin()
@@ -563,7 +566,7 @@ my string $str = "hello".toSHA256(); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e
 
     @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @note equivalent to SHA256()
+    @note equivalent to @ref Qore::SHA256()
 
     @see
     - SHA256_bin()
@@ -599,7 +602,7 @@ my string $str = "hello".toSHA384(); # returns "59e1748777448c69de6b800d7a33bbfb
 
     @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @note equivalent to SHA384()
+    @note equivalent to @ref Qore::SHA384()
 
     @see
     - SHA384_bin()
@@ -635,7 +638,7 @@ my string $str = "hello".toSHA512(); # returns "9b71d224bd62f3785d96d46ad3ea3d73
 
     @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @note equivalent to SHA512()
+    @note equivalent to @ref Qore::SHA512()
 
     @see
     - SHA512_bin()

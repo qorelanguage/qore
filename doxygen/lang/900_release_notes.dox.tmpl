@@ -74,6 +74,7 @@
     - Qore::Socket::recvu4LSB()
 
     @par Iterator Improvements
+    Thw following improvements were made in qore to support more flexible and ubiquitous iterators:
     - new iterator classes:
       - @ref Qore::SingleValueIterator "SingleValueIterator": allows single values (or any value without an iterator class) to be iterated
       - @ref Qore::FileLineIterator "FileLineIterator": allows files to be iterated line by line
@@ -88,10 +89,12 @@
       The base pseudo-method (<value>::iterator()) ensures that any value can be iterated, and the type-specific methods ensure that the most suitable iterator for container types is returned for container values; values without an iterator class are iterated with the @ref Qore::SingleValueIterator "SingleValueIterator"
     
     @par Text File Parsing Enhancements
+    Thw following improvements were made in qore to support more flexible file parsing:
     - the @ref Qore::ReadOnlyFile class was added as a parent class of @ref Qore::File to allow for a more convenient API for reading files (the @ref Qore::File class's API remains the same as it publically inherits  @ref Qore::ReadOnlyFile)
     - the @ref Qore::ReadOnlyFile::readLine() "ReadOnlyFile::readLine()" method (formerlly a method of the @ref Qore::File class) was enhanced to accept 2 optional arguments, allowing the end of line character(s) to be stripped from the line returned, and also to allow the end of line characters to be specified.  If no end of line characters are specified, then the method automatically determines the end of line characters (can be \c "\n", \c "\r", or \c "\r\n"; the last one only if the underlying file is not a tty in order to avoid stalling I/O on an interactive TTY)
     - the @ref file_stat_constants were moved from the @ref Qore::File class to the @ref Qore::ReadOnlyFile class
     - added a new @ref Qore::FileLineIterator "FileLineIterator" iterator class
+    - added a new optional parameter to <string>::split(string, string, bool) and Qore::split(string, string, string, bool) to allow for automatic stripping unquoted fields of leading and trailing whitespace (the default is the old behavior; leave the whitespace as it is read)
 
     @par Other Improvements and Changes
     - the @ref foreach "foreach statement" now iterates objects derived from @ref Qore::AbstractIterator "AbstractIterator"

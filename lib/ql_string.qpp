@@ -105,7 +105,7 @@ QoreListNode *split_intern(const char *pattern, qore_size_t pl, const char *str,
    return l;
 }
 
-QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, const QoreString* quote, ExceptionSink* xsink) {
+QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, const QoreString* quote, bool trim_unquoted, ExceptionSink* xsink) {
    // convert pattern encoding to string if necessary
    TempEncodingHelper pat(sep, str->getEncoding(), xsink);
    if (*xsink)
@@ -174,12 +174,19 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
 
       const char *p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
       if (!p) {
-         if (ststr != ostr)
-            l->push(new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding()));
+         if (ststr != ostr) {
+            QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding());
+            if (trim_unquoted)
+               se->trim();
+            l->push(se);
+         }
          break;
       }
 
-      l->push(new QoreStringNode(ststr, p - ststr, sep->getEncoding()));
+      QoreStringNode* se = new QoreStringNode(ststr, p - ststr, sep->getEncoding());
+      if (trim_unquoted)
+         se->trim();
+      l->push(se);
       len -= (p - ststr);
       ststr = p + pl;
    }
@@ -827,6 +834,7 @@ list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE
     @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned'; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
     @param str the string to split
     @param quote the quote character
+    @param trim_unquoted remove leading and trailing whitespace from unquoted fields
 
     @return a list of each component of a string separated by a separator string, with the separator and any enclosing quote characters removed
 
@@ -839,9 +847,11 @@ my list $list = split(",", "some,'text with spaces',here", "'"); # returns ("som
     @throw SPLIT-ERROR field missing closing quote character; extra text following quoted field
 
     @note equivalent to <string>::split(string, string)
+
+    @since %Qore 0.8.6 the \c trim_unquoted parameter was added
  */
-list split(string sep, string str, string quote) [flags=RET_VALUE_ONLY] {
-   return split_with_quote(sep, str, quote, xsink);
+list split(string sep, string str, string quote, bool trim_unquoted = False) [flags=RET_VALUE_ONLY] {
+   return split_with_quote(sep, str, quote, trim_unquoted, xsink);
 }
 
 //! Returns a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
