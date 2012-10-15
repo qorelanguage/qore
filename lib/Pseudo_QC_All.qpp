@@ -22,6 +22,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/SingleValueIterator.h>
 
 //! Methods in this pseudo-class are available to be executed on any value type (even @ref nothing); this is the root class for all pseudo-classes
 /** 
@@ -215,4 +216,18 @@ float <value>::toFloat() [flags=CONSTANT] {
 */
 bool <value>::toBool() [flags=CONSTANT] {
    return n ? n->getAsBool() : false;
+}
+
+//! Returns an iterator object for the value; the default iterator object returned is @ref Qore::SingleValueIterator "SingleValueIterator"
+/** @return an iterator object for the value; the default iterator object returned is @ref Qore::SingleValueIterator "SingleValueIterator"
+
+    @par Example:
+    @code
+map printf("+ %y\n", $1.getValue()), $v.iterator();
+    @endcode
+
+    @since %Qore 0.8.6
+ */
+AbstractIterator <value>::iterator() [flags=CONSTANT] {
+   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(n));
 }

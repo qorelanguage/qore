@@ -586,7 +586,7 @@ sub foo(*code $c) {
 
     <b>*timeout Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *timeout|@ref integer, @ref date, or @ref nothing|same as received|Restricts values to @ref integer, @ref date, and @ref nothing
+    |\c *timeout|@ref integer, @ref date, or @ref nothing|@ref integer or @ref nothing|converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds; also accepts @ref nothing and returns @ref nothing
 
     @par Example
     @code

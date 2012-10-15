@@ -1,0 +1,100 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file SingleValueIterator.qpp SingleValueIterator class definition */
+/*
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/SingleValueIterator.h>
+
+//! This class defines a simple iterator to be used to iterate single values (or complex objects where no iterator has been implemented yet)
+/** @since %Qore 0.8.6
+ */
+qclass SingleValueIterator [arg=SingleValueIterator* i; ns=Qore; vparent=AbstractIterator];
+
+//! creates the single value iterator with the value passed as an argument
+/** @param v the value to iterate
+
+    @par Example:
+    @code
+my SingleValueIterator i($v);
+    @endcode
+ */
+SingleValueIterator::constructor(any v) {
+   self->setPrivate(CID_SINGLEVALUEITERATOR, new SingleValueIterator(v));
+}
+
+//! Creates a new SingleValueIterator object, based on the same object being iterated in the original object
+/** @par Example:
+    @code
+my SingleValueIterator $ni = $i.copy();
+    @endcode
+ */
+SingleValueIterator::copy() {
+   self->setPrivate(CID_SINGLEVALUEITERATOR, new SingleValueIterator(*i));
+}
+
+//! This method returns @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate, in which case it returns only @ref Qore::False "False"
+/** The iterator object should not be used after this method returns @ref False
+
+    @return @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate, in which case it returns only @ref Qore::False "False"
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("value: %y\n", $i.getValue());
+}
+    @endcode
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+bool SingleValueIterator::next() {
+   if (i->check(xsink))
+      return false;
+   return i->next();
+}
+
+//! returns the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("+ %y\n", $i.getValue());
+}
+    @endcode
+
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+ */
+any SingleValueIterator::getValue() [flags=RET_VALUE_ONLY] {
+   return i->checkValid(xsink) ? 0 : i->getValue();
+}
+
+//! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+/** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+
+    @par Example:
+    @code
+if ($i.valid())
+    printf("current value: %y\n", $i.getValue());
+    @endcode
+ */
+bool SingleValueIterator::valid() [flags=CONSTANT] {
+   return i->valid();
+}

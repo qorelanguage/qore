@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_FileLIneIterator.qpp FileLIneIterator class (interface) definition */
+/** @file QC_FileLIneIterator.qpp FileLIneIterator class definition */
 /*
   Qore Programming Language
 
@@ -226,7 +226,6 @@ my int $pos = $i.getPos();
 int FileLineIterator::getPos() [flags=RET_VALUE_ONLY] {
    return i->getPos();
 }
-
 
 //! returns @ref Qore::True "True" if the FileLineIterator is connected to a terminal device, @ref Qore::False "False" if not
 /** @return @ref Qore::True "True" if the FileLineIterator is connected to a terminal device, @ref Qore::False "False" if not

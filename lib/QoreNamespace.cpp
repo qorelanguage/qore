@@ -101,6 +101,7 @@ DLLLOCAL QoreClass* initHashListReverseIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListHashIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListHashReverseIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initFileLineIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initSingleValueIteratorClass(QoreNamespace& ns);
 
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
 DLLLOCAL void init_compression_constants(QoreNamespace& ns);
@@ -625,6 +626,7 @@ void StaticSystemNamespace::init() {
    qns.addSystemClass(initListHashIteratorClass(qns));
    qns.addSystemClass(initListHashReverseIteratorClass(qns));
    qns.addSystemClass(initFileLineIteratorClass(qns));
+   qns.addSystemClass(initSingleValueIteratorClass(qns));
 
 #ifdef DEBUG_TESTS
    { // tests

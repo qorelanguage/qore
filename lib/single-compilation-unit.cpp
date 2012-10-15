@@ -190,6 +190,7 @@
 #include "QC_ListHashIterator.cpp"
 #include "QC_ListHashReverseIterator.cpp"
 #include "QC_FileLineIterator.cpp"
+#include "QC_SingleValueIterator.cpp"
 #include "QC_AbstractDatasource.cpp"
 #include "QC_Datasource.cpp"
 #include "QC_DatasourcePool.cpp"

@@ -339,6 +339,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreListIterator.h \
 	include/qore/intern/QoreHashListIterator.h \
 	include/qore/intern/QoreListHashIterator.h \
+	include/qore/intern/SingleValueIterator.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \

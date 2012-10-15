@@ -380,6 +380,8 @@ public:
    }
 #endif
 
+
+
    DLLLOCAL virtual const char* getName() const = 0;
 };
 

@@ -23,6 +23,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreLibIntern.h>
+#include <qore/intern/QoreListIterator.h>
 
 //! Methods in this pseudo-class can be executed on @ref list "lists"
 /** 
@@ -175,4 +176,18 @@ my bool $b = $l.contains(5); # returns False
 */
 bool <list>::contains(any arg) [flags=RET_VALUE_ONLY] {
    return inlist_intern(arg, l, xsink);
+}
+
+//! Returns a @ref Qore::ListIterator "ListIterator" object for the list
+/** @return a @ref Qore::ListIterator "ListIterator" object for the list
+
+    @par Example:
+    @code
+map printf("+ %d: %y\n", $1.index(), $1.getValue()), $l.iterator();
+    @endcode
+
+    @since %Qore 0.8.6
+ */
+AbstractIterator <list>::iterator() [flags=CONSTANT] {
+   return new QoreObject(QC_LISTITERATOR, 0, new QoreListIterator(l));
 }
