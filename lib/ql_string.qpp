@@ -116,6 +116,8 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
    if (*xsink)
       return 0;
 
+   //printd(5, "split_with_quote() sep: %s str: %s quote: %s trim_unquoted: %d\n", pat->getBuffer(), str->getBuffer(), tquote->getBuffer(), trim_unquoted);
+
    if (!tquote->strlen() || tquote->strlen() > sep->strlen())
       return split_intern(pat->getBuffer(), pat->strlen(), str->getBuffer(), str->strlen(), str->getEncoding());
 
@@ -174,12 +176,10 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
 
       const char *p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
       if (!p) {
-         if (ststr != ostr) {
-            QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding());
-            if (trim_unquoted)
-               se->trim();
-            l->push(se);
-         }
+         QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding());
+         if (trim_unquoted)
+            se->trim();
+         l->push(se);
          break;
       }
 
@@ -1672,5 +1672,32 @@ flush();
  */
 nothing flush() [dom=TERMINAL_IO] {
    fflush(stdout);
+}
+
+//! tries to parse a string value as a boolean
+/** @par Example:
+    @code
+my bool $b = parse_boolean($str);
+    @endcode
+
+    @param str case-insensitive \c "on", \c "true", \c "enable*", \c "yes" are @ref Qore::True "True", the rest is interpreted as a number where 0 is @ref Qore::False "False", everything else is  @ref Qore::True "True"
+
+    @return a boolean value according to the parsed argument
+ */
+bool parse_boolean(string str) [flags=CONSTANT] {
+   return q_parse_bool(str->getBuffer());
+}
+
+//! returns the first value passed as a boolean
+/** @par Example:
+    @code
+my bool $b = parse_boolean($i);
+    @endcode
+
+    @return the first value passed as a boolean
+ */
+bool parse_boolean() [flags=CONSTANT,USES_EXTRA_ARGS] {
+   const AbstractQoreNode* p = get_param(args, 0);
+   return p ? p->getAsBool() : false;
 }
 //@}

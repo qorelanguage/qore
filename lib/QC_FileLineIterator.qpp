@@ -210,7 +210,6 @@ string FileLineIterator::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(i->getEncoding()->getCode());
 }
 
-
 //! Returns the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
 /** @par Example:
     @code
@@ -234,9 +233,19 @@ int FileLineIterator::getPos() [flags=RET_VALUE_ONLY] {
     @code
 my bool $b = $i.isTty();
     @endcode
-
-    @since %Qore 0.8.6
 */
 bool FileLineIterator::isTty() [flags=CONSTANT] {
    return i->isTty();
+}
+
+//! returns the file path/name used to open the file
+/** @par Example:
+    @code
+my string $fn = $f.getFileName();
+    @endcode
+
+    @return the file path/name used to open the file
+ */
+string FileLineIterator::getFileName() [flags=CONSTANT] {
+   return i->getFileName();
 }

@@ -942,13 +942,29 @@ bool ReadOnlyFile::isOpen() [flags=CONSTANT] {
 }
 
 //! returns @ref Qore::True "True" if the File is connected to a terminal device, @ref Qore::False "False" if not
-/** @return @ref Qore::True "True" if the File is connected to a terminal device, @ref Qore::False "False" if not
-
-    @par Example:
+/** @par Example:
     @code
 my bool $b = $file.isTty();
     @endcode
+
+    @return @ref Qore::True "True" if the File is connected to a terminal device, @ref Qore::False "False" if not
+
+    @since %Qore 0.8.6
 */
 bool ReadOnlyFile::isTty() [flags=CONSTANT] {
    return f->isTty();
+}
+
+//! returns the file path/name used to open the file if the file is open, otherwise @ref nothing
+/** @par Example:
+    @code
+my *string $fn = $f.getFileName();
+    @endcode
+
+    @return the file path/name used to open the file if the file is open, otherwise @ref nothing
+
+    @since %Qore 0.8.6
+ */
+*string ReadOnlyFile::getFileName() [flags=CONSTANT] {
+   return f->getFileName();
 }

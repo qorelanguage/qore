@@ -1,0 +1,248 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file CsvUtil.qm Qore user module for working with CSV files
+
+/*  CsvUtil.qm Copyright 2012 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+%requires qore >= 0.8.6
+
+module CsvUtil {
+    version = "1.0";
+    desc = "user module for working with CSV files";
+    author = "Petr Vanek <petr@scribus.info>, David Nichols <david@qore.org>";
+    url = "http://qore.org";
+}
+
+/*  Version History
+    * 2012-10-13 v1.0: David Nichols <david@qore.org>: initial version of module
+*/
+
+/** @mainpage CsvUtil Module
+
+    The %CsvUtil module provides classes and functions for parsing CSV files.
+*/
+
+#! the CsvUtil namespace contains all the objects in the CsvUtil module
+public namespace CsvUtil {
+    #! the CsvFileIterator class allows CSV files to be iterated
+    public class CsvFileIterator inherits FileLineIterator {
+	public {
+	    #! field separator
+	    string $.separator = ",";
+
+	    #! field content delimiter
+	    string $.quote = "\"";
+
+	    #! number of header lines
+	    softint $.headerLines = 0;
+
+	    #! flag to use string names from the first header row if possible
+	    bool $.headerNames = False;
+
+	    #! True if empty lines should be ignored
+	    bool $.ignoreEmptyLines = True;
+
+	    #! Flag to trim the field content (trim leading and trailing whitespace) from unquoted fields
+	    bool $.ignoreWhitespace = True;
+
+	    #! headers / column names for lines iterated
+	    *softlist $.headers;
+
+	    #! hash of closures to execute on fields, hash key = column name or number (starting with 0)
+	    *hash $.code;
+
+	    #! verify the column count for every row; if a row does not match, then throw a CSVFILEITERATOR-DATA-ERROR exception
+	    bool $.checkElementCounts = False;
+
+	    #! valid options for the object
+	    const Options = (
+		"encoding": "the input file's character encoding (ex: \"iso-8859-1\", default: the default character encoding for the Qore process)",
+		"separator": "the field separator character (default: \",\")",
+		"quote": "the field quote character (default: \"\\\"",
+		"eol": "the end of line text (ex: \"\\n\", default: auto-detect)",
+		"ignore-empty": "if empty lines should be ignored (default: True)",
+		"ignore-whitespace": "if leading and trailing whitespace in unquoted fields should be ignored (default: True)",
+		"header-lines": "the number of lines of header text",
+		"header-names": "if header names should be parsed from the first header line (default: False)",
+		"headers": "a list of header / column names to use for the data found in the file",
+		"verify-columns": "verify column counts; if a line is parsed with a different number of elements, then throw a CSVFILEITERATOR-DATA-ERROR exception",
+		"code": "a hash keyed by column name assigned to closures or call references that will be executed on the values read (to perform data transformations in-line for example)",
+		);
+	}
+
+	#! creates the CsvFileIterator with the path of the file to read and optionally an option hash
+	/** @param path the path to the CSV file to read
+	    @param opts a hash of optional options with the following possible keys:
+	    - \c encoding: (string) the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
+	    - \c separator: (string) the string separating the fields in the file (default: \c ",")
+	    - \c quote: (string) the field quote character (default: \c "\"")
+	    - \c eol: (string) the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
+	    - \c ignore-empty (boolean) if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+	    - \c ignore-whitespace (boolean) if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+	    - \c header-names (boolean) if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header-lines" must be > 0
+	    - \c header-lines (integer) the number of headers lines in the file (must be > 0 if \c "header-names" is @ref Qore::True "True")
+	    - \c headers (list of strings) list of header / column names for the data iterated, if this is present, then \c "header-names" must be @ref Qore::False "False"
+	    - \c verify-columns (boolean) if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a CSVFILEITERATOR-DATA-ERROR exception is thrown
+
+	    @throw CSVFILEITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present
+	 */
+	constructor(string $path, *hash $opts) 
+	    : FileLineIterator($path, 
+			       $opts.encoding.typeCode() == NT_STRING ? $opts.encoding : NOTHING,
+			       $opts.eol.typeCode == NT_STRING ? $opts.eol : NOTHING) {
+	    my HashIterator $i($opts);
+	    while ($i.next()) {
+		if (!exists Options.($i.getKey()))
+		    throw "CSVFILEITERATOR-ERROR", sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", $i.getKey(), Options.keys());
+		switch ($i.getKey()) {
+		    case "separator": {
+			if ($i.getValue().typeCode() != NT_STRING)
+			    throw "CSVFILEITERATOR-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.getKey(), $i.getValue(), $i.getValue().type());
+			$.separator = $i.getValue();
+			break;
+		    }
+		    case "quote": {
+			if ($i.getValue().typeCode() != NT_STRING)
+			    throw "CSVFILEITERATOR-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.getKey(), $i.getValue(), $i.getValue().type());
+			$.quote = $i.getValue();
+			break;
+		    }
+		    case "ignore-empty": {
+			$.ignoreEmptyLines = parse_boolean($i.getValue());
+			break;
+		    }
+		    case "ignore-whitespace": {
+			$.ignoreWhitespace = parse_boolean($i.getValue());
+			break;
+		    }
+		    case "header-names": {
+			$.headerNames = parse_boolean($i.getValue());
+			break;
+		    }
+		    case "verify-columns": {
+			$.checkElementCounts = parse_boolean($i.getValue());
+			break;
+		    }
+		    case "header-lines": {
+			try {
+			    $.headerLines = $i.getValue();
+			}
+			catch (hash $ex) {
+			    throw "CSVFILEITERATOR-ERROR", sprintf("expecting integer value or a value that can be converted to an integer for option %y; got %y (type %s) instead", $i.getKey(), $i.getValue(), $i.getValue().type());
+			}
+			break;
+		    }
+		    case "headers": {
+			$.headers = ();
+			foreach my any $c in ($i.getValue().iterator()) {
+			    try {
+				my softstring $v = $c;
+				$.headers += $v;
+			    }
+			    catch (hash $ex) {
+				throw "CSVFILEITERATOR-ERROR", sprintf("expecting a string value or a value that can be converted to a string for option %y; got %y (type %s) in header list position %d instead (full arg: %y)", $i.getKey(), $c, $c.type(), $#, $i.getValue());
+			    }
+			}
+			break;
+		    }
+		}
+	    }
+	    if ($.headerNames && !$.headerLines)
+		throw "CSVFILEITERATOR-ERROR", sprintf("\"header-names\" is True but \"header-lines\" is 0; there must be at least 1 header line to get header names");
+	    if ($.headerNames && !$.headers.empty())
+		throw "CSVFILEITERATOR-ERROR", sprintf("\"header-names\" is True but \"headers\" has a value (%y)", $.headers);
+	}
+
+	#! iterates through the lines in the CSV file
+	bool next() {
+	    # try to parse any header and skip to data if we haven't started iterating yet
+	    if (!$.valid() && $.headerLines) {
+		if ($.headerNames) {
+		    # return False if there is no data to iterate
+		    if (!FileLineIterator::$.next())
+			return False;
+
+		    # get and parse header row
+		    $.headers = $.parseLine();
+		}
+		while ($.index() < $.headerLines) {
+		    if (!FileLineIterator::$.next())
+			return False;
+		}
+	    }
+	    my bool $b = FileLineIterator::$.next();
+	    if ($b) {
+		# generate fake header names with index positions if no header data is already available
+		if ($.headers.empty()) {
+		    my list $l = $.parseLine();
+		    $.headers = ();
+		    map $.headers += string($#), $l;
+		}
+
+		# skip empty lines
+		if ($.ignoreEmptyLines) {
+		    while ($b && FileLineIterator::$.getValue().empty())
+			$b = FileLineIterator::$.next();
+		}
+	    }
+
+	    return $b;
+	}
+
+	#! returns the current record as a hash
+	any getValue() {
+	    return $.getLineHash();
+	}
+
+	#! returns the current record as a hash
+	hash getLineHash() {
+	    my list $l = $.parseLine();
+	    my hash $h = hash();
+	    foreach my string $v in ($l) {
+		my string $col = $.headers[$#].val() ? $.headers[$#] : string($#);
+		$h.$col = $v;
+	    }
+	    
+	    # verify column count if requested
+	    if ($.checkElementCounts && $h.size() != $.headers.size())
+		throw "CSVFILEITERATOR-DATA-ERROR", sprintf("%s:%d line contained %d field%s, however the header record has %d (and option \"verify-columns\" is set)", $.getFileName(), $.index(), $h.size(), $h.size() == 1 ? "" : "s", $.headers.size());
+
+	    return $h;
+	}
+
+	#! returns the current record as a list
+	list getLineList() {
+	    my list $l = $.parseLine();
+	    
+	    # verify column count if requested
+	    if ($.checkElementCounts && $l.size() != $.headers.size())
+		throw "CSVFILEITERATOR-DATA-ERROR", sprintf("%s:%d line contained %d field%s, however the header record has %d (and option \"verify-columns\" is set)", $.getFileName(), $.index(), $l.size(), $l.size() == 1 ? "" : "s", $.headers.size());
+
+	    return $l;
+	}
+
+	#! parses a line in the file and returns a list of the fields
+	private list parseLine() {
+	    return FileLineIterator::$.getValue().split($.separator, $.quote, $.ignoreWhitespace);
+	}
+
+    } # CsvFileIterator class
+} # CsvUtil namespace
