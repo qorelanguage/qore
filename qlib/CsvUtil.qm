@@ -75,7 +75,7 @@ public namespace CsvUtil {
 		"headers": True,
 		"verify-columns": True,
 		"fields": True,
-		"timeone": True,
+		"timezone": True,
 		);
 
 	    #! supported type codes (hash for quick lookups)
@@ -120,7 +120,7 @@ public namespace CsvUtil {
 	    *list $.fdesc;
 
 	    # the @ref Qore::TimeZone to use when parsing dates (default: current time zone)
-	    TimeZone $.tz = TimeZone::get();
+	    *TimeZone $.tz;
 
 	    # verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
 	    bool $.checkElementCounts = False;
@@ -491,7 +491,7 @@ my string $quote = $i.getQuote();
 	    }
 
 	    if (!$f.empty())
-		throw "CSVFILEITERATOR-FIELD-ERROR", sprintf("a field description was given for the following non-existent fields: %y (headers: %y)", $f.keys(), $.headers);
+		throw "CSVFILEITERATOR-FIELD-ERROR", sprintf("a field description was given for the following non-existent fields: %y (known header / field names: %y)", $f.keys(), $.headers);
 	}
 
 	static checkType(string $key, string $value) {

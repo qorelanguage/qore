@@ -1030,7 +1030,7 @@ bool QoreObject::getAsBoolImpl() const {
    if (pgm && (pgm->getParseOptions64() & PO_PERL_BOOLEAN_EVAL)) {
       AutoLocker al(priv->mutex);
 
-      return priv->status == OS_DELETED ? false : !priv->data->empty();
+      return priv->status != OS_DELETED;
    }
    return false;
 }
