@@ -43,7 +43,7 @@ module CsvUtil {
 #! the CsvUtil namespace contains all the objects in the CsvUtil module
 public namespace CsvUtil {
     #! the CsvFileIterator class allows CSV files to be iterated
-    public class CsvFileIterator inherits FileLineIterator {
+    public class CsvFileIterator inherits Qore::FileLineIterator {
 	public {
 	    #! field separator
 	    string $.separator = ",";
