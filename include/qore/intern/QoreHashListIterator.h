@@ -75,6 +75,9 @@ public:
    DLLLOCAL QoreHashListIterator() : h(0), i(-1), limit(0) {
    }
 
+   DLLLOCAL QoreHashListIterator(const QoreHashListIterator& old) : h(old.h ? old.h->hashRefSelf() : 0), i(-1), limit(0) {
+   }
+
    using QoreIteratorBase::deref;
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {

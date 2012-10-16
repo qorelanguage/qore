@@ -155,6 +155,20 @@ bool <value>::strp() [flags=CONSTANT] {
    return false;
 }
 
+//! Returns @ref False; this method is reimplemented in other types and will return @ref True if the given expression is a callable value (ie @ref closure "closures" or @ref call_reference "call references")
+/**
+    @return @ref False; this method is reimplemented in other types and will return @ref True if the given expression is a callable value (ie @ref closure "closures" or @ref call_reference "call references")
+
+    @par Example:
+    @code
+if ($n.callp())
+    printf("the reuslt of calling the value: %y\n", $n());
+    @endcode
+*/
+bool <value>::callp() [flags=CONSTANT] {
+   return false;
+}
+
 //! Returns 1; the return value of this method should give the list size of the value, which is normally 1 for non-lists (except for @ref nothing where the size will be 0) and the number of the elements in the list for lists; this method will be reimplemented in other types where it may return other values
 /**
     @return 1; the return value of this method should give the list size of the value, which is normally 1 for non-lists (except for @ref nothing where the size will be 0) and the number of the elements in the list for lists; this method will be reimplemented in other types where it may return other values

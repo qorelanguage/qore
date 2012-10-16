@@ -33,6 +33,9 @@ public:
    DLLLOCAL QoreHashListReverseIterator() {
    }
 
+   DLLLOCAL QoreHashListReverseIterator(const QoreHashListReverseIterator& old) : QoreHashListIterator(old) {
+   }
+
    DLLLOCAL virtual const char* getName() const {
       return "HashListReverseIterator";
    }
@@ -57,7 +60,7 @@ public:
 
     @see HashListIterator
  */
-qclass HashListReverseIterator [arg=QoreHashListIterator* i; ns=Qore; vparent=HashListIterator];
+qclass HashListReverseIterator [arg=QoreHashListReverseIterator* i; ns=Qore; vparent=HashListIterator];
 
 //! Creates the hash list iterator object
 /** @param h the hash of lists to iterate
@@ -80,6 +83,16 @@ my HashListReverseIterator $i($q);
  */
 HashListReverseIterator::constructor() {
    self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator);
+}
+
+//! Creates a new HashListReverseIterator object, based on the same object being iterated in the original object
+/** @par Example:
+    @code
+my HashListReverseIterator $ni = $i.copy();
+    @endcode
+ */
+HashListReverseIterator::copy() {
+   self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator(*i));
 }
 
 //! Moves the current position to the next element in the result list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the list if the list is not empty

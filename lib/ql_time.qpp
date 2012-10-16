@@ -119,6 +119,143 @@ static QoreHashNode *date_info(const DateTime &d) {
    return h;
 }
 
+DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr, const QoreString& mask, ExceptionSink* xsink) {
+   qore_tm dt;
+   dt.clear();
+
+   const char *d = dtstr.getBuffer();
+   const char *de = d + dtstr.strlen();
+
+   const char *s = mask.getBuffer();
+   const char *se = s + mask.strlen();
+
+   while (*s) {
+      // break if we run out of data in either the mask or the date string
+      if (d >= de || s >= se)
+         break;
+      switch (*s) {
+         case 'Y':
+            if (s[1] != 'Y') {
+               xsink->raiseException("DATE-CONVERT-ERROR", "'Y' has to be used as 'YY' or 'YYYY'");
+               return 0;
+               break;
+            }
+            ++s;
+            if (s[2] == 'Y' && s[3] == 'Y') {
+               dt.year = parse_int_4(d) - 1900;
+               s += 2;
+               d += 3;
+            }
+            else {
+               // obtain the current century
+               int century;
+               {
+                  DateTime tmpdt(q_epoch());
+                  century = tmpdt.getYear() / 100 * 100;
+               }
+
+               dt.year = parse_int_2(d) + century;
+               ++d;
+            }
+            break;
+
+         case 'M':
+            if (s[1] == 'M') {
+               dt.month = parse_int_2(d);
+               s++;
+               d++;
+               break;
+            }
+            // 'M' is not supported because there is no clear way how to get eg. 1 or 11
+            if ((s[1] == 'o' || s[1] == 'O') && (s[2] == 'n' || s[2] == 'N')) {
+               QoreString str(d, 3);
+               dt.month = str.strlen() == 3 ? qore_date_info::getMonthIxFromAbbr(str.getBuffer()) : -1;
+               if (dt.month < 0 || dt.month > 11) {
+                  xsink->raiseException("DATE-CONVERT-ERROR", "Invalid 'Mon' string: '%s'", !str.empty() ? str.getBuffer() : "<none>");
+                  return 0;
+               }
+
+               ++dt.month;
+               s += 2;
+               d += 2;
+               break;
+            }
+            break;
+
+         case 'm':
+            if (s[1] == 'm') {
+               dt.minute = parse_int_2(d);
+               s++;
+               d++;
+               break;
+            }
+            if (s[1] == 's') {
+               dt.us = parse_int_3(d) * 1000;
+               ++s;
+               d += 2;
+               break;
+            }
+            break;
+
+         case 'D':
+         case 'd':
+            if (s[1] == 'D' || s[1] == 'd') {
+               dt.day = parse_int_2(d);
+               s++;
+               d++;
+            }
+           break;
+
+         case 'H':
+         case 'h':
+            if (s[1] == 'H' || s[1] == 'h') {
+               dt.hour = parse_int_2(d);
+               s++;
+               d++;
+            }
+            break;
+
+         case 's':
+            if (s[1] == 's' && s[2] == 's') {
+               if (s[3] == 's' && s[4] == 's' && s[5] == 's') {
+                  dt.us = parse_int_6(d);
+                  s += 5;
+                  d += 5;
+               }
+               else {
+                  dt.us = parse_int_3(d) * 1000;
+                  s += 2;
+                  d += 2;
+               }
+            }
+            break;
+
+         case 'S':
+            if (s[1] == 'S') {
+               dt.second = parse_int_2(d);
+               s++;
+               d++;
+            }
+            break;
+
+         case 'u':
+            if (s[1] == 's') {
+               dt.us = parse_int_6(d);
+               ++s;
+               d += 5;
+               break;
+            }
+      }
+      s++;
+      d++;
+   }
+
+   if (*xsink)
+      return 0;
+
+   return DateTimeNode::makeAbsolute(tz, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.us);
+}
+
 /** @defgroup date_and_time_functions Date and Time Functions
     @section date_formatting Date Formatting Codes
     |!Format Code|!Description
@@ -170,6 +307,26 @@ static QoreHashNode *date_info(const DateTime &d) {
     |\c dst|@ref bool_type|@ref absolute_dates "Absolute" Only|A flag if daylight savings time is in effect
     |\c zone|@ref Qore::TimeZone "TimeZone"|@ref absolute_dates "Absolute" Only|The time zone for the time
     |\c zone_name|@ref string_type|@ref absolute_dates "Absolute" Only|The name of the time zone for the given time (ex: "CEST" for Central European Summer Time for a time during summer time or "CET" for Central European Time for the same time zone while daylight savings time is not active)
+
+    @section date_mask Date Mask Format
+    The date mask (as used in @ref Qore::date(string, string) and @ref Qore::TimeZone::date(string, string)) is used to specify
+    the string format of a date/time value for parsing to a @ref date "date/time value".
+
+    The fields in the mask string are as follows:
+    - \c YY: The last 2 digits of the year; the current century is assumed
+    - \c YYYY: A 4-digit year value (ex: 1956, 0870)
+    - \c MM: A 2-digit month number (ex: 01, 11)
+    - \c Mon or \c MON: A 3-character English month name abbreviation (parsing is case-insensitive: ex: \c "Apr" or \c "APR" or \c "apr" for April)
+    - \c DD: A 2-digit day number (ex: 29, 04)
+    - \c HH: A 2-digit hour number (ex: 23, 04)
+    - \c mm: A 2-digit minute number (ex: 11, 04)
+    - \c ms: A 3-digit millisecond number (ex: 511, 042)
+    - \c SS: A 2-digit second number (ex: 11, 04)
+    - \c sss: A 3-digit millisecond number (ex: 511, 042)
+    - \c ssssss: A 6-digit microsecond number (ex: 240511, 005142)
+    - \c us: A 6-digit microsecond number (ex: 240511, 005142)
+
+    @bug currently only English month abbreviations are accepted in the date/time mask
 */
 //@{
 
@@ -1360,24 +1517,12 @@ date date(null[doc] null) [flags=CONSTANT] {
    return zero_date();
 }
 
-//! Returns the date corresponding to parsing a string argument according to a format mask
+//! Returns the @ref date "date/time" value corresponding to parsing a string argument according to a @ref date_mask "format make"
 /** 
     @param dtstr a string giving a date
-    @param mask the mask for the date value; the fields in the string are as follows:
-    - \c YY: The last 2 digits of the year; the current century is assumed
-    - \c YYYY: A 4-digit year value (ex: 1956, 0870)
-    - \c MM: A 2-digit month number (ex: 01, 11)
-    - \c Mon or \c MON: A 3-character English month name abbrevation (parsing is case-insensive: ex: \c "Apr" or \c "APR" or \c "apr" for April)
-    - \c DD: A 2-digit day number (ex: 29, 04)
-    - \c HH: A 2-digit hour number (ex: 23, 04)
-    - \c mm: A 2-digit minute number (ex: 11, 04)
-    - \c ms: A 3-digit millisecond number (ex: 511, 042)
-    - \c SS: A 2-digit second number (ex: 11, 04)
-    - \c sss: A 3-digit millisecond number (ex: 511, 042)
-    - \c ssssss: A 6-digit microsecond number (ex: 240511, 005142)
-    - \c us: A 6-digit microsecond number (ex: 240511, 005142)
+    @param mask the mask for the date value; see @ref date_mask for information on the format of the @ref date_mask "format make"
     
-    @return the date corresponding to parsing the \a dtstr string argument according to \a mask serving as a format mask
+    @return the @ref date "date/time" value corresponding to parsing the \a dtstr string argument according to \a mask serving as a @ref date_mask "format mask"
 
     @par Example:
     @code
@@ -1386,144 +1531,9 @@ my date $dt = date("20100401 234520 230394", "YYYYMMDD HHmmSS ssssss"); # return
 
     @throw DATE-CONVERT-ERROR invalid mask specification
 
-    @bug currently only English month abbreviations are accepted
-    @bug there is currently no way to specify the time zone or UTC offset of the time parsed
+    @see @ref Qore::TimeZone::date(string, string) for a method that allows the date to be parsed in a particular @ref time_zones "time zone"
 */
 date date(string dtstr, string mask) [flags=RET_VALUE_ONLY] {
-   // obtain the century
-   int century;
-   {
-      DateTime tmpdt(q_epoch());
-      century = tmpdt.getYear() / 100 * 100;
-   }
-
-   qore_tm dt;
-   dt.clear();
-
-   const char *d = dtstr->getBuffer();
-   const char *de = d + dtstr->strlen();
-
-   const char *s = mask->getBuffer();
-   const char *se = s + mask->strlen();
-
-   while (*s) {
-      // break if we run out of data in either the mask or the date string
-      if (d >= de || s >= se)
-	 break;
-      switch (*s) {
-         case 'Y':
-            if (s[1] != 'Y') {
-               xsink->raiseException("DATE-CONVERT-ERROR", "'Y' has to be used as 'YY' or 'YYYY'");
-               return 0;
-               break;
-            }
-            ++s;
-            if (s[2] == 'Y' && s[3] == 'Y') {
-               dt.year = parse_int_4(d) - 1900;
-               s += 2;
-               d += 3;
-            }
-            else {
-               dt.year = parse_int_2(d) + century;
-               ++d;
-            }
-            break;
-
-         case 'M':
-            if (s[1] == 'M') {
-               dt.month = parse_int_2(d);
-               s++;
-               d++;
-               break;
-            }
-            // 'M' is not supported because there is no clear way how to get eg. 1 or 11
-            if ((s[1] == 'o' || s[1] == 'O') && (s[2] == 'n' || s[2] == 'N')) {
-	       QoreString str(d, 3);
-               dt.month = str.strlen() == 3 ? qore_date_info::getMonthIxFromAbbr(str.getBuffer()) : -1;
-               if (dt.month < 0 || dt.month > 11) {
-		  if (!*xsink)
-		     xsink->raiseException("DATE-CONVERT-ERROR", "Invalid 'Mon' string: '%s'", !str.empty() ? str.getBuffer() : "<none>");
-		  return 0;
-               }
-
-               ++dt.month;
-               s += 2;
-               d += 2;
-               break;
-            }
-            break;
-
-         case 'm':
-            if (s[1] == 'm') {
-               dt.minute = parse_int_2(d);
-               s++;
-               d++;
-               break;
-            }
-            if (s[1] == 's') {
-               dt.us = parse_int_3(d) * 1000;
-               ++s;
-               d += 2;
-               break;
-            }
-            break;
-
-         case 'D':
-         case 'd':
-            if (s[1] == 'D' || s[1] == 'd') {
-               dt.day = parse_int_2(d);
-               s++;
-               d++;
-            }
-           break;
-
-         case 'H':
-         case 'h':
-            if (s[1] == 'H' || s[1] == 'h') {
-               dt.hour = parse_int_2(d);
-               s++;
-               d++;
-            }
-            break;
-
-         case 's':
-            if (s[1] == 's' && s[2] == 's') {
-               if (s[3] == 's' && s[4] == 's' && s[5] == 's') {
-                  dt.us = parse_int_6(d);
-                  s += 5;
-                  d += 5;
-               }
-               else {
-                  dt.us = parse_int_3(d) * 1000;
-                  s += 2;
-                  d += 2;
-               }
-            }
-            break;
-
-         case 'S':
-            if (s[1] == 'S') {
-               dt.second = parse_int_2(d);
-               s++;
-               d++;
-            }
-            break;
-
-         case 'u':
-            if (s[1] == 's') {
-               dt.us = parse_int_6(d);
-               ++s;
-               d += 5;
-               break;
-            }
-      }
-      s++;
-      d++;
-   }
-
-   if (*xsink)
-      return 0;
-
-   return DateTimeNode::makeAbsolute(currentTZ(), dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.us);
+   return make_date_with_mask(currentTZ(), *dtstr, *mask, xsink);
 }
 //@}

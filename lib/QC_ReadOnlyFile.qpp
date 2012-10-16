@@ -200,7 +200,7 @@ ReadOnlyFile::constructor(string path, *string encoding) {
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
 
    SimpleRefHolder<File> f(new File(qe));
-   if (f->isTty()) {
+   if (f->isTty() && (getProgram()->getParseOptions64() & PO_NO_TERMINAL_IO)) {
       xsink->raiseException("ILLEGAL-EXPRESSION", "ReadOnlyFile::constructor() cannot be called with a TTY target when 'no-terminal-io' is set");
       return;
    }

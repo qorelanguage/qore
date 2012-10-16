@@ -106,8 +106,8 @@ foreach my string $str in (\$str_list)
     Here is an example of a foreach loop using an object derived from @ref Qore::AbstractIterator "AbstractIterator":\n
     @code
 my hash $h = ("a": 1, "b": 2);
-foreach my int $i in (new HashIterator($h))
-    printf("value: %y\n", $i);
+foreach my int $i in (new HashIterator($h, True))
+    printf("%s = %y\n", $i.key, $i.value);
     @endcode
 
     @note If a reference (<tt>\\$lvalue_expression</tt>) is used as the list expression, any changes made to the <tt><b>foreach</b></tt> iterator variable will be written back to the list (in which case any @ref Qore::AbstractIterator "AbstractIterator" object is not iterated; references cannot be used with @ref Qore::AbstractIterator "AbstractIterator" objects as such objects provide read-only iteration).

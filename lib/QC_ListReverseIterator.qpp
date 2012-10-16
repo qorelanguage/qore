@@ -30,6 +30,9 @@ public:
    DLLLOCAL QoreListReverseIterator(const QoreListNode* l) : QoreListIterator(l) {
    }
 
+   DLLLOCAL QoreListReverseIterator(const QoreListReverseIterator& old) : QoreListIterator(old) {
+   }
+
    DLLLOCAL virtual const char* getName() const {
       return "ListReverseIterator";
    }
@@ -65,6 +68,16 @@ my ListReverseIterator $li($l);
  */
 ListReverseIterator::constructor(softlist l) {
    self->setPrivate(CID_LISTREVERSEITERATOR, new QoreListReverseIterator(l));
+}
+
+//! Creates a new ListReverseIterator object, based on the same object being iterated in the original object
+/** @par Example:
+    @code
+my ListReverseIterator $ni = $i.copy();
+    @endcode
+ */
+ListReverseIterator::copy() {
+   self->setPrivate(CID_LISTREVERSEITERATOR, new QoreListReverseIterator(*i));
 }
 
 //! Moves the current position to the previous element in the list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the last element in the list if the list is not empty

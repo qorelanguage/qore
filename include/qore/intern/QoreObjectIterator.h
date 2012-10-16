@@ -30,10 +30,13 @@
 // the c++ object
 class QoreObjectIterator : public QoreHashIterator {
 public:
-   DLLLOCAL QoreObjectIterator(const QoreObject* o) : QoreHashIterator(o->getRuntimeMemberHash(0)) {
+   DLLLOCAL QoreObjectIterator(const QoreObject* o, bool gvh = false) : QoreHashIterator(o->getRuntimeMemberHash(0), gvh) {
    }
 
    DLLLOCAL QoreObjectIterator() {
+   }
+
+   DLLLOCAL QoreObjectIterator(const QoreObjectIterator& old) : QoreHashIterator(old) {
    }
 
    DLLLOCAL virtual const char* getName() const { return "ObjectIterator"; }

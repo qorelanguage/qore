@@ -44,6 +44,14 @@ public:
          xsink->raiseErrnoException("FILELINEITERATOR-OPEN-ERROR", errno, "cannot open '%s'", name);
    }
 
+   DLLLOCAL FileLineIterator(ExceptionSink* xsink, const FileLineIterator& old)
+   : QoreFile(old.getEncoding()), line(new QoreStringNode(old.getEncoding())), eol(old.eol->stringRefSelf()), num(0), validp(false), trim(old.trim) {
+      // reopen file
+      std::string fn = old.getFileNameStr();
+      if (open(fn.c_str(), O_RDONLY, 0, old.getEncoding()))
+         xsink->raiseErrnoException("FILELINEITERATOR-COPY-ERROR", errno, "cannot reopen '%s'", fn.c_str());
+   }
+
    DLLLOCAL bool next() {
       // make sure and use a new string if the iterator was already valid
       if (validp) {
@@ -125,12 +133,33 @@ FileLineIterator::constructor(string path, *string encoding, *string eol, bool t
    if (*xsink)
       return;
 
-   if (fli->isTty()) {
+   if (fli->isTty() && (getProgram()->getParseOptions64() & PO_NO_TERMINAL_IO)) {
       xsink->raiseException("ILLEGAL-EXPRESSION", "FileLineIterator::constructor() cannot be called with a TTY target when 'no-terminal-io' is set");
       return;
    }
 
    self->setPrivate(CID_FILELINEITERATOR, fli.release());
+}
+
+//! Creates a new FileLineIterator object, based on the same object being iterated in the original object (the original file is reopened)
+/** @par Example:
+    @code
+my FileLineIterator $ni = $i.copy();
+    @endcode
+
+    @throw FILELINEITERATOR-COPY-ERROR the original file cannot be reopened for reading (\c arg will be assigned to the errno value)
+    @throw ILLEGAL-EXPRESSION FileLineIterator::constructor() cannot be called with a TTY target when @ref no-terminal-io "%no-terminal-io" is set
+ */
+FileLineIterator::copy() {
+   SimpleRefHolder<FileLineIterator> fli(new FileLineIterator(xsink, *i));
+
+   if (fli->isTty() && (getProgram()->getParseOptions64() & PO_NO_TERMINAL_IO)) {
+      xsink->raiseException("ILLEGAL-EXPRESSION", "FileLineIterator::copy() cannot be called with a TTY target when 'no-terminal-io' is set");
+      return;
+   }
+
+   if (!*xsink)
+      self->setPrivate(CID_FILELINEITERATOR, fli.release());
 }
 
 //! Moves the current position to the next line in the file; returns @ref False if there are no more lines to read; if the iterator is not pointing at a valid element before this call, the iterator will be positioned to the beginning of the file

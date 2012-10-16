@@ -44,17 +44,3 @@ switch ($c.typeCode()) {
 int <closure>::typeCode() [flags=CONSTANT] {
    return NT_RUNTIME_CLOSURE;
 }
-
-//! Returns @ref True
-/** @return @ref True
-
-    @par Example:
-    @code
-my bool $b = $c.val();
-    @endcode
-
-    @see @ref perl-bool-eval "%perl-bool-eval"
-*/
-bool <closure>::val() [flags=CONSTANT] {
-   return true;
-}

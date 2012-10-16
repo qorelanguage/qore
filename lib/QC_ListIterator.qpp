@@ -50,6 +50,16 @@ ListIterator::constructor(softlist l) {
    self->setPrivate(CID_LISTITERATOR, new QoreListIterator(l));
 }
 
+//! Creates a new ListIterator object, based on the same object being iterated in the original object
+/** @par Example:
+    @code
+my ListIterator $ni = $i.copy();
+    @endcode
+ */
+ListIterator::copy() {
+   self->setPrivate(CID_LISTITERATOR, new QoreListIterator(*i));
+}
+
 //! Moves the current position to the next element in the list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the list if the list is not empty
 /** This method will return @ref True again after it returns @ref False once if list is not empty, otherwise it will always return @ref False.
     The iterator object should not be used after this method returns @ref False

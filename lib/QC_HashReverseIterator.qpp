@@ -27,10 +27,13 @@
 // forwards and are used in the reverse sense by the Qore language class implementation below
 class QoreHashReverseIterator : public QoreHashIterator {
 public:
-   DLLLOCAL QoreHashReverseIterator(const QoreHashNode* h) : QoreHashIterator(h) {
+   DLLLOCAL QoreHashReverseIterator(const QoreHashNode* h, bool gvh = false) : QoreHashIterator(h, gvh) {
    }
 
    DLLLOCAL QoreHashReverseIterator() {
+   }
+
+   DLLLOCAL QoreHashReverseIterator(const QoreHashReverseIterator& old) : QoreHashIterator(old) {
    }
 
    DLLLOCAL virtual const char* getName() const {
@@ -58,14 +61,15 @@ qclass HashReverseIterator [arg=QoreHashReverseIterator* i; ns=Qore; vparent=Has
 
 //! Creates the hash iterator object
 /** @param h the hash to iterate
+    @param value_hash if @ref True "True", @ref getValue() returns a hash with 2 keys: \c "key" and \c "value" (making it easier to iterate hashes with constructions where only @ref getValue() is available, such as the @ref foreach "foreach statement"); the default is @ref Qore::False "False"
 
     @par Example:
     @code
 my HashReverseIterator $hi($h);
     @endcode
  */
-HashReverseIterator::constructor(hash h) {
-   self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator(h));
+HashReverseIterator::constructor(hash h, bool value_hash = False) {
+   self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator(h, value_hash));
 }
 
 //! Creates an empty iterator object
@@ -77,6 +81,16 @@ my HashReverseIterator $hi($h);
  */
 HashReverseIterator::constructor() {
    self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator);
+}
+
+//! Creates a new HashReverseIterator object, based on the same object being iterated in the original object
+/** @par Example:
+    @code
+my HashReverseIterator $ni = $i.copy();
+    @endcode
+ */
+HashReverseIterator::copy() {
+   self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator(*i));
 }
 
 //! Moves the current position to the previous element in the hash; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the last element in the hash if the hash is not empty

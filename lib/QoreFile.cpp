@@ -707,6 +707,12 @@ QoreStringNode *QoreFile::getFileName() const {
    return priv->filename.empty() ? 0 : new QoreStringNode(priv->filename.c_str()); 
 }
 
+std::string QoreFile::getFileNameStr() const {
+   AutoLocker al(priv->m);
+
+   return priv->filename;
+}
+
 int QoreFile::close() {
    AutoLocker al(priv->m);
 

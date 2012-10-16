@@ -15,8 +15,8 @@
     also throw exceptions if the socket were not open, so the error handling was inconsistent (exceptions versus return codes).\n\n
     Additionally it was not possible to get error information at all for SSL errors if the socket was connected with SSL, which,
     according to %Qore's socket design, should be transparent for the programmer.\n\n
-    For these reasons the implementation was inconsistent and unintuitive; the change was to add optional timeout parameters
-    to all send methods and to allow the methods to throw exceptions instead of returning a value of -1.\n\n
+    For these reasons the implementation was deemed inconsistent and unintuitive; the change was to add optional timeout parameters
+    to all send methods and to allow the methods to throw exceptions (instead of simply returning -1 and not being able to determine the cause of the error in many cases).\n\n
     The following methods were updated to accept optional timeout parameters and throw exceptions on all errors rather than a return code for I/O errors:
     - Qore::Socket::send()
     - Qore::Socket::sendBinary()
@@ -29,9 +29,12 @@
     - Qore::Socket::sendi8LSB()
 
     @par New Abstract Method in AbstractIterator
-    - Qore::AbstractIterator::valid() was added (with concrete implementations in all iterator classes derived from this base class delivered with %Qore); this method tells if the object is currently pointing to a valid iterator.\n\n For any user classes inherting @ref Qore::AbstractIterator "AbstractIterator" directly (as opposed to another concrete iterator class in %Qore, where the method has already been added), a concrete implementation of this method will have to be added as well.
+    - Qore::AbstractIterator::valid() was added (with concrete implementations in all iterator classes derived from this base class delivered with %Qore); this method tells if the object is currently pointing to a valid iterator.\n\n For any user classes inherting @ref Qore::AbstractIterator "AbstractIterator" directly (as opposed to another concrete iterator class in %Qore, where the method has already been added), a concrete implementation of this method will have to be added as well or that class will become @ref abstract with this release of %Qore.
 
     @subsection qore_086_new_features New Features in Qore
+    @par Perl-Style Boolean Evaluation
+    The @ref perl-bool-eval %perl-bool-eval" parse option was implemented to address one of the oldest design bugs in %Qore: strict mathematical boolean evaluation.  Setting @ref perl-bool-eval "%perl-bool-eval" is highly recommended as it makes boolean evaluation much more logical and intuitive for qore scripts / programs.
+
     @par Arbitrary-Precision Numeric Support
     %Qore now uses the <a href="http://www.mpfr.org/">MPFR</a> and <a href="http://gmplib.org">GMP</a> libraries to provide arbitrary-precision numeric support.  This type can be used for high-precision mathematics or for storing \c NUMERIC (ie \c DECIMAL or \c NUMBER) column values when retrieved from databases by %Qore DBI drivers that support the new capability @ref Qore::SQL::DBI_CAP_HAS_NUMBER_SUPPORT "DBI_CAP_HAS_NUMBER_SUPPORT" (previously these values would be retrieved as %Qore strings in order to avoid information loss).\n\n
     For more information, see the new @ref number "number" type, @ref number_type, and @ref Qore::zzz8numberzzz9
@@ -88,19 +91,22 @@
       - <object>::iterator()
       .
       The base pseudo-method (<value>::iterator()) ensures that any value can be iterated, and the type-specific methods ensure that the most suitable iterator for container types is returned for container values; values without an iterator class are iterated with the @ref Qore::SingleValueIterator "SingleValueIterator"
-    
+    - the @ref Qore::HashIterator "HashIterator" and @ref Qore::HashReverseIterator "HashReverseIterator" classes had an additional optional boolean argument added to their constructors; if @ref Qore::True "True", then the @ref Qore::HashIterator::getValue() "HashIterator::getValue()" and @ref Qore::HashReverseIterator::getValue() "HashReverseIterator::getValue()" methods return a hash with the following keys: \c "key" and \c "value", allowing for more convenient iteration with constructions that only use \c getValue() methods (such as the @ref foreach "foreach statement")
+    - all iterator classes had copy methods added to them (ex: @ref Qore::HashIterator::copy())
+ 
     @par Text File Parsing Enhancements
     The following improvements were made in qore to support more flexible file parsing:
     - the @ref Qore::ReadOnlyFile class was added as a parent class of @ref Qore::File to allow for a more convenient API for reading files (the @ref Qore::File class's API remains the same as it publically inherits  @ref Qore::ReadOnlyFile)
-    - the @ref Qore::ReadOnlyFile::readLine() "ReadOnlyFile::readLine()" method (formerlly a method of the @ref Qore::File class) was enhanced to accept 2 optional arguments, allowing the end of line character(s) to be stripped from the line returned, and also to allow the end of line characters to be specified.  If no end of line characters are specified, then the method automatically determines the end of line characters (can be \c "\n", \c "\r", or \c "\r\n"; the last one only if the underlying file is not a tty in order to avoid stalling I/O on an interactive TTY)
+    - the @ref Qore::ReadOnlyFile::readLine() "ReadOnlyFile::readLine()" method (formerlly a method of the @ref Qore::File class) was enhanced to accept 2 optional arguments, allowing the end of line character(s) to be stripped from the line returned, and also to allow the end of line characters to be specified.  If no end of line characters are specified, then the method automatically determines the end of line characters (can be \c "\n", \c "\r", or \c "\r\n"; the last one only if the underlying file is not a TTY in order to avoid stalling I/O on an interactive TTY)
     - the @ref file_stat_constants were moved from the @ref Qore::File class to the @ref Qore::ReadOnlyFile class
     - added a new @ref Qore::FileLineIterator "FileLineIterator" iterator class
-    - added a new optional parameter to <string>::split(string, string, bool) and Qore::split(string, string, string, bool) to allow for automatic stripping unquoted fields of leading and trailing whitespace (the default is the old behavior; leave the whitespace as it is read)
+    - added a new optional parameter to <string>::split(string, string, bool) and Qore::split(string, string, string, bool) to allow for automatic stripping unquoted fields of leading and trailing whitespace (the default is the old behavior; i.e. leave the whitespace as it is read)
+    - added a new @ref Qore::TimeZone "TimeZone" method for parsing string dates in a specific @ref Qore::TimeZone "TimeZone": @ref Qore::TimeZone::date(string, string)
     - added a new function for parsing text as a boolean value: @ref Qore::parse_boolean() "parse_boolean()"
 
     @par Other Improvements and Changes
     - the @ref foreach "foreach statement" now iterates objects derived from @ref Qore::AbstractIterator "AbstractIterator"
-    - added a @ref Qore::Option::HAVE_SYMLINK "HAVE_SYMLINK" constant for the symlink() function added in 0.8.5
+    - added a @ref Qore::Option::HAVE_SYMLINK "HAVE_SYMLINK" constant for the symlink() function added in qore 0.8.5
     - added the @ref Qore::SQL::SQLStatement::memberGate() "SQLStatement::memberGate()" method so @ref Qore::SQL::SQLStatement "SQLStatement" objects can be dereferenced directly to a column value when iterated with @ref Qore::SQL::SQLStatement::next() "SQLStatement::next()"; also this method will throw exceptions when an unknown column name is used so that typos in column names can be caught (instead of being silently ignored producing hard to find bugs)
     - implemented @ref Qore::SQL::Datasource::constructor(string) "Datasource::constructor(string)" and @ref Qore::SQL::DatasourcePool::constructor(string) "DatasourcePool::constructor(string)" variants to allow for creating datasources from a string that can be parsed by Qore::SQL::parse_datasource(string) "parse_datasource(string)"
     - added the following new DBI-related functions:
@@ -109,7 +115,7 @@
       - @ref Qore::SQL::dbi_get_driver_capabilities(string) "dbi_get_driver_capabilities(string)"
       - @ref Qore::SQL::dbi_get_driver_options(string) "dbi_get_driver_options(string)"
       - @ref Qore::SQL::parse_datasource(string) "parse_datasource(string)"
-    - implemented support for \c A and \c a, (hexadecimal floating-point output) \c G, \c g, (compact floating-point output) \c F, (non-scientific floating-point output) and \c E and \e (scientific/exponential floating-point output) format arguments for @ref float "floats" and @ref number "numbers" (new arbitrary-precision @ref number "number type values"); see @ref string_formatting
+    - implemented support for \c "A" and \c "a", (hexadecimal floating-point output) \c "G", \c "g", (compact floating-point output) \c "F", (non-scientific floating-point output) and \c "E" and \c "e" (scientific/exponential floating-point output) format arguments for @ref float "floats" and @ref number "numbers" (new arbitrary-precision @ref number "number type values"); see @ref string_formatting
     - new pseudo-methods:
       - <value>::toString()
       - <value>::toInt()
@@ -119,7 +125,8 @@
       - <int>::format(string fmt)
       - <string>::isDataAscii()
       - <string>::isDataPrintableAscii()
-    - the values of the @ref Qore::SQL::NUMBER "NUMBER", @ref Qore::SQL::NUMERIC "NUMERIC", and @ref Qore::SQL::DECIMAL "DECIMAL" @ref sql_constants is now \c "number" instead of \c "string" (see also @ref sql_binding)
+      - <value>::callp() (also <callref>::callp())
+    - the value of the @ref Qore::SQL::NUMBER "NUMBER", @ref Qore::SQL::NUMERIC "NUMERIC", and @ref Qore::SQL::DECIMAL "DECIMAL" @ref sql_constants is now \c "number" instead of \c "string" (see also @ref sql_binding)
     - new constants:
       - @ref Qore::M_PIn "M_PIn"
       - @ref Qore::MAXINT "MAXINT"
@@ -128,7 +135,7 @@
       - @ref Qore::range() "range()"
       - @ref Qore::xrange() "xrange()"
     - new methods:
-      - @ref Qore::ReadOnlyFile::isTty() (the @ref Qore::ReadOnlyFile class was added in qore 0.8.6 otherwise made up of methods formerly belonging to the @ref Qore::File class)
+      - @ref Qore::ReadOnlyFile::isTty() and @ref Qore::ReadOnlyFile::getFileName() (the @ref Qore::ReadOnlyFile class was added in qore 0.8.6 otherwise made up of methods formerly belonging to the @ref Qore::File class)
     - updated docs to show functional restrictions tagged at the class level
 
     @subsection qore_086_bug_fixes Bug Fixes in Qore

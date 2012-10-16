@@ -32,6 +32,8 @@
 #include <sys/file.h>
 #include <unistd.h>
 
+#include <string>
+
 class QoreTermIOS;
 class Queue;
 
@@ -473,8 +475,11 @@ public:
    */
    DLLEXPORT QoreStringNode *getchar(ExceptionSink *xsink);
 
-   //! returns the filename of the file being read
-   DLLEXPORT QoreStringNode *getFileName() const;
+   //! returns the filename of the file being read as a std::string (the string is empty if no file name is set)
+   DLLEXPORT std::string getFileNameStr() const;
+
+   //! returns the filename of the file being read (NULL if no file name is set); caller owns the reference count returned
+   DLLEXPORT QoreStringNode* getFileName() const;
 
 #if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__ 
    //! changes ownership of the file (if possible)
