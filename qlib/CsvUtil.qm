@@ -98,7 +98,7 @@ while (i.next())
 4: {cc: "UK", serno: 1234567893, desc: "Sony, Xperia S", received: 2012-05-31 00:00:00 Thu +02:00 (CEST)}
     @endverbatim
 
-    Use the \c "header-lines" and \c "header-names" @ref csvfileiterator_options "options" to automatically read the header names from the file if present.  Use the \c "fields" @ref csvfileiterator_options "option" to describe the fields and perform transformations on the data read.  For more information, see the @ref CsvFileIterator class.
+    Use the \c "header-lines" and \c "header-names" @ref csvfileiterator_options "options" to automatically read the header names from the file if present.  Use the \c "fields" @ref csvfileiterator_options "option" to describe the fields and perform transformations on the data read.  For more information, see the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class.
 */
 
 # private class used to iterate a list and skip elements without any value
@@ -390,6 +390,7 @@ foreach my hash $r in (new CsvFileIterator("my_file.csv")) {
 		    if ($.fields)
 			$.setFields();
 		}
+		# skip the rest of the header rows
 		while ($.index() < $.headerLines) {
 		    if (!FileLineIterator::$.next())
 			return False;
@@ -397,8 +398,14 @@ foreach my hash $r in (new CsvFileIterator("my_file.csv")) {
 	    }
 	    my bool $b = FileLineIterator::$.next();
 	    if ($b) {
+		# skip empty lines
+		if ($.ignoreEmptyLines) {
+		    while ($b && FileLineIterator::$.getValue().empty())
+			$b = FileLineIterator::$.next();
+		}
+
 		# generate fake header names with index positions if no header data is already available
-		if ($.headers.empty()) {
+		if ($b && $.headers.empty()) {
 		    my list $l = $.parseLine();
 		    $.headers = ();
 		    map $.headers += string($#), $l;
@@ -406,12 +413,6 @@ foreach my hash $r in (new CsvFileIterator("my_file.csv")) {
 		    # set field description list if necessary
 		    if ($.fields)
 			$.setFields();
-		}
-
-		# skip empty lines
-		if ($.ignoreEmptyLines) {
-		    while ($b && FileLineIterator::$.getValue().empty())
-			$b = FileLineIterator::$.next();
 		}
 	    }
 
