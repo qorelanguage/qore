@@ -216,7 +216,7 @@ class qdx {
 	}
     }
 
-    getComment(string comment, File inf, File of, bool fix_param = False) {
+    string getComment(string comment, File inf, bool fix_param = False) {
 	comment =~ s/^[ \t]+//g;
 	if (fix_param)
 	    fixParam(\comment);
@@ -224,8 +224,7 @@ class qdx {
 	DocumentTableHelper dth();
 
 	while (exists (*string line = inf.readLine())) {
-	    line =~ s/^[ \t]+//g;
-	    line =~ s/\$/__6_/g; #/;
+	    #line =~ s/\$/__6_/g; #/;
 
 	    if (fix_param)
 		fixParam(\line);
@@ -236,10 +235,7 @@ class qdx {
 		comment += line;
 		break;
 	    }
-	    if (line =~ /\/\*/) #/)
-		comment += line;
-	    else
-		comment += "   " + line;
+            comment += line;
 	}
 	#printf("comment: %s", comment);
 	return comment;
@@ -297,13 +293,20 @@ class qdx {
 	    # skip parse commands
 	    if (line =~ /^%/)
 		continue;
+
+            # see if the line is the start of a doxygen block comment
+            if (line =~ /^[[:blank:]]*\/\*\*./) {
+                line = getComment(line, inf);
+                of.print(line);
+                continue;
+            }
             
-	    if (line =~ /^[[:blank:]]*\/\*/){ #/{
+	    if (line =~ /^[[:blank:]]*\/\*/){ #/){
 		if (line !~ /\*\//)
                     in_doc = True;
                 of.print(line);
                 continue;
-	    }
+            }
 
             # take public off sub definitions
             line =~ s/public(.*)[[:space:]]sub([[:space:]]+)/$1$2/g;
@@ -598,7 +601,7 @@ class DocumentTableHelper {
     # no public members
     public {}
 
-    process(string line) returns string {
+    string process(string line) {
         if (line =~ /@page/) {
             #printf("PAGE: css: %n %s", css, line);#exit(1);
             css = False;

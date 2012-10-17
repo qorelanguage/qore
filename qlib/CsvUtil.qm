@@ -42,6 +42,63 @@ module CsvUtil {
 /** @mainpage CsvUtil Module
 
     The %CsvUtil module provides classes and functions for parsing CSV files.
+
+    To use this module, use \c "%requires CsvUtil" in your code.
+    
+    All the public symbols in the module are defined in the CsvUtil namespace
+
+    Currently the module provides the following class:
+    - @ref CsvUtil::CsvFileIterator "CsvFileIterator": iterator class allowing for CSV files to be processed line by line
+
+    <b>Examples:</b>
+    @code
+#!/usr/bin/env qore
+
+%new-style
+%requires CsvFileIterator
+
+CsvFileIterator i("example-file.csv");
+while (i.next())
+    printf("%d: %y\n", i.index(), i.getValue());
+    @endcode
+
+    If \c "example-file.csv" is:
+    @verbatim
+UK,1234567890,"Sony, Xperia S",20120531
+UK,1234567891,"Sony, Xperia S",20120531
+UK,1234567892,"Sony, Xperia S",20120531
+UK,1234567893,"Sony, Xperia S",20120531
+    @endverbatim
+
+    The data is read verbatim, each value is returned as a string, header names are generated numerically; the output is:
+    @verbatim
+1: {0: "UK", 1: "1234567890", 2: "Sony, Xperia S", 3: "20120531"}
+2: {0: "UK", 1: "1234567891", 2: "Sony, Xperia S", 3: "20120531"}
+3: {0: "UK", 1: "1234567892", 2: "Sony, Xperia S", 3: "20120531"}
+4: {0: "UK", 1: "1234567893", 2: "Sony, Xperia S", 3: "20120531"}
+    @endverbatim
+
+    If header names are provided and field types are specified, the output looks different:
+    @code
+#!/usr/bin/env qore
+
+%new-style
+%requires CsvFileIterator
+
+CsvFileIterator i("example-file.csv", ("headers": ("cc", "serno", "desc", "received"), "fields": ("serno": "int", "received": "date")));
+while (i.next())
+    printf("%d: %y\n", i.index(), i.getValue());
+    @endcode
+
+    Now the hash keys in each record returned are those given in the @ref CsvFileIterator::constructor() "constructor", and the fields \c "serno" and \c "received" are given other data types; this produces:
+    @verbatim
+1: {cc: "UK", serno: 1234567890, desc: "Sony, Xperia S", received: 2012-05-31 00:00:00 Thu +02:00 (CEST)}
+2: {cc: "UK", serno: 1234567891, desc: "Sony, Xperia S", received: 2012-05-31 00:00:00 Thu +02:00 (CEST)}
+3: {cc: "UK", serno: 1234567892, desc: "Sony, Xperia S", received: 2012-05-31 00:00:00 Thu +02:00 (CEST)}
+4: {cc: "UK", serno: 1234567893, desc: "Sony, Xperia S", received: 2012-05-31 00:00:00 Thu +02:00 (CEST)}
+    @endverbatim
+
+    Use the \c "header-lines" and \c "header-names" @ref csvfileiterator_options "options" to automatically read the header names from the file if present.  Use the \c "fields" @ref csvfileiterator_options "option" to describe the fields and perform transformations on the data read.  For more information, see the @ref CsvFileIterator class.
 */
 
 # private class used to iterate a list and skip elements without any value
@@ -60,6 +117,46 @@ class ListValueIterator inherits ListIterator {
 #! the CsvUtil namespace contains all the objects in the CsvUtil module
 public namespace CsvUtil {
     #! the CsvFileIterator class allows CSV files to be iterated
+    /** 
+	@section csvfileiterator_options CsvFileIterator Constructor Option Hash Overview
+	The CsvFileIterator class constructor takes an optional hash with possible keys given in the following table.  Note that 
+	key names are case-sensitive, and data types are soft (conversions are made when possible).
+	
+	<b>CsvFileIterator Options</b>
+	|!Option|!Data Type|!Description
+	|\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
+	|\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
+	|\c "quote"|@ref string|the field quote character (default: \c '\"')
+	|\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
+	|\c "ignore-empty"|@ref boolean|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+	|\c "ignore-whitespace"|@ref boolean|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+	|\c "header-names"|@ref boolean|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header-lines" must be &gt; 0
+	|\c "header-lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header-names" is @ref Qore::True "True")
+	|\c "headers"|@ref list of strings|list of header / column names for the data iterated, if this is present, then \c "header-names" must be @ref Qore::False "False"
+	|\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
+	|\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref csvfileiterator_option_field_types giving the data type for the field) or a @ref csvfileiterator_option_field_hash describing the field
+	|\c "timezone"|@ref string|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
+
+	@subsection csvfileiterator_option_field_types Option Field Types
+	
+	<b>CsvFileIterator Option Field Types</b>
+	|!Name|!Description
+	|\c "int"|the value will be unconditionally converted to an @ref integer "integer" using the @ref Qore::int() function
+	|\c "float"|the value will be unconditionally converted to a @ref float "floating-point value" using the @ref Qore::float() function
+	|\c "number"|the value will be unconditionally converted to an @ref number "arbitrary-precision number value" using the @ref Qore::number() function
+	|\c "string"|(the default) the value remains a string; no transformation is done on the input data
+	|\c "date"|in this case dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the @ref csvfileiterator_option_field_hash "hash format" documented below
+
+	@subsection csvfileiterator_option_field_hash Option Field Hash
+
+	<b>CsvFileIterator Option Field Hash</b>
+	|!Key|!Value Description
+	|\c "type"|one of the @ref csvfileiterator_option_field_types "option type values" giving the field type
+	|\c "format"|used only with the \c "date" type; this is a @ref date_mask "date/time format mask" for parsing dates
+	|\c "timezone"|used only with the \c "date" type; this value is passed to @ref Qore::TimeZone::constructor() and the resulting timezone is used to parse the date (this value overrides any default time zone for the object; use only in the rare case that date/time values from different time zones are present in different columns of the same file)
+	|\c "code"|this is a @ref closure or @ref call_reference that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
+
+     */
     public class CsvFileIterator inherits Qore::FileLineIterator {
 	public {
 	    #! valid options for the object (a hash for quick lookups of valid keys)
@@ -128,36 +225,11 @@ public namespace CsvUtil {
 
 	#! creates the CsvFileIterator with the path of the file to read and optionally an option hash
 	/** @param path the path to the CSV file to read
-	    @param opts a hash of optional options with the following possible keys:
-	    - \c "encoding": (string) the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
-	    - \c "separator": (string) the string separating the fields in the file (default: \c ",")
-	    - \c "quote": (string) the field quote character (default: \c '\"')
-	    - \c "eol": (string) the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-	    - \c "ignore-empty": (boolean) if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-	    - \c "ignore-whitespace": (boolean) if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-	    - \c "header-names": (boolean) if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header-lines" must be > 0
-	    - \c "header-lines": (integer) the number of headers lines in the file (must be > 0 if \c "header-names" is @ref Qore::True "True")
-	    - \c "headers": (list of strings) list of header / column names for the data iterated, if this is present, then \c "header-names" must be @ref Qore::False "False"
-	    - \c "verify-columns": (boolean) if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
-	    - \c "fields": (hash) the keys are column names (or numbers in case column names are not used) and the values can be one of the following:
-	      - a string: this gives the column data type, allowed values are:
-	        - \c "int": the value will be unconditionally converted to an @ref integer "integer"
-		- \c "float": the value will be unconditionally converted to a @ref float "floating-point value"
-		- \c "number": the value will be unconditionally converted to an @ref number "arbitrary-precision number value"
-		- \c "string": (the default): the value remains a string
-		- \c "date": in this case dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the hash format documented below; for example: @verbatim ("column1": ("type": "date", "format": "DD/MM/YYYY")) @endverbatim
-              - a hash: can have the following keys:
-                - \c "type": one of the type keys as above (\c "int", \c "float", \c "number", \c "string", or \c "date") giving the data type
-		- \c "format": used only with the \c "date" type; this is a @ref date_mask "date/time format mask" for parsing dates
-		- \c "timezone": used only with the \c "date" type; this value is passed to @ref Qore::TimeZone::constructor() and the resulting timezone is used to parse the date (this value overrides any default time zone for the object; use only in the rare case that date/time values from different time zones are present in different columns of the same file) 
-		- \c "code": this is a @ref closure or @ref call_reference that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
-	    - \c "timezone": the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
+	    @param opts a hash of optional options; see @ref csvfileiterator_options for more information
+
 	    @throw CSVFILEITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
 	 */
-	constructor(string $path, *hash $opts) 
-	    : FileLineIterator($path, 
-			       $opts.encoding.typeCode() == NT_STRING ? $opts.encoding : NOTHING,
-			       $opts.eol.typeCode == NT_STRING ? $opts.eol : NOTHING) {
+	constructor(string $path, *hash $opts) : FileLineIterator($path, $opts.encoding.typeCode() == NT_STRING ? $opts.encoding : NOTHING, $opts.eol.typeCode == NT_STRING ? $opts.eol : NOTHING) {
             foreach my hash $i in ($opts.iterator(True)) {
 		if (!exists Options.($i.key))
 		    throw "CSVFILEITERATOR-ERROR", sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", $i.key, Options.keys());
