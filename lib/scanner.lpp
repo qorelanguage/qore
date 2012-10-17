@@ -862,7 +862,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
 <p_skip_to_endif_or_else>{
    ^%else{WS}*$                         {
                                            //printd(5, "p_skip_to_endif_or_else: found %else\n");
-                                           BEGIN(INITIAL);
+                                           if (parse_cond_test()) {
+                                              BEGIN(INITIAL);
+                                           }
                                         }
    ^%endif{WS}*$                        {
                                            if (parse_cond_pop()) {

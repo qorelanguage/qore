@@ -150,6 +150,7 @@
     - fixed a bug handling in the @ref Qore::Socket "Socket" class when the SSL session requires renegotiation during non-blocking I/O
     - File::constructor() now throws an exception if called with a tty target and @ref no-terminal-io "%no-terminal-io" is set
     - fixed a bug in split with quote (<string>::split(string, string, bool) and Qore::split(string, string, string, bool)) if the separator pattern was not found and the single field was not quoted either
+    - fixed a bug in nested %ifdef and %ifndef blocks with %else in the inside block
     - added code tags to @ref Qore::File "File" methods without side effects
     - made many minor documentation fixes
 

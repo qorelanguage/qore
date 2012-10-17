@@ -282,6 +282,10 @@ struct ParseConditionalStack {
       return count;
    }
 
+   DLLLOCAL bool test() const {
+      return mark == (count - 1);
+   }
+
    DLLLOCAL bool pop() {
       if (!count) {
          parse_error("unmatched %%endif");
@@ -891,6 +895,11 @@ bool parse_cond_else() {
 bool parse_cond_pop() {
    ThreadData *td = thread_data.get();
    return td->pcs.pop();
+}
+
+bool parse_cond_test() {
+   ThreadData *td = thread_data.get();
+   return td->pcs.test();
 }
 
 void push_parse_options() {
