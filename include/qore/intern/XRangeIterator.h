@@ -28,7 +28,7 @@
 // the c++ object. See QC_XRangeIterator.qpp for docs.
 class XRangeIterator : public QoreIteratorBase {
 
-protected:
+private:
    int64 m_start;
    int64 m_stop;
    int64 m_step;
@@ -38,8 +38,6 @@ protected:
    bool m_increasing;
    bool m_valid;
 
-   ExceptionSink *m_xsink;
-
 public:
    DLLLOCAL XRangeIterator(int64 start, int64 stop, int64 step, ExceptionSink *xsink)
    	   : QoreIteratorBase(),
@@ -48,11 +46,10 @@ public:
    	     m_step(step),
    	     m_position(-1),
    	     m_increasing(start<stop),
-   	     m_valid(false),
-   	     m_xsink(xsink)
+   	     m_valid(false)
    {
 	   if (step < 1) {
-		   m_xsink->raiseException("XRANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0; currently=%d", step);
+		   xsink->raiseException("XRANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0; currently=%d", step);
 	   }
    }
 
@@ -73,9 +70,9 @@ public:
        return ret;
    }
 
-   DLLLOCAL AbstractQoreNode* getValue() {
+   DLLLOCAL AbstractQoreNode* getValue(ExceptionSink *xsink) {
        if (!m_valid) {
-           m_xsink->raiseException("INVALID-ITERATOR", "XRangeIterator is invalid. Position=%d", m_position);
+           xsink->raiseException("INVALID-ITERATOR", "XRangeIterator is invalid. Position=%d", m_position);
            return 0;
        }
        return new QoreBigIntNode(calculateCurrent());

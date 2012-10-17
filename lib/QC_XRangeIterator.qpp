@@ -103,7 +103,7 @@ while ($i.next()) {
 any XRangeIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
        return 0;
-   return i->getValue();
+   return i->getValue(xsink);
 }
 
 //! Reset the iterator instance to its initial state (start, stop, and step).
