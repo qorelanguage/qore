@@ -60,7 +60,7 @@ public:
    DLLLOCAL QoreListHashIterator(const QoreListNode* n_l) : QoreListIterator(n_l) {
    }
 
-   DLLLOCAL QoreListHashIterator(const QoreListHashIterator& old) : QoreListIterator(old.l) {
+   DLLLOCAL QoreListHashIterator(const QoreListHashIterator& old) : QoreListIterator(old) {
    }
 
    DLLLOCAL AbstractQoreNode* getReferencedKeyValue(const char* key, ExceptionSink* xsink) const {

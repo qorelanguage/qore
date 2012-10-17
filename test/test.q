@@ -379,6 +379,28 @@ sub hash_tests() {
     test_value($c.lastKey(), "barn", "<hash>.lastKey()");
     test_value($c.size(), 5, "<hash>.size()");
 
+    my hash $nch = $c.("key", "barn");
+    foreach my hash $hi in ($nch.iterator()) {
+        if (!$#)
+            test_value($hi.key, "key", "HashIterator::first()");
+        else if ($# == 4)
+            test_value($hi.key, "barn", "HashIterator::last()");
+    }
+
+    my HashReverseIterator $hi($nch, True);
+    foreach my hash $hiv in ($hi) {
+        if ($# == 4)
+            test_value($hiv.key, "key", "HashReverseIterator::last()");
+        else if (!$#)
+            test_value($hiv.key, "barn", "HashReverseIterator::first()");
+    }
+    test_value($hi.valid(), False, "HashReverseIterator::valid()");
+    # restart iterator
+    test_value($hi.next(), True, "HashReverseIterator::next()");
+    test_value($hi.getKey(), "barn", "HashReverseIterator::getKey()");
+    $hi.reset();
+    test_value($hi.valid(), False, "HashReverseIterator::valid() after reset");
+
     # delete 3 keys from the $c hash
     $b = $c - "new" - "barn" - "asd";
     test_value($b, ( "key" : 3, "unique" : 100 ), "hash minus operator"); 
@@ -945,6 +967,17 @@ sub date_time_tests() {
     # this test fails on Windows due to different DST application for dates outside the UNIX epoch
     test_value(2099-04-21T19:20:02.106 - 1804-03-04T20:45:19.956, 2587078h + 34m + 42s + 150ms, "date difference 2");
 %endif
+
+    my SingleValueIterator $svi(2012-01-01);
+    test_value($svi.next(), True, "1st SingleValueIterator::next()");
+    test_value($svi.next(), False, "2nd SingleValueIterator::next()");
+    test_value($svi.next(), True, "3rd SingleValueIterator::next()");
+    test_value($svi.getValue(), 2012-01-01, "SingleValueIterator::getValue()");
+    test_value($svi.valid(), True, "SingleValueIterator::valid()");
+    my SingleValueIterator $ni = $svi.copy();
+    test_value($ni.getValue(), 2012-01-01, "SingleValueIterator::getValue() (copy)");
+    test_value($ni.next(), False, "SingleValueIterator::next() (copy)");
+    test_value($ni.valid(), False, "SingleValueIterator::valid() (copy)");
 }
 
 sub binary_tests() {
@@ -958,8 +991,11 @@ sub string_tests() {
     my string $str = "Hi there, you there, pal";
     my string $big = "GEE WHIZ";
     test_value(strlen($str), 24, "strlen()");
+    test_value($str.strlen(), 24, "<string>::strlen()");
+    test_value($str.size(), 24, "<string::size()");
     test_value(toupper($str), "HI THERE, YOU THERE, PAL", "toupper()");
-    test_value(tolower($big), "gee whiz", "tolower()");
+    test_value($str.upr(), "HI THERE, YOU THERE, PAL", "<string>::upr()");
+    test_value($big.lwr(), "gee whiz", "<string>::lwr()");
     test_value(reverse($big), "ZIHW EEG", "reverse()");
     # strmul
     test_value(strmul($big, 2), "GEE WHIZGEE WHIZ", "strmul() basic");
@@ -969,7 +1005,9 @@ sub string_tests() {
     # set up a string with UTF-8 multi-byte characters
     $str = "Über die Wolken läßt sich die Höhe begrüßen";
     test_value(strlen($str), 49, "UTF-8 strlen()");
+    test_value($str.strlen(), 49, "UTF-8 <string>::strlen()");
     test_value(length($str), 43, "UTF-8 length()");
+    test_value($str.length(), 43, "UTF-8 <string>::length()");
     test_value(substr($str, 30), "Höhe begrüßen", "first UTF-8 substr()");
     test_value(substr($str, -8), "begrüßen", "second UTF-8 substr()");
     test_value(substr($str, 0, -39), "Über", "third UTF-8 substr()");
@@ -995,7 +1033,9 @@ sub string_tests() {
     $str = convert_encoding($str, "ISO-8859-1");
     test_value($str != $ostr, False, "string != operator with same text with different encodings");
     test_value(strlen($str), 43, "ISO-8859-1 strlen()");
+    test_value($str.strlen(), 43, "ISO-8859-1 <string>::strlen()");
     test_value(length($str), 43, "ISO-8859-1 length()");
+    test_value($str.length(), 43, "ISO-8859-1 <string>::length()");
     test_value(substr($str, 30), convert_encoding("Höhe begrüßen", "ISO-8859-1"), "first ISO-8859-1 substr()");
     test_value(substr($str, -8), convert_encoding("begrüßen", "ISO-8859-1"), "second ISO-8859-1 substr()");
     test_value(substr($str, 0, -39), convert_encoding("Über", "ISO-8859-1"), "third ISO-8859-1 substr()");
@@ -1673,6 +1713,11 @@ sub context_tests() {
         test_value($lqi.index(), 0, "ListHashIterator::index()");
         test_value($lqi.max(), 5, "ListHashIterator::max()");
         test_value($lqi.name, "david", "ListHashIterator::memberGate()");
+
+        my ListHashIterator $ni = $lqi.copy();
+	test_value($ni.getRow(), ("name" : "david", "age" : 37), "ListHashIterator::getRow() (copy)");
+        test_value($ni.first(), True, "ListHashIterator::first() (copy)");
+        test_value($ni.index(), 0, "ListHashIterator::index() (copy)");
 	break;
     }
 
@@ -1684,6 +1729,11 @@ sub context_tests() {
         test_value($lrqi.index(), 4, "ListHashReverseIterator::index()");
         test_value($lrqi.max(), 5, "ListHashReverseIterator::max()");
         test_value($lrqi.name, "isabella", "ListHashReverseIterator::memberGate()");
+
+        my ListHashReverseIterator $ni = $lrqi.copy();
+	test_value($ni.getRow(), ("name" : "isabella", "age" : 1), "ListHashReverseIterator::getRow() (copy)");
+        test_value($ni.first(), True, "ListHashReverseIterator::first() (copy)");
+        test_value($ni.index(), 4, "ListHashReverseIterator::index() (copy)");
 	break;
     }
 }
