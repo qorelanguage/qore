@@ -60,7 +60,7 @@ ObjectIterator::constructor() {
    self->setPrivate(CID_OBJECTITERATOR, new QoreObjectIterator);
 }
 
-//! Creates a new ObjectIterator object, based on the same object being iterated in the original object
+//! Creates a copy of the ObjectIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code
 my ObjectIterator $ni = $i.copy();

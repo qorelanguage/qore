@@ -458,8 +458,14 @@ public:
 
    //! returns the absolute byte position in the file
    /** @return the absolute byte position in the file
+    * @deprecated: only the const variant will remain in the future
     */
    DLLEXPORT qore_size_t getPos();
+
+   //! returns the absolute byte position in the file
+   /** @return the absolute byte position in the file
+    */
+   DLLEXPORT qore_size_t getPos() const;
 
    //! reads a single byte from the file and returns it as a new string, caller owns the reference count returned
    /** note that this function is not guaranteed to read a character if the File's encoding is a multi-byte character encoding

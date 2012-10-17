@@ -35,7 +35,7 @@ public:
    DLLLOCAL SingleValueIterator(const AbstractQoreNode* v) : val(!is_nothing(v) ? v->refSelf() : 0), validp(false) {
    }
 
-   DLLLOCAL SingleValueIterator(const SingleValueIterator& old) : val(old.val ? old.val->refSelf() : 0), validp(false) {
+   DLLLOCAL SingleValueIterator(const SingleValueIterator& old) : val(old.val ? old.val->refSelf() : 0), validp(old.validp) {
    }
 
    DLLLOCAL bool next() {
@@ -58,6 +58,11 @@ public:
 
    DLLLOCAL bool valid() const {
       return validp;
+   }
+
+   DLLLOCAL void reset() {
+      if (validp)
+         validp = false;
    }
 
    using QoreIteratorBase::deref;

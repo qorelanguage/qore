@@ -1076,8 +1076,12 @@ bool ConstListIterator::last() const {
 } 
 
 bool ConstListIterator::first() const {
-   return !pos; 
+   return !pos;
 } 
+
+void ConstListIterator::reset() {
+   pos = -1;
+}
 
 bool QoreListNode::isFinalized() const {
    return priv->finalized;

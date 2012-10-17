@@ -85,7 +85,7 @@ HashListReverseIterator::constructor() {
    self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator);
 }
 
-//! Creates a new HashListReverseIterator object, based on the same object being iterated in the original object
+//! Creates a copy of the HashListReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code
 my HashListReverseIterator $ni = $i.copy();

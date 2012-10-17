@@ -70,7 +70,7 @@ ListReverseIterator::constructor(softlist l) {
    self->setPrivate(CID_LISTREVERSEITERATOR, new QoreListReverseIterator(l));
 }
 
-//! Creates a new ListReverseIterator object, based on the same object being iterated in the original object
+//! Creates a copy of the ListReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code
 my ListReverseIterator $ni = $i.copy();

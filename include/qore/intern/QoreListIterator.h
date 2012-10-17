@@ -43,7 +43,7 @@ public:
    DLLLOCAL QoreListIterator(const QoreListNode* l) : ConstListIterator(l->listRefSelf()) {
    }
 
-   DLLLOCAL QoreListIterator(const QoreListIterator& old) : ConstListIterator(old.l->listRefSelf()) {
+   DLLLOCAL QoreListIterator(const QoreListIterator& old) : ConstListIterator(old.l->listRefSelf(), old.pos) {
    }
 
    using QoreIteratorBase::deref;

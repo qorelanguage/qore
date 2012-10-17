@@ -680,6 +680,9 @@ public:
    DLLLOCAL bool valid() const {
       return pos == -1 ? false : true;
    }
+
+   //! resets the iterator to its initial state
+   DLLEXPORT void reset();
 };
 
 //! For use on the stack only: manages result of the optional evaluation of a QoreListNode

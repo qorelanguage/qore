@@ -616,11 +616,14 @@ protected:
    const QoreHashNode* h;
    HashMember *ptr;
 
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   //! this function is not implemented; it is here as a protected function in order to prohibit it from being used
    DLLLOCAL ConstHashIterator(const HashIterator&);
 
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   //! this function is not implemented; it is here as a protected function in order to prohibit it from being used
    DLLLOCAL ConstHashIterator& operator=(const HashIterator&);
+
+   //! protected internal constructor
+   DLLLOCAL ConstHashIterator(const QoreHashNode* n_h, HashMember* n_ptr);
 
 public:
    //! initializes the iterator with the passed hash
@@ -664,6 +667,9 @@ public:
 
    //! returns true if the iterator is currently pointing at a valid element
    DLLEXPORT bool valid() const;
+
+   //! resets the iterator to its initial state
+   DLLEXPORT void reset();
 };
 
 //! reverse constant iterator class for QoreHashNode, to be only created on the stack

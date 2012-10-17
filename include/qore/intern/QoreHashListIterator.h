@@ -75,7 +75,12 @@ public:
    DLLLOCAL QoreHashListIterator() : h(0), i(-1), limit(0) {
    }
 
-   DLLLOCAL QoreHashListIterator(const QoreHashListIterator& old) : h(old.h ? old.h->hashRefSelf() : 0), i(-1), limit(0) {
+   DLLLOCAL QoreHashListIterator(const QoreHashListIterator& old) : h(old.h ? old.h->hashRefSelf() : 0), i(old.i), limit(old.limit) {
+   }
+
+   DLLLOCAL void reset() {
+      if (i != -1)
+         i = -1;
    }
 
    using QoreIteratorBase::deref;

@@ -52,7 +52,7 @@ public:
    DLLLOCAL QoreHashIterator() : ConstHashIterator(0), get_value_hash(false) {
    }
 
-   DLLLOCAL QoreHashIterator(const QoreHashIterator& old) : ConstHashIterator(old.h ? old.h->hashRefSelf() : 0), get_value_hash(old.get_value_hash) {
+   DLLLOCAL QoreHashIterator(const QoreHashIterator& old) : ConstHashIterator(old.h ? old.h->hashRefSelf() : 0, old.ptr), get_value_hash(old.get_value_hash) {
    }
 
    using QoreIteratorBase::deref;

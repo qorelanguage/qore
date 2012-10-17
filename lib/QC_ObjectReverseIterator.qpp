@@ -83,7 +83,7 @@ ObjectReverseIterator::constructor() {
    self->setPrivate(CID_OBJECTREVERSEITERATOR, new QoreObjectReverseIterator);
 }
 
-//! Creates a new ObjectReverseIterator object, based on the same object being iterated in the original object
+//! Creates a copy of the ObjectReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code
 my ObjectReverseIterator $ni = $i.copy();

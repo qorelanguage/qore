@@ -27,7 +27,6 @@
 
 // the c++ object. See QC_XRangeIterator.qpp for docs.
 class XRangeIterator : public QoreIteratorBase {
-
 private:
    int64 m_start;
    int64 m_stop;
@@ -39,63 +38,57 @@ private:
    bool m_valid;
 
 public:
-   DLLLOCAL XRangeIterator(int64 start, int64 stop, int64 step, ExceptionSink *xsink)
-   	   : QoreIteratorBase(),
-   	     m_start(start),
-   	     m_stop(stop),
-   	     m_step(step),
-   	     m_position(-1),
-   	     m_increasing(start<stop),
-   	     m_valid(false)
-   {
-	   if (step < 1) {
-		   xsink->raiseException("XRANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0; currently=%d", step);
-	   }
+   DLLLOCAL XRangeIterator(int64 start, int64 stop, int64 step, ExceptionSink* xsink)
+      : QoreIteratorBase(),
+        m_start(start),
+        m_stop(stop),
+        m_step(step),
+        m_position(-1),
+        m_increasing(start<stop),
+        m_valid(false) {
+      if (step < 1) {
+         xsink->raiseException("XRANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0 (value passed: %d)", step);
+      }
+   }
+
+   DLLLOCAL XRangeIterator(const XRangeIterator& old)
+      : m_start(old.m_start), m_stop(old.m_stop), m_step(old.m_step),
+        m_position(old.m_position), m_increasing(old.m_increasing),
+        m_valid(old.m_valid) {
    }
 
    DLLLOCAL bool next() {
-       m_position++;
-       bool ret;
-
-       if (m_increasing) {
-           ret = calculateCurrent() <= m_stop;
-       }
-       else {
-           ret = calculateCurrent() >= m_stop;
-       }
-
-       if (ret)
-           m_valid = true;
-
-       return ret;
+      ++m_position;
+      m_valid = m_increasing ? (calculateCurrent() <= m_stop) : (calculateCurrent() >= m_stop);
+      if (!m_valid)
+         m_position = -1;
+      return m_valid;
    }
 
    DLLLOCAL AbstractQoreNode* getValue(ExceptionSink *xsink) {
-       if (!m_valid) {
-           xsink->raiseException("INVALID-ITERATOR", "XRangeIterator is invalid. Position=%d", m_position);
-           return 0;
-       }
-       return new QoreBigIntNode(calculateCurrent());
+      if (!m_valid) {
+         xsink->raiseException("INVALID-ITERATOR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
+         return 0;
+      }
+      return new QoreBigIntNode(calculateCurrent());
    }
 
    DLLLOCAL void reset() {
-	   m_position = -1;
-	   m_valid = false;
+      m_position = -1;
+      m_valid = false;
    }
 
    DLLLOCAL virtual const char* getName() const { return "XRangeIterator"; }
 
 private:
-
-   int calculateCurrent() {
-	   if (m_increasing) {
-		   return m_start + (m_position * m_step);
-	   }
-	   else {
-		   return m_start - (m_position * m_step);
-	   }
+   DLLLOCAL int64 calculateCurrent() {
+      if (m_increasing) {
+         return m_start + (m_position * m_step);
+      }
+      else {
+         return m_start - (m_position * m_step);
+      }
    }
-
 };
 
 #endif // _QORE_XRANGEITERATOR_H

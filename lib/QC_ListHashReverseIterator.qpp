@@ -30,6 +30,9 @@ public:
    DLLLOCAL QoreListHashReverseIterator(const QoreListNode* n_l) : QoreListHashIterator(n_l) {
    }
 
+   DLLLOCAL QoreListHashReverseIterator(const QoreListHashReverseIterator& old) : QoreListHashIterator(old) {
+   }
+
    DLLLOCAL virtual const char* getName() const {
       return "ListHashReverseIterator";
    }
@@ -51,7 +54,7 @@ public:
 
     @see ListHashIterator
  */
-qclass ListHashReverseIterator [arg=QoreListHashIterator* i; ns=Qore; vparent=ListHashIterator];
+qclass ListHashReverseIterator [arg=QoreListHashReverseIterator* i; ns=Qore; vparent=ListHashIterator];
 
 //! Creates the list hash iterator object
 /** @param l the list of hashes to iterate
@@ -65,6 +68,16 @@ my ListHashIterator $i($l);
  */
 ListHashReverseIterator::constructor(softlist l) {
    self->setPrivate(CID_LISTHASHREVERSEITERATOR, new QoreListHashReverseIterator(l));
+}
+
+//! Creates a copy of the ListHashReverseIterator object, iterating the same object as the original and in the same position
+/** @par Example:
+    @code
+my ListHashReverseIterator $ni = $i.copy();
+    @endcode
+ */
+ListHashReverseIterator::copy() {
+   self->setPrivate(CID_LISTHASHREVERSEITERATOR, new QoreListHashReverseIterator(*i));
 }
 
 //! Moves the current position to the next element in the result list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the list if the list is not empty

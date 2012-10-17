@@ -792,6 +792,9 @@ ConstHashIterator::ConstHashIterator(const QoreHashNode *qh) : h(qh), ptr(0) {
 ConstHashIterator::ConstHashIterator(const QoreHashNode &qh) : h(&qh), ptr(0) {
 }
 
+ConstHashIterator::ConstHashIterator(const QoreHashNode* n_h, HashMember* n_ptr) : h(n_h), ptr(n_ptr) {
+}
+
 AbstractQoreNode *ConstHashIterator::getReferencedValue() const {
    return ptr && ptr->node ? ptr->node->refSelf() : 0;
 }
@@ -840,6 +843,10 @@ bool ConstHashIterator::empty() const {
 
 bool ConstHashIterator::valid() const {
    return (bool)ptr;
+}
+
+void ConstHashIterator::reset() {
+   ptr = 0;
 }
 
 ReverseConstHashIterator::ReverseConstHashIterator(const QoreHashNode *h) : ConstHashIterator(h) {

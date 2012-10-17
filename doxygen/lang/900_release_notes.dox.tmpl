@@ -29,11 +29,12 @@
     - Qore::Socket::sendi8LSB()
 
     @par New Abstract Method in AbstractIterator
+    The following abstract method was added:
     - Qore::AbstractIterator::valid() was added (with concrete implementations in all iterator classes derived from this base class delivered with %Qore); this method tells if the object is currently pointing to a valid iterator.\n\n For any user classes inherting @ref Qore::AbstractIterator "AbstractIterator" directly (as opposed to another concrete iterator class in %Qore, where the method has already been added), a concrete implementation of this method will have to be added as well or that class will become @ref abstract with this release of %Qore.
 
     @subsection qore_086_new_features New Features in Qore
     @par Perl-Style Boolean Evaluation
-    The @ref perl-bool-eval %perl-bool-eval" parse option was implemented to address one of the oldest design bugs in %Qore: strict mathematical boolean evaluation.  Setting @ref perl-bool-eval "%perl-bool-eval" is highly recommended as it makes boolean evaluation much more logical and intuitive for qore scripts / programs.
+    The @ref perl-bool-eval "%perl-bool-eval" parse option was implemented to address one of the oldest design bugs in %Qore: strict mathematical boolean evaluation.  Setting @ref perl-bool-eval "%perl-bool-eval" is highly recommended as it makes boolean evaluation much more logical and intuitive for qore scripts / programs.
 
     @par Arbitrary-Precision Numeric Support
     %Qore now uses the <a href="http://www.mpfr.org/">MPFR</a> and <a href="http://gmplib.org">GMP</a> libraries to provide arbitrary-precision numeric support.  This type can be used for high-precision mathematics or for storing \c NUMERIC (ie \c DECIMAL or \c NUMBER) column values when retrieved from databases by %Qore DBI drivers that support the new capability @ref Qore::SQL::DBI_CAP_HAS_NUMBER_SUPPORT "DBI_CAP_HAS_NUMBER_SUPPORT" (previously these values would be retrieved as %Qore strings in order to avoid information loss).\n\n

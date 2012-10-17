@@ -419,6 +419,22 @@ foreach my hash $r in (new CsvFileIterator("my_file.csv")) {
 	    return $b;
 	}
 
+	#! returns the given column value for the current row
+	/** @param name the name of the field (header name) in record
+
+	    @return the value of the given header for the current record
+
+	    @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
+	    @throw CSVFILEITERATOR-FIELD-ERROR invalid or unknown field name given
+	 */
+	any memberGate(string $name) {
+	    my hash $h = $.getRecord();
+	    if (!$h.hasKey($name))
+		throw "CSVFILEITERATOR-FIELD-ERROR", sprintf("the requested header %y does not exist (known headers: %y)", $name, $.headers);
+
+	    return $h.$name;	    
+	}
+
 	#! returns the current record as a hash
 	/** @par Example:
 	    @code
@@ -426,6 +442,8 @@ my hash $h = $i.getValue();
 	    @endcode
 
 	    @return the current record as a hash
+
+	    @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
 
 	    @note the return value is @ref any_type "any" to match Qore::AbstractIterator::getValue() however this method always returns a @ref hash
 	 */
@@ -438,6 +456,8 @@ my hash $h = $i.getValue();
 	    @code
 my hash $h = $i.getRecord();
 	    @endcode
+
+	    @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
 
 	    @return the current record as a hash
 	 */
@@ -457,6 +477,8 @@ my hash $h = $i.getRecord();
 	    @code
 my list $l = $i.getRecordList();
 	    @endcode
+
+	    @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
 
 	    @return the current record as a list
 	 */

@@ -67,6 +67,16 @@ XRangeIterator::constructor(int start, int stop, int step=1) {
    self->setPrivate(CID_XRANGEITERATOR, new XRangeIterator(start, stop, step, xsink));
 }
 
+//! Creates a copy of the XRangeIterator object, iterating the same object as the original and in the same position
+/** @par Example:
+    @code
+my XRangeIterator $ni = $i.copy();
+    @endcode
+ */
+XRangeIterator::copy() {
+   self->setPrivate(CID_XRANGEITERATOR, new XRangeIterator(*i));
+}
+
 //! This method returns @ref Qore::True "True" while there are more numbers to iterate and @ref Qore::False "False" when the range has been completed iterated
 /** The iterator object should not be used after this method returns @ref Qore::False "False".
 
@@ -112,16 +122,18 @@ any XRangeIterator::getValue() [flags=RET_VALUE_ONLY] {
    @par Example
    @code
 # raw XRangeIterator object usage
-XRangeIterator $r(2);
-foreach my int $i in ($r)
+my XRangeIterator $r(2);
+foreach my int $i in ($r) {
     printf("i=%d\n", $i);
+    if ($i == 1)
+        break;
+}
 # i=0
 # i=1
-# i=2
 
-# show the reset feature
-r.reset();
-foreach my int $i in (Rr)
+# show the reset feature; start iterating all over again
+$r.reset();
+foreach my int $i in ($r)
     printf("reused i=%d\n", $i);
 # reused i=0
 # reused i=1
@@ -130,7 +142,7 @@ foreach my int $i in (Rr)
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
-XRangeIterator::reset() [flags=CONSTANT] {
+XRangeIterator::reset() {
    if (i->check(xsink))
        return 0;
    i->reset();

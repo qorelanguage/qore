@@ -50,7 +50,7 @@ ListIterator::constructor(softlist l) {
    self->setPrivate(CID_LISTITERATOR, new QoreListIterator(l));
 }
 
-//! Creates a new ListIterator object, based on the same object being iterated in the original object
+//! Creates a copy of the ListIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code
 my ListIterator $ni = $i.copy();
@@ -222,4 +222,20 @@ if ($i.valid())
  */
 bool ListIterator::valid() [flags=CONSTANT] {
    return i->valid();
+}
+
+//! Reset the iterator instance to its initial state
+/** Reset the iterator instance to its initial state
+
+   @par Example
+   @code
+$i.reset();
+   @endcode
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+ListIterator::reset() {
+   if (i->check(xsink))
+       return 0;
+   i->reset();
 }

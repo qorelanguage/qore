@@ -287,7 +287,7 @@ struct qore_qf_private {
       return bbuf;
    }
 
-   QoreStringNode* readLine(bool incl_eol, ExceptionSink* xsink) {
+   DLLLOCAL QoreStringNode* readLine(bool incl_eol, ExceptionSink* xsink) {
       QoreStringNodeHolder str(new QoreStringNode(charset));
 
       int rc = readLine(**str, incl_eol);
@@ -372,7 +372,7 @@ struct qore_qf_private {
       return rc;
    }
 
-   QoreStringNode* readUntil(const char* bytes, bool incl_bytes, ExceptionSink* xsink) {
+   DLLLOCAL QoreStringNode* readUntil(const char* bytes, bool incl_bytes, ExceptionSink* xsink) {
       QoreStringNodeHolder str(new QoreStringNode(charset));
 
       int rc = readUntil(bytes, **str, incl_bytes);
@@ -449,6 +449,15 @@ struct qore_qf_private {
          return false;
 
       return (bool)isatty(fd);
+   }
+
+   DLLLOCAL qore_size_t getPos() const {
+      AutoLocker al(m);
+
+      if (!is_open)
+         return -1;
+
+      return lseek(fd, 0, SEEK_CUR);
    }
 
    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink) {
@@ -853,13 +862,13 @@ qore_size_t QoreFile::setPos(qore_size_t pos) {
    return lseek(priv->fd, pos, SEEK_SET);
 }
 
+// FIXME: deleteme
 qore_size_t QoreFile::getPos() {
-   AutoLocker al(priv->m);
+   return priv->getPos();
+}
 
-   if (!priv->is_open)
-      return -1;
-   
-   return lseek(priv->fd, 0, SEEK_CUR);
+qore_size_t QoreFile::getPos() const {
+   return priv->getPos();
 }
 
 QoreStringNode *QoreFile::getchar(ExceptionSink *xsink) {
