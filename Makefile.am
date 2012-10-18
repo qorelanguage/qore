@@ -61,7 +61,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_ListHashReverseIterator.qpp \
 	lib/QC_FileLineIterator.qpp \
 	lib/QC_AbstractDatasource.qpp \
-	lib/QC_XRangeIterator.qpp \
+	lib/QC_RangeIterator.qpp \
 	lib/QC_Datasource.qpp \
 	lib/QC_DatasourcePool.qpp \
 	lib/QC_Dir.qpp \
@@ -345,7 +345,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreHashListIterator.h \
 	include/qore/intern/QoreListHashIterator.h \
 	include/qore/intern/SingleValueIterator.h \
-	include/qore/intern/XRangeIterator.h \
+	include/qore/intern/RangeIterator.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \

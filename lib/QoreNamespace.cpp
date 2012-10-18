@@ -104,7 +104,7 @@ DLLLOCAL QoreClass* initListHashIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListHashReverseIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initFileLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initSingleValueIteratorClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initXRangeIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initRangeIteratorClass(QoreNamespace& ns);
 
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
 DLLLOCAL void init_compression_constants(QoreNamespace& ns);
@@ -125,7 +125,7 @@ DLLLOCAL void init_QC_Number_constants(QoreNamespace& ns);
 StaticSystemNamespace staticSystemNamespace;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
-DLLLOCAL void init_XRangeIterator_functions(QoreNamespace& ns);
+DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
 
 QoreNamespace::QoreNamespace(const char* n) : priv(new qore_ns_private(this, n)) {
 }
@@ -633,7 +633,7 @@ void StaticSystemNamespace::init() {
    qns.addSystemClass(initListHashReverseIteratorClass(qns));
    qns.addSystemClass(initFileLineIteratorClass(qns));
    qns.addSystemClass(initSingleValueIteratorClass(qns));
-   qns.addSystemClass(initXRangeIteratorClass(qns));
+   qns.addSystemClass(initRangeIteratorClass(qns));
 
 #ifdef DEBUG_TESTS
    { // tests
@@ -710,7 +710,7 @@ void StaticSystemNamespace::init() {
    init_file_functions(qns);
    init_compression_functions(qns);
    init_context_functions(qns);
-   init_XRangeIterator_functions(qns);
+   init_RangeIterator_functions(qns);
 #ifdef DEBUG
    init_debug_functions(qns);
 #endif

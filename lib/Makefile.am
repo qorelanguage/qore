@@ -93,7 +93,7 @@ QC_FileLineIterator.cpp: QC_FileLineIterator.qpp qpp
 QC_SingleValueIterator.cpp: QC_SingleValueIterator.qpp
 	$(QPP) $<
 
-QC_XRangeIterator.cpp: QC_XRangeIterator.qpp
+QC_RangeIterator.cpp: QC_RangeIterator.qpp
 	$(QPP) $<
 
 QC_AbstractSmartLock.cpp: QC_AbstractSmartLock.qpp qpp
@@ -288,7 +288,7 @@ QORE_GENERATED_SOURCES = \
 	QC_HashListIterator.cpp QC_HashListReverseIterator.cpp \
 	QC_ListHashIterator.cpp QC_ListHashReverseIterator.cpp \
 	QC_FileLineIterator.cpp QC_SingleValueIterator.cpp \
-	QC_XRangeIterator.cpp \
+	QC_RangeIterator.cpp \
 	QC_AbstractDatasource.cpp \
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \

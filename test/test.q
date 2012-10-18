@@ -72,7 +72,7 @@ sub test_value(any $v1, any $v2, string $msg) {
     $thash.$msg = True;
 }
 
-sub test_xrange(list $correct, XRangeIterator $testing, string $message) {
+sub test_xrange(list $correct, RangeIterator $testing, string $message) {
     my list $l;
     foreach my int $i in ($testing)
         push $l, $i;

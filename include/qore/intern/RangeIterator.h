@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  XRangeIterator.h
+  RangeIterator.h
 
   Qore Programming Language
 
@@ -21,12 +21,12 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_XRANGEITERATOR_H
+#ifndef _QORE_RANGEITERATOR_H
 
-#define _QORE_XRANGEEITERATOR_H
+#define _QORE_RANGEEITERATOR_H
 
-// the c++ object. See QC_XRangeIterator.qpp for docs.
-class XRangeIterator : public QoreIteratorBase {
+// the c++ object. See QC_RangeIterator.qpp for docs.
+class RangeIterator : public QoreIteratorBase {
 private:
    int64 m_start;
    int64 m_stop;
@@ -38,7 +38,7 @@ private:
    bool m_valid;
 
 public:
-   DLLLOCAL XRangeIterator(int64 start, int64 stop, int64 step, ExceptionSink* xsink)
+   DLLLOCAL RangeIterator(int64 start, int64 stop, int64 step, ExceptionSink* xsink)
       : QoreIteratorBase(),
         m_start(start),
         m_stop(stop),
@@ -47,11 +47,11 @@ public:
         m_increasing(start<stop),
         m_valid(false) {
       if (step < 1) {
-         xsink->raiseException("XRANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0 (value passed: %d)", step);
+         xsink->raiseException("RANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0 (value passed: %d)", step);
       }
    }
 
-   DLLLOCAL XRangeIterator(const XRangeIterator& old)
+   DLLLOCAL RangeIterator(const RangeIterator& old)
       : m_start(old.m_start), m_stop(old.m_stop), m_step(old.m_step),
         m_position(old.m_position), m_increasing(old.m_increasing),
         m_valid(old.m_valid) {
@@ -78,7 +78,7 @@ public:
       m_valid = false;
    }
 
-   DLLLOCAL virtual const char* getName() const { return "XRangeIterator"; }
+   DLLLOCAL virtual const char* getName() const { return "RangeIterator"; }
 
 private:
    DLLLOCAL int64 calculateCurrent() {
@@ -91,4 +91,4 @@ private:
    }
 };
 
-#endif // _QORE_XRANGEITERATOR_H
+#endif // _QORE_RANGEITERATOR_H

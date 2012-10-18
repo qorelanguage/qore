@@ -638,7 +638,7 @@ range(10, -10, 5); # (10, 5, 0, -5, -10)
 
     @see xrange
 
-    @note the main difference between range() and xrange() is that range returns real list and xrange returns a XRangeIterator
+    @note the main difference between range() and xrange() is that range returns real list and xrange returns a RangeIterator
 
     @since %Qore 0.8.6
 */
@@ -662,7 +662,7 @@ range(-3); # (0, -1, -2, -3)
 
     @see xrange
 
-    @note the main difference between range() and xrange() is that range returns real list and xrange returns a XRangeIterator
+    @note the main difference between range() and xrange() is that range returns real list and xrange returns a RangeIterator
 
     @since %Qore 0.8.6
  */
