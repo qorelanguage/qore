@@ -84,7 +84,7 @@
       - @ref Qore::FileLineIterator "FileLineIterator": allows files to be iterated line by line
       - @ref Qore::ObjectIterator "ObjectIterator": a generic iterator for objects
       - @ref Qore::ObjectReverseIterator "ObjectReverseIterator": a generic reverse iterator for objects
-      - @ref Qore::RangeIterator "RangeIterator": a numerical sequence generator
+      - @ref Qore::RangeIterator "RangeIterator": a numerical sequence generator (the base for the return type for the new @ref Qore::xrange() "xrange()" function
     - new pseudo-methods were added to return iterator objects based on the value type:
       - <value>::iterator()
       - <hash>::iterator()
@@ -94,6 +94,7 @@
       The base pseudo-method (<value>::iterator()) ensures that any value can be iterated, and the type-specific methods ensure that the most suitable iterator for container types is returned for container values; values without an iterator class are iterated with the @ref Qore::SingleValueIterator "SingleValueIterator"
     - the @ref Qore::HashIterator "HashIterator" and @ref Qore::HashReverseIterator "HashReverseIterator" classes had an additional optional boolean argument added to their constructors; if @ref Qore::True "True", then the @ref Qore::HashIterator::getValue() "HashIterator::getValue()" and @ref Qore::HashReverseIterator::getValue() "HashReverseIterator::getValue()" methods return a hash with the following keys: \c "key" and \c "value", allowing for more convenient iteration with constructions that only use \c getValue() methods (such as the @ref foreach "foreach statement")
     - all iterator classes had copy methods added to them (ex: @ref Qore::HashIterator::copy())
+    - new Python-inspired @ref Qore::range() "range()" and @ref Qore::xrange() "xrange()" functions (the latter returning a @ref Qore::RangeIterator "RangeIterator" object to efficiently iterate large integral sequences or ranges
  
     @par Text File Parsing Enhancements
     The following improvements were made in qore to support more flexible file parsing:
@@ -132,7 +133,7 @@
       - @ref Qore::M_PIn "M_PIn"
       - @ref Qore::MAXINT "MAXINT"
       - @ref Qore::MININT "MININT"
-    - new function:
+    - new functions:
       - @ref Qore::range() "range()"
       - @ref Qore::xrange() "xrange()"
     - new methods:

@@ -66,7 +66,7 @@ struct qore_ds_private {
                qorecharset(QCS_DEFAULT), private_data(0),
                p_username(old.p_username), p_password(old.p_password),
                p_dbname(old.p_dbname), p_db_encoding(old.p_db_encoding),
-               p_hostname(old.p_hostname), p_port(0),
+               p_hostname(old.p_hostname), p_port(old.p_port),
                port(0), opt(old.opt->copy()) {
    }
 
