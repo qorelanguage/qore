@@ -174,6 +174,48 @@ any HashIterator::getValue() [flags=RET_VALUE_ONLY] {
    return i->getReferencedValue(xsink);
 }
 
+//! returns the current value of the current has key being interated or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current value of the current has key being interated or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("+ %y\n", $i.getKeyValue());
+}
+    @endcode
+
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+
+    @since %Qore 0.8.6
+ */
+any HashIterator::getKeyValue() [flags=RET_VALUE_ONLY] {
+   if (i->check(xsink))
+      return 0;
+   return i->getReferencedKeyValue(xsink);
+}
+
+//! returns a hash with the current key and value (a hash with 2 keys: \c "key" and \c "value") or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return a hash with the current key and value (a hash with 2 keys: \c "key" and \c "value") or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("+ %y\n", $i.getValuePair());
+}
+    @endcode
+
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+
+    @since %Qore 0.8.6
+ */
+hash HashIterator::getValuePair() [flags=RET_VALUE_ONLY] {
+   if (i->check(xsink))
+      return 0;
+   return i->getReferencedValuePair(xsink);
+}
+
 //! returns the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 /** @return the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 

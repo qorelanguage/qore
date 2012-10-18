@@ -75,6 +75,21 @@ public:
       return h;
    }
 
+   DLLLOCAL AbstractQoreNode* getReferencedKeyValue(ExceptionSink* xsink) const {
+      if (checkPtr(xsink))
+         return 0;
+      return ConstHashIterator::getReferencedValue();
+   }
+
+   DLLLOCAL QoreHashNode* getReferencedValuePair(ExceptionSink* xsink) const {
+      if (checkPtr(xsink))
+         return 0;
+      QoreHashNode* h = new QoreHashNode;
+      h->setKeyValue("key", new QoreStringNode(ConstHashIterator::getKey()), 0);
+      h->setKeyValue("value", ConstHashIterator::getReferencedValue(), 0);
+      return h;
+   }
+
    DLLLOCAL QoreStringNode* getKey(ExceptionSink* xsink) const {
       if (checkPtr(xsink))
          return 0;
