@@ -1,23 +1,23 @@
 /*
- DatasourcePool.cpp
+  DatasourcePool.cpp
  
- Qore Programming Language
+  Qore Programming Language
  
- Copyright 2003 - 2012 David Nichols
+  Copyright 2003 - 2012 David Nichols
  
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
  
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- Lesser General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <qore/Qore.h>
@@ -35,7 +35,6 @@ DatasourcePool::DatasourcePool(ExceptionSink *xsink, DBIDriver *ndsl, const char
    //assert(mn > 0);
    //assert(mx > min);   
    //assert(db != 0 && db[0]);
-
 
    // create minimum datasources if possible
    printd(5, "DatasourcePool::DatasourcePool(driver=%p user=%s pass=%s db=%s charset=%s host=%s min=%d max=%d port=%d) pool=%p\n",
