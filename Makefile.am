@@ -60,6 +60,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_ListHashIterator.qpp \
 	lib/QC_ListHashReverseIterator.qpp \
 	lib/QC_FileLineIterator.qpp \
+	lib/QC_SingleValueIterator.qpp \
 	lib/QC_AbstractDatasource.qpp \
 	lib/QC_RangeIterator.qpp \
 	lib/QC_Datasource.qpp \
