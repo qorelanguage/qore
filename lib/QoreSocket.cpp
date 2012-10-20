@@ -2002,7 +2002,11 @@ struct qore_socket_private {
                if (rc >= 0)
                   break;
                // check that the send finishes before the timeout if we are using non-blocking I/O
-               if (nb && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+               if (nb && (errno == EAGAIN
+#ifdef EWOULDBLOCK
+			  || errno == EWOULDBLOCK
+#endif
+		      )) {
                   if (!isWriteFinished(timeout_ms)) {
                      if (xsink)
                         se_timeout(mname, timeout_ms, xsink);
