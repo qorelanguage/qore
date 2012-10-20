@@ -50,10 +50,10 @@ SingleValueIterator::copy() {
    self->setPrivate(CID_SINGLEVALUEITERATOR, new SingleValueIterator(*i));
 }
 
-//! This method returns @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate, in which case it returns only @ref Qore::False "False"
+//! This method returns @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value to iterate, in which case it returns only @ref Qore::False "False"
 /** The iterator object should not be used after this method returns @ref False
 
-    @return @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate, in which case it returns only @ref Qore::False "False"
+    @return @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value to iterate, in which case it returns only @ref Qore::False "False"
 
     @par Example:
     @code

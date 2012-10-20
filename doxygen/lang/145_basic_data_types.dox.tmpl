@@ -166,7 +166,7 @@ on more than 1 line";
     @subsection absolute_dates Absolute Date/Time Values
     Absolute date/time values specify a specific point in time in a certain time zone, such as January 1, 2005 10:35:00 +01:00. They are stored interally as a 64-bit signed offset from the %Qore epoch (\c 1970-01-01Z), a non-negative 4-byte integer for microseconds, and a pointer to a time zone description object that provides the UTC offset and daylight savings time information (see @ref time_zones for more information). Note that all absolute date/time values in %Qore are stored internally in UTC and are converted for display purposes to the representation of wall time in their tagged time zone.
 
-    Absolute date/time values can be specified with a syntax based on ISO-8601 date formats as follows:
+    Absolute date/time values can be specified with a syntax based on <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> date formats as follows:
 
     @verbatim
 YYYY-MM-DD[THH:mm:SS[.n*]][Z|[+-]HH[:mm[:SS]]]@endverbatim
@@ -211,10 +211,14 @@ prompt% qore -X '18:35:26+08:00'
 
     Internally, durations are stored as a set of seven discrete signed integer values, one each for years, months, days, hours, minutes, seconds, and microseconds.
 
-    There are 3 different formats understood by the %Qore parser for describing literal durations in %Qore.
+    There are 3 different formats understood by the %Qore parser for describing literal durations in %Qore as follows:
+    - @ref single_reldates "Single Relative Time Format" (ex: <tt>750ms</tt>; %Qore-specific)
+    - @ref short_reldates "Short Relative Time Format" (ex: <tt>P3DT21H</tt>; based on <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>)
+    - @ref long_reldates "Long Relative Time Format" (ex: <tt>P0001-03-00T00:00:04</tt>; based on <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>)
 
+    @anchor single_reldates
     @par Single Relative Time Format
-    A single relative date/time value (or a duration) may be specified as follows (note that this format is specific to %Qore and not based on ISO-8601):
+    A single relative date/time value (or a duration) may be specified as follows (note that this format is specific to %Qore and not based on <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>):
     - @verbatim <integer><date component specifier>@endverbatim
     .
     <b>Examples:</b>
@@ -230,7 +234,7 @@ my any $val = $q.pop(20s);
     @code
 my any $val = $q.pop(20000);
     @endcode \n
-    <b>Date Specifiers For Single Values For Relative Dates (non-ISO-8601 syntax)</b>
+    <b>Date Specifiers For Single Values For Relative Dates (non-<a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> syntax)</b>
     |!Component|!Meaning|!Example|!Description
     |\c Y|Years|\c 2Y|2 Years
     |\c M|Months|\c 3M|3 Months
@@ -241,12 +245,13 @@ my any $val = $q.pop(20000);
     |\c ms|Milliseconds|\c 250ms|250 milliseconds
     |\c us|Microseconds|\c 21194us|21194 microseconds
 
+    @anchor short_reldates
     @par Short Relative Time Format
-    This and the next duration format for composite relative date/time values are both based on ISO-8601.\n\n
+    This and the next duration format for composite relative date/time values are both based on <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.\n\n
     This first format has the following syntax:
     - \c PnYnMnDTnHnMnSnu
     .
-    Each element above is optional, but at least one element must be present. Note that \c "M" means months when before the \c "T" and minutes when found after the \c "T". The other elements are years, days, hours, seconds, and, as an extension to ISO-8601, \c "u" for microseconds. Additionally, the values may be negative.\n\n
+    Each element above is optional, but at least one element must be present. Note that \c "M" means months when before the \c "T" and minutes when found after the \c "T". The other elements are years, days, hours, seconds, and, as an extension to <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>, \c "u" for microseconds. Additionally, the values may be negative.\n\n
     Here are some examples (using qore's -X command-line option to evaluate and expression and print out the result):
     @code
 prompt% qore -X 'P1Y3MT4S'
@@ -257,8 +262,11 @@ prompt% qore -X 'P3DT21H'
 <time: 3 days 21 hours>
     @endcode
 
+    @note the \c "u" charater is a %Qore-specific extension to <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>
+
+    @anchor long_reldates
     @par Long Relative Time Format
-    The second ISO-8601-based format for specifing complex durations with multiple time units has the following syntax:
+    The second <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>-based format for specifing complex durations with multiple time units has the following syntax:
     - \c PYYYY-MM-DDTHH:mm:SS
     .
     This format is more limited than the first format, in that all values must be non-negative, and furthermore, all values must be present (although they may be zero).\n\n
