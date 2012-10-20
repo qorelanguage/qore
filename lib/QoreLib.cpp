@@ -523,7 +523,7 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 	    f += sprintf(f, "%d", decimals);
 	 }
 	 if (t == NT_NUMBER) {
-	    *(f++) = 'R';
+	    *(f++) = QORE_MPFR_SPRINTF_ARG;
             *(f++) = *param; // a|A|e|E|f|F|g|G
             *f = '\0';
             qore_number_private::sprintf(*reinterpret_cast<const QoreNumberNode*>(node), tbuf, fmt);

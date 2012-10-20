@@ -43,6 +43,12 @@
 typedef mp_exp_t mpfr_exp_t;
 #endif
 
+#ifdef HAVE_MPFR_SPRINTF
+#define QORE_MPFR_SPRINTF_ARG 'R'
+#else
+#define QORE_MPFR_SPRINTF_ARG 'L'
+#endif
+
 // for binary operations on MPFR data
 typedef int (*q_mpfr_binary_func_t)(mpfr_t, const mpfr_t, const mpfr_t, mpfr_rnd_t);
 // for unary operations on MPFR data
@@ -151,6 +157,7 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL void sprintf(QoreString& str, const char* fmt) const {
+#ifdef HAVE_MPFR_SPRINTF
       //printd(5, "qore_number_private::sprintf() fmt: '%s'\n", fmt);
       int len = mpfr_snprintf(0, 0, fmt, num);
       if (!len)
@@ -162,10 +169,24 @@ struct qore_number_private : public qore_number_private_intern {
       str.allocate(str.size() + len + 1);
       mpfr_sprintf((char*)(str.getBuffer() + str.size()), fmt, num);
       str.terminate(str.size() + len);
+#else
+      // if there is no mpfr_sprintf, then we convert to a long double and output the number
+      long double ld = mpfr_get_ld(num, QORE_MPFR_RND);
+      int len = ::snprintf(0, 0, fmt, ld);
+      if (len <= 0)
+         return;
+      str.allocate(str.size() + len + 1);
+      ::sprintf((char*)(str.getBuffer() + str.size()), fmt, ld);
+      str.terminate(str.size() + len);
+#endif
    }
 
    DLLLOCAL void getScientificString(QoreString& str, bool round = true) const {
+#ifdef HAVE_MPFR_SPRINTF
       sprintf(str, "%Re");
+#else
+      sprintf(str, "%Le");
+#endif
       if (round) {
          qore_offset_t i = str.find('.');
          if (i != -1) {
