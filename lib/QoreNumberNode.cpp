@@ -193,7 +193,7 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    // decimal separator
    QoreString dsep;
    // number of digits after the decimal separator
-   unsigned prec;
+   unsigned prec = 0;
    if (fl > 1) {
       if (dsep.concat(fmt, 1, 1, xsink))
          return -1;
