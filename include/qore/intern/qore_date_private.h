@@ -258,6 +258,8 @@ struct qore_date_info {
       //printd(5, "qore_date_info::getEpochSeconds(year=%d, month=%d, day=%d) leap days from epoch: %d\n", year, month, day, leap_days_from_epoch(year, month));
       if (month < 1)
          month = 1;
+      else if (month > 12)
+         month = 12;
       if (day < 1)
          day = 1;
 

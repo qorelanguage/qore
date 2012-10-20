@@ -40,6 +40,9 @@
     %Qore now uses the <a href="http://www.mpfr.org/">MPFR</a> and <a href="http://gmplib.org">GMP</a> libraries to provide arbitrary-precision numeric support.  This type can be used for high-precision mathematics or for storing \c NUMERIC (ie \c DECIMAL or \c NUMBER) column values when retrieved from databases by %Qore DBI drivers that support the new capability @ref Qore::SQL::DBI_CAP_HAS_NUMBER_SUPPORT "DBI_CAP_HAS_NUMBER_SUPPORT" (previously these values would be retrieved as %Qore strings in order to avoid information loss).\n\n
     For more information, see the new @ref number "number" type, @ref number_type, and @ref Qore::zzz8numberzzz9
 
+    @par New CsvUtil Module
+    The <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module implements the CsvFileIterator class that allows for easy parsing of csv-like text files
+
     @par DBI Improvements
     Three new DBI capabilities were implemented, including a new option API as follows:
     - @ref Qore::SQL::DBI_CAP_HAS_NUMBER_SUPPORT "DBI_CAP_HAS_NUMBER_SUPPORT": DBI drivers declaring this capability can accept @ref number "number" values and can also return @ref number "number" values, if a DBI driver does not declare this capability, then @ref number "number" values sent for binding by value are automatically converted to @ref float "float" values before being sent to the driver
@@ -107,9 +110,10 @@
     - added a new optional parameter to <string>::split(string, string, bool) and Qore::split(string, string, string, bool) to allow for automatic stripping unquoted fields of leading and trailing whitespace (the default is the old behavior; i.e. leave the whitespace as it is read)
     - added a new @ref Qore::TimeZone "TimeZone" method for parsing string dates in a specific @ref Qore::TimeZone "TimeZone": @ref Qore::TimeZone::date(string, string)
     - added a new function for parsing text as a boolean value: @ref Qore::parse_boolean() "parse_boolean()"
+    - as mentioned above, the new <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module was added, implementing the CsvFileIterator class that allows for easy parsing of csv-like text files
 
     @par Other Improvements and Changes
-    - the @ref foreach "foreach statement" now iterates objects derived from @ref Qore::AbstractIterator "AbstractIterator"
+    - the @ref foreach "foreach statement" now iterates objects derived from @ref Qore::AbstractIterator "AbstractIterator" automatically
     - added a @ref Qore::Option::HAVE_SYMLINK "HAVE_SYMLINK" constant for the symlink() function added in qore 0.8.5
     - added the @ref Qore::SQL::SQLStatement::memberGate() "SQLStatement::memberGate()" method so @ref Qore::SQL::SQLStatement "SQLStatement" objects can be dereferenced directly to a column value when iterated with @ref Qore::SQL::SQLStatement::next() "SQLStatement::next()"; also this method will throw exceptions when an unknown column name is used so that typos in column names can be caught (instead of being silently ignored producing hard to find bugs)
     - implemented @ref Qore::SQL::Datasource::constructor(string) "Datasource::constructor(string)" and @ref Qore::SQL::DatasourcePool::constructor(string) "DatasourcePool::constructor(string)" variants to allow for creating datasources from a string that can be parsed by Qore::SQL::parse_datasource(string) "parse_datasource(string)"
@@ -151,12 +155,12 @@
     - fixed bugs calculating the byte offset for string searches in the c++ %QoreString::index() and %QoreString::rindex() functions when the offset is negative and the strings have a multi-byte character encoding (such as UTF-8)
     - fixed a bug where calling an abstract method from a class where the abstract method is implemented was causing a parse error to be thrown
     - fixed a bug where the wrong source code location was displayed when raising a parse exception in operator expression parse initialization for some operators
-    - fixed bugs in regexes in the HttpServer::addListeners() and HttpServer::addListenersWithHandler() methods (HttpServer module version updated to 0.3.5)
+    - fixed bugs in regexes in the HttpServer::addListeners() and HttpServer::addListenersWithHandler() methods (<a href="../../modules/HttpServer/html/index.html">HttpServer</a> module version updated to 0.3.5)
     - fixed bugs handling non-blocking reads in the @ref Qore::Socket "Socket" class; the timeout setting was only enforced for the first read; subsequent reads were made as blocking reads
-    - fixed a bug handling in the @ref Qore::Socket "Socket" class when the SSL session requires renegotiation during non-blocking I/O
-    - File::constructor() now throws an exception if called with a tty target and @ref no-terminal-io "%no-terminal-io" is set
+    - fixed a bug in the @ref Qore::Socket "Socket" class when the SSL session requires renegotiation during non-blocking I/O
+    - @ref Qore::File::constructor() "File::constructor()" now throws an exception if called with a tty target and @ref no-terminal-io "%no-terminal-io" is set
     - fixed a bug in split with quote (<string>::split(string, string, bool) and Qore::split(string, string, string, bool)) if the separator pattern was not found and the single field was not quoted either
-    - fixed a bug in nested %ifdef and %ifndef blocks with %else in the inside block
+    - fixed a bug handling nested %ifdef and %ifndef blocks with %else in the inside block
     - added code tags to @ref Qore::File "File" methods without side effects
     - made many minor documentation fixes
 

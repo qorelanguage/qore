@@ -41,7 +41,7 @@ module CsvUtil {
 
 /** @mainpage CsvUtil Module
 
-    The %CsvUtil module provides classes and functions for parsing CSV files.
+    The %CsvUtil module provides functionality for parsing CSV-like files.
 
     To use this module, use \c "%requires CsvUtil" in your code.
     
@@ -50,12 +50,14 @@ module CsvUtil {
     Currently the module provides the following class:
     - @ref CsvUtil::CsvFileIterator "CsvFileIterator": iterator class allowing for CSV files to be processed line by line
 
+    Note that the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class can be used to parse arbitrary text files; the field separator character can be specified in the @ref CsvUtil::CsvFileIterator::constructor() "constructor", as well as the quote character and end of line sequence.  See the @ref CsvUtil::CsvFileIterator::constructor() "constructor documentation" for more information.
+
     <b>Examples:</b>
     @code
 #!/usr/bin/env qore
 
 %new-style
-%requires CsvFileIterator
+%requires CsvUtil
 
 CsvFileIterator i("example-file.csv");
 while (i.next())
@@ -64,20 +66,21 @@ while (i.next())
 
     If \c "example-file.csv" is:
     @verbatim
-UK,1234567890,"Sony, Xperia S",20120531
-UK,1234567891,"Sony, Xperia S",20120531
-UK,1234567892,"Sony, Xperia S",20120531
-UK,1234567893,"Sony, Xperia S",20120531
+UK,1234567890,"Sony, Xperia S",31052012
+UK,1234567891,"Sony, Xperia S",31052012
+UK,1234567892,"Sony, Xperia S",31052012
+UK,1234567893,"Sony, Xperia S",31052012
     @endverbatim
 
     The data is read verbatim, each value is returned as a string, header names are generated numerically; the output is:
     @verbatim
-1: {0: "UK", 1: "1234567890", 2: "Sony, Xperia S", 3: "20120531"}
-2: {0: "UK", 1: "1234567891", 2: "Sony, Xperia S", 3: "20120531"}
-3: {0: "UK", 1: "1234567892", 2: "Sony, Xperia S", 3: "20120531"}
-4: {0: "UK", 1: "1234567893", 2: "Sony, Xperia S", 3: "20120531"}
+1: {0: "UK", 1: "1234567890", 2: "Sony, Xperia S", 3: "31052012"}
+2: {0: "UK", 1: "1234567891", 2: "Sony, Xperia S", 3: "31052012"}
+3: {0: "UK", 1: "1234567892", 2: "Sony, Xperia S", 3: "31052012"}
+4: {0: "UK", 1: "1234567893", 2: "Sony, Xperia S", 3: "31052012"}
     @endverbatim
 
+    @anchor complex_example
     If header names are provided and field types are specified, the output looks different:
     @code
 #!/usr/bin/env qore
@@ -85,7 +88,7 @@ UK,1234567893,"Sony, Xperia S",20120531
 %new-style
 %requires CsvFileIterator
 
-CsvFileIterator i("example-file.csv", ("headers": ("cc", "serno", "desc", "received"), "fields": ("serno": "int", "received": "date")));
+CsvFileIterator i("example-file.csv", ("headers": ("cc", "serno", "desc", "received"), "fields": ("serno": "int", "received": ("type": "date", "format": "DDMMYYYY"))));
 while (i.next())
     printf("%d: %y\n", i.index(), i.getValue());
     @endcode
@@ -148,6 +151,7 @@ public namespace CsvUtil {
 	|\c "date"|in this case dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the @ref csvfileiterator_option_field_hash "hash format" documented below
 
 	@subsection csvfileiterator_option_field_hash Option Field Hash
+	See @ref complex_example "here" for an example of using the hash field description in the @ref CsvUtil::CsvFileIterator::constructor() "constructor()".
 
 	<b>CsvFileIterator Option Field Hash</b>
 	|!Key|!Value Description
