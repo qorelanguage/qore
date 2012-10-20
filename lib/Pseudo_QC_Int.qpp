@@ -115,3 +115,19 @@ string <int>::format(string fmt) [flags=CONSTANT] {
    rv->sprintf(QLLD, i->val);
    return qore_number_private::formatNumberString(**rv, *fmt, xsink) ? 0 : rv.release();
 }
+
+//! Returns -1 if the number is negative, 0 if it is zero, or 1 if it is positive
+/** @return -1 if the number is negative, 0 if it is zero, or 1 if it is positive
+
+    @par Example:
+    @code
+printf("sign: %d\n", $i.sign());
+    @endcode
+
+    @since %Qore 0.8.6
+*/
+int <int>::sign() [flags=CONSTANT] {
+   if (!i->val)
+      return 0;
+   return i->val > 0 ? 1 : -1;
+}

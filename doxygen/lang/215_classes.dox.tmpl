@@ -19,11 +19,11 @@
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref static_methods "static"</b>|<b>@ref final_methods "final"</b>] [<b>@ref synchronized "synchronized"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref abstract_methods "abstract"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref abstract "abstract"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>...</tt>\n
     <tt>}</tt>
 
-    @note To define a class interface, define a class with @ref abstract_methods "abstract methods".
+    @note To define a class interface, define a class with @ref abstract "abstract methods".
 
     When defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module.  See @ref mod_public "public" for more information.
 
@@ -54,7 +54,7 @@ class MyClass inherits MyBaseClass {
     <tt>}]</tt>\n\n
     <tt>[[<b>@ref static_methods "static"</b>|<b>@ref final_methods "final"</b>] [<b>@ref synchronized "synchronized"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
     <tt>}]</tt>
-    <tt>[<b>@ref abstract_methods "abstract"</b> [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);</tt>\n
+    <tt>[<b>@ref abstract "abstract"</b> [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);</tt>\n
 
     As with inline class definitions, when defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module.  See @ref mod_public "public" for more information.
 
@@ -102,7 +102,7 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
     Static methods may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt> or <tt><b>synchronized</b></tt> like non-static methods; static methods can also access private members of a class (through an object of the class for non-static members).\n\n
     Static method calls take a special syntax as documented in @ref static_method_calls.\n
 
-    @anchor abstract_methods
+    @anchor abstract
     @par Abstract Methods
     Methods declared with the <tt><b>abstract</b></tt> keyword define methods interfaces that must be defined in child classes for the class to be instantiated.  Methods defining the declared interfaces in child classes must define exactly the same paramters and return type in order for the abstract method to match.\n\n
     Classes with undefined abstract methods cannot be instantiated.  Abstract methods cannot have a method body; an abstract method's declaration must be terminated with a semicolon (\c ";").\n\n

@@ -90,7 +90,7 @@ while (i.next())
     printf("%d: %y\n", i.index(), i.getValue());
     @endcode
 
-    Now the hash keys in each record returned are those given in the @ref CsvFileIterator::constructor() "constructor", and the fields \c "serno" and \c "received" are given other data types; this produces:
+    Now the hash keys in each record returned are those given in the @ref CsvUtil::CsvFileIterator::constructor() "constructor", and the fields \c "serno" and \c "received" are given other data types; this produces:
     @verbatim
 1: {cc: "UK", serno: 1234567890, desc: "Sony, Xperia S", received: 2012-05-31 00:00:00 Thu +02:00 (CEST)}
 2: {cc: "UK", serno: 1234567891, desc: "Sony, Xperia S", received: 2012-05-31 00:00:00 Thu +02:00 (CEST)}

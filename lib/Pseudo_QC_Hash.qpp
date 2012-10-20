@@ -236,7 +236,7 @@ bool <hash>::val() [flags=CONSTANT] {
 }
 
 //! Returns a @ref Qore::HashIterator "HashIterator" object for the hash
-/** @param value_hash if @ref True "True", @ref Qore::HashInterator::getValue() returns a hash with 2 keys: \c "key" and \c "value" (making it easier to iterate hashes with constructions where only @ref Qore::HashIterator::getValue() is available, such as the @ref foreach "foreach statement"); the default is @ref Qore::True "True"
+/** @param value_hash if @ref True "True", @ref Qore::HashIterator::getValue() returns a hash with 2 keys: \c "key" and \c "value" (making it easier to iterate hashes with constructions where only @ref Qore::HashIterator::getValue() is available, such as the @ref foreach "foreach statement"); the default is @ref Qore::True "True"
 
     @return a @ref Qore::HashIterator "HashIterator" object for the hash
 
@@ -245,7 +245,7 @@ bool <hash>::val() [flags=CONSTANT] {
 map printf("+ %s: %y\n", $1.key, $1.value), $h.iterator(True);
     @endcode
 
-    @note that the iterator returned with this method when no arguments are passed is a @ref Qore::HashIterator "HashIterator" that returns a hash with \c "key" and \c "value" keys as the return value to @ref Qore::HashInterator::getValue() (which is the opposite of @ref Qore::HashIterator "HashIterator")
+    @note that the iterator returned with this method when no arguments are passed is a @ref Qore::HashIterator "HashIterator" that returns a hash with \c "key" and \c "value" keys as the return value to @ref Qore::HashIterator::getValue() (which is the opposite of @ref Qore::HashIterator "HashIterator")
 
     @since %Qore 0.8.6
  */

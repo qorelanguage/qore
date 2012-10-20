@@ -26,17 +26,6 @@
 
 /** @defgroup old_dbi_functions Old DBI Functions
     Old DBI functions; see @ref dbi_functions
-
-    @section datasource_hash Datasource Hash
-    |!Key|!Description
-    |\c type|the name of the driver, if present
-    |\c user|the username given in the string
-    |\c pass|the password for the connection
-    |\c db|the database name for the connection
-    |\c charset|The name of the DB-specific character encoding to use for the connection, if present in the string
-    |\c host|the hostname for the connection, if present in the string
-    |\c port|the port number to use for the connection, if present in the string
-    |\c options|A hash of options given in the string, if present. Special options are \c "min" and \c "max", which are respected by the DatasourcePool::constructor(hash) variant for setting the minimum and maximum connections in the pool, respectively; other options are passed to the DBI driver
  */
 //@{
 namespace Qore::SQL;

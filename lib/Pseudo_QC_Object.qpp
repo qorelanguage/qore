@@ -162,10 +162,10 @@ bool <object>::val() [flags=RET_VALUE_ONLY] {
 // bool <object>::hasKey(softstring $key) [flags=RET_VALUE_ONLY] {}
 // bool <object>::hasKeyValue(softstring $key) [flags=RET_VALUE_ONLY] {}
 
-//! Returns a @ref Qore::ObjectIterator "ObjectIterator" object for the hash
+//! Returns an @ref Qore::ObjectIterator "ObjectIterator" object for the hash
 /** @param value_hash if @ref True "True", @ref Qore::ObjectIterator::getValue() returns a hash with 2 keys: \c "key" and \c "value" (making it easier to iterate hashes with constructions where only @ref Qore::ObjectIterator::getValue() is available, such as the @ref foreach "foreach statement"); the default is @ref Qore::True "True"
 
-    @return a @ref Qore::ObjectIterator "ObjectIterator" object for the hash
+    @return an @ref Qore::ObjectIterator "ObjectIterator" object for the hash
 
     @par Example:
     @code

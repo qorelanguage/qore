@@ -1696,7 +1696,7 @@ my bool $b = parse_boolean($i);
 
     @return the first value passed as a boolean
  */
-bool parse_boolean() [flags=CONSTANT,USES_EXTRA_ARGS] {
+bool parse_boolean(...) [flags=CONSTANT] {
    const AbstractQoreNode* p = get_param(args, 0);
    return p ? p->getAsBool() : false;
 }

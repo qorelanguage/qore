@@ -29,7 +29,7 @@
 
     The RangeIterator class provides an iterator for loop statements with functionality
     similar to @ref range(). Unlike range() RangeIterator objects
-    do not generate real @ref lists but calculate iteration values on demand.
+    do not generate real @ref list "lists" but calculate iteration values on demand.
 
     This results in memory-friendly handling for large numerical sequences compared to
     generating a list in memory and iterating that list (as with @ref Qore::range()).

@@ -163,18 +163,9 @@ const S_ISVTX = S_ISVTX;
 
     This class supports posting read events to a @ref Qore::Thread::Queue "Queue". See @ref event_handling for more information.
 
-    The events raised by this object are listed in the following table:
+    @see @ref file_events for a list of I/O events raised by this object
 
-    @anchor file_events
-    <b>File Events</b>
-    |!Name|!Description
-    |@ref EVENT_DATA_READ|Raised when data is read from the file
-    |@ref EVENT_CHANNEL_CLOSED|Raised when the file is closed
-    |@ref EVENT_DELETED|Raised when the object being monitored is deleted
-    |@ref EVENT_OPEN_FILE|Raised right before an attempt to open a file is made
-    |@ref EVENT_FILE_OPENED|Raised when the file has been successfully opened
-
-    @since %Qore 0.8.6
+    @since %Qore 0.8.6 this class was split from the @ref Qore::File class and added as a base class of @ref Qore::File
  */
 qclass ReadOnlyFile [arg=File* f; dom=FILESYSTEM];
 

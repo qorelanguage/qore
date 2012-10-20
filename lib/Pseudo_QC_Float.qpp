@@ -110,3 +110,19 @@ my string $nstr = $f.format(".,3"); # returns "-48.392.093.894,235"
 string <float>::format(string fmt) [flags=CONSTANT] {
    return format_float_intern(*fmt, f->f);
 }
+
+//! Returns -1 if the number is negative, 0 if it is zero, or 1 if it is positive
+/** @return -1 if the number is negative, 0 if it is zero, or 1 if it is positive
+
+    @par Example:
+    @code
+printf("sign: %d\n", $f.sign());
+    @endcode
+
+    @since %Qore 0.8.6
+*/
+int <float>::sign() [flags=CONSTANT] {
+   if (!f->f)
+      return 0;
+   return f->f > 0.0 ? 1 : -1;
+}
