@@ -55,7 +55,9 @@ int <int>::typeCode() [flags=CONSTANT] {
 my bool $b = $i.val();
     @endcode
 
-    @see @ref perl-bool-eval "%perl-bool-eval"
+    @see
+    - @ref perl-bool-eval "%perl-bool-eval"
+    - @ref strict-bool-eval "%strict-bool-eval"
 */
 bool <int>::val() [flags=CONSTANT] {
    return (bool)i->val;

@@ -516,10 +516,6 @@ static void set_exec(const char *arg) {
    cl_pgm = arg;
 }
 
-static void set_perl_bool_eval(const char* arg) {
-   parse_options |= PO_PERL_BOOLEAN_EVAL;
-}
-
 static void show_module_errors(const char *arg) {
    show_mod_errs = true;
 }
@@ -557,7 +553,6 @@ static struct opt_struct_s {
    { '\0', "only-first-exception", ARG_NONE, only_first_exception },
    { 'r', "warnings-are-errors",   ARG_NONE, warn_to_err },
    { 's', "show-charsets",         ARG_NONE, show_charsets },
-   { 'v', "perl-bool-eval",        ARG_NONE, set_perl_bool_eval },
    { 'w', "enable-warning",        ARG_MAND, enable_warning },
    { 'x', "exec-class",            ARG_OPT,  do_exec_class },
    { '\0', "lockdown",             ARG_NONE, do_lockdown },

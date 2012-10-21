@@ -64,7 +64,7 @@
 #define PO_INHERIT_GLOBAL_VARS         (1LL << 32)  //!< inherit global variables from the parent into the new program's space
 #define PO_IN_MODULE                   (1LL << 33)  //!< do not use directly, this is set automatically in user module programs
 #define PO_NO_EMBEDDED_LOGIC           (1LL << 34)  //!< do not allow embedded logic or runtime parsing
-#define PO_PERL_BOOLEAN_EVAL           (1LL << 35)  //!< do perl-style boolean evaluations (not strict mathematic which is the Qore default)
+#define PO_STRICT_BOOLEAN_EVAL         (1LL << 35)  //!< do non-intuitive strict mathematical boolean evaluations (the Qore default prior to v0.8.6)
 
 #define PO_DEFAULT                     0            //!< no parse options set by default
 
@@ -94,7 +94,7 @@
 #define PO_POSITIVE_OPTIONS          (PO_NO_CHILD_PO_RESTRICTIONS)
 
 //! mask of options that have no effect on code access or code safety
-#define PO_FREE_OPTIONS              (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_PERL_BOOLEAN_EVAL)
+#define PO_FREE_OPTIONS              (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL)
 
 //! mask of options that only affect the way a child Program inherits code from the parent
 #define PO_INHERITANCE_OPTIONS       (PO_NO_SYSTEM_CLASSES|PO_NO_USER_CLASSES|PO_INHERIT_USER_FUNC_VARIANTS|PO_NO_SYSTEM_FUNC_VARIANTS|PO_INHERIT_GLOBAL_VARS)

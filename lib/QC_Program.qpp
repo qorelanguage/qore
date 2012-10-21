@@ -246,11 +246,6 @@ const PO_NO_USER_CLASSES = PO_NO_USER_CLASSES;
  */
 const PO_NO_THREADS = PO_NO_THREADS;
 
-//! Sets perl-style boolean evaluation runtime mode
-/** @see @ref perl-bool-eval "%perl-bool-eval"
- */
-const PO_PERL_BOOLEAN_EVAL = PO_PERL_BOOLEAN_EVAL;
-
 //! mask of all parse options allowing for more freedom (instead of less)
 /** made up of only @ref PO_NO_CHILD_PO_RESTRICTIONS
  */
@@ -285,6 +280,13 @@ const PO_REQUIRE_TYPES = PO_REQUIRE_TYPES;
     @see @ref strict-args "%strict-args"
  */
 const PO_STRICT_ARGS = PO_STRICT_ARGS;
+
+//! Sets strict mathematical boolean evaluation runtime mode (the qore default prior to v0.8.6)
+/** @see @ref strict-bool-eval "%strict-bool-eval"
+
+    @since %Qore 0.8.6
+ */
+const PO_STRICT_BOOLEAN_EVAL = PO_STRICT_BOOLEAN_EVAL;
 //@}
 
 /** @defgroup warning_constants Warning Constants

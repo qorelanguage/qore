@@ -297,7 +297,9 @@ int <date>::getUtcOffset() [flags=CONSTANT] {
 my bool $b = $d.val();
     @endcode
 
-    @see @ref perl-bool-eval "%perl-bool-eval"
+    @see
+    - @ref perl-bool-eval "%perl-bool-eval"
+    - @ref strict-bool-eval "%strict-bool-eval"
 */
 bool <date>::val() [flags=CONSTANT] {
    return dt->hasValue();

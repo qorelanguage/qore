@@ -54,7 +54,9 @@ my bool $b = $c.val();
 
     @return @ref True
 
-    @see @ref perl-bool-eval "%perl-bool-eval"
+    @see
+    - @ref perl-bool-eval "%perl-bool-eval"
+    - @ref strict-bool-eval "%strict-bool-eval"
 */
 bool <callref>::val() [flags=CONSTANT] {
    return true;

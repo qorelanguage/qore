@@ -58,14 +58,14 @@ public:
       get_parse_location(first_line, last_line);
       updateVStack(this);
 
+      //printd(5, "VNode::VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
+
       if (top_level)
          save_global_vnode(this);
-
-      //printd(5, "VNode::VNode() '%s' %p top_level: %d\n", lvar ? lvar->getName() : "n/a", lvar, top_level);
    }
 
    DLLLOCAL ~VNode() {
-      //printd(5, "VNode::~VNode() '%s' %p top_level: %d\n", lvar ? lvar->getName() : "n/a", lvar, top_level);
+      //printd(5, "VNode::~VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
 
       if (lvar && !refs)
 	 qore_program_private::makeParseWarning(getProgram(), first_line, last_line, file, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());

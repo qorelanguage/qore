@@ -943,9 +943,9 @@ QoreString *QoreListNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 bool QoreListNode::getAsBoolImpl() const {
    // check if we should do perl-style boolean evaluation
    QoreProgram* pgm = getProgram();
-   if (pgm && (pgm->getParseOptions64() & PO_PERL_BOOLEAN_EVAL))
-      return !empty();
-   return false;
+   if (pgm && (pgm->getParseOptions64() & PO_STRICT_BOOLEAN_EVAL))
+      return false;
+   return !empty();
 }
 
 ListIterator::ListIterator(QoreListNode *lst, qore_size_t n_pos) : l(lst) {

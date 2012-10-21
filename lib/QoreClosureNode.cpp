@@ -66,9 +66,9 @@ AbstractQoreNode *QoreClosureNode::exec(const QoreListNode *args, ExceptionSink 
 bool QoreClosureNode::getAsBoolImpl() const {
    // check if we should do perl-style boolean evaluation
    QoreProgram* pgm = getProgram();
-   if (pgm && (pgm->getParseOptions64() & PO_PERL_BOOLEAN_EVAL))
-      return true;
-   return false;
+   if (pgm && (pgm->getParseOptions64() & PO_STRICT_BOOLEAN_EVAL))
+      return false;
+   return true;
 }
 
 QoreObjectClosureNode::QoreObjectClosureNode(QoreObject *n_obj, const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), obj(n_obj) {

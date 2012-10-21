@@ -615,8 +615,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%assume-global{WS}*$                   getProgram()->parseDisableParseOptions(PO_ASSUME_LOCAL);
 ^%new-style{WS}*$                       getProgram()->parseSetParseOptions(PO_NEW_STYLE);
 ^%old-style{WS}*$                       getProgram()->parseDisableParseOptions(PO_NEW_STYLE);
-^%perl-bool-eval{WS}*$                  getProgram()->parseSetParseOptions(PO_PERL_BOOLEAN_EVAL);
-^%qore-bool-eval{WS}*$                  getProgram()->parseDisableParseOptions(PO_PERL_BOOLEAN_EVAL);
+^%perl-bool-eval{WS}*$                  getProgram()->parseDisableParseOptions(PO_STRICT_BOOLEAN_EVAL);
+^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%push-parse-options{WS}*$              push_parse_options();
 ^%append-include-path{WS}+              BEGIN(append_path_state);
 <append_path_state>[^\t\n\r]+           {

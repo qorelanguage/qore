@@ -142,6 +142,9 @@ int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    
    int lvids = 0;
    
+   // turn off top-level flag for statement vars
+   pflag &= (~PF_TOP_LEVEL);
+
    if (!exp && !getCVarStack())
       parse_error("subcontext statement out of context");
 

@@ -91,7 +91,7 @@ const Closure = "closure";
 my bool $b = boolean(1); # returns True
     @endcode
 
-    @note this function behaves differently when @ref perl-bool-eval "%perl-bool-eval" is set
+    @note this function behaves differently when @ref strict-bool-eval "%strict-bool-eval" is set
 */
 bool boolean(any arg) [flags=CONSTANT] {
    return arg ? arg->getAsBool() : false;

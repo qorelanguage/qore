@@ -6,9 +6,9 @@
     
     %Qore modules allow the %Qore language to be extended at run-time.
 
-    To load a module at parse time (normally required for most modules), use the @ref requires "%requires" parse directive. If the named feature is not already present in %Qore, %Qore looks for a module with this name in the directories listed in the \c QORE_MODULE_DIR environment variable (see @ref environment_variables).
+    To load a module at parse time (normally required for most modules), use the @ref requires "%requires" or @ref try-module "%try-module" parse directive. If the named feature is not already present in %Qore, %Qore looks for a module with this name in the directories listed in the \c QORE_MODULE_DIR environment variable (see @ref environment_variables).
 
-    Use the load_module() function to load %Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the @ref requires "%requires" directive.
+    Use the load_module() function to load %Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the @ref requires "%requires" or @ref try-module "%try-module" parse directive.
 
     From %Qore 0.7.1 onwards, you can specify a comparison operator (one of < <=, =, >=, or >) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'. If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version \c "1.0" compared with version \c "1.0.1" will be exteneded to \c "1.0.0").
 
@@ -20,7 +20,7 @@
 
     <b>%Qore Modules</b>
     |!Type|!Module|!Description
-    |user|<a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>|Provides code to help parse CSV files
+    |user|<a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>|Provides code to help parse CSV or other structured text files
     |user|<a href="../../modules/HttpServer/html/index.html">HttpServer</a>|Provides a multi-threaded HTTP server
     |user|<a href="../../modules/Mime/html/index.html">Mime</a>|Provides MIME definitions and functions
     |user|<a href="../../modules/MailMessage/html/index.html">MailMessage</a>|Provides supporting classes for the <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> and <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> modules

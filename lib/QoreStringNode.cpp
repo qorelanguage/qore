@@ -115,9 +115,9 @@ int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink)
 bool QoreStringNode::getAsBoolImpl() const {
    // check if we should do perl-style boolean evaluation
    QoreProgram* pgm = getProgram();
-   if (pgm && (pgm->getParseOptions64() & PO_PERL_BOOLEAN_EVAL))
-      return !empty();
-   return atof(getBuffer());
+   if (pgm && (pgm->getParseOptions64() & PO_STRICT_BOOLEAN_EVAL))
+      return atof(getBuffer());
+   return !empty();
 }
 
 // get the value of the type in a string context, empty string for complex types (default implementation)

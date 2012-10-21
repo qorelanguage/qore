@@ -153,7 +153,9 @@ bool <object>::isSystem() [flags=CONSTANT] {
 my bool $b = $o.val();
     @endcode
 
-    @see @ref perl-bool-eval "%perl-bool-eval"
+    @see
+    - @ref perl-bool-eval "%perl-bool-eval"
+    - @ref strict-bool-eval "%strict-bool-eval"
  */
 bool <object>::val() [flags=RET_VALUE_ONLY] {
    return (bool)obj->size(xsink);

@@ -63,6 +63,9 @@ int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    
    int lvids = 0;
    
+   // turn off top-level flag for statement vars
+   pflag &= (~PF_TOP_LEVEL);
+
    const QoreTypeInfo *argTypeInfo = 0;
 
    // initialize context expression

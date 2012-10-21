@@ -97,6 +97,9 @@ int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
 }
 
 int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
+   // turn off top-level flag for statement vars
+   pflag &= (~PF_TOP_LEVEL);
+
    if (try_block)
       try_block->parseInitImpl(oflag, pflag);
    

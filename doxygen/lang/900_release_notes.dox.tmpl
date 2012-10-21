@@ -9,6 +9,19 @@
 
     @subsection qore_086_compatibility Changes That Can Affect Backwards-Compatibility
 
+    @par Perl-Style Boolean Evaluation
+    %Qore's default boolean evaluation mode was changed from strict mathematical to a more intuitive perl (and Python) like style.
+    This change was implemented to address one of the oldest design bugs in %Qore: strict mathematical boolean evaluation.  See @ref perl-bool-eval "%perl-bool-eval" for a description of the new default boolean evaluation mode.\n\n
+    To get the old strict mathematical boolean evaluation, use the @ref strict-bool-eval "%strict-bool-eval" parse option.\n\n
+    An example of the change; now the following @ref if "if statement" block will be executed as the <tt><b>if</b></tt> expression is now evaluated as @ref Qore::True "True":
+    @code
+    my string $str = "hello";
+    if ($str)
+        printf("Qore says hello\n");
+    @endcode
+    Previously (i.e. with @ref strict-bool-eval "%strict-bool-eval") the <tt><b>if</b></tt> expression above would be evaluated as @ref Qore::False "False" because the string value was converted to 0, however as of %Qore 0.8.6 (with the default @ref perl-bool-eval "perl-bool-eval") it is @ref Qore::True "True" since the string is not empty; only an empty string is evaluated as @ref Qore::False "False".\n\n
+    @note also affects the @ref Qore::boolean(any) "boolean(any)" function
+
     @par Changes in the Socket Class
     The @ref Qore::Socket "Socket" class was enhanced to support timeouts with non-blocking I/O on all send operations; 
     many Socket methods that send data were originally implemented to return an error code on error, however they would
@@ -33,15 +46,21 @@
     - Qore::AbstractIterator::valid() was added (with concrete implementations in all iterator classes derived from this base class delivered with %Qore); this method tells if the object is currently pointing to a valid iterator.\n\n For any user classes inherting @ref Qore::AbstractIterator "AbstractIterator" directly (as opposed to another concrete iterator class in %Qore, where the method has already been added), a concrete implementation of this method will have to be added as well or that class will become @ref abstract with this release of %Qore.
 
     @subsection qore_086_new_features New Features in Qore
-    @par Perl-Style Boolean Evaluation
-    The @ref perl-bool-eval "%perl-bool-eval" parse option was implemented to address one of the oldest design bugs in %Qore: strict mathematical boolean evaluation.  Setting @ref perl-bool-eval "%perl-bool-eval" is highly recommended as it makes boolean evaluation much more logical and intuitive for qore scripts / programs.
-
     @par Arbitrary-Precision Numeric Support
     %Qore now uses the <a href="http://www.mpfr.org/">MPFR</a> and <a href="http://gmplib.org">GMP</a> libraries to provide arbitrary-precision numeric support.  This type can be used for high-precision mathematics or for storing \c NUMERIC (ie \c DECIMAL or \c NUMBER) column values when retrieved from databases by %Qore DBI drivers that support the new capability @ref Qore::SQL::DBI_CAP_HAS_NUMBER_SUPPORT "DBI_CAP_HAS_NUMBER_SUPPORT" (previously these values would be retrieved as %Qore strings in order to avoid information loss).\n\n
     For more information, see the new @ref number "number" type, @ref number_type, and @ref Qore::zzz8numberzzz9
 
     @par New CsvUtil Module
     The <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module implements the CsvFileIterator class that allows for easy parsing of csv-like text files
+
+    @par %%try-module Parse Directive to Handle Module Load Errors at Parse Time
+    The new @ref try-module "%try-module" parse directive allows for module load errors to be handled at parse time; ex:
+    @code
+%try-module($ex) some-module > 1.0
+    printf("error loading module %y: %s: %s\n", $ex.arg, $ex.err, $ex.desc);
+    exit(1);
+%endtry
+    @endcode
 
     @par DBI Improvements
     Three new DBI capabilities were implemented, including a new option API as follows:
@@ -83,11 +102,11 @@
     @par Iterator Improvements
     The following improvements were made in qore to support more flexible and ubiquitous iterators:
     - new iterator classes:
-      - @ref Qore::SingleValueIterator "SingleValueIterator": allows single values (or any value without an iterator class) to be iterated
+      - @ref Qore::SingleValueIterator "SingleValueIterator": allows single values (or any value without an iterator class) to be iterated; this provides the basis for the return type for the new base <value>::iterator() method for non-container types
       - @ref Qore::FileLineIterator "FileLineIterator": allows files to be iterated line by line
       - @ref Qore::ObjectIterator "ObjectIterator": a generic iterator for objects
       - @ref Qore::ObjectReverseIterator "ObjectReverseIterator": a generic reverse iterator for objects
-      - @ref Qore::RangeIterator "RangeIterator": a numerical sequence generator (the base for the return type for the new @ref Qore::xrange() "xrange()" function
+      - @ref Qore::RangeIterator "RangeIterator": a numerical sequence generator (the basis for the return type for the new @ref Qore::xrange() "xrange()" function
     - new pseudo-methods were added to return iterator objects based on the value type:
       - <value>::iterator()
       - <hash>::iterator()
@@ -160,7 +179,8 @@
     - fixed a bug in the @ref Qore::Socket "Socket" class when the SSL session requires renegotiation during non-blocking I/O
     - @ref Qore::File::constructor() "File::constructor()" now throws an exception if called with a tty target and @ref no-terminal-io "%no-terminal-io" is set
     - fixed a bug in split with quote (<string>::split(string, string, bool) and Qore::split(string, string, string, bool)) if the separator pattern was not found and the single field was not quoted either
-    - fixed a bug handling nested %ifdef and %ifndef blocks with %else in the inside block
+    - fixed a bug handling nested @ref ifdef "%ifdef" and @ref ifndef "%ifndef" blocks with @ref else "%else" in the inside block
+    - fixed a crashing due to the failure to clear the "PF_TOP_LEVEL" flag when initializing statements, this could cause temporary variables in a statement to be marked as the start of the global thread-local variable list, and then after such variables are deleted, then a crash happens when trying to access the global thread-local variable list
     - added code tags to @ref Qore::File "File" methods without side effects
     - made many minor documentation fixes
 
@@ -210,7 +230,7 @@ class MyAbstractInterface {
       - @ref Qore::ListHashReverseIterator "ListHashReverseIterator"
     - @ref Qore::ListIterator "ListIterator"
       - @ref Qore::ListReverseIterator "ListReverseIterator"
-    - @ref Qore::SQL::SQLStatement "SQLStatement" (which was already present in %Qore but now implements the @ref Qore::AbstractIterator "AbstractIterator" interface)
+    - @ref Qore::SQL::SQLStatement "SQLStatement" (which was already present in %Qore but now implements the @ref Qore::AbstractIterator "AbstractIterator" interface to allow query results to be iterated)
     .
     Classes inheriting @ref Qore::AbstractIterator "AbstractIterator" have special support so that objects can be easily iterated in the following list operators:
     - @ref map

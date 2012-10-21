@@ -48,7 +48,10 @@ int DoWhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
  * however, it doesn't do much good :-) */
 int DoWhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
-   
+
+   // turn off top-level flag for statement vars
+   pflag &= (~PF_TOP_LEVEL);
+
    if (code)
       code->parseInitImpl(oflag, pflag);
    if (cond) {

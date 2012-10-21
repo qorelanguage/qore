@@ -23,10 +23,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/ThrowStatement.h>
 
-ThrowStatement::ThrowStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line)
-{
-   if (!v)
-   {
+ThrowStatement::ThrowStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line) {
+   if (!v) {
       args = 0;
       return;
    }
@@ -37,14 +35,12 @@ ThrowStatement::ThrowStatement(int start_line, int end_line, AbstractQoreNode *v
    }
 }
 
-ThrowStatement::~ThrowStatement()
-{
+ThrowStatement::~ThrowStatement() {
    if (args)
       args->deref(0);
 }
 
-int ThrowStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int ThrowStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    QoreListNodeEvalOptionalRefHolder a(args, xsink);
    if (*xsink)
       return 0;
@@ -56,6 +52,10 @@ int ThrowStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
 int ThrowStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (args) {
       int lvids = 0;
+
+      // turn off top-level flag for statement vars
+      pflag &= (~PF_TOP_LEVEL);
+
       const QoreTypeInfo *argTypeInfo = 0;
       args->parseInit(oflag, pflag, lvids, argTypeInfo);
       return lvids;

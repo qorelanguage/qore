@@ -178,7 +178,7 @@ AbstractQoreNode *BinaryNode::parseInit(LocalVar *oflag, int pflag, int &lvids, 
 bool BinaryNode::getAsBoolImpl() const {
    // check if we should do perl-style boolean evaluation
    QoreProgram* pgm = getProgram();
-   if (pgm && (pgm->getParseOptions64() & PO_PERL_BOOLEAN_EVAL))
-      return !empty();
-   return false;
+   if (pgm && (pgm->getParseOptions64() & PO_STRICT_BOOLEAN_EVAL))
+      return false;
+   return !empty();
 }

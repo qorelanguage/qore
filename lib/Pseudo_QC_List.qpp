@@ -84,7 +84,9 @@ bool <list>::empty() [flags=CONSTANT] {
 my bool $b = $l.val();
     @endcode
 
-    @see @ref perl-bool-eval "%perl-bool-eval"
+    @see
+    - @ref perl-bool-eval "%perl-bool-eval"
+    - @ref strict-bool-eval "%strict-bool-eval"
 */
 bool <list>::val() [flags=CONSTANT] {
    return !l->empty();

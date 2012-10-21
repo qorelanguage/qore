@@ -59,6 +59,9 @@ int WhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
 int WhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    
+   // turn off top-level flag for statement vars
+   pflag &= (~PF_TOP_LEVEL);
+
    if (cond) {
       const QoreTypeInfo *argTypeInfo = 0;
       cond = cond->parseInit(oflag, pflag, lvids, argTypeInfo);

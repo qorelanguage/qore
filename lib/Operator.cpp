@@ -3562,7 +3562,7 @@ static AbstractQoreNode *check_op_question_mark(QoreTreeNode *tree, LocalVar *of
    if (tree->constArgs())
       return tree->evalSubst(returnTypeInfo);
 
-   if (leftTypeInfo->nonNumericValue() && !checkParseOption(PO_PERL_BOOLEAN_EVAL))
+   if (leftTypeInfo->nonNumericValue() && checkParseOption(PO_STRICT_BOOLEAN_EVAL))
       leftTypeInfo->doNonBooleanWarning("the initial expression with the '?:' operator is ");
 
    returnTypeInfo = leftTypeInfo->isOutputIdentical(rightTypeInfo) ? leftTypeInfo : 0;

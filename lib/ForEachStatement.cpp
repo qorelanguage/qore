@@ -311,6 +311,9 @@ int ForEachStatement::execIterator(AbstractIteratorHelper& aih, AbstractQoreNode
 
 int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
+
+   // turn off top-level flag for statement vars
+   pflag &= (~PF_TOP_LEVEL);
    
    const QoreTypeInfo *argTypeInfo = 0;
    if (var)
