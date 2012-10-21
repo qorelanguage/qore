@@ -8,7 +8,10 @@ BUILT_SOURCES = dummy
 dummy:
 	$(top_srcdir)/next_build.sh
 
-INCLUDES = -I$(top_srcdir)/include
+EXTRA_INCLUDES = -I$(top_srcdir)/include
+libqore_la_LDFLAGS = -version-info 13:0:8 -no-undefined ${QORE_LIB_LDFLAGS}
+AM_CPPFLAGS = ${QORE_LIB_CPPFLAGS} $(EXTRA_INCLUDES)
+AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
 AM_YFLAGS = -d
 
 lib_LTLIBRARIES = libqore.la
@@ -25,247 +28,13 @@ if COND_MINGWCC
 BUILT_SOURCES += qpp_native
 QPP=./qpp_native
 qpp_native: $(qpp_SOURCES)
-	$(NATIVE_CXX) $(INCLUDES) $(NATIVE_CPPFLAGS) $(NATIVE_LDFLAGS) -o $@ $(qpp_SOURCES)
+	$(NATIVE_CXX) $(EXTRA_INCLUDES) $(NATIVE_CPPFLAGS) $(NATIVE_LDFLAGS) -o $@ $(qpp_SOURCES)
 else
 QPP=./qpp$(EXEEXT)
 endif
 
 qpp$(EXEEXT): $(qpp_SOURCES)
-	$(CXX) $(INCLUDES) $(AM_CPPFLAGS) $(AM_CXXFLAGS) $(AM_LDFLAGS) -o $@ $(qpp_SOURCES)
-
-QC_Queue.cpp: QC_Queue.qpp qpp
-	$(QPP) $<
-
-QC_Socket.cpp: QC_Socket.qpp qpp
-	$(QPP) $<
-
-QC_ReadOnlyFile.cpp: QC_ReadOnlyFile.qpp qpp
-	$(QPP) $<
-
-QC_File.cpp: QC_File.qpp qpp
-	$(QPP) $<
-
-QC_AbstractIterator.cpp: QC_AbstractIterator.qpp qpp
-	$(QPP) $<
-
-QC_AbstractQuantifiedIterator.cpp: QC_AbstractQuantifiedIterator.qpp qpp
-	$(QPP) $<
-
-QC_AbstractBidirectionalIterator.cpp: QC_AbstractBidirectionalIterator.qpp qpp
-	$(QPP) $<
-
-QC_AbstractQuantifiedBidirectionalIterator.cpp: QC_AbstractQuantifiedBidirectionalIterator.qpp qpp
-	$(QPP) $<
-
-QC_ListIterator.cpp: QC_ListIterator.qpp qpp
-	$(QPP) $<
-
-QC_ListReverseIterator.cpp: QC_ListReverseIterator.qpp qpp
-	$(QPP) $<
-
-QC_HashIterator.cpp: QC_HashIterator.qpp qpp
-	$(QPP) $<
-
-QC_HashReverseIterator.cpp: QC_HashReverseIterator.qpp qpp
-	$(QPP) $<
-
-QC_HashListIterator.cpp: QC_HashListIterator.qpp qpp
-	$(QPP) $<
-
-QC_HashListReverseIterator.cpp: QC_HashListReverseIterator.qpp qpp
-	$(QPP) $<
-
-QC_ListHashIterator.cpp: QC_ListHashIterator.qpp qpp
-	$(QPP) $<
-
-QC_ListHashReverseIterator.cpp: QC_ListHashReverseIterator.qpp qpp
-	$(QPP) $<
-
-QC_ObjectIterator.cpp: QC_ObjectIterator.qpp qpp
-	$(QPP) $<
-
-QC_ObjectReverseIterator.cpp: QC_ObjectReverseIterator.qpp qpp
-	$(QPP) $<
-
-QC_FileLineIterator.cpp: QC_FileLineIterator.qpp qpp
-	$(QPP) $<
-
-QC_SingleValueIterator.cpp: QC_SingleValueIterator.qpp
-	$(QPP) $<
-
-QC_RangeIterator.cpp: QC_RangeIterator.qpp
-	$(QPP) $<
-
-QC_AbstractSmartLock.cpp: QC_AbstractSmartLock.qpp qpp
-	$(QPP) $<
-
-QC_Mutex.cpp: QC_Mutex.qpp qpp
-	$(QPP) $<
-
-QC_AutoLock.cpp: QC_AutoLock.qpp qpp
-	$(QPP) $<
-
-QC_Gate.cpp: QC_Gate.qpp qpp
-	$(QPP) $<
-
-QC_AutoGate.cpp: QC_AutoGate.qpp qpp
-	$(QPP) $<
-
-QC_RWLock.cpp: QC_RWLock.qpp qpp
-	$(QPP) $<
-
-QC_AutoReadLock.cpp: QC_AutoReadLock.qpp qpp
-	$(QPP) $<
-
-QC_AutoWriteLock.cpp: QC_AutoWriteLock.qpp qpp
-	$(QPP) $<
-
-QC_Condition.cpp: QC_Condition.qpp qpp
-	$(QPP) $<
-
-QC_Sequence.cpp: QC_Sequence.qpp qpp
-	$(QPP) $<
-
-QC_Counter.cpp: QC_Counter.qpp qpp
-	$(QPP) $<
-
-QC_HTTPClient.cpp: QC_HTTPClient.qpp qpp
-	$(QPP) $<
-
-QC_FtpClient.cpp: QC_FtpClient.qpp qpp
-	$(QPP) $<
-
-QC_AbstractDatasource.cpp: QC_AbstractDatasource.qpp qpp
-	$(QPP) $<
-
-QC_Datasource.cpp: QC_Datasource.qpp qpp
-	$(QPP) $<
-
-QC_DatasourcePool.cpp: QC_DatasourcePool.qpp qpp
-	$(QPP) $<
-
-QC_SQLStatement.cpp: QC_SQLStatement.qpp qpp
-	$(QPP) $<
-
-QC_Dir.cpp: QC_Dir.qpp qpp
-	$(QPP) $<
-
-QC_Program.cpp: QC_Program.qpp qpp
-	$(QPP) $<
-
-QC_GetOpt.cpp: QC_GetOpt.qpp qpp
-	$(QPP) $<
-
-QC_TermIOS.cpp: QC_TermIOS.qpp qpp
-	$(QPP) $<
-
-QC_TimeZone.cpp: QC_TimeZone.qpp qpp
-	$(QPP) $<
-
-QC_SSLCertificate.cpp: QC_SSLCertificate.qpp qpp
-	$(QPP) $<
-
-QC_SSLPrivateKey.cpp: QC_SSLPrivateKey.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_All.cpp: Pseudo_QC_All.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_Nothing.cpp: Pseudo_QC_Nothing.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_Bool.cpp: Pseudo_QC_Bool.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_Int.cpp: Pseudo_QC_Int.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_Float.cpp: Pseudo_QC_Float.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_Number.cpp: Pseudo_QC_Number.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_Date.cpp: Pseudo_QC_Date.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_Object.cpp: Pseudo_QC_Object.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_Hash.cpp: Pseudo_QC_Hash.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_String.cpp: Pseudo_QC_String.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_Binary.cpp: Pseudo_QC_Binary.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_List.cpp: Pseudo_QC_List.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_Closure.cpp: Pseudo_QC_Closure.qpp qpp
-	$(QPP) $<
-
-Pseudo_QC_Callref.cpp: Pseudo_QC_Callref.qpp qpp
-	$(QPP) $<
-
-ql_misc.cpp: ql_misc.qpp qpp
-	$(QPP) $<
-
-ql_compression.cpp: ql_compression.qpp qpp
-	$(QPP) $<
-
-ql_thread.cpp: ql_thread.qpp qpp
-	$(QPP) $<
-
-ql_crypto.cpp: ql_crypto.qpp qpp
-	$(QPP) $<
-
-ql_lib.cpp: ql_lib.qpp qpp
-	$(QPP) $<
-
-ql_file.cpp: ql_file.qpp qpp
-	$(QPP) $<
-
-ql_string.cpp: ql_string.qpp qpp
-	$(QPP) $<
-
-ql_time.cpp: ql_time.qpp qpp
-	$(QPP) $<
-
-ql_math.cpp: ql_math.qpp qpp
-	$(QPP) $<
-
-ql_list.cpp: ql_list.qpp qpp
-	$(QPP) $<
-
-ql_type.cpp: ql_type.qpp qpp
-	$(QPP) $<
-
-ql_pwd.cpp: ql_pwd.qpp qpp
-	$(QPP) $<
-
-ql_object.cpp: ql_object.qpp qpp
-	$(QPP) $<
-
-ql_env.cpp: ql_env.qpp qpp
-	$(QPP) $<
-
-ql_dbi.cpp: ql_dbi.qpp qpp
-	$(QPP) $<
-
-ql_context.cpp: ql_context.qpp qpp
-	$(QPP) $<
-
-qc_option.cpp: qc_option.qpp qpp
-	$(QPP) $<
-
-qc_errno.cpp: qc_errno.qpp qpp
-	$(QPP) $<
-
-qc_qore.cpp: qc_qore.qpp qpp
-	$(QPP) $<
+	$(CXX) $(EXTRA_INCLUDES) $(AM_CPPFLAGS) $(AM_CXXFLAGS) $(AM_LDFLAGS) -o $@ $(qpp_SOURCES)
 
 QORE_PSEUDO_SRC = Pseudo_QC_All.cpp Pseudo_QC_Bool.cpp Pseudo_QC_Int.cpp \
 	Pseudo_QC_Float.cpp Pseudo_QC_Date.cpp Pseudo_QC_Object.cpp \
@@ -275,8 +44,7 @@ QORE_PSEUDO_SRC = Pseudo_QC_All.cpp Pseudo_QC_Bool.cpp Pseudo_QC_Int.cpp \
 
 QorePseudoMethods.cpp: $(QORE_PSEUDO_SRC)
 
-QORE_GENERATED_SOURCES = \
-	QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC_AbstractSmartLock.cpp \
+QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC_AbstractSmartLock.cpp \
         QC_Mutex.cpp QC_AutoLock.cpp \
 	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp QC_AutoReadLock.cpp QC_AutoWriteLock.cpp \
 	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp QC_HTTPClient.cpp QC_FtpClient.cpp \
@@ -295,11 +63,18 @@ QORE_GENERATED_SOURCES = \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_type.cpp ql_pwd.cpp ql_object.cpp \
 	ql_env.cpp ql_dbi.cpp ql_context.cpp \
-	qc_option.cpp qc_errno.cpp qc_qore.cpp parser.cpp parser.hpp scanner.cpp
+	qc_option.cpp qc_errno.cpp qc_qore.cpp
+
+QORE_GENERATED_SOURCES = $(QORE_QPP_TARGETS) parser.cpp parser.hpp scanner.cpp
 
 dox-src: $(QORE_GENERATED_SOURCES)
 
 QORE_ALL_SRC = $(QORE_GENERATED_SOURCES) $(QORE_PSEUDO_SRC)
+
+QORE_ALL_QPP_SRC = $(subst cpp,qpp,$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC))
+
+$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC): $(QPP)
+	$(QPP) `echo $@|sed s/cpp/qpp/g`
 
 CLEANFILES = $(QORE_ALL_SRC)
 
@@ -507,7 +282,3 @@ endif
 if COND_HPUX_ACC_64BIT_IA64
 libqore_la_SOURCES += acc-64bit-ia64.s
 endif
-
-libqore_la_LDFLAGS = -version-info 13:0:8 -no-undefined ${QORE_LIB_LDFLAGS}
-AM_CPPFLAGS = ${QORE_LIB_CPPFLAGS}
-AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
