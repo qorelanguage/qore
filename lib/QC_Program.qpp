@@ -797,7 +797,7 @@ int Program::getParseOptions() {
 //! Sets parse options in the parse option mask for the Program object
 /** An \c OPTIONS-LOCKED exception is thrown if parse options have been locked (for example with Program::lockOptions())
 
-    @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to set in the parse option mask for the object
+    @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to set in the parse option mask for the object; the given argument will be combined with binary or with the existing parse option mask
 
     @par Example:
     @code
@@ -822,7 +822,7 @@ nothing Program::setParseOptions(softint opt = PO_DEFAULT) {
 //! Removes the given parse options to the current parse option mask
 /** An \c OPTIONS-LOCKED exception is thrown if parse options have been locked (for example with Program::lockOptions())
 
-    @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to unset in the parse option mask for the object
+    @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to unset in the parse option mask for the object; any bit set in this argument will be unset (ie zeroed out or combined with inverse binary and) in the Program's parse option mask
 
     @par Example:
     @code

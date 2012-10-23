@@ -213,8 +213,31 @@ while ($i.next()) {
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+
+    @see FileLineIterator::getLine()
+
+    @note This method has to have the same signature as AbstractIterator::getValue() therefore the return type is @ref any_type "any", however the method's return value are really restricted to @ref string "string"
  */
 any FileLineIterator::getValue() [flags=RET_VALUE_ONLY] {
+   return i->checkValid(xsink) ? 0 : i->getValue();
+}
+
+//! returns the current line in the file or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current line in the file or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("+ %y\n", $i.getLine());
+}
+    @endcode
+
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+
+    @see FileLineIterator::getValue()
+ */
+string FileLineIterator::getLine() [flags=RET_VALUE_ONLY] {
    return i->checkValid(xsink) ? 0 : i->getValue();
 }
 

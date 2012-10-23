@@ -28,15 +28,15 @@
 #define _QORE_DS_PRIVATE_H
 
 struct qore_ds_private {
-   Datasource *ds;
+   Datasource* ds;
    bool in_transaction;
    bool active_transaction;
    bool isopen;
    bool autocommit;
    bool connection_aborted;
-   mutable class DBIDriver *dsl;
-   const QoreEncoding *qorecharset;
-   void *private_data;               // driver private data per connection
+   mutable DBIDriver* dsl;
+   const QoreEncoding* qorecharset;
+   void* private_data;               // driver private data per connection
       
    // for pending connection values
    std::string p_username,
@@ -57,7 +57,7 @@ struct qore_ds_private {
    // options per connection
    QoreHashNode* opt;
 
-   DLLLOCAL qore_ds_private(Datasource *n_ds, DBIDriver *ndsl) : ds(n_ds), in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0), p_port(0), port(0), opt(new QoreHashNode) {
+   DLLLOCAL qore_ds_private(Datasource* n_ds, DBIDriver* ndsl) : ds(n_ds), in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0), p_port(0), port(0), opt(new QoreHashNode) {
    }
 
    DLLLOCAL qore_ds_private(const qore_ds_private& old, Datasource* n_ds) :
