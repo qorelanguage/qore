@@ -62,6 +62,25 @@
 %endtry
     @endcode
 
+    @par Abstract Class Hierarchy Improvement
+    As of this version of qore, concrete implementations of @ref abstract "abstract methods" no longer have to have exactly the same return type as the abstract method; it is now sufficient that the return type in the concrete method meets a compatibility test with the return type of the abstract method in the parent class.\n\n
+    For example the following is now valid (and <tt>MyConcreteClass</tt> is not abstract, whereas previously because the return types in the child class were not exact, <tt>MyConcreteClass</tt> would be considered abstract by qore):
+    @code
+class MyAbstractClass {
+    abstract any doSomething();
+    abstract *string getString();
+}
+
+class MyConcreteClass {
+    int doSomething() {
+        return 1;
+    }
+    string getString() {
+        return "hello";
+    }
+}
+    @endcode    
+
     @par DBI Improvements
     Three new DBI capabilities were implemented, including a new option API as follows:
     - @ref Qore::SQL::DBI_CAP_HAS_NUMBER_SUPPORT "DBI_CAP_HAS_NUMBER_SUPPORT": DBI drivers declaring this capability can accept @ref number "number" values and can also return @ref number "number" values, if a DBI driver does not declare this capability, then @ref number "number" values sent for binding by value are automatically converted to @ref float "float" values before being sent to the driver

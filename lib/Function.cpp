@@ -47,8 +47,8 @@ bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig)
       return false;
    }
 
-   if (!returnTypeInfo->isOutputIdentical(sig.returnTypeInfo)) {
-      printd(0, "AbstractFunctionSignature::operator==() rt: %s != %s (%p %p)\n", returnTypeInfo->getName(), sig.returnTypeInfo->getName(), returnTypeInfo, sig.returnTypeInfo);
+   if (!sig.returnTypeInfo->isOutputCompatible(returnTypeInfo)) {
+      //printd(5, "AbstractFunctionSignature::operator==() rt: %s is not compatible with %s (%p %p)\n", returnTypeInfo->getName(), sig.returnTypeInfo->getName(), returnTypeInfo, sig.returnTypeInfo);
       return false;
    }
 

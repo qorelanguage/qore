@@ -474,6 +474,30 @@ bool QoreTypeInfo::isInputIdentical(const QoreTypeInfo* typeInfo) const {
    return true;
 }
 
+// if the argument's return type is compatible with "this"'s return type
+bool QoreTypeInfo::isOutputCompatible(const QoreTypeInfo* typeInfo) const {
+   if (!hasType())
+      return true;
+
+   if (!typeInfo->hasType())
+      return false;
+
+   // from this point on, we know that both have types and are not NULL
+   if (!typeInfo->returns_mult) {
+      //printd(0, "QoreTypeInfo::isOutputCompatible(%p '%s') this: %p '%s' (qc: %p qt: %d) ti->qc: %p ti->qt: %d\n", typeInfo, typeInfo->getName(), this, getName(), qc, qt, typeInfo->qc, typeInfo->qt);
+      return typeInfo->qc ? parseReturnsClass(typeInfo->qc) : parseReturnsType(typeInfo->qt);
+   }
+
+   const type_vec_t &their_rt = typeInfo->getReturnTypeList();
+
+   for (type_vec_t::const_iterator j = their_rt.begin(), je = their_rt.end(); j != je; ++j) {
+      if (!isOutputCompatible(*j))
+         return false;
+   }
+
+   return true;
+}
+
 bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo* typeInfo) const {
    bool thisnt = (!hasType());
    bool typent = (!typeInfo->hasType());

@@ -628,11 +628,10 @@ while ($stmt.next()) {
     @note
     - Equivalent to SQLStatement::fetchRow()
     - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
-    - This method has to have the same signature as AbstractIterator::getValue() therefore the return type is @ref any_type "any", however the method's return value are really restricted to @ref hash_or_nothing_type "*hash"
 
     @since %Qore 0.8.5
  */
-any SQLStatement::getValue() {
+*hash SQLStatement::getValue() {
    return stmt->fetchRow(xsink);
 }
 

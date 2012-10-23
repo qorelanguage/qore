@@ -4042,7 +4042,7 @@ const char* MethodVariantBase::getAbstractSignature() {
       // make sure signature is resolved before building signature string
       parseResolveUserSignature();
       AbstractFunctionSignature* sig = getSignature();
-      asig = getReturnTypeInfo()->getName();
+      //asig = getReturnTypeInfo()->getName();
       asig += '(';
       sig->addAbtractParameterSignature(asig);
       asig += ')';

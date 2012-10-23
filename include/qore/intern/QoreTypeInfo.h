@@ -774,6 +774,9 @@ public:
 
    DLLLOCAL bool isOutputIdentical(const QoreTypeInfo* typeInfo) const;
 
+   // if the argument's return type is compatible with "this"'s return type
+   DLLLOCAL bool isOutputCompatible(const QoreTypeInfo* typeInfo) const;
+
    // returns false if there is no type or if the type can be converted to a numeric value, true if otherwise
    DLLLOCAL bool nonNumericValue() const {
       if (!hasType())
