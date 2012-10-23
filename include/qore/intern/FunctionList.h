@@ -30,6 +30,8 @@
 #include <map>
 #include <string>
 
+class qore_ns_private;
+
 //  function calls are handled with FunctionCallNode
 class FunctionEntry {
    friend class FunctionList;
@@ -91,6 +93,10 @@ public:
    DLLLOCAL bool isPublic() const {
       return func->hasModulePublic();
    }
+
+   DLLLOCAL void updateNs(qore_ns_private* ns) {
+      func->updateNs(ns);
+   }
 };
 
 class ModuleImportedFunctionEntry : public FunctionEntry {
@@ -143,7 +149,7 @@ public:
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit();
    DLLLOCAL QoreListNode* getList();
-   DLLLOCAL void assimilate(FunctionList& fl);
+   DLLLOCAL void assimilate(FunctionList& fl, qore_ns_private* ns);
 };
 
 #endif

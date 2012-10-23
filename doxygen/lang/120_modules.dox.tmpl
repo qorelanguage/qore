@@ -123,7 +123,7 @@ public MyNamespace {
 }@endcode
     - @ref global_variables "global variables": only global variables declared <b><tt>public</tt></b> will be exported. ex: @code
 public namespace MyNamespace {
-    public our int MyNamespace::OurInt;
+    public our int $OurInt;
 }@endcode
 
     @note Global variable declarations in a namespace declaration cannot be initialized at the point they are declared, also, since @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS is set for user module @ref Qore::Program "Program" objects, global variables also cannot be initialized at the top-level.  Use the \c init closure to initialize the module and any global variables requiring initialization.

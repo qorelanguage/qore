@@ -735,6 +735,11 @@ public:
       return ns;
    }
 
+   // used when merging namespaces at parse-time
+   DLLLOCAL void updateNs(qore_ns_private* nns) {
+      ns = nns;
+   }
+
    // returns 0 for OK, -1 for error
    DLLLOCAL int parseCheckDuplicateSignatureCommitted(AbstractFunctionSignature* sig);
 

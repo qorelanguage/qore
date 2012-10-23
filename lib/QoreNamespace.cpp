@@ -1645,7 +1645,7 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
    pendClassList.assimilate(pns->pendClassList, *this);
 
    // assimilate pending functions
-   func_list.assimilate(pns->func_list);
+   func_list.assimilate(pns->func_list, this);
 
    // assimilate pending global variable declarations
    assert(pend_gvblist.empty());
@@ -1689,7 +1689,7 @@ void qore_ns_private::runtimeAssimilate(QoreNamespace* ans) {
    classList.assimilate(pns->classList, *this);
 
    // assimilate pending functions
-   func_list.assimilate(pns->func_list);
+   func_list.assimilate(pns->func_list, this);
 
    if (pns->class_handler) {
       assert(!class_handler);

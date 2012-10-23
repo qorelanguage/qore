@@ -132,11 +132,13 @@ void FunctionList::parseRollback() {
    }
 }
 
-void FunctionList::assimilate(FunctionList& fl) {
+void FunctionList::assimilate(FunctionList& fl, qore_ns_private* ns) {
    for (fl_map_t::iterator i = fl.begin(), e = fl.end(); i != e;) {
       fl_map_t::const_iterator li = fl_map_t::find(i->first);
-      if (li == end())
+      if (li == end()) {
 	 insert(fl_map_t::value_type(i->first, i->second));
+	 i->second->updateNs(ns);
+      }
       else {
 	 li->second->getFunction()->parseAssimilate(*(i->second->getFunction()));
 	 delete i->second;

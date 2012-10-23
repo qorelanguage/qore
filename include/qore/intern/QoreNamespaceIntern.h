@@ -532,7 +532,7 @@ public:
          if (ns->depth == ri->second)
             return;
 
-         // otherwise get the depth -> namespace map under thisname
+         // otherwise get the depth -> namespace map under this name
          nsmap_t::iterator i = nsmap.find(ns->name.c_str());
          assert(i != nsmap.end());
 
