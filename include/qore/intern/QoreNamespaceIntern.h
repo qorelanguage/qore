@@ -500,6 +500,71 @@ public:
    }
 };
 
+struct FunctionEntryInfo {
+   FunctionEntry* obj;
+
+   DLLLOCAL FunctionEntryInfo(FunctionEntry* o) : obj(o) {
+   }
+
+   DLLLOCAL unsigned depth() const {
+      return getNamespace()->depth;
+   }
+
+   DLLLOCAL qore_ns_private* getNamespace() const {
+      return obj->getFunction()->getNamespace();
+   }
+
+   DLLLOCAL void assign(FunctionEntry* n_obj) {
+      obj = n_obj;
+   }
+};
+
+typedef std::map<const char*, FunctionEntryInfo, ltstr> femap_t;
+class FunctionEntryRootMap : public femap_t {
+private:
+   // not implemented
+   DLLLOCAL FunctionEntryRootMap(const FunctionEntryRootMap& old);
+   // not implemented
+   DLLLOCAL FunctionEntryRootMap& operator=(const FunctionEntryRootMap& m);
+
+public:
+   DLLLOCAL FunctionEntryRootMap() {
+   }
+
+   DLLLOCAL void update(const char* name, FunctionEntry* obj) {
+      // get current lookup map entry for this object
+      femap_t::iterator i = find(name);
+      if (i == end())
+         insert(femap_t::value_type(name, FunctionEntryInfo(obj)));
+      else // if the old depth is > the new depth, then replace
+         if (i->second.depth() > obj->getFunction()->getNamespace()->depth)
+            i->second.assign(obj);
+   }
+
+   DLLLOCAL void update(femap_t::const_iterator ni) {
+      // get current lookup map entry for this object
+      femap_t::iterator i = find(ni->first);
+      if (i == end()) {
+         //printd(5, "FunctionEntryRootMap::update(iterator) inserting '%s' new depth: %d\n", ni->first, ni->second.depth());
+         insert(femap_t::value_type(ni->first, ni->second));
+      }
+      else {
+         // if the old depth is > the new depth, then replace
+         if (i->second.depth() > ni->second.depth()) {
+            //printd(5, "FunctionEntryRootMap::update(iterator) replacing '%s' current depth: %d new depth: %d\n", ni->first, i->second.depth(), ni->second.depth());
+            i->second = ni->second;
+         }
+         //else
+         //printd(5, "FunctionEntryRootMap::update(iterator) ignoring '%s' current depth: %d new depth: %d\n", ni->first, i->second.depth(), ni->second.depth());
+      }
+   }
+
+   FunctionEntry* findObj(const char* name) {
+      femap_t::iterator i = find(name);
+      return i == end() ? 0 : i->second.obj;
+   }
+};
+
 class NamespaceMap {
    friend class NamespaceMapIterator;
    friend class ConstNamespaceMapIterator;
@@ -635,7 +700,7 @@ public:
    }
 };
 
-typedef RootMap<FunctionEntry> fmap_t;
+typedef FunctionEntryRootMap fmap_t;
 
 typedef RootMap<ConstantEntry> cnmap_t;
 
@@ -669,11 +734,13 @@ protected:
       if (!fe)
          return -1;
 
+      assert(fe->getFunction()->getNamespace() == &ns);
+
       if (new_func) {
          fmap_t::iterator i = fmap.find(fe->getName());
          // only add to pending map if either not in the committed map or the depth is higher in the committed map
          if (i == fmap.end() || i->second.depth() > ns.depth)
-            pend_fmap.update(fe->getName(), &ns, fe);
+            pend_fmap.update(fe->getName(), fe);
       }
 
       return 0;      
@@ -701,9 +768,11 @@ protected:
       if (!fe)
          return -1;
 
+      assert(fe->getFunction()->getNamespace() == &ns);
+
       //printd(5, "qore_root_ns_private::importFunction() this: %p ns: %p '%s' (depth %d) func: %p %s\n", this, &ns, ns.name.c_str(), ns.depth, u, fe->getName());
 
-      fmap.update(fe->getName(), &ns, fe);
+      fmap.update(fe->getName(), fe);
       return 0;      
    }
 
@@ -715,7 +784,7 @@ protected:
       fmap_t::iterator i = fmap.find(name);
 
       if (i != fmap.end()) {
-         ns = i->second.ns;
+         ns = i->second.getNamespace();
          //printd(5, "qore_root_ns_private::runtimeFindFunctionIntern() this: %p %s found in ns: '%s' depth: %d\n", this, name, ns->name.c_str(), ns->depth);
          return i->second.obj->getFunction();
       }
@@ -1094,7 +1163,9 @@ protected:
    DLLLOCAL void rebuildIndexes(qore_ns_private* ns) {
       // process function indexes
       for (fl_map_t::iterator i = ns->func_list.begin(), e = ns->func_list.end(); i != e; ++i) {
-         fmap.update(i->first, ns, i->second);
+         assert(i->second->getFunction()->getNamespace() == ns);
+
+         fmap.update(i->first, i->second);
          //printd(5, "qore_root_ns_private::rebuildIndexes() this: %p ns: %p func %s\n", this, ns, i->first);
       }
 
@@ -1116,8 +1187,10 @@ protected:
       //printd(5, "qore_root_ns_private::parseRebuildIndexes() this: %p ns: %p (%s) depth %d\n", this, ns, ns->name.c_str(), ns->depth);
       
       // process function indexes
-      for (fl_map_t::iterator i = ns->func_list.begin(), e = ns->func_list.end(); i != e; ++i)
-         pend_fmap.update(i->first, ns, i->second);
+      for (fl_map_t::iterator i = ns->func_list.begin(), e = ns->func_list.end(); i != e; ++i) {
+         assert(i->second->getFunction()->getNamespace() == ns);
+         pend_fmap.update(i->first, i->second);
+      }
 
       // process pending variable indexes
       for (map_var_t::iterator i = ns->var_list.pending_vmap.begin(), e = ns->var_list.pending_vmap.end(); i != e; ++i)

@@ -321,8 +321,9 @@ void qore_ns_private::addBuiltinVariantIntern(const char* fname, AbstractQoreFun
    qore_root_ns_private* rns = getRoot();
    if (!rns)
       return;
-   
-   rns->fmap.update(fe->getName(), this, fe);
+
+   assert(fe->getFunction()->getNamespace() == this);
+   rns->fmap.update(fe->getName(), fe);
 }
 
 void QoreNamespaceList::parseAssimilate(QoreNamespaceList& n, qore_ns_private* parent) {

@@ -200,6 +200,7 @@ class MyConcreteClass {
     - fixed a bug in split with quote (<string>::split(string, string, bool) and Qore::split(string, string, string, bool)) if the separator pattern was not found and the single field was not quoted either
     - fixed a bug handling nested @ref ifdef "%ifdef" and @ref ifndef "%ifndef" blocks with @ref else "%else" in the inside block
     - fixed a crashing due to the failure to clear the "PF_TOP_LEVEL" flag when initializing statements, this could cause temporary variables in a statement to be marked as the start of the global thread-local variable list, and then after such variables are deleted, then a crash happens when trying to access the global thread-local variable list
+    - fixed a crashing bug at parse time merging function lists in namespaces declared multiple times
     - added code tags to @ref Qore::File "File" methods without side effects
     - made many minor documentation fixes
 
