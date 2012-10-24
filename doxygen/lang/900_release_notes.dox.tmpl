@@ -19,14 +19,15 @@
     if ($str)
         printf("Qore says hello\n");
     @endcode
-    Previously (i.e. with @ref strict-bool-eval "%strict-bool-eval") the <tt><b>if</b></tt> expression above would be evaluated as @ref Qore::False "False" because the string value was converted to an integer 0, however as of %Qore 0.8.6 (with the default @ref perl-bool-eval "perl-bool-eval") it is @ref Qore::True "True" since the string is not empty; only an empty string is evaluated as @ref Qore::False "False".\n\n
+    Previously (i.e. with @ref strict-bool-eval "%strict-bool-eval") the <tt><b>if</b></tt> expression above would be evaluated as @ref Qore::False "False" because the string value was converted to an integer 0, however as of %Qore 0.8.6 (with the default @ref perl-bool-eval "perl-bool-eval") it is @ref Qore::True "True" since the string is not empty; empty strings and string value \c "0" are evaluated as @ref Qore::False "False".\n\n
     Perhaps counterintuitively (and the reason this was changed to be the default in qore), the chance for regression errors in
     qore code is very small, because for all cases where the old logic could be applied (meaning excluding cases where the result
-    was by default @ref Qore::False "False" due to the data types being evaluated), the results are the same with the new logic,
-    exluding the case where a string is made up of more than one \c "0".  In this case, the old logic would always return @ref Qore::False "False",
-    because the value was first converted to an integer, whereas the new logic will return @ref Qore::True "True".  Note that in 
-    the case of a string with a single \c "0", both the old and new boolean logic returns @ref Qore::False "False".\n\n
-    Basically with this option set, qore's boolean evaluation becomes like perl's and Python's, whereas any expression that has the following values is @ref Qore::False "False": @ref nothing, @ref string "string" \c "0" and @ref string "empty strings", @ref integer "integer", @ref float "float", and @ref number "number" \c 0 (zero), @ref absolute_dates "absolute date" \c 1970-01-01Z (ie the start of the epoch with an offset of 0), @ref relative_dates "relative date" \c PT0H (ie any  @ref relative_dates "relative date" with a 0 duration), @ref null, @ref binary "empty binary objects", @ref hash "empty hashes", and @ref list "empty lists".  All other values are @ref Qore::True "True".
+    was always @ref Qore::False "False" due to the data types or values being evaluated), the results are the same with the new logic,
+    except for one case; the case where a string has more than one character and begins with a zero (ex: \c "00").
+    In this case, the old logic would always return @ref Qore::False "False", because the value was first converted to an integer \c 0,
+    whereas the new logic will return @ref Qore::True "True".  Note that in the case of a string with a single \c "0", both the old and
+    new boolean logic returns @ref Qore::False "False".\n\n
+    Basically with this option set, qore's boolean evaluation becomes like perl's and Python's, whereas any expression that has the following values is @ref Qore::False "False": @ref nothing, @ref string "string" \c "0" and @ref string "empty strings", @ref integer "integer", @ref float "float", and @ref number "number" \c 0 (zero), @ref absolute_dates "absolute date" \c 1970-01-01Z (ie the start of the epoch with an offset of 0), @ref relative_dates "relative date" \c 0s (or any  @ref relative_dates "relative date" with a 0 duration), @ref null, @ref binary "empty binary objects", @ref hash "empty hashes", and @ref list "empty lists".  All other values are @ref Qore::True "True".
     @note also affects the @ref Qore::boolean(any) "boolean(any)" function
 
     @par Changes in the Socket Class
@@ -192,6 +193,7 @@ class MyConcreteClass {
       - @ref Qore::xrange() "xrange()"
     - new methods:
       - @ref Qore::ReadOnlyFile::isTty() and @ref Qore::ReadOnlyFile::getFileName() (the @ref Qore::ReadOnlyFile class was added in qore 0.8.6 otherwise made up of methods formerly belonging to the @ref Qore::File class)
+    - added the @ref append-module-path "%append-module-path" parse directive
     - updated docs to show functional restrictions tagged at the class level
 
     @subsection qore_086_bug_fixes Bug Fixes in Qore

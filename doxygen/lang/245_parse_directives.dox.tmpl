@@ -9,6 +9,8 @@
     <b>Parse Directives</b>
     |!Directive|!Description
     |@ref allow-bare-refs "%allow-bare-refs"|Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs.<br><br>This parse option is set by default with @ref new-style "%new-style".<br><br>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants.<br><br>Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set; see also @ref require-dollar "%require-dollar" <br><br>Since %Qore 0.8.1
+    |@ref append-include-path "%append-include-path"|Appends the given directories to qore's include path; also performs environment variable substitution
+    |@ref append-module-path "%append-module-path"|Appends the given directories to qore's module path; also performs environment variable substitution <br><br>Since %Qore 0.8.6
     |@ref assume-global "%assume-global"|Resets the default %Qore behavior of assuming global variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present; use after @ref assume-local "%assume-local" to reset the default parsing behavior.<br><br>This parse option is also set with @ref old-style "%old-style" <br><br>Since %Qore 0.8.4
     |@ref assume-local "%assume-local"|Assume local variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present. When used with @ref allow-bare-refs "%allow-bare-refs", local variables without @ref my "my" must be declared with a data type restriction (can be @ref any_type "any").<br><br>This parse option is set by default with @ref new-style "%new-style"; see also @ref assume-global "%assume-global" <br><br>Since %Qore 0.8.1
     |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
@@ -89,6 +91,44 @@
     @since %Qore 0.8.1
 
     @see @ref require-dollar "%require-dollar"
+
+    <hr>
+    @section append-include-path %append-include-path
+
+    @par Parse Directive:
+    <tt>%%append-include-path</tt> <em>dir1[:dir2...]</em>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Appends the given directories to qore's include path; also performs environment variable substitution.  Only directories that exist and 
+    are readable are added to the include path.
+
+    @see @ref append-module-path "%append-module-path"
+
+    <hr>
+    @section append-module-path %append-module-path
+
+    @par Parse Directive:
+    <tt>%%append-module-path</tt> <em>dir1[:dir2...]</em>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Appends the given directories to qore's module path; also performs environment variable substitution.  Only directories that exist and 
+    are readable are added to the module path.
+
+    @since %Qore 0.8.6
+
+    @see @ref %append-include-path "%append-include-path"
 
     <hr>
     @section assume-global %assume-global
