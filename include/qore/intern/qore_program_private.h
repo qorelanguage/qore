@@ -419,15 +419,15 @@ private:
 
 public:
    DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options) : qore_program_private_base(n_pgm, n_parse_options) {
-      printd(5, "qore_program_private::qore_program_private() this=%p pgm=%p\n", this, pgm);
+      printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
    }
 
    DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm) : qore_program_private_base(n_pgm, n_parse_options, p_pgm) {
-      printd(5, "qore_program_private::qore_program_private() this=%p pgm=%p\n", this, pgm);
+      printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
    }
    
    DLLLOCAL ~qore_program_private() {
-      printd(5, "qore_program_private::~qore_program_private() this=%p pgm=%p\n", this, pgm);
+      printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p\n", this, pgm);
       assert(!parseSink);
       assert(!warnSink);
       assert(!pendingParseSink);

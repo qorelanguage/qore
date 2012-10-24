@@ -211,7 +211,8 @@ class MyConcreteClass {
     - fixed a crashing due to the failure to clear the "PF_TOP_LEVEL" flag when initializing statements, this could cause temporary variables in a statement to be marked as the start of the global thread-local variable list, and then after such variables are deleted, then a crash happens when trying to access the global thread-local variable list
     - fixed a crashing bug at parse time merging function lists in namespaces declared multiple times
     - fixed a bug in executing user module init() closures
-    - added code to detect when the same namespace is declared both with and without the @ref mod_public "public keyword" when defining user modules which can result in entire namespaces being silently not exported (and can be difficult to debug)
+    - fixed a bug where the qore library could crash when destroying a Program object due to a race condition in removing signal handlers managed by the Program object; the Program calls the signal handler manager to remove the signals, but the signals can be removed concurrently to the request while the Program object is iterating the signal set (ie it is modified while being iterated), which causes a crash
+    - added code to detect when the same namespace is declared both with and without the @ref mod_public "public keyword" when defining user modules which can result in entire namespaces being silently not exported (and can be difficult to debug); now a parse exception is thrown if this happens while parsing a user module
     - added code tags to @ref Qore::File "File" methods without side effects
     - made many minor documentation fixes
 

@@ -202,6 +202,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
    }
 
    if (clr) {
+      //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p clr: %d\n", this, clr);
       // delete all global variables
       qore_root_ns_private::clearData(*RootNS, xsink);
 
@@ -212,9 +213,12 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
       }
 
 #ifdef HAVE_SIGNAL_HANDLING
-      // clear all signal handlers managed by this program
-      for (int_set_t::iterator i = sigset.begin(), e = sigset.end(); i != e; ++i)
-         QSM.removeHandler(*i, xsink);
+      {
+         int_set_t ns = sigset;
+         // clear all signal handlers managed by this program
+         for (int_set_t::iterator i = ns.begin(), e = ns.end(); i != e; ++i)
+            QSM.removeHandler(*i, xsink);
+      }
 #endif
 
       // merge pending parse exceptions into the passed exception sink, if any
