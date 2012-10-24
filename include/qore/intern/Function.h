@@ -696,8 +696,8 @@ public:
    }
 
    // copy constructor when importing public user variants from user modules into Program objects
-   DLLLOCAL QoreFunction(bool ignore, const QoreFunction& old)
-      : name(old.name), ns(0), same_return_type(old.same_return_type),
+   DLLLOCAL QoreFunction(bool ignore, const QoreFunction& old, qore_ns_private* nns)
+      : name(old.name), ns(nns), same_return_type(old.same_return_type),
         parse_same_return_type(true), 
         unique_functionality(old.unique_functionality),
         unique_flags(old.unique_flags),

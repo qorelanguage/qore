@@ -1608,7 +1608,7 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
    classList.mergePublic(mns.classList, this);
 
    // merge in source functions
-   func_list.mergePublic(mns.func_list);
+   func_list.mergePublic(mns.func_list, this);
 
    // merge in global variables
    var_list.mergePublic(mns.var_list);
