@@ -43,7 +43,6 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-#include <deque>
 #include <string>
 #include <map>
 #include <vector>
@@ -60,8 +59,6 @@ QoreModuleManager QMM;
 ModuleManager MM;
 
 static bool show_errors = false;
-
-typedef std::deque<std::string> strdeque_t;
 
 QoreModuleDefContext::strset_t QoreModuleDefContext::vset;
 
@@ -197,16 +194,6 @@ public:
    }
 };
 
-//! non-thread-safe list of strings of directory names
-/** a deque should require fewer memory allocations compared to a linked list
- */
-class DirectoryList : public strdeque_t {
-public:
-   DLLLOCAL void addDirList(const char* str);
-};
-
-static DirectoryList moduleDirList;
-
 void DirectoryList::addDirList(const char* str) {
    if (!str)
       return;
@@ -328,23 +315,23 @@ ModuleManager::ModuleManager() {
 
 // to add a directory to the module directory search list, can only be called before init()
 void ModuleManager::addModuleDir(const char* dir) {
-   moduleDirList.push_back(dir);
+   QMM.addModuleDir(dir);
 }
 
-// to add a directory to the auto module directory search list, can only be called before init()
+// no longer supported; throws an exception
 void ModuleManager::addAutoModuleDir(const char* dir) {
-   printd(0, "ModuleManager::addAutoModuleDir() suppport for auto module directories was removed in 0.8.4\n");
+   printd(0, "ModuleManager::addAutoModuleDir() support for auto module directories was removed in 0.8.4\n");
    assert(false);
 }
 
 // to add a list of directories to the module directory search list, can only be called before init()
 void ModuleManager::addModuleDirList(const char* strlist) {
-   moduleDirList.addDirList(strlist);
+   QMM.addModuleDirList(strlist);
 }
 
-// to add a list of directories to the auto module directory search list, can only be called before init()
+// no longer supported; throws an exception
 void ModuleManager::addAutoModuleDirList(const char* strlist) {
-   printd(0, "ModuleManager::addAutoModuleDir() suppport for auto module directories was removed in 0.8.4\n");
+   printd(0, "ModuleManager::addAutoModuleDir() support for auto module directories was removed in 0.8.4\n");
    assert(false);
 }
 
@@ -586,7 +573,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	 }
       }
 
-      w++;
+      ++w;
    }
    
    xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "feature '%s' is not builtin and no module with this name could be found in the module path", name);
@@ -988,7 +975,7 @@ QoreHashNode *ModuleManager::getModuleHash() {
 QoreHashNode *QoreModuleManager::getModuleHash() {
    QoreHashNode *h = new QoreHashNode;
    AutoLocker al(mutex);
-   for (module_map_t::const_iterator i = map.begin(); i != map.end(); i++)
+   for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i)
       h->setKeyValue(i->second->getName(), i->second->getHash(), 0);
    return h;   
 }
@@ -1000,7 +987,7 @@ QoreListNode *ModuleManager::getModuleList() {
 QoreListNode *QoreModuleManager::getModuleList() {
    QoreListNode *l = new QoreListNode;
    AutoLocker al(mutex);
-   for (module_map_t::const_iterator i = map.begin(); i != map.end(); i++)
+   for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i)
       l->push(i->second->getHash());
    return l;
 }
@@ -1024,7 +1011,7 @@ char version_list_t::set(const char* v) {
       }
       else if (!isdigit(*p))
 	 return *p;
-      p++;
+      ++p;
    }
    //printd(0, "this=%p a=%s FINAL\n", this, a);
    push_back(atoi(a));

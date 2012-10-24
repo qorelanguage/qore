@@ -164,7 +164,7 @@ static QoreString *getIncludeFileName(char *file) {
    return rv;
 }
 
-// sets the time zone at parse time
+// sets the time zone at parse time - this function is exported in the library
 void parse_set_time_zone(const char *zone) {
    zone = trim_inplace(zone);
    if (!zone) {
@@ -175,13 +175,7 @@ void parse_set_time_zone(const char *zone) {
    getProgram()->parseSetTimeZone(zone);
 }
 
-void setIncludePath(const char *path) {
-    char *ip = trim(path);
-    if (!ip)
-	return;
-
-    QoreString npath; // for new path
-
+static void scanner_process_path(QoreString& npath, char* ip) {
     // scan through paths and:
     // 1: do environment variable substitution
     // 2: remove the paths that don't exist
@@ -191,83 +185,108 @@ void setIncludePath(const char *path) {
     while (true) {
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
        // do not assume ':' separates paths on windows if it's the second character in a path
-       if ((*p == ':' && p != lp + 1) || !*p) {
+       if ((*p == ':' && p != lp + 1) || !*p)
 #else
-       if (*p == ':' || !*p) {
+       if (*p == ':' || !*p)
 #endif
-	    // skip if at beginning of new path
-	    if (p != lp) {
-		QoreString tpath;
-		tpath.concat(lp, p - lp);
-		const char *sp = tpath.getBuffer();
-		//printd(5, "got path string: '%s'\n", sp);
+       {
+          // skip if at beginning of new path
+          if (p != lp) {
+             QoreString tpath;
+             tpath.concat(lp, p - lp);
+             const char *sp = tpath.getBuffer();
+             //printd(5, "got path string: '%s'\n", sp);
 
-		const char *i, *spt;
-		spt = sp;
+             const char *i, *spt;
+             spt = sp;
 
-		while ((i = strchr(spt, '$'))) {
-		    // find end of environment variable
-		    char *ep = (char *)++i;
-		    while (*ep && (*ep == '_' || isalnum(*ep)))
-			++ep;
-		    spt = i + 1;
-		    // perform variable substitution
-		    if (ep != i) {
-			char save = *ep;
-			*ep = '\0';
-			TempString val(SystemEnvironment::get(i));
-			//printd(5, "setIncludePath() found variable '$%s' = %s\n", i, val->getBuffer());			
-			*ep = save;
-			if (val && val->strlen()) {
-			   // see if environment value ends in the directory separator char, if so, and the
-			   // rest of the string starts with the directory separator char, then make sure the
-			   // character is not doubled (can cause problems on windows)
-			   if (val->getBuffer()[val->strlen() - 1] == QORE_DIR_SEP
-			       && *ep == QORE_DIR_SEP)
-			      ++ep;
+             while ((i = strchr(spt, '$'))) {
+                // find end of environment variable
+                char *ep = (char *)++i;
+                while (*ep && (*ep == '_' || isalnum(*ep)))
+                   ++ep;
+                spt = i + 1;
+                // perform variable substitution
+                if (ep != i) {
+                   char save = *ep;
+                   *ep = '\0';
+                   TempString val(SystemEnvironment::get(i));
+                   //printd(5, "set_include_path() found variable '$%s' = %s\n", i, val->getBuffer());
+                   *ep = save;
+                   if (val && val->strlen()) {
+                      // see if environment value ends in the directory separator char, if so, and the
+                      // rest of the string starts with the directory separator char, then make sure the
+                      // character is not doubled (can cause problems on windows)
+                      if (val->getBuffer()[val->strlen() - 1] == QORE_DIR_SEP
+                            && *ep == QORE_DIR_SEP)
+                         ++ep;
 
-			   // replace with value
-			   int pos = (int)(i - sp);			    
-			   //printd(5, "got $%s = '%s' (replacing %d char(s))\n", i, val->getBuffer(), ep - i + 1);
-			   tpath.replace(pos - 1, ep - i + 1, *val);			    
-			   // re-assign sp in case it's changed
-			   int diff = (int)(pos + val->strlen());
-			   sp = tpath.getBuffer();
-			   spt = sp + diff;
-			   //printd(5, "new string = '%s' ('%s')\n", sp, spt);
-			}
-		    }
-		}
-		struct stat sb;
-	    
-		//printd(5, "setIncludePath() trying '%s'\n", sp);
-		// add to path list if the directory exists
-		if (!stat(sp, &sb)) {
-		    //printd(5, "OK: adding '%s' to path list\n", sp);
-		    if (npath.strlen()) 
-			npath.concat(':');
-		    npath.concat(&tpath);
-		}
+                      // replace with value
+                      int pos = (int)(i - sp);
+                      //printd(5, "got $%s = '%s' (replacing %d char(s))\n", i, val->getBuffer(), ep - i + 1);
+                      tpath.replace(pos - 1, ep - i + 1, *val);
+                      // re-assign sp in case it's changed
+                      int diff = (int)(pos + val->strlen());
+                      sp = tpath.getBuffer();
+                      spt = sp + diff;
+                      //printd(5, "new string = '%s' ('%s')\n", sp, spt);
+                   }
+                }
+             }
+             struct stat sb;
 
-		if (!*p)
-		    break;
-	    }
-	    lp = ++p;
-	    continue;
-	}
+             //printd(5, "set_include_path() trying '%s'\n", sp);
+             // add to path list if the directory exists
+             if (!stat(sp, &sb)) {
+                //printd(5, "OK: adding '%s' to path list\n", sp);
+                if (npath.strlen())
+                   npath.concat(':');
+                npath.concat(&tpath);
+             }
+
+             if (!*p)
+                break;
+          }
+          lp = ++p;
+          continue;
+       }
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
-	// transform '/ characters to '\' characters
-	if (*p == '/')
-	   *p = '\\';
+       // transform '/ characters to '\' characters
+       if (*p == '/')
+          *p = '\\';
 #endif
 
-	++p;
+       ++p;
     }
-    
-    //printd(5, "setting include path: '%s'\n", npath.getBuffer());
-    getProgram()->parseSetIncludePath(npath.getBuffer());
+}
 
-    free(ip);
+static void append_module_path(const char* path) {
+   char *ip = trim(path);
+   if (!ip)
+      return;
+   ON_BLOCK_EXIT(free, ip);
+
+   QoreString npath; // for new path
+
+   scanner_process_path(npath, ip);
+
+   //printd(5, "appending module path: '%s'\n", npath.getBuffer());
+   QMM.addModuleDirList(npath.getBuffer());
+   //getProgram()->parseSetIncludePath(npath.getBuffer());
+}
+
+static void set_include_path(const char *path) {
+   char *ip = trim(path);
+   if (!ip)
+      return;
+   ON_BLOCK_EXIT(free, ip);
+
+   QoreString npath; // for new path
+
+   scanner_process_path(npath, ip);
+
+   //printd(5, "setting include path: '%s'\n", npath.getBuffer());
+   getProgram()->parseSetIncludePath(npath.getBuffer());
 }
 
 static inline char *remove_quotes(char *str) {
@@ -528,7 +547,7 @@ static void qore_parse_define(const char *pstr) {
    qore_program_private::parseDefine(getProgram(), QoreProgramLocation(), str.getBuffer(), v);
 }
 
-bool parse_is_defined(const char *pstr, bool def = true) {
+static bool parse_is_defined(const char *pstr, bool def = true) {
    QoreString str(pstr);
    str.trim();
    if (str.empty()) {
@@ -555,7 +574,7 @@ bool parse_is_defined(const char *pstr, bool def = true) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd set_zone try_module p_skip_to_endtry
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module p_skip_to_endtry
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -620,8 +639,13 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%push-parse-options{WS}*$              push_parse_options();
 ^%append-include-path{WS}+              BEGIN(append_path_state);
 <append_path_state>[^\t\n\r]+           {
-					   setIncludePath(yytext);
+					   set_include_path(yytext);
 					   BEGIN(INITIAL);
+                                        }
+^%append-module-path{WS}+               BEGIN(append_module_state);
+<append_module_state>[^\t\n\r]+         {
+                                           append_module_path(yytext);
+                                           BEGIN(INITIAL);
                                         }
 ^%set-time-zone{WS}+                    BEGIN(set_zone);
 <set_zone>[^\t\n\r]+                    {

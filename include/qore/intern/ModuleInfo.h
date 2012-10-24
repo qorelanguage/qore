@@ -35,6 +35,7 @@ extern "C" {
 
 #include <string>
 #include <map>
+#include <deque>
 
 // user module parse options
 #define USER_MOD_PO (PO_NO_TOP_LEVEL_STATEMENTS | PO_REQUIRE_PROTOTYPES | PO_REQUIRE_OUR | PO_IN_MODULE )
@@ -126,6 +127,18 @@ public:
    DLLLOCAL virtual void issueParseCmd(QoreString &cmd) = 0;
 };
 
+// list/dequeue of strings
+typedef std::deque<std::string> strdeque_t;
+
+//! non-thread-safe list of strings of directory names
+/** a deque should require fewer memory allocations compared to a linked list
+ */
+class DirectoryList : public strdeque_t {
+public:
+   DLLLOCAL void addDirList(const char* str);
+};
+
+static DirectoryList moduleDirList;
 class QoreModuleManager {
 private:
    // not implemented
@@ -138,12 +151,15 @@ protected:
    QoreThreadLock* mutex;
 
    // module blacklist
-   typedef std::map<const char* , const char* , ltstr> bl_map_t;
+   typedef std::map<const char*, const char*, ltstr> bl_map_t;
    bl_map_t mod_blacklist;
 
    // module hash
    typedef std::map<const char*, QoreAbstractModule*, ltstr> module_map_t;
    module_map_t map;   
+
+   // list of module directories
+   DirectoryList moduleDirList;
 
    DLLLOCAL QoreAbstractModule* findModuleUnlocked(const char* name) {
       module_map_t::iterator i = map.find(name);
@@ -188,6 +204,16 @@ public:
 
    DLLLOCAL QoreHashNode* getModuleHash();
    DLLLOCAL QoreListNode* getModuleList();
+
+   DLLLOCAL void addModuleDir(const char* dir) {
+      OptLocker al(mutex);
+      moduleDirList.push_back(dir);
+   }
+
+   DLLLOCAL void addModuleDirList(const char* strlist) {
+      OptLocker al(mutex);
+      moduleDirList.addDirList(strlist);
+   }
 };
 
 DLLLOCAL extern QoreModuleManager QMM;
