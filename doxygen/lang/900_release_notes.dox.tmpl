@@ -201,6 +201,8 @@ class MyConcreteClass {
     - fixed a bug handling nested @ref ifdef "%ifdef" and @ref ifndef "%ifndef" blocks with @ref else "%else" in the inside block
     - fixed a crashing due to the failure to clear the "PF_TOP_LEVEL" flag when initializing statements, this could cause temporary variables in a statement to be marked as the start of the global thread-local variable list, and then after such variables are deleted, then a crash happens when trying to access the global thread-local variable list
     - fixed a crashing bug at parse time merging function lists in namespaces declared multiple times
+    - fixed a bug in executing user module init() closures
+    - added code to detect when the same namespace is declared both with and without the @ref public "public keyword" when defining user modules which can result in entire namespaces being silently not exported (and can be difficult to debug)
     - added code tags to @ref Qore::File "File" methods without side effects
     - made many minor documentation fixes
 

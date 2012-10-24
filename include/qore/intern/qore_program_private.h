@@ -359,8 +359,8 @@ public:
         requires_exception(false), tclear(false),
         exceptions_raised(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), pgm(n_pgm) {
-      printd(5, "qore_program_private::init() this=%p pgm=%p\n", this, pgm);
-	 
+      printd(5, "qore_program_private::init() this: %p pgm: %p\n", this, pgm);
+
       if (p_pgm)
 	 setParent(p_pgm, n_parse_options);
       else {

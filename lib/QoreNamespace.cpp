@@ -1526,6 +1526,8 @@ int qore_ns_private::parseAddPendingClass(const NamedScope& n, QoreClass* oc) {
 }
 
 void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const {
+   //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s' mns: %p '%s'\n", this, name.c_str(), &mns, mns.name.c_str());
+
    // make sure there are no objects in the pending lists
    assert(mns.pendNSL.empty());
    assert(mns.pendConstant.empty());
@@ -1575,10 +1577,19 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
 
    // check subnamespaces
    for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
-      //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' checking %p '%s::' (pub: %d)\n", this, name.c_str(), i->second, i->second->getName(), qore_ns_private::isPublic(*i->second));
-      if (!qore_ns_private::isPublic(*i->second))
+      // see if a subnamespace with the same name exists
+      const QoreNamespace* cns = nsl.find(i->first);
+      if (!cns)
+         cns = pendNSL.find(i->first);
+
+      //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' checking %p '%s::' (pub: %d) cns: %p (pub: %d)\n", this, name.c_str(), i->second, i->second->getName(), i->second->priv->pub, cns, cns ? cns->priv->pub : false);
+      if (!i->second->priv->pub) {
+         if (cns && cns->priv->pub)
+            qmc.error("namespace '%s::%s' is declared both with and without the 'public' keyword", name.c_str(), i->first.c_str());
+
          continue;
-      
+      }
+
       // see if a class with the same name is present
       if (classList.find(i->first.c_str())) {
          qmc.error("namespace '%s::%s' clashes with an existing class of the same name", name.c_str(), i->first.c_str());
@@ -1589,11 +1600,10 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
          qmc.error("namespace '%s::%s' clashes with a pending class of the same name", name.c_str(), i->first.c_str());
          continue;
       }
-      // see if a subnamespace with the same name exists
-      const QoreNamespace* cns = nsl.find(i->first);
-      if (!cns)
-         cns = pendNSL.find(i->first);
       if (cns) {
+         if (!cns->priv->pub)
+            qmc.error("namespace '%s::%s' is declared both with and without the 'public' keyword", name.c_str(), i->first.c_str());
+
          cns->priv->scanMergeCommittedNamespace(*(i->second->priv), qmc);
          continue;
       }
@@ -1601,6 +1611,8 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
 }
 
 void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
+   //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s'\n", this, name.c_str());
+
    // merge in source constants
    constant.mergePublic(mns.constant);
 
@@ -1637,6 +1649,13 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
    assert(pns->nsl.empty());
    assert(pns->constant.empty());
    assert(pns->classList.empty());
+
+   // ensure that either both namespaces are public or both are not
+   if ((pub && !pns->pub) || (!pub && pns->pub)) {
+      std::string path;
+      getPath(path, true);
+      parse_error("namespace '%s' is declared both with and without the 'public' keyword", path.c_str());
+   }
 
    // assimilate pending constants
    // assimilate target list - if there were errors then the list will be deleted anyway

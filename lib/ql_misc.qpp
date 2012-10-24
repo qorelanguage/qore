@@ -729,14 +729,14 @@ parse($code, $filename);
 
     @see Qore::Program::parse()
 */
-nothing parse(string code, string label) [dom=EMBEDDED_LOGIC] {
+nothing parse(string code, string label) [dom=EMBEDDED_LOGIC,IN_MODULE] {
    getProgram()->parse(code, label, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing parse() [flags=RUNTIME_NOOP;dom=EMBEDDED_LOGIC] {
+nothing parse() [flags=RUNTIME_NOOP;dom=EMBEDDED_LOGIC,IN_MODULE] {
 }
 
 //! Returns the class name of the object passed

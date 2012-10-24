@@ -404,20 +404,35 @@ const WARN_WARNING_MASK_UNCHANGED = QP_WARN_WARNING_MASK_UNCHANGED;
 //@}
 
 //! Program objects allow %Qore programs to support subprograms with the option to restrict capabilities, for example, to support user-defined logic for application actions
-/** Parsing in %Qore happens in two steps; first all code is parsed to pending data structures, and then in the second stage, all references are resolved, and, if there are no errors, then all changes are committed to the Program object. Note that all parse actions (Program::parse(), Program::parsePending(), Program::parseCommit(), and Program::parseRollback()) are atomic; there is a thread lock on each Program object to ensure atomicity, and if any parse errors occur in any stage of parsing, any pending changes to the Program object are automatically rolled back. However parse actions that affect only one stage of the two stages of parsing (Program::parsePending(), Program::parseCommit() and Program::parseRollback()) are atomic within themselves, but not between calls, so one thread may inadvertently commit changes to a Program object if two or more threads are trying to perform transaction-safe two-stage parsing on a Program object without explicit user locking.
+/** Parsing in %Qore happens in two steps; first all code is parsed to pending data structures, and then in the second stage,
+    all references are resolved, and, if there are no errors, then all changes are committed to the Program object. Note that
+    all parse actions (Program::parse(), Program::parsePending(), Program::parseCommit(), and Program::parseRollback()) are atomic;
+    there is a thread lock on each Program object to ensure atomicity, and if any parse errors occur in any stage of parsing, any
+    pending changes to the Program object are automatically rolled back. However parse actions that affect only one stage of the two
+    stages of parsing (Program::parsePending(), Program::parseCommit() and Program::parseRollback()) are atomic within themselves,
+    but not between calls, so one thread may inadvertently commit changes to a Program object if two or more threads are trying to
+    perform transaction-safe two-stage parsing on a Program object without explicit user locking.
 
-    @ref parse_options "Parse option constants" can be used to limit the capabilities of a Program object. These options should be binary-OR'ed together and passed to the Program object's constructor. Also see @ref command_line_processing for equivalent command-line options, and @ref parse_directives for equivalent parse directives.
+    @ref parse_options "Parse option constants" can be used to limit the capabilities of a Program object. These options should be
+    binary-OR'ed together and passed to the Program object's constructor. Also see @ref command_line_processing for equivalent
+    command-line options, and @ref parse_directives for equivalent parse directives.
 
-    Note that a program can provide controlled access to functionality otherwise restricted by parse options by exporting a custom API into the child program object using either the Program::importFunction() or Program::importGlobalVariable() method. This is possible because code (functions or object methods) imported into and called from a subprogram will run in the parent's space and therefore with the parent's capabilities.
+    Note that a program can provide controlled access to functionality otherwise restricted by parse options by exporting a custom API
+    into the child program object using either the Program::importFunction() or Program::importGlobalVariable() method. This is possible
+    because code (functions or object methods) imported into and called from a subprogram will run in the parent's space and therefore
+    with the parent's capabilities.
  */
 qclass Program [arg=QoreProgram* p];
 
 //! Creates the program object and optionally sets program capabilities (@ref parse_options "parse options")
-/** Note that if @ref PO_NO_CHILD_PO_RESTRICTIONS is not set in the parent Program when the new Program object is created, then the created Program object will have the parent's parse options added to its parse options as given by the argument to the constructor.
+/** Note that if @ref PO_NO_CHILD_PO_RESTRICTIONS is not set in the parent Program when the new Program object is created, then
+    the created Program object will have the parent's parse options added to its parse options as given by the argument to the constructor.
 
-    In other words, if @ref PO_NO_CHILD_PO_RESTRICTIONS is not set, it's not possible to create a child Program object with fewer restrictions than the parent Program object (any attempt to do so will be silently ignored). 
+    In other words, if @ref PO_NO_CHILD_PO_RESTRICTIONS is not set, it's not possible to create a child Program object with fewer
+    restrictions than the parent Program object (any attempt to do so will be silently ignored).
 
-    However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor will be applied literally to the child object.
+    However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor
+    will be applied literally to the child object.
 
     The Program constructor cannot be executed in user modules as it would work around Program security.
 
@@ -429,13 +444,29 @@ my Program $pgm();
     @endcode
 
     @throw PROGRAM-OPTION-ERROR invalid parse options used
+
+    @note the Program constructor ignores the parse option argument when called from a user module; in this case the parse options are
+    set exactly the same as the user module's and they are locked and cannot be changed.  This is to prevent circumvention of parse
+    option security by a user module.
  */
 Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
    if (po & PO_SYSTEM_OPS) {
       xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", po);
       return;
    }
-   self->setPrivate(CID_PROGRAM, new QoreProgram(getProgram(), po));
+
+   int64 current_po = getParseOptions();
+   bool user_module = current_po & PO_IN_MODULE;
+   // set parse options for user modules
+   if (user_module)
+      po = current_po & ~PO_SYSTEM_OPS;
+
+   QoreProgram* pgm = new QoreProgram(getProgram(), po);
+
+   if (user_module)
+      pgm->lockOptions();
+
+   self->setPrivate(CID_PROGRAM, pgm);
 }
 
 //! Throws an exception to prevent objects of this class from being copied
