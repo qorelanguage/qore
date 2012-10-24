@@ -244,10 +244,8 @@ int <string>::rfind(softstring substr, softint pos = -1) [flags=RET_VALUE_ONLY] 
    return str->rindex(*substr, (qore_offset_t)pos, xsink);
 }
 
-//! Returns @ref False if the string is empty, @ref True if not
-/** The opposite of <string>::empty()
-
-    @return @ref False if the string is empty, @ref True if not
+//! Returns @ref False if the string is empty or has the exact value \c "0", @ref True if not (note that if @ref strict-bool-eval "%strict-bool-eval" is set, this method returns a boolean value corresponding to the string value after conversion to a numeric value)
+/** @return @ref False if the string is empty or has the exact value \c "0", @ref True if not (note that if @ref strict-bool-eval "%strict-bool-eval" is set, this method returns a boolean value corresponding to the string value after conversion to a numeric value)
 
     @par Example:
     @code

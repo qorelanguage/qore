@@ -189,7 +189,7 @@ void qore_ns_private::setPublic() {
 FunctionEntry* qore_ns_private::addPendingVariantIntern(const char* fname, AbstractQoreFunctionVariant* v, bool& new_func) {
    SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
 
-   if (!pub && v->isModulePublic())
+   if (!pub && v->isModulePublic() && checkParseOption(PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "function variant '%s::%s(%s)' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), fname, v->getSignature()->getSignatureText(), name.c_str());
 
    FunctionEntry* fe = func_list.findNode(fname);
@@ -1243,7 +1243,7 @@ void qore_ns_private::checkGlobalVarDecl(Var* v, const NamedScope& vname) {
    if (!v->hasTypeInfo() && (po & PO_REQUIRE_TYPES))
       parse_error("global variable '%s' declared without type information, but parse options require all declarations to have type information", vname.ostr);
 
-   if (!pub && v->isPublic())
+   if (!pub && v->isPublic() && (po & PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "global variable '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), v->getName(), name.c_str());
 }
 
@@ -1421,7 +1421,7 @@ void qore_ns_private::parseRollback() {
 qore_ns_private *qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
    std::auto_ptr<QoreNamespace> nnsh(nns);
 
-   if (!pub && nns->priv->pub)
+   if (!pub && nns->priv->pub && checkParseOption(PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "namespace '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), nns->getName(), name.c_str());
 
    //printd(5, "qore_ns_private::parseAddNamespace() this=%p '%s' adding %p '%s' (exists %p)\n", this, getName(), ns, ns->getName(), priv->nsl.find(ns->getName()));
@@ -1460,7 +1460,7 @@ cnemap_t::iterator qore_ns_private::parseAddConstant(const char* cname, Abstract
       return pendConstant.end();
    }
 
-   if (cpub && !pub)
+   if (cpub && !pub && checkParseOption(PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "constant '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), cname, name.c_str());
 
    return pendConstant.parseAdd(cname, vh.release(), 0, cpub);
@@ -1482,7 +1482,7 @@ void qore_ns_private::parseAddConstant(const NamedScope& nscope, AbstractQoreNod
 int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
    std::auto_ptr<QoreClass> och(oc);
 
-   if (!pub && qore_class_private::isPublic(*oc))
+   if (!pub && qore_class_private::isPublic(*oc) && checkParseOption(PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "class '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), oc->getName(), name.c_str());
 
    //printd(5, "qore_ns_private::parseAddPendingClass() adding str=%s (%p)\n", oc->name, oc);
@@ -1575,6 +1575,8 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
          qmc.error("duplicate pending global variable %s::%s", name.c_str(), i->first);
    }
 
+   bool in_mod = checkParseOption(PO_IN_MODULE);
+
    // check subnamespaces
    for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
       // see if a subnamespace with the same name exists
@@ -1584,7 +1586,7 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
 
       //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' checking %p '%s::' (pub: %d) cns: %p (pub: %d)\n", this, name.c_str(), i->second, i->second->getName(), i->second->priv->pub, cns, cns ? cns->priv->pub : false);
       if (!i->second->priv->pub) {
-         if (cns && cns->priv->pub)
+         if (in_mod && cns && cns->priv->pub)
             qmc.error("namespace '%s::%s' is declared both with and without the 'public' keyword", name.c_str(), i->first.c_str());
 
          continue;
@@ -1601,7 +1603,7 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
          continue;
       }
       if (cns) {
-         if (!cns->priv->pub)
+         if (in_mod && !cns->priv->pub)
             qmc.error("namespace '%s::%s' is declared both with and without the 'public' keyword", name.c_str(), i->first.c_str());
 
          cns->priv->scanMergeCommittedNamespace(*(i->second->priv), qmc);
@@ -1651,7 +1653,7 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
    assert(pns->classList.empty());
 
    // ensure that either both namespaces are public or both are not
-   if ((pub && !pns->pub) || (!pub && pns->pub)) {
+   if (checkParseOption(PO_IN_MODULE) && ((pub && !pns->pub) || (!pub && pns->pub))) {
       std::string path;
       getPath(path, true);
       parse_error("namespace '%s' is declared both with and without the 'public' keyword", path.c_str());

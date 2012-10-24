@@ -117,6 +117,8 @@ bool QoreStringNode::getAsBoolImpl() const {
    QoreProgram* pgm = getProgram();
    if (pgm && (pgm->getParseOptions64() & PO_STRICT_BOOLEAN_EVAL))
       return atof(getBuffer());
+   if (priv->len == 1 && priv->buf[0] == '0')
+      return false;
    return !empty();
 }
 
