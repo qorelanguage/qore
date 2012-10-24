@@ -65,7 +65,6 @@
     - @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS "PO_NO_TOP_LEVEL_STATEMENTS": modules provide API services and are not designed to be executed at the top-level.  Put any initialization code in the module's \c init closure
     - @ref Qore::PO_REQUIRE_PROTOTYPES "PO_REQUIRE_PROTOTYPES": to ensure that module's APIs are transparent, all method and function declarations must include parameter and return types
     - @ref Qore::PO_REQUIRE_OUR "PO_REQUIRE_OUR": this parse option is meant to ensure that typos in variable names are caught at parse time and to ensure transparency of variable types in the module's source code
-    - @ref Qore::PO_NO_EMBEDDED_LOGIC "PO_NO_EMBEDDED_LOGIC": this parse option is necessary because without it, it is trivial to work around %Qore's functional restriction framework
     - @ref Qore::PO_IN_MODULE "PO_IN_MODULE": this parse option is set so that module code is recognized by the system when parsing modules
 
     When parsing module code, the default warning mask is set to @ref Qore::WARN_MODULES "WARN_MODULES", and any warnings are treated as errors.   Furthermore, any restrictions that the importing @ref Qore::Program "Program" object has will be added to the module's @ref Qore::Program "Program" object.
@@ -75,6 +74,8 @@
     Note that global variables exported from a module's @ref Qore::Program "Program" object are exported as references; each global variable declared in a module is unique, and they reside in the module's @ref Qore::Program "Program" object.
 
     Furthermore, when using an environment with multiple @ref Qore::Program "Program" objects, if a user module has already been loaded and initialized, then it's functional domain mask is compared against any importing @ref Qore::Program "Program" object's restrictions; if the module uses functionality that is not allowed in the importing @ref Qore::Program "Program" object, then an exception is raised and the module is not imported.
+
+    Also note that the @ref Qore::Program::constructor() applies a mask to the parse option mask option when @ref Qore::Program "Program" objects are created in a user module; in this case the parse options passed to the child @ref Qore::Program "Program" object are masked with the current parse options in the user module, and they are locked so that they cannot be made less restrictive.  This is to prevent user modules from circumventing functional restrictions imposed by parse options.
 
     @subsection user_module_declarations User Module Declarations
 

@@ -445,9 +445,10 @@ my Program $pgm();
 
     @throw PROGRAM-OPTION-ERROR invalid parse options used
 
-    @note the Program constructor ignores the parse option argument when called from a user module; in this case the parse options are
-    set exactly the same as the user module's and they are locked and cannot be changed.  This is to prevent circumvention of parse
-    option security by a user module.
+    @note the Program constructor ignores the parse option argument when called from a @ref user_modules "user module"; in this
+    case the parse options are set exactly the same as the @ref user_modules "user module's", and they are locked, so they cannot
+    be changed.  This is to prevent @ref user_modules "user module" from circumventing functional restrictions imposed by parse
+    options.
  */
 Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
    if (po & PO_SYSTEM_OPS) {
@@ -458,8 +459,13 @@ Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
    int64 current_po = getParseOptions();
    bool user_module = current_po & PO_IN_MODULE;
    // set parse options for user modules
-   if (user_module)
-      po = current_po & ~PO_SYSTEM_OPS;
+   if (user_module) {
+      assert(!(current_po & PO_NO_CHILD_PO_RESTRICTIONS));
+      // only allow positive options that are also set in the current Program
+      po &= ((PO_POSITIVE_OPTIONS & current_po & po) | ~PO_POSITIVE_OPTIONS);
+      // only allow options also set in the current pgm
+      po &= current_po;
+   }
 
    QoreProgram* pgm = new QoreProgram(getProgram(), po);
 

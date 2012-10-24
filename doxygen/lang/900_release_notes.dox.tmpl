@@ -194,6 +194,7 @@ class MyConcreteClass {
     - new methods:
       - @ref Qore::ReadOnlyFile::isTty() and @ref Qore::ReadOnlyFile::getFileName() (the @ref Qore::ReadOnlyFile class was added in qore 0.8.6 otherwise made up of methods formerly belonging to the @ref Qore::File class)
     - added the @ref append-module-path "%append-module-path" parse directive
+    - @ref user_modules "user modules" may now use @ref Qore::Program "Program" objects for embedded logic; any @ref Qore::Program "Program" objects created in a @ref user_modules "user module" will have its parse options masked to be not less restrictive than the parse options in the current @ref Qore::Program "Program", and additionally parse options will be locked so that user module are not able to circumvent function restrictions imposed by parse options.
     - updated docs to show functional restrictions tagged at the class level
 
     @subsection qore_086_bug_fixes Bug Fixes in Qore
