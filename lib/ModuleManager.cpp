@@ -144,7 +144,7 @@ int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
 
    {
       ProgramThreadCountContextHelper tch(&xsink, &pgm, true);
-      if (!xsink)
+      if (xsink)
          return -1;
 
       ReferenceHolder<> cn(reinterpret_cast<QoreClosureParseNode*>(init_c)->eval(&xsink), &xsink);
@@ -680,6 +680,8 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': no feature name present in module", path);
       return 0;
    }
+
+   //printd(5, "QoreModuleManager::loadUserModuleFromPath() path: %s name: %s feature: %s\n", path, name, feature);
 
    if (feature && strcmp(feature, name)) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': provides feature '%s', expecting feature '%s', skipping, rename module to %s.qm to load", path, name, feature, name);
