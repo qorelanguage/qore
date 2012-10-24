@@ -150,6 +150,7 @@ module foo {
     }
 }
 
+# do not use "$", assume local scope for variables
 %new-style
 
 # nothing in namespace ::Foo is exported
@@ -183,4 +184,25 @@ public namespace Bar {
 }@endcode
 
     @since %Qore 0.8.4 user modules are supported
+
+    @subsection user_module_program_scope Program Scope in User Modules
+
+    Note that when running qore code with the \c qore binary, the main @ref Qore::Program "Program" object will
+    go out of scope and become invalid when the last thread in the main @ref Qore::Program "Program" terminates.
+
+    Therefore when using a module that provides services in its own threads (such as, for example, the
+    <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module), it's important to make sure that the
+    main @ref Qore::Program "Program" does not go out of scope while code provided by the @ref Qore::Program "Program"
+    is needed (such as closures, call references, or handler objects given to the <a href="../../modules/HttpServer/html/index.html">HttpServer</a>
+    module that will be used as callbacks, etc).
+
+    If a module thread tries to use a callback or closure in a @ref Qore::Program "Program" that has already gone out of scope,
+    a \c PROGRAM-ERROR exception (\c "the program accessed has already been deleted").
+
+    Therefore in such cases, if there are no active threads in the main @ref Qore::Program "Program", then it's best to wait for
+    all threads in any modules to terminate before allowing the main @ref Qore::Program "Program" to terminate.
+
+    For an example of this, see the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module example code or the
+    example program <tt>examples/httpserver.q</tt> where the main @ref Qore::Program "Program" calls HttpServer::waitStop() before
+    exiting for this reason.
 */

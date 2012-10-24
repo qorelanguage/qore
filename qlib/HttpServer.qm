@@ -136,7 +136,7 @@ log("started listener on %s", $lh.desc);
 
 # do not exit this Program until the HTTP server has stopped; there is no code to stop it here,
 # so the program should be stopped with ctrl-c on the console or killed by a signal (on UNIX)
-# if we exit the program now, then the code in thie Program is unaccessible, so we have to make sure
+# if we exit the program now, then the code in this Program is unaccessible, so we have to make sure
 # that our Program stays in scope as long as the HTTP server is running (which runs in a different
 # Program object, because it's implemented as a user module)
 
