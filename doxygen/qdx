@@ -14,6 +14,7 @@ const opts = (
     "tex": "x,posttex",          # use TeX syntax for "post" processing
     "dox": "d,dox",
     "nmp": "N,no-mainpage",
+    "keepdollar": "k,keep-dollar",
     "help": "h,help"
     );
 
@@ -80,6 +81,7 @@ class qdx {
   -M,--module-dx=ARG  prepare doxyfile module template; ARG=<src>:<trg>
   -N,--no-mainpage    change @mainpage to @page
   -p,--post           post process files
+  -k,--keep-dollar    keep $ signs when post-processing
   -t,--tag=ARG        tag argument for doxyfile
   -h,--help           this help text
 ", get_script_name());
@@ -191,7 +193,10 @@ class qdx {
             line =~ s/__3_/*/g;
 	    line =~ s/__4_/./g;
 	    line =~ s/__5_/-/g;
-	    line =~ s/__6_//g;
+            if (o.keepdollar)
+                line =~ s/__6_/$/g;
+            else
+                line =~ s/__6_//g;
 	    line =~ s/__7_ /*/g; #//;
 
 	    # remove "inline" tags
@@ -271,6 +276,9 @@ class qdx {
 	int nbc = 0;
 
 	bool in_doc = False;
+
+        # namespace stack
+        list nss = ();
 
 	while (exists (*string line = inf.readLine())) {
             #printf("line: %s", line);
@@ -383,14 +391,15 @@ class qdx {
             # temporary string variable
 	    *string xs = (line =~ x/^[[:space:]]*namespace[[:space:]]+(\w+(::\w+)?)/)[0];
 	    if (xs.val()) {
-                if (!ns_name.empty())
-                    throw "NS-ERROR", sprintf("current ns: %s; found nested ns: %s", ns_name, line);
+                if (!ns_name.empty()) {
+                    nss += ns_name;
+                    #throw "NS-ERROR", sprintf("current ns: %s; found nested ns: %s", ns_name, line);
+                }
 
 		#printf("namespace %n\n", xs);
 		ns_name = xs;
 
-		if (nbc != 0)
-		    throw "ERROR", sprintf("namespace found but nbc=%d\nline=%n\n", cbc, line);
+		#if (nbc != 0) throw "ERROR", sprintf("namespace found but nbc: %d\nline: %n\n", nbc, line);
 
 		if (line =~ /{/ && line !~ /}/)
 		    ++nbc;
@@ -457,9 +466,9 @@ class qdx {
 		    else if (line =~ /}/) {
 			--nbc;
 			if (!nbc) {
-			    line =~ s/}/};/;
-			    delete ns_name;
+			    line =~ s/}/};/;                            
 			}
+                        ns_name = pop nss;
 		    }
 		}
 	    }
