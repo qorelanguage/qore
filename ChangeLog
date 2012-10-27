@@ -1,3 +1,1160 @@
+2012-10-25 16:53  david_nichols
+
+	* doxygen/qdx: updated qdx to deal properly with nested namespaces
+
+2012-10-24 18:57  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, lib/QC_Program.qpp: make
+	  sure that Program objects created in user modules have a subset
+	  of the current program's parse options and have their options
+	  locked so that they cannot be made less restrictive
+
+2012-10-24 18:02  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/245_parse_directives.dox.tmpl, qlib/HttpServer.qm:
+	  doc updates
+
+2012-10-24 16:43  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_program_private.h, lib/QoreProgram.cpp:
+	  fixed a bug where the qore library could crash when destroying a
+	  Program object due to a race condition in removing signal
+	  handlers managed by the Program object; the Program calls the
+	  signal handler manager to remove the signals, but the signals can
+	  be removed concurrently to the request while the Program object
+	  is iterating the signal set (ie it is modified while being
+	  iterated), which causes a crash
+
+2012-10-24 14:17  david_nichols
+
+	* doxygen/lang/245_parse_directives.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl: doc updates
+
+2012-10-24 12:44  david_nichols
+
+	* doxygen/lang/245_parse_directives.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, lib/Pseudo_QC_All.qpp,
+	  lib/Pseudo_QC_String.qpp, lib/QoreNamespace.cpp,
+	  lib/QoreStringNode.cpp: updated boolean evaluation to make string
+	  "0" = False - eliminates the majority of the possibilities for
+	  regressions due to the new change
+
+2012-10-24 11:30  david_nichols
+
+	* include/qore/intern/ModuleInfo.h, lib/ModuleManager.cpp,
+	  lib/scanner.lpp: added the %append-module-path parse directive
+
+2012-10-24 09:24  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/ModuleInfo.h,
+	  include/qore/intern/qore_program_private.h, lib/QC_Program.qpp,
+	  lib/QoreNamespace.cpp, lib/ql_misc.qpp: fixed a bug where qore
+	  was not catching errors when namespaces are declared both public
+	  and not public in user modules which can result in entire
+	  namespaces being silently not exported from user modules
+
+2012-10-24 08:07  david_nichols
+
+	* lib/ModuleManager.cpp: fixed a bug in the module loading code
+	  where user modules declaring an init closure could not be loaded
+
+2012-10-24 06:29  david_nichols
+
+	* include/qore/intern/Function.h,
+	  include/qore/intern/FunctionList.h, lib/QoreNamespace.cpp:
+	  finally fixed the last issue with merging/assimilating function
+	  lists in namespaces (managing the namespace ptr - it was not
+	  managed when importing public functions exported from a user
+	  module)
+
+2012-10-23 20:33  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreNamespaceIntern.h, lib/QoreNamespace.cpp:
+	  + another fix to the function list / namespace merge problem
+	  + doc updates
+
+2012-10-23 19:46  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/FunctionList.h,
+	  include/qore/intern/QoreNamespaceIntern.h, lib/FunctionList.cpp,
+	  lib/QoreNamespace.cpp: + fixed a bug merging function lists in
+	  namespaces during parsing; when a namespace is declared more than
+	  once and functions have to be merged; the functions merged into
+	  the new namespace did not have their namespace ptrs updated
+	  + doc updates
+
+2012-10-23 18:02  david_nichols
+
+	* lib/QC_HashListIterator.qpp, lib/QC_ListHashIterator.qpp: fixed
+	  HashListIterator and ListHashIterator::getValue() to reflect the
+	  real return type
+
+2012-10-23 15:57  david_nichols
+
+	* lib/Makefile.am: mcorrect include directory order for cases when
+	  qore is already installed; make sure and use these include files
+	  first
+
+2012-10-23 15:42  david_nichols
+
+	* lib/Makefile.am: added rule to make sure that qpp is built before
+	  trying to use it
+
+2012-10-23 15:05  david_nichols
+
+	* doxygen/lang/215_classes.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreTypeInfo.h, lib/Function.cpp,
+	  lib/QC_FileLineIterator.qpp, lib/QC_SQLStatement.qpp,
+	  lib/QoreClass.cpp, lib/QoreTypeInfo.cpp: + fixed abstract
+	  signature enforcement; the return type was removed from the
+	  signature text and the return type check is now made such that
+	  the child return type in the concrete method only has to be
+	  compatible with the parent and doesn't have to be identical
+	  anymore
+	  + updated FileLineIterator::getValue() and
+	  SQLStatement::getValue() to reflect the real return types
+	  + updated release notes
+
+2012-10-23 09:06  david_nichols
+
+	* include/qore/intern/qore_ds_private.h,
+	  lib/QC_FileLineIterator.qpp, lib/QC_Program.qpp: * doc updates
+	  * added FileLineIterator::getLine() method (same as getValue()
+	  but with a string return type)
+
+2012-10-21 21:15  david_nichols
+
+	* command-line.cpp, doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/245_parse_directives.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/Restrictions.h, lib/BinaryNode.cpp,
+	  lib/CallReferenceNode.cpp, lib/ContextStatement.cpp,
+	  lib/DoWhileStatement.cpp, lib/ForEachStatement.cpp,
+	  lib/ForStatement.cpp, lib/IfStatement.cpp, lib/Makefile.am,
+	  lib/OnBlockExitStatement.cpp, lib/Operator.cpp,
+	  lib/ParseOptionMap.cpp, lib/Pseudo_QC_All.qpp,
+	  lib/Pseudo_QC_Binary.qpp, lib/Pseudo_QC_Bool.qpp,
+	  lib/Pseudo_QC_Callref.qpp, lib/Pseudo_QC_Date.qpp,
+	  lib/Pseudo_QC_Float.qpp, lib/Pseudo_QC_Hash.qpp,
+	  lib/Pseudo_QC_Int.qpp, lib/Pseudo_QC_List.qpp,
+	  lib/Pseudo_QC_Number.qpp, lib/Pseudo_QC_Object.qpp,
+	  lib/Pseudo_QC_String.qpp, lib/QC_Program.qpp,
+	  lib/QoreClosureNode.cpp, lib/QoreHashNode.cpp,
+	  lib/QoreListNode.cpp, lib/QoreObject.cpp, lib/QoreStringNode.cpp,
+	  lib/ReturnStatement.cpp, lib/StatementBlock.cpp,
+	  lib/SummarizeStatement.cpp, lib/SwitchStatement.cpp,
+	  lib/ThrowStatement.cpp, lib/TryStatement.cpp,
+	  lib/WhileStatement.cpp, lib/ql_type.qpp, lib/scanner.lpp,
+	  test/file-test.q, test/unlocked-thread-test.q: + updated
+	  %perl-bool-mode to be the default; changed %qore-bool-mode to be
+	  %strict-bool-mode; removed PO_PERL_BOOLEAN_EVAL and added
+	  PO_STRICT_BOOLEAN_EVAL
+	  + fixed a crashing due to the failure to clear the "PF_TOP_LEVEL"
+	  flag when initializing statements, this could cause temporary
+	  variables in a statement to be marked as the start of the global
+	  thread-local variable list, and then after such variables are
+	  deleted, then a crash happens when trying to access the global
+	  thread-local variable list
+	  + doc updates and corrections
+	  + wrote a better generic rule for building cpp files from qpp
+
+2012-10-21 05:49  david_nichols
+
+	* lib/Makefile.am: removed individual rules for cpp generation from
+	  qpp source and added 1 generic rule
+
+2012-10-20 21:00  david_nichols
+
+	* lib/QoreNumberNode.cpp: fixed a "use of unitialized variable"
+	  error
+
+2012-10-20 20:44  david_nichols
+
+	* configure.ac, include/qore/intern/qore_number_private.h,
+	  lib/QoreLib.cpp: allow qore to be built with old versions of mpfr
+	  without mpfr_sprintf
+
+2012-10-20 17:39  david_nichols
+
+	* qore.spec: updated spec for 0.8.6 release
+
+2012-10-20 16:13  david_nichols
+
+	* Makefile.am: added missing qpp file
+
+2012-10-20 15:58  david_nichols
+
+	* lib/QoreSocket.cpp: windows build fixes
+
+2012-10-20 10:49  david_nichols
+
+	* doxygen/lang/000_intro.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_date_private.h, qlib/CsvUtil.qm: + doc
+	  updates
+	  + fixed an assert() in debug mode with date(string, string) with
+	  invalid month values
+
+2012-10-20 10:16  david_nichols
+
+	* doxygen/lang/145_basic_data_types.dox.tmpl, doxygen/pdox,
+	  lib/QC_SingleValueIterator.qpp: doc updates; make sure that all
+	  tex files are post-processed
+
+2012-10-20 06:04  david_nichols
+
+	* doxygen/lang/215_classes.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, doxygen/pdox,
+	  lib/Pseudo_QC_Float.qpp, lib/Pseudo_QC_Hash.qpp,
+	  lib/Pseudo_QC_Int.qpp, lib/Pseudo_QC_Object.qpp,
+	  lib/QC_RangeIterator.qpp, lib/QC_ReadOnlyFile.qpp,
+	  lib/ql_dbi.qpp, lib/ql_string.qpp, qlib/CsvUtil.qm: + doc updates
+	  + fixed latex reformatting
+
+2012-10-18 09:57  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreHashIterator.h, lib/QC_HashIterator.qpp:
+	  added 2 new HashIterator methods: getKeyValue() and
+	  getValuePair()
+
+2012-10-18 09:44  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_ds_private.h: fixed Datasource copy
+	  constructor - the port number was not being copied (regression -
+	  not present in last qore release)
+
+2012-10-18 09:39  david_nichols
+
+	* lib/DatasourcePool.cpp: cosmetic updates
+
+2012-10-18 07:33  subik
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/RangeIterator.h,
+	  include/qore/intern/XRangeIterator.h, lib/Makefile.am,
+	  lib/QC_RangeIterator.qpp, lib/QC_XRangeIterator.qpp,
+	  lib/QoreNamespace.cpp, lib/ql_list.qpp,
+	  lib/single-compilation-unit.cpp, test/test.q: XrangeIterator ->
+	  RangeIterator
+
+2012-10-17 17:36  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_thread_intern.h, lib/scanner.lpp,
+	  lib/thread.cpp: fixed a bug in nested %ifdef and %ifndef blocks
+	  with %else in the inside block
+
+2012-10-17 16:22  david_nichols
+
+	* include/qore/intern/QoreListHashIterator.h, test/test.q: + fixed
+	  ListHashIterator copy constructor
+	  + added more tests
+
+2012-10-17 14:58  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, include/qore/QoreFile.h,
+	  include/qore/QoreHashNode.h, include/qore/QoreListNode.h,
+	  include/qore/intern/QoreHashIterator.h,
+	  include/qore/intern/QoreHashListIterator.h,
+	  include/qore/intern/QoreListIterator.h,
+	  include/qore/intern/SingleValueIterator.h,
+	  include/qore/intern/XRangeIterator.h,
+	  lib/QC_FileLineIterator.qpp, lib/QC_HashIterator.qpp,
+	  lib/QC_HashListIterator.qpp, lib/QC_HashListReverseIterator.qpp,
+	  lib/QC_HashReverseIterator.qpp, lib/QC_ListHashIterator.qpp,
+	  lib/QC_ListHashReverseIterator.qpp, lib/QC_ListIterator.qpp,
+	  lib/QC_ListReverseIterator.qpp, lib/QC_ObjectIterator.qpp,
+	  lib/QC_ObjectReverseIterator.qpp, lib/QC_SingleValueIterator.qpp,
+	  lib/QC_XRangeIterator.qpp, lib/QoreFile.cpp,
+	  lib/QoreHashNode.cpp, lib/QoreListNode.cpp, qlib/CsvUtil.qm: +
+	  updated copy() methods for iterator classes to maintain the
+	  current position in the new iterator
+	  + added reset() methods to iterator classes
+	  + updated docs
+	  + other minor updates
+
+2012-10-17 12:48  subik
+
+	* include/qore/intern/XRangeIterator.h, lib/QC_XRangeIterator.qpp:
+	  XRangeIterator: do not use xsink as a class member
+
+2012-10-17 04:37  david_nichols
+
+	* qlib/CsvUtil.qm: * skip empty lines before trying to process
+	  header if "ignore-empty" is set
+	  * CsvUtil doc updates
+
+2012-10-17 04:32  david_nichols
+
+	* doxygen/qdx, qlib/CsvUtil.qm: * CvsUtil module doc updates
+	  * pdox fixes / improvements
+
+2012-10-16 13:58  david_nichols
+
+	* lib/QoreObject.cpp, qlib/CsvUtil.qm: * updated valid objects to
+	  always return True in boolean evaluation when %perl-bool-eval is
+	  enabled
+	  * other minor updates
+
+2012-10-16 13:45  david_nichols
+
+	* doxygen/lang/145_basic_data_types.dox.tmpl,
+	  doxygen/lang/195_statements.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, include/qore/QoreFile.h,
+	  include/qore/intern/QoreHashIterator.h,
+	  include/qore/intern/QoreHashListIterator.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreListHashIterator.h,
+	  include/qore/intern/QoreListIterator.h,
+	  include/qore/intern/QoreObjectIterator.h, lib/Operator.cpp,
+	  lib/Pseudo_QC_All.qpp, lib/Pseudo_QC_Callref.qpp,
+	  lib/Pseudo_QC_Closure.qpp, lib/Pseudo_QC_Hash.qpp,
+	  lib/Pseudo_QC_Object.qpp, lib/QC_FileLineIterator.qpp,
+	  lib/QC_HashIterator.qpp, lib/QC_HashListIterator.qpp,
+	  lib/QC_HashListReverseIterator.qpp,
+	  lib/QC_HashReverseIterator.qpp, lib/QC_ListHashIterator.qpp,
+	  lib/QC_ListIterator.qpp, lib/QC_ListReverseIterator.qpp,
+	  lib/QC_ObjectIterator.qpp, lib/QC_ObjectReverseIterator.qpp,
+	  lib/QC_ReadOnlyFile.qpp, lib/QC_TimeZone.qpp, lib/QoreFile.cpp,
+	  lib/ql_time.qpp, qlib/CsvUtil.qm: * fixed a bug where a bogus
+	  parse exception was thrown with %perl-bool-eval and the ?:
+	  operator
+	  * implemented many enhancements to the CsvFileIterator class in
+	  the new user module CsvUtil
+	  * implemented copy() methods for most iterator classes (all but
+	  XRangeIterator)
+	  * implemented a new option for HashIterator (and descendent
+	  classes) - passing True to the constructor changes the behavior
+	  of the getValue() method to return a hash with "key" and "value"
+	  keys so that both are available when iterating with a construct
+	  that only uses getValue() (such as the foreach statement)
+	  * the <hash>::iterator() and <object>::iterator() pseudo-methods
+	  now return hash iterators that return the "key" and "value" keys
+	  by default (ie as above)
+	  * added a new TimeZone::date(string, string) variant to parse a
+	  string date with a mask and set it in the given TimeZone
+	  * added a parse_boolean() function
+	  * many doc updates
+
+2012-10-16 05:32  david_nichols
+
+	* qlib/CsvUtil.qm: use namespace scope for FileLineIterator to make
+	  sure it's documented in doxygen
+
+2012-10-15 17:10  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QC_FileLineIterator.qpp, lib/QC_ReadOnlyFile.qpp,
+	  lib/ql_string.qpp, qlib/CsvUtil.qm: * fixed a bug in split with
+	  quote when the separator char is not present and the single field
+	  is not quoted
+	  * added the ReadOnlyFile::getFileName() method
+	  * added the initial version of the CsvUtil module with the
+	  CsvFileIterator class
+
+2012-10-15 14:27  subik
+
+	* include/qore/intern/XRangeIterator.h: make XRangeIterator
+	  consistent with other iterators - it's invalid by default
+
+2012-10-15 14:01  david_nichols
+
+	* include/qore/intern/AbstractIteratorHelper.h,
+	  lib/ForEachStatement.cpp, lib/QC_XRangeIterator.qpp:
+	  XRangeIterator updates
+
+2012-10-15 13:16  subik
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/XRangeIterator.h, lib/Makefile.am,
+	  lib/QC_XRangeIterator.qpp, lib/QoreNamespace.cpp,
+	  lib/ql_list.qpp, lib/single-compilation-unit.cpp, test/test.q:
+	  XRangeIterator/xrange implemented
+
+2012-10-15 12:26  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreLibIntern.h, lib/Pseudo_QC_String.qpp,
+	  lib/QC_ReadOnlyFile.qpp, lib/ql_string.qpp: * doc updates
+	  * added a bool trim_unquoted = False option to <string>::split()
+	  with quote and split with quote to allow for trimming unquoted
+	  fields
+
+2012-10-15 11:35  david_nichols
+
+	* include/qore/intern/QoreObjectIntern.h, lib/QC_File.qpp,
+	  lib/QoreClass.cpp: make sure the class is initialized before
+	  executing a system constructor (or child classes are not tagged
+	  in private data)
+
+2012-10-15 10:58  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreHashIterator.h,
+	  include/qore/intern/QoreObjectIterator.h, lib/Makefile.am,
+	  lib/Pseudo_QC_Object.qpp, lib/QC_ObjectIterator.qpp,
+	  lib/QC_ObjectReverseIterator.qpp, lib/QoreNamespace.cpp,
+	  lib/single-compilation-unit.cpp: * added ObjectIterator and
+	  ObjectReverseIterator classes
+	  * added the <object>::iterator() pseudo-method
+
+2012-10-15 09:09  david_nichols
+
+	* Makefile.am, doxygen/lang/155_data_type_declarations.dox.tmpl,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/SingleValueIterator.h, lib/Makefile.am,
+	  lib/Pseudo_QC_All.qpp, lib/Pseudo_QC_Hash.qpp,
+	  lib/Pseudo_QC_List.qpp, lib/QC_FileLineIterator.qpp,
+	  lib/QC_SingleValueIterator.qpp, lib/QoreNamespace.cpp,
+	  lib/single-compilation-unit.cpp: * added a SingleValueIterator
+	  class
+	  * added new pseudo-methods:
+	  + <value>::iterator()
+	  + <hash>::iterator()
+	  + <list>::iterator()
+	  * fixed doc bus in the *timeout type restriction
+
+2012-10-15 06:24  david_nichols
+
+	* Makefile.am, doxygen/lang/Doxyfile.tmpl, doxygen/pdox: re-enabled
+	  text output for the qore main doc; updated pdox script to
+	  post-process text output correctly
+
+2012-10-14 18:55  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreFile.h, include/qore/intern/QC_File.h,
+	  lib/Makefile.am, lib/QC_File.qpp, lib/QC_FileLineIterator.qpp,
+	  lib/QC_ReadOnlyFile.qpp, lib/QoreFile.cpp, lib/QoreNamespace.cpp,
+	  lib/single-compilation-unit.cpp: * added a ReadOnlyFile class as
+	  a parent class to File for a more convenient API for reading
+	  files, File's API stays the same because it publically inherits
+	  ReadOnlyFile
+	  * renamed ReadOnlyFile::isTTY() to isTty() to stay consistent
+	  with the new naming convention
+	  * many small documentation corrections & updates
+
+2012-10-14 07:44  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: doc update
+
+2012-10-14 07:41  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, include/qore/QoreFile.h,
+	  lib/QC_File.qpp, lib/QC_FileLineIterator.qpp, lib/QC_Socket.qpp,
+	  lib/QoreFile.cpp: * added a File::isTTY() method (also to
+	  FileLineIterator)
+	  * the File and FileLineIterator constructors will now throw an
+	  exception if passed a TTY device when %no-terminal-io is set
+	  * added new methods to FileLineIterator
+	  * doc updates
+
+2012-10-13 18:12  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreFile.h, lib/Makefile.am, lib/QC_File.qpp,
+	  lib/QC_FileLineIterator.qpp, lib/QoreFile.cpp,
+	  lib/QoreNamespace.cpp, lib/qpp.cpp,
+	  lib/single-compilation-unit.cpp: * added the FileLineIterator
+	  class
+	  * updated the documentation to reflect function restrictions on
+	  the class level
+	  * updated the File::readLine() class to take 2 optional arguments
+	  to allow the eol characters to be specified and optionally
+	  stripped from the line returned
+
+2012-10-13 06:19  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreHashNode.h, include/qore/QoreSocket.h,
+	  include/qore/intern/QoreSQLStatement.h,
+	  lib/QC_AbstractIterator.qpp, lib/QC_HashIterator.qpp,
+	  lib/QC_HashListIterator.qpp, lib/QC_ListHashIterator.qpp,
+	  lib/QC_ListIterator.qpp, lib/QC_SQLStatement.qpp,
+	  lib/QoreHashNode.cpp, lib/QoreSQLStatement.cpp: * added
+	  AbstratIterator::valid() + concrete implementations in all
+	  iterator classes
+	  * doc updates
+
+2012-10-12 20:37  david_nichols
+
+	* doxygen/lang/180_operators.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, lib/QC_File.qpp: * doc
+	  updates
+	  * added code tags to File methods without side effects
+
+2012-10-12 16:39  david_nichols
+
+	* doxygen/lang/115_conditional_parsing.dox.tmpl,
+	  doxygen/lang/180_operators.dox.tmpl: doc updates
+
+2012-10-12 06:46  david_nichols
+
+	* examples/httpserver.q, qlib/HttpServer.qm: * added "listener-id"
+	  to context hash with AbstractHttpRequestHandler::handleRequest()
+	  * improved HttpServer example in user module mainpage
+	  * updated comments in httpserver example
+
+2012-10-11 04:54  david_nichols
+
+	* include/qore/intern/ParserSupport.h,
+	  include/qore/intern/VarRefNode.h, lib/ModuleManager.cpp,
+	  lib/parser.ypp, lib/scanner.lpp: implemented %try-module error
+	  variable support
+
+2012-10-10 18:47  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreSocket.h, include/qore/intern/ModuleInfo.h,
+	  include/qore/intern/ParserSupport.h,
+	  include/qore/intern/QC_Socket.h,
+	  include/qore/intern/SSLSocketHelper.h,
+	  include/qore/intern/qore_thread_intern.h, lib/QC_HTTPClient.qpp,
+	  lib/QC_Socket.qpp, lib/QoreHTTPClient.cpp, lib/QoreSocket.cpp,
+	  lib/mySocket.cpp, lib/parser.ypp, lib/ql_list.qpp,
+	  lib/scanner.lpp, lib/thread.cpp, qlib/HttpServer.qm: * fixed
+	  several bugs in non-blocking socket reads
+	  * implemented timeouts for all Socket send methods
+	  * fixed bugs in handling SSL_ERROR_WANT_READ and
+	  SSL_ERROR_WANT_WRITE with non-blocking Socket I/O
+	  * updated documentation
+	  * partially implemented the %try-module() parse command syntax
+	  for handling module load errors at parse time (not yet complete
+	  or documented)
+
+2012-10-10 07:37  subik
+
+	* lib/ql_list.qpp, test/test.q: range() implemented
+
+2012-10-09 20:12  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/HttpServer.qm:
+	  fixed bugs in regexes in the HttpServer::addListeners() and
+	  HttpServer::addListenersWithHandler() methods
+
+2012-10-08 15:11  david_nichols
+
+	* Makefile.am, doxygen/lang/180_operators.dox.tmpl,
+	  doxygen/lang/195_statements.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/AbstractIteratorHelper.h,
+	  include/qore/intern/ForEachStatement.h, lib/ForEachStatement.cpp,
+	  lib/Operator.cpp, lib/QC_AbstractIterator.qpp: * added support in
+	  the foreach statement for directly iterating objects derived from
+	  AbstractIterator
+	  * updated docs
+
+2012-10-08 12:55  david_nichols
+
+	* doxygen/lang/145_basic_data_types.dox.tmpl,
+	  doxygen/lang/150_container_data_types.dox.tmpl,
+	  doxygen/lang/215_classes.dox.tmpl, lib/Pseudo_QC_String.qpp,
+	  lib/ql_string.qpp: doc updates
+
+2012-10-05 05:42  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: doc update
+
+2012-10-05 05:37  david_nichols
+
+	* doxygen/lang/155_data_type_declarations.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/Pseudo_QC_Number.qpp, lib/QC_Datasource.qpp,
+	  lib/QC_DatasourcePool.qpp, lib/ql_string.qpp, lib/ql_type.qpp:
+	  doc updates
+
+2012-10-04 11:26  david_nichols
+
+	* doxygen/lang/245_parse_directives.dox.tmpl: fixed minor
+	  formatting issues
+
+2012-10-03 18:28  david_nichols
+
+	* command-line.cpp, doxygen/lang/245_parse_directives.dox.tmpl,
+	  include/qore/BinaryNode.h, include/qore/CallReferenceNode.h,
+	  include/qore/QoreHashNode.h, include/qore/QoreListNode.h,
+	  include/qore/QoreObject.h, include/qore/Restrictions.h,
+	  include/qore/intern/QoreClosureNode.h, lib/AbstractQoreNode.cpp,
+	  lib/BinaryNode.cpp, lib/CallReferenceNode.cpp,
+	  lib/DateTimeNode.cpp, lib/ParseOptionMap.cpp,
+	  lib/Pseudo_QC_All.qpp, lib/Pseudo_QC_Binary.qpp,
+	  lib/Pseudo_QC_Bool.qpp, lib/Pseudo_QC_Callref.qpp,
+	  lib/Pseudo_QC_Closure.qpp, lib/Pseudo_QC_Date.qpp,
+	  lib/Pseudo_QC_Float.qpp, lib/Pseudo_QC_Hash.qpp,
+	  lib/Pseudo_QC_Int.qpp, lib/Pseudo_QC_List.qpp,
+	  lib/Pseudo_QC_Number.qpp, lib/Pseudo_QC_Object.qpp,
+	  lib/Pseudo_QC_String.qpp, lib/QC_Dir.qpp, lib/QC_Program.qpp,
+	  lib/QoreClosureNode.cpp, lib/QoreHashNode.cpp,
+	  lib/QoreListNode.cpp, lib/QoreObject.cpp, lib/QoreStringNode.cpp,
+	  lib/ql_string.qpp, lib/ql_type.qpp, lib/scanner.lpp: implemented
+	  and documented the %perl-bool-eval parse option to allow
+	  perl-style boolean evaluation with Qore without changing the
+	  default behavior of the language for backwards-compatibility
+
+2012-10-03 17:48  david_nichols
+
+	* lib/qc_option.qpp: implemented the HAVE_SYMLINK option constant
+
+2012-10-03 13:57  david_nichols
+
+	* lib/Operator.cpp: fixed a bug in the map operator with a select
+	  expression when the list argument is NOTHING - would return a
+	  list with 1 element (NOTHING) instead of NOTHING if the select
+	  expression returned true with a NOTHING argument
+
+2012-09-30 20:11  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: doc updates
+
+2012-09-30 20:04  david_nichols
+
+	* lib/QC_SQLStatement.qpp: added an SQLStatement::memberGate()
+	  method so that query results can be dereferenced directly from
+	  the SQLStatement object when iterating with SQLStatement::next()
+
+2012-09-30 16:16  david_nichols
+
+	* doxygen/lang/000_intro.dox.tmpl: update to intro
+
+2012-09-30 16:05  david_nichols
+
+	* TODO, doxygen/lang/152_code_data_types.dox.tmpl,
+	  doxygen/lang/170_character_encoding.dox.tmpl,
+	  doxygen/lang/240_command_line_processing.dox.tmpl,
+	  doxygen/lang/245_parse_directives.dox.tmpl,
+	  lib/QC_HTTPClient.qpp: doc updates
+
+2012-09-29 07:33  david_nichols
+
+	* lib/DBI.cpp: fixed svi option parsing with multiple options and
+	  options with no value occur before options with value assignments
+
+2012-09-29 05:28  david_nichols
+
+	* include/qore/DBI.h, include/qore/QoreLib.h, lib/DBI.cpp,
+	  lib/QoreTimeZoneManager.cpp: added library support to allow DBI
+	  drivers to maintain and set/change the server's time zone region
+	  rules to allow for automatic date/time tagging and parsing based
+	  on the server's time zone
+	  * added the DBI_CAP_SERVER_TIME_ZONE capability
+	  * added dbi option definition DBI_OPT_TIMEZONE ("timezone")
+	  * added new external c++ APIs:
+	  + const AbstractQoreZoneInfo* find_create_timezone(const char*
+	  name, ExceptionSink* xsink)
+	  + int tz_get_utc_offset(const AbstractQoreZoneInfo* tz, int64
+	  epoch_offset, bool &is_dst, const char *&zone_name)
+	  + bool tz_has_dst(const AbstractQoreZoneInfo* tz)
+	  + const char* tz_get_region_name(const AbstractQoreZoneInfo* tz)
+
+2012-09-26 13:34  david_nichols
+
+	* BUILD, README-MODULES, README-SVN: updated to new svn location
+	  and other minor doc updates
+
+2012-09-26 13:08  david_nichols
+
+	* include/qore/DBI.h, include/qore/intern/qore_dbi_private.h,
+	  lib/DBI.cpp, lib/QC_Datasource.qpp, lib/QC_DatasourcePool.qpp,
+	  lib/ql_dbi.qpp: * added new dbi functions without NOOP variants
+	  and "names_like_this()" instead of camel case
+	  * added dbi_get_driver_options() function
+	  * updated docs
+
+2012-09-26 09:24  david_nichols
+
+	* lib/QoreHashNode.cpp: make sure c++ *HashIterator classes do not
+	  crash when next() is called and the hash was a null ptr
+
+2012-09-26 07:56  david_nichols
+
+	* include/qore/intern/qore_string_private.h: to fix warnings
+
+2012-09-26 07:31  david_nichols
+
+	* include/qore/DBI.h, include/qore/intern/qore_dbi_private.h,
+	  lib/DBI.cpp: removed unneeded/unused clone option API
+
+2012-09-25 19:49  david_nichols
+
+	* lib/ql_dbi.qpp: updated docs
+
+2012-09-25 18:44  david_nichols
+
+	* include/qore/Datasource.h, include/qore/QoreHashNode.h,
+	  include/qore/QoreLib.h, include/qore/intern/qore_dbi_private.h,
+	  include/qore/intern/qore_ds_private.h, lib/DBI.cpp,
+	  lib/Datasource.cpp, lib/QoreLib.cpp: * allow dbi options to be
+	  set before a connection is established
+	  * make dbi options persistent between connections on the same
+	  Datasource
+
+2012-09-25 16:37  david_nichols
+
+	* include/qore/intern/DatasourcePool.h, lib/QC_Datasource.qpp,
+	  lib/QC_DatasourcePool.qpp: implemented
+	  + DatasourcePool::getOptionHash()
+	  + DatasourcePool::getOption()
+	  updated docs
+
+2012-09-25 16:26  david_nichols
+
+	* include/qore/DBI.h, include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/ManagedDatasource.h,
+	  include/qore/intern/qore_dbi_private.h,
+	  include/qore/intern/qore_ds_private.h, lib/DBI.cpp,
+	  lib/Datasource.cpp, lib/DatasourcePool.cpp,
+	  lib/ManagedDatasource.cpp, lib/QC_Datasource.qpp,
+	  lib/QC_DatasourcePool.qpp: * implemented new Datasource(string)
+	  and DatasourcePool(string) constructors taking a string that can
+	  be parsed by parseDatasource(), giving all options
+	  * implemented support for passing options to the driver in all
+	  Datasource and DatasourcePool constructors
+	  * implemented support for copying options when copying/cloning an
+	  internal Datasource object
+
+2012-09-25 11:08  david_nichols
+
+	* include/qore/DBI.h, include/qore/Datasource.h,
+	  include/qore/intern/qore_dbi_private.h, lib/DBI.cpp,
+	  lib/Datasource.cpp: * make dbi driver option matching
+	  case-insensitive
+	  * require a description string when registering options
+	  * implement Datasource apis for options
+
+2012-09-24 15:09  david_nichols
+
+	* Makefile.am, include/qore/DBI.h, include/qore/QoreLib.h,
+	  include/qore/intern/qore_dbi_private.h,
+	  include/qore/intern/qore_ds_private.h, lib/DBI.cpp,
+	  lib/Datasource.cpp, lib/QC_Datasource.qpp,
+	  lib/QoreSQLStatement.cpp, lib/ql_dbi.qpp: * started adding option
+	  API
+	  * made private DBI functions really private - moved to private
+	  header
+
+2012-09-23 20:07  david_nichols
+
+	* include/qore/intern/qore_number_private.h, lib/Pseudo_QC_Int.qpp,
+	  lib/Pseudo_QC_Number.qpp, lib/QoreLib.cpp,
+	  lib/QoreNumberNode.cpp: * implemented support for printf
+	  formatting with number types
+	  * implemented support for A, a, G, g, F, and E format arguments
+	  for floating-point numbers and new arbitrary-precision "number"
+	  type values
+
+2012-09-21 09:59  david_nichols
+
+	* include/qore/QoreString.h,
+	  include/qore/intern/qore_number_private.h,
+	  include/qore/intern/qore_string_private.h,
+	  lib/Pseudo_QC_Number.qpp, lib/QoreNumberNode.cpp,
+	  lib/QoreString.cpp: * fixed bugs in new QoreString concat APIs
+	  * implemented <number>::format()
+
+2012-09-20 20:22  david_nichols
+
+	* include/qore/QoreString.h,
+	  include/qore/intern/qore_string_private.h, lib/QoreString.cpp: *
+	  added new concat functions to QoreString
+	  * fixed bug calculating the offset position for
+	  QoreString::index() and QoreString::rindex() with negative
+	  offsets and multi-byte character encodings
+
+2012-09-20 14:15  david_nichols
+
+	* qlib/HttpServer.qm: return an error message and close the new
+	  connection if the connection thread cannot be started
+
+2012-09-20 13:09  david_nichols
+
+	* lib/QoreNumberNode.cpp: fixed warning
+
+2012-09-20 13:06  david_nichols
+
+	* include/qore/QoreLib.h, include/qore/QoreString.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/qore_number_private.h, lib/Pseudo_QC_All.qpp,
+	  lib/Pseudo_QC_Float.qpp, lib/Pseudo_QC_Number.qpp,
+	  lib/QoreLib.cpp, lib/QoreNamespace.cpp, lib/QoreNumberNode.cpp,
+	  lib/ql_file.qpp, lib/ql_string.qpp, lib/qpp.cpp: * implemented
+	  the following pseudo-methods:
+	  + <float>::format()
+	  + <value>::toString()
+	  + <value>::toInt()
+	  + <value>::toBool()
+	  + <number>::toString(int) + constants
+	  * updated rounding heuristic for number types when converting to
+	  a string
+	  * implemented a new public API: q_path_is_readable()
+
+2012-09-19 14:44  david_nichols
+
+	* include/qore/intern/qore_string_private.h: fixed warnings
+
+2012-09-19 14:41  david_nichols
+
+	* lib/QoreAssignmentOperatorNode.cpp,
+	  lib/QoreDotEvalOperatorNode.cpp: make sure and set parse location
+	  when raising a parse exception in operator expression parse
+	  initialization
+
+2012-09-19 09:32  david_nichols
+
+	* include/qore/QoreString.h, include/qore/QoreType.h,
+	  include/qore/intern/qore_number_private.h,
+	  lib/QoreNumberNode.cpp, lib/QoreString.cpp, lib/QoreTypeInfo.cpp,
+	  lib/ql_math.qpp: * new c++ "helper" apis
+	  * round number values if there are 9 or more trailing 0's or 9's
+	  at the end when displaying as a string
+	  * added MAXINT, MININT, and M_PIn constants
+
+2012-09-19 07:02  david_nichols
+
+	* include/qore/intern/qore_number_private.h: fixed typo in last
+	  commit
+
+2012-09-19 06:59  david_nichols
+
+	* configure.ac, include/qore/intern/qore_number_private.h: minor
+	  compile fixes for mpfr
+
+2012-09-18 20:35  david_nichols
+
+	* include/qore/QoreNumberNode.h, include/qore/QoreString.h,
+	  include/qore/intern/qore_string_private.h,
+	  lib/QoreNumberNode.cpp, lib/QoreString.cpp: * added new string
+	  APIs
+	  * added new number APIs
+
+2012-09-18 14:06  david_nichols
+
+	* include/qore/intern/FunctionCallNode.h, lib/FunctionCallNode.cpp:
+	  fixed a bug where a parse exception was being raised when a class
+	  called an abstract method from inside the same class where the
+	  abstract method was defined
+
+2012-09-18 12:37  david_nichols
+
+	* include/qore/DBI.h, lib/DBI.cpp: * added a new DBI capability:
+	  DBI_CAP_HAS_NUMBER_SUPPORT
+	  * automatically convert any arguments to DBI methods with
+	  "number" values to "float" if the driver does not claim
+	  DBI_CAP_HAS_NUMBER_SUPPORT
+
+2012-09-18 11:06  david_nichols
+
+	* qlib/Mime.qm: error in Mime docs
+
+2012-09-18 08:25  david_nichols
+
+	* configure.ac: fixed typo in last commit
+
+2012-09-18 08:22  david_nichols
+
+	* configure.ac, include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/qore_number_private.h: fixes to make qore
+	  compile with earlier versions of mpfr such as mpfr 2.4.1 as
+	  delivered with rhel6
+
+2012-09-18 06:07  david_nichols
+
+	* doxygen/pdox: fixed a minor regex bug in reformatting javascript
+	  search strings for pseudo-methods
+
+2012-09-17 14:38  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: updated release notes
+	  and pdox for the 0.8.5.1 release
+
+2012-09-17 14:00  david_nichols
+
+	* Makefile.am, RELEASE-NOTES,
+	  doxygen/lang/145_basic_data_types.dox.tmpl,
+	  doxygen/lang/155_data_type_declarations.dox.tmpl,
+	  doxygen/lang/180_operators.dox.tmpl,
+	  doxygen/lang/mainpage.dox.tmpl,
+	  include/qore/intern/QorePseudoMethods.h,
+	  include/qore/intern/qore_number_private.h, lib/Makefile.am,
+	  lib/Pseudo_QC_All.qpp, lib/Pseudo_QC_Binary.qpp,
+	  lib/Pseudo_QC_Bool.qpp, lib/Pseudo_QC_Callref.qpp,
+	  lib/Pseudo_QC_Closure.qpp, lib/Pseudo_QC_Date.qpp,
+	  lib/Pseudo_QC_Float.qpp, lib/Pseudo_QC_Hash.qpp,
+	  lib/Pseudo_QC_Int.qpp, lib/Pseudo_QC_List.qpp,
+	  lib/Pseudo_QC_Nothing.qpp, lib/Pseudo_QC_Number.qpp,
+	  lib/Pseudo_QC_String.qpp, lib/QorePseudoMethods.cpp,
+	  lib/qc_qore.qpp, lib/ql_type.qpp: readded last commit from before
+	  svn migration
+	  * added docs for number type
+	  * added <number> pseudo-class
+	  * added constants for number type
+	  * added docs for unreferenced-variable warning
+	  * fixed pseudo-class type parameter to be "const" as it cannot be
+	  modified
+
+2012-09-17 13:23  david_nichols
+
+	* Makefile.am, doxygen/dpp, doxygen/lang/215_classes.dox.tmpl,
+	  doxygen/lang/250_warnings.dox.tmpl, doxygen/lang/Doxyfile.tmpl,
+	  doxygen/lib/Doxyfile, doxygen/lib/Doxyfile.tmpl, doxygen/pdox:
+	  doc updates - fixed pdox regex on linux
+
+2012-09-17 13:11  david_nichols
+
+	* lib/ql_math.qpp: fixed a small doc error
+
+2012-09-17 13:11  david_nichols
+
+	* lib/Pseudo_QC_List.qpp: fixed warning in doc generation
+
+2012-09-17 08:55  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/MailMessage.qm,
+	  qlib/Mime.qm: updated module versions and relnotes after 0.8.5.1
+	  branch release
+
+2012-09-13 18:56  david_nichols
+
+	* lib/Operator.cpp: fix for last patch
+
+2012-09-13 18:54  david_nichols
+
+	* lib/Operator.cpp: fixed warning
+
+2012-09-13 12:57  david_nichols
+
+	* include/qore/intern/qore_number_private.h: fixed typo in last
+	  patch
+
+2012-09-13 12:53  david_nichols
+
+	* include/qore/intern/qore_number_private.h: fix for compiling with
+	  older mpfr on solaris
+
+2012-09-13 12:27  david_nichols
+
+	* Makefile.am: added new header
+
+2012-09-13 12:19  david_nichols
+
+	* include/qore/intern/qore_number_private.h: do not output the
+	  suffix 'n' when converting a number to a string
+
+2012-09-13 10:21  david_nichols
+
+	* configure.ac, include/qore/intern/LocalVar.h,
+	  include/qore/intern/QoreValue.h, lib/Variable.cpp: * fixed a
+	  major race condition accessing global variable and closure-bound
+	  local variable values that could cause crashes
+	  * added --with-gmp-dir and --with-mpfr-dir configure options
+
+2012-09-12 20:46  david_nichols
+
+	* include/qore/QoreType.h,
+	  include/qore/intern/qore_number_private.h, include/qore/params.h,
+	  lib/QC_AbstractQuantifiedBidirectionalIterator.qpp,
+	  lib/QoreTypeInfo.cpp, lib/ql_math.qpp, lib/qpp.cpp,
+	  lib/scanner.lpp: * added parser support for @nan@, @inf@ values
+	  for floating-point numbers and @nan@n and @inf@n for
+	  arbitrary-precision numbers
+	  * added variants to almost all math functions taking
+	  arbitrary-precision number arguments
+	  * added qpp support for number types
+
+2012-09-12 11:54  david_nichols
+
+	* include/qore/intern/qore_number_private.h: use templates for
+	  internal number member functions
+
+2012-09-12 11:00  david_nichols
+
+	* lib/QoreUnaryMinusOperatorNode.cpp: fixed
+	  QoreUnaryMinusOperatorNode::makeNode() for the "number" type
+
+2012-09-12 10:57  david_nichols
+
+	* include/qore/intern/qore_number_private.h,
+	  lib/QoreUnaryMinusOperatorNode.cpp: fixed the unary minus
+	  operator with "number" values
+
+2012-09-12 10:45  david_nichols
+
+	* command-line.cpp, include/qore/Qore.h, include/qore/QoreString.h,
+	  include/qore/intern/qore_number_private.h, lib/QoreLib.cpp,
+	  lib/QoreString.cpp, lib/qore-main.cpp: * added MPFR info to the
+	  qore -V output
+	  * fixed number outputs with negative numbers and special numbers
+	  (@inf@ and @nan@ etc)
+
+2012-09-11 16:15  david_nichols
+
+	* Makefile.am, include/qore/QoreLib.h,
+	  include/qore/QoreNumberNode.h, include/qore/intern/Operator.h,
+	  include/qore/intern/QoreIntDivideEqualsOperatorNode.h,
+	  include/qore/intern/QoreIntMultiplyEqualsOperatorNode.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreMultiplyEqualsOperatorNode.h,
+	  include/qore/intern/QoreOperatorNode.h,
+	  include/qore/intern/QorePostIncrementOperatorNode.h,
+	  include/qore/intern/QorePreIncrementOperatorNode.h,
+	  include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/QoreValue.h, include/qore/intern/Variable.h,
+	  include/qore/intern/qore_number_private.h, lib/Makefile.am,
+	  lib/Operator.cpp, lib/QoreDivideEqualsOperatorNode.cpp,
+	  lib/QoreIntDivideEqualsOperatorNode.cpp,
+	  lib/QoreIntMultiplyEqualsOperatorNode.cpp,
+	  lib/QoreMinusEqualsOperatorNode.cpp,
+	  lib/QoreMultiplyEqualsOperatorNode.cpp, lib/QoreNumberNode.cpp,
+	  lib/QorePlusEqualsOperatorNode.cpp,
+	  lib/QorePostDecrementOperatorNode.cpp,
+	  lib/QorePostIncrementOperatorNode.cpp,
+	  lib/QorePreDecrementOperatorNode.cpp,
+	  lib/QorePreIncrementOperatorNode.cpp, lib/QoreTypeInfo.cpp,
+	  lib/Variable.cpp, lib/scanner.lpp,
+	  lib/single-compilation-unit.cpp: * implemented most operators for
+	  number (all?)
+	  * implemented automatic conversions for number
+	  * removed unneeded "int" operator optimizations
+
+2012-09-10 21:02  david_nichols
+
+	* configure.ac, include/qore/QoreLib.h,
+	  include/qore/QoreNumberNode.h, include/qore/QoreString.h,
+	  include/qore/intern/Operator.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/ThreadResourceList.h, lib/Operator.cpp,
+	  lib/QoreNumberNode.cpp, lib/QoreString.cpp, lib/parser.ypp,
+	  lib/scanner.lpp, lib/thread.cpp: * started implementing basic
+	  number operations
+	  * implemented parser supoprt for number values (suffixed with n;
+	  ex: "100n", "50e-16n", "0.000000233n", etc
+	  * implemented suport for parsing floating-point values with an
+	  exponent (ex: 2.323e+20)
+
+2012-09-10 10:06  subik
+
+	* lib/Pseudo_QC_List.qpp, test/test.q: revert: <list>::append(any)
+	  implemented
+
+2012-09-10 09:54  subik
+
+	* lib/Pseudo_QC_List.qpp, test/test.q: <list>::append(any)
+	  implemented
+
+2012-09-10 08:08  subik
+
+	* doxygen/pdox: temporary(?) fix to allow docs generator work again
+
+2012-09-09 17:26  david_nichols
+
+	* include/qore/QoreNumberNode.h, lib/QoreNumberNode.cpp: added
+	  missing files from last commit
+
+2012-09-09 17:24  david_nichols
+
+	* configure.ac, include/qore/AbstractQoreNode.h,
+	  include/qore/ModuleManager.h, include/qore/Qore.h,
+	  include/qore/QoreType.h, include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreTypeInfo.h, include/qore/node_types.h,
+	  lib/AbstractQoreNode.cpp, lib/Makefile.am, lib/ModuleManager.cpp,
+	  lib/QoreTypeInfo.cpp, lib/single-compilation-unit.cpp, qore.spec:
+	  * updated module API to 0.14
+	  * updated build to require gmp & mpfr for arbitrary-precision
+	  numeric support
+	  * started adding the "number" type (NT_NUMBER, QoreNumberNode);
+	  currently non functional
+
+2012-09-08 16:27  david_nichols
+
+	* lib/QC_Datasource.qpp: added the following constants:
+	  * DBI_CAP_HAS_STATEMENT
+	  * DBI_CAP_HAS_SELECT_ROW
+
+2012-09-08 16:23  david_nichols
+
+	* lib/DBI.cpp: fixed parseDatasource() when a driver is missing and
+	  a port number is present
+
+2012-09-07 18:42  david_nichols
+
+	* include/qore/QoreString.h, lib/QC_SQLStatement.qpp: minor updates
+
+2012-09-07 12:20  david_nichols
+
+	* include/qore/QoreString.h,
+	  include/qore/intern/qore_string_private.h, lib/Makefile.am,
+	  lib/Pseudo_QC_String.qpp, lib/QoreString.cpp,
+	  qlib/MailMessage.qm: added the following string pseudo-methods:
+	  * <string>::isDataAscii()
+	  * <string>::isDataPrintableAscii()
+	  also added the corresponding internal c++ QoreString functions.
+	  updated the library to 5.8.0
+	  fixed a bug in MailMessage where headers that did not need
+	  encoding were being encoded and headers that did need encoding
+	  were not
+
+2012-09-06 19:41  david_nichols
+
+	* qlib/Mime.qm, qlib/Pop3Client.qm: * doc updates
+	  * make sure and encode underscores ("_") when encoding headers
+	  with quoted printable encoding
+
+2012-09-04 09:29  david_nichols
+
+	* include/qore/intern/qore_program_private.h,
+	  include/qore/intern/qore_thread_intern.h, lib/thread.cpp:
+	  implemented a generic solution for program-specific thread-local
+	  data; applied this solution to program-specific, thread-local
+	  time zone locales resuling in much faster retrieval and setting
+	  of the program-specific, thread-local time zone value (= faster
+	  date operations as many operations access this value) - these
+	  operations are now performed in amortized constant time instead
+	  of O(ln(n))
+
+2012-09-03 19:36  david_nichols
+
+	* lib/Makefile.am, qore.spec: updated library version due to bug
+	  fixes
+
+2012-09-03 19:31  david_nichols
+
+	* lib/DatasourcePool.cpp, lib/QoreSQLStatement.cpp: make sure and
+	  not release the Datasource when closing an SQLStatement object if
+	  something has been executed on it; this causes, for example, a
+	  commit to be made on the wrong Datasource when the SQLStatement
+	  object is used with a DatasourcePool
+
+2012-09-03 16:15  david_nichols
+
+	* lib/QC_HTTPClient.qpp, lib/QoreHTTPClient.cpp: fixed the client
+	  ID in HTTP messages to have the proper format
+
+2012-09-03 13:44  david_nichols
+
+	* RELEASE-NOTES, configure.ac, doxygen/lib/Doxyfile, qore.spec:
+	  updated version to 0.8.6
+
+2012-09-03 13:31  subik
+
+	* include/qore/intern/QoreLibIntern.h, lib/Pseudo_QC_List.qpp,
+	  lib/ql_list.qpp, test/test.q: <list>::contains(any) implemented
+
+2012-09-02 15:31  david_nichols
+
+	* ChangeLog, README, README-WINDOWS, RELEASE-NOTES: last minute doc
+	  updates for 0.8.5 release
+
 2012-08-31 11:51  david_nichols
 
 	* doxygen/lang/900_release_notes.dox.tmpl, doxygen/pdox,

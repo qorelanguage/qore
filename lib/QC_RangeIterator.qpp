@@ -148,7 +148,7 @@ RangeIterator::reset() {
    i->reset();
 }
 
-/** @defgroup xrange_functions RangeIterator helper functions
+/** @defgroup range_functions RangeIterator helper functions
     RangeIterator helper functions allow to use RangeItartor
     in easier usage in loop statements.
 
