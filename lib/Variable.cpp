@@ -872,6 +872,12 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       return;
    }
 
+   // could be any type if in a background expression
+   if (t != NT_TREE) {
+      rv.assignInitial(lvalue ? lvalue->refSelf() : 0);
+      return;
+   }
+
    // must be a tree
    assert(t == NT_TREE);
    QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(lvalue);

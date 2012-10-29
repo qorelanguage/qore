@@ -78,3 +78,10 @@ AbstractQoreNode *QoreRemoveOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
    }
    return this;
 }
+
+QoreRemoveOperatorNode* QoreRemoveOperatorNode::copyBackground(ExceptionSink* xsink) const {
+   ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
+   if (*xsink)
+      return 0;
+   return new QoreRemoveOperatorNode(n_exp.release());
+}

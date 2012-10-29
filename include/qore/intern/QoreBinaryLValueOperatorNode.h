@@ -57,7 +57,7 @@ public:
 
       const QoreTypeInfo *mti = 0;
       left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, mti);
-      checkLValue(left);
+      checkLValue(left, pflag);
 
       // make sure left side can take an integer value
       check_lvalue_int(mti, name);

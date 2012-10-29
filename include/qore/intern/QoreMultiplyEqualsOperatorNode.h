@@ -37,7 +37,7 @@ public:
 
    DLLLOCAL void parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
-      checkLValue(left);
+      checkLValue(left, pflag);
 
       const QoreTypeInfo *rightTypeInfo = 0;
       right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);

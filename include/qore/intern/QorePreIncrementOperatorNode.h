@@ -40,7 +40,7 @@ protected:
       pflag &= ~(PF_RETURN_VALUE_IGNORED);
       
       exp = exp->parseInit(oflag, pflag, lvids, outTypeInfo);
-      checkLValue(exp);
+      checkLValue(exp, pflag);
 
       // make sure left side can take an integer or floating-point value
       check_lvalue_int_float_number(outTypeInfo, name);

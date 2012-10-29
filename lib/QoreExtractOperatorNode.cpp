@@ -52,8 +52,9 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
 
    // check lvalue expression
    lvalue_exp = lvalue_exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
-   if (lvalue_exp && check_lvalue(lvalue_exp))
-      parse_error("the extract operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
+   //if (lvalue_exp && check_lvalue(lvalue_exp))
+   //   parse_error("the extract operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
+   checkLValue(lvalue_exp, pflag);
 
    if (expTypeInfo->hasType()) {
       if (!expTypeInfo->parseAcceptsReturns(NT_LIST)

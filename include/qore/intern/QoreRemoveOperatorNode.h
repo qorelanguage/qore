@@ -53,6 +53,7 @@ public:
    DLLLOCAL virtual const char *getTypeName() const {
       return remove_str.getBuffer();
    }
+   DLLLOCAL virtual QoreRemoveOperatorNode* copyBackground(ExceptionSink* xsink) const;
 };
 
 #endif

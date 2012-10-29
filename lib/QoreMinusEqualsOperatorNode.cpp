@@ -29,7 +29,7 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, in
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
    left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
-   checkLValue(left);
+   checkLValue(left, pflag);
 
    const QoreTypeInfo *rightTypeInfo = 0;
    right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);

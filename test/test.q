@@ -1932,6 +1932,27 @@ sub format_date_tests() {
     #test_value(format_date("Z", $d), "+02:00", "time zone UTC offset like +HH:mm[:SS] (ex: \"+01:00\"), seconds are only included if non-zero");
 }
 
+sub background_tests() {
+    my int $i = 0;
+    background delete $i;
+    background remove $i;
+
+    # do negative tests
+    my Program $p();
+    try {
+        $p.parse("my int $i; background ($i *= 10);background ($i /= 10);background ($i -= 10);background ($i += 10);background ($i %= 10);background ($i >>= 10);background ($i <<= 10);background ++$i;background $i++;background --$i;background $i--;my string $str;background splice $str, 0;background extract $str, 0;", "bg");
+        test_value(False, True, "background negative");
+    }
+    catch (*hash $ex) {
+        # count exceptions
+        while ($ex) {
+            ++$i;
+            $ex = $ex.next;
+        }
+        test_value($i, 13, "background negative");
+    }
+}
+
 sub do_tests() {
     on_exit $counter.dec();
     try {
@@ -1967,6 +1988,9 @@ sub main() {
     parse_command_line();
     printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n", Qore::VersionString, 
 	   $o.threads, $o.threads == 1 ? "" : "s", $o.iters, $o.iters == 1 ? "" : "s");
+
+    # run regression background tests
+    background_tests();
 
     our Counter $counter();
     while ($o.threads--) {

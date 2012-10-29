@@ -25,7 +25,7 @@
 
 #define _QORE_QOREEXTRACTOPERATORNODE_H
 
-class QoreExtractOperatorNode : public QoreOperatorNode {
+class QoreExtractOperatorNode : public LValueOperatorNode {
 protected:
    AbstractQoreNode *lvalue_exp, *offset_exp, *length_exp, *new_exp;
    const QoreTypeInfo *returnTypeInfo;
@@ -61,10 +61,6 @@ public:
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const {
       return extract_str.getBuffer();
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return true;
    }
 
    DLLLOCAL AbstractQoreNode *extract(ExceptionSink *xsink) const;

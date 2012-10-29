@@ -959,6 +959,9 @@ static bool hasEffect(AbstractQoreNode* n) {
    if (!n || n->is_value())
       return false;
 
+   if (n->getType() == NT_OPERATOR)
+      return reinterpret_cast<const QoreOperatorNode*>(n)->hasEffect();
+
    ParseNode* pn = dynamic_cast<ParseNode*>(n);
    return pn ? pn->has_effect() : true;
 }
@@ -3072,7 +3075,7 @@ exp:    scalar
 	   if (checkParseOption(PO_NO_THREAD_CONTROL))
 	      parse_error("illegal use of \"background\" operator (conflicts with parse option NO_THREAD_CONTROL)");
 	   else if (!hasEffect($2))
-	      parse_error("argument to background operator has no effect");
+	      parse_error("argument to background operator (%s) has no effect", get_type_name($2));
 	}
         | BACKQUOTE {
 	   $$ = new BackquoteNode($1);
