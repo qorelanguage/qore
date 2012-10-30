@@ -1,4 +1,4 @@
-%define qore_ver 0.8.7
+%define qore_ver 0.8.6.1
 %define module_dir %{_libdir}/qore-modules
 
 %if 0%{?sles_version}
@@ -202,8 +202,8 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Sat Oct 27 2012 David Nichols <david@qore.org> 0.8.7
-- updated to 0.8.7
+* Sat Oct 27 2012 David Nichols <david@qore.org> 0.8.6.1
+- updated to 0.8.6.1
 
 * Sun Sep 2 2012 David Nichols <david@qore.org> 0.8.6
 - updated to 0.8.6

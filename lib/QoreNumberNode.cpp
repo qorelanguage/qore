@@ -71,7 +71,7 @@ void qore_number_private::getAsString(QoreString& str, bool round) const {
 	    str.insertch('0', str.size(), exp - rlen);
 	 else if ((qore_size_t)exp < rlen) {
 	    str.insertch('.', len + exp, 1);
-	    dp = len + exp + 1;
+	    dp = len + exp;
 	 }
       }
       // try to do some rounding (noise reduction with binary->decimal conversions)
@@ -130,7 +130,7 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
 
       // mark position of the last significant digit
       pos = i - 2;
-      //printd(5, "qore_number_private::applyRoundingHeuristic() set pos: %lld ('%c')\n", pos, str[pos]);
+      //printd(5, "qore_number_private::applyRoundingHeuristic('%s') set pos: %lld ('%c') dp: %lld\n", str.getBuffer(), pos, str[pos], dp);
 
       // found a non-noise digit
       if (!signal)

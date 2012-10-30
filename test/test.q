@@ -1932,6 +1932,10 @@ sub format_date_tests() {
     #test_value(format_date("Z", $d), "+02:00", "time zone UTC offset like +HH:mm[:SS] (ex: \"+01:00\"), seconds are only included if non-zero");
 }
 
+sub number_tests() {
+    test_value(string(10.2n), "10.2", "first number"); 
+}
+
 sub background_tests() {
     my int $i = 0;
     background delete $i;
@@ -1959,6 +1963,7 @@ sub do_tests() {
 	for (my int $i = 0; $i < $o.iters; $i++) {
 	    if ($o.verbose)
 		printf("TID %d: iteration %d\n", gettid(), $i);
+            number_tests();
 	    operator_test();
 	    array_tests();
 	    hash_tests();
