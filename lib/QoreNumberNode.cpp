@@ -298,6 +298,9 @@ QoreNumberNode::QoreNumberNode(int64 i) : SimpleValueQoreNode(NT_NUMBER), priv(n
 QoreNumberNode::QoreNumberNode(const char* str) : SimpleValueQoreNode(NT_NUMBER), priv(new qore_number_private(str)) {
 }
 
+QoreNumberNode::QoreNumberNode(const char* str, unsigned prec) : SimpleValueQoreNode(NT_NUMBER), priv(new qore_number_private(str, prec)) {
+}
+
 QoreNumberNode::QoreNumberNode() : SimpleValueQoreNode(NT_NUMBER), priv(new qore_number_private(0ll)) {
 }
 
@@ -432,4 +435,12 @@ int QoreNumberNode::compare(const QoreNumberNode& n) const {
 QoreNumberNode* QoreNumberNode::numberRefSelf() const {
    ref();
    return const_cast<QoreNumberNode*>(this);
+}
+
+void QoreNumberNode::toString(QoreString& str, int fmt) const {
+   priv->toString(str, fmt);
+}
+
+unsigned QoreNumberNode::getPrec() const {
+   return priv->getPrec();
 }

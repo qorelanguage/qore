@@ -84,6 +84,9 @@
 //! defined because this version of Qore has the find_create_timezone() function
 #define _QORE_HAS_FIND_CREATE_TIMEZONE 1
 
+//! defined because this version of Qore has a QoreNumberNode constructor with a precision specifier
+#define _QORE_HAS_NUMBER_CONS_WITH_PREC 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types

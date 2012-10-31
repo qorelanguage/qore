@@ -234,7 +234,6 @@ noinst_HEADERS = \
 	include/qore/intern/QoreRegexNode.h \
 	include/qore/intern/QoreRegexBase.h \
 	include/qore/intern/QoreQueue.h \
-	include/qore/intern/QoreNumber.h \
 	include/qore/intern/QoreLibIntern.h \
 	include/qore/intern/QoreGetOpt.h \
 	include/qore/intern/QoreClassList.h \

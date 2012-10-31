@@ -24,18 +24,14 @@
 #include <qore/Qore.h>
 #include <qore/intern/qore_number_private.h>
 
-#define NF_Default    0
-#define NF_Scientific (1 << 0)
-#define NF_Raw        (1 << 1)
-
 /** @defgroup number_formatting_constants Number Formatting Constants
 */
 //@{
 //! for the default format with a rounding heuristic to try to remove noise in insignificant digits from the binary to digital conversion of high-precision numbers
-const NF_Default = NF_Default;
+const NF_Default = QORE_NF_DEFAULT;
 
 //! for the scientific format (exponential notation)
-const NF_Scientific = NF_Scientific;
+const NF_Scientific = QORE_NF_SCIENTIFIC;
 
 //! for the raw format without the noise reduction heuristic in the @ref NF_Default format
 /** note that this can be combined with binary or with @ref NF_Scientific as well to get an exponential output without rounding
@@ -44,7 +40,7 @@ const NF_Scientific = NF_Scientific;
     my string $str = $n.toString(NF_Scientific|NF_Raw);
     @endcode
  */
-const NF_Raw = NF_Raw;
+const NF_Raw = QORE_NF_RAW;
 //@}
 
 //! Methods in this pseudo-class can be executed on @ref number "arbitrary precision number values"
@@ -190,12 +186,8 @@ int <number>::prec() [flags=CONSTANT] {
     @since %Qore 0.8.6
 */
 string <number>::toString(int fmt) [flags=CONSTANT] {
-   bool raw = !(fmt & NF_Raw);
    QoreStringNode* rv = new QoreStringNode;
-   if (fmt & NF_Scientific)
-      qore_number_private::get(*n)->getScientificString(*rv, raw);
-   else
-      qore_number_private::get(*n)->getAsString(*rv, raw);
+   n->toString(*rv, fmt);
    return rv;
 }
 

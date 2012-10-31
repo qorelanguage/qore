@@ -109,7 +109,11 @@ struct qore_number_private : public qore_number_private_intern {
       mpfr_set_sj(num, i, QORE_MPFR_RND);
    }
 
-   DLLLOCAL qore_number_private(const char* str) : qore_number_private_intern(QORE_MAX(QORE_DEFAULT_PREC, strlen(str)*10)) {
+   DLLLOCAL qore_number_private(const char* str) : qore_number_private_intern(QORE_MAX(QORE_DEFAULT_PREC, strlen(str)*5)) {
+      mpfr_set_str(num, str, 10, QORE_MPFR_RND);
+   }
+
+   DLLLOCAL qore_number_private(const char* str, unsigned prec) : qore_number_private_intern(QORE_MAX(QORE_DEFAULT_PREC, prec)) {
       mpfr_set_str(num, str, 10, QORE_MPFR_RND);
    }
 
@@ -198,6 +202,14 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL void getAsString(QoreString& str, bool round = true) const;
+
+   DLLLOCAL void toString(QoreString& str, int fmt = QORE_NF_DEFAULT) const {
+      bool raw = !(fmt & QORE_NF_RAW);
+      if (fmt & QORE_NF_SCIENTIFIC)
+         getScientificString(str, raw);
+      else
+         getAsString(str, raw);
+   }
 
    DLLLOCAL int format(QoreString& str, const QoreString& fmt, ExceptionSink* xsink) {
       getAsString(str, false);

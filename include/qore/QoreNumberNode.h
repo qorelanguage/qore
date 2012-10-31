@@ -28,6 +28,13 @@
 class LocalVar;
 class QoreTypeInfo;
 
+//! number format bitfield: default
+#define QORE_NF_DEFAULT    0
+//! number format bitfield: scientific
+#define QORE_NF_SCIENTIFIC (1 << 0)
+//! number format bitfield: raw (unrounded)
+#define QORE_NF_RAW        (1 << 1)
+
 //! Qore's arbitrary-precision number value type, dynamically-allocated only, reference counted
 class QoreNumberNode : public SimpleValueQoreNode {
    friend struct qore_number_private;
@@ -78,6 +85,13 @@ public:
       @param str the value for the object
    */
    DLLEXPORT QoreNumberNode(const char* str);
+
+   //! creates a new number value and assigns the initial value to it
+   /**
+      @param str the value for the object
+      @param prec the initial precision for the number
+   */
+   DLLEXPORT QoreNumberNode(const char* str, unsigned prec);
 
    //! creates a new numbering-point value and assigns it to 0
    DLLEXPORT QoreNumberNode();
@@ -187,6 +201,15 @@ public:
 
    //! returns a pointer to this with the reference count incremented
    DLLEXPORT QoreNumberNode* numberRefSelf() const;
+
+   //! concatenates the string value corresponding to the number to the string given
+   /** @param str the string to append to
+       @param fmt a bitfield of @ref number_format_flags "number format flags"
+    */
+   DLLEXPORT void toString(QoreString& str, int fmt = QORE_NF_DEFAULT) const;
+
+   //! returns the precision of the number
+   DLLEXPORT unsigned getPrec() const;
 
    //! returns the type information
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
