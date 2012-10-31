@@ -44,7 +44,7 @@
 #include <string>
 
 #ifndef DEFAULT_FILE_BUFSIZE
-#define DEFAULT_FILE_BUFSIZE 4096
+#define DEFAULT_FILE_BUFSIZE 16384
 #endif
 
 struct qore_qf_private {
