@@ -89,7 +89,7 @@ public:
       return hm.empty();
    }
 
-   DLLLOCAL void clearStaticVars(ExceptionSink* xsink);
+   DLLLOCAL void clear(ExceptionSink* xsink);
    DLLLOCAL void deleteClassData(ExceptionSink* xsink);
 };
 

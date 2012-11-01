@@ -302,15 +302,14 @@ public:
    // dependency counter, when this hits zero, the object is deleted
    QoreReferenceCounter dc;
    ExceptionSink* parseSink, *warnSink, *pendingParseSink;
-   RootQoreNamespace *RootNS;
-   QoreNamespace *QoreNS;
+   RootQoreNamespace* RootNS;
+   QoreNamespace* QoreNS;
 
    // top level statements
    TopLevelStatementBlock sb;
       
    // bit field flags
    bool only_first_except : 1,
-      clear_started : 1,
       valid : 1,
       po_locked : 1,
       po_allow_restrict : 1,
@@ -355,11 +354,11 @@ public:
 
    DLLLOCAL qore_program_private_base(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm = 0) 
       : thread_count(0), thread_waiting(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
-        only_first_except(false), clear_started(false), valid(true), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
+        only_first_except(false), valid(true), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
         requires_exception(false), tclear(false),
         exceptions_raised(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), pgm(n_pgm) {
-      printd(5, "qore_program_private::init() this: %p pgm: %p\n", this, pgm);
+      //printd(5, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p\n", this, pgm);
 
       if (p_pgm)
 	 setParent(p_pgm, n_parse_options);
@@ -381,6 +380,12 @@ public:
       if (var)
          var->setInitial(ENV->copy());
    }
+
+#ifdef DEBUG
+   DLLLOCAL ~qore_program_private_base() {
+      //printd(5, "qore_program_private_base::~qore_program_private_base() this: %p pgm: %p\n", this, pgm);
+   }
+#endif
 
    DLLLOCAL void startThread(ExceptionSink& xsink);
 

@@ -185,9 +185,9 @@ AbstractQoreNode *QoreClassList::parseResolveBareword(const char *name, const Qo
    return 0;
 }
 
-void QoreClassList::clearStaticVars(ExceptionSink *xsink) {
+void QoreClassList::clear(ExceptionSink *xsink) {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      qore_class_private::clearStaticVars(i->second, xsink);
+      qore_class_private::clear(i->second, xsink);
    }
 }
 

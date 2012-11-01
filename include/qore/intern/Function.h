@@ -641,6 +641,7 @@ protected:
    }
 
    DLLLOCAL virtual ~QoreFunction() {
+      //printd(5, "QoreFunction::~QoreFunction() this: %p %s\n", this, name.c_str());
    }
 
 public:
@@ -650,6 +651,7 @@ public:
                                                nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true), 
                                                parse_init_done(true), has_user(false), has_builtin(false), has_mod_pub(false), nn_uniqueReturnType(0) {
       ilist.push_back(this);
+      //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
    }
 
    // copy constructor (used by method functions when copied)
@@ -693,6 +695,7 @@ public:
 
       // the rest of ilist is copied in method base class
       // do not copy pending variants
+      //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
    }
 
    // copy constructor when importing public user variants from user modules into Program objects
@@ -729,6 +732,7 @@ public:
 
       // the rest of ilist is copied in method base class
       // do not copy pending variants
+      //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
    }
 
    DLLLOCAL qore_ns_private* getNamespace() const {
@@ -890,6 +894,10 @@ public:
 
    DLLLOCAL bool hasModulePublic() const {
       return has_mod_pub;
+   }
+
+   DLLLOCAL const std::string& getNameStr() const {
+      return name;
    }
 };
 

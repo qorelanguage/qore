@@ -734,7 +734,7 @@ protected:
       if (!fe)
          return -1;
 
-      assert(fe->getFunction()->getNamespace() == &ns);
+      assert(fe->getNamespace() == &ns);
 
       if (new_func) {
          fmap_t::iterator i = fmap.find(fe->getName());
@@ -768,12 +768,12 @@ protected:
       if (!fe)
          return -1;
 
-      assert(fe->getFunction()->getNamespace() == &ns);
+      assert(fe->getNamespace() == &ns);
 
       //printd(5, "qore_root_ns_private::importFunction() this: %p ns: %p '%s' (depth %d) func: %p %s\n", this, &ns, ns.name.c_str(), ns.depth, u, fe->getName());
 
       fmap.update(fe->getName(), fe);
-      return 0;      
+      return 0;
    }
 
    DLLLOCAL bool runtimeExistsFunctionIntern(const char* name) {

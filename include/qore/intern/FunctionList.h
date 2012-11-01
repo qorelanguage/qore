@@ -36,6 +36,10 @@ class qore_ns_private;
 class FunctionEntry {
    friend class FunctionList;
 
+private:
+   // not implemented
+   DLLLOCAL FunctionEntry(const FunctionEntry& old);
+
 protected:
    QoreFunction* func;
    std::string name;
@@ -47,12 +51,12 @@ public:
    DLLLOCAL FunctionEntry(const char* new_name, QoreFunction* u) : func(u), name(new_name) {
    }
 
-   DLLLOCAL FunctionEntry(const FunctionEntry& old) : func(old.func), name(old.name) {
-      func->ref();
-   }
-
    DLLLOCAL ~FunctionEntry() {
       func->deref();
+   }
+
+   DLLLOCAL qore_ns_private* getNamespace() const {
+      return func->getNamespace();
    }
 
    DLLLOCAL QoreFunction* getFunction() const {

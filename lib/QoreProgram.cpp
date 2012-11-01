@@ -195,31 +195,25 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
       AutoLocker al(plock);
       // wait for all threads to terminate
       waitForAllThreadsToTerminateIntern();
-      if (!clear_started) {
+      if (valid) {
          clr = true;
-         clear_started = true;
+         valid = false;
       }
    }
 
    if (clr) {
       //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p clr: %d\n", this, clr);
-      // delete all global variables
+      // delete all global variables, etc
       qore_root_ns_private::clearData(*RootNS, xsink);
 
-      {
-         AutoLocker al(plock);
-         assert(valid);
-         valid = false;
-      }
-
-#ifdef HAVE_SIGNAL_HANDLING
+   #ifdef HAVE_SIGNAL_HANDLING
       {
          int_set_t ns = sigset;
          // clear all signal handlers managed by this program
          for (int_set_t::iterator i = ns.begin(), e = ns.end(); i != e; ++i)
             QSM.removeHandler(*i, xsink);
       }
-#endif
+   #endif
 
       // merge pending parse exceptions into the passed exception sink, if any
       if (pendingParseSink) {
