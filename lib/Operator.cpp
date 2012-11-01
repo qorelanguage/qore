@@ -3525,15 +3525,38 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
    return tree;
 }
 
+// for operators that always return an integer
+static AbstractQoreNode *check_op_elements(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   returnTypeInfo = bigIntTypeInfo;
+
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   assert(!tree->right);
+
+   if (leftTypeInfo->hasType()
+         && !listTypeInfo->parseAccepts(leftTypeInfo)
+         && !hashTypeInfo->parseAccepts(leftTypeInfo)
+         && !stringTypeInfo->parseAccepts(leftTypeInfo)
+         && !binaryTypeInfo->parseAccepts(leftTypeInfo)
+         && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
+         QoreStringNode *edesc = new QoreStringNode("the argument given to the 'elements' operator is ");
+         leftTypeInfo->getThisType(*edesc);
+         edesc->concat(", so this expression will always return 0; the 'elements' operator can only return a value with lists, hashes, strings, binary objects, and objects");
+         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+   }
+
+   if (tree->constArgs())
+      return tree->evalSubst(returnTypeInfo);
+
+   return tree;
+}
+
 static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
 
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   if (tree->constArgs())
-      return tree->evalSubst(returnTypeInfo);
+   assert(!tree->right);
 
    if (leftTypeInfo->hasType()) {
       if (leftTypeInfo->isType(NT_HASH) || leftTypeInfo->isType(NT_OBJECT))
@@ -3549,6 +3572,10 @@ static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int 
       else
 	 returnTypeInfo = listOrNothingTypeInfo;
    }
+
+   if (tree->constArgs())
+      return tree->evalSubst(returnTypeInfo);
+
    return tree;
 }
 
@@ -3743,7 +3770,7 @@ void OperatorList::init() {
    OP_LOG_CMP->addFunction(op_cmp_bigint);
    OP_LOG_CMP->addCompareDateFunction();
 
-   OP_ELEMENTS = add(new Operator(1, "elements", "number of elements", 0, false, false, check_op_returns_integer));
+   OP_ELEMENTS = add(new Operator(1, "elements", "number of elements", 0, false, false, check_op_elements));
    OP_ELEMENTS->addFunction(NT_ALL, NT_NONE, op_elements);
 
    OP_MODULA = add(new Operator(2, "%", "modula", 1, false, false, check_op_returns_integer));
