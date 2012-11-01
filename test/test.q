@@ -1451,7 +1451,7 @@ class Test inherits Socket {
 }
 
 sub class_test_Program() {
-    my string $func = "namespace ITest { const val = 1.0; } $gv2 = 123; int sub t2(int $a) { return $a + 2; } int sub et(int $a) { return t($a); } string sub tot() { return getClassName($to); } Queue sub getObject() { return new Queue(); } sub deleteException() { $ro.getData(0); delete $ro; } bool sub check_ro() { return exists $ro; }";
+    my string $func = "namespace ITest { const val = 1.0; class X; } $gv2 = 123; int sub t2(int $a) { return $a + 2; } int sub et(int $a) { return t($a); } string sub tot() { return getClassName($to); } Queue sub getObject() { return new Queue(); } X sub get_x() { return new X(); } sub deleteException() { $ro.getData(0); delete $ro; } bool sub check_ro() { return exists $ro; }";
 
     my string $pf = "newfunc();";
     my string $nf = "sub newfunc() { return True; }";
@@ -1480,8 +1480,10 @@ sub class_test_Program() {
     test_value($a.callFunction("check_ro"), True, "delete read-only");
     
     my Queue $o = $a.callFunction("getObject");
+    my object $ox = $a.callFunction("get_x");
     delete $a;
-    test_value(getClassName($o), "Queue", "class returned from deleted subprogram object");
+    test_value(getClassName($o), "Queue", "builtin class returned from deleted subprogram object");
+    test_value(getClassName($ox), "X", "user class returned from deleted subprogram object");
 
     # test for incorrect parse location when processing constants after a commit
     $a = new Program();
