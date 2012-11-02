@@ -486,16 +486,11 @@ class StaticSystemNamespace : public RootQoreNamespace {
 public:
    DLLLOCAL StaticSystemNamespace();
 
-   DLLLOCAL ~StaticSystemNamespace() {
-   }
-
-   DLLLOCAL void purge();
-
-   DLLLOCAL void init();
+   DLLLOCAL ~StaticSystemNamespace();
 };
 
 // master namespace of all builtin classes, constants, etc
-DLLLOCAL extern StaticSystemNamespace staticSystemNamespace;
+DLLLOCAL extern StaticSystemNamespace* staticSystemNamespace;
 
 class QoreListNodeParseInitHelper : public ListIterator {
 private:
