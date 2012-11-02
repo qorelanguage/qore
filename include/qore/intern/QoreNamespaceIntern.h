@@ -187,6 +187,7 @@ public:
       return qc;
    }
 
+   DLLLOCAL void clearConstants(ExceptionSink* xsink);
    DLLLOCAL void clearData(ExceptionSink* xsink);
    DLLLOCAL void deleteData(ExceptionSink* xsink);
 
@@ -337,10 +338,6 @@ public:
 
    DLLLOCAL static const qore_ns_private* get(const QoreNamespace& ns) {
       return ns.priv;
-   }
-
-   DLLLOCAL static void clearData(QoreNamespace& ns, ExceptionSink* xsink) {
-      ns.priv->clearData(xsink);
    }
 
    DLLLOCAL static bool isPublic(const QoreNamespace& ns) {
@@ -1502,6 +1499,15 @@ public:
 
    DLLLOCAL static const qore_ns_private* getQore(const RootQoreNamespace& rns) {
       return rns.rpriv->qoreNS->priv;
+   }
+
+   DLLLOCAL static void clearConstants(RootQoreNamespace& ns, ExceptionSink* xsink) {
+      ns.priv->clearConstants(xsink);
+      ns.rpriv->cnmap.clear();
+   }
+
+   DLLLOCAL static void clearData(RootQoreNamespace& ns, ExceptionSink* xsink) {
+      ns.priv->clearData(xsink);
    }
 };
 

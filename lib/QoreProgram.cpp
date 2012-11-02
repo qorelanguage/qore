@@ -195,8 +195,10 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
       AutoLocker al(plock);
       // wait for all threads to terminate
       waitForAllThreadsToTerminateIntern();
-      if (valid)
+      if (valid) {
+         qore_root_ns_private::clearConstants(*RootNS, xsink);
          clr = true;
+      }
    }
 
    if (clr) {
@@ -357,7 +359,7 @@ void qore_program_private::del(ExceptionSink* xsink) {
 
    // have to delete global variables first because of destructors.
    // method call can be repeated
-   qore_ns_private::clearData(*RootNS, xsink);
+   qore_root_ns_private::clearData(*RootNS, xsink);
 
    // delete all global variables, class static vars and constants
    RootNS->deleteData(xsink);

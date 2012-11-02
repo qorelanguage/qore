@@ -487,7 +487,6 @@ public:
    DLLLOCAL StaticSystemNamespace();
 
    DLLLOCAL ~StaticSystemNamespace() {
-      purge();
    }
 
    DLLLOCAL void purge();
