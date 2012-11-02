@@ -1215,6 +1215,8 @@ void qore_ns_private::parseInitGlobalVars() {
 void qore_ns_private::clearConstants(ExceptionSink *xsink) {
    // clear constants
    constant.deleteAll(xsink);
+   // clear/finalize class constants
+   classList.clearConstants(xsink);
 }
 
 void qore_ns_private::clearData(ExceptionSink *xsink) {

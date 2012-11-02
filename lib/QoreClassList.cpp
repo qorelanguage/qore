@@ -185,6 +185,12 @@ AbstractQoreNode *QoreClassList::parseResolveBareword(const char *name, const Qo
    return 0;
 }
 
+void QoreClassList::clearConstants(ExceptionSink *xsink) {
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+      qore_class_private::clearConstants(i->second, xsink);
+   }
+}
+
 void QoreClassList::clear(ExceptionSink *xsink) {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
       qore_class_private::clear(i->second, xsink);

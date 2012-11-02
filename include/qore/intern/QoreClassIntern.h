@@ -2434,11 +2434,14 @@ public:
       return 0;
    }
 
+   DLLLOCAL void clearConstants(ExceptionSink* xsink) {
+      priv_const.deleteAll(xsink);
+      pub_const.deleteAll(xsink);
+   }
+
    DLLLOCAL void clear(ExceptionSink* xsink) {
       private_vars.clear(xsink);
       public_vars.clear(xsink);
-      priv_const.deleteAll(xsink);
-      pub_const.deleteAll(xsink);
    }
 
    DLLLOCAL void deleteClassData(ExceptionSink* xsink) {
@@ -2733,6 +2736,10 @@ public:
 
    DLLLOCAL static void parseAddPublicStaticVar(QoreClass* qc, char* dname, QoreVarInfo* VarInfo) {
       qc->priv->parseAddPublicStaticVar(dname, VarInfo);
+   }
+
+   DLLLOCAL static void clearConstants(QoreClass* qc, ExceptionSink* xsink) {
+      qc->priv->clearConstants(xsink);
    }
 
    DLLLOCAL static void clear(QoreClass* qc, ExceptionSink* xsink) {

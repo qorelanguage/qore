@@ -90,6 +90,7 @@ public:
    }
 
    DLLLOCAL void clear(ExceptionSink* xsink);
+   DLLLOCAL void clearConstants(ExceptionSink* xsink);
    DLLLOCAL void deleteClassData(ExceptionSink* xsink);
 };
 
