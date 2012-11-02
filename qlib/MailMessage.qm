@@ -26,19 +26,30 @@
 %requires qore >= 0.8.6
 
 # need mime definitions
-%requires Mime >= 1.0.1
+%requires Mime >= 1.3
 
 module MailMessage {
-    version = "1.0.2";
+    version = "1.0.3";
     desc = "defines the MailMessage class and supporting definitions";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
-    * 2012-09-17 v1.0.2: David Nichols <david@qore.org>: use <string>::isPrintableAscii() to determine which mail headers need encoding
-    * 2012-09-17 v1.0.1: David Nichols <david@qore.org>: fixed a bug encoding mail headers where mail headers requiring encoding were not encoded and those not requiring encoding were encoded with Q encoding
-    * 2012-06-14 v1.0: David Nichols <david@qore.org>: moved from the SmtpClient module to an independent module to also support the Pop3Client class
+    * 2012-11-02 v1.0.3: David Nichols <david@qore.org>
+      + requires Mime module 1.3 for the MultiPartMessage::parseBody() method
+      + fixed a bug where the part/attachment content-type was set to the content-type of the message
+      + try to get the filename of attachments from the content-type header if not set in the content-disposition header
+      + message parts that themselves have parts are now supported
+
+    * 2012-09-17 v1.0.2: David Nichols <david@qore.org>
+      + use <string>::isPrintableAscii() to determine which mail headers need encoding
+
+    * 2012-09-17 v1.0.1: David Nichols <david@qore.org>
+      + fixed a bug encoding mail headers where mail headers requiring encoding were not encoded and those not requiring encoding were encoded with Q encoding
+
+    * 2012-06-14 v1.0: David Nichols <david@qore.org>
+      + moved from the SmtpClient module to an independent module to also support the Pop3Client class
 */
 
 /** @mainpage MailMessage Module
@@ -195,6 +206,8 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	constructor(string $msg) {
 	    my int $pos = 0;
 
+            printf("ZZZZ MSG: %s", $msg);
+
 	    # is this a MIME message?
 	    my bool $mime = False;
 	    # content type
@@ -214,7 +227,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
 		my hash $h = $.parseHeader($hdr);
 		my string $lk = $h.firstKey().lwr();
-		if ($lk == "mime-version" && $h.firstValue() == "1.0")
+		if ($lk == "mime-version")
 		    $mime = True;
 		else if ($lk == "content-type")
 		    $ct = $h.firstValue();
@@ -259,8 +272,8 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
                 $.headers += $h;
 	    }
 
-	    #printf("got %d headers: %N\n", $.headers.size(), $.headers);
-
+	    printf("mime: %y ct: %y %d headers: %N\n", $mime, $ct, $.headers.size(), $.headers);
+            
 	    # try and parse the Content-Type header; assume any multipart type is "multipart/mixed"
 	    # (http://tools.ietf.org/html/rfc2046#section-5.1.3)
 	    if ($mime && $ct =~ /multipart\//i) {
@@ -269,121 +282,13 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 		if (!exists $boundary)
 		    throw "MESSAGE-PARSE-ERROR", sprintf("cannot parse MIME Content-Type: %y; could not find message boundary", $ct);
 
-		# add rest of chars to boundary
-		my string $b = "\r\n--" + $boundary;
+                my hash $mpb = MultiPartMessage::parseBody($boundary, $msg, True);
 
-		my int $i = $msg.find($b + "\r\n");
-		if ($i == -1)
-		    throw "MESSAGE-PARSE-ERROR", sprintf("cannot find initial MIME boundary %y in message: %y", $b, $msg);
+                # reassign message body to 
+                $msg = $mpb.body;
 
-		# extract MIME part of message from msg body
-		my string $mmsg = extract $msg, $i + $b.size() + 2;
-		# remove boundary from msg text
-		splice $msg, $i, $b.size() + 2;
-		
-		#printf("mmsg: %y\n", $mmsg);
-		#printf("MSG: %y\n", $msg);
-
-		my int $pnum = 1;
-
-		while ($mmsg.size()) {
-		    # find end of part/beginning of next part
-		    my int $i = $mmsg.find($b);
-		    if ($i == -1)
-			throw "MESSAGE-PARSE-ERROR", sprintf("cannot find MIME boundary %y in message: %y", $boundary, $mmsg);
-		 
-		    # remove the part from the mime message text
-		    my string $part = extract $mmsg, 0, $i;
-		    #printf("DBG: part: %y\n", $part);
-		    #printf("i: %y MMSG: %y\n", $i, $mmsg);
-
-		    # remove boundary for next part
-		    splice $mmsg, 0, $b.size();
-
-                    # "break at end" flag
-                    my bool $bae = False;
-
-		    # if this is a termination boundary, then exit after processing this part
-		    if ($mmsg =~ /^--\r\n/) {
-			splice $mmsg, 0, 4;
-                        $bae = True;
-		    }
-			
-		    # if it's a normal boundary, then remove the \r\n characters only
-		    if ($mmsg =~ /^\r\n/)
-			splice $mmsg, 0, 2;
-		    else if ($mmsg.size())
-			throw "MESSAGE-PARSE-ERROR", sprintf("expecting \\r\\n after boundary; got: %y", extract $mmsg, 2);
-
-		    # get the headers for the part
-		    # part position
-		    my int $pp = 0;
-		    # part content type (default = no encoding)
-		    my string $pct = Mime::ContentTransEnc7Bit;
-		    # part content transfer encoding
-		    my string $pcte;
-		    # part content disposition
-		    my string $pcd;
-		    my hash $ph;
-		    while (True) {
-			my string $hdr = Message::getLine(\$part, \$pp);
-			if ($hdr.empty())
-			    break;
-
-			# see if it's a long header field as defined in RFC 2822 section 2.2.3: http://tools.ietf.org/html/rfc2822#section-2.2.3
-			while ($part =~ /^[ \t]/)
-			    $hdr += " " + trim(Message::getLine(\$part, \$pp));
-
-			my hash $h = $.parseHeader($hdr);
-			my string $lk = $h.firstKey().lwr();
-			my string $val = $h.firstValue();
-			if ($lk == "content-transfer-encoding")
-			    $pcte = $val.lwr();
-			else if ($lk == "content-type")
-			    $pct = $val.lwr();
-			else if ($lk == "content-disposition")
-			    $pcd = $val;
-
-			#printf("got header: %y\n", $h);
-			$ph += $h;
-		    }
-
-		    # get the part's body
-		    my data $pb = mime_decode_transfer_data($part, $pcte, $pct);
-
-		    # get the part's name if possible
-		    my *string $pn = ($pcd =~ x/filename="?([^"]+)"?/)[0];
-
-		    # get the content type
-		    # strip off any additional information from the content-type
-		    $ct =~ s/;.*$//;
-		    if ($ct.empty())
-			$ct = MimeTypeUnknown;
-
-		    #printf("DBG: got part: pcte: %y pct: %y pcd: %y body: %d bytes: %y\n", $pcte, $pct, $pcd, $pb.size(), $pb);
-
-		    # if not an attachment, then set as the msg body
-		    if ($pcd !~ /attachment/i) {
-                        if (!$.body.val())
-                            $.body = $pb;
-                        else                            
-                            $.parts += new Part($pn.val() ? $pn : "", $ct, $pb, $pcte, $ph);
-		    }
-                    else {
-                        # generate a name for the part if no filename is available
-                        if (!$pn.val())
-                            $pn = "unnamed-attachment-" + $pnum;
-
-                        ++$pnum;
-		    
-                        $.attachments += new Attachment($pn, $ct, $pb, $pcte, $ph);
-                    }
-                    if ($bae) {
-			# add any remaining text to the message body text
-                        $msg += $mmsg;
-			break;
-                    }
-                }
+                # process/decode parts
+                map $.processPart($1), $mpb.part;
 	    }
 
 	    # assign the message body to what's left of the message, if anything
@@ -395,6 +300,60 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
                     $.parts += new Part("", $ct.val() ? $ct : MimeTypeUnknown, $pb, $cte);
             }
 	}
+
+        private processPart(hash $p) {
+            # part content type (default = no encoding)
+            my string $pct = Mime::ContentTransEnc7Bit;
+            # part content transfer encoding (default: no encoding)
+            my string $pcte = ContentTransEncBinary;
+            # part content disposition
+            my string $pcd;
+
+            # process part headers
+            foreach my hash $h in ($p.hdr.iterator()) {
+                if ($h.key == "content-transfer-encoding")
+                    $pcte = $h.value.lwr();
+                else if ($h.key == "content-type")
+                    $pct = $h.value;
+                else if ($h.key == "content-disposition")
+                    $pcd = $h.value;
+            }
+
+            # get the part's name if possible
+            my *string $pn = ($pcd =~ x/filename="?([^"]+)"?/)[0];
+
+            # try to get the filename from the content-type header if necessary
+            if (!$pn)
+                $pn = ($pct =~ x/name="?([^"]+)"?/)[0];
+
+            # convert the content-type string to lower case
+            $pct = $pct.lwr();
+
+            # get the content type
+            # strip off any additional information from the content-type
+            $pct =~ s/;.*$//;
+            if ($pct.empty())
+                $pct = MimeTypeUnknown;
+
+            #printf("DBG: got part: pcte: %y pct: %y pcd: %y body: %d bytes: %y\n", $pcte, $pct, $pcd, $p.body.size(), $p.body);
+
+            # if not an attachment, then set as the msg body
+            if ($pcd !~ /attachment/i) {
+                if (!$.body)
+                    $.body = $p.body;
+                else                            
+                    $.parts += new Part($pn.val() ? $pn : "", $pct, $p.body, $pcte, $p.hdr);
+            }
+            else {
+                # generate a name for the part if no filename is available
+                if (!$pn)
+                    $pn = "unnamed-attachment-" + $#;
+
+                $.attachments += new Attachment($pn, $pct, $p.body, $pcte, $p.hdr);
+            }
+
+            map $.processPart($1), $p.part;
+        }
 
 	#! fetch the email address out of a sender/rcpt string
 	static *string getEmailAddress(string $str) {

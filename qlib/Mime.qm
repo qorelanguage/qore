@@ -25,17 +25,29 @@
 %requires qore >= 0.8.4
 
 module Mime {
-    version = "1.2.1";
-    desc = "Mime module giving MIME-related definitions";
+    version = "1.3";
+    desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
 }
 
 /*  Version History
-    * 2012-09-17 v1.2.1: David Nichols <david@qore.org>: fixed q-encoding mail headers (always encode '_' chars otherwise they will be decoded as spaces)
-    * 2012-06-14 v1.2: David Nichols <david@qore.org>: added MIME decoding functions
-    * 2012-05-31 v1.1: David Nichols <david@qore.org>: added initial MultiPartMessage classes
-    * 2012-05-24 v1.0: David Nichols <david@qore.org>: pulled MIME implementation out of other code and made a user module to aggregate MIME definitions and functions
+    * 2012-11-02 v1.3: David Nichols <david@qore.org>
+      + made get MultiPartMessage::getMsgAndHeaders() abstract as originally intended
+      + added MultiPartMessage::parseBody() static method
+      + fixed recognizing mime messages with additional text after the version number (ex: "Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))")
+
+    * 2012-09-17 v1.2.1: David Nichols <david@qore.org>
+      + fixed q-encoding mail headers (always encode '_' chars otherwise they will be decoded as spaces)
+
+    * 2012-06-14 v1.2: David Nichols <david@qore.org>
+      + added MIME decoding functions
+
+    * 2012-05-31 v1.1: David Nichols <david@qore.org>
+      + added initial MultiPartMessage classes
+
+    * 2012-05-24 v1.0: David Nichols <david@qore.org>
+      + pulled MIME implementation out of other code and made a user module to aggregate MIME definitions and functions
 
     based on:
     - http://tools.ietf.org/html/rfc1521: quoted printable & base 64 transfer encodings
@@ -660,6 +672,135 @@ public namespace Mime {
             return $str;
         }
 
+        #! returns a hash representing a parsed multipart message body from a boundary string and body arguments
+        /** Also parses long headers as per <a href="http://tools.ietf.org/html/rfc2822#section-2.2.3">RFC 2822 section 2.2.3</a>
+
+            @par Example:
+            @code
+my hash $mpb = MultiPartMessage::parseBody($boundary, $body);
+            @endcode
+
+            @param boundary the boundary string
+            @param body the message body to parse
+            @param decode decode the parts (in this case a part may itself have parts recursively)
+
+            @return a hash representing a parsed multipart message body with the following keys:
+            - \c body: any non-part message body left after parsing the parts; will be an empty string if the entiore body is made up of the parts
+            - \c part: a list of the parts; each list element is a hash representing a part of the message with the following keys:
+              - \c hdr: a hash of part headers, where each header value is converted to lower case and used as a hash key
+              - \c body: the body of the part as a string
+              - \c [part]: if the \a decode parameter is @ref Qore::True "True" then a part may have parts itself recursively
+
+            @throw MULTIPART-PARSEBODY-ERROR no boundary found in body; no closing boundary; malformatted part or part header, etc
+         */
+        static hash parseBody(string $boundary, string $body, bool $decode = False) {
+            # find beginning
+            my int $i = $body.find("--" + $boundary + "\r\n");
+            if ($i == -1)
+                throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find boundary %y in body", $boundary);
+
+            # see if the boundary is at the beginning of the body, in which case it is not preceded by "\r\n"
+            # otherwise it should be
+            # start offset
+            my int $so = 4;
+            if ($i >= 2 && $body[$i - 2] == "\r" && $body[$i - 1] == "\n") {
+                $so = 6;
+                $i -= 2;
+            }
+
+            my string $mstr = $body.substr($i + $boundary.size() + $so);
+            #printf("MSTR (i: %d): %s\n", $i, $mstr);
+
+            # find end
+            my int $j = $mstr.find("\r\n--" + $boundary + "--\r\n");
+            if ($j == -1)
+                throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find closing boundary %y in body", $boundary + "--");
+
+            # remove multipart string from body
+            splice $body, $i, $j + $boundary.size() * 2 + 8 + $so;
+            
+            #printf("BODY (i: %d, j: %d): %s\n", $i, $j, $body);
+    
+            # remove final boundary and any excess text from the multipart string
+            splice $mstr, $j;
+
+            # process parts
+            my list $l = $mstr.split("\r\n--" + $boundary + "\r\n");
+            foreach my string $pstr in ($l) {
+                $i = $pstr.find("\r\n\r\n");
+                if ($i == -1)
+                    throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d; could not find content boundary", $# + 1, $l.size());
+        
+                # get header string
+                my string $phdr = $pstr.substr(0, $i);
+                # parse header
+                my hash $h;
+                my list $pl = $phdr.split("\r\n");
+                for (my int $k = 0; $k < $pl.size(); ++$k) {
+                    my string $phl = $pl[$k];
+                    my (*string $hdr, *string $val) = ($phl =~ x/([^:]+):\s*(.*)$/);
+                    if (!$hdr || !$val.val())
+                        throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d header line: %y", $# + 1, $l.size(), $phl);
+                    
+                    # see if the following line is a long header field as defined in RFC 2822 section 2.2.3: http://tools.ietf.org/html/rfc2822#section-2.2.3
+                    while ($pl[$k + 1] =~ /^[ \t]/)
+                        $val += " " + trim($pl[++$k]);
+                    
+                    # make sure header keys are returned in lower case
+                    $hdr = $hdr.lwr();
+                    $h.$hdr = $val;
+                }
+                
+                # remove header from content
+                splice $pstr, 0, $i + 4;
+
+                my list $part = ();
+
+                # decode the part if necessary
+                if ($decode) {
+		    # part content type (default = no encoding)
+		    my string $pct = Mime::ContentTransEnc7Bit;
+		    # part content transfer encoding (default: no encoding)
+		    my string $pcte = ContentTransEncBinary;
+
+                    # process part headers
+                    foreach my hash $hh in ($h.iterator()) {
+			if ($hh.key == "content-transfer-encoding")
+			    $pcte = $hh.value.lwr();
+			else if ($hh.key == "content-type")
+			    $pct = $hh.value;
+                    }
+
+                    # decode the part's body
+		    $pstr = mime_decode_transfer_data($pstr, $pcte, $pct);
+
+		    # see if the part has parts itself
+                    if ($pct =~ /multipart\//i) {
+                        my *string $part_boundary = ($pct =~ x/boundary="?([^"]+)"?/)[0];
+                        if (!exists $part_boundary)
+                            throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse part %d Content-Type: %y; could not find message boundary", $#, $pct);
+
+                        my hash $ph = MultiPartMessage::parseBody($part_boundary, $pstr, True);
+                        $pstr = $ph.body;
+                        $part = $ph.part;
+                    }
+                }
+
+                $l[$#] = (
+                    "hdr": $h,
+                    "body": $pstr,
+                    );
+
+                if ($part)
+                    $l[$#].part = $part;
+            }
+            
+            return (
+                "body": $body,
+                "part": $l,
+                );
+        }
+
         #! serializes the message and returns a binary object ready to send over a socket
         binary serialize() {
             my hash $h = $.getMsgAndHeaders();
@@ -682,10 +823,7 @@ public namespace Mime {
         }
 
         #! @cond nodoc
-        # FIXME: replace with ab abstract method when Qore supports them
-        hash getMsgAndHeaders() {
-            throw "ABSTRACT-METHOD-ERROR", "MultiPartMessage::getMsgAndHeaders() is abstract; reimplement this method in your subclass";
-        }
+        abstract hash getMsgAndHeaders();
 
         # don't reimplement this method; fix/enhance it in the module
         final private hash getMsgAndHeadersIntern(*string $content_type, bool $conlen = True) {

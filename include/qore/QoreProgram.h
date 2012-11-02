@@ -513,8 +513,6 @@ public:
 
    DLLLOCAL LocalVar *createLocalVar(const char* name, const QoreTypeInfo *typeInfo);
 
-   DLLLOCAL void addStatement(AbstractStatement* s);
-   
    // returns 0 if a "requires" exception has already occurred
    DLLLOCAL ExceptionSink* getParseExceptionSink();
 

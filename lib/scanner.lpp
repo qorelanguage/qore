@@ -697,49 +697,60 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            const char *p = str.getBuffer();
                                            const char *op = strchr(p, '(');
                                            bool require_dollar = !(getProgram()->getParseOptions64() & PO_REQUIRE_BARE_REFS);
-                                           if (!op) {
-                                              parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing open parenthesis '(' before variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", p);
-                                              BEGIN(INITIAL);
-                                           }
-                                           else {
+                                           QoreString var;
+                                           bool ok = true;
+                                           if (op) {
                                               p = op + 1;
-                                              const char *cp = strchr(p, ')');
+                                              const char* cp = strchr(p, ')');
                                               if (!cp) {
                                                  parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
-                                                 BEGIN(INITIAL);
+                                                 ok = false;
                                               }
                                               else {
                                                  // get variable name
-                                                 QoreString var(p, cp - p);
+                                                 var.concat(p, cp - p);
                                                  var.trim();
 
                                                  if (var.empty()) {
                                                     parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
-                                                    BEGIN(INITIAL);
+                                                    ok = false;
                                                  }
                                                  else {
                                                     // remove preface from string leaving only the rest
                                                     str.replace(0, cp - str.getBuffer() + 1, (const char *)0);
-                                                    str.trim();
-                                                    if (str.empty()) {
-                                                       parse_error("%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
-                                                       BEGIN(INITIAL);
+                                                 }
+                                              }
+                                           }
+
+                                           if (!ok) {
+                                              BEGIN(INITIAL);
+                                           }
+                                           else {
+                                              str.trim();
+                                              if (str.empty()) {
+                                                 if (var.empty())
+                                                    parse_error("%%try-module not in format %%try-module <module>; missing module name; text given: '%%try-module %s'", str.getBuffer());
+                                                 else
+                                                    parse_error("%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                 BEGIN(INITIAL);
+                                              }
+                                              else {
+                                                 //printd(5, "scanner requesting feature: '%s'\n", cn);
+                                                 QoreProgram* pgm = getProgram();
+                                                 ExceptionSink xsink;
+                                                 QMM.parseLoadModule(str.getBuffer(), pgm, xsink);
+                                                 if (!xsink) {
+                                                    BEGIN(p_skip_to_endtry);
+                                                 }
+                                                 else {
+                                                    BEGIN(INITIAL);
+                                                    if (var.empty()) {
+                                                       // ignore exception in this case
+                                                       xsink.clear();
                                                     }
                                                     else {
-                                                       //printd(5, "scanner requesting feature: '%s'\n", cn);
-                                                       QoreProgram* pgm = getProgram();
-                                                       ExceptionSink* xsink = pgm->getParseExceptionSink();
-                                                       assert(xsink);
-                                                       QMM.parseLoadModule(str.getBuffer(), pgm, *xsink);
-                                                       if (!*xsink) {
-                                                          BEGIN(p_skip_to_endtry);
-                                                       }
-                                                       else {
-                                                          BEGIN(INITIAL);
-                                                          // xxx
-                                                          yylval->trymod = new TryModuleError(var.giveBuffer(), xsink->catchException());
-                                                          return TRY_MODULE_ERROR;
-                                                       }
+                                                       yylval->trymod = new TryModuleError(var.giveBuffer(), xsink.catchException());
+                                                       return TRY_MODULE_ERROR;
                                                     }
                                                  }
                                               }

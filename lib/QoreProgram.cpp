@@ -501,15 +501,6 @@ int QoreProgram::getWarningMask() const {
    return priv->warnSink ? priv->pwo.warn_mask : 0; 
 }
 
-void QoreProgram::addStatement(AbstractStatement *s) {
-   priv->sb.addStatement(s);
-
-   // see if top level statements are allowed
-   if (priv->pwo.parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration()) {
-      parse_error("illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
-   }
-}
-
 bool QoreProgram::existsFunction(const char* name) {
    // need to grab the parse lock for safe access to the user function map
    AutoLocker al(&priv->plock);

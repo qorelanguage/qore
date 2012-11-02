@@ -1456,14 +1456,14 @@ top_level_command:
 	      if ($1->isParseDeclaration())
 		 delete $1;
 	      else
-		 getProgram()->addStatement($1);
+	         qore_program_private::addStatement(*(getProgram()), $1);
 	   }
 	}
         | '{' statements '}' {
 	   // set line range
 	   $2->LineNumber = @1.first_line;
 	   $2->EndLineNumber = @2.last_line;
-	   getProgram()->addStatement($2);
+	   qore_program_private::addStatement(*(getProgram()), $2);
         }
         | top_namespace_decl {
            qore_root_ns_private::parseAddNamespace($1); 
@@ -1490,9 +1490,15 @@ top_level_command:
                  parse_error("%%try-module variable '%s' declared with '$' prefix, but parse option 'allow-bare-refs' is set", $1->var);
            }
 
-           VarRefTryModuleErrorNode* left = new VarRefTryModuleErrorNode(@1.first_line, @1.last_line, $1->takeName());
-           QoreAssignmentOperatorNode* exp = new QoreAssignmentOperatorNode(left, $1->takeExceptionHash());
-           getProgram()->addStatement(new ExpressionStatement(@1.first_line, @1.last_line, exp));
+           if (checkParseOption(PO_NO_TOP_LEVEL_STATEMENTS)) {
+              parse_error("'%%try-module' with exception variable cannot be used with parse option NO_TOP_LEVEL_STATEMENTS; use %%try-module without an exception variable instead");
+              delete $1;
+           }
+           else {
+              VarRefTryModuleErrorNode* left = new VarRefTryModuleErrorNode(@1.first_line, @1.last_line, $1->takeName());
+              QoreAssignmentOperatorNode* exp = new QoreAssignmentOperatorNode(left, $1->takeExceptionHash());
+              qore_program_private::addStatement(*(getProgram()), new ExpressionStatement(@1.first_line, @1.last_line, exp));
+           }
         }
 	;
 

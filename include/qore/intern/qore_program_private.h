@@ -1294,6 +1294,18 @@ public:
       i->second->clearTZ();
    }
 
+   DLLLOCAL void addStatement(AbstractStatement* s) {
+      sb.addStatement(s);
+
+      // see if top level statements are allowed
+      if (pwo.parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration())
+         parse_error("illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
+   }
+
+   DLLLOCAL static void addStatement(QoreProgram& pgm, AbstractStatement* s) {
+      pgm.priv->addStatement(s);
+   }
+
    DLLLOCAL static const AbstractQoreZoneInfo* currentTZIntern(QoreProgram& pgm) {
       return pgm.priv->TZ;
    }
