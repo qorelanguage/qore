@@ -195,16 +195,25 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
       AutoLocker al(plock);
       // wait for all threads to terminate
       waitForAllThreadsToTerminateIntern();
-      if (valid) {
+      if (valid)
          clr = true;
-         valid = false;
-      }
    }
 
    if (clr) {
       //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p clr: %d\n", this, clr);
       // delete all global variables, etc
       qore_root_ns_private::clearData(*RootNS, xsink);
+
+      // clear thread data if base object
+      if (base_object)
+         clearThreadData(xsink);
+
+      clearProgramThreadData(xsink);
+
+      {
+         AutoLocker al(plock);
+         valid = false;
+      }
 
    #ifdef HAVE_SIGNAL_HANDLING
       {
@@ -220,12 +229,6 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
          xsink->assimilate(pendingParseSink);
          pendingParseSink = 0;
       }
-
-      // clear thread data if base object
-      if (base_object)
-         clearThreadData(xsink);
-
-      clearProgramThreadData(xsink);
    }
 }
 
