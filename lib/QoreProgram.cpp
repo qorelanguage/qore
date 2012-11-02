@@ -94,7 +94,7 @@ void qore_program_private_base::newProgram() {
       featureList.push_back((*i).c_str());
 
    // setup namespaces
-   RootNS = qore_root_ns_private::copy(staticSystemNamespace, pwo.parse_options);
+   RootNS = qore_root_ns_private::copy(*staticSystemNamespace, pwo.parse_options);
    QoreNS = RootNS->rootGetQoreNamespace();
    assert(QoreNS);
 

@@ -122,7 +122,7 @@ DLLLOCAL void init_dbi_constants(QoreNamespace& ns);
 // constants defined in pseudo-class implementations
 DLLLOCAL void init_QC_Number_constants(QoreNamespace& ns);
 
-StaticSystemNamespace staticSystemNamespace;
+StaticSystemNamespace* staticSystemNamespace;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -594,13 +594,8 @@ QoreNamespace* RootQoreNamespace::rootGetQoreNamespace() const {
    return rpriv->qoreNS;
 }
 
-StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root_ns_private(this)) {
-}
-
 // sets up the root namespace
-void StaticSystemNamespace::init() {
-   QORE_TRACE("StaticSystemNamespace::init()");
-
+StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root_ns_private(this)) {
    rpriv->qoreNS = new QoreNamespace("Qore");
    QoreNamespace& qns = *rpriv->qoreNS;
 
@@ -1982,7 +1977,7 @@ QoreNamespace* qore_ns_private::parseFindLocalNamespace(const char* nname) {
    return rv ? rv : pendNSL.find(nname);
 }
 
-void StaticSystemNamespace::purge() {
+StaticSystemNamespace::~StaticSystemNamespace() {
    ExceptionSink xsink;
    deleteData(&xsink);
    priv->purge();

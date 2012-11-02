@@ -107,7 +107,7 @@ void BuiltinFunctionList::add(const char *name, q_func_t f, int functional_domai
    // for backwards compatibility we load directly into the Qore namespace of the static system namespace
    BuiltinFunctionVariant* v = new BuiltinFunctionVariant(f, QC_USES_EXTRA_ARGS, functional_domain);
    if (!qmc)
-      qore_root_ns_private::getQore(staticSystemNamespace)->addBuiltinVariantIntern(name, v);
+      qore_root_ns_private::getQore(*staticSystemNamespace)->addBuiltinVariantIntern(name, v);
    else
       qmc->mcfl.push_back(ModuleContextFunctionCommit(qmc->getRootNS()->getQore(), name, v));
 
@@ -135,7 +135,7 @@ void BuiltinFunctionList::add2(const char *name, q_func_t f, int64 flags, int64 
    BuiltinFunctionVariant* v = new BuiltinFunctionVariant(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList);
    //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, returnTypeInfo->getName(), num_params);
    if (!qmc)
-      qore_root_ns_private::getQore(staticSystemNamespace)->addBuiltinVariantIntern(name, v);
+      qore_root_ns_private::getQore(*staticSystemNamespace)->addBuiltinVariantIntern(name, v);
    else
       qmc->mcfl.push_back(ModuleContextFunctionCommit(qmc->getRootNS()->getQore(), name, v));
 
@@ -154,7 +154,7 @@ void BuiltinFunctionList::add3(const char *name, q_func_t f, int64 flags, int64 
    BuiltinFunctionVariant* v = new BuiltinFunctionVariant(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList);
    //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, returnTypeInfo->getName(), num_params);
    if (!qmc)
-      qore_root_ns_private::getQore(staticSystemNamespace)->addBuiltinVariantIntern(name, v);
+      qore_root_ns_private::getQore(*staticSystemNamespace)->addBuiltinVariantIntern(name, v);
    else
       qmc->mcfl.push_back(ModuleContextFunctionCommit(qmc->getRootNS()->getQore(), name, v));
 

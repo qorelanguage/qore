@@ -173,7 +173,7 @@ void QoreModuleDefContext::checkName() {
 class QoreModuleContextHelper : public QoreModuleContext {
 public:
    DLLLOCAL QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink)
-     : QoreModuleContext(name, qore_root_ns_private::get(pgm ? *(pgm->getRootNS()) : staticSystemNamespace), xsink) {
+     : QoreModuleContext(name, qore_root_ns_private::get(pgm ? *(pgm->getRootNS()) : *staticSystemNamespace), xsink) {
       set_module_context(this);
    }
    
