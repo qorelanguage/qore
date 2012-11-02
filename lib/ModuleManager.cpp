@@ -170,9 +170,11 @@ void QoreModuleDefContext::checkName() {
    }
 }
 
-class QoreModuleContextHelper : public QoreModuleContext {
+class QoreModuleContextHelper : public QoreModuleContext, public ProgramThreadCountContextHelper {
 public:
-   DLLLOCAL QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink) : QoreModuleContext(name, qore_root_ns_private::get(pgm ? *(pgm->getRootNS()) : staticSystemNamespace), xsink) {
+   DLLLOCAL QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink, bool runtime)
+     : QoreModuleContext(name, qore_root_ns_private::get(pgm ? *(pgm->getRootNS()) : staticSystemNamespace), xsink),
+       ProgramThreadCountContextHelper(&xsink, pgm, runtime) {
       set_module_context(this);
    }
    
@@ -233,7 +235,9 @@ static QoreStringNode* loadModuleError(const char* name, ExceptionSink& xsink) {
 }
 
 void QoreBuiltinModule::addToProgram(QoreProgram* pgm, ExceptionSink& xsink) const {
-   QoreModuleContextHelper qmc(name.getBuffer(), pgm, xsink);
+   QoreModuleContextHelper qmc(name.getBuffer(), pgm, xsink, false);
+   if (xsink)
+      return;
 
    RootQoreNamespace* rns = pgm->getRootNS();
    QoreNamespace* qns = pgm->getQoreNS();
@@ -277,7 +281,12 @@ void QoreUserModule::addToProgram(QoreProgram* tpgm, ExceptionSink& xsink) const
       return;
    }
 
-   QoreModuleContextHelper qmc(name.getBuffer(), tpgm, xsink);
+   QoreModuleContextHelper qmc(name.getBuffer(), tpgm, xsink, false);
+   if (xsink) {
+      // rollback all module changes
+      qmc.rollback();
+      return;
+   }
 
    RootQoreNamespace* rns = tpgm->getRootNS();
    qore_root_ns_private::scanMergeCommittedNamespace(*rns, *(pgm->getRootNS()), qmc);
@@ -900,7 +909,13 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%08p\n", path, name, *module_init);
 
    // this is needed for backwards-compatibility for modules that add builtin functions in the module initilization code
-   QoreModuleContextHelper qmc(name, pgm, xsink);
+   QoreModuleContextHelper qmc(name, pgm, xsink, true);
+   if (xsink) {
+      // rollback all module changes
+      qmc.rollback();
+      return 0;
+   }
+
    QoreStringNode* str = (*module_init)();
    if (str) {
       // rollback all module changes
