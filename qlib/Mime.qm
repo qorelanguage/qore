@@ -746,11 +746,11 @@ hash: (2 members)
             - \c part: a list of the parts; each list element is a hash representing a part of the message with the following keys:
               - \c hdr: a hash of part headers, where each header value is converted to lower case and used as a hash key
               - \c body: the body of the part as a string
-              - \c [part]: if the \a decode parameter is @ref Qore::True "True" then a part may have parts itself recursively
+              - \c [part]: if the \a decode parameter is @ref Qore::True "True" then any content-encoding for parts is decoded automatically; also parts that have parts themselves are processed recursively if this argument is set
 
             @throw MULTIPART-PARSEBODY-ERROR no boundary found in body; no closing boundary; malformatted part or part header, etc
 
-            @note multiaprt message parsing only works if the line termination characters are \c "\r\n"; make sure and convert the end of line characters before passing to this method if necessary
+            @note multipart message parsing only works if the line termination characters are \c "\r\n"; make sure and convert the end of line characters before passing to this method if necessary
          */
         static hash parseBody(string $boundary, string $body, bool $decode = False) {
             # find beginning
