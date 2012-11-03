@@ -32,15 +32,21 @@
 %requires MailMessage >= 1.0
 
 module Pop3Client {
-    version = "1.0";
+    version = "1.1";
     desc = "POP3 client support module";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
-    * 2012-09-04 v1.0: David Nichols <david@qore.org>: doc updates only
-    * 2012-06-12 v1.0: David Nichols <david@qore.org>: initial release
+    * 2012-11-03 v1.1: David Nichols <david@qore.org>
+      + added the logPassword() methods and masked password by default in the debug log
+
+    * 2012-09-04 v1.0: David Nichols <david@qore.org>
+      + doc updates only
+
+    * 2012-06-12 v1.0: David Nichols <david@qore.org>
+      + initial release
 
     based on:
     - http://tools.ietf.org/html/rfc1939 (POP3)
@@ -56,6 +62,27 @@ module Pop3Client {
 
     The main class is:
     - @ref Pop3Client::Pop3Client "Pop3Client": provides an interface to a <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> server for retrieving emails
+
+    @par Example:
+    @code
+#!/usr/bin/env qore -n
+
+%requires Pop3Client
+
+sub log(string msg) {
+    printf("%y: %s\n", now_ms(), vsprintf(msg, argv));
+}
+
+string url = "pop3s://username:pass@pop.gmail.com";
+Pop3Client pop3(url, \log(), \log());
+# do not send a QUIT so changes will not be committed
+pop3.noquit(True);
+*hash h = pop3.getMail();
+printf("Mailbox Summary:\n");
+map printf("%s: From: %s (size: %d bytes, attachments: %d)\n", $1.getKey(), $1.getValue().msg.getFrom(), $1.getValue().size, $1.getValue().msg.getAttachments().size()), h.iterator(False);
+if (!h)
+    printf("no messages\n");
+    @endcode
 */
 
 #! the main namespace for the Pop3Client module
@@ -124,6 +151,9 @@ public namespace Pop3Client {
 
             # connect timeout in milliseconds
             timeout $.connectTimeout = DefaultConnectTimeout;    
+
+            # log password
+            bool $.log_pass = False;
 
             const MaxDebugLine = 2048;
         }
@@ -216,6 +246,29 @@ my Pop3Client $pop3("pop3s://user@gmail.com:password@pop.gmail.com");
 		$.logDbg("Pop3Client disconnect: %s: %s", $ex.err, $ex.desc);
 	    }
   	}
+
+        #! log password
+        /** @param pwd if @ref Qore::True "True" then log the password in the debug log (if any is set)
+            
+            @par Example:
+            @code
+$pop3.logPassword(True);
+            @endcode
+         */
+        logPassword(bool $pwd) {
+            $.log_pass = $pwd;
+        }
+
+        #! returns the log password flag
+        /**
+            @par Example:
+            @code
+my bool $b = $pop3.logPassword();
+            @endcode
+        */
+	bool logPassword() {
+	    return $.log_pass;
+	}
 
         #! sets the TLS/SSL flag
         /** @param tls if @ref Qore::True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will negotiate a TLS/SSL connection with the server after connecting
@@ -676,9 +729,16 @@ $pop3.forceDisconnect();
 	}
 
         # don't reimplement this method; fix/enhance it in the module
-        final private sendCommandIntern(string $str) {
-	    if ($.log_debug.val())
-		$.logDbg("send: %y", trim($str));
+        final private sendCommandIntern(string $str, bool $masked = False) {
+	    if ($.log_debug.val()) {
+                if ($masked) {
+                    my string $lstr = $str;
+                    $lstr =~ s/(\w+) (.*)/$1 **MASKED** /;
+                    $.logDbg("send: %y", trim($lstr));
+                }
+                else
+                    $.logDbg("send: %y", trim($str));
+            }
 
             $.sock.send($str);
         }
@@ -704,6 +764,13 @@ $pop3.forceDisconnect();
             return $.getResponse();
         }
 
+        # don't reimplement this method; fix/enhance it in the module
+        final private string sendCommandMasked(string $str) {
+            $str = vsprintf($str + "\r\n", $argv);
+            $.sendCommandIntern($str, True);
+            return $.getResponse();
+        }
+
         private loginIntern(string $r) {
             # try to login with APOP if an RFC822-compliant msg-id is included in the last part of the login string
             my *string $apop = ($r =~ x/(<.*>)$/)[0];
@@ -715,7 +782,11 @@ $pop3.forceDisconnect();
             else {
                 # login with USER and PASS
                 $.sendCommand("USER %s", $.user);
-                $.sendCommand("PASS %s", $.pass);
+                if (!$.log_pass)
+                    $.sendCommandMasked("PASS %s", $.pass);
+                else
+                    $.sendCommand("PASS %s", $.pass);
+
                 $.log("logged in with USER and PASS as %y", $.user);
             }
         }
