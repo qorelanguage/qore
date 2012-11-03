@@ -13,6 +13,9 @@
 # make sure we have the right version of qore
 %requires qore >= 0.8.4
 
+# for Mime tests
+%requires Mime
+
 # global variables needed for tests
 our Test $to("program-test.q");
 our Test $ro("readonly");
@@ -1959,6 +1962,18 @@ sub background_tests() {
     }
 }
 
+sub mime_tests() {
+    my string $str = "This is a test: æéìœü";
+    test_value($str, mime_decode_quoted_printable(mime_encode_quoted_printable($str)), "MIME: quoted printable");
+    test_value($str, mime_decode_base64_to_string(mime_encode_base64($str)), "MIME: base64");
+    test_value($str, mime_decode_header(mime_encode_header_word_q($str)), "MIME: header word q");
+    test_value($str, mime_decode_header(mime_encode_header_word_b($str)), "MIME: header word b");
+}
+
+sub module_tests() {
+    mime_tests();
+}
+
 sub do_tests() {
     on_exit $counter.dec();
     try {
@@ -1981,6 +1996,7 @@ sub do_tests() {
 	    digest_tests();
 	    closure_tests();
 	    format_date_tests();
+            module_tests();
 	    if ($o.bq)
 		backquote_tests();
 	}

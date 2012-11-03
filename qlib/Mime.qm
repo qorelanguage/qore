@@ -70,7 +70,28 @@ module Mime {
     - @ref MimeDecodingFunctions "MimeDecodingFunctions": functions for decoding MIME data
     - @ref MultiPartConstants "MultiPartConstants": constants for the MultiPartMessage classes
     - @ref Mime::MultiPartMessage "MultiPartMessage": the base class for MultiPartMessage classes
+      - @ref Mime::MultiPartMessage::parseBody() "MultiPartMessage::parseBody()": use this static function to parse multipart message bodies (including parts that themselves have parts if the \a decode argument is @ref Qore::True "True"); this static method can be used for both HTTP multipart messages or text multipart messages (for example as sent in an email/SMTP message)
     - @ref Mime::MultiPartRelatedMessage "MultiPartRelatedMessage": a class for handling multipart/related messages
+
+    @par Example:
+    @code
+#!/usr/bin/env qore
+
+%requires Mime
+
+my string $str = "This is a test: æéìœü";
+printf("%y: quoted printable: %y\n", mime_decode_quoted_printable(mime_encode_quoted_printable($str)), mime_encode_quoted_printable($str));
+printf("%y: base64: %y\n", mime_decode_base64_to_string(mime_encode_base64($str)), mime_encode_base64($str));
+printf("%y: header word q: %y\n", mime_decode_header(mime_encode_header_word_q($str)), mime_encode_header_word_q($str));
+printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b($str)), mime_encode_header_word_b($str));
+    @endcode \n
+    The output of the above example looks like:
+    @verbatim
+"This is a test: æéìœü": quoted printable: "This is a test: =C3=A6=C3=A9=C3=AC=C5=93=C3=BC"
+"This is a test: æéìœü": base64: "VGhpcyBpcyBhIHRlc3Q6IMOmw6nDrMWTw7w="
+"This is a test: æéìœü": header word q: "=?UTF-8?Q?This_is_a_test:_=C3=A6=C3=A9=C3=AC=C5=93=C3=BC?="
+"This is a test: æéìœü": header word b: "=?UTF-8?B?VGhpcyBpcyBhIHRlc3Q6IMOmw6nDrMWTw7w=?="
+    @endverbatim
  */
 
 #! public Mime namespace defines constants and functions relevant to MIME
@@ -676,12 +697,48 @@ public namespace Mime {
         /** Also parses long headers as per <a href="http://tools.ietf.org/html/rfc2822#section-2.2.3">RFC 2822 section 2.2.3</a>
 
             @par Example:
+            For example, given the following code:
             @code
-my hash $mpb = MultiPartMessage::parseBody($boundary, $body);
-            @endcode
+my string $body = "This is a message with multiple parts in MIME format.\r
+--frontier\r
+Content-Type: text/plain\r
+\r
+This is the body of the message.\r
+--frontier\r
+Content-Type: text/html\r
+Content-Transfer-Encoding: base64\r
+\r
+PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUg\r
+Ym9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=\r
+--frontier--\r
+";
+    printf("%N\n", MultiPartMessage::parseBody("frontier", $body, True));
+            @endcode \n
+            The above code will output the following:
+            @verbatim
+hash: (2 members)
+  body : "This is a message with multiple parts in MIME format."
+  part : list: (2 elements)
+    [0]=hash: (2 members)
+      hdr : hash: (1 member)
+        content-type : "text/plain"
+      body : "This is the body of the message."
+    [1]=hash: (2 members)
+      hdr : hash: (2 members)
+        content-type : "text/html"
+        content-transfer-encoding : "base64"
+      body : "<html>
+  <head>
+  </head>
+  <body>
+    <p>This is the body of the message.</p>
+  </body>
+</html>
+"
+            @endverbatim
 
             @param boundary the boundary string
-            @param body the message body to parse
+            @param body the message body to parse; parsing only works if the line termination characters are \c "\r\n"
             @param decode decode the parts (in this case a part may itself have parts recursively)
 
             @return a hash representing a parsed multipart message body with the following keys:
@@ -692,6 +749,8 @@ my hash $mpb = MultiPartMessage::parseBody($boundary, $body);
               - \c [part]: if the \a decode parameter is @ref Qore::True "True" then a part may have parts itself recursively
 
             @throw MULTIPART-PARSEBODY-ERROR no boundary found in body; no closing boundary; malformatted part or part header, etc
+
+            @note multiaprt message parsing only works if the line termination characters are \c "\r\n"; make sure and convert the end of line characters before passing to this method if necessary
          */
         static hash parseBody(string $boundary, string $body, bool $decode = False) {
             # find beginning
@@ -726,7 +785,7 @@ my hash $mpb = MultiPartMessage::parseBody($boundary, $body);
 
             # process parts
             my list $l = $mstr.split("\r\n--" + $boundary + "\r\n");
-            foreach my string $pstr in ($l) {
+            foreach my data $pstr in ($l) {
                 $i = $pstr.find("\r\n\r\n");
                 if ($i == -1)
                     throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d; could not find content boundary", $# + 1, $l.size());
@@ -773,6 +832,8 @@ my hash $mpb = MultiPartMessage::parseBody($boundary, $body);
 
                     # decode the part's body
 		    $pstr = mime_decode_transfer_data($pstr, $pcte, $pct);
+                    if ($pstr.typeCode() == NT_BINARY && $pct =~ /text/)
+                        $pstr = binary_to_string($pstr);
 
 		    # see if the part has parts itself
                     if ($pct =~ /multipart\//i) {
