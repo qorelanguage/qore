@@ -187,7 +187,7 @@ public:
       return qc;
    }
 
-   DLLLOCAL void clearConstants(ExceptionSink* xsink);
+   DLLLOCAL void clearConstants(QoreListNode& l);
    DLLLOCAL void clearData(ExceptionSink* xsink);
    DLLLOCAL void deleteData(ExceptionSink* xsink);
 
@@ -1501,8 +1501,8 @@ public:
       return rns.rpriv->qoreNS->priv;
    }
 
-   DLLLOCAL static void clearConstants(RootQoreNamespace& ns, ExceptionSink* xsink) {
-      ns.priv->clearConstants(xsink);
+   DLLLOCAL static void clearConstants(RootQoreNamespace& ns, QoreListNode& l) {
+      ns.priv->clearConstants(l);
       ns.rpriv->cnmap.clear();
    }
 

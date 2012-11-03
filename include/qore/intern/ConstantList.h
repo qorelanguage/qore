@@ -85,6 +85,16 @@ public:
    }
 
    DLLLOCAL void del(ExceptionSink* xsink);
+   DLLLOCAL void del(QoreListNode& l) {
+      if (!node)
+         return;
+
+      l.push(node);
+#ifdef DEBUG
+      node = 0;
+#endif
+      delete this;
+   }
 
    DLLLOCAL int parseInit(ClassNs ptr);
    DLLLOCAL AbstractQoreNode* get(const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
@@ -195,6 +205,7 @@ public:
    DLLLOCAL void parseInit();
    DLLLOCAL QoreHashNode *getInfo();
    DLLLOCAL void parseDeleteAll();
+   DLLLOCAL void clear(QoreListNode& l);
    DLLLOCAL void deleteAll(ExceptionSink *xsink);
    DLLLOCAL void reset();
 

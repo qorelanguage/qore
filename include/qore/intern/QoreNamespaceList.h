@@ -91,7 +91,7 @@ public:
    DLLLOCAL void parseInitConstants();
 
    DLLLOCAL void parseInitGlobalVars();
-   DLLLOCAL void clearConstants(ExceptionSink* sink);
+   DLLLOCAL void clearConstants(QoreListNode& l);
    DLLLOCAL void clearData(ExceptionSink* sink);
    DLLLOCAL void deleteGlobalVars(ExceptionSink* sink);
 

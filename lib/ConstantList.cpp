@@ -210,6 +210,18 @@ void ConstantList::clearIntern(ExceptionSink *xsink) {
 }
 
 // called at runtime
+void ConstantList::clear(QoreListNode& l) {
+   for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
+      if (!i->second)
+         continue;
+      printd(5, "ConstantList::clear(l: %p) this: %p clearing %s type %s refs %d\n", &l, this, i->first, get_type_name(i->second->node), i->second->node ? i->second->node->reference_count() : 0);
+      i->second->del(l);
+   }
+
+   cnemap.clear();
+}
+
+// called at runtime
 void ConstantList::deleteAll(ExceptionSink *xsink) {
    clearIntern(xsink);
 }

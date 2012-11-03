@@ -418,9 +418,9 @@ void QoreNamespaceList::parseInitGlobalVars() {
       i->second->priv->parseInitGlobalVars();
 }
 
-void QoreNamespaceList::clearConstants(ExceptionSink* xsink) {
+void QoreNamespaceList::clearConstants(QoreListNode& l) {
    for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      i->second->priv->clearConstants(xsink);
+      i->second->priv->clearConstants(l);
 }
 
 void QoreNamespaceList::clearData(ExceptionSink* xsink) {
@@ -1212,11 +1212,11 @@ void qore_ns_private::parseInitGlobalVars() {
    pendNSL.parseInitGlobalVars();
 }
 
-void qore_ns_private::clearConstants(ExceptionSink *xsink) {
+void qore_ns_private::clearConstants(QoreListNode& l) {
    // clear constants
-   constant.deleteAll(xsink);
+   constant.clear(l);
    // clear/finalize class constants
-   classList.clearConstants(xsink);
+   classList.clearConstants(l);
 }
 
 void qore_ns_private::clearData(ExceptionSink *xsink) {

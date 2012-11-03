@@ -192,12 +192,16 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
    // we only clear the internal data structures once
    bool clr = false;
    {
-      AutoLocker al(plock);
-      // wait for all threads to terminate
-      waitForAllThreadsToTerminateIntern();
-      if (valid) {
-         qore_root_ns_private::clearConstants(*RootNS, xsink);
-         clr = true;
+      ReferenceHolder<QoreListNode> l(xsink);
+      {
+         AutoLocker al(plock);
+         // wait for all threads to terminate
+         waitForAllThreadsToTerminateIntern();
+         if (valid) {
+            l = new QoreListNode;
+            qore_root_ns_private::clearConstants(*RootNS, **l);
+            clr = true;
+         }
       }
    }
 
