@@ -269,7 +269,7 @@ private:
    DLLLOCAL QoreStringNodeMaker& operator=(const QoreStringNodeMaker&);
 
 public:
-   DLLLOCAL QoreStringNodeMaker(const char* fmt, ...);
+   DLLEXPORT QoreStringNodeMaker(const char* fmt, ...);
 };
 
 extern QoreStringNode *NullString;
