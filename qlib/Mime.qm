@@ -744,7 +744,7 @@ hash: (2 members)
             - \c body: any non-part message body left after parsing the parts; will be an empty string if the entiore body is made up of the parts
             - \c part: a list of the parts; each list element is a hash representing a part of the message with the following keys:
               - \c hdr: a hash of part headers, where each header value is converted to lower case and used as a hash key
-              - \c body: the body of the part as a string
+              - \c body: the body of the part as a string or binary object; this can only be a binary object if the part's content-encoding is base64 and the part's content type does not contain the word \c "text"
               - \c [part]: if the \a decode parameter is @ref Qore::True "True" then any content-encoding for parts is decoded automatically; also parts that have parts themselves are processed recursively if this argument is set
 
             @throw MULTIPART-PARSEBODY-ERROR no boundary found in body; no closing boundary; malformatted part or part header, etc

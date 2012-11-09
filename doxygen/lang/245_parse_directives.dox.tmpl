@@ -1070,7 +1070,7 @@ if ($str)
 
     @par Description:
     Loads a %Qore module immediately. The parse directive can be used to load a module during parsing, and the command line version can be used to load a module before parsing.\n\n
-    From %Qore 0.7.1, you can specify a comparison operator (one of <tt>\<, \<=, =, \>=, or \></tt>) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a \c ".". If one of the versions does not have as many elements as another, the missing elements are assumed to be \c "0" (i.e. version \c "1.0" compared with version \c "1.0.1" will be exteneded to \c "1.0.0").\n\n
+    From %Qore 0.7.1, you can specify a comparison operator (one of <tt>\<, \<=, =, \>=, or \></tt>) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a \c ".". If one of the versions does not have as many elements as another, the missing elements are assumed to be \c "0" (i.e. version \c "1.0" compared with version \c "1.0.1" will be extended to \c "1.0.0").\n\n
     For example:\n
     @code
 %requires oracle >= 1.0.1
@@ -1154,7 +1154,7 @@ if ($str)
 
     @par Description:
     Loads a %Qore module immediately; if an error occurs loading the module, then the @ref variable_declarations "variable" declared in parentheses after <tt>%%try-module</tt> is instantiated with the exception information, and the code up to the @ref endtry "%endtry" parse declaration is parsed into the program, allowing for the qore script/program to handle module loading errors at parse time for modules that must be loaded at parse time.\n\n
-    A comparison operator (one of <tt>\<, \<=, =, \>=, or \></tt>) and version information can be optionally given after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a \c ".". If one of the versions does not have as many elements as another, the missing elements are assumed to be \c "0" (i.e. version \c "1.0" compared with version \c "1.0.1" will be exteneded to \c "1.0.0").  Version errors are handled in the same was as any other module loading error.\n\n
+    A comparison operator (one of <tt>\<, \<=, =, \>=, or \></tt>) and version information can be optionally given after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a \c ".". If one of the versions does not have as many elements as another, the missing elements are assumed to be \c "0" (i.e. version \c "1.0" compared with version \c "1.0.1" will be extended to \c "1.0.0").  Version errors are handled in the same was as any other module loading error.\n\n
     For example:\n
     @code
 %try-module($ex) some_module > 2.0

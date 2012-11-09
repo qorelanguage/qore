@@ -49,6 +49,7 @@ void FunctionList::del() {
    for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
       delete i->second;
    clear();
+   assert(empty());
 }
 
 FunctionEntry* FunctionList::add(QoreFunction* func) {
