@@ -1,3 +1,209 @@
+2012-11-09 14:48  david_nichols
+
+	* qlib/Mime.qm: changed the default value of the decode parameter
+	  in MultiPartMessage::parseBody() to True
+
+2012-11-09 14:43  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/245_parse_directives.dox.tmpl, lib/FunctionList.cpp,
+	  qlib/Mime.qm: doc updates
+
+2012-11-09 13:48  david_nichols
+
+	* doxygen/lang/245_parse_directives.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, qlib/MailMessage.qm,
+	  qlib/Mime.qm: doc updates
+
+2012-11-05 16:19  david_nichols
+
+	* include/qore/QoreStringNode.h: checked in initial version of
+	  openldap module
+
+2012-11-03 16:11  david_nichols
+
+	* qlib/MailMessage.qm, qlib/Pop3Client.qm: + updated docs; updated
+	  Pop3Client module to 1.1; mask passwords in debug log by default
+	  + set sender and from value properly when parsing email messages
+	  in MailMessage
+
+2012-11-03 12:51  david_nichols
+
+	* qlib/Mime.qm: minor doc corrections
+
+2012-11-03 12:49  david_nichols
+
+	* qlib/Mime.qm, test/test.q: dox updated in mime module; added
+	  regression tests in test.q for the mime module
+
+2012-11-03 04:59  david_nichols
+
+	* include/qore/intern/ConstantList.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreClassList.h,
+	  include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/QoreNamespaceList.h, lib/ConstantList.cpp,
+	  lib/QoreClassList.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreProgram.cpp: do not dereference constant values (or
+	  anything) while holding a lock as it can lead to a deadlock (when
+	  an object's destructor is run for example)
+
+2012-11-02 18:28  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreClassList.h, lib/QoreClassList.cpp,
+	  lib/QoreNamespace.cpp: clear class constants when clearing
+	  namespace constants in program destruction
+
+2012-11-02 18:14  david_nichols
+
+	* include/qore/intern/QoreLibIntern.h: header to go with last
+	  commit
+
+2012-11-02 18:13  david_nichols
+
+	* lib/BuiltinFunctionList.cpp, lib/ModuleManager.cpp,
+	  lib/QoreNamespace.cpp, lib/QoreProgram.cpp, lib/qore-main.cpp: do
+	  not statically allocate the static system namespace as it causes
+	  a race condition when one thread calls exit and another thread is
+	  shutting down the library
+
+2012-11-02 18:01  david_nichols
+
+	* include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/QoreNamespaceList.h, lib/QoreNamespace.cpp,
+	  lib/QoreProgram.cpp: + don't call StaticSystemDatasource::purge()
+	  from the destructor - this can lead to a race condition when
+	  exit() in one thread and the qore library is being shut down in
+	  another
+	  + clear constants inside the parse lock and clear global lookup
+	  map at the same time
+
+2012-11-02 16:31  david_nichols
+
+	* lib/QoreProgram.cpp: reverted a previous change that changed
+	  Program destruction behavior; program data (global and class
+	  variables, thread-local data, etc) must be destroyed before the
+	  Program is marked invalid or destructors cannot run (they get the
+	  error: PROGRAM-ERROR: the program accessed has already been
+	  deleted)
+
+2012-11-02 16:13  david_nichols
+
+	* include/qore/QoreProgram.h,
+	  include/qore/intern/qore_program_private.h,
+	  lib/ModuleManager.cpp, lib/QoreProgram.cpp, lib/parser.ypp,
+	  lib/scanner.lpp, qlib/MailMessage.qm, qlib/Mime.qm: + implemented
+	  %try-module variant without exception variable usable for Program
+	  objects where PO_NO_TOP_LEVEL_STATEMENTS is set
+	  + fixed a crashing bug handling user module parse errors due to
+	  failing to set the Program context properly when merging user
+	  module code to a Program object
+	  + implemented the MultiPartMessage::parseBody() static method for
+	  parsing multipart message bodies
+	  + fixed bugs in the MailMessage module setting the content-type
+	  of parts
+	  + now message parts with subparts are parsed properly (affected
+	  the MailMessage module; the corrected code is now in the Mime
+	  module)
+	  + fixed a bug where a Mime message was not detected as mime if
+	  the mime header had text after the mime version
+
+2012-11-02 13:35  david_nichols
+
+	* lib/ModuleManager.cpp: fixed a bug parsing user modules; the
+	  Program context was not set properly which could lead to a crash
+	  when parsing user modules loaded from the command-line or to
+	  incorrect parse options when loaded from user Program code
+
+2012-11-01 17:22  david_nichols
+
+	* test/test.q: added a test for retrieving the class name of a user
+	  class from an external program after the program containing the
+	  user class was deleted
+
+2012-11-01 17:13  david_nichols
+
+	* include/qore/intern/Function.h,
+	  include/qore/intern/FunctionList.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreClassList.h,
+	  include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/qore_program_private.h,
+	  lib/QoreClassList.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreProgram.cpp: + clear all constants when invalidating and
+	  clearing Programs in order to fix a dynamic memory leak when a
+	  Program constant contains a call reference
+	  + slightly simplified Program invalidation and fixed a potential
+	  race condition
+
+2012-11-01 12:36  david_nichols
+
+	* TODO, lib/Operator.cpp: + fixed a bug where the invalid-operation
+	  warning with the keys operator was not being triggered in common
+	  cases that should have triggered the warning
+	  + added code to raise an invalid-operation warning with the
+	  elements operator when called with a type that can never return a
+	  value
+
+2012-10-31 14:26  david_nichols
+
+	* lib/QoreFile.cpp: greatly increased file read performance by
+	  using a 16K buffer rather than a 4k buffer
+
+2012-10-31 08:05  david_nichols
+
+	* Makefile.am, include/qore/ModuleManager.h,
+	  include/qore/QoreLib.h, include/qore/QoreNumberNode.h,
+	  include/qore/intern/QoreNumber.h,
+	  include/qore/intern/qore_number_private.h, lib/Makefile.am,
+	  lib/ModuleManager.cpp, lib/Pseudo_QC_Number.qpp,
+	  lib/QoreNumberNode.cpp, qore.spec: + added new QoreNumberNode
+	  public APIs to allow numbers to be serialized and deserialized
+	  with the same precision
+	  + added a new QoreNumberNode public API to allow to chose the
+	  number format when converting to a string (scientific &
+	  non-scientific with and without the rounging heuristic)
+	  + updated module api to 0.15
+	  + updated library version to reflect new public APIs
+
+2012-10-30 20:32  david_nichols
+
+	* configure.ac, lib/QoreNumberNode.cpp, qore.spec, test/test.q: +
+	  fixed rounding of arbitrary-precision numeric values for display
+	  purposes when the last significant digit is just to the right of
+	  the decimal point (ex: was displaying 10.2 as "11.")
+	  + changed the version to 0.8.6.1 for a bugfix point release
+
+2012-10-29 20:21  david_nichols
+
+	* include/qore/intern/QoreBinaryLValueOperatorNode.h,
+	  include/qore/intern/QoreDeleteOperatorNode.h,
+	  include/qore/intern/QoreExtractOperatorNode.h,
+	  include/qore/intern/QoreMultiplyEqualsOperatorNode.h,
+	  include/qore/intern/QoreOperatorNode.h,
+	  include/qore/intern/QorePostIncrementOperatorNode.h,
+	  include/qore/intern/QorePreIncrementOperatorNode.h,
+	  include/qore/intern/QoreRemoveOperatorNode.h,
+	  include/qore/intern/QoreSpliceOperatorNode.h, lib/Makefile.am,
+	  lib/QoreAssignmentOperatorNode.cpp,
+	  lib/QoreDeleteOperatorNode.cpp, lib/QoreExtractOperatorNode.cpp,
+	  lib/QoreMinusEqualsOperatorNode.cpp,
+	  lib/QorePlusEqualsOperatorNode.cpp,
+	  lib/QoreRemoveOperatorNode.cpp, lib/QoreSpliceOperatorNode.cpp,
+	  lib/Variable.cpp, lib/parser.ypp, qore.spec, test/test.q: + fixed
+	  crashing bugs due to the lack of proper lvalue checks with the
+	  expression for the background operator with operators using
+	  lvalues with local variables
+	  + incremented the library version
+
+2012-10-27 08:38  david_nichols
+
+	* ChangeLog, configure.ac, doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QC_RangeIterator.qpp, qore.spec: updated release to 0.8.7,
+	  minor doc corrections
+
 2012-10-25 16:53  david_nichols
 
 	* doxygen/qdx: updated qdx to deal properly with nested namespaces
