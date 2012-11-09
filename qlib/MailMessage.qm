@@ -41,6 +41,7 @@ module MailMessage {
       + fixed a bug where the part/attachment content-type was set to the content-type of the message
       + try to get the filename of attachments from the content-type header if not set in the content-disposition header
       + message parts that themselves have parts are now supported
+      + fixed recognizing mime messages with additional text after the version number (ex: "Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))")
 
     * 2012-09-17 v1.0.2: David Nichols <david@qore.org>
       + use <string>::isPrintableAscii() to determine which mail headers need encoding

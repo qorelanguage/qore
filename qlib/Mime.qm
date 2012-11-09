@@ -35,7 +35,6 @@ module Mime {
     * 2012-11-02 v1.3: David Nichols <david@qore.org>
       + made get MultiPartMessage::getMsgAndHeaders() abstract as originally intended
       + added MultiPartMessage::parseBody() static method
-      + fixed recognizing mime messages with additional text after the version number (ex: "Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))")
 
     * 2012-09-17 v1.2.1: David Nichols <david@qore.org>
       + fixed q-encoding mail headers (always encode '_' chars otherwise they will be decoded as spaces)

@@ -2,6 +2,38 @@
 
     @tableofcontents
 
+    @section qore_0861 Qore 0.8.6.1
+
+    @par Release Summary
+    Major bug fixes and minor new features
+
+    @subsection qore_0861_changes Changes in Qore
+    - updated the @ref try-module "%try-module" parse directive to support a variant without an exception variable for usage in @ref Qore::Program "Program" objects where @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS is set
+    - added code to raise an @ref invalid-operation warning with the @ref elements "elements operator" when called with a type that can never return a value with this operator
+    - updated the @ref Qore::File "File" class's internal buffer size from 4KB to 16KB which greatly improves read performance
+    - added new public APIs for the QoreNumberNode class to allow for proper de/serialization in external modules
+    - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module: 
+      - added the Pop3Client::logPassword() methods and masked password by default in the debug log
+      - updated module to v1.1
+    - <a href="../../modules/Mime/html/index.html">Mime.qm</a> module:
+      - declared the MultiPartMessage::getMsgAndHeaders() method abstract as originally intended
+      - added MultiPartMessage::parseBody() static method
+      - updated module to v1.3
+
+    @subsection qore_0861_bug_fixes Bug Fixes in Qore
+    - fixed crashing bugs due to the lack of proper lvalue checks with the expression for the background operator with operators using lvalues with local variables
+    - fixed rounding of arbitrary-precision numeric values for display purposes when the last significant digit is just to the right of the decimal point (ex: was displaying 10.2 as "11." for example)
+    - fixed a race condition in static destruction of the library when a background thread calls exit() that could cause a segfault on exit
+    - fixed a static memory leak in Program objects when constants contain code references to functions or static methods
+    - fixed a bug parsing user modules; the Program context was not set properly which could lead to a crash when parsing user modules loaded from the command-line or to incorrect parse options when loaded from user Program code
+    - fixed a bug where the @ref invalid-operation warning with the @ref keys "keys operator" was not being triggered in common cases that should have triggered the warning
+    - <a href="../../modules/MailMessage/html/index.html">MailMessage.qm</a> module:
+      - fixed recognizing mime messages with additional text after the version number (ex: \c "Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))")
+      - fixed a bug setting the content-type of message parts (this fix is now in the <a href="../../modules/Mime/html/index.html">Mime.qm</a> in the MultiPartMessage::getMsgAndHeaders() method
+      - fixed multipart message parsing by using MultiPartMessage::parseBody() in the <a href="../../modules/Mime/html/index.html">Mime.qm</a> module; now also parts with subparts are parsed correctly as well
+      - fixed a bug where the sender and from values were not being set properly when parsing email messages
+      - updated module to v1.0.3
+
     @section qore_086 Qore 0.8.6
 
     @par Release Summary
