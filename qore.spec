@@ -1,4 +1,4 @@
-%define qore_ver 0.8.6.1
+%define qore_ver 0.8.7
 %define module_dir %{_libdir}/qore-modules
 
 %if 0%{?sles_version}
@@ -99,7 +99,7 @@ functionality.
 
 %files -n libqore5
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.9.0
+%{_libdir}/libqore.so.5.9.1
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
@@ -203,6 +203,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Fri Nov 9 2012 David Nichols <david@qore.org> 0.8.7
+- updated to 0.8.7
+
 * Sat Oct 27 2012 David Nichols <david@qore.org> 0.8.6.1
 - updated to 0.8.6.1
 
