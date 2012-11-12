@@ -212,6 +212,8 @@ int Datasource::rollback(ExceptionSink *xsink) {
    if (!priv->in_transaction && beginImplicitTransaction(xsink))
       return -1;
 
+   //printd(5, "Datasource::rollback() this: %p in_transaction: %d active_transaction: %d\n", this, priv->in_transaction, priv->active_transaction);
+
    int rc = qore_dbi_private::get(*priv->dsl)->rollback(this, xsink);
    priv->in_transaction = false;
    priv->active_transaction = false;

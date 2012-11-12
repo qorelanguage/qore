@@ -203,6 +203,8 @@ Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink) {
       return 0;
    }
 
+   assert(!(new_ds && ds->isInTransaction()));
+
    assert(ds->isOpen());
    return ds;
 }
