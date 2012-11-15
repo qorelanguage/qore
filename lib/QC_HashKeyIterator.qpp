@@ -1,0 +1,89 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_HashIterator.qpp HashIterator class definition */
+/*
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QoreHashIterator.h>
+
+//! This class an iterator class for hashes
+/** Call HashKeyIterator::next() to iterate through the hash; do not use the iterator if HashKeyIterator::next() returns @ref False.
+    A hash can be iterated in reverse order by calling HashKeyIterator::prev() instead of HashKeyIterator::next()
+
+    @note
+    - In general, the HashKeyIterator class is not designed to be accessed from multiple threads; it was created without locking for
+      fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
+      such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.
+
+    @see HashKeyReverseIterator
+ */
+qclass HashKeyIterator [arg=QoreHashIterator* i; ns=Qore; vparent=HashIterator];
+
+//! Creates the hash iterator object
+/** @param h the hash to iterate
+
+    @par Example:
+    @code
+my HashKeyIterator $hi($h);
+    @endcode
+ */
+HashKeyIterator::constructor(hash h, bool value_hash = False) {
+   self->setPrivate(CID_HASHKEYITERATOR, new QoreHashIterator(h, value_hash));
+}
+
+//! Creates an empty hash iterator object
+/** @par Example:
+    @code
+my *hash $h = get_hash_or_nothing();
+my HashKeyIterator $hi($h);
+    @endcode
+ */
+HashKeyIterator::constructor() {
+   self->setPrivate(CID_HASHKEYITERATOR, new QoreHashIterator);
+}
+
+//! Creates a copy of the HashKeyIterator object, iterating the same object as the original and in the same position
+/** @par Example:
+    @code
+my HashKeyIterator $ni = $i.copy();
+    @endcode
+ */
+HashKeyIterator::copy() {
+   self->setPrivate(CID_HASHKEYITERATOR, new QoreHashIterator(*i));
+}
+
+//! returns the current value (if the hash was created with the \a get_value flag = @ref Qore::True "True" in the @ref constructor(hash, bool) "constructor", then this method returns a hash with 2 keys: \c "key" and \c "value", otherwise it returns only the hash value and the key can be returned with @ref getKey()) or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current value (if the hash was created with the \a get_value flag = @ref Qore::True "True" in the @ref constructor(hash, bool) "constructor", then this method returns a hash with 2 keys: \c "key" and \c "value", otherwise it returns only the hash value and the key can be returned with @ref getKey()) or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("+ %y\n", $i.getValue());
+}
+    @endcode
+
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+string HashKeyIterator::getValue() [flags=RET_VALUE_ONLY] {
+   if (i->check(xsink))
+      return 0;
+   return i->getKey(xsink);
+}

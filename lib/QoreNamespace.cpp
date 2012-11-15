@@ -96,6 +96,8 @@ DLLLOCAL QoreClass* initListIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListReverseIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initHashIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initHashReverseIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initHashKeyIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initHashKeyReverseIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initObjectIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initObjectReverseIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initHashListIteratorClass(QoreNamespace& ns);
@@ -626,6 +628,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initListReverseIteratorClass(qns));
    qns.addSystemClass(initHashIteratorClass(qns));
    qns.addSystemClass(initHashReverseIteratorClass(qns));
+   qns.addSystemClass(initHashKeyIteratorClass(qns));
+   qns.addSystemClass(initHashKeyReverseIteratorClass(qns));
    qns.addSystemClass(initObjectIteratorClass(qns));
    qns.addSystemClass(initObjectReverseIteratorClass(qns));
    qns.addSystemClass(initHashListIteratorClass(qns));

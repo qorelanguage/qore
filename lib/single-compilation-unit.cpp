@@ -185,6 +185,8 @@
 #include "QC_ListReverseIterator.cpp"
 #include "QC_HashIterator.cpp"
 #include "QC_HashReverseIterator.cpp"
+#include "QC_HashKeyIterator.cpp"
+#include "QC_HashKeyReverseIterator.cpp"
 #include "QC_HashListIterator.cpp"
 #include "QC_HashListReverseIterator.cpp"
 #include "QC_ListHashIterator.cpp"

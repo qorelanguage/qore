@@ -115,4 +115,22 @@ public:
    DLLLOCAL virtual const char* getName() const { return "HashIterator"; }
 };
 
+// internal reverse iterator class implementation only for the getName() function - the iterators remain
+// forwards and are used in the reverse sense by the Qore language class implementation below
+class QoreHashReverseIterator : public QoreHashIterator {
+public:
+   DLLLOCAL QoreHashReverseIterator(const QoreHashNode* h, bool gvh = false) : QoreHashIterator(h, gvh) {
+   }
+
+   DLLLOCAL QoreHashReverseIterator() {
+   }
+
+   DLLLOCAL QoreHashReverseIterator(const QoreHashReverseIterator& old) : QoreHashIterator(old) {
+   }
+
+   DLLLOCAL virtual const char* getName() const {
+      return "HashReverseIterator";
+   }
+};
+
 #endif // _QORE_QOREHASHITERATOR_H

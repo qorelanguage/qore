@@ -53,6 +53,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_ListReverseIterator.qpp \
 	lib/QC_HashIterator.qpp \
 	lib/QC_HashReverseIterator.qpp \
+	lib/QC_HashKeyIterator.qpp \
+	lib/QC_HashKeyReverseIterator.qpp \
 	lib/QC_ObjectIterator.qpp \
 	lib/QC_ObjectReverseIterator.qpp \
 	lib/QC_HashListIterator.qpp \

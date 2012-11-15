@@ -52,6 +52,7 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_AbstractBidirectionalIterator.cpp QC_AbstractQuantifiedBidirectionalIterator.cpp \
 	QC_ListIterator.cpp QC_ListReverseIterator.cpp \
 	QC_HashIterator.cpp QC_HashReverseIterator.cpp \
+	QC_HashKeyIterator.cpp QC_HashKeyReverseIterator.cpp \
 	QC_ObjectIterator.cpp QC_ObjectReverseIterator.cpp \
 	QC_HashListIterator.cpp QC_HashListReverseIterator.cpp \
 	QC_ListHashIterator.cpp QC_ListHashReverseIterator.cpp \

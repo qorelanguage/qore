@@ -23,24 +23,6 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreHashIterator.h>
 
-// internal reverse iterator class implementation only for the getName() function - the iterators remain
-// forwards and are used in the reverse sense by the Qore language class implementation below
-class QoreHashReverseIterator : public QoreHashIterator {
-public:
-   DLLLOCAL QoreHashReverseIterator(const QoreHashNode* h, bool gvh = false) : QoreHashIterator(h, gvh) {
-   }
-
-   DLLLOCAL QoreHashReverseIterator() {
-   }
-
-   DLLLOCAL QoreHashReverseIterator(const QoreHashReverseIterator& old) : QoreHashIterator(old) {
-   }
-
-   DLLLOCAL virtual const char* getName() const {
-      return "HashReverseIterator";
-   }
-};
-
 //! This class an iterator class for hashes
 /** Call HashReverseIterator::next() to iterate through the hash in reverse order; do not use the iterator if HashReverseIterator::next() returns @ref False.
     A hash can be iterated in reverse order by calling HashReverseIterator::prev() instead of HashReverseIterator::next()
