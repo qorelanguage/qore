@@ -822,7 +822,7 @@ hash: (2 members)
 		    my string $pcte = ContentTransEncBinary;
 
                     # process part headers
-                    foreach my hash $hh in ($h.iterator()) {
+                    foreach my hash $hh in ($h.pairIterator()) {
 			if ($hh.key == "content-transfer-encoding")
 			    $pcte = $hh.value.lwr();
 			else if ($hh.key == "content-type")

@@ -244,15 +244,13 @@ bool <hash>::val() [flags=CONSTANT] {
 
     @par Example:
     @code
-map printf("+ %s: %y\n", $1.key, $1.value), $h.iterator(True);
+map printf("+ %s: %y\n", $1.key, $1.value), $h.iterator();
     @endcode
-
-    @note that the iterator returned with this method when no arguments are passed is a @ref Qore::HashIterator "HashIterator" that returns a hash with \c "key" and \c "value" keys as the return value to @ref Qore::HashIterator::getValue() (which is the opposite of @ref Qore::HashIterator "HashIterator")
 
     @since %Qore 0.8.6
  */
-AbstractIterator <hash>::iterator(bool value_hash = True) [flags=CONSTANT] {
-   return new QoreObject(QC_HASHITERATOR, 0, new QoreHashIterator(h, value_hash));
+AbstractIterator <hash>::iterator() [flags=CONSTANT] {
+   return new QoreObject(QC_HASHITERATOR, 0, new QoreHashIterator(h));
 }
 
 //! Returns a @ref Qore::HashKeyIterator "HashKeyIterator" object for the hash
@@ -260,11 +258,25 @@ AbstractIterator <hash>::iterator(bool value_hash = True) [flags=CONSTANT] {
 
     @par Example:
     @code
-map printf("+ %s\n", $1), $h.keyiterator();
+map printf("+ %s\n", $1), $h.keyIterator();
     @endcode
 
-    @since %Qore 0.8.7
+    @since %Qore 0.8.6.2
  */
-AbstractIterator <hash>::keyIterator() [flags=CONSTANT] {
+HashKeyIterator <hash>::keyIterator() [flags=CONSTANT] {
    return new QoreObject(QC_HASHKEYITERATOR, 0, new QoreHashIterator(h));
+}
+
+//! Returns a @ref Qore::HashPairIterator "HashPairIterator" object for the hash
+/** @return a @ref Qore::HashPairIterator "HashPairIterator" object for the hash
+
+    @par Example:
+    @code
+map printf("+ %s\n", $1), $h.pairIterator();
+    @endcode
+
+    @since %Qore 0.8.6.2
+ */
+HashPairIterator <hash>::pairIterator() [flags=CONSTANT] {
+   return new QoreObject(QC_HASHPAIRITERATOR, 0, new QoreHashIterator(h));
 }

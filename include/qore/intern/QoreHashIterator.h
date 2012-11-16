@@ -28,9 +28,6 @@
 // the c++ object
 class QoreHashIterator : public QoreIteratorBase, public ConstHashIterator {
 protected:
-   // if this flag is true, then getValue() returns a hash with 2 keys: "key" and "value"
-   bool get_value_hash;
-
    DLLLOCAL virtual ~QoreHashIterator() {
    }
 
@@ -42,17 +39,17 @@ protected:
       return 0;
    }
 
-   DLLLOCAL QoreHashIterator(QoreHashNode* h, bool gvh = false) : ConstHashIterator(h), get_value_hash(gvh) {
+   DLLLOCAL QoreHashIterator(QoreHashNode* h) : ConstHashIterator(h) {
    }
 
 public:
-   DLLLOCAL QoreHashIterator(const QoreHashNode* h, bool gvh = false) : ConstHashIterator(h->hashRefSelf()), get_value_hash(gvh) {
+   DLLLOCAL QoreHashIterator(const QoreHashNode* h) : ConstHashIterator(h->hashRefSelf()) {
    }
 
-   DLLLOCAL QoreHashIterator() : ConstHashIterator(0), get_value_hash(false) {
+   DLLLOCAL QoreHashIterator() : ConstHashIterator(0) {
    }
 
-   DLLLOCAL QoreHashIterator(const QoreHashIterator& old) : ConstHashIterator(old.h ? old.h->hashRefSelf() : 0, old.ptr), get_value_hash(old.get_value_hash) {
+   DLLLOCAL QoreHashIterator(const QoreHashIterator& old) : ConstHashIterator(old.h ? old.h->hashRefSelf() : 0, old.ptr) {
    }
 
    using QoreIteratorBase::deref;
@@ -67,12 +64,7 @@ public:
    DLLLOCAL AbstractQoreNode* getReferencedValue(ExceptionSink* xsink) const {
       if (checkPtr(xsink))
          return 0;
-      if (!get_value_hash)
-         return ConstHashIterator::getReferencedValue();
-      QoreHashNode* h = new QoreHashNode;
-      h->setKeyValue("key", new QoreStringNode(ConstHashIterator::getKey()), 0);
-      h->setKeyValue("value", ConstHashIterator::getReferencedValue(), 0);
-      return h;
+      return ConstHashIterator::getReferencedValue();
    }
 
    DLLLOCAL AbstractQoreNode* getReferencedKeyValue(ExceptionSink* xsink) const {
@@ -119,7 +111,7 @@ public:
 // forwards and are used in the reverse sense by the Qore language class implementation below
 class QoreHashReverseIterator : public QoreHashIterator {
 public:
-   DLLLOCAL QoreHashReverseIterator(const QoreHashNode* h, bool gvh = false) : QoreHashIterator(h, gvh) {
+   DLLLOCAL QoreHashReverseIterator(const QoreHashNode* h) : QoreHashIterator(h) {
    }
 
    DLLLOCAL QoreHashReverseIterator() {

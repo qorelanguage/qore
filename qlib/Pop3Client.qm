@@ -79,7 +79,7 @@ Pop3Client pop3(url, \log(), \log());
 pop3.noquit(True);
 *hash h = pop3.getMail();
 printf("Mailbox Summary:\n");
-map printf("%s: From: %s (size: %d bytes, attachments: %d)\n", $1.getKey(), $1.getValue().msg.getFrom(), $1.getValue().size, $1.getValue().msg.getAttachments().size()), h.iterator(False);
+map printf("%s: From: %s (size: %d bytes, attachments: %d)\n", $1.key, $1.value.msg.getFrom(), $1.value.size, $1.getvalue.msg.getAttachments().size()), h.pairIterator();
 if (!h)
     printf("no messages\n");
     @endcode

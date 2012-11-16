@@ -234,7 +234,7 @@ public namespace CsvUtil {
 	    @throw CSVFILEITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
 	 */
 	constructor(string $path, *hash $opts) : FileLineIterator($path, $opts.encoding.typeCode() == NT_STRING ? $opts.encoding : NOTHING, $opts.eol.typeCode == NT_STRING ? $opts.eol : NOTHING) {
-            foreach my hash $i in ($opts.iterator(True)) {
+            foreach my hash $i in ($opts.pairIterator()) {
 		if (!exists Options.($i.key))
 		    throw "CSVFILEITERATOR-ERROR", sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", $i.key, Options.keys());
 		switch ($i.key) {

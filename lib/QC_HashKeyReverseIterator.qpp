@@ -50,8 +50,8 @@ qclass HashKeyReverseIterator [arg=QoreHashReverseIterator* i; ns=Qore; vparent=
 my HashKeyReverseIterator $hi($h);
     @endcode
  */
-HashKeyReverseIterator::constructor(hash h, bool value_hash = False) {
-   self->setPrivate(CID_HASHKEYREVERSEITERATOR, new QoreHashReverseIterator(h, value_hash));
+HashKeyReverseIterator::constructor(hash h) {
+   self->setPrivate(CID_HASHKEYREVERSEITERATOR, new QoreHashReverseIterator(h));
 }
 
 //! Creates an empty iterator object
@@ -75,14 +75,14 @@ HashKeyReverseIterator::copy() {
    self->setPrivate(CID_HASHKEYREVERSEITERATOR, new QoreHashReverseIterator(*i));
 }
 
-//! returns the current value (if the hash was created with the \a get_value flag = @ref Qore::True "True" in the @ref constructor(hash, bool) "constructor", then this method returns a hash with 2 keys: \c "key" and \c "value", otherwise it returns only the hash value and the key can be returned with @ref getKey()) or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current value (if the hash was created with the \a get_value flag = @ref Qore::True "True" in the @ref constructor(hash, bool) "constructor", then this method returns a hash with 2 keys: \c "key" and \c "value", otherwise it returns only the hash value and the key can be returned with @ref getKey()) or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+//! returns the current key value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current key value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
     @code
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
-}
+my HashKeyReverseIterator $hi($hash);
+while ($hi.next())
+    printf("key: %s\n", $hi.getValue());
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element

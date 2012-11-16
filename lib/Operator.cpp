@@ -1079,7 +1079,9 @@ static QoreListNode* op_map_iterator(const AbstractQoreNode *left, AbstractItera
       if (!b)
          return rv.release();
 
-      SingleArgvContextHelper argv_helper(h.obj, xsink);
+      SingleArgvContextHelper argv_helper(h.getValue(xsink), xsink);
+      if (*xsink)
+         return 0;
       //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
       ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
       if (*xsink)
@@ -1099,7 +1101,7 @@ static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQore
    if (arg->getType() != NT_LIST) {
       // check if it's an AbstractIterator object
       if (arg->getType() == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)));
+         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), true, true);
          if (*xsink)
             return 0;
          if (h)
@@ -1138,7 +1140,9 @@ static AbstractQoreNode* op_map_select_iterator(const AbstractQoreNode* left, co
          return rv.release();
 
       // check if value can be mapped
-      SingleArgvContextHelper argv_helper(h.obj, xsink);
+      SingleArgvContextHelper argv_helper(h.getValue(xsink), xsink);
+      if (*xsink)
+         return 0;
       b = select->boolEval(xsink);
       if (*xsink)
          return 0;
@@ -1364,7 +1368,9 @@ static AbstractQoreNode *op_select_iterator(const AbstractQoreNode *select, Abst
       if (!b)
          break;
 
-      SingleArgvContextHelper argv_helper(h.obj, xsink);
+      SingleArgvContextHelper argv_helper(h.getValue(xsink), xsink);
+      if (*xsink)
+         return 0;
       b = select->boolEval(xsink);
       if (*xsink)
          return 0;

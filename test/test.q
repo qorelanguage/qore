@@ -383,14 +383,14 @@ sub hash_tests() {
     test_value($c.size(), 5, "<hash>.size()");
 
     my hash $nch = $c.("key", "barn");
-    foreach my hash $hi in ($nch.iterator()) {
+    foreach my hash $hi in ($nch.pairIterator()) {
         if (!$#)
             test_value($hi.key, "key", "HashIterator::first()");
         else if ($# == 4)
             test_value($hi.key, "barn", "HashIterator::last()");
     }
 
-    my HashReverseIterator $hi($nch, True);
+    my HashPairReverseIterator $hi($nch);
     foreach my hash $hiv in ($hi) {
         if ($# == 4)
             test_value($hiv.key, "key", "HashReverseIterator::last()");

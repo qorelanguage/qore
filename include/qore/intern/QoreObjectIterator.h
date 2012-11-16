@@ -30,7 +30,7 @@
 // the c++ object
 class QoreObjectIterator : public QoreHashIterator {
 public:
-   DLLLOCAL QoreObjectIterator(const QoreObject* o, bool gvh = false) : QoreHashIterator(o->getRuntimeMemberHash(0), gvh) {
+   DLLLOCAL QoreObjectIterator(const QoreObject* o) : QoreHashIterator(o->getRuntimeMemberHash(0)) {
    }
 
    DLLLOCAL QoreObjectIterator() {
@@ -40,6 +40,24 @@ public:
    }
 
    DLLLOCAL virtual const char* getName() const { return "ObjectIterator"; }
+};
+
+// internal reverse iterator class implementation only for the getName() function - the iterators remain
+// forwards and are used in the reverse sense by the Qore language class implementation below
+class QoreObjectReverseIterator : public QoreObjectIterator {
+public:
+   DLLLOCAL QoreObjectReverseIterator(const QoreObject* o) : QoreObjectIterator(o) {
+   }
+
+   DLLLOCAL QoreObjectReverseIterator() {
+   }
+
+   DLLLOCAL QoreObjectReverseIterator(const QoreObjectReverseIterator& old) : QoreObjectIterator(old) {
+   }
+
+   DLLLOCAL virtual const char* getName() const {
+      return "ObjectReverseIterator";
+   }
 };
 
 #endif // _QORE_QOREOBJECTITERATOR_H

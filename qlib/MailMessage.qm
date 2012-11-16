@@ -324,7 +324,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             my string $pcd;
 
             # process part headers
-            foreach my hash $h in ($p.hdr.iterator()) {
+            foreach my hash $h in ($p.hdr.pairIterator()) {
                 if ($h.key == "content-transfer-encoding")
                     $pcte = $h.value.lwr();
                 else if ($h.key == "content-type")

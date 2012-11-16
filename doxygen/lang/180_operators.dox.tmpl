@@ -567,7 +567,7 @@ if (!exists $error_code)
 
     @par Synopsis
     Executes (or maps) an expression on a list and returns the result. An optional select expression can be given to filter elements out from the result list.\n\n
-    If the second argument (\a list_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the \a map_expression and any optional \a select_expression is the iterator object itself.
+    If the second argument (\a list_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the \a map_expression and any optional \a select_expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
     If the second argument is not a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then \a map_expression is executed on the single value and the result is returned, and any \a select_expression is ignored.\n\n
 
     @par Return Type
@@ -576,10 +576,14 @@ if (!exists $error_code)
     @par Syntax
     <tt><b>map</b></tt> \a map_expression, <em>list_expression [, select_expression]</em>
 
-    @par Example
+    @par Examples
     @code
 # returns (2, 4, 6)
 my list $l = map $1 * 2, (1, 2, 3);
+    @endcode
+    @code
+# prints out the keys of a hash; one to a line
+map printf("%s\n", $1), $hash.keyIterator();
     @endcode
 
     <b>Arguments Processed by map</b>
@@ -589,6 +593,8 @@ my list $l = map $1 * 2, (1, 2, 3);
     |<em>[select_expression]</em>|An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to @ref Qore::False "False" on an element, then the element will be skipped and the \a map_expression will not be applied on that element.
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
+
+    @since %Qore 0.8.6.2 the map operator when used with an @ref Qore::AbstractIterator "AbstractIterator" object instantiates the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" instead of the iterator itself
 
     <hr>
     @section foldl Fold Left Operator (foldl)
@@ -653,7 +659,7 @@ foldr $1 - $2, (10, 4, 1);
 
     @par Synopsis
     Selects elements from a list that meet the given criteria and returns the new list.\n\n
-    If the first argument (\a list_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>select</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in \a expression is the iterator object itself; in this case the operator always returns a list (which may be empty if \a expression returns @ref Qore::False "False" for all elements in the iterator object or if the iterator object is empty), and  the value of the object in the list returned is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".
+    If the first argument (\a list_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>select</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in \a expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()"; in this case the operator always returns a list (which may be empty if \a expression returns @ref Qore::False "False" for all elements in the iterator object or if the iterator object is empty), and the value of the object in the list returned is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
     If the list expression does not evaluate to a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then the select expression is evaluated using the value of the list expression as an argument, if it evalutes to true, then the value is returned, otherwise, no value is returned.
 
     @par Syntax
@@ -674,6 +680,8 @@ select (1, 2, 3, 4, 5, 6), !($1 % 2);
     |\a expression|The expression will be evaluated on each element of the list, the implicit argument <tt>$1</tt> represents current element of the list (or the iterator object itself when \a list_expression is an object inheriting @ref Qore::AbstractIterator "AbstractIterator"); only if the expression evaluates to @ref Qore::True "True" will the element appear in the result list
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by the expression executed by this operator).
+
+    @since %Qore 0.8.6.2 the map operator when used with an @ref Qore::AbstractIterator "AbstractIterator" object instantiates the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" instead of the iterator itself
 
     <hr>
     @section elements Elements Operator (elements)
