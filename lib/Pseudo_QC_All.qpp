@@ -252,7 +252,7 @@ bool <value>::toBool() [flags=CONSTANT] {
 
     @par Example:
     @code
-map printf("+ %y\n", $1.getValue()), $v.iterator();
+map printf("+ %y\n", $1), $v.iterator();
     @endcode
 
     @since %Qore 0.8.6
