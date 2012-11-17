@@ -1221,9 +1221,9 @@ int clock_getmillis() [flags=CONSTANT] {
    return seconds * 1000 + us / 1000;
 }
 
-//! Returns an integer representing the system time in nanooseconds (1/1000000000 second intervals) since Jan 1, 1970 00:00:00Z
+//! Returns an integer representing the system time in nanoseconds (1/1000000000 second intervals) since Jan 1, 1970 00:00:00Z
 /** 
-    @return an integer representing the system time in nanooseconds (1/1000000000 second intervals) since Jan 1, 1970 00:00:00Z
+    @return an integer representing the system time in nanoseconds (1/1000000000 second intervals) since Jan 1, 1970 00:00:00Z
 
     @par Example:
     @code
