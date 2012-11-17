@@ -1517,10 +1517,10 @@ date date(null[doc] null) [flags=CONSTANT] {
    return zero_date();
 }
 
-//! Returns the @ref date "date/time" value corresponding to parsing a string argument according to a @ref date_mask "format make"
+//! Returns the @ref date "date/time" value corresponding to parsing a string argument according to a @ref date_mask "format mask"
 /** 
     @param dtstr a string giving a date
-    @param mask the mask for the date value; see @ref date_mask for information on the format of the @ref date_mask "format make"
+    @param mask the mask for the date value; see @ref date_mask for information on the format of the @ref date_mask "format mask"
     
     @return the @ref date "date/time" value corresponding to parsing the \a dtstr string argument according to \a mask serving as a @ref date_mask "format mask"
 

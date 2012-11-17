@@ -164,8 +164,9 @@ int <list>::lsize() [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the list contains arg, @ref False if it does not.
-/** 
- 
+/** This call uses "soft" comparisons (where types may be converted).
+    The computational complexity is <tt>O(n)</tt> (n = the length of the list).
+
     @param arg any value to check its presence in the list
 
     @return @ref True if the list contains arg, @ref False if it does not
