@@ -156,7 +156,7 @@ const DBI_CAP_STORED_PROCEDURES = DBI_CAP_STORED_PROCEDURES;
 //! Indicates that the DBI driver supports LOB columns (BLOBs and CLOBs, for example)
 const DBI_CAP_LOB_SUPPORT = DBI_CAP_LOB_SUPPORT;
 
-//! Indicates that the DBI driver supports directly binding qore values into queries using the <tt>%v</tt> placeholder in the query string
+//! Indicates that the DBI driver supports directly binding qore values into queries using the <tt>%%v</tt> placeholder in the query string
 const DBI_CAP_BIND_BY_VALUE = DBI_CAP_BIND_BY_VALUE;
 
 //! Indicates that the DBI driver supports binding placeholder buffers when executing %SQL to retrieve data from queries and procedures, etc
@@ -201,22 +201,22 @@ const DBI_CAP_SERVER_TIME_ZONE = DBI_CAP_SERVER_TIME_ZONE;
     @anchor sql_binding
     <b>%Datasource Binding By Value and By Placeholder</b>
 
-    All %Datasource methods accepting %SQL strings to execute understand a special syntax used in the query string to bind %Qore data by value and to specify placeholders for output variables (for example, when executing a stored procedure or database function). Placeholder binding is DBI driver specific, but binding by value is supported with the same syntax in all drivers. Additionally, the \c %d numeric specifier is supported equally in all %Qore DBI drivers.
+    All %Datasource methods accepting %SQL strings to execute understand a special syntax used in the query string to bind %Qore data by value and to specify placeholders for output variables (for example, when executing a stored procedure or database function). Placeholder binding is DBI driver specific, but binding by value is supported with the same syntax in all drivers. Additionally, the \c %%d numeric specifier is supported equally in all %Qore DBI drivers.
 
     <b>%Datasource Format Specifiers</b>
     |!Format Specification|!Description
-    |\c %d|If any value other than @ref nothing or @ref null is given, then the value is converted to an integer and this value is substituted in the string at this position; if the value is @ref nothing or @ref null, then a literal \c "null" is substituted instead.
-    |\c %s|The argument is converted to a string and the string is inserted literally without any conversion or escape sequences in the string; this is useful for table or schema prefixes, etc
-    |\c %v|The argument is bound by value according to the DBI driver's implementation.
+    |\c %%d|If any value other than @ref nothing or @ref null is given, then the value is converted to an integer and this value is substituted in the string at this position; if the value is @ref nothing or @ref null, then a literal \c "null" is substituted instead.
+    |\c %%s|The argument is converted to a string and the string is inserted literally without any conversion or escape sequences in the string; this is useful for table or schema prefixes, etc
+    |\c %%v|The argument is bound by value according to the DBI driver's implementation.
 
-    To bind %Qore data values directly in a binary format in an %SQL command, use <tt>%v</tt> in the command string, and include the value as an argument after the string. Binding by value allows the DBI driver to take care of formatting the data properly for use in the query with the database server. When binding by value, strings do not need to be quoted, date/time values do not need special formatting, binary objects (with BLOB columns, for example) can be used directly in queries, etc.
+    To bind %Qore data values directly in a binary format in an %SQL command, use <tt>%%v</tt> in the command string, and include the value as an argument after the string. Binding by value allows the DBI driver to take care of formatting the data properly for use in the query with the database server. When binding by value, strings do not need to be quoted, date/time values do not need special formatting, binary objects (with BLOB columns, for example) can be used directly in queries, etc.
 
     Here is an example:
     @code
 my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
     @endcode
 
-    When using dynamic SQL, to insert a numeric value or a literal \c "null" in a query, use \c %d in the command string, and include the value as an argument after the string. If the value is @ref nothing or @ref null, a literal \c "null" will be written to the string; otherwise the argument is converted to an arbitrary-precision number or integer value if necessary and written to the string. This is useful for working with \c DECIMAL (\c NUMERIC, \c NUMBER) types in a database-independent way; for example PostgreSQL servers do not do type conversions to \c DECIMAL types when a string, integer, or float is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with \c "null" substitution when no value is bound), a valid approach is to use the \c %d code in the command string instead of \c %v.  However please note that \c %v is normally preferred to keep the statement cache a manageable size, in the previous example using the int() or float() functions to convert string values before binding with \c %v may be better.
+    When using dynamic SQL, to insert a numeric value or a literal \c "null" in a query, use \c %%d in the command string, and include the value as an argument after the string. If the value is @ref nothing or @ref null, a literal \c "null" will be written to the string; otherwise the argument is converted to an arbitrary-precision number or integer value if necessary and written to the string. This is useful for working with \c DECIMAL (\c NUMERIC, \c NUMBER) types in a database-independent way; for example PostgreSQL servers do not do type conversions to \c DECIMAL types when a string, integer, or float is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with \c "null" substitution when no value is bound), a valid approach is to use the \c %%d code in the command string instead of \c %%v.  However please note that \c %%v is normally preferred to keep the server-side statement cache a manageable size, in the previous example using the int(), float(), or number() functions to convert string values before binding with \c %%v may be better.
 
     For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: \c ":code"). In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix. By default, a string type will be bound to the position. To bind other variable types to placeholder positions, include the type constant (see @ref sql_constants) as an argument after the command string. For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release). Not all DBI drivers require placeholder buffer specifications; see the documentation for the DBI driver in question for more information and examples regarding placeholder buffer specifications.
 
@@ -455,8 +455,10 @@ bool Datasource::getAutoCommit() [flags=CONSTANT] {
 }
 
 //! Grabs the transaction lock (if autocommit is disabled) and executes an %SQL command on the server and returns either the integer row count (for example, for updates, inserts, and deletes) or the data retrieved (for example, if a stored procedure is executed that returns values).
-/** @param sql The %SQL command to execute on the server
-    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+/** This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    @param sql The %SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
@@ -477,8 +479,10 @@ any Datasource::exec(string sql, ...) {
 //! Grabs the transaction lock (if autocommit is disabled) and executes %SQL code on the DB connection, taking a list for all bind arguments
 /** Same as Datasource::exec() except takes an explicit list for bind arguments
 
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
     @param sql The %SQL command to execute on the server
-    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+    @param vargs Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
@@ -524,10 +528,12 @@ any Datasource::execRaw(string sql) {
 
     Additionally, this format is a more efficient format than that returned by the Datasource::selectRows() method, because the column names are not repeated for each row returned. Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of Datasource::selectRows().
 
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
     This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
 
     @param sql The %SQL command to execute on the server
-    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+    @param ... Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
     @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
 
@@ -551,12 +557,12 @@ any Datasource::select(string sql, ...) {
 //! Executes an %SQL select statement on the server and returns the first row as a hash (the column values)
 /** If more than one row is returned, then it is treated as an error and a \c DBI-SELECT-ROW-ERROR is returned (however the DBI driver should raise its own exception here to avoid retrieving more than one row from the server). For a similar method taking a list for all bind arguments, see Datasource::vselectRow().
 
-    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
 
     @param sql The %SQL command to execute on the server
-    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+    @param ... Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
     @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
@@ -580,12 +586,12 @@ any Datasource::selectRow(string sql, ...) {
 
     The usual return value of this method can be iterated with the ListHashIterator class.
 
-    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
 
     @param sql The %SQL command to execute on the server
-    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+    @param ... Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
     @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
@@ -611,12 +617,12 @@ any Datasource::selectRows(string sql, ...) {
 /** The return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
     Alternatively, the HashListIterator class can be used to iterate the return value of this method.
 
-    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
 
     @param sql The %SQL command to execute on the server
-    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+    @param vargs Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
     @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
@@ -640,12 +646,12 @@ any Datasource::vselect(string sql, *softlist vargs) {
 //! Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments
 /** This method is the same as the Datasource::selectRow() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters
 
-    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
 
     @param sql The %SQL command to execute on the server
-    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+    @param vargs Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
     @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
@@ -671,12 +677,12 @@ any Datasource::vselectRow(string sql, *softlist vargs) {
 
     The return format of this method is not as memory efficient as that returned by the Datasource::select() method, therefore for larger amounts of data, it is recommended to use Datasource::select().
 
-    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
 
     @param sql The %SQL command to execute on the server
-    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+    @param vargs Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
     @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
