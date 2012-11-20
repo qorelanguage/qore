@@ -25,6 +25,7 @@
 
 #include <qore/intern/QoreHashNodeIntern.h>
 #include <qore/intern/QoreHashIterator.h>
+#include <qore/intern/QoreHashListIterator.h>
 
 //! Methods in this pseudo-class can be executed on @ref hash "hash values"
 /** 
@@ -279,4 +280,18 @@ map printf("+ %s\n", $1), $h.pairIterator();
  */
 HashPairIterator <hash>::pairIterator() [flags=CONSTANT] {
    return new QoreObject(QC_HASHPAIRITERATOR, 0, new QoreHashIterator(h));
+}
+
+//! Returns a @ref Qore::HashListIterator "HashListIterator" object for the hash
+/** @return a @ref Qore::HashListIterator "HashListIterator" object for the hash
+
+    @par Example:
+    @code
+map printf("+ %s\n", $1), $h.contextIterator();
+    @endcode
+
+    @since %Qore 0.8.6.2
+ */
+HashListIterator <hash>::contextIterator() [flags=CONSTANT] {
+   return new QoreObject(QC_HASHLISTITERATOR, 0, new QoreHashListIterator(h));
 }

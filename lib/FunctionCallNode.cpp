@@ -551,45 +551,45 @@ AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag
 
 AbstractQoreNode *MethodCallNode::execPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const {
    //printd(5, "MethodCallNode::execPseudo() %s::%s() variant=%p\n", qc->getName(), method->getName(), variant);
-   // if n == 0 make sure and use the "<value>" class with a dynamic method lookup
-   if (!n && qc != QC_PSEUDOVALUE)
-      return qore_class_private::evalPseudoMethod(QC_PSEUDOVALUE, n, method->getName(), args, xsink);
+   // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
+   if (is_nothing(n) && qc != QC_PSEUDONOTHING)
+      return qore_class_private::evalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
    else
       return qore_class_private::evalPseudoMethod(qc, method, variant, n, args, xsink);
 }
 
 int64 MethodCallNode::bigIntExecPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const {
    //printd(5, "MethodCallNode::execPseudo() %s::%s() variant=%p\n", qc->getName(), method->getName(), variant);
-   // if n == 0 make sure and use the "<value>" class with a dynamic method lookup
-   if (!n && qc != QC_PSEUDOVALUE)
-      return qore_class_private::bigIntEvalPseudoMethod(QC_PSEUDOVALUE, n, method->getName(), args, xsink);
+   // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
+   if (is_nothing(n) && qc != QC_PSEUDONOTHING)
+      return qore_class_private::bigIntEvalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
    else
       return qore_class_private::bigIntEvalPseudoMethod(qc, method, variant, n, args, xsink);
 }
 
 int MethodCallNode::intExecPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const {
    //printd(5, "MethodCallNode::execPseudo() %s::%s() variant=%p\n", qc->getName(), method->getName(), variant);
-   // if n == 0 make sure and use the "<value>" class with a dynamic method lookup
-   if (!n && qc != QC_PSEUDOVALUE)
-      return qore_class_private::intEvalPseudoMethod(QC_PSEUDOVALUE, n, method->getName(), args, xsink);
+   // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
+   if (is_nothing(n) && qc != QC_PSEUDONOTHING)
+      return qore_class_private::intEvalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
    else
       return qore_class_private::intEvalPseudoMethod(qc, method, variant, n, args, xsink);
 }
 
 bool MethodCallNode::boolExecPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const {
    //printd(5, "MethodCallNode::execPseudo() %s::%s() variant=%p\n", qc->getName(), method->getName(), variant);
-   // if n == 0 make sure and use the "<value>" class with a dynamic method lookup
-   if (!n && qc != QC_PSEUDOVALUE)
-      return qore_class_private::boolEvalPseudoMethod(QC_PSEUDOVALUE, n, method->getName(), args, xsink);
+   // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
+   if (is_nothing(n) && qc != QC_PSEUDONOTHING)
+      return qore_class_private::boolEvalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
    else
       return qore_class_private::boolEvalPseudoMethod(qc, method, variant, n, args, xsink);
 }
 
 double MethodCallNode::floatExecPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const {
    //printd(5, "MethodCallNode::execPseudo() %s::%s() variant=%p\n", qc->getName(), method->getName(), variant);
-   // if n == 0 make sure and use the "<value>" class with a dynamic method lookup
-   if (!n && qc != QC_PSEUDOVALUE)
-      return qore_class_private::floatEvalPseudoMethod(QC_PSEUDOVALUE, n, method->getName(), args, xsink);
+   // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
+   if (is_nothing(n) && qc != QC_PSEUDONOTHING)
+      return qore_class_private::floatEvalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
    else
       return qore_class_private::floatEvalPseudoMethod(qc, method, variant, n, args, xsink);
 }
