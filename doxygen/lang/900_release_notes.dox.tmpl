@@ -5,24 +5,24 @@
     @section qore_0862 Qore 0.8.6.2
 
     @par Release Summary
-    in progress
+    Iterator improvements and design fixes
 
     @subsection qore_0862_compatibility Changes That Can Affect Backwards-Compatibility
     @par Fixes for Iterator Class Design Bugs
     Iterators, particular regarding the @ref map "map" and @ref select "select" operators, were implemented in a confusing and inconsistent way; even the %qore documentation was incorrect, and examples were given incorrectly.  The following changes will break functionality using the badly-implemplemented behavior of iterators before, but since the fix comes fairly soon after the introduction, hopefully this change will not cause too many problems with existing code.   All users polled about the iterator changes in this release saw them as positive and desired changes to the language.
     - the @ref map "map" and @ref select "select" operators' behavior was changed when used with an @ref Qore::AbstractIterator "AbstractIterator" object for the list operand; now the implied argument is the result of @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" instead of the iterator object itself.  This addresses a confusing design choice in the original iterator integration with the @ref map "map" and @ref select "select" operators
-    - the second boolean argument was removed from the @ref Qore::HashIterator::constructor(hash) "HashIterator::constructor(hash)" and @ref Qore::HashReverseIterator::constructor(hash) "HashReverseIterator::constructor(hash)" methods; use the new  @ref Qore::HashPairIterator "HashPairIteterator" and @ref Qore::ObjectPairIterator "ObjectPairIteterator" classes instead (<hash>::pairIterator() and <object>::pairIterator())
+    - the second boolean argument was removed from the @ref Qore::HashIterator::constructor(hash) "HashIterator::constructor(hash)" and @ref Qore::HashReverseIterator::constructor(hash) "HashReverseIterator::constructor(hash)" methods; use the new  @ref Qore::HashPairIterator "HashPairIterator" and @ref Qore::ObjectPairIterator "ObjectPairIterator" classes instead (<hash>::pairIterator() and <object>::pairIterator())
     - the single boolean argument was removed from <hash>::iterator() and <object>::iterator(); use <hash>::pairIterator() and <object>::pairIterator() instead to get the old behavior
 
     @subsection qore_0862_changes Changes in Qore
     - new iterator classes:
-      - @ref Qore::HashKeyIterator "HashKeyIteterator"
+      - @ref Qore::HashKeyIterator "HashKeyIterator"
       - @ref Qore::HashKeyReverseIterator "HashKeyReverseIterator"
-      - @ref Qore::HashPairIterator "HashPairIteterator"
+      - @ref Qore::HashPairIterator "HashPairIterator"
       - @ref Qore::HashPairReverseIterator "HashPairReverseIterator"
-      - @ref Qore::ObjectKeyIterator "ObjectKeyIteterator"
+      - @ref Qore::ObjectKeyIterator "ObjectKeyIterator"
       - @ref Qore::ObjectKeyReverseIterator "ObjectKeyReverseIterator"
-      - @ref Qore::ObjectPairIterator "ObjectPairIteterator"
+      - @ref Qore::ObjectPairIterator "ObjectPairIterator"
       - @ref Qore::ObjectPairReverseIterator "ObjectPairReverseIterator"
     - new pseudo-methods:
       - <hash>::keyIterator()
