@@ -179,9 +179,9 @@ class httpServer {
             shutdown();
         }
 
-	# wait for the HttpServer to stop and then exit the program
-	# also we have to ensure that "hs" does not go out of scope so it can be used to shutdown the
-	# HttpServer object in case of a signal
+        /* wait for the HttpServer to stop and then exit the program
+	   also we have to ensure that our Program object does not go out of scope before the HttpServer does
+        */
 	hs.waitStop();
     }
 

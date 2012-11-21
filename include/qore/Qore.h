@@ -35,6 +35,11 @@
 #endif
 
 #include <qore/common.h>
+#include <qore/QoreCounter.h>
+
+//! global background thread counter (for threads started explicitly by Qore)
+DLLEXPORT extern QoreCounter thread_counter;
+
 #include <qore/QoreEncoding.h>
 #include <qore/ReferenceHolder.h>
 #include <qore/AbstractQoreNode.h>

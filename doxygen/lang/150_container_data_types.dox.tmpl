@@ -71,6 +71,7 @@ $element3 = $list[2];
     - Trailing commas can be left on the end of a list (or a @ref hash "hash"), making it easier to insert and remove elements at the end of a multi-line list.
     - List elements are dereferenced using square brackets: \c "[" and \c "]". The first element in a list has index zero.
     - Dereferencing an invalid element (past the end of the list or with a negative number) will return @ref nothing
+    - Use <list>::iterator() as an easy way to get a list iterator object for the current list
 
     <hr>
     @section hash Hash
@@ -139,6 +140,12 @@ $element3 = $hash{"this-element-1!"};
     - Use quotes around the member name when dereferencing hash members with the same name as a qore keyword or other name that is not a valid identifier: ex: @code $hash."my-tag-1!" @endcode
     - %Qore hashes preserve key insertion order to support consistent serialization and deserialization to strings (such as XML, JSON, or YAML strings) or data encoding formats, therefore the @ref keys "keys operator" and the <hash>::keys() pseudo-method will always return the hash keys in insertion/creation order
     - Dereferencing hash values that are not present in the hash will return @ref nothing; to catch typos in hash member names when dereferencing a hash, you can use an @ref object "object" and declare a list of allowed public members in the @ref qore_classes "class definition" (in which case dereferencing a non-existant member will cause a parse exception to be thrown, if the object's class is known at parse time, otherwise it will cause a runtime exception), also the Qore::ListHashIterator class allows for hash members to be dereferenced transparently and will throw an exception if a non-existant member name is given (to catch typos).
+    - There are several pseudo-methods implemented in both the @ref Qore::zzz8hashzzz9 and the @ref Qore::zzz8nothingzzz9 pseudo-classes that provide asy access to special hash iterators:
+      - <hash>::iterator() provides easy access to a hash value iterator; it returns a @ref Qore::HashIterator "HashIterator" object where the @ref Qore::HashIterator::getValue() "HashIterator::getValue()" method returns the current key value
+      - <hash>::keyIterator() provides easy access to a hash key iterator; it returns a @ref Qore::HashKeyIterator "HashKeyIterator" object where the @ref Qore::HashKeyIterator::getValue() "HashKeyIterator::getValue()" method returns the current key string; this is very useful when using a hash as a simulation for a set of strings and quickly iterating the hash with the @ref map "map operator", for example
+      - <hash>::pairIterator() provides easy access to a hash key/value pair iterator; it returns a @ref Qore::HashPairIterator "HashPairIterator" object where the @ref Qore::HashPairIterator::getValue() "HashPairIterator::getValue()" method returns a hash with \c "key" and \c "value" keys giving the key-value pair for the current iterator position in the hash
+      - <hash>::contextIterator() provides easy access to the current element in a hash of lists such as that returned by the @ref Qore::SQL::Datasource::select() "Datasource::select()" or @ref Qore::SQL::DatasourcePool::select() "DatasourcePool::select()" methods; it returns a @ref Qore::HashListIterator "HashListIterator" object where the @ref Qore::HashListIterator::getValue() "HashListIterator::getValue()" method returns a hash of the current row value (which is very useful when iterating query results with the @ref map "map operator", for example); this class also provides a @ref Qore::HashListIterator::memberGate() "memberGate() method" that allows the iterator object itself to be dereferenced directly as a hash representing the current row (which is useful in @ref foreach "foreach statements" for example).
+      - the corresponding pseudo-methods in the @ref Qore::zzz8nothingzzz9 pseudo-class return empty @ref Qore::SingleValueIterator "SingleValueIterator" objects so that these pseudo-methods can be safely used with @ref hash_or_nothing_type "*hash" (ie "hash or nothing") value types.
 
     <hr>
     @section object Object

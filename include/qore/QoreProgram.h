@@ -541,7 +541,9 @@ public:
    DLLLOCAL bool parseExceptionRaised() const;
 };
 
-//! safely manages QoreProgram objects
+//! safely manages QoreProgram objects; note the the destructor will block until all background threads in the qore library terminate and until the current QoreProgram terminates
+/** not useful in embedded code due to the fact that the destructor blocks until all background threads in the entire qore library terminate
+ */
 class QoreProgramHelper {
 private:
    QoreProgram* pgm;
@@ -556,10 +558,13 @@ public:
    DLLLOCAL QoreProgramHelper(int64 parse_options, ExceptionSink& xs) : pgm(new QoreProgram(parse_options)), xsink(xs) {
    }
 
-   //! waits until the QoreProgram object is done executing and then dereferences the object
+   //! waits until all background threads in the Qore library have terminated and until the QoreProgram object is done executing and then dereferences the object
    /** QoreProgram objects are deleted when there reference count reaches 0.
     */
    DLLLOCAL ~QoreProgramHelper() {
+      // waits for all background threads to execute
+      thread_counter.waitForZero(&xsink);
+      // waits for the current Program to terminate
       pgm->waitForTerminationAndDeref(&xsink);
    }
 

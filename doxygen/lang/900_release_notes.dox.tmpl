@@ -33,6 +33,7 @@
       - <nothing>::keyIterator()
       - <nothing>::pairIterator()
       - <nothing>::contextIterator()
+    - the internal C++ QoreProgramHelper object has been updated to wait until all background threads in the %Qore library have executed before taking the @ref Qore::Program "Program" object out of scope; this allows for callbacks and other code that might be needed by background threads started in user modules (for example) to stay valid until the threads in the user modules also have terminated.  Note that this does not affect the case when using @ref exec-class "%exec-class" and an application program object goes out of scope with background threads in user modules having non-static method call references as callbacks to the application program; see @ref user_module_program_scope for more information on this topic.
 
     @section qore_0861 Qore 0.8.6.1
 

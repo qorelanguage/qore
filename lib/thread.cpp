@@ -24,8 +24,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ThreadResourceList.h>
 
+#include <qore/intern/ThreadResourceList.h>
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/QoreSignal.h>
 #include <qore/intern/qore_program_private.h>
@@ -67,6 +67,9 @@
 #if defined(__ia64) && defined(__LP64__)
 #define IA64_64
 #endif
+
+// global background thread counter
+QoreCounter thread_counter;
 
 Operator *OP_BACKGROUND;
 
@@ -1627,7 +1630,7 @@ namespace {
       }
 
       pthread_cleanup_pop(1);
-
+      thread_counter.dec();
       pthread_exit(0);
       return 0;
    }
@@ -1668,11 +1671,13 @@ static AbstractQoreNode* op_background(const AbstractQoreNode* left, const Abstr
    pthread_t ptid;
 
    //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
+   thread_counter.inc();
 
    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
       tp->cleanup(xsink);
       delete tp;
 
+      thread_counter.dec();
       deregister_thread(tid);
       xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
       return 0;

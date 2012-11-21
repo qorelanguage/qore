@@ -373,6 +373,11 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
     @note
     - See the documentation for the DBI driver being used for additional possible exceptions
     - This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
+
+    @see
+    - DatasourcePool::vselect()
+    - <hash>::contextIterator()
+    - @ref context
  */
 any DatasourcePool::select(string sql, ...) {
    ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
@@ -455,7 +460,10 @@ my *hash $query = $db.vselect("select * from example_table where id = %v and nam
     - See the documentation for the DBI driver being used for additional possible exceptions
     - This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
 
-    @see DatasourcePool::select()
+    @see
+    - DatasourcePool::select()
+    - <hash>::contextIterator()
+    - @ref context
  */
 any DatasourcePool::vselect(string sql, *softlist vargs) {
    return ds->select(sql, vargs, xsink);

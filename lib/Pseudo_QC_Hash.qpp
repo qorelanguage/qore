@@ -262,6 +262,8 @@ AbstractIterator <hash>::iterator() [flags=CONSTANT] {
 map printf("+ %s\n", $1), $h.keyIterator();
     @endcode
 
+    @note this pseudo-method is very useful when using a hash as a simulation for a set of strings and quickly iterating the hash with the @ref map "map operator", for example
+
     @since %Qore 0.8.6.2
  */
 HashKeyIterator <hash>::keyIterator() [flags=CONSTANT] {
@@ -287,8 +289,11 @@ HashPairIterator <hash>::pairIterator() [flags=CONSTANT] {
 
     @par Example:
     @code
+my *hash $q = $db.select("select * from table_name");
 map printf("+ %s\n", $1), $h.contextIterator();
     @endcode
+
+    @note this method is very useful when iterating query results from @ref Qore::SQL::Datasource::select() "Datasource::select()" or @ref Qore::SQL::DatasourcePool::select() "DatasourcePool::select()" with the @ref map "map operator", for example
 
     @since %Qore 0.8.6.2
  */
