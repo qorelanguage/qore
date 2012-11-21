@@ -1,3 +1,124 @@
+2012-11-21 07:36  david_nichols
+
+	* configure.ac: fixed SSA* checks when linking with static openssl
+	  libraries (such as on windows, for example)
+
+2012-11-21 06:33  david_nichols
+
+	* lib/Pseudo_QC_Hash.qpp: minor doc update
+
+2012-11-21 06:32  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/150_container_data_types.dox.tmpl,
+	  doxygen/lang/195_statements.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, examples/httpserver.q,
+	  include/qore/Qore.h, include/qore/QoreCounter.h,
+	  include/qore/QoreProgram.h, lib/Pseudo_QC_Hash.qpp,
+	  lib/QC_Datasource.qpp, lib/QC_DatasourcePool.qpp,
+	  lib/QC_HashKeyReverseIterator.qpp,
+	  lib/QC_HashPairReverseIterator.qpp, lib/thread.cpp: updated the
+	  QoreProgramHelper class to wait for all background threads to
+	  terminate before taking the QoreProgram object out of scope; this
+	  way programs using user modules that provide their own threads
+	  will not go out of scope (making all callbacks, etc go out of
+	  scope as well) while threads in the user modules (that require
+	  the callbacks from the original program object) are still
+	  running; made many doc updates
+
+2012-11-20 18:14  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreLibIntern.h, lib/FunctionCallNode.cpp,
+	  lib/Pseudo_QC_Hash.qpp, lib/Pseudo_QC_Nothing.qpp: fixed a bug in
+	  pseudo-method dynamic dispatch when the value is NOTHING but was
+	  declared with another type
+
+2012-11-20 06:07  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: fixed more typos
+
+2012-11-20 06:05  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: fixed typos
+
+2012-11-18 10:26  david_nichols
+
+	* lib/QC_Datasource.qpp, lib/QC_DatasourcePool.qpp: minor doc
+	  formatting corrections and updates
+
+2012-11-17 12:21  david_nichols
+
+	* lib/ql_time.qpp: fixed "mork" typos - nanoo -> nano
+
+2012-11-17 12:18  david_nichols
+
+	* lib/Pseudo_QC_List.qpp, lib/ql_time.qpp: minor doc updates
+
+2012-11-16 08:39  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/Pseudo_QC_All.qpp,
+	  lib/Pseudo_QC_List.qpp, lib/Pseudo_QC_Nothing.qpp: added
+	  <nothing>::pairIterator() and <nothing>::keyIterator()
+	  pseudo-methods, that empty SingleValueIterator objects return (so
+	  that pairIterator() and keyIterator() can be used safely with
+	  *hash types); doc updates
+
+2012-11-16 08:25  david_nichols
+
+	* Makefile.am, configure.ac, doxygen/lang/180_operators.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreHashIterator.h,
+	  include/qore/intern/QoreObjectIterator.h, lib/Makefile.am,
+	  lib/Operator.cpp, lib/Pseudo_QC_Hash.qpp,
+	  lib/Pseudo_QC_Object.qpp, lib/QC_HashIterator.qpp,
+	  lib/QC_HashKeyIterator.qpp, lib/QC_HashKeyReverseIterator.qpp,
+	  lib/QC_HashPairIterator.qpp, lib/QC_HashPairReverseIterator.qpp,
+	  lib/QC_HashReverseIterator.qpp, lib/QC_ObjectIterator.qpp,
+	  lib/QC_ObjectKeyIterator.qpp,
+	  lib/QC_ObjectKeyReverseIterator.qpp,
+	  lib/QC_ObjectPairIterator.qpp,
+	  lib/QC_ObjectPairReverseIterator.qpp,
+	  lib/QC_ObjectReverseIterator.qpp, lib/QoreNamespace.cpp,
+	  lib/single-compilation-unit.cpp, qlib/CsvUtil.qm,
+	  qlib/MailMessage.qm, qlib/Mime.qm, qlib/Pop3Client.qm, qore.spec,
+	  test/test.q: fixed design bugs in the iterator implementation;
+	  the implicit argument of the map and select operators is now the
+	  value returned by AbstractIterator::getValue(); the "value_hash"
+	  parameter of the HashIterator and HashReverseIterator
+	  constructors and the <hash>::iterator() pseudo-method has been
+	  removed; new iterator classes implemented: HashKeyIterator,
+	  HashKeyReverseIterator, HashPairIterator,
+	  HashPairReverseIterator, ObjectKeyIterator,
+	  ObjectKeyReverseIterator, ObjectPairIterator,
+	  ObjectPairReverseIterator, new pseudo-methods:
+	  <hash>::keyIterator(), <hash>::pairIterator(),
+	  <object>::keyIterator(), <object>::pairIterator()
+
+2012-11-15 11:05  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreHashIterator.h, lib/Makefile.am,
+	  lib/Pseudo_QC_Hash.qpp, lib/QC_HashIterator.qpp,
+	  lib/QC_HashKeyIterator.qpp, lib/QC_HashKeyReverseIterator.qpp,
+	  lib/QC_HashReverseIterator.qpp, lib/QoreNamespace.cpp,
+	  lib/single-compilation-unit.cpp: implemented the HashKeyIterator
+	  and HashKeyuReverseIterator classes and the <hash>::keyIterator()
+	  pseudo-method
+
+2012-11-12 15:35  david_nichols
+
+	* lib/Datasource.cpp, lib/DatasourcePool.cpp: cosmetic changes
+
+2012-11-10 06:49  david_nichols
+
+	* configure.ac, lib/Makefile.am, qore.spec: updated to 0.8.7 for
+	  next release
+
+2012-11-09 17:43  david_nichols
+
+	* ChangeLog, RELEASE-NOTES: final changes for the 0.8.6.1 release
+
 2012-11-09 14:48  david_nichols
 
 	* qlib/Mime.qm: changed the default value of the decode parameter

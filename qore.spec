@@ -99,7 +99,7 @@ functionality.
 
 %files -n libqore5
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.9.1
+%{_libdir}/libqore.so.5.9.2
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
@@ -203,6 +203,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Wed Nov 21 2012 David Nichols <david@qore.org> 0.8.7
+- updated to 0.8.7
+
 * Fri Nov 9 2012 David Nichols <david@qore.org> 0.8.6.2
 - updated to 0.8.6.2
 
