@@ -1036,9 +1036,13 @@ if test -z "$OPENSSL_LDFLAGS"; then
     AC_MSG_ERROR([no openssl library found])
 else
     SAVE_CPPFLAGS="$CPPFLAGS"
-    SAVE_LDFLAGS="$LDFLAGS"
+    SAVE_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
-    LDFLAGS="$LDFLAGS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
+    LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
+
+if test "$mingw" = yes; then
+    LIBS="$LIBS -lgdi32 -lz"
+fi
 
     # check for SHA512 algorithm
     AC_MSG_CHECKING([for SHA224, SHA256, SHA384, SHA512 in openssl])
@@ -1068,7 +1072,7 @@ else
        [AC_MSG_RESULT([no const required])])
 
     CPPFLAGS="$SAVE_CPPFLAGS"
-    LDFLAGS="$SAVE_LDFLAGS"
+    LIBS="$SAVE_LIBS"
 fi
 
 set_dl_cppflags() {
