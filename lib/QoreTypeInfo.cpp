@@ -72,17 +72,13 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *nullOrNothingTypeInfo = 0
    ;
 
-// provides for run-time assignment capability from any type
-static UserReferenceTypeInfo staticUserReferenceTypeInfo;
-const QoreTypeInfo* userReferenceTypeInfo = &staticUserReferenceTypeInfo;
-
 // provides limited compatibility with integers
 static FloatTypeInfo staticFloatTypeInfo;
 static FloatOrNothingTypeInfo staticFloatOrNothingTypeInfo;
 const QoreTypeInfo* floatTypeInfo = &staticFloatTypeInfo,
    *floatOrNothingTypeInfo = &staticFloatOrNothingTypeInfo;
 
-// xxx
+// the "number" and "*number" types
 static NumberTypeInfo staticNumberTypeInfo;
 static NumberOrNothingTypeInfo staticNumberOrNothingTypeInfo;
 const QoreTypeInfo* numberTypeInfo = &staticNumberTypeInfo,
@@ -112,7 +108,7 @@ static SoftFloatOrNothingTypeInfo staticSoftFloatOrNothingTypeInfo;
 const QoreTypeInfo* softFloatTypeInfo = &staticSoftFloatTypeInfo,
    *softFloatOrNothingTypeInfo = &staticSoftFloatOrNothingTypeInfo;
 
-// xxx
+// softnumber and *softnumber
 static SoftNumberTypeInfo staticSoftNumberTypeInfo;
 static SoftNumberOrNothingTypeInfo staticSoftNumberOrNothingTypeInfo;
 const QoreTypeInfo* softNumberTypeInfo = &staticSoftNumberTypeInfo,
@@ -142,8 +138,8 @@ const QoreTypeInfo* softListTypeInfo = &staticSoftListTypeInfo,
    *softListOrNothingTypeInfo = &staticListOrNothingTypeInfo;
 
 // somethingTypeInfo means "not NOTHING"
-static SomethingTypeInfo staticSomethingTypeInfo;
-const QoreTypeInfo* somethingTypeInfo = &staticSomethingTypeInfo;
+//static SomethingTypeInfo staticSomethingTypeInfo;
+//const QoreTypeInfo* somethingTypeInfo = &staticSomethingTypeInfo;
 
 // timeout type info accepts int or date and returns an int giving milliseconds
 static TimeoutTypeInfo staticTimeoutTypeInfo;
@@ -337,7 +333,7 @@ bool builtinTypeHasDefaultValue(qore_type_t t) {
 const QoreTypeInfo* getBuiltinUserTypeInfo(const char* str) {
    // user exceptions here
    if (!strcmp(str, "reference"))
-      return userReferenceTypeInfo;
+      return anyTypeInfo;
 
    str_typeinfo_map_t::iterator i = str_typeinfo_map.find(str);
    return i != str_typeinfo_map.end() ? i->second : 0;
@@ -380,9 +376,6 @@ const char* getBuiltinTypeName(qore_type_t type) {
 
 int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode* n) const {
    qore_type_t nt = get_node_type(n);
-
-   if (reverse_logic)
-      return qt == nt ? -1 : 0;
 
    if (qt != nt)
       return is_int && nt > QORE_NUM_TYPES && dynamic_cast<QoreBigIntNode* >(n) ? 0 : -1;
