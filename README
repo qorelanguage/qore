@@ -1,7 +1,7 @@
 Qore README
 
 author: David Nichols <david_nichols@users.sourceforge.net>
-updated: 2012-09-02
+updated: 2012-11-23
 
 This document contains some general information on the Qore language.  Please
 refer to the following files/locations for specific information:
@@ -43,7 +43,9 @@ examples/:
 ************************
 *** Quick Build Info ***
 ************************
- * only UNIX-like platforms are currently supported
+ * only UNIX-like platforms are currently supported (although Windows binaries
+   can be built with mxe, and theoretically qore could be built directly on a
+   Windows host)
  * requires POSIX threading support
  * requires at least flex 2.5.31 (older distributions have flex 2.5.4, flex
    2.5.37 recommended) in order to compile the multithreaded parser; you can
@@ -53,6 +55,7 @@ examples/:
    POSIX regex support is no longer used
  * requires openssl headers and libraries
  * requires zlib & bzlib headers and libraries
+ * requires mpfr (and gmp) for the arbitrary-precision numeric support
  * optionally support for XML, Oracle, MySQL, PostgreSQL, Sybase, MS SQL
    Server, ncurses, OpenGL, GLUT, QT4, TIBCO Rendezvous and AE Adapters, SSH2,
    Bea Tuxedo and more can be built (see README-MODULES for details)

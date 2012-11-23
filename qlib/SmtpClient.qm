@@ -32,15 +32,23 @@
 %requires MailMessage >= 1.0
 
 module SmtpClient {
-    version = "1.1";
+    version = "1.2";
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
 }
 
 /*  Version History
-    * 2012-06-14 v1.1: David Nichols <david@qore.org>: removed the Message and Attachment classes to the MailMessage module to be reused in the Pop3Client module
-    * 2012-05-21 v1.0: David Nichols <david@qore.org>: updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + the bane of all developers: documentation :)
+    * 2012-11-24 v1.2: David Nichols <david@qore.org>: 
+      + added support for parsing a full URL in the SmtpClient::constructor(); added protocol support and setting the username / password from the URL
+      + use Message::checkSendPossible() to throw a more descriptive exception if the message is incomplete and not ready to be sent
+      + implemented support for automatically detecting if the server accepts the STARTTLS command and, if so, automatically setting the STARTTLS flag if it's not already set
+
+    * 2012-06-14 v1.1: David Nichols <david@qore.org>: 
+      + removed the Message and Attachment classes to the MailMessage module to be reused in the Pop3Client module
+
+    * 2012-05-21 v1.0: David Nichols <david@qore.org>: 
+      + updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + the bane of all developers: documentation :)
 
     ritzinwo, 20090716
 
@@ -67,6 +75,23 @@ module SmtpClient {
     - MailMessage::Message: wraps a message to be sent via an @ref SmtpClient::SmtpClient "SmtpClient" object
     - MailMessage::Attachment: used to attach files to a MailMessage::Message object
 
+    Note that the @ref SmtpClient::SmtpClient "SmtpClient" class automatically detects if the SMTP server supports ESMTP and a \c "EHLO" command is executed automatically instead of \c "HELO" if so.  Additionally, the class also automatically detects if the server supports the \c "STARTTLS" command by parsing the response to the \c "EHLO" command when talking to ESMTP servers.
+
+    If the \a tls flag is not set on the @ref SmtpClient::SmtpClient "SmtpClient" object and the server supports \c "STARTTLS" (and a transport layer TLS/SSL connection was not already established), then the @ref SmtpClient::SmtpClient "SmtpClient" object will automatically execute a \c "STARTTLS" command after connecting so that the rest of the SMTP session is performed securely.  This also allows transparent logins and communication with ESMTP servers that require secure connections.
+
+    For the above reasons it's normally not required to use the \c "smtptls" or \c "esmtptls" protocols in the @ref SmtpClient::SmtpClient::constructor(string, *code, *code) "SmtpClient::constructor(string, *code, *code)" URL argument.
+
+    @anchor smtpclient_protocols
+    The @ref SmtpClient::SmtpClient::constructor(string, *code, *code) "SmtpClient::constructor(string, *code, *code)" takes a URL argument, the protocol (scheme) component is handled as in the following table.
+
+    <b>SmtpcClient Protocol Handling</b>
+    |!Protocol|!Default Port|!Description
+    |\c "smtp"|25|standard SMTP port without encryption; ESMPT and \c "STARTTLS" detection is supported automatically
+    |\c "smtps"|465|note that port 465 is currently assigned to source-specific multicast audio/video (<a href="http://www.iana.org/assignments/port-numbers">http://www.iana.org/assignments/port-numbers</a>); it's use as a port for secure SMTP listeners (where security is enforced at the transport layer because the server immediately negotiates a TLS/SSL connection before the application protocol communication starts) is deprecated but is included in this module because many SMTP servers still operate this way
+    |\c "smtptls"|25|a \c "STARTTLS" command is executed unconditionally after the connection to ensure a secure connection, even if the server does not declare support for this command in the login response.  It's normally not necessary to use this protocol as \c "STARTTLS" is used automatically when logging in to ESMTP servers that declare support for this command in the response to the \c "EHLO" command.
+    |\c "esmtp"|587|like \c "smtp" just using port 587
+    |\c "esmtptls"|587|like \c "smtptls" just using port 587
+
     @par Example:
     @code
 %requires SmtpClient
@@ -78,7 +103,7 @@ $msg.addTO("My Best Friend <you@friend.com>");
 $msg.attach($filename, Mime::MimeTypeText, $data);
 
 my code $log = sub (string $str) {printf("%y: %s\n", now_us(), str);};
-my SmtpClient::SmtpClient $smtp("smtp.example.com", $log, $log);
+my SmtpClient::SmtpClient $smtp("esmtptls://user@password:smtp.example.com", $log, $log);
 $smtp.sendMessage($msg);@endcode
  */
 
@@ -138,8 +163,11 @@ public namespace SmtpClient {
 	    # optional debug log closure
 	    *code $.log_debug;
 
-	    # tls flag
+	    # tls flag (ie \c "STARTTLS" flag; ie application layer security)
 	    bool $.tls = False;
+
+            # ssl flag (for TLS/SSL connections - ie transport layer instead of application layer security)
+            bool $.ssl = False;
 
 	    # esmtp flag
 	    bool $.esmtp;
@@ -167,6 +195,41 @@ public namespace SmtpClient {
 
 	    #! default SMTP port
 	    const SmtpPort = 25;
+
+	    #! default SMTPS port; note that this port is currently assigned to source-specific multicast audio/video (http://www.iana.org/assignments/port-numbers); it's use as a port for secure SMTP listeners (where security is enforced at the transport layer because the server immediately negotiates a TLS/SSL connection before the application protocol communication starts) is deprecated
+	    const SmtpsPort = 465;
+
+	    #! default ESMTP port
+	    const EsmtpPort = 587;
+
+            #! procotol config
+            const Protocols = (
+                "smtp": (
+                    "port": SmtpPort,
+                    "ssl": False,
+                    "tls": False,
+                ),
+                "smtps": (
+                    "port": SmtpsPort,
+                    "ssl": True,
+                    "tls": False,
+                ),
+                "smtptls": (
+                    "port": SmtpsPort,
+                    "ssl": False,
+                    "tls": True,
+                ),
+                "esmtp": (
+                    "port": EsmtpPort,
+                    "ssl": False,
+                    "tls": False,
+                ),
+                "esmtptls": (
+                    "port": EsmtpPort,
+                    "ssl": False,
+                    "tls": True,
+                ),
+                );
 	}
 
 	#! creates the SmtpClient object
@@ -184,25 +247,51 @@ public namespace SmtpClient {
 	}
 
 	#! creates the SmtpClient object
-	/** @param connect the hostname of the SMTP server or a hostname:port specification (use \c "[hostname]" or \c "[address]" for ipv6 connections); if no port is given for non-UNIX sockets, then SmtpPort is used as the default port number
+	/** @par Example:
+            @code
+my SmtpClient $smtp("smtptls://pop.gmail.com", \log(), \log());
+            @endcode
+
+            @param connect the hostname of the SMTP server or a hostname:port specification (use \c "[hostname]" or \c "[address]" for ipv6 connections); if no protocol (scheme) and no port is given for non-UNIX sockets, then SmtpPort is used as the default port number.  This argument is parsed with parse_url(); see @ref smtpclient_protocols for a description of the handling of the protocol (scheme) component of the URL including default ports per protocol (scheme). If an unknown protocol (scheme) is given then a \c SMTP-UNKNOWN-PROTOCOL exception is raised
 	    @param log an optional closure or call reference for log messages
 	    @param dbglog an optional closure or call reference for debugging/technical log messages
+
+            @throw PARSE-URL-ERROR \a connect could not be parsed with parse_url()
+            @throw SMTPCLIENT-UNKNOWN-PROTOCOL the protocol (scheme) given is unknown or unsupported
+            @throw SMTPCLIENT-INVALID-AUTHENTICATION partial authentication credentials passed; the username or password is missing
 	 */
 	constructor(string $connect, *code $log, *code $dbglog) {
 	    $.log_info = $log;
 	    $.log_debug = $dbglog;
 
-	    # add default port if the connect string has no port number and:
-	    # 1) is not a path (for a UNIX domain socket)
-	    # 2) is not an ipv6 address enclosed in '[]' (ex '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]')
-	    if ($connect !~ /^\//) {
-		my *softint $p = ($connect =~ x/:([0-9]+)$/)[0];
-		if (!$p)
-		    $connect += ":" + SmtpPort;
-	    }
+            my hash $uh = parse_url($connect, True);
 
-	    $.connect = $connect;
+            if ($uh.protocol) {
+                my *hash $ph = Protocols.($uh.protocol);
+                if (!$ph)
+                    throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported protocol %y in %y", $uh.protocol, $connect);
+
+                if (!$uh.port)
+                    $uh.port = $ph.port;
+
+                $self += $ph.("tls", "ssl");
+            }
+            else if (!$uh.port)
+                $uh.port = SmtpPort;
+
+	    $.connect = sprintf("%s:%d", $uh.host, $uh.port);
 	    $.logDbg("SmtpClient server: %y", $.connect);
+            
+            if ($uh.username) {
+                if (!$uh.password)
+                    throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y", $connect);
+                $.user = $uh.username;
+                $.pass = $uh.password;
+
+                $.logDbg("set authentication credentials to %s/xxx", $.user);
+            }
+            else if ($uh.password)
+                throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("username is set but password is missing in URL %y", $connect);
 	}
 
 	#! disconnects if connected and destroys the object
@@ -218,15 +307,31 @@ public namespace SmtpClient {
   	}
 
         #! sets the TLS/SSL flag
-        /** @param tls if @ref Qore::True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a STARTTLS command after connecting and negotiate a secure TLS/SSL connection to the server
+        /** @param tls if @ref Qore::True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a \c "STARTTLS" command after connecting and negotiate a secure TLS/SSL connection to the server; will also in this case turn off the SSL connection flag
          */
 	tls(bool $tls) {
 	    $.tls = $tls;
+            if ($.ssl)
+                $.ssl = False;
 	}
 
         #! returns the TLS/SSL flag
 	bool tls() {
 	    return $.tls;
+	}
+
+        #! sets the SSL connection flag
+        /** @param ssl if @ref Qore::True "True" then connections to the SMTP server will immediately try to negotiate transport layer TSL/SSL security; will also in this case turn off the TLS/SSL \c "STARTTLS" application layer security flag
+         */
+	ssl(bool $ssl) {
+	    $.ssl = $ssl;
+            if ($.tls)
+                $.tls = False;
+	}
+
+        #! returns the SSL connection flag
+	bool ssl() {
+	    return $.ssl;
 	}
 
         #! sets the username and password for authenticated connections
@@ -316,10 +421,12 @@ public namespace SmtpClient {
 	    - \c QUIT: the server response of the disconnect command
 
             @note This method is subject to thread serialization
+
+            @throw MESSAGE-ERROR the message is incomplete and cannot be sent
 	 */
 	hash sendMessage(MailMessage::Message $message) {
-	    if (!$message.sendPossible())
-		throw "ARGUMENT-EXCEPTION", "Message is not ready to be sent";
+            # throws a MESSAGE-ERROR exception if the message cannot be sent
+	    $message.checkSendPossible();
 
 	    if ($.log_debug.val())
 		$.logDbg("message: %s", $message.toLine());
@@ -407,8 +514,10 @@ public namespace SmtpClient {
 		call_function($.log_debug, "SmtpClient: " + trim(vsprintf($msg, $argv)));
 	}
 
-        private connectIntern() {
+        private connectIntern() {            
 	    $.sock.connect($.connect, $.connectTimeout);
+            if ($.ssl)
+                $.sock.upgradeClientToSSL();
   	}
   	
 	# send data over the socket
@@ -531,6 +640,12 @@ public namespace SmtpClient {
 		throw "SMTP-DATA-EXCEPTION", sprintf("error sending %s command: %y", $hello, $rh);
 
 	    my hash $reply.$hello = $rh;
+
+            # try to automatically set the tls flag if it's not already set and we are talking to an ESMTP server and we are not already in a secure connection
+            if (!$.tls && $.esmtp && !$.ssl && $rh.desc =~ /STARTTLS/) {
+                $.logDbg("server supports STARTTLS; automatically setting STARTTLS flag");
+                $.tls = True;
+            }
 
 	    # issue STARTTLS and upgrade to a TLS connection if the tls flag is set and we are not already secure
 	    if ($.tls && !$.sock.isSecure()) {

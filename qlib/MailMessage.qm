@@ -29,13 +29,16 @@
 %requires Mime >= 1.3
 
 module MailMessage {
-    version = "1.0.3";
+    version = "1.0.4";
     desc = "defines the MailMessage class and supporting definitions";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2012-11-02 v1.0.4: David Nichols <david@qore.org>
+      + minor doc corrections and non-functional code changes
+
     * 2012-11-02 v1.0.3: David Nichols <david@qore.org>
       + requires Mime module 1.3 for the MultiPartMessage::parseBody() method
       + fixed a bug where the part/attachment content-type was set to the content-type of the message
@@ -471,17 +474,19 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    return $.body.empty() ? False : True;
 	}
 
-	#! throw a \c MESSAGE-ERROR exception if the Message cannot be sent
+	#! throws a \c MESSAGE-ERROR exception if the Message cannot be sent
 	/** To be able to send a message, there must be at least one recipient in the "To:" or the "CC:" or the "BCC:" lists
 	    and there must be a message body 
 
             @see sendPossible()
+
+            @throw MESSAGE-ERROR the message is incomplete and cannot be sent
          */
 	checkSendPossible() {
-	    if ($.to.empty() && $.cc.empty() && $.bcc.empty())
-		throw "MESSAGE-ERROR", "the Message cannot be sent because there is no target address";
+	    if (!$.to && !$.cc && !$.bcc)
+		throw "MESSAGE-ERROR", "the Message cannot be sent because there is no target address (To, Cc, and Bcc are all wempty)";
 	    
-	    if ($.body.empty())
+	    if (!$.body)
 		throw "MESSAGE-ERROR", "the Message cannot be sent because there is no message body set";
 	}
 
