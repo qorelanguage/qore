@@ -504,7 +504,6 @@ protected:
       qc(n_qc), qt(n_qt), returns_mult(n_returns_mult), accepts_mult(n_accepts_mult), input_filter(n_input_filter), 
       has_subtype(n_has_subtype), has_name(n_has_name), has_defval(n_has_defval),
       is_int(n_is_int), exact_return(n_exact_return), ambiguous_int_match(false), accepts_all(n_accepts_all) {
-      assert(!returns_mult && !accepts_mult && !input_filter && !has_defval && !qc);
       assert(!is_int || !qc);
       assert(!(exact_return && returns_mult));
    }

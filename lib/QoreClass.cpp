@@ -4038,15 +4038,8 @@ const qore_class_private* MethodVariantBase::getClassPriv() const {
 }
 
 const char* MethodVariantBase::getAbstractSignature() {
-   if (asig.empty()) {
-      // make sure signature is resolved before building signature string
-      parseResolveUserSignature();
-      AbstractFunctionSignature* sig = getSignature();
-      //asig = getReturnTypeInfo()->getName();
-      asig += '(';
-      sig->addAbtractParameterSignature(asig);
-      asig += ')';
-   }
+   if (asig.empty())
+      getSignature()->addAbstractParameterSignature(asig);
    return asig.c_str();
 }
 

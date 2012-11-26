@@ -96,7 +96,7 @@ public:
       return str.c_str();
    }
 
-   DLLLOCAL void addAbtractParameterSignature(std::string& str) const {
+   DLLLOCAL virtual void addAbstractParameterSignature(std::string& str) const {
       for (unsigned i = 0; i < typeList.size(); ++i) {
          str.append(typeList[i]->getName());
          if (i != typeList.size() - 1)
@@ -201,6 +201,19 @@ public:
       
    // resolves all parse types to the final types
    DLLLOCAL void resolve();
+
+   DLLLOCAL virtual void addAbstractParameterSignature(std::string& str) const {
+      if (resolved) {
+         AbstractFunctionSignature::addAbstractParameterSignature(str);
+         return;
+      }
+
+      for (unsigned i = 0; i < parseTypeList.size(); ++i) {
+         str.append(parseTypeList[i]->getName());
+         if (i != parseTypeList.size() - 1)
+            str.append(",");
+      }
+   }
 
    // called at parse time to ensure types are resolved
    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const {
