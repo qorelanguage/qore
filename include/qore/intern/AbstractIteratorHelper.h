@@ -60,7 +60,7 @@ public:
    const QoreExternalMethodVariant* getValueVariant;
    bool valid;
 
-   DLLLOCAL AbstractIteratorHelper(ExceptionSink* xsink, const char* op, QoreObject* o, bool fwd = true, bool get_value = false) : obj(0), nextMethod(0), nextVariant(0), getValueMethod(0), getValueVariant(0), valid(false) {
+   DLLLOCAL AbstractIteratorHelper(ExceptionSink* xsink, const char* op, QoreObject* o, bool fwd = true, bool get_value = true) : obj(0), nextMethod(0), nextVariant(0), getValueMethod(0), getValueVariant(0), valid(false) {
       bool priv;
       const QoreClass* qc = o->getClass()->getClass(fwd ? *QC_ABSTRACTITERATOR : *QC_ABSTRACTBIDIRECTIONALITERATOR, priv);
       if (!qc)

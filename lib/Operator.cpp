@@ -1101,7 +1101,7 @@ static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQore
    if (arg->getType() != NT_LIST) {
       // check if it's an AbstractIterator object
       if (arg->getType() == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), true, true);
+         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)));
          if (*xsink)
             return 0;
          if (h)
@@ -1265,7 +1265,7 @@ static AbstractQoreNode *op_foldl(const AbstractQoreNode *left, const AbstractQo
    qore_type_t t = arg->getType();
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "foldl operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), true, true);
+         AbstractIteratorHelper h(xsink, "foldl operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)));
          if (*xsink)
             return 0;
          if (h)
@@ -1315,7 +1315,7 @@ static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQo
    qore_type_t t = arg->getType();
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "foldr operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), false, true);
+         AbstractIteratorHelper h(xsink, "foldr operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), false);
          if (*xsink)
             return 0;
          if (h)
@@ -1395,7 +1395,7 @@ static AbstractQoreNode *op_select(const AbstractQoreNode *arg_exp, const Abstra
    qore_type_t t = arg->getType();
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "select operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), true, true);
+         AbstractIteratorHelper h(xsink, "select operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)));
          if (*xsink)
             return 0;
          if (h)
