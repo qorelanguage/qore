@@ -377,11 +377,10 @@ void QoreModuleManager::init(bool se) {
 int ModuleManager::runTimeLoadModule(const char* name, ExceptionSink *xsink) {
    assert(name);
    assert(xsink);
-   return QMM.runTimeLoadModule(name, *xsink);
+   return QMM.runTimeLoadModule(name, getProgram(), *xsink);
 }
 
-int QoreModuleManager::runTimeLoadModule(const char* name, ExceptionSink& xsink) {
-   QoreProgram *pgm = getProgram();
+int QoreModuleManager::runTimeLoadModule(const char* name, QoreProgram *pgm, ExceptionSink& xsink) {
    assert(pgm);
 
    // grab the parse lock
@@ -656,9 +655,9 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 
    // parse options for the module
    int64 po = USER_MOD_PO;
-   // add in parse options from the current program, if any
+   // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
    if (tpgm)
-      po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_POSITIVE_OPTIONS|PO_REQUIRE_TYPES));
+      po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_REQUIRE_TYPES));
 
    ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
 

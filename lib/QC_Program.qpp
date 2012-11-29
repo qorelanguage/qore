@@ -434,8 +434,6 @@ qclass Program [arg=QoreProgram* p];
     However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor
     will be applied literally to the child object.
 
-    The Program constructor cannot be executed in user modules as it would work around Program security.
-
     @param po A binary OR'ed product of @ref parse_options "parse options"
 
     @par Example:
@@ -444,11 +442,6 @@ my Program $pgm();
     @endcode
 
     @throw PROGRAM-OPTION-ERROR invalid parse options used
-
-    @note the Program constructor ignores the parse option argument when called from a @ref user_modules "user module"; in this
-    case the parse options are set exactly the same as the @ref user_modules "user module's", and they are locked, so they cannot
-    be changed.  This is to prevent @ref user_modules "user module" from circumventing functional restrictions imposed by parse
-    options.
  */
 Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
    if (po & PO_SYSTEM_OPS) {
@@ -456,22 +449,23 @@ Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
       return;
    }
 
+   /*
    int64 current_po = getParseOptions();
    bool user_module = current_po & PO_IN_MODULE;
    // set parse options for user modules
    if (user_module) {
-      assert(!(current_po & PO_NO_CHILD_PO_RESTRICTIONS));
       // only allow positive options that are also set in the current Program
       po &= ((PO_POSITIVE_OPTIONS & current_po & po) | ~PO_POSITIVE_OPTIONS);
       // only allow options also set in the current pgm
       po &= current_po;
    }
-
+   */
    QoreProgram* pgm = new QoreProgram(getProgram(), po);
 
+   /*
    if (user_module)
       pgm->lockOptions();
-
+   */
    self->setPrivate(CID_PROGRAM, pgm);
 }
 
@@ -1123,4 +1117,26 @@ my any $val = $pgm.getDefine("PRODUCTION");
 any Program::getDefine(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
+}
+
+//! Loads a %Qore module into the Program object at run-time
+/** If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
+
+    Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded prior to parsing.
+
+    @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
+
+    @par Example:
+    @code
+$pgm.loadModule("mysql");
+    @endcode
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
+
+    @see getModuleHash(), getFeatureList()
+
+    @since %Qore 0.8.7
+*/
+Program::loadModule(string name)  [dom=MODULES] {
+   QMM.runTimeLoadModule(name->getBuffer(), p, *xsink);
 }

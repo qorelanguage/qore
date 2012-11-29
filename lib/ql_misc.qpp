@@ -1816,8 +1816,6 @@ nothing strtoint() [flags=RUNTIME_NOOP] {
 
     Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the @ref requires "%requires directive" instead, unless all references to the objects provided by the module will be made in code embedded in child Program objects.
 
-    This function cannot be executed at runtime in user modules as it could potentially be used to work around Program security.
-
     @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
 
     @par Example:
@@ -1828,15 +1826,17 @@ load_module("mysql");
     @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
 
     @see getModuleHash(), getFeatureList()
+
+    @since %Qore 0.8.7 this function can also be used in user module code
 */
-nothing load_module(string name) [dom=MODULES,IN_MODULE] {
+nothing load_module(string name) [dom=MODULES] {
    MM.runTimeLoadModule(name->getBuffer(), xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing load_module() [flags=RUNTIME_NOOP;dom=MODULES,IN_MODULE] {
+nothing load_module() [flags=RUNTIME_NOOP;dom=MODULES] {
 }
 
 //! Decodes percent numeric codes in a URL string and returns the decoded string
@@ -2010,5 +2010,19 @@ hash get_qore_library_info() [flags=CONSTANT] {
    h->setKeyValue("LDFLAGS", new QoreStringNode(qore_ldflags), xsink);
 
    return h;
+}
+
+//! returns the current @ref parse_options "parse options" for the current @ref Qore::Program "Program" object
+/** @par Example:
+    @code
+my int $i = get_parse_options();
+    @endcode
+
+    @return the current @ref parse_options "parse options" for the current @ref Qore::Program "Program" object
+
+    @since %Qore 0.8.7
+ */
+int get_parse_options() [flags=CONSTANT] {
+   return getParseOptions();
 }
 //@}

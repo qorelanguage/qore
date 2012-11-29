@@ -135,7 +135,7 @@ void qore_program_private_base::newProgram() {
 }
 
 void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_options) {
-   //printd(5, "qore_program_private_base::setParent() parent=%p (parent lvl=%p) this=%p (this pgm=%p) parent po: %lld new po: %lld parent no_child_po_restrictions=%d\n", p_pgm, p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options, p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
+   //printd(5, "qore_program_private_base::setParent() this: %p parent: %p (parent lvl: %p) this: %p (this pgm: %p) parent po: %lld new po: %lld parent no_child_po_restrictions: %d\n", this, p_pgm, p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options, p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
       
    TZ = p_pgm->currentTZ();
 
@@ -152,7 +152,7 @@ void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_opti
       pwo.parse_options = n_parse_options;
       po_locked = !(n_parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
    }
-      
+
    // inherit parent's thread local storage key
    thread_local_storage = p_pgm->priv->thread_local_storage;
       

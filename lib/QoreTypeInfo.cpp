@@ -384,7 +384,7 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode* n
       return 0;
 
    bool priv;
-   if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
+   if (reinterpret_cast<const QoreObject*>(n)->getClass()->getClass(*qc, priv)) {
       if (!priv)
 	 return 0;
 
