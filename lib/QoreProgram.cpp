@@ -295,6 +295,52 @@ int qore_program_private::internParseCommit() {
    return rc;
 }
 
+void qore_program_private::importClass(qore_program_private& from_pgm, const char* path, ExceptionSink* xsink) {
+   if (&from_pgm == this) {
+      xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the same source and target Program objects", path);
+      return;
+   }
+
+   const qore_ns_private* vns = 0;
+   const QoreClass* c;
+   {
+      AutoLocker al(&from_pgm.plock);
+      c = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, path, vns);
+   }
+
+   if (!c) {
+       xsink->raiseException("CLASS-IMPORT-ERROR", "can't find class \"%s\" in source Program", path);
+       return;
+   }
+
+   AutoLocker al(plock);
+
+   if (strstr(path, "::")) {
+      NamedScope nscope(path);
+      const QoreClass* ec = 0;
+      QoreNamespace* tns = qore_root_ns_private::runtimeFindNamespaceForClass(*RootNS, nscope, ec);
+      if (ec) {
+         xsink->raiseException("CLASS-IMPORT-ERROR", "class \"%s\" already exists in target Program", path);
+         return;
+      }
+      if (!tns) {
+         xsink->raiseException("CLASS-IMPORT-ERROR", "target namespace in '%s' does not exist", path);
+         return;
+      }
+
+      qore_root_ns_private::importClass(*RootNS, xsink, *tns, c);
+      return;
+   }
+
+   std::string nspath;
+   vns->getPath(nspath);
+
+   // find/create target namespace based on source namespace
+   QoreNamespace* tns = nspath.empty() ? RootNS : RootNS->findCreateNamespacePath(nspath.c_str());
+   //printd(5, "qore_program_private::importFunction() this: %p nspath: %s tns: %p %s RootNS: %p %s\n", this, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+   qore_root_ns_private::importClass(*RootNS, xsink, *tns, c);
+}
+
 void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction *u, const qore_ns_private& oldns, const char* new_name) {
    AutoLocker al(plock);
 

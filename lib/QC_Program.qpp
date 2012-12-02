@@ -421,6 +421,13 @@ const WARN_WARNING_MASK_UNCHANGED = QP_WARN_WARNING_MASK_UNCHANGED;
     into the child program object using either the Program::importFunction() or Program::importGlobalVariable() method. This is possible
     because code (functions or object methods) imported into and called from a subprogram will run in the parent's space and therefore
     with the parent's capabilities.
+
+    @ref qore_classes "Classes", @ref constants "constants", @ref qore_namespaces "namespaces", @ref qore_functions "functions", and
+    @ref global_variables "global variables" are only inherited into child Program objects if they are declared @ref mod_public "public"
+    and no @ref parse_options "parse options" prohibit it.
+
+    Symbols can also be imported into Program objects singly using methods such as Program::importClass() and
+    Program::importGlobalVariable(), etc.
  */
 qclass Program [arg=QoreProgram* p];
 
@@ -685,15 +692,20 @@ my any $result = $pgm.callFunction("func_name", $arg1, $arg2);
 
     @throw INVALID-FUNCTION-ACCESS @ref parse_options "Parse options" do not allow this builtin function to be called
     @throw NO-FUNCTION The function does not exist
+    @throw ENCODING-CONVERSION-ERROR the function name could not be converted to the @ref default_encoding "default character encoding"
 
     @note The function called could also cause other exceptions to be thrown
  */
 any Program::callFunction(string name, ...) {
+   TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
+   if (!tmp)
+      return 0;
+
    ReferenceHolder<QoreListNode> vargs(xsink);
    if (args->size() > 1)
       vargs = args->copyListFrom(1);
 
-   return p->callFunction(name->getBuffer(), *vargs, xsink);
+   return p->callFunction(tmp->getBuffer(), *vargs, xsink);
 }
 
 //! Calls a function in the program object giving the arguments to the function as a list and returns the return value
@@ -711,11 +723,15 @@ my any $result = $pgm.callFunctionArgs("func_name", ($arg1, $arg2));
 
     @throw INVALID-FUNCTION-ACCESS @ref parse_options "Parse options" do not allow this builtin function to be called
     @throw NO-FUNCTION The function does not exist
+    @throw ENCODING-CONVERSION-ERROR the function name could not be converted to the @ref default_encoding "default character encoding"
 
     @note The function called could also cause other exceptions to be thrown
  */
 any Program::callFunctionArgs(string name, *softlist vargs) {
-   return p->callFunction(name->getBuffer(), vargs, xsink);
+   TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
+   if (!tmp)
+      return 0;
+   return p->callFunction(tmp->getBuffer(), vargs, xsink);
 }
 
 //! Checks if a user function exists in the program object
@@ -728,9 +744,14 @@ any Program::callFunctionArgs(string name, *softlist vargs) {
 if ($pgm.existsFunction("my_func"))
     printf("my_func() exists in the Program\n");
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR the function name could not be converted to the @ref default_encoding "default character encoding"
  */
-bool Program::existsFunction(string name) {
-   return p->existsFunction(name->getBuffer());
+bool Program::existsFunction(string name) [flags=RET_VALUE_ONLY] {
+   TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
+   if (!tmp)
+      return false;
+   return p->existsFunction(tmp->getBuffer());
 }
 
 //! Runs the program and optionally returns a value if the top-level code exits with a @ref return "return statement
@@ -757,11 +778,15 @@ $pgm.importFunction("log");
 
     @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists
     @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
+    @throw ENCODING-CONVERSION-ERROR the function name could not be converted to the @ref default_encoding "default character encoding"
 
     @since %Qore 0.8.4 the function name can include a namespace path (ex \c "Namespace::func")
  */
 nothing Program::importFunction(string func) {
-   qore_program_private::exportFunction(getProgram(), xsink, p, func->getBuffer());
+   TempEncodingHelper tmp(func, QCS_DEFAULT, xsink);
+   if (!tmp)
+      return 0;
+   qore_program_private::exportFunction(getProgram(), xsink, p, tmp->getBuffer());
 }
 
 //! Imports a function into the program object's space and gives it a new name; any calls to the imported function will run with the parent Program object's permissions
@@ -777,11 +802,18 @@ $pgm.importFunction("service_log", "log");
 
     @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists; target namespace does not exist
     @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
+    @throw ENCODING-CONVERSION-ERROR the function name could not be converted to the @ref default_encoding "default character encoding"
 
     @since %Qore 0.8.4 the function name can include a namespace path (ex \c "Namespace::func")
  */
 nothing Program::importFunction(string func, string new_name) {
-   qore_program_private::exportFunction(getProgram(), xsink, p, func->getBuffer(), new_name->getBuffer());
+   TempEncodingHelper tfunc(func, QCS_DEFAULT, xsink);
+   if (!tfunc)
+      return 0;
+   TempEncodingHelper tnew_name(new_name, QCS_DEFAULT, xsink);
+   if (!tnew_name)
+      return 0;
+   qore_program_private::exportFunction(getProgram(), xsink, p, tfunc->getBuffer(), tnew_name->getBuffer());
 }
 
 //! Imports a global variable into the program object's space
@@ -796,9 +828,35 @@ $pgm.importGlobalVariable("var");
     @endcode
 
     @throw PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION The global variable does not exist in the source program, or the target variable already exists
+    @throw ENCODING-CONVERSION-ERROR the global variablt name could not be converted to the @ref default_encoding "default character encoding"
  */
 nothing Program::importGlobalVariable(string varname, bool readonly = False) {
-   qore_program_private::exportGlobalVariable(getProgram(), varname->getBuffer(), readonly, p, xsink);
+   TempEncodingHelper tmp(varname, QCS_DEFAULT, xsink);
+   if (!tmp)
+      return 0;
+   qore_program_private::exportGlobalVariable(getProgram(), tmp->getBuffer(), readonly, p, xsink);
+}
+
+//! Imports a class into the program object's space; any calls to the imported class's code will run with the parent Program object's permissions
+/** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
+
+    @param cls the name of the class to import into the Program object
+
+    @par Example:
+    @code
+$pgm.importClass("MyNamespace::MyClass");
+    @endcode
+
+    @throw CLASS-IMPORT-ERROR Cannot import a class into the same Program object; class or namespace with this name already exists or the source class does not exist
+    @throw ENCODING-CONVERSION-ERROR the class name could not be converted to the @ref default_encoding "default character encoding"
+
+    @since %Qore 0.8.7
+ */
+nothing Program::importClass(string cls) {
+   TempEncodingHelper tmp(cls, QCS_DEFAULT, xsink);
+   if (!tmp)
+      return 0;
+   qore_program_private::importClass(*p, *(getProgram()), tmp->getBuffer(), xsink);
 }
 
 //! Returns a list of strings of all user functions defined in the program object

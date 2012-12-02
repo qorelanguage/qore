@@ -2,6 +2,37 @@
 
     @tableofcontents
 
+    @section qore_087 Qore 0.8.7
+
+    @par Release Summary
+    Code embedding improvements
+
+    @subsection qore_087_compatibility Changes That Can Affect Backwards-Compatibility
+    @par Fixes for Code Inheritance in Program Objects
+    The @ref mod_public "public" keyword's usage in modules has now been expanded to provide the same functionality generically
+    in @ref Qore::Program "Program" objects; if @ref qore_classes "classes", @ref constants "constants",
+    @ref qore_namespaces "namespaces", @ref qore_functions "functions", or @ref global_variables "global variables"
+    are defined with the @ref mod_public "public" keyword, then these object can and will be inherited into child
+    @ref Qore::Program "Program" objects as long as no @ref parse_options "parse options" prohibit it.\n\n
+    This change was made to give programmers complete control over which symbols are inherited in child
+    @ref Qore::Program "Program" objects, whereas because prior to this change, the control was very course.
+
+    @subsection qore_087_new_features New Features in Qore
+    - new methods offering code encapsulation enhancements
+      - @ref Qore::Program::loadModule() "Program::loadModule()": allows modules to be loaded in a Program object directly
+      - @ref Qore::Program::importClass() "Program::importClass()": allows classes to be individually imported in Program objects
+    - new pseudo-methods in @ref Qore::zzz8nothingzzz9 to allow for @ref Qore::zzz8hashzzz9 pseudo-methods to be safely used with @ref nothing
+      - <nothing>::keys()
+      - <nothing>::values()
+      - <nothing>::firstKey()
+      - <nothing>::lastKey()
+      - <nothing>::firstValue()
+      - <nothing>::lastValue()
+      - <nothing>::hasKey()
+      - <nothing>::hasKeyValue()
+
+    @subsection qore_087_bug_fixes Bug Fixes in Qore
+
     @section qore_0862 Qore 0.8.6.2
 
     @par Release Summary

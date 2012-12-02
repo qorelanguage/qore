@@ -537,14 +537,8 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
       name = nme;
    else {
       name = parse_pop_name();
-
-      if (pub) {
-	 QoreProgram* pgm = getProgram();
-	 if (!(pgm->getParseOptions64() & PO_IN_MODULE))
-	    qore_program_private::makeParseWarning(pgm, QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with class declarations in user module code (when declaring class '%s')", name.c_str());
-      }
    }
-   printd(5, "qore_class_private::qore_class_private() this=%p creating '%s' ID:%d cls=%p\n", this, name.c_str(), classID, cls);
+   printd(5, "qore_class_private::qore_class_private() this=%p creating '%s' ID:%d cls: %p pub: %d\n", this, name.c_str(), classID, cls, pub);
 }
 
 // only called while the parse lock for the QoreProgram owning "old" is held
@@ -1154,8 +1148,6 @@ void qore_class_private::setBuiltinSystemConstructor(BuiltinSystemConstructorBas
 void qore_class_private::setPublic() {
    assert(!pub);
    pub = true;
-   if (!(getParseOptions() & PO_IN_MODULE))
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with class declarations in user module code (when declaring class '%s')", name.c_str());
 }
 
 QoreListNode* BCEAList::findArgs(qore_classid_t classid, bool *aexeced, const AbstractQoreFunctionVariant *&variant) {

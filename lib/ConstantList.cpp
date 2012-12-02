@@ -62,20 +62,15 @@ static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
    }
 }
 
-ConstantEntry::ConstantEntry() : typeInfo(0), node(0), in_init(false), init(false), pub(false) {
+ConstantEntry::ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin)
+   : name(n), typeInfo(ti), node(v), in_init(false), pub(n_pub), init(n_init), builtin(n_builtin) {
    QoreProgram* pgm = getProgram();
    if (pgm)
       pwo = qore_program_private::getParseWarnOptions(pgm);
 }
 
-ConstantEntry::ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti, bool n_init, bool n_pub) : name(n), typeInfo(ti), node(v), in_init(false), init(n_init), pub(n_pub) {
-   QoreProgram* pgm = getProgram();
-   if (pgm)
-      pwo = qore_program_private::getParseWarnOptions(pgm);
-}
-
-ConstantEntry::ConstantEntry(const ConstantEntry& old) : loc(old.loc), name(old.name), typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : 0), 
-							 in_init(false), init(true), pub(false) {
+ConstantEntry::ConstantEntry(const ConstantEntry& old) : loc(old.loc), pwo(old.pwo), name(old.name), typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : 0),
+							 in_init(false), pub(old.builtin), init(true), builtin(old.builtin) {
    assert(!old.in_init);
    assert(old.init);
 }
@@ -174,12 +169,18 @@ ConstantList::ConstantList(const ConstantList &old, ClassNs p) : ptr(p) {
    cnemap_t::iterator last = cnemap.begin();
    for (cnemap_t::const_iterator i = old.cnemap.begin(), e = old.cnemap.end(); i != e; ++i) {
       assert(i->second->init);
+      if (!i->second->pub)
+         continue;
 
+      ConstantEntry* ce = new ConstantEntry(*(i->second));
+
+      /*
       // reference value for new constant definition
       if (i->second->node)
 	 i->second->node->ref();
 
-      ConstantEntry* ce = new ConstantEntry(i->first, i->second->node, i->second->typeInfo, true);
+      ConstantEntry* ce = new ConstantEntry(i->first, i->second->node, i->second->typeInfo, false, true);
+      */
       last = cnemap.insert(last, cnemap_t::value_type(ce->getName(), ce));
       //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first, i->second->node);
    }
@@ -242,7 +243,7 @@ cnemap_t::iterator ConstantList::parseAdd(const char* name, AbstractQoreNode *va
       return cnemap.end();
    }
 
-   ConstantEntry* ce = new ConstantEntry(name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), false, pub);
+   ConstantEntry* ce = new ConstantEntry(name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), pub);
    return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 
@@ -253,7 +254,7 @@ cnemap_t::iterator ConstantList::add(const char *name, AbstractQoreNode *value, 
       assert(false);
    }
 #endif
-   ConstantEntry* ce = new ConstantEntry(name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), true);
+   ConstantEntry* ce = new ConstantEntry(name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), true, true, true);
    return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 

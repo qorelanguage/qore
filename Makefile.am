@@ -559,13 +559,13 @@ LANG_DOXYFILES = doxygen/lang/Doxyfile $(LANG_TMP_DOXYFILES_SRC)
 $(QPP): dummy
 	cd lib; make $(QPP_PGM)
 
-doxygen/lib/Doxyfile: doxygen/lib/Doxyfile.tmpl
+doxygen/lib/Doxyfile: doxygen/lib/Doxyfile.tmpl configure.ac
 	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen/" > $@
 
 lang-dox-src: dummy
 	cd lib; make dox-src
 
-doxygen/lang/Doxyfile: doxygen/lang/Doxyfile.tmpl
+doxygen/lang/Doxyfile: doxygen/lang/Doxyfile.tmpl configure.ac
 	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen/" > $@
 
 doxygen/lang/mainpage.dox: doxygen/lang/mainpage.dox.tmpl lib $(QPP) lang-dox-src

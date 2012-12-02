@@ -103,9 +103,11 @@
     - any unhandled exceptions in the \c init closure will cause the module to fail to load
     - unhandled exceptions in the \c init and \c del closures are displayed on @ref Qore::stdout "stdout"
 
-    @subsection mod_public The "public" Keyword in User Modules
+    @subsection mod_public The "public" Keyword
 
     Only objects defined with the <b><tt>public</tt></b> keyword are made available in @ref Qore::Program "Program" objects importing the user module.  All other declarations and definitions are private to the module.
+
+    The <b><tt>public</tt></b> keyword also affects inhernticance in child @ref Qore::Program "Program" objects as well as controlling exported symbols from user modules.
 
     The <b><tt>public</tt></b> keyword must be used with the following declarations in the module to export them:
     - @ref qore_namespaces "namespaces": namespaces themselves must be declared <b><tt>public</tt></b> in order for any of their contents also to be exported (it is an error to try to declare public members of a module-private namespace). ex: @code

@@ -45,7 +45,7 @@ QoreClassList::~QoreClassList() {
 }
 
 int QoreClassList::add(QoreClass *oc) {
-   printd(5, "QCL::add() this=%08p '%s' (%08p)\n", this, oc->getName(), oc);
+   printd(5, "QCL::add() this: %p '%s' (%p)\n", this, oc->getName(), oc);
 
    if (find(oc->getName()))
       return 1;
@@ -65,13 +65,19 @@ const QoreClass* QoreClassList::find(const char *name) const {
 }
 
 QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns) {
-   for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i)
-      if ((!(po & PO_NO_SYSTEM_CLASSES) && i->second->isSystem())
-	  || (!(po & PO_NO_USER_CLASSES) && !i->second->isSystem())) {
-	 QoreClass* qc = new QoreClass(*i->second);
-	 qore_class_private::setNamespace(qc, ns);
-	 add(qc);
+   for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
+      if (!i->second->isSystem()) {
+         //printd(5, "QoreClassList::QoreClassList() this: %p c: %p '%s' po & PO_NO_USER_CLASSES: %s pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_USER_CLASSES ? "true": "false", qore_class_private::isPublic(*i->second) ? "true": "false");
+         if (po & PO_NO_USER_CLASSES || !qore_class_private::isPublic(*i->second))
+            continue;
       }
+      else
+         if (po & PO_NO_SYSTEM_CLASSES)
+            continue;
+      QoreClass* qc = new QoreClass(*i->second);
+      qore_class_private::setNamespace(qc, ns);
+      add(qc);
+   }
 }
 
 void QoreClassList::mergePublic(const QoreClassList& old, qore_ns_private* ns) {
@@ -120,7 +126,6 @@ void QoreClassList::assimilate(QoreClassList& n) {
       i = n.hm.begin();
 
       assert(!find(nc->getName()));
-      printd(5, "QoreClassList::assimilate() this=%08p adding=%08p (%s)\n", this, nc, nc->getName());
       add(nc);
    }
 }
@@ -145,7 +150,9 @@ void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
 	 n.remove(i);
       }
       else {
-	 // "move" data to new list
+         //printd(5, "QoreClassList::assimilate() this: %p adding: %p '%s::%s'\n", this, i->second, ns.name.c_str(), i->second->getName());
+
+         // "move" data to new list
 	 hm[i->first] = i->second;
 	 qore_class_private::setNamespace(i->second, &ns);
 	 n.hm.erase(i);

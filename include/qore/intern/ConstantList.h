@@ -30,8 +30,6 @@
 
 #define _QORE_CONSTANTLIST_H
 
-#ifdef _QORE_LIB_INTERN
-
 #include <qore/common.h>
 
 #include <map>
@@ -73,11 +71,12 @@ public:
    const QoreTypeInfo *typeInfo;
    AbstractQoreNode *node;
    bool in_init,  // being initialized
+      pub,        // public constant (modules only)
       init,       // already initialized
-      pub;        // public constant (modules only)
+      builtin     // builtin vs user
+      ;
 
-   DLLLOCAL ConstantEntry();
-   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_init = false, bool n_pub = false);
+   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false);
    DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
    DLLLOCAL ~ConstantEntry() {
@@ -289,7 +288,5 @@ public:
       return i->second->isPublic();
    }
 };
-
-#endif
 
 #endif // _QORE_CONSTANTLIST_H

@@ -991,26 +991,28 @@ public:
    DLLLOCAL void setParseOptions(int64 po, ExceptionSink* xsink = 0) {
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so
-      if (!(po & PO_FREE_OPTIONS) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
+      if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
          if (xsink)
             xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
          else
             parse_error("parse options have been locked on this program object");
          return;
       }
+
       pwo.parse_options |= po;
    }
 
    DLLLOCAL void disableParseOptions(int64 po, ExceptionSink* xsink = 0) {
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so
-      if (po_locked && (!po_allow_restrict || !(po & PO_POSITIVE_OPTIONS))) {
+      if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
          if (xsink)
             xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
          else
             parse_error("parse options have been locked on this program object");
          return;
       }
+
       pwo.parse_options &= ~po;
    }
 
@@ -1019,7 +1021,7 @@ public:
          xsink->raiseException("OPTION-ERROR", "the calling Program does not have the PO_NO_CHILD_PO_RESTRICTIONS option set, and therefore cannot call Program::replaceParseOptions()");
          return;
       }
-      
+
       pwo.parse_options = po;
    }
 
@@ -1300,6 +1302,12 @@ public:
       // see if top level statements are allowed
       if (pwo.parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration())
          parse_error("illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
+   }
+
+   DLLLOCAL void importClass(qore_program_private& from_pgm, const char* path, ExceptionSink* xsink);
+
+   DLLLOCAL static void importClass(QoreProgram& pgm , QoreProgram& from_pgm, const char* path, ExceptionSink* xsink) {
+      pgm.priv->importClass(*(from_pgm.priv), path, xsink);
    }
 
    DLLLOCAL static void addStatement(QoreProgram& pgm, AbstractStatement* s) {

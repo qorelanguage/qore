@@ -722,10 +722,10 @@ public:
         nn_unique_flags(old.nn_unique_flags),
         nn_count(old.nn_count),
         parse_rt_done(true), parse_init_done(true),
-        has_user(true), has_builtin(false), has_mod_pub(old.has_mod_pub),
+        has_user(true), has_builtin(false), has_mod_pub(false /*old.has_mod_pub*/),
         nn_uniqueReturnType(old.nn_uniqueReturnType) {
       assert(!ignore);
-      assert(has_mod_pub);
+      assert(old.has_mod_pub);
 
       // copy variants by reference
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {

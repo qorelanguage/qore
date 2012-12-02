@@ -190,8 +190,6 @@ qore_ns_private::qore_ns_private() : constant(this), pendConstant(this), depth(0
 void qore_ns_private::setPublic() {
    pub = true;
    //printd(5, "qore_ns_private::setPublic() this: %p '%s::' pub:%d\n", this, name.c_str(), pub);
-   if (!(getParseOptions() & PO_IN_MODULE))
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with namespace declarations in user module code (when declaring namespace '%s')", name.c_str());
 }
 
 FunctionEntry* qore_ns_private::addPendingVariantIntern(const char* fname, AbstractQoreFunctionVariant* v, bool& new_func) {
@@ -1155,6 +1153,19 @@ qore_ns_private* qore_root_ns_private::parseResolveNamespace(const NamedScope& n
    return parseResolveNamespaceIntern(nscope, parse_get_ns());
 }
 
+const QoreClass* qore_root_ns_private::runtimeFindClassIntern(const NamedScope& name, const qore_ns_private*& ns) {
+   assert(name.size() > 1);
+
+   // iterate all namespaces with the initial name and look for the match
+   const QoreClass* c = 0;
+   NamespaceMapIterator nmi(nsmap, name.strlist[0].c_str());
+   while (nmi.next()) {
+      if ((c = nmi.get()->runtimeMatchClass(name, ns)))
+         return c;
+   }
+
+   return 0;
+}
 const QoreFunction* qore_root_ns_private::runtimeFindFunctionIntern(const NamedScope& name, const qore_ns_private*& ns) {
    assert(name.size() > 1);
 
@@ -1794,6 +1805,20 @@ const QoreFunction* qore_ns_private::parseMatchFunction(const NamedScope& nscope
    }
 
    return fns->priv->func_list.find(nscope.getIdentifier(), false);
+}
+
+const QoreClass* qore_ns_private::runtimeMatchClass(const NamedScope& nscope, const qore_ns_private*& rns) const {
+   assert(name == nscope[0]);
+
+   const QoreNamespace* fns = ns;
+   // check for a match of the structure in this namespace
+   for (unsigned i = 1; i < (nscope.size() - 1); i++) {
+      fns = fns->priv->nsl.find(nscope[i]);
+      if (!fns)
+         return 0;
+   }
+   rns = fns->priv;
+   return rns->classList.find(nscope.getIdentifier());
 }
 
 const QoreFunction* qore_ns_private::runtimeMatchFunction(const NamedScope& nscope, const qore_ns_private*& rns) const {
