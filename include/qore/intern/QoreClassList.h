@@ -68,7 +68,7 @@ public:
    DLLLOCAL ~QoreClassList();
    DLLLOCAL QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns);
    
-   DLLLOCAL void mergePublic(const QoreClassList& old, qore_ns_private* ns);
+   DLLLOCAL void mergeUserPublic(const QoreClassList& old, qore_ns_private* ns);
 
    DLLLOCAL int add(QoreClass *ot);
    DLLLOCAL QoreClass *find(const char *name);
@@ -120,6 +120,8 @@ public:
    }
 
    DLLLOCAL bool isPublic() const;
+
+   DLLLOCAL bool isUserPublic() const;
 };
 
 class ConstClassListIterator {
@@ -148,6 +150,8 @@ public:
    }
 
    DLLLOCAL bool isPublic() const;
+
+   DLLLOCAL bool isUserPublic() const;
 };
 
 #endif // _QORE_QORECLASSLIST_H

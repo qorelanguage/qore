@@ -9,29 +9,44 @@
 
     @subsection qore_087_compatibility Changes That Can Affect Backwards-Compatibility
     @par Fixes for Code Inheritance in Program Objects
-    The @ref mod_public "public" keyword's usage in modules has now been expanded to provide the same functionality generically
-    in @ref Qore::Program "Program" objects; if @ref qore_classes "classes", @ref constants "constants",
-    @ref qore_namespaces "namespaces", @ref qore_functions "functions", or @ref global_variables "global variables"
-    are defined with the @ref mod_public "public" keyword, then these object can and will be inherited into child
-    @ref Qore::Program "Program" objects as long as no @ref parse_options "parse options" prohibit it.\n\n
-    This change was made to give programmers complete control over which symbols are inherited in child
-    @ref Qore::Program "Program" objects, whereas because prior to this change, the control was very course.
+    - @ref mod_public "public": The @ref mod_public "public" keyword's usage in modules has now been expanded 
+      to provide the same functionality generically in @ref Qore::Program "Program" objects; if @ref qore_classes "classes",
+      @ref constants "constants", @ref qore_namespaces "namespaces", @ref qore_functions "functions", or 
+      @ref global_variables "global variables" are defined with the @ref mod_public "public" keyword, then these symbols will
+      be inherited into child @ref Qore::Program "Program" objects as long as no @ref parse_options "parse options" prohibit
+      it.\n\n
+      This change was made to give programmers complete control over which symbols are inherited in child
+      @ref Qore::Program "Program" objects, whereas because prior to this change, the control was very course.\n\n
+    - the default behavior of Qore regarding inherting global variables and functions with user variants was changed to be
+      consistent with namespaces, classes, and constants; that is; public symbols are inherited by default.\n\n
+      The following constants were renamed:
+      - <tt>PO_INHERIT_USER_FUNC_VARIANTS</tt> is now: @ref Qore::PO_NO_INHERIT_USER_FUNC_VARIANTS "PO_NO_INHERIT_USER_FUNC_VARIANTS"
+      - <tt>PO_INHERIT_GLOBAL_VARS</tt> is now: @ref Qore::PO_NO_INHERIT_GLOBAL_VARS "PO_NO_INHERIT_GLOBAL_VARS"\n\n
+      This change was made to fix a long-standing design problem with symbol inheritance and make the implementation consistent.\n\n
+    - builtin symbols are no longer inherited from user modules; only independent user symbols; the main change is that if a user
+      module adds new user methods to a builtin class or new user variants to a builtin function, these changes are no longer imported
+      into target @ref Qore::Program "Program" objects.
 
     @subsection qore_087_new_features New Features in Qore
     - new methods offering code encapsulation enhancements
       - @ref Qore::Program::loadModule() "Program::loadModule()": allows modules to be loaded in a Program object directly
       - @ref Qore::Program::importClass() "Program::importClass()": allows classes to be individually imported in Program objects
     - new pseudo-methods in @ref Qore::zzz8nothingzzz9 to allow for @ref Qore::zzz8hashzzz9 pseudo-methods to be safely used with @ref nothing
-      - <nothing>::keys()
-      - <nothing>::values()
       - <nothing>::firstKey()
-      - <nothing>::lastKey()
       - <nothing>::firstValue()
-      - <nothing>::lastValue()
       - <nothing>::hasKey()
       - <nothing>::hasKeyValue()
+      - <nothing>::keys()
+      - <nothing>::lastKey()
+      - <nothing>::lastValue()
+      - <nothing>::values()
 
     @subsection qore_087_bug_fixes Bug Fixes in Qore
+    - a potential deadlock was fixed when calling @ref Qore::exit() "exit()" while background threads were running; it was
+      possible for a thread to be canceled while holding a @ref Qore::Thread::Mutex "Mutex" (for example) and then for another
+      thread to deadlock trying to acquire the @ref Qore::Thread::Mutex "Mutex" and therefore for the process to deadlock because
+      pthread_mutex_lock() is not a cancellation point.\n\n
+      The solution was to cancel all threads first, then wait half a second, then call exit()
 
     @section qore_0862 Qore 0.8.6.2
 

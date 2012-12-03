@@ -64,12 +64,14 @@ public:
    //! parses the URL string passed
    /** you can check if the URL was valid by calling QoreURL::isValid() after this call
        @param url the URL string to parse
+       @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well
     */
    DLLEXPORT QoreURL(const char* url, bool keep_brackets);
 
    //! parses the URL string passed
    /** you can check if the URL was valid by calling QoreURL::isValid() after this call
        @param url the URL string to parse
+       @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well
     */
    DLLEXPORT QoreURL(const QoreString* url, bool keep_brackets);
 

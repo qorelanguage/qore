@@ -623,6 +623,7 @@ public:
    //! returns the character position of a substring searching in reverse from a given position or -1 if not found
    /** @param needle the string to find
        @param pos the character position to start the search; if pos is < 0 then it gives an offset from the end of the string (-1 = last character)
+       @param xsink if an error occurs, the Qore-language exception information will be added here
 
        @return -1 for not found otherwise the character position of the last occurrence of the search string
     */

@@ -29,42 +29,42 @@
     defines parse restrictions and functional domains for builtin functions and qore class methods
 */
 
-#define PO_NO_GLOBAL_VARS              (1 <<  0)    //!< cannot define new global variables
-#define PO_NO_SUBROUTINE_DEFS          (1 <<  1)    //!< cannot define new user subroutines
-#define PO_NO_THREAD_CONTROL           (1 <<  2)    //!< cannot launch new threads) use thread_exit) or access thread data
-#define PO_NO_THREAD_CLASSES           (1 <<  3)    //!< no access to thread classes
-#define PO_NO_TOP_LEVEL_STATEMENTS     (1 <<  4)    //!< cannot define new top-level statements (outside of sub or class defs)
-#define PO_NO_CLASS_DEFS               (1 <<  5)    //!< cannot define new object classes
-#define PO_NO_NAMESPACE_DEFS           (1 <<  6)    //!< cannot define new namespaces
-#define PO_NO_CONSTANT_DEFS            (1 <<  7)    //!< cannot define new constants
-#define PO_NO_NEW                      (1 <<  8)    //!< cannot use the new operator (DEPRECATED: this option is not useful anymore because objects can be declared and created without "new")
-#define PO_NO_SYSTEM_CLASSES           (1 <<  9)    //!< do not inherit system classes into this program space
-#define PO_NO_USER_CLASSES             (1 << 10)    //!< do not inherit user classes into this program space
-#define PO_NO_CHILD_PO_RESTRICTIONS    (1 << 11)    //!< turn off parse option inheritance restrictions
-#define PO_NO_EXTERNAL_PROCESS         (1 << 12)    //!< do not allow access to functionality that calls external processes: backquote op, system(), exec(), etc
-#define PO_REQUIRE_OUR                 (1 << 13)    //!< require "our" for global var declaration
-#define PO_NO_PROCESS_CONTROL          (1 << 14)    //!< do not allow access to functionality that can affect the current process: fork(), exec(), abort(), etc
-#define PO_NO_NETWORK                  (1 << 15)    //!< do not allow any network access (objs & subroutines)
-#define PO_NO_FILESYSTEM               (1 << 16)    //!< do not allow any filesystem access (objects & subroutines)
-#define PO_LOCK_WARNINGS               (1 << 17)    //!< do not allow programs to change the warning mask
-#define PO_NO_DATABASE                 (1 << 18)    //!< do not allow database access
-#define PO_NO_GUI                      (1 << 19)    //!< do not allow any GUI-relevant actions to be performed
-#define PO_NO_TERMINAL_IO              (1 << 20)    //!< do not allow any terminal I/O to be performed
-#define PO_REQUIRE_TYPES               (1 << 21)    //!< require type information for all declarations
-#define PO_NO_EXTERNAL_INFO            (1 << 22)    //!< do not allow any access to host, process, etc information
-#define PO_NO_THREAD_INFO              (1 << 23)    //!< do not allow any access to thread information
-#define PO_NO_LOCALE_CONTROL           (1 << 24)    //!< do not allow changes to program locale
-#define PO_REQUIRE_PROTOTYPES          (1 << 25)    //!< require types in method and function declarations
-#define PO_STRICT_ARGS                 (1 << 26)    //!< do not allow access to RT_NOOP code or excess args
-#define PO_REQUIRE_BARE_REFS           (1 << 27)    //!< do not allow '$' for vars and '$.' for class member refs
-#define PO_ASSUME_LOCAL                (1 << 28)    //!< assume local variable scope if not declared (implicit "my")
-#define PO_NO_MODULES                  (1 << 29)    //!< do not allow external modules to be loaded
-#define PO_INHERIT_USER_FUNC_VARIANTS  (1 << 30)    //!< inherit all user function variants from the parent into the new program's space
-#define PO_NO_SYSTEM_FUNC_VARIANTS     (1LL << 31)  //!< do not inherit any builtin function variants to the new program's space
-#define PO_INHERIT_GLOBAL_VARS         (1LL << 32)  //!< inherit global variables from the parent into the new program's space
-#define PO_IN_MODULE                   (1LL << 33)  //!< do not use directly, this is set automatically in user module programs
-#define PO_NO_EMBEDDED_LOGIC           (1LL << 34)  //!< do not allow embedded logic or runtime parsing
-#define PO_STRICT_BOOLEAN_EVAL         (1LL << 35)  //!< do non-intuitive strict mathematical boolean evaluations (the Qore default prior to v0.8.6)
+#define PO_NO_GLOBAL_VARS                 (1 <<  0)    //!< cannot define new global variables
+#define PO_NO_SUBROUTINE_DEFS             (1 <<  1)    //!< cannot define new user subroutines
+#define PO_NO_THREAD_CONTROL              (1 <<  2)    //!< cannot launch new threads) use thread_exit) or access thread data
+#define PO_NO_THREAD_CLASSES              (1 <<  3)    //!< no access to thread classes
+#define PO_NO_TOP_LEVEL_STATEMENTS        (1 <<  4)    //!< cannot define new top-level statements (outside of sub or class defs)
+#define PO_NO_CLASS_DEFS                  (1 <<  5)    //!< cannot define new object classes
+#define PO_NO_NAMESPACE_DEFS              (1 <<  6)    //!< cannot define new namespaces
+#define PO_NO_CONSTANT_DEFS               (1 <<  7)    //!< cannot define new constants
+#define PO_NO_NEW                         (1 <<  8)    //!< cannot use the new operator (DEPRECATED: this option is not useful anymore because objects can be declared and created without "new")
+#define PO_NO_SYSTEM_CLASSES              (1 <<  9)    //!< do not inherit system classes into this program space
+#define PO_NO_USER_CLASSES                (1 << 10)    //!< do not inherit public user classes into this program space
+#define PO_NO_CHILD_PO_RESTRICTIONS       (1 << 11)    //!< turn off parse option inheritance restrictions
+#define PO_NO_EXTERNAL_PROCESS            (1 << 12)    //!< do not allow access to functionality that calls external processes: backquote op, system(), exec(), etc
+#define PO_REQUIRE_OUR                    (1 << 13)    //!< require "our" for global var declaration
+#define PO_NO_PROCESS_CONTROL             (1 << 14)    //!< do not allow access to functionality that can affect the current process: fork(), exec(), abort(), etc
+#define PO_NO_NETWORK                     (1 << 15)    //!< do not allow any network access (objs & subroutines)
+#define PO_NO_FILESYSTEM                  (1 << 16)    //!< do not allow any filesystem access (objects & subroutines)
+#define PO_LOCK_WARNINGS                  (1 << 17)    //!< do not allow programs to change the warning mask
+#define PO_NO_DATABASE                    (1 << 18)    //!< do not allow database access
+#define PO_NO_GUI                         (1 << 19)    //!< do not allow any GUI-relevant actions to be performed
+#define PO_NO_TERMINAL_IO                 (1 << 20)    //!< do not allow any terminal I/O to be performed
+#define PO_REQUIRE_TYPES                  (1 << 21)    //!< require type information for all declarations
+#define PO_NO_EXTERNAL_INFO               (1 << 22)    //!< do not allow any access to host, process, etc information
+#define PO_NO_THREAD_INFO                 (1 << 23)    //!< do not allow any access to thread information
+#define PO_NO_LOCALE_CONTROL              (1 << 24)    //!< do not allow changes to program locale
+#define PO_REQUIRE_PROTOTYPES             (1 << 25)    //!< require types in method and function declarations
+#define PO_STRICT_ARGS                    (1 << 26)    //!< do not allow access to RT_NOOP code or excess args
+#define PO_REQUIRE_BARE_REFS              (1 << 27)    //!< do not allow '$' for vars and '$.' for class member refs
+#define PO_ASSUME_LOCAL                   (1 << 28)    //!< assume local variable scope if not declared (implicit "my")
+#define PO_NO_MODULES                     (1 << 29)    //!< do not allow external modules to be loaded
+#define PO_NO_INHERIT_USER_FUNC_VARIANTS  (1 << 30)    //!< do not inherit public user function variants from the parent into the new program's space
+#define PO_NO_SYSTEM_FUNC_VARIANTS        (1LL << 31)  //!< do not inherit any builtin function variants to the new program's space
+#define PO_NO_INHERIT_GLOBAL_VARS         (1LL << 32)  //!< inherit public global variables from the parent into the new program's space
+#define PO_IN_MODULE                      (1LL << 33)  //!< do not use directly, this is set automatically in user module programs
+#define PO_NO_EMBEDDED_LOGIC              (1LL << 34)  //!< do not allow embedded logic or runtime parsing
+#define PO_STRICT_BOOLEAN_EVAL            (1LL << 35)  //!< do non-intuitive strict mathematical boolean evaluations (the Qore default prior to v0.8.6)
 
 #define PO_DEFAULT                     0            //!< no parse options set by default
 

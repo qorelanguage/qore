@@ -123,6 +123,10 @@ public:
    DLLLOCAL const bool isPublic() const {
       return pub;
    }
+
+   DLLLOCAL const bool isUserPublic() const {
+      return pub && !builtin;
+   }
 };
 
 class ConstantEntryInitHelper {
@@ -193,8 +197,8 @@ public:
    // assimilate a constant list in a namespace with duplicate checking (also in pending list)
    DLLLOCAL void assimilate(ConstantList& n, ConstantList& otherlist, const char *nsname);
 
-   // copy all elements of the source list to the target, assuming no duplicates
-   DLLLOCAL void mergePublic(const ConstantList& src);
+   // copy all user/public elements of the source list to the target, assuming no duplicates
+   DLLLOCAL void mergeUserPublic(const ConstantList& src);
 
    // assimilate a constant list in a class constant list with duplicate checking (pub & priv + pending)
    DLLLOCAL void assimilate(ConstantList &n, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
@@ -253,6 +257,10 @@ public:
    DLLLOCAL const bool isPublic() const {
       return i->second->isPublic();
    }
+
+   DLLLOCAL const bool isUserPublic() const {
+      return i->second->isUserPublic();
+   }
 };
 
 class ConstConstantListIterator {
@@ -286,6 +294,10 @@ public:
 
    DLLLOCAL const bool isPublic() const {
       return i->second->isPublic();
+   }
+
+   DLLLOCAL const bool isUserPublic() const {
+      return i->second->isUserPublic();
    }
 };
 

@@ -182,7 +182,7 @@ void QoreNamespace::addInitialNamespace(QoreNamespace* ns) {
    priv->addNamespace(ns->priv);
 }
 
-qore_ns_private::qore_ns_private() : constant(this), pendConstant(this), depth(0), root(false), pub(false), parent(0), class_handler(0), ns(0) {
+qore_ns_private::qore_ns_private() : constant(this), pendConstant(this), depth(0), root(false), pub(false), builtin(false), parent(0), class_handler(0), ns(0) {
    new QoreNamespace(this);
    name = parse_pop_name();
 }
@@ -407,6 +407,8 @@ QoreNamespaceList::QoreNamespaceList(const QoreNamespaceList& old, int64 po, con
    //printd(5, "QoreNamespaceList::QoreNamespaceList(old=%p) this=%p po=%lld size=%d\n", &old, this, po, nsmap.size());
    nsmap_t::iterator last = nsmap.begin();
    for (nsmap_t::const_iterator i = old.nsmap.begin(), e = old.nsmap.end(); i != e; ++i) {
+      if (!qore_ns_private::isPublic(*i->second))
+         continue;
       QoreNamespace* ns = i->second->copy(po);
       ns->priv->parent = &parent;
       assert(ns->priv->depth);
@@ -1567,11 +1569,13 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
    assert(mns.pendConstant.empty());
    assert(mns.pendClassList.empty());
    assert(mns.var_list.pending_vmap.empty());
-   
-   // check constants
+
+   // check user constants
    {
       ConstConstantListIterator cli(mns.constant);
-      while (cli.next() && cli.isPublic()) {
+      while (cli.next()) {
+         if (!cli.isUserPublic())
+            continue;
          if (constant.inList(cli.getName()))
             qmc.error("duplicate constant %s::%s", name.c_str(), cli.getName().c_str());
          else if (pendConstant.inList(cli.getName()))
@@ -1579,10 +1583,12 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
       }
    }
 
-   // check classes
+   // check user classes
    {
       ConstClassListIterator cli(mns.classList);
-      while (cli.next() && cli.isPublic()) {
+      while (cli.next()) {
+         if (!cli.isUserPublic())
+            continue;
          if (classList.find(cli.getName()))
             qmc.error("duplicate class %s::%s", name.c_str(), cli.getName());
          else if (pendClassList.find(cli.getName()))
@@ -1590,16 +1596,16 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
       }
    }
 
-   // check functions
+   // check user functions
    for (fl_map_t::const_iterator i = mns.func_list.begin(), e = mns.func_list.end(); i != e; ++i) {
-      if (!i->second->isPublic())
+      if (!i->second->isUserPublic())
          continue;
       //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' looking for function '%s' (%d)\n", this, name.c_str(), i->first, func_list.findNode(i->first));
       if (func_list.findNode(i->first))
          qmc.error("duplicate function %s::%s()", name.c_str(), i->first);
    }
 
-   // check variables
+   // check user variables
    for (map_var_t::const_iterator i = mns.var_list.vmap.begin(), e = mns.var_list.vmap.end(); i != e; ++i) {
       if (!i->second->isPublic())
          continue;
@@ -1613,6 +1619,8 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
 
    // check subnamespaces
    for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
+      if (!qore_ns_private::isUserPublic(*i->second))
+         continue;
       // see if a subnamespace with the same name exists
       const QoreNamespace* cns = nsl.find(i->first);
       if (!cns)
@@ -1650,20 +1658,20 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
    //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s'\n", this, name.c_str());
 
    // merge in source constants
-   constant.mergePublic(mns.constant);
+   constant.mergeUserPublic(mns.constant);
 
    // merge in source classes
-   classList.mergePublic(mns.classList, this);
+   classList.mergeUserPublic(mns.classList, this);
 
    // merge in source functions
-   func_list.mergePublic(mns.func_list, this);
+   func_list.mergeUserPublic(mns.func_list, this);
 
    // merge in global variables
    var_list.mergePublic(mns.var_list);
 
    // add sub namespaces
    for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
-      if (!qore_ns_private::isPublic(*i->second)) {
+      if (!qore_ns_private::isUserPublic(*i->second)) {
          //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' skipping %p '%s::'\n", this, name.c_str(), i->second, i->second->getName());
          continue;
       }

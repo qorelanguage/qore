@@ -80,9 +80,9 @@ QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private
    }
 }
 
-void QoreClassList::mergePublic(const QoreClassList& old, qore_ns_private* ns) {
+void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* ns) {
    for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
-      if (!qore_class_private::isPublic(*i->second))
+      if (!qore_class_private::isUserPublic(*i->second))
 	 continue;
 
       QoreClass* qc = new QoreClass(*i->second);
@@ -216,4 +216,12 @@ bool ClassListIterator::isPublic() const {
 
 bool ConstClassListIterator::isPublic() const {
    return qore_class_private::isPublic(*i->second);
+}
+
+bool ClassListIterator::isUserPublic() const {
+   return qore_class_private::isUserPublic(*i->second);
+}
+
+bool ConstClassListIterator::isUserPublic() const {
+   return qore_class_private::isUserPublic(*i->second);
 }

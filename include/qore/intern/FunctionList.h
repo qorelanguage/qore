@@ -95,7 +95,11 @@ public:
    DLLLOCAL ResolvedCallReferenceNode* makeCallReference() const;
 
    DLLLOCAL bool isPublic() const {
-      return func->hasModulePublic();
+      return func->hasPublic();
+   }
+
+   DLLLOCAL bool isUserPublic() const {
+      return func->hasUserPublic();
    }
 
    DLLLOCAL void updateNs(qore_ns_private* ns) {
@@ -136,9 +140,9 @@ public:
    DLLLOCAL QoreFunction* find(const char* name, bool runtime) const;
    DLLLOCAL FunctionEntry* findNode(const char* name) const;
 
-   DLLLOCAL void mergePublic(const FunctionList& src, qore_ns_private* ns) {
+   DLLLOCAL void mergeUserPublic(const FunctionList& src, qore_ns_private* ns) {
       for (fl_map_t::const_iterator i = src.begin(), e = src.end(); i != e; ++i) {
-         if (!i->second->isPublic())
+         if (!i->second->isUserPublic())
             continue;
 
          assert(!findNode(i->first));

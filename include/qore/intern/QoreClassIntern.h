@@ -1718,7 +1718,7 @@ public:
       methodID;                     // for subclasses of builtin classes that will not have their own private data,
                                     // instead they will get the private data from this class
 
-   bool sys,                        // system class?
+   bool sys,                        // system/builtin class?
       initialized,                  // is initialized? (only performed once)
       parse_init_called,            // has parseInit() been called? (performed once for each parseCommit())
       parse_init_partial_called,    // has parseInitPartial() been called? (performed once for each parseCommit())
@@ -2885,6 +2885,10 @@ public:
 
    DLLLOCAL static bool isPublic(const QoreClass& qc) {
       return qc.priv->pub;
+   }
+
+   DLLLOCAL static bool isUserPublic(const QoreClass& qc) {
+      return qc.priv->pub && !qc.priv->sys;
    }
 
    DLLLOCAL static bool isFinal(const QoreClass& qc) {

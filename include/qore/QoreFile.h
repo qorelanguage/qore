@@ -102,7 +102,7 @@ public:
    //! flushes the write buffer to disk
    DLLEXPORT int sync();
 
-   //! reads string data from the file up to and including the terminating EOL characters (can be '\n', '\r' or '\r\n') and returns the string read with the EOL characters
+   //! reads string data from the file up to and including the terminating EOL characters (can be \c "\n", \c "\r" or \c "\r\n") and returns the string read with the EOL characters
    /** if an error occurs (file is not open), a Qore-language exception is raised
 
        @param xsink if an error occurs when opening the file, the Qore-language exception info will be added here
@@ -151,7 +151,7 @@ public:
    /** if an error occurs (file is not open), a Qore-language exception is raised
 
        @param bytes the end of line characters that separate lines
-       @param incl_eol if this parameter is true, then the EOL character(s) read will be written to the string, if false, then they are not
+       @param incl_bytes if this parameter is true, then the EOL character(s) read will be written to the string, if false, then they are not
        @param xsink if an error occurs when opening the file, the Qore-language exception info will be added here
 
        @return the string read including the terminating EOL characters (if any - if EOF is encountered then there may not be any) or 0 if there is an error or no data could be read.  caller owns the reference count returned

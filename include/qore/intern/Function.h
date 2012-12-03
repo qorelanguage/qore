@@ -668,7 +668,7 @@ public:
    }
 
    // copy constructor (used by method functions when copied)
-   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = PO_INHERIT_USER_FUNC_VARIANTS, qore_ns_private* n = 0)
+   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = 0, qore_ns_private* n = 0)
       : name(old.name), ns(n), same_return_type(old.same_return_type),
         parse_same_return_type(true), 
         unique_functionality(old.unique_functionality),
@@ -680,7 +680,7 @@ public:
         parse_rt_done(true), parse_init_done(true),
         has_user(old.has_user), has_builtin(old.has_builtin), has_mod_pub(old.has_mod_pub),
         nn_uniqueReturnType(old.nn_uniqueReturnType) {
-      bool no_user = !(po & PO_INHERIT_USER_FUNC_VARIANTS);
+      bool no_user = po & PO_NO_INHERIT_USER_FUNC_VARIANTS;
       bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
 
       // copy variants by reference
@@ -905,8 +905,12 @@ public:
       return has_builtin;
    }
 
-   DLLLOCAL bool hasModulePublic() const {
+   DLLLOCAL bool hasPublic() const {
       return has_mod_pub;
+   }
+
+   DLLLOCAL bool hasUserPublic() const {
+      return has_mod_pub && has_user;
    }
 
    DLLLOCAL const std::string& getNameStr() const {

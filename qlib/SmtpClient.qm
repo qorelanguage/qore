@@ -79,10 +79,10 @@ module SmtpClient {
 
     If the \a tls flag is not set on the @ref SmtpClient::SmtpClient "SmtpClient" object and the server supports \c "STARTTLS" (and a transport layer TLS/SSL connection was not already established), then the @ref SmtpClient::SmtpClient "SmtpClient" object will automatically execute a \c "STARTTLS" command after connecting so that the rest of the SMTP session is performed securely.  This also allows transparent logins and communication with ESMTP servers that require secure connections.
 
-    For the above reasons it's normally not required to use the \c "smtptls" or \c "esmtptls" protocols in the @ref SmtpClient::SmtpClient::constructor(string, *code, *code) "SmtpClient::constructor(string, *code, *code)" URL argument.
+    For the above reasons it's normally not required to use the \c "smtptls" or \c "esmtptls" protocols in the @ref SmtpClient::SmtpClient::constructor(string, __7_ code, __7_ code) "SmtpClient::constructor(string, *code, *code)" URL argument.
 
     @anchor smtpclient_protocols
-    The @ref SmtpClient::SmtpClient::constructor(string, *code, *code) "SmtpClient::constructor(string, *code, *code)" takes a URL argument, the protocol (scheme) component is handled as in the following table.
+    The @ref SmtpClient::SmtpClient::constructor(string, __7_ code, __7_ code) "SmtpClient::constructor(string, *code, *code)" takes a URL argument, the protocol (scheme) component is handled as in the following table.
 
     <b>SmtpcClient Protocol Handling</b>
     |!Protocol|!Default Port|!Description
@@ -252,24 +252,24 @@ public namespace SmtpClient {
 my SmtpClient $smtp("smtptls://pop.gmail.com", \log(), \log());
             @endcode
 
-            @param connect the hostname of the SMTP server or a hostname:port specification (use \c "[hostname]" or \c "[address]" for ipv6 connections); if no protocol (scheme) and no port is given for non-UNIX sockets, then SmtpPort is used as the default port number.  This argument is parsed with parse_url(); see @ref smtpclient_protocols for a description of the handling of the protocol (scheme) component of the URL including default ports per protocol (scheme). If an unknown protocol (scheme) is given then a \c SMTP-UNKNOWN-PROTOCOL exception is raised
+            @param url the URL of the SMTP server (use \c "[hostname]" or \c "[address]" for ipv6 connections); if no protocol (scheme) and no port is given for non-UNIX sockets, then @ref SmtpPort is used as the default port number.  This argument is parsed with parse_url(); see @ref smtpclient_protocols for a description of the handling of the protocol (scheme) component of the URL including default ports per protocol (scheme). If an unknown protocol (scheme) is given then a \c SMTP-UNKNOWN-PROTOCOL exception is raised
 	    @param log an optional closure or call reference for log messages
 	    @param dbglog an optional closure or call reference for debugging/technical log messages
 
-            @throw PARSE-URL-ERROR \a connect could not be parsed with parse_url()
+            @throw PARSE-URL-ERROR the \a url argument could not be parsed with parse_url()
             @throw SMTPCLIENT-UNKNOWN-PROTOCOL the protocol (scheme) given is unknown or unsupported
             @throw SMTPCLIENT-INVALID-AUTHENTICATION partial authentication credentials passed; the username or password is missing
 	 */
-	constructor(string $connect, *code $log, *code $dbglog) {
+	constructor(string $url, *code $log, *code $dbglog) {
 	    $.log_info = $log;
 	    $.log_debug = $dbglog;
 
-            my hash $uh = parse_url($connect, True);
+            my hash $uh = parse_url($url, True);
 
             if ($uh.protocol) {
                 my *hash $ph = Protocols.($uh.protocol);
                 if (!$ph)
-                    throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported protocol %y in %y", $uh.protocol, $connect);
+                    throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported protocol %y in %y", $uh.protocol, $url);
 
                 if (!$uh.port)
                     $uh.port = $ph.port;
@@ -284,14 +284,14 @@ my SmtpClient $smtp("smtptls://pop.gmail.com", \log(), \log());
             
             if ($uh.username) {
                 if (!$uh.password)
-                    throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y", $connect);
+                    throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y", $url);
                 $.user = $uh.username;
                 $.pass = $uh.password;
 
                 $.logDbg("set authentication credentials to %s/xxx", $.user);
             }
             else if ($uh.password)
-                throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("username is set but password is missing in URL %y", $connect);
+                throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("username is set but password is missing in URL %y", $url);
 	}
 
 	#! disconnects if connected and destroys the object

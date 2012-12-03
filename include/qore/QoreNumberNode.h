@@ -28,12 +28,17 @@
 class LocalVar;
 class QoreTypeInfo;
 
+/** @defgroup number_format_flags Number Format Flags
+    used with QoreNumberNode::toString()
+ */
+//@{
 //! number format bitfield: default
 #define QORE_NF_DEFAULT    0
 //! number format bitfield: scientific
 #define QORE_NF_SCIENTIFIC (1 << 0)
 //! number format bitfield: raw (unrounded)
 #define QORE_NF_RAW        (1 << 1)
+//@}
 
 //! Qore's arbitrary-precision number value type, dynamically-allocated only, reference counted
 class QoreNumberNode : public SimpleValueQoreNode {

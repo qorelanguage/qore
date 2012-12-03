@@ -91,6 +91,11 @@ private:
    // not implemented
    DLLLOCAL qore_ns_private& operator=(const qore_ns_private&);
 
+protected:
+   // called from the root namespace constructor only
+   DLLLOCAL qore_ns_private(QoreNamespace *n_ns) : constant(this), pendConstant(this), depth(0), root(true), pub(true), builtin(true), parent(0), class_handler(0), ns(n_ns) {
+   }
+
 public:
    std::string name;
 
@@ -108,16 +113,15 @@ public:
    unsigned depth;
 
    bool root,  // is this the root namespace?
-      pub;     // is this namespace public (for modules only)
+      pub,     // is this namespace public (inherited by child programs or programs importing user modules)
+      builtin; // is this namespace builtin?
 
    const qore_ns_private* parent;       // pointer to parent namespace (0 if this is the root namespace or an unattached namespace)
    q_ns_class_handler_t class_handler;   
    QoreNamespace *ns;
 
-   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char* n) : name(n), constant(this), pendConstant(this), depth(0), root(false), pub(false), parent(0), class_handler(0), ns(n_ns) {
-   }
-
-   DLLLOCAL qore_ns_private(QoreNamespace *n_ns) : constant(this), pendConstant(this), depth(0), root(false), pub(false), parent(0), class_handler(0), ns(n_ns) {
+   // used with builtin namespaces
+   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char* n) : name(n), constant(this), pendConstant(this), depth(0), root(false), pub(true), builtin(true), parent(0), class_handler(0), ns(n_ns) {
    }
 
    // called when parsing
@@ -133,7 +137,8 @@ public:
         var_list(old.var_list, po),
         depth(old.depth),
         root(old.root),
-        pub(false), // set the public flag to false in copies; only the original should be exported
+        pub(old.builtin ? true : false),
+        builtin(old.builtin),
         parent(0), class_handler(old.class_handler), ns(0) {
    }
 
@@ -377,6 +382,10 @@ public:
 
    DLLLOCAL static bool isPublic(const QoreNamespace& ns) {
       return ns.priv->pub;
+   }
+
+   DLLLOCAL static bool isUserPublic(const QoreNamespace& ns) {
+      return ns.priv->pub && !ns.priv->builtin;
    }
 };
 
@@ -1339,9 +1348,8 @@ public:
    gvlist_t pend_gvlist;
 
    DLLLOCAL qore_root_ns_private(RootQoreNamespace* n_rns) : qore_ns_private(n_rns), rns(n_rns), qoreNS(0) {
-      root = true;
-      // always set the module public flag to true in the root namespace
-      pub = true;
+      assert(root);
+      assert(pub);
       // add initial namespace to committed map
       nsmap.update(this);
    }

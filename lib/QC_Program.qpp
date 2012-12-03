@@ -57,11 +57,11 @@ const PO_FREE_OPTIONS = PO_FREE_OPTIONS;
  */
 const PO_IN_MODULE = PO_IN_MODULE;
 
-//! Allows global variables to be inherited into the new Program object
-const PO_INHERIT_GLOBAL_VARS = PO_INHERIT_GLOBAL_VARS;
+//! Precludes global variables from being inherited into the new Program object
+const PO_NO_INHERIT_GLOBAL_VARS = PO_NO_INHERIT_GLOBAL_VARS;
 
-//! Allows user function variants to be inherited into the new Program object
-const PO_INHERIT_USER_FUNC_VARIANTS = PO_INHERIT_USER_FUNC_VARIANTS;
+//! Precludes public user function variants from being inherited into the new Program object
+const PO_NO_INHERIT_USER_FUNC_VARIANTS = PO_NO_INHERIT_USER_FUNC_VARIANTS;
 
 //! Disallows changes to the warning mask
 /** 

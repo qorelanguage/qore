@@ -30,7 +30,7 @@ ResolvedCallReferenceNode* FunctionEntry::makeCallReference() const {
 }
 
 FunctionList::FunctionList(const FunctionList& old, qore_ns_private* ns, int64 po) {
-   bool no_user = !(po & PO_INHERIT_USER_FUNC_VARIANTS);
+   bool no_user = po & PO_NO_INHERIT_USER_FUNC_VARIANTS;
    bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
    for (fl_map_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
       QoreFunction* f = i->second->getFunction();
@@ -68,7 +68,7 @@ FunctionEntry* FunctionList::import(QoreFunction* func, qore_ns_private* ns) {
    assert(func->getNamespace());
 
    // copy function entry for import and insert into map
-   FunctionEntry* fe = new FunctionEntry(new QoreFunction(*func, PO_INHERIT_USER_FUNC_VARIANTS, ns));
+   FunctionEntry* fe = new FunctionEntry(new QoreFunction(*func, 0, ns));
    insert(std::make_pair(fe->getName(), fe));
    return fe;
 }
@@ -79,7 +79,7 @@ FunctionEntry* FunctionList::import(const char* new_name, QoreFunction* func, qo
    assert(!findNode(new_name));
 
    // copy function entry for import and insert into map
-   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func, PO_INHERIT_USER_FUNC_VARIANTS, ns));
+   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func, 0, ns));
    insert(std::make_pair(fe->getName(), fe));
    return fe;
 }

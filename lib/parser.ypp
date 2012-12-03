@@ -209,13 +209,6 @@ public:
    }
 };
 
-static void set_global_public(VarRefNode* v) {
-   if (getParseOptions() & PO_IN_MODULE)
-      v->setPublic();
-   else
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "'public' is only valid with global variables in user module code (when declaring global variable '%s')", v->getName());
-}
-
 struct GVarDecl {
    bool pub;
 
@@ -275,7 +268,7 @@ struct GVarSingleDecl : public GVarDecl {
          ? new GlobalVarRefNode(takeName(), typeInfo)
          : new GlobalVarRefNode(takeName(), takeParseTypeInfo());
       if (pub)
-         set_global_public(gv);
+         gv->setPublic();
 
       delete this;
       return gv;
@@ -369,7 +362,7 @@ struct GVarListDecl : public GVarDecl {
          }
 
          if (vrn && pub)
-            set_global_public(vrn);
+            vrn->setPublic();
       }
 
       QoreListNode* rv = takeList();

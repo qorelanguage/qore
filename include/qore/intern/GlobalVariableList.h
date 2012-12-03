@@ -55,11 +55,14 @@ public:
 
    DLLLOCAL GlobalVariableList(const GlobalVariableList& old, int64 po) {
       // don't inherit any global vars if the appropriate flag is not already set
-      if (!(po & PO_INHERIT_GLOBAL_VARS))
+      if ((po & PO_NO_INHERIT_GLOBAL_VARS))
          return;
 
       map_var_t::iterator last = vmap.begin();
       for (map_var_t::const_iterator i = old.vmap.begin(), e = old.vmap.end(); i != e; ++i) {
+         //printd(5, "GlobalVariableList::GlobalVariableList() this: %p v: %p '%s' pub: %d\n", this, i->second, i->second->getName(), i->second->isPublic());
+         if (!i->second->isPublic())
+            continue;
          Var* v = new Var(const_cast<Var*>(i->second));
          last = vmap.insert(last, map_var_t::value_type(v->getName(), v));
       }
