@@ -82,6 +82,9 @@ DLLLOCAL bool threads_initialized = false;
 
 DLLLOCAL QoreThreadLock lThreadList;
 
+// access only in lThreadList
+static bool exiting = false;
+
 // recursive mutex attribute
 DLLLOCAL pthread_mutexattr_t ma_recursive;
 
@@ -134,12 +137,16 @@ public:
    bool joined; // if set to true then pthread_detach should not be called on exit
    
    DLLLOCAL void cleanup() {
+      //printf("ThreadEntry::cleanup() TID %d\n", tidnode ? tidnode->tid : 0);
       // delete tidnode from tid_list
       delete tidnode;
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // delete call stack
       delete callStack;
+#ifdef DEBUG
+      callStack = 0;
+#endif
 #endif
 
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__  
@@ -1440,6 +1447,11 @@ QoreException *catchGetException() {
 void qore_exit_process(int rc) {
    int tid = gettid();
    SafeLocker sl(lThreadList);
+   assert(!exiting);
+   exiting = true;
+
+   // thread cancel count
+   unsigned tcc = 0;
 
    // call pthread_cancel on all threads so the call to exit() will not cause a core dump
    for (int i = 1; i < MAX_QORE_THREADS; ++i) {
@@ -1450,28 +1462,33 @@ void qore_exit_process(int rc) {
 #endif
          //printf("qore_exit_process() canceling TID %d ptid: %p (this TID: %d)\n", i, thread_list[i].ptid, tid);
 	 int trc = pthread_cancel(thread_list[i].ptid);
-	 if (!trc) {
-#if 1
-//#ifdef DARWIN
-	    // for some reason we cannot call pthread_join() on the main thread in Darwin or we get a segfault
-	    // at least in 10.7.4 - but only when debugging is disabled for some reason
-	    if (i == 1)
-	       continue;
-#endif
-	    thread_list[i].joined = true;
-
-	    //printf("qore_exit_process() ptid: %p\n", thread_list[i].ptid);
-	    sl.unlock();
-	    pthread_join(thread_list[i].ptid, 0);
-	    //printd("ptid: %p p: %p\n", thread_list[i].ptid, p);
-	    sl.lock();
-	 }
+	 if (!trc)
+	    ++tcc;
 #ifdef DEBUG
-	 else
-	    printd(0, "pthread_cancel() returned %d (%s) on tid %d (%p)\n", rc, strerror(rc), tid, thread_list[i].ptid);
+         else
+            printd(0, "pthread_cancel() returned %d (%s) on tid %d (%p)\n", rc, strerror(rc), tid, thread_list[i].ptid);
 #endif
       }
    }
+
+   // we cannot do joins on threads because we may have canceled a thread while holding a lock that another thread will block
+   // indefinitely on; pthread_mutex_lock() is not a cancellation point, for example
+   // so we wait for half a second here and then just call exit()
+   usleep(500000);
+
+#if 0
+   for (unsigned i = 0; i < jl.size(); ++i) {
+      int ttid = jl[i];
+      thread_list[ttid].joined = true;
+
+      //printf("qore_exit_process() unlocking for join on tid: %d ptid: %p\n", ttid, thread_list[ttid].ptid);
+      sl.unlock();
+      pthread_join(thread_list[ttid].ptid, 0);
+      //printf("returned from join on tid: %d ptid: %p\n", ttid, thread_list[ttid].ptid);
+      sl.lock();
+   }
+#endif
+
    sl.unlock();
 
 #ifdef HAVE_SIGNAL_HANDLING
@@ -1842,6 +1859,8 @@ QoreHashNode* getAllCallStacks() {
 
    // grab thread list lock
    AutoLocker al(lThreadList);
+   if (exiting)
+      return h;
 
    tid_node* w = tid_head;
    while (w) {
