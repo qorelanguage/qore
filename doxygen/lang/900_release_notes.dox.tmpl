@@ -40,13 +40,33 @@
       - <nothing>::lastKey()
       - <nothing>::lastValue()
       - <nothing>::values()
+    - removed most restrictions on embedded logic in user modules; user module @ref Qore::Program "Program" objects are subject to the
+      same restrictions as the parent @ref Qore::Program "Program" object (if any)
+    - added the get_parse_options() function so that parse options in the current @ref Qore::Program "Program" can be determined at
+      runtime
+    - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module improvements:
+      - added automatic recognition and support of the \c "STARTTLS" command when connecting to an ESMTP server; this way
+        the class will automatically upgrade the connection to a secure TLS/SSL connection if the server supports it
+      - added support for SMTP server URLs in the constructor (ex: \c "esmtptls://user@password:smtp.example.com")
+      - added support for the deprecated-but-still-in-use \c "smtps" protocol with a default port of 465
+      - when throwing an exception when a Message cannot be sent because it is incomplete, the reason for the error is also included
+        in the exception (previously the exception message was generic making problems with the Message object harder to debug)
 
     @subsection qore_087_bug_fixes Bug Fixes in Qore
+    - fixed a runtime class matching bug when identical user classes were created in different @ref Qore::Program "Program" objects,
+      the match could fail at runtime because the wrong APIs were being used
+    - fixed a crashing bug in the @ref "map" operator with a select expression when used with an 
+      @ref Qore::AbstractIterator "AbstractIterator" object for the list operand
+    - fixed a bug where the generation of internal strings for abstract method signatures tries to resolve class names that
+      are declared out of order, which incorrectly resulted in a parse exception; the fix is to use the class name in the
+      signature before class resolution; the class is resolved in the second stage of parsing (symbol resolution) anyway, if it
+      can't be resolved then the changes to the @ref Qore::Program "Program" are rolled back anyway
     - a potential deadlock was fixed when calling @ref Qore::exit() "exit()" while background threads were running; it was
       possible for a thread to be canceled while holding a @ref Qore::Thread::Mutex "Mutex" (for example) and then for another
       thread to deadlock trying to acquire the @ref Qore::Thread::Mutex "Mutex" and therefore for the process to deadlock because
       pthread_mutex_lock() is not a cancellation point.\n\n
-      The solution was to cancel all threads first, then wait half a second, then call exit()
+      The solution was to cancel all threads first, then wait half a second, then call exit()\n\n
+      
 
     @section qore_0862 Qore 0.8.6.2
 

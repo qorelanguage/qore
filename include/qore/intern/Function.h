@@ -658,17 +658,18 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreFunction(const char* n_name, qore_ns_private* n = 0) : name(n_name), ns(n), same_return_type(true), parse_same_return_type(true),
-                                               unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
-                                               nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT),
-                                               nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true), 
-                                               parse_init_done(true), has_user(false), has_builtin(false), has_mod_pub(false), nn_uniqueReturnType(0) {
+   DLLLOCAL QoreFunction(const char* n_name, qore_ns_private* n = 0)
+      : name(n_name), ns(n), same_return_type(true), parse_same_return_type(true),
+        unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
+        nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT),
+        nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true),
+        parse_init_done(true), has_user(false), has_builtin(false), has_mod_pub(false), nn_uniqueReturnType(0) {
       ilist.push_back(this);
       //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
    }
 
    // copy constructor (used by method functions when copied)
-   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = 0, qore_ns_private* n = 0)
+   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = 0, qore_ns_private* n = 0, bool copy_all = false)
       : name(old.name), ns(n), same_return_type(old.same_return_type),
         parse_same_return_type(true), 
         unique_functionality(old.unique_functionality),
@@ -678,17 +679,23 @@ public:
         nn_unique_flags(old.nn_unique_flags),
         nn_count(old.nn_count),
         parse_rt_done(true), parse_init_done(true),
-        has_user(old.has_user), has_builtin(old.has_builtin), has_mod_pub(old.has_mod_pub),
+        has_user(old.has_user), has_builtin(old.has_builtin), has_mod_pub(false),
         nn_uniqueReturnType(old.nn_uniqueReturnType) {
       bool no_user = po & PO_NO_INHERIT_USER_FUNC_VARIANTS;
       bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
 
       // copy variants by reference
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
-         if (no_user && (*i)->isUser())
-            continue;
-         if (no_builtin && !(*i)->isUser())
-            continue;
+         if (!copy_all) {
+            if ((*i)->isUser()) {
+               if (no_user || !(*i)->isModulePublic())
+                  continue;
+            }
+            else
+               if (no_builtin)
+                  continue;
+         }
+
          vlist.push_back((*i)->ref());
       }
 
@@ -711,6 +718,7 @@ public:
       //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
    }
 
+#if 0
    // copy constructor when importing public user variants from user modules into Program objects
    DLLLOCAL QoreFunction(bool ignore, const QoreFunction& old, qore_ns_private* nns)
       : name(old.name), ns(nns), same_return_type(old.same_return_type),
@@ -747,6 +755,7 @@ public:
       // do not copy pending variants
       //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
    }
+#endif
 
    DLLLOCAL qore_ns_private* getNamespace() const {
       return ns;
@@ -943,7 +952,7 @@ public:
 
    // copy constructor, only copies committed variants
    DLLLOCAL MethodFunctionBase(const MethodFunctionBase& old, const QoreClass* n_qc) 
-      : QoreFunction(old), 
+      : QoreFunction(old, 0, 0, true),
         all_private(old.all_private), 
         pending_all_private(true),
         is_static(old.is_static),

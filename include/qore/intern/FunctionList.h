@@ -109,7 +109,9 @@ public:
 
 class ModuleImportedFunctionEntry : public FunctionEntry {
 public:
-   DLLLOCAL ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(false, *(old.getFunction()), ns)) {
+   //DLLLOCAL ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(false, *(old.getFunction()), ns)) {
+   //}
+   DLLLOCAL ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(*(old.getFunction()), PO_NO_SYSTEM_FUNC_VARIANTS, ns)) {
    }
 };
 
@@ -146,8 +148,9 @@ public:
             continue;
 
          assert(!findNode(i->first));
-         //printd(5, "FunctionList::mergePublic() this: %p merging in %s (%p)\n", this, i->first, i->second);
          FunctionEntry* fe = new ModuleImportedFunctionEntry(*i->second, ns);
+         //printd(5, "FunctionList::mergePublic() this: %p merging in %s (%p)\n", this, i->first, fe);
+         assert(!fe->isUserPublic());
          insert(fl_map_t::value_type(fe->getName(), fe));
       }
    }

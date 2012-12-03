@@ -34,14 +34,17 @@ FunctionList::FunctionList(const FunctionList& old, qore_ns_private* ns, int64 p
    bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
    for (fl_map_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
       QoreFunction* f = i->second->getFunction();
-      if (no_user && !f->hasBuiltin())
-	 continue;
-      if (no_builtin && !f->hasUser())
-	 continue;
+      if (!f->hasBuiltin()) {
+         if (no_user || !f->hasUserPublic())
+            continue;
+      }
+      else if (no_builtin && !f->hasUserPublic())
+         continue;
 
       FunctionEntry* fe = new FunctionEntry(i->first, new QoreFunction(*f, po, ns));
       insert(std::make_pair(fe->getName(), fe));
-      //printd(0, "FunctionList::FunctionList() this: %p copying function %s user: %d builtin: %d\n", this, i->first, f->hasUser(), f->hasBuiltin());
+      //if (!strcmp(i->first, "make_select_list2"))
+      //if (f->hasUser())  printd(0, "FunctionList::FunctionList() this: %p copying fe: %p %s user: %d builtin: %d public: %d\n", this, i->second, i->first, f->hasUser(), f->hasBuiltin(), f->hasUserPublic());
    }
 }
 
@@ -79,7 +82,7 @@ FunctionEntry* FunctionList::import(const char* new_name, QoreFunction* func, qo
    assert(!findNode(new_name));
 
    // copy function entry for import and insert into map
-   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func, 0, ns));
+   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func, 0, ns, true));
    insert(std::make_pair(fe->getName(), fe));
    return fe;
 }

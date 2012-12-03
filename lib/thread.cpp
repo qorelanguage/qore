@@ -1474,7 +1474,8 @@ void qore_exit_process(int rc) {
    // we cannot do joins on threads because we may have canceled a thread while holding a lock that another thread will block
    // indefinitely on; pthread_mutex_lock() is not a cancellation point, for example
    // so we wait for half a second here and then just call exit()
-   usleep(500000);
+   if (tcc)
+      usleep(500000);
 
 #if 0
    for (unsigned i = 0; i < jl.size(); ++i) {

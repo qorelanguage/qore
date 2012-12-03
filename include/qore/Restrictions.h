@@ -61,7 +61,7 @@
 #define PO_NO_MODULES                     (1 << 29)    //!< do not allow external modules to be loaded
 #define PO_NO_INHERIT_USER_FUNC_VARIANTS  (1 << 30)    //!< do not inherit public user function variants from the parent into the new program's space
 #define PO_NO_SYSTEM_FUNC_VARIANTS        (1LL << 31)  //!< do not inherit any builtin function variants to the new program's space
-#define PO_NO_INHERIT_GLOBAL_VARS         (1LL << 32)  //!< inherit public global variables from the parent into the new program's space
+#define PO_NO_INHERIT_GLOBAL_VARS         (1LL << 32)  //!< do not inherit public global variables from the parent into the new program's space
 #define PO_IN_MODULE                      (1LL << 33)  //!< do not use directly, this is set automatically in user module programs
 #define PO_NO_EMBEDDED_LOGIC              (1LL << 34)  //!< do not allow embedded logic or runtime parsing
 #define PO_STRICT_BOOLEAN_EVAL            (1LL << 35)  //!< do non-intuitive strict mathematical boolean evaluations (the Qore default prior to v0.8.6)
