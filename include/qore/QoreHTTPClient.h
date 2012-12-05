@@ -348,7 +348,4 @@ public:
    DLLLOCAL void cleanup(ExceptionSink *xsink);
 };
 
-#endif 
-
-// EOF
-
+#endif

@@ -37,6 +37,7 @@ class BuiltinNormalMethodVariantBase;
 class BuiltinCopyVariantBase;
 class QoreExternalMethodVariant;
 class QoreExternalStaticMethodVariant;
+class QoreProgram;
 
 //! the implementation of Qore's object data type, reference counted, dynamically-allocated only
 /** objects in Qore are unique unless copied explicitly (similar to Java)
@@ -604,6 +605,26 @@ template <class T>
 class PrivateDataRefHolder : public ReferenceHolder<T> {
 public:
    DLLLOCAL PrivateDataRefHolder(const QoreObject *o, qore_classid_t cid, ExceptionSink *xsink) : ReferenceHolder<T>(reinterpret_cast<T *>(o->getReferencedPrivateData(cid, xsink)), xsink) {
+   }
+};
+
+class QorePrivateObjectAccessHelper {
+private:
+   // not implemented
+   DLLLOCAL QorePrivateObjectAccessHelper(const QorePrivateObjectAccessHelper&);
+   DLLLOCAL QorePrivateObjectAccessHelper& operator=(const QorePrivateObjectAccessHelper&);
+   DLLLOCAL void* operator new(size_t);
+
+protected:
+   ExceptionSink* xsink;
+   void* ptr;
+
+public:
+   DLLLOCAL QorePrivateObjectAccessHelper(ExceptionSink* xs) : xsink(xs), ptr(0) {
+   }
+
+   DLLLOCAL operator bool() const {
+      return (bool)ptr;
    }
 };
 

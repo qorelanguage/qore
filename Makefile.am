@@ -141,6 +141,7 @@ include_HEADERS = \
 	include/qore/QoreNumberNode.h \
 	include/qore/QoreNothingNode.h \
 	include/qore/QoreNullNode.h \
+	include/qore/QoreQueueHelper.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
 	include/qore/BuiltinFunctionList.h \

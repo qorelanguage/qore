@@ -106,6 +106,7 @@
 #include "mySocket.cpp"
 #include "QoreCondition.cpp"
 #include "QoreQueue.cpp"
+#include "QoreQueueHelper.cpp"
 #include "QoreRegexNode.cpp"
 #include "QoreRegexBase.cpp"
 #include "RegexSubstNode.cpp"

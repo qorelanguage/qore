@@ -197,6 +197,7 @@ libqore_la_SOURCES = \
 	mySocket.cpp \
 	QoreCondition.cpp \
 	QoreQueue.cpp \
+	QoreQueueHelper.cpp \
 	QoreRegexNode.cpp \
 	QoreRegexBase.cpp \
 	RegexSubstNode.cpp \

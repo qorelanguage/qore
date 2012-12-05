@@ -556,4 +556,12 @@ public:
    DLLLOCAL void cleanup(ExceptionSink *xsink);
 };
 
+class QoreFileHelper : QorePrivateObjectAccessHelper {
+public:
+   DLLEXPORT QoreFileHelper(QoreObject* obj, ExceptionSink* xsink);
+   DLLEXPORT ~QoreFileHelper();
+   DLLEXPORT QoreFile* operator*() const;
+   DLLEXPORT QoreFile* operator->() const;
+};
+
 #endif  // _QORE_QOREFILE_H

@@ -32,6 +32,29 @@
 #define TCSANOW 0
 #endif
 
+QoreFileHelper::QoreFileHelper(QoreObject* obj, ExceptionSink* xs) : QorePrivateObjectAccessHelper(xs) {
+   File* f = reinterpret_cast<File*>(obj->getReferencedPrivateData(CID_FILE, xs));
+   if (!f) {
+      if (!*xsink)
+         xsink->raiseException("FILE-ERROR", "expecting an object derived from File; got class '%s' instead", obj->getClassName());
+      return;
+   }
+   ptr = (void*)f;
+}
+
+QoreFileHelper::~QoreFileHelper() {
+   if (ptr)
+      reinterpret_cast<File*>(ptr)->deref(xsink);
+}
+
+QoreFile* QoreFileHelper::operator*() const {
+   return reinterpret_cast<File*>(ptr);
+}
+
+QoreFile* QoreFileHelper::operator->() const {
+   return reinterpret_cast<File*>(ptr);
+}
+
 static void FILE_system_constructor(QoreObject *self, int fd, va_list args) {
    //printd(5, "FILE_system_constructor() self=%p, descriptor=%d\n", self, fd);
    File* f = new File(QCS_DEFAULT);

@@ -87,6 +87,12 @@
 //! defined because this version of Qore has a QoreNumberNode constructor with a precision specifier
 #define _QORE_HAS_NUMBER_CONS_WITH_PREC 1
 
+//! defined because this version of Qore has the QoreFileOjectHelper class
+#define _QORE_HAS_FILE_OBJECT_HELPER 1
+
+//! defined because this version of Qore has the QoreQueueOjectHelper class
+#define _QORE_HAS_QUEUE_OBJECT_HELPER 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
