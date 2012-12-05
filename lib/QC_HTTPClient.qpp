@@ -878,3 +878,36 @@ $httpclient.clearProxyUserPassword();
 nothing HTTPClient::clearProxyUserPassword() {
    client->clearProxyUserPassword();
 }
+
+//! Returns a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+/** If the socket is not connected, an exception is thrown
+
+    @par Example:
+    @code
+my hash $h = $httpclient.getPeerInfo();
+    @endcode
+
+    @return a @ref socket_info_hash "hash of information" about the local socket
+
+    @throw SOCKET-GETPEERINFO-ERROR the underlying socket is not open or error in getpeername()
+ */
+hash HTTPClient::getPeerInfo() {
+   return client->getPeerInfo(xsink);
+}
+
+//! Returns information about the local socket as a hash
+/** If the socket is not open, an exception is thrown
+
+    @par Example:
+    @code
+my hash $h = $httpclient.getSocketInfo();
+    @endcode
+
+    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+
+    @throw SOCKET-GETSOCKETINFO-ERROR the underlying socket is not open or error in getsockname()
+ */
+hash HTTPClient::getSocketInfo() {
+   return client->getSocketInfo(xsink);
+}
+

@@ -2300,6 +2300,7 @@ my hash $h = $sock.getSocketInfo();
 
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
+    @throw SOCKET-GETSOCKETINFO-ERROR Socket is not open or error in getsockname()
  */
 hash Socket::getSocketInfo() {
    return s->getSocketInfo(xsink);

@@ -143,7 +143,7 @@ struct con_info {
 };
 
 struct qore_qtc_private {
-   QoreThreadLock m;
+   mutable QoreThreadLock m;
    bool http11;       // are we using http 1.1 or 1.0?
    prot_map_t prot_map;
 
@@ -328,6 +328,18 @@ struct qore_qtc_private {
 
       setSocketPath();
       return 0;
+   }
+
+   DLLLOCAL QoreHashNode* getPeerInfo(ExceptionSink* xsink) const {
+      AutoLocker al(m);
+
+      return m_socket.getPeerInfo(xsink);
+   }
+
+   DLLLOCAL QoreHashNode* getSocketInfo(ExceptionSink* xsink) const {
+      AutoLocker al(m);
+
+      return m_socket.getSocketInfo(xsink);
    }
 
    DLLLOCAL void setUserPassword(const char *user, const char *pass) {
@@ -1285,3 +1297,12 @@ void QoreHTTPClient::setProxyUserPassword(const char *user, const char *pass) {
 void QoreHTTPClient::clearProxyUserPassword() {
    priv->clearProxyUserPassword();
 }
+
+QoreHashNode* QoreHTTPClient::getPeerInfo(ExceptionSink* xsink) const {
+   return priv->getPeerInfo(xsink);
+}
+
+QoreHashNode* QoreHTTPClient::getSocketInfo(ExceptionSink* xsink) const {
+   return priv->getSocketInfo(xsink);
+}
+

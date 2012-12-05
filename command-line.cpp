@@ -81,6 +81,7 @@ static const char suggest[] = "try '%s -h' for more information.\n";
 static const char helpstr[] = 
    "  -a, --show-aliases           displays the list of character sets aliases\n"
    "  -b, --disable-signals        disables signal handling\n"
+   "  -B, --show-build-options     show Qore build options and quit\n"
    "  -c, --charset=arg            sets default character set encoding\n"
    "  -D, --define=arg             sets the value of a parse define\n"
    "  -e, --exec=arg               execute program given on command-line\n"
@@ -123,7 +124,7 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -A, --lock-warnings          do not allow changes in warning levels\n"
    "      --lockdown               only allow single-threaded code execution with\n"
    "                               no external access or terminal or GUI I/O\n"
-   "  -B, --allow-bare-refs        allow refs to vars without '$' and refs to\n"
+   "      --allow-bare-refs        allow refs to vars without '$' and refs to\n"
    "                               class members without '$.'\n"
    "      --assume-local           assume local scope for variables declared\n"
    "                               without 'my' or 'our'\n"
@@ -442,6 +443,30 @@ static void set_define(const char *carg) {
 
 static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION", "UNKNOWN" };
 
+static void show_build_options(const char* arg) {
+   printf("this build has options:\n");
+   // find longest option name
+   int len = 0;
+   for (size_t j = 0; j < qore_option_list_size; ++j) {
+      int ilen = strlen(qore_option_list[j].option);
+      if (ilen > len)
+         len = ilen;
+   }
+   // create format string
+   QoreString fmt(" %9s %-");
+   fmt.sprintf("%d", len + 1);
+   fmt.concat("s = %s\n");
+
+   for (unsigned j = 0; j < qore_option_list_size; ++j) {
+      int type = qore_option_list[j].type;
+      if (type > QO_FUNCTION)
+         type = QO_FUNCTION + 1;
+      printf(fmt.getBuffer(), tlist[type], qore_option_list[j].option,
+             qore_option_list[j].value ? "true" : "false");
+   }
+   exit(0);
+}
+
 static void do_version(const char *arg) {
    printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2012 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
 
@@ -475,26 +500,8 @@ static void do_version(const char *arg) {
    printf("  build host: %s\n  C++ compiler: %s\n  CFLAGS: %s\n  LDFLAGS: %s\n  MPFR: %s\n", 
 	  qore_build_host, qore_cplusplus_compiler, qore_cflags, qore_ldflags, mpfrInfo.getBuffer());
 
-   printf("this build has options:\n");
-   // find longest option name
-   int len = 0;
-   for (size_t j = 0; j < qore_option_list_size; ++j) {
-      int ilen = strlen(qore_option_list[j].option);
-      if (ilen > len)
-	 len = ilen;
-   }
-   // create format string
-   QoreString fmt(" %9s %-");
-   fmt.sprintf("%d", len + 1);
-   fmt.concat("s = %s\n");
+   printf("use -B to show build options\n");
 
-   for (unsigned j = 0; j < qore_option_list_size; ++j) {
-      int type = qore_option_list[j].type;
-      if (type > QO_FUNCTION)
-	 type = QO_FUNCTION + 1;
-      printf(fmt.getBuffer(), tlist[type], qore_option_list[j].option, 
-             qore_option_list[j].value ? "true" : "false");   
-   }
    exit(0);
 }
 
@@ -542,6 +549,7 @@ static struct opt_struct_s {
       void (*opt_func)(const char *arg);
 } options[] = {
    { 'a', "show-aliases",          ARG_NONE, show_charset_aliases },
+   { 'B', "show-built-options",    ARG_NONE, show_build_options },
    { 'c', "charset",               ARG_MAND, set_charset },
    { 'e', "exec",                  ARG_MAND, set_exec },
    { 'h', "help",                  ARG_NONE, do_help },
@@ -557,7 +565,7 @@ static struct opt_struct_s {
    { 'x', "exec-class",            ARG_OPT,  do_exec_class },
    { '\0', "lockdown",             ARG_NONE, do_lockdown },
    { 'A', "lock-warnings",         ARG_NONE, do_lock_warnings },
-   { 'B', "allow-bare-refs",       ARG_NONE, allow_bare_refs },
+   { '\0', "allow-bare-refs",      ARG_NONE, allow_bare_refs },
    { '\0', "assume-local",         ARG_NONE, assume_local },
    { 'n', "new-style",             ARG_NONE, new_style },
    { '\0', "no-class-defs",        ARG_NONE, do_no_class_defs },
@@ -600,7 +608,7 @@ static struct opt_struct_s {
    { '\0', "module-api",           ARG_NONE, show_module_api },
    { '\0', "module-apis",          ARG_NONE, show_module_apis },
    { '\0', "latest-module-api",    ARG_NONE, show_latest_module_api },
-// debugging options
+   // debugging options
    { 'b', "disable-signals",       ARG_NONE, disable_signals },
    { 'd', "debug",                 ARG_MAND, do_debug },
    { 't', "trace",                 ARG_NONE, do_trace },

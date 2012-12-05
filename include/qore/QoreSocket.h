@@ -1452,7 +1452,7 @@ public:
        - \c family: the address family (ie AF_INET, AF_INET6, AF_UNIX, ...)
        - \c familystr: a string description of the address family ("ipv4", "ipv6", etc)
    */
-   DLLEXPORT QoreHashNode *getPeerInfo(ExceptionSink *xsink) const;
+   DLLEXPORT QoreHashNode* getPeerInfo(ExceptionSink* xsink) const;
 
    //! returns information for the current socket; the socket must be open
    /** if the socket is not open, a Qore-language exception is thrown
@@ -1466,7 +1466,7 @@ public:
        - \c family: the address family (ie AF_INET, AF_INET6, AF_UNIX, ...)
        - \c familystr: a string description of the address family ("ipv4", "ipv6", etc)
    */
-   DLLEXPORT QoreHashNode *getSocketInfo(ExceptionSink *xsink) const;
+   DLLEXPORT QoreHashNode* getSocketInfo(ExceptionSink* xsink) const;
 
    DLLLOCAL static void doException(int rc, const char *meth, int timeout_ms, ExceptionSink *xsink);
 

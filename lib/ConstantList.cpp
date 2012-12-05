@@ -174,13 +174,6 @@ ConstantList::ConstantList(const ConstantList &old, ClassNs p) : ptr(p) {
 
       ConstantEntry* ce = new ConstantEntry(*(i->second));
 
-      /*
-      // reference value for new constant definition
-      if (i->second->node)
-	 i->second->node->ref();
-
-      ConstantEntry* ce = new ConstantEntry(i->first, i->second->node, i->second->typeInfo, false, true);
-      */
       last = cnemap.insert(last, cnemap_t::value_type(ce->getName(), ce));
       //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first, i->second->node);
    }
