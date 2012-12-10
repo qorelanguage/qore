@@ -136,6 +136,9 @@ public:
    */
    DLLEXPORT static QoreStringNode *parseLoadModule(const char *name, QoreProgram *pgm = 0);
 
+   //! adds the standard module directories to the module path (only necessary if the module paths are set up manually, otherwise these paths are added automatically when qore_init() is called)
+   DLLEXPORT static void addStandardModulePaths();
+
    // not exported in the public API
    DLLLOCAL ModuleManager();
 };

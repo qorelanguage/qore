@@ -195,7 +195,7 @@ public:
    }
 };
 
-void DirectoryList::addDirList(const char* str) {
+void UniqueDirectoryList::addDirList(const char* str) {
    if (!str)
       return;
 
@@ -363,15 +363,22 @@ void QoreModuleManager::init(bool se) {
    show_errors = se;
 
    // setup module directory list from QORE_MODULE_DIR (if it hasn't already been manually set up)
-   if (moduleDirList.empty()) {
-      moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
-      
-      // append qore module directory
-      moduleDirList.push_back(MODULE_DIR);
+   if (moduleDirList.empty())
+      QoreModuleManager::addStandardModulePaths();
+}
 
-      // append version-specifc module directory
-      moduleDirList.push_back(MODULE_VER_DIR);
-   }
+void QoreModuleManager::addStandardModulePaths() {
+   moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
+
+   // append qore module directory
+   moduleDirList.push_back(MODULE_DIR);
+
+   // append version-specifc module directory
+   moduleDirList.push_back(MODULE_VER_DIR);
+}
+
+void ModuleManager::addStandardModulePaths() {
+   QMM.addStandardModulePaths();
 }
 
 int ModuleManager::runTimeLoadModule(const char* name, ExceptionSink *xsink) {
@@ -532,7 +539,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    QoreString str;
    struct stat sb;
 
-   DirectoryList::iterator w = moduleDirList.begin();
+   strdeque_t::const_iterator w = moduleDirList.begin();
    while (w != moduleDirList.end()) {
       // try to find module with supported api tags
       for (unsigned ai = 0; ai <= qore_mod_api_list_len; ++ai) {

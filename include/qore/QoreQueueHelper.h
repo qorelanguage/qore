@@ -29,27 +29,40 @@ class QoreQueueHelper : QorePrivateObjectAccessHelper {
 protected:
 
 public:
+   //! acquires an internal Queue object from an object and maintains a reference count during the lifetime of the QoreQueueHelper object, throws a Qore-language exception if no Queue object is available
+   /** @param obj the object that inherits the Queue class
+       @param xs if any errors occur, the Qore-language exception information is stored here
+    */
    DLLEXPORT QoreQueueHelper(QoreObject* obj, ExceptionSink* xs);
 
+   //! dereferences the internal Queue object
    DLLEXPORT ~QoreQueueHelper();
 
-   // push at the end of the queue
+   //! pushes a value at the end of the queue
    DLLEXPORT void push(ExceptionSink* xsink, const AbstractQoreNode* n, int timeout_ms = 0, bool* to = 0);
 
-   // insert at the beginning of the queue
+   //! inserts a value at the beginning of the queue
    DLLEXPORT void insert(ExceptionSink* xsink, const AbstractQoreNode* n, int timeout_ms = 0, bool* to = 0);
 
+   //! returns a value from the beginning of the queue and removes it from the queue
    DLLEXPORT AbstractQoreNode* shift(ExceptionSink* xsink, int timeout_ms = 0, bool* to = 0);
+
+   //! returns a value from the end of the queue and removes it from the queue
    DLLEXPORT AbstractQoreNode* pop(ExceptionSink* xsink, int timeout_ms = 0, bool* to = 0);
 
+   //! returns the number of elements in the queue
    DLLEXPORT int size() const;
 
+   //! returns the maximum size of the queue or -1 if there is no limit
    DLLEXPORT int getMax() const;
 
+   //! returns the number of threads waiting on data in the queue
    DLLEXPORT unsigned getReadWaiting() const;
 
+   //! returns the number of threads waiting on the thread to have capacity to store more values
    DLLEXPORT unsigned getWriteWaiting() const;
 
+   //! clears the queue
    DLLEXPORT void clear(ExceptionSink* xsink);
 };
 

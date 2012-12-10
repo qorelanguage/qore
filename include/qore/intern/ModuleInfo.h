@@ -130,15 +130,42 @@ public:
 // list/dequeue of strings
 typedef std::deque<std::string> strdeque_t;
 
-//! non-thread-safe list of strings of directory names
-/** a deque should require fewer memory allocations compared to a linked list
+//! non-thread-safe unique list of strings of directory names
+/** a deque should require fewer memory allocations compared to a linked list.
+    the set is used for uniqueness
  */
-class DirectoryList : public strdeque_t {
+class UniqueDirectoryList {
+protected:
+   typedef std::set<std::string> strset_t;
+
+   strdeque_t dlist;
+   strset_t dset;
+
 public:
    DLLLOCAL void addDirList(const char* str);
+
+   DLLLOCAL bool push_back(const char* str) {
+      if (dset.find(str) != dset.end())
+         return false;
+
+      dlist.push_back(str);
+      dset.insert(str);
+      return true;
+   }
+
+   DLLLOCAL bool empty() const {
+      return dlist.empty();
+   }
+
+   DLLLOCAL strdeque_t::const_iterator begin() const {
+      return dlist.begin();
+   }
+
+   DLLLOCAL strdeque_t::const_iterator end() const {
+      return dlist.end();
+   }
 };
 
-static DirectoryList moduleDirList;
 class QoreModuleManager {
 private:
    // not implemented
@@ -159,7 +186,7 @@ protected:
    module_map_t map;   
 
    // list of module directories
-   DirectoryList moduleDirList;
+   UniqueDirectoryList moduleDirList;
 
    DLLLOCAL QoreAbstractModule* findModuleUnlocked(const char* name) {
       module_map_t::iterator i = map.find(name);
@@ -214,6 +241,8 @@ public:
       OptLocker al(mutex);
       moduleDirList.addDirList(strlist);
    }
+
+   DLLLOCAL void addStandardModulePaths();
 };
 
 DLLLOCAL extern QoreModuleManager QMM;
