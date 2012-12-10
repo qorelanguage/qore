@@ -41,6 +41,7 @@
 #define DBI_CAP_HAS_NUMBER_SUPPORT       (1 << 10) //!< supports arbitrary-precision numeric support for binding and retrieving values; if this is not true then any QoreNumberNode bind arguments will be converted to QoreFloatNode before binding
 #define DBI_CAP_HAS_OPTION_SUPPORT       (1 << 11) //!< supports the new driver option API (set automatically by the Qore library)
 #define DBI_CAP_SERVER_TIME_ZONE         (1 << 12) //!< supports automatically converting date/time values to the server's presumed time zone (can be set with options) and tagging date/time values with the same; this is independent from the client's current time zone setting
+#define DBI_CAP_AUTORECONNECT            (1 << 13) //!< supports automatically/transparently reconnecting to the server if the connection is lost while not in a transaction
 
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1
