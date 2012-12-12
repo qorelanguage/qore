@@ -91,14 +91,22 @@ public:
    //! returns the type information
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
-   DLLLOCAL static const char *getStaticTypeName() {
-      return "bool";
-   }
-
+   //! returns the boolean value of the object
    DLLLOCAL bool getValue() const {
       return b;
    }
 
+   //! returns the type name (useful in templates)
+   DLLLOCAL static const char *getStaticTypeName() {
+      return "bool";
+   }
+
+   //! returns the type code (useful in templates)
+   DLLLOCAL static qore_type_t getStaticTypeCode() {
+      return NT_BOOLEAN;
+   }
+
+   //! returns the value of the argument (useful in templates)
    DLLLOCAL static bool getValue(QoreBoolNode *v) {
       return v->b;
    }

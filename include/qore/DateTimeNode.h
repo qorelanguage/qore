@@ -191,10 +191,6 @@ public:
    //! returns the type name as a c string
    DLLEXPORT virtual const char *getTypeName() const;
 
-   DLLLOCAL static const char *getStaticTypeName() {
-      return "date";
-   }
-
    //! returns a copy of the DateTimeNode, the caller owns the pointer's reference count
    /**
       @return a copy of the DateTimeNode, the caller owns the pointer's reference count
@@ -215,6 +211,16 @@ public:
 
    //! returns the negative time from the current time
    DLLEXPORT DateTimeNode *unaryMinus() const;
+
+   //! returns the type name (useful in templates)
+   DLLLOCAL static const char *getStaticTypeName() {
+      return "date";
+   }
+
+   //! returns the type code (useful in templates)
+   DLLLOCAL static qore_type_t getStaticTypeCode() {
+      return NT_DATE;
+   }
 
    //! returns a DateTimeNode value as generated from the ISO-8601 week information
    /** NOTE: ISO-8601 week days go from 1 - 7 = Mon - Sun, a 0 return value means an exception was raised

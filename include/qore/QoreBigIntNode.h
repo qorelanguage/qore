@@ -130,10 +130,17 @@ public:
    //! returns the type information
    DLLEXPORT virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
+   //! returns the type code (useful in templates)
    DLLLOCAL static const char *getStaticTypeName() {
       return "integer";
    }
 
+   //! returns the type code (useful in templates)
+   DLLLOCAL static qore_type_t getStaticTypeCode() {
+      return NT_INT;
+   }
+
+   //! returns the integer value (useful in templates)
    DLLLOCAL static int64 getValue(AbstractQoreNode *v) {
       return v->getAsBigInt();
    }

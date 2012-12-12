@@ -252,8 +252,14 @@ public:
    //! constructor using the private implementation of QoreString; not exported in the library
    DLLLOCAL QoreStringNode(struct qore_string_private *p);
 
+   //! returns the type name (useful in templates)
    DLLLOCAL static const char *getStaticTypeName() {
       return "string";
+   }
+
+   //! returns the type code (useful in templates)
+   DLLLOCAL static qore_type_t getStaticTypeCode() {
+      return NT_STRING;
    }
 
    //! returns the type information

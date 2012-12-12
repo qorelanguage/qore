@@ -150,13 +150,6 @@ public:
     */
    DLLEXPORT virtual const char* getTypeName() const;
 
-   //! returns the type name
-   /** @return the type name
-    */
-   DLLLOCAL static const char* getStaticTypeName() {
-      return "hash";
-   }
-
    //! returns "this" with an incremented reference count
    /** @return "this" with an incremented reference count
     */
@@ -443,7 +436,19 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT void removeKey(const char* key, ExceptionSink* xsink);
-      
+
+   //! returns the type name (useful in templates)
+   /** @return the type name
+    */
+   DLLLOCAL static const char* getStaticTypeName() {
+      return "hash";
+   }
+
+   //! returns the type code (useful in templates)
+   DLLLOCAL static qore_type_t getStaticTypeCode() {
+      return NT_HASH;
+   }
+
    //! initializes during parsing
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 

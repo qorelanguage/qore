@@ -142,7 +142,7 @@ public:
    //! returns the type information
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
-   //! returns the type name as a c string
+   //! returns the type name (useful in templates)
    /**
       @return the type name as a c string
    */
@@ -150,6 +150,12 @@ public:
       return "float";
    }
 
+   //! returns the type code (useful in templates)
+   DLLLOCAL static qore_type_t getStaticTypeCode() {
+      return NT_FLOAT;
+   }
+
+   //! returns the value of the argument (useful in templates)
    DLLLOCAL static double getValue(AbstractQoreNode *v) {
       return v->getAsFloat();
    }

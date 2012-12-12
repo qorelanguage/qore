@@ -176,9 +176,14 @@ public:
    //! returns the type name as a c string
    DLLEXPORT virtual const char *getTypeName() const;
 
-   //! returns the type name as a c string
+   //! returns the type name (useful in templates)
    DLLLOCAL static const char *getStaticTypeName() {
       return "object";
+   }
+
+   //! returns the type code (useful in templates)
+   DLLLOCAL static qore_type_t getStaticTypeCode() {
+      return NT_OBJECT;
    }
 
    //! returns true if this object is a valid instance of the classid passed

@@ -98,10 +98,6 @@ public:
    //! returns the type information
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
-   DLLLOCAL static const char *getStaticTypeName() {
-      return "binary";
-   }
-
    //! returns 0 = equal, 1 = not equal
    DLLEXPORT int compare(const BinaryNode *obj) const;
 
@@ -159,6 +155,16 @@ public:
 
    //! frees any managed memory and sets the size to 0
    DLLEXPORT void clear();
+
+   //! returns the type name (useful in templates)
+   DLLLOCAL static const char *getStaticTypeName() {
+      return "binary";
+   }
+
+   //! returns the type code (useful in templates)
+   DLLLOCAL static qore_type_t getStaticTypeCode() {
+      return NT_BINARY;
+   }
 };
 
 typedef SimpleRefHolder<BinaryNode> BinaryNodeHolder;
