@@ -22,53 +22,87 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.4
+%requires qore >= 0.8.7
 # need mime definitions
 %requires Mime >= 1.0
 
 module HttpServer {
-    version = "0.3.5";
+    version = "0.3.6";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
-    * 2012-09-20 v0.3.5: David Nichols <david@qore.org>: fixed bugs in regexes in the HttpServer::addListeners() and HttpServer::addListenersWithHandler() methods
-                                                         updated module example code in summary
-                                                         added \c "listener-id" to request context hash
-    * 2012-06-01 v0.3.4: David Nichols <david@qore.org>: added public parse_uri_query() function
-    * 2012-05-24 v0.3.3: David Nichols <david@qore.org>: updated to a user module
-                                                         added support for custom redirects from user handlers
-                                                         use the Mime module for mime definitions
-    *            v0.3.2: David Nichols <david@qore.org>: added support for listeners with specific handler lists
-                                                         added the ability to manage dynamic content handlers
-                                                         implemented content-encoding handling flags in AbstractHttpRequestHandler
-                                                         implemented support for "identity" encoding (if anyone ever sends it)
-    *            v0.3.1: David Nichols <david@qore.org>: added ipv6 support in qore 0.8.2
-    *            v0.3.0: David Nichols <david@qore.org>: added the ability to start and stop listeners on demand
-    *            v0.2.9: David Nichols <david@qore.org>: updates for new SSL and timeout behavior with with Socket class with qore 0.8.1+
-                                                         set socket encoding to UTF-8 by default
-                                                         add "charset=utf-8" to Content-Type header if not already present
-                                                         add "text/html" to Content-Type header if no content-type is given by the handler
-                                                         fixed setting X.509 certificate and private key for HTTPS listeners
-                                                         require qore >= 0.8.1 for new Socket features
-    *            v0.2.8: David Nichols <david@qore.org>: converted to hard typing for use with %require-types
-                                                         require qore >= 0.8.0 for new Socket features
-    *            v0.2.7: David Nichols <david@qore.org>: set TCP_NODELAY on all sockets to ensure that clients get all data before closing the socket, especially in case of errors
-                                                         require qore >= 0.7.4 for new Socket features
-    *            v0.2.6: David Nichols <david@qore.org>: minor fixes for SOAP support
-                                                         improved handler matching
-    *            v0.2.5: David Nichols <david@qore.org>: minor fixes for SOAP support
-    *            v0.2.4: David Nichols <david@qore.org>: improved Content-Type handling
-                                                         improved URL/path support
-    *            v0.2.3: David Nichols <david@qore.org>: bzip2 content-encoding support 
-    *            v0.2.2: David Nichols <david@qore.org>: basic authentication
-    *            v0.2.1: David Nichols <david@qore.org>: implementing logic to handle "deflate" and "gzip" content-encoding
-                                                         chunked content-encoding supported for POSTs
-                                                         Date: header always sent as per HTTP 1.1 spec
-    *            v0.2.0: David Nichols <david@qore.org>: modular/multiple listener support added
-                                                         https support added
+    * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
+      + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
+
+    * 2012-09-20 v0.3.5: David Nichols <david@qore.org>
+      + fixed bugs in regexes in the HttpServer::addListeners() and HttpServer::addListenersWithHandler() methods
+      + updated module example code in summary
+      + added "listener-id" to request context hash
+
+    * 2012-06-01 v0.3.4: David Nichols <david@qore.org>
+      + added public parse_uri_query() function
+
+    * 2012-05-24 v0.3.3: David Nichols <david@qore.org>
+      + updated to a user module
+      + added support for custom redirects from user handlers
+      + use the Mime module for mime definitions
+
+    * v0.3.2: David Nichols <david@qore.org>
+      + added support for listeners with specific handler lists
+      + added the ability to manage dynamic content handlers
+      + implemented content-encoding handling flags in AbstractHttpRequestHandler
+      + implemented support for "identity" encoding (if anyone ever sends it)
+
+    * v0.3.1: David Nichols <david@qore.org>
+      + added ipv6 support in qore 0.8.2
+
+    * v0.3.0: David Nichols <david@qore.org>
+      + added the ability to start and stop listeners on demand
+
+    * v0.2.9: David Nichols <david@qore.org>
+      + updates for new SSL and timeout behavior with with Socket class with qore 0.8.1+
+      + set socket encoding to UTF-8 by default
+      + add "charset=utf-8" to Content-Type header if not already present
+      + add "text/html" to Content-Type header if no content-type is given by the handler
+      + fixed setting X.509 certificate and private key for HTTPS listeners
+      + require qore >= 0.8.1 for new Socket features
+
+    * v0.2.8: David Nichols <david@qore.org>
+      + converted to hard typing for use with %require-types
+      + require qore >= 0.8.0 for new Socket features
+
+    * v0.2.7: David Nichols <david@qore.org>
+       + set TCP_NODELAY on all sockets to ensure that clients get all data before closing the socket, especially in case of errors
+       + require qore >= 0.7.4 for new Socket features
+
+    * v0.2.6: David Nichols <david@qore.org>
+      + minor fixes for SOAP support
+      + improved handler matching
+
+    * v0.2.5: David Nichols <david@qore.org>
+      + minor fixes for SOAP support
+
+    * v0.2.4: David Nichols <david@qore.org>
+      + improved Content-Type handling
+      + improved URL/path support
+
+    * v0.2.3: David Nichols <david@qore.org>
+      + bzip2 content-encoding support 
+
+    * v0.2.2: David Nichols <david@qore.org>
+      + basic authentication
+
+    * v0.2.1: David Nichols <david@qore.org>
+      + implementing logic to handle "deflate" and "gzip" content-encoding
+      + chunked content-encoding supported for POSTs
+      + Date: header always sent as per HTTP 1.1 spec
+
+    * v0.2.0: David Nichols <david@qore.org>
+      + modular/multiple listener support added
+      + https support added
 
    note that this server suffers from the following limitations, among many others:
    + not totally HTTP 1.1 compliant although claims to be
@@ -155,9 +189,9 @@ public namespace HttpServer {
         while (True) {
             $str += sprintf("%s exception: %s:%d: %s: %s%s\ncall stack:",
                             $ex.type, $ex.file, $ex.line, $ex.err, $ex.desc,
-                            exists $ex.arg ? sprintf(" (arg=%n)", $ex.arg) : "");
+                            $ex.arg ? sprintf(" (arg=%n)", $ex.arg) : "");
             
-            if (exists $ex.callstack) {
+            if ($ex.callstack) {
                 foreach my hash $l in ($ex.callstack) {
                     if ($l.type == "new-thread")
                         $str += sprintf("\n  *** thread started by background operator ***");
@@ -168,7 +202,7 @@ public namespace HttpServer {
                 }
             }
             
-            if (!exists $ex.next)
+            if (!$ex.next)
                 break;
             $ex = $ex.next;
             $str += "\nchained exception:\n";
@@ -202,7 +236,7 @@ public namespace HttpServer {
         # http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2
         foreach my any $arg in (split(";", $path)) {
             my (*string $key, *string $value) = ($arg =~ x/(.*)=(.*)$/);
-            if (!exists $value) {
+            if (!$value) {
                 $h.params += $arg;
                 continue;
             }
@@ -215,6 +249,32 @@ public namespace HttpServer {
         }
 
         return $h;
+    }
+}
+
+# class containing handler info
+class HttpServer::HandlerInfo {
+    public {
+        string $.name;
+        AbstractHttpRequestHandler $.obj;
+        string $.url;
+        *string $.content;
+        *list $.shdr;
+    }
+
+    constructor(string $name, AbstractHttpRequestHandler $obj, string $url, *string $content, *softlist $shdr) {
+        $.name = $name;
+        $.obj = $obj;
+        $.url = $url;
+        $.content = $content;
+        $.shdr = $shdr;
+
+        foreach my any $h in (\$.shdr) {
+            if ($h.typeCode() != NT_STRING)
+                throw "SETHANDLER-ERROR", sprintf("entry %d in the special header list is not a string; type: %s", $#, $h.type());
+            # make sure header is in lower case for matching
+            $h = tolower($h);
+        }
     }
 }
 
@@ -234,55 +294,45 @@ class HttpServer::HttpHandlerList {
     }
 
     #! sets a request handler according to the arguments given 
-    setHandler(string $name, string $url, any $content, AbstractHttpRequestHandler $obj, softlist $special_headers) {
-        if (exists $.handlers.$name)
+    setHandler(string $name, string $url, *string $content, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+        if ($.handlers.$name)
             throw "SETHANDLER-ERROR", sprintf("HTTP request handler %y already exists", $name);
 
-        HttpHandlerList::checkSpecialHeaders(\$special_headers);
-
-	$.handlers.$name = 
-	    ("obj"     : $obj,
-	     "content" : $content,
-	     "url"     : $url,
-	     "shdr"    : $special_headers );
+	$.handlers.$name = new HandlerInfo($name, $obj, $url, $content, $special_headers);
     }
 
-    *hash findHandler(*hash $url, hash $hdr, HandlerCleanupHelper $hch, bool $final = False) {
+    # matches a handler to the request
+    *HandlerInfo findHandler(*hash $url, hash $hdr, bool $final = False) {
 	# if there is only one handler and final is true, then return the only handler
-	if ($final && elements $.handlers == 1) {
-	    my string $name = (keys $.handlers)[0];
-	    return ("handler": $.handlers.$name.obj, "handlerName": $name);
-	}
+	if ($final && $.handlers.size() == 1)
+            return $.handlers.firstValue();
 
 	# find a handler for the request
-        my hash $rv;
+        my HandlerInfo $rv;
 
 	#printf("HTTP DEBUG: HttpHandlerList::findHandler() hdr=%y, handlers=%y\n", $hdr, $.handlers);
-	foreach my string $h in (keys $.handlers) {
-            # skip dynamic handlers being removed
-            if ($.handlers.$h."remove")
-                continue;
-
+	foreach my string $h in ($.handlers.keyIterator()) {
+            my HandlerInfo $hi = $.handlers.$h;
             #printf("HTTP DEBUG: checking handler %s: ct=%n, path=%n, url=%n, hcon=%n (url=%y) shdr=%y\n", $h, $hdr."content-type", $hdr.path, $.handlers.$h.url, $.handlers.$h.content, $url, $.handlers.$h.shdr);
-	    if (exists $hdr."content-type" && $hdr."content-type" == $.handlers.$h.content) {
-		if (strlen($.handlers.$h.url) && strlen($url.path) && regex($url.path, $.handlers.$h.url)) {
+	    if ($hdr."content-type" && $hdr."content-type" == $.handlers.$h.content) {
+                #printf("HTTP DEBUG: match content-type for handler %y (h url: %y ct: %y, url: %y ct: %y)\n", $h, $.handlers.$h.url, $.handlers.$h.content, $url, $hdr."content-type");
+                if (!$rv)
+                    $rv = $hi;
+
+		if ($hi.url && $url.path && regex($url.path, $hi.url)) {
                     #printf("HTTP DEBUG: match content-type and url for handler %y (h url: %y ct: %y, url: %y ct: %y)\n", $h, $.handlers.$h.url, $.handlers.$h.content, $url, $hdr."content-type");
-                    $rv = ("handler": $.handlers.$h.obj, "handlerName": $h);
 		    break;
-		}
-		else if (!$rv.val()) {
-                    #printf("HTTP DEBUG: match content-type for handler %y (h url: %y ct: %y, url: %y ct: %y)\n", $h, $.handlers.$h.url, $.handlers.$h.content, $url, $hdr."content-type");
-                    $rv = ("handler": $.handlers.$h.obj, "handlerName": $h);
                 }
+
 		continue;
 	    }
-	    if (exists $.handlers.$h.shdr) {
+	    if ($hi.shdr) {
 		#printf("HTTP DEBUG: checking special headers %n: %n\n", $.handlers.$h.shdr, $hdr);
                 my bool $found = False;
-		foreach my any $shdr in ($.handlers.$h.shdr) {
-		    if (exists $hdr.$shdr) {
+		foreach my string $shdr in ($hi.shdr) {
+		    if ($hdr.$shdr) {
 			#printf("HTTP DEBUG: got special header %s: %s\n", $shdr, $hdr.$shdr);
-                        $rv = ("handler": $.handlers.$h.obj, "handlerName": $h);
+                        $rv = $hi;
                         $found = True;
 			break;
 		    }
@@ -293,18 +343,32 @@ class HttpServer::HttpHandlerList {
             
 	    # path trumps content-type
 	    #printf("regex(%n, %s, %n, %s) %n && %n && %n\n", $hdr.path, type($hdr.path), $.handlers.$h.url, type($.handlers.$h.url), strlen($.handlers.$h.url), strlen($hdr.path), regex($url.path, $.handlers.$h.url));
-	    if (strlen($.handlers.$h.url) && strlen($hdr.path) && regex($url.path, $.handlers.$h.url)) {
+	    if ($hi.url && $hdr.path && regex($url.path, $hi.url)) {
                 #printf("HTTP DEBUG: match url for handler %y (h url: %y, url: %y)\n", $h, $.handlers.$h.url, $url);
-                $rv = ("handler": $.handlers.$h.obj, "handlerName": $h);
+                $rv = $hi;
             }
 	}
 
-        #printf("HTTP DEBUG: handlerName=%y\n", $rv.handlerName);
+        #printf("HTTP DEBUG: HttpHandlerList::findHandler() rv: %y\n", $rv);
         return $rv;
     }
 
     bool empty() {
-	return !elements $.handlers;
+	return $.handlers.empty();
+    }
+
+    int size() {
+        return $.handlers.size();
+    }
+}
+
+# class containing dynamic handler info
+class HttpServer::DynamicHandlerInfo inherits HttpServer::HandlerInfo {
+    public {
+        Counter $.counter();
+    }
+
+    constructor(string $name, AbstractHttpRequestHandler $obj, string $url, *string $content, *softlist $shdr) : HandlerInfo($name, $obj, $url, $content, $shdr) {
     }
 }
 
@@ -315,58 +379,50 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
     }
 
     #! sets a dynamic request handler according to the arguments given 
-    setHandler(string $name, string $url, any $content, AbstractHttpRequestHandler $obj, softlist $special_headers) {
-        HttpHandlerList::checkSpecialHeaders(\$special_headers);
+    setHandler(string $name, string $url, *string $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+        my DynamicHandlerInfo $dhi($name, $obj, $url, $content_type, $special_headers);
 
         $.dhl.writeLock();
         on_exit $.dhl.writeUnlock();
 
-        if (exists $.handlers.$name)
+        if ($.handlers.$name)
             throw "SETHANDLER-ERROR", sprintf("dynamic HTTP request handler %y already exists", $name);
 
-	$.handlers.$name = 
-	    ("obj"     : $obj,
-	     "content" : $content,
-	     "url"     : $url,
-	     "shdr"    : $special_headers,
-             "counter" : new Counter(),
-             "remove"  : False);
+	$.handlers.$name = $dhi;
     }
 
     #! remove dynamic handler
     removeHandler(string $name) {
-        $.dhl.writeLock();
-        on_exit $.dhl.writeUnlock();
-
-        if (!exists $.handlers.$name)
-            throw "REMOVEHANDLER-ERROR", sprintf("dynamic request handler %y does not exist", $name);
-
-        if ($.handlers.$name."remove")
-            throw "REMOVEHANDLER-ERROR", sprintf("dynamic request handler %y is already being removed in another thread", $name);
-
-        # if one or more requests are in progress, then wait for all requests to complete before removing 
-        if ($.handlers.$name.counter.getCount()) {
-            $.handlers.$name."remove" = True;
-            $.dhl.writeUnlock();
-            $.handlers.$name.counter.waitForZero();
+        my Counter $c;
+        {
+            # grab exclusive lock
             $.dhl.writeLock();
+            on_exit $.dhl.writeUnlock();
+
+            # if no such handler exists, throw an exception
+            if (!$.handlers.$name)
+                throw "REMOVEHANDLER-ERROR", sprintf("dynamic request handler %y does not exist", $name);
+
+            # remove the handler from the list
+            my DynamicHandlerInfo $dhi = remove $.handlers.$name;
+
+            # take a copy of a reference to the Counter
+            $c = $dhi.counter;
         }
 
-        remove $.handlers.$name;
+        # wait for the call counter to reach zero
+        $c.waitForZero();
     }
 
-    *hash findHandler(*hash $url, hash $hdr, HandlerCleanupHelper $hch, bool $final = False) {
+    *DynamicHandlerInfo findHandler(*hash $url, hash $hdr, HandlerCleanupHelper $hch, bool $final = False) {
         $.dhl.readLock();
         on_exit $.dhl.readUnlock();
 
-        my *hash $h = HttpHandlerList::$.findHandler($url, $hdr, $hch, $final);
-        if (!exists $h)
+        my *DynamicHandlerInfo $h = HttpHandlerList::$.findHandler($url, $hdr, $final);
+        if (!$h)
             return;
 
-        my string $name = $h.handlerName;
-
-        $hch.set($.handlers.$name);
-        
+        $hch.set($h.counter);
         return $h;
     }
 }
@@ -376,19 +432,18 @@ class HttpServer::HandlerCleanupHelper {
     public {}
 
     private {
-        hash $.handler;
+        Counter $.c;
     }
 
-    set(hash $handler) {
-        $.handler = $handler;
-        $.handler.counter.inc();
+    set(Counter $c) {
+        $.c = $c;
+        $.c.inc();
     }
     
     destructor() {
-        if (!$.handler.val())
+        if (!$.c)
             return;
-
-        $.handler.counter.dec();
+        $.c.dec();
     }
 }
 
@@ -505,7 +560,7 @@ public class HttpServer::AbstractHttpRequestHandler {
 		$params = $cx;
         }
 
-        if (($api.logopt & HttpServer::LP_LEVELMASK) > 1 || !exists $cx.logfunc)
+        if (($api.logopt & HttpServer::LP_LEVELMASK) > 1 || !$cx.logfunc)
             return;
 
         my string $msg = $cx.method;
@@ -605,13 +660,10 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	$.errorlogger = $errorlogger;
 
 	#printf("HttpListener::constructor() hi=%y\n", $hi);
-	foreach my string $hk in (keys $hi) {
-	    my hash $h = $hi.$hk;
-	    $.handlers.setHandler($hk, $h.url, $h.content, $h.handler, $h.headers);
-	}
+        map $.handlers.setHandler($1.key, $1.value.url, $1.value.content, $1.value.handler, $1.value.headers), $hi.pairIterator();
 
 	# create SSL certificate and private key objects from PEM files if passed
-        if (exists $cert) {
+        if ($cert) {
 	    $.cert = $cert;
 	    $.setCertificate($.cert);
             $.key = $key;
@@ -708,7 +760,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 
     log() {
 	$argv[0] = sprintf("listener %s: %s", $.socket_info.desc, $argv[0]);
-	if (exists $.logger) {
+	if ($.logger) {
 	    $argv[0] = "HTTP " + $argv[0];
 	    call_function_args($.logger, $argv);
 	}
@@ -718,7 +770,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
     
     logError() {
 	$argv[0] = sprintf("listener %s: %s", $.socket_info.desc, $argv[0]);
-	if (exists $.errorlogger) {
+	if ($.errorlogger) {
 	    $argv[0] = "HTTP " + $argv[0];
 	    call_function_args($.errorlogger, $argv);
 	}
@@ -738,7 +790,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
             my hash $info;
 	    try {
                 $r = $.ssl ? $.acceptSSL(PollInterval) : $.accept(PollInterval);
-		if (!exists $r)
+		if (!$r)
 		    continue;
                 $info = $r.getPeerInfo();
 
@@ -754,7 +806,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	    if ($.exit)
 		break;
 
-	    if (!exists $r)
+	    if (!$r)
 		continue;
 
 	    # DEBUG
@@ -842,7 +894,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		# process ascii encodings in url if present
 		$hdr.path = decode_url($hdr.path);
 
-		if (exists $hdr.authorization)
+		if ($hdr.authorization)
 		    $cx.auth = $hdr.authorization;
 
 		$cx.encoding = $.getEncoding();
@@ -866,7 +918,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		}
 
                 # if no encoding is specified, then set iso-8859-1 according to RFC 2616 section 3.7.1
-                if (!exists $cx.encoding)
+                if (!$cx.encoding)
                     $.setEncoding($cx.encoding = "iso-8859-1"); 
 
 		# some simple logic to check if the content-encoding header is misused to specify the character encoding
@@ -875,7 +927,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		    delete $hdr."content-encoding";
 		}
 
-                if (exists $hdr."accept-charset") {
+                if ($hdr."accept-charset") {
                     $ct = split(",", $hdr."accept-charset");
                     trim $ct;
                     foreach my string $c in (\$ct) {
@@ -887,7 +939,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
                             break;
                         }
                     }
-                    if (!exists $cx."response-encoding")
+                    if (!$cx."response-encoding")
                         $cx."response-encoding" = $ct[0];
                 }
                 else 
@@ -925,7 +977,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
                     case "POST": {
                         if ($hdr."transfer-encoding" == "chunked") {
                             try {
-                                if (exists $hdr."content-encoding")
+                                if ($hdr."content-encoding")
                                     $hdr += $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
                                 else
                                     $hdr += $s.readHTTPChunkedBody(HttpServer::ReadTimeout);
@@ -951,7 +1003,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
                         }
                         else {
                             try {
-                                if (exists $hdr."content-encoding")
+                                if ($hdr."content-encoding")
                                     $body = $s.recvBinary($hdr."content-length", HttpServer::ReadTimeout);
                                 else
                                     $body = $s.recv($hdr."content-length", HttpServer::ReadTimeout);
@@ -1215,7 +1267,7 @@ public class HttpServer::HttpServer {
         if ($lp.url.typeCode() != NT_STRING)
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'url' entry in listener description giving the path; expecting type 'string', got type '%s'", $lp.url.type());
 
-	if (exists $lp.cert_path && !exists $lp.cert)
+	if ($lp.cert_path && !$lp.cert)
 	    $lp += HttpServer::getSSLObjects($lp.cert_path, $lp.key_path);
 
 	my hash $h.$name = ("url": $lp.url, "content": $lp.content_type, "handler": $handler, "headers": $lp.special_headers);
@@ -1238,7 +1290,7 @@ public class HttpServer::HttpServer {
         @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
      */
     hash addListener(softstring $sock, *string $cert_path, *string $key_path) {
-        if (!exists $cert_path)
+        if (!$cert_path)
             return $.addListenerIntern($sock).getInfo();
 
 	my hash $sd = HttpServer::getSSLObjects($cert_path, $key_path);
@@ -1310,7 +1362,7 @@ public class HttpServer::HttpServer {
         $.lm.enter();
         on_exit $.lm.exit();
 
-        if (!exists $.listeners.$id)
+        if (!$.listeners.$id)
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", $id);
 
         return $.listeners.$id.getInfo();
@@ -1369,7 +1421,7 @@ public class HttpServer::HttpServer {
 
         my *int $id = $.smap.$bind;
 
-	if (!exists $id)
+	if (!$id)
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with bind address %n", $bind);
 
         if (elements $.smap == 1)
@@ -1383,7 +1435,7 @@ public class HttpServer::HttpServer {
 	$.lm.enter();
 	on_exit $.lm.exit();
 
-	if (!exists $.listeners.$id)
+	if (!$.listeners.$id)
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", $id);
 
         if (elements $.smap == 1)
@@ -1396,21 +1448,23 @@ public class HttpServer::HttpServer {
     int getListenerTID(softint $id) {
 	return $.listeners.$id.tid;
     }
-    
+
     #! sets the default request handler when no other handler can be matched
     setDefaultHandler(string $name, AbstractHttpRequestHandler $obj) {
-	$.defaultHandler = ( "name" : $name,
-			     "obj"  : $obj );
+	$.defaultHandler = (
+            "name" : $name,
+            "obj"  : $obj,
+            );
     }
     
     #! sets a request handler according to the arguments given 
-    setHandler(string $name, string $url, any $content, AbstractHttpRequestHandler $obj, softlist $special_headers) {
-	$.handlers.setHandler($name, $url, $content, $obj, $special_headers);
+    setHandler(string $name, string $url, *string $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+	$.handlers.setHandler($name, $url, $content_type, $obj, $special_headers);
     }
 
     #! sets a dynamic request handler according to the arguments given 
-    setDynamicHandler(string $name, string $url, any $content, AbstractHttpRequestHandler $obj, softlist $special_headers) {
-	$.dhandlers.setHandler($name, $url, $content, $obj, $special_headers);
+    setDynamicHandler(string $name, string $url, *string $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+	$.dhandlers.setHandler($name, $url, $content_type, $obj, $special_headers);
     }
 
     #! remove dynamic handler
@@ -1420,7 +1474,7 @@ public class HttpServer::HttpServer {
 
     #! called to log information to the registered log code
     log() {
-	if (exists $.logfunc) {
+	if ($.logfunc) {
 	    $argv[0] = "HttpServer: " + $argv[0];
 	    call_function_args($.logfunc, $argv);
 	}
@@ -1428,7 +1482,7 @@ public class HttpServer::HttpServer {
     
     #! called to log error information to the registered error log code
     logError() {
-	if (exists $.errlogfunc) {
+	if ($.errlogfunc) {
 	    $argv[0] = "HttpServer: " + $argv[0];
 	    call_function_args($.errlogfunc, $argv);
 	}
@@ -1436,7 +1490,7 @@ public class HttpServer::HttpServer {
     
     #! calls the log function/closure with the given args
     logArgs(list $args = ()) {
-	if (exists $.logfunc) {
+	if ($.logfunc) {
 	    $args[0] = "HttpServer: " + $args[0];
 	    call_function_args($.logfunc, $args);
 	}
@@ -1444,7 +1498,7 @@ public class HttpServer::HttpServer {
     
     #! calls the error log function/closure with the given args
     logErrorArgs(list $args = ()) {
-	if (exists $.errlogfunc) {
+	if ($.errlogfunc) {
 	    $args[0] = "HttpServer: " + $args[0];
 	    call_function_args($.errlogfunc, $args);
 	}
@@ -1460,9 +1514,9 @@ public class HttpServer::HttpServer {
         on_exit if ($old_encoding != $s.getEncoding())
             $s.setEncoding($old_encoding);
 
-        if (!exists $encoding)
-            $encoding = tolower($s.getEncoding());
-        else if ($encoding != tolower($s.getEncoding()))
+        if (!$encoding)
+            $encoding = $s.getEncoding().lwr();
+        else if ($encoding != $s.getEncoding().lwr())
             $s.setEncoding($encoding);
 	
 	my hash $hdr = (
@@ -1494,19 +1548,19 @@ public class HttpServer::HttpServer {
     static string getURLFromBind(softstring $bind, *string $host) {
 	my hash $h = parse_url($bind);
 	# if there is only a port number, it will appear in the "host" key
-	if (elements $h == 1 && exists $h.host && int($h.host) == $h.host) {
+	if ($h.size() == 1 && $h.host && int($h.host) == $h.host) {
 	    $h.port = int($h.host);
 	    delete $h.host;
 	}
 
-	if (!exists $h.host)
-	    $h.host = (!exists $host || $host == gethostname()) ? "localhost" : $host;
+	if (!$h.host)
+	    $h.host = (!$host || $host == gethostname()) ? "localhost" : $host;
 
-	my string $login = exists $h.password ? ($h.password + ":") : "";    
-	if (exists $h.username)
+	my string $login = $h.password ? ($h.password + ":") : "";    
+	if ($h.username)
 	    $login += sprintf("%s@", $h.password);
 
-	return sprintf("%s://%s%s%s%s", exists $h.protocol ? $h.protocol : "http", 
+	return sprintf("%s://%s%s%s%s", $h.protocol ? $h.protocol : "http", 
 		       $login, 
 		       $h.host, 
 		       $h.port ? sprintf(":%d", $h.port) : "", 
@@ -1526,15 +1580,15 @@ public class HttpServer::HttpServer {
     #! @cond nodoc
     # don't reimplement this method; fix/enhance it in the module
     final private HttpListener addListenerIntern(string $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger) {
-        if (!exists $logger && exists $.logfunc)
+        if (!$logger && $.logfunc)
             $logger = $.logfunc;
-        if (!exists $errorlogger && exists $.errlogfunc)
+        if (!$errorlogger && $.errlogfunc)
             $errorlogger = $.errlogfunc;
 
 	$.lm.enter();
 	on_exit $.lm.exit();
 
-        if (exists $.smap.$sock)
+        if ($.smap.$sock)
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("cannot add listener on %n; there is already an existing listener with this bind address", $sock);
 
         $.c.inc();
@@ -1572,7 +1626,7 @@ public class HttpServer::HttpServer {
 
     # don't reimplement this method; fix/enhance it in the module
     final private list addINETListenersIntern(*string $node, softstring $service, hash $sd, *hash $lp, *code $logger, *code $errorlogger) {
-	if (exists $sd.cert_path && !exists $sd.cert)
+	if ($sd.cert_path && !$sd.cert)
 	    $sd += HttpServer::getSSLObjects($sd.cert_path, $sd.key_path);
 
         my list $al = getaddrinfo($node, $service, AF_UNSPEC, AIFlags);
@@ -1586,7 +1640,7 @@ public class HttpServer::HttpServer {
             try {
                 $l += $.addListenerIntern($bind, $sd.cert, $sd.key, $lp, $logger, $errorlogger).getInfo();
 		# exit after the first listener is bound if the node address is missing (= bind on all addresses)
-                if (!exists $node)
+                if (!$node)
 		    break;
             }
             catch ($ex) {
@@ -1618,7 +1672,7 @@ public class HttpServer::HttpServer {
     # don't reimplement this method; fix/enhance it in the module
     final handleRequest(HttpListener $listener, Socket $s, reference $cx, hash $hdr, *data $body, reference $close, bool $head = False) {
 	# handle accept-encoding to compress data if necessary        
-	if (exists $hdr."accept-encoding") {
+	if ($hdr."accept-encoding") {
 	    # remove all writespace
 	    $hdr."accept-encoding" =~ s/\s//g;
 	    my any $mq = 0;
@@ -1633,7 +1687,7 @@ public class HttpServer::HttpServer {
 		    continue;
 		# get q value
 		$q = $acc =~ x/;q=(.*)$/[0];
-		$q = exists $q ? float($q) : 1.0;
+		$q = $q ? float($q) : 1.0;
 		if ($q > $mq) {
 		    if ($enc =~ /x-/)
 			$enc =~ s/x-//;
@@ -1641,7 +1695,7 @@ public class HttpServer::HttpServer {
 		    $mq = $q;
 		}
 	    }
-	    if (exists $me)
+	    if ($me)
 		$cx.encoding = $me;
 	}
         # erase the encoding string on exit
@@ -1649,7 +1703,7 @@ public class HttpServer::HttpServer {
         
         # parse the path in the request
         my *hash $url = parseURL($hdr.path);
-	if (elements $url == 1 && exists $url.host)
+	if ($url.size() == 1 && $url.host)
 	    $url = ( "path" : $url.host );
 
 	# add logging functions and url
@@ -1662,26 +1716,26 @@ public class HttpServer::HttpServer {
 	# find a handler for the request
         my HandlerCleanupHelper $hch();
 
-	my *hash $h;
+	my *HandlerInfo $hi;
 	if (!$listener.handlers.empty()) {
-	    $h = $listener.handlers.findHandler($url, $hdr, $hch, True);
-	    if (!exists $h) {
+	    $hi = $listener.handlers.findHandler($url, $hdr, True);
+	    if (!$hi) {
 		$.sendHttpError($s, 404, "Not found", $close, NOTHING, $cx."response-encoding");
 		return;
 	    }
 	}
 	else {
-	    $h = $.handlers.findHandler($url, $hdr, $hch);
-	    if (!exists $h)
-		$h = $.dhandlers.findHandler($url, $hdr, $hch);
+	    $hi = $.handlers.findHandler($url, $hdr);
+	    if (!$hi)
+		$hi = $.dhandlers.findHandler($url, $hdr, $hch);
 	}
 
         my AbstractHttpRequestHandler $handler;
 	my string $handlerName;
 
-        if (exists $h) {
-            $handler = $h.handler;
-            $handlerName = $h.handlerName;
+        if ($hi) {
+            $handler = $hi.obj;
+            $handlerName = $hi.name;
         }
 
 	try {
@@ -1690,16 +1744,16 @@ public class HttpServer::HttpServer {
 	    #printf("HTTP DEBUG: handler=%n: context=%n, hdr=%n, body=%n\n", $handlerName, $cx, $hdr, $body);
 	    #printf("HTTP DEBUG: BEFORE handler=%s", dbg_node_info($.handlers.$handlerName));
 
-            if (!exists $handler && exists $.defaultHandler) {
+            if (!$handler && $.defaultHandler) {
                 $handler = $.defaultHandler.obj;
                 $handlerName = $.defaultHandler.name;
             }
 
-            if (exists $handler) {
+            if ($handler) {
 		# check for authentication info
                 #printf("HTTP DEBUG: handler: %y (auth: %y) hdr: %y\n", $handlerName, exists $handler.auth && $handler.auth.requiresAuthentication(), $hdr);
-		if (exists $handler.auth && $handler.auth.requiresAuthentication()) {
-		    if (exists $hdr.authorization) {
+		if ($handler.auth && $handler.auth.requiresAuthentication()) {
+		    if ($hdr.authorization) {
 			if ($hdr.authorization !~ /basic /i) {
 			    $.sendHttpError($s, 401, "Only basic authentication is supported", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())), $cx."response-encoding");
                             return;
@@ -1750,7 +1804,7 @@ public class HttpServer::HttpServer {
 		}
 
                 # handle content-encoding according to handler settings
-                if (exists $hdr."content-encoding" && $handler.decompress) {
+                if ($hdr."content-encoding" && $handler.decompress) {
                     #printf("HTTP DEBUG: context=%n\nhdr=%n\nSHA1(body)=%n, body=%N\n", $cx, $hdr, SHA1($body), $body);
                     try {
                         switch ($hdr."content-encoding") {
@@ -1808,7 +1862,7 @@ public class HttpServer::HttpServer {
 
             $rv.close = $close;
 
-	    if (!exists HttpCodes.($rv.code)) { # if the handler returns an invalid hash
+	    if (!HttpCodes.($rv.code)) { # if the handler returns an invalid hash
 		my string $str = sprintf("%s handler returned an invalid response rv: %y", $handlerName, $rv);
                 
 		$.sendHttpError($s, 500, $str, $close, NOTHING, $cx."response-encoding");
@@ -1830,7 +1884,7 @@ public class HttpServer::HttpServer {
                 $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
             }
             else if ($rv.code != 200) {
-		if (!exists $rv.body)
+		if (!$rv.body)
 		    $rv.body = sprintf("unknown error in %s handler", $handlerName);
 		
 		$.sendHttpError($s, $rv.code, $rv.body, $close, NOTHING, $cx."response-encoding");
@@ -1843,21 +1897,21 @@ public class HttpServer::HttpServer {
 		else
 		    $rv.hdr.Connection = "Keep-Alive";
 
-		if (!exists $rv.hdr.Date) # RFC 2616 sec 14.18 date format
+		if (!$rv.hdr.Date) # RFC 2616 sec 14.18 date format
 		    $rv.hdr.Date = format_date("Dy, DD Mon YYYY HH:mm:SS", gmtime()) + " GMT";
 
-		if (!exists $rv.hdr.Server)
+		if (!$rv.hdr.Server)
 		    $rv.hdr.Server = $.httpserverstring;
 
                 my string $old_encoding = $s.getEncoding();
                 on_exit if ($s.getEncoding() != $old_encoding)
                     $s.setEncoding($old_encoding);
-                if (!exists $cx."response-encoding")
+                if (!$cx."response-encoding")
                     $cx."response-encoding" = tolower($s.getEncoding());
                 else if ($cx."response-encoding" != tolower($s.getEncoding()))
                     $s.setEncoding($cx."response-encoding");
 
-                if (!exists $rv.hdr."Content-Type")
+                if (!$rv.hdr."Content-Type")
                     $rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + $cx."response-encoding";
                 else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING))
                     $rv.hdr."Content-Type" += ";charset=" + $cx."response-encoding";
@@ -1884,9 +1938,9 @@ public class HttpServer::HttpServer {
 		}
 	    }
 	    
-	    if (exists $rv.log)
+	    if ($rv.log)
 		$listener.log("%s (from %s): %s", $handlerName, $cx."peer-info".address_desc, $rv.log);
-	    if (exists $rv.errlog)
+	    if ($rv.errlog)
 		$listener.logError("%s (from %s): %s", $handlerName, $cx."peer-info".address_desc, $rv.errlog);
 	}
 	catch (hash $ex) {
