@@ -638,7 +638,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
       if (pgm) {
          // check parse options
          int64 po = pgm->getParseOptions64();
-         if (variant->getFunctionality() && po) {
+         if (variant->getFunctionality() & po) {
             //printd(5, "QoreFunction::findVariant() this=%p %s(%s) getProgram()=%p getProgram()->getParseOptions64()=%x variant->getFunctionality()=%x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions64(), variant->getFunctionality());
             if (!only_user) {
                const char* class_name = className();
