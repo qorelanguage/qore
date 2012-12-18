@@ -408,6 +408,9 @@ public:
    // used to capture the module defnition in user modules
    QoreModuleDefContext* qmd;
 
+   bool
+   foreign : 1; // true if the thread is a foreign thread
+
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
       parse_line_start(0), parse_line_end(0), parse_file(0), 
@@ -417,7 +420,7 @@ public:
       current_pgm(p), current_ns(0), current_implicit_arg(0), tlpd(0), tpd(new ThreadProgramData(this)),
       closure_parse_env(0), closure_rt_env(0), 
       returnTypeInfo(0), element(0), global_vnode(0),
-      qmc(0), qmd(0) {
+      qmc(0), qmd(0), foreign(false) {
  
 #ifdef QORE_MANAGE_STACK
 
@@ -1565,20 +1568,81 @@ void delete_signal_thread() {
 }
 
 // should only be called from the new thread
-void register_thread(int tid, pthread_t ptid, QoreProgram *p) {
+ThreadData* register_thread(int tid, pthread_t ptid, QoreProgram *p) {
    thread_list[tid].ptid = ptid;
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    thread_list[tid].callStack = new CallStack();
 #endif
-   ThreadData *td = new ThreadData(tid, p);
+   ThreadData* td = new ThreadData(tid, p);
    thread_data.set(td);
    // set lvstack if QoreProgram set
    if (p)
       td->tpd->saveProgram(true);
+   return td;
 }
 
 static void qore_thread_cleanup(void* n) {
    mpfr_free_cache();
+}
+
+int q_register_foreign_thread() {
+   // see if the current thread has already been registered
+   ThreadData* td = thread_data.get();
+   if (td)
+      return QFT_REGISTERED;
+
+   // get a TID for the new thread
+   int tid = get_thread_entry();
+
+   if (tid == -1)
+      return QFT_ERROR;
+
+   td = register_thread(tid, pthread_self(), 0);
+   td->foreign = true;
+
+   return QFT_OK;
+}
+
+bool q_deregister_foreign_thread() {
+   ThreadData* td = thread_data.get();
+   if (!td || !td->foreign)
+      return false;
+
+   ExceptionSink xsink;
+
+   // delete any thread data
+   td->del(&xsink);
+
+   // cleanup thread resources
+   purge_thread_resources(&xsink);
+
+   xsink.handleExceptions();
+
+   // save tid for freeing the thread entry later
+   int tid = td->tid;
+
+   // delete internal thread data structure
+   delete_thread_data();
+
+   // release the thread entry
+   deregister_thread(tid);
+
+   // run any thread cleanup functions
+   tclist.exec();
+
+   qore_thread_cleanup(0);
+
+   return true;
+}
+
+class qore_foreign_thread_priv {};
+
+QoreForeignThreadHelper::QoreForeignThreadHelper() : priv(!q_register_foreign_thread() ? (qore_foreign_thread_priv*)1 : 0) {
+}
+
+QoreForeignThreadHelper::~QoreForeignThreadHelper() {
+   if (priv)
+      q_deregister_foreign_thread();
 }
 
 // put "op_background_thread" in an unnamed namespace to make it 'static extern "C"'
