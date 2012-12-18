@@ -634,21 +634,24 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
    else if (variant) {
       QoreProgram* pgm = getProgram();
 
-      // check parse options
-      if (qore_program_private::parseAddDomain(pgm, variant->getFunctionality())) {
-	 //printd(5, "QoreFunction::findVariant() this=%p %s(%s) getProgram()=%p getProgram()->getParseOptions64()=%x variant->getFunctionality()=%x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions64(), variant->getFunctionality());
-	 if (!only_user) {
-	    const char* class_name = className();
-	    xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin %s '%s%s%s(%s)'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", getName(), variant->getSignature()->getSignatureText());
-	 }
-	 return 0;
-      }
+      // pgm could be zero if called from a foreign thread with no current Program
+      if (pgm) {
+         // check parse options
+         int64 po = pgm->getParseOptions64();
+         if (variant->getFunctionality() && po) {
+            //printd(5, "QoreFunction::findVariant() this=%p %s(%s) getProgram()=%p getProgram()->getParseOptions64()=%x variant->getFunctionality()=%x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions64(), variant->getFunctionality());
+            if (!only_user) {
+               const char* class_name = className();
+               xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin %s '%s%s%s(%s)'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", getName(), variant->getSignature()->getSignatureText());
+            }
+            return 0;
+         }
 
-      int64 po = pgm->getParseOptions64();
-      if (po & (PO_REQUIRE_TYPES | PO_STRICT_ARGS) && variant->getFlags() & QC_RUNTIME_NOOP) {
-	 QoreStringNode* desc = getNoopError(this, aqf, variant);
-	 desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
-	 xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
+         if (po & (PO_REQUIRE_TYPES | PO_STRICT_ARGS) && variant->getFlags() & QC_RUNTIME_NOOP) {
+            QoreStringNode* desc = getNoopError(this, aqf, variant);
+            desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
+            xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
+         }
       }
    }
 

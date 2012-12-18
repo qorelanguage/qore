@@ -2287,7 +2287,7 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, Exceptio
    if (!(w = findMethod(nme, priv_flag)) && !(w = findStaticMethod(nme, priv_flag)))
       return 0;
 
-   //printd(5, "QoreClass::evalMethod() %s::%s() found method %p class %s\n", name.c_str(), nme, w, w->getClassName());
+   //printd(5, "QoreClass::getMethodForEval() %s::%s() found method %p class %s\n", name.c_str(), nme, w, w->getClassName());
 
    // check for illegal explicit call
    if (w == constructor || w == destructor || w == deleteBlocker) {
