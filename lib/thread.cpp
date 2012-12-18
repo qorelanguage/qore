@@ -1545,6 +1545,7 @@ int get_thread_entry() {
 
 static void delete_thread_data() {
    delete thread_data.get();
+   thread_data.set(0);
 }
 
 void deregister_thread(int tid) {
