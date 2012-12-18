@@ -372,6 +372,24 @@ class HttpServer::DynamicHandlerInfo inherits HttpServer::HandlerInfo {
     }
 }
 
+# maintains the request count for dynamic handlers (private)
+class HttpServer::DynamicHandlerHelper {
+    public {}
+
+    private {
+        Counter $.c;
+    }
+
+    constructor(Counter $c) {
+        $.c = $c;
+        $c.inc();
+    }
+    
+    destructor() {
+        $.c.dec();
+    }
+}
+
 # for dynamic handler-handling (private)
 class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
     private {
@@ -414,36 +432,16 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
         $c.waitForZero();
     }
 
-    *DynamicHandlerInfo findHandler(*hash $url, hash $hdr, HandlerCleanupHelper $hch, bool $final = False) {
+    *DynamicHandlerInfo findHandler(*hash $url, hash $hdr, reference $dhh) {
         $.dhl.readLock();
         on_exit $.dhl.readUnlock();
 
-        my *DynamicHandlerInfo $h = HttpHandlerList::$.findHandler($url, $hdr, $final);
+        my *DynamicHandlerInfo $h = HttpHandlerList::$.findHandler($url, $hdr);
         if (!$h)
             return;
 
-        $hch.set($h.counter);
+        $dhh = new DynamicHandlerHelper($h.counter);
         return $h;
-    }
-}
-
-# for cleaning up after requests made to dynamic handlers (private)
-class HttpServer::HandlerCleanupHelper {
-    public {}
-
-    private {
-        Counter $.c;
-    }
-
-    set(Counter $c) {
-        $.c = $c;
-        $.c.inc();
-    }
-    
-    destructor() {
-        if (!$.c)
-            return;
-        $.c.dec();
     }
 }
 
@@ -1058,7 +1056,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 public class HttpServer::HttpServer {
     public {
         #! version of the HttpServer's implementation
-        const Version = "0.3.4";
+        const Version = "0.3.6";
         #! default read timeout in ms
         const ReadTimeout = 30000;  # recvs timeout after 30 seconds
         #! default poll timeout in ms
@@ -1714,7 +1712,8 @@ public class HttpServer::HttpServer {
 	    );
 
 	# find a handler for the request
-        my HandlerCleanupHelper $hch();
+        # the dynamic handler helper maintains the request count for dynamic handlers so any call to remove the handler will only return after all in-progress requests are completed; the object is only allocated if needed
+        my DynamicHandlerHelper $dhh;
 
 	my *HandlerInfo $hi;
 	if (!$listener.handlers.empty()) {
@@ -1727,7 +1726,7 @@ public class HttpServer::HttpServer {
 	else {
 	    $hi = $.handlers.findHandler($url, $hdr);
 	    if (!$hi)
-		$hi = $.dhandlers.findHandler($url, $hdr, $hch);
+		$hi = $.dhandlers.findHandler($url, $hdr, \$dhh);
 	}
 
         my AbstractHttpRequestHandler $handler;
