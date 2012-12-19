@@ -37,6 +37,8 @@
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/conf.h>
+#include <openssl/engine.h>
 
 #ifdef DARWIN
 #include <crt_externs.h>
@@ -151,7 +153,14 @@ void qore_cleanup() {
    delete_qore_threads();
 
    // cleanup openssl library
-   EVP_cleanup();
    ERR_free_strings();
+
+   ENGINE_cleanup();
+   EVP_cleanup();
+
+   CONF_modules_finish();
+   CONF_modules_free();
+   CONF_modules_unload(1);
+
    CRYPTO_cleanup_all_ex_data();
 }
