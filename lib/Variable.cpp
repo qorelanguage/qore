@@ -359,6 +359,10 @@ double LValueHelper::getAsFloat() const {
 }
 
 int LValueHelper::assign(AbstractQoreNode* n, const char* desc) {
+   // before we can entirely get rid of QoreNothingNode, try to convert pointers to NOTHING to 0
+   if (n == &Nothing)
+      n = 0;
+
    // check type for assignment
    n = typeInfo->acceptAssignment(desc, n, vl.xsink);
    if (*vl.xsink) {

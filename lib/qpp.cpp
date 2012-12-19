@@ -716,8 +716,9 @@ static void add_init_code(FILE* fp) {
 #define T_HASH       4
 #define T_BIN        5
 #define T_FUNC       6
-#define T_QORE       7
-#define T_OTHER      8
+#define T_RELDATE    7
+#define T_QORE       8
+#define T_OTHER      9
 static int get_val_type(const std::string &str) {
    if (!str.empty()) {
       size_t lc = str.size() - 1;
@@ -745,7 +746,8 @@ static int get_val_type(const std::string &str) {
    bool pint = false,  // has integers
       pucus = false,   // has uppercase and/or underscore chars
       pdec = false,    // has a decimal point
-      poth = false;    // has other chars
+      poth = false,    // has other chars
+      ptrrd = false;   // is an integer with trailing relative date chars
 
    size_t start = 0;
    if (str[0] == '-') {
@@ -754,16 +756,25 @@ static int get_val_type(const std::string &str) {
    }
    for (size_t i = start, e = str.size(); i != e; ++i) {
       char c = str[i];
-      if (isdigit(c))
-         pint = true;
-      else if (isupper(c) || c == '_' || (i != start && islower(c)))
-         pucus = true;
-      else if (c == '.')
-         pdec = true;
-      else
-         poth = true;
+      if (!pucus && pint && !pdec && !poth && (c == 'm' || c == 's'))
+         ptrrd = true;
+      else {
+         if (ptrrd)
+            ptrrd = false;
+
+         if (isdigit(c))
+            pint = true;
+         else if (isupper(c) || c == '_' || (i != start && islower(c)))
+            pucus = true;
+         else if (c == '.')
+            pdec = true;
+         else
+            poth = true;
+      }
    }
 
+   if (ptrrd)
+      return T_RELDATE;
    if (poth)
       return T_OTHER;
    if (pdec)
@@ -811,6 +822,36 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
    
    int t = get_val_type(qv);
    switch (t) {
+      case T_RELDATE: {
+         int val = atoi(qv.c_str());
+         size_t len = qv.size();
+         char lc = qv[len - 1];
+         v = "DateTimeNode::makeRelative(0, 0, 0, 0, ";
+         if (qv[len - 2] == 'm' && lc == 's') {
+            v += "0, 0, ";
+            char buf[20];
+            sprintf(buf, "%d", val * 1000);
+            v += buf;
+         }
+         else {
+            char buf[20];
+            sprintf(buf, "%d", val);
+            if (lc == 's') {
+               v += "0, ";
+               v += buf;
+               v += ", 0";
+            }
+            else if (lc == 'm') {
+               v += buf;
+               v += ", 0, 0";
+            }
+            else
+               error("cannot interpret relative date/time value '%s'\n", qv.c_str());
+         }
+         v += ")";
+
+         return 0;
+      }
       case T_INT: {
          v = "new QoreBigIntNode(";
          v += qv;

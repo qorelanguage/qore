@@ -210,6 +210,9 @@ AbstractQoreNode **QoreListNode::getExistingEntryPtr(qore_size_t num) {
 }
 
 void QoreListNode::set_entry(qore_size_t index, AbstractQoreNode *val, ExceptionSink *xsink) {
+   // before we can entirely get rid of QoreNothingNode, try to convert pointers to NOTHING to 0
+   if (val == &Nothing)
+      val = 0;
    AbstractQoreNode **v = get_entry_ptr(index);
    if (*v)
       (*v)->deref(xsink);
