@@ -145,8 +145,16 @@ DLLEXPORT extern int qore_min_mod_api_minor;
 //! a string giving information about the MPFR library used by the qore library
 DLLEXPORT extern const QoreStringMaker mpfrInfo;
 
-#define QLO_NONE                    0       //!< no options (default)
-#define QLO_DISABLE_SIGNAL_HANDLING 1 << 0  //!< disable qore signal handling entirely
+#define QLO_NONE                             0   //!< no options (default)
+#define QLO_DISABLE_SIGNAL_HANDLING    (1 << 0)  //!< disable qore signal handling entirely
+#define QLO_DISABLE_OPENSSL_INIT       (1 << 1)  //!< do not initialize the openssl library (= is initialized before the qore library is initialized)
+#define QLO_DISABLE_OPENSSL_CLEANUP    (1 << 2)  //!< do not perform cleanup on the openssl library (= is cleaned up manually)
+
+//! do not perform any initialization or cleanup of the openssl library (= is performed outside of the qore library)
+#define QLO_DISABLE_OPENSSL_INIT_CLEANUP (QLO_DISABLE_OPENSSL_INIT|QLO_DISABLE_OPENSSL_CLEANUP)
+
+//! mask of qore library init options that affect qore library cleanup (ie settable with qore_set_library_cleanup_options())
+#define QLO_CLEANUP_MASK (QLO_DISABLE_OPENSSL_CLEANUP)
 
 //! initializes the Qore library
 /** @param license the license that the library will be used under; note that if the license type is QL_LGPL, then modules tagged with QL_GPL cannot be loaded 
@@ -166,6 +174,19 @@ DLLEXPORT void qore_init(qore_license_t license = QL_GPL, const char* default_en
     @see qore_init()
  */
 DLLEXPORT void qore_cleanup();
+
+//! returns the current library options
+/** this function could be checked, for example, if performing external openssl cleanup, if a module has set QLO_DISABLE_OPENSSL_CLEANUP,
+    for example, indicating that the openssl library has already been cleaned up, meaning that the cleanup should also not be performed
+    externally.
+ */
+DLLEXPORT int qore_get_library_init_options();
+
+//! the given options will be combined with binary or to the library init options; only options that affect library cleanup are settable; returns the new library init option mask
+DLLEXPORT int qore_set_library_cleanup_options(int options);
+
+//! returns true if all the bits set in the argument are also set in the qore library init option variable
+DLLEXPORT bool qore_check_option(int opt);
 
 #include <qore/support.h>
 

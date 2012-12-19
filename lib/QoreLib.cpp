@@ -1666,3 +1666,15 @@ bool q_parse_bool(const char* str) {
 
    return (bool)atoi(str);
 }
+
+int qore_get_library_init_options() {
+   return qore_library_options;
+}
+
+int qore_set_library_cleanup_options(int options) {
+   return (qore_library_options |= (options & QLO_CLEANUP_MASK));
+}
+
+bool qore_check_option(int opt) {
+   return (qore_library_options & opt) == opt;
+}

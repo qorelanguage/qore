@@ -61,10 +61,14 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    qore_library_options = n_qore_library_options;
 
    // initialize openssl library
-   SSL_load_error_strings();
-   OpenSSL_add_all_algorithms();
-   SSL_load_error_strings();
-   SSL_library_init();
+   if (!qore_check_option(QLO_DISABLE_OPENSSL_INIT)) {
+      OPENSSL_config(0);
+      SSL_load_error_strings();
+      OpenSSL_add_all_algorithms();
+      SSL_load_error_strings();
+      SSL_library_init();
+      ERR_load_crypto_strings();
+   }
 
    QoreHTTPClient::static_init();
 
@@ -97,6 +101,7 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    pseudo_classes_init();
 
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+   // do windows socket initialization
    WORD wsver = MAKEWORD(2, 2);
    WSADATA wsd;
    int err = WSAStartup(wsver, &wsd);
@@ -114,6 +119,7 @@ void qore_cleanup() {
    QMM.delUser();
 
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+   // do windows socket cleanup
    WSACleanup();
 #endif
 
@@ -152,15 +158,18 @@ void qore_cleanup() {
    // delete threading infrastructure
    delete_qore_threads();
 
-   // cleanup openssl library
-   ERR_free_strings();
+   // only perform openssl cleanup if not performed externally
+   if (!qore_check_option(QLO_DISABLE_OPENSSL_CLEANUP)) {
+      // cleanup openssl library
+      ERR_free_strings();
 
-   ENGINE_cleanup();
-   EVP_cleanup();
+      ENGINE_cleanup();
+      EVP_cleanup();
 
-   CONF_modules_finish();
-   CONF_modules_free();
-   CONF_modules_unload(1);
+      CONF_modules_finish();
+      CONF_modules_free();
+      CONF_modules_unload(1);
 
-   CRYPTO_cleanup_all_ex_data();
+      CRYPTO_cleanup_all_ex_data();
+   }
 }
