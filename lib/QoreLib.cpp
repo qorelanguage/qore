@@ -33,7 +33,7 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
-#include <string.h>
+#include <strings.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -346,11 +346,27 @@ const qore_option_s qore_option_list_l[] = {
    },
 };
 
-const qore_option_s *qore_option_list = qore_option_list_l;
+const qore_option_s* qore_option_list = qore_option_list_l;
 
 #define QORE_OPTION_LIST_SIZE (sizeof(qore_option_list_l) / sizeof(qore_option_s))
 
 size_t qore_option_list_size = QORE_OPTION_LIST_SIZE;
+
+bool q_get_option_value(const char* opt) {
+   for (unsigned i = 0; i < QORE_OPTION_LIST_SIZE; ++i) {
+      if (!strcasecmp(opt, qore_option_list_l[i].option))
+         return qore_option_list_l[i].value;
+   }
+   return false;
+}
+
+bool q_get_option_constant_value(const char* opt) {
+   for (unsigned i = 0; i < QORE_OPTION_LIST_SIZE; ++i) {
+      if (!strcasecmp(opt, qore_option_list_l[i].constant))
+         return qore_option_list_l[i].value;
+   }
+   return false;
+}
 
 static inline int get_number(char* *param) {
    int num = 0;

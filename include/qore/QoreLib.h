@@ -404,13 +404,11 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 
 //! definition of the elements in the qore_option_list
 struct qore_option_s {
-   const char *option;   //!< name of the option
-   const char *constant; //!< name of the constant for this option
+   const char* option;   //!< name of the option
+   const char* constant; //!< name of the constant for this option
    int type;             //!< the type of the option
    bool value;           //!< the value of the option
 };
-
-//const char *qore_get_option_list();
 
 //! returns the error string as a QoreStringNode
 DLLEXPORT QoreStringNode *q_strerror(int errnum);
@@ -506,5 +504,11 @@ public:
    DLLEXPORT QoreForeignThreadHelper();
    DLLEXPORT ~QoreForeignThreadHelper();
 };
+
+//! returns the boolean value of qore library the given option name; false if the option is unknown
+DLLEXPORT bool q_get_option_value(const char* opt);
+
+//! returns the boolean value of qore library the given name of the constant for the option; false if the option constant name is unknown
+DLLEXPORT bool q_get_option_constant_value(const char* opt);
 
 #endif // _QORE_QORELIB_H
