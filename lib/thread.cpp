@@ -1894,10 +1894,12 @@ void delete_qore_threads() {
    delete thread_stack_lock;
 #endif
 #endif
+
+   qore_thread_cleanup(0);
 }
 
 QoreListNode* get_thread_list() {
-   QoreListNode* l = new QoreListNode();
+   QoreListNode* l = new QoreListNode;
 
    AutoLocker al(lThreadList);
    tid_node* w = tid_head;
@@ -1918,7 +1920,7 @@ extern QoreRWLock thread_stack_lock;
 #endif
 
 QoreHashNode* getAllCallStacks() {
-   QoreHashNode* h = new QoreHashNode();
+   QoreHashNode* h = new QoreHashNode;
    QoreString str;
 
    // grab the call stack write lock
