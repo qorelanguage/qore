@@ -153,4 +153,5 @@ void qore_cleanup() {
    // cleanup openssl library
    EVP_cleanup();
    ERR_free_strings();
+   CRYPTO_cleanup_all_ex_data();
 }

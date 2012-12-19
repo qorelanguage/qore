@@ -1584,6 +1584,7 @@ ThreadData* register_thread(int tid, pthread_t ptid, QoreProgram *p) {
 
 static void qore_thread_cleanup(void* n) {
    mpfr_free_cache();
+   ERR_remove_state(0);
 }
 
 int q_register_foreign_thread() {
