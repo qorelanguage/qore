@@ -159,7 +159,7 @@ bool VarRefNode::boolEvalImpl(ExceptionSink *xsink) const {
    if (type == VT_IMMEDIATE)
       return ref.cvv->boolEval(xsink);
 
-   return (bool)ref.var->bigIntEval();
+   return (bool)ref.var->boolEval();
 }
 
 double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const {

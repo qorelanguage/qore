@@ -157,6 +157,7 @@ public:
 
    DLLLOCAL AbstractQoreNode* eval() const;
    DLLLOCAL AbstractQoreNode* eval(bool& needs_deref) const;
+   DLLLOCAL bool boolEval() const;
    DLLLOCAL int64 bigIntEval() const;
    DLLLOCAL double floatEval() const;
 
