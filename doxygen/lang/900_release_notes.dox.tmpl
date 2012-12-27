@@ -29,8 +29,8 @@
 
     @subsection qore_087_new_features New Features in Qore
     - new methods offering code encapsulation enhancements
-      - @ref Qore::Program::loadModule() "Program::loadModule()": allows modules to be loaded in a Program object directly
-      - @ref Qore::Program::importClass() "Program::importClass()": allows classes to be individually imported in Program objects
+      - @ref Qore::Program::loadModule() "Program::loadModule()": allows modules to be loaded in a @ref Qore::Program "Program" object directly
+      - @ref Qore::Program::importClass() "Program::importClass()": allows classes to be individually imported in @ref Qore::Program "Program" objects
     - new pseudo-methods in @ref Qore::zzz8nothingzzz9 to allow for @ref Qore::zzz8hashzzz9 pseudo-methods to be safely used with @ref nothing
       - <nothing>::firstKey()
       - <nothing>::firstValue()
@@ -50,10 +50,18 @@
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module improvements:
       - added automatic recognition and support of the \c "STARTTLS" command when connecting to an ESMTP server; this way
         the class will automatically upgrade the connection to a secure TLS/SSL connection if the server supports it
-      - added support for SMTP server URLs in the constructor (ex: \c "esmtptls://user@password:smtp.example.com")
-      - added support for the deprecated-but-still-in-use \c "smtps" protocol with a default port of 465
+      - added support for SMTP server schemes in the URL in the constructor (ex: \c "esmtptls://user@password:smtp.example.com")
+      - added support for the deprecated (but still in use) \c "smtps" scheme with a default port of 465
       - when throwing an exception when a Message cannot be sent because it is incomplete, the reason for the error is also included
         in the exception (previously the exception message was generic making problems with the Message object harder to debug)
+    - C++ API Enhancements
+      - added C++ APIs to allow for %Qore @ref Qore::File "File" and @ref Qore::Thread::Queue "Queue" object arguments to be used by modules
+      - added c++ APIs for controlling openssl initialiazion and cleanup by the qore library
+      - extended qpp to allow for parsing relative dates in qpp qore for assignments/default argument values
+      - made it possible to call the C++ function QoreFunction::findVariable() from threads where there is no current QoreProgram object
+        (such as from a thread created by foreign code)
+      - added APIs to allow foreign threads to be registered/deregistered as %Qore threads (for example, to allow %Qore code to be called
+        in a callback in a foreign thread created by a library linked with a %Qore binary module)
 
     @subsection qore_087_bug_fixes Bug Fixes in Qore
     - fixed a runtime class matching bug when identical user classes were created in different @ref Qore::Program "Program" objects,
@@ -67,9 +75,14 @@
     - a potential deadlock was fixed when calling @ref Qore::exit() "exit()" while background threads were running; it was
       possible for a thread to be canceled while holding a @ref Qore::Thread::Mutex "Mutex" (for example) and then for another
       thread to deadlock trying to acquire the @ref Qore::Thread::Mutex "Mutex" and therefore for the process to deadlock because
-      pthread_mutex_lock() is not a cancellation point.\n\n
-      The solution was to cancel all threads first, then wait half a second, then call exit()\n\n
-      
+      pthread_mutex_lock() is not a cancellation point. The solution was to cancel all threads first, then wait half a second, then call exit()
+    - fixed a bug where global variables were being evaluated with strict mathematical boolean evaluation even when @ref perl-bool-eval
+      "%perl-bool-eval" was enabled (which is the default)
+    - fixed runtime dynamic memory leaks in the @ref select and @ref map operators when used with iterators
+    - do thread-specific cleanup in the main thread when cleaning up/shutting down the qore library
+    - added additional openssl cleanup code for thread-local data and when cleaning up the qore library
+    - fixed a bug matching function/method variants at runtime
+    - fixed a race condition deleting global dynamic handlers in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
 
     @section qore_0862 Qore 0.8.6.2
 
