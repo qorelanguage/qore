@@ -9,6 +9,7 @@
 
     @subsection qore_087_compatibility Changes That Can Affect Backwards-Compatibility
     @par Fixes for Code Inheritance in Program Objects
+    The following changes are meant to sanitize code inheritance in child @ref Qore::Program "Program" objects to fix long-standing design bugs in code encapsulation by addressing the lack of fine-grained control over symbol visibility in inherited code.
     - @ref mod_public "public": The @ref mod_public "public" keyword's usage in modules has now been expanded 
       to provide the same functionality generically in @ref Qore::Program "Program" objects; if @ref qore_classes "classes",
       @ref constants "constants", @ref qore_namespaces "namespaces", @ref qore_functions "functions", or 
