@@ -17,7 +17,7 @@
       it.\n\n
       This change was made to give programmers complete control over which symbols are inherited in child
       @ref Qore::Program "Program" objects, whereas because prior to this change, the control was very course.\n\n
-    - the default behavior of Qore regarding inherting global variables and functions with user variants was changed to be
+    - the default behavior of %Qore regarding inherting global variables and functions with user variants was changed to be
       consistent with namespaces, classes, and constants; that is; public symbols are inherited by default.\n\n
       The following constants were renamed:
       - <tt>PO_INHERIT_USER_FUNC_VARIANTS</tt> is now: @ref Qore::PO_NO_INHERIT_USER_FUNC_VARIANTS "PO_NO_INHERIT_USER_FUNC_VARIANTS"
@@ -56,8 +56,8 @@
         in the exception (previously the exception message was generic making problems with the Message object harder to debug)
     - C++ API Enhancements
       - added C++ APIs to allow for %Qore @ref Qore::File "File" and @ref Qore::Thread::Queue "Queue" object arguments to be used by modules
-      - added c++ APIs for controlling openssl initialiazion and cleanup by the qore library
-      - extended qpp to allow for parsing relative dates in qpp qore for assignments/default argument values
+      - added c++ APIs for controlling openssl initialization and cleanup by the qore library
+      - extended qpp to allow for parsing relative dates in qpp code for assignments/default argument values
       - made it possible to call the C++ function QoreFunction::findVariable() from threads where there is no current QoreProgram object
         (such as from a thread created by foreign code)
       - added APIs to allow foreign threads to be registered/deregistered as %Qore threads (for example, to allow %Qore code to be called
@@ -399,7 +399,7 @@ class MyAbstractInterface {
       - @ref Qore::AbstractQuantifiedIterator "AbstractQuantifiedIterator"
       - @ref Qore::AbstractBidirectionalIterator "AbstractBidirectionalIterator"
       - @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator"
-    - @ref Qore::Thread::AbstractSmartLock "AbstractSmartLock" (which was already present in Qore but now implements abstract methods)
+    - @ref Qore::Thread::AbstractSmartLock "AbstractSmartLock" (which was already present in %Qore but now implements abstract methods)
     .
     The following new iterator classes have been added to %Qore:
     - @ref Qore::HashIterator "HashIterator"
