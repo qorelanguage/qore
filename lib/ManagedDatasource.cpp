@@ -215,7 +215,7 @@ AbstractQoreNode *ManagedDatasource::selectRows(const QoreString *query_str, con
 }
 
 AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
-   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NONE : DAH_ACQUIRE);
+   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NOCHANGE : DAH_ACQUIRE);
    if (!dbah)
       return 0;
 
@@ -225,7 +225,7 @@ AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, const Qor
 }
 
 AbstractQoreNode *ManagedDatasource::execRaw(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
-   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NONE : DAH_ACQUIRE);
+   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NOCHANGE : DAH_ACQUIRE);
    if (!dbah)
       return 0;
 
@@ -234,7 +234,7 @@ AbstractQoreNode *ManagedDatasource::execRaw(const QoreString *query_str, const 
 
 
 bool ManagedDatasource::beginTransaction(ExceptionSink *xsink) {
-   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NONE : DAH_ACQUIRE);
+   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NOCHANGE : DAH_ACQUIRE);
    if (!dbah)
       return false;
 
@@ -245,7 +245,7 @@ bool ManagedDatasource::beginTransaction(ExceptionSink *xsink) {
 }
 
 int ManagedDatasource::commit(ExceptionSink *xsink) {
-   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NONE : DAH_RELEASE);
+   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NOCHANGE : DAH_RELEASE);
    if (!dbah)
       return -1;
 
@@ -253,7 +253,7 @@ int ManagedDatasource::commit(ExceptionSink *xsink) {
 }
 
 int ManagedDatasource::rollback(ExceptionSink *xsink) {
-   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NONE : DAH_RELEASE);
+   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NOCHANGE : DAH_RELEASE);
    if (!dbah)
       return -1;
 

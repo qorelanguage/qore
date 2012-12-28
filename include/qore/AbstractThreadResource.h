@@ -39,12 +39,10 @@
     @see set_thread_resource()
     @see remove_thread_resource()
  */
-class AbstractThreadResource : public AbstractPrivateData
-{
+class AbstractThreadResource : public AbstractPrivateData {
    public:
       //! virtual destructor
-      DLLEXPORT virtual ~AbstractThreadResource()
-      {
+      DLLEXPORT virtual ~AbstractThreadResource() {
       }
       //! this function is called when a thread terminates and a thread resource is still allocated to the thread
       virtual void cleanup(class ExceptionSink *xsink) = 0;

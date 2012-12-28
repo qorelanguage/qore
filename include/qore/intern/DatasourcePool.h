@@ -131,17 +131,11 @@ public:
       return getDS(new_transaction, xsink);
    }
 
-   DLLLOCAL virtual Datasource *helperEndAction(char orig_cmd, char &cmd, bool new_transaction, ExceptionSink *xsink) {
+   DLLLOCAL virtual Datasource *helperEndAction(char cmd, bool new_transaction, ExceptionSink *xsink) {
       //printd(0, "DatasourcePool::helperEndAction() cmd=%d, nt=%d\n", cmd, new_transaction);
       if (cmd == DAH_RELEASE) {
-         if (orig_cmd != DAH_NONE) {
-            //|| (new_transaction && cmd == DAH_NONE)) {
-            //printd(0, "DatasourcePool::helperEndAction() returning 0\n");
-
-            freeDS();
-            return 0;
-         }
-         cmd = DAH_NONE;
+         freeDS();
+         return 0;
       }
 
       return getAllocatedDS();
@@ -160,7 +154,7 @@ protected:
    char cmd;
 
 public:
-   DLLLOCAL DatasourcePoolActionHelper(DatasourcePool &n_dsp, ExceptionSink *n_xsink, char n_cmd = DAH_NONE) : dsp(n_dsp), xsink(n_xsink), new_ds(false), cmd(n_cmd) {
+   DLLLOCAL DatasourcePoolActionHelper(DatasourcePool &n_dsp, ExceptionSink *n_xsink, char n_cmd = DAH_NOCHANGE) : dsp(n_dsp), xsink(n_xsink), new_ds(false), cmd(n_cmd) {
       ds = dsp.getDS(new_ds, xsink);
    }
    DLLLOCAL ~DatasourcePoolActionHelper() {
@@ -169,14 +163,14 @@ public:
 
       if (cmd == DAH_RELEASE 
           || ds->wasConnectionAborted()
-          || (new_ds && ((cmd == DAH_NONE) || *xsink)))
+          || (new_ds && ((cmd == DAH_NOCHANGE) || *xsink)))
 	 dsp.freeDS();
    }
 
 #if 0
    DLLLOCAL void addSQL(const QoreString *sql) {
-      if (ds && !((cmd == DAH_RELEASE) || (new_ds && ((cmd == DAH_NONE) || *xsink)) || ds->wasConnectionAborted()))
-         dsp.addSQL(cmd == DAH_NONE ? "select" : "exec", sql);
+      if (ds && !((cmd == DAH_RELEASE) || (new_ds && ((cmd == DAH_NOCHANGE) || *xsink)) || ds->wasConnectionAborted()))
+         dsp.addSQL(cmd == DAH_NOCHANGE ? "select" : "exec", sql);
    }
 #endif
 

@@ -253,11 +253,11 @@ enum qore_call_t {
 };
 
 // Datasource Access Helper codes
-#define DAH_NONE     0 // acquire lock temporarily
-#define DAH_ACQUIRE  1 // acquire lock and hold
-#define DAH_RELEASE  2 // release lock at end of action
+#define DAH_NOCHANGE  0 // acquire lock temporarily
+#define DAH_ACQUIRE   1 // acquire lock and hold
+#define DAH_RELEASE   2 // release lock at end of action
 
-#define DAH_TEXT(d) (d == DAH_RELEASE ? "release" : (d == DAH_ACQUIRE ? "acquire" : "none"))
+#define DAH_TEXT(d) (d == DAH_RELEASE ? "RELEASE" : (d == DAH_ACQUIRE ? "ACQUIRE" : "NOCHANGE"))
 
 // keep a map of objects to member names to find recursive data structures
 typedef std::map<QoreObject *, const char* > obj_map_t;

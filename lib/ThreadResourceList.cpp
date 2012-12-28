@@ -29,40 +29,26 @@
 Sequence ThreadResourceList::seq;
 
 void ThreadResourceList::set(AbstractThreadResource *atr) {
-   //printd(5, "TRL::set(atr=%p, func=%p, tid=%d)\n", atr, func, gettid());
+   //printd(5, "TRL::set(atr: %p)\n", atr);
    assert(trset.find(atr) == trset.end());
 
    atr->ref();
    trset.insert(atr);
 }
 
-int ThreadResourceList::setOnce(AbstractThreadResource *atr) {
-   if (trset.find(atr) != trset.end())
-      return -1;
-
-   atr->ref();
-   trset.insert(atr);
-   return 0;
-}
-
 void ThreadResourceList::purge(ExceptionSink *xsink) {
    for (trset_t::iterator i = trset.begin(), e = trset.end(); i != e; ++i) {
+      //printd(5, "TRL::purge() cleaning up atr: %p\n", *i);
       (*i)->cleanup(xsink);
       (*i)->deref();
    }
    trset.clear();
 
-   for (trmap_t::iterator i = trmap.begin(), e = trmap.end(); i != e; ++i) {
-      i->second->cleanup(xsink);
-      i->second->deref();
-   }
-   trmap.clear();
-
    //printd(5, "TRL::purge() done\n");
 }
 
 int ThreadResourceList::remove(AbstractThreadResource *atr) {
-   //printd(0, "TRL::remove(atr=%p)\n", atr);
+   //printd(5, "TRL::remove(atr: %p)\n", atr);
 
    trset_t::iterator i = trset.find(atr);
    if (i == trset.end())

@@ -33,12 +33,6 @@ class DatasourceStatementHelper;
 #define STMT_EXECED    2
 #define STMT_DEFINED   3
 
-#define STMT_TRANS_UNKNOWN 0
-#define STMT_TRANS_NEW     1
-#define STMT_TRANS_EXISTED 2
-
-#define STMT_TRANS_TEXT(t) (t == STMT_TRANS_NEW ? "new" : (t == STMT_TRANS_EXISTED ? "existed" : "unknown"))
-
 class DBActionHelper;
 
 class QoreSQLStatement : public AbstractPrivateData, public SQLStatement {
@@ -55,8 +49,6 @@ protected:
    QoreListNode *prepare_args;
    // status
    unsigned char status;
-   // new transaction status
-   char trans_status;
    // raw prepare flag
    bool raw;
    // valid flag
@@ -71,7 +63,7 @@ protected:
    DLLLOCAL int prepareArgs(bool n_raw, const QoreString &n_str, const QoreListNode *args, ExceptionSink *xsink);
       
 public:
-   DLLLOCAL QoreSQLStatement() : dsh(0), prepare_args(0), status(STMT_IDLE), trans_status(STMT_TRANS_UNKNOWN), raw(false), validp(false) {
+   DLLLOCAL QoreSQLStatement() : dsh(0), prepare_args(0), status(STMT_IDLE), raw(false), validp(false) {
    }
 
    DLLLOCAL ~QoreSQLStatement();

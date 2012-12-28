@@ -36,55 +36,32 @@ public:
    ExceptionSink *xsink;
    bool valid;
    char cmd;
-   bool nt;
-   bool first;
-   bool do_release;
+   bool nt; // new transaction flag
 
-   DLLLOCAL DBActionHelper(QoreSQLStatement &n_stmt, ExceptionSink *n_xsink, char n_cmd = DAH_NONE) : stmt(n_stmt), xsink(n_xsink), valid(false), cmd(n_cmd), nt(false), first(false), do_release(false) {
+   DLLLOCAL DBActionHelper(QoreSQLStatement &n_stmt, ExceptionSink *n_xsink, char n_cmd = DAH_NOCHANGE) : stmt(n_stmt), xsink(n_xsink), valid(false), cmd(n_cmd), nt(false) {
       stmt.priv->ds = stmt.dsh->helperStartAction(xsink, nt);
 
-      if (stmt.trans_status == STMT_TRANS_UNKNOWN) {
-         stmt.trans_status = nt ? STMT_TRANS_NEW : STMT_TRANS_EXISTED;
-         first = true;
-      }
-
-      //printd(5, "DBActionHelper::DBActionHelper() ds=%p cmd=%s stat=%s nt=%d\n", stmt.priv->ds, DAH_TEXT(cmd), STMT_TRANS_TEXT(stmt.trans_status), nt);
+      //printd(5, "DBActionHelper::DBActionHelper() ds: %p cmd: %s nt: %d\n", stmt.priv->ds, DAH_TEXT(cmd), nt);
       valid = *xsink ? false : true;
    }
 
    DLLLOCAL ~DBActionHelper() {
-      if (valid) {
-         char orig_cmd = cmd;
-         if (stmt.priv->ds->wasConnectionAborted()) {
-            orig_cmd = cmd = DAH_RELEASE;
-            // FIXME: do something else here?
-         }
-         else if (first && stmt.trans_status == STMT_TRANS_NEW) {
-            if (*xsink) {
-               orig_cmd = cmd = DAH_RELEASE;
-            }
-            else if (cmd == DAH_NONE) {
-               cmd = DAH_RELEASE;
-               if (do_release)
-                  orig_cmd = cmd;
-            }
-         }
+      if (!valid)
+         return;
+      
+      /* release the Datasource if:
+         1) the connection was lost (exception already raised)
+         2) the Datasource was acquired for this call, and:
+            2a) an exception was raised, or
+            2b) the command was NONE, meaning, leave the Datasource in the same state it was before the call
+       */
+      if (stmt.priv->ds->wasConnectionAborted() || (nt && (*xsink || cmd == DAH_NOCHANGE)))
+         cmd = DAH_RELEASE;
+      
+      // call end action with the command
+      stmt.priv->ds = stmt.dsh->helperEndAction(cmd, nt, xsink);
 
-         stmt.priv->ds = stmt.dsh->helperEndAction(orig_cmd, cmd, nt, xsink);
-
-         if (cmd == DAH_RELEASE)
-            stmt.trans_status = STMT_TRANS_UNKNOWN;
-
-         //printd(5, "DBActionHelper::~DBActionHelper() ds=%p cmd=%s stat=%s nt=%d xsink=%d\n", stmt.priv->ds, DAH_TEXT(cmd), STMT_TRANS_TEXT(stmt.trans_status), nt, xsink->isEvent());
-      }
-   }
-
-   DLLLOCAL void reset() {
-      first = true;
-   }
-
-   DLLLOCAL void release() {
-      do_release = true;
+      //printd(5, "DBActionHelper::~DBActionHelper() ds: %p cmd: %s nt: %d xsink: %d\n", stmt.priv->ds, DAH_TEXT(cmd), nt, xsink->isEvent());
    }
 
    DLLLOCAL operator bool() const {
@@ -102,10 +79,8 @@ void QoreSQLStatement::init(DatasourceStatementHelper *n_dsh) {
 
 int QoreSQLStatement::checkStatus(DBActionHelper &dba, int stat, const char *action, ExceptionSink *xsink) {
    if (stat != status) {
-      if (stat == STMT_IDLE) {
-         dba.reset();
+      if (stat == STMT_IDLE)
          return closeIntern(xsink);
-      }
 
       if (stat > STMT_IDLE && status == STMT_IDLE && str.strlen()) {
          if (prepareIntern(xsink))
@@ -144,7 +119,7 @@ int QoreSQLStatement::checkStatus(DBActionHelper &dba, int stat, const char *act
 
 void QoreSQLStatement::deref(ExceptionSink *xsink) {
    if (ROdereference()) {
-      char cmd = trans_status == STMT_TRANS_EXISTED ? DAH_NONE : DAH_RELEASE;
+      char cmd = DAH_NOCHANGE;
       //printd(5, "QoreSQLStatement::deref() deleting this=%p cmd=%s\n", this, DAH_TEXT(cmd));
       {
          DBActionHelper dba(*this, xsink, cmd);
@@ -210,9 +185,7 @@ int QoreSQLStatement::prepare(const QoreString &n_str, const QoreListNode *args,
    if (prepareArgs(false, n_str, args, xsink))
       return -1;
 
-   dba.release();
-
-   return 0;//prepareIntern(xsink);
+   return 0;
 }
 
 int QoreSQLStatement::prepareRaw(const QoreString &n_str, ExceptionSink *xsink) {
@@ -226,13 +199,11 @@ int QoreSQLStatement::prepareRaw(const QoreString &n_str, ExceptionSink *xsink) 
    if (prepareArgs(true, n_str, 0, xsink))
       return -1;
 
-   dba.release();
-
-   return 0;//prepareIntern(xsink);
+   return 0;
 }
 
 int QoreSQLStatement::bind(const QoreListNode &l, ExceptionSink *xsink) {
-   DBActionHelper dba(*this, xsink);
+   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
       return -1;
 
@@ -243,7 +214,7 @@ int QoreSQLStatement::bind(const QoreListNode &l, ExceptionSink *xsink) {
 }
 
 int QoreSQLStatement::bindPlaceholders(const QoreListNode &l, ExceptionSink *xsink) {
-   DBActionHelper dba(*this, xsink);
+   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
       return -1;
 
@@ -254,7 +225,7 @@ int QoreSQLStatement::bindPlaceholders(const QoreListNode &l, ExceptionSink *xsi
 }
 
 int QoreSQLStatement::bindValues(const QoreListNode &l, ExceptionSink *xsink) {
-   DBActionHelper dba(*this, xsink);
+   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
       return -1;
 
@@ -280,13 +251,8 @@ int QoreSQLStatement::exec(const QoreListNode *args, ExceptionSink *xsink) {
 
 int QoreSQLStatement::execIntern(DBActionHelper &dba, ExceptionSink *xsink) {
    int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_exec(this, xsink);
-   if (!rc) {
+   if (!rc)
       status = STMT_EXECED;
-      // mark as transaction already existed to ensure that the
-      // Datasource is not released after the statement is closed
-      if (trans_status != STMT_TRANS_EXISTED)
-        trans_status = STMT_TRANS_EXISTED;
-   }
 
    //printd(5, "QoreSQLStatement::execIntern() this: %p ds: %p: %s@%s: %s\n", this, priv->ds, priv->ds->getUsername(), priv->ds->getDBName(), str.getBuffer());
 
@@ -398,7 +364,7 @@ bool QoreSQLStatement::active() const {
 }
 
 int QoreSQLStatement::close(ExceptionSink *xsink) {
-   DBActionHelper dba(*this, xsink, trans_status == STMT_TRANS_NEW ? DAH_RELEASE : DAH_NONE);
+   DBActionHelper dba(*this, xsink, DAH_NOCHANGE);
    if (!dba)
       return -1;
 
@@ -432,15 +398,12 @@ int QoreSQLStatement::beginTransaction(ExceptionSink *xsink) {
    if (!dba)
       return -1;
 
-   int rc = priv->ds->beginTransaction(xsink);
-   if (!rc)
-      trans_status = STMT_TRANS_EXISTED;
-   return rc;
+   return priv->ds->beginTransaction(xsink);
 }
 
 QoreStringNode *QoreSQLStatement::getSQL(ExceptionSink *xsink) {
    // we have to acquire the datasource in order to use the thread lock to access the SQL string
-   DBActionHelper dba(*this, xsink, DAH_NONE);
+   DBActionHelper dba(*this, xsink, DAH_NOCHANGE);
    if (!dba)
       return 0;
 

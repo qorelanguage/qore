@@ -37,7 +37,7 @@ DatasourcePool::DatasourcePool(ExceptionSink *xsink, DBIDriver *ndsl, const char
    //assert(db != 0 && db[0]);
 
    // create minimum datasources if possible
-   printd(5, "DatasourcePool::DatasourcePool(driver=%p user=%s pass=%s db=%s charset=%s host=%s min=%d max=%d port=%d) pool=%p\n",
+   printd(5, "DatasourcePool::DatasourcePool(driver: %p user: %s pass: %s db: %s charset: %s host: %s min: %d max: %d port: %d) pool: %p\n",
           ndsl, user ? user : "(null)", pass ? pass : "(null)", db ? db : "(null)", charset ? charset : "(null)", hostname ? hostname : "(null)", min, max, port, pool);
 
    // open initial datasource manually
@@ -88,7 +88,7 @@ DatasourcePool::DatasourcePool(ExceptionSink *xsink, DBIDriver *ndsl, const char
 }
 
 DatasourcePool::~DatasourcePool() {
-   //printd(5, "DatasourcePool::~DatasourcePool() trlist.remove() this=%p\n", this);
+   //printd(5, "DatasourcePool::~DatasourcePool() trlist.remove() this: %p\n", this);
    for (unsigned i = 0; i < cmax; ++i)
       delete pool[i];
    delete [] tid_list;
@@ -180,7 +180,7 @@ QoreString *DatasourcePool::getAndResetSQL() {
 
 void DatasourcePool::freeDS() {
    // remove from thread resource list
-   //printd(5, "DatasourcePool::freeDS() remove_thread_resource(this=%p), tid=%d\n", this, tid);
+   //printd(5, "DatasourcePool::freeDS() remove_thread_resource(this: %p), tid: %d\n", this, tid);
    remove_thread_resource(this);
 
    int tid = gettid();
@@ -273,7 +273,7 @@ Datasource *DatasourcePool::getDSIntern(bool &new_ds, ExceptionSink *xsink) {
    sl.unlock();
    
    // add to thread resource list
-   //printd(5, "DatasourcePool::getDS() set_thread_resource(this=%p), tid=%d\n", this, gettid());
+   //printd(5, "DatasourcePool::getDS() set_thread_resource(this: %p), tid: %d\n", this, gettid());
    set_thread_resource(this);
 
    return ds;
@@ -353,10 +353,10 @@ QoreStringNode *DatasourcePool::toString() {
    QoreStringNode *str = new QoreStringNode();
 
    SafeLocker sl((QoreThreadLock *)this);
-   str->sprintf("this=%p, min=%d, max=%d, cmax=%d, wait_count=%d, thread_map = (", this, min, max, cmax, wait_count);
+   str->sprintf("this: %p, min: %d, max: %d, cmax: %d, wait_count: %d, thread_map = (", this, min, max, cmax, wait_count);
    thread_use_t::const_iterator ti = tmap.begin();
    while (ti != tmap.end()) {
-      str->sprintf("tid %d=%d, ", ti->first, ti->second);
+      str->sprintf("tid %d: %d, ", ti->first, ti->second);
       ++ti;
    }
    if (!tmap.empty())

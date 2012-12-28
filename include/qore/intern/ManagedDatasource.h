@@ -54,9 +54,9 @@ protected:
 
    DLLLOCAL int startDBAction(ExceptionSink *xsink, bool &new_transaction);
    // returns true if we have the transaction lock, false if not
-   DLLLOCAL bool endDBActionIntern(char cmd = DAH_NONE, bool new_transaction = false);
+   DLLLOCAL bool endDBActionIntern(char cmd = DAH_NOCHANGE, bool new_transaction = false);
    // returns true if we have the transaction lock, false if not
-   DLLLOCAL bool endDBAction(char cmd = DAH_NONE, bool new_transaction = false);
+   DLLLOCAL bool endDBAction(char cmd = DAH_NOCHANGE, bool new_transaction = false);
    DLLLOCAL int closeUnlocked(ExceptionSink *xsink);
    // returns 0 for OK, -1 for error
    DLLLOCAL int grabLockIntern();
@@ -140,7 +140,7 @@ public:
       return tid == gettid() ? this : 0;
    }
 
-   DLLLOCAL virtual Datasource *helperEndAction(char orig_cmd, char &cmd, bool new_transaction, ExceptionSink *xsink) {
+   DLLLOCAL virtual Datasource *helperEndAction(char cmd, bool new_transaction, ExceptionSink *xsink) {
       // execute a commit if auto-commit is enabled and the resource is being released
       // and the connection was not aborted
       if (cmd == DAH_RELEASE)
@@ -156,14 +156,14 @@ protected:
    char cmd;
 
 public:
-   DLLLOCAL DatasourceActionHelper(ManagedDatasource &n_ds, ExceptionSink *xsink, char n_cmd = DAH_NONE) : 
+   DLLLOCAL DatasourceActionHelper(ManagedDatasource &n_ds, ExceptionSink *xsink, char n_cmd = DAH_NOCHANGE) : 
       ds(n_ds), ok(!ds.startDBAction(xsink, new_transaction)), cmd(n_cmd) {
    }
    DLLLOCAL ~DatasourceActionHelper() {
       if (ok) {
          // FIXME: check connection aborted handling if exec could have been executed after connection reset
          if (ds.wasConnectionAborted() 
-             || (new_transaction && ((cmd == DAH_NONE) || !ds.isInTransaction())))
+             || (new_transaction && ((cmd == DAH_NOCHANGE) || !ds.isInTransaction())))
             cmd = DAH_RELEASE;
 	 ds.endDBAction(cmd, new_transaction);
       }
