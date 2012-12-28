@@ -235,6 +235,9 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
          xsink->assimilate(pendingParseSink);
          pendingParseSink = 0;
       }
+
+      // clear program location
+      update_pgm_counter_pgm_file(0, 0, 0);
    }
 }
 
