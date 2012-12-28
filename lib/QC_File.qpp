@@ -992,7 +992,7 @@ TermIOS File::getTerminalAttributes() {
       return 0;
    return new QoreObject(QC_TERMIOS, getProgram(), holder.release());
 #else
-   return missing_method_error("File::getTerminalAttributes", "TERMIOS", xsink);
+   return (QoreObject*)missing_method_error("File::getTerminalAttributes", "TERMIOS", xsink);
 #endif
 }
 
