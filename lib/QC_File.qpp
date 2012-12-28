@@ -963,6 +963,39 @@ nothing File::getTerminalAttributes(TermIOS[QoreTermIOS] termios) {
 #endif
 }
 
+//! Returns the current terminal attributes for the file as a TermIOS object returned as the return value
+/** @par Platform Availability:
+    @ref Qore::Option::HAVE_TERMIOS
+
+    @par Example:
+    @code
+my TermIOS $termios = stdin.getTerminalAttributes();
+    @endcode
+
+    @return the current terminal attributes for the File
+
+    @throw FILE-OPERATION-ERROR the %File is not open
+    @throw TERMIOS-GET-ERROR error reading terminal attributes from the file descriptor (ex: not a TTY)
+    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_TERMIOS before calling this method to avoid this exception
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @since %Qore 0.8.7
+ */
+TermIOS File::getTerminalAttributes() {
+#ifdef HAVE_TERMIOS_H
+   if (check_terminal_io(self, "File::getTerminalAttributes", xsink))
+      return 0;
+
+   ReferenceHolder<QoreTermIOS> holder(new QoreTermIOS, xsink);
+   f->getTerminalAttributes(*holder, xsink);
+   if (*xsink)
+      return 0;
+   return new QoreObject(QC_TERMIOS, getProgram(), holder.release());
+#else
+   return missing_method_error("File::getTerminalAttributes", "TERMIOS", xsink);
+#endif
+}
+
 //! Sets the current terminal attributes for the %File from the TermIOS object passed; does not change the object passed
 /** @par Platform Availability:
     @ref Qore::Option::HAVE_TERMIOS

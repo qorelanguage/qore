@@ -45,9 +45,10 @@
       same restrictions as the parent @ref Qore::Program "Program" object (if any)
     - added the get_parse_options() function so that parse options in the current @ref Qore::Program "Program" can be determined at
       runtime
-    - new methods:
+    - new methods and method variants:
       - @ref Qore::HTTPClient::getPeerInfo()
       - @ref Qore::HTTPClient::getSocketInfo()
+      - @ref Qore::File::getTerminalAttributes()
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module improvements:
       - added automatic recognition and support of the \c "STARTTLS" command when connecting to an ESMTP server; this way
         the class will automatically upgrade the connection to a secure TLS/SSL connection if the server supports it
