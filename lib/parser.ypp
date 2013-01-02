@@ -228,7 +228,7 @@ struct GVarSingleDecl : public GVarDecl {
    const QoreTypeInfo* typeInfo;
    QoreParseTypeInfo* parseTypeInfo;
 
-   DLLLOCAL GVarSingleDecl(char* n, const QoreTypeInfo *ti, QoreParseTypeInfo* pti, bool p, bool bare) : GVarDecl(p), name(n), typeInfo(ti), parseTypeInfo(pti) {
+   DLLLOCAL GVarSingleDecl(char* n, const QoreTypeInfo* ti, QoreParseTypeInfo* pti, bool p, bool bare) : GVarDecl(p), name(n), typeInfo(ti), parseTypeInfo(pti) {
       if (bare) {
          if (!checkParseOption(PO_ALLOW_BARE_REFS))
             parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", n);
@@ -497,8 +497,8 @@ static QoreListNode* splice_expressions(AbstractQoreNode* a1, AbstractQoreNode* 
    return make_list(a1, a2);
 }
 
-typedef std::pair<char* , QoreMemberInfo *> member_pair_t;
-typedef std::pair<char* , QoreVarInfo *> var_pair_t;
+typedef std::pair<char*, QoreMemberInfo*> member_pair_t;
+typedef std::pair<char*, QoreVarInfo*> var_pair_t;
 
 struct MemberInfo {
 protected:
@@ -511,12 +511,12 @@ public:
    char* name;
    mi_e type;
    union {
-      QoreMemberInfo *memberInfo;
-      QoreVarInfo *varInfo;
+      QoreMemberInfo* memberInfo;
+      QoreVarInfo* varInfo;
       AbstractQoreNode* exp;
    } u;
 
-   DLLLOCAL MemberInfo(char* n, QoreMemberInfo *mi) : name(n), type(Member)  {
+   DLLLOCAL MemberInfo(char* n, QoreMemberInfo* mi) : name(n), type(Member)  {
       u.memberInfo = mi; 
       if (!mi->parseHasTypeInfo() && getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
 	 parse_error("member $.%s declared without type information, but parse options require type information for all declarations", name);
@@ -568,7 +568,7 @@ public:
 };
 
 struct ClassVarInfo : public MemberInfo {
-   DLLLOCAL ClassVarInfo(char* n, QoreVarInfo *vi) {
+   DLLLOCAL ClassVarInfo(char* n, QoreVarInfo* vi) {
       name = n;
       type = Var;
       u.varInfo = vi; 
@@ -589,9 +589,9 @@ struct ClassVarInfo : public MemberInfo {
       name = 0;
       return n;
    }
-   DLLLOCAL QoreVarInfo *takeVarInfo() {
+   DLLLOCAL QoreVarInfo* takeVarInfo() {
       assert(u.varInfo);
-      QoreVarInfo *rv = u.varInfo;
+      QoreVarInfo* rv = u.varInfo;
       u.varInfo = 0;
       return rv;
    }
@@ -610,7 +610,7 @@ protected:
    }
 
 public:
-   DLLLOCAL MemberList(MemberInfo *member) : cmap((qore_class_private*)0) {
+   DLLLOCAL MemberList(MemberInfo* member) : cmap((qore_class_private*)0) {
       if (!member)
 	 return;
 
@@ -628,7 +628,7 @@ public:
    }
 
    // takes over ownership of name and typeInfo
-   DLLLOCAL int add(MemberInfo *member) {
+   DLLLOCAL int add(MemberInfo* member) {
       if (!member)
 	 return -1;
 
@@ -732,21 +732,21 @@ public:
 
 struct ParserTypeStruct {
 protected:
-   DLLLOCAL ParserTypeStruct(QoreParseTypeInfo *n_parseTypeInfo) : typeInfo(0), parseTypeInfo(n_parseTypeInfo) {
+   DLLLOCAL ParserTypeStruct(QoreParseTypeInfo* n_parseTypeInfo) : typeInfo(0), parseTypeInfo(n_parseTypeInfo) {
    }
 
    DLLLOCAL ParserTypeStruct() {
    }
 
 public:
-   const QoreTypeInfo *typeInfo;
-   QoreParseTypeInfo *parseTypeInfo;
+   const QoreTypeInfo* typeInfo;
+   QoreParseTypeInfo* parseTypeInfo;
 
-   DLLLOCAL ParserTypeStruct(const QoreTypeInfo *n_typeInfo) : typeInfo(n_typeInfo), parseTypeInfo(0) {
+   DLLLOCAL ParserTypeStruct(const QoreTypeInfo* n_typeInfo) : typeInfo(n_typeInfo), parseTypeInfo(0) {
    }
 
    DLLLOCAL ParserTypeStruct(char* id) {
-      const QoreTypeInfo *t = getBuiltinUserTypeInfo(id);
+      const QoreTypeInfo* t = getBuiltinUserTypeInfo(id);
       if (t) {
 	 free(id);
 	 typeInfo = t;
@@ -762,18 +762,18 @@ public:
       delete parseTypeInfo;
    }
 
-   DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
+   DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
       if (!this)
 	 return 0;
 
       return typeInfo;
    }
 
-   DLLLOCAL QoreParseTypeInfo *getParseTypeInfo() {
+   DLLLOCAL QoreParseTypeInfo* getParseTypeInfo() {
       if (!this)
 	 return 0;
 
-      QoreParseTypeInfo *rv = parseTypeInfo;
+      QoreParseTypeInfo* rv = parseTypeInfo;
       parseTypeInfo = 0;
       return rv;
    }
@@ -792,7 +792,7 @@ struct ParserScopedTypeStruct : public ParserTypeStruct {
 
 struct ParserOrNothingTypeStruct : public ParserTypeStruct {
    DLLLOCAL ParserOrNothingTypeStruct(char* id) {
-      const QoreTypeInfo *t = getBuiltinUserOrNothingTypeInfo(id);
+      const QoreTypeInfo* t = getBuiltinUserOrNothingTypeInfo(id);
       if (t) {
 	 free(id);
 	 typeInfo = t;
@@ -959,7 +959,7 @@ static bool hasEffect(AbstractQoreNode* n) {
    return pn ? pn->has_effect() : true;
 }
 
-static int checkMethod(const char* name, BCAList* bcal, RetTypeInfo *returnTypeInfo) {
+static int checkMethod(const char* name, BCAList* bcal, RetTypeInfo* returnTypeInfo) {
    bool con = !strcmp(name, "constructor");
    bool dst = !con && !strcmp(name, "destructor");
 
@@ -977,7 +977,7 @@ static int checkMethod(const char* name, BCAList* bcal, RetTypeInfo *returnTypeI
    return 0;
 }
 
-static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b, int64 flags = QC_NO_FLAGS) {
+static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b, int64 flags = QC_NO_FLAGS) {
    //printd(5, "newMethodVariant() '%s' b: %p\n", name, b);
 
    if (get_pop_argv_ref())
@@ -1040,7 +1040,7 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
    return new UserMethodVariant(mod & OFM_PRIVATE, mod & OFM_FINAL, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags, mod & OFM_ABSTRACT);
 }
 
-static inline void tryAddMethod(int mod, char* n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b) {
+static inline void tryAddMethod(int mod, char* n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b) {
    std::auto_ptr<NamedScope> name(new NamedScope(n));
 
    if (checkMethod(name->getIdentifier(), bcal, returnTypeInfo)) {
@@ -1152,8 +1152,8 @@ static qore_var_t get_var_type() {
    QoreHashNode* hash;
    QoreListNode* list;
    AbstractStatement *statement;
-   struct MemberInfo *memberinfo;
-   struct ClassVarInfo *classvarinfo;
+   struct MemberInfo* memberinfo;
+   struct ClassVarInfo* classvarinfo;
    StatementBlock *sblock;
    ContextModList* cmods;
    ContextMod *cmod;
@@ -1179,7 +1179,7 @@ static qore_var_t get_var_type() {
    NamedScope *nscope;
    QoreRegexNode* Regex;
    QoreImplicitArgumentNode* implicit_arg;
-   RetTypeInfo *returnTypeInfo;
+   RetTypeInfo* returnTypeInfo;
    struct ParserTypeStruct *parsertype;
    class ParseUserFunction* parsefunc;
    class ParseScopedUserFunction* sparsefunc;
@@ -1454,8 +1454,8 @@ top_level_command:
 	}
         | '{' statements '}' {
 	   // set line range
-	   $2->LineNumber = @1.first_line;
-	   $2->EndLineNumber = @2.last_line;
+	   $2->loc.start_line = @1.first_line;
+	   $2->loc.end_line = @2.last_line;
 	   qore_program_private::addStatement(*(getProgram()), $2);
         }
         | top_namespace_decl {
@@ -1524,7 +1524,7 @@ ppub:   /* empty */
 
 gvardecl:
         ppub TOK_OUR uncqtypedef SCOPED_REF {
-	   const QoreTypeInfo *t = $3->getTypeInfo();
+	   const QoreTypeInfo* t = $3->getTypeInfo();
            $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, true);
            delete $3;
 	}
@@ -1532,7 +1532,7 @@ gvardecl:
            $$ = new GVarSingleDecl($3, 0, 0, $1, true);
         }
         | ppub TOK_OUR uncqtypedef IDENTIFIER {
-	   const QoreTypeInfo *t = $3->getTypeInfo();
+	   const QoreTypeInfo* t = $3->getTypeInfo();
            $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, true);
            delete $3;
 	}
@@ -1540,12 +1540,12 @@ gvardecl:
            $$ = new GVarSingleDecl($3, 0, 0, $1, true);
 	}
         | ppub TOK_OUR qtypedef SCOPED_VREF {
-	   const QoreTypeInfo *t = $3->getTypeInfo();
+	   const QoreTypeInfo* t = $3->getTypeInfo();
            $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, false);
            delete $3;
 	}
         | ppub TOK_OUR qtypedef VAR_REF {
-	   const QoreTypeInfo *t = $3->getTypeInfo();
+	   const QoreTypeInfo* t = $3->getTypeInfo();
            $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, false);
            delete $3;
 	}
@@ -1786,8 +1786,8 @@ switch_statement:
         {
 	   $6->setSwitch($3);
 	   $$ = $6;
-	   $$->LineNumber = @1.first_line;
-	   $$->EndLineNumber = @7.last_line;
+	   $$->loc.start_line = @1.first_line;
+	   $$->loc.end_line = @7.last_line;
         }
         ;
 
@@ -2127,7 +2127,7 @@ classvardecl:
 	   $$ = new ClassVarInfo($2, new QoreVarInfo(@2.first_line, @4.last_line, $4));
 	}
         | TOK_STATIC uncqtypedef IDENTIFIER '(' myexp ')' ';' {
-	   const QoreTypeInfo *t = $2->getTypeInfo();
+	   const QoreTypeInfo* t = $2->getTypeInfo();
 	   ScopedObjectCallNode* new_call = 0;
 
 	   if (t)
@@ -2157,7 +2157,7 @@ member2:
 	}
         | qtypedef SELF_REF '(' myexp ')' ';' {
 	   int fl = $1 ? @1.first_line : @2.first_line;
-	   const QoreTypeInfo *t = $1->getTypeInfo();
+	   const QoreTypeInfo* t = $1->getTypeInfo();
 	   ScopedObjectCallNode* new_call = 0;
 
 	   if (!$1)
@@ -2189,7 +2189,7 @@ member2:
 	}
         | uncqtypedef IDENTIFIER '(' myexp ')' ';' {
 	   int fl = @1.first_line;
-	   const QoreTypeInfo *t = $1->getTypeInfo();
+	   const QoreTypeInfo* t = $1->getTypeInfo();
 	   ScopedObjectCallNode* new_call = 0;
 
 	   if (!$1)
@@ -2288,7 +2288,7 @@ method_definition:
               else
                  parse_error("'abstract' can only be used with no implementation (terminate the declaration with ';' instead of '{}')");
            }
-	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+	   RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 	   
 	   checkMethod($3, $6, rt);
@@ -2304,7 +2304,7 @@ method_definition:
         | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list ';' {
            if (!($1 & OFM_ABSTRACT))
               parse_error("non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
-           RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+           RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
            delete $2;
 
            checkMethod($3, $6, rt);
@@ -2330,7 +2330,7 @@ object_outofline_function_def:
               else
                  parse_error("'abstract' can only be used with no implementation (terminate the declaration with ';' instead of '{}')");
            }
-	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+	   RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 
 	   tryAddMethod($1, $3, @5.first_line, @5.last_line, $5, $7, rt, $8);
@@ -2343,7 +2343,7 @@ object_outofline_function_def:
         | method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list ';' {
            if (!$1 & OFM_ABSTRACT)
               parse_error("non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
-           RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+           RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
            delete $2;
 
            tryAddMethod($1, $3, @5.first_line, @5.last_line, $5, $7, rt, 0);
@@ -2352,7 +2352,7 @@ object_outofline_function_def:
 	   tryAddMethod(0, $1, @3.first_line, @3.last_line, $3, $5, $6, $7);
 	}
 	| uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
-	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
+	   RetTypeInfo* rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
 	   delete $1;
 
 	   tryAddMethod(0, $2, @4.first_line, @4.last_line, $4, $6, rt, $7);
@@ -2439,7 +2439,7 @@ sub_def:
 	   int ar = get_pop_argv_ref();
 	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
 
-	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
+	   RetTypeInfo* rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
 	   delete $1;
 
 	   $$ = new ParseUserFunction($3, new UserFunctionVariant($6, @4.first_line, @4.last_line, $4, rt, false, flags));
@@ -2462,7 +2462,7 @@ sub_def:
 	   if ($1 & OFM_DEPRECATED)
 	      flags |= QC_DEPRECATED;
 
-	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+	   RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 
 	   $$ = new ParseUserFunction($4, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, $1 & OFM_SYNCED, flags)); 
@@ -2480,7 +2480,7 @@ scoped_sub_def:
 	   int ar = get_pop_argv_ref();
 	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
 
-	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
+	   RetTypeInfo* rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
 	   delete $1;
 
 	   $$ = new ParseScopedUserFunction($3, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, false, flags));
@@ -2503,7 +2503,7 @@ scoped_sub_def:
 	   if ($1 & OFM_DEPRECATED)
 	      flags |= QC_DEPRECATED;
 
-	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+	   RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 
 	   $$ = new ParseScopedUserFunction($4, new UserFunctionVariant($8, @6.first_line, @6.last_line, $6, rt, $1 & OFM_SYNCED, flags)); 
@@ -3108,7 +3108,7 @@ exp:    scalar
 	   $$ = new QoreClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
 	}
         | uncqtypedef TOK_SUB '(' myexp ')' block {
-	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
+	   RetTypeInfo* rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
 	   delete $1;
 
 	   int ar = get_pop_argv_ref();
@@ -3125,7 +3125,7 @@ exp:    scalar
 	| method_modifiers uncqtypedef TOK_SUB '(' myexp ')' block {
 	   check_funcmod($1);
 
-	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+	   RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 
 	   int ar = get_pop_argv_ref();

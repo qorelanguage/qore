@@ -237,7 +237,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
       }
 
       // clear program location
-      update_pgm_counter_pgm_file(0, 0, 0);
+      update_runtime_location(QoreProgramLocation());
    }
 }
 
@@ -793,10 +793,6 @@ bool QoreProgram::checkFeature(const char* f) const {
 
 void QoreProgram::addFeature(const char* f) {
    priv->featureList.push_back(f);
-}
-
-void QoreProgram::addFile(char* f) {
-   priv->fileList.push_back(f);
 }
 
 QoreListNode* QoreProgram::getFeatureList() const {

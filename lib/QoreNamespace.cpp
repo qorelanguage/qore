@@ -1137,7 +1137,7 @@ qore_ns_private *qore_root_ns_private::parseResolveNamespaceIntern(const NamedSc
       }
    }
 
-   parse_error(loc ? *loc : QoreProgramLocation(), "cannot resolve namespace '%s' in '%s'", nscope[match], nscope.ostr);
+   parse_error(loc ? *loc : QoreProgramLocation(ParseLocation), "cannot resolve namespace '%s' in '%s'", nscope[match], nscope.ostr);
    return 0;
 }
 

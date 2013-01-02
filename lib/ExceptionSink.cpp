@@ -53,18 +53,16 @@ ExceptionSink::operator bool () const {
    return this && (priv->head || priv->thread_exit);
 }
 
-void ExceptionSink::overrideLocation(int sline, int eline, const char *file) {
+void ExceptionSink::overrideLocation(const QoreProgramLocation& loc) {
    QoreException *w = priv->head;
    while (w) {
-      w->start_line = sline;
-      w->end_line = eline;
-      w->file = file ? strdup(file) : 0;
+      w->set(loc);
       w = w->next;
    }
 }
 
 QoreException *ExceptionSink::catchException() {
-   class QoreException *e = priv->head;
+   QoreException *e = priv->head;
    priv->head = priv->tail = 0;
    return e;
 }
@@ -201,12 +199,12 @@ void ExceptionSink::rethrow(QoreException *old) {
    priv->insert(old->rethrow());
 }
 
-void ExceptionSink::assimilate(ExceptionSink *xs) {
+void ExceptionSink::assimilate(ExceptionSink* xs) {
    assimilate(*xs);
    delete xs;
 }
 
-void ExceptionSink::assimilate(ExceptionSink &xs) {
+void ExceptionSink::assimilate(ExceptionSink& xs) {
    if (xs.priv->thread_exit) {
       priv->thread_exit = xs.priv->thread_exit;
       xs.priv->thread_exit = false;
@@ -224,13 +222,11 @@ void ExceptionSink::assimilate(ExceptionSink &xs) {
 void ExceptionSink::outOfMemory() {
 #ifdef QORE_OOM
    // get pre-allocated out of memory exception for this thread
-   QoreException *ex = getOutOfMemoryException();
+   QoreException* ex = getOutOfMemoryException();
    // if it's already been used then return
    if (!ex)
       return;
-   // set line and file in exception
-   const char *f = get_pgm_counter(ex->start_line, ex->end_line);
-   ex->file = f ? strdup(f) : 0;
+   ex->set(QoreProgramLocation(RuntimeLocation));
    // there is no callstack in an out-of-memory exception
    // add exception to list
    priv->insert(ex);

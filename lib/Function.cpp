@@ -239,7 +239,7 @@ void AbstractFunctionSignature::addDefaultArgument(const AbstractQoreNode* arg) 
 UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* params, RetTypeInfo* retTypeInfo) :
    AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : 0), 
    parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0), 
-   loc(first_line, last_line, get_parse_file()),
+   loc(first_line, last_line),
    lv(0), argvid(0), selfid(0), resolved(false) {
    int64 po = getProgram()->getParseOptions64();
 

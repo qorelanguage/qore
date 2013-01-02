@@ -50,16 +50,28 @@ struct QoreExceptionBase {
 
 struct QoreExceptionLocation : QoreProgramLineLocation {
    std::string file;
+   std::string source;
+   int offset;
 
+   /*
    DLLLOCAL QoreExceptionLocation(int sline, int eline, const char *n_file) : QoreProgramLineLocation(sline, eline), file(n_file ? n_file : "") {
    }
+   */
 
-   DLLLOCAL QoreExceptionLocation(const QoreProgramLocation &loc) : QoreProgramLineLocation(loc), file(loc.file ? loc.file : "") {
+   DLLLOCAL QoreExceptionLocation(const QoreProgramLocation &loc) : QoreProgramLineLocation(loc),
+         file(loc.file ? loc.file : ""), source(loc.source ? loc.source : ""), offset(loc.offset) {
    }
 
-   DLLLOCAL QoreExceptionLocation(prog_loc_e loc = ParseLocation);
+   DLLLOCAL QoreExceptionLocation(const QoreExceptionLocation& old) : QoreProgramLineLocation(old),
+         file(old.file), source(old.source), offset(old.offset) {
+   }
 
-   DLLLOCAL QoreExceptionLocation(const QoreExceptionLocation& old) : QoreProgramLineLocation(old), file(old.file) {
+   DLLLOCAL void set(const QoreProgramLocation& loc) {
+      start_line = loc.start_line;
+      end_line = loc.end_line;
+      file = loc.file ? loc.file : "";
+      source = loc.source ? loc.source : "";
+      offset = loc.offset;
    }
 };
 
@@ -80,7 +92,7 @@ protected:
    }
 
    DLLLOCAL void addStackInfo(AbstractQoreNode *n);
-   DLLLOCAL static QoreHashNode *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
+   DLLLOCAL static QoreHashNode *getStackHash(int type, const char *class_name, const char *code, const QoreProgramLocation& loc);
 
 public:
    QoreException *next;
@@ -90,14 +102,14 @@ public:
    DLLLOCAL QoreHashNode *makeExceptionObject();
 
    // called for runtime exceptions
-   DLLLOCAL QoreException(const char *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreExceptionLocation(RunTimeLocation), next(0) {      
+   DLLLOCAL QoreException(const char *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreExceptionLocation(QoreProgramLocation(RunTimeLocation)), next(0) {
    }
 
    DLLLOCAL QoreException(const QoreException &old) : QoreExceptionBase(old), QoreExceptionLocation(old), next(old.next ? new QoreException(*old.next) : 0) {
    }
 
    // called for user exceptions
-   DLLLOCAL QoreException(const QoreListNode *n) : QoreExceptionBase(0, 0, 0, ET_USER), QoreExceptionLocation(RunTimeLocation), next(0) {
+   DLLLOCAL QoreException(const QoreListNode *n) : QoreExceptionBase(0, 0, 0, ET_USER), QoreExceptionLocation(QoreProgramLocation(RunTimeLocation)), next(0) {
       if (n) {
          err = n->get_referenced_entry(0);
          desc = n->get_referenced_entry(1);
@@ -126,9 +138,7 @@ public:
       if (!fn)
          fn = "<unknown>";
    
-      int sline, eline;
-      const char *cf = get_pgm_counter(sline, eline);
-      QoreHashNode *h = getStackHash(CT_RETHROW, 0, fn, cf, sline, eline);
+      QoreHashNode *h = getStackHash(CT_RETHROW, 0, fn, get_runtime_location());
       l->insert(h);
 
       return e;
@@ -138,16 +148,18 @@ public:
 class ParseException : public QoreException {
 public:
    // called for parse exceptions
-   DLLLOCAL ParseException(const char *err, QoreStringNode *desc) : QoreException(QoreProgramLocation(ParseLocation), err, desc) {
+   DLLLOCAL ParseException(const char* err, QoreStringNode* desc) : QoreException(QoreProgramLocation(ParseLocation), err, desc) {
    }
 
    // called for parse exceptions
-   DLLLOCAL ParseException(const QoreProgramLocation &loc, const char *err, QoreStringNode *desc) : QoreException(loc, err, desc) {
+   DLLLOCAL ParseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc) : QoreException(loc, err, desc) {
    }
 
    // called for parse exceptions
+   /*
    DLLLOCAL ParseException(int s_line, int e_line, const char *file, const char *err, QoreStringNode *desc) : QoreException(QoreProgramLocation(s_line, e_line, file), err, desc) {
    }
+   */
 };
 
 struct qore_es_private {
@@ -202,7 +214,7 @@ struct qore_es_private {
    // creates a stack trace node and adds it to all exceptions in this sink
    DLLLOCAL void addStackInfo(int type, const char *class_name, const char *code, const QoreProgramLocation& loc) {
       assert(head);
-      QoreHashNode* n = QoreException::getStackHash(type, class_name, code, loc.file, loc.start_line, loc.end_line);
+      QoreHashNode* n = QoreException::getStackHash(type, class_name, code, loc);
 
       QoreException *w = head;
       while (w) {
@@ -213,7 +225,7 @@ struct qore_es_private {
       }
    }
 
-   DLLLOCAL static void addStackInfo(ExceptionSink& xsink, int type, const char* class_name, const char* code, const QoreProgramLocation& loc = QoreProgramLocation()) {
+   DLLLOCAL static void addStackInfo(ExceptionSink& xsink, int type, const char* class_name, const char* code, const QoreProgramLocation& loc = QoreProgramLocation(ParseLocation)) {
       xsink.priv->addStackInfo(type, class_name, code, loc);
    }
 

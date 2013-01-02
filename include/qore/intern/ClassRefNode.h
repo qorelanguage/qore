@@ -29,17 +29,17 @@ class ClassRefNode : public ParseNoEvalNode {
 protected:
    // populated on creation
    QoreProgramLocation loc;
-   NamedScope *cscope;
+   NamedScope* cscope;
    int cid;
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       // FIXME: implement a type for this
       return 0;
    }
       
 public:
-   DLLLOCAL ClassRefNode(char *str) : ParseNoEvalNode(NT_CLASSREF), cscope(new NamedScope(str)) {
+   DLLLOCAL ClassRefNode(char* str) : ParseNoEvalNode(NT_CLASSREF), loc(ParseLocation), cscope(new NamedScope(str)) {
    }
 
    DLLLOCAL ~ClassRefNode() {
@@ -50,14 +50,14 @@ public:
    // the ExceptionSink is only needed for QoreObject where a method may be executed
    // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
    // returns -1 for exception raised, 0 = OK
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreString *getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
    // returns the data type
    DLLLOCAL virtual qore_type_t getType() const;
    // returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const;      
+   DLLLOCAL virtual const char* getTypeName() const;
 
    DLLLOCAL int getID() const;
 };

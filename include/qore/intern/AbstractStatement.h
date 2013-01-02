@@ -46,12 +46,10 @@ private:
    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0) = 0;
 
 public:
-   int LineNumber;
-   int EndLineNumber;
-   const char* FileName;
+   QoreProgramLocation loc;
    struct ParseWarnOptions pwo;
 
-   DLLLOCAL AbstractStatement(int start_line, int end_line);
+   DLLLOCAL AbstractStatement(int sline, int eline);
 
    DLLLOCAL virtual ~AbstractStatement() {}
 

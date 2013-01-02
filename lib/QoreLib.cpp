@@ -1640,17 +1640,19 @@ bool q_path_is_readable(const char* path) {
 #endif
 }
 
+QoreProgramLocation::QoreProgramLocation(int sline, int eline) : QoreProgramLineLocation(sline, eline) {
+   set_parse_file_info(*this);
+}
+
 QoreProgramLocation::QoreProgramLocation(prog_loc_e loc) {
-   if (loc == ParseLocation) {
-      get_parse_location(start_line, end_line);
-      file = get_parse_file();
-   }
+   if (loc == ParseLocation)
+      *this = get_parse_location();
    else
-      file = get_pgm_counter(start_line, end_line);
+      *this = get_runtime_location();
 }
 
 void QoreProgramLocation::parseSet() const {
-   update_parse_location(start_line, end_line, file);
+   update_parse_location(*this);
 }
 
 bool q_parse_bool(const AbstractQoreNode* n) {

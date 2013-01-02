@@ -108,13 +108,13 @@ protected:
       }
 
 public:
-   DLLLOCAL Var(const char* n_name) : val(QV_Node), name(n_name), parseTypeInfo(0), typeInfo(0), pub(false), finalized(false) {
+   DLLLOCAL Var(const char* n_name) : loc(ParseLocation), val(QV_Node), name(n_name), parseTypeInfo(0), typeInfo(0), pub(false), finalized(false) {
    }
 
-   DLLLOCAL Var(const char* n_name, QoreParseTypeInfo *n_parseTypeInfo) : val(QV_Node), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0), pub(false), finalized(false) {
+   DLLLOCAL Var(const char* n_name, QoreParseTypeInfo *n_parseTypeInfo) : loc(ParseLocation), val(QV_Node), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0), pub(false), finalized(false) {
    }
 
-   DLLLOCAL Var(const char* n_name, const QoreTypeInfo *n_typeInfo) : val(n_typeInfo), name(n_name), parseTypeInfo(0), typeInfo(n_typeInfo), pub(false), finalized(false) {
+   DLLLOCAL Var(const char* n_name, const QoreTypeInfo *n_typeInfo) : loc(ParseLocation), val(n_typeInfo), name(n_name), parseTypeInfo(0), typeInfo(n_typeInfo), pub(false), finalized(false) {
    }
 
    DLLLOCAL Var(Var *ref, bool ro = false) : loc(ref->loc), val(QV_Ref), name(ref->name), parseTypeInfo(0), typeInfo(ref->typeInfo), pub(false), finalized(false) {

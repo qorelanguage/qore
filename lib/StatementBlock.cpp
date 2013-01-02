@@ -45,8 +45,7 @@ protected:
    int refs;
 
    // to store parse location in case of errors
-   int first_line, last_line;
-   const char *file;
+   QoreProgramLocation loc;
    bool block_start;
    bool top_level;
    
@@ -54,8 +53,7 @@ public:
    LocalVar *lvar;
    VNode* next;
 
-   DLLLOCAL VNode(LocalVar *lv, int n_refs = 0, bool n_top_level = false) : refs(n_refs), file(get_parse_file()), block_start(false), top_level(n_top_level), lvar(lv), next(getVStack()) {
-      get_parse_location(first_line, last_line);
+   DLLLOCAL VNode(LocalVar *lv, int n_refs = 0, bool n_top_level = false) : refs(n_refs), loc(ParseLocation), block_start(false), top_level(n_top_level), lvar(lv), next(getVStack()) {
       updateVStack(this);
 
       //printd(5, "VNode::VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
@@ -68,7 +66,7 @@ public:
       //printd(5, "VNode::~VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
 
       if (lvar && !refs)
-	 qore_program_private::makeParseWarning(getProgram(), first_line, last_line, file, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
+	 qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
    }
 
    DLLLOCAL void setRef() {
@@ -160,7 +158,7 @@ void StatementBlock::addStatement(AbstractStatement *s) {
       if (obe)
 	 on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
 
-      EndLineNumber = s->EndLineNumber;
+      loc.end_line = s->loc.end_line;
    }
 }
 
@@ -392,7 +390,7 @@ void StatementBlock::parseCheckReturn() {
 	 if (!this)
 	    qore_program_private::makeParseException(getProgram(), "MISSING-RETURN", desc);
 	 else
-	    qore_program_private::makeParseException(getProgram(), QoreProgramLocation(LineNumber, EndLineNumber, FileName), "MISSING-RETURN", desc);
+	    qore_program_private::makeParseException(getProgram(), QoreProgramLocation(loc), "MISSING-RETURN", desc);
       }
    }
 }

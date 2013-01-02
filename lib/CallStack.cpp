@@ -33,18 +33,14 @@ QoreRWLock *thread_stack_lock;
 QoreRWLock thread_stack_lock;
 #endif
 
-CallNode::CallNode(const char *f, int t, ClassObj o) {
-   func = f;
-   type = t;
-   file_name = get_pgm_counter(start_line, end_line);
-   obj = o;
+CallNode::CallNode(const char *f, int t, ClassObj o) : func(f), loc(RunTimeLocation), type(t), obj(o) {
    QoreObject *qo = o.getObj();
-   if (qo)
+   if (qo) {
       qo->ref();
 #ifdef DEBUG
-   if (qo)
       printd(5, "CallNode::CallNode() pushing class=%p '%s' (name=%p) obj=%p\n", qo->getClass(), qo->getClass()->getName(), qo->getClass()->getName(), qo);
 #endif
+   }
 }
 
 void CallNode::objectDeref(ExceptionSink *xsink) {
@@ -57,8 +53,8 @@ void CallNode::objectDeref(ExceptionSink *xsink) {
 }
 
 extern char *file_names[];
-QoreHashNode *CallNode::getInfo() const {
-   QoreHashNode *h = new QoreHashNode();
+QoreHashNode* CallNode::getInfo() const {
+   QoreHashNode* h = new QoreHashNode;
    // FIXME: add class name
    QoreStringNode *str = new QoreStringNode;
    if (obj) {
@@ -68,9 +64,11 @@ QoreHashNode *CallNode::getInfo() const {
    str->concat(func);
 
    h->setKeyValue("function", str, 0);
-   h->setKeyValue("line",     new QoreBigIntNode(start_line), 0);
-   h->setKeyValue("endline",  new QoreBigIntNode(end_line), 0);
-   h->setKeyValue("file",     new QoreStringNode(file_name), 0);
+   h->setKeyValue("line",     new QoreBigIntNode(loc.start_line), 0);
+   h->setKeyValue("endline",  new QoreBigIntNode(loc.end_line), 0);
+   h->setKeyValue("file",     new QoreStringNode(loc.file), 0);
+   //h->setKeyValue("source",   new QoreStringNode(loc.source), 0);
+   //h->setKeyValue("offset",   new QoreBigIntNode(loc.offset), 0);
    h->setKeyValue("typecode", new QoreBigIntNode(type), 0);
    // CT_RETHROW is only aded manually
    switch (type) {
@@ -123,7 +121,7 @@ void CallStack::pop(ExceptionSink *xsink) {
 }
 
 QoreListNode *CallStack::getCallStack() const {
-   QoreListNode *l = new QoreListNode();
+   QoreListNode *l = new QoreListNode;
    CallNode *c = tail;
    while (c) {
       l->push(c->getInfo());

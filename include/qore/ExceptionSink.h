@@ -143,16 +143,16 @@ public:
    //! deletes the exception list immediately
    DLLEXPORT void clear();
 
-   DLLLOCAL void raiseException(QoreException *e);
-   DLLLOCAL void raiseException(const QoreListNode *n);
-   DLLLOCAL void raiseException(const QoreProgramLocation &loc, const char *err, AbstractQoreNode *arg, AbstractQoreNode *desc);
-   DLLLOCAL void raiseException(const QoreProgramLocation &loc, const char *err, AbstractQoreNode *arg, const char *fmt, ...);
-   DLLLOCAL QoreException *catchException();
-   DLLLOCAL void overrideLocation(int sline, int eline, const char *file);
-   DLLLOCAL void rethrow(QoreException *old);
+   DLLLOCAL void raiseException(QoreException* e);
+   DLLLOCAL void raiseException(const QoreListNode* n);
+   DLLLOCAL void raiseException(const QoreProgramLocation& loc, const char* err, AbstractQoreNode* arg, AbstractQoreNode* desc);
+   DLLLOCAL void raiseException(const QoreProgramLocation& loc, const char* err, AbstractQoreNode* arg, const char* fmt, ...);
+   DLLLOCAL QoreException* catchException();
+   DLLLOCAL void overrideLocation(const QoreProgramLocation& loc);
+   DLLLOCAL void rethrow(QoreException* old);
 
-   DLLLOCAL static void defaultExceptionHandler(QoreException *e);
-   DLLLOCAL static void defaultWarningHandler(QoreException *e);
+   DLLLOCAL static void defaultExceptionHandler(QoreException* e);
+   DLLLOCAL static void defaultWarningHandler(QoreException* e);
 };
 
 static inline void alreadyDeleted(ExceptionSink *xsink, const char *cmeth) {

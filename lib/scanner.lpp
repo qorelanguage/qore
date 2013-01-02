@@ -53,10 +53,10 @@ QoreParserLocation::QoreParserLocation() : explicit_first(false), first_line(0) 
 void QoreParserLocation::updatePosition(int f) {
    if (!explicit_first) {
       first_line = f;
-      update_parse_location(f, f);
+      update_parse_line_location(f, f);
    }
    else {
-      update_parse_location(first_line, f);
+      update_parse_line_location(first_line, f);
       explicit_first = false;
    }
    last_line = f;
@@ -544,7 +544,7 @@ static void qore_parse_define(const char *pstr) {
 	 return;
    }
  
-   qore_program_private::parseDefine(getProgram(), QoreProgramLocation(), str.getBuffer(), v);
+   qore_program_private::parseDefine(getProgram(), QoreProgramLocation(ParseLocation), str.getBuffer(), v);
 }
 
 static bool parse_is_defined(const char *pstr, bool def = true) {
@@ -982,8 +982,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
 						       // take string from buffer
 						       char *str = fname->giveBuffer();
 						       // save file name string in QoreProgram's list - the list now owns the string memory
-						       getProgram()->addFile(str);
-						       beginParsing(str, (void *)YY_CURRENT_BUFFER);
+						       qore_program_private::addFile(*(getProgram()), str);
+						       beginParsing(str, (void*)YY_CURRENT_BUFFER);
 						       yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
 						       BEGIN(INITIAL);
 						    }

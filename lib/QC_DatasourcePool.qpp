@@ -226,7 +226,7 @@ DatasourcePool::constructor(string desc) [doconly=true] {
     - \c charset: (@ref string_or_nothing_type "*string") The database-specific name of the character encoding to use for the new connection. Also see DatasourcePool::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the %Qore process will be used instead.
     - \c host: (@ref string_or_nothing_type "*string") The host name for the new connection
     - \c port: (@ref softint_type "softint") The port number for the new connection
-    - \c options: (@ref hash_type "hash") An optional hash having \c "min" and \c "max" keys giving the minimum and maximum number of connections in the pool, respectively
+    - \c options: (@ref hash_type "hash") An optional hash having \c "min" and \c "max" keys giving the minimum and maximum number of connections in the pool, respectively; all other options will be passed to the database driver
 
     @par Example:
     @code

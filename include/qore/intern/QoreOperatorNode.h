@@ -36,7 +36,7 @@ public:
    // populated automatically on creation
    QoreProgramLocation loc;
 
-   DLLLOCAL QoreOperatorNode(bool n_ref_rv = true) : ParseNode(NT_OPERATOR), ref_rv(n_ref_rv) {
+   DLLLOCAL QoreOperatorNode(bool n_ref_rv = true) : ParseNode(NT_OPERATOR), ref_rv(n_ref_rv), loc(ParseLocation) {
    }
 
    // returns the type name as a c string

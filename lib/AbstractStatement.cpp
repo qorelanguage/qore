@@ -26,16 +26,15 @@
 
 #include <typeinfo>
 
-AbstractStatement::AbstractStatement(int start_line, int end_line) : LineNumber(start_line), EndLineNumber(end_line) {
+AbstractStatement::AbstractStatement(int sline, int eline) : loc(sline, eline) {
    QoreProgram *pgm = getProgram();
    if (pgm)
       pwo = qore_program_private::getParseWarnOptions(pgm);
-   FileName = get_parse_file();
 }
 
 int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsink) {
-   printd(1, "AbstractStatement::exec() type=%s file=%s line=%d\n", typeid(this).name(), FileName, LineNumber);   
-   update_pgm_counter_pgm_file(LineNumber, EndLineNumber, FileName);
+   printd(1, "AbstractStatement::exec() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(), loc.file, loc.start_line);
+   update_runtime_location(loc);
 
 #ifdef QORE_MANAGE_STACK
    if (check_stack(xsink))
@@ -47,12 +46,12 @@ int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsin
 }
 
 int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
-   printd(2, "AbstractStatement::parseInit() %p type=%s line %d file %s\n", this, typeid(this).name(), LineNumber, FileName);
+   printd(2, "AbstractStatement::parseInit() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(), loc.file, loc.start_line);
    // set parse options and warning mask for this statement
    ParseWarnHelper pwh(pwo);
 
    // set pgm position in case of errors
-   update_parse_location(LineNumber, EndLineNumber, FileName);
+   update_parse_location(loc);
    return parseInitImpl(oflag, pflag);
 }
 

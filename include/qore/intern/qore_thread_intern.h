@@ -226,21 +226,29 @@ public:
 DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink* xsink);
 DLLLOCAL void purge_thread_resources(ExceptionSink* xsink);
 DLLLOCAL void mark_thread_resources();
-DLLLOCAL void beginParsing(char* file, void* ps = NULL);
+DLLLOCAL void beginParsing(const char* file, void* ps = NULL, const char* src = 0, int offset = 0);
 DLLLOCAL void* endParsing();
 DLLLOCAL Context* get_context_stack();
 DLLLOCAL void update_context_stack(Context* cstack);
-DLLLOCAL const char* get_pgm_counter(int &start_line, int &end_line);
-DLLLOCAL const char* get_pgm_file();
-DLLLOCAL void update_pgm_counter_pgm_file(int start_line, int end_line, const char* f);
+
+//DLLLOCAL const char* get_pgm_counter(int &start_line, int &end_line);
+//DLLLOCAL const char* get_pgm_file();
+//DLLLOCAL void update_pgm_counter_pgm_file(int start_line, int end_line, const char* f);
+
+DLLLOCAL QoreProgramLocation get_runtime_location();
 DLLLOCAL void update_runtime_location(const QoreProgramLocation& loc);
-DLLLOCAL void get_parse_location(int &start_line, int &end_line);
-DLLLOCAL const char* get_parse_file();
+
+//DLLLOCAL void get_parse_location(int &start_line, int &end_line);
+//DLLLOCAL const char* get_parse_file();
+//DLLLOCAL void update_parse_location(int start_line, int end_line, const char* f);
+//DLLLOCAL void update_parse_location(int start_line, int end_line);
+
+DLLLOCAL void update_parse_line_location(int start_line, int end_line);
+DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
 DLLLOCAL const char* get_parse_code();
-DLLLOCAL void update_parse_location(int start_line, int end_line);
-DLLLOCAL void update_parse_location(int start_line, int end_line, const char* f);
 DLLLOCAL QoreProgramLocation get_parse_location();
 DLLLOCAL void update_parse_location(const QoreProgramLocation& loc);
+
 DLLLOCAL RootQoreNamespace* getRootNS();
 DLLLOCAL int64 getParseOptions();
 DLLLOCAL void updateCVarStack(CVNode* ncvs);
@@ -344,14 +352,13 @@ public:
 
 class QoreProgramLocationHelper {
 protected:
-   int start_line, end_line;
-   const char* file;
+   QoreProgramLocation loc;
 public:
-   DLLLOCAL QoreProgramLocationHelper() {
-      file = get_pgm_counter(start_line, end_line);
+   DLLLOCAL QoreProgramLocationHelper() : loc(get_runtime_location()) {
    }
+
    DLLLOCAL ~QoreProgramLocationHelper() {
-      update_pgm_counter_pgm_file(start_line, end_line, file);
+      update_runtime_location(loc);
    }
 };
 
@@ -675,8 +682,8 @@ public:
 class CallNode {
 public:
    const char* func;
-   const char* file_name;
-   int start_line, end_line, type;
+   QoreProgramLocation loc;
+   int type;
 
    ClassObj obj;
    CallNode* next, *prev;

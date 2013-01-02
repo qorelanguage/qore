@@ -596,7 +596,7 @@ public:
    DLLLOCAL void internParseRollback();
 
    // call must push the current program on the stack and pop it afterwards
-   DLLLOCAL int internParsePending(const char* code, const char* label) {
+   DLLLOCAL int internParsePending(const char* code, const char* label, const char* orig_src = 0, int offset = 0) {
       printd(5, "QoreProgram::internParsePending(code=%p, label=%s)\n", code, label);
  
       if (!(*code))
@@ -605,8 +605,11 @@ public:
       // save this file name for storage in the parse tree and deletion
       // when the QoreProgram object is deleted
       char* sname = strdup(label);
-      fileList.push_back(sname);
-      beginParsing(sname);
+      addFile(sname);
+      char* src = orig_src ? strdup(orig_src) : 0;
+      if (src)
+         addFile(src);
+      beginParsing(sname, 0, src, offset);
 
       // no need to save buffer, because it's deleted automatically in lexer
       //printd(5, "QoreProgram::internParsePending() parsing tag=%s (%p): '%s'\n", label, label, code);
@@ -704,7 +707,7 @@ public:
       internParseRollback();
    }
 
-   DLLLOCAL void parse(FILE *fp, const char* name, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+   DLLLOCAL void parse(FILE *fp, const char* name, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = 0, int offset = 0) {
       printd(5, "QoreProgram::parse(fp=%p, name=%s, xsink=%p, wS=%p, wm=%d)\n", fp, name, xsink, wS, wm);
 
       // if already at the end of file, then return
@@ -734,8 +737,11 @@ public:
 	 // save this file name for storage in the parse tree and deletion
 	 // when the QoreProgram object is deleted
 	 char* sname = strdup(name);
-	 fileList.push_back(sname);
-	 beginParsing(sname);
+	 addFile(sname);
+         char* src = orig_src ? strdup(orig_src) : 0;
+         if (src)
+            addFile(src);
+         beginParsing(sname, 0, src, offset);
 	 
 	 //printd(5, "QoreProgram::parse(): about to call yyparse()\n");
 	 yylex_init(&lexer);
@@ -1082,7 +1088,7 @@ public:
 
       QoreStringNodeHolder d(desc);
       if (!requires_exception) {
-         QoreException *ne = new ParseException(loc.start_line, loc.end_line, loc.file, err, d.release());
+         QoreException *ne = new ParseException(loc, err, d.release());
          if ((only_first_except && !exceptions_raised) || !only_first_except)
             parseSink->raiseException(ne);
          exceptions_raised++;
@@ -1247,12 +1253,11 @@ public:
 
       // ensure that all exceptions reflect the current parse location
       if (!loc) {
-         int sline, eline;
-         get_parse_location(sline, eline);
-         xsink.overrideLocation(sline, eline, get_parse_file());
+         QoreProgramLocation pl(ParseLocation);
+         xsink.overrideLocation(pl);
       }
       else
-         xsink.overrideLocation(loc->start_line, loc->end_line, loc->file);
+         xsink.overrideLocation(*loc);
 
       parseSink->assimilate(xsink);
    }
@@ -1306,7 +1311,15 @@ public:
 
    DLLLOCAL void importClass(qore_program_private& from_pgm, const char* path, ExceptionSink* xsink);
 
-   DLLLOCAL static void importClass(QoreProgram& pgm , QoreProgram& from_pgm, const char* path, ExceptionSink* xsink) {
+   DLLLOCAL void addFile(char* f) {
+      fileList.push_back(f);
+   }
+
+   DLLLOCAL static void addFile(QoreProgram& pgm, char* f) {
+      pgm.priv->addFile(f);
+   }
+
+   DLLLOCAL static void importClass(QoreProgram& pgm, QoreProgram& from_pgm, const char* path, ExceptionSink* xsink) {
       pgm.priv->importClass(*(from_pgm.priv), path, xsink);
    }
 
@@ -1491,7 +1504,7 @@ public:
       pgm->priv->warnSink->raiseException(ne);
    }
 
-   DLLLOCAL static void makeParseWarning(QoreProgram* pgm, int sline, int eline, const char* file, int code, const char* warn, const char* fmt, ...) {
+   DLLLOCAL static void makeParseWarning(QoreProgram* pgm, const QoreProgramLocation &loc, int code, const char* warn, const char* fmt, ...) {
       //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->pwo.warn_mask=%d priv->warnSink=%p %s\n", code, warn, fmt, priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
       if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask))
          return;
@@ -1505,7 +1518,7 @@ public:
          if (!rc)
             break;
       }
-      QoreException *ne = new ParseException(sline, eline, file, warn, desc);
+      QoreException *ne = new ParseException(loc, warn, desc);
       pgm->priv->warnSink->raiseException(ne);
    }
 

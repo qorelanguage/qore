@@ -331,6 +331,7 @@ Datasource::constructor(string desc) [doconly=true] {
     - \c charset: (@ref string_or_nothing_type "*string") The database-specific name of the character encoding to use for the new connection. Also see Datasource::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the %Qore process will be used instead.
     - \c host: (@ref string_or_nothing_type "*string") The host name for the new connection. Also see Datasource::setHostName() for a method that allows this parameter to be set after the constructor.
     - \c port: (@ref softint_type "softint") The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor. If this key is present and is 0 then an exception will be raised.
+    - \c options: (@ref hash_or_nothing_type "*hash") Any options for the new connection
 
     @par Example:
     @code

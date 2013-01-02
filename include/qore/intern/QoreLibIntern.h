@@ -150,20 +150,38 @@ struct QoreProgramLineLocation {
    DLLLOCAL QoreProgramLineLocation() : start_line(-1), end_line(-1) {
    }
 
-   DLLLOCAL QoreProgramLineLocation(const QoreProgramLineLocation &old) : start_line(old.start_line), end_line(old.end_line) {
+   DLLLOCAL QoreProgramLineLocation(const QoreProgramLineLocation& old) : start_line(old.start_line), end_line(old.end_line) {
    }
 };
 
-struct QoreProgramLocation : QoreProgramLineLocation {
-   const char* file;
-
-   DLLLOCAL QoreProgramLocation(int sline, int eline, const char* f) : QoreProgramLineLocation(sline, eline), file(f) {
+struct QoreProgramLocation : public QoreProgramLineLocation {
+protected:
+   DLLLOCAL QoreProgramLocation(int sline, int eline, const char* f) : QoreProgramLineLocation(sline, eline), file(f), source(0), offset(0) {
    }
 
-   // sets from current parse or runtime location in thread-local data
-   DLLLOCAL QoreProgramLocation(prog_loc_e loc = ParseLocation);
+public:
+   const char* file;
+   const char* source;
+   int offset;
 
-   DLLLOCAL QoreProgramLocation(const QoreProgramLocation& old) : QoreProgramLineLocation(old), file(old.file) {
+   // "blank" constructor
+   DLLLOCAL QoreProgramLocation() : file(0), source(0), offset(0) {
+   }
+
+   // sets file position info from thread-local parse information
+   DLLLOCAL QoreProgramLocation(int sline, int eline);
+
+   // sets from current parse or runtime location in thread-local data
+   DLLLOCAL QoreProgramLocation(prog_loc_e loc);
+
+   DLLLOCAL QoreProgramLocation(const QoreProgramLocation& old) : QoreProgramLineLocation(old), file(old.file), source(old.source), offset(old.offset) {
+   }
+
+   DLLLOCAL void clear() {
+      start_line = end_line = -1;
+      file = 0;
+      source = 0;
+      offset = 0;
    }
 
    DLLLOCAL void parseSet() const;
@@ -847,7 +865,7 @@ public:
 
 class ParseLocationHelper : private QoreProgramLocation {
 public:
-   DLLLOCAL ParseLocationHelper(const QoreProgramLocation& loc) {
+   DLLLOCAL ParseLocationHelper(const QoreProgramLocation& loc) : QoreProgramLocation(ParseLocation) {
       loc.parseSet();
    }
    DLLLOCAL ~ParseLocationHelper() {

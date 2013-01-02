@@ -27,17 +27,6 @@
 
 #include <assert.h>
 
-QoreExceptionLocation::QoreExceptionLocation(prog_loc_e loc) {
-   const char *f;
-   if (loc == ParseLocation) {
-      get_parse_location(start_line, end_line);
-      f = get_parse_file();
-   }
-   else
-      f = get_pgm_counter(start_line, end_line);
-   file = f ? f : "";
-}
-
 void QoreException::del(ExceptionSink *xsink) {
    if (callStack) {
       callStack->deref(xsink);
@@ -316,7 +305,7 @@ void ExceptionSink::defaultWarningHandler(QoreException *e) {
 }
 
 // static function
-QoreHashNode *QoreException::getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line) {
+QoreHashNode *QoreException::getStackHash(int type, const char *class_name, const char *code, const QoreProgramLocation& loc) {
    QoreHashNode *h = new QoreHashNode;
 
    QoreStringNode *str = new QoreStringNode;
@@ -325,9 +314,11 @@ QoreHashNode *QoreException::getStackHash(int type, const char *class_name, cons
    str->concat(code);
    
    h->setKeyValue("function", str, 0);
-   h->setKeyValue("line",     new QoreBigIntNode(start_line), 0);
-   h->setKeyValue("endline",  new QoreBigIntNode(end_line), 0);
-   h->setKeyValue("file",     file ? new QoreStringNode(file) : 0, 0);
+   h->setKeyValue("line",     new QoreBigIntNode(loc.start_line), 0);
+   h->setKeyValue("endline",  new QoreBigIntNode(loc.end_line), 0);
+   h->setKeyValue("file",     loc.file ? new QoreStringNode(loc.file) : 0, 0);
+   h->setKeyValue("source",   loc.source ? new QoreStringNode(loc.source) : (loc.file ? new QoreStringNode(loc.file) : 0), 0);
+   h->setKeyValue("offset",   new QoreBigIntNode(loc.offset), 0);
    h->setKeyValue("typecode", new QoreBigIntNode(type), 0);
    const char *tstr = 0;
    switch (type) {

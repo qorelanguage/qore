@@ -71,7 +71,7 @@
 // global background thread counter
 QoreCounter thread_counter;
 
-Operator *OP_BACKGROUND;
+Operator* OP_BACKGROUND;
 
 ThreadCleanupList tclist;
 
@@ -186,13 +186,12 @@ const qore_class_private* ClassObj::getClass() const {
 
 class ProgramLocation {
 public:
-   const char *file;
-   void *parseState;
-   ProgramLocation *next;
-      
-   DLLLOCAL ProgramLocation(const char *fname, void *ps = 0) { 
-      file       = fname; 
-      parseState = ps;
+   const char* file, * src;
+   void* parseState;
+   int offset;
+   ProgramLocation* next;
+
+   DLLLOCAL ProgramLocation(const char* fname, void* ps, const char* psrc, int off, ProgramLocation* n) : file(fname), src(psrc), parseState(ps), offset(off), next(n) {
    }
 };
 
@@ -327,11 +326,15 @@ public:
    int tid;
    VLock vlock;     // for deadlock detection
    Context *context_stack;
-   ProgramLocation *plStack;
+   ProgramLocation* plStack;
+   QoreProgramLocation parse_loc;
+   QoreProgramLocation runtime_loc;
+   /*
    int parse_line_start, parse_line_end;
-   const char *parse_file;
-   int pgm_counter_start, pgm_counter_end;
+   const char* parse_file, * parse_src;
+   int pgm_counter_start, pgm_counter_end, parse_offset;
    const char *pgm_file;
+   */
    const char *parse_code; // the current function, method, or closure being parsed
    void *parseState;
    VNode* vstack;  // used during parsing (local variable stack)
@@ -413,8 +416,10 @@ public:
 
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
-      parse_line_start(0), parse_line_end(0), parse_file(0), 
-      pgm_counter_start(0), pgm_counter_end(0), pgm_file(0), 
+      /*
+      parse_line_start(0), parse_line_end(0), parse_file(0), parse_src(0),
+      pgm_counter_start(0), pgm_counter_end(0), parse_offset(0), pgm_file(0),
+      */
       parse_code(0), parseState(0), vstack(0), cvarstack(0),
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
       current_pgm(p), current_ns(0), current_implicit_arg(0), tlpd(0), tpd(new ThreadProgramData(this)),
@@ -899,7 +904,7 @@ bool parse_cond_test() {
 
 void push_parse_options() {
    ThreadData *td = thread_data.get();
-   qore_program_private::pushParseOptions(td->current_pgm, td->parse_file);
+   qore_program_private::pushParseOptions(td->current_pgm, td->parse_loc.file);
 }
 
 // called when a StatementBlock has "on_exit" blocks
@@ -918,29 +923,30 @@ block_list_t::iterator popBlock() {
 
 // called by each "on_exit" statement to activate its code for the block exit
 void advanceOnBlockExit() {
-   ThreadData *td = thread_data.get();
+   ThreadData* td = thread_data.get();
    --td->on_block_exit_list.back();
 }
 
 // new file name, current parse state
-void beginParsing(char *file, void *ps) {
-   ThreadData *td = thread_data.get();
+void beginParsing(const char* file, void* ps, const char* src, int offset) {
+   ThreadData* td = thread_data.get();
    //printd(5, "beginParsing() td: %p of %p (%s), (stack=%s)\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"));
    
    // store current position
-   ProgramLocation *pl = new ProgramLocation(td->parse_file, td->parseState);
-   pl->next = td->plStack;
+   ProgramLocation* pl = new ProgramLocation(td->parse_loc.file, td->parseState, td->parse_loc.source, td->parse_loc.offset, td->plStack);
    td->plStack = pl;
 
    // set new position
-   td->parse_file = file;
+   td->parse_loc.file = file;
    td->parseState = ps;
+   td->parse_loc.source = src ? src : file;
+   td->parse_loc.offset = offset;
 }
 
 void* endParsing() {
    ThreadData* td = thread_data.get();
    //printd(5, "endParsing() td: %p restoreParseOptions pgm: %p parse_file: %p '%s'\n", td, td->current_pgm, td->parse_file, td->parse_file);
-   qore_program_private::restoreParseOptions(td->current_pgm, td->parse_file);
+   qore_program_private::restoreParseOptions(td->current_pgm, td->parse_loc.file);
 
    void* rv = td->parseState;
 
@@ -953,8 +959,10 @@ void* endParsing() {
    ProgramLocation* pl = td->plStack->next;
    //printd(5, "endParsing() td: %p ending parsing of '%s', returning %p, setting file: %p '%s'\n", td, td->parse_file, rv, td->plStack->file, td->plStack->file);
 
-   td->parse_file  = td->plStack->file;
-   td->parseState  = td->plStack->parseState;
+   td->parse_loc.file   = td->plStack->file;
+   td->parseState       = td->plStack->parseState;
+   td->parse_loc.source = td->plStack->src;
+   td->parse_loc.offset = td->plStack->offset;
    delete td->plStack;
    td->plStack = pl;
 
@@ -984,6 +992,7 @@ void update_context_stack(Context *cstack) {
    td->context_stack = cstack;
 }
 
+/*
 const char *get_pgm_counter(int &start_line, int &end_line) {
    ThreadData *td = thread_data.get();
    start_line = td->pgm_counter_start;
@@ -992,21 +1001,14 @@ const char *get_pgm_counter(int &start_line, int &end_line) {
 }
 
 void update_pgm_counter_pgm_file(int start_line, int end_line, const char *f) {
-   ThreadData *td  = thread_data.get();
+   ThreadData *td = thread_data.get();
    td->pgm_counter_start = start_line;
    td->pgm_counter_end   = end_line;
    td->pgm_file          = f;
 }
 
-void update_runtime_location(const QoreProgramLocation& loc) {
-   ThreadData *td  = thread_data.get();
-   td->pgm_counter_start = loc.start_line;
-   td->pgm_counter_end   = loc.end_line;
-   td->pgm_file          = loc.file;
-}
-
 void update_pgm_counter(int start_line, int end_line) {
-   ThreadData *td  = thread_data.get();
+   ThreadData *td = thread_data.get();
    td->pgm_counter_start = start_line;
    td->pgm_counter_end   = end_line;
 }
@@ -1014,19 +1016,38 @@ void update_pgm_counter(int start_line, int end_line) {
 const char *get_pgm_file() {
    return (thread_data.get())->pgm_file;
 }
+*/
+
+QoreProgramLocation get_runtime_location() {
+   return thread_data.get()->runtime_loc;
+}
+
+void update_runtime_location(const QoreProgramLocation& loc) {
+   thread_data.get()->runtime_loc = loc;
+}
+
+void set_parse_file_info(QoreProgramLocation& loc) {
+   ThreadData *td = thread_data.get();
+   loc.file       = td->parse_loc.file;
+   loc.source     = td->parse_loc.source;
+   loc.offset     = td->parse_loc.offset;
+}
 
 QoreProgramLocation get_parse_location() {
-   ThreadData *td = thread_data.get();
-   return QoreProgramLocation(td->parse_line_end, td->parse_line_end, td->parse_file);
+   return thread_data.get()->parse_loc;
 }
 
 void update_parse_location(const QoreProgramLocation& loc) {
-   ThreadData *td = thread_data.get();
-   td->parse_line_start = loc.start_line;
-   td->parse_line_end   = loc.end_line;
-   td->parse_file       = loc.file;
+   thread_data.get()->parse_loc = loc;
 }
 
+void update_parse_line_location(int start_line, int end_line) {
+   ThreadData *td = thread_data.get();
+   td->parse_loc.start_line = start_line;
+   td->parse_loc.end_line = end_line;
+}
+
+/*
 void get_parse_location(int &start_line, int &end_line) {
    ThreadData *td = thread_data.get();
    start_line = td->parse_line_start;
@@ -1050,6 +1071,7 @@ void update_parse_location(int start_line, int end_line) {
 const char *get_parse_file() {
    return (thread_data.get())->parse_file;
 }
+*/
 
 const char *get_parse_code() {
    return (thread_data.get())->parse_code;
@@ -1848,8 +1870,10 @@ QoreNamespace *get_thread_ns(QoreNamespace &qorens) {
 }
 
 void delete_thread_local_data() {
-   // set no program location
-   update_pgm_counter_pgm_file(0, 0, 0);
+   ThreadData* td = thread_data.get();
+
+   // clear runtime location
+   td->runtime_loc.clear();
 
    ExceptionSink xsink;
    // delete any thread data

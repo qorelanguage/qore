@@ -1158,24 +1158,24 @@ public:
    QoreParseTypeInfo* parseTypeInfo;
 
    DLLLOCAL QoreMemberInfo(int nfl, int nll, const QoreTypeInfo* n_typeinfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0) :
-      typeInfo(n_typeinfo), exp(e), loc(nfl, nll, get_parse_file()), parseTypeInfo(n_parseTypeInfo) {
+      typeInfo(n_typeinfo), exp(e), loc(nfl, nll), parseTypeInfo(n_parseTypeInfo) {
    }
 
    DLLLOCAL QoreMemberInfo(int nfl, int nll, const QoreTypeInfo* n_typeinfo, AbstractQoreNode* e = 0) : typeInfo(n_typeinfo), exp(e),
-         loc(nfl, nll, get_parse_file()), parseTypeInfo(0) {
+         loc(nfl, nll), parseTypeInfo(0) {
    }
 
-   DLLLOCAL QoreMemberInfo(int nfl, int nll, char* n, AbstractQoreNode* e = 0) : typeInfo(0), exp(e), loc(nfl, nll, get_parse_file()),
+   DLLLOCAL QoreMemberInfo(int nfl, int nll, char* n, AbstractQoreNode* e = 0) : typeInfo(0), exp(e), loc(nfl, nll),
          parseTypeInfo(new QoreParseTypeInfo(n)) {
    }
 
    DLLLOCAL QoreMemberInfo(int nfl, int nll, const QoreClass* qc, AbstractQoreNode* e) : typeInfo(qc->getTypeInfo()), exp(e),
-         loc(nfl, nll, get_parse_file()), parseTypeInfo(0) {
+         loc(nfl, nll), parseTypeInfo(0) {
    }
-   DLLLOCAL QoreMemberInfo(int nfl, int nll, AbstractQoreNode* e) : typeInfo(0), exp(e), loc(nfl, nll, get_parse_file()),
+   DLLLOCAL QoreMemberInfo(int nfl, int nll, AbstractQoreNode* e) : typeInfo(0), exp(e), loc(nfl, nll),
          parseTypeInfo(0) {
    }
-   DLLLOCAL QoreMemberInfo(int nfl, int nll) : typeInfo(0), exp(0), loc(nfl, nll, get_parse_file()),
+   DLLLOCAL QoreMemberInfo(int nfl, int nll) : typeInfo(0), exp(0), loc(nfl, nll),
          parseTypeInfo(0) {
    }
    DLLLOCAL ~QoreMemberInfo() {
@@ -1381,15 +1381,15 @@ public:
    QoreProgramLocation loc;
    qore_classid_t classid;
    //QoreClass* sclass;
-   NamedScope *ns;
+   NamedScope* ns;
    char* name;
 
    // this function takes ownership of n and arg
-   DLLLOCAL BCANode(NamedScope *n, QoreListNode* n_args) : FunctionCallBase(n_args), classid(0), ns(n), name(0) {
+   DLLLOCAL BCANode(NamedScope* n, QoreListNode* n_args) : FunctionCallBase(n_args), loc(ParseLocation), classid(0), ns(n), name(0) {
    }
 
    // this function takes ownership of n and arg
-   DLLLOCAL BCANode(char* n, QoreListNode* n_args) : FunctionCallBase(n_args), classid(0), ns(0), name(n) {
+   DLLLOCAL BCANode(char* n, QoreListNode* n_args) : FunctionCallBase(n_args), loc(ParseLocation), classid(0), ns(0), name(n) {
    }
 
    DLLLOCAL ~BCANode() {
@@ -1468,20 +1468,20 @@ public:
    bool priv : 1;
    bool is_virtual : 1;
    
-   DLLLOCAL BCNode(NamedScope *c, bool p) : cname(c), cstr(0), sclass(0), priv(p), is_virtual(false) {
+   DLLLOCAL BCNode(NamedScope *c, bool p) : loc(ParseLocation), cname(c), cstr(0), sclass(0), priv(p), is_virtual(false) {
    }
 
    // this method takes ownership of *str
-   DLLLOCAL BCNode(char* str, bool p) : cname(0), cstr(str), sclass(0), priv(p), is_virtual(false) {
+   DLLLOCAL BCNode(char* str, bool p) : loc(ParseLocation), cname(0), cstr(str), sclass(0), priv(p), is_virtual(false) {
    }
    
    // for builtin base classes
    DLLLOCAL BCNode(QoreClass* qc, bool n_virtual = false)
-      : cname(0), cstr(0), sclass(qc), priv(false), is_virtual(n_virtual) {
+      : loc(ParseLocation), cname(0), cstr(0), sclass(qc), priv(false), is_virtual(n_virtual) {
    }
 
    // called at runtime with committed classes
-   DLLLOCAL BCNode(const BCNode &old) : cname(0), cstr(0), sclass(old.sclass), priv(old.priv), is_virtual(old.is_virtual) {
+   DLLLOCAL BCNode(const BCNode &old) : loc(old.loc), cname(0), cstr(0), sclass(old.sclass), priv(old.priv), is_virtual(old.is_virtual) {
       assert(!old.cname);
       assert(!old.cstr);
       assert(old.sclass);
