@@ -1047,32 +1047,6 @@ void update_parse_line_location(int start_line, int end_line) {
    td->parse_loc.end_line = end_line;
 }
 
-/*
-void get_parse_location(int &start_line, int &end_line) {
-   ThreadData *td = thread_data.get();
-   start_line = td->parse_line_start;
-   end_line = td->parse_line_end;
-}
-
-void update_parse_location(int start_line, int end_line, const char *f) {
-   ThreadData *td  = thread_data.get();
-   td->parse_line_start = start_line;
-   td->parse_line_end   = end_line;
-   td->parse_file       = f;
-   //printd(5, "update_parse_location(start: %d, end: %d, f: %p '%s'\n", start_line, end_line, f, f);
-}
-
-void update_parse_location(int start_line, int end_line) {
-   ThreadData *td  = thread_data.get();
-   td->parse_line_start = start_line;
-   td->parse_line_end   = end_line;
-}
-
-const char *get_parse_file() {
-   return (thread_data.get())->parse_file;
-}
-*/
-
 const char *get_parse_code() {
    return (thread_data.get())->parse_code;
 }

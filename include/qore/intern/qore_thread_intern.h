@@ -231,17 +231,8 @@ DLLLOCAL void* endParsing();
 DLLLOCAL Context* get_context_stack();
 DLLLOCAL void update_context_stack(Context* cstack);
 
-//DLLLOCAL const char* get_pgm_counter(int &start_line, int &end_line);
-//DLLLOCAL const char* get_pgm_file();
-//DLLLOCAL void update_pgm_counter_pgm_file(int start_line, int end_line, const char* f);
-
 DLLLOCAL QoreProgramLocation get_runtime_location();
 DLLLOCAL void update_runtime_location(const QoreProgramLocation& loc);
-
-//DLLLOCAL void get_parse_location(int &start_line, int &end_line);
-//DLLLOCAL const char* get_parse_file();
-//DLLLOCAL void update_parse_location(int start_line, int end_line, const char* f);
-//DLLLOCAL void update_parse_location(int start_line, int end_line);
 
 DLLLOCAL void update_parse_line_location(int start_line, int end_line);
 DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
