@@ -329,12 +329,6 @@ public:
    ProgramLocation* plStack;
    QoreProgramLocation parse_loc;
    QoreProgramLocation runtime_loc;
-   /*
-   int parse_line_start, parse_line_end;
-   const char* parse_file, * parse_src;
-   int pgm_counter_start, pgm_counter_end, parse_offset;
-   const char *pgm_file;
-   */
    const char *parse_code; // the current function, method, or closure being parsed
    void *parseState;
    VNode* vstack;  // used during parsing (local variable stack)
@@ -416,10 +410,6 @@ public:
 
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
-      /*
-      parse_line_start(0), parse_line_end(0), parse_file(0), parse_src(0),
-      pgm_counter_start(0), pgm_counter_end(0), parse_offset(0), pgm_file(0),
-      */
       parse_code(0), parseState(0), vstack(0), cvarstack(0),
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
       current_pgm(p), current_ns(0), current_implicit_arg(0), tlpd(0), tpd(new ThreadProgramData(this)),
