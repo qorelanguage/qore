@@ -683,7 +683,7 @@ private:
    DLLLOCAL QoreStringMaker& operator=(const QoreStringMaker&);
 
 public:
-   DLLLOCAL QoreStringMaker(const char* fmt, ...);
+   DLLEXPORT QoreStringMaker(const char* fmt, ...);
 };
 
 //! class used to hold a possibly temporary QoreString pointer, stack only, cannot be dynamically allocated
