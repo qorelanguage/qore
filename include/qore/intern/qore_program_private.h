@@ -599,8 +599,7 @@ public:
    DLLLOCAL int internParsePending(const char* code, const char* label, const char* orig_src = 0, int offset = 0) {
       printd(5, "QoreProgram::internParsePending(code=%p, label=%s)\n", code, label);
  
-      if (!(*code))
-	 return 0;
+      assert(code && code[0]);
 
       // save this file name for storage in the parse tree and deletion
       // when the QoreProgram object is deleted
@@ -647,15 +646,19 @@ public:
       }
    }
 
-   DLLLOCAL int parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+   DLLLOCAL int parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = 0, int offset = 0) {
       //printd(5, "qore_program_private::parsePending() wm=0x%x UV=0x%x on=%d\n", wm, QP_WARN_UNREFERENCED_VARIABLE, wm & QP_WARN_UNREFERENCED_VARIABLE);
 
+      ProgramThreadCountContextHelper pch(xsink, pgm, false);
+      if (*xsink)
+         return -1;
+
       // grab program-level parse lock
-      AutoLocker al(&plock);
+      AutoLocker al(plock);
 
       startParsing(xsink, wS, wm);
 
-      int rc = internParsePending(code, label);
+      int rc = internParsePending(code, label, orig_src, offset);
       warnSink = 0;
 #ifdef DEBUG
       parseSink = 0;
@@ -707,7 +710,7 @@ public:
       internParseRollback();
    }
 
-   DLLLOCAL void parse(FILE *fp, const char* name, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = 0, int offset = 0) {
+   DLLLOCAL void parse(FILE *fp, const char* name, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
       printd(5, "QoreProgram::parse(fp=%p, name=%s, xsink=%p, wS=%p, wm=%d)\n", fp, name, xsink, wS, wm);
 
       // if already at the end of file, then return
@@ -738,10 +741,7 @@ public:
 	 // when the QoreProgram object is deleted
 	 char* sname = strdup(name);
 	 addFile(sname);
-         char* src = orig_src ? strdup(orig_src) : 0;
-         if (src)
-            addFile(src);
-         beginParsing(sname, 0, src, offset);
+         beginParsing(sname);
 	 
 	 //printd(5, "QoreProgram::parse(): about to call yyparse()\n");
 	 yylex_init(&lexer);
@@ -764,7 +764,7 @@ public:
          fprintf(stderr, "\n%d exception(s) skipped\n\n", exceptions_raised);
    }
 
-   DLLLOCAL void parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+   DLLLOCAL void parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source = 0, int offset = 0) {
       if (!str->strlen())
 	 return;
 
@@ -778,12 +778,15 @@ public:
       if (*xsink)
 	 return;
 
-      parse(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
+      TempEncodingHelper src;
+      if (source && !source->empty() && src.set(source, QCS_DEFAULT, xsink))
+         return;
+
+      parse(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm, source ? src->getBuffer() : 0, offset);
    }
 
-   DLLLOCAL void parse(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
-      if (!(*code))
-	 return;
+   DLLLOCAL void parse(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = 0, int offset = 0) {
+      assert(code && code[0]);
 
       ProgramThreadCountContextHelper pch(xsink, pgm, false);
       if (*xsink)
@@ -797,7 +800,7 @@ public:
       startParsing(xsink, wS, wm);
 
       // parse text given
-      if (!internParsePending(code, label))
+      if (!internParsePending(code, label, orig_src, offset))
 	 internParseCommit();   // finalize parsing, back out or commit all changes
 
 #ifdef DEBUG
@@ -829,9 +832,8 @@ public:
       parse(fp, filename, xsink, wS, wm);
    }
    
-   DLLLOCAL void parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
-      if (!str->strlen())
-	 return;
+   DLLLOCAL void parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source = 0, int offset = 0) {
+      assert(!str->empty());
 
       // ensure code string has correct character set encoding
       TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
@@ -843,11 +845,11 @@ public:
       if (*xsink)
 	 return;
 
-      ProgramThreadCountContextHelper pch(xsink, pgm, false);
-      if (*xsink)
+      TempEncodingHelper src;
+      if (source && !source->empty() && src.set(source, QCS_DEFAULT, xsink))
          return;
 
-      parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
+      parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm, source ? src->getBuffer() : 0, offset);
    }
 
    // called during run time (not during parsing)

@@ -1877,7 +1877,7 @@ public:
    DLLLOCAL const QoreExternalMethodVariant* findUserMethodVariant(const char* name, const QoreMethod*& method, const type_vec_t &argTypeList) const;
 
    DLLLOCAL int parseCheckMemberAccess(const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const {
-      const_cast<qore_class_private *>(this)->parseInitPartial();
+      const_cast<qore_class_private*>(this)->parseInitPartial();
 
       bool priv;
       bool has_type_info;
@@ -1886,14 +1886,15 @@ public:
       
       if (!sclass) {
 	 int rc = 0;
-	 if (!parseHasMemberGate() || pflag & PF_FOR_ASSIGNMENT) {
+	 if (!parseHasMemberGate() || (pflag & PF_FOR_ASSIGNMENT)) {
 	    if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES) {
-	       parse_error("member $.%s referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem);
+	       parse_error("member '%s' of class '%s' referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations",
+	             mem, name.c_str());
 	       rc = -1;
 	    }
 	    if (parseHasPublicMembersInHierarchy()) {
 	       //printd(5, "qore_class_private::parseCheckMemberAccess() %s %%.%s memberGate=%d pflag=%d\n", name.c_str(), mem, parseHasMemberGate(), pflag);
-	       parse_error("illegal access to unknown member '%s' in a class with a public member list (or inherited public member list)", mem);
+	       parse_error("illegal access to unknown member '%s' in class '%s' which hash a public member list (or inherited public member list)", mem, name.c_str());
 	       rc = -1;
 	    }
 	 }
@@ -1928,11 +1929,11 @@ public:
       int rc = 0;
       if (!sclass) {
 	 if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES) {
-	    parse_error("member $.%s referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem);
+	    parse_error("member '%s' of class '%s' referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem, name.c_str());
 	    rc = -1;
 	 }
 	 if (parseHasPublicMembersInHierarchy()) {
-	    parse_error("illegal access to unknown member '%s' (class has a public member list or inherited public member list)", mem);
+            parse_error("illegal access to unknown member '%s' in class '%s' which hash a public member list (or inherited public member list)", mem, name.c_str());
 	    rc = -1;
 	 }
       }
@@ -2044,7 +2045,7 @@ public:
       //printd(5, "parseCheckVar() %s cls=%p (%s)\n", dname, sclass, sclass ? sclass->getName() : "n/a");
       if (!sclass) {
          if (parseHasConstant(dname)) {
-            parse_error("'%s' has already been declared as a constant in this class and therefore cannot be also declared as a static class variable in the same class with the same name", dname);
+            parse_error("'%s' has already been declared as a constant in class '%s' and therefore cannot be also declared as a static class variable in the same class with the same name", dname, name.c_str());
             return -1;
          }
 	 return 0;
@@ -2150,7 +2151,7 @@ public:
 
    DLLLOCAL void parseAddPublicConstant(const std::string &cname, AbstractQoreNode* val) {
       if (parseHasVar(cname.c_str())) {
-         parse_error("'%s' has already been declared as a static variable in this class and therefore cannot be also declared as a constant in the same class with the same name", cname.c_str());
+         parse_error("'%s' has already been declared as a static variable in class '%s' and therefore cannot be also declared as a constant in the same class with the same name", cname.c_str(), name.c_str());
          val->deref(0);
          return;
       }

@@ -117,7 +117,7 @@ public:
    DLLLOCAL Var(const char* n_name, const QoreTypeInfo *n_typeInfo) : loc(ParseLocation), val(n_typeInfo), name(n_name), parseTypeInfo(0), typeInfo(n_typeInfo), pub(false), finalized(false) {
    }
 
-   DLLLOCAL Var(Var *ref, bool ro = false) : loc(ref->loc), val(QV_Ref), name(ref->name), parseTypeInfo(0), typeInfo(ref->typeInfo), pub(false), finalized(false) {
+   DLLLOCAL Var(Var* ref, bool ro = false) : loc(ref->loc), val(QV_Ref), name(ref->name), parseTypeInfo(0), typeInfo(ref->typeInfo), pub(false), finalized(false) {
       ref->ROreference();
       val.v.setPtr(ref, ro);
    }

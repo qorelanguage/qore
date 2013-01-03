@@ -32,12 +32,12 @@
 #include <math.h>
 
 // FIXME: xxx set parse location
-static inline void duplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig) {
+static void duplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig) {
    parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());
 }
 
 // FIXME: xxx set parse location
-static inline void ambiguousDuplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig1, const AbstractFunctionSignature* sig2) {
+static void ambiguousDuplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig1, const AbstractFunctionSignature* sig2) {
    parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant %s(%s)", cname ? cname : "", cname ? "::" : "", name, sig2->getSignatureText(), name, sig1->getSignatureText());
 }
 

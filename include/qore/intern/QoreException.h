@@ -42,9 +42,10 @@ struct QoreExceptionBase {
       : type(n_type), callStack(new QoreListNode), err(n_err), desc(n_desc), arg(n_arg) {
    }
 
-   DLLLOCAL QoreExceptionBase(const QoreExceptionBase &old) : type(old.type), callStack(old.callStack->copy()), 
-                                                              err(old.err ? old.err->refSelf() : 0), desc(old.desc ? old.desc->refSelf() : 0), 
-                                                              arg(old.arg ? old.arg->refSelf() : 0) {
+   DLLLOCAL QoreExceptionBase(const QoreExceptionBase &old) :
+               type(old.type), callStack(old.callStack->copy()),
+               err(old.err ? old.err->refSelf() : 0), desc(old.desc ? old.desc->refSelf() : 0),
+               arg(old.arg ? old.arg->refSelf() : 0) {
    }
 };
 
@@ -52,11 +53,6 @@ struct QoreExceptionLocation : QoreProgramLineLocation {
    std::string file;
    std::string source;
    int offset;
-
-   /*
-   DLLLOCAL QoreExceptionLocation(int sline, int eline, const char *n_file) : QoreProgramLineLocation(sline, eline), file(n_file ? n_file : "") {
-   }
-   */
 
    DLLLOCAL QoreExceptionLocation(const QoreProgramLocation &loc) : QoreProgramLineLocation(loc),
          file(loc.file ? loc.file : ""), source(loc.source ? loc.source : ""), offset(loc.offset) {
@@ -154,17 +150,11 @@ public:
    // called for parse exceptions
    DLLLOCAL ParseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc) : QoreException(loc, err, desc) {
    }
-
-   // called for parse exceptions
-   /*
-   DLLLOCAL ParseException(int s_line, int e_line, const char *file, const char *err, QoreStringNode *desc) : QoreException(QoreProgramLocation(s_line, e_line, file), err, desc) {
-   }
-   */
 };
 
 struct qore_es_private {
    bool thread_exit;
-   QoreException *head, *tail;
+   QoreException* head, * tail;
 
    DLLLOCAL qore_es_private() {
       thread_exit = false;

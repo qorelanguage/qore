@@ -120,28 +120,6 @@ char *remove_trailing_blanks(char *str) {
    return str;
 }
 
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-void showCallStack() {
-   QoreListNode *callStack = getCallStackList();
-   QoreProgramLocation loc(RunTimeLocation);
-   if (loc.start_line == loc.end_line)
-      printf("terminated at %s:%d\n", loc.file, loc.start_line);
-   else
-      printf("terminated at %s:%d-%d\n", loc.file, loc.start_line, loc.end_line);
-   if (callStack && callStack->size()) {
-      printe("call stack:\n");
-      for (unsigned i = 0; i < callStack->size(); i++) {
-         QoreHashNode* h = reinterpret_cast<QoreHashNode*>(callStack->retrieve_entry(i));
-	 QoreStringNode* func = reinterpret_cast<QoreStringNode*>(h->getKeyValue("function"));
-	 QoreStringNode* file = reinterpret_cast<QoreStringNode*>(h->getKeyValue("file"));
-	 QoreStringNode* type = reinterpret_cast<QoreStringNode*>(h->getKeyValue("type"));
-         printe(" %2d: %s() (%s line %d, %s)\n", i + 1, func->getBuffer(), file->getBuffer(), 
-		(int)(reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("line")))->val, type->getBuffer());
-      }
-   }
-}
-#endif
-
 void parse_error(const char *fmt, ...) {
    printd(5, "parse_error(\"%s\", ...) called\n", fmt);
 

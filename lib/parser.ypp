@@ -519,12 +519,12 @@ public:
    DLLLOCAL MemberInfo(char* n, QoreMemberInfo* mi) : name(n), type(Member)  {
       u.memberInfo = mi; 
       if (!mi->parseHasTypeInfo() && getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
-	 parse_error("member $.%s declared without type information, but parse options require type information for all declarations", name);
+	 parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
    DLLLOCAL MemberInfo(char* n) : name(n), type(Member)  {
       u.memberInfo = 0; 
       if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
-	 parse_error("member $.%s declared without type information, but parse options require type information for all declarations", name);
+	 parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
    DLLLOCAL MemberInfo(char* n, AbstractQoreNode* exp) : name(n), type(Constant) {
       u.exp = exp;

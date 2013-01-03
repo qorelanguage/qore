@@ -103,6 +103,14 @@ int DateTime::getMicrosecond() const {
    return priv->getMicrosecond();
 }
 
+void DateTime::setNow() {
+   priv->setNow();
+}
+
+void DateTime::setNow(const AbstractQoreZoneInfo *n_zone) {
+   priv->setNow(n_zone);
+}
+
 void DateTime::setTime(int h, int m, int s, short ms) {
    priv->setTime(h, m, s, (int)ms * 1000);
 }

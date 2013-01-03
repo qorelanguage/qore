@@ -45,6 +45,12 @@ typedef void (*qtdest_t)(void *);
 typedef void (*qtrdest_t)(void *, ExceptionSink *);
 
 //! returns true if the current thread is a valid qore thread; it is not safe to call most Qore functions unless the thread is registered with Qore
+/**
+    @see
+    - QoreForeignThreadHelper
+    - q_register_foreign_thread()
+    - q_deregister_foreign_thread()
+ */
 DLLEXPORT bool is_valid_qore_thread();
 
 //! returns the current TID number
@@ -124,5 +130,51 @@ public:
 
 //! the interface to the thread cleanup list
 DLLEXPORT extern ThreadCleanupList tclist;
+
+/** @defgroup q_register_foreign_thread_rv Return Value Codes for q_register_foreign_thread()
+ */
+//@{
+#define QFT_OK          0  //!< OK response when calling q_register_foreign_thread()
+#define QFT_ERROR      -1  //!< error when calling q_register_foreign_thread()
+#define QFT_REGISTERED -2  //!< thread already registered when calling q_register_foreign_thread()
+//@}
+
+//! registers the current thread as a Qore thread; returns QFT_OK (0) if the thread was successfully registered, QFT_ERROR (-1) if an error occurred, or QFT_REGISTERED (-2) if it was already registered
+/** call q_deregister_foreign_thread() when Qore functionality is no longer required; not calling q_deregister_foreign_thread() will cause a memory leak
+
+    @return see @ref q_register_foreign_thread_rv for return values
+
+    @see
+    - QoreForeignThreadHelper
+    - q_deregister_foreign_thread()
+    - is_valid_qore_thread();
+ */
+DLLEXPORT int q_register_foreign_thread();
+
+//! deregisters the current thread as a foreign thread
+/** @return true if the foreign thread was deregistered, false if it was not registered or was not a foreign thread
+
+    @see
+    - QoreForeignThreadHelper
+    - q_register_foreign_thread()
+    - is_valid_qore_thread();
+ */
+DLLEXPORT bool q_deregister_foreign_thread();
+
+//! use this class to temporarily register and deregister a foreign thread to allow Qore code to be executed and the Qore library to be used from threads not created by the Qore library
+class QoreForeignThreadHelper {
+private:
+   //! not implemented; defined here as private to preclude usage
+   DLLLOCAL QoreForeignThreadHelper& operator=(const QoreForeignThreadHelper&);
+   DLLLOCAL QoreForeignThreadHelper(const QoreForeignThreadHelper&);
+   DLLLOCAL void* operator new(size_t);
+
+protected:
+   class qore_foreign_thread_priv* priv;
+
+public:
+   DLLEXPORT QoreForeignThreadHelper();
+   DLLEXPORT ~QoreForeignThreadHelper();
+};
 
 #endif  // ifndef _QORE_THREAD_H

@@ -52,7 +52,6 @@ void CallNode::objectDeref(ExceptionSink *xsink) {
    }
 }
 
-extern char *file_names[];
 QoreHashNode* CallNode::getInfo() const {
    QoreHashNode* h = new QoreHashNode;
    // FIXME: add class name
@@ -67,8 +66,8 @@ QoreHashNode* CallNode::getInfo() const {
    h->setKeyValue("line",     new QoreBigIntNode(loc.start_line), 0);
    h->setKeyValue("endline",  new QoreBigIntNode(loc.end_line), 0);
    h->setKeyValue("file",     new QoreStringNode(loc.file), 0);
-   //h->setKeyValue("source",   new QoreStringNode(loc.source), 0);
-   //h->setKeyValue("offset",   new QoreBigIntNode(loc.offset), 0);
+   h->setKeyValue("source",   loc.source ? new QoreStringNode(loc.source) : 0, 0);
+   h->setKeyValue("offset",   new QoreBigIntNode(loc.offset), 0);
    h->setKeyValue("typecode", new QoreBigIntNode(type), 0);
    // CT_RETHROW is only aded manually
    switch (type) {

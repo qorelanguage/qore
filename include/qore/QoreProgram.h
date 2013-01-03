@@ -262,20 +262,46 @@ public:
    //! parses code from the given string and commits changes to the QoreProgram
    /**
       @note will also commit any pending changes added with QoreProgram::parsePending()
+      @param str the code to parse
+      @param lstr the label of the code being parsed to be used as a file name
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+      @param warn_sink if a warning is raised, the warning information will be added here (0 = no warnings)
+      @param warn_mask the warning mask to set (-1 sets all possible warnings)
+      @param source the source file name (if lstr is a label representing a section of a file for example)
+      @param offset the line offset from the label to the file
+   */
+   DLLEXPORT void parse(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* warn_sink, int warn_mask, const QoreString* source, int offset);
+
+   //! parses code from the given string and commits changes to the QoreProgram
+   /**
+      @note will also commit any pending changes added with QoreProgram::parsePending()
       @param str the code to parse; the encoding of the string is assumed to be QCS_DEFAULT
       @param lstr the label of the code being parsed to be used as a file name
       @param xsink if an error occurs, the Qore-language exception information will be added here
-      @param warn_sink if a warning is raised, the warning information will be added here
+      @param warn_sink if a warning is raised, the warning information will be added here (0 = no warnings)
       @param warn_mask the warning mask to set (-1 sets all possible warnings)
    */
    DLLEXPORT void parse(const char* str, const char* lstr, ExceptionSink* xsink, ExceptionSink* warn_sink = 0, int warn_mask = QP_WARN_ALL);
+
+   //! parses code from the given string and commits changes to the QoreProgram
+   /**
+      @note will also commit any pending changes added with QoreProgram::parsePending()
+      @param str the code to parse; the encoding of the string is assumed to be QCS_DEFAULT
+      @param lstr the label of the code being parsed to be used as a file name
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+      @param warn_sink if a warning is raised, the warning information will be added here (0 = no warnings)
+      @param warn_mask the warning mask to set (-1 sets all possible warnings)
+      @param source the source file name (if lstr is a label representing a section of a file for example)
+      @param offset the line offset from the label to the file
+   */
+   DLLEXPORT void parse(const char* str, const char* lstr, ExceptionSink* xsink, ExceptionSink* warn_sink, int warn_mask, const char* source, int offset);
 
    //! parses code from the file given and commits changes to the QoreProgram
    /** Also sets the script path.
        @note will also commit any pending changes added with QoreProgram::parsePending()
        @param filename the filename to open and parse
        @param xsink if an error occurs, the Qore-language exception information will be added here
-       @param warn_sink if a warning is raised, the warning information will be added here
+       @param warn_sink if a warning is raised, the warning information will be added here (0 = no warnings)
        @param warn_mask the warning mask to set (-1 sets all possible warnings)
        @param only_first_except is flag to stop parsing exceptions printing after 1st exception
    */
@@ -286,7 +312,7 @@ public:
       @param code the code to parse; the encoding of the string is assumed to be QCS_DEFAULT
       @param label the label of the code being parsed to be used as a file name
       @param xsink if an error occurs, the Qore-language exception information will be added here
-      @param warn_sink if a warning is raised, the warning information will be added here
+      @param warn_sink if a warning is raised, the warning information will be added here (0 = no warnings)
       @param warn_mask the warning mask to set (-1 sets all possible warnings)
       @see QoreProgram::parseCommit()
       @see QoreProgram::parseRollback()
@@ -295,15 +321,46 @@ public:
 
    //! parses code from the given string but does not commit changes to the QoreProgram
    /**
+      @param code the code to parse; the encoding of the string is assumed to be QCS_DEFAULT
+      @param label the label of the code being parsed to be used as a file name
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+      @param warn_sink if a warning is raised, the warning information will be added here (0 = no warnings)
+      @param warn_mask the warning mask to set (-1 sets all possible warnings)
+      @param source the source file name (if lstr is a label representing a section of a file for example)
+      @param offset the line offset from the label to the file
+
+      @see QoreProgram::parseCommit()
+      @see QoreProgram::parseRollback()
+   */
+   DLLEXPORT void parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* warn_sink, int warn_mask, const char* source, int offset);
+
+   //! parses code from the given string but does not commit changes to the QoreProgram
+   /**
       @param str the code to parse
       @param lstr the label of the code being parsed to be used as a file name
       @param xsink if an error occurs, the Qore-language exception information will be added here
-      @param warn_sink if a warning is raised, the warning information will be added here
+      @param warn_sink if a warning is raised, the warning information will be added here (0 = no warnings)
       @param warn_mask the warning mask to set (-1 sets all possible warnings)
+
       @see QoreProgram::parseCommit()
       @see QoreProgram::parseRollback()
    */
    DLLEXPORT void parsePending(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* warn_sink = 0, int warn_mask = QP_WARN_ALL);
+
+   //! parses code from the given string but does not commit changes to the QoreProgram
+   /**
+      @param str the code to parse
+      @param lstr the label of the code being parsed to be used as a file name
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+      @param warn_sink if a warning is raised, the warning information will be added here (0 = no warnings)
+      @param warn_mask the warning mask to set (-1 sets all possible warnings)
+      @param source the source file name (if lstr is a label representing a section of a file for example)
+      @param offset the line offset from the label to the file
+
+      @see QoreProgram::parseCommit()
+      @see QoreProgram::parseRollback()
+   */
+   DLLEXPORT void parsePending(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* warn_sink, int warn_mask, const QoreString* source, int offset);
 
    //! commits pending changes to the program
    /**

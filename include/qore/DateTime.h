@@ -137,7 +137,7 @@ public:
    DLLEXPORT DateTime(const char *date);
 
    //! constructor for setting the date from a string with a flexible format
-   /** @param zone the time zone for the time
+   /** @param zone the time zone for the time (0 = UTC, @see currentTZ())
        @param date the string to use to set the date
    */
    DLLEXPORT DateTime(const AbstractQoreZoneInfo *zone, const char *date);
@@ -157,6 +157,17 @@ public:
    //! sets a "struct tm" from the current date/time value for the time zone for the object; use DateTime::getInfo() instead
    DLLEXPORT void getTM(struct tm *tms) const;
 
+   //! sets the current date and time in the current time zone; current contents are overwritten
+   /** @since %Qore 0.8.7
+    */
+   DLLEXPORT void setNow();
+
+   //! sets the current date and time in the given time zone; current contents are overwritten
+   /** @param zone the time zone for the time  (0 = UTC, @see currentTZ())
+       @since %Qore 0.8.7
+    */
+   DLLEXPORT void setNow(const AbstractQoreZoneInfo *n_zone);
+
    //! sets the absolute date value based on the number of seconds from January 1, 1970
    /** note that the local time zone will be assumed
        @param seconds the number of seconds from January 1, 1970
@@ -171,14 +182,14 @@ public:
    DLLEXPORT void setDate(int64 seconds, int ms);
 
    //! sets the absolute date value based on the number of seconds from January 1, 1970 UTC (plus microseconds)
-   /** @param zone the time zone for the time
+   /** @param zone the time zone for the time (0 = UTC, @see currentTZ())
        @param seconds the number of seconds from January 1, 1970 UTC
        @param us the microseconds portion of the time	 
    */
    DLLEXPORT void setDate(const AbstractQoreZoneInfo *zone, int64 seconds, int us);
 
    //! sets the absolute date value based on the number of seconds from January 1, 1970 in the given time zone (plus microseconds)
-   /** @param zone the time zone for the time
+   /** @param zone the time zone for the time (0 = UTC, @see currentTZ())
        @param seconds the number of seconds from January 1, 1970 in the given time zone
        @param us the microseconds portion of the time	 
    */
@@ -195,7 +206,7 @@ public:
 
    //! sets an absolute date value from a time zone pointer and a string with a flexible format
    /** 
-       @param zone the time zone for the time
+       @param zone the time zone for the time (0 = UTC, @see currentTZ())
        @param str the string to use to set the date with a flexible format
    */
    DLLEXPORT void setDate(const AbstractQoreZoneInfo *zone, const char *str);

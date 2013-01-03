@@ -512,22 +512,26 @@ protected:
       tms.tm_isdst = dst;
    }
 
+   DLLLOCAL void setNowIntern() {
+      epoch = q_epoch_us((int&)us);
+   }
+
 public:
-   DLLLOCAL void set(const AbstractQoreZoneInfo *n_zone, int64 n_epoch, int n_us) {
+   DLLLOCAL void set(const AbstractQoreZoneInfo* n_zone, int64 n_epoch, int n_us) {
       zone = n_zone;
       epoch = n_epoch;
       normalize_units2<int64, int>(epoch, n_us, 1000000);
       us = n_us;      
    }
 
-   DLLLOCAL void setLocal(const AbstractQoreZoneInfo *n_zone, int64 n_epoch, int n_us) {
+   DLLLOCAL void setLocal(const AbstractQoreZoneInfo* n_zone, int64 n_epoch, int n_us) {
       epoch = n_epoch;
       zone = n_zone;
       normalize_units2<int64, int>(epoch, n_us, 1000000);
       setLocalIntern(n_us);
    }
 
-   DLLLOCAL void set(const AbstractQoreZoneInfo *n_zone, int year, int month, int day, int hour, int minute, int second, int n_us) {
+   DLLLOCAL void set(const AbstractQoreZoneInfo* n_zone, int year, int month, int day, int hour, int minute, int second, int n_us) {
       zone = n_zone;
       epoch = qore_date_info::getEpochSeconds(year, month, day, hour, minute, second);
 
@@ -536,13 +540,13 @@ public:
       //printd(5, "qore_absolute_time::set(zone=%p (%s) %04d-%02d-%02d %02d:%02d:%02d.%06d) epoch=%lld\n", zone, zone->getRegionName(), year, month, day, hour, minute, second, n_us, epoch);
    }
 
-   DLLLOCAL void set(const qore_absolute_time &p) {
+   DLLLOCAL void set(const qore_absolute_time& p) {
       epoch = p.epoch;
       us = p.us;
       zone = p.zone;
    }
 
-   DLLLOCAL void setZone(const AbstractQoreZoneInfo *n_zone) {
+   DLLLOCAL void setZone(const AbstractQoreZoneInfo* n_zone) {
       zone = n_zone;
    }
 
@@ -575,6 +579,17 @@ public:
       epoch = qore_date_info::getEpochSeconds(tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second);
       //printd(5, "qore_absolute_date::setLiteral(date=%lld, usecs=%d) epoch=%lld %04d-%02d-%02d %02d:%02d:%02d\n", date, usecs, epoch, tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second);
       setLocalIntern(usecs);
+   }
+
+   DLLLOCAL void setNow() {
+      // reset time zone to current time zone
+      zone = currentTZ();
+      setNowIntern();
+   }
+
+   DLLLOCAL void setNow(const AbstractQoreZoneInfo *n_zone) {
+      zone = n_zone;
+      setNowIntern();
    }
 
    DLLLOCAL void getISOWeek(int &yr, int &week, int &wday) const {
@@ -1026,6 +1041,16 @@ public:
 
       relative = p.relative;
       return *this;
+   }
+
+   DLLLOCAL void setNow() {
+      relative = false;
+      d.abs.setNow();
+   }
+
+   DLLLOCAL void setNow(const AbstractQoreZoneInfo *n_zone) {
+      relative = false;
+      d.abs.setNow(n_zone);
    }
 
    DLLLOCAL void setDate(const qore_date_private &p) {

@@ -600,16 +600,6 @@ void QoreProgram::replaceParseOptions(int64 po, ExceptionSink* xsink) {
    priv->replaceParseOptions(po, xsink);
 }
 
-void QoreProgram::parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
-   if (!code || !code[0])
-      return;
-
-   ProgramThreadCountContextHelper tch(xsink, this, false);
-   if (*xsink) return;
-
-   priv->parsePending(code, label, xsink, wS, wm);
-}
-
 QoreHashNode* QoreProgram::getThreadData() {
    return priv->thread_local_storage->get();
 }
@@ -631,11 +621,31 @@ void QoreProgram::parse(FILE *fp, const char* name, ExceptionSink* xsink, Except
 }
 
 void QoreProgram::parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+   if (!str || str->empty())
+      return;
+
    priv->parse(str, lstr, xsink, wS, wm);
 }
 
+void QoreProgram::parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
+   if (!str || str->empty())
+      return;
+
+   priv->parse(str, lstr, xsink, wS, wm, source, offset);
+}
+
 void QoreProgram::parse(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+   if (!code || !code[0])
+      return;
+
    priv->parse(code, label, xsink, wS, wm);
+}
+
+void QoreProgram::parse(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* source, int offset) {
+   if (!code || !code[0])
+      return;
+
+   priv->parse(code, label, xsink, wS, wm, source, offset);
 }
 
 void QoreProgram::parseFile(const char* filename, ExceptionSink* xsink, ExceptionSink* wS, int wm, bool only_first_except) {
@@ -644,7 +654,31 @@ void QoreProgram::parseFile(const char* filename, ExceptionSink* xsink, Exceptio
 }
 
 void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+   if (!str || str->empty())
+      return;
+
    priv->parsePending(str, lstr, xsink, wS, wm);
+}
+
+void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
+   if (!str || str->empty())
+      return;
+
+   priv->parsePending(str, lstr, xsink, wS, wm, source, offset);
+}
+
+void QoreProgram::parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+   if (!code || !code[0])
+      return;
+
+   priv->parsePending(code, label, xsink, wS, wm);
+}
+
+void QoreProgram::parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* source, int offset) {
+   if (!code || !code[0])
+      return;
+
+   priv->parsePending(code, label, xsink, wS, wm, source, offset);
 }
 
 AbstractQoreNode* QoreProgram::runTopLevel(ExceptionSink* xsink) {
