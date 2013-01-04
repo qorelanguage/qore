@@ -398,12 +398,23 @@ public:
 
 static QoreThreadLocalStorage<ThreadData> thread_data;
 
+void ThreadEntry::allocate(tid_node* tn, int stat) {
+   assert(status == QTS_AVAIL);
+   status = stat;
+   tidnode = tn;
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   assert(!callStack);
+   callStack = new CallStack;
+#endif
+   joined = false;
+   assert(!thread_data);
+}
+
 void ThreadEntry::activate(int tid, pthread_t n_ptid, QoreProgram* p, bool foreign) {
    assert(status == QTS_NA || status == QTS_RESERVED);
    ptid = n_ptid;
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   assert(!callStack);
-   callStack = new CallStack;
+   assert(callStack);
 #endif
    assert(!thread_data);
    thread_data = new ThreadData(tid, p, foreign);

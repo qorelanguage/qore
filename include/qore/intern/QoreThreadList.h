@@ -74,16 +74,7 @@ public:
 
    DLLLOCAL void cleanup();
 
-   DLLLOCAL void allocate(tid_node* tn, int stat = QTS_NA) {
-      assert(status == QTS_AVAIL);
-      status = stat;
-      tidnode = tn;
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      assert(!callStack);
-#endif
-      joined = false;
-      assert(!thread_data);
-   }
+   DLLLOCAL void allocate(tid_node* tn, int stat = QTS_NA);
 
    DLLLOCAL void activate(int tid, pthread_t n_ptid, QoreProgram* p, bool foreign = false);
 
