@@ -52,6 +52,10 @@ public:
    DLLLOCAL int remove(AbstractThreadResource *atr);
 
    DLLLOCAL void purge(ExceptionSink *xsink);
+
+   DLLLOCAL bool empty() const {
+      return trset.empty();
+   }
 };
 
 #endif

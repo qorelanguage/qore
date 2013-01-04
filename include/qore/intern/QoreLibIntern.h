@@ -405,6 +405,7 @@ public:
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>
 #include <qore/intern/ParseNode.h>
+#include <qore/intern/QoreThreadList.h>
 #include <qore/intern/qore_thread_intern.h>
 #include <qore/intern/Function.h>
 #include <qore/intern/CallReferenceCallNode.h>

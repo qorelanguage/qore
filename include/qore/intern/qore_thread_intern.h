@@ -30,12 +30,6 @@
 #include <set>
 #include <map>
 
-// FIXME: move to config.h or something like that
-// not more than this number of threads can be running at the same time
-#ifndef MAX_QORE_THREADS
-#define MAX_QORE_THREADS 0x1000
-#endif
-
 #ifndef QORE_THREAD_STACK_SIZE
 #define QORE_THREAD_STACK_SIZE 1024*512
 #endif
@@ -358,7 +352,7 @@ DLLLOCAL int get_thread_entry();
 // acquires TID 0 and sets up the signal thread entry, always returns 0
 DLLLOCAL int get_signal_thread_entry();
 DLLLOCAL void deregister_signal_thread();
-DLLLOCAL ThreadData* register_thread(int tid, pthread_t ptid, QoreProgram* pgm);
+DLLLOCAL void register_thread(int tid, pthread_t ptid, QoreProgram* pgm, bool foreign = false);
 DLLLOCAL void deregister_thread(int tid);
 DLLLOCAL void delete_signal_thread();
 

@@ -49,7 +49,6 @@
 #define SIGHUP 0
 #endif
 
-extern int num_threads;
 extern bool threads_initialized;
 
 #ifdef DEBUG_TESTS
@@ -476,7 +475,7 @@ int fork() [dom=PROCESS] {
 #else
 #define QORE_THREAD_LIMIT 1
 #endif
-   if (num_threads > (QORE_THREAD_LIMIT)) {
+   if (thread_list.getNumThreads() > (QORE_THREAD_LIMIT)) {
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() when other threads are running");
       return 0;
    }

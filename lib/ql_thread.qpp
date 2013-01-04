@@ -28,8 +28,6 @@
 
 #include <pthread.h>
 
-extern int num_threads;
-
 static void delete_thread_data_intern(const QoreListNode *args, ExceptionSink *xsink) {
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
@@ -98,7 +96,7 @@ my int $num = num_threads();
     @endcode
 */
 int num_threads() [flags=CONSTANT;dom=THREAD_INFO] {
-   return num_threads;
+   return thread_list.getNumThreads();
 }
 
 //! Returns a list of all current thread IDs

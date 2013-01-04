@@ -148,20 +148,58 @@ DLLEXPORT extern ThreadCleanupList tclist;
     - QoreForeignThreadHelper
     - q_deregister_foreign_thread()
     - is_valid_qore_thread();
+
+    @since %Qore 0.8.7
  */
 DLLEXPORT int q_register_foreign_thread();
 
 //! deregisters the current thread as a foreign thread
-/** @return true if the foreign thread was deregistered, false if it was not registered or was not a foreign thread
+/** @return 0 if the foreign thread was deregistered, -1 if it was not registered or was not a foreign thread
 
     @see
     - QoreForeignThreadHelper
     - q_register_foreign_thread()
     - is_valid_qore_thread();
+
+    @since %Qore 0.8.7
  */
-DLLEXPORT bool q_deregister_foreign_thread();
+DLLEXPORT int q_deregister_foreign_thread();
+
+//! reserves a thread ID for later registration and returns the TID reserved; use q_release_reserved_foreign_thread_id() to release the reservation
+/** @return the TID reserved or -1 if an error occurred (thread table full)
+
+    @since %Qore 0.8.7
+ */
+DLLEXPORT int q_reserve_foreign_thread_id();
+
+//! releases a TID reserved with q_reserve_foreign_thread_id()
+/** @param tid the TID reserved with q_reserve_foreign_thread_id()
+
+    @return 0 for OK, -1 for error (TID invalid or not reserved)
+
+    @since %Qore 0.8.7
+ */
+DLLEXPORT int q_release_reserved_foreign_thread_id(int tid);
+
+//! registers a foreign qore thread as a Qore thread with a reserved TID
+/** @param tid the TID reserved with q_reserve_foreign_thread_id()
+
+    @return 0 for OK, -1 for error (TID invalid or not reserved)
+
+    @since %Qore 0.8.7
+ */
+DLLEXPORT int q_register_reserved_foreign_thread(int tid);
+
+//! deregisters a foreign qore thread but retains the TID as reserved
+/** @returns 0 for OK, -1 for error (TID invalid or not foreign)
+
+    @since %Qore 0.8.7
+ */
+DLLEXPORT int q_deregister_reserved_foreign_thread();
 
 //! use this class to temporarily register and deregister a foreign thread to allow Qore code to be executed and the Qore library to be used from threads not created by the Qore library
+/** @since %Qore 0.8.7
+ */
 class QoreForeignThreadHelper {
 private:
    //! not implemented; defined here as private to preclude usage
@@ -173,7 +211,13 @@ protected:
    class qore_foreign_thread_priv* priv;
 
 public:
+   //! registers the current thread as a foreign thread; the thread will be deregistered with q_deregister_foreign_thread() in the destructor
    DLLEXPORT QoreForeignThreadHelper();
+
+   //! registers the current thread as a foreign thread; the tid given must be already reserved with q_reserve_foreign_thread_id(); the thread will be deregistered with q_deregister_reserved_foreign_thread() in the destructor
+   DLLEXPORT QoreForeignThreadHelper(int tid);
+
+   //! deregisters the current thread if the registration was successful using either q_deregister_foreign_thread() or q_reserve_foreign_thread_id(), depending on the constructor used
    DLLEXPORT ~QoreForeignThreadHelper();
 };
 
