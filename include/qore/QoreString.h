@@ -683,7 +683,15 @@ private:
    DLLLOCAL QoreStringMaker& operator=(const QoreStringMaker&);
 
 public:
+   //! creates a string with a sprintf-style constructor
+   /** @since %Qore 0.8.7
+    */
    DLLEXPORT QoreStringMaker(const char* fmt, ...);
+
+   //! creates a string with an explicit encoding and a sprintf-style constructor
+   /** @since %Qore 0.8.7
+    */
+   DLLEXPORT QoreStringMaker(const QoreEncoding* enc, const char* fmt, ...);
 };
 
 //! class used to hold a possibly temporary QoreString pointer, stack only, cannot be dynamically allocated

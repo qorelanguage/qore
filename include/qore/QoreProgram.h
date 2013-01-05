@@ -583,7 +583,7 @@ public:
 
    /* for run-time module loading; the parse lock must be grabbed
       before loading new modules - note this should only be assigned
-      to a AutoLock or SafeLocker object!
+      to an AutoLock or SafeLocker object!
    */
    DLLLOCAL QoreThreadLock *getParseLock();
    DLLLOCAL QoreHashNode* clearThreadData(ExceptionSink* xsink);

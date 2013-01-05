@@ -869,7 +869,7 @@ void beginParsing(const char* file, void* ps, const char* src, int offset) {
    // set new position
    td->parse_loc.file = file;
    td->parseState = ps;
-   td->parse_loc.source = src ? src : file;
+   td->parse_loc.source = src;
    td->parse_loc.offset = offset;
 }
 

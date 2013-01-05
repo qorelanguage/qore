@@ -499,63 +499,45 @@ Program::destructor() {
 
     @param code The code to parse into the Program object
     @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
-
-    @par Example:
-    @code
-$pgm.parse($code, "label");
-    @endcode
-
-    @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
- */
-nothing Program::parse(string code, string label) [dom=EMBEDDED_LOGIC] {
-   // format label as "<run-time-loaded: xxx>"
-   QoreString nlabel("<run-time-loaded: ");
-   nlabel.concat(label, xsink);
-   if (*xsink)
-      return 0;
-   nlabel.concat('>');
-
-   p->parse(code, &nlabel, xsink);
-}
-
-//! Parses the string argument and adds the code to the Program object
-/** This method causes both stages of parsing to be executed; if this method is successful, then the code parsed is committed to the Program object.
-    This method is equivalent to calling Program::parsePending() and Program::parseCommit() in one atomic call.
-
-    If an exception occurs in this method, all pending code is backed out, not just code parsed by this method (for example, in case uncommitted code added by Program::parsePending() also exists in the Program object before calling this method).
-
-    @param code The code to parse into the Program object
-    @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
-    @param warning_mask A warning mask; see @ref warning_constants for values to combine by binary-or
+    @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this arguments is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
+    @param source An optional source file name for the code being parsed; this is useful if sections of a file are parsed
+    @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
+    @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
 
     @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
 
     @par Example:
     @code
 my *hash $wh = $pgm.parse($code, "label", WARN_DEFAULT);
-while (exists $wh) {
+while ($wh) {
     printf("warning: %s:%d: %s: %s\n", $wh.file, $wh.line, $wh.err, $wh.desc);
     $wh = $wh.next;
 }
     @endcode
 
     @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
+
+    @see
+    - Qore::Program::parsePending()
+    - Qore::Program::parseCommit()
+    - Qore::parse()
+
+    @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
  */
-*hash Program::parse(string code, string label, softint warning_mask) [dom=EMBEDDED_LOGIC] {
-   // format label as "<run-time-loaded: xxx>"
-   QoreString nlabel("<run-time-loaded: ");
-   nlabel.concat(label, xsink);
-   if (*xsink)
-      return 0;
-   nlabel.concat('>');
+*hash Program::parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
+   QoreStringMaker nlabel(label->getEncoding(), format_label ? "<run-time-loaded: %s>" : "%s", label->getBuffer());
 
-   ExceptionSink wsink;
-   p->parse(code, &nlabel, xsink, &wsink, warning_mask);
-   if (!wsink.isException())
-      return 0;
+   if (warning_mask) {
+      ExceptionSink wsink;
+      p->parse(code, &nlabel, xsink, &wsink, warning_mask, source, offset);
+      if (!wsink.isException())
+         return 0;
 
-   QoreException *e = wsink.catchException();
-   return e->makeExceptionObjectAndDelete(xsink);
+      QoreException *e = wsink.catchException();
+      return e->makeExceptionObjectAndDelete(xsink);
+   }
+
+   p->parse(code, &nlabel, xsink, 0, 0, source, offset);
 }
 
 //! Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object
@@ -567,42 +549,17 @@ while (exists $wh) {
 
     @param code The code to parse into the Program object
     @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
-
-    @par Example:
-    @code
-$pgm.parsePending($code, "label");
-    @endcode
-
-    @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
- */
-nothing Program::parsePending(string code, string label) [dom=EMBEDDED_LOGIC] {
-   // format label as "<run-time-loaded: xxx>"
-   QoreString nlabel("<run-time-loaded: ");
-   nlabel.concat(label, xsink);
-   if (*xsink)
-      return 0;
-   nlabel.concat('>');
-
-   p->parsePending(code, &nlabel, xsink);
-}
-
-//! Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object
-/** References are resolved in the Program::parseCommit() method.  
-
-    Program::parseCommit() must be called to resolve all references and commit the code to the Program object; until Program::parseCommit() is called, none of the code parsed by this method will be available for execution in the Program object.
-
-    If an exception occurs in this method, all pending code is backed out, not just code parsed by this method.
-
-    @param code The code to parse into the Program object
-    @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
-    @param warning_mask A warning mask; see @ref warning_constants for values to combine by binary-or
+    @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this arguments is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
+    @param source An optional source file name for the code being parsed; this is useful if sections of a file are parsed
+    @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
+    @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
 
     @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
 
     @par Example:
     @code
 my *hash $wh = $pgm.parsePending($code, "label", WARN_DEFAULT);
-while (exists $wh) {
+while ($wh) {
     printf("warning: %s:%d: %s: %s\n", $wh.file, $wh.line, $wh.err, $wh.desc);
     $wh = $wh.next;
 }
@@ -610,22 +567,29 @@ $pgm.parseCommit();
     @endcode
 
     @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
+
+    @see
+    - Qore::Program::parse()
+    - Qore::Program::parseCommit()
+    - Qore::Program::parseRollback()
+    - Qore::parse()
+
+    @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
  */
-*hash Program::parsePending(string code, string label, softint warning_mask) [dom=EMBEDDED_LOGIC] {
-   // format label as "<run-time-loaded: xxx>"
-   QoreString nlabel("<run-time-loaded: ");
-   nlabel.concat(label, xsink);
-   if (*xsink)
-      return 0;
-   nlabel.concat('>');
+*hash Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
+   QoreStringMaker nlabel(label->getEncoding(), format_label ? "<run-time-loaded: %s>" : "%s", label->getBuffer());
 
-   ExceptionSink wsink;
-   p->parsePending(code, &nlabel, xsink, &wsink, warning_mask);
-   if (!wsink.isException())
-      return 0;
+   if (warning_mask) {
+      ExceptionSink wsink;
+      p->parsePending(code, &nlabel, xsink, &wsink, warning_mask, source, offset);
+      if (!wsink.isException())
+         return 0;
 
-   QoreException *e = wsink.catchException();
-   return e->makeExceptionObjectAndDelete(xsink);
+      QoreException *e = wsink.catchException();
+      return e->makeExceptionObjectAndDelete(xsink);
+   }
+
+   p->parsePending(code, &nlabel, xsink, 0, 0, source, offset);
 }
 
 //! Commits and pending code processed with Program::parsePending() to the Program object after resolving all outstanding references in the pending code
@@ -637,6 +601,12 @@ $pgm.parseCommit();
     @endcode
 
     @note This method could throw many parse exceptions related to resolving references which are not enumerated here; any parse errors will result in an appropriate exception.
+
+    @see
+    - Qore::Program::parse()
+    - Qore::Program::parsePending()
+    - Qore::Program::parseRollback()
+    - Qore::parse()
  */
 nothing Program::parseCommit() {
    p->parseCommit(xsink);
@@ -655,6 +625,12 @@ while (exists $wh) {
     @endcode
 
     @note This method could throw many parse exceptions related to resolving references which are not enumerated here; any parse errors will result in an appropriate exception.
+
+    @see
+    - Qore::Program::parse()
+    - Qore::Program::parsePending()
+    - Qore::Program::parseRollback()
+    - Qore::parse()
  */
 *hash Program::parseCommit(int warning_mask) {
    ExceptionSink wsink;
@@ -672,6 +648,12 @@ while (exists $wh) {
     @code
 $pgm.parseRollback();
     @endcode
+
+    @see
+    - Qore::Program::parse()
+    - Qore::Program::parseCommit()
+    - Qore::Program::parsePending()
+    - Qore::parse()
  */
 nothing Program::parseRollback() {
    p->parseRollback();

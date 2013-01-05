@@ -166,7 +166,7 @@ public:
    /** @param zone the time zone for the time  (0 = UTC, @see currentTZ())
        @since %Qore 0.8.7
     */
-   DLLEXPORT void setNow(const AbstractQoreZoneInfo *n_zone);
+   DLLEXPORT void setNow(const AbstractQoreZoneInfo *zone);
 
    //! sets the absolute date value based on the number of seconds from January 1, 1970
    /** note that the local time zone will be assumed

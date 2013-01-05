@@ -719,6 +719,10 @@ string get_default_encoding() {
 /** 
     @param code the string of %Qore source code to parse; the parsed code will be added to the current program
     @param label a label identifying the code or the code's source
+    @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this arguments is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
+    @param source An optional source file name for the code being parsed; this is useful if sections of a file are parsed
+    @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
+    @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
 
     @par Example:
     @code
@@ -727,10 +731,28 @@ parse($code, $filename);
 
     @note This function could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
 
-    @see Qore::Program::parse()
+    @see
+    - Qore::Program::parse()
+    - Qore::Program::parsePending()
+
+    @since %Qore 0.8.7 the optional \a warning_mask, \a source, \a offset, and \a format_label arguments were added; also label formatting was added;
+    these changes were made to align the functionality of this function with the @ref Qore::Program::parse() "Program::parse()"
+    and @ref Qore::Program::parsePending() "Program::parsePending()" methods
 */
-nothing parse(string code, string label) [dom=EMBEDDED_LOGIC,IN_MODULE] {
-   getProgram()->parse(code, label, xsink);
+*hash parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC,IN_MODULE] {
+   QoreStringMaker nlabel(label->getEncoding(), format_label ? "<run-time-loaded: %s>" : "%s", label->getBuffer());
+
+   if (warning_mask) {
+      ExceptionSink wsink;
+      getProgram()->parse(code, &nlabel, xsink, &wsink, warning_mask, source, offset);
+      if (!wsink.isException())
+         return 0;
+
+      QoreException *e = wsink.catchException();
+      return e->makeExceptionObjectAndDelete(xsink);
+   }
+
+   getProgram()->parse(code, &nlabel, xsink, 0, 0, source, offset);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

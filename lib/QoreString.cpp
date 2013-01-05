@@ -65,6 +65,18 @@ QoreStringMaker::QoreStringMaker(const char* fmt, ...) {
    }
 }
 
+QoreStringMaker::QoreStringMaker(const QoreEncoding* enc, const char* fmt, ...) : QoreString(enc) {
+   va_list args;
+
+   while (true) {
+      va_start(args, fmt);
+      int rc = vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+}
+
 QoreString::QoreString() : priv(new qore_string_private) {
    priv->len = 0;
    priv->allocated = STR_CLASS_BLOCK;

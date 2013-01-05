@@ -325,8 +325,8 @@ AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode
    return exec_internal(true, sql, args, xsink);
 }
 
-AbstractQoreNode *DatasourcePool::execRaw(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
-   return exec_internal(false, sql, args, xsink);
+AbstractQoreNode *DatasourcePool::execRaw(const QoreString *sql, ExceptionSink *xsink) {
+   return exec_internal(false, sql, 0, xsink);
 }
 
 int DatasourcePool::commit(ExceptionSink *xsink) {

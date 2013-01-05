@@ -66,9 +66,9 @@ QoreHashNode *QoreException::makeExceptionObject() {
    h->setKeyValue("type", new QoreStringNode(type == ET_USER ? "User" : "System"), 0);
    h->setKeyValue("file", new QoreStringNode(file), 0);
    h->setKeyValue("line", new QoreBigIntNode(start_line), 0);
+   h->setKeyValue("endline", new QoreBigIntNode(end_line), 0);
    h->setKeyValue("source", new QoreStringNode(source), 0);
    h->setKeyValue("offset", new QoreBigIntNode(offset), 0);
-   h->setKeyValue("endline", new QoreBigIntNode(end_line), 0);
    h->setKeyValue("callstack", callStack->refSelf(), 0);
 
    if (err)
@@ -134,20 +134,18 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
 	    QoreStringNode *func = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
 	    QoreStringNode *type = reinterpret_cast<QoreStringNode *>(h->getKeyValue("type"));
 
+	    printe(" in %s() (%s:%d", func->getBuffer(), e->file.c_str(), e->start_line);
+
 	    if (e->start_line == e->end_line) {
 	       if (!e->source.empty())
-	          printe(" in %s() (%s:%d source %s:%d, %s code)\n", func->getBuffer(), e->file.c_str(), e->start_line, e->source.c_str(), e->start_line + e->offset, type->getBuffer());
-	       else
-                  printe(" in %s() (%s:%d, %s code)\n", func->getBuffer(), e->file.c_str(), e->start_line, type->getBuffer());
+	          printe("source %s:%d", e->source.c_str(), e->start_line + e->offset);
 	    }
 	    else {
-               if (!e->source.empty())
-                  printe(" in %s() (%s:%d-%d, source %s:%d-%d %s code)\n", func->getBuffer(),
-                        e->file.c_str(), e->start_line, e->end_line, e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset, type->getBuffer());
-               else
-                  printe(" in %s() (%s:%d-%d, %s code)\n", func->getBuffer(),
-                        e->file.c_str(), e->start_line, e->end_line, type->getBuffer());
+               printe("-%d", e->end_line);
+	       if (!e->source.empty())
+                  printe(", source %s:%d-%d", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
 	    }
+	    printe(", %s code)\n", type->getBuffer());
 	 }
       }
 
@@ -158,18 +156,18 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
 	       if (!e->start_line) {
 		  printe("<init>");
 		  if (!e->source.empty())
-		     printe(" source %s", e->source.c_str());
+		     printe(" (source %s)", e->source.c_str());
 	       }
 	       else {
 		  printe("%d", e->start_line);
                   if (!e->source.empty())
-                     printe(" source %s:%d", e->source.c_str(), e->start_line + e->offset);
+                     printe(" (source %s:%d)", e->source.c_str(), e->start_line + e->offset);
 	       }
 	    }
 	    else {
 	       printe("%d-%d", e->start_line, e->end_line);
                if (!e->source.empty())
-                  printe(" source %s:%d-%d", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
+                  printe(" (source %s:%d-%d)", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
 	    }
 	 }
 	 else if (e->start_line) {
@@ -263,7 +261,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
 	             printe("line");
 	          printe("%d", start_line);
                   if (srcs)
-                     printe(" source %s:%d", srcs, start_line + offset);
+                     printe(" (source %s:%d)", srcs, offset + start_line);
 	       }
 	       else {
 	          QoreStringNode* fs = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
@@ -275,13 +273,13 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
 			else {
                            printe("%s:%d", fns, start_line);
 			   if (srcs)
-			      printe(" source %s:%d", srcs, start_line + offset);
+			      printe(" (source %s:%d)", srcs, start_line + offset);
 			}
 		     }
 		     else {
 			printe("%s:%d-%d", fns, start_line, end_line);
                         if (srcs)
-                           printe(" source %s:%d-%d", srcs, start_line + offset, end_line + offset);
+                           printe(" (source %s:%d-%d)", srcs, start_line + offset, end_line + offset);
 		     }
 		  }
 		  else {
@@ -319,18 +317,18 @@ void ExceptionSink::defaultWarningHandler(QoreException *e) {
 	    if (!e->start_line) {
 	       printe("<init>");
                if (!e->source.empty())
-                  printe(" source %s", e->source.c_str());
+                  printe(" (source %s)", e->source.c_str());
 	    }
 	    else {
 	       printe("%d", e->start_line);
 	       if (!e->source.empty())
-	          printe(" source %s:%d", e->source.c_str(), e->start_line + e->offset);
+	          printe(" (source %s:%d)", e->source.c_str(), e->start_line + e->offset);
 	    }
 	 }
 	 else {
 	    printe("%d-%d", e->start_line, e->end_line);
             if (!e->source.empty())
-               printe(" source %s:%d-%d", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
+               printe(" (source %s:%d-%d)", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
 	 }
       }
       else if (e->start_line) {
@@ -369,7 +367,7 @@ QoreHashNode *QoreException::getStackHash(int type, const char *class_name, cons
    h->setKeyValue("line",     new QoreBigIntNode(loc.start_line), 0);
    h->setKeyValue("endline",  new QoreBigIntNode(loc.end_line), 0);
    h->setKeyValue("file",     loc.file ? new QoreStringNode(loc.file) : 0, 0);
-   h->setKeyValue("source",   loc.source ? new QoreStringNode(loc.source) : (loc.file ? new QoreStringNode(loc.file) : 0), 0);
+   h->setKeyValue("source",   loc.source ? new QoreStringNode(loc.source) : 0, 0);
    h->setKeyValue("offset",   new QoreBigIntNode(loc.offset), 0);
    h->setKeyValue("typecode", new QoreBigIntNode(type), 0);
    const char *tstr = 0;

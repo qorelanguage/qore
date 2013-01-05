@@ -271,12 +271,12 @@ hash get_all_thread_data() [flags=CONSTANT;dom=THREAD_CONTROL,THREAD_INFO] {
     @par Platform Availability:
     @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE
 
-    @return a hash of call stacks keyed by each TID (thread ID); see @ref callstacks "call stacks" for the format of the hash values
+    @return a hash of call stacks keyed by each TID (thread ID); see @ref callstack "call stacks" for the format of the hash values
 
     @par Example:
     @code
 my hash $cs = getAllThreadCallStacks();
-foreach my string $tid in (keys $cs) {
+foreach my string $tid in ($cs.keyIterator()) {
     printf("TID %d\n", $tid);
     my int $i;
     foreach my hash $l in ($cs.$tid)

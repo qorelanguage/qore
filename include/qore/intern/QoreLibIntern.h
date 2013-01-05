@@ -156,7 +156,7 @@ struct QoreProgramLineLocation {
 
 struct QoreProgramLocation : public QoreProgramLineLocation {
 protected:
-   DLLLOCAL QoreProgramLocation(int sline, int eline, const char* f) : QoreProgramLineLocation(sline, eline), file(f), source(0), offset(0) {
+   DLLLOCAL explicit QoreProgramLocation(const char* f) : QoreProgramLineLocation(0, 0), file(f), source(0), offset(0) {
    }
 
 public:
@@ -188,7 +188,7 @@ public:
 };
 
 struct QoreCommandLineLocation : public QoreProgramLocation {
-   DLLLOCAL QoreCommandLineLocation() : QoreProgramLocation(0, 0, "<command-line>") {
+   DLLLOCAL QoreCommandLineLocation() : QoreProgramLocation("<command-line>") {
    }
 };
 

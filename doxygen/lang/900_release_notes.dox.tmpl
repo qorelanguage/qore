@@ -49,6 +49,12 @@
       - @ref Qore::HTTPClient::getPeerInfo()
       - @ref Qore::HTTPClient::getSocketInfo()
       - @ref Qore::File::getTerminalAttributes()
+    - new location tags \c "source" and \c "offset" added for parse and runtime exceptions to allow for error-reporting to display information about files where sections of a source file are parsed; this allows both the label and line offset in the label and the file name and absolute file line position to be reported in exception information
+      - new parameters added to the following methods and function to accommodate the new location information:
+        - @ref Qore::Program::parse() "Program::parse()"
+	- @ref Qore::Program::parsePending() "Program::parsePending()" 
+	- @ref Qore::parse() "parse()"
+      - see @ref exception_hash "Exception Hash" and @ref callstack "Call Stacks" for new keys in eception and call stack information hashes
     - <date>::format() now accepts \c "us" for microseconds (see @ref date_formatting)
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module improvements:
       - added automatic recognition and support of the \c "STARTTLS" command when connecting to an ESMTP server; this way
@@ -66,6 +72,7 @@
       - added APIs to allow foreign threads to be registered/deregistered as %Qore threads (for example, to allow %Qore code to be called
         in a callback in a foreign thread created by a library linked with a %Qore binary module)
       - added APIs to allow for TID reservations to allow (for example) for a callback that is executed in the same foreign thread to always have the same TID
+      - the old Datasource::execRaw() function with the \a args parameter was deprecated since args was ignored anyway, a new Datasource::execRaw() function was added that has no args parammeter
 
     @subsection qore_087_bug_fixes Bug Fixes in Qore
     - fixed a runtime class matching bug when identical user classes were created in different @ref Qore::Program "Program" objects,

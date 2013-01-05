@@ -52,7 +52,7 @@ private:
    DLLLOCAL Datasource& operator=(const Datasource&);
 
    //! this helper method shares code for exec() and execRaw() methods
-   DLLLOCAL AbstractQoreNode * exec_internal(bool doBind, const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode* exec_internal(bool doBind, const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);
       
 protected:
    //! frees all connection values
@@ -65,10 +65,10 @@ protected:
    DLLEXPORT void setTransactionStatus(bool);
 
    //! copies all pending connection values to another Datasource
-   DLLEXPORT void setPendingConnectionValues(const Datasource *other);
+   DLLEXPORT void setPendingConnectionValues(const Datasource* other);
 
    //! calls the "begin_implicit_transaction" DBI method if it exists
-   DLLEXPORT int beginImplicitTransaction(ExceptionSink *xsink);
+   DLLEXPORT int beginImplicitTransaction(ExceptionSink* xsink);
 
 public:
    //! creates the object and binds it to a particular DBIDriver
@@ -93,37 +93,37 @@ public:
    /**
       @return
    */
-   DLLEXPORT const char *getUsername() const;
+   DLLEXPORT const char* getUsername() const;
 
    //! returns the password used for the last connection
    /**
       @return the password used for the last connection (or 0 if none)
    */
-   DLLEXPORT const char *getPassword() const;
+   DLLEXPORT const char* getPassword() const;
 
    //! returns the database (or schema) name used for the last connection
    /**
       @return the database (or schema) name used for the last connection (or 0 if none)
    */
-   DLLEXPORT const char *getDBName() const;
+   DLLEXPORT const char* getDBName() const;
 
    //! returns the database-specific character encoding name used for the last connection
    /**
       @return the database-specific character encoding name used for the last connection
    */
-   DLLEXPORT const char *getDBEncoding() const;
+   DLLEXPORT const char* getDBEncoding() const;
 
    //! returns the OS (or Qore) character encoding name used for the last connection
    /**
       @return the OS (or Qore) character encoding name used for the last connection
    */
-   DLLEXPORT const char *getOSEncoding() const;
+   DLLEXPORT const char* getOSEncoding() const;
 
    //! returns the host name used for the last connection
    /**
       @return the host name used for the last connection (or 0 if none)
    */
-   DLLEXPORT const char *getHostName() const;
+   DLLEXPORT const char* getHostName() const;
 
    //! returns the port number used for the last connection
    /**
@@ -135,44 +135,44 @@ public:
    /**
       @return
    */
-   DLLEXPORT const std::string &getUsernameStr() const;
+   DLLEXPORT const std::string& getUsernameStr() const;
 
    //! returns the password used for the last connection
    /**
       @return the password used for the last connection (or 0 if none)
    */
-   DLLEXPORT const std::string &getPasswordStr() const;
+   DLLEXPORT const std::string& getPasswordStr() const;
 
    //! returns the database (or schema) name used for the last connection
    /**
       @return the database (or schema) name used for the last connection (or 0 if none)
    */
-   DLLEXPORT const std::string &getDBNameStr() const;
+   DLLEXPORT const std::string& getDBNameStr() const;
 
    //! returns the database-specific character encoding name used for the last connection
    /**
       @return the database-specific character encoding name used for the last connection
    */
-   DLLEXPORT const std::string &getDBEncodingStr() const;
+   DLLEXPORT const std::string& getDBEncodingStr() const;
 
    //! returns the host name used for the last connection
    /**
       @return the host name used for the last connection (or 0 if none)
    */
-   DLLEXPORT const std::string &getHostNameStr() const;
+   DLLEXPORT const std::string& getHostNameStr() const;
 
    //! returns the private DBI-specific data structure for this object
-   DLLEXPORT void *getPrivateData() const;
+   DLLEXPORT void* getPrivateData() const;
 
    //! returns the private DBI-specific data structure for this object
    template <typename T>
-   DLLLOCAL T *getPrivateData() const {
+   DLLLOCAL T* getPrivateData() const {
       return reinterpret_cast<T*>(getPrivateData());
    }
 
    //! returns the private DBI-specific data structure for this object
    template <typename T>
-   DLLLOCAL T &getPrivateDataRef() const {
+   DLLLOCAL T& getPrivateDataRef() const {
       return *getPrivateData<T>();
    }
 
@@ -180,58 +180,58 @@ public:
    /** this should only be called once in the actual DBI driver code
        @param data the data for the DBI driver that holds the driver-specific state of the connection
    */
-   DLLEXPORT void setPrivateData(void *data);
+   DLLEXPORT void setPrivateData(void* data);
 
    //! sets the database-specific character encoding name used for the current connection
    /** this function should only be called by the DBI driver when a connection is established
        @param name the database-specific character encoding name used for the current connection
    */
-   DLLEXPORT void setDBEncoding(const char *name);
+   DLLEXPORT void setDBEncoding(const char* name);
 
    //! returns the QoreEncoding pointer used for this connection
-   DLLEXPORT const QoreEncoding *getQoreEncoding() const;
+   DLLEXPORT const QoreEncoding* getQoreEncoding() const;
 
    //! sets the QoreEncoding used for this connection
    /** this function should only be called by the DBI driver when a connection is established
        @param enc the QoreEncoding used for the current connection
    */
-   DLLEXPORT void setQoreEncoding(const QoreEncoding *enc);
+   DLLEXPORT void setQoreEncoding(const QoreEncoding* enc);
 
    //! sets the name for the QoreEncoding used for this connection
    /** this function should only be called by the DBI driver when a connection is established
        @param name the name for the QoreEncoding used for the current connection
    */
-   DLLEXPORT void setQoreEncoding(const char *name);
+   DLLEXPORT void setQoreEncoding(const char* name);
 
    //! sets the username to be used for the next connection
    /**
       @param u the username to be used for the next connection
    */
-   DLLEXPORT void setPendingUsername(const char *u);
+   DLLEXPORT void setPendingUsername(const char* u);
 
    //! sets the password to be used for the next connection
    /**
       @param p the password to be used for the next connection
    */
-   DLLEXPORT void setPendingPassword(const char *p);
+   DLLEXPORT void setPendingPassword(const char* p);
 
    //! sets the database (or schema) name to be used for the next connection
    /**
       @param d the database (or schema) name to be used for the next connection
    */
-   DLLEXPORT void setPendingDBName(const char *d);
+   DLLEXPORT void setPendingDBName(const char* d);
 
    //! sets the database-specific name of the character-encoding  to be used for the next connection
    /**
       @param c the database-specific name of the character-encoding to be used for the next connection
    */
-   DLLEXPORT void setPendingDBEncoding(const char *c);
+   DLLEXPORT void setPendingDBEncoding(const char* c);
 
    //! sets the hostname to be used for the next connection
    /**
       @param h the hostname to be used for the next connection
    */
-   DLLEXPORT void setPendingHostName(const char *h);
+   DLLEXPORT void setPendingHostName(const char* h);
 
    //! sets the port number to be used for the next connection
    /**
@@ -245,7 +245,7 @@ public:
    /** calls the DBI driver's "open" method
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT int open(ExceptionSink *xsink);
+   DLLEXPORT int open(ExceptionSink* xsink);
 
    //! executes SQL throught the "select" function of the DBI driver and returns the result, makes an implicit connection if necessary
    /** this function is not "const" to allow for implicit connections (and reconnections)
@@ -253,7 +253,7 @@ public:
        @param args query arguments for %s, %n, %d placeholders
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT AbstractQoreNode *select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLEXPORT AbstractQoreNode* select(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);
 
    //! executes SQL throught the "selectRows" function of the DBI driver and returns the result, makes an implicit connection if necessary
    /** this function is not "const" to allow for implicit connections (and reconnections)
@@ -261,7 +261,7 @@ public:
        @param args query arguments for %s, %n, %d placeholders
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT AbstractQoreNode *selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLEXPORT AbstractQoreNode* selectRows(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);
 
    //! executes SQL throught the "selectRow" function of the DBI driver and returns the result, makes an implicit connection if necessary
    /** This function is not "const" to allow for implicit connections (and reconnections).
@@ -271,7 +271,7 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the row data returned or 0
    */
-   DLLEXPORT QoreHashNode *selectRow(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLEXPORT QoreHashNode* selectRow(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);
 
    //! executes SQL throught the "exec" function of the DBI driver and returns the result, makes an implicit connection if necessary
    /** The "in_transaction" flag will be set to true if this method executes without
@@ -281,42 +281,56 @@ public:
        @param args query arguments for %s, %n, %d placeholders
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT AbstractQoreNode *exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLEXPORT AbstractQoreNode* exec(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);
 
    //! executes SQL throught the "execRaw" function of the DBI driver and returns the result, makes an implicit connection if necessary
    /** The "in_transaction" flag will be set to true if this method executes without
        throwing an exception and the object was not already in a transaction.
        this function is not "const" to allow for implicit connections (and reconnections)
+
+       @param query_str the qurey to execute
+       @param args this argument is ignored
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+       @deprecated this function will be removed in the next major version of the %Qore library due to the inclusion of the extraneous and ignored \a args parameter
+   */
+   DLLEXPORT AbstractQoreNode* execRaw(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);
+
+   //! executes SQL throught the "execRaw" function of the DBI driver and returns the result, makes an implicit connection if necessary
+   /** The "in_transaction" flag will be set to true if this method executes without
+       throwing an exception and the object was not already in a transaction.
+       this function is not "const" to allow for implicit connections (and reconnections)
+
        @param query_str the qurey to execute
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT AbstractQoreNode *execRaw(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLEXPORT AbstractQoreNode* execRaw(const QoreString* query_str, ExceptionSink* xsink);
 
    //! commits the current transaction to the database
    /** Calls the DBI driver's "commit" method.
        this function is not "const" to allow for implicit connections (and reconnections)
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT int commit(ExceptionSink *xsink);
+   DLLEXPORT int commit(ExceptionSink* xsink);
 
    //! rolls back the current transaction to the database
    /** Calls the DBI driver's "rollback" method.
        this function is not "const" to allow for implicit connections (and reconnections)
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT int rollback(ExceptionSink *xsink);
+   DLLEXPORT int rollback(ExceptionSink* xsink);
 
    //! closes the connection
    DLLEXPORT int close();
 
    //! closes and opens the connection
-   DLLEXPORT void reset(ExceptionSink *xsink);
+   DLLEXPORT void reset(ExceptionSink* xsink);
 
    //! returns a QoreListNode object of all capability strings of the current driver, the caller owns the reference count in the object returned
    /**
       @return list of capability strings of the driver
    */
-   DLLEXPORT QoreListNode *getCapabilityList() const;
+   DLLEXPORT QoreListNode* getCapabilityList() const;
 
    //! returns the capability mask of the current driver
    /**
@@ -327,28 +341,28 @@ public:
    //! returns the pending username for the next connection
    /** caller owns the AbstractQoreNode pointer's reference count returned
     */
-   DLLEXPORT QoreStringNode *getPendingUsername() const;
+   DLLEXPORT QoreStringNode* getPendingUsername() const;
 
    //! returns the pending password for the next connection
    /** caller owns the AbstractQoreNode pointer's reference count returned
     */
-   DLLEXPORT QoreStringNode *getPendingPassword() const;
+   DLLEXPORT QoreStringNode* getPendingPassword() const;
 
    //! returns the pending database (or schema) name for the next connection
    /** caller owns the AbstractQoreNode pointer's reference count returned
     */
-   DLLEXPORT QoreStringNode *getPendingDBName() const;
+   DLLEXPORT QoreStringNode* getPendingDBName() const;
 
    //! returns the pending database-specific character encoding name for the next connection
    /** caller owns the AbstractQoreNode pointer's reference count returned
     */
-   DLLEXPORT QoreStringNode *getPendingDBEncoding() const;
+   DLLEXPORT QoreStringNode* getPendingDBEncoding() const;
 
    //! returns the pending host name for the next connection
    /** caller owns the AbstractQoreNode pointer's reference count returned
        @return the pending host name for the next connection
    */
-   DLLEXPORT QoreStringNode *getPendingHostName() const;
+   DLLEXPORT QoreStringNode* getPendingHostName() const;
 
    //! returns the pending port number for the next connection
    /**
@@ -361,7 +375,7 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return -1 for error, 0 for OK
    */
-   DLLEXPORT int beginTransaction(ExceptionSink *xsink);
+   DLLEXPORT int beginTransaction(ExceptionSink* xsink);
 
    //! returns the transaction status flag
    /**
@@ -386,29 +400,29 @@ public:
    /**
       return a copy of this object
    */
-   DLLEXPORT Datasource *copy() const;
+   DLLEXPORT Datasource* copy() const;
 
    //! returns the name of the current DBI driver
-   DLLEXPORT const char *getDriverName() const;
+   DLLEXPORT const char* getDriverName() const;
 
    //! executes the "get_server_version" function of the driver, if any, and returns the result, makes an implicit connection if necessary
    /** the caller owns the AbstractQoreNode pointer's reference count returned (if the pointer is not 0)
        this function is not "const" to allow for implicit connections (and reconnections)
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT AbstractQoreNode *getServerVersion(ExceptionSink *xsink);
+   DLLEXPORT AbstractQoreNode* getServerVersion(ExceptionSink* xsink);
 
    //! executes the "get_client_version" function of the driver, if any, and returns the result
    /** the caller owns the AbstractQoreNode pointer's reference count returned (if the pointer is not 0)
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT AbstractQoreNode *getClientVersion(ExceptionSink *xsink) const;
+   DLLEXPORT AbstractQoreNode* getClientVersion(ExceptionSink* xsink) const;
 
    //! returns the DBIDriver pointer used for this object
    /**
       @return the DBIDriver pointer used for this object
    */
-   DLLEXPORT const DBIDriver *getDriver() const;
+   DLLEXPORT const DBIDriver* getDriver() const;
 
    //! should be called by the DBIDriver if the connection to the server is lost
    /** The DBIDriver should raise its own exception when this call is made, as making this call will
@@ -427,7 +441,7 @@ public:
        this function is not "const" to allow for implicit connections (and reconnections)
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT int autoCommit(ExceptionSink *xsink);
+   DLLEXPORT int autoCommit(ExceptionSink* xsink);
 
    //! returns the valid options for this driver with descriptions and current values for the current datasource
    /** @return a hash where the keys are valid option names, and the values are hashes with the following keys:
