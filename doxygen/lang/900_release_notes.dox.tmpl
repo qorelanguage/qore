@@ -49,6 +49,7 @@
       - @ref Qore::HTTPClient::getPeerInfo()
       - @ref Qore::HTTPClient::getSocketInfo()
       - @ref Qore::File::getTerminalAttributes()
+    - <date>::format() now accepts \c "us" for microseconds (see @ref date_formatting)
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module improvements:
       - added automatic recognition and support of the \c "STARTTLS" command when connecting to an ESMTP server; this way
         the class will automatically upgrade the connection to a secure TLS/SSL connection if the server supports it
@@ -64,6 +65,7 @@
         (such as from a thread created by foreign code)
       - added APIs to allow foreign threads to be registered/deregistered as %Qore threads (for example, to allow %Qore code to be called
         in a callback in a foreign thread created by a library linked with a %Qore binary module)
+      - added APIs to allow for TID reservations to allow (for example) for a callback that is executed in the same foreign thread to always have the same TID
 
     @subsection qore_087_bug_fixes Bug Fixes in Qore
     - fixed a runtime class matching bug when identical user classes were created in different @ref Qore::Program "Program" objects,

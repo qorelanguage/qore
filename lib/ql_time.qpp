@@ -272,7 +272,7 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
     |\c Day|long day of week string (ex: \c "Monday")
     |\c DAY|long day of week string, capitalized (ex: \c "MONDAY")
     |\c Dy|abbreviated day of week string (ex: \c "Mon")
-    |\c DY|abbreviated day of week string capitalised (ex: \c "MON")
+    |\c DY|abbreviated day of week string capitalized (ex: \c "MON")
     |\c H|non zero-padded hour number (0 - 23)
     |\c HH|zero-padded hour number (00 - 23)
     |\c h|non zero-padded hour number, 12-hour clock (1 - 12)
@@ -284,12 +284,17 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
     |\c P|\c "AM" or \c "PM" (upper-case)
     |\c p|\c "am" or \c "pm" (lower-case)
     |\c u|non zero-padded millisecond number (0 - 999)
-    |\c uu or ms|zero-padded millisecond number (000 - 999)
+    |\c uu or \c ms|zero-padded millisecond number (000 - 999)
     |\c x|non zero-padded microsecond number (0 - 999999)
-    |\c xx or ms|zero-padded microsecond number (000000 - 999999)
+    |\c xx or \c us|zero-padded microsecond number (000000 - 999999)
     |\c y|microseconds, with trailing zeros removed (suitable for use after the '.')
     |\c z|local time zone name (ex: \c "EST") if available, otherwise the UTC offset (ex: \c "+01:00")
     |\c Z|time zone UTC offset like +HH:mm[:SS] (ex: \c "+01:00"), seconds are only included if non-zero
+
+    @since \c "us" was added in %Qore 0.8.7
+
+    @bug the \c "u" and \c "uu" format codes work with milliseconds and not microseconds since they were implemented before
+    qore supported microsecond time resolution; this cannot be changed without breaking backwards-compatibility
 
     @section date_info_hash Date/Time Information Hash
     |!Key|!Type|!Absolute/Relative|!Description

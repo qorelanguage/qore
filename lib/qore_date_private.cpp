@@ -367,6 +367,10 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
                str.sprintf("%03d", i.us / 1000);
                s++;
             }
+            else if (s[1] == 's') {
+               str.sprintf("%06d", i.us);
+               s++;
+            }
             else
                str.sprintf("%d", i.us / 1000);
             break;
