@@ -499,7 +499,7 @@ Program::destructor() {
 
     @param code The code to parse into the Program object
     @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
-    @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this arguments is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
+    @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this argument is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
     @param source An optional source file name for the code being parsed; this is useful if sections of a file are parsed
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
     @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
@@ -549,7 +549,7 @@ while ($wh) {
 
     @param code The code to parse into the Program object
     @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
-    @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this arguments is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
+    @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this argument is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
     @param source An optional source file name for the code being parsed; this is useful if sections of a file are parsed
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
     @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
