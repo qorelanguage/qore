@@ -1069,6 +1069,41 @@ bool Datasource::inTransaction() [flags=CONSTANT] {
    return ds->isInTransaction();
 }
 
+//! Returns @ref True if the current thread is in a transaction (i.e. holds the transaction lock), @ref False if not
+/** @return @ref True if the current thread is in a transaction (i.e. holds the transaction lock), @ref False if not
+
+    @par Example:
+    @code
+my bool $b = $db.currentThreadInTransaction();
+    @endcode
+
+    @see Datasource::transactionTid()
+
+    @since %Qore 0.8.7
+ */
+bool Datasource::currentThreadInTransaction() [flags=CONSTANT] {
+   return ds->currentThreadInTransaction();
+}
+
+//! Returns the TID of the thread holding the transaction lock or -1 if it's not currently held
+/** If the Datasource object is used in a multithreaded context and if the transaction lock is not held by the current thread, then the
+    transaction lock status could change at any time.
+
+    @return the TID of the thread holding the transaction lock or -1 if it's not currently held
+
+    @par Example:
+    @code
+my int $tid = $db.transactionTid();
+    @endcode
+
+    @see Datasource::currentThreadInTransaction()
+
+    @since %Qore 0.8.7
+ */
+int Datasource::transactionTid() [flags=CONSTANT] {
+   return ds->transactionTid();
+}
+
 //! returns the valid options for the driver associated with the Datasource with descriptions and current values for the current Datasource object
 /** @return a hash where the keys are valid option names, and the values are hashes with the following keys:
     - \c "desc": a string description of the option

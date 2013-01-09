@@ -140,7 +140,12 @@ public:
 
       return getAllocatedDS();
    }
-   
+
+   DLLLOCAL bool currentThreadInTransaction() const {
+      SafeLocker sl((QoreThreadLock*)this);
+      return tmap.find(gettid()) != tmap.end();
+   }
+
    //DLLLOCAL virtual void helperAssignDatasource(ExceptionSink *xsink) { return 0; }
    //DLLLOCAL virtual void helperReleaseDatasource() { }
 };

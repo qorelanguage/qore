@@ -748,6 +748,20 @@ bool DatasourcePool::inTransaction() [flags=CONSTANT] {
    return ds->inTransaction();
 }
 
+//! Returns @ref True if the current thread is in a transaction (i.e. has a dedicated datasource allocation), @ref False if not
+/** @return @ref True if the current thread is in a transaction (i.e. has a dedicated datasource allocation), @ref False if not
+
+    @par Example:
+    @code
+my bool $b = $db.currentThreadInTransaction();
+    @endcode
+
+    @since %Qore 0.8.7
+ */
+bool DatasourcePool::currentThreadInTransaction() [flags=CONSTANT] {
+   return ds->currentThreadInTransaction();
+}
+
 //! returns the valid options for the driver associated with the Datasource with descriptions and current values for the current Datasource object
 /** @return a hash where the keys are valid option names, and the values are hashes with the following keys:
     - \c "desc": a string description of the option

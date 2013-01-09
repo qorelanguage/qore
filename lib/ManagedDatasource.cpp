@@ -43,7 +43,7 @@ void ManagedDatasource::destructor(ExceptionSink *xsink) {
       // closeUnlocked will throw an exception if a transaction is in progress (and release the transaction lock if held)
       closeUnlocked(xsink);
    else
-      xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: TID %d deleted Datasource while TID %d is holding the transaction lock", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid(), tid);
+      xsink->raiseException("DATASOURCE-ERROR", "%s:%s@%s: TID %d deleted Datasource while TID %d is holding the transaction lock", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid(), tid);
 }
 
 void ManagedDatasource::deref(ExceptionSink *xsink) {

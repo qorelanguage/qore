@@ -49,6 +49,9 @@
       - @ref Qore::HTTPClient::getPeerInfo()
       - @ref Qore::HTTPClient::getSocketInfo()
       - @ref Qore::File::getTerminalAttributes()
+      - @ref Qore::SQL::Datasource::transactionTid()
+      - @ref Qore::SQL::Datasource::currentThreadInTransaction()
+      - @ref Qore::SQL::DatasourcePool::currentThreadInTransaction()
     - new location tags \c "source" and \c "offset" added for parse and runtime exceptions to allow for error-reporting to display information about files where sections of a source file are parsed; this allows both the label and line offset in the label and the file name and absolute file line position to be reported in exception information
       - new parameters added to the following methods and function to accommodate the new location information:
         - @ref Qore::Program::parse() "Program::parse()"

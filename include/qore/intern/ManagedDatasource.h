@@ -117,6 +117,14 @@ public:
    DLLLOCAL AbstractQoreNode *getServerVersion(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *getClientVersion(ExceptionSink *xsink) const;
 
+   DLLLOCAL int transactionTid() const {
+      return tid;
+   }
+
+   DLLLOCAL bool currentThreadInTransaction() const {
+      return tid == gettid();
+   }
+
    DLLLOCAL QoreHashNode* getOptionHash(ExceptionSink* xsink);
    DLLLOCAL int setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink);
    DLLLOCAL AbstractQoreNode* getOption(const char* opt, ExceptionSink* xsink);
