@@ -860,7 +860,7 @@ void advanceOnBlockExit() {
 // new file name, current parse state
 void beginParsing(const char* file, void* ps, const char* src, int offset) {
    ThreadData* td = thread_data.get();
-   //printd(5, "beginParsing() td: %p of %p (%s), (stack=%s)\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"));
+   //printd(5, "beginParsing() td: %p of %p (%s), (stack: %s) src: %s:%d\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"), src ? src : "(null)", offset);
    
    // store current position
    ProgramLocation* pl = new ProgramLocation(td->parse_loc.file, td->parseState, td->parse_loc.source, td->parse_loc.offset, td->plStack);
@@ -875,7 +875,7 @@ void beginParsing(const char* file, void* ps, const char* src, int offset) {
 
 void* endParsing() {
    ThreadData* td = thread_data.get();
-   //printd(5, "endParsing() td: %p restoreParseOptions pgm: %p parse_file: %p '%s'\n", td, td->current_pgm, td->parse_file, td->parse_file);
+   //printd(5, "endParsing() td: %p restoreParseOptions pgm: %p parse_file: %p '%s' src: %s:%d\n", td, td->current_pgm, td->parse_loc.file, td->parse_loc.file, td->parse_loc.source ? td->parse_loc.source : "(null)", td->parse_loc.offset);
    qore_program_private::restoreParseOptions(td->current_pgm, td->parse_loc.file);
 
    void* rv = td->parseState;
@@ -935,6 +935,7 @@ void set_parse_file_info(QoreProgramLocation& loc) {
    loc.file       = td->parse_loc.file;
    loc.source     = td->parse_loc.source;
    loc.offset     = td->parse_loc.offset;
+   //printd(5, "set_parse_file_info() setting %s src: %s:%d\n", loc.file, loc.source ? loc.source : "(null)", loc.offset);
 }
 
 QoreProgramLocation get_parse_location() {
@@ -942,6 +943,7 @@ QoreProgramLocation get_parse_location() {
 }
 
 void update_parse_location(const QoreProgramLocation& loc) {
+   //printd(5, "update_parse_location() setting %s:%d-%d src: %s%d\n", loc.file, loc.start_line, loc.end_line, loc.source ? loc.source : "(null)", loc.offset);
    thread_data.get()->parse_loc = loc;
 }
 

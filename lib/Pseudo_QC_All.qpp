@@ -118,13 +118,8 @@ int <value>::size() [flags=CONSTANT] {
     functionality in qore.  Note that as of qore 0.8.6, @ref perl-bool-eval "%perl-bool-eval" is the default.
 
     @return @ref False; this method is reimplemented in other types and will return @ref True if the given expression has a value;
-    with the default boolean evaluation (@ref perl-bool-eval "%perl-bool-eval"), qore's boolean evaluation is like perl's and Python's,
-    whereas any expression that has the following values is @ref Qore::False "False": @ref nothing, @ref string "string" \c "0"
-    and @ref string "empty strings", @ref integer "integer", @ref float "float", and @ref number "number" \c 0 (zero),
-    @ref absolute_dates "absolute date" \c 1970-01-01Z (ie the start of the epoch with an offset of 0),
-    @ref relative_dates "relative date" \c PT0H (ie any  @ref relative_dates "relative date" with a 0 duration),
-    @ref null, @ref binary "empty binary objects", @ref hash "empty hashes", and @ref list "empty lists".  All other values
-    are @ref Qore::True "True".
+    the return value of this method is the same as that of any value when evaluated in a boolean context when
+    @ref perl-bool-eval "%perl-bool-eval" is enabled (the default)
 
     @par Example:
     @code

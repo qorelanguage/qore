@@ -1460,8 +1460,8 @@ sub class_test_Program() {
     my string $nf = "sub newfunc() { return True; }";
 
     my Program $a();
-    $a.parsePending($pf, "pending test part1");
-    $a.parsePending($nf, "pending test part2");
+    $a.parsePending($pf, "pending test part1", 0);
+    $a.parsePending($nf, "pending test part2", 0);
     $a.parseCommit();    
     $a.importFunction("t");
     $a.importGlobalVariable("to");
@@ -1516,6 +1516,16 @@ sub class_test_Program() {
 
     my Program $p3();
     $p3.parse("class X { private $.a; }", "p");
+
+    my Program $p4();
+    try {
+        $p4.parse("error", "error", 0, "source", 10);
+        test_value(True, False, "exception source & offset");
+    }
+    catch (hash $ex) {
+        test_value($ex.source, "source", "exception source");
+        test_value($ex.offset, 10, "exception offset");
+    }
 }
 
 sub class_test_File() {

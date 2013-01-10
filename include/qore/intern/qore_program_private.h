@@ -33,6 +33,17 @@ extern QoreHashNode* ENV;
 #include <stdarg.h>
 #include <errno.h>
 
+class QoreParseLocationHelper {
+public:
+   DLLLOCAL QoreParseLocationHelper(const char* file, const char* src, int offset) {
+      beginParsing(file, 0, src, offset);
+   }
+
+   DLLLOCAL ~QoreParseLocationHelper() {
+      endParsing();
+   }
+};
+
 class CharPtrList : public safe_dslist<const char* > {
 public:
    // returns true for found, false for not found
@@ -597,7 +608,7 @@ public:
 
    // call must push the current program on the stack and pop it afterwards
    DLLLOCAL int internParsePending(const char* code, const char* label, const char* orig_src = 0, int offset = 0) {
-      printd(5, "QoreProgram::internParsePending(code=%p, label=%s)\n", code, label);
+      //printd(5, "qore_program_private::internParsePending() code: %d bytes label: '%s' src: '%s' offset: %d\n", strlen(code), label, orig_src ? orig_src : "(null)", offset);
  
       assert(code && code[0]);
 
@@ -608,10 +619,13 @@ public:
       char* src = orig_src ? strdup(orig_src) : 0;
       if (src)
          addFile(src);
+
+      QoreParseLocationHelper qplh(sname, src, offset);
+
       beginParsing(sname, 0, src, offset);
 
       // no need to save buffer, because it's deleted automatically in lexer
-      //printd(5, "QoreProgram::internParsePending() parsing tag=%s (%p): '%s'\n", label, label, code);
+      //printd(5, "qore_program_private::internParsePending() parsing tag=%s (%p): '%s'\n", label, label, code);
 
       yyscan_t lexer;
       yylex_init(&lexer);
@@ -620,18 +634,18 @@ public:
       // yyparse() will call endParsing() and restore old pgm position
       yyparse(lexer);
 
-      printd(5, "QoreProgram::internParsePending() returned from yyparse()\n");
+      printd(5, "qore_program_private::internParsePending() returned from yyparse()\n");
       int rc = 0;
       if (parseSink->isException()) {
 	 rc = -1;
-	 printd(5, "QoreProgram::internParsePending() parse exception: calling parseRollback()\n");
+	 printd(5, "qore_program_private::internParsePending() parse exception: calling parseRollback()\n");
 	 internParseRollback();
 	 requires_exception = false;
       }
 
-      printd(5, "QoreProgram::internParsePending() about to call yylex_destroy()\n");
+      printd(5, "qore_program_private::internParsePending() about to call yylex_destroy()\n");
       yylex_destroy(lexer);
-      printd(5, "QoreProgram::internParsePending() returned from yylex_destroy()\n");
+      printd(5, "qore_program_private::internParsePending() returned from yylex_destroy()\n");
       return rc;
    }
 
@@ -741,7 +755,10 @@ public:
 	 // when the QoreProgram object is deleted
 	 char* sname = strdup(name);
 	 addFile(sname);
-         beginParsing(sname);
+
+	 QoreParseLocationHelper qplh(sname, 0, 0);
+
+	 beginParsing(sname);
 	 
 	 //printd(5, "QoreProgram::parse(): about to call yyparse()\n");
 	 yylex_init(&lexer);
@@ -779,7 +796,7 @@ public:
 	 return;
 
       TempEncodingHelper src;
-      if (source && !source->empty() && src.set(source, QCS_DEFAULT, xsink))
+      if (source && !source->empty() && !src.set(source, QCS_DEFAULT, xsink))
          return;
 
       parse(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm, source ? src->getBuffer() : 0, offset);
@@ -846,7 +863,7 @@ public:
 	 return;
 
       TempEncodingHelper src;
-      if (source && !source->empty() && src.set(source, QCS_DEFAULT, xsink))
+      if (source && !source->empty() && !src.set(source, QCS_DEFAULT, xsink))
          return;
 
       parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm, source ? src->getBuffer() : 0, offset);
