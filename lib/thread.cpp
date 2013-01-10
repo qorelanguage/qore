@@ -1863,7 +1863,7 @@ unsigned QoreThreadList::cancelAllActiveThreads() {
    exiting = true;
 
    while (i.next()) {
-      if (*i != tid) {
+      if (*i != (unsigned)tid) {
          //printf("QoreThreadList::cancelAllActiveThreads() canceling TID %d ptid: %p (this TID: %d)\n", *i, entry[*i].ptid, tid);
          int trc = pthread_cancel(entry[*i].ptid);
          if (!trc)
@@ -1878,6 +1878,7 @@ unsigned QoreThreadList::cancelAllActiveThreads() {
    return tcc;
 }
 
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 void QoreThreadList::pushCall(CallNode* cn) {
    entry[gettid()].callStack->push(cn);
 }
@@ -1889,3 +1890,4 @@ void QoreThreadList::popCall(ExceptionSink* xsink) {
 QoreListNode* QoreThreadList::getCallStackList() {
    return entry[gettid()].callStack->getCallStack();
 }
+#endif

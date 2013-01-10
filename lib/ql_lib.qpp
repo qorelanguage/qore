@@ -475,7 +475,7 @@ int fork() [dom=PROCESS] {
 #else
 #define QORE_THREAD_LIMIT 1
 #endif
-   if (thread_list.getNumThreads() > (QORE_THREAD_LIMIT)) {
+   if (thread_list.getNumThreads() > (unsigned)(QORE_THREAD_LIMIT)) {
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() when other threads are running");
       return 0;
    }
