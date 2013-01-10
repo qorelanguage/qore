@@ -630,7 +630,12 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	# code references to external logging functions
 	*code $.logger;
 	*code $.errorlogger;
+
+        # stop notification closure
+        *code $.stopc;
         
+        string $.name;
+
 	const PollInterval = 300ms;
     }
 
@@ -643,8 +648,9 @@ class HttpServer::HttpListener inherits Qore::Socket {
     }
 
     # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
-    constructor(HttpServer $server, int $id, Sequence $ss, any $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger) {
-        # we originally set for utf-8 and then per-connection the encoding is set accoring to the client's content-type header (with iso-8859-1 as the default)
+    constructor(HttpServer $server, int $id, Sequence $ss, any $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, string $name) {
+        $.name = $name;
+        # we originally set for utf-8 and then per-connection the encoding is set according to the client's content-type header (with iso-8859-1 as the default)
         # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)
         $.setEncoding("utf-8");
         
@@ -656,6 +662,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	$.ss = $ss;
 	$.logger = $logger;
 	$.errorlogger = $errorlogger;
+        $.stopc = $stopc;
 
 	#printf("HttpListener::constructor() hi=%y\n", $hi);
         map $.handlers.setHandler($1.key, $1.value.url, $1.value.content, $1.value.handler, $1.value.headers), $hi.pairIterator();
@@ -710,6 +717,10 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	$.stop();
     }
     
+    string getName() {
+        return $.name;
+    }
+
     any getAddress() {
         return $.socket;
     }
@@ -723,10 +734,13 @@ class HttpServer::HttpListener inherits Qore::Socket {
     }
 
     hash getInfo() {
-        return $.socket_info + 
-            ( "proto": $.ssl ? "https" : "http",
-              "id": $.id,
-              "bind": $.socket );
+        return (
+            "name": $.name,
+            ) + $.socket_info + (
+            "proto": $.ssl ? "https" : "http",
+            "id": $.id,
+            "bind": $.socket,
+            );
     }
 
     stopNoWait() {
@@ -754,10 +768,12 @@ class HttpServer::HttpListener inherits Qore::Socket {
         }
 
         $.serv.listenerStopped($self);
+        if ($.stopc)
+            call_function($.stopc, $.name);
     }
 
     log() {
-	$argv[0] = sprintf("listener %s: %s", $.socket_info.desc, $argv[0]);
+	$argv[0] = sprintf("listener %s (%s): %s", $.name, $.socket_info.desc, $argv[0]);
 	if ($.logger) {
 	    $argv[0] = "HTTP " + $argv[0];
 	    call_function_args($.logger, $argv);
@@ -767,7 +783,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
     }
     
     logError() {
-	$argv[0] = sprintf("listener %s: %s", $.socket_info.desc, $argv[0]);
+	$argv[0] = sprintf("listener %s (%s): %s", $.name, $.socket_info.desc, $argv[0]);
 	if ($.errorlogger) {
 	    $argv[0] = "HTTP " + $argv[0];
 	    call_function_args($.errorlogger, $argv);
@@ -1204,6 +1220,9 @@ public class HttpServer::HttpServer {
         # map of bind addresses to listener IDs
         hash $.smap;
 
+        # map of listener names to listener IDs
+        hash $.nmap;
+
         # listener Gate
 	Gate $.lm();
 
@@ -1236,7 +1255,7 @@ public class HttpServer::HttpServer {
     }
     
     #! adds a dedicated listener to the server with an explicit/dedicated handler for incoming connections
-    /** @param name the name of the handler
+    /** @param hname the name of the handler
         @param handler the AbstractHttpRequestHandler object that will handle incoming connections
         @param lp a hash with the following keys:
         - \c cert_path: (optional) a path to an X509 certificate for HTTPS listeners
@@ -1249,11 +1268,14 @@ public class HttpServer::HttpServer {
         - \c special_headers: (optional) a string or a list of strings giving special headers that when matched will direct requests to the given handler; this is more important for handlers on the global listeners
         @param logger an optional closure or call reference that will be called with logging information; if this is not set, then the logger set in the HttpServer::constructor() will be used instead
         @param errorlogger an optional closure or call reference that will be called with error information; if this is not set, then the error logger set in the HttpServer::constructor() will be used instead
+        @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
+
+        @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
 
         @throw SETHANDLER-ERROR HTTP request handler already exists with the given name; non-string entry in special_header list
         @throw HTTPSERVER-ADDLISTENER-ERROR missing or invalid \c "bind" or \c "url" entry in the \c lp argument; duplicate bind address
      */
-    final list addListenersWithHandler(string $name, AbstractHttpRequestHandler $handler, hash $lp, *code $logger, *code $errorlogger) {
+    final list addListenersWithHandler(string $hname, AbstractHttpRequestHandler $handler, hash $lp, *code $logger, *code $errorlogger, *code $stopc, *string $name) {
 %ifdef QoreDebug
         #ASSERT($lp.bind.typeCode() == NT_STRING);
 	#ASSERT($lp.url.typeCode() == NT_STRING);
@@ -1268,46 +1290,52 @@ public class HttpServer::HttpServer {
 	if ($lp.cert_path && !$lp.cert)
 	    $lp += HttpServer::getSSLObjects($lp.cert_path, $lp.key_path);
 
-	my hash $h.$name = ("url": $lp.url, "content": $lp.content_type, "handler": $handler, "headers": $lp.special_headers);
+	my hash $h.$hname = ("url": $lp.url, "content": $lp.content_type, "handler": $handler, "headers": $lp.special_headers);
 
 	if ($lp.bind !~ /:/) {
 	    if ($lp.bind =~ /^\//)
-		return list($.addListenerIntern($lp.bind, $lp.cert, $lp.key, $h, $logger, $errorlogger).getInfo());
-	    return $.addINETListenersIntern(NOTHING, $lp.bind, $lp, $h, $logger, $errorlogger);
+		return list($.addListenerIntern($lp.bind, $lp.cert, $lp.key, $h, $logger, $errorlogger, $stopc, $name).getInfo());
+	    return $.addINETListenersIntern(NOTHING, $lp.bind, $lp, $h, $logger, $errorlogger, $stopc, $name);
 	}
 
         my (string $node, string $service) = ($lp.bind =~ x/(.+):(\w+)/);
-        return $.addINETListenersIntern($node, $service, $lp, $h, $logger, $errorlogger);
+        return $.addINETListenersIntern($node, $service, $lp, $h, $logger, $errorlogger, $stopc, $name);
     }
 
     #! adds a global listener to the server
     /** @param sock the bind address for the listener
         @param cert_path an optional path to an X509 certificate for HTTPS listeners
         @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
+        @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
+
+        @return a listener info hash; see the return value of HttpServer::getListenerInfo() for the description of the hash returned by this method
 
         @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
      */
-    hash addListener(softstring $sock, *string $cert_path, *string $key_path) {
+    hash addListener(softstring $sock, *string $cert_path, *string $key_path, *string $name) {
         if (!$cert_path)
             return $.addListenerIntern($sock).getInfo();
 
 	my hash $sd = HttpServer::getSSLObjects($cert_path, $key_path);
-        return $.addListenerIntern($sock, $sd.cert, $sd.key).getInfo();
+        return $.addListenerIntern($sock, $sd.cert, $sd.key, NOTHING, NOTHING, NOTHING, NOTHING, $name).getInfo();
     }
 
     #! adds one or more global listeners according to the bind address
     /** @param sock the bind address for the listener
         @param cert_path an optional path to an X509 certificate for HTTPS listeners
         @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
+        @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
+
+        @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
 
         @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
      */
-    softlist addListeners(softstring $sock, *string $cert_path, *string $key_path) {
+    softlist addListeners(softstring $sock, *string $cert_path, *string $key_path, *string $name) {
         if ($sock !~ /:/) {
             if ($sock =~ /^\//)
-                return $.addListener($sock, $cert_path, $key_path);
+                return $.addListener($sock, $cert_path, $key_path, $name);
 
-            return $.addINETListeners(NOTHING, $sock, $cert_path, $key_path);
+            return $.addINETListeners(NOTHING, $sock, $cert_path, $key_path, $name);
         }
 
         my (string $node, string $service) = ($sock =~ x/(.+):(\w+)/);
@@ -1319,11 +1347,14 @@ public class HttpServer::HttpServer {
         @param service a service name (which will be lookup up to derive a port number) or port number to bind on
         @param cert_path an optional path to an X509 certificate for HTTPS listeners
         @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
+        @param name an optional name fo the listener
+
+        @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
 
         @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
      */
-    list addINETListeners(*string $node, softstring $service, *string $cert_path, *string $key_path) {
-	return $.addINETListenersIntern($node, $service, ("cert_path": $cert_path, "key_path": $key_path));
+    list addINETListeners(*string $node, softstring $service, *string $cert_path, *string $key_path, *string $name) {
+	return $.addINETListenersIntern($node, $service, ("cert_path": $cert_path, "key_path": $key_path), NOTHING, NOTHING, NOTHING, NOTHING, $name);
     }
 
     #! throws an exception; these objects do not support copying
@@ -1332,10 +1363,11 @@ public class HttpServer::HttpServer {
     }
 
     #! returns a hash of listener information
+    /** @return a hash of listener info hashes keyed by listener ID; see the return value of HttpServer::getListenerInfo() for the description of each hash value
+     */
     hash getListeners() {
         my hash $h = hash();
-
-        map $h.$1 = $.listeners.$1.getInfo(), keys $.listeners;
+        map $h.$1 = $.listeners.$1.getInfo(), $.listeners.keyIterator();
         return $h;
     }
 
@@ -1343,6 +1375,7 @@ public class HttpServer::HttpServer {
     /** @param id the listener ID
 
         @return a hash of listener information with the following keys:
+        - \c name: the listener name
         - \c hostname: the listening interface name if available (ex: "localhost"; note that this key is not present when retrieving information about UNIX sockets)
         - \c hostname_desc: a descriptive string giving the hostname and the address family if the hostname is available (ex: "ipv6[localhost]"; note that this key is not present when retrieving information about UNIX sockets)
         - \c address: a string giving the address (ex: "::ffff:0.0.0.0")
@@ -1366,9 +1399,41 @@ public class HttpServer::HttpServer {
         return $.listeners.$id.getInfo();
     }
 
+    #! returns a hash of information about the listener given the listener name or bind ID
+    /** @param name the listener name or bind ID
+
+        @return a hash of listener information with the following keys:
+        - \c name: the listener name
+        - \c hostname: the listening interface name if available (ex: "localhost"; note that this key is not present when retrieving information about UNIX sockets)
+        - \c hostname_desc: a descriptive string giving the hostname and the address family if the hostname is available (ex: "ipv6[localhost]"; note that this key is not present when retrieving information about UNIX sockets)
+        - \c address: a string giving the address (ex: "::ffff:0.0.0.0")
+        - \c address_desc: a descriptive string giving the address and the address family (ex: "ipv6[::ffff:0.0.0.0]")
+        - \c port: an integer port number if available (note that this key is not present when retrieving information about UNIX sockets)
+        - \c family: the network address family (see @ref network_address_family_constants "Network Address Family Constants")
+        - \c familystr: a string describing the network address family (ex: "ipv4")
+        - \c proto: the protocol used; either \c "http" or \c "https" for secure listeners
+        - \c id: the listener ID
+        - \c bind: the bind specification used
+        
+        @throw HTTP-SERVER-ERROR invalid listener name or bind ID
+     */
+    hash getListenerInfoName(string $name) {
+        $.lm.enter();
+        on_exit $.lm.exit();
+
+        my *int $id = $.smap.$name;
+        if (!$id)
+            $id = $.nmap.$name;
+
+	if (!$id)
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with name or bind address %y", $name);
+
+        return $.listeners.$id.getInfo();
+    }
+
     #! returns the number of running HTTP listeners
     int getListenerCount() {
-        return elements $.listeners;
+        return $.listeners.size();
     }
 
     #! stops all listeners; does not wait for all connections on the listeners to close
@@ -1379,7 +1444,7 @@ public class HttpServer::HttpServer {
 	$.lm.enter();
 	on_exit $.lm.exit();
 
-        map $.listeners.$1.stopNoWait(), keys $.listeners;
+        map $1.stopNoWait(), $.listeners.iterator();
     }
 
     #! waits for all listeners to be stopped; call after calling HttpServer::stopNoWait()
@@ -1397,6 +1462,7 @@ public class HttpServer::HttpServer {
 
         delete $.smap.($l.getAddress());
         remove $.listeners.($l.getID());
+        remove $.nmap.($l.getName());
         #printf("stopped %s c=%n\n", $l.getAddress(), $.c.getCount());
     }
 
@@ -1408,19 +1474,21 @@ public class HttpServer::HttpServer {
 	$.lm.enter();
 	on_exit $.lm.exit();
 
-        map $.listeners.$1.stop(), keys $.listeners;
+        map $1.stop(), $.listeners.iterator();
         $.c.waitForZero();
     }
 
-    #! stops a single listener based on its bind address; does not return until all connections on the listener have closed
+    #! stops a single listener based on its name or bind address; does not return until all connections on the listener have closed
     stopListener(softstring $bind) {
 	$.lm.enter();
 	on_exit $.lm.exit();
 
         my *int $id = $.smap.$bind;
+        if (!$id)
+            $id = $.nmap.$bind;
 
 	if (!$id)
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with bind address %n", $bind);
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with name or bind address %y", $bind);
 
         if (elements $.smap == 1)
             throw "HTTP-SERVER-ERROR", "cannot stop last listener";
@@ -1436,7 +1504,7 @@ public class HttpServer::HttpServer {
 	if (!$.listeners.$id)
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", $id);
 
-        if (elements $.smap == 1)
+        if ($.smap.size() == 1)
             throw "HTTP-SERVER-ERROR", "cannot stop last listener";
 
         $.listeners.$id.stop();
@@ -1577,7 +1645,7 @@ public class HttpServer::HttpServer {
 
     #! @cond nodoc
     # don't reimplement this method; fix/enhance it in the module
-    final private HttpListener addListenerIntern(string $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger) {
+    final private HttpListener addListenerIntern(string $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, *string $name) {
         if (!$logger && $.logfunc)
             $logger = $.logfunc;
         if (!$errorlogger && $.errlogfunc)
@@ -1589,14 +1657,22 @@ public class HttpServer::HttpServer {
         if ($.smap.$sock)
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("cannot add listener on %n; there is already an existing listener with this bind address", $sock);
 
+	my int $id = $.seqListeners.next();
+        if (!$name)
+            $name = "listener";
+        $name += sprintf("-%d", $id);
+
+        if ($.nmap.$name)
+            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("there is already an active listener with name %y", $name);
+
         $.c.inc();
         #printf("HttpServer::addListenerIntern() %n c=%n\n", $sock, $.c.getCount());
         on_error $.c.dec();
 
-	my int $id = $.seqListeners.next();
-	my HttpListener $l($self, $id, $.seqSessions, $sock, $cert, $key, $hi, $logger, $errorlogger);
+	my HttpListener $l($self, $id, $.seqSessions, $sock, $cert, $key, $hi, $logger, $errorlogger, $stopc, $name);
 	$.listeners.$id = $l;
         $.smap.$sock = $id;
+        $.nmap.$name = $id;
 	return $l;
     }
 
@@ -1623,7 +1699,7 @@ public class HttpServer::HttpServer {
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private list addINETListenersIntern(*string $node, softstring $service, hash $sd, *hash $lp, *code $logger, *code $errorlogger) {
+    final private list addINETListenersIntern(*string $node, softstring $service, hash $sd, *hash $lp, *code $logger, *code $errorlogger, *code $stopc, *string $name) {
 	if ($sd.cert_path && !$sd.cert)
 	    $sd += HttpServer::getSSLObjects($sd.cert_path, $sd.key_path);
 
@@ -1636,7 +1712,7 @@ public class HttpServer::HttpServer {
         foreach my hash $h in ($al) {
             my string $bind = $h.address + ":" + $h.port;
             try {
-                $l += $.addListenerIntern($bind, $sd.cert, $sd.key, $lp, $logger, $errorlogger).getInfo();
+                $l += $.addListenerIntern($bind, $sd.cert, $sd.key, $lp, $logger, $errorlogger, $stopc, $name).getInfo();
 		# exit after the first listener is bound if the node address is missing (= bind on all addresses)
                 if (!$node)
 		    break;
