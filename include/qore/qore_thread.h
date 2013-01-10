@@ -215,7 +215,7 @@ public:
    DLLEXPORT QoreForeignThreadHelper();
 
    //! registers the current thread as a foreign thread; the tid given must be already reserved with q_reserve_foreign_thread_id(); the thread will be deregistered with q_deregister_reserved_foreign_thread() in the destructor
-   DLLEXPORT QoreForeignThreadHelper(int tid);
+   DLLEXPORT explicit QoreForeignThreadHelper(int tid);
 
    //! deregisters the current thread if the registration was successful using either q_deregister_foreign_thread() or q_reserve_foreign_thread_id(), depending on the constructor used
    DLLEXPORT ~QoreForeignThreadHelper();
