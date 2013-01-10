@@ -97,7 +97,8 @@
     - added additional openssl cleanup code for thread-local data and when cleaning up the qore library
     - fixed a bug matching function/method variants at runtime
     - fixed a race condition deleting global dynamic handlers in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
-    - fixed a bug where declaring an abstract method with parameters and then declaring a reimplementation of the method in a base class with no parameters caused a parse-time crash
+    - fixed a bug where declaring an abstract method with parameters and then declaring a concrete reimplementation of the method in a child class with no parameters caused a parse-time crash
+    - fixed a bug where trying to dynamically call a function that does not exist results in a deadlock due to an error where a mutex is not unlocked
 
     @section qore_0862 Qore 0.8.6.2
 

@@ -695,15 +695,15 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
 
    // need to grab parse lock for safe access to the user function map and imported function map
    priv->plock.lock();
-
    const qore_ns_private* ns = 0;
    const QoreFunction* qf = qore_root_ns_private::runtimeFindFunction(*priv->RootNS, name, ns);
+   priv->plock.unlock();
+
    if (!qf) {
       xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
       return 0;
    }
 
-   priv->plock.unlock();
    // we assign the args to 0 below so that they will not be deleted
    fc = new FunctionCallNode(qf, const_cast<QoreListNode* >(args), this);
 
