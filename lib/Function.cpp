@@ -52,11 +52,13 @@ bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig)
       return false;
    }
 
-   for (unsigned i = 0; i < typeList.size(); ++i)
-      if (!typeList[i]->isInputIdentical(sig.typeList[i])) {
+   for (unsigned i = 0; i < typeList.size(); ++i) {
+      const QoreTypeInfo* ti = sig.typeList.size() <= i ? 0 : sig.typeList[i];
+      if (!typeList[i]->isInputIdentical(ti)) {
          //printd(5, "AbstractFunctionSignature::operator==() param %d %s != %s\n", i, typeList[i]->getName(), sig.typeList[i]->getName());
          return false;
       }
+   }
 
    //printd(5, "AbstractFunctionSignature::operator==() '%s' == '%s' TRUE\n", str.c_str(), sig.str.c_str());
    return true;
