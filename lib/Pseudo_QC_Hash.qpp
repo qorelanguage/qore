@@ -44,6 +44,8 @@ switch ($h.typeCode()) {
         break;
 }
     @endcode
+
+    @note this pseudo-method is also implemented in Qore::zzz8valuezzz9, so it's safe to use on all data types
  */
 int <hash>::typeCode() [flags=CONSTANT] {
    return NT_HASH;
@@ -57,6 +59,8 @@ int <hash>::typeCode() [flags=CONSTANT] {
     @code
 my list $l = $h.keys();
     @endcode
+
+    @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
 
     @see <hash>::values()
  */
@@ -73,7 +77,9 @@ list <hash>::keys() [flags=CONSTANT] {
 my list $l = $h.values();
     @endcode
 
-    @note equivalent to hash_values()
+    @note
+    - equivalent to hash_values()
+    - this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
     
     @see <hash>::keys()
  */
@@ -96,6 +102,8 @@ list <hash>::values() [flags=CONSTANT] {
 my *string $n = $h.firstKey();
     @endcode
 
+    @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
+
     @see <hash>::lastKey()
  */
 *string <hash>::firstKey() [flags=CONSTANT] {
@@ -111,6 +119,8 @@ my *string $n = $h.firstKey();
     @code
 my any $v = $h.firstValue();
     @endcode
+
+    @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
 
     @see <hash>::lastValue()
  */
@@ -128,6 +138,8 @@ any <hash>::firstValue() [flags=CONSTANT] {
 my *string $n = $h.lastKey();
     @endcode
 
+    @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
+
     @see <hash>::firstKey()
  */
 *string <hash>::lastKey() [flags=CONSTANT] {
@@ -143,6 +155,8 @@ my *string $n = $h.lastKey();
     @code
 my any $v = $h.lastValue();
     @endcode
+
+    @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
 
     @see <hash>::firstValue()
  */
@@ -161,6 +175,8 @@ any <hash>::lastValue() [flags=CONSTANT] {
     @code
 my bool $b = $h.hasKey($key);
     @endcode
+
+    @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
 
     @see <hash>::hasKeyValue(softstring)
  */
@@ -183,6 +199,8 @@ bool <hash>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {
 my bool $b = $h.hasKeyValue($key);
     @endcode
 
+    @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
+
     @see <hash>::hasKey(softstring)
  */
 bool <hash>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {
@@ -201,6 +219,8 @@ bool <hash>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {
     @code
 my bool $b = $h.empty();
     @endcode
+
+    @note this pseudo-method is also implemented in Qore::zzz8valuezzz9, so it's safe to use on all data types
  */
 bool <hash>::empty() [flags=CONSTANT] {
    return h->empty();
@@ -215,6 +235,8 @@ bool <hash>::empty() [flags=CONSTANT] {
     @code
 my int $num = $h.size();
     @endcode
+
+    @note this pseudo-method is also implemented in Qore::zzz8valuezzz9, so it's safe to use on all data types
  */
 int <hash>::size() [flags=CONSTANT] {
    return h->size();
@@ -229,6 +251,8 @@ int <hash>::size() [flags=CONSTANT] {
     @code
 my bool $b = $h.val();
     @endcode
+
+    @note this pseudo-method is also implemented in Qore::zzz8valuezzz9, so it's safe to use on all data types
 
     @see
     - @ref perl-bool-eval "%perl-bool-eval"
@@ -246,6 +270,8 @@ bool <hash>::val() [flags=CONSTANT] {
 map printf("+ %s: %y\n", $1.key, $1.value), $h.iterator();
     @endcode
 
+    @note this pseudo-method is also implemented in Qore::zzz8valuezzz9, so it's safe to use on all data types
+
     @since %Qore 0.8.6
  */
 AbstractIterator <hash>::iterator() [flags=CONSTANT] {
@@ -260,7 +286,9 @@ AbstractIterator <hash>::iterator() [flags=CONSTANT] {
 map printf("+ %s\n", $1), $h.keyIterator();
     @endcode
 
-    @note this pseudo-method is very useful when using a hash as a simulation for a set of strings and quickly iterating the hash with the @ref map "map operator", for example
+    @note
+    - this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
+    - this pseudo-method is very useful when using a hash as a simulation for a set of strings and quickly iterating the hash with the @ref map "map operator", for example
 
     @since %Qore 0.8.6.2
  */
@@ -275,6 +303,8 @@ HashKeyIterator <hash>::keyIterator() [flags=CONSTANT] {
     @code
 map printf("+ %s\n", $1), $h.pairIterator();
     @endcode
+
+    @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
 
     @since %Qore 0.8.6.2
  */
@@ -291,7 +321,9 @@ my *hash $q = $db.select("select * from table_name");
 map printf("+ %s\n", $1), $h.contextIterator();
     @endcode
 
-    @note this method is very useful when iterating query results from @ref Qore::SQL::Datasource::select() "Datasource::select()" or @ref Qore::SQL::DatasourcePool::select() "DatasourcePool::select()" with the @ref map "map operator", for example
+    @note
+    - this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
+    - this pseudo-method is very useful when iterating query results from @ref Qore::SQL::Datasource::select() "Datasource::select()" or @ref Qore::SQL::DatasourcePool::select() "DatasourcePool::select()" with the @ref map "map operator", for example
 
     @since %Qore 0.8.6.2
  */
