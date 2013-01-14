@@ -856,7 +856,7 @@ date microseconds(softint us) [flags=CONSTANT] {
    return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, (int)us);
 }
 
-//! Returns an integer corresponding to the year value in the date
+//! Returns an integer corresponding to the literal year value in the date (does not calculate a duration)
 /** 
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
@@ -879,7 +879,7 @@ int get_years(date dt) [flags=CONSTANT] {
 nothing get_years() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns an integer corresponding to the month value in the date
+//! Returns an integer corresponding to the literal month value in the date (does not calculate a duration)
 /** 
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
@@ -902,7 +902,7 @@ int get_months(date dt) [flags=CONSTANT] {
 nothing get_months() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns an integer corresponding to the day value in the date
+//! Returns an integer corresponding to the literal day value in the date (does not calculate a duration)
 /** 
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
@@ -925,7 +925,7 @@ int get_days(date dt) [flags=CONSTANT] {
 nothing get_days() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns an integer corresponding to the hour value in the date
+//! Returns an integer corresponding to the literal hour value in the date (does not calculate a duration)
 /** 
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
@@ -948,7 +948,7 @@ int get_hours(date dt) [flags=CONSTANT] {
 nothing get_hours() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns an integer corresponding to the minute value in the date
+//! Returns an integer corresponding to the literal minute value in the date (does not calculate a duration)
 /** 
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
@@ -971,18 +971,20 @@ int get_minutes(date dt) [flags=CONSTANT] {
 nothing get_minutes() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns an integer corresponding to the second value in the date
+//! Returns an integer corresponding to the literal second value in the date (does not calculate a duration)
 /** 
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
-    @return an integer corresponding to the second value in the date
+    @return an integer corresponding to the literal second value in the date (does not calculate a duration)
 
     @par Example:
     @code
 my int $n = get_seconds($dt);
     @endcode
 
-    @note equivalent to pseud-method <date>::seconds()
+    @note
+    - equivalent to pseud-method <date>::seconds()
+    - to get the number of seconds of duration in a date/time value, use @ref get_duration_seconds() instead
 */
 int get_seconds(date dt) [flags=CONSTANT] {
    return dt->getSecond();
@@ -994,18 +996,20 @@ int get_seconds(date dt) [flags=CONSTANT] {
 nothing get_seconds() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns an integer corresponding to the millisecond value in the date
+//! Returns an integer corresponding to the literal millisecond value in the date (does not calculate a duration)
 /** 
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
-    @return an integer corresponding to the millisecond value in the date
+    @return an integer corresponding to the literal millisecond value in the date (does not calculate a duration)
 
     @par Example:
     @code
 my int $n = get_milliseconds($dt);
     @endcode
 
-    @note equivalent to pseud-method <date>::milliseconds()
+    @note
+    - equivalent to pseud-method <date>::milliseconds()
+    - to get the number of milliseconds of duration in a date/time value, use @ref get_duration_milliseconds() instead
 */
 int get_milliseconds(date dt) [flags=CONSTANT] {
    return dt->getMillisecond();
@@ -1017,18 +1021,20 @@ int get_milliseconds(date dt) [flags=CONSTANT] {
 nothing get_milliseconds() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns an integer corresponding to the microsecond value in the date
+//! Returns an integer corresponding to the literal microsecond value in the date (does not calculate a duration)
 /** 
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
-    @return an integer corresponding to the microsecond value in the date
+    @return an integer corresponding to the literal microsecond value in the date (does not calculate a duration)
 
     @par Example:
     @code
 my int $n = get_microseconds($dt);
     @endcode
 
-    @note equivalent to pseud-method <date>::microseconds()
+    @note
+    - equivalent to pseud-method <date>::microseconds()
+    - to get the number of microseconds of duration in a date/time value, use @ref get_duration_microseconds() instead
 */
 int get_microseconds(date dt) [flags=CONSTANT] {
    return dt->getMicrosecond();
@@ -1046,7 +1052,6 @@ my date $midnight = get_midnight($dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::midnight()
-
 */
 date get_midnight(date dt) [flags=CONSTANT] {
    DateTimeNode *rv = new DateTimeNode(*dt);
@@ -1302,16 +1307,21 @@ date date_us(softint us) [flags=CONSTANT] {
    return DateTimeNode::makeAbsoluteLocal(currentTZ(), us / 1000000, (int)(us % 1000000));
 }
 
-//! Returns an integer value representing the the number of seconds in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
-/** 
+//! Returns an integer value representing the the number of seconds of duration in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
+/** The duration in seconds is calculated and any fractional seconds are truncated (no rounding is performed)
+
     @param dt a @ref relative_dates "relative" or @ref absolute_dates "absolute" date argument
 
-    @return an integer value representing the the number of seconds in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to seconds and the integer seconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in seconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is returned, the number of seconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+    @return an integer value representing the the number of seconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to seconds and the integer seconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in seconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of seconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
 
     @par Example:
     @code
 my int $us = get_duration_seconds(PT2M15S3u); # returns 135
     @endcode
+
+    @note
+    - equivalent to <date>::durationSeconds()
+    - to get the literal seconds integer value from a date/time value without calculating a duration, use @ref get_seconds(date)
 
     @see
     - get_duration_milliseconds()
@@ -1321,16 +1331,21 @@ int get_duration_seconds(date dt) [flags=CONSTANT] {
    return dt->getRelativeSeconds();
 }
 
-//! Returns an integer value representing the the number of milliseconds in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
-/** 
+//! Returns an integer value representing the the number of milliseconds of duration in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
+/** The duration in milliseconds is calculated and any fractional milliseconds are truncated (no rounding is performed)
+
     @param dt a @ref relative_dates "relative" or @ref absolute_dates "absolute" date argument
 
-    @return an integer value representing the the number of millseconds in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to milliseconds and the integer milliseconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in milliseconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is returned, the number of milliseconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate millisecond differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+    @return an integer value representing the the number of milliseconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to milliseconds and the integer milliseconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in milliseconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of milliseconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate millisecond differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
 
     @par Example:
     @code
-my int $us = get_duration_milliseconds(PT2M15S3u); # returns 135
+my int $ms = get_duration_milliseconds(PT2M15S3u); # returns 135000
     @endcode
+
+    @note
+    - equivalent to <date>::durationMilliseconds()
+    - to get the literal milliseconds integer value from a date/time value without calculating a duration, use @ref get_milliseconds(date)
 
     @see
     - get_duration_seconds()
@@ -1340,16 +1355,20 @@ int get_duration_milliseconds(date dt) [flags=CONSTANT] {
    return dt->getRelativeMilliseconds();
 }
 
-//! Returns an integer value representing the the number of mcroseconds in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
+//! Returns an integer value representing the the number of microseconds of duration in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
 /** 
     @param dt a @ref relative_dates "relative" or @ref absolute_dates "absolute" date argument
 
-    @return an integer value representing the the number of millseconds in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to microseconds and the integer microseconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in microseconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is returned, the number of microseconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate microsecond differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+    @return an integer value representing the the number of microseconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to microseconds and the integer microseconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in microseconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of microseconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate microsecond differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
 
     @par Example:
     @code
-my int $us = get_duration_microseconds(PT2M15S3u); # returns 135
+my int $us = get_duration_microseconds(PT2M15S3u); # returns 135000003
     @endcode
+
+    @note
+    - equivalent to <date>::durationMicroseconds()
+    - to get the literal microseconds integer value from a date/time value without calculating a duration, use @ref get_microseconds(date)
 
     @see
     - get_duration_seconds()
