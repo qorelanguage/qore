@@ -546,13 +546,14 @@ foo(\$i);
     <hr>
     @section classname_type_or_nothing *\<classname\>
 
-    <b>\<classname\> Type Restriction</b>
+    <b>*\<classname\> Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |<em>any class name</em>|@ref object of the particular class given|@ref object of the particular class given|Restricts values to objects of the particular class given; subclasses are also accepted
+    |<tt>*</tt><em>any class name</em>|@ref object of the particular class given or @ref nothing|same as received|Restricts values to objects of the particular class given or @ref nothing; subclasses are also accepted
 
     @par Example
     @code
-my Qore::Thread::Mutex $o = new Mutex();
+sub foo(*Mutex $m) {
+}
     @endcode
 
     <hr>

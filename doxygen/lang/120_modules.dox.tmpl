@@ -203,7 +203,7 @@ public namespace Bar {
     This also applies to call references to non-static methods passed to set_signal_handler().
 
     If a module thread tries to use a callback or closure in a @ref Qore::Program "Program" that has already gone out of scope,
-    a \c OBJECT-ALREADY-DELETED exception (\c "attempt to access member of an already-deleted object").
+    an \c OBJECT-ALREADY-DELETED exception (\c "attempt to access member of an already-deleted object") is thrown.
 
     Therefore in such cases it's best to wait for all threads in any modules to terminate before allowing the application object's
     constructor to terminate.
