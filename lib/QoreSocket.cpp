@@ -2189,7 +2189,7 @@ int SSLSocketHelper::doSSLRW(qore_socket_private &sock, const char* mname, void*
                   if (!rc)
                      xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling SSL_%s()", mname, read ? "read" : "write");
                   else if (rc == -1)
-                     xsink->raiseErrnoException("SOCKET-SSL-ERROR", errno, "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_%s()", meth, read ? "read" : "write");
+                     xsink->raiseErrnoException("SOCKET-SSL-ERROR", errno, "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_%s()", mname, read ? "read" : "write");
                   else
                      xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in SSL_%s() but the error queue is empty", mname, rc, read ? "read" : "write");
                }
@@ -3144,6 +3144,10 @@ int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_ve
 
 int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source) {
    return priv->sendHTTPResponse(xsink, code, desc, http_version, headers, data, size, source);
+}
+
+int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source, int timeout_ms) {
+   return priv->sendHTTPResponse(xsink, code, desc, http_version, headers, data, size, source, timeout_ms);
 }
 
 AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {

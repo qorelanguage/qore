@@ -1270,6 +1270,23 @@ public:
    */
    DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source = QORE_SOURCE_SOCKET);
 
+   //! send an HTTP response message on the socket
+   /** The socket must be connected before this call is made.
+
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @param code the HTTP response code
+       @param desc the text description for the response code
+       @param http_version should be either "1.0" or "1.1"
+       @param headers a hash of headers to send (key: value)
+       @param data optional message body to send (may be 0)
+       @param size the length of the message body (may be 0)
+       @param source the event source code for socket events
+       @param timeout_ms the maximum amount of time the socket can block on a single send as an integer in milliseconds
+
+       @return 0 for OK, not 0 for error
+   */
+   DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source, int timeout_ms);
+
    //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
    /** The socket must be connected before this call is made.
        @note does not read the message body; message body must be read manually

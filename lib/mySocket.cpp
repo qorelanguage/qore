@@ -262,15 +262,15 @@ int64 mySocket::recvu4LSB(int timeout_ms, unsigned int *b, ExceptionSink* xsink)
 }
 
 // send HTTP message
-int mySocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int timeout_ms) {
+int mySocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int source, int timeout_ms) {
    AutoLocker al(m);
-   return socket->sendHTTPMessage(xsink, info, method, path, http_version, headers, ptr, size, timeout_ms);
+   return socket->sendHTTPMessage(xsink, info, method, path, http_version, headers, ptr, size, source, timeout_ms);
 }
 
 // send HTTP response
-int mySocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int timeout_ms) {
+int mySocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int source, int timeout_ms) {
    AutoLocker al(m);
-   return socket->sendHTTPResponse(xsink, code, desc, http_version, headers, ptr, size, timeout_ms);
+   return socket->sendHTTPResponse(xsink, code, desc, http_version, headers, ptr, size, source, timeout_ms);
 }
 
 // receive a binary message in HTTP chunked format

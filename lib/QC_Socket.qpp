@@ -1661,7 +1661,7 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
       return 0;
 
    OptHashRefHelper ohrh(info, xsink);
-   s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0, timeout_ms);
+   s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0, QORE_SOURCE_SOCKET, timeout_ms);
 }
 
 //! Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body
@@ -1693,7 +1693,7 @@ $sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xm
  */
 nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, binary body, *reference info, timeout timeout_ms = -1) {
    OptHashRefHelper ohrh(info, xsink);
-   s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body->getPtr(), body->size(), timeout_ms);
+   s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body->getPtr(), body->size(), QORE_SOURCE_SOCKET, timeout_ms);
 }
 
 //! Sends an HTTP response with user-defined headers given as a hash and an optional message body
@@ -1731,7 +1731,7 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
    if (body && !tmp_data.set(body, s->getEncoding(), xsink))
       return 0;
 
-   s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0, timeout_ms);
+   s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0, QORE_SOURCE_SOCKET, timeout_ms);
 }
 
 //! Sends an HTTP response with user-defined headers given as a hash and a message body as literal binary data
@@ -1763,7 +1763,7 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
       return 0;
    }
 
-   s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0, timeout_ms);
+   s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0, QORE_SOURCE_SOCKET, timeout_ms);
 }
 
 //! Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, the data read is returned as a string

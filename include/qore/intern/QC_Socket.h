@@ -27,9 +27,9 @@
 
 #define _QORE_CLASS_SOCKET_H
 
-DLLLOCAL QoreClass *initSocketClass(QoreNamespace &qorens);
+DLLLOCAL QoreClass* initSocketClass(QoreNamespace& qorens);
 DLLEXPORT extern qore_classid_t CID_SOCKET;
-DLLLOCAL extern QoreClass *QC_SOCKET;
+DLLLOCAL extern QoreClass* QC_SOCKET;
 
 class Queue;
 
@@ -138,9 +138,9 @@ public:
    DLLLOCAL int64 recvu2LSB(int timeout, unsigned short *b, ExceptionSink* xsink);
    DLLLOCAL int64 recvu4LSB(int timeout, unsigned int *b, ExceptionSink* xsink);
    // send HTTP message
-   DLLLOCAL int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int timeout_ms);
+   DLLLOCAL int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int source, int timeout_ms);
    // send HTTP response
-   DLLLOCAL int sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int timeout_ms);
+   DLLLOCAL int sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int source, int timeout_ms);
    // read and parse HTTP header
    DLLLOCAL AbstractQoreNode *readHTTPHeader(ExceptionSink* xsink, QoreHashNode* info, int timeout);
    // receive a binary message in HTTP chunked format
