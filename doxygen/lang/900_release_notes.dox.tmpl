@@ -103,6 +103,8 @@
     - fixed a race condition deleting global dynamic handlers in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
     - fixed a bug where declaring an abstract method with parameters and then declaring a concrete reimplementation of the method in a child class with no parameters caused a parse-time crash
     - fixed a bug where trying to dynamically call a function that does not exist results in a deadlock due to an error where a mutex is not unlocked
+    - fixed a bug in the @ref Qore::Socket::sendHTTPMessage() and @ref Qore::Socket::sendHTTPResponse() methods regarding the timeout parameter
+    - fixed a bug in an socket SSL error message where the method name was printed from non-string memory (used wrong ptr for %s format argument)
 
     @section qore_0862 Qore 0.8.6.2
 
