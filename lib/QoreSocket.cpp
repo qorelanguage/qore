@@ -109,6 +109,10 @@ static int sock_get_error() {
 	 errno = ENOFILE;
 	 break;
 
+      case WSAECONNRESET:
+	 errno = ECONNRESET;
+	 break;
+
 #ifdef DEBUG
       case WSAEALREADY:
       case WSAEINTR:
@@ -266,26 +270,11 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY *
    // turn on SSL_MODE_ENABLE_PARTIAL_WRITE
    SSL_set_mode(ssl, SSL_MODE_ENABLE_PARTIAL_WRITE);
 
+   // turn on SSL_MODE_AUTO_RETRY for blocking I/O
+   SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
+
    SSL_set_fd(ssl, sd);
    return 0;
-}
-
-// returns true if an error was raised, false if not
-bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const char* func, bool always_error) {
-   long e = ERR_get_error();
-   do {
-      if (!e || e == SSL_ERROR_ZERO_RETURN) {
-	 if (always_error)
-	    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be completed because the TLS/SSL connection was terminated", mname, func);
-      }
-      else {
-	 char buf[121];
-	 ERR_error_string(e, buf);
-	 xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): %s(): %s", mname, func, buf);
-      }
-   } while ((e = ERR_get_error()));
-
-   return *xsink;
 }
 
 int SSLSocketHelper::setClient(const char* mname, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink) {
@@ -335,15 +324,9 @@ int SSLSocketHelper::shutdown(ExceptionSink *xsink) {
 }
 
 // returns 0 for success
-int SSLSocketHelper::write(qore_socket_private &sock, const char* mname, const void* buf, int size, int timeout_ms, ExceptionSink* xsink) {
-   return doSSLRW(sock, mname, (void*)buf, size, timeout_ms, false, xsink);
+int SSLSocketHelper::write(const char* mname, const void* buf, int size, int timeout_ms, ExceptionSink* xsink) {
+   return doSSLRW(mname, (void*)buf, size, timeout_ms, false, xsink);
 }
-
-/*
-int SSLSocketHelper::write(const void *buf, int size) {
-   return SSL_write(ssl, buf, size);
-}
-*/
 
 const char *SSLSocketHelper::getCipherName() const {
    return SSL_get_cipher_name(ssl);
@@ -1296,7 +1279,7 @@ struct qore_socket_private {
 
    DLLLOCAL int upgradeClientToSSLIntern(const char* mname, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
       assert(!ssl);
-      ssl = new SSLSocketHelper();
+      ssl = new SSLSocketHelper(*this);
       int rc;
       do_start_ssl_event();
       if ((rc = ssl->setClient(mname, sock, cert, pkey, xsink)) || ssl->connect(mname, xsink)) {
@@ -1310,7 +1293,7 @@ struct qore_socket_private {
 
    DLLLOCAL int upgradeServerToSSLIntern(const char* mname, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
       assert(!ssl);
-      ssl = new SSLSocketHelper();
+      ssl = new SSLSocketHelper(*this);
       do_start_ssl_event();
       if (ssl->setServer(mname, sock, cert, pkey, xsink) || ssl->accept(mname, xsink)) {
 	 delete ssl;
@@ -1599,10 +1582,13 @@ struct qore_socket_private {
 #endif
 	    rc = ::recv(sock, buf, bs, flags);
 	    if (rc == QORE_SOCKET_ERROR) {
+	       sock_get_error();
 	       if (errno == EINTR)
 		  continue;
 	       if (xsink)
 		  qore_socket_error(xsink, "SOCKET-RECV-ERROR", "error in recv()", meth);
+	       if (errno == ECONNRESET)
+		  close();
 	       break;
 	    }
 	    //printd(5, "qore_socket_private::recv(%d, %p, %ld, %d) rc=%ld errno=%d\n", sock, buf, bs, flags, rc, errno);
@@ -1612,7 +1598,7 @@ struct qore_socket_private {
 	 }
       }
       else
-	 rc = ssl->read(*this, meth, buf, bs, timeout, xsink);
+	 rc = ssl->read(meth, buf, bs, timeout, xsink);
 
       if (rc > 0 && do_event) {
 	 // register event
@@ -1992,7 +1978,7 @@ struct qore_socket_private {
       while (true) {
          if (ssl) {
             // SSL_MODE_ENABLE_PARTIAL_WRITE is enabled so we can get finer-grained socket events for do_send_event() below
-            rc = ssl->write(*this, mname, buf + bs, size - bs, timeout_ms, xsink);
+            rc = ssl->write(mname, buf + bs, size - bs, timeout_ms, xsink);
          }
          else
             while (true) {
@@ -2001,6 +1987,7 @@ struct qore_socket_private {
                // try again if we were interrupted by a signal
                if (rc >= 0)
                   break;
+	       sock_get_error();
                // check that the send finishes before the timeout if we are using non-blocking I/O
                if (nb && (errno == EAGAIN
 #ifdef EWOULDBLOCK
@@ -2018,6 +2005,10 @@ struct qore_socket_private {
                if (errno != EINTR) {
                   if (xsink)
                      xsink->raiseErrnoException("SOCKET-SEND-ERROR", errno, "error while executing Socket::%s()", mname);
+
+		  if (errno == ECONNRESET)
+		     close();
+
                   break;
                }
             }
@@ -2131,14 +2122,19 @@ struct qore_socket_private {
    }
 };
 
-int SSLSocketHelper::doSSLRW(qore_socket_private &sock, const char* mname, void* buf, int size, int timeout_ms, bool read, ExceptionSink* xsink) {
+int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout_ms, bool read, ExceptionSink* xsink) {
    if (timeout_ms < 0) {
       while (true) {
          int rc = read ? SSL_read(ssl, buf, size) : SSL_write(ssl, buf, size);
          if (rc < 0) {
+	    // we set SSL_MODE_AUTO_RETRY so there should never be any need to retry
+#ifdef DEBUG
             int err = SSL_get_error(ssl, rc);
-            if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE)
+            if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
+	       assert(false);
                continue;
+	    }
+#endif
 
             if (xsink && !sslError(xsink, mname, read ? "SSL_read" : "SSL_write", false))
                rc = 0;
@@ -2148,7 +2144,7 @@ int SSLSocketHelper::doSSLRW(qore_socket_private &sock, const char* mname, void*
    }
 
    // set non blocking
-   OptionalNonBlockingHelper(sock, true, xsink);
+   OptionalNonBlockingHelper(qs, true, xsink);
    if (*xsink)
       return -1;
 
@@ -2163,7 +2159,7 @@ int SSLSocketHelper::doSSLRW(qore_socket_private &sock, const char* mname, void*
          int err = SSL_get_error(ssl, rc);
 
          if (err == SSL_ERROR_WANT_READ) {
-            if (!sock.isDataAvailable(timeout_ms)) {
+            if (!qs.isDataAvailable(timeout_ms)) {
                if (xsink)
                   se_timeout(mname, timeout_ms, xsink);
                rc = QSE_TIMEOUT;
@@ -2171,7 +2167,7 @@ int SSLSocketHelper::doSSLRW(qore_socket_private &sock, const char* mname, void*
             }
          }
          else if (err == SSL_ERROR_WANT_WRITE) {
-            if (!sock.isWriteFinished(timeout_ms)) {
+            if (!qs.isWriteFinished(timeout_ms)) {
                if (xsink)
                   se_timeout(mname, timeout_ms, xsink);
                rc = QSE_TIMEOUT;
@@ -2188,8 +2184,12 @@ int SSLSocketHelper::doSSLRW(qore_socket_private &sock, const char* mname, void*
                if (!sslError(xsink, mname, read ? "SSL_read" : "SSL_write", false)) {
                   if (!rc)
                      xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling SSL_%s()", mname, read ? "read" : "write");
-                  else if (rc == -1)
-                     xsink->raiseErrnoException("SOCKET-SSL-ERROR", errno, "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_%s()", mname, read ? "read" : "write");
+                  else if (rc == -1) {
+                     xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_%s()", mname, read ? "read" : "write");
+		     // close the socket if connection reset received
+		     if (sock_get_error() == ECONNRESET)
+			qs.close();
+		  }
                   else
                      xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in SSL_%s() but the error queue is empty", mname, rc, read ? "read" : "write");
                }
@@ -2227,8 +2227,29 @@ DLLLOCAL OptionalNonBlockingHelper::~OptionalNonBlockingHelper() {
    }
 }
 
-int SSLSocketHelper::read(qore_socket_private &sock, const char* mname, char *buf, int size, int timeout_ms, ExceptionSink* xsink) {
-   return doSSLRW(sock, mname, buf, size, timeout_ms, true, xsink);
+int SSLSocketHelper::read(const char* mname, char *buf, int size, int timeout_ms, ExceptionSink* xsink) {
+   return doSSLRW(mname, buf, size, timeout_ms, true, xsink);
+}
+
+// returns true if an error was raised, false if not
+bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const char* func, bool always_error) {
+   long e = ERR_get_error();
+   do {
+      if (!e || e == SSL_ERROR_ZERO_RETURN) {
+	 if (always_error)
+	    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be completed because the TLS/SSL connection was terminated", mname, func);
+      }
+      else {
+	 char buf[121];
+	 ERR_error_string(e, buf);
+	 xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): %s(): %s", mname, func, buf);
+	 // close the socket if connection reset received
+	 if (e == SSL_ERROR_SYSCALL && sock_get_error() == ECONNRESET)
+	    qs.close();
+      }
+   } while ((e = ERR_get_error()));
+
+   return *xsink;
 }
 
 QoreSocket::QoreSocket() : priv(new qore_socket_private) {
