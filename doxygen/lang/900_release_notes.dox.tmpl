@@ -28,6 +28,24 @@
       module adds new user methods to a builtin class or new user variants to a builtin function, these changes are no longer imported
       into target @ref Qore::Program "Program" objects.
 
+    @par File Method Changes
+    The following methods were updated to throw exceptions on all errors rather than a return code for I/O errors in order to avoid hard to debug conditions due to ignoring I/O errors by forgetting to check the return value on the following methods:
+    - Qore::File::f_printf()
+    - Qore::File::f_vprintf()
+    - Qore::File::print()
+    - Qore::File::printf()
+    - Qore::File::vprintf()
+    - Qore::File::write()
+    - Qore::File::writei1()
+    - Qore::File::writei2()
+    - Qore::File::writei4()
+    - Qore::File::writei8()
+    - Qore::File::writei2LSB()
+    - Qore::File::writei4LSB()
+    - Qore::File::writei8LSB()
+    .
+    Note that the above changes will hopefully only minimally impact backwards-compatibilty since the change is in error handling, and additionally each of the above methods could also throw an exception if called when the object was not open.
+
     @subsection qore_087_new_features New Features in Qore
     - new methods offering code encapsulation enhancements
       - @ref Qore::Program::loadModule() "Program::loadModule()": allows modules to be loaded in a @ref Qore::Program "Program" object directly
@@ -104,7 +122,7 @@
     - fixed a bug where declaring an abstract method with parameters and then declaring a concrete reimplementation of the method in a child class with no parameters caused a parse-time crash
     - fixed a bug where trying to dynamically call a function that does not exist results in a deadlock due to an error where a mutex is not unlocked
     - fixed a bug in the @ref Qore::Socket::sendHTTPMessage() and @ref Qore::Socket::sendHTTPResponse() methods regarding the timeout parameter
-    - fixed a bug in an socket SSL error message where the method name was printed from non-string memory (used wrong ptr for %s format argument)
+    - fixed a bug in an socket SSL error message where the method name was printed from non-string memory (used wrong ptr for the <tt>%%s</tt> format argument)
 
     @section qore_0862 Qore 0.8.6.2
 

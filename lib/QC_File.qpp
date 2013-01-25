@@ -348,8 +348,7 @@ int File::sync() {
 //! Writes binary data to a file
 /** @par Example:
     @code
-if ($f.write($data))
-    printf("File::write() error: %s\n", strerror(errno()));
+$f.write($data);
     @endcode
 
     @par Events:
@@ -357,10 +356,12 @@ if ($f.write($data))
 
     @param data the data to be written to the file
 
-    @return the number of bytes written or -1 for error; if -1 is returned, the error can be checked with the errno() function
+    @return the number of bytes written
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::write(binary data) {
    if (check_terminal_io(self, "File::write", xsink))
@@ -372,8 +373,7 @@ int File::write(binary data) {
 //! Writes string data to a file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 /** @par Example:
     @code
-if ($f.write($data))
-    printf("File::write() error: %s\n", strerror(errno()));
+$f.write($data);
     @endcode
 
     @par Events:
@@ -381,13 +381,15 @@ if ($f.write($data))
 
     @param data the data to be written to the file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 
-    @return the number of bytes written or -1 for error; if -1 is returned, the error can be checked with the errno() function
+    @return the number of bytes written
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ENCODING-CONVERSION-ERROR error converting from the string's @ref character_encoding "character encoding" to the %File's @ref character_encoding "character encoding"
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @note this variant of this method is equivalent to File::print()
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::write(string data) {
    if (check_terminal_io(self, "File::write", xsink))
@@ -399,8 +401,7 @@ int File::write(string data) {
 //! Writes string data to a file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 /** @par Example:
     @code
-if ($f.print($data))
-    printf("File::print() error: %s\n", strerror(errno()));
+$f.print($data);
     @endcode
 
     @par Events:
@@ -408,13 +409,15 @@ if ($f.print($data))
 
     @param data the data to be written to the file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 
-    @return the number of bytes written or -1 for error; if -1 is returned, the error can be checked with the errno() function
+    @return the number of bytes written
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ENCODING-CONVERSION-ERROR error converting from the string's @ref character_encoding "character encoding" to the %File's @ref character_encoding "character encoding"
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @note this method is equivalent to File::write(string)
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::print(string data) {
    if (check_terminal_io(self, "File::print", xsink))
@@ -426,8 +429,7 @@ int File::print(string data) {
 //! Writes a 1-byte integer to the file
 /** @par Example:
     @code
-if ($f.writei1($val))
-    printf("eror writing to file: %s\n", strerror(errno()));
+$f.writei1($val);
     @endcode
 
     @par Events:
@@ -435,10 +437,12 @@ if ($f.writei1($val))
 
     @param c the integer to write; only the least-significant 8 bits will be written to the file
 
-    @return 0 for success, -1 for error
+    @return 0 for success
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::writei1(int c) {
    if (check_terminal_io(self, "File::writei1", xsink))
@@ -450,8 +454,7 @@ int File::writei1(int c) {
 //! Writes a 2-byte (16 bit) integer to the file in binary big-endian format
 /** @par Example:
     @code
-if ($f.writei2($val))
-    printf("eror writing to file: %s\n", strerror(errno()));
+$f.writei2($val);
     @endcode
 
     @par Events:
@@ -459,10 +462,12 @@ if ($f.writei2($val))
 
     @param s the integer to write in binary big-endian format; only the least-significant 16 bits of the integer will be written to the file
 
-    @return 0 for success, -1 for error
+    @return 0 for success
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::writei2(int s) {
    if (check_terminal_io(self, "File::writei2", xsink))
@@ -474,8 +479,7 @@ int File::writei2(int s) {
 //! Writes a 4-byte (32 bit) integer to the file in binary big-endian format
 /** @par Example:
     @code
-if ($f.writei4($val))
-    printf("eror writing to file: %s\n", strerror(errno()));
+$f.writei4($val);
     @endcode
 
     @par Events:
@@ -483,10 +487,12 @@ if ($f.writei4($val))
 
     @param i the integer to write in binary big-endian format; only the least-significant 32 bits of the integer will be written to the file
 
-    @return 0 for success, -1 for error
+    @return 0 for success
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::writei4(int i) {
    if (check_terminal_io(self, "File::writei4", xsink))
@@ -498,8 +504,7 @@ int File::writei4(int i) {
 //! Writes an 8-byte (64 bit) integer to the file in binary big-endian format
 /** @par Example:
     @code
-if ($f.writei8($val))
-    printf("eror writing to file: %s\n", strerror(errno()));
+$f.writei8($val);
     @endcode
 
     @par Events:
@@ -507,10 +512,12 @@ if ($f.writei8($val))
 
     @param i the integer to write in binary big-endian format; only the least-significant 64 bits of the integer will be written to the file
 
-    @return 0 for success, -1 for error
+    @return 0 for success
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::writei8(int i) {
    if (check_terminal_io(self, "File::writei8", xsink))
@@ -522,8 +529,7 @@ int File::writei8(int i) {
 //! Writes a 2-byte (16 bit) integer to the file in binary little-endian format
 /** @par Example:
     @code
-if ($f.writei2LSB($val))
-    printf("eror writing to file: %s\n", strerror(errno()));
+$f.writei2LSB($val);
     @endcode
 
     @par Events:
@@ -531,10 +537,12 @@ if ($f.writei2LSB($val))
 
     @param s the integer to write in binary little-endian format; only the least-significant 16 bits of the integer will be written to the file
 
-    @return 0 for success, -1 for error
+    @return 0 for success
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::writei2LSB(int s) {
    if (check_terminal_io(self, "File::writei2LSB", xsink))
@@ -546,8 +554,7 @@ int File::writei2LSB(int s) {
 //! Writes a 4-byte (32 bit) integer to the file in binary little-endian format
 /** @par Example:
     @code
-if ($f.writei4LSB($val))
-    printf("eror writing to file: %s\n", strerror(errno()));
+$f.writei4LSB($val);
     @endcode
 
     @par Events:
@@ -555,10 +562,12 @@ if ($f.writei4LSB($val))
 
     @param i the integer to write in binary little-endian format; only the least-significant 32 bits of the integer will be written to the file
 
-    @return 0 for success, -1 for error
+    @return 0 for success
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::writei4LSB(int i) {
    if (check_terminal_io(self, "File::writei4LSB", xsink))
@@ -570,8 +579,7 @@ int File::writei4LSB(int i) {
 //! Writes an 8-byte (64 bit) integer to the file in binary little-endian format
 /** @par Example:
     @code
-if ($f.writei8LSB($val))
-    printf("eror writing to file: %s\n", strerror(errno()));
+$f.writei8LSB($val);
     @endcode
 
     @par Events:
@@ -579,10 +587,12 @@ if ($f.writei8LSB($val))
 
     @param i the integer to write in binary little-endian format; only the least-significant 64 bits of the integer will be written to the file
 
-    @return 0 for success, -1 for error
+    @return 0 for success
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::writei8LSB(int i) {
    if (check_terminal_io(self, "File::writei8LSB", xsink))
@@ -604,12 +614,14 @@ $f.printf("%5s\n", "hello there"); # outputs "hello there\n", exceeding field wi
 
     @param fmt the format string; see @ref string_formatting for more information about the format string
 
-    @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
+    @return the number of bytes written
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::f_printf() for a similar method that enforces field widths
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::printf(string[doc] fmt, ...) {
    if (check_terminal_io(self, "File::printf", xsink))
@@ -643,12 +655,14 @@ $f.vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello there: 2\n", excee
     @param fmt the format string; see @ref string_formatting for more information about the format string
     @param fmt_args the single argument or list of arguments that will be used as the argument list or the format string. If a single argument is passed instead of a list, it will be used as the first argument as if a list were passed
 
-    @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
+    @return the number of bytes written
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::f_vprintf() for a similar method that enforces field widths
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::vprintf(string[doc] fmt, any[doc] fmt_args) {
    if (check_terminal_io(self, "File::vprintf", xsink))
@@ -681,12 +695,14 @@ $f.f_printf("%5s\n", "hello there"); # outputs "hello\n", enforcing the field wi
 
     @param fmt the format string; see @ref string_formatting for more information about the format string
 
-    @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
+    @return the number of bytes written
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::printf() for a similar method that does not enforce field widths
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::f_printf(string[doc] fmt, ...) {
    if (check_terminal_io(self, "File::f_printf", xsink))
@@ -720,12 +736,14 @@ $f.f_vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello: 2\n", enforcing
     @param fmt the format string; see @ref string_formatting for more information about the format string
     @param fmt_args the single argument or list of arguments that will be used as the argument list or the format string. If a single argument is passed instead of a list, it will be used as the first argument as if a list were passed
 
-    @return the number of bytes written of -1 if an error occurred (in which case check errno() for the error)
+    @return the number of bytes written
 
-    @throw FILE-WRITE-ERROR %File is not open
+    @throw FILE-WRITE-ERROR %File is not open or an I/O error occurred writing data to the File
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see File::vprintf() for a similar method that does not enforce field widths
+
+    @since %Qore 0.8.7 this method throws exceptions on I/O errors to avoid silent write errors in Qore code
  */
 int File::f_vprintf(string[doc] fmt, any[doc] fmt_args) {
    if (check_terminal_io(self, "File::f_vprintf", xsink))

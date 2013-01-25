@@ -214,7 +214,7 @@ struct qore_qf_private {
    }
 
    // unlocked, assumes file is open
-   DLLLOCAL qore_size_t write(const void *buf, qore_size_t len) const {
+   DLLLOCAL qore_size_t write(const void* buf, qore_size_t len, ExceptionSink* xsink = 0) const {
       qore_offset_t rc;
       while (true) {
 	 rc = ::write(fd, buf, len);
@@ -225,6 +225,8 @@ struct qore_qf_private {
 
       if (rc > 0)
 	 do_write_event_unlocked(rc, rc, len);
+      else if (xsink && rc < 0)
+         xsink->raiseErrnoException("FILE-WRITE-ERROR", errno, "failed writing "QLLD" byte%s to File", len, len == 1 ? "" : "s");
 
       return rc;
    }
@@ -946,7 +948,7 @@ int QoreFile::write(const void *data, qore_size_t len, ExceptionSink *xsink) {
    if (!len)
       return 0;
    
-   return priv->write(data, len);
+   return priv->write(data, len, xsink);
 }
 
 int QoreFile::write(const QoreString *str, ExceptionSink *xsink) {
@@ -964,7 +966,7 @@ int QoreFile::write(const QoreString *str, ExceptionSink *xsink) {
 
    //printd(0, "QoreFile::write() str priv->charset=%s, priv->charset=%s\n", str->getEncoding()->code, priv->charset->code);
    
-   return priv->write(wstr->getBuffer(), wstr->strlen());
+   return priv->write(wstr->getBuffer(), wstr->strlen(), xsink);
 }
 
 int QoreFile::write(const BinaryNode *b, ExceptionSink *xsink) {
@@ -976,7 +978,7 @@ int QoreFile::write(const BinaryNode *b, ExceptionSink *xsink) {
    if (!b)
       return 0;
    
-   return priv->write(b->getPtr(), b->size());
+   return priv->write(b->getPtr(), b->size(), xsink);
 }
 
 int QoreFile::read(QoreString &str, qore_offset_t size, ExceptionSink *xsink) {
@@ -1111,7 +1113,7 @@ int QoreFile::writei1(char i, ExceptionSink *xsink) {
    if (priv->check_write_open(xsink))
       return -1;
 
-   return priv->write((char *)&i, 1);   
+   return priv->write((char *)&i, 1, xsink);
 }
 
 int QoreFile::writei2(short i, ExceptionSink *xsink) {
@@ -1121,7 +1123,7 @@ int QoreFile::writei2(short i, ExceptionSink *xsink) {
       return -1;
 
    i = htons(i);
-   return priv->write((char *)&i, 2);   
+   return priv->write((char *)&i, 2, xsink);
 }
 
 int QoreFile::writei4(int i, ExceptionSink *xsink) {
@@ -1131,55 +1133,50 @@ int QoreFile::writei4(int i, ExceptionSink *xsink) {
       return -1;
    
    i = htonl(i);
-   return priv->write((char *)&i, 4);
+   return priv->write((char *)&i, 4, xsink);
 }
 
-int QoreFile::writei8(int64 i, ExceptionSink *xsink)
-{
+int QoreFile::writei8(int64 i, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (priv->check_write_open(xsink))
       return -1;
    
    i = i8MSB(i);
-   return priv->write((char *)&i, 4);
+   return priv->write((char *)&i, 4, xsink);
 }
 
-int QoreFile::writei2LSB(short i, ExceptionSink *xsink)
-{
+int QoreFile::writei2LSB(short i, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (priv->check_write_open(xsink))
       return -1;
    
    i = i2LSB(i);
-   return priv->write((char *)&i, 2);   
+   return priv->write((char *)&i, 2, xsink);
 }
 
-int QoreFile::writei4LSB(int i, ExceptionSink *xsink)
-{
+int QoreFile::writei4LSB(int i, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (priv->check_write_open(xsink))
       return -1;
    
    i = i4LSB(i);
-   return priv->write((char *)&i, 4);
+   return priv->write((char *)&i, 4, xsink);
 }
 
-int QoreFile::writei8LSB(int64 i, ExceptionSink *xsink)
-{
+int QoreFile::writei8LSB(int64 i, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (priv->check_write_open(xsink))
       return -1;
    
    i = i8LSB(i);
-   return priv->write((char *)&i, 4);
+   return priv->write((char *)&i, 4, xsink);
 }
 
-int QoreFile::readu1(unsigned char *val, ExceptionSink *xsink)
-{
+int QoreFile::readu1(unsigned char *val, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (priv->check_read_open(xsink))
