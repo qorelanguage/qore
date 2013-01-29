@@ -693,6 +693,9 @@ static inline char getBase64Value(const char* buf, qore_size_t &offset, bool end
 
 // see: RFC-1421: http://www.ietf.org/rfc/rfc1421.txt and RFC-2045: http://www.ietf.org/rfc/rfc2045.txt
 BinaryNode* parseBase64(const char* buf, int len, ExceptionSink *xsink) {
+   if (!len)
+      return 0;
+
    char* binbuf = (char* )malloc(sizeof(char) * (len + 3));
    int blen = 0;
 
