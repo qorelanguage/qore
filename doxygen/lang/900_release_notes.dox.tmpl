@@ -114,6 +114,7 @@
       pthread_mutex_lock() is not a cancellation point. The solution was to cancel all threads first, then wait half a second, then call exit()
     - fixed a bug where global variables were being evaluated with strict mathematical boolean evaluation even when @ref perl-bool-eval
       "%perl-bool-eval" was enabled (which is the default)
+    - fixed bug in @ref Qore::parseBase64String() and @ref Qore::parseBase64StringToString() when called with an empty string argument; in this case uninitialized memory was returned
     - fixed runtime dynamic memory leaks in the @ref select and @ref map operators when used with iterators
     - do thread-specific cleanup in the main thread when cleaning up/shutting down the qore library
     - added additional openssl cleanup code for thread-local data and when cleaning up the qore library

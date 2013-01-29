@@ -1554,7 +1554,6 @@ BinaryNode *QoreString::parseBase64(ExceptionSink *xsink) const {
    return ::parseBase64(priv->buf, priv->len, xsink);
 }
 
-// FIXME: implement possibility to specify character encoding
 QoreString *QoreString::parseBase64ToString(const QoreEncoding* qe, ExceptionSink* xsink) const {
    SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
    if (!b)
