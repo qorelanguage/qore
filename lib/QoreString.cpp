@@ -1560,6 +1560,9 @@ QoreString *QoreString::parseBase64ToString(const QoreEncoding* qe, ExceptionSin
    if (!b)
       return 0;
 
+   if (b->empty())
+      return new QoreStringNode;
+
    qore_string_private *p = new qore_string_private;
    p->len = b->size() - 1;
    p->buf = (char *)b->giveBuffer();
