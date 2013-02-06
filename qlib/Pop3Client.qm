@@ -180,8 +180,8 @@ public namespace Pop3Client {
             .
             If no protocol (URI scheme) is given in the URL (ex: \c "pop.gmail.com") then \c "pop3" is assumed; if no port is given, then either @ref POP3Port (for \c "pop3") or @ref POP3SPort (for \c "pop3s") is as the default port number depending on the protocol.
 
-	    @param log an optional closure or call reference for log messages
-	    @param dbglog an optional closure or call reference for debugging/technical log messages
+	    @param log an optional closure or call reference for log messages; a single string argument will be passed to this code for logging
+	    @param dbglog an optional closure or call reference for debugging/technical log messages; a single string argument will be passed to this code for logging
 
             @par Example:
             @code

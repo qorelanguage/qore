@@ -254,8 +254,8 @@ public namespace TelnetClient {
 	#! creates the TelnetClient object
 	/** @param host the hostname of the telnet server (use [hostname] to explicitly specify an ipv6 connection)
 	    @param port the port number of the telnet server
-	    @param log a closure for log messages
-	    @param dbgLog a closure for debugging/technical log messages
+	    @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging 
+	    @param dbgLog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging 
 	 */
   	constructor(string $host, softint $port, *code $log, *code $dbgLog) {
 	    if ($host.empty())
@@ -270,8 +270,8 @@ public namespace TelnetClient {
 
 	#! creates the TelnetClient object
 	/** @param connect the hostname of the Telnet server or a hostname:port specification (use [hostname] or [address] for ipv6 connections)
-	    @param log a closure for log messages
-	    @param dbglog a closure for debugging/technical log messages
+	    @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging 
+	    @param dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging 
 	 */
 	constructor(string $connect, *code $log, *code $dbglog) {
 	    $.log_info = $log;
