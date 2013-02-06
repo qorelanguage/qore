@@ -863,6 +863,7 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
       QoreClass* qc = parseFindClassIntern(nscope[0]);
       if (qc) {
          rv = parseResolveClassConstant(qc, nscope.getIdentifier(), typeInfo);
+
          if (rv)
             return rv;
       }
@@ -873,7 +874,7 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
       parse_error("cannot find any namespace or class '%s' in '%s' providing a constant or static class variable '%s'", nscope[m], nscope.ostr, nscope.getIdentifier());
    else {
       QoreString err;
-      err.sprintf("cannot resolve bareword '%s' to any reachable object in any namespace '", nscope.getIdentifier());
+      err.sprintf("cannot resolve bareword '%s' to any reachable object in any namespace or class '", nscope.getIdentifier());
       for (unsigned i = 0; i < (nscope.size() - 1); i++) {
          err.concat(nscope[i]);
          if (i != (nscope.size() - 2))
