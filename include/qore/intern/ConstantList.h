@@ -59,6 +59,10 @@ struct ClassNs {
    DLLLOCAL qore_ns_private* getNs() const {
       return (ptr & (size_t)1) ? (qore_ns_private*)(ptr & ~(size_t)1) : 0;
    }
+
+   DLLLOCAL bool isNs() const {
+      return (bool)(ptr & (size_t)1);
+   }
 };
 
 class ConstantEntry {

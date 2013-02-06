@@ -169,7 +169,8 @@ ConstantList::ConstantList(const ConstantList &old, ClassNs p) : ptr(p) {
    cnemap_t::iterator last = cnemap.begin();
    for (cnemap_t::const_iterator i = old.cnemap.begin(), e = old.cnemap.end(); i != e; ++i) {
       assert(i->second->init);
-      if (!i->second->pub)
+      // only check the public flag if copying a constant list in a namespace
+      if (p.isNs() && !i->second->pub)
          continue;
 
       ConstantEntry* ce = new ConstantEntry(*(i->second));
