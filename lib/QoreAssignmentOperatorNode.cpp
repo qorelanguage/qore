@@ -43,7 +43,7 @@ AbstractQoreNode *QoreAssignmentOperatorNode::parseInitImpl(LocalVar *oflag, int
    if (oflag)
       check_self_assignment(left, oflag);
 
-   printd(5, "QoreAssignmentOperatorNode::parseInitImpl() left=%s ti=%s\n", get_type_name(left), ti->getName());
+   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() left: %s ti: %s, right: %s ti: %s\n", get_type_name(left), ti->getName(), get_type_name(right), r->getName());
 
    if (ti->hasType() && r->hasType() && !ti->parseAccepts(r)) {
       if (getProgram()->getParseExceptionSink()) {

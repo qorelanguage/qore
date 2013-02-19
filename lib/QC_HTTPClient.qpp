@@ -299,7 +299,7 @@ my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"applica
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash with a \c "code" key (giving the status code) and a \c "body" key (giving the message body returned by the server) 
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash with a \c "code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection

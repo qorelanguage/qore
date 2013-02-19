@@ -213,7 +213,7 @@ DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t &typeList, arg
 DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, name_vec_t& nameList, va_list args);
 
 // call to get a node with reference count 1 (copy on write)
-void ensure_unique(AbstractQoreNode** v, ExceptionSink *xsink);
+void ensure_unique(AbstractQoreNode** v, ExceptionSink* xsink);
 
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX
@@ -365,7 +365,7 @@ public:
    }
 };
 
-DLLLOCAL int qoreCheckContainer(AbstractQoreNode* v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink);
+DLLLOCAL int qoreCheckContainer(AbstractQoreNode* v, ObjMap &omap, AutoVLock &vl, ExceptionSink* xsink);
 DLLLOCAL int check_lvalue(const AbstractQoreNode* n);
 DLLLOCAL int check_lvalue_int(const QoreTypeInfo *&typeInfo, const char* name);
 DLLLOCAL int check_lvalue_float(const QoreTypeInfo *&typeInfo, const char* name);
@@ -478,14 +478,14 @@ DLLLOCAL extern QoreThreadLock lck_gmtime;
 
 DLLLOCAL extern char table64[64];
 
-DLLLOCAL int get_nibble(char c, ExceptionSink *xsink);
+DLLLOCAL int get_nibble(char c, ExceptionSink* xsink);
 DLLLOCAL BinaryNode* parseHex(const char* buf, int len);
 DLLLOCAL void print_node(FILE *fp, const AbstractQoreNode* node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void init_lib_intern(char* env[]);
 DLLLOCAL QoreListNode* makeArgs(AbstractQoreNode* arg);
 
-DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
 
 DLLLOCAL void init_qore_types();
 DLLLOCAL void delete_qore_types();
@@ -497,7 +497,7 @@ DLLLOCAL QoreHashNode* statvfs_to_hash(const struct statvfs &statvfs);
 // only called in stage 1 parsing: true means node requires run-time evaluation
 //DLLLOCAL bool needsEval(AbstractQoreNode* n);
 
-DLLLOCAL const char* check_hash_key(const QoreHashNode* h, const char* key, const char* err, ExceptionSink *xsink);
+DLLLOCAL const char* check_hash_key(const QoreHashNode* h, const char* key, const char* err, ExceptionSink* xsink);
 
 // class for master namespace of all builtin classes, constants, etc
 class StaticSystemNamespace : public RootQoreNamespace {
@@ -636,7 +636,7 @@ DLLLOCAL void raiseNonExistentMethodCallWarning(const QoreClass *qc, const char*
 /*
 class abstract_assignment_helper {
 public:
-   DLLLOCAL virtual AbstractQoreNode* swapImpl(AbstractQoreNode* v, ExceptionSink *xsink) = 0;
+   DLLLOCAL virtual AbstractQoreNode* swapImpl(AbstractQoreNode* v, ExceptionSink* xsink) = 0;
    DLLLOCAL virtual AbstractQoreNode* getValueImpl() const = 0;
 };
 */
@@ -657,11 +657,11 @@ public:
 
    DLLLOCAL hash_assignment_priv(QoreHashNode &n_h, const std::string &key, bool must_already_exist = false);
 
-   DLLLOCAL hash_assignment_priv(ExceptionSink *xsink, QoreHashNode &n_h, const QoreString &key, bool must_already_exist = false);
+   DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode &n_h, const QoreString &key, bool must_already_exist = false);
 
-   DLLLOCAL hash_assignment_priv(ExceptionSink *xsink, QoreHashNode &n_h, const QoreString *key, bool must_already_exist = false);
+   DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode &n_h, const QoreString *key, bool must_already_exist = false);
 
-   DLLLOCAL AbstractQoreNode* swapImpl(AbstractQoreNode* v, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode* swapImpl(AbstractQoreNode* v, ExceptionSink* xsink);
 
    DLLLOCAL AbstractQoreNode* getValueImpl() const;
 
@@ -669,7 +669,7 @@ public:
       return getValueImpl();
    }
 
-   DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink *xsink) {
+   DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink* xsink) {
       AbstractQoreNode* old = swapImpl(v, xsink);
       if (*xsink)
          return;
@@ -680,7 +680,7 @@ public:
       }
    }
 
-   DLLLOCAL AbstractQoreNode* swap(AbstractQoreNode* v, ExceptionSink *xsink) {
+   DLLLOCAL AbstractQoreNode* swap(AbstractQoreNode* v, ExceptionSink* xsink) {
       AbstractQoreNode* old = swapImpl(v, xsink);
       if (*xsink)
          return 0;
@@ -817,12 +817,12 @@ protected:
    const QoreTypeInfo *return_type;
    param_vec_t params;
 
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink *xsink) const = 0;
+   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const = 0;
 
 public:
    DLLLOCAL AbstractVirtualMethod(const char* n_name, bool n_requires_lvalue, const QoreTypeInfo *n_return_type, ...);
    DLLLOCAL virtual ~AbstractVirtualMethod();
-   DLLLOCAL AbstractQoreNode* eval(AbstractQoreNode* self, const QoreListNode* args, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode* eval(AbstractQoreNode* self, const QoreListNode* args, ExceptionSink* xsink) const;
    DLLLOCAL unsigned numArgs() const {
       return params.size();
    }
@@ -840,12 +840,12 @@ public:
 
 class OptHashRefHelper {
    const ReferenceNode* ref;
-   ExceptionSink *xsink;
+   ExceptionSink* xsink;
    ReferenceHolder<QoreHashNode> info;
 public:
-   DLLLOCAL OptHashRefHelper(QoreListNode* args, unsigned i, ExceptionSink *n_xsink) : ref(test_reference_param(args, i)), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
+   DLLLOCAL OptHashRefHelper(QoreListNode* args, unsigned i, ExceptionSink* n_xsink) : ref(test_reference_param(args, i)), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
    }
-   DLLLOCAL OptHashRefHelper(const ReferenceNode* n_ref, ExceptionSink *n_xsink) : ref(n_ref), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
+   DLLLOCAL OptHashRefHelper(const ReferenceNode* n_ref, ExceptionSink* n_xsink) : ref(n_ref), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
    }
    DLLLOCAL ~OptHashRefHelper() {
       if (!ref)
@@ -890,9 +890,9 @@ DLLLOCAL const char* inet_ntop(int af, const void *src, char* dst, size_t size);
 DLLLOCAL int inet_pton(int af, const char* src, void *dst);
 #endif
 
-DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, ExceptionSink *xsink);
-DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, const char* opt, ExceptionSink *xsink);
-DLLLOCAL AbstractQoreNode* missing_method_error(const char* meth, const char* opt, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, ExceptionSink* xsink);
+DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, const char* opt, ExceptionSink* xsink);
+DLLLOCAL AbstractQoreNode* missing_method_error(const char* meth, const char* opt, ExceptionSink* xsink);
 
 // checks for illegal $self assignments in an object context                                        
 DLLLOCAL void check_self_assignment(AbstractQoreNode* n, LocalVar *selfid);
@@ -902,7 +902,7 @@ DLLLOCAL void ignore_return_value(AbstractQoreNode* n);
 DLLLOCAL QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding* enc, bool with_separator = false);
 DLLLOCAL QoreStringNode* join_intern(const QoreString* p0, const QoreListNode* l, int offset, ExceptionSink* xsink);
 DLLLOCAL QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, const QoreString* quote, bool trim_unquoted, ExceptionSink* xsink);
-DLLLOCAL bool inlist_intern(const AbstractQoreNode *arg, const QoreListNode *l, ExceptionSink *xsink);
+DLLLOCAL bool inlist_intern(const AbstractQoreNode *arg, const QoreListNode *l, ExceptionSink* xsink);
 DLLLOCAL QoreStringNode* format_float_intern(const QoreString& fmt, double num);
 DLLLOCAL DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr, const QoreString& mask, ExceptionSink* xsink);
 

@@ -69,7 +69,8 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *dateOrNothingTypeInfo = 0,
    *hashOrNothingTypeInfo = 0,
    *listOrNothingTypeInfo = 0,
-   *nullOrNothingTypeInfo = 0
+   *nullOrNothingTypeInfo = 0,
+   *referenceOrNothingTypeInfo = 0
    ;
 
 // provides limited compatibility with integers
@@ -136,10 +137,6 @@ static SoftListTypeInfo staticSoftListTypeInfo;
 static SoftListOrNothingTypeInfo staticListOrNothingTypeInfo;
 const QoreTypeInfo* softListTypeInfo = &staticSoftListTypeInfo,
    *softListOrNothingTypeInfo = &staticListOrNothingTypeInfo;
-
-// somethingTypeInfo means "not NOTHING"
-//static SomethingTypeInfo staticSomethingTypeInfo;
-//const QoreTypeInfo* somethingTypeInfo = &staticSomethingTypeInfo;
 
 // timeout type info accepts int or date and returns an int giving milliseconds
 static TimeoutTypeInfo staticTimeoutTypeInfo;
@@ -224,15 +221,16 @@ void init_qore_types() {
    def_val_map[NT_NOTHING] = &Nothing;
 
    // static "or nothing" reference types
-   bigIntOrNothingTypeInfo = new OrNothingTypeInfo(staticBigIntTypeInfo, "int"); 
-   stringOrNothingTypeInfo = new OrNothingTypeInfo(staticStringTypeInfo, "string");
-   boolOrNothingTypeInfo   = new OrNothingTypeInfo(staticBoolTypeInfo, "bool");
-   binaryOrNothingTypeInfo = new OrNothingTypeInfo(staticBinaryTypeInfo, "binary");
-   objectOrNothingTypeInfo = new OrNothingTypeInfo(staticObjectTypeInfo, "object");
-   dateOrNothingTypeInfo   = new OrNothingTypeInfo(staticDateTypeInfo, "date");
-   hashOrNothingTypeInfo   = new OrNothingTypeInfo(staticHashTypeInfo, "hash");
-   listOrNothingTypeInfo   = new OrNothingTypeInfo(staticListTypeInfo, "list");
-   nullOrNothingTypeInfo   = new OrNothingTypeInfo(staticNullTypeInfo, "null");
+   bigIntOrNothingTypeInfo    = new OrNothingTypeInfo(staticBigIntTypeInfo, "int"); 
+   stringOrNothingTypeInfo    = new OrNothingTypeInfo(staticStringTypeInfo, "string");
+   boolOrNothingTypeInfo      = new OrNothingTypeInfo(staticBoolTypeInfo, "bool");
+   binaryOrNothingTypeInfo    = new OrNothingTypeInfo(staticBinaryTypeInfo, "binary");
+   objectOrNothingTypeInfo    = new OrNothingTypeInfo(staticObjectTypeInfo, "object");
+   dateOrNothingTypeInfo      = new OrNothingTypeInfo(staticDateTypeInfo, "date");
+   hashOrNothingTypeInfo      = new OrNothingTypeInfo(staticHashTypeInfo, "hash");
+   listOrNothingTypeInfo      = new OrNothingTypeInfo(staticListTypeInfo, "list");
+   nullOrNothingTypeInfo      = new OrNothingTypeInfo(staticNullTypeInfo, "null");
+   referenceOrNothingTypeInfo = new OrNothingTypeInfo(staticReferenceTypeInfo, "reference");
 
    do_maps(NT_INT,         "int", bigIntTypeInfo, bigIntOrNothingTypeInfo);
    do_maps(NT_STRING,      "string", stringTypeInfo, stringOrNothingTypeInfo);
@@ -247,7 +245,7 @@ void init_qore_types() {
    do_maps(NT_DATE,        "date", dateTypeInfo, dateOrNothingTypeInfo);
    do_maps(NT_CODE,        "code", codeTypeInfo, codeOrNothingTypeInfo);
    do_maps(NT_DATA,        "data", dataTypeInfo, dataOrNothingTypeInfo);
-   do_maps(NT_REFERENCE,   "reference", referenceTypeInfo, anyTypeInfo);
+   do_maps(NT_REFERENCE,   "reference", referenceTypeInfo, referenceOrNothingTypeInfo);
    do_maps(NT_NULL,        "null", nullTypeInfo, nullOrNothingTypeInfo);
    do_maps(NT_NOTHING,     "nothing", nothingTypeInfo);
 
@@ -294,6 +292,7 @@ void delete_qore_types() {
    delete hashOrNothingTypeInfo;
    delete listOrNothingTypeInfo;
    delete nullOrNothingTypeInfo;
+   delete referenceOrNothingTypeInfo;
 }
 
 void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo) {
