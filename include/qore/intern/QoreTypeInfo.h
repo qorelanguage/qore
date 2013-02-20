@@ -2018,6 +2018,20 @@ public:
    }
 };
 
+class ReferenceTypeInfo : public QoreTypeInfo {
+protected:
+   type_vec_t rt;
+
+   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
+      return rt;
+   }
+
+public:
+   DLLLOCAL ReferenceTypeInfo() : QoreTypeInfo(0, NT_REFERENCE, true, false, false, false, false, false, false, false, false) {
+      rt.push_back(anyTypeInfo);
+   }
+};
+
 /*
    DLLLOCAL QoreTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult,
                          bool n_accepts_mult, bool n_input_filter, bool n_has_subtype,

@@ -94,7 +94,6 @@ const char* Var::getName() const {
 AbstractQoreNode* Var::eval() const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->eval();
-
    AutoLocker al(m);
    return val.eval();
 }
@@ -102,8 +101,6 @@ AbstractQoreNode* Var::eval() const {
 AbstractQoreNode* Var::eval(bool &needs_deref) const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->eval(needs_deref);
-
-   
    AutoLocker al(m);
    return val.eval(needs_deref, true);
 }
@@ -269,6 +266,11 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
 }
 
 int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
+   // if we are already locked, then save the value and unlock before processing
+   if (vl) {
+      saveTemp(n->refSelf());
+      vl.del();
+   }
    qore_type_t ntype = n->getType();
    //printd(5, "LValueHelper::doLValue(exp: %p) %s %d\n", n, get_type_name(n), get_node_type(n));
    if (ntype == NT_VARREF) {
@@ -367,6 +369,8 @@ double LValueHelper::getAsFloat() const {
 }
 
 int LValueHelper::assign(AbstractQoreNode* n, const char* desc) {
+   //printd(5, "LValueHelper::assign() this: %p (%s) n: %p '%s'\n", this, desc, n, get_type_name(n));
+
    // before we can entirely get rid of QoreNothingNode, try to convert pointers to NOTHING to 0
    if (n == &Nothing)
       n = 0;

@@ -236,7 +236,7 @@ void push_local_var(LocalVar *lv) {
    new VNode(lv, 1);
 }
 
-LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup, int n_refs, bool top_level) {
+LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool is_arg, int n_refs, bool top_level) {
    QoreProgram *pgm = getProgram();
 
    LocalVar *lv = pgm->createLocalVar(name, typeInfo);
@@ -244,27 +244,30 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool ch
    bool found_block = false;
    // check stack for duplicate entries
    bool avs = checkParseOption(PO_ASSUME_LOCAL);
-   if (check_dup && (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS | QP_WARN_DUPLICATE_BLOCK_VARS) || avs)) {
-      VNode* vnode = getVStack();
-      while (vnode) {
-	 printd(5, "push_local_var() vnode=%p %s (top: %s) ibs=%d found_block=%d\n", vnode, vnode->getName(), vnode->isTopLevel() ? "true" : "false", vnode->isBlockStart(), found_block);
-	 if (!found_block && vnode->isBlockStart())
-	    found_block = true;
-	 if (!strcmp(vnode->getName(), name)) {
-	    if (!found_block && avs) {
-	       parse_error("local variable '%s' was already declared in the same block", name);
-	    }
-	    else {
-	       if (!found_block)
-		  qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", "local variable '%s' was already declared in the same block", name);
-	       else {
-		  if (top_level || !vnode->isTopLevel())
-		     qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '%s' was already declared in this lexical scope", name);
-	       }
-	       break;
-	    }
-	 }
-	 vnode = vnode->nextSearch();
+   if (is_arg) {
+      lv->parseAssigned();
+      if (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS | QP_WARN_DUPLICATE_BLOCK_VARS) || avs) {
+         VNode* vnode = getVStack();
+         while (vnode) {
+            printd(5, "push_local_var() vnode=%p %s (top: %s) ibs=%d found_block=%d\n", vnode, vnode->getName(), vnode->isTopLevel() ? "true" : "false", vnode->isBlockStart(), found_block);
+            if (!found_block && vnode->isBlockStart())
+               found_block = true;
+            if (!strcmp(vnode->getName(), name)) {
+               if (!found_block && avs) {
+                  parse_error("local variable '%s' was already declared in the same block", name);
+               }
+               else {
+                  if (!found_block)
+                     qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", "local variable '%s' was already declared in the same block", name);
+                  else {
+                     if (top_level || !vnode->isTopLevel())
+                        qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '%s' was already declared in this lexical scope", name);
+                  }
+                  break;
+               }
+            }
+            vnode = vnode->nextSearch();
+         }
       }
    }
    

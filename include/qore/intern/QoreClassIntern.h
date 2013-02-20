@@ -1280,7 +1280,7 @@ public:
 
    DLLLOCAL AbstractQoreNode* getReferencedValue() const {
       AutoLocker al(l);
-      return val.eval();
+      return val.eval();;
    }
 
    DLLLOCAL int64 getAsBigInt() const {

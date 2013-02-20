@@ -520,7 +520,7 @@ public:
       }
 
       if (type == QV_Node) {
-         if (!in_lock || !v.n) {
+         if (!in_lock || !v.n || v.n->is_value()) {
             needs_deref = false;
             return v.n;
          }

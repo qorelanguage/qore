@@ -747,6 +747,7 @@ public:
 
    DLLLOCAL ParserTypeStruct(char* id) {
       const QoreTypeInfo* t = getBuiltinUserTypeInfo(id);
+      //printd(0, "ParserTypeStruct::ParserTypeStruct('%s') t: %p %s\n", id, t, t->getName());
       if (t) {
 	 free(id);
 	 typeInfo = t;

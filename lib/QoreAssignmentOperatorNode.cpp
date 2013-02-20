@@ -26,7 +26,7 @@
 
 QoreString QoreAssignmentOperatorNode::op_str("assignment operator expression");
 
-AbstractQoreNode *QoreAssignmentOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) { 
+AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
   
@@ -36,7 +36,7 @@ AbstractQoreNode *QoreAssignmentOperatorNode::parseInitImpl(LocalVar *oflag, int
    // return type info is the same as the lvalue's typeinfo
    typeInfo = ti;
 
-   const QoreTypeInfo *r = 0;
+   const QoreTypeInfo* r = 0;
    right = right->parseInit(oflag, pflag, lvids, r);
 
    // check for illegal assignment to $self
@@ -62,7 +62,7 @@ AbstractQoreNode *QoreAssignmentOperatorNode::parseInitImpl(LocalVar *oflag, int
    return this;
 }
 
-AbstractQoreNode *QoreAssignmentOperatorNode::evalImpl(ExceptionSink *xsink) const {
+AbstractQoreNode* QoreAssignmentOperatorNode::evalImpl(ExceptionSink *xsink) const {
    /* assign new value, this value gets referenced with the
       eval(xsink) call, so there's no need to reference it again
       for the variable assignment - however it does need to be
@@ -92,7 +92,7 @@ AbstractQoreNode *QoreAssignmentOperatorNode::evalImpl(ExceptionSink *xsink) con
    return ref_rv ? v.getReferencedValue() : 0;
 }
 
-AbstractQoreNode *QoreAssignmentOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+AbstractQoreNode* QoreAssignmentOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = ref_rv;
    return QoreAssignmentOperatorNode::evalImpl(xsink);
 }

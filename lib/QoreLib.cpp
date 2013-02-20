@@ -1380,10 +1380,19 @@ int ObjMap::check(QoreObject *obj) {
 */
 
 // returns 0 for OK, -1 for error
-int check_lvalue(const AbstractQoreNode* node) {
+int check_lvalue(AbstractQoreNode* node, bool assignment) {
    qore_type_t ntype = node->getType();
    //printd(5, "type=%s\n", node->getTypeName());
-   if (ntype == NT_VARREF || ntype == NT_SELF_VARREF || ntype == NT_CLASS_VARREF)
+   if (ntype == NT_VARREF) {
+      if (assignment)
+         reinterpret_cast<VarRefNode*>(node)->parseAssigned();
+      return 0;
+   }
+
+   if (ntype == NT_SELF_VARREF)
+      return 0;
+
+   if (ntype == NT_CLASS_VARREF)
       return 0;
 
    if (ntype == NT_TREE) {

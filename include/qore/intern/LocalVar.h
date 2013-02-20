@@ -347,7 +347,7 @@ public:
 class LocalVar {
 private:
    std::string name;
-   bool closure_use;
+   bool closure_use, parse_assigned;
    const QoreTypeInfo* typeInfo;
 
    DLLLOCAL LocalVarValue* get_var() const {
@@ -355,13 +355,23 @@ private:
    }
 
 public:
-   DLLLOCAL LocalVar(const char* n_name, const QoreTypeInfo* ti) : name(n_name), closure_use(false), typeInfo(ti) {
+   DLLLOCAL LocalVar(const char* n_name, const QoreTypeInfo* ti) : name(n_name), closure_use(false), parse_assigned(false), typeInfo(ti) {
    }
 
-   DLLLOCAL LocalVar(const LocalVar& old) : name(old.name), closure_use(old.closure_use), typeInfo(old.typeInfo) {
+   DLLLOCAL LocalVar(const LocalVar& old) : name(old.name), closure_use(old.closure_use), parse_assigned(old.parse_assigned), typeInfo(old.typeInfo) {
    }
 
    DLLLOCAL ~LocalVar() {
+   }
+
+   DLLLOCAL void parseAssigned() {
+      if (!parse_assigned)
+         parse_assigned = true;
+   }
+
+   DLLLOCAL void parseUnassigned() {
+      if (parse_assigned)
+         parse_assigned = false;
    }
 
    DLLLOCAL void instantiate() {
@@ -497,6 +507,10 @@ public:
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
       return typeInfo;
+   }
+
+   DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() const {
+      return parse_assigned && (typeInfo == referenceTypeInfo) ? anyTypeInfo : typeInfo;
    }
 
    DLLLOCAL qore_type_t getValueType() const {

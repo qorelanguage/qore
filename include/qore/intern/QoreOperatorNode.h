@@ -89,10 +89,10 @@ public:
 template <class T = QoreOperatorNode>
 class QoreBinaryOperatorNode : public T {
 protected:
-   AbstractQoreNode *left, *right;
+   AbstractQoreNode* left, * right;
 
 public:
-   DLLLOCAL QoreBinaryOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : left(n_left), right(n_right) {
+   DLLLOCAL QoreBinaryOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : left(n_left), right(n_right) {
    }
 
    DLLLOCAL ~QoreBinaryOperatorNode() {
@@ -103,8 +103,8 @@ public:
    }
 
    template<typename U>
-   DLLLOCAL QoreBinaryOperatorNode *makeSpecialization() {
-      AbstractQoreNode *l = left, *r = right;
+   DLLLOCAL QoreBinaryOperatorNode* makeSpecialization() {
+      AbstractQoreNode* l = left,* r = right;
       left = right = 0;
       SimpleRefHolder<QoreBinaryOperatorNode> del(this);
       U* rv = new U(l, r);
@@ -113,24 +113,24 @@ public:
       return rv;
    }
 
-   DLLLOCAL AbstractQoreNode *swapRight(AbstractQoreNode *n_right) {
+   DLLLOCAL AbstractQoreNode* swapRight(AbstractQoreNode *n_right) {
       AbstractQoreNode *old_r = right;
       right = n_right;
       return old_r;
    }
 
-   DLLLOCAL AbstractQoreNode *getLeft() {
+   DLLLOCAL AbstractQoreNode* getLeft() {
       return left;
    }
 
-   DLLLOCAL AbstractQoreNode *getRight() {
+   DLLLOCAL AbstractQoreNode* getRight() {
       return right;
    }
 };
 
 class QoreBoolBinaryOperatorNode : public QoreBinaryOperatorNode<> {
 public:
-   DLLLOCAL QoreBoolBinaryOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<>(n_left, n_right) {
+   DLLLOCAL QoreBoolBinaryOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
@@ -145,9 +145,9 @@ public:
 #define OP_COMMON protected:\
    DLLLOCAL static QoreString op_str;\
 public:\
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {del = false;return &op_str;}\
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {str.concat(&op_str);return 0;}\
-   DLLLOCAL virtual const char *getTypeName() const {return op_str.getBuffer();}
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {del = false;return &op_str;}\
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {str.concat(&op_str);return 0;}\
+   DLLLOCAL virtual const char* getTypeName() const {return op_str.getBuffer();}
 
 class LValueOperatorNode : public QoreOperatorNode {
 public:
@@ -155,9 +155,9 @@ public:
       return true;
    }
 
-   DLLLOCAL void checkLValue(const AbstractQoreNode *exp, int pflag) {
+   DLLLOCAL void checkLValue(AbstractQoreNode* exp, int pflag, bool assignment = true) {
       if (exp) {
-         if (check_lvalue(exp))
+         if (check_lvalue(exp, assignment))
             parse_error("expecing lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
          else if ((pflag & PF_BACKGROUND) && exp && exp->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(exp)->getType() == VT_LOCAL)
             parse_error("illegal local variable modification with the background operator in %s", getTypeName());

@@ -41,8 +41,7 @@ static QoreTypeInfo staticAnyTypeInfo,
    staticNothingTypeInfo(NT_NOTHING),
    staticNullTypeInfo(NT_NULL),
    staticRunTimeClosureTypeInfo(NT_RUNTIME_CLOSURE),
-   staticCallReferenceTypeInfo(NT_FUNCREF),
-   staticReferenceTypeInfo(NT_REFERENCE)
+   staticCallReferenceTypeInfo(NT_FUNCREF)
    ;
 
 // const pointers to static reference types
@@ -58,7 +57,6 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *nullTypeInfo = &staticNullTypeInfo,
    *runTimeClosureTypeInfo = &staticRunTimeClosureTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
-   *referenceTypeInfo = &staticReferenceTypeInfo,
    
    // assigned in init_qore_types()
    *bigIntOrNothingTypeInfo = 0, 
@@ -69,9 +67,13 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *dateOrNothingTypeInfo = 0,
    *hashOrNothingTypeInfo = 0,
    *listOrNothingTypeInfo = 0,
-   *nullOrNothingTypeInfo = 0,
-   *referenceOrNothingTypeInfo = 0
+   *nullOrNothingTypeInfo = 0
    ;
+
+// reference types
+static ReferenceTypeInfo staticReferenceTypeInfo;
+const QoreTypeInfo* referenceTypeInfo = &staticReferenceTypeInfo,
+      *referenceOrNothingTypeInfo = 0; // assigned in init_qore_types()
 
 // provides limited compatibility with integers
 static FloatTypeInfo staticFloatTypeInfo;
@@ -331,8 +333,8 @@ bool builtinTypeHasDefaultValue(qore_type_t t) {
 
 const QoreTypeInfo* getBuiltinUserTypeInfo(const char* str) {
    // user exceptions here
-   if (!strcmp(str, "reference"))
-      return anyTypeInfo;
+   //if (!strcmp(str, "reference"))
+   //   return anyTypeInfo;
 
    str_typeinfo_map_t::iterator i = str_typeinfo_map.find(str);
    return i != str_typeinfo_map.end() ? i->second : 0;

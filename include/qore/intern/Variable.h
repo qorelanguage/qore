@@ -144,7 +144,6 @@ public:
       else
          printd(5, "Var::clearLocal() skipping imported var '%s' %p\n", name.c_str(), this);
 #endif
-
    }
 
    DLLLOCAL void setInitial(AbstractQoreNode* v) {
@@ -246,7 +245,8 @@ public:
          return val.v.getPtr()->getTypeInfo();
 
       parseInit();
-      return typeInfo;
+      // we cannot enforce the first reference assignment of global variables, so we return type any
+      return typeInfo == referenceTypeInfo ? anyTypeInfo : typeInfo;
    }
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
@@ -306,6 +306,7 @@ class QoreTreeNode;
 // no evaluations can be done while this object is in scope or a deadlock may result
 class LValueHelper {
    friend class LValueRemoveHelper;
+   friend class LValueLockHandoffHelper;
 
 private:
    // not implemented

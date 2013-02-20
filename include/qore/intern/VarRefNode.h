@@ -68,7 +68,7 @@ protected:
 
    DLLLOCAL virtual const QoreTypeInfo *parseGetTypeInfo() const {
       if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
-         return ref.id->getTypeInfo();
+         return ref.id->parseGetTypeInfo();
       if (type == VT_GLOBAL)
          return ref.var->parseGetTypeInfo();
       return 0;
@@ -196,6 +196,12 @@ public:
    DLLLOCAL void setPublic() {
       assert(type == VT_GLOBAL);
       ref.var->setPublic();
+   }
+
+   DLLLOCAL void parseAssigned() {
+      assert(type != VT_IMMEDIATE);
+      if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
+         ref.id->parseAssigned();
    }
 };
 

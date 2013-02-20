@@ -987,12 +987,12 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		# if we need to get a body
 		switch ($hdr.method) {
                     case "HEAD": {
-                        $.serv.handleRequest($self, $s, $cx, $hdr, NOTHING, \$cx.close, True);
+                        $.serv.handleRequest($self, $s, \$cx, $hdr, NOTHING, \$cx.close, True);
                         break;
                     }
 
                     case "GET": {
-                        $.serv.handleRequest($self, $s, $cx, $hdr, NOTHING, \$cx.close);
+                        $.serv.handleRequest($self, $s, \$cx, $hdr, NOTHING, \$cx.close);
                         break;
                     }
 
