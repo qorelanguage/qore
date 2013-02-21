@@ -285,10 +285,12 @@ int pop_local_var_get_id() {
    return refs;
 }
 
-LocalVar *pop_local_var() {
+LocalVar *pop_local_var(bool set_unassigned) {
    std::auto_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    LocalVar *rc = vnode->lvar;
+   if (set_unassigned)
+      rc->parseUnassigned();
    printd(5, "pop_local_var(): popping var %s\n", rc->getName());
    updateVStack(vnode->next);
    return rc;

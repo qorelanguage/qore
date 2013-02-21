@@ -79,7 +79,7 @@ public:
 
 DLLLOCAL void push_cvar(const char* name);
 DLLLOCAL void pop_cvar();
-DLLLOCAL LocalVar* pop_local_var();
+DLLLOCAL LocalVar* pop_local_var(bool set_unassigned = false);
 DLLLOCAL int pop_local_var_get_id();
 // used for constructor methods sharing a common "self" local variable and for top-level local variables
 DLLLOCAL void push_local_var(LocalVar* lv);

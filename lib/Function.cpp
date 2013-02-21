@@ -425,8 +425,9 @@ void UserSignature::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {
 }
 
 void UserSignature::parseInitPopLocalVars() {
+   // remove local variables from stack and unset the parse_assigned flag
    for (unsigned i = 0; i < typeList.size(); ++i)
-      pop_local_var();
+      pop_local_var(true);
    
    // pop $argv param off stack
    pop_local_var();

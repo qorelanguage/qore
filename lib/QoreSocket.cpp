@@ -109,9 +109,11 @@ static int sock_get_error() {
 	 errno = ENOFILE;
 	 break;
 
+#ifdef ECONNRESET
       case WSAECONNRESET:
 	 errno = ECONNRESET;
 	 break;
+#endif
 
 #ifdef DEBUG
       case WSAEALREADY:
@@ -1587,8 +1589,10 @@ struct qore_socket_private {
 		  continue;
 	       if (xsink)
 		  qore_socket_error(xsink, "SOCKET-RECV-ERROR", "error in recv()", meth);
+#ifdef ECONNRESET
 	       if (errno == ECONNRESET)
 		  close();
+#endif
 	       break;
 	    }
 	    //printd(5, "qore_socket_private::recv(%d, %p, %ld, %d) rc=%ld errno=%d\n", sock, buf, bs, flags, rc, errno);
@@ -2006,8 +2010,10 @@ struct qore_socket_private {
                   if (xsink)
                      xsink->raiseErrnoException("SOCKET-SEND-ERROR", errno, "error while executing Socket::%s()", mname);
 
+#ifdef ECONNRESET
 		  if (errno == ECONNRESET)
 		     close();
+#endif
 
                   break;
                }
@@ -2186,9 +2192,12 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
                      xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling SSL_%s()", mname, read ? "read" : "write");
                   else if (rc == -1) {
                      xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_%s()", mname, read ? "read" : "write");
-		     // close the socket if connection reset received
+
+#ifdef ECONNRESET
+                     // close the socket if connection reset received
 		     if (sock_get_error() == ECONNRESET)
 			qs.close();
+#endif
 		  }
                   else
                      xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in SSL_%s() but the error queue is empty", mname, rc, read ? "read" : "write");
@@ -2243,9 +2252,11 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const ch
 	 char buf[121];
 	 ERR_error_string(e, buf);
 	 xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): %s(): %s", mname, func, buf);
+#ifdef ECONNRESET
 	 // close the socket if connection reset received
 	 if (e == SSL_ERROR_SYSCALL && sock_get_error() == ECONNRESET)
 	    qs.close();
+#endif
       }
    } while ((e = ERR_get_error()));
 
