@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2012 David Nichols
+  Copyright 2003 - 2013 David Nichols
 
   provides a thread-safe interface to the QoreSocket object
 

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2012 David Nichols
+  Copyright (C) 2003 - 2013 David Nichols
 */
 
 #include <qore/Qore.h>
