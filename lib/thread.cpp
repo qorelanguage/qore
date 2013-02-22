@@ -1663,7 +1663,6 @@ static size_t win_get_stack_size() {
 
 void init_qore_threads() {
    QORE_TRACE("qore_init_threads()");
-   printf("iqt 1\n");
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
@@ -1701,8 +1700,6 @@ void init_qore_threads() {
    //printd(5, "default stack size %ld, limit %ld\n", qore_thread_stack_size, qore_thread_stack_limit);
 #endif // #ifdef QORE_MANAGE_STACK
 
-   printf("iqt 2\n");
-
    // setup parent thread data
    thread_list.activate(initial_thread = get_thread_entry());
 
@@ -1716,7 +1713,6 @@ void init_qore_threads() {
 
    // mark threading as active
    threads_initialized = true;
-   printf("iqt end\n");
 }
 
 QoreNamespace *get_thread_ns(QoreNamespace &qorens) {

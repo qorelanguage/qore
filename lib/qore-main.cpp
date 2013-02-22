@@ -60,8 +60,6 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    qore_license = license;
    qore_library_options = n_qore_library_options;
 
-   printf("qi 1\n");
-
    // initialize openssl library
    if (!qore_check_option(QLO_DISABLE_OPENSSL_INIT)) {
       OPENSSL_config(0);
@@ -71,33 +69,21 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
       ERR_load_crypto_strings();
    }
 
-   printf("qi 2\n");
-
    QoreHTTPClient::static_init();
-
-   printf("qi 2.1\n");
 
    // init threading infrastructure
    init_qore_threads();
 
-   printf("qi 2.2\n");
-
    // initialize charset encoding support
    QEM.init(def_charset);
 
-   printf("qi 2.3\n");
    init_lib_intern(environ);
 
-   printf("qi 2.4\n");
    // create default type values
    init_qore_types();
 
-   printf("qi 2.5\n");
-
    // set up core operators
    oplist.init();
-
-   printf("qi 3\n");
 
    // init module subsystem
    QMM.init(show_module_errors);
@@ -113,8 +99,6 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // set up pseudo-methods
    pseudo_classes_init();
 
-   printf("qi 4\n");
-
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
    // do windows socket initialization
    WORD wsver = MAKEWORD(2, 2);
@@ -123,8 +107,6 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    if (err)
       printf("qore_init(): WSAStartup() failed with error: %d; sockets will not be available\n", err);
 #endif
-
-   printf("qi end\n");
 }
 
 // NOTE: we do not cleanup in reverse initialization order
