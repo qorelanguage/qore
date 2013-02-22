@@ -1636,6 +1636,29 @@ extern QoreRWLock thread_stack_lock;
 
 static int initial_thread;
 
+#ifdef WIN32
+// note: stack guard is currently disabled on windows because it doesn't work
+static size_t win_get_stack_size() {
+    MEMORY_BASIC_INFORMATION mbi;
+    VirtualQuery(&mbi, &mbi, sizeof(mbi));
+    // now mbi.AllocationBase = reserved stack memory base address
+
+    VirtualQuery(mbi.AllocationBase, &mbi, sizeof(mbi));
+    // now (mbi.BaseAddress, mbi.RegionSize) describe reserved (uncommitted) portion of the stack
+    // skip it
+
+    VirtualQuery((char*)mbi.BaseAddress + mbi.RegionSize, &mbi, sizeof(mbi));
+    // now (mbi.BaseAddress, mbi.RegionSize) describe the guard page
+    // skip it
+
+    VirtualQuery((char*)mbi.BaseAddress + mbi.RegionSize, &mbi, sizeof(mbi));
+    // now (mbi.BaseAddress, mbi.RegionSize) describe the committed (i.e. accessed) portion of the stack
+
+    printf("windows stack size: %zd\n", mbi.RegionSize);
+    return mbi.RegionSize;
+}
+#endif
+
 void init_qore_threads() {
    QORE_TRACE("qore_init_threads()");
 
@@ -1658,8 +1681,7 @@ void init_qore_threads() {
 #endif // #if TARGET_BITS == 32
 #else
 #ifdef WIN32
-   // FIXME: get real thread stack size via win API call
-   qore_thread_stack_size = 1024*1024;
+   qore_thread_stack_size = win_get_stack_size();
 #else // !WIN32 && !SOLARIS
    qore_thread_stack_size = ta_default.getstacksize();
    assert(qore_thread_stack_size);
