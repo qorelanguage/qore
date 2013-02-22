@@ -1636,8 +1636,9 @@ extern QoreRWLock thread_stack_lock;
 
 static int initial_thread;
 
-#ifdef WIN32
+#if 0
 // note: stack guard is currently disabled on windows because it doesn't work
+#ifdef WIN32
 static size_t win_get_stack_size() {
     MEMORY_BASIC_INFORMATION mbi;
     VirtualQuery(&mbi, &mbi, sizeof(mbi));
@@ -1657,6 +1658,7 @@ static size_t win_get_stack_size() {
     printf("windows stack size: %zd\n", mbi.RegionSize);
     return mbi.RegionSize;
 }
+#endif
 #endif
 
 void init_qore_threads() {
