@@ -477,7 +477,7 @@ my SmtpClient $smtp("smtptls://pop.gmail.com", \log(), \log());
 		$reply.QUIT = $rh;
 	    }
 	    catch($ex) {
-		$.logDbg("send error: %s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc);
+		$.logDbg("send error: %s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
 		$.forceDisconnectIntern();
 		rethrow;
 	    }
