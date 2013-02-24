@@ -67,6 +67,7 @@
       same restrictions as the parent @ref Qore::Program "Program" object (if any)
     - added the get_parse_options() function so that parse options in the current @ref Qore::Program "Program" can be determined at
       runtime
+    - added the get_ex_pos() function to help with formatting exception locations where the \c source and \c offset information is present
     - new methods and method variants:
       - @ref Qore::HTTPClient::getPeerInfo()
       - @ref Qore::HTTPClient::getSocketInfo()
@@ -124,6 +125,9 @@
     - fixed a bug where trying to dynamically call a function that does not exist results in a deadlock due to an error where a mutex is not unlocked
     - fixed a bug in the @ref Qore::Socket::sendHTTPMessage() and @ref Qore::Socket::sendHTTPResponse() methods regarding the timeout parameter
     - fixed a bug in an socket SSL error message where the method name was printed from non-string memory (used wrong ptr for the <tt>%%s</tt> format argument)
+    - fixed some major crashing bugs related to reference handling; a global variable assigned a reference to a reference to a local variable would cause a crash
+    - @ref reference_type and @ref reference_or_nothing_type type fixes: an error in @ref reference_type type handling allowed non-reference values to be passed to builtin code expecing references which caused a crash; the @ref reference_type and @ref reference_or_nothing_type types would accept any value type
+    - attempted to fix a non-reproducible bug seen on rhel5 in the @ref Qore::Socket "Socket class" where SSL errors would cause the affected thread to go into a infinite loop using 100% CPU
 
     @section qore_0862 Qore 0.8.6.2
 

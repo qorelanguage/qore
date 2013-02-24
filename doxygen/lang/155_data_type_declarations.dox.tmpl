@@ -33,7 +33,7 @@
     |@ref softlist_type "softlist"|all types|@ref list|Accepts all types; @ref nothing is returned as an empty list; a list is returned unchanged, and any other type is returned as the first element of a new list
     |@ref data_type "data"|@ref string or @ref binary|same as received|Restricts input to @ref string and @ref binary and returns the same type
     |@ref code_type "code"|@ref closure, @ref call_reference|same as received|Restricts values to @ref closure "closures" and @ref call_reference "call references"
-    |@ref reference_type "reference"|@ref lvalue_references|@ref lvalue_references|Restricts values to references to lvalues
+    |@ref reference_type "reference"|@ref lvalue_references|the type the reference points to|Restricts values to references to lvalues
     |@ref int_or_nothing_type "*int"|@ref integer or @ref nothing|same as received|Restricts values to %Qore's @ref integer or @ref nothing types
     |@ref float_or_nothing_type "*float"|@ref float or @ref nothing|same as received|Restricts values to %Qore's @ref float or @ref nothing types
     |@ref bool_or_nothing_type "*bool"|@ref boolean or @ref nothing|same as received|Restricts values to %Qore's @ref boolean or @ref nothing types
@@ -47,6 +47,7 @@
     |@ref data_or_nothing_type "*data"|@ref string, @ref binary, or @ref nothing|same as received|Restricts input to @ref string, @ref binary, or @ref nothing and returns the same type
     |@ref code_or_nothing_type "*code"|@ref closure, @ref call_reference, @ref nothing|same as received|Restricts values to @ref closure "closures", @ref call_reference "call references" and @ref nothing
     |@ref timeout_or_nothing_type "*timeout"|@ref integer, @ref date or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds. If no value is passed, then @ref nothing is returned
+    |@ref reference_or_nothing_type "*reference"|@ref lvalue_references or @ref nothing|the type the reference points to|Restricts values to references to lvalues and @ref nothing
     |@ref softint_or_nothing_type "*softint"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer. If no value is passed, then @ref nothing is returned
     |@ref softfloat_or_nothing_type "*softfloat"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value. If no value is passed, then @ref nothing is returned
     |@ref softnumber_or_nothing_type "*softnumber"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref number or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-number values to a number and returns the new value. If no value is passed, then @ref nothing is returned
@@ -389,7 +390,7 @@ sub foo(code $c) {
 
     <b>reference Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c reference|@ref lvalue_references|@ref lvalue_references|Requires a reference to an lvalue to be assigned
+    |\c reference|@ref lvalue_references|the type the reference points to|Requires a reference to an lvalue to be assigned
 
     @par Example
     @code
@@ -593,6 +594,23 @@ sub foo(*code $c) {
     @code
 sub foo(*timeout $c) {
 }
+    @endcode
+
+    <hr>
+    @section reference_or_nothing_type *reference
+
+    <b>reference Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c reference|@ref lvalue_references or @ref nothing|the type the reference points to|Requires a reference to an lvalue to be assigned or @ref nothing
+
+    @par Example
+    @code
+sub foo(*reference $f) {
+    $f = 10;
+}
+
+my int $i;
+foo(\$i);
     @endcode
 
     <hr>

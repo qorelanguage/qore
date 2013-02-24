@@ -196,9 +196,9 @@ public namespace HttpServer {
                     if ($l.type == "new-thread")
                         $str += sprintf("\n  *** thread started by background operator ***");
                     else if ($l.type == "rethrow")
-                        $str += sprintf("\n  *** RETHROW at %s:%d", $l.file, $l.line);
+                        $str += sprintf("\n  *** RETHROW at %s", get_ex_pos($l));
                     else
-                        $str += sprintf("\n  %s() called at %s:%d (%s function)", $l.function, $l.file, $l.line, $l.type);
+                        $str += sprintf("\n  %s() called at %s (%s function)", $l.function, get_ex_pos($l), $l.type);
                 }
             }
             
@@ -207,14 +207,6 @@ public namespace HttpServer {
             $ex = $ex.next;
             $str += "\nchained exception:\n";
         }
-        return $str;
-    }
-
-    #! returns a descriptive string for an exception location
-    public string sub get_ex_pos(hash $ex) {
-        my string $str = sprintf("%s:%d", $ex.file, $ex.line);
-        if ($ex.source)
-            $str += sprintf(" (source %y:%d)", $ex.source, $ex.offset + $ex.line);
         return $str;
     }
 

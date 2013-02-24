@@ -2047,4 +2047,36 @@ my int $i = get_parse_options();
 int get_parse_options() [flags=CONSTANT] {
    return getParseOptions();
 }
+
+//! returns a descriptive string for an exception location; the \c source and \c offset information will also be included in the string returned if present in the @ref exception_hash "exception hash" argument
+/** @par Example:
+    @code
+try {
+    throw "oops", sprintf("arg %y is invalid", $arg);
+}
+catch (hash $ex) {
+    log("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
+}
+    @endcode
+
+    @param an @ref exception_hash "exception hash"
+
+    @return a string describing the exception location (ex: \c "sftp-poller.q:140")
+
+    @since %Qore 0.8.7
+ */
+string get_ex_pos(hash ex) [flags=CONSTANT] {
+   const AbstractQoreNode* n = ex->getKeyValue("file");
+   QoreStringNode* str = new QoreStringNode(get_node_type(n) == NT_STRING ? reinterpret_cast<const QoreStringNode*>(n)->getBuffer() : "<unknown>");
+   bool found = false;
+   int ln = (int)ex->getKeyAsBigInt("line", found);
+   str->sprintf(":%d", ln);
+   n = ex->getKeyValue("source");
+   if (get_node_type(n) == NT_STRING && !reinterpret_cast<const QoreStringNode*>(n)->empty()) {
+      int offset = (int)ex->getKeyAsBigInt("offset", found);
+      str->sprintf(" (source \"%s\":%d)", reinterpret_cast<const QoreStringNode*>(n)->getBuffer(), ln + offset);
+   }
+
+   return str;
+}
 //@}
