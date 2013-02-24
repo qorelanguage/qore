@@ -1,3 +1,951 @@
+2013-02-24 15:29  david_nichols
+
+	* qlib/SmtpClient.qm: use get_ex_pos() to display exception info
+
+2013-02-24 15:28  david_nichols
+
+	* doxygen/lang/155_data_type_declarations.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, lib/ql_misc.qpp,
+	  qlib/HttpServer.qm: added the get_ex_pos() function
+
+2013-02-22 19:18  david_nichols
+
+	* lib/qore-main.cpp, lib/thread.cpp: removed debugging printfs
+	  accidentally committed
+
+2013-02-22 17:58  david_nichols
+
+	* lib/qore-main.cpp, lib/thread.cpp: minor updates
+
+2013-02-22 16:09  david_nichols
+
+	* lib/thread.cpp: disabled unused function
+
+2013-02-22 16:07  david_nichols
+
+	* command-line.cpp, include/qore/AbstractPrivateData.h,
+	  include/qore/AbstractQoreNode.h,
+	  include/qore/AbstractThreadResource.h, include/qore/AutoVLock.h,
+	  include/qore/BinaryNode.h, include/qore/BuiltinFunctionList.h,
+	  include/qore/CallReferenceNode.h, include/qore/DBI.h,
+	  include/qore/Datasource.h, include/qore/DateTime.h,
+	  include/qore/DateTimeNode.h, include/qore/ExceptionSink.h,
+	  include/qore/ModuleManager.h, include/qore/ParseOptionMap.h,
+	  include/qore/Qore.h, include/qore/QoreBigIntNode.h,
+	  include/qore/QoreBoolNode.h, include/qore/QoreClass.h,
+	  include/qore/QoreCondition.h, include/qore/QoreCounter.h,
+	  include/qore/QoreEncoding.h, include/qore/QoreEvents.h,
+	  include/qore/QoreFile.h, include/qore/QoreFloatNode.h,
+	  include/qore/QoreFtpClient.h, include/qore/QoreHTTPClient.h,
+	  include/qore/QoreHashNode.h, include/qore/QoreLib.h,
+	  include/qore/QoreListNode.h, include/qore/QoreNamespace.h,
+	  include/qore/QoreNet.h,
+	  include/qore/QoreNodeEvalOptionalRefHolder.h,
+	  include/qore/QoreNothingNode.h, include/qore/QoreNullNode.h,
+	  include/qore/QoreNumberNode.h, include/qore/QoreObject.h,
+	  include/qore/QoreProgram.h, include/qore/QoreQueueHelper.h,
+	  include/qore/QoreRWLock.h, include/qore/QoreReferenceCounter.h,
+	  include/qore/QoreSSLBase.h, include/qore/QoreSSLCertificate.h,
+	  include/qore/QoreSSLPrivateKey.h, include/qore/QoreSocket.h,
+	  include/qore/QoreString.h, include/qore/QoreStringNode.h,
+	  include/qore/QoreThreadLocalStorage.h,
+	  include/qore/QoreThreadLock.h, include/qore/QoreType.h,
+	  include/qore/QoreTypeSafeReferenceHelper.h,
+	  include/qore/QoreURL.h, include/qore/ReferenceArgumentHelper.h,
+	  include/qore/ReferenceHolder.h, include/qore/ReferenceNode.h,
+	  include/qore/Restrictions.h, include/qore/SQLStatement.h,
+	  include/qore/SystemEnvironment.h, include/qore/common.h,
+	  include/qore/intern/AbstractIteratorHelper.h,
+	  include/qore/intern/AbstractSmartLock.h,
+	  include/qore/intern/AbstractStatement.h,
+	  include/qore/intern/BackquoteNode.h,
+	  include/qore/intern/BarewordNode.h,
+	  include/qore/intern/BreakStatement.h,
+	  include/qore/intern/BuiltinFunction.h,
+	  include/qore/intern/CallReferenceCallNode.h,
+	  include/qore/intern/CallReferenceNode.h,
+	  include/qore/intern/CaseNodeRegex.h,
+	  include/qore/intern/CaseNodeWithOperator.h,
+	  include/qore/intern/ClassRefNode.h,
+	  include/qore/intern/ComplexContextrefNode.h,
+	  include/qore/intern/ConstantList.h,
+	  include/qore/intern/Context.h,
+	  include/qore/intern/ContextRowNode.h,
+	  include/qore/intern/ContextStatement.h,
+	  include/qore/intern/ContextrefNode.h,
+	  include/qore/intern/ContinueStatement.h,
+	  include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/DatasourceStatementHelper.h,
+	  include/qore/intern/DoWhileStatement.h,
+	  include/qore/intern/ExecArgList.h,
+	  include/qore/intern/ExpressionStatement.h,
+	  include/qore/intern/FindNode.h,
+	  include/qore/intern/ForEachStatement.h,
+	  include/qore/intern/ForStatement.h,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/FunctionList.h,
+	  include/qore/intern/GlobalVariableList.h,
+	  include/qore/intern/IfStatement.h,
+	  include/qore/intern/LocalVar.h,
+	  include/qore/intern/ManagedDatasource.h,
+	  include/qore/intern/ModuleInfo.h,
+	  include/qore/intern/NamedScope.h,
+	  include/qore/intern/ObjectMethodReferenceNode.h,
+	  include/qore/intern/OnBlockExitStatement.h,
+	  include/qore/intern/Operator.h, include/qore/intern/ParseNode.h,
+	  include/qore/intern/ParseReferenceNode.h,
+	  include/qore/intern/ParserSupport.h,
+	  include/qore/intern/QC_AbstractSmartLock.h,
+	  include/qore/intern/QC_AutoGate.h,
+	  include/qore/intern/QC_AutoLock.h,
+	  include/qore/intern/QC_AutoReadLock.h,
+	  include/qore/intern/QC_AutoWriteLock.h,
+	  include/qore/intern/QC_Condition.h,
+	  include/qore/intern/QC_Counter.h,
+	  include/qore/intern/QC_Datasource.h,
+	  include/qore/intern/QC_DatasourcePool.h,
+	  include/qore/intern/QC_Dir.h, include/qore/intern/QC_File.h,
+	  include/qore/intern/QC_FtpClient.h,
+	  include/qore/intern/QC_Gate.h, include/qore/intern/QC_GetOpt.h,
+	  include/qore/intern/QC_HTTPClient.h,
+	  include/qore/intern/QC_Mutex.h, include/qore/intern/QC_Program.h,
+	  include/qore/intern/QC_Query.h, include/qore/intern/QC_Queue.h,
+	  include/qore/intern/QC_RWLock.h,
+	  include/qore/intern/QC_SQLStatement.h,
+	  include/qore/intern/QC_SSLCertificate.h,
+	  include/qore/intern/QC_SSLPrivateKey.h,
+	  include/qore/intern/QC_Sequence.h,
+	  include/qore/intern/QC_Socket.h,
+	  include/qore/intern/QC_TermIOS.h,
+	  include/qore/intern/QC_TimeZone.h,
+	  include/qore/intern/QException.h,
+	  include/qore/intern/QoreAndEqualsOperatorNode.h,
+	  include/qore/intern/QoreAssignmentOperatorNode.h,
+	  include/qore/intern/QoreBinaryLValueOperatorNode.h,
+	  include/qore/intern/QoreCastOperatorNode.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreClassList.h,
+	  include/qore/intern/QoreClosureNode.h,
+	  include/qore/intern/QoreClosureParseNode.h,
+	  include/qore/intern/QoreDeleteOperatorNode.h,
+	  include/qore/intern/QoreDir.h,
+	  include/qore/intern/QoreDivideEqualsOperatorNode.h,
+	  include/qore/intern/QoreDotEvalOperatorNode.h,
+	  include/qore/intern/QoreException.h,
+	  include/qore/intern/QoreExtractOperatorNode.h,
+	  include/qore/intern/QoreGetOpt.h,
+	  include/qore/intern/QoreHashIterator.h,
+	  include/qore/intern/QoreHashListIterator.h,
+	  include/qore/intern/QoreHashNodeIntern.h,
+	  include/qore/intern/QoreImplicitArgumentNode.h,
+	  include/qore/intern/QoreImplicitElementNode.h,
+	  include/qore/intern/QoreIntAssignmentOperatorNode.h,
+	  include/qore/intern/QoreIntMinusEqualsOperatorNode.h,
+	  include/qore/intern/QoreIntPlusEqualsOperatorNode.h,
+	  include/qore/intern/QoreIntPostDecrementOperatorNode.h,
+	  include/qore/intern/QoreIntPostIncrementOperatorNode.h,
+	  include/qore/intern/QoreIntPreDecrementOperatorNode.h,
+	  include/qore/intern/QoreIntPreIncrementOperatorNode.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreListHashIterator.h,
+	  include/qore/intern/QoreListIterator.h,
+	  include/qore/intern/QoreLogicalEqualsOperatorNode.h,
+	  include/qore/intern/QoreLogicalGreaterThanOperatorNode.h,
+	  include/qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h,
+	  include/qore/intern/QoreLogicalLessThanOperatorNode.h,
+	  include/qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h,
+	  include/qore/intern/QoreLogicalNotEqualsOperatorNode.h,
+	  include/qore/intern/QoreMinusEqualsOperatorNode.h,
+	  include/qore/intern/QoreModulaEqualsOperatorNode.h,
+	  include/qore/intern/QoreMultiplyEqualsOperatorNode.h,
+	  include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/QoreNamespaceList.h,
+	  include/qore/intern/QoreObjectIntern.h,
+	  include/qore/intern/QoreObjectIterator.h,
+	  include/qore/intern/QoreOperatorNode.h,
+	  include/qore/intern/QoreOrEqualsOperatorNode.h,
+	  include/qore/intern/QorePlusEqualsOperatorNode.h,
+	  include/qore/intern/QorePostDecrementOperatorNode.h,
+	  include/qore/intern/QorePostIncrementOperatorNode.h,
+	  include/qore/intern/QorePreDecrementOperatorNode.h,
+	  include/qore/intern/QorePreIncrementOperatorNode.h,
+	  include/qore/intern/QorePseudoMethods.h,
+	  include/qore/intern/QoreQueue.h,
+	  include/qore/intern/QoreRegexBase.h,
+	  include/qore/intern/QoreRegexNode.h,
+	  include/qore/intern/QoreRemoveOperatorNode.h,
+	  include/qore/intern/QoreSQLStatement.h,
+	  include/qore/intern/QoreSSLIntern.h,
+	  include/qore/intern/QoreShiftLeftEqualsOperatorNode.h,
+	  include/qore/intern/QoreShiftRightEqualsOperatorNode.h,
+	  include/qore/intern/QoreSignal.h,
+	  include/qore/intern/QoreSpliceOperatorNode.h,
+	  include/qore/intern/QoreThreadList.h,
+	  include/qore/intern/QoreTimeZoneManager.h,
+	  include/qore/intern/QoreTreeNode.h,
+	  include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/QoreUnaryMinusOperatorNode.h,
+	  include/qore/intern/QoreValue.h,
+	  include/qore/intern/QoreXorEqualsOperatorNode.h,
+	  include/qore/intern/RWLock.h,
+	  include/qore/intern/RangeIterator.h,
+	  include/qore/intern/ReferenceHelper.h,
+	  include/qore/intern/RegexSubstNode.h,
+	  include/qore/intern/RegexTransNode.h,
+	  include/qore/intern/RethrowStatement.h,
+	  include/qore/intern/ReturnStatement.h,
+	  include/qore/intern/SSLSocketHelper.h,
+	  include/qore/intern/ScopedObjectCallNode.h,
+	  include/qore/intern/ScopedRefNode.h,
+	  include/qore/intern/SelfVarrefNode.h,
+	  include/qore/intern/Sequence.h,
+	  include/qore/intern/SingleValueIterator.h,
+	  include/qore/intern/SmartMutex.h,
+	  include/qore/intern/StatementBlock.h,
+	  include/qore/intern/StaticClassVarRefNode.h,
+	  include/qore/intern/SummarizeStatement.h,
+	  include/qore/intern/SwitchStatement.h,
+	  include/qore/intern/ThreadExitStatement.h,
+	  include/qore/intern/ThreadResourceList.h,
+	  include/qore/intern/ThrowStatement.h,
+	  include/qore/intern/TryStatement.h, include/qore/intern/VLock.h,
+	  include/qore/intern/VRMutex.h, include/qore/intern/VarRefNode.h,
+	  include/qore/intern/Variable.h,
+	  include/qore/intern/WhileStatement.h,
+	  include/qore/intern/config.h, include/qore/intern/glob.h,
+	  include/qore/intern/inline_printf.h,
+	  include/qore/intern/ql_compression.h,
+	  include/qore/intern/ql_crypto.h, include/qore/intern/ql_debug.h,
+	  include/qore/intern/ql_env.h, include/qore/intern/ql_file.h,
+	  include/qore/intern/ql_lib.h, include/qore/intern/ql_list.h,
+	  include/qore/intern/ql_math.h, include/qore/intern/ql_misc.h,
+	  include/qore/intern/ql_object.h, include/qore/intern/ql_pwd.h,
+	  include/qore/intern/ql_string.h, include/qore/intern/ql_thread.h,
+	  include/qore/intern/ql_time.h, include/qore/intern/ql_type.h,
+	  include/qore/intern/qore_date_private.h,
+	  include/qore/intern/qore_dbi_private.h,
+	  include/qore/intern/qore_ds_private.h,
+	  include/qore/intern/qore_number_private.h,
+	  include/qore/intern/qore_program_private.h,
+	  include/qore/intern/qore_string_private.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  include/qore/intern/sql_statement_private.h,
+	  include/qore/intern/ssl_constants.h,
+	  include/qore/intern/win32-config.h, include/qore/macros-i386.h,
+	  include/qore/macros-ia64.h, include/qore/macros-none.h,
+	  include/qore/macros-powerpc.h, include/qore/macros-x86_64.h,
+	  include/qore/node_types.h, include/qore/params.h,
+	  include/qore/qore_bitopts.h, include/qore/qore_thread.h,
+	  include/qore/safe_dslist, include/qore/support.h,
+	  lib/AbstractQoreNode.cpp, lib/AbstractSmartLock.cpp,
+	  lib/AbstractStatement.cpp, lib/BackquoteNode.cpp,
+	  lib/BarewordNode.cpp, lib/BinaryNode.cpp,
+	  lib/BuiltinFunctionList.cpp, lib/CallReferenceNode.cpp,
+	  lib/CallStack.cpp, lib/ClassRefNode.cpp,
+	  lib/ComplexContextrefNode.cpp, lib/ConstantList.cpp,
+	  lib/Context.cpp, lib/ContextRowNode.cpp,
+	  lib/ContextStatement.cpp, lib/ContextrefNode.cpp, lib/DBI.cpp,
+	  lib/Datasource.cpp, lib/DatasourcePool.cpp, lib/DateTime.cpp,
+	  lib/DateTimeNode.cpp, lib/DoWhileStatement.cpp,
+	  lib/ExceptionSink.cpp, lib/ExecArgList.cpp,
+	  lib/ExpressionStatement.cpp, lib/FindNode.cpp,
+	  lib/ForEachStatement.cpp, lib/ForStatement.cpp, lib/Function.cpp,
+	  lib/FunctionCallNode.cpp, lib/FunctionList.cpp,
+	  lib/GlobalVariableList.cpp, lib/IfStatement.cpp,
+	  lib/ManagedDatasource.cpp, lib/ModuleManager.cpp,
+	  lib/NamedScope.cpp, lib/OnBlockExitStatement.cpp,
+	  lib/Operator.cpp, lib/ParseOptionMap.cpp, lib/Pseudo_QC_All.qpp,
+	  lib/Pseudo_QC_Binary.qpp, lib/Pseudo_QC_Bool.qpp,
+	  lib/Pseudo_QC_Callref.qpp, lib/Pseudo_QC_Closure.qpp,
+	  lib/Pseudo_QC_Date.qpp, lib/Pseudo_QC_Float.qpp,
+	  lib/Pseudo_QC_Hash.qpp, lib/Pseudo_QC_Int.qpp,
+	  lib/Pseudo_QC_List.qpp, lib/Pseudo_QC_Nothing.qpp,
+	  lib/Pseudo_QC_Number.qpp, lib/Pseudo_QC_Object.qpp,
+	  lib/Pseudo_QC_String.qpp,
+	  lib/QC_AbstractBidirectionalIterator.qpp,
+	  lib/QC_AbstractDatasource.qpp, lib/QC_AbstractIterator.qpp,
+	  lib/QC_AbstractQuantifiedBidirectionalIterator.qpp,
+	  lib/QC_AbstractQuantifiedIterator.qpp,
+	  lib/QC_AbstractSmartLock.qpp, lib/QC_AutoGate.qpp,
+	  lib/QC_AutoLock.qpp, lib/QC_AutoReadLock.qpp,
+	  lib/QC_AutoWriteLock.qpp, lib/QC_Condition.qpp,
+	  lib/QC_Counter.qpp, lib/QC_Datasource.qpp,
+	  lib/QC_DatasourcePool.qpp, lib/QC_Dir.qpp, lib/QC_File.qpp,
+	  lib/QC_FileLineIterator.qpp, lib/QC_FtpClient.qpp,
+	  lib/QC_Gate.qpp, lib/QC_GetOpt.qpp, lib/QC_HTTPClient.qpp,
+	  lib/QC_HashIterator.qpp, lib/QC_HashKeyIterator.qpp,
+	  lib/QC_HashKeyReverseIterator.qpp, lib/QC_HashListIterator.qpp,
+	  lib/QC_HashListReverseIterator.qpp, lib/QC_HashPairIterator.qpp,
+	  lib/QC_HashPairReverseIterator.qpp,
+	  lib/QC_HashReverseIterator.qpp, lib/QC_ListHashIterator.qpp,
+	  lib/QC_ListHashReverseIterator.qpp, lib/QC_ListIterator.qpp,
+	  lib/QC_ListReverseIterator.qpp, lib/QC_Mutex.qpp,
+	  lib/QC_ObjectIterator.qpp, lib/QC_ObjectKeyIterator.qpp,
+	  lib/QC_ObjectKeyReverseIterator.qpp,
+	  lib/QC_ObjectPairIterator.qpp,
+	  lib/QC_ObjectPairReverseIterator.qpp,
+	  lib/QC_ObjectReverseIterator.qpp, lib/QC_Program.qpp,
+	  lib/QC_Queue.qpp, lib/QC_RWLock.qpp, lib/QC_RangeIterator.qpp,
+	  lib/QC_ReadOnlyFile.qpp, lib/QC_SQLStatement.qpp,
+	  lib/QC_SSLCertificate.qpp, lib/QC_SSLPrivateKey.qpp,
+	  lib/QC_Sequence.qpp, lib/QC_SingleValueIterator.qpp,
+	  lib/QC_Socket.qpp, lib/QC_TermIOS.qpp, lib/QC_TimeZone.qpp,
+	  lib/QException.cpp, lib/QoreAndEqualsOperatorNode.cpp,
+	  lib/QoreAssignmentOperatorNode.cpp, lib/QoreBigIntNode.cpp,
+	  lib/QoreBoolNode.cpp, lib/QoreCastOperatorNode.cpp,
+	  lib/QoreClass.cpp, lib/QoreClassList.cpp,
+	  lib/QoreClosureNode.cpp, lib/QoreClosureParseNode.cpp,
+	  lib/QoreCondition.cpp, lib/QoreCounter.cpp,
+	  lib/QoreDeleteOperatorNode.cpp, lib/QoreDir.cpp,
+	  lib/QoreDivideEqualsOperatorNode.cpp,
+	  lib/QoreDotEvalOperatorNode.cpp, lib/QoreException.cpp,
+	  lib/QoreExtractOperatorNode.cpp, lib/QoreFile.cpp,
+	  lib/QoreFloatNode.cpp, lib/QoreFtpClient.cpp, lib/QoreGetOpt.cpp,
+	  lib/QoreHTTPClient.cpp, lib/QoreHashNode.cpp,
+	  lib/QoreImplicitArgumentNode.cpp,
+	  lib/QoreImplicitElementNode.cpp,
+	  lib/QoreIntAssignmentOperatorNode.cpp,
+	  lib/QoreIntMinusEqualsOperatorNode.cpp,
+	  lib/QoreIntPlusEqualsOperatorNode.cpp,
+	  lib/QoreIntPostDecrementOperatorNode.cpp,
+	  lib/QoreIntPostIncrementOperatorNode.cpp,
+	  lib/QoreIntPreDecrementOperatorNode.cpp,
+	  lib/QoreIntPreIncrementOperatorNode.cpp, lib/QoreLib.cpp,
+	  lib/QoreListNode.cpp, lib/QoreLogicalEqualsOperatorNode.cpp,
+	  lib/QoreLogicalGreaterThanOperatorNode.cpp,
+	  lib/QoreLogicalGreaterThanOrEqualsOperatorNode.cpp,
+	  lib/QoreLogicalLessThanOperatorNode.cpp,
+	  lib/QoreMinusEqualsOperatorNode.cpp,
+	  lib/QoreModulaEqualsOperatorNode.cpp,
+	  lib/QoreMultiplyEqualsOperatorNode.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreNet.cpp, lib/QoreNothingNode.cpp, lib/QoreNullNode.cpp,
+	  lib/QoreNumberNode.cpp, lib/QoreObject.cpp,
+	  lib/QoreOrEqualsOperatorNode.cpp,
+	  lib/QorePlusEqualsOperatorNode.cpp,
+	  lib/QorePostDecrementOperatorNode.cpp,
+	  lib/QorePostIncrementOperatorNode.cpp,
+	  lib/QorePreDecrementOperatorNode.cpp,
+	  lib/QorePreIncrementOperatorNode.cpp, lib/QoreProgram.cpp,
+	  lib/QorePseudoMethods.cpp, lib/QoreQueue.cpp,
+	  lib/QoreQueueHelper.cpp, lib/QoreReferenceCounter.cpp,
+	  lib/QoreRegexBase.cpp, lib/QoreRegexNode.cpp,
+	  lib/QoreRemoveOperatorNode.cpp, lib/QoreSQLStatement.cpp,
+	  lib/QoreSSLBase.cpp, lib/QoreSSLCertificate.cpp,
+	  lib/QoreSSLPrivateKey.cpp,
+	  lib/QoreShiftLeftEqualsOperatorNode.cpp,
+	  lib/QoreShiftRightEqualsOperatorNode.cpp, lib/QoreSignal.cpp,
+	  lib/QoreSocket.cpp, lib/QoreSpliceOperatorNode.cpp,
+	  lib/QoreString.cpp, lib/QoreStringNode.cpp,
+	  lib/QoreTimeZoneManager.cpp, lib/QoreTreeNode.cpp,
+	  lib/QoreType.cpp, lib/QoreTypeInfo.cpp, lib/QoreURL.cpp,
+	  lib/QoreUnaryMinusOperatorNode.cpp,
+	  lib/QoreXorEqualsOperatorNode.cpp, lib/RWLock.cpp,
+	  lib/ReferenceArgumentHelper.cpp, lib/ReferenceHelper.cpp,
+	  lib/ReferenceNode.cpp, lib/RegexSubstNode.cpp,
+	  lib/RegexTransNode.cpp, lib/ReturnStatement.cpp,
+	  lib/SQLStatement.cpp, lib/ScopedRefNode.cpp,
+	  lib/SelfVarrefNode.cpp, lib/Sequence.cpp, lib/SmartMutex.cpp,
+	  lib/StatementBlock.cpp, lib/StaticClassVarRefNode.cpp,
+	  lib/SummarizeStatement.cpp, lib/SwitchStatement.cpp,
+	  lib/SystemEnvironment.cpp, lib/ThreadResourceList.cpp,
+	  lib/ThrowStatement.cpp, lib/TryStatement.cpp, lib/VLock.cpp,
+	  lib/VRMutex.cpp, lib/VarRefNode.cpp, lib/Variable.cpp,
+	  lib/WhileStatement.cpp, lib/charset.cpp, lib/glob.cpp,
+	  lib/minitest.cpp, lib/mySocket.cpp, lib/parser.ypp,
+	  lib/qc_errno.qpp, lib/qc_option.qpp, lib/qc_qore.qpp,
+	  lib/ql_compression.qpp, lib/ql_context.qpp, lib/ql_crypto.qpp,
+	  lib/ql_dbi.qpp, lib/ql_debug.cpp, lib/ql_env.qpp,
+	  lib/ql_file.qpp, lib/ql_lib.qpp, lib/ql_list.qpp,
+	  lib/ql_math.qpp, lib/ql_misc.qpp, lib/ql_object.qpp,
+	  lib/ql_pwd.qpp, lib/ql_string.qpp, lib/ql_thread.qpp,
+	  lib/ql_time.qpp, lib/ql_type.qpp, lib/qore-main.cpp,
+	  lib/qore_date_private.cpp, lib/qpp.cpp, lib/scanner.lpp,
+	  lib/support.cpp, lib/thread.cpp, main.cpp: updated copyright
+	  statements to 2013
+
+2013-02-22 15:05  david_nichols
+
+	* lib/thread.cpp: added a function to determine the stack size on
+	  windows; however stack guard is still not working on windows
+
+2013-02-21 20:10  david_nichols
+
+	* include/qore/intern/AbstractStatement.h, lib/Function.cpp,
+	  lib/QoreSocket.cpp, lib/StatementBlock.cpp: make sure and mark
+	  parameter vars as "parse_unassigned" after parsing the code
+	  block; windows compile fixes
+
+2013-02-20 13:42  david_nichols
+
+	* include/qore/intern/AbstractStatement.h,
+	  include/qore/intern/LocalVar.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreOperatorNode.h,
+	  include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/QoreValue.h,
+	  include/qore/intern/SelfVarrefNode.h,
+	  include/qore/intern/VarRefNode.h, include/qore/intern/Variable.h,
+	  lib/QoreAssignmentOperatorNode.cpp, lib/QoreLib.cpp,
+	  lib/QoreTypeInfo.cpp, lib/StatementBlock.cpp, lib/VarRefNode.cpp,
+	  lib/Variable.cpp, lib/parser.ypp, qlib/HttpServer.qm: initial
+	  reference error fixes - "reference" and "*reference" types are
+	  enforced, global references to local references now work
+	  properly, etc
+
+2013-02-19 17:05  david_nichols
+
+	* include/qore/intern/QoreLibIntern.h, lib/QC_HTTPClient.qpp,
+	  lib/QoreAssignmentOperatorNode.cpp, lib/QoreTypeInfo.cpp:
+	  starting to address reference bug
+
+2013-02-13 13:26  david_nichols
+
+	* qlib/HttpServer.qm: implemented get_ex_pos() function in the
+	  HttpServer namespace to allow for more robust error reporting
+	  when source information is also available in the exception hash
+
+2013-02-06 15:36  david_nichols
+
+	* qlib/Pop3Client.qm, qlib/SmtpClient.qm, qlib/TelnetClient.qm:
+	  added docs for log arguments
+
+2013-02-06 12:57  david_nichols
+
+	* include/qore/intern/ConstantList.h, lib/ConstantList.cpp: fixed a
+	  bug where class constants were not being copied over when classes
+	  were inherited in child Program objects
+
+2013-02-06 12:42  david_nichols
+
+	* lib/QoreNamespace.cpp: cosmetic fix to error msg
+
+2013-01-29 13:18  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QoreString.cpp:
+	  fixed a bug where uninitialized memory was being returned when
+	  parseBase64() was called with an empty string argument; applied
+	  the same fix to parseBase64ToString(); updated release notes
+
+2013-01-29 13:12  david_nichols
+
+	* lib/QoreLib.cpp, lib/QoreString.cpp: return an empty string if
+	  parseBase64StringToString() is called with an empty argument
+
+2013-01-29 13:08  david_nichols
+
+	* lib/QoreLib.cpp: do not return uninitialized memory when calling
+	  parseBase64StringToString() with an empty string argument
+
+2013-01-25 16:06  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QC_File.qpp,
+	  lib/QoreFile.cpp: updated File::write*() methods to throw
+	  exceptions on errors instead of returning an error code (similar
+	  to the change made with the Socket::send*() methods in 0.8.6) to
+	  avoid having silent unhandled write failures, updated docs
+	  accordingly
+
+2013-01-17 18:09  david_nichols
+
+	* include/qore/intern/SSLSocketHelper.h, lib/QoreSocket.cpp: enable
+	  SSL_MODE_AUTO_RETRY to make blocking I/O with SSL a little
+	  simpler; close the socket immediately if a connection reset is
+	  received
+
+2013-01-16 19:39  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: updated release notes
+	  for last 2 bugs fixed
+
+2013-01-16 19:34  david_nichols
+
+	* include/qore/QoreSocket.h, include/qore/intern/QC_Socket.h,
+	  lib/QC_Socket.qpp, lib/QoreSocket.cpp, lib/mySocket.cpp: fixed
+	  erroneous usage of the timeout parameter (sometimes also missing)
+	  in C++ APIs in the Socket::sendHTTPMessage() and
+	  Socket::sendHTTPResponse() methods
+
+2013-01-15 10:29  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/155_data_type_declarations.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl: doc updates
+
+2013-01-14 15:36  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/Pseudo_QC_Date.qpp,
+	  lib/ql_time.qpp: added 3 new pseudo-methods to the <date>
+	  pseudo-class:
+	  * <date>::durationSeconds()
+	  * <date>::durationMilliseconds()
+	  * <date>::durationMicroseconds()
+
+2013-01-14 09:56  david_nichols
+
+	* lib/Pseudo_QC_Hash.qpp: doc updates
+
+2013-01-10 20:39  david_nichols
+
+	* qlib/HttpServer.qm: implemented support for listener stop
+	  notifications; implemented support for naming listeners and
+	  stopping them by name
+
+2013-01-10 15:43  david_nichols
+
+	* lib/ql_lib.qpp, lib/thread.cpp: fixes for non-debugging builds
+	  and warning fixes
+
+2013-01-10 14:19  david_nichols
+
+	* include/qore/intern/qore_program_private.h,
+	  lib/Pseudo_QC_All.qpp, lib/thread.cpp, test/test.q: doc update;
+	  make sure and keep parent program parse state even after parsing
+	  completes for error messages called after endParsing() is called
+	  by the scanner; added source exception tests to test.q
+
+2013-01-10 12:39  david_nichols
+
+	* include/qore/qore_thread.h: make QoreForeignThreadHelper
+	  constructor taking an int explicit
+
+2013-01-10 11:05  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QoreProgram.cpp:
+	  fixed a bug where trying to dynamically call a function that does
+	  not exist results in a deadlock due to an error where a mutex is
+	  not unlocked
+
+2013-01-10 08:47  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/Function.cpp: fixed
+	  a bug where declaring an abstract method with parameters and then
+	  declaring a reimplementation of the method in a base class with
+	  no parameters caused a parse-time crash
+
+2013-01-09 10:21  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/ManagedDatasource.h,
+	  lib/ManagedDatasource.cpp, lib/QC_Datasource.qpp,
+	  lib/QC_DatasourcePool.qpp: added the following new methods:
+	  - Datasource::transactionTid()
+	  - Datasource::currentThreadInTransaction()
+	  - DatasourcePool::currentThreadInTransaction()
+
+2013-01-08 13:47  david_nichols
+
+	* lib/QC_Program.qpp, lib/thread.cpp: do not call pthread_detach()
+	  on foreign thread; cosmetic doc change in QC_Program.qpp
+
+2013-01-05 07:39  david_nichols
+
+	* doxygen/lang/225_exception_handling.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/Datasource.h, include/qore/DateTime.h,
+	  include/qore/QoreProgram.h, include/qore/QoreString.h,
+	  include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/ManagedDatasource.h,
+	  include/qore/intern/QoreLibIntern.h, lib/Datasource.cpp,
+	  lib/DatasourcePool.cpp, lib/ManagedDatasource.cpp,
+	  lib/QC_Datasource.qpp, lib/QC_DatasourcePool.qpp,
+	  lib/QC_Program.qpp, lib/QoreException.cpp, lib/QoreString.cpp,
+	  lib/ql_misc.qpp, lib/ql_thread.qpp, lib/thread.cpp: do not set
+	  the "source" tag at all in exceptions if there is no "source"
+	  info available; updated docs; added source, offset, and
+	  format_label parameters to Program::parse() and
+	  Program::parsePending(); aligned the parse() function with the
+	  Program::parse() method; deprecated the c++
+	  Datasource::execArgs() function with the extraneous "args"
+	  parameter, removed the "args" parameter from all internal
+	  execArgs() functions; added a new c++ QoreStringMaker constructor
+	  taking an encoding argument; updated docs + release notes for new
+	  changes
+
+2013-01-05 06:03  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/ql_time.qpp,
+	  lib/qore_date_private.cpp: implemented the "us" date/time format
+	  code; updated docs
+
+2013-01-04 14:42  david_nichols
+
+	* include/qore/intern/QoreThreadList.h, lib/thread.cpp: make call
+	  stack allocation symmetric regarding thread entry reservations
+
+2013-01-04 14:03  david_nichols
+
+	* Makefile.am, include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreThreadList.h,
+	  include/qore/intern/ThreadResourceList.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  include/qore/qore_thread.h, lib/ql_lib.qpp, lib/ql_thread.qpp,
+	  lib/thread.cpp: major reworking of internal thread list and
+	  internal thread APIs, new external APIs to allow for thread entry
+	  reservations and releases
+
+2013-01-03 17:30  david_nichols
+
+	* include/qore/DateTime.h, include/qore/QoreLib.h,
+	  include/qore/QoreProgram.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreException.h,
+	  include/qore/intern/Variable.h,
+	  include/qore/intern/qore_date_private.h,
+	  include/qore/intern/qore_program_private.h,
+	  include/qore/qore_thread.h, lib/CallStack.cpp, lib/DateTime.cpp,
+	  lib/Function.cpp, lib/QoreException.cpp, lib/QoreProgram.cpp,
+	  lib/parser.ypp, lib/support.cpp: continuing changes to allow for
+	  secondary source tags + a line offset to be added when parsing
+	  for exception messages that can reference multiple code objects
+	  contained in the same file; moved new thread APIs to
+	  qore_thread.h
+
+2013-01-03 16:04  david_nichols
+
+	* include/qore/QoreString.h: oops - made
+	  QoreStringMaker::QoreStringMaker constructor public
+
+2013-01-03 07:46  david_nichols
+
+	* lib/thread.cpp: removed more unused code
+
+2013-01-02 17:11  david_nichols
+
+	* include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/qore_thread_intern.h, lib/thread.cpp: removed
+	  some unused code
+
+2013-01-02 17:10  david_nichols
+
+	* include/qore/ExceptionSink.h,
+	  include/qore/intern/AbstractStatement.h,
+	  include/qore/intern/ClassRefNode.h,
+	  include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreException.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreOperatorNode.h,
+	  include/qore/intern/VarRefNode.h, include/qore/intern/Variable.h,
+	  include/qore/intern/qore_program_private.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  lib/AbstractStatement.cpp, lib/CallStack.cpp,
+	  lib/ConstantList.cpp, lib/ExceptionSink.cpp, lib/Function.cpp,
+	  lib/QC_Datasource.qpp, lib/QC_DatasourcePool.qpp,
+	  lib/QoreException.cpp, lib/QoreLib.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreProgram.cpp, lib/StatementBlock.cpp, lib/parser.ypp,
+	  lib/scanner.lpp, lib/support.cpp, lib/thread.cpp: major internal
+	  changes to allow for tracking an additional source tag/filename
+	  in addition to the parse label + an offset line to allow for
+	  exception reporting for the case when multiple code objects (with
+	  different labels and independent line numbers) are created from
+	  the same source file
+
+2012-12-28 18:13  david_nichols
+
+	* include/qore/AbstractThreadResource.h,
+	  include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/DatasourceStatementHelper.h,
+	  include/qore/intern/ManagedDatasource.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreSQLStatement.h,
+	  include/qore/intern/ThreadResourceList.h, lib/DatasourcePool.cpp,
+	  lib/ManagedDatasource.cpp, lib/QoreSQLStatement.cpp,
+	  lib/ThreadResourceList.cpp, lib/thread.cpp: fixed some
+	  thread-resource issues with the SQLStatement class; greatly
+	  simplified SQLStatement resource management; removed unused
+	  thread resource list code
+
+2012-12-28 15:48  david_nichols
+
+	* lib/QoreProgram.cpp: clear program location when programs go out
+	  of scope in case any thread resource exceptions are thrown when
+	  there is no more valid Program scope
+
+2012-12-28 11:46  david_nichols
+
+	* lib/QC_File.qpp: fixed for compiling for a native windows target
+
+2012-12-28 07:50  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QC_File.qpp: added a
+	  new, easier-to-use variant of File::getTerminalAttributes() that
+	  returns a TermIOS object directly with the current terminal
+	  attributes
+
+2012-12-27 11:10  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: release notes updates
+
+2012-12-27 10:27  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: minor doc updates
+
+2012-12-27 10:18  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: doc updates for 0.8.7
+	  release
+
+2012-12-20 10:09  david_nichols
+
+	* include/qore/intern/Variable.h, lib/VarRefNode.cpp,
+	  lib/Variable.cpp: fixed a bug where global variables were being
+	  evaluated with strict mathematical boolean evaluation even when
+	  perl-bool-eval was enabled (the default)
+
+2012-12-19 13:41  david_nichols
+
+	* lib/QoreHashNode.cpp, lib/QoreListNode.cpp, lib/Variable.cpp,
+	  lib/qpp.cpp: added support for relative dates in qore value
+	  expressions in qpp; added some logic to convert ptrs to NOTHING
+	  to 0
+
+2012-12-19 10:13  david_nichols
+
+	* include/qore/Qore.h, lib/QoreLib.cpp, lib/qore-main.cpp: added
+	  new library options for supressing openssl library initialization
+	  and cleanup so that these actions can be performed externally or
+	  even by modules (in the case of openssl library cleanup) - in the
+	  last case to avoid a core dump on shutdown in case EVP_cleanup()
+	  is called by a module (such as the openldap module using the
+	  openldap library) - also added new functions for checking and
+	  setting library init options, so a module can tell the qore
+	  library that, for example, the openssl library will be cleaned up
+	  by the module (ex: openldap)
+
+2012-12-19 08:10  david_nichols
+
+	* lib/qore-main.cpp: additional openssl cleanup in library shutdown
+
+2012-12-19 07:59  david_nichols
+
+	* lib/thread.cpp: do thread-specific cleanup also for the main
+	  thread when shutting down the library
+
+2012-12-19 07:48  david_nichols
+
+	* lib/Operator.cpp: fixed memory leaks in the select and map
+	  operators when used with iterators
+
+2012-12-19 07:33  david_nichols
+
+	* lib/qore-main.cpp, lib/thread.cpp: added additional calls to
+	  openssl apis to free allocated memory per-thread and when
+	  shutting down the qore library
+
+2012-12-19 07:14  david_nichols
+
+	* include/qore/QoreLib.h, lib/QoreLib.cpp: added 2 new public APIs
+	  for checking library options
+
+2012-12-18 15:33  david_nichols
+
+	* lib/thread.cpp: set thread local data key to 0 for the current
+	  thread when threads are deregistered
+
+2012-12-18 15:28  david_nichols
+
+	* lib/Function.cpp: fixed typo in last commit
+
+2012-12-18 15:26  david_nichols
+
+	* lib/Function.cpp, lib/QoreClass.cpp: fixed a bug finding runtime
+	  function/method variants where parse data was incorrectly
+	  modified; also made it possible to call
+	  QoreFunction::findVariant() from threads where there is no
+	  current Program object
+
+2012-12-18 15:04  david_nichols
+
+	* include/qore/QoreLib.h, include/qore/intern/qore_thread_intern.h,
+	  lib/thread.cpp: new APIs for registering and deregistering
+	  foreign threads with the qore library
+
+2012-12-18 12:29  david_nichols
+
+	* qlib/HttpServer.qm: streamlined dynamic HTTP handler handling;
+	  updated version string to reflect new module version
+
+2012-12-18 12:14  david_nichols
+
+	* qlib/HttpServer.qm: updated http server module to 0.3.6 and fixed
+	  a race condition in tracking active requests in dynamic handlers
+	  and removing dynamic HTTP handlers
+
+2012-12-12 11:34  david_nichols
+
+	* include/qore/BinaryNode.h, include/qore/DateTimeNode.h,
+	  include/qore/QoreBigIntNode.h, include/qore/QoreBoolNode.h,
+	  include/qore/QoreFloatNode.h, include/qore/QoreHashNode.h,
+	  include/qore/QoreNothingNode.h, include/qore/QoreNullNode.h,
+	  include/qore/QoreNumberNode.h, include/qore/QoreObject.h,
+	  include/qore/QoreStringNode.h: added a static function to return
+	  the type code (can simplify templates)
+
+2012-12-10 11:46  david_nichols
+
+	* include/qore/DBI.h, lib/DBI.cpp: added the DBI_CAP_AUTORECONNECT
+	  capability constant
+
+2012-12-10 07:44  david_nichols
+
+	* include/qore/ModuleManager.h, include/qore/QoreQueueHelper.h,
+	  include/qore/intern/ModuleInfo.h, lib/ModuleManager.cpp: added a
+	  public C++ API for adding the standard module paths when setting
+	  up the module directory list before initializing the qore library
+
+2012-12-05 15:22  david_nichols
+
+	* Makefile.am, include/qore/Qore.h, include/qore/QoreFile.h,
+	  include/qore/QoreHTTPClient.h, include/qore/QoreLib.h,
+	  include/qore/QoreObject.h, include/qore/QoreQueueHelper.h,
+	  lib/Makefile.am, lib/QC_File.qpp, lib/QoreQueueHelper.cpp,
+	  lib/single-compilation-unit.cpp: added c++ classes for access to
+	  object private data: QoreFileHelper and QoreQueueHelper classes
+
+2012-12-05 05:33  david_nichols
+
+	* command-line.cpp, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/ModuleManager.h, include/qore/QoreHTTPClient.h,
+	  include/qore/QoreSocket.h, lib/ConstantList.cpp, lib/Makefile.am,
+	  lib/ModuleManager.cpp, lib/QC_HTTPClient.qpp, lib/QC_Socket.qpp,
+	  lib/QoreHTTPClient.cpp, qore.spec: implemented
+	  HTTPClient::getPeerInfo() and HTTPClient::getSocketInfo()
+	  methods, added public C++ apis for those methods in the
+	  QoreHTTPClient class, updated module API to 0.16, updated Qore
+	  library version to 5.10, updated release notes, removed built
+	  options from -V output in qore, implemented -B to list build
+	  options
+
+2012-12-03 18:33  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/Restrictions.h, include/qore/intern/Function.h,
+	  include/qore/intern/FunctionList.h, lib/FunctionList.cpp,
+	  lib/thread.cpp: fixed user function variant inheritance with the
+	  public keyword
+
+2012-12-03 14:52  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, include/qore/QoreFile.h,
+	  include/qore/QoreNumberNode.h, include/qore/QoreString.h,
+	  include/qore/QoreURL.h, include/qore/Restrictions.h,
+	  include/qore/intern/ConstantList.h,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/FunctionList.h,
+	  include/qore/intern/GlobalVariableList.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreClassList.h,
+	  include/qore/intern/QoreNamespaceIntern.h, lib/ConstantList.cpp,
+	  lib/FunctionList.cpp, lib/QC_Program.qpp, lib/QoreClassList.cpp,
+	  lib/QoreNamespace.cpp, lib/parser.ypp, qlib/SmtpClient.qm:
+	  renamed PO_INHERIT_USER_FUNC_VARIANTS to
+	  PO_NO_INHERIT_USER_FUNC_VARIANTS and PO_INHERIT_GLOBAL_VARS to
+	  PO_NO_INHERIT_GLOBAL_VARS and aligned the functionality with the
+	  new names in order to make symbol inheritance consistent with the
+	  rest of the implementation; made many small doc updates
+
+2012-12-03 07:28  david_nichols
+
+	* lib/thread.cpp: fixed exit() with threads running; we cannot
+	  safely call pthread_join() after canceling because a thread may
+	  have been canceled while holding a mutex and then another thread
+	  may be waiting indefinitely on the mutex (because, for example,
+	  pthread_mutex_lock() is not a cancellation point), so we just
+	  cancel all threads and then sleep for half a second and then call
+	  exit
+
+2012-12-02 21:33  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/205_namespaces.dox.tmpl,
+	  doxygen/lang/215_classes.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/ConstantList.h,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/qore_program_private.h, lib/ConstantList.cpp,
+	  lib/QC_Program.qpp, lib/QoreClass.cpp, lib/QoreClassList.cpp,
+	  lib/QoreNamespace.cpp, lib/QoreProgram.cpp: major code embedding
+	  improvements; only code declared as "public" is imported into
+	  child Program objects, giving programmers complete control over
+	  which symbols are inherited in child Program objects
+
+2012-12-01 11:27  david_nichols
+
+	* include/qore/intern/ModuleInfo.h: updated header
+
+2012-11-29 14:52  david_nichols
+
+	* lib/ModuleManager.cpp, lib/QC_Program.qpp, lib/QoreProgram.cpp,
+	  lib/QoreTypeInfo.cpp, lib/ql_misc.qpp: fixed a runtime class
+	  matching bug - when identical user classes were created in
+	  different Program objects, the match failed at runtime because
+	  the wrong APIs were being used; removed most restrictions on
+	  embedded logic in user modules; user module Program objects are
+	  subject to the same restrictions as the parent Program object (if
+	  any); added the get_parse_options() function; added the
+	  Program::loadModule() method to load a module directly into a
+	  Program object
+
+2012-11-27 16:56  david_nichols
+
+	* include/qore/intern/AbstractIteratorHelper.h,
+	  lib/ForEachStatement.cpp, lib/Operator.cpp: fixed a bug in the
+	  map operator with select expression when used with an iterator -
+	  caused a crash before due to a bad choice for default arguments
+	  for the AbstractIteratorHelper constructor
+
+2012-11-26 14:50  david_nichols
+
+	* include/qore/intern/Function.h,
+	  include/qore/intern/QoreTypeInfo.h, lib/QoreClass.cpp: fixed a
+	  bug where the generation of internal strings for abstract method
+	  signatures is done while parsing but tries to resolve class names
+	  in the signature types whereas this information is not available
+	  when classes are declared out of order (which must be supported
+	  in Qore)
+
+2012-11-23 10:54  david_nichols
+
+	* README, qlib/MailMessage.qm, qlib/SmtpClient.qm: SmtpClient
+	  module updated to v1.3: added support for parsing a full URL in
+	  the SmtpClient::constructor(); added protocol support and setting
+	  the username / password from the URL; use
+	  Message::checkSendPossible() to throw a more descriptive
+	  exception if the message is incomplete and not ready to be sent;
+	  implemented support for automatically detecting if the server
+	  accepts the STARTTLS command and, if so, automatically setting
+	  the STARTTLS flag if it's not already set
+	  MailMessage module updated to 1.0.4 with minor doc changes and
+	  non-functional code changes
+
+2012-11-23 10:53  david_nichols
+
+	* include/qore/intern/QoreTypeInfo.h, lib/Pseudo_QC_Nothing.qpp,
+	  lib/QoreTypeInfo.cpp: added more pseudo-methods to the <nothing>
+	  pseudo-class with default return values so that pseudo-methods on
+	  the <hash> pseudo-class can also be safely executed on NOTHING
+	  (to better support *hash values); removed support for the unused
+	  and partially-implemented "reverse_logic" flag in QoreTypeInfo;
+	  fixed "reference" type enforcement which was prohibiting the
+	  reference from being assigned to NOTHING even if it was legal for
+	  the original lvalue
+
+2012-11-21 12:05  david_nichols
+
+	* qlib/HttpServer.qm: removed unneeded comments / code in
+	  HttpServer example
+
+2012-11-21 08:34  david_nichols
+
+	* ChangeLog, RELEASE-NOTES, configure.ac, lib/Makefile.am,
+	  qore.spec: updated to v0.8.7 and also updated library api minor
+	  version
+
 2012-11-21 07:36  david_nichols
 
 	* configure.ac: fixed SSA* checks when linking with static openssl

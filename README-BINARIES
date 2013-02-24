@@ -1,7 +1,7 @@
 BINARIES
 --------
 For Linux RPMs for many distributions, see the opensuse build service:
-    http://download.opensuse.org/repositories/devel:/languages:/misc/
+    http://download.opensuse.org/repositories/home:/davidnichols/
 
 For OS/X, use macports: http://www.macports.org
     sudo port selfupdate
