@@ -29,7 +29,7 @@
 
 #include <set>
 
-typedef std::set<AbstractThreadResource *> trset_t;
+typedef std::set<AbstractThreadResource*> trset_t;
 
 class ThreadResourceList {
 private:
@@ -46,12 +46,14 @@ public:
       assert(trset.empty());
    }
 
-   DLLLOCAL void set(AbstractThreadResource *atr);
+   DLLLOCAL void set(AbstractThreadResource* atr);
+
+   DLLLOCAL bool check(AbstractThreadResource* atr) const;
 
    // returns 0 if removed, -1 if not found
-   DLLLOCAL int remove(AbstractThreadResource *atr);
+   DLLLOCAL int remove(AbstractThreadResource* atr);
 
-   DLLLOCAL void purge(ExceptionSink *xsink);
+   DLLLOCAL void purge(ExceptionSink* xsink);
 
    DLLLOCAL bool empty() const {
       return trset.empty();

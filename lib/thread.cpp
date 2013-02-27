@@ -754,27 +754,32 @@ ClosureParseEnvironment *thread_get_closure_parse_env() {
 }
 
 void parse_push_name(const char* name) {
-   ThreadData *td = thread_data.get();
+   ThreadData* td = thread_data.get();
    td->pushName(name);
 }
 
 std::string parse_pop_name() {
-   ThreadData *td = thread_data.get();
+   ThreadData* td = thread_data.get();
    return td->popName();
 }
 
-void set_thread_resource(AbstractThreadResource *atr) {
-   ThreadData *td = thread_data.get();
+void set_thread_resource(AbstractThreadResource* atr) {
+   ThreadData* td = thread_data.get();
    td->trlist->set(atr);
 }
 
-int remove_thread_resource(AbstractThreadResource *atr) {
-   ThreadData *td = thread_data.get();
+int remove_thread_resource(AbstractThreadResource* atr) {
+   ThreadData* td = thread_data.get();
    return td->trlist->remove(atr);
 }
 
+bool check_thread_resource(AbstractThreadResource* atr) {
+   ThreadData* td = thread_data.get();
+   return td->trlist->check(atr);
+}
+
 void mark_thread_resources() {
-   ThreadData *td = thread_data.get();
+   ThreadData* td = thread_data.get();
    ThreadResourceList* trl = new ThreadResourceList(td->trlist);
    td->trlist = trl;
 }

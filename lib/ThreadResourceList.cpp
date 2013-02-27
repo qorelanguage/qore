@@ -28,7 +28,7 @@
 
 Sequence ThreadResourceList::seq;
 
-void ThreadResourceList::set(AbstractThreadResource *atr) {
+void ThreadResourceList::set(AbstractThreadResource* atr) {
    //printd(5, "TRL::set(atr: %p)\n", atr);
    assert(trset.find(atr) == trset.end());
 
@@ -36,7 +36,12 @@ void ThreadResourceList::set(AbstractThreadResource *atr) {
    trset.insert(atr);
 }
 
-void ThreadResourceList::purge(ExceptionSink *xsink) {
+bool ThreadResourceList::check(AbstractThreadResource* atr) const {
+   //printd(5, "TRL::set(atr: %p)\n", atr);
+   return trset.find(atr) != trset.end();
+}
+
+void ThreadResourceList::purge(ExceptionSink* xsink) {
    for (trset_t::iterator i = trset.begin(), e = trset.end(); i != e; ++i) {
       //printd(5, "TRL::purge() cleaning up atr: %p\n", *i);
       (*i)->cleanup(xsink);
@@ -47,7 +52,7 @@ void ThreadResourceList::purge(ExceptionSink *xsink) {
    //printd(5, "TRL::purge() done\n");
 }
 
-int ThreadResourceList::remove(AbstractThreadResource *atr) {
+int ThreadResourceList::remove(AbstractThreadResource* atr) {
    //printd(5, "TRL::remove(atr: %p)\n", atr);
 
    trset_t::iterator i = trset.find(atr);

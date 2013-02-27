@@ -65,14 +65,21 @@ DLLEXPORT const AbstractQoreZoneInfo *currentTZ();
 //! save a resource against a thread for thread resource handling
 /** @param atr a pointer to the thread resource to save
  */
-DLLEXPORT void set_thread_resource(AbstractThreadResource *atr);
+DLLEXPORT void set_thread_resource(AbstractThreadResource* atr);
 
 //! remove the resource from the thread resource list for the current thread
 /** @param atr a pointer to the thread resource to remove
     @return 0 if successful (resource was found and removed), -1 if the resource was not found
  */
-DLLEXPORT int remove_thread_resource(AbstractThreadResource *atr);
+DLLEXPORT int remove_thread_resource(AbstractThreadResource* atr);
 
+//! check if a thread resouce has been saved
+/** @param trid thread resource id to check
+    @return true if saved, false if not saved
+*/
+DLLEXPORT bool check_thread_resource(AbstractThreadResource* atr);
+
+#if 0
 //! save a resource against a thread for thread resource handling using the thread resource id
 /** by using the thread resource id, you can quickly check if the resource has already been saved for the thread
     @param trid thread resource id
@@ -95,6 +102,7 @@ DLLEXPORT int remove_thread_resource_id(q_trid_t trid);
     @return true if saved, false if not saved
 */
 DLLEXPORT bool check_thread_resource_id(q_trid_t trid);
+#endif
 
 //! get a thread resource ID
 DLLEXPORT q_trid_t qore_get_trid();
