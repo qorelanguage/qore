@@ -165,6 +165,29 @@ public:
    }
 };
 
+template <class T = QoreOperatorNode>
+class QoreTrinaryOperatorNode : public T {
+protected:
+   AbstractQoreNode* e[3];
+
+public:
+   DLLLOCAL QoreTrinaryOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) {
+      e[0] = e0;
+      e[1] = e1;
+      e[2] = e2;
+   }
+
+   DLLLOCAL ~QoreTrinaryOperatorNode() {
+      for (unsigned i = 0; i < 3; ++i)
+         if (e[i]) e[i]->deref(0);
+   }
+
+   DLLLOCAL AbstractQoreNode* get(unsigned i) {
+      assert(i < 3);
+      return e[i];
+   }
+};
+
 // include operator headers
 #include <qore/intern/QoreDeleteOperatorNode.h>
 #include <qore/intern/QoreRemoveOperatorNode.h>
@@ -202,5 +225,6 @@ public:
 #include <qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h>
 #include <qore/intern/QoreLogicalGreaterThanOperatorNode.h>
 #include <qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h>
+#include <qore/intern/QoreQuestionMarkOperatorNode.h>
 
 #endif
