@@ -42,7 +42,7 @@ Operator *OP_MODULA,
    *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
    *OP_MULT, *OP_DIV, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
    *OP_LOG_CMP, 
-   *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, // *OP_QUESTION_MARK,
+   *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT, 
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, 
@@ -527,22 +527,6 @@ static AbstractQoreNode *op_keys(const AbstractQoreNode *left, const AbstractQor
 
    return get_keys(*np, xsink);
 }
-
-/*
-// FIXME: do not need ref_rv here
-static AbstractQoreNode *op_question_mark(const AbstractQoreNode *left, const AbstractQoreNode *list, bool ref_rv, ExceptionSink *xsink) {
-   assert(list && list->getType() == NT_LIST);
-   bool b = left->boolEval(xsink);
-   if (xsink->isEvent())
-      return 0;
-
-   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(list);
-
-   if (b)
-      return l->retrieve_entry(0)->eval(xsink);
-   return l->retrieve_entry(1)->eval(xsink);
-}
-*/
 
 static AbstractQoreNode *op_regex_subst(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
@@ -3594,26 +3578,6 @@ static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int 
    return tree;
 }
 
-/*
-static AbstractQoreNode *check_op_question_mark(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   if (tree->constArgs())
-      return tree->evalSubst(returnTypeInfo);
-
-   if (leftTypeInfo->nonNumericValue() && checkParseOption(PO_STRICT_BOOLEAN_EVAL))
-      leftTypeInfo->doNonBooleanWarning("the initial expression with the '?:' operator is ");
-
-   returnTypeInfo = leftTypeInfo->isOutputIdentical(rightTypeInfo) ? leftTypeInfo : 0;
-
-   return tree;
-}
-*/
-
 // issues a warning
 static AbstractQoreNode *check_op_list_op(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
@@ -3859,11 +3823,6 @@ void OperatorList::init() {
    // can return a list or NOTHING
    OP_KEYS = add(new Operator(1, "keys", "list of keys", 0, false, false, check_op_keys));
    OP_KEYS->addFunction(NT_ALL, NT_NONE, op_keys);
-
-   /*
-   OP_QUESTION_MARK = add(new Operator(2, "question", "question-mark colon", 0, false, false, check_op_question_mark));
-   OP_QUESTION_MARK->addFunction(NT_ALL, NT_ALL, op_question_mark);
-    */
 
    OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true, check_op_list_op));
    OP_SHIFT->addFunction(op_shift);

@@ -117,7 +117,7 @@ public:
    }
 
    DLLLOCAL virtual bool hasEffect() const {
-      return false;
+      return ::node_has_effect(e[1]) || ::node_has_effect(e[2]);
    }
 };
 

@@ -949,14 +949,14 @@ static void check_nsmod(int mod, qore_ns_private& ns) {
       parse_error("illegal 'abstract' modifier in namespace declaration");
 }
 
-static bool hasEffect(AbstractQoreNode* n) {
+bool node_has_effect(const AbstractQoreNode* n) {
    if (!n || n->is_value())
       return false;
 
    if (n->getType() == NT_OPERATOR)
       return reinterpret_cast<const QoreOperatorNode*>(n)->hasEffect();
 
-   ParseNode* pn = dynamic_cast<ParseNode*>(n);
+   const ParseNode* pn = dynamic_cast<const ParseNode*>(n);
    return pn ? pn->has_effect() : true;
 }
 
@@ -1680,7 +1680,7 @@ statement:
 		 ok = true;
 	   }
 
-	   if (!ok && !hasEffect($1) && (t != NT_VARREF || !reinterpret_cast<VarRefNode*>($1)->parseIsDecl()))
+	   if (!ok && !node_has_effect($1) && (t != NT_VARREF || !reinterpret_cast<VarRefNode*>($1)->parseIsDecl()))
 	      parse_error("statement has no effect (%s)", $1 ? $1->getTypeName() : "NOTHING");
            ignore_return_value($1);
 	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, $1);
@@ -3076,7 +3076,7 @@ exp:    scalar
 	   // check to see if the expression is legal
 	   if (checkParseOption(PO_NO_THREAD_CONTROL))
 	      parse_error("illegal use of \"background\" operator (conflicts with parse option NO_THREAD_CONTROL)");
-	   else if (!hasEffect($2))
+	   else if (!node_has_effect($2))
 	      parse_error("argument to background operator (%s) has no effect", get_type_name($2));
 	}
         | BACKQUOTE {

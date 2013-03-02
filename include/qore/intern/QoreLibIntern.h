@@ -402,6 +402,8 @@ public:
    DLLLOCAL virtual const char* getName() const = 0;
 };
 
+DLLLOCAL bool node_has_effect(const AbstractQoreNode* n);
+
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>
 #include <qore/intern/ParseNode.h>
