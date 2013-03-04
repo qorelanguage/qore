@@ -10,6 +10,13 @@
     @subsection qore_088_compatibility Changes That Can Affect Backwards-Compatibility
     - Fixed method resolution order; it's now possible to call pseudo-methods directly on classes that implement @ref methodGate_methods "methodGate() methods"
 
+    @subsection qore_088_new_features New Features in Qore
+    - new Datasource and DatasourcePool methods:
+      - Qore::SQL::Datasource::getConfigHash()
+      - Qore::SQL::Datasource::getConfigString()
+      - Qore::SQL::DatasourcePool::getConfigHash()
+      - Qore::SQL::DatasourcePool::getConfigString()
+
     @subsection qore_088_bug_fixes Bug Fixes in Qore
     - fixed a bug where the ?: operator could thrown spurious exceptions when parsing because it would return the type of the initial boolean expression as the return type of the operator
     - fixed a bug where classes with unimplemented inherited abstract variants would sometimes cause runtime exceptions to be thrown when instantiated but should have instead been caught at parse time

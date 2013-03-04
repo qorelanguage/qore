@@ -9,7 +9,7 @@ dummy:
 	$(top_srcdir)/next_build.sh
 
 EXTRA_INCLUDES = -I$(top_srcdir)/include
-libqore_la_LDFLAGS = -version-info 15:0:10 -no-undefined ${QORE_LIB_LDFLAGS}
+libqore_la_LDFLAGS = -version-info 16:0:11 -no-undefined ${QORE_LIB_LDFLAGS}
 AM_CPPFLAGS = $(EXTRA_INCLUDES) ${QORE_LIB_CPPFLAGS}
 AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
 AM_YFLAGS = -d

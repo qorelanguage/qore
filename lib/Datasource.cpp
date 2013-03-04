@@ -438,3 +438,86 @@ const QoreHashNode* Datasource::getConnectOptions() const {
 AbstractQoreNode* Datasource::getOption(const char* opt, ExceptionSink* xsink) {
    return qore_dbi_private::get(*priv->dsl)->opt_get(this, opt, xsink);
 }
+
+QoreHashNode* Datasource::getConfigHash() const {
+   QoreHashNode* h = new QoreHashNode;
+
+   h->setKeyValue("type", new QoreStringNode(priv->dsl->getName()), 0);
+   if (!priv->username.empty())
+      h->setKeyValue("user", new QoreStringNode(priv->username), 0);
+   if (!priv->password.empty())
+      h->setKeyValue("pass", new QoreStringNode(priv->password), 0);
+   if (!priv->dbname.empty())
+      h->setKeyValue("db", new QoreStringNode(priv->dbname), 0);
+   if (!priv->db_encoding.empty())
+      h->setKeyValue("charset", new QoreStringNode(priv->db_encoding), 0);
+   if (!priv->hostname.empty())
+      h->setKeyValue("host", new QoreStringNode(priv->hostname), 0);
+   if (priv->port)
+      h->setKeyValue("port", new QoreBigIntNode(priv->port), 0);
+
+   QoreHashNode* options = 0;
+
+   ReferenceHolder<QoreHashNode> opts(qore_dbi_private::get(*priv->dsl)->getOptionHash(this), 0);
+   ConstHashIterator hi(*opts);
+   while (hi.next()) {
+      const QoreHashNode* ov = reinterpret_cast<const QoreHashNode*>(hi.getValue());
+      const AbstractQoreNode* v = ov->getKeyValue("value");
+      if (!v || v == &False)
+	 continue;
+
+      if (!options)
+	 options = new QoreHashNode;
+
+      options->setKeyValue(hi.getKey(), v->refSelf(), 0);
+   }
+   if (options)
+      h->setKeyValue("options", options, 0);
+
+   return h;
+}
+
+QoreStringNode* Datasource::getConfigString() const {
+   QoreStringNode* str = new QoreStringNode(priv->dsl->getName());
+   str->concat(':');
+
+   if (!priv->username.empty())
+      str->concat(priv->username);
+   if (!priv->password.empty())
+      str->sprintf("/%s", priv->password.c_str());
+   if (!priv->dbname.empty())
+      str->sprintf("@%s", priv->dbname.c_str());
+   if (!priv->db_encoding.empty())
+      str->sprintf("(%s)", priv->db_encoding.c_str());
+   if (!priv->hostname.empty())
+      str->sprintf("%%%s", priv->hostname.c_str());
+   if (priv->port)
+      str->sprintf(":%d", priv->port);
+
+   bool first = false;
+   ReferenceHolder<QoreHashNode> opts(qore_dbi_private::get(*priv->dsl)->getOptionHash(this), 0);
+   ConstHashIterator hi(*opts);
+   while (hi.next()) {
+      const QoreHashNode* ov = reinterpret_cast<const QoreHashNode*>(hi.getValue());
+      const AbstractQoreNode* v = ov->getKeyValue("value");
+      if (!v || v == &False)
+	 continue;
+
+      if (first)
+	 str->concat(',');
+      else {
+	 str->concat('{');
+	 first = true;
+      }
+      str->concat(hi.getKey());
+      if (v == &True)
+	 continue;
+
+      QoreStringValueHelper sv(v);
+      str->sprintf("=%s", sv->getBuffer());
+   }
+   if (first)
+      str->concat('}');
+
+   return str;
+}

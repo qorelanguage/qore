@@ -482,6 +482,18 @@ public:
        this function is meant to be used during the open() call to read any options that may be relevant for opening a new connection
     */
    DLLEXPORT const QoreHashNode* getConnectOptions() const;
+
+   //! returns a hash representing the configuration of the current object
+   /**
+      @since %Qore 0.8.8
+   */
+   DLLEXPORT QoreHashNode* getConfigHash() const;
+
+   //! returns a string representing the configuration of the current object
+   /**
+      @since %Qore 0.8.8
+   */
+   DLLEXPORT QoreStringNode* getConfigString() const;
 };
 
 #endif // _QORE_DATASOURCE_H

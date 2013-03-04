@@ -146,8 +146,8 @@ public:
       return tmap.find(gettid()) != tmap.end();
    }
 
-   //DLLLOCAL virtual void helperAssignDatasource(ExceptionSink *xsink) { return 0; }
-   //DLLLOCAL virtual void helperReleaseDatasource() { }
+   DLLLOCAL QoreHashNode* getConfigHash() const;
+   DLLLOCAL QoreStringNode* getConfigString() const;
 };
 
 class DatasourcePoolActionHelper {

@@ -416,3 +416,31 @@ bool DatasourcePool::inTransaction() {
    AutoLocker al((QoreThreadLock *)this);
    return tmap.find(tid) != tmap.end();
 }
+
+QoreHashNode* DatasourcePool::getConfigHash() const {
+   QoreHashNode* h = pool[0]->getConfigHash();
+   
+   // add min and max options
+   QoreHashNode* opt = reinterpret_cast<QoreHashNode*>(h->getKeyValue("options"));
+   if (!opt) {
+      opt = new QoreHashNode;
+      h->setKeyValue("options", opt, 0);
+   }
+   opt->setKeyValue("min", new QoreBigIntNode(min), 0);
+   opt->setKeyValue("max", new QoreBigIntNode(max), 0);
+
+   return h;
+}
+
+QoreStringNode* DatasourcePool::getConfigString() const {
+   QoreStringNode* str = pool[0]->getConfigString();
+
+   // add min and max options
+   QoreStringMaker mm(",min=%d,max=%d", min, max);
+   if ((*str)[str->size() - 1] == '}')
+      str->splice(str->size() - 1, 0, mm, 0);
+   else 
+      str->sprintf("{%s}", mm.getBuffer() + 1);
+
+   return str;
+}
