@@ -1,0 +1,270 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file SqlUtil.qm Qore user module for working with SQL data
+
+/*  SqlUtil.qm Copyright 2013 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.8 or better
+%requires qore >= 0.8.8
+
+# don't use "$" signs for variables and class members, assume local variable scope
+%new-style
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+%disable-warning non-existent-method-call
+
+module SqlUtil {
+    version = "1.0";
+    desc = "user module for working with SQL data";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+}
+
+/** @mainpage SqlUtil Module
+
+    The %SqlUtil module provides functionality for parsing SQL-like files.
+
+    To use this module, use \c "%requires SqlUtil" in your code.
+    
+    All the public symbols in the module are defined in the SqlUtil namespace
+*/
+
+#! the SqlUtil namespace contains all the objects in the SqlUtil module
+public namespace SqlUtil {
+    #! represents a single table
+    public class AbstractTable {
+        public {
+            #! drivers known to 
+            const DriverMap = (
+                "oracle": \AbstractTable::getOracleTable(),
+                "pgsql": \AbstractTable::getPgsqlTable(),
+                "mysql": \AbstractTable::getMysqlTable(),
+                );
+        }
+
+        private {
+            AbstractDatasource ds;
+            # table name
+            string name;
+            # schema name
+            string schema;
+            # datasource description
+            string dsdesc;
+            # table description hash
+            hash desc;
+        }
+
+        constructor(AbstractDatasource nds, string nname) {
+            name = nname;
+            ds = nds;
+            ds.open();
+            dsdesc = sprintf("%s:%s@%s", ds.getDriverName(), ds.getUserName(), ds.getDBName());
+            if (ds.getHostName())
+                dsdesc += "%" + ds.getHostName();
+            if (nds.getPort())
+                dsdesc += sprintf(":%d", ds.getPort());
+
+            desc = describeImpl();
+        }
+
+        # returns the table description hash as acquired in the constructor
+        /** @par Example:
+            @code
+my hash $h = $table.describe();
+            @endcode
+
+            @return a hash with the following keys and structure:
+            - \c columns: a hash of column information keyed by column name; each value is a hash describing the column with the following keys (additional keys may be present giving database-specific column information):
+              - \c native_type: the native type name of the column
+              - \c qore_type: the equivalent qore type name of the column if the native type is known
+              - \c size: the size of the column
+              - \c nullable: @ref Qore::True "True" if the column can hold a NULL value, @ref Qore::False "False" if not
+            - \c primary_key: a hash giving the columns in the primary key for the table (if the table has a primary key); each key is the column name; the value is a boolean @ref Qore::True "True"; a hash is used to simulate a set
+            - \c indexes: a hash of index information keyed by index name; the values are hashes with the following keys describing the index:
+              - \c unique: @ref Qore::True "True" if the index is a unique index, @ref Qore::False "False" if not
+              - \c native_type: the native type of the index
+              - \c tablespace: the tablespace name of the index (if supported)
+              - \c columns: a hash of column names that make up the index (to simulate a set)
+            - \c constraints: a hash of constraint information keyed by constraint name; each value is a hash describing the constraint with the following keys:
+                - \c enabled: @ref Qore::True "True" if the constraint is enabled
+                - \c columns: a hash of column names in the current (source) table that make up the constraint (to simulate a set)
+                - \c target: a hash describing the target of the constraint with the following keys:
+                  - \c table: the name of the target table
+                  - \c columns: the column names in the target table that the constraint is based on 
+                
+         */
+        hash describe() {
+            return desc;
+        }
+
+        static AbstractTable getTable(AbstractDatasource nds, string nname) {
+            string drv = nds.getDriverName();
+            *code c = DriverMap{drv};
+            if (!c)
+                throw "TABLE-DRIVER-ERROR", sprintf("no support for driver %y yet in SqlUtil::AbstractTable", drv);
+            return c(nds, nname);
+        }
+
+        static AbstractTable getTable(string dsstr, string nname) {
+            Datasource nds(dsstr);
+            string drv = nds.getDriverName();
+            *code c = DriverMap{drv};
+            if (!c)
+                throw "TABLE-DRIVER-ERROR", sprintf("no support for driver %y yet in SqlUtil::AbstractTable", drv);
+            return c(nds, nname);
+        }
+
+
+        static OracleTable getOracleTable(AbstractDatasource nds, string nname) {
+            return new OracleTable(nds, nname);
+        }
+
+        static PgsqlTable getPgsqlTable(AbstractDatasource nds, string nname) {
+            return new PgsqlTable(nds, nname);
+        }
+
+        static MysqlTable getMysqlTable(AbstractDatasource nds, string nname) {
+            return new MysqlTable(nds, nname);
+        }
+
+        private abstract hash describeImpl();
+    }
+
+    public class OracleTable inherits AbstractTable {
+        public {
+            const OraTypeMap = (
+                "NUMBER": ("qore": "number",),
+                "VARCHAR2": ("qore": "string",),
+                "CHAR": ("qore": "string",),
+                "DATE": ("qore": "date",),
+                "TIMESTAMP": ("qore": "date",),
+                "CLOB": ("qore": "string",),
+                "BLOB": ("qore": "binary",),
+                );
+
+            const QoreTypeMap = (
+                "integer": "number",
+                "float": "number",
+                "number": "number",
+                "string": "varchar2",
+                "date": "timestamp",
+                "binary": "blob",
+                );
+        }
+
+        constructor(AbstractDatasource nds, string nname) : AbstractTable(nds, nname.upr()) {            
+            int p = name.find(".");
+            if (p != -1) {
+                schema = extract name, 0, p;
+                splice name, 0, 1;
+            }
+            else {
+                schema = ds.getUserName().upr();
+            }
+        }
+
+        private hash describeImpl() {
+            #printf("%N\n", ds.selectRow("select sys_context(%v, %v) sys_context from dual", "USERENV", "SESSION_USER").sys_context);
+
+            #printf("select column_name, data_type, data_length, data_precision, data_scale, nullable from user_tab_columns where table_name = '%s'", name);
+
+            # get column descriptions
+            *hash qh = ds.select("select column_name, data_type, data_length, data_precision, data_scale, nullable from user_tab_columns where table_name = %v", name);
+            if (!qh.column_name)
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y (%N)", name, dsdesc, qh);
+
+            hash rv;
+            foreach hash row in (qh.contextIterator()) {
+                *hash th = OraTypeMap.(row.data_type);
+                rv.columns.(row.column_name) = (
+                    "native_type": row.data_type,
+                    "qore_type": th.qore,
+                    "size": row.data_length,
+                    "nullable": row.nullable == "Y",
+                    );
+            }
+
+            # get primary key description
+            qh = ds.select("select cols.column_name, cols.position, cons.status, cons.owner from user_constraints cons, user_cons_columns cols where cols.table_name = %v and cons.constraint_type = 'P' and cons.constraint_name = cols.constraint_name order by cols.position", name);
+            foreach string col in (qh.column_name)
+                rv.primary_key{col} = True;
+
+            # get index description
+            qh = ds.select("select index_name, index_type, uniqueness, tablespace_name from user_indexes where table_name = %v", name);            
+            if (qh.index_name) {
+                foreach hash row in (qh.contextIterator()) {
+                    rv.indexes.(row.index_name) = (
+                        "unique": (row.uniqueness == "UNIQUE"),
+                        "native_type": row.index_type,
+                        "tablespace": row.tablespace_name,
+                        );
+                }
+
+                # get column info for all indexes in 1 query
+                qh = ds.select("select * from user_ind_columns where table_name = %v order by table_name, index_name, column_position", name);
+                foreach hash row in (qh.contextIterator()) {
+                    rv.indexes.(row.index_name).columns{row.column_name} = True;
+                }
+            }
+
+            # get foreign referential constraints
+            qh = ds.select("select constraint_name, status from user_constraints where table_name = %v and constraint_type = 'R'", name);
+            if (qh.status) {
+                foreach hash row in (qh.contextIterator()) {
+                    rv.constraints.(row.constraint_name) = (
+                        "enabled": row.status == "ENABLED",
+                        );
+                }
+                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from user_constraints c, user_cons_columns cols1, user_cons_columns cols2 where c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position order by cols1.position", name);
+                foreach hash row in (qh.contextIterator()) {
+                    reference c = \rv.constraints.(row.constraint_name); 
+                    c.columns.(row.source_column) = True;
+                    c.target.table = row.target_table;
+                    c.target.columns.(row.target_column) = True;
+                }
+            }
+
+            return rv;
+        }
+    }
+
+    public class PgsqlTable inherits AbstractTable {
+        constructor(AbstractDatasource nds, string nname) : AbstractTable(nds, nname) {
+        }
+
+        private hash describeImpl() {
+            return hash();
+        }
+    }
+
+    public class MysqlTable inherits AbstractTable {
+        constructor(AbstractDatasource nds, string nname) : AbstractTable(nds, nname) {
+        }
+
+        private hash describeImpl() {
+            return hash();
+        }
+    }
+}
