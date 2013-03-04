@@ -5,7 +5,10 @@
     @section qore_088 Qore 0.8.8
 
     @par Release Summary
-    ??? in progress
+    Bug fixes and --- in progress
+
+    @subsection qore_088_compatibility Changes That Can Affect Backwards-Compatibility
+    - Fixed method resolution order; it's now possible to call pseudo-methods directly on classes that implement @ref methodGate_methods "methodGate() methods"
 
     @subsection qore_088_bug_fixes Bug Fixes in Qore
     - fixed a bug where the ?: operator could thrown spurious exceptions when parsing because it would return the type of the initial boolean expression as the return type of the operator

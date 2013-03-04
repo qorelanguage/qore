@@ -2285,14 +2285,27 @@ AbstractQoreNode* QoreClass::evalMethod(QoreObject* self, const char* nme, const
    if (*xsink)
       return 0;
 
-   if (!w) {
-      if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
-	 return evalMethodGate(self, nme, args, xsink);
+   if (w)
+      return w->eval(self, args, xsink);
 
-      return pseudo_classes_eval(self, nme, args, xsink);
+   // first see if there is a pseudo-method for this
+   QoreClass* qc = 0;
+   w = pseudo_classes_find_method(NT_OBJECT, nme, qc);
+   if (w)
+      return qore_method_private::evalPseudoMethod(w, 0, self, args, xsink);
+   else if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
+      return evalMethodGate(self, nme, args, xsink);
+   else {
+      xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method <object>::%s() is available", self->getClassName(), nme, nme);
+      return 0;
    }
-   
-   return w->eval(self, args, xsink);
+
+   /*
+     if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
+     return evalMethodGate(self, nme, args, xsink);
+
+     return pseudo_classes_eval(self, nme, args, xsink);
+   */
 }
 
 int64 QoreClass::bigIntEvalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
