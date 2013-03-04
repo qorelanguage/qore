@@ -73,12 +73,6 @@ struct AbstractMethod {
       }
    }
 
-   // merge committed variants from parent classes to this vlist during one-time class initialization
-   DLLLOCAL void parseMergeCommitted(AbstractMethod& m);
-
-   // merge committed variants from parent classes to this vlist during one-time class initialization and merge in pending uncommitted local variants
-   DLLLOCAL void parseMergeCommitted(AbstractMethod& m, MethodFunctionBase* f);
-
    // merge changes from parent class method of the same name during parse initialization
    DLLLOCAL void parseMergeBase(AbstractMethod& m);
 
