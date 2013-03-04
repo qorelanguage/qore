@@ -208,6 +208,8 @@ public:
 
    DLLLOCAL void parseAddConstant(const NamedScope& name, AbstractQoreNode* value, bool pub);
 
+   DLLLOCAL int parseAddMethodToClass(const NamedScope& name, MethodVariantBase *qcmethod, bool static_flag);
+
    DLLLOCAL int checkImportFunction(const char* name, ExceptionSink *xsink) {
       //printd(5, "qore_ns_private::checkImportFunction(%s) this: %p\n", name, this);
 

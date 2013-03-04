@@ -371,6 +371,134 @@ struct GVarListDecl : public GVarDecl {
    }
 };
 
+static int checkMethod(const char* name, BCAList* bcal, RetTypeInfo* returnTypeInfo) {
+   bool con = !strcmp(name, "constructor");
+   bool dst = !con && !strcmp(name, "destructor");
+
+   // see if a return type is given for special methods
+   if (returnTypeInfo && (con || dst)) {
+      parse_error("%s methods may not declare a return type", name);
+      return -1;
+   }
+
+   if (bcal && !con) {
+      parse_error("base class constructor lists are only legal when defining constructor() methods");
+      return -1;
+   }
+
+   return 0;
+}
+
+#define OFM_PRIVATE    (1 << 0)
+#define OFM_SYNCED     (1 << 1)
+#define OFM_STATIC     (1 << 2)
+#define OFM_DEPRECATED (1 << 3)
+#define OFM_PUBLIC     (1 << 4)
+#define OFM_FINAL      (1 << 5)
+#define OFM_ABSTRACT   (1 << 6)
+
+static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b, int64 flags = QC_NO_FLAGS) {
+   //printd(5, "newMethodVariant() '%s' b: %p\n", name, b);
+
+   if (get_pop_argv_ref())
+      flags |= QC_USES_EXTRA_ARGS;
+
+   if (!strcmp(name, "constructor")) {
+      if (mod & OFM_SYNCED)
+         parse_error("%s() methods cannot be synchronized", name);
+      if (mod & OFM_FINAL)
+         parse_error("%s() methods cannot be declared final; declare the class final instead", name);
+      if (mod & OFM_ABSTRACT)
+         parse_error("%s() methods cannot be declared abstract", name);
+      if (returnTypeInfo) {
+         parse_error("return type information cannot be defined for %s() methods", name);
+         delete returnTypeInfo;
+      }
+      return new UserConstructorVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, bcal, flags);
+   }
+   if (bcal) {
+      parse_error("only constructors may have base class constructor arguments");
+      delete bcal;
+      bcal = 0;
+   }
+   if (!strcmp(name, "destructor")) {
+      if (params) {
+	 parse_error("parameters cannot be defined for destructors");
+	 params->deref(0);
+      }
+      if (mod & OFM_SYNCED)
+         parse_error("%s() methods cannot be synchronized", name);
+      if (mod & OFM_FINAL)
+         parse_error("%s() methods cannot be declared final; declare the class final instead", name);
+      if (mod & OFM_ABSTRACT)
+         parse_error("%s() methods cannot be declared abstract", name);
+      if (returnTypeInfo) {
+         parse_error("return type information cannot be defined for %s() methods", name);
+         delete returnTypeInfo;
+      }
+      if (mod & OFM_PRIVATE)
+	 parse_error("destructors cannot be private");
+      return new UserDestructorVariant(b, n_sig_first_line, n_sig_last_line);
+   }
+   if (!strcmp(name, "copy")) {
+      if (mod & OFM_FINAL)
+         parse_error("%s() methods cannot be declared final; declare the class final instead", name);
+      if (!(mod & OFM_SYNCED))
+         return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
+   }
+
+   if (!strcmp(name, "methodGate") || !strcmp(name, "memberGate") || !strcmp(name, "memberNotification")) {
+      if (mod & OFM_FINAL)
+         parse_error("%s() methods cannot be declared final; they are not inherited anyway", name);
+      if (mod & OFM_ABSTRACT)
+         parse_error("%s() methods cannot be declared abstract; they are not inherited anyway", name);
+   }
+
+   if (mod & OFM_FINAL && mod & OFM_ABSTRACT)
+      parse_error("method '%s()' is declared both final and abstract", name);
+
+   return new UserMethodVariant(mod & OFM_PRIVATE, mod & OFM_FINAL, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags, mod & OFM_ABSTRACT);
+}
+
+struct MethodDef {
+   MethodVariantBase* m;
+   NamedScope name;
+   bool static_flag;
+
+   DLLLOCAL MethodDef(int mod, char* n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b) : m(0), name(n), static_flag(mod & OFM_STATIC) {
+      if (checkMethod(name.getIdentifier(), bcal, returnTypeInfo)) {
+         if (params)
+            params->deref(0);
+         delete bcal;
+         delete b;
+         delete returnTypeInfo;
+         return;
+      }
+
+      m = newMethodVariant(name.getIdentifier(), mod, n_sig_first_line, n_sig_last_line, params, bcal, returnTypeInfo, b, mod & OFM_DEPRECATED);
+   }
+
+   DLLLOCAL ~MethodDef() {
+      delete m;
+   }
+
+   DLLLOCAL void parseAddToClassAndDel() {
+      if (m) {
+         // if there are any errors, the function below will delete memory
+         // the following method takes ownership of "m" unconditionally
+         qore_root_ns_private::parseAddMethodToClass(name, m, static_flag);
+         m = 0;
+      }
+      delete this;
+   }
+
+   DLLLOCAL void add(qore_ns_private& ns) {
+      // the following method takes ownership of "m" unconditionally
+      ns.parseAddMethodToClass(name, m, static_flag);
+      m = 0;
+   }
+};
+
 #define NSN_NONE  0
 #define NSN_OCD   1
 #define NSN_CONST 2
@@ -378,16 +506,18 @@ struct GVarListDecl : public GVarDecl {
 #define NSN_FUNC  4
 #define NSN_SFUNC 5
 #define NSN_VAR   6
+#define NSN_METH  7
 
 struct NSNode {
    int type;
    union {
-      ObjClassDef *ocd;
+      ObjClassDef* ocd;
       ConstNode* cn;
-      QoreNamespace *ns;
+      QoreNamespace* ns;
       ParseUserFunction* func;
       ParseScopedUserFunction* sfunc;
-      GVarDecl *gv;
+      GVarDecl* gv;
+      MethodDef* meth;
    } n;
 
    DLLLOCAL NSNode(ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
@@ -402,6 +532,10 @@ struct NSNode {
 
    DLLLOCAL NSNode(GVarDecl* gv) : type(NSN_VAR) {
       n.gv = gv;
+   }
+
+   DLLLOCAL NSNode(MethodDef* m) : type(NSN_METH) {
+      n.meth = m;
    }
 
    DLLLOCAL void deref() {
@@ -423,6 +557,9 @@ struct NSNode {
             break;
          case NSN_VAR:
             delete n.gv;
+            break;
+         case NSN_METH:
+            delete n.meth;
             break;
          default:
             assert(false);
@@ -452,6 +589,9 @@ struct NSNode {
             break;
          case NSN_VAR:
             n.gv->add(ns);
+            break;
+         case NSN_METH:
+            n.meth->add(ns);
             break;
          default:
             assert(false);
@@ -896,14 +1036,6 @@ static int check_case(const char* op, AbstractQoreNode* exp) {
    return 0;
 }
 
-#define OFM_PRIVATE    (1 << 0)
-#define OFM_SYNCED     (1 << 1)
-#define OFM_STATIC     (1 << 2)
-#define OFM_DEPRECATED (1 << 3)
-#define OFM_PUBLIC     (1 << 4)
-#define OFM_FINAL      (1 << 5)
-#define OFM_ABSTRACT   (1 << 6)
-
 static void check_funcmod(int mod) {
    if (mod & OFM_PRIVATE)
       parse_error("illegal 'private' modifier in function declaration");
@@ -958,104 +1090,6 @@ bool node_has_effect(const AbstractQoreNode* n) {
 
    const ParseNode* pn = dynamic_cast<const ParseNode*>(n);
    return pn ? pn->has_effect() : true;
-}
-
-static int checkMethod(const char* name, BCAList* bcal, RetTypeInfo* returnTypeInfo) {
-   bool con = !strcmp(name, "constructor");
-   bool dst = !con && !strcmp(name, "destructor");
-
-   // see if a return type is given for special methods
-   if (returnTypeInfo && (con || dst)) {
-      parse_error("%s methods may not declare a return type", name);
-      return -1;
-   }
-
-   if (bcal && !con) {
-      parse_error("base class constructor lists are only legal when defining constructor() methods");
-      return -1;
-   }
-
-   return 0;
-}
-
-static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b, int64 flags = QC_NO_FLAGS) {
-   //printd(5, "newMethodVariant() '%s' b: %p\n", name, b);
-
-   if (get_pop_argv_ref())
-      flags |= QC_USES_EXTRA_ARGS;
-
-   if (!strcmp(name, "constructor")) {
-      if (mod & OFM_SYNCED)
-         parse_error("%s() methods cannot be synchronized", name);
-      if (mod & OFM_FINAL)
-         parse_error("%s() methods cannot be declared final; declare the class final instead", name);
-      if (mod & OFM_ABSTRACT)
-         parse_error("%s() methods cannot be declared abstract", name);
-      if (returnTypeInfo) {
-         parse_error("return type information cannot be defined for %s() methods", name);
-         delete returnTypeInfo;
-      }
-      return new UserConstructorVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, bcal, flags);
-   }
-   if (bcal) {
-      parse_error("only constructors may have base class constructor arguments");
-      delete bcal;
-      bcal = 0;
-   }
-   if (!strcmp(name, "destructor")) {
-      if (params) {
-	 parse_error("parameters cannot be defined for destructors");
-	 params->deref(0);
-      }
-      if (mod & OFM_SYNCED)
-         parse_error("%s() methods cannot be synchronized", name);
-      if (mod & OFM_FINAL)
-         parse_error("%s() methods cannot be declared final; declare the class final instead", name);
-      if (mod & OFM_ABSTRACT)
-         parse_error("%s() methods cannot be declared abstract", name);
-      if (returnTypeInfo) {
-         parse_error("return type information cannot be defined for %s() methods", name);
-         delete returnTypeInfo;
-      }
-      if (mod & OFM_PRIVATE)
-	 parse_error("destructors cannot be private");
-      return new UserDestructorVariant(b, n_sig_first_line, n_sig_last_line);
-   }
-   if (!strcmp(name, "copy")) {
-      if (mod & OFM_FINAL)
-         parse_error("%s() methods cannot be declared final; declare the class final instead", name);
-      if (!(mod & OFM_SYNCED))
-         return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
-   }
-
-   if (!strcmp(name, "methodGate") || !strcmp(name, "memberGate") || !strcmp(name, "memberNotification")) {
-      if (mod & OFM_FINAL)
-         parse_error("%s() methods cannot be declared final; they are not inherited anyway", name);
-      if (mod & OFM_ABSTRACT)
-         parse_error("%s() methods cannot be declared abstract; they are not inherited anyway", name);
-   }
-
-   if (mod & OFM_FINAL && mod & OFM_ABSTRACT)
-      parse_error("method '%s()' is declared both final and abstract", name);
-
-   return new UserMethodVariant(mod & OFM_PRIVATE, mod & OFM_FINAL, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags, mod & OFM_ABSTRACT);
-}
-
-static inline void tryAddMethod(int mod, char* n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b) {
-   std::auto_ptr<NamedScope> name(new NamedScope(n));
-
-   if (checkMethod(name->getIdentifier(), bcal, returnTypeInfo)) {
-      if (params)
-	 params->deref(0);
-      delete bcal;
-      delete b;
-      delete returnTypeInfo;
-   }
-   else {
-      MethodVariantBase *m = newMethodVariant(name->getIdentifier(), mod, n_sig_first_line, n_sig_last_line, params, bcal, returnTypeInfo, b, mod & OFM_DEPRECATED);
-      // if there are any errors, the function below will delete memory
-      qore_root_ns_private::parseAddMethodToClass(*(name.get()), m, mod & OFM_STATIC);
-   }
 }
 
 struct MethodNode {
@@ -1187,6 +1221,7 @@ static qore_var_t get_var_type() {
    struct GVarDecl* gv;
    QoreNumberNode* num;
    TryModuleError* trymod;
+   struct MethodDef* methoddef;
 }
 
 %{
@@ -1372,7 +1407,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <hashelement>    hash_element
 %type <cmods>          context_mods
 %type <cmod>           context_mod
-%type <methodnode>     method_definition
+%type <methodnode>     inline_methoddef
 %type <memberlist>     private_member_list
 %type <memberlist>     public_member_list
 %type <memberlist>     member_list
@@ -1408,9 +1443,10 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <sparsefunc>     scoped_sub_def
 %type <b>              ppub
 %type <gv>             gvardecl
+%type <methoddef>      outofline_methoddef
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl
+%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
 %destructor { if ($$) $$->deref(); } namespace_decl namespace_decls string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
@@ -1444,7 +1480,9 @@ top_level_command:
            qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
 	   delete $1;
 	}
-        | object_outofline_function_def  // registered directly
+        | outofline_methoddef {
+           $1->parseAddToClassAndDel();
+        }
 	| statement {
 	   if ($1) {
 	      if ($1->isParseDeclaration())
@@ -1578,11 +1616,13 @@ top_namespace_decl:
 namespace_decls:
 	namespace_decl {
 	   $$ = new NSNodeList;
-	   $$->push_back($1);
+           if ($1)
+              $$->push_back($1);
         }
         | namespace_decls namespace_decl {
            $$ = $1;
-           $$->push_back($2);
+           if ($2)
+              $$->push_back($2);
 	}
 	;
 
@@ -1614,6 +1654,9 @@ namespace_decl:
 	   if (checkParseOption(PO_NO_NAMESPACE_DEFS))
 	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
+        | outofline_methoddef {
+           $$ = new NSNode($1);
+        }
 
 unscoped_const_decl: 
 	TOK_CONST IDENTIFIER '=' exp ';' { 
@@ -2014,7 +2057,7 @@ superclass:
 	;
 
 class_attributes:
-	method_definition { 
+        inline_methoddef { 
            $$ = new QoreClass;
 	   $1->addAndDelete($$);
 	}
@@ -2033,7 +2076,7 @@ class_attributes:
 	   $$->parseAddPublicConstant($1->getName(), $1->takeValue());
 	   delete $1;
 	}
-	| class_attributes method_definition { 
+	| class_attributes inline_methoddef { 
 	   $2->addAndDelete($1);
 	   $$ = $1; 
 	}
@@ -2271,7 +2314,7 @@ ident_openparen:
         }
         ;
 
-method_definition:
+inline_methoddef:
         nsc_modifiers ident_openparen myexp ')' base_constructor_list return_value block {
            if ($1 & OFM_ABSTRACT) {
               if ($7)
@@ -2314,7 +2357,7 @@ method_definition:
         }
 	;
 
-object_outofline_function_def:
+outofline_methoddef:
 	method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
            if ($1 & OFM_ABSTRACT) {
               if ($8)
@@ -2322,7 +2365,8 @@ object_outofline_function_def:
               else
                  parse_error("'abstract' can only be used with no implementation (terminate the declaration with ';' instead of '{}')");
            }
-	   tryAddMethod($1, $2, @4.first_line, @4.last_line, $4, $6, $7, $8);
+
+           $$ = new MethodDef($1, $2, @4.first_line, @4.last_line, $4, $6, $7, $8);
 	}
 	| method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
            if ($1 & OFM_ABSTRACT) {
@@ -2334,12 +2378,12 @@ object_outofline_function_def:
 	   RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 
-	   tryAddMethod($1, $3, @5.first_line, @5.last_line, $5, $7, rt, $8);
+	   $$ = new MethodDef($1, $3, @5.first_line, @5.last_line, $5, $7, rt, $8);
 	}
         | method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value ';' {
            if (!$1 & OFM_ABSTRACT)
               parse_error("non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
-           tryAddMethod($1, $2, @4.first_line, @4.last_line, $4, $6, $7, 0);
+           $$ = new MethodDef($1, $2, @4.first_line, @4.last_line, $4, $6, $7, 0);
         }
         | method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list ';' {
            if (!$1 & OFM_ABSTRACT)
@@ -2347,16 +2391,16 @@ object_outofline_function_def:
            RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
            delete $2;
 
-           tryAddMethod($1, $3, @5.first_line, @5.last_line, $5, $7, rt, 0);
+           $$ = new MethodDef($1, $3, @5.first_line, @5.last_line, $5, $7, rt, 0);
         }
 	| SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
-	   tryAddMethod(0, $1, @3.first_line, @3.last_line, $3, $5, $6, $7);
+	   $$ = new MethodDef(0, $1, @3.first_line, @3.last_line, $3, $5, $6, $7);
 	}
 	| uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
 	   RetTypeInfo* rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
 	   delete $1;
 
-	   tryAddMethod(0, $2, @4.first_line, @4.last_line, $4, $6, rt, $7);
+	   $$ = new MethodDef(0, $2, @4.first_line, @4.last_line, $4, $6, rt, $7);
 	}
 	;
 

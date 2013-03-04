@@ -1562,6 +1562,20 @@ int qore_ns_private::parseAddPendingClass(const NamedScope& n, QoreClass* oc) {
    return sns->priv->parseAddPendingClass(och.release());
 }
 
+int qore_ns_private::parseAddMethodToClass(const NamedScope& mname, MethodVariantBase *qcmethod, bool static_flag) {
+   std::auto_ptr<MethodVariantBase> v(qcmethod);
+
+   unsigned m = 0;
+   QoreClass* oc = mname.size() > 2 ? parseMatchScopedClassWithMethod(mname, m) : parseFindLocalClass(mname[0]);
+   if (!oc) {
+      parse_error("cannot find class for to add method '%s' in namespace '%s'", mname.ostr, name.c_str());
+      return -1;
+   }
+
+   qore_class_private::addUserMethod(*oc, mname.getIdentifier(), v.release(), static_flag);
+   return 0;
+}
+
 void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const {
    //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s' mns: %p '%s'\n", this, name.c_str(), &mns, mns.name.c_str());
 
