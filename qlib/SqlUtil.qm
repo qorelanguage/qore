@@ -102,11 +102,11 @@ my hash $h = $table.describe();
             - \c primary_key: a hash giving the columns in the primary key for the table (if the table has a primary key); each key is the column name; the value is a boolean @ref Qore::True "True"; a hash is used to simulate a set
             - \c indexes: a hash of index information keyed by index name; the values are hashes with the following keys describing the index:
               - \c unique: @ref Qore::True "True" if the index is a unique index, @ref Qore::False "False" if not
-              - \c native_type: the native type of the index
+              - \c native_type: the native type of the index (if supported)
               - \c tablespace: the tablespace name of the index (if supported)
               - \c columns: a hash of column names that make up the index (to simulate a set)
             - \c constraints: a hash of constraint information keyed by constraint name; each value is a hash describing the constraint with the following keys:
-                - \c enabled: @ref Qore::True "True" if the constraint is enabled
+                - \c enabled: @ref Qore::True "True" if the constraint is enabled (if supported)
                 - \c columns: a hash of column names in the current (source) table that make up the constraint (to simulate a set)
                 - \c target: a hash describing the target of the constraint with the following keys:
                   - \c table: the name of the target table
@@ -244,6 +244,8 @@ my hash $h = $table.describe();
         public {
             const PgsqlTypeMap = (
                 "numeric": ("qore": "number",),
+                "smallint": ("qore": "number",),
+                "oid": ("qore": "number",),
                 "varchar": ("qore": "string",),
                 "character": ("qore": "string",),
                 "date": ("qore": "date",),
@@ -251,7 +253,7 @@ my hash $h = $table.describe();
                 "timestamp with time zone": ("qore": "date",),
                 "text": ("qore": "string",),
                 "bytea": ("qore": "binary",),
-                "bool": ("qore": "bool",),
+                "boolean": ("qore": "bool",),
                 );
 
             const QoreTypeMap = (
@@ -261,7 +263,7 @@ my hash $h = $table.describe();
                 "string": "varchar",
                 "date": "timestamp with time zone",
                 "binary": "bytea",
-                "boolean": "bool",
+                "bool": "boolean",
                 );
         }
 
