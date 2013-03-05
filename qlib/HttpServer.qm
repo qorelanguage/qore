@@ -27,13 +27,16 @@
 %requires Mime >= 1.0
 
 module HttpServer {
-    version = "0.3.6";
+    version = "0.3.7";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2013-03-05 v0.3.7: David Nichols <david@qore.org>
+      + fixed a bug in parsing argument in parse_uri_query()
+
     * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
       + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
 
@@ -245,7 +248,7 @@ public namespace HttpServer {
             if ($h.params.last().typeCode() != NT_HASH)
                 $h.params += $ah;
             else
-                $h.params[$h.args.size() - 1] += $ah;
+                $h.params[$h.params.size() - 1] += $ah;
         }
 
         return $h;
@@ -1072,7 +1075,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 public class HttpServer::HttpServer {
     public {
         #! version of the HttpServer's implementation
-        const Version = "0.3.6";
+        const Version = "0.3.7";
         #! default read timeout in ms
         const ReadTimeout = 30000;  # recvs timeout after 30 seconds
         #! default poll timeout in ms
