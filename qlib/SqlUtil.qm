@@ -68,8 +68,6 @@ public namespace SqlUtil {
             AbstractDatasource ds;
             # table name
             string name;
-            # schema name
-            string schema;
             # datasource description
             string dsdesc;
             # table description hash
@@ -165,24 +163,16 @@ my hash $h = $table.describe();
                 );
 
             const QoreTypeMap = (
-                "integer": "number",
-                "float": "number",
-                "number": "number",
-                "string": "varchar2",
-                "date": "timestamp",
-                "binary": "blob",
+                "integer": "NUMBER",
+                "float": "NUMBER",
+                "number": "NUMBER",
+                "string": "VARCHAR2",
+                "date": "TIMESTAMP",
+                "binary": "BLOB",
                 );
         }
 
         constructor(AbstractDatasource nds, string nname) : AbstractTable(nds, nname.upr()) {            
-            int p = name.find(".");
-            if (p != -1) {
-                schema = extract name, 0, p;
-                splice name, 0, 1;
-            }
-            else {
-                schema = ds.getUserName().upr();
-            }
         }
 
         private hash describeImpl() {
@@ -251,11 +241,86 @@ my hash $h = $table.describe();
     }
 
     public class PgsqlTable inherits AbstractTable {
+        public {
+            const PgsqlTypeMap = (
+                "numeric": ("qore": "number",),
+                "varchar": ("qore": "string",),
+                "character": ("qore": "string",),
+                "date": ("qore": "date",),
+                "timestamp without time zone": ("qore": "date",),
+                "timestamp with time zone": ("qore": "date",),
+                "text": ("qore": "string",),
+                "bytea": ("qore": "binary",),
+                "bool": ("qore": "bool",),
+                );
+
+            const QoreTypeMap = (
+                "integer": "numeric",
+                "float": "numeric",
+                "number": "numeric",
+                "string": "varchar",
+                "date": "timestamp with time zone",
+                "binary": "bytea",
+                "boolean": "bool",
+                );
+        }
+
         constructor(AbstractDatasource nds, string nname) : AbstractTable(nds, nname) {
         }
 
         private hash describeImpl() {
-            return hash();
+            # get column descriptions
+            *hash qh = ds.select("select column_name, data_type, character_maximum_length, character_octet_length, numeric_precision, is_nullable from information_schema.columns where table_name = %v", name);
+            if (!qh.column_name)
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y (%N)", name, dsdesc, qh);
+
+            hash rv;
+            foreach hash row in (qh.contextIterator()) {
+                *hash th = PgsqlTypeMap.(row.data_type);
+                rv.columns.(row.column_name) = (
+                    "native_type": row.data_type,
+                    "qore_type": th.qore,
+                    "size": row.character_maximum_length ? row.character_maximum_length : row.numeric_precision,
+                    "nullable": row.is_nullable == "YES",
+                    );
+            }
+
+            # get primary key description
+            qh = ds.select("select a.attname, format_type(a.atttypid, a.atttypmod) coltype from pg_index i , pg_class c, pg_attribute a where c.oid = %v::regclass and indrelid = c.oid and a.attrelid = c.oid and a.attnum = any(i.indkey) and indisprimary", name);
+            foreach string col in (qh.attname)
+                rv.primary_key{col} = True;
+
+            # get index description
+            qh = ds.select("select i.relname index_name, a.attname column_name, indisunique from pg_class t, pg_class i, pg_index ix, pg_attribute a where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = ANY(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary group by i.relname, a.attname, indisunique order by i.relname", name);
+            if (qh.index_name) {
+                foreach hash row in (qh.contextIterator()) {
+                    if (!rv.indexes.(row.index_name))
+                        rv.indexes.(row.index_name) = (
+                            "unique": row.indisunique,
+                            # FIXME: determine tablespace for index
+                            #"tablespace": row.tablespace_name,
+                        );
+                    rv.indexes.(row.index_name).columns{row.column_name} = True;                    
+                }
+            }
+
+            # get foreign referential constraints
+            qh = ds.select("select tc.constraint_name, kcu.column_name source_column, ccu.table_name target_table, ccu.column_name target_column from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name = kcu.constraint_name join information_schema.constraint_column_usage as ccu on ccu.constraint_name = tc.constraint_name where constraint_type = 'FOREIGN KEY' AND tc.table_name = %v", name);
+            if (qh.constraint_name) {
+                foreach hash row in (qh.contextIterator()) {
+                    /*
+                    rv.constraints.(row.constraint_name) = (
+                        "enabled": row.status == "ENABLED",
+                        );
+                    */
+                    reference c = \rv.constraints.(row.constraint_name); 
+                    c.columns.(row.source_column) = True;
+                    c.target.table = row.target_table;
+                    c.target.columns.(row.target_column) = True;
+                }
+            }
+
+            return rv;
         }
     }
 
