@@ -112,18 +112,25 @@ public namespace RestHandler {
         hash handleRequest(RestHandler $rh, *string $oname, *list $args, hash $cx) {
             my string $mn;
 
+            my hash $ah;
+            if (exists $args[0]) {
+                if ($args[0].typeCode() != NT_HASH)
+                    return RestHandler::make400("cannot parse arguments to REST class %y%s, the first argument must be a hash with an 'action' key; got type %y instead", $.getName(), $oname ? sprintf(" object %y", $oname) : "", $args[0].type());
+                if ($args.size() > 1)
+                    return RestHandler::make400("invalid arguments to REST class %y%s, only a single hash argument is accepted; got %y instead", $.getName(), $oname ? sprintf(" object %y", $oname) : "", $args);
+                $ah = $args[0];
+            }
+
             # make method name
             if ($oname) {
-                if ($args[0].typeCode() != NT_HASH)
-                    return RestHandler::make400("cannot parse arguments to REST class %y object %y, the first argument must be a hash with an 'action' key; got type %y instead", $.getName(), $oname, $args[0].type());
-                if (!$args[0].action)
-                    return RestHandler::make400("cannot parse arguments to REST class %y object %y, the first argument must be a hash with an 'action' key; got %y instead", $.getName(), $args[0]);
+                if (!$ah.action)
+                    return RestHandler::make400("cannot parse arguments to REST class %y object %y, the first argument must be a hash with an 'action' key; got %y instead", $.getName(), $ah);
             }
-            if ($args[0].action) {
-                if ($args[0].action.typeCode() != NT_STRING)
-                    return RestHandler::make400("cannot parse arguments to REST class %y object %y, the 'action' key is not assigned to a string; got %y instead", $.getName(), $args[0].action.type());
-                $mn = $args[0].action;
-                $args[0] -= "action";
+            if ($ah.action) {
+                if ($ah.action.typeCode() != NT_STRING)
+                    return RestHandler::make400("cannot parse arguments to REST class %y object %y, the 'action' key is not assigned to a string; got %y instead", $.getName(), $ah.action.type());
+                $mn = $ah.action;
+                $ah -= "action";
                 # ensure first letter of the action is in upper case
                 splice $mn, 0, 1, $mn[0].upr();
                 $mn = $cx.hdr.method.lwr() + $mn;
@@ -134,32 +141,32 @@ public namespace RestHandler {
             if ($oname) {
                 my *AbstractRestObject $obj = $.getObject($oname);
                 if (!$obj) {
-                    $rh.logDebug("unknown object %y: class %y: method %y args: %y", $oname, $.getName(), $mn, $args);
+                    $rh.logDebug("unknown object %y: class %y: method %y args: %y", $oname, $.getName(), $mn, $ah);
                     return $.unknownObjectError($oname);
                 }
 
-                $rh.logDebug("object %y: dispatching class %y: method %y args: %y", $oname, $.getName(), $mn, $args);
-                return $.dispatch($rh, $obj, $oname, $mn, $args, $cx);
+                $rh.logDebug("object %y: dispatching class %y: method %y args: %y", $oname, $.getName(), $mn, $ah);
+                return $.dispatch($rh, $obj, $oname, $mn, $ah, $cx);
             }
             
-            $rh.logDebug("dispatching class %y: method %y args: %y", $.getName(), $mn, $args);
-            return $.dispatch($rh, $self, NOTHING, $mn, $args, $cx);
+            $rh.logDebug("dispatching class %y: method %y args: %y", $.getName(), $mn, $ah);
+            return $.dispatch($rh, $self, NOTHING, $mn, $ah, $cx);
         }
         
-        hash dispatch(RestHandler $rh, object $obj, *string $oname, string $mn, softlist $args, hash $cx) {
+        hash dispatch(RestHandler $rh, object $obj, *string $oname, string $mn, hash $ah, hash $cx) {
             try {
-                return callObjectMethodArgs($obj, $mn, list($cx) + $args);
+                return callObjectMethodArgs($obj, $mn, ($cx, $ah));
             }
             catch (hash $ex) {
                 if ($ex.err == "METHOD-DOES-NOT-EXIST") {
                     if ($obj == $self) {
-                        $rh.logDebug("%s: class %y: method %y args: %y", $ex.err, $.getName(), $mn, $args);
+                        $rh.logDebug("%s: class %y: method %y args: %y", $ex.err, $.getName(), $mn, $ah);
                         return RestHandler::make501("REST class %y does not implement method %y", $.getName(), $mn);
                     }
-                    $rh.logDebug("%s: class %y: object: %y method %y args: %y", $ex.err, $.getName(), $oname, $mn, $args);
+                    $rh.logDebug("%s: class %y: object: %y method %y args: %y", $ex.err, $.getName(), $oname, $mn, $ah);
                     return RestHandler::make501("REST class %y object %y does not implement method %y", $.getName(), $oname, $mn);
                 }
-                $rh.logDebug("class %y: method %y: %s: %s: %s:", $.getName(), $mn, , get_ex_pos($ex), $ex.err, $ex.desc);
+                $rh.logDebug("class %y: method %y: %s: %s: %s", $.getName(), $mn, get_ex_pos($ex), $ex.err, $ex.desc);
                 rethrow;
             }
         }
@@ -171,19 +178,19 @@ public namespace RestHandler {
                 );
         }
         
-        hash post(any $args, hash $cx) {
+        hash post(hash $cx, *hash $ah) {
             return RestHandler::Err501;
         }
         
-        hash get(any $args, hash $cx) {
+        hash get(hash $cx, *hash $ah) {
             return RestHandler::Err501;
         }
         
-        hash del(any $args, hash $cx) {
+        hash del(hash $cx, *hash $ah) {
             return RestHandler::Err501;
         }
 
-        hash put(any $args, hash $cx) {
+        hash put(hash $cx, *hash $ah) {
             return RestHandler::Err501;
         }
     }
