@@ -25,9 +25,6 @@
 # this module requires Qore 0.8.8 or better
 %requires qore >= 0.8.8
 
-# don't use "$" signs for variables and class members, assume local variable scope
-%new-style
-
 # require type definitions everywhere
 %require-types
 
@@ -67,104 +64,130 @@ module RestHandler {
 
 #! the RestHandler namespace contains all the objects in the RestHandler module
 public namespace RestHandler {
-    public const Err501 = (
-        "code": 501,
-        "body": "not implemented",
-        );
-
     public class AbstractRestObject {
         public {
         }
 
         private {
-            AbstractRestClass cls;
+            AbstractRestClass $.cls;
         }
 
-        constructor(AbstractRestClass ncls) {
-            cls = ncls;
+        constructor(AbstractRestClass $ncls) {
+            $.cls = $ncls;
         }
 
         AbstractRestClass getClass() {
-            return cls;
+            return $.cls;
         }
 
         string getClassName() {
-            return cls.getName();
+            return $.cls.getName();
         }
         
-        hash post(any args, hash cx, hash hdr, *data body) {
-            return Err501;
+        hash post(any $args, hash $cx) {
+            return RestHandler::Err501;
         }
         
-        hash get(any args, hash cx, hash hdr, *data body) {
-            return Err501;
+        hash get(any $args, hash $cx) {
+            return RestHandler::Err501;
         }
 
-        hash del(any args, hash cx, hash hdr, *data body) {
-            return Err501;
+        hash del(any $args, hash $cx) {
+            return RestHandler::Err501;
         }
 
-        hash put(any args, hash cx, hash hdr, *data body) {
-            return Err501;
+        hash put(any $args, hash $cx) {
+            return RestHandler::Err501;
         }
     }
 
-    class AbstractRestClass {
+    public class AbstractRestClass {
         public {
         }
 
         abstract string getName();
 
-        abstract *AbstractRestObject getObject(string name);
+        abstract *AbstractRestObject getObject(string $name);
 
-        hash handleRequest(*string oname, *list args, hash cx, hash hdr, *data body) {
-            if (oname) {
-                *AbstractRestObject obj = getObject(oname);
-                if (!obj)
-                    return unknownObjectError(oname);
+        hash handleRequest(RestHandler $rh, *string $oname, *list $args, hash $cx) {
+            # make method name
+            if ($args[0].typeCode() != NT_HASH)
+                return RestHandler::make501("cannot parse arguments to REST class %y, the first argument must be a hash with an 'action' key; got type %y instead", $.getName(), $args[0].type());
+            if (!$args[0].action)
+                return RestHandler::make501("cannot parse arguments to REST class %y, the first argument must be a hash with an 'action' key; got %y instead", $.getName(), $args[0]);
 
-                switch (hdr.method) {
-                    case "GET": return obj.get(args, cx, hdr, body);
-                    case "POST": return obj.put(args, cx, hdr, body);
-                    case "DEL": return obj.del(args, cx, hdr, body);
-                    case "PUT": return obj.put(args, cx, hdr, body);
+            my string $action = $args[0].action;
+            my string $mn = $action;
+            # ensure first letter of the action is in upper case
+            splice $mn, 0, 1, $mn[0].upr();
+            $mn = $cx.hdr.method.lwr() + $mn;
+
+            $args[0] -= "action";
+
+            if ($oname) {
+                my *AbstractRestObject $obj = $.getObject($oname);
+                if (!$obj) {
+                    $rh.logDebug("unknown object %y: class %y: method %y args: %y", $oname, $.getName(), $mn, $args);
+                    return $.unknownObjectError($oname);
                 }
+
+                $rh.logDebug("object %y: dispatching class %y: method %y args: %y", $oname, $.getName(), $mn, $args);
+                return $.dispatch($rh, $obj, $oname, $mn, $args, $cx);
             }
             
-            switch (hdr.method) {
-                case "GET": return get(args, cx, hdr, body);
-                case "POST": return put(args, cx, hdr, body);
-                case "DEL": return del(args, cx, hdr, body);
-                case "PUT": return put(args, cx, hdr, body);
+            $rh.logDebug("dispatching class %y: method %y args: %y", $.getName(), $mn, $args);
+            return $.dispatch($rh, $self, NOTHING, $mn, $args, $cx);
+        }
+        
+        hash dispatch(RestHandler $rh, object $obj, *string $oname, string $mn, list $args, hash $cx) {
+            try {
+                return callObjectMethodArgs($obj, $mn, list($cx) + $args);
+            }
+            catch (hash $ex) {
+                if ($ex.err == "METHOD-DOES-NOT-EXIST") {
+                    if ($obj == $self) {
+                        $rh.logDebug("%s: class %y: method %y args: %y", $ex.err, $.getName(), $mn, $args);
+                        return RestHandler::make501("REST class %y does not implement method %y", $.getName(), $mn);
+                    }
+                    $rh.logDebug("%s: class %y: object: %y method %y args: %y", $ex.err, $.getName(), $oname, $mn, $args);
+                    return RestHandler::make501("REST class %y object %y does not implement method %y", $.getName(), $oname, $mn);
+                }
+                $rh.logDebug("class %y: method %y: %s: %s: %s:", $.getName(), $mn, , get_ex_pos($ex), $ex.err, $ex.desc);
+                rethrow;
             }
         }
         
-        hash unknownObjectError(string name) {
+        hash unknownObjectError(string $name) {
             return (
                 "code": 500,
-                "body": sprintf("object %y of class %y is unknown", name, getName()),
+                "body": sprintf("object %y of class %y is unknown", $name, $.getName()),
                 );
         }
         
-        hash post(any args, hash cx, hash hdr, *data body) {
-            return Err501;
+        hash post(any $args, hash $cx) {
+            return RestHandler::Err501;
         }
         
-        hash get(any args, hash cx, hash hdr, *data body) {
-            return Err501;
+        hash get(any $args, hash $cx) {
+            return RestHandler::Err501;
         }
         
-        hash del(any args, hash cx, hash hdr, *data body) {
-            return Err501;
+        hash del(any $args, hash $cx) {
+            return RestHandler::Err501;
         }
 
-        hash put(any args, hash cx, hash hdr, *data body) {
-            return Err501;
+        hash put(any $args, hash $cx) {
+            return RestHandler::Err501;
         }
     }
 
-    class RestHandler inherits AbstractHttpRequestHandler {
+    public class RestHandler inherits AbstractHttpRequestHandler {
         public {
+            const Err501 = (
+                "code": 501,
+                "body": "not implemented",
+                );
+
             #! supported HTTP methods
             const Methods = (
                 "GET": True,
@@ -189,105 +212,140 @@ public namespace RestHandler {
         
         private {
             #! class hash: name -> AbstractRestClass
-            hash ch;
+            hash $.ch;
 
             #! mutex lock
-            Mutex mx();
+            Mutex $.mx();
         }
         
-        constructor(*AbstractAuthenticator auth) : AbstractHttpRequestHandler(auth) {
+        constructor(*AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth) {
         }
 
-        removeRootPath(reference path) {
-        }
-        
-        hash handleRequest(hash cx, hash hdr, *data body) {
+        #! handles the HTTP requests
+        hash handleRequest(hash $cx, hash $hdr, *data $body) {
             #log(LL_DEBUG_3, "cx: %N", cx);
             #log(LL_DEBUG_3, "hdr: %N", hdr);
             
             # get rest class name
-            string path = cx.url.path;
+            my string $path = $cx.url.path;
 
-            removeRootPath(\path);
-            # XXXremove root url from path
-            # path = regex_subst(path, "^(/)?" + url + "/", "");
-            #log(LL_DEBUG_3, "path: %N", path);
+            $.removeRootPath(\$path);
 
-            *string cls = (path =~ x/^([^\/]+)/)[0];
-            if (!cls)
-                return ("code": 500, "body": sprintf("cannot find REST class in path %y", cx.url.path));
-            if (!ch{cls})
-                return ("code": 500, "body": sprintf("unknown REST class %y in path %y (valid classes: %y)", cls, cx.url.path, ch.keys()));
+            my *string $cls = ($path =~ x/^([^\/]+)/)[0];
+            if (!$cls)
+                return RestHandler::makeResponse(500, "cannot find REST class in path %y", $cx.url.path);
+            if (!$.ch{$cls})
+                return RestHandler::makeResponse(500, "unknown REST class %y in path %y (valid classes: %y)", $cls, $cx.url.path, $.ch.keys());
 
             # check method
-            if (!Methods.(hdr.method))
-                return ("code": 501, "body": sprintf("cannot handle HTTP method %y; valid methods: %y", hdr.method, Methods.keys()));
+            if (!Methods.($hdr.method))
+                return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", $hdr.method, Methods.keys());
             
             # remove class and trailing "/" from path
-            splice path, 0, cls.size() + 1;
+            splice $path, 0, $cls.size() + 1;
             
             # get object and args
-            hash ah = parse_uri_query(path);        
+            my hash $ah = parse_uri_query($path);
 
             # handle call with class
-            hash rv = ch{cls}.handleRequest(ah.method, ah.params, cx, hdr, body);
+            my hash $rv = $.ch{$cls}.handleRequest($self, $ah.method, $ah.params, $cx + ("hdr": $hdr, "body": $body));
 
             # serialize response according to client's capabilities if necessary
-            if (exists rv.body && rv.body.typeCode() != NT_STRING) {
+            if (exists $rv.body && $rv.body.typeCode() != NT_STRING) {
                 # make a hash of "accept" values
-                string astr = hdr.accept;
-                astr =~ s/;.*//;#/;
-                hash aih;
-                map aih.$1 = True, astr.split(",");
+                my string $astr = $hdr.accept;
+                $astr =~ s/;.*//;#/;
+                my hash $aih;
+                map $aih.$1 = True, $astr.split(",");
                 
                 # check for yaml-rpc support
-                bool decoded;
+                my bool $decoded;
 %ifndef NoYaml
-                if (aih{MimeTypeYamlRpc}) {
-                    rv.body = makeYAML(rv.body);
-                    rv.hdr = MimeTypeYamlRpc;
-                    decoded = True;
+                if ($aih{MimeTypeYamlRpc}) {
+                    $rv.body = makeYAML($rv.body);
+                    $rv.hdr = MimeTypeYamlRpc;
+                    $decoded = True;
                 }
 %endif
 %ifndef NoXml
-                if (!decoded && aih{MimeTypeXml}) {
-                    rv.body = makeXMLRPCValueString(rv.body);
-                    rv.hdr = MimeTypeXml;
-                    decoded = True;
+                if (!$decoded && $aih{MimeTypeXml}) {
+                    $rv.body = makeXMLRPCValueString($rv.body);
+                    $rv.hdr = MimeTypeXml;
+                    $decoded = True;
                 }
 %endif
 %ifndef NoYaml
-                if (aih{MimeTypeJsonRpc}) {
-                    rv.body = makeJSONString(rv.body);
-                    rv.hdr = MimeTypeJsonRpc;
-                    decoded = True;
+                if (!$decoded && $aih{MimeTypeJsonRpc}) {
+                    $rv.body = makeJSONString($rv.body);
+                    $rv.hdr = MimeTypeJsonRpc;
+                    $decoded = True;
                 }
 %endif
-                if (!decoded) {
-                    responseSerializationError(cx, aih, rv);
-                    return (
-                        "code": 501,
-                        "body": sprintf("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", aih.keys(), SerializationTypes.keys(), rv.body),
-                        );
+                if (!$decoded) {
+                    $.responseSerializationError($cx, $aih, $rv);
+                    return RestHandler::make501("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", $aih.keys(), SerializationTypes.keys(), $rv.body);
                 }
             }
 
-            return rv;
+            return $rv;
         }
 
-        responseSerializationError(hash cx, hash aih, hash rv) {
-            #log(LL_INFO, "cannot serialize response; client accepts: %y", aih.keys());
-            #log(LL_DETAIL_2, "request: %y discarding response: %y", cx.url.path, rv.body);
+        #! default implementation is empty
+        removeRootPath(reference $path) {
+        }
+        
+        #! default implementation is empty
+        responseSerializationError(hash $cx, hash $aih, hash $rv) {
         }
 
-        addClass(AbstractRestClass cls) {
-            mx.lock();
-            on_exit mx.unlock();
+        #! default implementation is empty
+        logInfo(string $fmt) {
+            delete $argv;
+        }
 
-            string name = cls.getName();
-            if (ch{name})
-                throw "RETSHANDLER-ERROR", sprintf("class %y has already been registered with this handler", name);
-            ch{name} = cls;
+        #! default implementation is empty
+        logError(string $fmt) {
+            delete $argv;
+        }
+
+        #! default implementation is empty
+        logDebug(string $fmt) {
+            delete $argv;
+        }
+
+        #! adds a REST class to the handler
+        addClass(AbstractRestClass $cls) {
+            $.mx.lock();
+            on_exit $.mx.unlock();
+
+            my string $name = $cls.getName();
+            if ($.ch{$name})
+                throw "RETSHANDLER-ERROR", sprintf("class %y has already been registered with this handler", $name);
+            $.ch{$name} = $cls;
+        }
+
+        #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
+        static hash makeResponse(int $code, string $fmt) {
+            return (
+                "code": $code,
+                "body": vsprintf($fmt, $argv),
+                );
+        }
+
+        #! creates a hash for an HTTP response with the response code and a literal response message body
+        static hash makeResponse(int $code, any $body) {
+            return (
+                "code": $code,
+                "body": $body,
+                );
+        }
+
+        #! creates a hash for an HTTP 501 error response with the response message body as a string
+        static hash make501(string $fmt) {
+            return (
+                "code": 501,
+                "body": vsprintf($fmt, $argv),
+                );
         }
     }
 }
