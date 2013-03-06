@@ -103,6 +103,11 @@ public namespace RestHandler {
 
     public class AbstractRestClass {
         public {
+            *string $.default_action;
+        }
+
+        constructor(*string $da) {
+            $.default_action = $da;
         }
 
         abstract string getName();
@@ -110,17 +115,23 @@ public namespace RestHandler {
         abstract *AbstractRestObject getObject(string $name);
 
         hash handleRequest(RestHandler $rh, *string $oname, *list $args, hash $cx) {
-            # make method name
-            if ($args[0].typeCode() != NT_HASH)
-                return RestHandler::make501("cannot parse arguments to REST class %y, the first argument must be a hash with an 'action' key; got type %y instead", $.getName(), $args[0].type());
-            if (!$args[0].action)
-                return RestHandler::make501("cannot parse arguments to REST class %y, the first argument must be a hash with an 'action' key; got %y instead", $.getName(), $args[0]);
+            my string $mn;
 
-            my string $action = $args[0].action;
-            my string $mn = $action;
-            # ensure first letter of the action is in upper case
-            splice $mn, 0, 1, $mn[0].upr();
-            $mn = $cx.hdr.method.lwr() + $mn;
+            # make method name
+            if (exists $args[0] && $args[0].typeCode() != NT_HASH)
+                return RestHandler::make501("cannot parse arguments to REST class %y, the first argument must be a hash with an 'action' key; got type %y instead", $.getName(), $args[0].type());
+            if (!$args[0].action) {
+                if ($.default_action)
+                    $mn = $.default_action;
+                else
+                    return RestHandler::make501("cannot parse arguments to REST class %y, the first argument must be a hash with an 'action' key; got %y instead", $.getName(), $args[0]);
+            }
+            else {
+                $mn = $args[0].action;
+                # ensure first letter of the action is in upper case
+                splice $mn, 0, 1, $mn[0].upr();
+                $mn = $cx.hdr.method.lwr() + $mn;
+            }
 
             $args[0] -= "action";
 
