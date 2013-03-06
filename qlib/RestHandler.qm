@@ -146,7 +146,7 @@ public namespace RestHandler {
             return $.dispatch($rh, $self, NOTHING, $mn, $args, $cx);
         }
         
-        hash dispatch(RestHandler $rh, object $obj, *string $oname, string $mn, list $args, hash $cx) {
+        hash dispatch(RestHandler $rh, object $obj, *string $oname, string $mn, softlist $args, hash $cx) {
             try {
                 return callObjectMethodArgs($obj, $mn, list($cx) + $args);
             }
