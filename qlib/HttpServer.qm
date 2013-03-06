@@ -35,7 +35,7 @@ module HttpServer {
 
 /*  Version History
     * 2013-03-05 v0.3.7: David Nichols <david@qore.org>
-      + fixed a bug in parsing argument in parse_uri_query()
+      + fixed a bug in parsing arguments in parse_uri_query()
 
     * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
       + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
@@ -238,7 +238,7 @@ public namespace HttpServer {
         # w3c recommends ";" instead of "&" to separate arguments
         # http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2
         foreach my any $arg in (split(";", $path)) {
-            my (*string $key, *string $value) = ($arg =~ x/(.*)=(.*)$/);
+            my (*string $key, *string $value) = ($arg =~ x/([^=]+)=(.*)$/);
             if (!$value) {
                 $h.params += $arg;
                 continue;
