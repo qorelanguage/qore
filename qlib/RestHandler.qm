@@ -120,12 +120,13 @@ public namespace RestHandler {
                     return RestHandler::make400("invalid arguments to REST class %y%s, only a single hash argument is accepted; got %y instead", $.getName(), $oname ? sprintf(" object %y", $oname) : "", $args);
                 $ah = $args[0];
             }
-action should not be required
             # make method name
+            /*
             if ($oname) {
                 if (!$ah.action)
                     return RestHandler::make400("cannot parse arguments to REST class %y object %y, the first argument must be a hash with an 'action' key; got %y instead", $.getName(), $ah);
-            }*/
+            }
+            */
             if ($ah.action) {
                 if ($ah.action.typeCode() != NT_STRING)
                     return RestHandler::make400("cannot parse arguments to REST class %y object %y, the 'action' key is not assigned to a string; got %y instead", $.getName(), $ah.action.type());
