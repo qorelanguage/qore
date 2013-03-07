@@ -65,6 +65,8 @@ module RestHandler {
 #! the RestHandler namespace contains all the objects in the RestHandler module
 public namespace RestHandler {
     public class AbstractRestClass {
+        public {}
+
         constructor() {
         }
 
