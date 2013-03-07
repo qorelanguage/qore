@@ -167,15 +167,15 @@ public namespace RestHandler {
 
         #! handles the HTTP requests
         hash handleRequest(hash $cx, hash $hdr, *data $body) {
-            #log(LL_DEBUG_3, "cx: %N", cx);
-            #log(LL_DEBUG_3, "hdr: %N", hdr);
+            #$.logDebug("cx: %N", $cx);
+            #$.logDebug("hdr: %N", $hdr);
             
             # get rest class name
             my string $path = $cx.url.path;
 
             $.removeRootPath(\$path);
 
-            my *string $cls = ($path =~ x/^([^\/]+)/)[0];
+            my *string $cls = ($path =~ x/^([^\/?]+)/)[0];
             if (!$cls)
                 return RestHandler::make400("cannot find REST class in path %y", $cx.url.path);
             if (!$.ch{$cls})
@@ -186,8 +186,10 @@ public namespace RestHandler {
                 return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", $hdr.method, Methods.keys());
             
             # remove class and trailing "/" from path
-            splice $path, 0, $cls.size() + 1;
-            
+            splice $path, 0, $cls.size();
+            if ($path[0] == "/")
+                splice $path, 0, 1;
+
             # get object and args
             my hash $ah = parse_uri_query($path);
 
@@ -265,16 +267,17 @@ public namespace RestHandler {
 %ifndef NoYaml
                 # check for yaml support
                 foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
-                    if ($aih.$ct) {
+                    if ($aih.$ct || $aih."*/*") {
                         $rv.body = makeYAML($rv.body);
                         $rv.hdr = $ct;
                         $encoded = True;
+                        break;
                     }
                 }
 %endif
 %ifndef NoXml
                 # check for xml-rpc support
-                if (!$encoded && $aih{MimeTypeXml}) {
+                if (!$encoded && ($aih{MimeTypeXml} || $aih."*/*")) {
                     $rv.body = makeXMLRPCValueString($rv.body);
                     $rv.hdr = MimeTypeXml;
                     $encoded = True;
@@ -282,7 +285,7 @@ public namespace RestHandler {
 %endif
 %ifndef NoYaml
                 # check for json support
-                if (!$encoded && $aih{MimeTypeJsonRpc}) {
+                if (!$encoded && ($aih{MimeTypeJsonRpc} || $aih."*/*")) {
                     $rv.body = makeJSONString($rv.body);
                     $rv.hdr = MimeTypeJsonRpc;
                     $encoded = True;

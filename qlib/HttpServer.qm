@@ -36,6 +36,7 @@ module HttpServer {
 /*  Version History
     * 2013-03-05 v0.3.7: David Nichols <david@qore.org>
       + fixed a bug in parsing arguments in parse_uri_query()
+      + updated parse_uri_query() to accept both "&" and ";" as argument separators
 
     * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
       + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
@@ -218,7 +219,7 @@ public namespace HttpServer {
 
         @return a hash with the following keys:
         - \c method: the part of the path before the first \c "?" character
-        - \c params: (optional, only if a "?" character is present in the input) the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2)
+        - \c params: (optional, only if a "?" character is present in the input) the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both
      */
     public hash sub parse_uri_query(string $path) {
         my int $i = $path.find("?");
@@ -237,7 +238,9 @@ public namespace HttpServer {
         # iterate through args
         # w3c recommends ";" instead of "&" to separate arguments
         # http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2
-        foreach my any $arg in (split(";", $path)) {
+        # however we support both
+        my string $sep = $path.find(";") == -1 ? "&" : ";";
+        foreach my any $arg in (split($sep, $path)) {
             my (*string $key, *string $value) = ($arg =~ x/([^=]+)=(.*)$/);
             if (!$value) {
                 $h.params += $arg;
