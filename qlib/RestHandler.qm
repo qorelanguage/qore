@@ -64,119 +64,47 @@ module RestHandler {
 
 #! the RestHandler namespace contains all the objects in the RestHandler module
 public namespace RestHandler {
-    public class AbstractRestObject {
-        public {
-        }
-
-        private {
-            AbstractRestClass $.cls;
-        }
-
-        constructor(AbstractRestClass $ncls) {
-            $.cls = $ncls;
-        }
-
-        AbstractRestClass getClass() {
-            return $.cls;
-        }
-
-        string getClassName() {
-            return $.cls.getName();
-        }
-        
-        hash post(any $args, hash $cx) {
-            return RestHandler::Err501;
-        }
-        
-        hash get(any $args, hash $cx) {
-            return RestHandler::Err501;
-        }
-
-        hash del(any $args, hash $cx) {
-            return RestHandler::Err501;
-        }
-
-        hash put(any $args, hash $cx) {
-            return RestHandler::Err501;
-        }
-    }
-
     public class AbstractRestClass {
         constructor() {
         }
 
         abstract string getName();
 
-        abstract *AbstractRestObject getObject(string $name);
+        abstract *AbstractRestClass getSubClass(string $name);
 
-        hash handleRequest(RestHandler $rh, *string $oname, *list $args, hash $cx) {
-            my string $mn;
-
-            my hash $ah;
-            if (exists $args[0]) {
-                if ($args[0].typeCode() != NT_HASH)
-                    return RestHandler::make400("cannot parse arguments to REST class %y%s, the first argument must be a hash with an 'action' key; got type %y instead", $.getName(), $oname ? sprintf(" object %y", $oname) : "", $args[0].type());
-                if ($args.size() > 1)
-                    return RestHandler::make400("invalid arguments to REST class %y%s, only a single hash argument is accepted; got %y instead", $.getName(), $oname ? sprintf(" object %y", $oname) : "", $args);
-                $ah = $args[0];
-            }
-            # make method name
-            /*
-            if ($oname) {
-                if (!$ah.action)
-                    return RestHandler::make400("cannot parse arguments to REST class %y object %y, the first argument must be a hash with an 'action' key; got %y instead", $.getName(), $ah);
-            }
-            */
-            if ($ah.action) {
-                if ($ah.action.typeCode() != NT_STRING)
-                    return RestHandler::make400("cannot parse arguments to REST class %y object %y, the 'action' key is not assigned to a string; got %y instead", $.getName(), $ah.action.type());
-                $mn = $ah.action;
-                $ah -= "action";
-                # ensure first letter of the action is in upper case
-                splice $mn, 0, 1, $mn[0].upr();
-                $mn = $cx.hdr.method.lwr() + $mn;
-            }
-            else
-                $mn = $cx.hdr.method.lwr();
-
-            if ($oname) {
-                my *AbstractRestObject $obj = $.getObject($oname);
-                if (!$obj) {
-                    $rh.logDebug("unknown object %y: class %y: method %y args: %y", $oname, $.getName(), $mn, $ah);
-                    return $.unknownObjectError($oname);
+        hash handleRequest(RestHandler $rh, *list $cl, string $mn, *hash $args, hash $cx) {            
+            if ($cl) {
+                my string $cname = shift $cl;
+                my *AbstractRestClass $cls = $.getSubClass($cname);
+                if (!$cls) {
+                    $rh.logDebug("unknown subclass %y: class %y: method %y args: %y", $cname, $.getName(), $mn, $args);
+                    return $.unknownSubClassError($cname);
                 }
 
-                $rh.logDebug("object %y: dispatching class %y: method %y args: %y", $oname, $.getName(), $mn, $ah);
-                return $.dispatch($rh, $obj, $oname, $mn, $ah, $cx);
+                $rh.logDebug("class %y: dispatching to subclass class %y: method %y args: %y", $.getName(), $cname, $mn, $args);
+                return $cls.handleRequest($rh, $cl, $mn, $args, $cx);
             }
             
-            $rh.logDebug("dispatching class %y: method %y args: %y", $.getName(), $mn, $ah);
-            return $.dispatch($rh, $self, NOTHING, $mn, $ah, $cx);
+            $rh.logDebug("class %y: dispatching method %y args: %y", $.getName(), $mn, $args);
+            return $.dispatch($rh, NOTHING, $mn, $args, $cx);
         }
         
-        hash dispatch(RestHandler $rh, object $obj, *string $oname, string $mn, *hash $ah, hash $cx) {
+        hash dispatch(RestHandler $rh, *string $oname, string $mn, *hash $ah, hash $cx) {
             try {
-                return callObjectMethodArgs($obj, $mn, ($cx, $ah));
+                return callObjectMethodArgs($self, $mn, ($cx, $ah));
             }
             catch (hash $ex) {
                 if ($ex.err == "METHOD-DOES-NOT-EXIST") {
-                    if ($obj == $self) {
-                        $rh.logDebug("%s: class %y: method %y args: %y", $ex.err, $.getName(), $mn, $ah);
-                        return RestHandler::make501("REST class %y does not implement method %y", $.getName(), $mn);
-                    }
-                    $rh.logDebug("%s: class %y: object: %y method %y args: %y", $ex.err, $.getName(), $oname, $mn, $ah);
-                    return RestHandler::make501("REST class %y object %y does not implement method %y", $.getName(), $oname, $mn);
+                    $rh.logDebug("%s: class %y: method %y args: %y", $ex.err, $.getName(), $mn, $ah);
+                    return RestHandler::make501("REST class %y does not implement method %y", $.getName(), $mn);
                 }
                 $rh.logDebug("class %y: method %y: %s: %s: %s", $.getName(), $mn, get_ex_pos($ex), $ex.err, $ex.desc);
                 rethrow;
             }
         }
         
-        hash unknownObjectError(string $name) {
-            return (
-                "code": 500,
-                "body": sprintf("object %y of class %y is unknown", $name, $.getName()),
-                );
+        hash unknownSubClassError(string $name) {
+            return RestHandler::make400("class %y has no subclass %y", $.getName(), $name);
         }
         
         hash post(hash $cx, *hash $ah) {
@@ -211,9 +139,10 @@ public namespace RestHandler {
                 "DELETE": True,
                 );
 
-            #! supported mime types for serializing responses
-            const SerializationTypes = (
+            #! supported mime types for de/serializing responses
+            const MimeDataTypes = (
 %ifndef NoYaml
+                MimeTypeYaml: True,
                 MimeTypeYamlRpc: True,
 %endif
 %ifndef NoXml
@@ -248,9 +177,9 @@ public namespace RestHandler {
 
             my *string $cls = ($path =~ x/^([^\/]+)/)[0];
             if (!$cls)
-                return RestHandler::makeResponse(500, "cannot find REST class in path %y", $cx.url.path);
+                return RestHandler::make400("cannot find REST class in path %y", $cx.url.path);
             if (!$.ch{$cls})
-                return RestHandler::makeResponse(500, "unknown REST class %y in path %y (valid classes: %y)", $cls, $cx.url.path, $.ch.keys());
+                return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", $cls, $cx.url.path, $.ch.keys());
 
             # check method
             if (!Methods.($hdr.method))
@@ -262,8 +191,67 @@ public namespace RestHandler {
             # get object and args
             my hash $ah = parse_uri_query($path);
 
+            my *hash $args;
+            if (exists $ah.params[0]) {
+                if ($ah.params[0].typeCode() != NT_HASH)
+                    return RestHandler::make400("cannot parse arguments in REST call %y, the first argument must be a hash with an 'action' key; got type %y instead", $path, $ah.params[0].type());
+                if ($ah.params.size() > 1)
+                    return RestHandler::make400("invalid arguments in REST call %y, only a single hash argument is accepted; got %y instead", $path, $ah.params);
+                $args = $ah.params[0];
+            }
+
+            # make method name
+            my string $mn;
+            if ($args.action) {
+                if ($args.action.typeCode() != NT_STRING)
+                    return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", $path, $args.action.type());
+                $mn = $args.action;
+                $args -= "action";
+                # ensure first letter of the action is in upper case
+                splice $mn, 0, 1, $mn[0].upr();
+                $mn = $hdr.method.lwr() + $mn;
+            }
+            else
+                $mn = $hdr.method.lwr();
+
+            # get class chain
+            my *list $cl = $ah.method ? $ah.method.split("/") : NOTHING;
+
+            # deserialize body according to Content-Type
+            if ($body) {
+                my bool $decoded = False;
+%ifndef NoYaml
+                # check for yaml support
+                foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
+                    if ($hdr."content-type" == $ct) {
+                        $body = parseYAML($body);
+                        $decoded = True;
+                    }
+                }
+%endif
+%ifndef NoXml
+                # check for xml-rpc support
+                if (!$decoded && $hdr."content-type" == MimeTypeXml) {
+                    $body = parseXMLRPCValue($body);
+                    $decoded = True;
+                }
+%endif
+%ifndef NoYaml
+                # check for json support
+                if (!$decoded && $hdr."content-type" == MimeTypeJsonRpc) {
+                    $body = parseJSON($body);
+                    $decoded = True;
+                }
+%endif
+                if (!$decoded) {
+                    $.requestDeserializationError($hdr, $cx, $body);
+                    return RestHandler::make501("cannot deserialize request body; content-type is: %y; types supported: %y; discarding request body: %y", $hdr."content-type", MimeDataTypes.keys(), $body);
+                }
+
+            }
+
             # handle call with class
-            my hash $rv = $.ch{$cls}.handleRequest($self, $ah.method, $ah.params, $cx + ("hdr": $hdr, "body": $body));
+            my hash $rv = $.ch{$cls}.handleRequest($self, $cl, $mn, $args, $cx + ("hdr": $hdr, "body": $body));
 
             # serialize response according to client's capabilities if necessary
             if (exists $rv.body && $rv.body.typeCode() != NT_STRING) {
@@ -273,32 +261,36 @@ public namespace RestHandler {
                 my hash $aih;
                 map $aih.$1 = True, $astr.split(",");
                 
-                # check for yaml-rpc support
-                my bool $decoded;
+                my bool $encoded;
 %ifndef NoYaml
-                if ($aih{MimeTypeYamlRpc}) {
-                    $rv.body = makeYAML($rv.body);
-                    $rv.hdr = MimeTypeYamlRpc;
-                    $decoded = True;
+                # check for yaml support
+                foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
+                    if ($aih.$ct) {
+                        $rv.body = makeYAML($rv.body);
+                        $rv.hdr = $ct;
+                        $encoded = True;
+                    }
                 }
 %endif
 %ifndef NoXml
-                if (!$decoded && $aih{MimeTypeXml}) {
+                # check for xml-rpc support
+                if (!$encoded && $aih{MimeTypeXml}) {
                     $rv.body = makeXMLRPCValueString($rv.body);
                     $rv.hdr = MimeTypeXml;
-                    $decoded = True;
+                    $encoded = True;
                 }
 %endif
 %ifndef NoYaml
-                if (!$decoded && $aih{MimeTypeJsonRpc}) {
+                # check for json support
+                if (!$encoded && $aih{MimeTypeJsonRpc}) {
                     $rv.body = makeJSONString($rv.body);
                     $rv.hdr = MimeTypeJsonRpc;
-                    $decoded = True;
+                    $encoded = True;
                 }
 %endif
-                if (!$decoded) {
+                if (!$encoded) {
                     $.responseSerializationError($cx, $aih, $rv);
-                    return RestHandler::make501("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", $aih.keys(), SerializationTypes.keys(), $rv.body);
+                    return RestHandler::make501("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", $aih.keys(), MimeDataTypes.keys(), $rv.body);
                 }
             }
 
@@ -309,6 +301,10 @@ public namespace RestHandler {
         removeRootPath(reference $path) {
         }
         
+        #! default implementation is empty
+        requestDeserializationError(hash $hdr, hash $cx, string $body) {
+        }
+
         #! default implementation is empty
         responseSerializationError(hash $cx, hash $aih, hash $rv) {
         }
