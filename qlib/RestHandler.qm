@@ -70,7 +70,7 @@ public namespace RestHandler {
         constructor() {
         }
 
-        abstract string getName();
+        abstract string name();
 
         abstract *AbstractRestClass getSubClass(string $name);
 
@@ -79,15 +79,15 @@ public namespace RestHandler {
                 my string $cname = shift $cl;
                 my *AbstractRestClass $cls = $.getSubClass($cname);
                 if (!$cls) {
-                    $rh.logDebug("unknown subclass %y: class %y: method %y args: %y", $cname, $.getName(), $mn, $args);
+                    $rh.logDebug("unknown subclass %y: class %y: method %y args: %y", $cname, $.name(), $mn, $args);
                     return $.unknownSubClassError($cname);
                 }
 
-                $rh.logDebug("class %y: dispatching to subclass class %y: method %y args: %y", $.getName(), $cname, $mn, $args);
+                $rh.logDebug("class %y: dispatching to subclass class %y: method %y args: %y", $.name(), $cname, $mn, $args);
                 return $cls.handleRequest($rh, $cl, $mn, $args, $cx);
             }
             
-            $rh.logDebug("class %y: dispatching method %y args: %y", $.getName(), $mn, $args);
+            $rh.logDebug("class %y: dispatching method %y args: %y", $.name(), $mn, $args);
             return $.dispatch($rh, NOTHING, $mn, $args, $cx);
         }
         
@@ -97,16 +97,16 @@ public namespace RestHandler {
             }
             catch (hash $ex) {
                 if ($ex.err == "METHOD-DOES-NOT-EXIST") {
-                    $rh.logDebug("%s: class %y: method %y args: %y", $ex.err, $.getName(), $mn, $ah);
-                    return RestHandler::make501("REST class %y does not implement method %y", $.getName(), $mn);
+                    $rh.logDebug("%s: class %y: method %y args: %y", $ex.err, $.name(), $mn, $ah);
+                    return RestHandler::make501("REST class %y does not implement method %y", $.name(), $mn);
                 }
-                $rh.logDebug("class %y: method %y: %s: %s: %s", $.getName(), $mn, get_ex_pos($ex), $ex.err, $ex.desc);
+                $rh.logDebug("class %y: method %y: %s: %s: %s", $.name(), $mn, get_ex_pos($ex), $ex.err, $ex.desc);
                 rethrow;
             }
         }
         
         hash unknownSubClassError(string $name) {
-            return RestHandler::make400("class %y has no subclass %y", $.getName(), $name);
+            return RestHandler::make400("class %y has no subclass %y", $.name(), $name);
         }
         
         hash post(hash $cx, *hash $ah) {
@@ -334,7 +334,7 @@ public namespace RestHandler {
             $.mx.lock();
             on_exit $.mx.unlock();
 
-            my string $name = $cls.getName();
+            my string $name = $cls.name();
             if ($.ch{$name})
                 throw "RETSHANDLER-ERROR", sprintf("class %y has already been registered with this handler", $name);
             $.ch{$name} = $cls;
