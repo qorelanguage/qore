@@ -141,15 +141,19 @@ public namespace SqlUtil {
             #! the size of the column
             int size;
 
+            #! the sie of the column in characters
+            int char_size;
+
             #! Qore::True "True" if the column can hold a NULL value, @ref Qore::False "False" if not
             bool nullable; 
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul) {
+        constructor(string n, string nt, *string qt, int sz, int cs, bool nul) {
             name = n;
             native_type = nt;
             qore_type = qt;
             size = sz;
+            char_size = cs;
             nullable = nul;
         }
     }
@@ -553,19 +557,17 @@ my hash $h = $table.describe();
         }
 
         private Columns describeImpl() {
-            #printf("%N\n", ds.selectRow("select sys_context(%v, %v) sys_context from dual", "USERENV", "SESSION_USER").sys_context);
-
             #printf("select column_name, data_type, data_length, data_precision, data_scale, nullable from user_tab_columns where table_name = '%s'", name);
 
             # get column descriptions
-            *hash qh = ds.select("select column_name, data_type, data_length, data_precision, data_scale, nullable from user_tab_columns where table_name = %v", name);
+            *hash qh = ds.select("select column_name, data_type, data_length, data_precision, data_scale, nullablem char_length from user_tab_columns where table_name = %v", name);
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
                 *hash th = OraTypeMap.(row.data_type);
-                rv.(row.column_name) = new Column(row.column_name, row.data_type, th.qore, row.data_length, row.nullable == "Y");
+                rv.(row.column_name) = new Column(row.column_name, row.data_type, th.qore, row.data_length, row.char_length, row.nullable == "Y");
             }
 
             return new Columns(rv);
@@ -650,6 +652,7 @@ my hash $h = $table.describe();
                 "oid": ("qore": "number",),
                 "varchar": ("qore": "string",),
                 "character": ("qore": "string",),
+                "character varying": ("qore": "string",),
                 "date": ("qore": "date",),
                 "timestamp without time zone": ("qore": "date",),
                 "timestamp with time zone": ("qore": "date",),
@@ -681,8 +684,9 @@ my hash $h = $table.describe();
             hash rv;
             foreach hash row in (qh.contextIterator()) {
                 *hash th = PgsqlTypeMap.(row.data_type);
-                softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
-                rv.(row.column_name) = new Column(row.column_name, row.data_type, th.qore, size ? size : -1, row.is_nullable == "YES");
+                softint size = row.character_octet_length ? row.character_octet_length : row.numeric_precision;
+                softint cs = row.character_maximum_length ? row.character_maximum_length : 0;
+                rv.(row.column_name) = new Column(row.column_name, row.data_type, th.qore, exists size ? size : 0, cs, row.is_nullable == "YES");
             }
 
             return new Columns(rv);
