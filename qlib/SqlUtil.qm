@@ -230,7 +230,85 @@ public namespace SqlUtil {
         }
     }
 
-    #! represents a single table
+    #! represents a database table
+    public class Table {
+        private {
+            AbstractTable t;
+        }
+
+        constructor(AbstractDatasource ds, string name) {
+            t = AbstractTable::getTable(ds, name);
+        }
+
+        constructor(string ds, string name) {
+            t = AbstractTable::getTable(ds, name);
+        }
+        
+        constructor(hash ds, string name) {
+            t = AbstractTable::getTable(ds, name);
+        }
+        
+        #! returns the name of the table
+        string getName() {
+            return t.getName();
+        }
+
+        #! gets the underlying AbstractDatasource
+        AbstractDatasource getDatasource() {
+            return t.getDatasource();
+        }
+
+        # returns the table description hash as acquired in the constructor
+        /** @par Example:
+            @code
+my hash $h = $table.describe();
+            @endcode
+
+            @return a hash of column names assigned to Column objects
+
+        */
+        Columns describe() {
+            return t.describe();
+        }
+
+        #! returns an objext of class Columns describing the primary key of the table
+        /** If there is no primary key then the object returned will be empty (see @ref Columns::empty())
+
+            @par Example:
+            @code
+            @endcode
+
+            @return an objext of class Columns describing the primary key of the table
+        */
+        Columns getPrimaryKey() {
+            return t.getPrimaryKey();
+        }
+
+        #! returns an object of class Indexes describing the indexes on the table
+        /** If there is are no indexes on the table then the object returned will be empty (see @ref Indexes::empty())
+
+            @par Example:
+            @code
+            @endcode
+
+            @return an objext of class Indexes describing the indexes on the table
+        */
+        Indexes getIndexes() {
+            return t.getIndexes();
+        }
+
+        #! returns a ForeignConstraints object describing the foreign constraints that the table has on other tables
+        ForeignConstraints getForeignConstraints() {
+            return t.getForeignConstraints();
+        }
+
+        #! returns the database driver name 
+        string getDriverName() {
+            return t.getDriverName();
+        }
+    }
+
+    #! the base abstract class for the table implementation
     public class AbstractTable {
         public {
             #! drivers known to 
@@ -269,6 +347,21 @@ public namespace SqlUtil {
                 dsdesc += "%" + ds.getHostName();
             if (nds.getPort())
                 dsdesc += sprintf(":%d", ds.getPort());
+        }
+
+        #! returns the name of the table
+        string getName() {
+            return name;
+        }
+
+        #! gets the underlying AbstractDatasource
+        AbstractDatasource getDatasource() {
+            return ds;
+        }
+
+        #! returns the database driver name 
+        string getDriverName() {
+            return ds.getDriverName();
         }
 
         # returns the table description hash as acquired in the constructor
@@ -313,6 +406,7 @@ my hash $h = $table.describe();
             return indexes;
         }
 
+        #! returns a ForeignConstraints object describing the foreign constraints that the table has on other tables
         ForeignConstraints getForeignConstraints() {
             getForeignConstraintsIntern();
             return foreignConstraints;
@@ -328,6 +422,15 @@ my hash $h = $table.describe();
 
         static AbstractTable getTable(string dsstr, string nname) {
             Datasource nds(dsstr);
+            string drv = nds.getDriverName();
+            *code c = DriverMap{drv};
+            if (!c)
+                throw "TABLE-DRIVER-ERROR", sprintf("no support for driver %y yet in SqlUtil::AbstractTable", drv);
+            return c(nds, nname);
+        }
+
+        static AbstractTable getTable(hash dsh, string nname) {
+            Datasource nds(dsh);
             string drv = nds.getDriverName();
             *code c = DriverMap{drv};
             if (!c)
