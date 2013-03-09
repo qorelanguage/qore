@@ -198,8 +198,10 @@ DLLLOCAL extern QoreCommandLineLocation qoreCommandLineLocation;
 // the following functions are implemented in support.cc
 DLLLOCAL void parse_error(const QoreProgramLocation& loc, const char* fmt, ...);
 DLLLOCAL void parse_error(const char* fmt, ...);
+DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, const char* fmt, ...);
 DLLLOCAL void parseException(const char* err, const char* fmt, ...);
 DLLLOCAL void parseException(const char* err, QoreStringNode* desc);
+DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc);
 DLLLOCAL QoreString *findFileInPath(const char* file, const char* path);
 DLLLOCAL QoreString *findFileInEnvPath(const char* file, const char* varname);
 

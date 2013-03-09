@@ -150,6 +150,11 @@ void parse_error(const QoreProgramLocation& loc, const char *fmt, ...) {
    qore_program_private::makeParseException(getProgram(), loc, desc);
 }
 
+void parseException(const QoreProgramLocation& loc, const char *err, QoreStringNode *desc) {
+   printd(5, "parseException(%s, %s) called\n", err, desc->getBuffer());
+   qore_program_private::makeParseException(getProgram(), loc, err, desc);
+}
+
 void parseException(const char *err, QoreStringNode *desc) {
    printd(5, "parseException(%s, %s) called\n", err, desc->getBuffer());
    qore_program_private::makeParseException(getProgram(), err, desc);
@@ -166,6 +171,19 @@ void parseException(const char *err, const char *fmt, ...) {
 	 break;
    }
    parseException(err, desc);
+}
+
+void parseException(const QoreProgramLocation& loc, const char *err, const char *fmt, ...) {
+   QoreStringNode *desc = new QoreStringNode;
+   while (true) {
+      va_list args;
+      va_start(args, fmt);
+      int rc = desc->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+   parseException(loc, err, desc);
 }
 
 // returns 1 for success

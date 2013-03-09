@@ -123,7 +123,7 @@ static void check_flags(QoreFunction *func, int64 flags, int64 pflag) {
       warn_deprecated(func);
 }
 
-int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
+int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
    // number of local variables declared in arguments
    int lvids = 0;
 
@@ -171,7 +171,7 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction 
          func->parseInit();
    
       // find variant
-      variant = func->parseFindVariant(argTypeInfo);
+      variant = func->parseFindVariant(loc, argTypeInfo);
 
       QoreProgram* pgm = getProgram();
 
@@ -218,7 +218,7 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, QoreFunction 
 
          desc->concat(" in an expression initializing a constant value at parse time when the function has uncommitted variants and the variant cannot be matched at parse time; to fix this error, add enough type information to the call to allow the variant to be resolved");
 
-         parseException("ILLEGAL-CALL", desc);
+         parseException(loc, "ILLEGAL-CALL", desc);
       }
    }
    else

@@ -347,33 +347,33 @@ void VarRefDeclNode::makeGlobal() {
    new_decl = true;
 }
 
-void VarRefFunctionCallBase::parseInitConstructorCall(LocalVar *oflag, int pflag, int &lvids, const QoreClass *qc) {
+void VarRefFunctionCallBase::parseInitConstructorCall(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, int &lvids, const QoreClass *qc) {
    if (qc) {
       // throw an exception if trying to instantiate a class with abstract method variants
       qore_class_private::parseCheckAbstractNew(*const_cast<QoreClass*>(qc));
 
       if (qore_program_private::parseAddDomain(getProgram(), qc->getDomain()))
-	 parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", qc->getName());
+	 parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", qc->getName());
 
       // FIXME: make common code with ScopedObjectCallNode
       const QoreMethod *constructor = qc ? qc->parseGetConstructor() : 0;
       const QoreTypeInfo *typeInfo;
-      lvids += parseArgsVariant(oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
+      lvids += parseArgsVariant(loc, oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
 
       //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this=%p constructor=%p variant=%p\n", this, constructor, variant);
 
       if (((constructor && constructor->parseIsPrivate()) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*qc)) {
 	 if (variant)
-	    parse_error("illegal external access to private constructor %s::constructor(%s)", qc->getName(), variant->getSignature()->getSignatureText());
+	    parse_error(loc, "illegal external access to private constructor %s::constructor(%s)", qc->getName(), variant->getSignature()->getSignatureText());
 	 else
-	    parse_error("illegal external access to private constructor of class %s", qc->getName());
+	    parse_error(loc, "illegal external access to private constructor of class %s", qc->getName());
       }
 
       //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this=%p class=%s (%p) constructor=%p function=%p variant=%p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
    }
 
    if (pflag & PF_FOR_ASSIGNMENT)
-      parse_error("variable new object instantiation will be assigned when the object is created; it is an error to make an additional assignment");
+      parse_error(loc, "variable new object instantiation will be assigned when the object is created; it is an error to make an additional assignment");
 }
 
 AbstractQoreNode *VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
@@ -383,7 +383,7 @@ AbstractQoreNode *VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag,
    if (!qc)
       parse_error("cannot instantiate type '%s' as a class", typeInfo->getName());
 
-   parseInitConstructorCall(oflag, pflag, lvids, qc);
+   parseInitConstructorCall(loc, oflag, pflag, lvids, qc);
    outTypeInfo = typeInfo;
    return this;
 }

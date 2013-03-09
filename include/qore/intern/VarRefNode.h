@@ -335,7 +335,7 @@ protected:
 public:
    DLLLOCAL VarRefFunctionCallBase(QoreListNode *n_args) : FunctionCallBase(n_args) {
    }
-   DLLLOCAL void parseInitConstructorCall(LocalVar *oflag, int pflag, int &lvids, const QoreClass *qc);
+   DLLLOCAL void parseInitConstructorCall(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, int &lvids, const QoreClass *qc);
 };
 
 class VarRefNewObjectNode : public VarRefDeclNode, public VarRefFunctionCallBase {

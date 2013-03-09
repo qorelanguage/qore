@@ -141,4 +141,22 @@ any call_pseudo(any val, string meth, ...) {
       nargs = args->copyListFrom(2);
    return pseudo_classes_eval(val, meth->getBuffer(), *nargs, xsink);
 }
+
+//! calls a pseudo-method on the given value with arguments given as a list
+/** @param val the value to call the pseudo-method on
+    @param meth the string method name of the pseudo-method to call
+    @param args any other arguments to the method
+
+    @return the return value of the pseudo-method
+
+    @see Qore::zzz8valuezzz9 for the class hierarchy of pseudo-classes
+
+    @note this function can be used for security to ensure that a given pseudo-method of the Qore::zzz8objectzzz9 class is called,
+    as by default if a method of the same name is implemented by the object's class, the class method will be called instead.
+
+    @since %Qore 0.8.8
+ */
+any call_pseudo_args(any val, string meth, *softlist argv) {
+   return pseudo_classes_eval(val, meth->getBuffer(), argv, xsink);
+}
 //@}

@@ -663,7 +663,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
    return variant;
 }
 
-static AbstractQoreFunctionVariant* doSingleVariantTypeException(int pi, const char* class_name, const char* name, const char* sig, const QoreTypeInfo* proto, const QoreTypeInfo* arg) {
+static AbstractQoreFunctionVariant* doSingleVariantTypeException(const QoreProgramLocation &loc, int pi, const char* class_name, const char* name, const char* sig, const QoreTypeInfo* proto, const QoreTypeInfo* arg) {
    QoreStringNode* desc = new QoreStringNode("argument ");
    desc->sprintf("%d to '", pi);
    if (class_name)
@@ -672,7 +672,7 @@ static AbstractQoreFunctionVariant* doSingleVariantTypeException(int pi, const c
    proto->getThisType(*desc);
    desc->concat(", but call supplies ");
    arg->getThisType(*desc);
-   qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+   qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
    return 0;
 }
 
@@ -791,7 +791,7 @@ static void warn_excess_args(QoreFunction* func, const type_vec_t &argTypeInfo, 
 }
 
 // finds a variant at parse time
-const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const type_vec_t &argTypeInfo) {
+const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProgramLocation& loc, const type_vec_t &argTypeInfo) {
    // the number of parameters * 2 matched to arguments (compatible but not perfect match = 1, perfect match = 2)
    int match = -1;
    // the number of possible matches at runtime (due to missing types at parse time); number of parameters
@@ -885,7 +885,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const type_vec
 		  ok = false;
 		  // raise a detailed parse exception immediately if there is only one variant
 		  if (ilist.size() == 1 && aqf->pending_vlist.singular() && aqf->vlist.empty() && getProgram()->getParseExceptionSink())
-		     return doSingleVariantTypeException(pi + 1, aqf->className(), getName(), sig->getSignatureText(), t, a);
+		     return doSingleVariantTypeException(loc, pi + 1, aqf->className(), getName(), sig->getSignatureText(), t, a);
 		  break;
 	       }
 	       // only increment for actual type matches (t may be NULL)
@@ -1011,7 +1011,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const type_vec
 		  ok = false;
 		  // raise a detailed parse exception immediately if there is only one variant
 		  if (ilist.size() == 1 && aqf->pending_vlist.singular() && aqf->vlist.empty() && getProgram()->getParseExceptionSink())
-		     return doSingleVariantTypeException(pi + 1, aqf->className(), getName(), sig->getSignatureText(), t, a);
+		     return doSingleVariantTypeException(loc, pi + 1, aqf->className(), getName(), sig->getSignatureText(), t, a);
 		  break;
 	       }
 	       // only increment for actual type matches (t may be NULL)

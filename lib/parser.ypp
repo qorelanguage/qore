@@ -2309,6 +2309,9 @@ ident_openparen:
         IDENTIFIER '(' {
 	   $$ = $1;
         }
+        | TOK_KEYS '(' {
+           $$ = strdup("keys");
+        }
         | KW_IDENTIFIER_OPENPAREN {
 	   $$ = $1;
         }
