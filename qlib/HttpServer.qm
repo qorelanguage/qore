@@ -1021,6 +1021,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
                     }
 
                     case "POST":
+                    case "PUT":
                     case "DELETE":
                     case "GET": {
                         $.serv.handleRequest($self, $s, \$cx, $hdr, NOTHING, \$cx.close);
