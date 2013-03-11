@@ -240,7 +240,7 @@ public namespace RestHandler {
                     $decoded = True;
                 }
 %endif
-%ifndef NoYaml
+%ifndef NoJson
                 # check for json support
                 if (!$decoded && $hdr."content-type" == MimeTypeJsonRpc) {
                     $body = parseJSON($body);
@@ -252,6 +252,10 @@ public namespace RestHandler {
                     return RestHandler::make501("cannot deserialize request body; content-type is: %y; types supported: %y; discarding request body: %y", $hdr."content-type", MimeDataTypes.keys(), $body);
                 }
 
+                # add any hash body to query arguments for easier processing if the HTTP method is not GET
+                # and comliance with lazy clients that put arguments in the URI with non GET methods
+                if ($hdr.method != "GET" && $body.typeCode() == NT_HASH)
+                    $args += $body;
             }
 
             # handle call with class
@@ -286,7 +290,7 @@ public namespace RestHandler {
                         $encoded = True;
                     }
 %endif
-%ifndef NoYaml
+%ifndef NoJson
                     # check for json support
                     if (!$encoded && ($aih{MimeTypeJsonRpc} || $aih."*/*")) {
                         $rv.body = makeJSONString($rv.body);
