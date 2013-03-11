@@ -170,7 +170,8 @@ public namespace RestHandler {
         #! handles the HTTP requests
         hash handleRequest(hash $cx, hash $hdr, *data $b) {
             #$.logDebug("cx: %N", $cx);
-            #$.logDebug("hdr: %N", $hdr);
+            $.logDebug("hdr: %N", $hdr);
+            $.logDebug("body: %s", $b);
 
             my any $body = $b;
             
