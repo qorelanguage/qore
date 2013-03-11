@@ -168,9 +168,11 @@ public namespace RestHandler {
         }
 
         #! handles the HTTP requests
-        hash handleRequest(hash $cx, hash $hdr, *data $body) {
+        hash handleRequest(hash $cx, hash $hdr, *data $b) {
             #$.logDebug("cx: %N", $cx);
             #$.logDebug("hdr: %N", $hdr);
+
+            my any $body = $b;
             
             # get rest class name
             my string $path = $cx.url.path;
@@ -230,6 +232,7 @@ public namespace RestHandler {
                     if ($hdr."content-type" == $ct) {
                         $body = parseYAML($body);
                         $decoded = True;
+                        break;
                     }
                 }
 %endif

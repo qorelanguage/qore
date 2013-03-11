@@ -38,6 +38,7 @@ module HttpServer {
       + fixed a bug in parsing arguments in parse_uri_query()
       + updated parse_uri_query() to accept both "&" and ";" as argument separators
       + added support for the PUT and DELETE methods and for optional message bodies independent of the HTTP method
+      + fixed handler matching to use a score for each handler and to check dynamic handlers also for a match if the fixed handlers don't provide a perfect match
 
     * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
       + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
@@ -265,15 +266,17 @@ class HttpServer::HandlerInfo {
         string $.name;
         AbstractHttpRequestHandler $.obj;
         string $.url;
-        *string $.content;
+        # content type hash
+        hash $.ch;
         *list $.shdr;
     }
 
-    constructor(string $name, AbstractHttpRequestHandler $obj, string $url, *string $content, *softlist $shdr) {
+    constructor(string $name, AbstractHttpRequestHandler $obj, string $url, *softlist $content, *softlist $shdr) {
         $.name = $name;
         $.obj = $obj;
         $.url = $url;
-        $.content = $content;
+        if ($content)
+            map $.ch.$1 = True, $content;
         $.shdr = $shdr;
 
         foreach my any $h in (\$.shdr) {
@@ -282,6 +285,10 @@ class HttpServer::HandlerInfo {
             # make sure header is in lower case for matching
             $h = tolower($h);
         }
+    }
+
+    bool matchContentType(string $ct) {
+        return $.ch.$ct ? True : False;
     }
 }
 
@@ -301,7 +308,7 @@ class HttpServer::HttpHandlerList {
     }
 
     #! sets a request handler according to the arguments given 
-    setHandler(string $name, string $url, *string $content, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+    setHandler(string $name, string $url, *softlist $content, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
         if ($.handlers.$name)
             throw "SETHANDLER-ERROR", sprintf("HTTP request handler %y already exists", $name);
 
@@ -309,7 +316,7 @@ class HttpServer::HttpHandlerList {
     }
 
     # matches a handler to the request
-    *HandlerInfo findHandler(*hash $url, hash $hdr, bool $final = False) {
+    *HandlerInfo findHandler(*hash $url, hash $hdr, reference $score, bool $final = False) {
 	# if there is only one handler and final is true, then return the only handler
 	if ($final && $.handlers.size() == 1)
             return $.handlers.firstValue();
@@ -320,43 +327,40 @@ class HttpServer::HttpHandlerList {
 	#printf("HTTP DEBUG: HttpHandlerList::findHandler() hdr=%y, handlers=%y\n", $hdr, $.handlers);
 	foreach my string $h in ($.handlers.keyIterator()) {
             my HandlerInfo $hi = $.handlers.$h;
-            #printf("HTTP DEBUG: checking handler %s: ct=%n, path=%n, url=%n, hcon=%n (url=%y) shdr=%y\n", $h, $hdr."content-type", $hdr.path, $.handlers.$h.url, $.handlers.$h.content, $url, $.handlers.$h.shdr);
-	    if ($hdr."content-type" && $hdr."content-type" == $.handlers.$h.content) {
-                #printf("HTTP DEBUG: match content-type for handler %y (h url: %y ct: %y, url: %y ct: %y)\n", $h, $.handlers.$h.url, $.handlers.$h.content, $url, $hdr."content-type");
-                if (!$rv)
-                    $rv = $hi;
+            #printf("HTTP DEBUG: checking handler %y: ct: %y, path: %y, url: %y, hcon: %y (url: %y) shdr: %y\n", $h, $hdr."content-type", $hdr.path, $.handlers.$h.url, $.handlers.$h.content, $url, $.handlers.$h.shdr);
 
-		if ($hi.url && $url.path && regex($url.path, $hi.url)) {
-                    #printf("HTTP DEBUG: match content-type and url for handler %y (h url: %y ct: %y, url: %y ct: %y)\n", $h, $.handlers.$h.url, $.handlers.$h.content, $url, $hdr."content-type");
-		    break;
-                }
-
-		continue;
+            # try to match content-type
+	    if (!$score && $hdr."content-type" && $hi.matchContentType($hdr."content-type")) {
+                #printf("HTTP DEBUG: Content-Type match for handler %y (h url: %y ct: %y, url: %y ct: %y)\n", $h, $.handlers.$h.url, $.handlers.$h.ch, $url, $hdr."content-type");
+                $score = 1;
+                $rv = $hi;
 	    }
-	    if ($hi.shdr) {
+
+            # try to match special headers
+	    if ($score < 2 && $hi.shdr) {
 		#printf("HTTP DEBUG: checking special headers %n: %n\n", $.handlers.$h.shdr, $hdr);
                 my bool $found = False;
 		foreach my string $shdr in ($hi.shdr) {
 		    if ($hdr.$shdr) {
-			#printf("HTTP DEBUG: got special header %s: %s\n", $shdr, $hdr.$shdr);
+			#printf("HTTP DEBUG: special header match for handler %y: %s: %s\n", $h, $shdr, $hdr.$shdr);
+                        $score = 2;
                         $rv = $hi;
                         $found = True;
 			break;
 		    }
 		}
-                if ($found)
-                    break;
 	    }
             
-	    # path trumps content-type
+	    # try to match URI path
 	    #printf("regex(%n, %s, %n, %s) %n && %n && %n\n", $hdr.path, type($hdr.path), $.handlers.$h.url, type($.handlers.$h.url), strlen($.handlers.$h.url), strlen($hdr.path), regex($url.path, $.handlers.$h.url));
-	    if ($hi.url && $hdr.path && regex($url.path, $hi.url)) {
-                #printf("HTTP DEBUG: match url for handler %y (h url: %y, url: %y)\n", $h, $.handlers.$h.url, $url);
+	    if ($score < 3 && $hi.url && $hdr.path && regex($url.path, $hi.url)) {
+                #printf("HTTP DEBUG: URI match for handler %y (h url: %y, url: %y)\n", $h, $.handlers.$h.url, $url);
+                $score = 3;
                 $rv = $hi;
             }
 	}
 
-        #printf("HTTP DEBUG: HttpHandlerList::findHandler() rv: %y\n", $rv);
+        #printf("HTTP DEBUG: HttpHandlerList::findHandler() found %y score: %d\n", $rv.name, $score);
         return $rv;
     }
 
@@ -375,7 +379,7 @@ class HttpServer::DynamicHandlerInfo inherits HttpServer::HandlerInfo {
         Counter $.counter();
     }
 
-    constructor(string $name, AbstractHttpRequestHandler $obj, string $url, *string $content, *softlist $shdr) : HandlerInfo($name, $obj, $url, $content, $shdr) {
+    constructor(string $name, AbstractHttpRequestHandler $obj, string $url, *softlist $content, *softlist $shdr) : HandlerInfo($name, $obj, $url, $content, $shdr) {
     }
 }
 
@@ -404,7 +408,7 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
     }
 
     #! sets a dynamic request handler according to the arguments given 
-    setHandler(string $name, string $url, *string $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+    setHandler(string $name, string $url, *softlist $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
         my DynamicHandlerInfo $dhi($name, $obj, $url, $content_type, $special_headers);
 
         $.dhl.writeLock();
@@ -439,11 +443,11 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
         $c.waitForZero();
     }
 
-    *DynamicHandlerInfo findHandler(*hash $url, hash $hdr, reference $dhh) {
+    *DynamicHandlerInfo findHandler(*hash $url, hash $hdr, reference $score, reference $dhh) {
         $.dhl.readLock();
         on_exit $.dhl.readUnlock();
 
-        my *DynamicHandlerInfo $h = HttpHandlerList::$.findHandler($url, $hdr);
+        my *DynamicHandlerInfo $h = HttpHandlerList::$.findHandler($url, $hdr, \$score);
         if (!$h)
             return;
 
@@ -986,7 +990,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
                         $hdr -= "body";
                     }
                     catch (hash $ex) {
-                        my string $etxt = sprintf("error reading chunked body in POST: %s: %s", $ex.err, $ex.desc);
+                        my string $etxt = sprintf("error reading chunked body in %s: %s: %s", $hdr.method, $ex.err, $ex.desc);
                         my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
                         $.logError($str);
                         $.serv.sendHttpError($s, 400, $etxt, True, NOTHING, $cx."response-encoding");
@@ -1003,7 +1007,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
                         #printf("HTTP DEBUG: %s\n", $body);
                     }
                     catch (hash $ex) {
-                        my string $etxt = sprintf("error reading body in POST (Content-Length: %d): %s: %s", $hdr."content-length", $ex.err, $ex.desc);
+                        my string $etxt = sprintf("error reading body in %s (Content-Length: %d): %s: %s", $hdr.method, $hdr."content-length", $ex.err, $ex.desc);
                         my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
                         $.logError($str);
                         $.serv.sendHttpError($s, 400, $etxt, True, NOTHING, $cx."response-encoding");
@@ -1513,12 +1517,12 @@ public class HttpServer::HttpServer {
     }
     
     #! sets a request handler according to the arguments given 
-    setHandler(string $name, string $url, *string $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+    setHandler(string $name, string $url, *softlist $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
 	$.handlers.setHandler($name, $url, $content_type, $obj, $special_headers);
     }
 
     #! sets a dynamic request handler according to the arguments given 
-    setDynamicHandler(string $name, string $url, *string $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+    setDynamicHandler(string $name, string $url, *softlist $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
 	$.dhandlers.setHandler($name, $url, $content_type, $obj, $special_headers);
     }
 
@@ -1781,17 +1785,21 @@ public class HttpServer::HttpServer {
         my DynamicHandlerHelper $dhh;
 
 	my *HandlerInfo $hi;
+        my int $score;
 	if (!$listener.handlers.empty()) {
-	    $hi = $listener.handlers.findHandler($url, $hdr, True);
+	    $hi = $listener.handlers.findHandler($url, $hdr, \$score, True);
 	    if (!$hi) {
 		$.sendHttpError($s, 404, "Not found", $close, NOTHING, $cx."response-encoding");
 		return;
 	    }
 	}
 	else {
-	    $hi = $.handlers.findHandler($url, $hdr);
-	    if (!$hi)
-		$hi = $.dhandlers.findHandler($url, $hdr, \$dhh);
+	    $hi = $.handlers.findHandler($url, $hdr, \$score);
+            if ($score < 3) {
+                my *HandlerInfo $dhi = $.dhandlers.findHandler($url, $hdr, \$score, \$dhh);
+                if ($dhi)
+                    $hi = $dhi;
+            }
 	}
 
         my AbstractHttpRequestHandler $handler;
