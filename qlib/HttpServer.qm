@@ -1016,7 +1016,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 
 		switch ($hdr.method) {
                     case "HEAD": {
-                        $.serv.handleRequest($self, $s, \$cx, $hdr, NOTHING, \$cx.close, True);
+                        $.serv.handleRequest($self, $s, \$cx, $hdr, $body, \$cx.close, True);
                         break;
                     }
 
@@ -1024,7 +1024,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
                     case "PUT":
                     case "DELETE":
                     case "GET": {
-                        $.serv.handleRequest($self, $s, \$cx, $hdr, NOTHING, \$cx.close);
+                        $.serv.handleRequest($self, $s, \$cx, $hdr, $body, \$cx.close);
                         break;
                     }
 
