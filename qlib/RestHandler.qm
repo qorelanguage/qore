@@ -72,12 +72,12 @@ public namespace RestHandler {
 
         abstract string name();
 
-        abstract *AbstractRestClass getSubClass(string $name);
+        abstract *AbstractRestClass subClass(string $name);
 
         hash handleRequest(RestHandler $rh, *list $cl, string $mn, *hash $args, hash $cx) {            
             if ($cl) {
                 my string $cname = shift $cl;
-                my *AbstractRestClass $cls = $.getSubClass($cname);
+                my *AbstractRestClass $cls = $.subClass($cname);
                 if (!$cls) {
                     $rh.logDebug("unknown subclass %y: class %y: method %y args: %y", $cname, $.name(), $mn, $args);
                     return $.unknownSubClassError($cname);
