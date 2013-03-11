@@ -37,6 +37,7 @@ module HttpServer {
     * 2013-03-05 v0.3.7: David Nichols <david@qore.org>
       + fixed a bug in parsing arguments in parse_uri_query()
       + updated parse_uri_query() to accept both "&" and ";" as argument separators
+      + added support for the PUT and DELETE methods and for optional message bodies independent of the HTTP method
 
     * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
       + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
