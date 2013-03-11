@@ -975,74 +975,55 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		$cx.close = (inlist("close", $conn) || ($hdr.http_version != "1.1" && !inlist("keep-alive", $conn)));
 		#printf("HTTP DEBUG: conn=%n, close=%n\n", $conn, $cx.close);
 
-		if ($hdr.method != "POST" && ($hdr."content-length" || $hdr."transfer-encoding" == "chunked")) {
-		    my string $err = sprintf("body sent with %s method", $hdr.method);
-		    my string $str = sprintf("%s: received from %s via %s (header=%n)", $err, $info.address_desc, $.socket_info.address_desc, $hdr);
-		    $.logError($str);
-		    $.serv.sendHttpError($s, 411, $err, True, NOTHING, $cx."response-encoding");
-		    break;
-		}
-
 		# if we need to get a body
+                if ($hdr."transfer-encoding" == "chunked") {
+                    try {
+                        if ($hdr."content-encoding")
+                            $hdr += $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
+                        else
+                            $hdr += $s.readHTTPChunkedBody(HttpServer::ReadTimeout);
+                        $body = $hdr.body;
+                        $hdr -= "body";
+                    }
+                    catch (hash $ex) {
+                        my string $etxt = sprintf("error reading chunked body in POST: %s: %s", $ex.err, $ex.desc);
+                        my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
+                        $.logError($str);
+                        $.serv.sendHttpError($s, 400, $etxt, True, NOTHING, $cx."response-encoding");
+                        $cx.close = True;
+                        break;
+                    }
+                }
+                else if ($hdr."content-length") {
+                    try {
+                        if ($hdr."content-encoding")
+                            $body = $s.recvBinary($hdr."content-length", HttpServer::ReadTimeout);
+                        else
+                            $body = $s.recv($hdr."content-length", HttpServer::ReadTimeout);
+                        #printf("HTTP DEBUG: %s\n", $body);
+                    }
+                    catch (hash $ex) {
+                        my string $etxt = sprintf("error reading body in POST (Content-Length: %d): %s: %s", $hdr."content-length", $ex.err, $ex.desc);
+                        my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
+                        $.logError($str);
+                        $.serv.sendHttpError($s, 400, $etxt, True, NOTHING, $cx."response-encoding");
+                        $cx.close = True;
+                        break;
+                    }
+                }
+
+                #printf("HTTP DEBUG: id: %d, body: %n\n", $cx.id, substr($body, 0, 120));
+
 		switch ($hdr.method) {
                     case "HEAD": {
                         $.serv.handleRequest($self, $s, \$cx, $hdr, NOTHING, \$cx.close, True);
                         break;
                     }
 
+                    case "POST":
+                    case "DELETE":
                     case "GET": {
                         $.serv.handleRequest($self, $s, \$cx, $hdr, NOTHING, \$cx.close);
-                        break;
-                    }
-
-                    case "POST": {
-                        if ($hdr."transfer-encoding" == "chunked") {
-                            try {
-                                if ($hdr."content-encoding")
-                                    $hdr += $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
-                                else
-                                    $hdr += $s.readHTTPChunkedBody(HttpServer::ReadTimeout);
-                                $body = $hdr.body;
-                                $hdr -= "body";
-                            }
-                            catch (hash $ex) {
-                                my string $etxt = sprintf("error reading chunked body in POST: %s: %s", $ex.err, $ex.desc);
-                                my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
-                                $.logError($str);
-                                $.serv.sendHttpError($s, 400, $etxt, True, NOTHING, $cx."response-encoding");
-                                $cx.close = True;
-                                break;
-                            }
-                        }
-                        else if (!$hdr."content-length") {
-                            my string $err = "missing body (no 'Content-Length' header, no chunked encoding)";
-                            my string $str = sprintf("%s: received from %s via %s (header=%n)", $err, $info.address_desc, $.socket_info.address_desc, $hdr);
-                            $.logError($str);
-                            $.serv.sendHttpError($s, 411, $err, True, NOTHING, $cx."response-encoding");
-                            $cx.close = True;
-                            break;
-                        }
-                        else {
-                            try {
-                                if ($hdr."content-encoding")
-                                    $body = $s.recvBinary($hdr."content-length", HttpServer::ReadTimeout);
-                                else
-                                    $body = $s.recv($hdr."content-length", HttpServer::ReadTimeout);
-				#printf("HTTP DEBUG: %s\n", $body);
-                            }
-                            catch (hash $ex) {
-                                my string $etxt = sprintf("error reading body in POST (Content-Length: %d): %s: %s", $hdr."content-length", $ex.err, $ex.desc);
-                                my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
-                                $.logError($str);
-                                $.serv.sendHttpError($s, 400, $etxt, True, NOTHING, $cx."response-encoding");
-                                $cx.close = True;
-                                break;
-                            }
-                        }
-
-                        #printf("HTTP DEBUG: id: %d, body: %n\n", $cx.id, substr($body, 0, 120));
-
-                        $.serv.handleRequest($self, $s, \$cx, $hdr, $body, \$cx.close);
                         break;
                     }
 
