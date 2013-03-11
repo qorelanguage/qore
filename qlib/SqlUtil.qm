@@ -54,7 +54,7 @@ module SqlUtil {
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
     #! abstract container class that throws an exception if an unknown key is accessed
-    public class HashContainer {
+    public class AbstractHashContainer {
         public {}
 
         private {
@@ -67,8 +67,12 @@ public namespace SqlUtil {
 
         any memberGate(string k) {
             if (!h.hasKey(k))
-                throw "KEY-ERROR", sprintf("cannot access unknown key %y; valid keys: %y", k, h.keys());
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
             return h{k};
+        }
+
+        *hash val() {
+            return h;
         }
 
         list keys() {
@@ -110,19 +114,25 @@ public namespace SqlUtil {
         *string lastKey() {
             return h.lastKey();
         }
+
+        abstract string getElementName();
     }
 
     #! column container class that throws an exception if an unknown column is accessed
-    public class Columns inherits HashContainer {
-        constructor(hash c) : HashContainer(c) {
+    public class Columns inherits AbstractHashContainer {
+        constructor(hash c) : AbstractHashContainer(c) {
         }
 
         Column memberGate(string k) {
-            return HashContainer::memberGate(k);
+            return AbstractHashContainer::memberGate(k);
         }
 
         Columns subset(list l) {
             return new Columns(h{l});
+        }
+
+        string getElementName() {
+            return "column";
         }
     }
 
@@ -141,7 +151,7 @@ public namespace SqlUtil {
             #! the size of the column
             int size;
 
-            #! the sie of the column in characters
+            #! the size of the column in characters
             int char_size;
 
             #! Qore::True "True" if the column can hold a NULL value, @ref Qore::False "False" if not
@@ -159,12 +169,16 @@ public namespace SqlUtil {
     }
 
     #! index container class that throws an exception if an unknown index is accessed
-    public class Indexes inherits HashContainer {
-        constructor(hash c) : HashContainer(c) {
+    public class Indexes inherits AbstractHashContainer {
+        constructor(hash c) : AbstractHashContainer(c) {
         }
 
         Index memberGate(string k) {
-            return HashContainer::memberGate(k);
+            return AbstractHashContainer::memberGate(k);
+        }
+
+        string getElementName() {
+            return "index";
         }
     }
 
@@ -189,12 +203,16 @@ public namespace SqlUtil {
     }
 
     #! foreign constraint container class that throws an exception if an unknown index is accessed
-    public class ForeignConstraints inherits HashContainer {
-        constructor(hash c) : HashContainer(c) {
+    public class ForeignConstraints inherits AbstractHashContainer {
+        constructor(hash c) : AbstractHashContainer(c) {
         }
 
         ForeignConstraint memberGate(string k) {
-            return HashContainer::memberGate(k);
+            return AbstractHashContainer::memberGate(k);
+        }
+
+        string getElementName() {
+            return "foreign constraint";
         }
     }
 
@@ -260,6 +278,11 @@ public namespace SqlUtil {
         #! gets the underlying AbstractDatasource
         AbstractDatasource getDatasource() {
             return t.getDatasource();
+        }
+
+        #! executes a method on the contained AbstractTable object
+        any methodGate(string meth) {
+            return callObjectMethodArgs(t, meth, argv);
         }
 
         # returns the table description hash as acquired in the constructor
@@ -505,6 +528,17 @@ my hash $h = $table.describe();
         private abstract ForeignConstraints getForeignConstraintsImpl();
     }
 
+    public class OracleColumn inherits Column {
+        public {
+            #! the column uses character semantics
+            bool char_used;
+        }
+
+        constructor(string n, string nt, *string qt, int sz, int cs, bool nul, bool cu) : Column(n, nt, qt, sz, cs, nul) {
+            char_used = cu;
+        }
+    }
+
     public class OracleIndex inherits Index {
         public {
             #! the native type of the index (if supported)
@@ -538,7 +572,7 @@ my hash $h = $table.describe();
                 "VARCHAR2": ("qore": "string",),
                 "CHAR": ("qore": "string",),
                 "DATE": ("qore": "date",),
-                "TIMESTAMP": ("qore": "date",),
+                "TIMESTAMP(6)": ("qore": "date",),
                 "CLOB": ("qore": "string",),
                 "BLOB": ("qore": "binary",),
                 );
@@ -553,21 +587,39 @@ my hash $h = $table.describe();
                 );
         }
 
+        private {
+            string tablespace;
+            bool readonly;
+        }
+
         constructor(AbstractDatasource nds, string nname) : AbstractTable(nds, nname.upr()) {            
+            # get table info
+            *hash row = ds.selectRow("select * from user_tables where table_name = %v", name);
+            if (!row)
+                throw "TABLE-ERROR", sprintf("table %s is unknown", name);
+            tablespace = row.tablespace_name;
+            readonly = row.read_only == "YES";
+        }
+
+        string getTablespaceName() {
+            return tablespace;
+        }
+
+        bool readOnly() {
+            return readonly;
         }
 
         private Columns describeImpl() {
-            #printf("select column_name, data_type, data_length, data_precision, data_scale, nullable from user_tab_columns where table_name = '%s'", name);
-
             # get column descriptions
-            *hash qh = ds.select("select column_name, data_type, data_length, data_precision, data_scale, nullablem char_length from user_tab_columns where table_name = %v", name);
+            *hash qh = ds.select("select column_name, data_type, data_length, data_precision, data_scale, nullable, char_length, char_used from user_tab_columns where table_name = %v order by column_id", name);
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
                 *hash th = OraTypeMap.(row.data_type);
-                rv.(row.column_name) = new Column(row.column_name, row.data_type, th.qore, row.data_length, row.char_length, row.nullable == "Y");
+                int size = row.data_type == "NUMBER" ? row.data_precision : row.data_length;
+                rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.nullable == "Y", row.char_used == "C");
             }
 
             return new Columns(rv);
@@ -579,7 +631,7 @@ my hash $h = $table.describe();
             # get primary key description
             *hash qh = ds.select("select cols.column_name, cols.position, cons.status, cons.owner from user_constraints cons, user_cons_columns cols where cols.table_name = %v and cons.constraint_type = 'P' and cons.constraint_name = cols.constraint_name order by cols.position", name);
             foreach string col in (qh.column_name)
-                rv.primary_key{col} = columns{col};
+                rv{col} = columns{col};
 
             return new Columns(rv);
         }
@@ -644,6 +696,17 @@ my hash $h = $table.describe();
         }
     }
 
+    public class PgsqlIndex inherits Index {
+        public {
+            #! the tablespace name of the index
+            *string tablespace;
+        }
+
+        constructor(string n, bool u, hash c, *string t) : Index(n, u, c) {
+            tablespace = t;
+        }
+    }
+
     public class PgsqlTable inherits AbstractTable {
         public {
             const PgsqlTypeMap = (
@@ -672,12 +735,23 @@ my hash $h = $table.describe();
                 );
         }
 
+        private {
+            *string tablespace;
+        }
+
         constructor(AbstractDatasource nds, string nname) : AbstractTable(nds, nname) {
+            # get table info
+            *hash row = ds.selectRow("select * from pg_tables where tablename = %v", name);
+            tablespace = row.tablespace;
+        }
+
+        *string getTablespaceName() {
+            return tablespace;
         }
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select column_name, data_type, character_maximum_length, character_octet_length, numeric_precision, is_nullable from information_schema.columns where table_name = %v", name);
+            *hash qh = ds.select("select column_name, data_type, character_maximum_length, character_octet_length, numeric_precision, datetime_precision, is_nullable from information_schema.columns where table_name = %v order by ordinal_position", name);
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
@@ -685,6 +759,8 @@ my hash $h = $table.describe();
             foreach hash row in (qh.contextIterator()) {
                 *hash th = PgsqlTypeMap.(row.data_type);
                 softint size = row.character_octet_length ? row.character_octet_length : row.numeric_precision;
+                if (!size)
+                    size = row.datetime_precision;
                 softint cs = row.character_maximum_length ? row.character_maximum_length : 0;
                 rv.(row.column_name) = new Column(row.column_name, row.data_type, th.qore, exists size ? size : 0, cs, row.is_nullable == "YES");
             }
@@ -698,7 +774,7 @@ my hash $h = $table.describe();
             # get primary key description
             *hash qh = ds.select("select a.attname, format_type(a.atttypid, a.atttypmod) coltype from pg_index i , pg_class c, pg_attribute a where c.oid = %v::regclass and indrelid = c.oid and a.attrelid = c.oid and a.attnum = any(i.indkey) and indisprimary", name);
             foreach string col in (qh.attname)
-                rv.primary_key{col} = columns{col};
+                rv{col} = columns{col};
 
             return new Columns(rv);
         }
@@ -707,19 +783,20 @@ my hash $h = $table.describe();
             hash rv;
 
             # get index description
-            *hash qh = ds.select("select i.relname index_name, a.attname column_name, indisunique from pg_class t, pg_class i, pg_index ix, pg_attribute a where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = ANY(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary group by i.relname, a.attname, indisunique order by i.relname", name);
+            *hash qh = ds.select("select i.relname index_name, a.attname column_name, indisunique, tablespace from pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_indexes xs where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = any(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary and i.relname = xs.indexname group by i.relname, a.attname, indisunique, tablespace order by i.relname", name);
             if (qh.index_name) {
                 hash ih;
                 foreach hash row in (qh.contextIterator()) {
                     if (!ih.(row.index_name))
                         ih.(row.index_name) = (
                             "unique": row.indisunique,
+                            "tablespace": row.tablespace,
                         );
                     ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
                 }
 
                 foreach hash i in (ih.pairIterator())
-                    rv.(i.key) = new Index(i.key, i.value.unique, i.value.columns);                
+                    rv.(i.key) = new PgsqlIndex(i.key, i.value.unique, i.value.columns, i.value.tablespace);
             }
 
             return new Indexes(rv);
@@ -729,7 +806,7 @@ my hash $h = $table.describe();
             hash rv;
 
             # get foreign referential constraints
-            *hash qh = ds.select("select tc.constraint_name, kcu.column_name source_column, ccu.table_name target_table, ccu.column_name target_column from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name = kcu.constraint_name join information_schema.constraint_column_usage as ccu on ccu.constraint_name = tc.constraint_name where constraint_type = 'FOREIGN KEY' AND tc.table_name = %v", name);
+            *hash qh = ds.select("select tc.constraint_name, kcu.column_name source_column, ccu.table_name target_table, ccu.column_name target_column from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name = kcu.constraint_name join information_schema.constraint_column_usage as ccu on ccu.constraint_name = tc.constraint_name where constraint_type = 'FOREIGN KEY' and tc.table_name = %v order by ordinal_position", name);
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
