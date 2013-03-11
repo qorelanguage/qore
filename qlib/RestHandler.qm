@@ -244,6 +244,8 @@ public namespace RestHandler {
                 if ($hdr.method != "GET" && $body.typeCode() == NT_HASH)
                     $args += $body;
             }
+            else
+                $body = $args;
             
             # make method name
             my string $mn;
