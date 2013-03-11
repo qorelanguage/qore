@@ -206,23 +206,6 @@ public namespace RestHandler {
                 $args = $ah.params[0];
             }
 
-            # make method name
-            my string $mn;
-            if ($args.action) {
-                if ($args.action.typeCode() != NT_STRING)
-                    return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", $path, $args.action.type());
-                $mn = $args.action;
-                $args -= "action";
-                # ensure first letter of the action is in upper case
-                splice $mn, 0, 1, $mn[0].upr();
-                $mn = $hdr.method.lwr() + $mn;
-            }
-            else
-                $mn = $hdr.method.lwr();
-
-            # get class chain
-            my *list $cl = $ah.method ? $ah.method.split("/") : NOTHING;
-
             # deserialize body according to Content-Type
             if ($body) {
                 my bool $decoded = False;
@@ -260,6 +243,24 @@ public namespace RestHandler {
                 if ($hdr.method != "GET" && $body.typeCode() == NT_HASH)
                     $args += $body;
             }
+            
+            # make method name
+            my string $mn;
+            if ($args.action) {
+                if ($args.action.typeCode() != NT_STRING)
+                    return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", $path, $args.action.type());
+                $mn = $args.action;
+                $args -= "action";
+                # ensure first letter of the action is in upper case
+                splice $mn, 0, 1, $mn[0].upr();
+                $mn = $hdr.method.lwr() + $mn;
+            }
+            else
+                $mn = $hdr.method.lwr();
+
+            # get class chain
+            my *list $cl = $ah.method ? $ah.method.split("/") : NOTHING;
+
 
             # handle call with class
             my hash $rv = $.ch{$cls}.handleRequest($self, $cl, $mn, $args, $cx + ("hdr": $hdr, "body": $body));
