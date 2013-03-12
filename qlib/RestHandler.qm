@@ -72,7 +72,8 @@ public namespace RestHandler {
 
         abstract string name();
 
-        abstract *AbstractRestClass subClass(string $name);
+        *AbstractRestClass subClass(string $name) {
+        }
 
         hash handleRequest(RestHandler $rh, *list $cl, string $mn, *hash $args, hash $cx) {            
             if ($cl) {
@@ -263,7 +264,6 @@ public namespace RestHandler {
 
             # get class chain
             my *list $cl = $ah.method ? $ah.method.split("/") : NOTHING;
-
 
             # handle call with class
             my hash $rv = $.ch{$cls}.handleRequest($self, $cl, $mn, $args, $cx + ("hdr": $hdr, "body": $body));
