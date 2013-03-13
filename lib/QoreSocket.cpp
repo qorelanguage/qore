@@ -2243,8 +2243,10 @@ int SSLSocketHelper::read(const char* mname, char *buf, int size, int timeout_ms
 // returns true if an error was raised, false if not
 bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const char* func, bool always_error) {
    long e = ERR_get_error();
+   bool closed = false;
    do {
       if (!e || e == SSL_ERROR_ZERO_RETURN) {
+	 closed = true;
 	 if (always_error)
 	    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be completed because the TLS/SSL connection was terminated", mname, func);
       }
@@ -2259,8 +2261,8 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const ch
 #endif
       }
    } while ((e = ERR_get_error()));
-
-   return *xsink;
+   
+   return *xsink || closed;
 }
 
 QoreSocket::QoreSocket() : priv(new qore_socket_private) {

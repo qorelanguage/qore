@@ -11,14 +11,16 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil
+USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil RestHandler
 USER_MODULES = qlib/HttpServer.qm \
 	qlib/SmtpClient.qm \
 	qlib/Mime.qm \
 	qlib/TelnetClient.qm \
 	qlib/MailMessage.qm \
 	qlib/Pop3Client.qm \
-	qlib/CsvUtil.qm
+	qlib/CsvUtil.qm \
+	qlib/SqlUtil.qm \
+	qlib/RestHandler.qm
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC

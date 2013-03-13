@@ -272,11 +272,13 @@ public namespace RestHandler {
             if (exists $rv.body) {
                 if ($rv.body.typeCode() != NT_STRING) {
                     # make a hash of "accept" values
-                    my string $astr = $hdr.accept;
-                    $astr =~ s/;.*//;#/;
+                    my *string $astr = $hdr.accept;
                     my hash $aih;
-                    map $aih.$1 = True, $astr.split(",");
-                    
+                    if ($astr) {
+                        $astr =~ s/;.*//;#/;
+                        map $aih.$1 = True, $astr.split(",");
+                    }
+
                     my bool $encoded;
 %ifndef NoYaml
                     # check for yaml support
@@ -325,7 +327,7 @@ public namespace RestHandler {
         }
 
         #! default implementation is empty
-        responseSerializationError(hash $cx, hash $aih, hash $rv) {
+        responseSerializationError(hash $cx, *hash $aih, hash $rv) {
         }
 
         #! default implementation is empty
