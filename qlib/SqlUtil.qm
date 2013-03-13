@@ -120,7 +120,7 @@ public namespace SqlUtil {
 
     #! column container class that throws an exception if an unknown column is accessed
     public class Columns inherits AbstractHashContainer {
-        constructor(hash c) : AbstractHashContainer(c) {
+        constructor(*hash c) : AbstractHashContainer(c) {
         }
 
         Column memberGate(string k) {
@@ -170,7 +170,7 @@ public namespace SqlUtil {
 
     #! index container class that throws an exception if an unknown index is accessed
     public class Indexes inherits AbstractHashContainer {
-        constructor(hash c) : AbstractHashContainer(c) {
+        constructor(*hash c) : AbstractHashContainer(c) {
         }
 
         Index memberGate(string k) {
@@ -204,7 +204,7 @@ public namespace SqlUtil {
 
     #! foreign constraint container class that throws an exception if an unknown index is accessed
     public class ForeignConstraints inherits AbstractHashContainer {
-        constructor(hash c) : AbstractHashContainer(c) {
+        constructor(*hash c) : AbstractHashContainer(c) {
         }
 
         ForeignConstraint memberGate(string k) {
