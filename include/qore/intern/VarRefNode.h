@@ -36,6 +36,7 @@ class VarRefNode : public ParseNode {
    friend class VarRefNodeEvalOptionalRefHolder;
 
 protected:
+   QoreProgramLocation loc;
    NamedScope name;
    qore_var_t type : 4;
    bool new_decl : 1;       // is this a new variable declaration
@@ -84,10 +85,26 @@ protected:
       type = VT_CLOSURE;
    }
 
-   DLLLOCAL VarRefNode(char* n, ClosureVarValue* cvv) : ParseNode(NT_VARREF, true, false), name(n), new_decl(false), explicit_scope(false) {
+   DLLLOCAL VarRefNode(char* n, ClosureVarValue* cvv) : ParseNode(NT_VARREF, true, false), loc(RunTimeLocation), name(n), new_decl(false), explicit_scope(false) {
       ref.cvv = cvv;
       type = VT_IMMEDIATE;
       cvv->ref();
+   }
+
+   DLLLOCAL VarRefNode(const QoreProgramLocation& nloc, char *n, qore_var_t t, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect), loc(nloc), name(n), type(t), new_decl(t == VT_LOCAL), explicit_scope(false) {
+      if (type == VT_LOCAL)
+         ref.id = 0;
+      assert(type != VT_GLOBAL);
+   }
+
+   DLLLOCAL VarRefNode(int sl, int el, char *n, qore_var_t t, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect), loc(sl, el), name(n), type(t), new_decl(t == VT_LOCAL), explicit_scope(false) {
+      if (type == VT_LOCAL)
+         ref.id = 0;
+      assert(type != VT_GLOBAL);
+   }
+
+   DLLLOCAL VarRefNode(char *n, Var *n_var, bool n_has_effect = false, bool n_new_decl = true) : ParseNode(NT_VARREF, true, n_has_effect), loc(ParseLocation), name(n), type(VT_GLOBAL), new_decl(n_new_decl), explicit_scope(false) {
+      ref.var = n_var;
    }
 
 public:
@@ -98,16 +115,13 @@ public:
    } ref;
 
    // takes over memory for "n"
-   DLLLOCAL VarRefNode(char *n, qore_var_t t, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(t), new_decl(t == VT_LOCAL), explicit_scope(false) {
+   DLLLOCAL VarRefNode(char *n, qore_var_t t, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect), loc(ParseLocation), name(n), type(t), new_decl(t == VT_LOCAL), explicit_scope(false) {
       if (type == VT_LOCAL)
          ref.id = 0;
       assert(type != VT_GLOBAL);
    }
-   DLLLOCAL VarRefNode(char *n, Var *n_var, bool n_has_effect = false, bool n_new_decl = true) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(VT_GLOBAL), new_decl(n_new_decl), explicit_scope(false) {
-      ref.var = n_var;
-   }
 
-   DLLLOCAL VarRefNode(char *n, LocalVar *n_id, bool in_closure) : ParseNode(NT_VARREF, true, false), name(n), new_decl(false), explicit_scope(false) {
+   DLLLOCAL VarRefNode(char *n, LocalVar *n_id, bool in_closure) : ParseNode(NT_VARREF, true, false), loc(ParseLocation), name(n), new_decl(false), explicit_scope(false) {
       ref.id = n_id;
       if (in_closure)
          setClosureIntern();
@@ -220,46 +234,45 @@ public:
 
 class VarRefDeclNode : public VarRefNode {
 protected:
-   QoreProgramLocation loc;
    QoreParseTypeInfo *parseTypeInfo;
    const QoreTypeInfo *typeInfo;
 
    DLLLOCAL VarRefDeclNode(const QoreProgramLocation& nloc, char *n, qore_var_t t, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo, bool n_has_effect) :
-               VarRefNode(n, t, n_has_effect), loc(nloc), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
+      VarRefNode(nloc, n, t, n_has_effect), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
    }
 
    DLLLOCAL VarRefDeclNode(char *n, Var *var, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo) :
-               VarRefNode(n, var, true), loc(var->getParseLocation()), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
+      VarRefNode(n, var, true), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
    }
 
    // initializes during parsing
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
-   DLLLOCAL VarRefDeclNode(char* n, ClosureVarValue* cvv, const QoreTypeInfo* n_typeInfo) : VarRefNode(n, cvv), loc(RunTimeLocation), parseTypeInfo(0), typeInfo(n_typeInfo) {
+   DLLLOCAL VarRefDeclNode(char* n, ClosureVarValue* cvv, const QoreTypeInfo* n_typeInfo) : VarRefNode(n, cvv), parseTypeInfo(0), typeInfo(n_typeInfo) {
    }
 
 public:
    DLLLOCAL VarRefDeclNode(int sl, int el, char *n, qore_var_t t, const QoreTypeInfo *n_typeInfo) :
-               VarRefNode(n, t), loc(sl, el), parseTypeInfo(0), typeInfo(n_typeInfo) {
+      VarRefNode(sl, el, n, t), parseTypeInfo(0), typeInfo(n_typeInfo) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
    }
 
    // takes over ownership of class_name
    DLLLOCAL VarRefDeclNode(int sl, int el, char *n, qore_var_t t, char *class_name) :
-               VarRefNode(n, t), loc(sl, el), parseTypeInfo(new QoreParseTypeInfo(class_name)), typeInfo(0) {
+      VarRefNode(sl, el, n, t), parseTypeInfo(new QoreParseTypeInfo(class_name)), typeInfo(0) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() this=%p typeInfo=%p %s type=%d class=%s\n", this, typeInfo, n, type, class_name);
    }
 
    // takes over ownership of QoreParseTypeInfo ptr
    DLLLOCAL VarRefDeclNode(int sl, int el, char *n, qore_var_t t, QoreParseTypeInfo *n_parseTypeInfo) :
-               VarRefNode(n, t), loc(sl, el), parseTypeInfo(n_parseTypeInfo), typeInfo(0) {
+      VarRefNode(sl, el, n, t), parseTypeInfo(n_parseTypeInfo), typeInfo(0) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() this=%p typeInfo=%p %s type=%d class=%s\n", this, typeInfo, n, type, class_name);
    }
 
    // takes over ownership of QoreParseTypeInfo ptr
    DLLLOCAL VarRefDeclNode(int sl, int el, char *n, qore_var_t t, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo) :
-               VarRefNode(n, t), loc(sl, el), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
+      VarRefNode(sl, el, n, t), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
    }
 

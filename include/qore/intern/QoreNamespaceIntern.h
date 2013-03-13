@@ -1126,9 +1126,9 @@ protected:
    DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const NamedScope& nscope);
 
    DLLLOCAL Var* parseAddResolvedGlobalVarDefIntern(const NamedScope& name, const QoreTypeInfo* typeInfo);
-   DLLLOCAL Var *parseAddGlobalVarDefIntern(const NamedScope& name, QoreParseTypeInfo* typeInfo);
+   DLLLOCAL Var* parseAddGlobalVarDefIntern(const NamedScope& name, QoreParseTypeInfo* typeInfo);
 
-   DLLLOCAL Var *parseCheckImplicitGlobalVarIntern(const NamedScope& name, const QoreTypeInfo* typeInfo);
+   DLLLOCAL Var* parseCheckImplicitGlobalVarIntern(const QoreProgramLocation& loc, const NamedScope& name, const QoreTypeInfo* typeInfo);
 
    DLLLOCAL Var* parseFindGlobalVarIntern(const NamedScope& vname) {
       assert(vname.size() > 1);
@@ -1210,7 +1210,7 @@ protected:
       return 0;
    }
 
-   DLLLOCAL void importGlobalVariable(qore_ns_private& tns, Var *v, bool readonly, ExceptionSink* xsink) {
+   DLLLOCAL void importGlobalVariable(qore_ns_private& tns, Var* v, bool readonly, ExceptionSink* xsink) {
       Var* var = tns.var_list.import(v, xsink, readonly);
       if (!var)
          return;
@@ -1528,12 +1528,12 @@ public:
       return getRootNS()->rpriv->parseAddResolvedGlobalVarDefIntern(vname, typeInfo);
    }
 
-   DLLLOCAL static Var *parseAddGlobalVarDef(const NamedScope& vname, QoreParseTypeInfo* typeInfo) {
+   DLLLOCAL static Var* parseAddGlobalVarDef(const NamedScope& vname, QoreParseTypeInfo* typeInfo) {
       return getRootNS()->rpriv->parseAddGlobalVarDefIntern(vname, typeInfo);
    }
 
-   DLLLOCAL static Var *parseCheckImplicitGlobalVar(const NamedScope& name, const QoreTypeInfo* typeInfo) {
-      return getRootNS()->rpriv->parseCheckImplicitGlobalVarIntern(name, typeInfo);
+   DLLLOCAL static Var* parseCheckImplicitGlobalVar(const QoreProgramLocation& loc, const NamedScope& name, const QoreTypeInfo* typeInfo) {
+      return getRootNS()->rpriv->parseCheckImplicitGlobalVarIntern(loc, name, typeInfo);
    }
 
    DLLLOCAL static Var* parseFindGlobalVar(const char* vname) {
@@ -1563,7 +1563,7 @@ public:
       return rns.rpriv->runtimeCreateVar(*vns.priv, vname, typeInfo);
    } 
 
-   DLLLOCAL static void importGlobalVariable(RootQoreNamespace& rns, QoreNamespace& tns, Var *v, bool readonly, ExceptionSink* xsink) {
+   DLLLOCAL static void importGlobalVariable(RootQoreNamespace& rns, QoreNamespace& tns, Var* v, bool readonly, ExceptionSink* xsink) {
       return rns.rpriv->importGlobalVariable(*tns.priv, v, readonly, xsink);
    }
 

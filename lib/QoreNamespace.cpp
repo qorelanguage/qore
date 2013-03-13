@@ -1335,7 +1335,7 @@ Var *qore_root_ns_private::parseAddGlobalVarDefIntern(const NamedScope& vname, Q
    return v;
 }
 
-Var *qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const NamedScope& vname, const QoreTypeInfo *typeInfo) {
+Var *qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const QoreProgramLocation& loc, const NamedScope& vname, const QoreTypeInfo *typeInfo) {
    Var* rv;
 
    qore_ns_private* tns;
@@ -1359,11 +1359,11 @@ Var *qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const NamedScope& v
 
       // check if unflagged global vars are allowed
       if (po & PO_REQUIRE_OUR)
-	 parseException("UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' must first be declared with 'our' (conflicts with parse option REQUIRE_OUR)", vname.ostr);
+	 parseException(loc, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' must first be declared with 'our' (conflicts with parse option REQUIRE_OUR)", vname.ostr);
       else if (po & PO_NO_GLOBAL_VARS) // check if new global variables are allowed to be created at all
-	 parseException("ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
+	 parseException(loc, "ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
       else
-	 qore_program_private::makeParseWarning(pgm, QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be explicitly declared with 'our'", vname.ostr);
+	 qore_program_private::makeParseWarning(pgm, loc, QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be explicitly declared with 'our'", vname.ostr);
 
       assert(!tns->var_list.parseFindVar(vname.getIdentifier()));
       rv = tns->var_list.parseCreatePendingVar(vname.getIdentifier(), typeInfo);

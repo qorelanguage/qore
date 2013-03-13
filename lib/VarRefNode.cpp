@@ -66,7 +66,7 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
       printd(5, "VarRefNode::resolve(): local var %s resolved (id=%p, in_closure=%d)\n", name.ostr, ref.id, in_closure);
    }
    else {
-      ref.var = qore_root_ns_private::parseCheckImplicitGlobalVar(name, typeInfo);
+      ref.var = qore_root_ns_private::parseCheckImplicitGlobalVar(loc, name, typeInfo);
       type = VT_GLOBAL;
       printd(5, "VarRefNode::resolve(): implicit global var %s resolved (var=%p)\n", name.ostr, ref.var);
    }
