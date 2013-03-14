@@ -258,16 +258,16 @@ public namespace SqlUtil {
             AbstractTable t;
         }
 
-        constructor(AbstractDatasource ds, string name) {
-            t = AbstractTable::getTable(ds, name);
+        constructor(AbstractDatasource ds, string name, *hash opts) {
+            t = AbstractTable::getTable(ds, name, opts);
         }
 
-        constructor(string ds, string name) {
-            t = AbstractTable::getTable(ds, name);
+        constructor(string ds, string name, *hash opts) {
+            t = AbstractTable::getTable(ds, name, opts);
         }
         
-        constructor(hash ds, string name) {
-            t = AbstractTable::getTable(ds, name);
+        constructor(hash ds, string name, *hash opts) {
+            t = AbstractTable::getTable(ds, name, opts);
         }
         
         #! returns the name of the table
@@ -345,6 +345,11 @@ my hash $h = $table.describe();
                 #"mysql": \AbstractTable::getMysqlTable(),
                 #"sqlite3" : \AbstractTable::getSqlite3Table(),
                 );
+
+            #! table options
+            const TableOptions = (
+                "native-case": True,
+                );
         }
 
         private {
@@ -363,9 +368,15 @@ my hash $h = $table.describe();
             ForeignConstraints foreignConstraints;
             # mutex for on-demand retrieval of table attributes
             Mutex l();
+            # option hash
+            *hash opts;
+            # native case option
+            bool native_case = False;
         }
 
-        private constructor(AbstractDatasource nds, string nname) {
+        private constructor(AbstractDatasource nds, string nname, *hash nopts, hash rh = TableOptions) {
+            checkOptions(nopts, rh);
+            opts = nopts;
             name = nname;
             ds = nds;
             ds.open();
@@ -439,47 +450,56 @@ my hash $h = $table.describe();
             return foreignConstraints;
         }
 
-        static AbstractTable getTable(AbstractDatasource nds, string nname) {
+        checkOptions(*hash nopts, hash rh) {
+            foreach string k in (nopts.keyIterator()) {
+                if (!rh{k})
+                    throw "TABLE-ERROR", sprintf("option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+            }
+            if (nopts."native-case")
+                native_case = True;
+        }
+
+        static AbstractTable getTable(AbstractDatasource nds, string nname, *hash opts) {
             string drv = nds.getDriverName();
             *code c = DriverMap{drv};
             if (!c)
                 throw "TABLE-DRIVER-ERROR", sprintf("no support for driver %y yet in SqlUtil::AbstractTable", drv);
-            return c(nds, nname);
+            return c(nds, nname, opts);
         }
 
-        static AbstractTable getTable(string dsstr, string nname) {
+        static AbstractTable getTable(string dsstr, string nname, *hash opts) {
             Datasource nds(dsstr);
             string drv = nds.getDriverName();
             *code c = DriverMap{drv};
             if (!c)
                 throw "TABLE-DRIVER-ERROR", sprintf("no support for driver %y yet in SqlUtil::AbstractTable", drv);
-            return c(nds, nname);
+            return c(nds, nname, opts);
         }
 
-        static AbstractTable getTable(hash dsh, string nname) {
+        static AbstractTable getTable(hash dsh, string nname, *hash opts) {
             Datasource nds(dsh);
             string drv = nds.getDriverName();
             *code c = DriverMap{drv};
             if (!c)
                 throw "TABLE-DRIVER-ERROR", sprintf("no support for driver %y yet in SqlUtil::AbstractTable", drv);
-            return c(nds, nname);
+            return c(nds, nname, opts);
         }
 
-        static OracleTable getOracleTable(AbstractDatasource nds, string nname) {
-            return new OracleTable(nds, nname);
+        static OracleTable getOracleTable(AbstractDatasource nds, string nname, *hash opts) {
+            return new OracleTable(nds, nname, opts);
         }
 
-        static PgsqlTable getPgsqlTable(AbstractDatasource nds, string nname) {
-            return new PgsqlTable(nds, nname);
+        static PgsqlTable getPgsqlTable(AbstractDatasource nds, string nname, *hash opts) {
+            return new PgsqlTable(nds, nname, opts);
         }
 
         /*
-        static MysqlTable getMysqlTable(AbstractDatasource nds, string nname) {
-            return new MysqlTable(nds, nname);
+        static MysqlTable getMysqlTable(AbstractDatasource nds, string nname, *hash opts) {
+            return new MysqlTable(nds, nname, opts);
         }
         
-        static Sqlite3Table getSqlite3Table(AbstractDatasource nds, string nname) {
-            return new Sqlite3Table(nds, nname);
+        static Sqlite3Table getSqlite3Table(AbstractDatasource nds, string nname, *hash opts) {
+            return new Sqlite3Table(nds, nname, opts);
         }
         */
 
@@ -592,9 +612,9 @@ my hash $h = $table.describe();
             bool readonly;
         }
 
-        constructor(AbstractDatasource nds, string nname) : AbstractTable(nds, nname.upr()) {            
+        constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
             # get table info
-            *hash row = ds.selectRow("select * from user_tables where table_name = %v", name);
+            *hash row = ds.selectRow("select * from user_tables where table_name = %v", name.upr());
             if (!row)
                 throw "TABLE-ERROR", sprintf("table %s is unknown", name);
             tablespace = row.tablespace_name;
@@ -611,12 +631,14 @@ my hash $h = $table.describe();
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select column_name, data_type, data_length, data_precision, data_scale, nullable, char_length, char_used from user_tab_columns where table_name = %v order by column_id", name);
+            *hash qh = ds.select("select column_name, data_type, data_length, data_precision, data_scale, nullable, char_length, char_used from user_tab_columns where table_name = %v order by column_id", name.upr());
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
+                if (!native_case)
+                    row.column_name = row.column_name.lwr();
                 *hash th = OraTypeMap.(row.data_type);
                 int size = row.data_type == "NUMBER" ? row.data_precision : row.data_length;
                 rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.nullable == "Y", row.char_used == "C");
@@ -629,9 +651,11 @@ my hash $h = $table.describe();
             hash rv;
 
             # get primary key description
-            *hash qh = ds.select("select cols.column_name, cols.position, cons.status, cons.owner from user_constraints cons, user_cons_columns cols where cols.table_name = %v and cons.constraint_type = 'P' and cons.constraint_name = cols.constraint_name order by cols.position", name);
-            foreach string col in (qh.column_name)
-                rv{col} = columns{col};
+            *hash qh = ds.select("select cols.column_name, cols.position, cons.status, cons.owner from user_constraints cons, user_cons_columns cols where cols.table_name = %v and cons.constraint_type = 'P' and cons.constraint_name = cols.constraint_name order by cols.position", name.upr());
+            foreach string col in (qh.column_name) {
+                string cn = native_case ? col : col.lwr();
+                rv{cn} = columns{cn};
+            }
 
             return new Columns(rv);
         }
@@ -640,16 +664,24 @@ my hash $h = $table.describe();
             hash rv;
 
             # get index description
-            *hash qh = ds.select("select index_name, index_type, uniqueness, tablespace_name from user_indexes where table_name = %v", name);            
+            *hash qh = ds.select("select index_name, index_type, uniqueness, tablespace_name from user_indexes where table_name = %v", name.upr());
             if (qh.index_name) {
                 hash ih;
                 # get column info for all indexes in 1 query
-                *hash iqh = ds.select("select * from user_ind_columns where table_name = %v order by index_name, column_position", name);
+                *hash iqh = ds.select("select * from user_ind_columns where table_name = %v order by index_name, column_position", name.upr());
                 foreach hash row in (iqh.contextIterator()) {
+                    if (!native_case) {  
+                        row.index_name = row.index_name.lwr();
+                        row.column_name = row.column_name.lwr();
+                    }
                     ih{row.index_name}{row.column_name} = columns{row.column_name};
                 }
                 
                 foreach hash row in (qh.contextIterator()) {
+                    if (!native_case) {
+                        row.index_name = row.index_name.lwr();
+                        row.tablespace_name = row.tablespace_name.lwr();
+                    }
                     # skip system indexes
                     if (!ih{row.index_name})
                         continue;
@@ -665,16 +697,24 @@ my hash $h = $table.describe();
             hash ch;
 
             # get foreign referential constraints
-            *hash qh = ds.select("select constraint_name, status from user_constraints where table_name = %v and constraint_type = 'R'", name);
+            *hash qh = ds.select("select constraint_name, status from user_constraints where table_name = %v and constraint_type = 'R'", name.upr());
             if (qh.status) {
                 hash rv;
                 foreach hash row in (qh.contextIterator()) {
+                    if (!native_case)
+                        row.constraint_name = row.constraint_name.lwr();
                     rv.(row.constraint_name) = (
                         "enabled": row.status == "ENABLED",
                         );
                 }
-                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from user_constraints c, user_cons_columns cols1, user_cons_columns cols2 where c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position order by cols1.position", name);
+                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from user_constraints c, user_cons_columns cols1, user_cons_columns cols2 where c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position order by cols1.position", name.upr());
                 foreach hash row in (qh.contextIterator()) {
+                    if (!native_case) {
+                        row.constraint_name = row.constraint_name.lwr();
+                        row.source_column = row.source_column.lwr();
+                        row.target_column = row.source_column.lwr();
+                        row.target_table = row.target_table.lwr();
+                    }
                     reference c = \rv.(row.constraint_name);
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.target_table;
@@ -686,7 +726,7 @@ my hash $h = $table.describe();
                 foreach hash c in (rv.pairIterator()) {
                     # get a description of the target table for the target column descriptions
                     if (!fth{c.value.target.table})
-                        fth{c.value.target.table} = new OracleTable(ds, c.value.target.table);
+                        fth{c.value.target.table} = new OracleTable(ds, c.value.target.table, opts);
                     ForeignConstraintTarget fct(c.value.target.table, fth{c.value.target.table}.describe().subset(c.value.target.columns.keys()));
                     ch.(c.key) = new OracleForeignConstraint(c.key, new Columns(c.value.columns), fct, c.value.enabled);
                 }
@@ -739,7 +779,7 @@ my hash $h = $table.describe();
             *string tablespace;
         }
 
-        constructor(AbstractDatasource nds, string nname) : AbstractTable(nds, nname) {
+        constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
             # get table info
             *hash row = ds.selectRow("select * from pg_tables where tablename = %v", name);
             tablespace = row.tablespace;
@@ -833,7 +873,7 @@ my hash $h = $table.describe();
     }
 
     public class MysqlTable inherits AbstractTable {
-        constructor(AbstractDatasource nds, string nname) : AbstractTable(nds, nname) {
+        constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
         }
 
         private hash describeImpl() {
@@ -864,7 +904,7 @@ my hash $h = $table.describe();
                 );
         }
 
-        constructor(AbstractDatasource nds, string nname) : AbstractTable(nds, nname) {
+        constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
         }
 
         private hash describeImpl() {
