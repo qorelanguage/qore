@@ -56,10 +56,11 @@ string AbstractSmartLock::getName() [flags=CONSTANT] {
 /** @par Example:
     @code
 # only grab and release lock if we don't already own it
-if (!$lock.lockOwner())
+my bool $lck = !$lock.lockOwner();
+if ($lck)
     $lock.lock();
 on_exit
-    if (!$lock.lockOwner())
+    if ($lck)
 	$lock.unlock();
     @endcode
 
