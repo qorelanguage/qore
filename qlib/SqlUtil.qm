@@ -553,10 +553,13 @@ my hash $h = $table.describe();
         public {
             #! the column uses character semantics
             bool char_used;
+            #! any comments on the column
+            *string comment;
         }
 
-        constructor(string n, string nt, *string qt, int sz, int cs, bool nul, bool cu) : Column(n, nt, qt, sz, cs, nul) {
+        constructor(string n, string nt, *string qt, int sz, int cs, bool nul, bool cu, *string cm) : Column(n, nt, qt, sz, cs, nul) {
             char_used = cu;
+            comment = cm;
         }
     }
 
@@ -612,28 +615,42 @@ my hash $h = $table.describe();
             string schema;
             string tablespace;
             bool readonly;
+            *string comment;
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
             # see if there is a schema in the name
             *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
+            hash row;
             if (sstr) {
                 schema = sstr;
                 splice nname, 0, schema.size() + 1;
                 name = nname;
-             
-                # get the table information if possible
-                *hash row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
-                if (!row)
-                    throw "TABLE-ERROR", sprintf("table %y.%y does not exist or is not accessible to this user (%s)", schema, name, getDBString());
 
-                tablespace = row.tablespace_name;
-                readonly = row.read_only == "YES";
-                if (!native_case)
-                    tablespace = tablespace.lwr();
-                return;
+                row = setSchemaTable();
             }
+            else
+                row = setTable();
             
+            tablespace = row.tablespace_name;
+            readonly = row.read_only == "YES";
+            if (!native_case)
+                tablespace = tablespace.lwr();
+
+            # get any comment
+            any cm = ds.selectRow("select * from all_tab_comments where owner = %v and table_name = %v", schema.upr(), name.upr()).comments;
+            comment = cm ? cm : NOTHING;
+        }
+
+        private hash setSchemaTable() {
+            # get the table information if possible
+            *hash row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
+            if (!row)
+                throw "TABLE-ERROR", sprintf("table %y.%y does not exist or is not accessible to this user (%s)", schema, name, getDBString());
+            return row;
+        }
+
+        private hash setTable() {
             # see if the current user has the table
             *hash row = ds.selectRow("select * from user_tables where table_name = %v", name.upr());
             if (row)
@@ -667,10 +684,7 @@ my hash $h = $table.describe();
                 if (!row)
                     throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which does not exist or is not accessible to this user (%s)", orig_name, pub ? "public " : "", schema, name, getDBString());
             }
-            tablespace = row.tablespace_name;
-            readonly = row.read_only == "YES";
-            if (!native_case)
-                tablespace = tablespace.lwr();
+            return row;
         }
 
         private string getUserSchema() {
@@ -692,13 +706,17 @@ my hash $h = $table.describe();
             return tablespace;
         }
 
+        *string getComment() {
+            return comment;
+        }
+
         bool readOnly() {
             return readonly;
         }
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select column_name, data_type, data_length, data_precision, data_scale, nullable, char_length, char_used from all_tab_columns where owner = %v and table_name = %v order by column_id", schema.upr(), name.upr());
+            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, char_length, char_used, comments from all_tab_columns col, all_tab_comments com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name order by column_id", schema.upr(), name.upr());
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
@@ -710,7 +728,7 @@ my hash $h = $table.describe();
                     row.column_name = row.column_name.lwr();
                     row.data_type = row.data_type.lwr();
                 }
-                rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.nullable == "Y", row.char_used == "C");
+                rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.nullable == "Y", row.char_used == "C", row.comments ? row.comments : NOTHING);
             }
 
             return new Columns(rv);
