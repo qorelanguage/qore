@@ -608,17 +608,57 @@ my hash $h = $table.describe();
         }
 
         private {
+            string schema;
             string tablespace;
             bool readonly;
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
             # get table info
+            # see if the current user has the table
             *hash row = ds.selectRow("select * from user_tables where table_name = %v", name.upr());
-            if (!row)
-                throw "TABLE-ERROR", sprintf("table %s is unknown", name);
+            if (row)
+                schema = getUserSchema();
+            else {
+                bool pub = False;
+                # see if there is a user synonym with this name
+                row = ds.selectRow("select * from user_synonyms where synonym_name = %v", name.upr());
+                if (!row) {
+                    # see if there is a public synonym with this name
+                    row = ds.selectRow("select * from all_synonyms where owner = 'PUBLIC' and synonym_name = %v", name.upr());
+                    if (!row)
+                        throw "TABLE-ERROR", sprintf("table %s is unknown and no synonym with this name can be found either", name);
+                    pub = True;
+                }
+
+                # update the table name if necessary
+                string orig_name = name;
+                if (name.upr() != row.table_name) {
+                    name = row.table_name;
+                    if (!native_case)
+                        name = name.lwr();
+                }
+                
+                schema = row.table_owner;
+                if (!native_case)
+                    schema = schema.lwr();
+
+                # get the table information if possible
+                row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
+                if (!row)
+                    throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which is not accessible for this user (%s@%s)", orig_name, pub ? "public " : "", schema, name, ds.getUserName(), ds.getDBName());
+            }
             tablespace = row.tablespace_name;
             readonly = row.read_only == "YES";
+            if (!native_case)
+                tablespace = tablespace.lwr();
+        }
+
+        private string getUserSchema() {
+            string rv = ds.getUserName();
+            if (native_case)
+                rv = rv.upr();
+            return rv;
         }
 
         string getTablespaceName() {
@@ -631,16 +671,18 @@ my hash $h = $table.describe();
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select column_name, data_type, data_length, data_precision, data_scale, nullable, char_length, char_used from user_tab_columns where table_name = %v order by column_id", name.upr());
+            *hash qh = ds.select("select column_name, data_type, data_length, data_precision, data_scale, nullable, char_length, char_used from all_tab_columns where owner = %v and table_name = %v order by column_id", schema.upr(), name.upr());
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
-                if (!native_case)
-                    row.column_name = row.column_name.lwr();
                 *hash th = OraTypeMap.(row.data_type);
                 int size = row.data_type == "NUMBER" ? row.data_precision : row.data_length;
+                if (!native_case) {
+                    row.column_name = row.column_name.lwr();
+                    row.data_type = row.data_type.lwr();
+                }
                 rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.nullable == "Y", row.char_used == "C");
             }
 
@@ -651,7 +693,7 @@ my hash $h = $table.describe();
             hash rv;
 
             # get primary key description
-            *hash qh = ds.select("select cols.column_name, cols.position, cons.status, cons.owner from user_constraints cons, user_cons_columns cols where cols.table_name = %v and cons.constraint_type = 'P' and cons.constraint_name = cols.constraint_name order by cols.position", name.upr());
+            *hash qh = ds.select("select cols.column_name, cols.position, cons.status, cons.owner from all_constraints cons, all_cons_columns cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = %v and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr(), schema.upr());
             foreach string col in (qh.column_name) {
                 string cn = native_case ? col : col.lwr();
                 rv{cn} = columns{cn};
@@ -664,11 +706,11 @@ my hash $h = $table.describe();
             hash rv;
 
             # get index description
-            *hash qh = ds.select("select index_name, index_type, uniqueness, tablespace_name from user_indexes where table_name = %v", name.upr());
+            *hash qh = ds.select("select index_name, index_type, uniqueness, tablespace_name from all_indexes where owner = %v and table_name = %v", schema.upr(), name.upr());
             if (qh.index_name) {
                 hash ih;
                 # get column info for all indexes in 1 query
-                *hash iqh = ds.select("select * from user_ind_columns where table_name = %v order by index_name, column_position", name.upr());
+                *hash iqh = ds.select("select * from all_ind_columns where table_owner = %v and table_name = %v order by index_name, column_position", schema.upr(), name.upr());
                 foreach hash row in (iqh.contextIterator()) {
                     if (!native_case) {  
                         row.index_name = row.index_name.lwr();
@@ -697,7 +739,7 @@ my hash $h = $table.describe();
             hash ch;
 
             # get foreign referential constraints
-            *hash qh = ds.select("select constraint_name, status from user_constraints where table_name = %v and constraint_type = 'R'", name.upr());
+            *hash qh = ds.select("select constraint_name, status from user_constraints where owner = %v and table_name = %v and constraint_type = 'R'", schema.upr(), name.upr());
             if (qh.status) {
                 hash rv;
                 foreach hash row in (qh.contextIterator()) {
@@ -707,7 +749,7 @@ my hash $h = $table.describe();
                         "enabled": row.status == "ENABLED",
                         );
                 }
-                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from user_constraints c, user_cons_columns cols1, user_cons_columns cols2 where c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position order by cols1.position", name.upr());
+                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from all_constraints c, all_cons_columns cols1, all_cons_columns cols2 where c.owner = %v and c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position and cols1.owner = %v and cols2.owner = %v order by cols1.position", schema.upr(), name.upr(), schema.upr(), schema.upr());
                 foreach hash row in (qh.contextIterator()) {
                     if (!native_case) {
                         row.constraint_name = row.constraint_name.lwr();
