@@ -661,6 +661,10 @@ my hash $h = $table.describe();
             return rv;
         }
 
+        string getSchemaName() {
+            return schema;
+        }
+
         string getTablespaceName() {
             return tablespace;
         }
