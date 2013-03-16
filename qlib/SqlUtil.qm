@@ -379,7 +379,8 @@ my hash $h = $table.describe();
             opts = nopts;
             name = nname;
             ds = nds;
-            ds.open();
+            # ensure datasource is open
+            ds.getServerVersion();
             dsdesc = sprintf("%s:%s@%s", ds.getDriverName(), ds.getUserName(), ds.getDBName());
             if (ds.getHostName())
                 dsdesc += "%" + ds.getHostName();
@@ -682,7 +683,7 @@ my hash $h = $table.describe();
             hash rv;
             foreach hash row in (qh.contextIterator()) {
                 *hash th = OraTypeMap.(row.data_type);
-                int size = row.data_type == "NUMBER" ? row.data_precision : row.data_length;
+                int size = row.data_type == "NUMBER" && row.data_precision ? row.data_precision : row.data_length;
                 if (!native_case) {
                     row.column_name = row.column_name.lwr();
                     row.data_type = row.data_type.lwr();
