@@ -123,7 +123,7 @@ public namespace SqlUtil {
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
-        Column memberGate(string k) {
+        AbstractColumn memberGate(string k) {
             return AbstractHashContainer::memberGate(k);
         }
 
@@ -137,7 +137,7 @@ public namespace SqlUtil {
     }
 
     #! the base class for column information
-    public class Column {
+    public class AbstractColumn {
         public {
             #! the name of the column
             string name;
@@ -154,17 +154,40 @@ public namespace SqlUtil {
             #! the size of the column in characters
             int char_size;
 
+            #! the precision for numeric columns
+            int precision;
+            
+            #! the scale for numeric columns
+            int scale;
+
             #! Qore::True "True" if the column can hold a NULL value, @ref Qore::False "False" if not
             bool nullable; 
         }
 
-        constructor(string n, string nt, *string qt, int sz, int cs, bool nul) {
+        constructor(string n, string nt, *string qt, int sz, int cs, int prec, int sc, bool nul) {
             name = n;
             native_type = nt;
             qore_type = qt;
             size = sz;
             char_size = cs;
+            precision = prec;
+            scale = sc;
             nullable = nul;
+        }
+
+        string getCreateSql() {
+            string sql = sprintf("   %s %s", name, native_type);
+            if (precision) {
+                sql += sprintf("(%d", precision);
+                if (scale)
+                    sql += sprintf(",%d", scale);
+                sql += ")";
+            }
+            else if (size)
+                sql += sprintf("(%d)", size);
+            if (!nullable)
+                sql += " not null";
+            return sql;
         }
     }
 
@@ -285,24 +308,36 @@ public namespace SqlUtil {
             return callObjectMethodArgs(t, meth, argv);
         }
 
-        # returns the table description hash as acquired in the constructor
+        #! returns an SQL string that could be used to create the table
         /** @par Example:
             @code
-my hash $h = $table.describe();
+my string $sql = $table.getCreateSql();
             @endcode
 
-            @return a hash of column names assigned to Column objects
+            @return an SQL string that could be used to create the table
+        */
+        string getCreateSql() {
+            return t.getCreateSql();
+        }
 
+        #! returns an object of class Columns describing the Table
+        /** @par Example:
+            @code
+my Columns $cols = $table.describe();
+            @endcode
+
+            @return an object of class Columns describing the Table
         */
         Columns describe() {
             return t.describe();
         }
 
-        #! returns an objext of class Columns describing the primary key of the table
+        #! returns an object of class Columns describing the primary key of the table
         /** If there is no primary key then the object returned will be empty (see @ref Columns::empty())
 
             @par Example:
             @code
+my Columns $cols = $table.getPrimaryKey();
             @endcode
 
             @return an objext of class Columns describing the primary key of the table
@@ -451,7 +486,12 @@ my hash $h = $table.describe();
             return foreignConstraints;
         }
 
-        checkOptions(*hash nopts, hash rh) {
+        string getCreateSql() {
+            getColumnsIntern();
+            return getCreateSqlImpl();
+        }
+
+        private checkOptions(*hash nopts, hash rh) {
             foreach string k in (nopts.keyIterator()) {
                 if (!rh{k})
                     throw "TABLE-ERROR", sprintf("option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
@@ -547,9 +587,10 @@ my hash $h = $table.describe();
         private abstract Columns getPrimaryKeyImpl();
         private abstract Indexes getIndexesImpl();
         private abstract ForeignConstraints getForeignConstraintsImpl();
+        private abstract string getCreateSqlImpl();
     }
 
-    public class OracleColumn inherits Column {
+    public class OracleColumn inherits AbstractColumn {
         public {
             #! the column uses character semantics
             bool char_used;
@@ -557,7 +598,7 @@ my hash $h = $table.describe();
             *string comment;
         }
 
-        constructor(string n, string nt, *string qt, int sz, int cs, bool nul, bool cu, *string cm) : Column(n, nt, qt, sz, cs, nul) {
+        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, bool cu, *string cm) : AbstractColumn(n, nt, qt, sz, cs, prec, sc, nul) {
             char_used = cu;
             comment = cm;
         }
@@ -596,7 +637,16 @@ my hash $h = $table.describe();
                 "VARCHAR2": ("qore": "string",),
                 "CHAR": ("qore": "string",),
                 "DATE": ("qore": "date",),
+                "TIMESTAMP(0)": ("qore": "date",),
+                "TIMESTAMP(1)": ("qore": "date",),
+                "TIMESTAMP(2)": ("qore": "date",),
+                "TIMESTAMP(3)": ("qore": "date",),
+                "TIMESTAMP(4)": ("qore": "date",),
+                "TIMESTAMP(5)": ("qore": "date",),
                 "TIMESTAMP(6)": ("qore": "date",),
+                "TIMESTAMP(7)": ("qore": "date",),
+                "TIMESTAMP(8)": ("qore": "date",),
+                "TIMESTAMP(9)": ("qore": "date",),
                 "CLOB": ("qore": "string",),
                 "BLOB": ("qore": "binary",),
                 );
@@ -606,7 +656,7 @@ my hash $h = $table.describe();
                 "float": "NUMBER",
                 "number": "NUMBER",
                 "string": "VARCHAR2",
-                "date": "TIMESTAMP",
+                "date": "TIMESTAMP(6)",
                 "binary": "BLOB",
                 );
         }
@@ -724,11 +774,16 @@ my hash $h = $table.describe();
             foreach hash row in (qh.contextIterator()) {
                 *hash th = OraTypeMap.(row.data_type);
                 int size = row.data_type == "NUMBER" && row.data_precision ? row.data_precision : row.data_length;
+                switch (row.data_type) {
+                    case =~ /^TIMESTAMP/:
+                    case "BLOB":
+                    case "CLOB": size = 0; break;
+                }
                 if (!native_case) {
                     row.column_name = row.column_name.lwr();
                     row.data_type = row.data_type.lwr();
                 }
-                rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.nullable == "Y", row.char_used == "C", row.comments ? row.comments : NOTHING);
+                rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.data_precision, row.data_scale, row.nullable == "Y", row.char_used == "C", row.comments ? row.comments : NOTHING);
             }
 
             return new Columns(rv);
@@ -821,6 +876,18 @@ my hash $h = $table.describe();
 
             return new ForeignConstraints(ch);
         }
+
+        string getCreateSqlImpl() {
+            string sql = sprintf("create table %s (\n", name);
+
+            sql += foldl $1 + ",\n" + $2, (map $1.getCreateSql(), columns.iterator());
+            sql += "\n)";
+
+            if (tablespace)
+                sql += sprintf(" tablespace %s", tablespace);
+
+            return sql;
+        }
     }
 
     public class PgsqlIndex inherits Index {
@@ -831,6 +898,17 @@ my hash $h = $table.describe();
 
         constructor(string n, bool u, hash c, *string t) : Index(n, u, c) {
             tablespace = t;
+        }
+    }
+
+    public class PgsqlColumn inherits AbstractColumn {
+        public {
+            #! any comments on the column
+            *string comment;
+        }
+
+        constructor(string n, string nt, *string qt, int sz, int cs, int prec, int sc, bool nul, *string cm) : AbstractColumn(n, nt, qt, sz, cs, prec, sc, nul) {
+            comment = cm;
         }
     }
 
@@ -878,7 +956,7 @@ my hash $h = $table.describe();
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select column_name, data_type, character_maximum_length, character_octet_length, numeric_precision, datetime_precision, is_nullable from information_schema.columns where table_name = %v order by ordinal_position", name);
+            *hash qh = ds.select("select column_name, data_type, character_maximum_length, character_octet_length, numeric_precision, numeric_scale, datetime_precision, is_nullable from information_schema.columns where table_name = %v order by ordinal_position", name);
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
@@ -889,7 +967,7 @@ my hash $h = $table.describe();
                 if (!size)
                     size = row.datetime_precision;
                 softint cs = row.character_maximum_length ? row.character_maximum_length : 0;
-                rv.(row.column_name) = new Column(row.column_name, row.data_type, th.qore, exists size ? size : 0, cs, row.is_nullable == "YES");
+                rv.(row.column_name) = new PgsqlColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, cs, row.numeric_precision, row.numeric_scale, row.is_nullable == "YES");
             }
 
             return new Columns(rv);
@@ -956,6 +1034,18 @@ my hash $h = $table.describe();
             }
 
             return new ForeignConstraints(rv);
+        }
+
+        string getCreateSqlImpl() {
+            string sql = sprintf("create table %s (\n", name);
+
+            sql += foldl $1 + ",\n" + $2, (map sprintf("   %s %s%s", $1.name, $1.native_type, $1.nullable ? "" : " not null"), columns.iterator());
+            sql += "\n)";
+
+            if (tablespace)
+                sql += sprintf(" tablespace %s", tablespace);
+
+            return sql;
         }
     }
 
