@@ -615,7 +615,25 @@ my hash $h = $table.describe();
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
-            # get table info
+            # see if there is a schema in the name
+            *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
+            if (sstr) {
+                schema = sstr;
+                splice nname, 0, schema.size() + 1;
+                name = nname;
+             
+                # get the table information if possible
+                *hash row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
+                if (!row)
+                    throw "TABLE-ERROR", sprintf("table %y.%y does not exist or is not accessible to this user (%s)", schema, name, getDBString());
+
+                tablespace = row.tablespace_name;
+                readonly = row.read_only == "YES";
+                if (!native_case)
+                    tablespace = tablespace.lwr();
+                return;
+            }
+            
             # see if the current user has the table
             *hash row = ds.selectRow("select * from user_tables where table_name = %v", name.upr());
             if (row)
@@ -628,7 +646,7 @@ my hash $h = $table.describe();
                     # see if there is a public synonym with this name
                     row = ds.selectRow("select * from all_synonyms where owner = 'PUBLIC' and synonym_name = %v", name.upr());
                     if (!row)
-                        throw "TABLE-ERROR", sprintf("table %s is unknown and no synonym with this name can be found either", name);
+                        throw "TABLE-ERROR", sprintf("table %y or synonym %y does not exist or is not accessible to this user (%s)", name, name, ds.getDBString());
                     pub = True;
                 }
 
@@ -647,7 +665,7 @@ my hash $h = $table.describe();
                 # get the table information if possible
                 row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
                 if (!row)
-                    throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which is not accessible for this user (%s@%s)", orig_name, pub ? "public " : "", schema, name, ds.getUserName(), ds.getDBName());
+                    throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which does not exist or is not accessible to this user (%s)", orig_name, pub ? "public " : "", schema, name, getDBString());
             }
             tablespace = row.tablespace_name;
             readonly = row.read_only == "YES";
@@ -660,6 +678,10 @@ my hash $h = $table.describe();
             if (native_case)
                 rv = rv.upr();
             return rv;
+        }
+
+        private string getDBString() {
+            return sprintf("%s@%s", ds.getUserName(), ds.getDBName());
         }
 
         string getSchemaName() {
