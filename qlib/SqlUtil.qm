@@ -123,7 +123,7 @@ public namespace SqlUtil {
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
-        AbstractColumn memberGate(string k) {
+        Column memberGate(string k) {
             return AbstractHashContainer::memberGate(k);
         }
 
@@ -136,8 +136,25 @@ public namespace SqlUtil {
         }
     }
 
+    #! represents a primary key
+    public class AbstractPrimaryKey inherits Columns {
+        private {
+            string name;
+        }
+
+        constructor(string n, *hash c) : Columns(c) {
+            name = n;
+        }
+
+        string getName() {
+            return name;
+        }
+
+        abstract string getCreatePrimaryKeySql(string table_name, *hash opts);
+    }
+
     #! the base class for column information
-    public class AbstractColumn {
+    public class Column {
         public {
             #! the name of the column
             string name;
@@ -196,7 +213,7 @@ public namespace SqlUtil {
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
-        Index memberGate(string k) {
+        AbstractIndex memberGate(string k) {
             return AbstractHashContainer::memberGate(k);
         }
 
@@ -206,7 +223,7 @@ public namespace SqlUtil {
     }
 
     #! the base class for index information
-    public class Index {
+    public class AbstractIndex {
         public {
             #! the name of the index
             string name;
@@ -223,6 +240,8 @@ public namespace SqlUtil {
             unique = u;
             columns = new Columns(c);
         }
+
+        abstract string getCreateIndexSql(string table_name, *hash opt);
     }
 
     #! foreign constraint container class that throws an exception if an unknown index is accessed
@@ -314,10 +333,40 @@ public namespace SqlUtil {
 my string $sql = $table.getCreateSql();
             @endcode
 
+            @param opt a hash of options for the table creation string
+
             @return an SQL string that could be used to create the table
         */
-        string getCreateSql() {
-            return t.getCreateSql();
+        string getCreateSql(*hash opt) {
+            return t.getCreateSql(opt);
+        }
+
+        #! returns a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
+        /** @par Example:
+            @code
+my *list $l = $table.getCreateIndexSql();
+            @endcode
+
+            @param opt a hash of options for the index creation string
+
+            @return a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
+        */
+        *list getCreateIndexSql(*hash opt) {
+            return t.getCreateIndexSql(opt);
+        }
+
+        #! returns an SQL string that could be used to create the primary key on the table
+        /** @par Example:
+            @code
+my *string $sql = $table.getCreatePrimaryKeySql();
+            @endcode
+
+            @param opt a hash of options for the primary key creation string
+
+            @return an SQL string that could be used to create the primary key on the table or NOTHING if there is no primary key on the table
+        */
+        *string getCreatePrimaryKeySql(*hash opt) {
+            return t.getCreatePrimaryKeySql(opt);
         }
 
         #! returns an object of class Columns describing the Table
@@ -332,25 +381,26 @@ my Columns $cols = $table.describe();
             return t.describe();
         }
 
-        #! returns an object of class Columns describing the primary key of the table
-        /** If there is no primary key then the object returned will be empty (see @ref Columns::empty())
+        #! returns an object of class AbstractPrimaryKey describing the primary key of the table
+        /** If there is no primary key then the object returned will be empty (see @ref AbstractPrimaryKey::empty())
 
             @par Example:
             @code
-my Columns $cols = $table.getPrimaryKey();
+my AbstractPrimaryKey $cols = $table.getPrimaryKey();
             @endcode
 
-            @return an objext of class Columns describing the primary key of the table
+            @return an objext of class AbstractPrimaryKey describing the primary key of the table
         */
-        Columns getPrimaryKey() {
+        AbstractPrimaryKey getPrimaryKey() {
             return t.getPrimaryKey();
         }
 
         #! returns an object of class Indexes describing the indexes on the table
-        /** If there is are no indexes on the table then the object returned will be empty (see @ref Indexes::empty())
+        /** If there are no indexes on the table then the object returned will be empty (see @ref Indexes::empty())
 
             @par Example:
             @code
+my Indexes $ix = $table.getIndexes();
             @endcode
 
             @return an objext of class Indexes describing the indexes on the table
@@ -385,6 +435,11 @@ my Columns $cols = $table.getPrimaryKey();
             const TableOptions = (
                 "native-case": True,
                 );
+
+            #! table creation options
+            const TableCreationOptions = (
+                "tablespace": Type::String,
+                );
         }
 
         private {
@@ -396,7 +451,7 @@ my Columns $cols = $table.getPrimaryKey();
             # column description hash
             Columns columns;
             # primary key description
-            Columns primaryKey;
+            *AbstractPrimaryKey primaryKey;
             # index description
             Indexes indexes;
             # foreign constraints description
@@ -452,25 +507,26 @@ my hash $h = $table.describe();
             return columns;
         }
 
-        #! returns an objext of class Columns describing the primary key of the table
-        /** If there is no primary key then the object returned will be empty (see @ref Columns::empty())
+        #! returns an objext of class AbstractPrimaryKey describing the primary key of the table
+        /** If there is no primary key then the object returned will be empty (see @ref AbstractPrimaryKey::empty())
 
             @par Example:
             @code
             @endcode
 
-            @return an objext of class Columns describing the primary key of the table
+            @return an objext of class AbstractPrimaryKey describing the primary key of the table
         */
-        Columns getPrimaryKey() {
+        *AbstractPrimaryKey getPrimaryKey() {
             getPrimaryKeyIntern();
             return primaryKey;
         }
 
         #! returns an object of class Indexes describing the indexes on the table
-        /** If there is are no indexes on the table then the object returned will be empty (see @ref Indexes::empty())
+        /** If there are no indexes on the table then the object returned will be empty (see @ref Indexes::empty())
 
             @par Example:
             @code
+my Indexes $ix = $table.getIndexes();
             @endcode
 
             @return an objext of class Indexes describing the indexes on the table
@@ -486,9 +542,68 @@ my hash $h = $table.describe();
             return foreignConstraints;
         }
 
-        string getCreateSql() {
+        string getCreateSql(*hash opt) {            
             getColumnsIntern();
-            return getCreateSqlImpl();
+            return getCreateSqlImpl(opt);
+        }
+
+        #! returns a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
+        /** @par Example:
+            @code
+my *list $l = $table.getCreateIndexSql();
+            @endcode
+
+            @param opt a hash of options for the index creation string
+
+            @return a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
+        */
+        *list getCreateIndexSql(*hash opt) {
+            getIndexesIntern();
+            return getCreateIndexSqlImpl(opt);
+        }
+
+        #! returns an SQL string that could be used to create the primary key on the table
+        /** @par Example:
+            @code
+my *string $sql = $table.getCreatePrimaryKeySql();
+            @endcode
+
+            @param opt a hash of options for the primary key creation string
+
+            @return an SQL string that could be used to create the primary key on the table or NOTHING if there is no primary key on the table
+        */
+        *string getCreatePrimaryKeySql(*hash opt) {
+            getPrimaryKeyIntern();
+            if (!primaryKey)
+                return;
+            return getCreatePrimaryKeySqlImpl(opt);
+        }
+
+        private checkCreateOptions(*hash nopts, *hash rh) {
+            foreach string k in (nopts.keyIterator()) {
+                if (!rh{k})
+                    throw "TABLE-CREATION-ERROR", sprintf("creation option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+                if (rh{k} && nopts{k}.type() != rh{k})
+                    throw "TABLE-CREATION-ERROR", sprintf("value passed to table creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
+            }
+        }
+
+        private checkCreateIndexOptions(*hash nopts, *hash rh) {
+            foreach string k in (nopts.keyIterator()) {
+                if (!rh{k})
+                    throw "INDEX-CREATION-ERROR", sprintf("index creation option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+                if (rh{k} && nopts{k}.type() != rh{k})
+                    throw "INDEX-CREATION-ERROR", sprintf("value passed to index creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
+            }
+        }
+
+        private checkCreatePrimaryKeyOptions(*hash nopts, *hash rh) {
+            foreach string k in (nopts.keyIterator()) {
+                if (!rh{k})
+                    throw "PK-CREATION-ERROR", sprintf("primary key creation option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+                if (rh{k} && nopts{k}.type() != rh{k})
+                    throw "PK-CREATION-ERROR", sprintf("value passed to primary key creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
+            }
         }
 
         private checkOptions(*hash nopts, hash rh) {
@@ -584,27 +699,32 @@ my hash $h = $table.describe();
         }
 
         private abstract Columns describeImpl();
-        private abstract Columns getPrimaryKeyImpl();
+        private abstract *AbstractPrimaryKey getPrimaryKeyImpl();
         private abstract Indexes getIndexesImpl();
         private abstract ForeignConstraints getForeignConstraintsImpl();
-        private abstract string getCreateSqlImpl();
+        private abstract string getCreateSqlImpl(*hash opt);
+        private abstract *list getCreateIndexSqlImpl(*hash opt);
+        private abstract *string getCreatePrimaryKeySqlImpl(*hash opt);
     }
 
-    public class OracleColumn inherits AbstractColumn {
+    public class OracleColumn inherits Column {
         public {
             #! the column uses character semantics
             bool char_used;
             #! any comments on the column
             *string comment;
+            #! byte size of the column
+            int byte_size;
         }
 
-        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, bool cu, *string cm) : AbstractColumn(n, nt, qt, sz, cs, prec, sc, nul) {
+        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, bool cu, *string cm, int bs) : Column(n, nt, qt, sz, cs, prec, sc, nul) {
             char_used = cu;
             comment = cm;
+            byte_size = bs;
         }
     }
 
-    public class OracleIndex inherits Index {
+    public class OracleIndex inherits AbstractIndex {
         public {
             #! the native type of the index (if supported)
             string native_type;
@@ -613,9 +733,18 @@ my hash $h = $table.describe();
             string tablespace;
         }
 
-        constructor(string n, bool u, hash c, string nt, string t) : Index(n, u, c) {
+        constructor(string n, bool u, hash c, string nt, string t) : AbstractIndex(n, u, c) {
             native_type = nt;
             tablespace = t;
+        }
+
+        string getCreateIndexSql(string table_name, *hash opt) {
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+
+            *string ts = opt.tablespace ? opt.tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" tablespace %s", ts);
+            return sql;
         }
     }
 
@@ -627,6 +756,15 @@ my hash $h = $table.describe();
 
         constructor(string n, Columns c, ForeignConstraintTarget t, bool e) : ForeignConstraint(n, c, t) {
             enabled = e;
+        }
+    }
+
+    public class OraclePrimaryKey inherits AbstractPrimaryKey {
+        constructor(string n, *hash c) : AbstractPrimaryKey(n, c) {
+        }
+
+        string getCreatePrimaryKeySql(string table_name, *hash opts) {
+            return sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
         }
     }
 
@@ -647,8 +785,35 @@ my hash $h = $table.describe();
                 "TIMESTAMP(7)": ("qore": "date",),
                 "TIMESTAMP(8)": ("qore": "date",),
                 "TIMESTAMP(9)": ("qore": "date",),
+                "TIMESTAMP(0) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(1) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(2) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(3) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(4) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(5) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(6) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(7) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(8) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(9) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(0) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(1) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(2) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(3) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(4) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(5) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(6) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(7) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(8) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(9) WITH LOCAL TIME ZONE": ("qore": "date",),
                 "CLOB": ("qore": "string",),
                 "BLOB": ("qore": "binary",),
+                "LONG": ("qore": "binary",),
+                "RAW": ("qore": "binary",),
+                "BFILE": ("qore": "binary",),
+                "BINARY_FLOAT": ("qore": "float",),
+                "BINARY_DOUBLE": ("qore": "float",),
+                "ROWID": ("qore": "string",),
+                "UROWID": ("qore": "string",),
                 );
 
             const QoreTypeMap = (
@@ -703,37 +868,38 @@ my hash $h = $table.describe();
         private hash setTable() {
             # see if the current user has the table
             *hash row = ds.selectRow("select * from user_tables where table_name = %v", name.upr());
-            if (row)
+            if (row) {
                 schema = getUserSchema();
-            else {
-                bool pub = False;
-                # see if there is a user synonym with this name
-                row = ds.selectRow("select * from user_synonyms where synonym_name = %v", name.upr());
-                if (!row) {
-                    # see if there is a public synonym with this name
-                    row = ds.selectRow("select * from all_synonyms where owner = 'PUBLIC' and synonym_name = %v", name.upr());
-                    if (!row)
-                        throw "TABLE-ERROR", sprintf("table %y or synonym %y does not exist or is not accessible to this user (%s)", name, name, ds.getDBString());
-                    pub = True;
-                }
-
-                # update the table name if necessary
-                string orig_name = name;
-                if (name.upr() != row.table_name) {
-                    name = row.table_name;
-                    if (!native_case)
-                        name = name.lwr();
-                }
-                
-                schema = row.table_owner;
-                if (!native_case)
-                    schema = schema.lwr();
-
-                # get the table information if possible
-                row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
-                if (!row)
-                    throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which does not exist or is not accessible to this user (%s)", orig_name, pub ? "public " : "", schema, name, getDBString());
+                return row;
             }
+
+            bool pub = False;
+            # see if there is a user synonym with this name
+            row = ds.selectRow("select * from user_synonyms where synonym_name = %v", name.upr());
+            if (!row) {
+                # see if there is a public synonym with this name
+                row = ds.selectRow("select * from all_synonyms where owner = 'PUBLIC' and synonym_name = %v", name.upr());
+                if (!row)
+                    throw "TABLE-ERROR", sprintf("table %y or synonym %y does not exist or is not accessible to this user (%s)", name, name, ds.getDBString());
+                pub = True;
+            }
+            
+            # update the table name if necessary
+            string orig_name = name;
+            if (name.upr() != row.table_name) {
+                name = row.table_name;
+                if (!native_case)
+                    name = name.lwr();
+            }
+            
+            schema = row.table_owner;
+            if (!native_case)
+                schema = schema.lwr();
+            
+            # get the table information if possible
+            row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
+            if (!row)
+                throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which does not exist or is not accessible to this user (%s)", orig_name, pub ? "public " : "", schema, name, getDBString());
             return row;
         }
 
@@ -775,7 +941,13 @@ my hash $h = $table.describe();
                 *hash th = OraTypeMap.(row.data_type);
                 int size = row.data_type == "NUMBER" && row.data_precision ? row.data_precision : row.data_length;
                 switch (row.data_type) {
+                    case "ROWID":
+                    case "UROWID":
+                    case "DATE":
+                    case "BINARY_FLOAT":
+                    case "BINARY_DOUBLE":
                     case =~ /^TIMESTAMP/:
+                    case "BFILE":
                     case "BLOB":
                     case "CLOB": size = 0; break;
                 }
@@ -783,23 +955,29 @@ my hash $h = $table.describe();
                     row.column_name = row.column_name.lwr();
                     row.data_type = row.data_type.lwr();
                 }
-                rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.data_precision, row.data_scale, row.nullable == "Y", row.char_used == "C", row.comments ? row.comments : NOTHING);
+                rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.data_precision, row.data_scale, row.nullable == "Y", row.char_used == "C", row.comments ? row.comments : NOTHING, row.data_length);
             }
 
             return new Columns(rv);
         }
 
-        private Columns getPrimaryKeyImpl() {
+        private *OraclePrimaryKey getPrimaryKeyImpl() {
             hash rv;
 
             # get primary key description
-            *hash qh = ds.select("select cols.column_name, cols.position, cons.status, cons.owner from all_constraints cons, all_cons_columns cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = %v and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr(), schema.upr());
+            *hash qh = ds.select("select cons.constraint_name, cols.column_name, cols.position, cons.status, cons.owner from all_constraints cons, all_cons_columns cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = %v and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr(), schema.upr());
+            if (!qh.constraint_name)
+                return;
+
             foreach string col in (qh.column_name) {
                 string cn = native_case ? col : col.lwr();
                 rv{cn} = columns{cn};
             }
 
-            return new Columns(rv);
+            string pkname = qh.constraint_name[0];
+            if (!native_case)
+                pkname = pkname.lwr();
+            return new OraclePrimaryKey(pkname, rv);
         }
 
         private Indexes getIndexesImpl() {
@@ -877,38 +1055,78 @@ my hash $h = $table.describe();
             return new ForeignConstraints(ch);
         }
 
-        string getCreateSqlImpl() {
+        string getCreateSqlImpl(*hash opt) {
+            checkCreateOptions(opt, TableCreationOptions);
             string sql = sprintf("create table %s (\n", name);
 
             sql += foldl $1 + ",\n" + $2, (map $1.getCreateSql(), columns.iterator());
             sql += "\n)";
 
-            if (tablespace)
-                sql += sprintf(" tablespace %s", tablespace);
+            *string ts = opt.tablespace ? opt.tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" tablespace %s", ts);
 
             return sql;
         }
+
+        *list getCreateIndexSqlImpl(*hash opt) {
+            checkCreateIndexOptions(opt, TableCreationOptions);
+            return map $1.getCreateIndexSql(name, opt), indexes.iterator();
+        }
+
+        *string getCreatePrimaryKeySqlImpl(*hash opt) {
+            checkCreatePrimaryKeyOptions(opt, TableCreationOptions);
+            return primaryKey.getCreatePrimaryKeySql(name, opt);
+        }
     }
 
-    public class PgsqlIndex inherits Index {
+    public class PgsqlIndex inherits AbstractIndex {
         public {
             #! the tablespace name of the index
             *string tablespace;
         }
 
-        constructor(string n, bool u, hash c, *string t) : Index(n, u, c) {
+        constructor(string n, bool u, hash c, *string t) : AbstractIndex(n, u, c) {
             tablespace = t;
+        }
+
+        string getCreateIndexSql(string table_name, *hash opt) {
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+
+            *string ts = opt.tablespace ? opt.tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" tablespace %s", ts);
+            return sql;
         }
     }
 
-    public class PgsqlColumn inherits AbstractColumn {
+    public class PgsqlColumn inherits Column {
         public {
             #! any comments on the column
             *string comment;
         }
 
-        constructor(string n, string nt, *string qt, int sz, int cs, int prec, int sc, bool nul, *string cm) : AbstractColumn(n, nt, qt, sz, cs, prec, sc, nul) {
+        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, *string cm) : Column(n, nt, qt, sz, cs, prec, sc, nul) {
             comment = cm;
+        }
+    }
+
+    public class PgsqlPrimaryKey inherits AbstractPrimaryKey {
+        public {
+            #! any tablespace for the primary key index
+            *string tablespace;
+        }
+
+        constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c) {
+            tablespace = ts;
+        }
+
+        string getCreatePrimaryKeySql(string table_name, *hash opts) {
+            string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
+            *string ts = opts.tablespace ? opts.tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" using tablespace %s", ts);
+            return sql;
         }
     }
 
@@ -973,15 +1191,18 @@ my hash $h = $table.describe();
             return new Columns(rv);
         }
 
-        private Columns getPrimaryKeyImpl() {
+        private *PgsqlPrimaryKey getPrimaryKeyImpl() {
             hash rv;
 
             # get primary key description
-            *hash qh = ds.select("select a.attname, format_type(a.atttypid, a.atttypmod) coltype from pg_index i , pg_class c, pg_attribute a where c.oid = %v::regclass and indrelid = c.oid and a.attrelid = c.oid and a.attnum = any(i.indkey) and indisprimary", name);
+            *hash qh = ds.select("select c1.relname index_name, a.attname, format_type(a.atttypid, a.atttypmod) coltype, tablespace from pg_index i, pg_class c, pg_attribute a, pg_class c1, pg_indexes xs where c.oid = %v::regclass and indrelid = c.oid and a.attrelid = c.oid and a.attnum = any(i.indkey) and indisprimary and c1.oid = indexrelid and c1.relname = xs.indexname", name);
+            if (!qh.index_name)
+                return;
+
             foreach string col in (qh.attname)
                 rv{col} = columns{col};
 
-            return new Columns(rv);
+            return new PgsqlPrimaryKey(qh.index_name[0], rv, qh.tablespace[0]);
         }
 
         private Indexes getIndexesImpl() {
@@ -1036,16 +1257,28 @@ my hash $h = $table.describe();
             return new ForeignConstraints(rv);
         }
 
-        string getCreateSqlImpl() {
+        string getCreateSqlImpl(*hash opt) {
+            checkCreateOptions(opt, TableCreationOptions);
             string sql = sprintf("create table %s (\n", name);
 
             sql += foldl $1 + ",\n" + $2, (map sprintf("   %s %s%s", $1.name, $1.native_type, $1.nullable ? "" : " not null"), columns.iterator());
             sql += "\n)";
 
-            if (tablespace)
-                sql += sprintf(" tablespace %s", tablespace);
+            *string ts = opt.tablespace ? opt.tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" tablespace %s", ts);
 
             return sql;
+        }
+
+        *list getCreateIndexSqlImpl(*hash opt) {
+            checkCreateIndexOptions(opt, TableCreationOptions);
+            return map $1.getCreateIndexSql(name, opt), indexes.iterator();
+        }
+
+        *string getCreatePrimaryKeySqlImpl(*hash opt) {
+            checkCreatePrimaryKeyOptions(opt, TableCreationOptions);
+            return primaryKey.getCreatePrimaryKeySql(name, opt);
         }
     }
 
