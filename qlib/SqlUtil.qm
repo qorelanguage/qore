@@ -1289,7 +1289,14 @@ my *list $l = $table.getCreateMiscSql();
         }
 
         private Constraints getConstraintsImpl() {
-            return new Constraints();
+            *hash qh = ds.select("select constraint_name /* , search_condition */ from all_constraints where owner = %v and table_name = %v and constraint_type = 'C'", schema.upr(), name.upr()).res;
+
+            hash rv;
+            foreach hash row in (qh.contextIterator()) {
+                #printf("%y\n", row);
+            }
+
+            return new Constraints(rv);
         }
 
         string getCreateTableSqlImpl(*hash opt) {

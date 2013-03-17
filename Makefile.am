@@ -508,7 +508,7 @@ dummy:
 	./next_build.sh
 
 if COND_DOXYGEN
-DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html
+DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/SqlUtil/html
 
 LIB_TMP_DOXYFILES_SRC = \
 	doxygen/lib/Doxyfile
@@ -691,13 +691,17 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	doxygen/qlib/MailMessage.qm.dox.h \
 	doxygen/qlib/Pop3Client.qm.dox.h \
 	doxygen/qlib/CsvUtil.qm.dox.h \
+	doxygen/qlib/RestHandler.qm.dox.h \
+	doxygen/qlib/SqlUtil.qm.dox.h \
 	HttpServer.tag \
 	Mime.tag \
 	TelnetClient.tag \
 	SmtpClient.tag \
 	MailMessage.tag \
 	Pop3Client.tag \
-	CsvUtil.tag
+	CsvUtil.tag \
+	RestHandler.tag \
+	SqlUtil.tag
 
 lib/libqore.la: dummy
 	cd lib; make
@@ -749,6 +753,18 @@ doxygen/qlib/Doxyfile.CsvUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
 doxygen/qlib/CsvUtil.qm.dox.h: qlib/CsvUtil.qm $(QDX)
 	$(QDX) $< $@
 
+doxygen/qlib/Doxyfile.RestHandler: doxygen/qlib/Doxyfile.tmpl $(QDX)
+	$(QDX) -M=qlib/RestHandler.qm:doxygen/qlib/RestHandler.qm.dox.h $< $@
+
+doxygen/qlib/RestHandler.qm.dox.h: qlib/RestHandler.qm $(QDX)
+	$(QDX) $< $@
+
+doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
+	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm.dox.h $< $@
+
+doxygen/qlib/SqlUtil.qm.dox.h: qlib/SqlUtil.qm $(QDX)
+	$(QDX) $< $@
+
 DX_CLEANFILES = $(LIB_TMP_DOXYFILES) $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
 
 docs/library/html: $(include_HEADERS) $(LIB_DOXYFILES)
@@ -786,6 +802,14 @@ docs/modules/Pop3Client/html: docs/lang/html doxygen/qlib/Pop3Client.qm.dox.h do
 docs/modules/CsvUtil/html: docs/lang/html doxygen/qlib/CsvUtil.qm.dox.h doxygen/qlib/Doxyfile.CsvUtil
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.CsvUtil
 	$(top_srcdir)/doxygen/pdox docs/modules/CsvUtil/html docs/modules/CsvUtil/html/search
+
+docs/modules/RestHandler/html: docs/lang/html doxygen/qlib/RestHandler.qm.dox.h doxygen/qlib/Doxyfile.RestHandler
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.RestHandler
+	$(top_srcdir)/doxygen/pdox docs/modules/RestHandler/html docs/modules/RestHandler/html/search
+
+docs/modules/SqlUtil/html: docs/lang/html doxygen/qlib/SqlUtil.qm.dox.h doxygen/qlib/Doxyfile.SqlUtil
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.SqlUtil
+	$(top_srcdir)/doxygen/pdox docs/modules/SqlUtil/html docs/modules/SqlUtil/html/search
 
 doxygen-doc: $(DOXYGEN_OUTPUT)
 
