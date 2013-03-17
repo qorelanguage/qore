@@ -1165,7 +1165,7 @@ my *list $l = $table.getCreateMiscSql();
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, char_length, char_used, comments from all_tab_columns col, all_tab_comments com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name order by column_id", schema.upr(), name.upr());
+            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, char_length, char_used, comments from all_tab_columns col, all_col_comments com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
@@ -1328,7 +1328,7 @@ my *list $l = $table.getCreateMiscSql();
 
         *list getCreateMiscSqlImpl(*hash opt) {
             checkCreateMiscOptions(opt, TableCreationOptions);
-            return map sprintf("comment on %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
+            return map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
         }
     }
 
@@ -1637,7 +1637,7 @@ my *list $l = $table.getCreateMiscSql();
 
         *list getCreateMiscSqlImpl(*hash opt) {
             checkCreateMiscOptions(opt, TableCreationOptions);
-            return map sprintf("comment on %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
+            return map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
         }
     }
 
