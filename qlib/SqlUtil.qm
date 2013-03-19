@@ -1872,6 +1872,9 @@ my *list $l = $table.getCreateTriggersSql();
 
             # get trigger description
             *hash qh = ds.select("select * from information_schema.triggers where event_object_table = %v", name);
+
+            # list of functions
+            list fl = ();
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("event_manipulation", "action_statement", "action_timing", "action_orientation");
@@ -1879,11 +1882,12 @@ my *list $l = $table.getCreateTriggersSql();
                     rv{row.trigger_name}.event += " or " + row.event_manipulation;
                     continue;
                 }
+
+                *string f = (row.action_statement =~ /EXECUTE PROCEDURE (\w+)\(\)$/)[0];
+                if (f)
+                    fl += f;
                     
                 rv{row.trigger_name} = new PgsqlTrigger(row.trigger_name, row.action_statement, row.action_timing, row.event_manipulation, row.action_orientation);
-
-                #constructor(string n, string n_src, string t, string e, string o) : AbstractTrigger(n, n_src) {
-
             }
             
             return new Triggers(rv);
