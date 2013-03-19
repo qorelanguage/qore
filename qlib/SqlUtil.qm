@@ -370,6 +370,38 @@ public namespace SqlUtil {
         }
     }
 
+    #! trigger container class that throws an exception if an unknown trigger is accessed
+    public class Triggers inherits AbstractHashContainer {
+        constructor(*hash c) : AbstractHashContainer(c) {
+        }
+
+        AbstractTrigger memberGate(string k) {
+            return AbstractHashContainer::memberGate(k);
+        }
+
+        string getElementName() {
+            return "trigger";
+        }
+    }
+
+    #! the base class for triggers
+    public class AbstractTrigger {
+        public {
+            #! the name of the index
+            string name;
+            
+            #! the source of the index
+            string src;
+        }
+
+        constructor(string n, string n_src) {
+            name = n;
+            src = n_src;
+        }
+
+        abstract string getCreateTriggerSql(string table_name, *hash opt);
+    }
+
     #! represents a database table
     public class Table {
         private {
@@ -409,7 +441,7 @@ public namespace SqlUtil {
 map printf("$1;\n", $1), $table.getCreateSql();
             @endcode
 
-            @param opt a hash of options for the table, index, and constraint creation strings
+            @param opt a hash of options for the SQL creation strings
 
             @return a list of SQL strings that could be used to create the table and all known properties of the table
         */
@@ -434,15 +466,15 @@ my string $sql = $table.getCreateTableSql();
         #! returns a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
         /** @par Example:
             @code
-my *list $l = $table.getCreateIndexSql();
+my *list $l = $table.getCreateIndexesSql();
             @endcode
 
             @param opt a hash of options for the index creation string
 
             @return a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
         */
-        *list getCreateIndexSql(*hash opt) {
-            return t.getCreateIndexSql(opt);
+        *list getCreateIndexesSql(*hash opt) {
+            return t.getCreateIndexesSql(opt);
         }
 
         #! returns an SQL string that could be used to create the primary key on the table
@@ -462,31 +494,31 @@ my *string $sql = $table.getCreatePrimaryKeySql();
         #! returns a list of SQL strings that could be used to create foreign constraints on the table or NOTHING if there are no foreign constraints on the table
         /** @par Example:
             @code
-my *list $l = $table.getCreateForeignConstraintSql();
+my *list $l = $table.getCreateForeignConstraintsSql();
             @endcode
 
             @param opt a hash of options for the foreign constraint creation string
 
             @return a list of SQL strings that could be used to create foreign constraints on the table or NOTHING if there are no foreign constraints on the table
         */
-        *list getCreateForeignConstraintSql(*hash opt) {
-            return t.getCreateForeignConstraintSql(opt);
+        *list getCreateForeignConstraintsSql(*hash opt) {
+            return t.getCreateForeignConstraintsSql(opt);
         }
 
         #! returns a list of SQL strings that could be used to create non-foreign constraints on the table or NOTHING if there are no non-foreign constraints on the table
         /** @par Example:
             @code
-my *list $l = $table.getCreateConstraintSql();
+my *list $l = $table.getCreateConstraintsSql();
             @endcode
 
             @param opt a hash of options for the non-foreign constraint creation string
 
             @return a list of SQL strings that could be used to create non-foreign constraints on the table or NOTHING if there are no non-foreign constraints on the table
 
-            @see getCreateForeignConstraintSql()
+            @see getCreateForeignConstraintsSql()
         */
-        *list getCreateConstraintSql(*hash opt) {
-            return t.getCreateConstraintSql(opt);
+        *list getCreateConstraintsSql(*hash opt) {
+            return t.getCreateConstraintsSql(opt);
         }
 
         #! returns a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or NOTHING if there are none
@@ -501,6 +533,20 @@ my *list $l = $table.getCreateMiscSql();
         */
         *list getCreateMiscSql(*hash opt) {
             return t.getCreateMiscSql(opt);
+        }
+
+        #! returns a list of SQL strings that could be used to create triggers on the table or NOTHING if there are no triggers on the table
+        /** @par Example:
+            @code
+my *list $l = $table.getCreateTriggersSql();
+            @endcode
+
+            @param opt a hash of options for the trigger creation string
+
+            @return a list of SQL strings that could be used to create triggers on the table or NOTHING if there are no triggers on the table
+        */
+        *list getCreateTriggersSql(*hash opt) {
+            return t.getCreateTriggersSql(opt);
         }
 
         #! returns an object of class Columns describing the Table
@@ -523,7 +569,7 @@ my Columns $cols = $table.describe();
 my AbstractPrimaryKey $cols = $table.getPrimaryKey();
             @endcode
 
-            @return an objext of class AbstractPrimaryKey describing the primary key of the table
+            @return an object of class AbstractPrimaryKey describing the primary key of the table
         */
         AbstractPrimaryKey getPrimaryKey() {
             return t.getPrimaryKey();
@@ -537,10 +583,24 @@ my AbstractPrimaryKey $cols = $table.getPrimaryKey();
 my Indexes $ix = $table.getIndexes();
             @endcode
 
-            @return an objext of class Indexes describing the indexes on the table
+            @return an object of class Indexes describing the indexes on the table
         */
         Indexes getIndexes() {
             return t.getIndexes();
+        }
+
+        #! returns an object of class Triggers describing the triggers on the table
+        /** If there are no triggers on the table then the object returned will be empty (see @ref Triggers::empty())
+
+            @par Example:
+            @code
+my Triggers $trig = $table.getTriggers();
+            @endcode
+
+            @return an object of class Triggers describing the triggers on the table
+        */
+        Triggers getTriggers() {
+            return t.getTriggers();
         }
 
         #! returns a ForeignConstraints object describing the foreign constraints that the table has on other tables
@@ -598,6 +658,8 @@ my Indexes $ix = $table.getIndexes();
             ForeignConstraints foreignConstraints;
             # constraints description
             Constraints constraints;
+            # trigger description
+            Triggers triggers;
             # mutex for on-demand retrieval of table attributes
             Mutex l();
             # option hash
@@ -649,14 +711,14 @@ my hash $h = $table.describe();
             return columns;
         }
 
-        #! returns an objext of class AbstractPrimaryKey describing the primary key of the table
+        #! returns an object of class AbstractPrimaryKey describing the primary key of the table
         /** If there is no primary key then the object returned will be empty (see @ref AbstractPrimaryKey::empty())
 
             @par Example:
             @code
             @endcode
 
-            @return an objext of class AbstractPrimaryKey describing the primary key of the table
+            @return an object of class AbstractPrimaryKey describing the primary key of the table
         */
         *AbstractPrimaryKey getPrimaryKey() {
             getPrimaryKeyIntern();
@@ -671,7 +733,7 @@ my hash $h = $table.describe();
 my Indexes $ix = $table.getIndexes();
             @endcode
 
-            @return an objext of class Indexes describing the indexes on the table
+            @return an object of class Indexes describing the indexes on the table
         */
         Indexes getIndexes() {
             getIndexesIntern();
@@ -690,6 +752,21 @@ my Indexes $ix = $table.getIndexes();
             return constraints;
         }
 
+        #! returns an object of class Triggers describing the triggers on the table
+        /** If there are no triggers on the table then the object returned will be empty (see @ref Triggers::empty())
+
+            @par Example:
+            @code
+my Triggers $trig = $table.getTriggers();
+            @endcode
+
+            @return an object of class Triggers describing the triggers on the table
+        */
+        Triggers getTriggers() {
+            getTriggersIntern();
+            return triggers;
+        }
+
         #! returns a list of SQL strings that could be used to create the table and all known properties of the table
         /** @par Example:
             @code
@@ -702,11 +779,12 @@ map printf("$1;\n", $1), $table.getCreateSql();
         */
         list getCreateSql(*hash opt) {
             list l += getCreateTableSql(opt);
-            l += getCreateIndexSql(opt);
+            l += getCreateIndexesSql(opt);
             l += getCreatePrimaryKeySql(opt);
-            l += getCreateForeignConstraintSql(opt);
-            l += getCreateConstraintSql(opt);
+            l += getCreateForeignConstraintsSql(opt);
+            l += getCreateConstraintsSql(opt);
             l += getCreateMiscSql(opt);
+            l += getCreateTriggersSql(opt);
 
             return l;
         }
@@ -729,16 +807,16 @@ my string $sql = $table.getCreateTableSql();
         #! returns a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
         /** @par Example:
             @code
-my *list $l = $table.getCreateIndexSql();
+my *list $l = $table.getCreateIndexesSql();
             @endcode
 
             @param opt a hash of options for the index creation string
 
             @return a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
         */
-        *list getCreateIndexSql(*hash opt) {
+        *list getCreateIndexesSql(*hash opt) {
             getIndexesIntern();
-            return getCreateIndexSqlImpl(opt);
+            return getCreateIndexesSqlImpl(opt);
         }
 
         #! returns an SQL string that could be used to create the primary key on the table
@@ -761,37 +839,37 @@ my *string $sql = $table.getCreatePrimaryKeySql();
         #! returns a list of SQL strings that could be used to create foreign constraints on the table or NOTHING if there are no foreign constraints on the table
         /** @par Example:
             @code
-my *list $l = $table.getCreateForeignConstraintSql();
+my *list $l = $table.getCreateForeignConstraintsSql();
             @endcode
 
             @param opt a hash of options for the foreign constraint creation string
 
             @return a list of SQL strings that could be used to create foreign constraints on the table or NOTHING if there are no foreign constraints on the table
         */
-        *list getCreateForeignConstraintSql(*hash opt) {
+        *list getCreateForeignConstraintsSql(*hash opt) {
             getForeignConstraintsIntern();
             if (!foreignConstraints)
                 return;
-            return getCreateForeignConstraintSqlImpl(opt);
+            return getCreateForeignConstraintsSqlImpl(opt);
         }
 
         #! returns a list of SQL strings that could be used to create non-foreign constraints on the table or NOTHING if there are no non-foreign constraints on the table
         /** @par Example:
             @code
-my *list $l = $table.getCreateConstraintSql();
+my *list $l = $table.getCreateConstraintsSql();
             @endcode
 
             @param opt a hash of options for the non-foreign constraint creation string
 
             @return a list of SQL strings that could be used to create non-foreign constraints on the table or NOTHING if there are no non-foreign constraints on the table
 
-            @see getCreateForeignConstraintSql()
+            @see getCreateForeignConstraintsSql()
         */
-        *list getCreateConstraintSql(*hash opt) {
+        *list getCreateConstraintsSql(*hash opt) {
             getConstraintsIntern();
             if (!constraints)
                 return;
-            return getCreateConstraintSqlImpl(opt);
+            return getCreateConstraintsSqlImpl(opt);
         }
 
         #! returns a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or NOTHING if there are none
@@ -806,6 +884,25 @@ my *list $l = $table.getCreateMiscSql();
         */
         *list getCreateMiscSql(*hash opt) {
             return getCreateMiscSqlImpl(opt);
+        }
+
+        #! returns a list of SQL strings that could be used to create triggers on the table or NOTHING if there are no triggers on the table
+        /** @par Example:
+            @code
+my *list $l = $table.getCreateTriggersSql();
+            @endcode
+
+            @param opt a hash of options for the trigger creation strings
+
+            @return a list of SQL strings that could be used to create triggers on the table or NOTHING if there are no triggers on the table
+
+            @see getCreateTriggersSql()
+        */
+        *list getCreateTriggersSql(*hash opt) {
+            getTriggersIntern();
+            if (!triggers)
+                return;
+            return getCreateTriggersSqlImpl(opt);
         }
 
         private checkCreateOptions(*hash nopts, *hash rh) {
@@ -850,6 +947,15 @@ my *list $l = $table.getCreateMiscSql();
                     throw "SQL-CREATION-ERROR", sprintf("SQL creation option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
                 if (rh{k} && nopts{k}.type() != rh{k})
                     throw "SQL-CREATION-ERROR", sprintf("value passed to SQL creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
+            }
+        }
+
+        private checkCreateTriggerOptions(*hash nopts, *hash rh) {
+            foreach string k in (nopts.keyIterator()) {
+                if (!rh{k})
+                    throw "TRIGGER-CREATION-ERROR", sprintf("trigger creation option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+                if (rh{k} && nopts{k}.type() != rh{k})
+                    throw "TRIGGER-CREATION-ERROR", sprintf("value passed to trigger creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
             }
         }
 
@@ -955,17 +1061,28 @@ my *list $l = $table.getCreateMiscSql();
                 constraints = getConstraintsImpl();            
         }
 
+        private getTriggersIntern() {
+            if (triggers)
+                return;
+            l.lock();
+            on_exit l.unlock();
+            if (!triggers)
+                triggers = getTriggersImpl();
+        }
+
         private abstract Columns describeImpl();
         private abstract *AbstractPrimaryKey getPrimaryKeyImpl();
         private abstract Indexes getIndexesImpl();
         private abstract ForeignConstraints getForeignConstraintsImpl();
         private abstract Constraints getConstraintsImpl();
+        private abstract Triggers getTriggersImpl();
         private abstract string getCreateTableSqlImpl(*hash opt);
-        private abstract *list getCreateIndexSqlImpl(*hash opt);
+        private abstract *list getCreateIndexesSqlImpl(*hash opt);
         private abstract *string getCreatePrimaryKeySqlImpl(*hash opt);
-        private abstract *list getCreateForeignConstraintSqlImpl(*hash opt);
-        private abstract *list getCreateConstraintSqlImpl(*hash opt);
+        private abstract *list getCreateForeignConstraintsSqlImpl(*hash opt);
+        private abstract *list getCreateConstraintsSqlImpl(*hash opt);
         private abstract *list getCreateMiscSqlImpl(*hash opt);
+        private abstract *list getCreateTriggersSqlImpl(*hash opt);
     }
 
     public class OracleColumn inherits Column {
@@ -1049,6 +1166,33 @@ my *list $l = $table.getCreateMiscSql();
 
         string getCreatePrimaryKeySql(string table_name, *hash opts) {
             return sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
+        }
+    }
+
+    public class OracleTrigger inherits AbstractTrigger {
+        public {
+            #! trigger type
+            string type;
+            
+            #! the triggering event
+            string event;
+
+            #! referencing names
+            string ref;
+
+            #! @ref Qore::True if the trigger is enabled, @ref Qore::False if not
+            bool enabled;
+        }
+
+        constructor(string n, string n_src, string t, string ev, string r, bool en) : AbstractTrigger(n, n_src) {
+            type = t;
+            event = ev;
+            ref = r;
+            enabled = en;
+        }
+
+        string getCreateTriggerSql(string table_name, *hash opt) {
+            return sprintf("create trigger %s before %s on %s\n%s %s\n%s", name, event, table_name, ref, type, src); 
         }
     }
 
@@ -1361,6 +1505,20 @@ my *list $l = $table.getCreateMiscSql();
             return new Constraints(rv);
         }
 
+        private Triggers getTriggersImpl() {
+            hash rv;
+
+            # get trigger description
+            *hash qh = ds.select("select * from all_triggers where owner = %v and table_name = %v", schema.upr(), name.upr());
+            foreach hash row in (qh.contextIterator()) {
+                if (!native_case)
+                    map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names");
+                rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.trigger_body, row.trigger_type, row.triggering_event, row.referencing_names, row.status == "ENABLED");
+            }
+            
+            return new Triggers(rv);
+        }
+
         string getCreateTableSqlImpl(*hash opt) {
             checkCreateOptions(opt, TableCreationOptions);
             string sql = sprintf("create table %s (\n", name);
@@ -1375,7 +1533,7 @@ my *list $l = $table.getCreateMiscSql();
             return sql;
         }
 
-        *list getCreateIndexSqlImpl(*hash opt) {
+        *list getCreateIndexesSqlImpl(*hash opt) {
             checkCreateIndexOptions(opt, TableCreationOptions);
             return map $1.getCreateIndexSql(name, opt), indexes.iterator();
         }
@@ -1385,12 +1543,12 @@ my *list $l = $table.getCreateMiscSql();
             return primaryKey.getCreatePrimaryKeySql(name, opt);
         }
 
-        *list getCreateForeignConstraintSqlImpl(*hash opt) {
+        *list getCreateForeignConstraintsSqlImpl(*hash opt) {
             checkCreateConstraintOptions(opt, TableCreationOptions);
             return map $1.getCreateSql(name, opt), foreignConstraints.iterator();
         }
 
-        *list getCreateConstraintSqlImpl(*hash opt) {
+        *list getCreateConstraintsSqlImpl(*hash opt) {
             checkCreateConstraintOptions(opt, TableCreationOptions);
             return map $1.getCreateSql(name, opt), constraints.iterator();
         }
@@ -1398,6 +1556,11 @@ my *list $l = $table.getCreateMiscSql();
         *list getCreateMiscSqlImpl(*hash opt) {
             checkCreateMiscOptions(opt, TableCreationOptions);
             return map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
+        }
+
+        *list getCreateTriggersSqlImpl(*hash opt) {
+            checkCreateTriggerOptions(opt, TableCreationOptions);
+            return map $1.getCreateTriggerSql(name, opt), triggers.iterator();
         }
     }
 
@@ -1670,6 +1833,20 @@ my *list $l = $table.getCreateMiscSql();
             return new Constraints(rv);
         }
 
+        private Triggers getTriggersImpl() {
+            hash rv;
+
+            # get trigger description
+            #*hash qh = ds.select("select * from all_triggers where owner = %v and table_name = %v", schema.upr(), name.upr());
+            #foreach hash row in (qh.contextIterator()) {
+            #    if (!native_case)
+            #        row.trigger_name = row.trigger_name.lwr();
+            #    rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.trigger_body, row.trigger_type, row.triggering_event, row.referencing_names, row.status == "ENABLED");
+            #}
+            
+            return new Triggers(rv);
+        }
+
         string getCreateTableSqlImpl(*hash opt) {
             checkCreateOptions(opt, TableCreationOptions);
             string sql = sprintf("create table %s (\n", name);
@@ -1684,7 +1861,7 @@ my *list $l = $table.getCreateMiscSql();
             return sql;
         }
 
-        *list getCreateIndexSqlImpl(*hash opt) {
+        *list getCreateIndexesSqlImpl(*hash opt) {
             checkCreateIndexOptions(opt, TableCreationOptions);
             return map $1.getCreateIndexSql(name, opt), indexes.iterator();
         }
@@ -1694,12 +1871,12 @@ my *list $l = $table.getCreateMiscSql();
             return primaryKey.getCreatePrimaryKeySql(name, opt);
         }
 
-        *list getCreateForeignConstraintSqlImpl(*hash opt) {
+        *list getCreateForeignConstraintsSqlImpl(*hash opt) {
             checkCreateConstraintOptions(opt, TableCreationOptions);
             return map $1.getCreateSql(name, opt), foreignConstraints.iterator();
         }
 
-        *list getCreateConstraintSqlImpl(*hash opt) {
+        *list getCreateConstraintsSqlImpl(*hash opt) {
             checkCreateConstraintOptions(opt, TableCreationOptions);
             return map $1.getCreateSql(name, opt), constraints.iterator();
         }
@@ -1707,6 +1884,11 @@ my *list $l = $table.getCreateMiscSql();
         *list getCreateMiscSqlImpl(*hash opt) {
             checkCreateMiscOptions(opt, TableCreationOptions);
             return map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
+        }
+
+        *list getCreateTriggersSqlImpl(*hash opt) {
+            checkCreateTriggerOptions(opt, TableCreationOptions);
+            return map $1.getCreateTriggerSql(name, opt), triggers.iterator();
         }
     }
 
