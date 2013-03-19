@@ -75,12 +75,12 @@ public namespace SqlUtil {
                 if (re == i) {
                     return 0;
                 }
-                # see if all remaining elements in $rl are 0
+                # see if all remaining elements in rl are 0
                 splice rl, 0, i;
                 return (select rl, $1) ? -1 : 0;
             }
             if (re == i) {
-                # see if all remaining elements in $rl are 0
+                # see if all remaining elements in ll are 0
                 splice ll, 0, i;
                 return (select ll, $1) ? 1 : 0;
             }
@@ -1350,7 +1350,8 @@ my *list $l = $table.getCreateMiscSql();
             if (!has_long)
                 return new Constraints();
 
-            *hash qh = ds.select("select constraint_name, search_condition, status from all_constraints where owner = %v and table_name = %v and constraint_type = 'C'", schema.upr(), name.upr());
+            # get only user constraints
+            *hash qh = ds.select("select constraint_name, search_condition, status from all_constraints where owner = %v and table_name = %v and constraint_type = 'C' and generated != 'GENERATED NAME'", schema.upr(), name.upr());
             hash rv;
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
