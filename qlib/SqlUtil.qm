@@ -225,9 +225,12 @@ public namespace SqlUtil {
 
             #! Qore::True "True" if the column can hold a NULL value, @ref Qore::False "False" if not
             bool nullable; 
+
+            #! default value for column
+            *string def_val;
         }
 
-        constructor(string n, string nt, *string qt, int sz, int cs, int prec, int sc, bool nul) {
+        constructor(string n, string nt, *string qt, int sz, int cs, int prec, int sc, bool nul, *string dv) {
             name = n;
             native_type = nt;
             qore_type = qt;
@@ -236,6 +239,7 @@ public namespace SqlUtil {
             precision = prec;
             scale = sc;
             nullable = nul;
+            def_val = dv;
         }
 
         string getNativeTypeString() {            
@@ -256,6 +260,8 @@ public namespace SqlUtil {
             string sql = sprintf("%s %s", name, getNativeTypeString());
             if (!nullable)
                 sql += " not null";
+            if (def_val)
+                sql += " default " + def_val;
             return sql;
         }
     }
@@ -370,6 +376,24 @@ public namespace SqlUtil {
         }
     }
 
+    #! the base class for triggers
+    public class AbstractTrigger {
+        public {
+            #! the name of the trigger
+            string name;
+            
+            #! the source of the trigger
+            string src;
+        }
+
+        constructor(string n, string n_src) {
+            name = n;
+            src = n_src;
+        }
+
+        abstract string getCreateTriggerSql(string table_name, *hash opt);
+    }
+
     #! trigger container class that throws an exception if an unknown trigger is accessed
     public class Triggers inherits AbstractHashContainer {
         constructor(*hash c) : AbstractHashContainer(c) {
@@ -384,13 +408,13 @@ public namespace SqlUtil {
         }
     }
 
-    #! the base class for triggers
-    public class AbstractTrigger {
+    #! base class for functions
+    public class AbstractFunction {
         public {
-            #! the name of the index
+            #! the name of the function
             string name;
             
-            #! the source of the index
+            #! the source of the function
             string src;
         }
 
@@ -399,7 +423,21 @@ public namespace SqlUtil {
             src = n_src;
         }
 
-        abstract string getCreateTriggerSql(string table_name, *hash opt);
+        abstract string getCreateSql(*hash opt);
+    }
+
+    #! function container class that throws an exception if an unknown function is accessed
+    public class Functions inherits AbstractHashContainer {
+        constructor(*hash c) : AbstractHashContainer(c) {
+        }
+
+        AbstractFunction memberGate(string k) {
+            return AbstractHashContainer::memberGate(k);
+        }
+
+        string getElementName() {
+            return "function";
+        }
     }
 
     #! represents a database table
@@ -433,6 +471,20 @@ public namespace SqlUtil {
         #! executes a method on the contained AbstractTable object
         any methodGate(string meth) {
             return callObjectMethodArgs(t, meth, argv);
+        }
+
+        #! returns an SQL string that could be used to create the table and all known properties of the table
+        /** @par Example:
+            @code
+printf("%s\n", $table.getCreateSqlString());
+            @endcode
+
+            @param opt a hash of options for the SQL creation string
+
+            @return an SQL string that could be used to create the table and all known properties of the table
+        */
+        string getCreateSqlString(*hash opt) {
+            return t.getCreateSqlString(opt);
         }
 
         #! returns a list of SQL strings that could be used to create the table and all known properties of the table
@@ -767,6 +819,25 @@ my Triggers $trig = $table.getTriggers();
             return triggers;
         }
 
+        #! returns an SQL string that could be used to create the table and all known properties of the table
+        /** @par Example:
+            @code
+printf("%s\n", $table.getCreateSqlString());
+            @endcode
+
+            @param opt a hash of options for the SQL creation string
+
+            @return an SQL string that could be used to create the table and all known properties of the table
+        */
+        string getCreateSqlString(*hash opt) {
+            getColumnsIntern();
+            getTriggersIntern();
+            getPrimaryKeyIntern();
+            getForeignConstraintsIntern();
+            getConstraintsIntern();
+            return getCreateSqlStringImpl(opt);
+        }
+
         #! returns a list of SQL strings that could be used to create the table and all known properties of the table
         /** @par Example:
             @code
@@ -799,7 +870,7 @@ my string $sql = $table.getCreateTableSql();
 
             @return an SQL string that could be used to create the basic table structure without indexes and constraints 
         */
-        string getCreateTableSql(*hash opt) {            
+        string getCreateTableSql(*hash opt) {
             getColumnsIntern();
             return getCreateTableSqlImpl(opt);
         }
@@ -1076,6 +1147,7 @@ my *list $l = $table.getCreateTriggersSql();
         private abstract ForeignConstraints getForeignConstraintsImpl();
         private abstract Constraints getConstraintsImpl();
         private abstract Triggers getTriggersImpl();
+
         private abstract string getCreateTableSqlImpl(*hash opt);
         private abstract *list getCreateIndexesSqlImpl(*hash opt);
         private abstract *string getCreatePrimaryKeySqlImpl(*hash opt);
@@ -1083,6 +1155,7 @@ my *list $l = $table.getCreateTriggersSql();
         private abstract *list getCreateConstraintsSqlImpl(*hash opt);
         private abstract *list getCreateMiscSqlImpl(*hash opt);
         private abstract *list getCreateTriggersSqlImpl(*hash opt);
+        private abstract string getCreateSqlStringImpl(*hash opt);
     }
 
     public class OracleColumn inherits Column {
@@ -1095,7 +1168,7 @@ my *list $l = $table.getCreateTriggersSql();
             int byte_size;
         }
 
-        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, bool cu, *string cm, int bs) : Column(n, nt, qt, sz, cs, prec, sc, nul) {
+        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, *string dv, bool cu, *string cm, int bs) : Column(n, nt, qt, sz, cs, prec, sc, nul, dv) {
             char_used = cu;
             comment = cm;
             byte_size = bs;
@@ -1376,7 +1449,7 @@ my *list $l = $table.getCreateTriggersSql();
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, char_length, char_used, comments from all_tab_columns col, all_col_comments com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
+            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, data_default, char_length, char_used, comments from all_tab_columns col, all_col_comments com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
@@ -1399,7 +1472,7 @@ my *list $l = $table.getCreateTriggersSql();
                     row.column_name = row.column_name.lwr();
                     row.data_type = row.data_type.lwr();
                 }
-                rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.data_precision, row.data_scale, row.nullable == "Y", row.char_used == "C", row.comments ? row.comments : NOTHING, row.data_length);
+                rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.data_precision, row.data_scale, row.nullable == "Y", row.data_default ? row.data_default : NOTHING, row.char_used == "C", row.comments ? row.comments : NOTHING, row.data_length);
             }
 
             return new Columns(rv);
@@ -1523,7 +1596,7 @@ my *list $l = $table.getCreateTriggersSql();
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names", "description");
-                printf("%y: %s\n", row.trigger_name, row.description);
+                #printf("%y: %s\n", row.trigger_name, row.description);
                 rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.trigger_body, row.trigger_type, row.triggering_event, row.referencing_names, row.status == "ENABLED", row.description, row.when ? row.when : NOTHING);
             }
             
@@ -1565,6 +1638,7 @@ my *list $l = $table.getCreateTriggersSql();
         }
 
         *list getCreateMiscSqlImpl(*hash opt) {
+            getColumnsIntern();
             checkCreateMiscOptions(opt, TableCreationOptions);
             return map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
         }
@@ -1572,6 +1646,12 @@ my *list $l = $table.getCreateTriggersSql();
         *list getCreateTriggersSqlImpl(*hash opt) {
             checkCreateTriggerOptions(opt, TableCreationOptions);
             return map $1.getCreateTriggerSql(name, opt), triggers.iterator();
+        }
+
+        string getCreateSqlStringImpl(*hash opt) {
+            string str;
+            map str += sprintf("%s%s\n", $1, $1 =~ /;$/ ? "\n/" : ";"), getCreateSql(opt);
+            return str;
         }
     }
 
@@ -1629,7 +1709,7 @@ my *list $l = $table.getCreateTriggersSql();
             int byte_size;
         }
 
-        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, *string cm, softint bs) : Column(n, nt, qt, sz, cs, prec, sc, nul) {
+        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, *string dv, *string cm, softint bs) : Column(n, nt, qt, sz, cs, prec, sc, nul, dv) {
             comment = cm;
             byte_size = bs;
         }
@@ -1695,6 +1775,26 @@ my *list $l = $table.getCreateTriggersSql();
         }
     }
 
+    public class PgsqlFunction inherits AbstractFunction {
+        public {
+            string hdr;
+            
+            string lang;
+
+            string stability;
+        }
+
+        constructor(string n, string n_src, string h, string l, string n_stability) : AbstractFunction(n, n_src) {
+            hdr = h;
+            lang = l;
+            stability = n_stability;
+        }
+
+        string getCreateSql(*hash opt) {
+            return sprintf("%s", hdr);
+        }        
+    }
+
     public class PgsqlTable inherits AbstractTable {
         public {
             const PgsqlTypeMap = (
@@ -1749,6 +1849,8 @@ my *list $l = $table.getCreateTriggersSql();
 
         private {
             *string tablespace;
+
+            Functions triggerFunctions;
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
@@ -1763,7 +1865,7 @@ my *list $l = $table.getCreateTriggersSql();
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select column_name, data_type, character_maximum_length, character_octet_length, numeric_precision, numeric_scale, datetime_precision, is_nullable, description from information_schema.columns c join pg_catalog.pg_statio_all_tables st on (c.table_schema = st.schemaname and c.table_name = st.relname) left join pg_catalog.pg_description pgd on (st.relid = pgd.objoid and pgd.objsubid = c.ordinal_position) where table_name = %v order by ordinal_position", name);
+            *hash qh = ds.select("select column_name, data_type, character_maximum_length, character_octet_length, numeric_precision, numeric_scale, datetime_precision, is_nullable, column_default, description from information_schema.columns c join pg_catalog.pg_statio_all_tables st on (c.table_schema = st.schemaname and c.table_name = st.relname) left join pg_catalog.pg_description pgd on (st.relid = pgd.objoid and pgd.objsubid = c.ordinal_position) where table_name = %v order by ordinal_position", name);
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
@@ -1785,7 +1887,7 @@ my *list $l = $table.getCreateTriggersSql();
                         break;
                     }
                 }
-                rv.(row.column_name) = new PgsqlColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, cs, row.numeric_precision, row.numeric_scale, row.is_nullable == "YES", row.description ? row.description : NOTHING, row.character_octet_length);
+                rv.(row.column_name) = new PgsqlColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, cs, row.numeric_precision, row.numeric_scale, row.is_nullable == "YES", row.column_default ? row.column_default : NOTHING, row.description ? row.description : NOTHING, row.character_octet_length);
             }
 
             return new Columns(rv);
@@ -1873,9 +1975,13 @@ my *list $l = $table.getCreateTriggersSql();
             # get trigger description
             *hash qh = ds.select("select * from information_schema.triggers where event_object_table = %v", name);
 
-            # list of functions
+            # list of trigger functions
             list fl = ();
             foreach hash row in (qh.contextIterator()) {
+                *string f = (row.action_statement =~ x/EXECUTE PROCEDURE (\w+)\(\)$/)[0];
+                if (f)
+                    fl += f;
+                    
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("event_manipulation", "action_statement", "action_timing", "action_orientation");
                 if (rv{row.trigger_name}) {
@@ -1883,13 +1989,25 @@ my *list $l = $table.getCreateTriggersSql();
                     continue;
                 }
 
-                *string f = (row.action_statement =~ /EXECUTE PROCEDURE (\w+)\(\)$/)[0];
-                if (f)
-                    fl += f;
-                    
                 rv{row.trigger_name} = new PgsqlTrigger(row.trigger_name, row.action_statement, row.action_timing, row.event_manipulation, row.action_orientation);
             }
-            
+
+            if (fl) {
+                hash fh;
+                # also get trigger functions
+                qh = ds.select("select p.proname, t1.typname AS return_type, a.rolname AS procedure_owner, l.lanname AS lang, prosrc AS body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 ON p.prorettype=t1.oid left join pg_authid a ON p.proowner=a.oid left join pg_language l ON p.prolang=l.oid where proname in (%s)", (foldl $1 + "," + $2, (map sprintf("'%s'", $1), fl)));
+                foreach hash row in (qh.contextIterator()) {
+                    if (!native_case)
+                        map row.$1 = row.$1.lwr(), ("stability");
+
+                    trim row.hdr;
+                    fh{row.proname} = new PgsqlFunction(row.proname, row.body, row.hdr, row.lang, row.stability);
+                }
+                triggerFunctions = new Functions(fh);
+            }
+
+            #printf("gTI triggerFunctions: %N\n", triggerFunctions);
+
             return new Triggers(rv);
         }
 
@@ -1928,13 +2046,26 @@ my *list $l = $table.getCreateTriggersSql();
         }
 
         *list getCreateMiscSqlImpl(*hash opt) {
+            getColumnsIntern();
+            getTriggersIntern();
             checkCreateMiscOptions(opt, TableCreationOptions);
-            return map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
+            list l = map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
+            l += map $1.getCreateSql(opt), triggerFunctions.iterator();
+
+            #printf("gCMSI triggerFunctions: %N\n", triggerFunctions);
+
+            return l;
         }
 
         *list getCreateTriggersSqlImpl(*hash opt) {
             checkCreateTriggerOptions(opt, TableCreationOptions);
             return map $1.getCreateTriggerSql(name, opt), triggers.iterator();
+        }
+
+        string getCreateSqlStringImpl(*hash opt) {
+            string str;
+            map str += sprintf("%s%s\n", $1, $1 =~ /(;|\$)$/ ? "" : ";"), getCreateSql(opt);
+            return str;
         }
     }
 

@@ -64,7 +64,7 @@ sub main() {
     if (opt."dump-table") {
         done = True;
         Table table(ds, opt."dump-table");
-        map printf("%s%s\n", $1, $1 =~ /;$/ ? "\n/" : ";"), table.getCreateSql(copt);
+        printf("%s\n", table.getCreateSqlString(copt));
     }
     
     if (!done)
