@@ -70,9 +70,7 @@ module RestHandler {
     - @ref RestHandler::AbstractRestClass "AbstractRestClass": this class provides the functionality of the REST object currently being accessed (and access to subobjects or subclasses)
     - @ref RestHandler::RestHandler "RestHandler": this class can be used to plug in to the Qore <a href="../../HttpServer/html/index.html">HttpServer</a> to expose REST services
 
-    @par Example:
-    @code
-    @endcode
+    see example file \c "restserver.q" in the examples directory for an example of using this module to implement REST services.
 */
 
 #! the RestHandler namespace contains all the objects in the RestHandler module
@@ -153,7 +151,7 @@ public namespace RestHandler {
     }
 
     #! this is the main handler class to be registered with the HttpServer
-    public class RestHandler inherits AbstractHttpRequestHandler {
+    public class RestHandler inherits AbstractHttpRequestHandler, AbstractRestClass {
         public {
             #! a hash for a 501 Unimplemented error message
             const Err501 = (
@@ -181,6 +179,7 @@ public namespace RestHandler {
 %ifndef NoJson
                 MimeTypeJsonRpc: True,
 %endif
+                MimeTypeHtml: True,
                 );
         }
         
@@ -196,6 +195,11 @@ public namespace RestHandler {
         /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
          */
         constructor(*AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth) {
+        }
+
+        #! returns the name of the root REST class
+        string name() {
+            return "/";
         }
 
         #! called by the HTTP server to handle incoming HTTP requests
@@ -224,7 +228,8 @@ public namespace RestHandler {
         hash handleRequest(hash $cx, hash $hdr, *data $b) {
             #$.logDebug("cx: %N", $cx);
             $.logDebug("hdr: %N", $hdr);
-            $.logDebug("body: %s", $b);
+            if ($b)
+                $.logDebug("body: %s", $b);
 
             my any $body = $b;
             
@@ -232,26 +237,38 @@ public namespace RestHandler {
             my *string $path = $cx.url.path;
 
             $.removeRootPath(\$path);
-            if (!$path)
-                return RestHandler::make400("there is no top-level REST handler; please input a valid path (valid classes: %y)", $.ch.keys());
 
             my *string $cls = ($path =~ x/^([^\/?]+)/)[0];
-            if (!$cls)
-                return RestHandler::make400("cannot find REST class in path %y", $cx.url.path);
-            if (!$.ch{$cls})
-                return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", $cls, $cx.url.path, $.ch.keys());
+
+            my AbstractRestClass $rcls;
+
+            if (!$cls) {
+                #return RestHandler::make400("cannot find REST class in path %y", $cx.url.path);
+                $rcls = $self;
+            }
+            else {
+                if (!$.ch{$cls}) {
+                    $cls = $.subClass($cls);
+                    if (!$cls)
+                        return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", $cls, $cx.url.path, $.ch.keys());
+                }
+                else
+                    $rcls = $.ch{$cls};
+            }
 
             # check method
             if (!Methods.($hdr.method))
                 return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", $hdr.method, Methods.keys());
             
             # remove class and trailing "/" from path
-            splice $path, 0, $cls.size();
-            if ($path[0] == "/")
-                splice $path, 0, 1;
+            if ($path) {
+                splice $path, 0, $cls.size();
+                if ($path[0] == "/")
+                    splice $path, 0, 1;
+            }
 
             # get object and args
-            my hash $ah = parse_uri_query($path);
+            my hash $ah = $path ? parse_uri_query($path) : hash();
 
             my *hash $args;
             if (exists $ah.params[0]) {
@@ -311,16 +328,16 @@ public namespace RestHandler {
                 $args -= "action";
                 # ensure first letter of the action is in upper case
                 splice $mn, 0, 1, $mn[0].upr();
-                $mn = $hdr.method.lwr() + $mn;
+                $mn = ($hdr.method == "DELETE" ? "del" : $hdr.method.lwr()) + $mn;
             }
             else
-                $mn = $hdr.method.lwr();
+                $mn = $hdr.method == "DELETE" ? "del" : $hdr.method.lwr();
 
             # get class chain
             my *list $cl = $ah.method ? $ah.method.split("/") : NOTHING;
 
             # handle call with class
-            my hash $rv = $.ch{$cls}.handleRequest($self, $cl, $mn, $args, $cx + ("hdr": $hdr, "body": $body));
+            my hash $rv = $rcls.handleRequest($self, $cl, $mn, $args, $cx + ("hdr": $hdr, "body": $body));
 
             # serialize response according to client's capabilities if necessary
             if (exists $rv.body) {
@@ -361,6 +378,14 @@ public namespace RestHandler {
                         $encoded = True;
                     }
 %endif
+
+                    # check for html support
+                    if (!$encoded && ($aih{MimeTypeHtml} || $aih."*/*")) {
+                        $rv.body = sprintf("<pre>%N</pre>", $rv.body);
+                        $rv.hdr = MimeTypeHtml;
+                        $encoded = True;
+                    }
+
                     if (!$encoded) {
                         $.responseSerializationError($cx, $aih, $rv);
                         return RestHandler::make501("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", $aih.keys(), MimeDataTypes.keys(), $rv.body);
