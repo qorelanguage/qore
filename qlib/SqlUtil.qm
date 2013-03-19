@@ -1672,6 +1672,29 @@ my *list $l = $table.getCreateTriggersSql();
         }
     }
 
+    public class PgsqlTrigger inherits AbstractTrigger {
+        public {
+            #! trigger timing
+            string timing;
+
+            #! trigger event
+            string event;
+
+            #! action orientation
+            string orientation;
+        }
+
+        constructor(string n, string n_src, string t, string e, string o) : AbstractTrigger(n, n_src) {
+            timing = t;
+            event = e;
+            orientation = o;
+        }
+
+        string getCreateTriggerSql(string table_name, *hash opt) {
+            return sprintf("create trigger %s %s %s on %s for each %s %s", name, timing, event, table_name, orientation, src);
+        }
+    }
+
     public class PgsqlTable inherits AbstractTable {
         public {
             const PgsqlTypeMap = (
@@ -1848,12 +1871,20 @@ my *list $l = $table.getCreateTriggersSql();
             hash rv;
 
             # get trigger description
-            #*hash qh = ds.select("select * from all_triggers where owner = %v and table_name = %v", schema.upr(), name.upr());
-            #foreach hash row in (qh.contextIterator()) {
-            #    if (!native_case)
-            #        row.trigger_name = row.trigger_name.lwr();
-            #    rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.trigger_body, row.trigger_type, row.triggering_event, row.referencing_names, row.status == "ENABLED");
-            #}
+            *hash qh = ds.select("select * from information_schema.triggers where event_object_table = %v", name);
+            foreach hash row in (qh.contextIterator()) {
+                if (!native_case)
+                    map row.$1 = row.$1.lwr(), ("event_manipulation", "action_statement", "action_timing", "action_orientation");
+                if (rv{row.trigger_name}) {
+                    rv{row.trigger_name}.event += " or " + row.event_manipulation;
+                    continue;
+                }
+                    
+                rv{row.trigger_name} = new PgsqlTrigger(row.trigger_name, row.action_statement, row.action_timing, row.event_manipulation, row.action_orientation);
+
+                #constructor(string n, string n_src, string t, string e, string o) : AbstractTrigger(n, n_src) {
+
+            }
             
             return new Triggers(rv);
         }
