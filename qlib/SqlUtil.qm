@@ -1182,17 +1182,27 @@ my *list $l = $table.getCreateTriggersSql();
 
             #! @ref Qore::True if the trigger is enabled, @ref Qore::False if not
             bool enabled;
+
+            #! the trigger description
+            string desc;
+
+            #! then when clause
+            *string when;
         }
 
-        constructor(string n, string n_src, string t, string ev, string r, bool en) : AbstractTrigger(n, n_src) {
+        constructor(string n, string n_src, string t, string ev, string r, bool en, string d, *string w) : AbstractTrigger(n, n_src) {
             type = t;
             event = ev;
             ref = r;
             enabled = en;
+            desc = d;
+            when = w;
+
+            desc =~ s/\n/ /g;
         }
 
         string getCreateTriggerSql(string table_name, *hash opt) {
-            return sprintf("create trigger %s before %s on %s\n%s %s\n%s", name, event, table_name, ref, type, src); 
+            return sprintf("create trigger %s\n%s", desc, src); 
         }
     }
 
@@ -1512,8 +1522,9 @@ my *list $l = $table.getCreateTriggersSql();
             *hash qh = ds.select("select * from all_triggers where owner = %v and table_name = %v", schema.upr(), name.upr());
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
-                    map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names");
-                rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.trigger_body, row.trigger_type, row.triggering_event, row.referencing_names, row.status == "ENABLED");
+                    map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names", "description");
+                printf("%y: %s\n", row.trigger_name, row.description);
+                rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.trigger_body, row.trigger_type, row.triggering_event, row.referencing_names, row.status == "ENABLED", row.description, row.when ? row.when : NOTHING);
             }
             
             return new Triggers(rv);
