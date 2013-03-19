@@ -44,7 +44,7 @@ module SqlUtil {
 
 /** @mainpage SqlUtil Module
 
-    The %SqlUtil module provides functionality for parsing SQL-like files.
+    The %SqlUtil module provides a high level API for working with database objects.
 
     To use this module, use \c "%requires SqlUtil" in your code.
     

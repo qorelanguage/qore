@@ -53,17 +53,32 @@ module RestHandler {
     url = "http://qore.org";
 }
 
+/*  Version History
+    * 2013-xx-xx v1.0: David Nichols <david@qore.org>
+      + the initial version of the RestHandler module
+*/
+
 /** @mainpage RestHandler Module
 
     The %RestHandler module provides functionality for implementing REST services with the Qore HTTP server.
 
     To use this module, use \c "%requires RestHandler" in your code.
     
-    All the public symbols in the module are defined in the RestHandler namespace
+    All the public symbols in the module are defined in the RestHandler namespace.
+
+    The main classes are:
+    - @ref RestHandler::AbstractRestClass "AbstractRestClass": this class provides the functionality of the REST object currently being accessed (and access to subobjects or subclasses)
+    - @ref RestHandler::RestHandler "RestHandler": this class can be used to plug in to the Qore <a href="../../HttpServer/html/index.html">HttpServer</a> to expose REST services
+
+    @par Example:
+    @code
+    @endcode
 */
 
 #! the RestHandler namespace contains all the objects in the RestHandler module
 public namespace RestHandler {
+
+    #! the base abstract class for REST handler classes
     public class AbstractRestClass {
         public {}
 
@@ -72,9 +87,13 @@ public namespace RestHandler {
 
         abstract string name();
 
+        #! this method will be called to find a sub-class (ie with GET /invoices/1 - if this class represents "invoices", then subClass("1") will be called to return invoice 1; return NOTHING if the object doesn't exist
+        /** @param name the name of the subclass
+         */
         *AbstractRestClass subClass(string $name) {
         }
 
+        #! this method is called by the RestHandler class to match the right object with incoming requests
         hash handleRequest(RestHandler $rh, *list $cl, string $mn, *hash $args, hash $cx) {            
             if ($cl) {
                 my string $cname = shift $cl;
@@ -91,8 +110,9 @@ public namespace RestHandler {
             $rh.logDebug("class %y: dispatching method %y args: %y", $.name(), $mn, $args);
             return $.dispatch($rh, NOTHING, $mn, $args, $cx);
         }
-        
-        hash dispatch(RestHandler $rh, *string $oname, string $mn, *hash $ah, hash $cx) {
+
+        #! this method is called to dispatch requests on the given object
+        private hash dispatch(RestHandler $rh, *string $oname, string $mn, *hash $ah, hash $cx) {
             try {
                 return callObjectMethodArgs($self, $mn, ($cx, $ah));
             }
@@ -105,30 +125,37 @@ public namespace RestHandler {
                 rethrow;
             }
         }
-        
-        hash unknownSubClassError(string $name) {
+
+        #! returns a hash response with a 400 error when a request tries to access an unknown subclass
+        private hash unknownSubClassError(string $name) {
             return RestHandler::make400("class %y has no subclass %y", $.name(), $name);
         }
-        
+
+        #! this method is called when a \c POST request is made on the current object; this method must be subclassed to provide any functionality, the default behavior is to return a 501 Unimplemented error
         hash post(hash $cx, *hash $ah) {
             return RestHandler::Err501;
         }
         
+        #! this method is called when a \c GET request is made on the current object; this method must be subclassed to provide any functionality, the default behavior is to return a 501 Unimplemented error
         hash get(hash $cx, *hash $ah) {
             return RestHandler::Err501;
         }
         
+        #! this method is called when a \c DELETE request is made on the current object; this method must be subclassed to provide any functionality, the default behavior is to return a 501 Unimplemented error
         hash del(hash $cx, *hash $ah) {
             return RestHandler::Err501;
         }
 
+        #! this method is called when a \c PUT request is made on the current object; this method must be subclassed to provide any functionality, the default behavior is to return a 501 Unimplemented error
         hash put(hash $cx, *hash $ah) {
             return RestHandler::Err501;
         }
     }
 
+    #! this is the main handler class to be registered with the HttpServer
     public class RestHandler inherits AbstractHttpRequestHandler {
         public {
+            #! a hash for a 501 Unimplemented error message
             const Err501 = (
                 "code": 501,
                 "body": "not implemented",
@@ -164,11 +191,36 @@ public namespace RestHandler {
             #! mutex lock
             Mutex $.mx();
         }
-        
+
+        #! create the object optionally with the given AbstractAuthenticator
+        /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+         */
         constructor(*AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth) {
         }
 
-        #! handles the HTTP requests
+        #! called by the HTTP server to handle incoming HTTP requests
+        /** Requests will be dispatched to REST classes registered with this object
+
+            @param cx call context hash; this hash will have the following keys:
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+            - \c url: a hash of broken-down URL information (as returned from parseURL())
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c user: the current RBAC username (if any)
+            @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+            - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+            - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
+            - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+            @param body message body, if any
+
+            @return a hash with the following keys:
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+            - \c "body": the message body to return in the response
+            - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+            - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+         */
         hash handleRequest(hash $cx, hash $hdr, *data $b) {
             #$.logDebug("cx: %N", $cx);
             $.logDebug("hdr: %N", $hdr);
@@ -177,9 +229,11 @@ public namespace RestHandler {
             my any $body = $b;
             
             # get rest class name
-            my string $path = $cx.url.path;
+            my *string $path = $cx.url.path;
 
             $.removeRootPath(\$path);
+            if (!$path)
+                return RestHandler::make400("there is no top-level REST handler; please input a valid path (valid classes: %y)", $.ch.keys());
 
             my *string $cls = ($path =~ x/^([^\/?]+)/)[0];
             if (!$cls)

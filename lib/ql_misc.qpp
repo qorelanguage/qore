@@ -2059,7 +2059,7 @@ catch (hash $ex) {
 }
     @endcode
 
-    @param an @ref exception_hash "exception hash"
+    @param ex an @ref exception_hash "exception hash"
 
     @return a string describing the exception location (ex: \c "sftp-poller.q:140")
 

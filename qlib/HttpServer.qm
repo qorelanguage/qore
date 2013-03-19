@@ -118,7 +118,7 @@ module HttpServer {
 
     The %HttpServer module provides a multi-threaded HTTP server to Qore programs.
 
-    The %HttpServer implemented here was designed mostly for serving RPC-style requests, however it can also be used to serve files with an appropriate handler.
+    The %HttpServer implemented here was initially designed primarily for serving RPC-style requests, however it has been extended to support REST-style services, and additionally it can also be used to serve files or other content with an appropriate handler.
 
     It has not been audited for security.
 

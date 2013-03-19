@@ -1,8 +1,8 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file httpserver.q example program using the HttpServer module
+# @file restserver.q example program using the RestHandler and HttpServer modules
 
-/*  httpserver.q Copyright 2012 David Nichols
+/*  restserver.q Copyright 2013 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,9 +24,11 @@
 */
 
 /*  Version History
-    * 1.0: initial example program showing usage of the HttpServer user module
+    * 1.0: initial example program showing usage of the RestHandler and
+           HttpServer user modules
 
-    This is a very simple HTTP server program using the HttpServer user module.
+    This is a very simple REST server program using the RestHandler and
+    HttpServer user modules.
     To exit the program, send it an appropriate signal (SIGTERM, SIGINT, SIGHUP,
     SIGUSR1, SIGUSR2) or interrupt it on the console (which sends the process a
     SIGINT which is handled like other signals)
@@ -35,70 +37,32 @@
 # do not use "$" signs for vars, etc
 %new-style
 
-# execute the httpServer class as the application object
-%exec-class httpServer
+# execute the restServer class as the application object
+%exec-class restServer
+
+# ensure minimum qore version
+%requires qore >= 0.8.8
 
 # use the HttpServer module
-%requires HttpServer >= 0.3.3
+%requires HttpServer >= 0.3.7
 
 # use the Mime module
-%requires Mime >= 1.0
+%requires Mime >= 1.3
 
-class ExampleFileHandler inherits public AbstractHttpRequestHandler {
-   private {
-      string dir;
-   }
-   
-   constructor(AbstractAuthenticator auth, string dr) : AbstractHttpRequestHandler(auth) {
-      dir = dr;
-      if (dir !~ /\/$/)
-         dir += "/";
-   }
+# use the RestHandler module
+%requires RestHandler >= 0.1
 
-   private static hash redirect(hash cx, hash hdr, string path) {
-       # make sure no forward slashes are doubled in the path
-       path =~ s/\/+/\//g;
-       string uri = sprintf("http%s://%s/%s", cx.ssl ? "s" : "", hdr.host, path);
-       return (
-           "code": 301,
-           "hdr": ("Location": uri),
-           "body": hdr.method != "HEAD" ? sprintf("redirecting to %s", uri) : NOTHING,
-           );
-   }
+class ExampleRestHandler inherits RestHandler {
+    public {
+        static string Dir;
+    }
 
-   hash handleRequest(hash cx, hash hdr, *data body) {
-       File f();
-       string path = dir + hdr.path;
-
-       if (!strlen(hdr.path) || path =~ /\/$/)
-           return redirect(cx, hdr, hdr.path + "index.html");
-       else if (is_dir(path))
-           return redirect(cx, hdr, hdr.path + "/index.html");
-
-       # strip off any parameters from the URL
-       path =~ s/\?.*$//;
-
-       # try to open the file
-       if (f.open(path))
-           return ("code": 400,
-                   "body": sprintf("cannot find file %n (%s)", path, strerror(errno())) );
-
-       # read in file and setup return value
-       hash rv = ("code": 200,
-		  "body": f.read(-1) );
-
-       # set mime type by file extension
-       *string ext = (path =~ x/\.([a-z0-9]+)$/i)[0];
-       if (!ext.empty() && exists (ext = MimeTypes{ext.lwr()}))
-           rv.hdr."Content-Type" = ext;
-       else
-           rv.hdr."Content-Type" = MimeTypeUnknown;
-
-       return rv;
-   }
+    constructor(*AbstractAuthenticator auth, string dir) : RestHandler(auth) {
+        Dir = dir;
+    }
 }
 
-class httpServer {
+class restServer {
     private {
 	const Opts = (
 	    "dir"    : "d,dir=s",
@@ -150,14 +114,14 @@ class httpServer {
 	# use default authenticator (all connections are allowed)
 	AbstractAuthenticator auth();
 	
-	# create our example file handler object to serve files from the filesystem
-	ExampleFileHandler fh(auth, opt.dir);
+	# create our example rest handler object
+	ExampleRestHandler rh(auth, opt.dir);
 
         try {
-	    # create the HttpServer object and add the example file handler
+	    # create the HttpServer object and add the RestHandler
             hs = new HttpServer(\log(), \errorLog());
-	    hs.setHandler("example-handler", "", MimeTypeHtml, fh);
-            hs.setDefaultHandler("example-handler", fh);
+	    hs.setHandler("example-rest-handler", "", "*", rh);
+            hs.setDefaultHandler("example-rest-handler", rh);
 
             # start a listener on each bind address
             foreach *string listener in (opt.bind) {

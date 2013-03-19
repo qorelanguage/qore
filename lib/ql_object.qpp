@@ -145,7 +145,7 @@ any call_pseudo(any val, string meth, ...) {
 //! calls a pseudo-method on the given value with arguments given as a list
 /** @param val the value to call the pseudo-method on
     @param meth the string method name of the pseudo-method to call
-    @param args any other arguments to the method
+    @param argv any other arguments to the method
 
     @return the return value of the pseudo-method
 
