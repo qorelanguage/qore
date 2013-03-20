@@ -20,6 +20,7 @@ USER_MODULES = qlib/HttpServer.qm \
 	qlib/Pop3Client.qm \
 	qlib/CsvUtil.qm \
 	qlib/SqlUtil.qm \
+	qlib/Util.qm \
 	qlib/RestHandler.qm
 
 # use native qpp for build when cross compiling
@@ -508,7 +509,7 @@ dummy:
 	./next_build.sh
 
 if COND_DOXYGEN
-DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/SqlUtil/html
+DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/SqlUtil/html docs/modules/Util/html
 
 LIB_TMP_DOXYFILES_SRC = \
 	doxygen/lib/Doxyfile
@@ -693,6 +694,7 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	doxygen/qlib/CsvUtil.qm.dox.h \
 	doxygen/qlib/RestHandler.qm.dox.h \
 	doxygen/qlib/SqlUtil.qm.dox.h \
+	doxygen/qlib/Util.qm.dox.h \
 	HttpServer.tag \
 	Mime.tag \
 	TelnetClient.tag \
@@ -701,7 +703,8 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	Pop3Client.tag \
 	CsvUtil.tag \
 	RestHandler.tag \
-	SqlUtil.tag
+	SqlUtil.tag \
+	Util.tag
 
 lib/libqore.la: dummy
 	cd lib; make
@@ -765,6 +768,12 @@ doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
 doxygen/qlib/SqlUtil.qm.dox.h: qlib/SqlUtil.qm $(QDX)
 	$(QDX) $< $@
 
+doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX)
+	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm.dox.h $< $@
+
+doxygen/qlib/Util.qm.dox.h: qlib/Util.qm $(QDX)
+	$(QDX) $< $@
+
 DX_CLEANFILES = $(LIB_TMP_DOXYFILES) $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
 
 docs/library/html: $(include_HEADERS) $(LIB_DOXYFILES)
@@ -810,6 +819,10 @@ docs/modules/RestHandler/html: docs/lang/html doxygen/qlib/RestHandler.qm.dox.h 
 docs/modules/SqlUtil/html: docs/lang/html doxygen/qlib/SqlUtil.qm.dox.h doxygen/qlib/Doxyfile.SqlUtil
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.SqlUtil
 	$(top_srcdir)/doxygen/pdox docs/modules/SqlUtil/html docs/modules/SqlUtil/html/search
+
+docs/modules/Util/html: docs/lang/html doxygen/qlib/Util.qm.dox.h doxygen/qlib/Doxyfile.Util
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.Util
+	$(top_srcdir)/doxygen/pdox docs/modules/Util/html docs/modules/Util/html/search
 
 doxygen-doc: $(DOXYGEN_OUTPUT)
 
