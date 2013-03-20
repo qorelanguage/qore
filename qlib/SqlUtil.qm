@@ -61,6 +61,23 @@ module SqlUtil {
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
+    /** @defgroup ColumnSizeOptions Column Size Options
+        These constants represent the possible values for column size options
+     */
+    #@{
+    #! the data type does not take a size parameter
+    public const SZ_NONE = 0;
+
+    #! the data type takes a mandatory size parameter
+    public const SZ_MAND = 1;
+
+    #! the data type takes an optional size parameter
+    public const SZ_OPT = 2;
+
+    #! the data type is numeric so takes an optional precision and scale
+    public const SZ_NUM = 3;
+    #@}
+
     #! abstract container class that throws an exception if an unknown key is accessed
     public class AbstractHashContainer {
         public {}
@@ -77,6 +94,10 @@ public namespace SqlUtil {
             if (!h.hasKey(k))
                 throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
             return h{k};
+        }
+
+        add(string k, any val) {
+            h{k} = val;
         }
 
         *hash val() {
@@ -131,7 +152,7 @@ public namespace SqlUtil {
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
-        Column memberGate(string k) {
+        AbstractColumn memberGate(string k) {
             return AbstractHashContainer::memberGate(k);
         }
 
@@ -162,7 +183,7 @@ public namespace SqlUtil {
     }
 
     #! the base class for column information
-    public class Column {
+    public class AbstractColumn {
         public {
             #! the name of the column
             string name;
@@ -226,6 +247,9 @@ public namespace SqlUtil {
                 sql += " default " + def_val;
             return sql;
         }
+
+        abstract addToTable(string table_name, AbstractDatasource ds);
+        abstract dropFromTable(string table_name, AbstractDatasource ds);
     }
 
     #! index container class that throws an exception if an unknown index is accessed
@@ -435,6 +459,94 @@ public namespace SqlUtil {
             return callObjectMethodArgs(t, meth, argv);
         }
 
+        #! returns @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $table.inDb();
+            @endcode
+
+            @return @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
+         */
+        bool inDb() {
+            return t.inDb();
+        }
+
+        #! drops the table from the database; releases the transaction lock after dropping the table
+        /** @par Example:
+            @code
+$table.drop();
+            @endcode
+
+            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref dropNoCommit() to execute without any transaction management
+         */
+        drop() {
+            t.drop();
+        }
+
+        #! drops the table from the database without any transaction management
+        /** @par Example:
+            @code
+$table.dropNoCommit();
+            @endcode
+
+            @note Transaction management is normally not performed when dropping tables, however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+         */
+        dropNoCommit() {
+            t.dropNoCommit();
+        }
+        
+        #! truncates all the table data; releases the transaction lock after executing
+        /** @par Example:
+            @code
+$table.truncate();
+            @endcode
+
+            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref truncateNoCommit() to execute without any transaction management
+         */
+        truncate() {
+            t.truncate();
+        }
+
+        #! truncates all the table data without any transaction management
+        /** @par Example:
+            @code
+$table.truncateNoCommit();
+            @endcode
+
+            @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+         */
+        truncateNoCommit() {
+            t.truncateNoCommit();
+        }
+        
+        #! creates the table in the database; releases the transaction lock after creating the table
+        /** @par Example:
+            @code
+$table.create();
+            @endcode
+
+            @param opt a hash of options for the SQL creation strings
+
+            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref createNoCommit() to execute without any transaction management
+         */
+        create(*hash opt) {
+            t.create(opt);
+        }
+
+        #! creates the table with all associated properties (indexes, constraints, etc) without any transaction management
+        /** @par Example:
+            @code
+$table.createNoCommit();
+            @endcode
+
+            @param opt a hash of options for the SQL creation strings
+
+            @note Transaction management is normally not performed when creating tables, however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+         */
+        createNoCommit(*hash opt) {
+            t.createNoCommit(opt);
+        }
+        
         #! returns an SQL string that could be used to create the table and all known properties of the table
         /** @par Example:
             @code
@@ -704,6 +816,8 @@ my Triggers $trig = $table.getTriggers();
             *hash opts;
             # native case option
             bool native_case = False;
+            # in database
+            bool inDb = False;
         }
 
         private constructor(AbstractDatasource nds, string nname, *hash nopts, hash rh = TableOptions) {
@@ -718,6 +832,165 @@ my Triggers $trig = $table.getTriggers();
                 dsdesc += "%" + ds.getHostName();
             if (nds.getPort())
                 dsdesc += sprintf(":%d", ds.getPort());
+        }
+
+        #! returns @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $table.inDb();
+            @endcode
+
+            @return @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
+         */
+        bool inDb() {
+            return inDb;
+        }
+
+        #! drops the table from the database; releases the transaction lock after dropping the table
+        /** @par Example:
+            @code
+$table.drop();
+            @endcode
+
+            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref dropNoCommit() to execute without any transaction management
+         */
+        drop() {
+            on_exit ds.commit();
+            on_error ds.rollback();
+            dropNoCommit();
+        }
+
+        #! drops the table from the database without any transaction management
+        /** @par Example:
+            @code
+$table.dropNoCommit();
+            @endcode
+
+            @note Transaction management is normally not performed when dropping tables, however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+         */
+        dropNoCommit() {
+            ds.exec("drop table %s", getSqlName());
+            inDb = False;
+        }
+        
+        #! truncates all the table data; releases the transaction lock after executing
+        /** @par Example:
+            @code
+$table.truncate();
+            @endcode
+
+            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref truncateNoCommit() to execute without any transaction management
+         */
+        truncate() {
+            on_exit ds.commit();
+            on_error ds.rollback();
+            truncateNoCommit();
+        }
+
+        #! truncates all the table data without any transaction management
+        /** @par Example:
+            @code
+$table.truncateNoCommit();
+            @endcode
+
+            @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+         */
+        truncateNoCommit() {
+            ds.exec("truncate table %s", getSqlName());
+            inDb = False;
+        }
+        
+        #! creates the table in the database; releases the transaction lock after creating the table
+        /** @par Example:
+            @code
+$table.create();
+            @endcode
+
+            @param opt a hash of options for the SQL creation strings
+
+            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref createNoCommit() to execute without any transaction management
+         */
+        create(*hash opt) {
+            on_exit ds.commit();
+            on_error ds.rollback();
+            createNoCommit(opt);
+        }
+
+        #! creates the table with all associated properties (indexes, constraints, etc) without any transaction management
+        /** @par Example:
+            @code
+$table.createNoCommit();
+            @endcode
+
+            @param opt a hash of options for the SQL creation strings
+
+            @note Transaction management is normally not performed when creating tables, however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+         */
+        createNoCommit(*hash opt) {
+            if (inDb) 
+                throw "CREATE-TABLE-ERROR", sprintf("table %s has already been read from or created in the database", getSqlName());
+
+            # get and execute all the creation strings
+            map ds.exec($1), getCreateSql(opt, False);
+            inDb = True;
+        }
+
+        #! adds a column to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+$table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the column
+            @param opt a hash describing the column; the following keys are permitted:
+            - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion;
+            - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+            - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
+            - \c scale: for numeric data types, this value gives the scale
+            - \c default_value: the default value for the column
+            @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+
+            @throw COLUMN-ERROR no native_type or qore_type keys in column option hash
+         */
+        AbstractColumn addColumn(string cname, hash opt, bool nullable = True) {
+            if (!columns)
+                columns = new Columns();
+            else if (columns.hasKey(cname))
+                throw "COLUMN-ERROR", sprintf("%s.%s: this column already exists", name, cname);    
+
+            if (!opt.native_type && !opt.qore_type)
+                throw "COLUMN-ERROR", sprintf("%s.%s: no native_type or qore_type keys in column option hash: %y", name, cname, opt);
+            
+            foreach string on in ("size", "scale") {
+                if (exists opt{on} && opt{on}.typeCode() != NT_INT)
+                    throw "COLUMN-ERROR", sprintf("%s.%s: %y option is present but not an integer (type %y: %y)", name, cname, on, opt{on}.type(), opt{on});
+            }
+            
+            return addColumnImpl(cname, opt, nullable);
+        }
+
+        #! drops a column from the table
+        /** @par Example:
+            @code
+$table.dropColumn("notes_2");
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the column to drop
+
+            @throw COLUMN-ERROR the named column is not present in the table
+
+            @note this method retrieves the table definition from the database if none has already been defined
+         */
+        dropColumn(string cname) {
+            getColumnsIntern();
+            if (!columns{cname})
+                throw "COLUMN-ERROR", sprintf("%s.%s: no such column (valid columns: %y)", name, cname, columns.keys());
+            dropColumnImpl(cname);
+            delete columns{cname};
         }
 
         #! returns the name of the table
@@ -741,7 +1014,7 @@ my Triggers $trig = $table.getTriggers();
 my hash $h = $table.describe();
             @endcode
 
-            @return a hash of column names assigned to Column objects
+            @return a hash of column names assigned to AbstractColumn objects
 
         */
         Columns describe() {
@@ -831,17 +1104,18 @@ map printf("$1;\n", $1), $table.getCreateSql();
             @endcode
 
             @param opt a hash of options for the table, index, and constraint creation strings
+            @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create the table and all known properties of the table
         */
-        list getCreateSql(*hash opt) {
+        list getCreateSql(*hash opt, bool cache = True) {
             list l += getCreateTableSql(opt);
-            l += getCreateIndexesSql(opt);
-            l += getCreatePrimaryKeySql(opt);
-            l += getCreateForeignConstraintsSql(opt);
-            l += getCreateConstraintsSql(opt);
-            l += getCreateMiscSql(opt);
-            l += getCreateTriggersSql(opt);
+            *list tl = getCreateIndexesSql(opt, cache); if (tl) l += tl;
+            *string sql = getCreatePrimaryKeySql(opt, cache); if (sql) l += sql;
+            tl = getCreateForeignConstraintsSql(opt, cache); if (tl) l += tl;
+            tl = getCreateConstraintsSql(opt, cache); if (tl) l += tl;
+            tl = getCreateMiscSql(opt, cache); if (tl) l += tl;
+            tl = getCreateTriggersSql(opt, cache); if (tl) l += tl;
 
             return l;
         }
@@ -868,11 +1142,15 @@ my *list $l = $table.getCreateIndexesSql();
             @endcode
 
             @param opt a hash of options for the index creation string
+            @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
         */
-        *list getCreateIndexesSql(*hash opt) {
-            getIndexesIntern();
+        *list getCreateIndexesSql(*hash opt, bool cache = True) {
+            if (cache)
+                getIndexesIntern();
+            if (!indexes)
+                return;
             return getCreateIndexesSqlImpl(opt);
         }
 
@@ -883,10 +1161,12 @@ my *string $sql = $table.getCreatePrimaryKeySql();
             @endcode
 
             @param opt a hash of options for the primary key creation string
+            @param cache read in data from the database for uncached properties of the table
 
             @return an SQL string that could be used to create the primary key on the table or NOTHING if there is no primary key on the table
         */
-        *string getCreatePrimaryKeySql(*hash opt) {
+        *string getCreatePrimaryKeySql(*hash opt, bool cache = True) {
+            if (cache)
             getPrimaryKeyIntern();
             if (!primaryKey)
                 return;
@@ -900,11 +1180,13 @@ my *list $l = $table.getCreateForeignConstraintsSql();
             @endcode
 
             @param opt a hash of options for the foreign constraint creation string
+            @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create foreign constraints on the table or NOTHING if there are no foreign constraints on the table
         */
-        *list getCreateForeignConstraintsSql(*hash opt) {
-            getForeignConstraintsIntern();
+        *list getCreateForeignConstraintsSql(*hash opt, bool cache = True) {
+            if (cache)
+                getForeignConstraintsIntern();
             if (!foreignConstraints)
                 return;
             return getCreateForeignConstraintsSqlImpl(opt);
@@ -917,13 +1199,15 @@ my *list $l = $table.getCreateConstraintsSql();
             @endcode
 
             @param opt a hash of options for the non-foreign constraint creation string
+            @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create non-foreign constraints on the table or NOTHING if there are no non-foreign constraints on the table
 
             @see getCreateForeignConstraintsSql()
         */
-        *list getCreateConstraintsSql(*hash opt) {
-            getConstraintsIntern();
+        *list getCreateConstraintsSql(*hash opt, bool cache = True) {
+            if (cache)
+                getConstraintsIntern();
             if (!constraints)
                 return;
             return getCreateConstraintsSqlImpl(opt);
@@ -936,11 +1220,12 @@ my *list $l = $table.getCreateMiscSql();
             @endcode
 
             @param opt a hash of options for the SQL creation string
+            @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or NOTHING if there are none
         */
-        *list getCreateMiscSql(*hash opt) {
-            return getCreateMiscSqlImpl(opt);
+        *list getCreateMiscSql(*hash opt, bool cache = True) {
+            return getCreateMiscSqlImpl(opt, cache);
         }
 
         #! returns a list of SQL strings that could be used to create triggers on the table or NOTHING if there are no triggers on the table
@@ -950,13 +1235,15 @@ my *list $l = $table.getCreateTriggersSql();
             @endcode
 
             @param opt a hash of options for the trigger creation strings
+            @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create triggers on the table or NOTHING if there are no triggers on the table
 
             @see getCreateTriggersSql()
         */
-        *list getCreateTriggersSql(*hash opt) {
-            getTriggersIntern();
+        *list getCreateTriggersSql(*hash opt, bool cache = True) {
+            if (cache)
+                getTriggersIntern();
             if (!triggers)
                 return;
             return getCreateTriggersSqlImpl(opt);
@@ -1084,7 +1371,7 @@ my *list $rows = $table.find($list);
                 load_module(mn);                
             }
             catch (hash ex) {
-                throw "TABLE-DRIVER-ERROR", sprintf("no support for driver %y yet: %s: %s", drv, ex.err, ex.desc);
+                throw "TABLE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
             }
 
             # try to get AbstractTable object
@@ -1092,7 +1379,7 @@ my *list $rows = $table.find($list);
                 return call_function(mn + "::" + "get_table", nds, nname, opts);
             }
             catch (hash ex) {
-                throw "TABLE-DRIVER-ERROR", sprintf("error retrieving AbstractTable object for driver %y: %s: %s", drv, ex.err, ex.desc);
+                throw "TABLE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractTable object for driver %y: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
             }
         }
 
@@ -1176,9 +1463,12 @@ my *list $rows = $table.find($list);
         private abstract *string getCreatePrimaryKeySqlImpl(*hash opt);
         private abstract *list getCreateForeignConstraintsSqlImpl(*hash opt);
         private abstract *list getCreateConstraintsSqlImpl(*hash opt);
-        private abstract *list getCreateMiscSqlImpl(*hash opt);
+        private abstract *list getCreateMiscSqlImpl(*hash opt, bool cache);
         private abstract *list getCreateTriggersSqlImpl(*hash opt);
         private abstract string getCreateSqlStringImpl(*hash opt);
+
+        private abstract AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True);
+        private abstract dropColumnImpl(string cname);
     }
 
 /*

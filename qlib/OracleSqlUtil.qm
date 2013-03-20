@@ -69,7 +69,7 @@ public namespace OracleSqlUtil {
 	return new OracleTable(nds, nname, opts);
     }
 
-    public class OracleColumn inherits Column {
+    public class OracleColumn inherits AbstractColumn {
         public {
             #! the column uses character semantics
             bool char_used;
@@ -79,10 +79,26 @@ public namespace OracleSqlUtil {
             int byte_size;
         }
 
-        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, *string dv, bool cu, *string cm, int bs) : Column(n, nt, qt, sz, cs, prec, sc, nul, dv) {
+        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, *string dv, bool cu, *string cm, int bs) : AbstractColumn(n, nt, qt, sz, cs, prec, sc, nul, dv) {
             char_used = cu;
             comment = cm;
             byte_size = bs;
+        }
+
+        addToTable(string table_name, AbstractDatasource ds) {
+	    string sql = sprintf("alter table %s add %s", table_name, getCreateSql());	    
+	    on_success ds.commit();
+	    on_error ds.rollback();
+	    ds.exec(sql);
+	    if (comment)
+		ds.exec("comment on %s.%s is %v", table_name, name, comment);
+        }
+
+        dropFromTable(string table_name, AbstractDatasource ds) {
+	    string sql = sprintf("alter table %s drop %s", table_name, name);	    
+	    on_success ds.commit();
+	    on_error ds.rollback();
+	    ds.exec(sql);
         }
     }
 
@@ -193,10 +209,13 @@ public namespace OracleSqlUtil {
     public class OracleTable inherits AbstractTable {
         public {
             const OraTypeMap = (
-                "NUMBER": ("qore": "number",),
-                "VARCHAR2": ("qore": "string",),
-                "CHAR": ("qore": "string",),
+                "NUMBER": ("qore": "number", "size": SZ_NUM, "size_range": (1, 38), "scale_range": (-84, 127)),
+                "VARCHAR2": ("qore": "string", "size": SZ_MAND, "size_range": (1, 4000)),
+                "CHAR": ("qore": "string", "size": SZ_MAND, "size_range": (1, 4000)),
                 "DATE": ("qore": "date",),
+		"TIMESTAMP": ("qore": "date", "size": SZ_OPT, "size_range": (0, 9)),
+		"TIMESTAMP WITH TIME ZONE": ("qore": "date", "size": SZ_OPT, "size_range": (0, 9)),
+		"TIMESTAMP WITH LOCAL TIME ZONE": ("qore": "date", "size": SZ_OPT, "size_range": (0, 9)),
                 "TIMESTAMP(0)": ("qore": "date",),
                 "TIMESTAMP(1)": ("qore": "date",),
                 "TIMESTAMP(2)": ("qore": "date",),
@@ -227,15 +246,55 @@ public namespace OracleSqlUtil {
                 "TIMESTAMP(7) WITH LOCAL TIME ZONE": ("qore": "date",),
                 "TIMESTAMP(8) WITH LOCAL TIME ZONE": ("qore": "date",),
                 "TIMESTAMP(9) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "INTERVAL YEAR(0) TO MONTH": ("qore": "date",),
+                "INTERVAL YEAR(1) TO MONTH": ("qore": "date",),
+                "INTERVAL YEAR(2) TO MONTH": ("qore": "date",),
+                "INTERVAL YEAR(3) TO MONTH": ("qore": "date",),
+                "INTERVAL YEAR(4) TO MONTH": ("qore": "date",),
+                "INTERVAL YEAR(5) TO MONTH": ("qore": "date",),
+                "INTERVAL YEAR(6) TO MONTH": ("qore": "date",),
+                "INTERVAL YEAR(7) TO MONTH": ("qore": "date",),
+                "INTERVAL YEAR(8) TO MONTH": ("qore": "date",),
+                "INTERVAL YEAR(9) TO MONTH": ("qore": "date",),
+                "INTERVAL DAY(0) TO SECOND(0)": ("qore": "date",),
+                "INTERVAL DAY(0) TO SECOND(1)": ("qore": "date",),
+                "INTERVAL DAY(0) TO SECOND(2)": ("qore": "date",),
+                "INTERVAL DAY(0) TO SECOND(3)": ("qore": "date",),
+                "INTERVAL DAY(0) TO SECOND(4)": ("qore": "date",),
+                "INTERVAL DAY(0) TO SECOND(5)": ("qore": "date",),
+                "INTERVAL DAY(0) TO SECOND(6)": ("qore": "date",),
+                "INTERVAL DAY(0) TO SECOND(7)": ("qore": "date",),
+                "INTERVAL DAY(0) TO SECOND(8)": ("qore": "date",),
+                "INTERVAL DAY(0) TO SECOND(9)": ("qore": "date",),
+                "INTERVAL DAY(1) TO SECOND(0)": ("qore": "date",),
+                "INTERVAL DAY(1) TO SECOND(1)": ("qore": "date",),
+                "INTERVAL DAY(1) TO SECOND(2)": ("qore": "date",),
+                "INTERVAL DAY(1) TO SECOND(3)": ("qore": "date",),
+                "INTERVAL DAY(1) TO SECOND(4)": ("qore": "date",),
+                "INTERVAL DAY(1) TO SECOND(5)": ("qore": "date",),
+                "INTERVAL DAY(1) TO SECOND(6)": ("qore": "date",),
+                "INTERVAL DAY(1) TO SECOND(7)": ("qore": "date",),
+                "INTERVAL DAY(1) TO SECOND(8)": ("qore": "date",),
+                "INTERVAL DAY(1) TO SECOND(9)": ("qore": "date",),
+                "INTERVAL DAY(2) TO SECOND(0)": ("qore": "date",),
+                "INTERVAL DAY(2) TO SECOND(1)": ("qore": "date",),
+                "INTERVAL DAY(2) TO SECOND(2)": ("qore": "date",),
+                "INTERVAL DAY(2) TO SECOND(3)": ("qore": "date",),
+                "INTERVAL DAY(2) TO SECOND(4)": ("qore": "date",),
+                "INTERVAL DAY(2) TO SECOND(5)": ("qore": "date",),
+                "INTERVAL DAY(2) TO SECOND(6)": ("qore": "date",),
+                "INTERVAL DAY(2) TO SECOND(7)": ("qore": "date",),
+                "INTERVAL DAY(2) TO SECOND(8)": ("qore": "date",),
+                "INTERVAL DAY(2) TO SECOND(9)": ("qore": "date",),
                 "CLOB": ("qore": "string",),
                 "BLOB": ("qore": "binary",),
                 "LONG": ("qore": "binary",),
-                "RAW": ("qore": "binary",),
+                "RAW": ("qore": "binary", "size": SZ_MAND, "size_range": (1, 2000)),
                 "BFILE": ("qore": "binary",),
                 "BINARY_FLOAT": ("qore": "float",),
                 "BINARY_DOUBLE": ("qore": "float",),
                 "ROWID": ("qore": "string",),
-                "UROWID": ("qore": "string",),
+                "UROWID": ("qore": "string", "size": SZ_OPT, "size_range": (1, 4000)),
                 );
 
             const QoreTypeMap = (
@@ -249,29 +308,40 @@ public namespace OracleSqlUtil {
         }
 
         private {
+	    # schema name
             string schema;
+
+	    # tablespace name
             string tablespace;
+
+	    # is the table read only?
             bool readonly;
+	    
+	    # table comment
             *string comment;
 
-            #! does the current oracle driver support long values
+            #! does the current oracle driver support long values?
             bool has_long;
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
             # see if there is a schema in the name
             *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
-            hash row;
             if (sstr) {
                 schema = sstr;
                 splice nname, 0, schema.size() + 1;
                 name = nname;
-
-                row = setSchemaTable();
             }
             else
-                row = setTable();
-            
+		schema = ds.getUserName();
+
+            # the oracle driver >= 3.0 supports selecting from LONG columns
+            has_long = compare_version("3.0", getModuleHash().oracle.version) >= 0;
+        }
+
+	private setTableInfoIntern() {
+	    hash row = (schema.lwr() == ds.getUserName().lwr()) ? setTable() : setSchemaTable();
+
             tablespace = row.tablespace_name;
             readonly = row.read_only == "YES";
             if (!native_case)
@@ -281,9 +351,8 @@ public namespace OracleSqlUtil {
             any cm = ds.selectRow("select * from all_tab_comments where owner = %v and table_name = %v", schema.upr(), name.upr()).comments;
             comment = cm ? cm : NOTHING;
 
-            # the oracle driver >= 3.0 supports selecting from LONG columns
-            has_long = compare_version("3.0", getModuleHash().oracle.version) >= 0;
-        }
+	    inDb = True;
+	}
 
         private string getSqlName() {
             return sprintf("%s.%s", schema, name);
@@ -312,7 +381,7 @@ public namespace OracleSqlUtil {
                 # see if there is a public synonym with this name
                 row = ds.selectRow("select * from all_synonyms where owner = 'PUBLIC' and synonym_name = %v", name.upr());
                 if (!row)
-                    throw "TABLE-ERROR", sprintf("table %y or synonym %y does not exist or is not accessible to this user (%s)", name, name, ds.getDBString());
+                    throw "TABLE-ERROR", sprintf("table %y or synonym %y does not exist or is not accessible to this user (%s)", name, name, getDBString());
                 pub = True;
             }
             
@@ -350,7 +419,7 @@ public namespace OracleSqlUtil {
             return schema;
         }
 
-        string getTablespaceName() {
+        *string getTablespaceName() {
             return tablespace;
         }
 
@@ -363,6 +432,9 @@ public namespace OracleSqlUtil {
         }
 
         private Columns describeImpl() {
+	    if (!tablespace)
+		setTableInfoIntern();
+
             # get column descriptions
             *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, data_default, char_length, char_used, comments from all_tab_columns col, all_col_comments com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
             if (!qh.column_name)
@@ -379,6 +451,7 @@ public namespace OracleSqlUtil {
                     case "BINARY_FLOAT":
                     case "BINARY_DOUBLE":
                     case =~ /^TIMESTAMP/:
+                    case =~ /^INTERVAL/:
                     case "BFILE":
                     case "BLOB":
                     case "CLOB": size = 0; break;
@@ -394,6 +467,9 @@ public namespace OracleSqlUtil {
         }
 
         private *OraclePrimaryKey getPrimaryKeyImpl() {
+	    if (!tablespace)
+		setTableInfoIntern();
+
             hash rv;
 
             # get primary key description
@@ -413,6 +489,9 @@ public namespace OracleSqlUtil {
         }
 
         private Indexes getIndexesImpl() {
+	    if (!tablespace)
+		setTableInfoIntern();
+
             hash rv;
 
             # get index description
@@ -446,6 +525,9 @@ public namespace OracleSqlUtil {
         }
 
         private ForeignConstraints getForeignConstraintsImpl() {
+	    if (!tablespace)
+		setTableInfoIntern();
+
             hash ch;
 
             # get foreign referential constraints
@@ -488,6 +570,9 @@ public namespace OracleSqlUtil {
         }
 
         private Constraints getConstraintsImpl() {
+	    if (!tablespace)
+		setTableInfoIntern();
+
             # if we cannot select "long" values then skip this: all_constraints.search_condition is a LONG for example
             if (!has_long)
                 return new Constraints();
@@ -504,6 +589,9 @@ public namespace OracleSqlUtil {
         }
 
         private Triggers getTriggersImpl() {
+	    if (!tablespace)
+		setTableInfoIntern();
+
             hash rv;
 
             # get trigger description
@@ -552,8 +640,9 @@ public namespace OracleSqlUtil {
             return map $1.getCreateSql(name, opt), constraints.iterator();
         }
 
-        *list getCreateMiscSqlImpl(*hash opt) {
-            getColumnsIntern();
+        *list getCreateMiscSqlImpl(*hash opt, bool cache) {
+	    if (cache)
+		getColumnsIntern();
             checkCreateMiscOptions(opt, TableCreationOptions);
             return map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
         }
@@ -567,6 +656,58 @@ public namespace OracleSqlUtil {
             string str;
             map str += sprintf("%s%s\n", $1, $1 =~ /;$/ ? "\n/" : ";"), getCreateSql(opt);
             return str;
+        }
+
+        private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
+            bool char_used = False;
+            int char_size;
+
+            if (!opt.native_type) {
+                opt.native_type = QoreTypeMap{opt.qore_type};
+                if (!opt.native_type)
+                    throw "COLUMN-ERROR", sprintf("%s.%s: qore type %y cannot be mapped to a column type (valid values: %y)", name, cname, opt.qore_type, QoreTypeMap.keys());                
+            }
+            else if (!OraTypeMap{opt.native_type})
+                throw "COLUMN-ERROR", sprintf("%s.%s: unknown native_type %y (valid values: %y)", name, cname, opt.native_type, OraTypeMap.keys());
+
+            hash th = OraTypeMap{opt.native_type};
+
+            opt.qore_type = th.qore;
+
+            int size = 0;
+            if (exists opt.size) {
+                if (!th.size)
+                    throw "COLUMN-ERROR", sprintf("%s.%s: size %y given but type %y does not take a size attribute", name, cname, opt.size, opt.native_type);
+                if (th.size_range && (opt.size < th.size_range[0] || opt.size > th.size_range[1]))
+                    throw "COLUMN-ERROR", sprintf("%s.%s: size %y is not valid for type %y; must be between %d and %d inclusive", name, cname, opt.size, opt.native_type, th.size_range[0], th.size_range[1]);
+                size = opt.size;
+            }
+            else if (th.size == SZ_MAND)
+                throw "COLUMN-ERROR", sprintf("%s.%s: type %y requires a size argument but none was supplied (options: %y)", name, cname, opt.native_type, opt);
+
+            int precision = 0;
+            int scale = 0;
+            if (th.size == SZ_NUM) {
+                precision = size;
+                size = 0;
+                if (opt.scale) {
+                    if (th.scale_range && (opt.scale < th.scale_range[0] || opt.scale > th.scale_range[1]))
+                        throw "COLUMN-ERROR", sprintf("%s.%s: scale %y is not valid for type %y; must be between %d and %d inclusive", name, cname, opt.scale, opt.native_type, th.scale_range[0], th.scale_range[1]);
+                    scale = opt.scale;
+                }
+            }
+
+            OracleColumn c(cname, opt.native_type, opt.qore_type, size, char_size, precision, scale, nullable, opt.default_value, char_used, opt.comment, 0);
+
+            if (inDb)
+                c.addToTable(name, ds);
+
+	    columns.add(cname, c);
+            return c;
+        }
+
+        private dropColumnImpl(string cname) {
+	    columns{cname}.dropFromTable(name, ds);
         }
     }
 }
