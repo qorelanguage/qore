@@ -25,22 +25,18 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreRegexBase.h>
 
-void QoreRegexBase::setCaseInsensitive()
-{
+void QoreRegexBase::setCaseInsensitive() {
    options |= PCRE_CASELESS;
 }
 
-void QoreRegexBase::setDotAll()
-{
+void QoreRegexBase::setDotAll() {
    options |= PCRE_DOTALL;
 }
 
-void QoreRegexBase::setExtended()
-{
+void QoreRegexBase::setExtended() {
    options |= PCRE_EXTENDED;
 }
 
-void QoreRegexBase::setMultiline()
-{
+void QoreRegexBase::setMultiline() {
    options |= PCRE_MULTILINE;
 }      
