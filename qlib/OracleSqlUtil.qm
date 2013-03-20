@@ -1,0 +1,568 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
+
+/*  OracleSqlUtil.qm Copyright 2013 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.8 or better
+%requires qore >= 0.8.8
+
+# requires the SqlUtil module
+%requires SqlUtil >= 1.0
+
+# requires the Util module
+%requires Util >= 1.0
+
+# don't use "$" signs for variables and class members, assume local variable scope
+%new-style
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+%disable-warning non-existent-method-call
+
+module OracleSqlUtil {
+    version = "1.0";
+    desc = "user module for working with Oracle SQL data";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+}
+
+/*  Version History
+    * 2013-xx-xx v1.0: David Nichols <david@qore.org>
+      + the initial version of the OracleSqlUtil module
+*/
+
+/** @mainpage OracleSqlUtil Module
+
+    The %OracleSqlUtil module provides a high level API for working with Oracle database objects.
+
+    Usually this module is loaded on demand from the SqlUtil module, however to use this module
+    directly, use \c "%requires OracleSqlUtil" in your code.
+    
+    All the public symbols in the module are defined in the OracleSqlUtil namespace
+*/
+
+#! the OracleSqlUtil namespace contains all the objects in the OracleSqlUtil module
+public namespace OracleSqlUtil {
+    public OracleTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
+	return new OracleTable(nds, nname, opts);
+    }
+
+    public class OracleColumn inherits Column {
+        public {
+            #! the column uses character semantics
+            bool char_used;
+            #! any comments on the column
+            *string comment;
+            #! byte size of the column
+            int byte_size;
+        }
+
+        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, *string dv, bool cu, *string cm, int bs) : Column(n, nt, qt, sz, cs, prec, sc, nul, dv) {
+            char_used = cu;
+            comment = cm;
+            byte_size = bs;
+        }
+    }
+
+    public class OracleIndex inherits AbstractIndex {
+        public {
+            #! the native type of the index (if supported)
+            string native_type;
+
+            #! the tablespace name of the index (if supported)
+            string tablespace;
+        }
+
+        constructor(string n, bool u, hash c, string nt, string t) : AbstractIndex(n, u, c) {
+            native_type = nt;
+            tablespace = t;
+        }
+
+        string getCreateSql(string table_name, *hash opt) {
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+
+            *string ts = opt.index_tablespace ? opt.index_tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" tablespace %s", ts);
+            return sql;
+        }
+    }
+
+    public class OracleForeignConstraint inherits AbstractForeignConstraint {
+        public {
+            #! @ref Qore::True if the constraint is enabled, @ref Qore::False if not
+            bool enabled;
+        }
+
+        constructor(string n, Columns c, ForeignConstraintTarget t, bool e) : AbstractForeignConstraint(n, c, t) {
+            enabled = e;
+        }
+
+        string getCreateSql(string table_name, *hash opt) {
+            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, columns.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+        }
+    }
+
+    public class OracleCheckConstraint inherits AbstractConstraint {
+        public {
+            #! the constraint source
+            string src;
+
+            #! @ref Qore::True if the constraint is enabled, @ref Qore::False if not
+            bool enabled;
+        }
+
+        constructor(string n, string n_src, bool e) : AbstractConstraint(n) {
+            src = n_src;
+            enabled = e;
+        }
+
+        string getCreateSql(string table_name, *hash opt) {
+            return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
+        }
+    }
+
+    public class OraclePrimaryKey inherits AbstractPrimaryKey {
+        constructor(string n, *hash c) : AbstractPrimaryKey(n, c) {
+        }
+
+        string getCreateSql(string table_name, *hash opts) {
+            return sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
+        }
+    }
+
+    public class OracleTrigger inherits AbstractTrigger {
+        public {
+            #! trigger type
+            string type;
+            
+            #! the triggering event
+            string event;
+
+            #! referencing names
+            string ref;
+
+            #! @ref Qore::True if the trigger is enabled, @ref Qore::False if not
+            bool enabled;
+
+            #! the trigger description
+            string desc;
+
+            #! then when clause
+            *string when;
+        }
+
+        constructor(string n, string n_src, string t, string ev, string r, bool en, string d, *string w) : AbstractTrigger(n, n_src) {
+            type = t;
+            event = ev;
+            ref = r;
+            enabled = en;
+            desc = d;
+            when = w;
+
+            desc =~ s/\n/ /g;
+        }
+
+        string getCreateSql(string table_name, *hash opt) {
+            return sprintf("create trigger %s\n%s", desc, src); 
+        }
+    }
+
+    public class OracleTable inherits AbstractTable {
+        public {
+            const OraTypeMap = (
+                "NUMBER": ("qore": "number",),
+                "VARCHAR2": ("qore": "string",),
+                "CHAR": ("qore": "string",),
+                "DATE": ("qore": "date",),
+                "TIMESTAMP(0)": ("qore": "date",),
+                "TIMESTAMP(1)": ("qore": "date",),
+                "TIMESTAMP(2)": ("qore": "date",),
+                "TIMESTAMP(3)": ("qore": "date",),
+                "TIMESTAMP(4)": ("qore": "date",),
+                "TIMESTAMP(5)": ("qore": "date",),
+                "TIMESTAMP(6)": ("qore": "date",),
+                "TIMESTAMP(7)": ("qore": "date",),
+                "TIMESTAMP(8)": ("qore": "date",),
+                "TIMESTAMP(9)": ("qore": "date",),
+                "TIMESTAMP(0) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(1) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(2) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(3) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(4) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(5) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(6) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(7) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(8) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(9) WITH TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(0) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(1) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(2) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(3) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(4) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(5) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(6) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(7) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(8) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "TIMESTAMP(9) WITH LOCAL TIME ZONE": ("qore": "date",),
+                "CLOB": ("qore": "string",),
+                "BLOB": ("qore": "binary",),
+                "LONG": ("qore": "binary",),
+                "RAW": ("qore": "binary",),
+                "BFILE": ("qore": "binary",),
+                "BINARY_FLOAT": ("qore": "float",),
+                "BINARY_DOUBLE": ("qore": "float",),
+                "ROWID": ("qore": "string",),
+                "UROWID": ("qore": "string",),
+                );
+
+            const QoreTypeMap = (
+                "integer": "NUMBER",
+                "float": "NUMBER",
+                "number": "NUMBER",
+                "string": "VARCHAR2",
+                "date": "TIMESTAMP(6)",
+                "binary": "BLOB",
+                );
+        }
+
+        private {
+            string schema;
+            string tablespace;
+            bool readonly;
+            *string comment;
+
+            #! does the current oracle driver support long values
+            bool has_long;
+        }
+
+        constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
+            # see if there is a schema in the name
+            *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
+            hash row;
+            if (sstr) {
+                schema = sstr;
+                splice nname, 0, schema.size() + 1;
+                name = nname;
+
+                row = setSchemaTable();
+            }
+            else
+                row = setTable();
+            
+            tablespace = row.tablespace_name;
+            readonly = row.read_only == "YES";
+            if (!native_case)
+                tablespace = tablespace.lwr();
+
+            # get any comment
+            any cm = ds.selectRow("select * from all_tab_comments where owner = %v and table_name = %v", schema.upr(), name.upr()).comments;
+            comment = cm ? cm : NOTHING;
+
+            # the oracle driver >= 3.0 supports selecting from LONG columns
+            has_long = compare_version("3.0", getModuleHash().oracle.version) >= 0;
+        }
+
+        private hash setSchemaTable() {
+            # get the table information if possible
+            *hash row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
+            if (!row)
+                throw "TABLE-ERROR", sprintf("table %y.%y does not exist or is not accessible to this user (%s)", schema, name, getDBString());
+            return row;
+        }
+
+        private hash setTable() {
+            # see if the current user has the table
+            *hash row = ds.selectRow("select * from user_tables where table_name = %v", name.upr());
+            if (row) {
+                schema = getUserSchema();
+                return row;
+            }
+
+            bool pub = False;
+            # see if there is a user synonym with this name
+            row = ds.selectRow("select * from user_synonyms where synonym_name = %v", name.upr());
+            if (!row) {
+                # see if there is a public synonym with this name
+                row = ds.selectRow("select * from all_synonyms where owner = 'PUBLIC' and synonym_name = %v", name.upr());
+                if (!row)
+                    throw "TABLE-ERROR", sprintf("table %y or synonym %y does not exist or is not accessible to this user (%s)", name, name, ds.getDBString());
+                pub = True;
+            }
+            
+            # update the table name if necessary
+            string orig_name = name;
+            if (name.upr() != row.table_name) {
+                name = row.table_name;
+                if (!native_case)
+                    name = name.lwr();
+            }
+            
+            schema = row.table_owner;
+            if (!native_case)
+                schema = schema.lwr();
+            
+            # get the table information if possible
+            row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
+            if (!row)
+                throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which does not exist or is not accessible to this user (%s)", orig_name, pub ? "public " : "", schema, name, getDBString());
+            return row;
+        }
+
+        private string getUserSchema() {
+            string rv = ds.getUserName();
+            if (native_case)
+                rv = rv.upr();
+            return rv;
+        }
+
+        private string getDBString() {
+            return sprintf("%s@%s", ds.getUserName(), ds.getDBName());
+        }
+
+        string getSchemaName() {
+            return schema;
+        }
+
+        string getTablespaceName() {
+            return tablespace;
+        }
+
+        *string getComment() {
+            return comment;
+        }
+
+        bool readOnly() {
+            return readonly;
+        }
+
+        private Columns describeImpl() {
+            # get column descriptions
+            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, data_default, char_length, char_used, comments from all_tab_columns col, all_col_comments com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
+            if (!qh.column_name)
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
+
+            hash rv;
+            foreach hash row in (qh.contextIterator()) {
+                *hash th = OraTypeMap.(row.data_type);
+                int size = row.data_type == "NUMBER" && row.data_precision ? row.data_precision : row.data_length;
+                switch (row.data_type) {
+                    case "ROWID":
+                    case "UROWID":
+                    case "DATE":
+                    case "BINARY_FLOAT":
+                    case "BINARY_DOUBLE":
+                    case =~ /^TIMESTAMP/:
+                    case "BFILE":
+                    case "BLOB":
+                    case "CLOB": size = 0; break;
+                }
+                if (!native_case) {
+                    row.column_name = row.column_name.lwr();
+                    row.data_type = row.data_type.lwr();
+                }
+                rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.data_precision, row.data_scale, row.nullable == "Y", row.data_default ? row.data_default : NOTHING, row.char_used == "C", row.comments ? row.comments : NOTHING, row.data_length);
+            }
+
+            return new Columns(rv);
+        }
+
+        private *OraclePrimaryKey getPrimaryKeyImpl() {
+            hash rv;
+
+            # get primary key description
+            *hash qh = ds.select("select cons.constraint_name, cols.column_name, cols.position, cons.status, cons.owner from all_constraints cons, all_cons_columns cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = %v and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr(), schema.upr());
+            if (!qh.constraint_name)
+                return;
+
+            foreach string col in (qh.column_name) {
+                string cn = native_case ? col : col.lwr();
+                rv{cn} = columns{cn};
+            }
+
+            string pkname = qh.constraint_name[0];
+            if (!native_case)
+                pkname = pkname.lwr();
+            return new OraclePrimaryKey(pkname, rv);
+        }
+
+        private Indexes getIndexesImpl() {
+            hash rv;
+
+            # get index description
+            *hash qh = ds.select("select index_name, index_type, uniqueness, tablespace_name from all_indexes where owner = %v and table_name = %v", schema.upr(), name.upr());
+            if (qh.index_name) {
+                hash ih;
+                # get column info for all indexes in 1 query
+                *hash iqh = ds.select("select * from all_ind_columns where table_owner = %v and table_name = %v order by index_name, column_position", schema.upr(), name.upr());
+                foreach hash row in (iqh.contextIterator()) {
+                    if (!native_case) {  
+                        row.index_name = row.index_name.lwr();
+                        row.column_name = row.column_name.lwr();
+                    }
+                    ih{row.index_name}{row.column_name} = columns{row.column_name};
+                }
+                
+                foreach hash row in (qh.contextIterator()) {
+                    if (!native_case) {
+                        row.index_name = row.index_name.lwr();
+                        row.tablespace_name = row.tablespace_name.lwr();
+                    }
+                    # skip system indexes
+                    if (!ih{row.index_name})
+                        continue;
+                    rv.(row.index_name) = new OracleIndex(row.index_name, row.uniqueness == "UNIQUE", ih{row.index_name}, row.index_type, row.tablespace_name);
+                }
+
+            }
+
+            return new Indexes(rv);
+        }
+
+        private ForeignConstraints getForeignConstraintsImpl() {
+            hash ch;
+
+            # get foreign referential constraints
+            *hash qh = ds.select("select constraint_name, status from user_constraints where owner = %v and table_name = %v and constraint_type = 'R'", schema.upr(), name.upr());
+            if (qh.status) {
+                hash rv;
+                foreach hash row in (qh.contextIterator()) {
+                    if (!native_case)
+                        row.constraint_name = row.constraint_name.lwr();
+                    rv.(row.constraint_name) = (
+                        "enabled": row.status == "ENABLED",
+                        );
+                }
+                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from all_constraints c, all_cons_columns cols1, all_cons_columns cols2 where c.owner = %v and c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position and cols1.owner = %v and cols2.owner = %v order by cols1.position", schema.upr(), name.upr(), schema.upr(), schema.upr());
+                foreach hash row in (qh.contextIterator()) {
+                    if (!native_case) {
+                        row.constraint_name = row.constraint_name.lwr();
+                        row.source_column = row.source_column.lwr();
+                        row.target_column = row.source_column.lwr();
+                        row.target_table = row.target_table.lwr();
+                    }
+                    reference c = \rv.(row.constraint_name);
+                    c.columns.(row.source_column) = columns{row.source_column};
+                    c.target.table = row.target_table;
+                    c.target.columns.(row.target_column) = True;
+                }
+
+                # temporary foreign table buffer hash
+                hash fth;
+                foreach hash c in (rv.pairIterator()) {
+                    # get a description of the target table for the target column descriptions
+                    if (!fth{c.value.target.table})
+                        fth{c.value.target.table} = new OracleTable(ds, c.value.target.table, opts);
+                    ForeignConstraintTarget fct(c.value.target.table, fth{c.value.target.table}.describe().subset(c.value.target.columns.keys()));
+                    ch.(c.key) = new OracleForeignConstraint(c.key, new Columns(c.value.columns), fct, c.value.enabled);
+                }
+            }
+
+            return new ForeignConstraints(ch);
+        }
+
+        private Constraints getConstraintsImpl() {
+            # if we cannot select "long" values then skip this: all_constraints.search_condition is a LONG for example
+            if (!has_long)
+                return new Constraints();
+
+            # get only user constraints
+            *hash qh = ds.select("select constraint_name, search_condition, status from all_constraints where owner = %v and table_name = %v and constraint_type = 'C' and generated != 'GENERATED NAME'", schema.upr(), name.upr());
+            hash rv;
+            foreach hash row in (qh.contextIterator()) {
+                if (!native_case)
+                    row.constraint_name = row.constraint_name.lwr();
+                rv.(row.constraint_name) = new OracleCheckConstraint(row.constraint_name, row.search_condition, row.status == "ENABLED");
+            }
+            return new Constraints(rv);
+        }
+
+        private Triggers getTriggersImpl() {
+            hash rv;
+
+            # get trigger description
+            *hash qh = ds.select("select * from all_triggers where owner = %v and table_name = %v", schema.upr(), name.upr());
+            foreach hash row in (qh.contextIterator()) {
+                if (!native_case)
+                    map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names", "description");
+                #printf("%y: %s\n", row.trigger_name, row.description);
+                rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.trigger_body, row.trigger_type, row.triggering_event, row.referencing_names, row.status == "ENABLED", row.description, row.when ? row.when : NOTHING);
+            }
+            
+            return new Triggers(rv);
+        }
+
+        string getCreateTableSqlImpl(*hash opt) {
+            checkCreateOptions(opt, TableCreationOptions);
+            string sql = sprintf("create table %s (\n", name);
+
+            sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
+            sql += "\n)";
+
+            *string ts = opt.data_tablespace ? opt.data_tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" tablespace %s", ts);
+
+            return sql;
+        }
+
+        *list getCreateIndexesSqlImpl(*hash opt) {
+            checkCreateIndexOptions(opt, TableCreationOptions);
+            return map $1.getCreateSql(name, opt), indexes.iterator();
+        }
+
+        *string getCreatePrimaryKeySqlImpl(*hash opt) {
+            checkCreatePrimaryKeyOptions(opt, TableCreationOptions);
+            return primaryKey.getCreateSql(name, opt);
+        }
+
+        *list getCreateForeignConstraintsSqlImpl(*hash opt) {
+            checkCreateConstraintOptions(opt, TableCreationOptions);
+            return map $1.getCreateSql(name, opt), foreignConstraints.iterator();
+        }
+
+        *list getCreateConstraintsSqlImpl(*hash opt) {
+            checkCreateConstraintOptions(opt, TableCreationOptions);
+            return map $1.getCreateSql(name, opt), constraints.iterator();
+        }
+
+        *list getCreateMiscSqlImpl(*hash opt) {
+            getColumnsIntern();
+            checkCreateMiscOptions(opt, TableCreationOptions);
+            return map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
+        }
+
+        *list getCreateTriggersSqlImpl(*hash opt) {
+            checkCreateTriggerOptions(opt, TableCreationOptions);
+            return map $1.getCreateSql(name, opt), triggers.iterator();
+        }
+
+        string getCreateSqlStringImpl(*hash opt) {
+            string str;
+            map str += sprintf("%s%s\n", $1, $1 =~ /;$/ ? "\n/" : ";"), getCreateSql(opt);
+            return str;
+        }
+    }
+}

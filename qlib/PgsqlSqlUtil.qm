@@ -1,0 +1,491 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
+
+/*  PgsqlSqlUtil.qm Copyright 2013 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.8 or better
+%requires qore >= 0.8.8
+
+# requires the SqlUtil module
+%requires SqlUtil >= 1.0
+
+# don't use "$" signs for variables and class members, assume local variable scope
+%new-style
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+%disable-warning non-existent-method-call
+
+module PgsqlSqlUtil {
+    version = "1.0";
+    desc = "user module for working with PostgreSQL SQL data";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+}
+
+/*  Version History
+    * 2013-xx-xx v1.0: David Nichols <david@qore.org>
+      + the initial version of the PgsqlSqlUtil module
+*/
+
+/** @mainpage PgsqlSqlUtil Module
+
+    The %SqlUtil module provides a high level API for working with PostgreSQL database objects.
+
+    Usually this module is loaded on demand from the SqlUtil module, however to use this module
+    directly, use \c "%requires PgsqlSqlUtil" in your code.
+    
+    All the public symbols in the module are defined in the PgsqlSqlUtil namespace
+*/
+
+#! the PgsqlSqlUtil namespace contains all the objects in the PgsqlSqlUtil module
+public namespace PgsqlSqlUtil {
+    public PgsqlTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
+	return new PgsqlTable(nds, nname, opts);
+    }
+
+    public class PgsqlIndex inherits AbstractIndex {
+        public {
+            #! the tablespace name of the index
+            *string tablespace;
+        }
+
+        constructor(string n, bool u, hash c, *string t) : AbstractIndex(n, u, c) {
+            tablespace = t;
+        }
+
+        string getCreateSql(string table_name, *hash opt) {
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+
+            *string ts = opt.index_tablespace ? opt.index_tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" tablespace %s", ts);
+            return sql;
+        }
+    }
+
+    public class PgsqlForeignConstraint inherits AbstractForeignConstraint {
+        constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
+        }
+
+        string getCreateSql(string table_name, *hash opt) {
+            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, columns.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+        }
+    }
+
+
+    public class PgsqlCheckConstraint inherits AbstractConstraint {
+        public {
+            string src;
+        }
+
+        constructor(string n, string n_src) : AbstractConstraint(n) {
+            name = n;
+            src = n_src;
+        }        
+
+        string getCreateSql(string table_name, *hash opt) {
+            return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
+        }
+    }
+
+    public class PgsqlColumn inherits Column {
+        public {
+            #! any comments on the column
+            *string comment;
+
+            #! byte size of the column
+            int byte_size;
+        }
+
+        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, *string dv, *string cm, softint bs) : Column(n, nt, qt, sz, cs, prec, sc, nul, dv) {
+            comment = cm;
+            byte_size = bs;
+        }
+
+        string getNativeTypeString() {
+            string sql = native_type;
+            switch (native_type) {
+                case =~ /^timestamp/: return splice sql, 9, 0, "(" + string(size) + ")";
+                case =~ /^time/: return splice sql, 4, 0, string(size);
+            }
+            if (precision) {
+                sql += sprintf("(%d", precision);
+                if (scale)
+                    sql += sprintf(",%d", scale);
+                sql += ")";
+            }
+            else if (size)
+                sql += sprintf("(%d)", size);
+            #printf("%y: %s\n", self, sql);
+            return sql;
+        }
+    }
+
+    public class PgsqlPrimaryKey inherits AbstractPrimaryKey {
+        public {
+            #! any tablespace for the primary key index
+            *string tablespace;
+        }
+
+        constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c) {
+            tablespace = ts;
+        }
+
+        string getCreateSql(string table_name, *hash opts) {
+            string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
+            *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" using index tablespace %s", ts);
+            return sql;
+        }
+    }
+
+    public class PgsqlTrigger inherits AbstractTrigger {
+        public {
+            #! trigger timing
+            string timing;
+
+            #! trigger event
+            string event;
+
+            #! action orientation
+            string orientation;
+        }
+
+        constructor(string n, string n_src, string t, string e, string o) : AbstractTrigger(n, n_src) {
+            timing = t;
+            event = e;
+            orientation = o;
+        }
+
+        string getCreateSql(string table_name, *hash opt) {
+            return sprintf("create trigger %s %s %s on %s for each %s %s", name, timing, event, table_name, orientation, src);
+        }
+    }
+
+    public class PgsqlFunction inherits AbstractFunction {
+        public {
+            string hdr;
+            
+            string lang;
+
+            string stability;
+        }
+
+        constructor(string n, string n_src, string h, string l, string n_stability) : AbstractFunction(n, n_src) {
+            hdr = h;
+            lang = l;
+            stability = n_stability;
+        }
+
+        string getCreateSql(*hash opt) {
+            return sprintf("%s", hdr);
+        }        
+    }
+
+    public class PgsqlTable inherits AbstractTable {
+        public {
+            const PgsqlTypeMap = (
+                "numeric": ("qore": "number",),
+                "money": ("qore": "number",),
+                "smallint": ("qore": "int",),
+                "integer": ("qore": "int",),
+                "bigint": ("qore": "int",),
+                "smallserial": ("qore": "int",),
+                "serial": ("qore": "int",),
+                "bigserial": ("qore": "int",),
+                "real": ("qore": "float",),
+                "double precision": ("qore": "float",),
+                "oid": ("qore": "number",),
+                "varchar": ("qore": "string",),
+                "character": ("qore": "string",),
+                "character varying": ("qore": "string",),
+                "date": ("qore": "date",),
+                "timestamp without time zone": ("qore": "date",),
+                "timestamp with time zone": ("qore": "date",),
+                "time without time zone": ("qore": "date",),
+                "time with time zone": ("qore": "date",),
+                "interval": ("qore": "date",),
+                "abstime": ("qore": "date",),
+                "reltime": ("qore": "date",),
+                "text": ("qore": "string",),
+                "bytea": ("qore": "binary",),
+                "bit": ("qore": "binary",),
+                "bit varying": ("qore": "binary",),
+                "boolean": ("qore": "bool",),
+                "macaddr": ("qore": "string",),
+                "inet": ("qore": "string",),
+                "cidr": ("qore": "string",),
+                );
+
+            const PgsqlNameMap = (
+                "character varying": "varchar",
+                "timestamp without time zone": "timestamp",
+                "time without time zone": "time",
+                );
+            
+            const QoreTypeMap = (
+                "integer": "bigint",
+                "float": "double precision",
+                "number": "numeric",
+                "string": "varchar",
+                "date": "timestamp with time zone",
+                "binary": "bytea",
+                "bool": "boolean",
+                );
+        }
+
+        private {
+            *string tablespace;
+
+            Functions triggerFunctions;
+        }
+
+        constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
+            # get table info
+            *hash row = ds.selectRow("select * from pg_tables where tablename = %v", name);
+            tablespace = row.tablespace ? row.tablespace : NOTHING;
+        }
+
+        *string getTablespaceName() {
+            return tablespace;
+        }
+
+        private Columns describeImpl() {
+            # get column descriptions
+            *hash qh = ds.select("select column_name, data_type, character_maximum_length, character_octet_length, numeric_precision, numeric_scale, datetime_precision, is_nullable, column_default, description from information_schema.columns c join pg_catalog.pg_statio_all_tables st on (c.table_schema = st.schemaname and c.table_name = st.relname) left join pg_catalog.pg_description pgd on (st.relid = pgd.objoid and pgd.objsubid = c.ordinal_position) where table_name = %v order by ordinal_position", name);
+            if (!qh.column_name)
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
+
+            hash rv;
+            foreach hash row in (qh.contextIterator()) {
+                *hash th = PgsqlTypeMap.(row.data_type);
+                softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
+                if (!size)
+                    size = row.datetime_precision;
+                softint cs = row.character_maximum_length ? row.character_maximum_length : 0;
+                # use short names in descriptions
+                *string an = PgsqlNameMap{row.data_type};
+                if (an)
+                    row.data_type = an;
+                switch (th.qore) {
+                    case "int":
+                    case "float": {
+                        size = 0;
+                        break;
+                    }
+                }
+                rv.(row.column_name) = new PgsqlColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, cs, row.numeric_precision, row.numeric_scale, row.is_nullable == "YES", row.column_default ? row.column_default : NOTHING, row.description ? row.description : NOTHING, row.character_octet_length);
+            }
+
+            return new Columns(rv);
+        }
+
+        private *PgsqlPrimaryKey getPrimaryKeyImpl() {
+            hash rv;
+
+            # get primary key description
+            *hash qh = ds.select("select c1.relname index_name, a.attname, format_type(a.atttypid, a.atttypmod) coltype, tablespace from pg_index i, pg_class c, pg_attribute a, pg_class c1, pg_indexes xs where c.oid = %v::regclass and indrelid = c.oid and a.attrelid = c.oid and a.attnum = any(i.indkey) and indisprimary and c1.oid = indexrelid and c1.relname = xs.indexname", name);
+            if (!qh.index_name)
+                return;
+
+            foreach string col in (qh.attname)
+                rv{col} = columns{col};
+
+            return new PgsqlPrimaryKey(qh.index_name[0], rv, qh.tablespace[0]);
+        }
+
+        private Indexes getIndexesImpl() {
+            hash rv;
+
+            # get index description
+            *hash qh = ds.select("select i.relname index_name, a.attname column_name, indisunique, tablespace from pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_indexes xs where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = any(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary and i.relname = xs.indexname group by i.relname, a.attname, indisunique, tablespace order by i.relname", name);
+            if (qh.index_name) {
+                hash ih;
+                foreach hash row in (qh.contextIterator()) {
+                    if (!ih.(row.index_name))
+                        ih.(row.index_name) = (
+                            "unique": row.indisunique,
+                            "tablespace": row.tablespace,
+                        );
+                    ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
+                }
+
+                foreach hash i in (ih.pairIterator())
+                    rv.(i.key) = new PgsqlIndex(i.key, i.value.unique, i.value.columns, i.value.tablespace);
+            }
+
+            return new Indexes(rv);
+        }
+
+        private ForeignConstraints getForeignConstraintsImpl() {
+            hash rv;
+
+            # get foreign referential constraints
+            *hash qh = ds.select("select tc.constraint_name, kcu.column_name source_column, ccu.table_name target_table, ccu.column_name target_column from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name = kcu.constraint_name join information_schema.constraint_column_usage as ccu on ccu.constraint_name = tc.constraint_name where constraint_type = 'FOREIGN KEY' and tc.table_name = %v order by ordinal_position", name);
+            if (qh.constraint_name) {
+                hash ch;
+                foreach hash row in (qh.contextIterator()) {
+                    reference c = \ch.(row.constraint_name); 
+                    c.columns.(row.source_column) = columns{row.source_column};
+                    c.target.table = row.target_table;
+                    c.target.columns.(row.target_column) = True;
+                }
+                
+                # temporary foreign table buffer hash
+                hash fth;
+                foreach hash c in (ch.pairIterator()) {
+                    # get a description of the target table for the target column descriptions
+                    if (!fth{c.value.target.table})
+                        fth{c.value.target.table} = new PgsqlTable(ds, c.value.target.table);
+                    
+                    ForeignConstraintTarget fct(c.value.target.table, fth{c.value.target.table}.describe().subset(c.value.target.columns.keys()));
+                    rv.(c.key) = new PgsqlForeignConstraint(c.key, new Columns(c.value.columns), fct);
+                }
+            }
+
+            return new ForeignConstraints(rv);
+        }
+
+        private Constraints getConstraintsImpl() {
+            # get check constraints
+            *hash qh = ds.select("SELECT c.conname AS constraint_name, CASE WHEN c.condeferrable = 'f' THEN 0 ELSE 1 END AS is_deferrable, CASE WHEN c.condeferred = 'f' THEN 0 ELSE 1 END AS is_deferred, t.relname AS table_name, array_to_string(c.conkey, ' ') AS constraint_key, CASE confupdtype WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE' WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END AS on_update, CASE confdeltype WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE' WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END AS on_delete, CASE confmatchtype WHEN 'u' THEN 'UNSPECIFIED' WHEN 'f' THEN 'FULL' WHEN 'p' THEN 'PARTIAL' END AS match_type, t2.relname AS references_table, array_to_string(c.confkey, ' ') AS fk_constraint_key, consrc FROM pg_constraint c LEFT JOIN pg_class t  ON c.conrelid  = t.oid LEFT JOIN pg_class t2 ON c.confrelid = t2.oid WHERE c.contype = 'c' and t.relname = %v", name);
+            hash rv;
+            foreach hash row in (qh.contextIterator())
+                rv.(row.constraint_name) = new PgsqlCheckConstraint(row.constraint_name, row.consrc);
+
+            return new Constraints(rv);
+        }
+
+        private Triggers getTriggersImpl() {
+            hash rv;
+
+            # get trigger description
+            *hash qh = ds.select("select * from information_schema.triggers where event_object_table = %v", name);
+
+            # list of trigger functions
+            list fl = ();
+            foreach hash row in (qh.contextIterator()) {
+                *string f = (row.action_statement =~ x/EXECUTE PROCEDURE (\w+)\(\)$/)[0];
+                if (f)
+                    fl += f;
+                    
+                if (!native_case)
+                    map row.$1 = row.$1.lwr(), ("event_manipulation", "action_statement", "action_timing", "action_orientation");
+                if (rv{row.trigger_name}) {
+                    rv{row.trigger_name}.event += " or " + row.event_manipulation;
+                    continue;
+                }
+
+                rv{row.trigger_name} = new PgsqlTrigger(row.trigger_name, row.action_statement, row.action_timing, row.event_manipulation, row.action_orientation);
+            }
+
+            if (fl) {
+                hash fh;
+                # also get trigger functions
+                qh = ds.select("select p.proname, t1.typname AS return_type, a.rolname AS procedure_owner, l.lanname AS lang, prosrc AS body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 ON p.prorettype=t1.oid left join pg_authid a ON p.proowner=a.oid left join pg_language l ON p.prolang=l.oid where proname in (%s)", (foldl $1 + "," + $2, (map sprintf("'%s'", $1), fl)));
+                foreach hash row in (qh.contextIterator()) {
+                    if (!native_case)
+                        map row.$1 = row.$1.lwr(), ("stability");
+
+                    trim row.hdr;
+                    fh{row.proname} = new PgsqlFunction(row.proname, row.body, row.hdr, row.lang, row.stability);
+                }
+                triggerFunctions = new Functions(fh);
+            }
+
+            #printf("gTI triggerFunctions: %N\n", triggerFunctions);
+
+            return new Triggers(rv);
+        }
+
+        string getCreateTableSqlImpl(*hash opt) {
+            checkCreateOptions(opt, TableCreationOptions);
+            string sql = sprintf("create table %s (\n", name);
+
+            sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
+            sql += "\n)";
+
+            *string ts = opt.tablespace ? opt.tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" tablespace %s", ts);
+
+            return sql;
+        }
+
+        *list getCreateIndexesSqlImpl(*hash opt) {
+            checkCreateIndexOptions(opt, TableCreationOptions);
+            return map $1.getCreateSql(name, opt), indexes.iterator();
+        }
+
+        *string getCreatePrimaryKeySqlImpl(*hash opt) {
+            checkCreatePrimaryKeyOptions(opt, TableCreationOptions);
+            return primaryKey.getCreateSql(name, opt);
+        }
+
+        *list getCreateForeignConstraintsSqlImpl(*hash opt) {
+            checkCreateConstraintOptions(opt, TableCreationOptions);
+            return map $1.getCreateSql(name, opt), foreignConstraints.iterator();
+        }
+
+        *list getCreateConstraintsSqlImpl(*hash opt) {
+            checkCreateConstraintOptions(opt, TableCreationOptions);
+            return map $1.getCreateSql(name, opt), constraints.iterator();
+        }
+
+        *list getCreateMiscSqlImpl(*hash opt) {
+            getColumnsIntern();
+            getTriggersIntern();
+            checkCreateMiscOptions(opt, TableCreationOptions);
+            list l = map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
+            l += map $1.getCreateSql(opt), triggerFunctions.iterator();
+
+            #printf("gCMSI triggerFunctions: %N\n", triggerFunctions);
+
+            return l;
+        }
+
+        *list getCreateTriggersSqlImpl(*hash opt) {
+            checkCreateTriggerOptions(opt, TableCreationOptions);
+            return map $1.getCreateSql(name, opt), triggers.iterator();
+        }
+
+        string getCreateSqlStringImpl(*hash opt) {
+            string str;
+            map str += sprintf("%s%s\n", $1, $1 =~ /(;|\$)$/ ? "" : ";"), getCreateSql(opt);
+            return str;
+        }
+    }
+
+    public class MysqlTable inherits AbstractTable {
+        constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
+        }
+
+        private hash describeImpl() {
+            return hash();
+        }
+    }
+}
