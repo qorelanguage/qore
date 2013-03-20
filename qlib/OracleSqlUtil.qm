@@ -285,6 +285,10 @@ public namespace OracleSqlUtil {
             has_long = compare_version("3.0", getModuleHash().oracle.version) >= 0;
         }
 
+        private string getSqlName() {
+            return sprintf("%s.%s", schema, name);
+        }
+
         private hash setSchemaTable() {
             # get the table information if possible
             *hash row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());

@@ -419,7 +419,7 @@ public namespace SqlUtil {
         constructor(hash ds, string name, *hash opts) {
             t = AbstractTable::getTable(ds, name, opts);
         }
-        
+
         #! returns the name of the table
         string getName() {
             return t.getName();
@@ -561,6 +561,38 @@ my *list $l = $table.getCreateTriggersSql();
         */
         *list getCreateTriggersSql(*hash opt) {
             return t.getCreateTriggersSql(opt);
+        }
+
+        #! finds a row in the table with the given primary key value; if no row matches the primary key value passed then NOTHING is returned
+        /** @par Example:
+            @code
+my *hash $row = $table.find($id);
+            @endcode
+
+            @param id the primary key ID to find
+
+            @return a hash of the row value matching the primary key ID or NOTHING if no row matches the primary key value passed
+
+            @throw PRIMARY-KEY-ERROR the table has no primary key or the primary key has more than one column
+         */
+        *hash find(any id) {
+            return t.find(id);
+        }
+
+        #! finds rows in the table with the given primary key values; if no row matches any primary key value passed then NOTHING is returned
+        /** @par Example:
+            @code
+my *list $rows = $table.find($list);
+            @endcode
+
+            @param ids the list of primary key IDs to find
+
+            @return a list of hashes of rows matching the primary key IDs passed or NOTHING if no row matches any primary key value passed
+
+            @throw PRIMARY-KEY-ERROR the table has no primary key or the primary key has more than one column
+         */
+        *list find(list ids) {
+            return t.find(ids);
         }
 
         #! returns an object of class Columns describing the Table
@@ -930,6 +962,50 @@ my *list $l = $table.getCreateTriggersSql();
             return getCreateTriggersSqlImpl(opt);
         }
 
+        #! finds a row in the table with the given primary key value; if no row matches the primary key value passed then NOTHING is returned
+        /** @par Example:
+            @code
+my *hash $row = $table.find($id);
+            @endcode
+
+            @throw PRIMARY-KEY-ERROR the table has no primary key or the primary key has more than one column
+         */
+        *hash find(any id) {
+            getPrimaryKeyIntern();
+            if (!primaryKey)
+                throw "PRIMARY-KEY-ERROR", sprintf("table %s has no primary key", name);
+            if (primaryKey.size() > 1)
+                throw "PRIMARY-KEY-ERROR", sprintf("table %s has a primary key with %d columns (%y)", name, primaryKey.size(), primaryKey.keys());
+
+            return ds.selectRow("select * from %s where %s = %v", getSqlName(), primaryKey.firstKey(), id);
+        }
+
+        #! finds rows in the table with the given primary key values; if no row matches any primary key value passed then NOTHING is returned
+        /** @par Example:
+            @code
+my *list $rows = $table.find($list);
+            @endcode
+
+            @param ids the list of primary key IDs to find; if the list is empty then NOTHING is returned
+
+            @return a list of hashes of rows matching the primary key IDs passed or NOTHING if no row matches any primary key value passed
+
+            @throw PRIMARY-KEY-ERROR the table has no primary key or the primary key has more than one column
+            */
+        *list find(list ids) {
+            getPrimaryKeyIntern();
+            if (!primaryKey)
+                throw "PRIMARY-KEY-ERROR", sprintf("table %s has no primary key", name);
+            if (primaryKey.size() > 1)
+                throw "PRIMARY-KEY-ERROR", sprintf("table %s has a primary key with %d columns (%y)", name, primaryKey.size(), primaryKey.keys());
+            if (!ids)
+                return;
+
+            string sql = sprintf("select * from %s where %s in (%s)", getSqlName(), primaryKey.firstKey(), (foldl $1 + "," + $2, (map "%v", ids)));
+
+            return ds.vselectRows(sql, ids);
+        }
+
         private checkCreateOptions(*hash nopts, *hash rh) {
             foreach string k in (nopts.keyIterator()) {
                 if (!rh{k})
@@ -937,6 +1013,10 @@ my *list $l = $table.getCreateTriggersSql();
                 if (rh{k} && nopts{k}.type() != rh{k})
                     throw "TABLE-CREATION-ERROR", sprintf("value passed to table creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
             }
+        }
+
+        private string getSqlName() {
+            return name;
         }
 
         private checkCreateIndexOptions(*hash nopts, *hash rh) {
@@ -1101,16 +1181,6 @@ my *list $l = $table.getCreateTriggersSql();
         private abstract string getCreateSqlStringImpl(*hash opt);
     }
 
-/*
-    public class MysqlTable inherits AbstractTable {
-        constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
-        }
-
-        private hash describeImpl() {
-            return hash();
-        }
-    }
-*/
 /*
     public class Sqlite3Table inherits AbstractTable {
 

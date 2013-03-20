@@ -1223,6 +1223,7 @@ delete\(                                yylval->string = strdup("delete"); retur
 case\(                                  yylval->string = strdup("case"); return KW_IDENTIFIER_OPENPAREN;
 chomp\(                                 yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
 final\(                                 yylval->string = strdup("final"); return KW_IDENTIFIER_OPENPAREN;
+find\(                                  yylval->string = strdup("find"); return KW_IDENTIFIER_OPENPAREN;
 trim\(                                  yylval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN;
 push\(                                  yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
 pop\(                                   yylval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN;
@@ -1286,6 +1287,7 @@ module{WS}*\(                           yylval->string = strdup("module"); retur
 \.do[^A-Za-z_0-9]                       DO_DOT_KW_IDENTIFIER("do")
 \.else[^A-Za-z_0-9]                     DO_DOT_KW_IDENTIFIER("else")
 \.final[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("final")
+\.find[^A-Za-z_0-9]                     DO_DOT_KW_IDENTIFIER("find")
 \.for[^A-Za-z_0-9]                      DO_DOT_KW_IDENTIFIER("for")
 \.foreach[^A-Za-z_0-9]                  DO_DOT_KW_IDENTIFIER("foreach")
 \.if[^A-Za-z_0-9]                       DO_DOT_KW_IDENTIFIER("if")

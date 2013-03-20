@@ -11,7 +11,7 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil RestHandler
+USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil OracleSqlUtil PgsqlSqlUtil RestHandler
 USER_MODULES = qlib/HttpServer.qm \
 	qlib/SmtpClient.qm \
 	qlib/Mime.qm \
@@ -20,6 +20,8 @@ USER_MODULES = qlib/HttpServer.qm \
 	qlib/Pop3Client.qm \
 	qlib/CsvUtil.qm \
 	qlib/SqlUtil.qm \
+	qlib/OracleSqlUtil.qm \
+	qlib/PgsqlSqlUtil.qm \
 	qlib/Util.qm \
 	qlib/RestHandler.qm
 
