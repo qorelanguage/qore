@@ -25,9 +25,6 @@
 # this module requires Qore 0.8.8 or better
 %requires qore >= 0.8.8
 
-# don't use "$" signs for variables and class members, assume local variable scope
-%new-style
-
 # require type definitions everywhere
 %require-types
 
@@ -81,40 +78,39 @@ my int $result = compare_version("2.11.1", "2.2");
 
         @return -1 if lv < rv, 0 if equal, and 1 if lv > rv
     */
-    public int sub compare_version(string lv, string rv) {
-        list ll = lv.split(".");
-        list rl = rv.split(".");
+    public int sub compare_version(string $lv, string $rv) {
+        my list $ll = $lv.split(".");
+        my list $rl = $rv.split(".");
 
-        int le = ll.size();
-        int re = rl.size();
+        my int $le = $ll.size();
+        my int $re = $rl.size();
 
-        int i = 0;
+        my int $i = 0;
         while (True) {
-            if (le == i) {
-                if (re == i) {
+            if ($le == $i) {
+                if ($re == $i)
                     return 0;
-                }
                 # see if all remaining elements in rl are 0
-                splice rl, 0, i;
-                return (select rl, $1) ? -1 : 0;
+                splice $rl, 0, $i;
+                return (select $rl, $1) ? -1 : 0;
             }
-            if (re == i) {
+            if ($re == $i) {
                 # see if all remaining elements in ll are 0
-                splice ll, 0, i;
-                return (select ll, $1) ? 1 : 0;
+                splice $ll, 0, $i;
+                return (select $ll, $1) ? 1 : 0;
             }
-            any l = ll[i];
-            any r = rl[i];
-            if (l =~ /^[0-9]/)
-                l = int(l);
-            if (r =~ /^[0-9]/)
-                r = int(r);
+            my any $l = $ll[$i];
+            my any $r = $rl[$i];
+            if ($l =~ /^[0-9]/)
+                $l = int($l);
+            if ($r =~ /^[0-9]/)
+                $r = int($r);
             
-            int rc = l <=> r;
-            if (rc)
-                return rc;
+            my int $rc = $l <=> $r;
+            if ($rc)
+                return $rc;
             
-            ++i;
+            ++$i;
         }
     }
 
@@ -137,8 +133,8 @@ my string $dir = normalize_dir($dir);
         - @ref Util::normalize_dir_unix() or
         - @ref Util::normalize_dir_windows()
      */
-    public string sub normalize_dir(string dir, string cwd = getcwd()) {
-        return PlatformOS != "Windows" ? normalize_dir_unix(dir, cwd) : normalize_dir_windows(dir, cwd);
+    public string sub normalize_dir(string $dir, string $cwd = getcwd()) {
+        return PlatformOS != "Windows" ? normalize_dir_unix($dir, $cwd) : normalize_dir_windows($dir, $cwd);
     }
 
     #! returns a normalized UNIX path name (starting from /, eliminates \c ".", \c "..", and \c "//")
@@ -157,37 +153,37 @@ my string $dir = normalize_dir_unix($dir, "/var/tmp");
 
         @return a normalized path name (starting from /, eliminates \c ".", \c "..", and \c "//")
      */
-    public string sub normalize_dir_unix(string dir, string cwd = getcwd()) {
+    public string sub normalize_dir_unix(string $dir, string $cwd = getcwd()) {
         # if the directory begins with a ".", prefix the cwd to the string
-        if (!absolute_path_unix(dir))
-            dir = cwd + "/" + dir;
+        if (!absolute_path_unix($dir))
+            $dir = $cwd + "/" + $dir;
 
         # substitute "/./" with "/" until all occurrences are gone
         while (True) {
-            string old = dir;
-            dir =~ s/\/\.\//\//g;
-            if (old == dir)
+            my string $old = $dir;
+            $dir =~ s/\/\.\//\//g;
+            if ($old == $dir)
                 break;
         }
         
-        dir =~ s/^\.\///;
-        dir =~ s/\/\.$//;
+        $dir =~ s/^\.\///;
+        $dir =~ s/\/\.$//;
         
         # change // -> /
-        dir =~ s/\/\/+/\//g;
+        $dir =~ s/\/\/+/\//g;
         
         # separate into a list for eliminating occurences of ".."
-        list l = dir.split("/");
+        my list $l = $dir.split("/");
         
-        for (int i = 1; i < l.size(); ++i) {
-            if (l[i] == "..") {
-                splice l, i - 1, 2;
-                i -= 2;
+        for (my int $i = 1; $i < $l.size(); ++$i) {
+            if ($l[$i] == "..") {
+                splice $l, $i - 1, 2;
+                $i -= 2;
             }
         }
         
-        dir = l.join("/");
-        return dir ? dir : "/";
+        $dir = $l.join("/");
+        return $dir ? $dir : "/";
     }
 
     #! returns a normalized Windows path name (eliminates \c ".", \c "..", and \c "//")
@@ -204,39 +200,37 @@ my string $dir = normalize_dir_windows($dir, "c:\\qore"));
         @param dir the directory name to normalize
         @return a normalized path name (eliminates \c ".", \c "..", and \c "\\")
      */
-    public string sub normalize_dir_windows(string dir, string cwd = getcwd()) {
+    public string sub normalize_dir_windows(string $dir, string $cwd = getcwd()) {
         # if the directory begins with a ".", prefix the cwd to the string
-        if (!absolute_path_windows(dir))
-            dir = cwd + "\\" + dir;
+        if (!absolute_path_windows($dir))
+            $dir = $cwd + "\\" + $dir;
 
         # substitute "\.\" with "\" until all occurrences are gone
         while (True) {
-            string old = dir;
-            dir =~ s/\\\.\\/\\/g;
-            if (old == dir)
+            my string $old = $dir;
+            $dir =~ s/\\\.\\/\\/g;
+            if ($old == $dir)
                 break;
         }
         
-        dir =~ s/^\.\\//;
-        dir =~ s/\\\.$//;
+        $dir =~ s/^\.\\//;
+        $dir =~ s/\\\.$//;
 
         # change \\ -> \
-        dir =~ s/\\\\+/\\/g;
+        $dir =~ s/\\\\+/\\/g;
 
         # separate into a list for eliminating occurences of ".."
-        list l = dir.split("\\");
+        my list $l = $dir.split("\\");
 
-        printf("l: %y\n", l);
-        
-        for (int i = 1; i < l.size(); ++i) {
-            if (l[i] == "..") {
-                splice l, i - 1, 2;
-                i -= 2;
+        for (my int $i = 1; $i < $l.size(); ++$i) {
+            if ($l[$i] == "..") {
+                splice $l, $i - 1, 2;
+                $i -= 2;
             }
         }
         
-        dir = l.join("\\");
-        return dir ? dir : "\\";
+        $dir = $l.join("\\");
+        return $dir ? $dir : "\\";
     }
 
     #! returns True if the argument is an absolute path, False if not
@@ -249,8 +243,8 @@ my bool $abs = absolute_path($path);
 
         @return True if the argument is an absolute path, False if not
      */
-    public bool sub absolute_path(string path) {
-        return PlatformOS != "Windows" ? absolute_path_unix(path) : absolute_path_windows(path);
+    public bool sub absolute_path(string $path) {
+        return PlatformOS != "Windows" ? absolute_path_unix($path) : absolute_path_windows($path);
     }
 
     #! returns True if the argument is a UNIX absolute path, False if not
@@ -263,8 +257,8 @@ my bool $abs = absolute_path_unix($path);
 
         @return True if the argument is a UNIX absolute path, False if not
      */
-    public bool sub absolute_path_unix(string path) {
-        return path =~ /^\//;
+    public bool sub absolute_path_unix(string $path) {
+        return $path =~ /^\//;
     }
 
     #! returns True if the argument is a UNIX absolute path, False if not
@@ -277,7 +271,7 @@ my bool $abs = absolute_path_windows($path);
 
         @return True if the argument is a UNIX absolute path, False if not
      */
-    public bool sub absolute_path_windows(string path) {        
-        return path =~ /^\\\\/ || path =~ /^[a-z]:\\/;
+    public bool sub absolute_path_windows(string $path) {        
+        return $path =~ /^\\\\/ || $path =~ /^[a-z]:\\/;
     }
 }
