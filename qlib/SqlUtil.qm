@@ -241,10 +241,10 @@ public namespace SqlUtil {
 
         string getCreateSql() {
             string sql = sprintf("%s %s", name, getNativeTypeString());
+            if (def_val)
+                sql += " default " + def_val + "";
             if (!nullable)
                 sql += " not null";
-            if (def_val)
-                sql += " default " + def_val;
             return sql;
         }
 
@@ -547,6 +547,86 @@ $table.createNoCommit();
             t.createNoCommit(opt);
         }
         
+        #! adds a column to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+$table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the column
+            @param opt a hash describing the column; the following keys are permitted (other column options may be supported depending on the underlying AbstractTable implementation):
+            - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion;
+            - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+            - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
+            - \c scale: for numeric data types, this value gives the scale
+            - \c default_value: the default value for the column
+
+            @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+
+            @throw COLUMN-ERROR no native_type or qore_type keys in column option hash
+         */
+        AbstractColumn addColumn(string cname, hash opt, bool nullable = True) {
+            return t.addColumn(cname, opt, nullable);
+        }
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument
+        /** @par Example:
+            @code
+my string $str = $table.getSqlValue($date);
+            @endcode
+
+            @param v the value to convert to an SQL value
+
+            @return a string representing the value usable in SQL strings for the given database driver
+         */
+        string getSqlValue(any v) {
+            return t.getSqlValue(v);
+        }
+        
+        #! drops a column from the table
+        /** @par Example:
+            @code
+$table.dropColumn("notes_2");
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the column to drop
+
+            @throw COLUMN-ERROR the named column is not present in the table
+
+            @note this method retrieves the table definition from the database if none has already been defined
+         */
+         AbstractColumn dropColumn(string cname) {
+             return t.dropColumn(cname);
+         }
+
+        #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
+        /** @par Example:
+            @code
+$table.insert($row);
+            @endcode
+
+            @param row a hash representing the row to insert
+         */
+        insert(hash row) {
+            t.insert(row);
+        }
+
+        #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
+        /** @par Example:
+            @code
+$table.insert($row);
+            @endcode
+
+            @param row a hash representing the row to insert
+         */
+        insertNoCommit(hash row) {
+            t.insertNoCommit(row);
+        }
+
         #! returns an SQL string that could be used to create the table and all known properties of the table
         /** @par Example:
             @code
@@ -707,6 +787,16 @@ my *list $rows = $table.find($list);
             return t.find(ids);
         }
 
+        #! reads in all attributes of the table from the database
+        /** @par Example:
+            @code
+$table.cache();
+            @endcode
+        */
+        cache() {
+            t.cache();
+        }
+
         #! returns an object of class Columns describing the Table
         /** @par Example:
             @code
@@ -789,6 +879,15 @@ my Triggers $trig = $table.getTriggers();
             const TableCreationOptions = (
                 "data_tablespace": Type::String,
                 "index_tablespace": Type::String,
+                );
+
+            #! Column options
+            const ColumnOptions = (
+                "qore_type": Type::String,
+                "native_type": Type::String,
+                "size": Type::Int,
+                "scale": Type::Int,
+                "default_value": NOTHING,
                 );
         }
 
@@ -930,6 +1029,8 @@ $table.createNoCommit();
             if (inDb) 
                 throw "CREATE-TABLE-ERROR", sprintf("table %s has already been read from or created in the database", getSqlName());
 
+            map printf("%s\n", $1), getCreateSql(opt, False);
+
             # get and execute all the creation strings
             map ds.exec($1), getCreateSql(opt, False);
             inDb = True;
@@ -944,7 +1045,7 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
 
             @param cname the name of the column
-            @param opt a hash describing the column; the following keys are permitted:
+            @param opt a hash describing the column; the following keys are permitted (other column options may be supported depending on the underlying AbstractTable implementation):
             - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion;
             - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
@@ -962,13 +1063,104 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
 
             if (!opt.native_type && !opt.qore_type)
                 throw "COLUMN-ERROR", sprintf("%s.%s: no native_type or qore_type keys in column option hash: %y", name, cname, opt);
-            
-            foreach string on in ("size", "scale") {
-                if (exists opt{on} && opt{on}.typeCode() != NT_INT)
-                    throw "COLUMN-ERROR", sprintf("%s.%s: %y option is present but not an integer (type %y: %y)", name, cname, on, opt{on}.type(), opt{on});
+
+            validateColumnOptions(cname, \opt, nullable);
+
+            # get the new column object
+            AbstractColumn c = addColumnImpl(cname, opt, nullable);
+
+            # add column in table if the table already exists in the DB
+            if (inDb)
+                c.addToTable(name, ds);
+
+            # add the column to the internal column representation
+	    columns.add(cname, c);
+            return c;
+        }
+
+        #! validates column options
+        private validateColumnOptions(string cname, reference opt, bool nullable) {
+            hash copt = getColumnOptions();
+
+            # check valid options and option value types
+            foreach string k in (opt.keyIterator()) {
+                if (!copt.hasKey(k))
+                    throw "COLUMN-ERROR", sprintf("%s.%s: unknown option %y; valid column options for %y: %y", name, cname, k, self.getClassName(), copt.keys());
+
+                switch (copt{k}) {
+                    case Type::Int: {
+                        if (!opt{k}.intp())
+                            throw "COLUMN-ERROR", sprintf("%s.%s: column option %y has type %y, expecting \"int\" (value: %y)", name, cname, k, opt{k}.type(), opt{k});
+                        if (opt{k}.type() != copt{k})
+                            opt{k} = opt{k}.toInt();
+                        break;
+                    }
+                    case Type::Boolean: {
+                        if (!opt{k}.intp())
+                            throw "COLUMN-ERROR", sprintf("%s.%s: column option %y has type %y, expecting \"boolean\" (value: %y)", name, cname, k, opt{k}.type(), opt{k});
+                        if (opt{k}.type() != copt{k})
+                            opt{k} = opt{k}.toBool();
+                        break;
+                    }
+                    case Type::String: {
+                        if (!opt{k}.strp())
+                            throw "COLUMN-ERROR", sprintf("%s.%s: column option %y has type %y, expecting \"string\" (value: %y)", name, cname, k, opt{k}.type(), opt{k});
+                        if (opt{k}.type() != copt{k})
+                            opt{k} = opt{k}.toString();
+                        break;
+                    }
+                    # no validation for NOTHING
+                    case NOTHING: break;
+
+                    # throw an exception if the type is not supported
+                    default: throw "COLUMN-ERROR", sprintf("column option %y requires type %y which is not currently supported", k, copt{k});
+                }
             }
             
-            return addColumnImpl(cname, opt, nullable);
+            hash otm = getTypeMapImpl();
+
+            if (!opt.native_type) {
+                hash qtm = getQoreTypeMapImpl();
+                opt.native_type = qtm{opt.qore_type};
+                if (!opt.native_type)
+                    throw "COLUMN-ERROR", sprintf("%s.%s: qore type %y cannot be mapped to a column type (valid values: %y)", name, cname, opt.qore_type, qtm.keys());
+            }
+            else if (!otm{opt.native_type})
+                throw "COLUMN-ERROR", sprintf("%s.%s: unknown native_type %y (valid values: %y)", name, cname, opt.native_type, otm.keys());
+
+            # get native type description
+            hash th = otm{opt.native_type};
+
+            # reset qore type from native type
+            opt.qore_type = th.qore;
+
+            if (exists opt.size) {
+                if (!th.size)
+                    throw "COLUMN-ERROR", sprintf("%s.%s: size %y given but type %y does not take a size attribute", name, cname, opt.size, opt.native_type);
+                if (th.size_range && (opt.size < th.size_range[0] || opt.size > th.size_range[1]))
+                    throw "COLUMN-ERROR", sprintf("%s.%s: size %y is not valid for type %y; must be between %d and %d inclusive", name, cname, opt.size, opt.native_type, th.size_range[0], th.size_range[1]);
+            }
+            else if (th.size == SZ_MAND)
+                throw "COLUMN-ERROR", sprintf("%s.%s: type %y requires a size argument but none was supplied (options: %y)", name, cname, opt.native_type, opt);
+
+            if (th.size == SZ_NUM) {
+                opt.precision = opt.size;
+                opt.size = 0;
+                if (opt.scale) {
+                    if (th.scale_range && (opt.scale < th.scale_range[0] || opt.scale > th.scale_range[1]))
+                        throw "COLUMN-ERROR", sprintf("%s.%s: scale %y is not valid for type %y; must be between %d and %d inclusive", name, cname, opt.scale, opt.native_type, th.scale_range[0], th.scale_range[1]);
+                }
+            }
+            else if (opt.scale) 
+                throw "COLUMN-ERROR", sprintf("%s.%s: scale %y is not valid for type %y; it is not a numeric type", name, cname, opt.scale, opt.native_type);
+            else
+                opt.precision = opt.scale = 0;
+            
+            # check type of default value (must match column type)
+            if (exists opt.default_value) {
+                checkValue(cname, "default_value", \opt.default_value, th.qore);
+                opt.default_value = getSqlValue(opt.default_value);
+            }
         }
 
         #! drops a column from the table
@@ -981,18 +1173,126 @@ $table.dropColumn("notes_2");
 
             @param cname the name of the column to drop
 
+            @return the AbstractColumn object representing the column dropped from the table
+
             @throw COLUMN-ERROR the named column is not present in the table
 
             @note this method retrieves the table definition from the database if none has already been defined
          */
-        dropColumn(string cname) {
+         AbstractColumn dropColumn(string cname) {
             getColumnsIntern();
             if (!columns{cname})
                 throw "COLUMN-ERROR", sprintf("%s.%s: no such column (valid columns: %y)", name, cname, columns.keys());
-            dropColumnImpl(cname);
-            delete columns{cname};
+            dropColumnIntern(cname);
+            return remove columns{cname};
         }
 
+        #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
+        /** @par Example:
+            @code
+$table.insert($row);
+            @endcode
+
+            @param row a hash representing the row to insert
+         */
+        insert(hash row) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            insertNoCommit(row);
+        }
+
+        #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
+        /** @par Example:
+            @code
+$table.insert($row);
+            @endcode
+
+            @param row a hash representing the row to insert
+         */
+        insertNoCommit(hash row) {
+            getColumnsIntern();
+            string sql = sprintf("insert into %s (", getSqlName());
+            foreach string k in (row.keyIterator()) {
+                if (!columns{k})
+                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column (valid columns: %y)", name, k, columns.keys());
+            }
+            sql += (foldl $1 + "," + $2, row.keyIterator());
+            sql += ") values (";
+            sql += (foldl $1 + "," + $2, (map "%v", row.keyIterator()));
+            sql += ")";
+
+            ds.vexec(sql, row.values());
+        }
+
+        private checkValue(string cname, string argname, reference val, string type) {
+            if (val === NULL) {
+                delete val;
+                return;
+            }
+                
+            switch (type) {
+                case Type::Int: {
+                    if (!val.intp())
+                        throw "COLUMN-ERROR", sprintf("%s.%s: %s has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                    if (val.type() != type)
+                        val = val.toInt();
+                    break;
+                }
+                case Type::Float: {
+                    if (!val.intp())
+                        throw "COLUMN-ERROR", sprintf("%s.%s: %s has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                    if (val.type() != type)
+                        val = val.toFloat();
+                    break;
+                }
+                case Type::Number: {
+                    if (!val.intp())
+                        throw "COLUMN-ERROR", sprintf("%s.%s: %s has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                    if (val.type() != type)
+                        val = number(val);
+                    break;
+                }
+                case Type::Boolean: {
+                    if (!val.intp())
+                        throw "COLUMN-ERROR", sprintf("%s.%s: %s has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                    if (val.type() != type)
+                        val = val.toBool();
+                    break;
+                }
+                case Type::String: {
+                    if (!val.strp())
+                        throw "COLUMN-ERROR", sprintf("%s.%s: %s has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                    if (val.type() != type)
+                        val = val.toString();
+                    break;
+                }
+              default: {
+                  if (val.type() != type)
+                      throw "COLUMN-ERROR", sprintf("%s.%s: %s value for has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                  break;
+                }
+            }
+        }
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument
+        /** @par Example:
+            @code
+my string $str = $table.getSqlValue($date);
+            @endcode
+
+            @param v the value to convert to an SQL value
+
+            @return a string representing the value usable in SQL strings for the given database driver
+         */
+        string getSqlValue(any v) {
+            *string str = getSqlValueImpl(v);
+            if (!str)
+                throw "VALUE-ERROR", sprintf("class %s cannot convert type %y to an SQL string (value: %y)", self.getClassName(), v.type(), v);
+
+            return str;
+        }
+        
         #! returns the name of the table
         string getName() {
             return name;
@@ -1006,6 +1306,20 @@ $table.dropColumn("notes_2");
         #! returns the database driver name 
         string getDriverName() {
             return ds.getDriverName();
+        }
+
+        #! reads in all attributes of the table from the database
+        /** @par Example:
+            @code
+$table.cache();
+            @endcode
+        */
+        cache() {
+            getColumnsIntern();
+            getTriggersIntern();
+            getPrimaryKeyIntern();
+            getForeignConstraintsIntern();
+            getConstraintsIntern();
         }
 
         # returns the table description hash as acquired in the constructor
@@ -1089,11 +1403,7 @@ printf("%s\n", $table.getCreateSqlString());
             @return an SQL string that could be used to create the table and all known properties of the table
         */
         string getCreateSqlString(*hash opt) {
-            getColumnsIntern();
-            getTriggersIntern();
-            getPrimaryKeyIntern();
-            getForeignConstraintsIntern();
-            getConstraintsIntern();
+            cache();
             return getCreateSqlStringImpl(opt);
         }
 
@@ -1451,6 +1761,15 @@ my *list $rows = $table.find($list);
                 triggers = getTriggersImpl();
         }
 
+        #! override in subclasses to return driver-specific options
+        private hash getColumnOptions() {
+            return ColumnOptions;
+        }
+
+        private dropColumnIntern(string cname) {
+	    columns{cname}.dropFromTable(name, ds);
+        }
+
         private abstract Columns describeImpl();
         private abstract *AbstractPrimaryKey getPrimaryKeyImpl();
         private abstract Indexes getIndexesImpl();
@@ -1468,7 +1787,15 @@ my *list $rows = $table.find($list);
         private abstract string getCreateSqlStringImpl(*hash opt);
 
         private abstract AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True);
-        private abstract dropColumnImpl(string cname);
+
+        #! returns the qore type -> column type map
+        private abstract hash getQoreTypeMapImpl();
+
+        #! returns the type name -> type description hash
+        private abstract hash getTypeMapImpl();
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
+        private abstract *string getSqlValueImpl(any v);
     }
 
 /*

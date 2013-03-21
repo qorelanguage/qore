@@ -209,101 +209,105 @@ public namespace OracleSqlUtil {
     public class OracleTable inherits AbstractTable {
         public {
             const OraTypeMap = (
-                "NUMBER": ("qore": "number", "size": SZ_NUM, "size_range": (1, 38), "scale_range": (-84, 127)),
-                "VARCHAR2": ("qore": "string", "size": SZ_MAND, "size_range": (1, 4000)),
-                "CHAR": ("qore": "string", "size": SZ_MAND, "size_range": (1, 4000)),
-                "DATE": ("qore": "date",),
-		"TIMESTAMP": ("qore": "date", "size": SZ_OPT, "size_range": (0, 9)),
-		"TIMESTAMP WITH TIME ZONE": ("qore": "date", "size": SZ_OPT, "size_range": (0, 9)),
-		"TIMESTAMP WITH LOCAL TIME ZONE": ("qore": "date", "size": SZ_OPT, "size_range": (0, 9)),
-                "TIMESTAMP(0)": ("qore": "date",),
-                "TIMESTAMP(1)": ("qore": "date",),
-                "TIMESTAMP(2)": ("qore": "date",),
-                "TIMESTAMP(3)": ("qore": "date",),
-                "TIMESTAMP(4)": ("qore": "date",),
-                "TIMESTAMP(5)": ("qore": "date",),
-                "TIMESTAMP(6)": ("qore": "date",),
-                "TIMESTAMP(7)": ("qore": "date",),
-                "TIMESTAMP(8)": ("qore": "date",),
-                "TIMESTAMP(9)": ("qore": "date",),
-                "TIMESTAMP(0) WITH TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(1) WITH TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(2) WITH TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(3) WITH TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(4) WITH TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(5) WITH TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(6) WITH TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(7) WITH TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(8) WITH TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(9) WITH TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(0) WITH LOCAL TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(1) WITH LOCAL TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(2) WITH LOCAL TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(3) WITH LOCAL TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(4) WITH LOCAL TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(5) WITH LOCAL TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(6) WITH LOCAL TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(7) WITH LOCAL TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(8) WITH LOCAL TIME ZONE": ("qore": "date",),
-                "TIMESTAMP(9) WITH LOCAL TIME ZONE": ("qore": "date",),
-                "INTERVAL YEAR(0) TO MONTH": ("qore": "date",),
-                "INTERVAL YEAR(1) TO MONTH": ("qore": "date",),
-                "INTERVAL YEAR(2) TO MONTH": ("qore": "date",),
-                "INTERVAL YEAR(3) TO MONTH": ("qore": "date",),
-                "INTERVAL YEAR(4) TO MONTH": ("qore": "date",),
-                "INTERVAL YEAR(5) TO MONTH": ("qore": "date",),
-                "INTERVAL YEAR(6) TO MONTH": ("qore": "date",),
-                "INTERVAL YEAR(7) TO MONTH": ("qore": "date",),
-                "INTERVAL YEAR(8) TO MONTH": ("qore": "date",),
-                "INTERVAL YEAR(9) TO MONTH": ("qore": "date",),
-                "INTERVAL DAY(0) TO SECOND(0)": ("qore": "date",),
-                "INTERVAL DAY(0) TO SECOND(1)": ("qore": "date",),
-                "INTERVAL DAY(0) TO SECOND(2)": ("qore": "date",),
-                "INTERVAL DAY(0) TO SECOND(3)": ("qore": "date",),
-                "INTERVAL DAY(0) TO SECOND(4)": ("qore": "date",),
-                "INTERVAL DAY(0) TO SECOND(5)": ("qore": "date",),
-                "INTERVAL DAY(0) TO SECOND(6)": ("qore": "date",),
-                "INTERVAL DAY(0) TO SECOND(7)": ("qore": "date",),
-                "INTERVAL DAY(0) TO SECOND(8)": ("qore": "date",),
-                "INTERVAL DAY(0) TO SECOND(9)": ("qore": "date",),
-                "INTERVAL DAY(1) TO SECOND(0)": ("qore": "date",),
-                "INTERVAL DAY(1) TO SECOND(1)": ("qore": "date",),
-                "INTERVAL DAY(1) TO SECOND(2)": ("qore": "date",),
-                "INTERVAL DAY(1) TO SECOND(3)": ("qore": "date",),
-                "INTERVAL DAY(1) TO SECOND(4)": ("qore": "date",),
-                "INTERVAL DAY(1) TO SECOND(5)": ("qore": "date",),
-                "INTERVAL DAY(1) TO SECOND(6)": ("qore": "date",),
-                "INTERVAL DAY(1) TO SECOND(7)": ("qore": "date",),
-                "INTERVAL DAY(1) TO SECOND(8)": ("qore": "date",),
-                "INTERVAL DAY(1) TO SECOND(9)": ("qore": "date",),
-                "INTERVAL DAY(2) TO SECOND(0)": ("qore": "date",),
-                "INTERVAL DAY(2) TO SECOND(1)": ("qore": "date",),
-                "INTERVAL DAY(2) TO SECOND(2)": ("qore": "date",),
-                "INTERVAL DAY(2) TO SECOND(3)": ("qore": "date",),
-                "INTERVAL DAY(2) TO SECOND(4)": ("qore": "date",),
-                "INTERVAL DAY(2) TO SECOND(5)": ("qore": "date",),
-                "INTERVAL DAY(2) TO SECOND(6)": ("qore": "date",),
-                "INTERVAL DAY(2) TO SECOND(7)": ("qore": "date",),
-                "INTERVAL DAY(2) TO SECOND(8)": ("qore": "date",),
-                "INTERVAL DAY(2) TO SECOND(9)": ("qore": "date",),
-                "CLOB": ("qore": "string",),
-                "BLOB": ("qore": "binary",),
-                "LONG": ("qore": "binary",),
-                "RAW": ("qore": "binary", "size": SZ_MAND, "size_range": (1, 2000)),
-                "BFILE": ("qore": "binary",),
-                "BINARY_FLOAT": ("qore": "float",),
-                "BINARY_DOUBLE": ("qore": "float",),
-                "ROWID": ("qore": "string",),
-                "UROWID": ("qore": "string", "size": SZ_OPT, "size_range": (1, 4000)),
+                "number": ("qore": Type::Number, "size": SZ_NUM, "size_range": (1, 38), "scale_range": (-84, 127)),
+                "varchar2": ("qore": Type::String, "size": SZ_MAND, "size_range": (1, 4000)),
+                "char": ("qore": Type::String, "size": SZ_MAND, "size_range": (1, 4000)),
+                "date": ("qore": Type::Date,),
+		"timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
+		"timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
+		"timestamp with local time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
+                "timestamp(0)": ("qore": Type::Date,),
+                "timestamp(1)": ("qore": Type::Date,),
+                "timestamp(2)": ("qore": Type::Date,),
+                "timestamp(3)": ("qore": Type::Date,),
+                "timestamp(4)": ("qore": Type::Date,),
+                "timestamp(5)": ("qore": Type::Date,),
+                "timestamp(6)": ("qore": Type::Date,),
+                "timestamp(7)": ("qore": Type::Date,),
+                "timestamp(8)": ("qore": Type::Date,),
+                "timestamp(9)": ("qore": Type::Date,),
+                "timestamp(0) with time zone": ("qore": Type::Date,),
+                "timestamp(1) with time zone": ("qore": Type::Date,),
+                "timestamp(2) with time zone": ("qore": Type::Date,),
+                "timestamp(3) with time zone": ("qore": Type::Date,),
+                "timestamp(4) with time zone": ("qore": Type::Date,),
+                "timestamp(5) with time zone": ("qore": Type::Date,),
+                "timestamp(6) with time zone": ("qore": Type::Date,),
+                "timestamp(7) with time zone": ("qore": Type::Date,),
+                "timestamp(8) with time zone": ("qore": Type::Date,),
+                "timestamp(9) with time zone": ("qore": Type::Date,),
+                "timestamp(0) with local time zone": ("qore": Type::Date,),
+                "timestamp(1) with local time zone": ("qore": Type::Date,),
+                "timestamp(2) with local time zone": ("qore": Type::Date,),
+                "timestamp(3) with local time zone": ("qore": Type::Date,),
+                "timestamp(4) with local time zone": ("qore": Type::Date,),
+                "timestamp(5) with local time zone": ("qore": Type::Date,),
+                "timestamp(6) with local time zone": ("qore": Type::Date,),
+                "timestamp(7) with local time zone": ("qore": Type::Date,),
+                "timestamp(8) with local time zone": ("qore": Type::Date,),
+                "timestamp(9) with local time zone": ("qore": Type::Date,),
+                "interval year(0) to month": ("qore": Type::Date,),
+                "interval year(1) to month": ("qore": Type::Date,),
+                "interval year(2) to month": ("qore": Type::Date,),
+                "interval year(3) to month": ("qore": Type::Date,),
+                "interval year(4) to month": ("qore": Type::Date,),
+                "interval year(5) to month": ("qore": Type::Date,),
+                "interval year(6) to month": ("qore": Type::Date,),
+                "interval year(7) to month": ("qore": Type::Date,),
+                "interval year(8) to month": ("qore": Type::Date,),
+                "interval year(9) to month": ("qore": Type::Date,),
+                "interval day(0) to second(0)": ("qore": Type::Date,),
+                "interval day(0) to second(1)": ("qore": Type::Date,),
+                "interval day(0) to second(2)": ("qore": Type::Date,),
+                "interval day(0) to second(3)": ("qore": Type::Date,),
+                "interval day(0) to second(4)": ("qore": Type::Date,),
+                "interval day(0) to second(5)": ("qore": Type::Date,),
+                "interval day(0) to second(6)": ("qore": Type::Date,),
+                "interval day(0) to second(7)": ("qore": Type::Date,),
+                "interval day(0) to second(8)": ("qore": Type::Date,),
+                "interval day(0) to second(9)": ("qore": Type::Date,),
+                "interval day(1) to second(0)": ("qore": Type::Date,),
+                "interval day(1) to second(1)": ("qore": Type::Date,),
+                "interval day(1) to second(2)": ("qore": Type::Date,),
+                "interval day(1) to second(3)": ("qore": Type::Date,),
+                "interval day(1) to second(4)": ("qore": Type::Date,),
+                "interval day(1) to second(5)": ("qore": Type::Date,),
+                "interval day(1) to second(6)": ("qore": Type::Date,),
+                "interval day(1) to second(7)": ("qore": Type::Date,),
+                "interval day(1) to second(8)": ("qore": Type::Date,),
+                "interval day(1) to second(9)": ("qore": Type::Date,),
+                "interval day(2) to second(0)": ("qore": Type::Date,),
+                "interval day(2) to second(1)": ("qore": Type::Date,),
+                "interval day(2) to second(2)": ("qore": Type::Date,),
+                "interval day(2) to second(3)": ("qore": Type::Date,),
+                "interval day(2) to second(4)": ("qore": Type::Date,),
+                "interval day(2) to second(5)": ("qore": Type::Date,),
+                "interval day(2) to second(6)": ("qore": Type::Date,),
+                "interval day(2) to second(7)": ("qore": Type::Date,),
+                "interval day(2) to second(8)": ("qore": Type::Date,),
+                "interval day(2) to second(9)": ("qore": Type::Date,),
+                "clob": ("qore": Type::String,),
+                "blob": ("qore": Type::Binary,),
+                "long": ("qore": Type::Binary,),
+                "raw": ("qore": Type::Binary, "size": SZ_MAND, "size_range": (1, 2000)),
+                "bfile": ("qore": Type::Binary,),
+                "binary_float": ("qore": Type::Float,),
+                "binary_double": ("qore": Type::Float,),
+                "rowid": ("qore": Type::String,),
+                "urowid": ("qore": Type::String, "size": SZ_OPT, "size_range": (1, 4000)),
                 );
 
             const QoreTypeMap = (
-                "integer": "NUMBER",
-                "float": "NUMBER",
-                "number": "NUMBER",
-                "string": "VARCHAR2",
-                "date": "TIMESTAMP(6)",
-                "binary": "BLOB",
+                "integer": "number",
+                "float": "number",
+                "number": "number",
+                "string": "varchar2",
+                "date": "timestamp(6)",
+                "binary": "blob",
+                );
+
+            const OraColumnOptions = AbstractTable::ColumnOptions + (
+                "comment": Type::String,
                 );
         }
 
@@ -431,6 +435,10 @@ public namespace OracleSqlUtil {
             return readonly;
         }
 
+        private hash getColumnOptions() {
+            return OraColumnOptions;
+        }
+
         private Columns describeImpl() {
 	    if (!tablespace)
 		setTableInfoIntern();
@@ -442,7 +450,7 @@ public namespace OracleSqlUtil {
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
-                *hash th = OraTypeMap.(row.data_type);
+                *hash th = OraTypeMap.(row.data_type.lwr());
                 int size = row.data_type == "NUMBER" && row.data_precision ? row.data_precision : row.data_length;
                 switch (row.data_type) {
                     case "ROWID":
@@ -460,6 +468,7 @@ public namespace OracleSqlUtil {
                     row.column_name = row.column_name.lwr();
                     row.data_type = row.data_type.lwr();
                 }
+                trim row.data_default;
                 rv.(row.column_name) = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.char_length, row.data_precision, row.data_scale, row.nullable == "Y", row.data_default ? row.data_default : NOTHING, row.char_used == "C", row.comments ? row.comments : NOTHING, row.data_length);
             }
 
@@ -660,54 +669,37 @@ public namespace OracleSqlUtil {
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
             bool char_used = False;
-            int char_size;
+            int char_size = 0;
 
-            if (!opt.native_type) {
-                opt.native_type = QoreTypeMap{opt.qore_type};
-                if (!opt.native_type)
-                    throw "COLUMN-ERROR", sprintf("%s.%s: qore type %y cannot be mapped to a column type (valid values: %y)", name, cname, opt.qore_type, QoreTypeMap.keys());                
-            }
-            else if (!OraTypeMap{opt.native_type})
-                throw "COLUMN-ERROR", sprintf("%s.%s: unknown native_type %y (valid values: %y)", name, cname, opt.native_type, OraTypeMap.keys());
-
-            hash th = OraTypeMap{opt.native_type};
-
-            opt.qore_type = th.qore;
-
-            int size = 0;
-            if (exists opt.size) {
-                if (!th.size)
-                    throw "COLUMN-ERROR", sprintf("%s.%s: size %y given but type %y does not take a size attribute", name, cname, opt.size, opt.native_type);
-                if (th.size_range && (opt.size < th.size_range[0] || opt.size > th.size_range[1]))
-                    throw "COLUMN-ERROR", sprintf("%s.%s: size %y is not valid for type %y; must be between %d and %d inclusive", name, cname, opt.size, opt.native_type, th.size_range[0], th.size_range[1]);
-                size = opt.size;
-            }
-            else if (th.size == SZ_MAND)
-                throw "COLUMN-ERROR", sprintf("%s.%s: type %y requires a size argument but none was supplied (options: %y)", name, cname, opt.native_type, opt);
-
-            int precision = 0;
-            int scale = 0;
-            if (th.size == SZ_NUM) {
-                precision = size;
-                size = 0;
-                if (opt.scale) {
-                    if (th.scale_range && (opt.scale < th.scale_range[0] || opt.scale > th.scale_range[1]))
-                        throw "COLUMN-ERROR", sprintf("%s.%s: scale %y is not valid for type %y; must be between %d and %d inclusive", name, cname, opt.scale, opt.native_type, th.scale_range[0], th.scale_range[1]);
-                    scale = opt.scale;
-                }
-            }
-
-            OracleColumn c(cname, opt.native_type, opt.qore_type, size, char_size, precision, scale, nullable, opt.default_value, char_used, opt.comment, 0);
-
-            if (inDb)
-                c.addToTable(name, ds);
-
-	    columns.add(cname, c);
+            OracleColumn c(cname, opt.native_type, opt.qore_type, opt.size, char_size, opt.precision, opt.scale, nullable, opt.default_value, char_used, opt.comment, 0);
             return c;
         }
 
-        private dropColumnImpl(string cname) {
-	    columns{cname}.dropFromTable(name, ds);
+        private hash getQoreTypeMapImpl() {
+            return QoreTypeMap;
+        }
+
+        private hash getTypeMapImpl() {
+            return OraTypeMap;
+        }
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
+        private *string getSqlValueImpl(any v) {
+            switch (v.typeCode()) {
+                case NT_FLOAT:
+                case NT_NUMBER:
+                case NT_INT: return v.toStr();
+
+                # double any single quotes in strings
+                case NT_STRING: v =~ s/'/''/g; return "'" + v + "'";
+
+                case NT_NULL:
+                case NT_NOTHING: return "null";
+
+                case NT_BOOLEAN: return v ? "1" : "0";
+
+                case NT_DATE: return sprintf("to_date('%s', 'YYYYMMDDHH24MISS')", v.format("YYYYMMDDHHmmSS"));
+            }
         }
     }
 }

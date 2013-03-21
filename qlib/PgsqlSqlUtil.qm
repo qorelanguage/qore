@@ -224,36 +224,40 @@ public namespace PgsqlSqlUtil {
     public class PgsqlTable inherits AbstractTable {
         public {
             const PgsqlTypeMap = (
-                "numeric": ("qore": "number",),
-                "money": ("qore": "number",),
-                "smallint": ("qore": "int",),
-                "integer": ("qore": "int",),
-                "bigint": ("qore": "int",),
-                "smallserial": ("qore": "int",),
-                "serial": ("qore": "int",),
-                "bigserial": ("qore": "int",),
-                "real": ("qore": "float",),
-                "double precision": ("qore": "float",),
-                "oid": ("qore": "number",),
-                "varchar": ("qore": "string",),
-                "character": ("qore": "string",),
-                "character varying": ("qore": "string",),
-                "date": ("qore": "date",),
-                "timestamp without time zone": ("qore": "date",),
-                "timestamp with time zone": ("qore": "date",),
-                "time without time zone": ("qore": "date",),
-                "time with time zone": ("qore": "date",),
-                "interval": ("qore": "date",),
-                "abstime": ("qore": "date",),
-                "reltime": ("qore": "date",),
-                "text": ("qore": "string",),
-                "bytea": ("qore": "binary",),
-                "bit": ("qore": "binary",),
-                "bit varying": ("qore": "binary",),
-                "boolean": ("qore": "bool",),
-                "macaddr": ("qore": "string",),
-                "inet": ("qore": "string",),
-                "cidr": ("qore": "string",),
+                "numeric": ("qore": Type::Number, "size": SZ_NUM,),
+                "decimal": ("qore": Type::Number, "size": SZ_NUM,),
+                "money": ("qore": Type::Number,),
+                "smallint": ("qore": Type::Int,),
+                "integer": ("qore": Type::Int,),
+                "bigint": ("qore": Type::Int,),
+                "smallserial": ("qore": Type::Int,),
+                "serial": ("qore": Type::Int,),
+                "bigserial": ("qore": Type::Int,),
+                "real": ("qore": Type::Float,),
+                "double precision": ("qore": Type::Float,),
+                "oid": ("qore": Type::Number,),
+                "character": ("qore": Type::String, "size": SZ_MAND,),
+                "char": ("qore": Type::String, "size": SZ_MAND,),
+                "character varying": ("qore": Type::String, "size": SZ_MAND,),
+                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+                "date": ("qore": Type::Date,),
+                "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
+                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
+                "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
+                "time without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
+                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
+                "time with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
+                "interval": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
+                "abstime": ("qore": Type::Date,),
+                "reltime": ("qore": Type::Date,),
+                "text": ("qore": Type::String,),
+                "bytea": ("qore": Type::Binary,),
+                "bit": ("qore": Type::Binary,),
+                "bit varying": ("qore": Type::Binary,),
+                "boolean": ("qore": Type::Boolean,),
+                "macaddr": ("qore": Type::String,),
+                "inet": ("qore": Type::String,),
+                "cidr": ("qore": Type::String,),
                 );
 
             const PgsqlNameMap = (
@@ -271,6 +275,10 @@ public namespace PgsqlSqlUtil {
                 "binary": "bytea",
                 "bool": "boolean",
                 );
+
+            const PgsqlColumnOptions = AbstractTable::ColumnOptions + (
+                "comment": Type::String,
+                );
         }
 
         private {
@@ -287,6 +295,10 @@ public namespace PgsqlSqlUtil {
 
         *string getTablespaceName() {
             return tablespace;
+        }
+
+        private hash getColumnOptions() {
+            return PgsqlColumnOptions;
         }
 
         private Columns describeImpl() {
@@ -497,11 +509,35 @@ public namespace PgsqlSqlUtil {
         }
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
-            throw "ERROR", "NOT-IMPLEMENTED";
+            PgsqlColumn c(cname, opt.native_type, opt.qore_type, opt.size, 0, opt.precision, opt.scale, nullable, opt.default_value, opt.comment, 0);
+            return c;
         }
 
-        private dropColumnImpl(string cname) {
-            throw "ERROR", "NOT-IMPLEMENTED";
+        private hash getQoreTypeMapImpl() {
+            return QoreTypeMap;
+        }
+
+        private hash getTypeMapImpl() {
+            return PgsqlTypeMap;
+        }
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
+        private *string getSqlValueImpl(any v) {
+            switch (v.typeCode()) {
+                case NT_FLOAT:
+                case NT_NUMBER:
+                case NT_INT: return v.toStr();
+
+                # double any single quotes in strings
+                case NT_STRING: v =~ s/'/''/g; return "'" + v + "'";
+
+                case NT_NULL:
+                case NT_NOTHING: return "null";
+
+                case NT_BOOLEAN: return v ? "true" : "false";
+
+                case NT_DATE: return v.format("'YYYY-MM-DD HH:mm:SS.us'");
+            }
         }
     }
 }
