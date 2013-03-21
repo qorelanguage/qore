@@ -180,6 +180,22 @@ public namespace SqlUtil {
         }
 
         abstract string getCreateSql(string table_name, *hash opts);
+        
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop constraint %s", table_name, name);
+        }
+
+        addToTable(string table_name, AbstractDatasource ds) {
+	    on_success ds.commit();
+	    on_error ds.rollback();
+	    ds.exec(getCreateSql(table_name));
+        }
+
+        dropFromTable(string table_name, AbstractDatasource ds) {
+	    on_success ds.commit();
+	    on_error ds.rollback();
+	    ds.exec(getDropSql(table_name));
+        }
     }
 
     #! the base class for column information
@@ -565,7 +581,9 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
 
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
 
-            @throw COLUMN-ERROR no native_type or qore_type keys in column option hash
+            @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
+
+            @note make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
          */
         AbstractColumn addColumn(string cname, hash opt, bool nullable = True) {
             return t.addColumn(cname, opt, nullable);
@@ -875,10 +893,17 @@ my Triggers $trig = $table.getTriggers();
                 "native-case": True,
                 );
 
-            #! table creation options
-            const TableCreationOptions = (
-                "data_tablespace": Type::String,
+            #! default index options
+            const IndexOptions = (
                 "index_tablespace": Type::String,
+                );
+
+            #! default pk options
+            const PrimaryKeyOptions = IndexOptions;
+
+            #! table creation options
+            const TableCreationOptions = IndexOptions + (
+                "data_tablespace": Type::String,
                 );
 
             #! Column options
@@ -1053,7 +1078,9 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             - \c default_value: the default value for the column
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
 
-            @throw COLUMN-ERROR no native_type or qore_type keys in column option hash
+            @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
+
+            @note make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
          */
         AbstractColumn addColumn(string cname, hash opt, bool nullable = True) {
             if (!columns)
@@ -1078,34 +1105,93 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             return c;
         }
 
-        #! validates column options
-        private validateColumnOptions(string cname, reference opt, bool nullable) {
-            hash copt = getColumnOptions();
+        #! adds a primary key to the table
+        /**
+         */
+        AbstractPrimaryKey addPrimaryKey(string cname, softlist cols, *hash opt) {
+            getColumnsIntern();
+            if (inDb)
+                getPrimaryKeyIntern();
 
+            if (!primaryKey.empty())
+                throw "PRIMARY-KEY-ERROR", sprintf("%s: already has a primary key with columns: %y", name, primaryKey.keys());
+
+            if (!cols)
+                throw "PRIMARY-KEY-ERROR", sprintf("%s: no column names passed to %s::addPrimaryKey()", name, self.className());
+
+            hash ch;
+            while (cols) {
+                any v = shift cols;
+                if (v.typeCode() != NT_STRING)
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s: %y argument passed as column name to %s::addPrimaryKey(); expecting \"string\" (value: %y)", name, v.type(), self.className(), v);
+                if (!columns.hasKey(v))
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s: has no column named %y", name, v);
+                ch{v} = columns{v};
+            }
+
+            # validate options
+            hash pkopt = getPrimaryKeyOptions();
+            validateOptionsIntern("PRIMARY-KEY-ERROR", pkopt, \opt);
+
+            # get the new primary key object
+            AbstractPrimaryKey pk = addPrimaryKeyImpl(cname, ch, opt);
+            
+            # add pk to table if the table already exists in the DB
+            if (inDb)
+                pk.addToTable(name, ds);
+
+            # set as primary key for the table
+            return primaryKey = pk;
+        }
+
+        #! drops the primary key from the table
+        /** @par Example:
+            @code
+$table.dropPrimaryKey();
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @return the AbstractPrimaryKey object representing the primary key dropped from the table
+
+            @note this method retrieves the primary key definition from the database if none has already been defined
+         */
+        AbstractPrimaryKey dropPrimaryKey() {
+            getPrimaryKeyIntern();
+            if (primaryKey.empty())
+                throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", name);
+            if (inDb)
+                primaryKey.dropFromTable(name, ds);
+            return remove primaryKey;
+        }
+        
+        private validateOptionsIntern(string err, hash ropt, reference opt, *string tag) {
+            if (!tag)
+                tag = name;
             # check valid options and option value types
             foreach string k in (opt.keyIterator()) {
-                if (!copt.hasKey(k))
-                    throw "COLUMN-ERROR", sprintf("%s.%s: unknown option %y; valid column options for %y: %y", name, cname, k, self.getClassName(), copt.keys());
+                if (!ropt.hasKey(k))
+                    throw err, sprintf("%s: unknown option %y; valid options for %y: %y", tag, k, self.className(), ropt.keys());
 
-                switch (copt{k}) {
+                switch (ropt{k}) {
                     case Type::Int: {
                         if (!opt{k}.intp())
-                            throw "COLUMN-ERROR", sprintf("%s.%s: column option %y has type %y, expecting \"int\" (value: %y)", name, cname, k, opt{k}.type(), opt{k});
-                        if (opt{k}.type() != copt{k})
+                            throw err, sprintf("%s: option %y has type %y, expecting \"int\" (value: %y)", tag, k, opt{k}.type(), opt{k});
+                        if (opt{k}.type() != ropt{k})
                             opt{k} = opt{k}.toInt();
                         break;
                     }
                     case Type::Boolean: {
                         if (!opt{k}.intp())
-                            throw "COLUMN-ERROR", sprintf("%s.%s: column option %y has type %y, expecting \"boolean\" (value: %y)", name, cname, k, opt{k}.type(), opt{k});
-                        if (opt{k}.type() != copt{k})
+                            throw err, sprintf("%s: option %y has type %y, expecting \"boolean\" (value: %y)", tag, k, opt{k}.type(), opt{k});
+                        if (opt{k}.type() != ropt{k})
                             opt{k} = opt{k}.toBool();
                         break;
                     }
                     case Type::String: {
                         if (!opt{k}.strp())
-                            throw "COLUMN-ERROR", sprintf("%s.%s: column option %y has type %y, expecting \"string\" (value: %y)", name, cname, k, opt{k}.type(), opt{k});
-                        if (opt{k}.type() != copt{k})
+                            throw err, sprintf("%s: option %y has type %y, expecting \"string\" (value: %y)", tag, k, opt{k}.type(), opt{k});
+                        if (opt{k}.type() != ropt{k})
                             opt{k} = opt{k}.toString();
                         break;
                     }
@@ -1113,9 +1199,17 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
                     case NOTHING: break;
 
                     # throw an exception if the type is not supported
-                    default: throw "COLUMN-ERROR", sprintf("column option %y requires type %y which is not currently supported", k, copt{k});
+                    default: throw err, sprintf("option %y requires type %y which is not currently supported", k, ropt{k});
                 }
             }
+        }
+
+        #! validates column options
+        private validateColumnOptions(string cname, reference opt, bool nullable) {
+            hash copt = getColumnOptions();
+
+            # check valid options and option value types
+            validateOptionsIntern("COLUMN-ERROR", copt, \opt, sprintf("%s.%s", name, cname));
             
             hash otm = getTypeMapImpl();
 
@@ -1288,7 +1382,7 @@ my string $str = $table.getSqlValue($date);
         string getSqlValue(any v) {
             *string str = getSqlValueImpl(v);
             if (!str)
-                throw "VALUE-ERROR", sprintf("class %s cannot convert type %y to an SQL string (value: %y)", self.getClassName(), v.type(), v);
+                throw "VALUE-ERROR", sprintf("class %s cannot convert type %y to an SQL string (value: %y)", self.className(), v.type(), v);
 
             return str;
         }
@@ -1606,7 +1700,7 @@ my *list $rows = $table.find($list);
         private checkCreateOptions(*hash nopts, *hash rh) {
             foreach string k in (nopts.keyIterator()) {
                 if (!rh{k})
-                    throw "TABLE-CREATION-ERROR", sprintf("creation option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+                    throw "TABLE-CREATION-ERROR", sprintf("creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
                 if (rh{k} && nopts{k}.type() != rh{k})
                     throw "TABLE-CREATION-ERROR", sprintf("value passed to table creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
             }
@@ -1619,7 +1713,7 @@ my *list $rows = $table.find($list);
         private checkCreateIndexOptions(*hash nopts, *hash rh) {
             foreach string k in (nopts.keyIterator()) {
                 if (!rh{k})
-                    throw "INDEX-CREATION-ERROR", sprintf("index creation option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+                    throw "INDEX-CREATION-ERROR", sprintf("index creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
                 if (rh{k} && nopts{k}.type() != rh{k})
                     throw "INDEX-CREATION-ERROR", sprintf("value passed to index creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
             }
@@ -1628,7 +1722,7 @@ my *list $rows = $table.find($list);
         private checkCreatePrimaryKeyOptions(*hash nopts, *hash rh) {
             foreach string k in (nopts.keyIterator()) {
                 if (!rh{k})
-                    throw "PK-CREATION-ERROR", sprintf("primary key creation option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+                    throw "PK-CREATION-ERROR", sprintf("primary key creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
                 if (rh{k} && nopts{k}.type() != rh{k})
                     throw "PK-CREATION-ERROR", sprintf("value passed to primary key creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
             }
@@ -1637,7 +1731,7 @@ my *list $rows = $table.find($list);
         private checkCreateConstraintOptions(*hash nopts, *hash rh) {
             foreach string k in (nopts.keyIterator()) {
                 if (!rh{k})
-                    throw "CONSTRAINT-CREATION-ERROR", sprintf("constraint creation option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+                    throw "CONSTRAINT-CREATION-ERROR", sprintf("constraint creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
                 if (rh{k} && nopts{k}.type() != rh{k})
                     throw "CONSTRAINT-CREATION-ERROR", sprintf("value passed to constraint creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
             }
@@ -1646,7 +1740,7 @@ my *list $rows = $table.find($list);
         private checkCreateMiscOptions(*hash nopts, *hash rh) {
             foreach string k in (nopts.keyIterator()) {
                 if (!rh{k})
-                    throw "SQL-CREATION-ERROR", sprintf("SQL creation option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+                    throw "SQL-CREATION-ERROR", sprintf("SQL creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
                 if (rh{k} && nopts{k}.type() != rh{k})
                     throw "SQL-CREATION-ERROR", sprintf("value passed to SQL creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
             }
@@ -1655,7 +1749,7 @@ my *list $rows = $table.find($list);
         private checkCreateTriggerOptions(*hash nopts, *hash rh) {
             foreach string k in (nopts.keyIterator()) {
                 if (!rh{k})
-                    throw "TRIGGER-CREATION-ERROR", sprintf("trigger creation option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+                    throw "TRIGGER-CREATION-ERROR", sprintf("trigger creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
                 if (rh{k} && nopts{k}.type() != rh{k})
                     throw "TRIGGER-CREATION-ERROR", sprintf("value passed to trigger creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
             }
@@ -1664,7 +1758,7 @@ my *list $rows = $table.find($list);
         private checkOptions(*hash nopts, hash rh) {
             foreach string k in (nopts.keyIterator()) {
                 if (!rh{k})
-                    throw "TABLE-ERROR", sprintf("option %y is not supported by class %y; possible options: %y", k, self.getClassName(), rh.keys());
+                    throw "TABLE-ERROR", sprintf("option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
             }
             if (nopts."native-case")
                 native_case = True;
@@ -1708,8 +1802,10 @@ my *list $rows = $table.find($list);
                 return;
             l.lock();
             on_exit l.unlock();
-            if (!columns)
-                columns = describeImpl();            
+            if (!columns) {
+                columns = describeImpl();
+                inDb = True;
+            }
         }
 
         private getPrimaryKeyIntern() {
@@ -1718,8 +1814,10 @@ my *list $rows = $table.find($list);
             getColumnsIntern();
             l.lock();
             on_exit l.unlock();
-            if (!primaryKey)
-                primaryKey = getPrimaryKeyImpl();            
+            if (!primaryKey) {
+                primaryKey = getPrimaryKeyImpl();
+                inDb = True;
+            }
         }
 
         private getIndexesIntern() {
@@ -1728,8 +1826,10 @@ my *list $rows = $table.find($list);
             getColumnsIntern();
             l.lock();
             on_exit l.unlock();
-            if (!indexes)
-                indexes = getIndexesImpl();            
+            if (!indexes) {
+                indexes = getIndexesImpl();
+                inDb = True;
+            }
         }
 
         private getForeignConstraintsIntern() {
@@ -1738,8 +1838,10 @@ my *list $rows = $table.find($list);
             getColumnsIntern();
             l.lock();
             on_exit l.unlock();
-            if (!foreignConstraints)
-                foreignConstraints = getForeignConstraintsImpl();            
+            if (!foreignConstraints) {
+                foreignConstraints = getForeignConstraintsImpl();
+                inDb = True;
+            }
         }
 
         private getConstraintsIntern() {
@@ -1748,8 +1850,10 @@ my *list $rows = $table.find($list);
             getColumnsIntern();
             l.lock();
             on_exit l.unlock();
-            if (!constraints)
+            if (!constraints) {
                 constraints = getConstraintsImpl();            
+                inDb = True;
+            }
         }
 
         private getTriggersIntern() {
@@ -1757,13 +1861,25 @@ my *list $rows = $table.find($list);
                 return;
             l.lock();
             on_exit l.unlock();
-            if (!triggers)
+            if (!triggers) {
                 triggers = getTriggersImpl();
+                inDb = True;
+            }
         }
 
         #! override in subclasses to return driver-specific options
         private hash getColumnOptions() {
             return ColumnOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getIndexOptions() {
+            return IndexOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getPrimaryKeyOptions() {
+            return PrimaryKeyOptions;
         }
 
         private dropColumnIntern(string cname) {
@@ -1787,6 +1903,7 @@ my *list $rows = $table.find($list);
         private abstract string getCreateSqlStringImpl(*hash opt);
 
         private abstract AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True);
+        private abstract AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt);
 
         #! returns the qore type -> column type map
         private abstract hash getQoreTypeMapImpl();

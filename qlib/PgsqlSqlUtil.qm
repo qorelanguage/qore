@@ -342,7 +342,7 @@ public namespace PgsqlSqlUtil {
             foreach string col in (qh.attname)
                 rv{col} = columns{col};
 
-            return new PgsqlPrimaryKey(qh.index_name[0], rv, qh.tablespace[0]);
+            return new PgsqlPrimaryKey(qh.index_name[0], rv, qh.tablespace[0] ? qh.tablespace[0] : NOTHING);
         }
 
         private Indexes getIndexesImpl() {
@@ -511,6 +511,10 @@ public namespace PgsqlSqlUtil {
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
             PgsqlColumn c(cname, opt.native_type, opt.qore_type, opt.size, 0, opt.precision, opt.scale, nullable, opt.default_value, opt.comment, 0);
             return c;
+        }
+
+        private AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt) {
+            return new PgsqlPrimaryKey(cname, ch, opt.index_tablespace);
         }
 
         private hash getQoreTypeMapImpl() {

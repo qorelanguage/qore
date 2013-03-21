@@ -161,11 +161,21 @@ public namespace OracleSqlUtil {
     }
 
     public class OraclePrimaryKey inherits AbstractPrimaryKey {
-        constructor(string n, *hash c) : AbstractPrimaryKey(n, c) {
+        public {
+            #! any tablespace for the primary key index
+            *string tablespace;
+        }
+
+        constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c) {
+            tablespace = ts;
         }
 
         string getCreateSql(string table_name, *hash opts) {
-            return sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
+            string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
+            *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" using index tablespace %s", ts);
+            return sql;
         }
     }
 
@@ -673,6 +683,10 @@ public namespace OracleSqlUtil {
 
             OracleColumn c(cname, opt.native_type, opt.qore_type, opt.size, char_size, opt.precision, opt.scale, nullable, opt.default_value, char_used, opt.comment, 0);
             return c;
+        }
+
+        private AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt) {
+            return new OraclePrimaryKey(cname, ch, opt.index_tablespace);
         }
 
         private hash getQoreTypeMapImpl() {
