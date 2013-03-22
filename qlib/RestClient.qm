@@ -1,0 +1,302 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file RestClient.qm Qore user module for calling REST services
+
+/*  RestClient.qm Copyright 2013 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.8 or better
+%requires qore >= 0.8.8
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+%requires Mime >= 1.3
+
+%try-module yaml
+%define NoYaml
+%endtry
+
+%try-module xml
+%define NoXml
+%endtry
+
+%try-module json
+%define NoJson
+%endtry
+
+module RestClient {
+    version = "1.0";
+    desc = "user module for calling REST services";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+
+    init = sub () { 
+        # if no modules for data de/serialization can be loaded, then throw an exception
+        if (!RestClient::Accept)
+            throw "RESTCLIENT-ERROR", sprintf("none of the 'yaml', 'xml', or 'json' modules can be loaded; at least one of which is required to support data de/serialization for REST requests and responses");
+    };
+}
+
+/*  Version History
+    * 2013-xx-xx v1.0: David Nichols <david@qore.org>
+      + the initial version of the RestClient module
+*/
+
+/** @mainpage RestClient Module
+
+    The %RestClient module provides an API for calling REST services.
+
+    To use this module, use \c "%requires RestClient" in your code.
+    
+    All the public symbols in the module are defined in the RestClient namespace.
+
+    The main classes are:
+    - @ref RestClient::RestClient "RestClient": this class provides the REST client API
+
+    see example file \c "restclient.q" in the examples directory for an example of using this module
+*/
+
+#! the RestClient namespace contains all the objects in the RestClient module
+public namespace RestClient {
+    #! this class provides the REST client API
+    public class RestClient inherits Qore::HTTPClient {
+        public {
+            #! supported mime types for de/serializing requests and responses
+            const MimeDataTypes = (
+%ifndef NoYaml
+                MimeTypeYaml: True,
+                MimeTypeYamlRpc: True,
+%endif
+%ifndef NoXml
+                MimeTypeXml: True,
+%endif
+%ifndef NoJson
+                MimeTypeJsonRpc: True,
+%endif
+                MimeTypeHtml: True,
+                );
+
+            #! Data serialization support mapping codes to MIME types and de/serialization functions
+            const DataSerializationSupport = (
+%ifndef NoJson
+                "json": (
+                    "ct": MimeTypeJsonRpc,
+                    "out": \makeJSONString(),
+                ),
+%endif
+%ifndef NoYaml
+                "yaml": (
+                    "ct": MimeTypeYaml,
+                    "out": \makeYAML(),
+                ),
+%endif
+%ifndef NoXml
+                "xml": (
+                    "ct": MimeTypeXml,
+                    "out": \makeXMLRPCValueString(),
+                ),
+%endif
+                );
+
+            #! Accept header list
+            const AcceptList = (
+%ifndef NoYaml
+                MimeTypeYaml, MimeTypeYamlRpc,
+%endif
+%ifndef NoXml
+                MimeTypeXml,
+%endif
+%ifndef NoJson
+                MimeTypeJsonRpc,
+%endif
+                );
+
+            #! Accept header value
+            const Accept = AcceptList.join(",");
+
+            #! RestClient Version
+            const Version = "1.0";
+
+            #! RestClient Version String
+            const VersionString = sprintf("Qore-RestClient/%s", RestClient::Version);
+
+            #! default HTTP headers (Content-Type is added before sending)
+            const DefaultHeaders = (
+                "Accept": MimeTypeYamlRpc,
+                "User-Agent": RestClient::VersionString,
+                );
+
+            #! Data serialization options; this is a hash to similulate a set of strings
+            /** Data serialization options are as follows:
+                - \c "auto": prefers in this order: json, yaml, xml-rpc
+                - \c "xml": use only XML-RPC serialization
+                - \c "json": use only JSON serialization
+                - \c "yaml": use only YAML serialization
+             */
+            const DataSerializationOptions = (
+                "auto": True,
+                "xml": True,
+                "json": True,
+                "yaml": True,
+                );
+        }
+        
+        private {
+            # headers to send with every request
+            hash $.headers;
+            # data serialization code
+            string $.ds;
+            # serialization info hash
+            hash $.sih;
+            # root REST path
+            string $.path;
+        }
+
+        #! calls the base class HTTPClient constructor and optionally connects to the REST server
+        /** @par Example:
+            @code
+my RestClient(("url": "http://localhost:8001/rest"));
+            @endcode
+
+            @param opts valid options are:
+            - \c url: A string giving the URL to connect to
+            - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
+            - \c default_port: The default port number to connect to if none is given in the URL
+            - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
+            - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+            - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+            - \c proxy: The proxy URL for connecting through a proxy
+            - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 5m)
+            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 30s)
+            @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
+
+            @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
+        */
+        constructor(hash $opts = hash(), bool $do_not_connect = False) : HTTPClient($opts) {
+            $.setSerialization($opts.data);
+            
+            # unconditionally set the encoding to utf-8
+            $.setEncoding("utf-8");
+            
+            if (!$do_not_connect)
+                $.connect();
+            
+            $.headers = DefaultHeaders + $opts.headers;
+            
+            # set path
+            my *string $path = parse_url($.getURL()).path;
+            $.path = $path ? $path : $opts.default_path ? $opts.default_path : "";
+        }
+
+        #! change the serialization option for the object; see @ref DataSerializationOptions for valid options
+        /** @par Example:
+            @code
+$rest.setSerialization("yaml");
+            @endcode
+
+            @param data the serialization option for the object; see @ref DataSerializationOptions for valid options
+        */
+        setSerialization(string $data = "auto") {
+            if (!DataSerializationOptions.$data)
+                throw "RESTCLIENT-ERROR", sprintf("data serialization option %y is unknown; valid options: %y", $data, DataSerializationOptions.keys());
+
+            if ($data == "auto")
+                $data = DataSerializationSupport.firstKey();
+            else if (!DataSerializationSupport.$data)
+                throw "RESTCLIENT-ERROR", sprintf("data serialization option %y is not supported because the required module could not be loaded; currently supported options: %y", $data, DataSerializationSupport.keys());
+        
+            $.ds = $data;
+            $.sih = DataSerializationSupport.$data;
+        }
+
+        #! sends an HTTP GET request to the REST server
+        hash get(string $path, *data $body, reference $info) {
+            return $.doRequest("GET", $path, $body, \$info);
+        }
+
+        #! sends an HTTP PUT request to the REST server
+        hash put(string $path, *data $body, reference $info) {
+            return $.doRequest("PUT", $path, $body, \$info);
+        }
+
+        #! sends an HTTP POST request to the REST server
+        hash post(string $path, *data $body, reference $info) {
+            return $.doRequest("POST", $path, $body, \$info);
+        }
+
+        #! sends an HTTP DELETE request to the REST server
+        hash del(string $path, *data $body, reference $info) {
+            return $.doRequest("DELETE", $path, $body, \$info);
+        }
+
+        private hash doRequest(string $m, string $path, *data $body, reference $info) {
+            my hash $hdr = $.headers;
+
+            # serialize body if necessary
+            if ($body) {
+                $body = $.sih.out($body);
+                $hdr."Content-Type" = $.sih.ct;
+            }
+
+            # prepare path
+            if ($.path)
+                $path = $.path + "/" + $path;
+
+            my hash $h = $.send($body, $m, $path, $hdr, False, \$info);
+
+            # decode any response body
+            if ($h.body) {
+                my bool $decoded = False;
+%ifndef NoYaml
+                # check for yaml support
+                foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
+                    if ($h."content-type" == $ct) {
+                        $h.body = parseYAML($h.body);
+                        $decoded = True;
+                        break;
+                    }
+                }
+%endif
+%ifndef NoXml
+                # check for xml-rpc support
+                if (!$decoded && $h."content-type" == MimeTypeXml) {
+                    $h.body = parseXMLRPCValue($h.body);
+                    $decoded = True;
+                }
+%endif
+%ifndef NoJson
+                # check for json support
+                if (!$decoded && $h."content-type" == MimeTypeJsonRpc) {
+                    $h.body = parseJSON($h.body);
+                    $decoded = True;
+                }
+%endif
+                if (!$decoded)
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", $h."content-type", MimeDataTypes.keys(), $h.body);
+            }
+
+            return $h;
+        }
+    }
+}

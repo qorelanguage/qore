@@ -337,7 +337,18 @@ public namespace RestHandler {
             my *list $cl = $ah.method ? $ah.method.split("/") : NOTHING;
 
             # handle call with class
-            my hash $rv = $rcls.handleRequest($self, $cl, $mn, $args, $cx + ("hdr": $hdr, "body": $body));
+            my hash $rv;
+            
+            try {
+                $rv = $rcls.handleRequest($self, $cl, $mn, $args, $cx + ("hdr": $hdr, "body": $body));
+            }
+            catch (hash $ex) {
+                $.logDebug("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
+                $rv = (
+                    "code": 200,
+                    "body": $ex,
+                    );
+            }
 
             # serialize response according to client's capabilities if necessary
             if (exists $rv.body) {
@@ -350,13 +361,15 @@ public namespace RestHandler {
                         map $aih.$1 = True, $astr.split(",");
                     }
 
+                    $.logInfo("aih: %y", $aih);
+
                     my bool $encoded;
 %ifndef NoYaml
                     # check for yaml support
                     foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
                         if ($aih.$ct || $aih."*/*") {
                             $rv.body = makeYAML($rv.body);
-                            $rv.hdr = $ct;
+                            $rv.hdr = ("Content-Type": $ct);
                             $encoded = True;
                             break;
                         }
@@ -366,7 +379,7 @@ public namespace RestHandler {
                     # check for xml-rpc support
                     if (!$encoded && ($aih{MimeTypeXml} || $aih."*/*")) {
                         $rv.body = makeXMLRPCValueString($rv.body);
-                        $rv.hdr = MimeTypeXml;
+                        $rv.hdr = ("Content-Type": MimeTypeXml);
                         $encoded = True;
                     }
 %endif
@@ -374,7 +387,7 @@ public namespace RestHandler {
                     # check for json support
                     if (!$encoded && ($aih{MimeTypeJsonRpc} || $aih."*/*")) {
                         $rv.body = makeJSONString($rv.body);
-                        $rv.hdr = MimeTypeJsonRpc;
+                        $rv.hdr = ("Content-Type": MimeTypeJsonRpc);
                         $encoded = True;
                     }
 %endif
@@ -382,7 +395,7 @@ public namespace RestHandler {
                     # check for html support
                     if (!$encoded && ($aih{MimeTypeHtml} || $aih."*/*")) {
                         $rv.body = sprintf("<pre>%N</pre>", $rv.body);
-                        $rv.hdr = MimeTypeHtml;
+                        $rv.hdr = ("Content-Type": MimeTypeHtml);
                         $encoded = True;
                     }
 

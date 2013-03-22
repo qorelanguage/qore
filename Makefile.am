@@ -11,7 +11,7 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil OracleSqlUtil PgsqlSqlUtil RestHandler
+USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil OracleSqlUtil PgsqlSqlUtil RestHandler RestClient
 USER_MODULES = qlib/HttpServer.qm \
 	qlib/SmtpClient.qm \
 	qlib/Mime.qm \
@@ -23,7 +23,8 @@ USER_MODULES = qlib/HttpServer.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
 	qlib/Util.qm \
-	qlib/RestHandler.qm
+	qlib/RestHandler.qm \
+	qlib/RestClient.qm
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC
@@ -511,7 +512,7 @@ dummy:
 	./next_build.sh
 
 if COND_DOXYGEN
-DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/SqlUtil/html docs/modules/Util/html
+DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/RestClient/html docs/modules/SqlUtil/html docs/modules/Util/html
 
 LIB_TMP_DOXYFILES_SRC = \
 	doxygen/lib/Doxyfile
@@ -695,6 +696,7 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	doxygen/qlib/Pop3Client.qm.dox.h \
 	doxygen/qlib/CsvUtil.qm.dox.h \
 	doxygen/qlib/RestHandler.qm.dox.h \
+	doxygen/qlib/RestClient.qm.dox.h \
 	doxygen/qlib/SqlUtil.qm.dox.h \
 	doxygen/qlib/Util.qm.dox.h \
 	HttpServer.tag \
@@ -705,6 +707,7 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	Pop3Client.tag \
 	CsvUtil.tag \
 	RestHandler.tag \
+	RestClient.tag \
 	SqlUtil.tag \
 	Util.tag
 
@@ -764,6 +767,12 @@ doxygen/qlib/Doxyfile.RestHandler: doxygen/qlib/Doxyfile.tmpl $(QDX)
 doxygen/qlib/RestHandler.qm.dox.h: qlib/RestHandler.qm $(QDX)
 	$(QDX) $< $@
 
+doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX)
+	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h $< $@
+
+doxygen/qlib/RestClient.qm.dox.h: qlib/RestClient.qm $(QDX)
+	$(QDX) $< $@
+
 doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
 	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm.dox.h $< $@
 
@@ -817,6 +826,10 @@ docs/modules/CsvUtil/html: docs/lang/html doxygen/qlib/CsvUtil.qm.dox.h doxygen/
 docs/modules/RestHandler/html: docs/lang/html doxygen/qlib/RestHandler.qm.dox.h doxygen/qlib/Doxyfile.RestHandler
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.RestHandler
 	$(top_srcdir)/doxygen/pdox docs/modules/RestHandler/html docs/modules/RestHandler/html/search
+
+docs/modules/RestClient/html: docs/lang/html doxygen/qlib/RestClient.qm.dox.h doxygen/qlib/Doxyfile.RestClient
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.RestClient
+	$(top_srcdir)/doxygen/pdox docs/modules/RestClient/html docs/modules/RestClient/html/search
 
 docs/modules/SqlUtil/html: docs/lang/html doxygen/qlib/SqlUtil.qm.dox.h doxygen/qlib/Doxyfile.SqlUtil
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.SqlUtil

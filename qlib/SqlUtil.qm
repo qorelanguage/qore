@@ -595,6 +595,46 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             return t.addColumn(cname, opt, nullable, \lsql);
         }
 
+        #! adds a primary key to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractPrimaryKey $pk = $table.addPrimaryKey("pk_mytable", "id", ("index_tablespace": "index1"), \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the new primary key constraint
+            @param cols a single column name or a list of columns that make up the primary key
+            @param opt a hash of options for the new primary key; each driver may implement it's own options; for common options, see @ref PrimaryKeyOptions
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return an AbstractPrimaryKey object corresponding to the primary key created
+
+            @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
+         */
+        AbstractPrimaryKey addPrimaryKey(string cname, softlist cols, *hash opt, *reference sql) {
+            return t.addPrimaryKey(cname, cols, opt, sql);
+        }
+
+        #! drops the primary key from the table
+        /** @par Example:
+            @code
+$table.dropPrimaryKey();
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return the primary key dropped from the table
+
+            @note this method retrieves the primary key definition from the database if none has already been defined
+         */
+        AbstractPrimaryKey dropPrimaryKey(*reference sql) {
+            return t.dropPrimaryKey();
+        }
+
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
         /** @par Example:
             @code
@@ -1120,10 +1160,24 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             }
         }
 
-        #! adds a primary key to the table
-        /**
+        #! adds a primary key to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractPrimaryKey $pk = $table.addPrimaryKey("pk_mytable", "id", ("index_tablespace": "index1"), \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the new primary key constraint
+            @param cols a single column name or a list of columns that make up the primary key
+            @param opt a hash of options for the new primary key; each driver may implement it's own options; for common options, see @ref PrimaryKeyOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
+            @return an AbstractPrimaryKey object corresponding to the primary key created
+
+            @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
          */
         AbstractPrimaryKey addPrimaryKey(string cname, softlist cols, *hash opt, *reference sql) {
             getColumnsIntern();
