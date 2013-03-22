@@ -85,20 +85,19 @@ public namespace OracleSqlUtil {
             byte_size = bs;
         }
 
-        addToTable(string table_name, AbstractDatasource ds) {
-	    string sql = sprintf("alter table %s add %s", table_name, getCreateSql());	    
-	    on_success ds.commit();
-	    on_error ds.rollback();
-	    ds.exec(sql);
-	    if (comment)
-		ds.exec("comment on %s.%s is %v", table_name, name, comment);
-        }
+        #! returns a list of sql strings that can be used to add the column to an existing table
+        /** @par Example:
+            @code
+my list $l = $col.getCreateSql($t);
+            @endcode
 
-        dropFromTable(string table_name, AbstractDatasource ds) {
-	    string sql = sprintf("alter table %s drop %s", table_name, name);	    
-	    on_success ds.commit();
-	    on_error ds.rollback();
-	    ds.exec(sql);
+            @param t the AbstractTable object to modify
+         */
+        list getCreateSql(AbstractTable t) {
+	    list l += sprintf("alter table %s add %s", t.getSqlName(), getCreateSql());	    
+	    if (comment)
+		l += sprintf("comment on %s.%s is %s", t.getSqlName(), name, comment);
+            return l;
         }
     }
 
@@ -368,7 +367,7 @@ public namespace OracleSqlUtil {
 	    inDb = True;
 	}
 
-        private string getSqlName() {
+        string getSqlName() {
             return sprintf("%s.%s", schema, name);
         }
 

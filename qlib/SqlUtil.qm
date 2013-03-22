@@ -100,6 +100,10 @@ public namespace SqlUtil {
             h{k} = val;
         }
 
+        any take(string k) {
+            return remove h{k};
+        }
+
         *hash val() {
             return h;
         }
@@ -184,18 +188,6 @@ public namespace SqlUtil {
         string getDropSql(string table_name) {
             return sprintf("alter table %s drop constraint %s", table_name, name);
         }
-
-        addToTable(string table_name, AbstractDatasource ds) {
-	    on_success ds.commit();
-	    on_error ds.rollback();
-	    ds.exec(getCreateSql(table_name));
-        }
-
-        dropFromTable(string table_name, AbstractDatasource ds) {
-	    on_success ds.commit();
-	    on_error ds.rollback();
-	    ds.exec(getDropSql(table_name));
-        }
     }
 
     #! the base class for column information
@@ -264,8 +256,21 @@ public namespace SqlUtil {
             return sql;
         }
 
-        abstract addToTable(string table_name, AbstractDatasource ds);
-        abstract dropFromTable(string table_name, AbstractDatasource ds);
+        #! returns a list of sql strings that can be used to add the column to an existing table
+        /** @par Example:
+            @code
+my list $l = $col.getCreateSql($t);
+            @endcode
+
+            @param t the AbstractTable object to modify
+         */
+        softlist getCreateSql(AbstractTable t) {
+            return sprintf("alter table %s add %s", t.getSqlName(), getCreateSql());
+        }
+
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop column %s", table_name, name);
+        }
     }
 
     #! index container class that throws an exception if an unknown index is accessed
@@ -578,6 +583,7 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
 
@@ -585,8 +591,8 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
 
             @note make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
          */
-        AbstractColumn addColumn(string cname, hash opt, bool nullable = True) {
-            return t.addColumn(cname, opt, nullable);
+        AbstractColumn addColumn(string cname, hash opt, bool nullable = True, *reference lsql) {
+            return t.addColumn(cname, opt, nullable, \lsql);
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
@@ -612,13 +618,14 @@ $table.dropColumn("notes_2");
             In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
 
             @param cname the name of the column to drop
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @throw COLUMN-ERROR the named column is not present in the table
 
             @note this method retrieves the table definition from the database if none has already been defined
          */
-         AbstractColumn dropColumn(string cname) {
-             return t.dropColumn(cname);
+         AbstractColumn dropColumn(string cname, *reference sql) {
+             return t.dropColumn(cname, \sql);
          }
 
         #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
@@ -1077,12 +1084,13 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+            @param sql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
 
             @note make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
          */
-        AbstractColumn addColumn(string cname, hash opt, bool nullable = True) {
+        AbstractColumn addColumn(string cname, hash opt, bool nullable = True, *reference lsql) {
             if (!columns)
                 columns = new Columns();
             else if (columns.hasKey(cname))
@@ -1097,18 +1105,27 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             AbstractColumn c = addColumnImpl(cname, opt, nullable);
 
             # add column in table if the table already exists in the DB
-            if (inDb)
-                c.addToTable(name, ds);
+            execSql(lsql = c.getCreateSql(self));
 
             # add the column to the internal column representation
 	    columns.add(cname, c);
             return c;
         }
 
+        private execSql(softlist lsql) {
+            if (inDb) {
+                on_success ds.commit();
+                on_error ds.rollback();
+                map ds.exec($1), lsql;
+            }
+        }
+
         #! adds a primary key to the table
         /**
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
          */
-        AbstractPrimaryKey addPrimaryKey(string cname, softlist cols, *hash opt) {
+        AbstractPrimaryKey addPrimaryKey(string cname, softlist cols, *hash opt, *reference sql) {
             getColumnsIntern();
             if (inDb)
                 getPrimaryKeyIntern();
@@ -1137,8 +1154,7 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             AbstractPrimaryKey pk = addPrimaryKeyImpl(cname, ch, opt);
             
             # add pk to table if the table already exists in the DB
-            if (inDb)
-                pk.addToTable(name, ds);
+            execSql(sql = pk.getCreateSql(getSqlName()));
 
             # set as primary key for the table
             return primaryKey = pk;
@@ -1151,17 +1167,20 @@ $table.dropPrimaryKey();
             @endcode
 
             In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
-            @return the AbstractPrimaryKey object representing the primary key dropped from the table
+            @return the primary key dropped from the table
 
             @note this method retrieves the primary key definition from the database if none has already been defined
          */
-        AbstractPrimaryKey dropPrimaryKey() {
+        AbstractPrimaryKey dropPrimaryKey(*reference sql) {
             getPrimaryKeyIntern();
             if (primaryKey.empty())
                 throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", name);
-            if (inDb)
-                primaryKey.dropFromTable(name, ds);
+
+            # drop pk from table if the table already exists in the DB
+            execSql(sql = primaryKey.getDropSql(getSqlName()));
+
             return remove primaryKey;
         }
         
@@ -1266,6 +1285,7 @@ $table.dropColumn("notes_2");
             In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
 
             @param cname the name of the column to drop
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return the AbstractColumn object representing the column dropped from the table
 
@@ -1273,12 +1293,13 @@ $table.dropColumn("notes_2");
 
             @note this method retrieves the table definition from the database if none has already been defined
          */
-         AbstractColumn dropColumn(string cname) {
+        AbstractColumn dropColumn(string cname, *reference sql) {
             getColumnsIntern();
-            if (!columns{cname})
+            if (!columns.hasKey(cname))
                 throw "COLUMN-ERROR", sprintf("%s.%s: no such column (valid columns: %y)", name, cname, columns.keys());
-            dropColumnIntern(cname);
-            return remove columns{cname};
+            # drop column from table if the table already exists in the DB
+            execSql(sql = columns{cname}.getDropSql(getSqlName()));
+            return columns.take(cname);
         }
 
         #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
@@ -1706,7 +1727,8 @@ my *list $rows = $table.find($list);
             }
         }
 
-        private string getSqlName() {
+        #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
+        string getSqlName() {
             return name;
         }
 
@@ -1880,10 +1902,6 @@ my *list $rows = $table.find($list);
         #! override in subclasses to return driver-specific options
         private hash getPrimaryKeyOptions() {
             return PrimaryKeyOptions;
-        }
-
-        private dropColumnIntern(string cname) {
-	    columns{cname}.dropFromTable(name, ds);
         }
 
         private abstract Columns describeImpl();
