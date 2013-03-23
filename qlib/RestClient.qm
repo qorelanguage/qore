@@ -237,6 +237,10 @@ $rest.setSerialization("yaml");
             @endcode
 
             @param data the serialization option for the object; see @ref DataSerializationOptions for valid options
+
+            @throw RESTCLIENT-ERROR invalid or unsupported serialization option
+
+            @see @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
         */
         setSerialization(string $data = "auto") {
             if (!DataSerializationOptions.$data)
@@ -258,6 +262,8 @@ my string $ser = $rest.getSerialization();
             @endcode
 
             @return the current data serialization format currently in effect for the object (see @ref DataSerializationOptions for possible values)
+
+            @see @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
         string getSerialization() {
             return $.ds;
@@ -270,16 +276,16 @@ my hash $ans = $rest.get("/orders/1?info=verbose");
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
-            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in RestClient::constructor()
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
 
-            @throw DESERIALIZATION ERROR the response body could not be deserialized (unknown Content-Type or invalid encoding)
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
 
             @see
-            - RestClient::getSerialization()
-            - RestClient::setSerialization()
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
         hash get(string $path, any $body, *reference $info) {
             return $.doRequest("GET", $path, $body, \$info);
@@ -292,16 +298,16 @@ my hash $ans = $rest.put("/orders/1", ("action": "cancel"));
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
-            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in RestClient::constructor()
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
 
-            @throw DESERIALIZATION ERROR the response body could not be deserialized (unknown Content-Type or invalid encoding)
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
 
             @see
-            - RestClient::getSerialization()
-            - RestClient::setSerialization()
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
         hash put(string $path, any $body, *reference $info) {
             return $.doRequest("PUT", $path, $body, \$info);
@@ -314,16 +320,16 @@ my hash $ans = $rest.post("/orders", ("product": "xyz123", "options": 500));
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
-            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in RestClient::constructor()
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
 
-            @throw DESERIALIZATION ERROR the response body could not be deserialized (unknown Content-Type or invalid encoding)
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
 
             @see
-            - RestClient::getSerialization()
-            - RestClient::setSerialization()
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
         hash post(string $path, any $body, *reference $info) {
             return $.doRequest("POST", $path, $body, \$info);
@@ -336,16 +342,16 @@ my hash $ans = $rest.post("/orders/1");
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
-            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in RestClient::constructor()
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
 
-            @throw DESERIALIZATION ERROR the response body could not be deserialized (unknown Content-Type or invalid encoding)
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
 
             @see
-            - RestClient::getSerialization()
-            - RestClient::setSerialization()
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
         hash del(string $path, any $body, *reference $info) {
             return $.doRequest("DELETE", $path, $body, \$info);
@@ -359,17 +365,17 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
 
             @param m the HTTP method to be used; case is ignored (if not a valid method an \c HTTP-CLIENT-METHOD-ERROR exception is raised)
             @param path the URI path to add (will be appended to any root path given in the constructor)
-            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in RestClient::constructor()
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
 
-            @throw DESERIALIZATION ERROR the response body could not be deserialized (unknown Content-Type or invalid encoding)
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
             @throw HTTP-CLIENT-METHOD-ERROR invalid HTTP method argument passed
 
             @see
-            - RestClient::getSerialization()
-            - RestClient::setSerialization()
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
         hash doRequest(string $m, string $path, any $body, *reference $info) {
             my hash $hdr = $.headers;
