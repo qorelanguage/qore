@@ -261,7 +261,7 @@ my bool $abs = absolute_path_unix($path);
         return $path =~ /^\//;
     }
 
-    #! returns True if the argument is a UNIX absolute path, False if not
+    #! returns True if the argument is a Windows absolute path, False if not
     /** @par Example:
         @code
 my bool $abs = absolute_path_windows($path);
@@ -269,7 +269,7 @@ my bool $abs = absolute_path_windows($path);
 
         @param $path the path to check
 
-        @return True if the argument is a UNIX absolute path, False if not
+        @return True if the argument is a Windows absolute path, False if not
      */
     public bool sub absolute_path_windows(string $path) {        
         return $path =~ /^\\\\/ || $path =~ /^[a-z]:\\/;
