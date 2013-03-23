@@ -351,61 +351,58 @@ public namespace RestHandler {
             }
 
             # serialize response according to client's capabilities if necessary
-            if (exists $rv.body) {
-                if ($rv.body.typeCode() != NT_STRING) {
-                    # make a hash of "accept" values
-                    my *string $astr = $hdr.accept;
-                    my hash $aih;
-                    if ($astr) {
-                        $astr =~ s/;.*//;#/;
-                        map $aih.$1 = True, $astr.split(",");
-                    }
+            if (!exists $rv.body)
+                $rv.body = "OK";
 
-                    $.logInfo("aih: %y", $aih);
+            # make a hash of "accept" values
+            my *string $astr = $hdr.accept;
+            my hash $aih;
+            if ($astr) {
+                $astr =~ s/;.*//;#/;
+                map $aih.$1 = True, $astr.split(",");
+            }
 
-                    my bool $encoded;
+            $.logInfo("aih: %y", $aih);
+
+            my bool $encoded;
 %ifndef NoYaml
-                    # check for yaml support
-                    foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
-                        if ($aih.$ct || $aih."*/*") {
-                            $rv.body = makeYAML($rv.body);
-                            $rv.hdr = ("Content-Type": $ct);
-                            $encoded = True;
-                            break;
-                        }
-                    }
-%endif
-%ifndef NoXml
-                    # check for xml-rpc support
-                    if (!$encoded && ($aih{MimeTypeXml} || $aih."*/*")) {
-                        $rv.body = makeXMLRPCValueString($rv.body);
-                        $rv.hdr = ("Content-Type": MimeTypeXml);
-                        $encoded = True;
-                    }
-%endif
-%ifndef NoJson
-                    # check for json support
-                    if (!$encoded && ($aih{MimeTypeJsonRpc} || $aih."*/*")) {
-                        $rv.body = makeJSONString($rv.body);
-                        $rv.hdr = ("Content-Type": MimeTypeJsonRpc);
-                        $encoded = True;
-                    }
-%endif
-
-                    # check for html support
-                    if (!$encoded && ($aih{MimeTypeHtml} || $aih."*/*")) {
-                        $rv.body = sprintf("<pre>%N</pre>", $rv.body);
-                        $rv.hdr = ("Content-Type": MimeTypeHtml);
-                        $encoded = True;
-                    }
-
-                    if (!$encoded) {
-                        $.responseSerializationError($cx, $aih, $rv);
-                        return RestHandler::make501("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", $aih.keys(), MimeDataTypes.keys(), $rv.body);
-                    }
+            # check for yaml support
+            foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
+                if ($aih.$ct || $aih."*/*") {
+                    $rv.body = makeYAML($rv.body);
+                    $rv.hdr = ("Content-Type": $ct);
+                    $encoded = True;
+                    break;
                 }
             }
-            else $rv.body = "OK";
+%endif
+%ifndef NoXml
+            # check for xml-rpc support
+            if (!$encoded && ($aih{MimeTypeXml} || $aih."*/*")) {
+                $rv.body = makeXMLRPCValueString($rv.body);
+                $rv.hdr = ("Content-Type": MimeTypeXml);
+                $encoded = True;
+            }
+%endif
+%ifndef NoJson
+            # check for json support
+            if (!$encoded && ($aih{MimeTypeJsonRpc} || $aih."*/*")) {
+                $rv.body = makeJSONString($rv.body);
+                $rv.hdr = ("Content-Type": MimeTypeJsonRpc);
+                $encoded = True;
+            }
+%endif
+            # check for html support
+            if (!$encoded && ($aih{MimeTypeHtml} || $aih."*/*")) {
+                $rv.body = sprintf("<pre>%N</pre>", $rv.body);
+                $rv.hdr = ("Content-Type": MimeTypeHtml);
+                $encoded = True;
+            }
+
+            if (!$encoded) {
+                $.responseSerializationError($cx, $aih, $rv);
+                return RestHandler::make501("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", $aih.keys(), MimeDataTypes.keys(), $rv.body);
+            }
 
             return $rv;
         }
