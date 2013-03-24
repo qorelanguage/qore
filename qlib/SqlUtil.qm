@@ -169,27 +169,6 @@ public namespace SqlUtil {
         }
     }
 
-    #! represents a primary key
-    public class AbstractPrimaryKey inherits Columns {
-        private {
-            string name;
-        }
-
-        constructor(string n, *hash c) : Columns(c) {
-            name = n;
-        }
-
-        string getName() {
-            return name;
-        }
-
-        abstract string getCreateSql(string table_name, *hash opts);
-        
-        string getDropSql(string table_name) {
-            return sprintf("alter table %s drop constraint %s", table_name, name);
-        }
-    }
-
     #! the base class for column information
     public class AbstractColumn {
         public {
@@ -329,13 +308,19 @@ my list $l = $col.getCreateSql($t);
 
     #! AbstractConstraint base class
     public class AbstractConstraint {
-        public {
+        public {}
+
+        private {
             #! the name of the constraint
             string name;
         }
-
+        
         constructor(string n) {
             name = n;
+        }
+
+        string getName() {
+            return name;
         }
 
         abstract string getCreateSql(string table_name, *hash opt);        
@@ -344,6 +329,19 @@ my list $l = $col.getCreateSql($t);
             return sprintf("alter table %s drop constraint %s", table_name, name);
         }
     }
+
+    #! represents a primary key
+    public class AbstractPrimaryKey inherits AbstractConstraint, Columns {
+        constructor(string n, *hash c) : AbstractConstraint(n), Columns(c) {
+        }
+
+        abstract string getCreateSql(string table_name, *hash opts);
+        
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop constraint %s", table_name, name);
+        }
+    }
+
 
     #! foreign constraint container class that throws an exception if an unknown constraint is accessed
     public class ForeignConstraints inherits AbstractHashContainer {
@@ -730,6 +728,25 @@ $table.dropForeignConstraint("uk_mytable_name");
             return t.dropForeignConstraint(cname, \sql);
         }
 
+        #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
+        /** @par Example:
+            @code
+$table.dropConstraint("uk_mytable_name");
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the constraint to drop
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return the constraint dropped from the table
+
+            @note this method retrieves current constraint definitions from the database if not already loaded or defined
+         */
+        AbstractConstraint dropConstraint(string cname, *reference sql) {
+            return t.dropConstraint(cname, \sql); 
+        }
+
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
         /** @par Example:
             @code
@@ -1087,6 +1104,8 @@ my Triggers $trig = $table.getTriggers();
             bool native_case = False;
             # in database
             bool inDb = False;
+            # manual edits
+            bool manual = False;
         }
 
         private constructor(AbstractDatasource nds, string nname, *hash nopts, hash rh = TableOptions) {
@@ -1204,6 +1223,7 @@ $table.createNoCommit();
             # get and execute all the creation strings
             map ds.exec($1), getCreateSql(opt, False);
             inDb = True;
+            manual = False;
         }
 
         #! adds a column to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -1256,6 +1276,8 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
                 on_error ds.rollback();
                 map ds.exec($1), lsql;
             }
+            else 
+                manual = True;
         }
 
         #! adds a primary key to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -1285,7 +1307,7 @@ printf("%s;\n", $sql);
                 getPrimaryKeyUnlocked();
 
             if (!primaryKey.empty())
-                throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: already has primary key %y with columns: %y", name, pkname, primaryKey.name, primaryKey.keys());
+                throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: already has primary key %y with columns: %y", name, pkname, primaryKey.getName(), primaryKey.keys());
 
             if (!cols)
                 throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: no column names passed to %s::addPrimaryKey()", name, pkname, self.className());
@@ -1391,7 +1413,7 @@ printf("%s;\n", $sql);
             AbstractIndex ix = addIndexImpl(iname, unique, ch, opt);
             
             # add index to table in the DB if the table already exists in the DB
-            execSql(sql = ix.getCreateSql(getSqlName()));
+            execSql(sql = ix.getCreateSql(getSqlName(), opt));
 
             # set as index for the table
             indexes.add(iname, ix);
@@ -1534,10 +1556,10 @@ $table.dropForeignConstraint("uk_mytable_name");
             return foreignConstraints.take(cname);
         }
 
-        #! drops a constraint from the table
+        #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
         /** @par Example:
             @code
-$table.dropForeignConstraint("uk_mytable_name");
+$table.dropConstraint("uk_mytable_name");
             @endcode
 
             In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
@@ -1545,22 +1567,57 @@ $table.dropForeignConstraint("uk_mytable_name");
             @param cname the name of the constraint to drop
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
-            @return the foreign constraint dropped from the table
+            @return the constraint dropped from the table
 
-            @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
+            @note this method retrieves current constraint definitions from the database if not already loaded or defined
          */
         AbstractConstraint dropConstraint(string cname, *reference sql) {
             l.lock();
             on_exit l.unlock();
             getConstraintsUnlocked();
-            if (!foreignConstraints.hasKey(cname))
-                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%s: has no foreign constraint %y; valid foreign constraints: %y", name, cname, foreignConstraints.keys());
+            
+            AbstractConstraint c;
+
+            code rmv;
+
+            if (constraints.hasKey(cname)) {
+                c = constraints{cname};
+                rmv = sub () { constraints.take(cname); };
+            }
+            else {
+                if (inDb) {
+                    getPrimaryKeyUnlocked();
+                    if (primaryKey.getName() == cname) {
+                        c = primaryKey;
+                        rmv = sub () { remove primaryKey; };
+                    }
+                    else {
+                        getForeignConstraintsUnlocked();
+                        if (foreignConstraints.hasKey(cname)) {
+                            c = foreignConstraints{cname};
+                            rmv = sub () { foreignConstraints.take(cname); };
+                        }
+                    }
+                }
+            }
+            
+            if (!c) {
+                list cl = ();
+                # get a list of all constraint names
+                cl += constraints.keys();
+                if (primaryKey)
+                    cl += primaryKey.getName();
+                if (foreignConstraints)
+                    cl += foreignConstraints.keys();
+                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", name, cname, cl);
+            }
 
             # drop foreign constraint from table if the table already exists in the DB
-            execSql(sql = foreignConstraints{cname}.getDropSql(getSqlName()));
+            execSql(sql = c.getDropSql(getSqlName()));
 
             # remove from foreign constraint structure and return removed foreign constraint
-            return foreignConstraints.take(cname);
+            rmv();
+            return c;
         }
 
         private validateOptionsIntern(string err, hash ropt, reference opt, *string tag) {

@@ -121,6 +121,10 @@ my list $l = $col.getCreateSql($t);
             *string ts = opt.index_tablespace ? opt.index_tablespace : tablespace;
             if (ts)
                 sql += sprintf(" tablespace %s", ts);
+
+            if (opt.compute_statistics)
+                sql += " compute statistics";
+
             return sql;
         }
     }
@@ -317,6 +321,10 @@ my list $l = $col.getCreateSql($t);
 
             const OraColumnOptions = AbstractTable::ColumnOptions + (
                 "comment": Type::String,
+                );
+
+            const OracleIndexOptions = AbstractTable::IndexOptions + (
+                "compute_statistics": Type::Boolean,
                 );
         }
 
@@ -703,6 +711,10 @@ my list $l = $col.getCreateSql($t);
 
         private hash getTypeMapImpl() {
             return OraTypeMap;
+        }
+
+        private hash getIndexOptions() {
+            return OracleIndexOptions;
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
