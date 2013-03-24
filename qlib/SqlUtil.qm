@@ -86,68 +86,196 @@ public namespace SqlUtil {
             *hash h;
         }
 
+        #! creates the object with the hash argument passed
         constructor(*hash nh) {
             h = nh;
         }
 
+        #! returns the value of the given key in the contained hash if it exists, otherwise throws a \c KEY-ERROR exception
+        /** @par Example:
+            @code
+my any $v = $c.name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
         any memberGate(string k) {
             if (!h.hasKey(k))
                 throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
             return h{k};
         }
 
+        #! adds the given value to the hash with the given key name
         add(string k, any val) {
             h{k} = val;
         }
 
+        #! removes the given key from the contained hash and returns the value
         any take(string k) {
             return remove h{k};
         }
 
-        *hash val() {
+        #! returns the hash contained by this object
+        *hash getHash() {
             return h;
         }
 
+        #! Returns @ref Qore::False "False" if the contained hash has no keys, @ref Qore::True "True" if it does
+        /** @par Example:
+            @code
+my bool $b = $h.val();
+            @endcode
+
+            The opposite of empty()
+
+            @return @ref Qore::False "False" if the contained hash has no keys, @ref Qore::True "True" if it does
+        */
+        bool val() {
+            return h.val();
+        }
+
+        #! Returns a list of key names of the contained hash
+        /** @par Example:
+            @code
+my list $l = $h.keys();
+            @endcode
+
+            @return a list of key names of the contained hash
+        */
         list keys() {
             return h.keys();
         }
 
+        #! Returns a list of values of the contained hash
+        /** @par Example:
+            @code
+my list $l = $h.values();
+            @endcode
+
+            @return a list of values of the contained hash
+        */
+        list values() {
+            return h.values();
+        }
+
+        #! Returns a @ref Qore::HashIterator "HashIterator" object for the contained hash
+        /** @par Example:
+            @code
+map printf("+ %s: %y\n", $1.key, $1.value), $h.iterator();
+            @endcode
+
+            @return a @ref Qore::HashIterator "HashIterator" object for the contained hash
+        */
         AbstractIterator iterator() {
             return h.iterator();
         }
 
+        #! Returns a @ref Qore::HashKeyIterator "HashKeyIterator" object for the contained hash
+        /** @par Example:
+            @code
+map printf("+ %s\n", $1), $h.keyIterator();
+            @endcode
+
+            @return a @ref Qore::HashKeyIterator "HashKeyIterator" object for the contained hash
+        */
         AbstractIterator keyIterator() {
             return h.keyIterator();
         }
 
+        #! Returns a @ref Qore::HashPairIterator "HashPairIterator" object for the contained hash
+        /** @par Example:
+            @code
+map printf("+ %s\n", $1), $h.pairIterator();
+            @endcode
+
+            @return a @ref Qore::HashPairIterator "HashPairIterator" object for the contained hash
+        */
         AbstractIterator pairIterator() {
             return h.pairIterator();
         }
 
+        #! returns @ref Qore::True "True" if the container is empty, @ref Qore::False "False" if not
         bool empty() {
             return h.empty();
         }
 
+        #! Returns the number of keys in the contained hash
+        /** @par Example:
+            @code
+my int $num = $h.size();
+            @endcode
+
+            @return the number of keys in the contained hash
+        */
         int size() {
             return h.size();
         }
 
+        #! Returns @ref Qore::True "True" if the key exists in the contained hash (may or may not be assigned a value), @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $h.hasKey($key);
+            @endcode
+
+            @param key the key name to check
+
+            @return @ref Qore::True "True" if the key exists in the contained hash (may or may not be assigned a value), @ref Qore::False "False" if not
+        */
         bool hasKey(string k) {
             return h.hasKey(k);
         }
 
+        #! Returns @ref Qore::True "True" if the key exists in the contained hash and is assigned a value, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $h.hasKeyValue($key);
+            @endcode
+
+            @param key the key name to check
+
+            @return @ref Qore::True "True" if the key exists in the contained hash and is assigned a value, @ref Qore::False "False" if not
+        */
         bool hasKeyValue(string k) {
             return h.hasKeyValue(k);
         }
 
+        #! Returns the first key name in the contained hash or @ref nothing if the contained hash has no keys
+        /** @par Example:
+            @code
+my *string $n = $h.firstKey();
+            @endcode
+
+            @return the first key name in the contained hash or @ref nothing if the contained hash has no keys
+
+            @see lastKey()
+        */
         *string firstKey() {
             return h.firstKey();
         }
 
+        #! Returns the last key name in the contained hash or @ref nothing if the contained hash has no keys
+        /** @par Example:
+            @code
+my *string $n = $h.lastKey();
+            @endcode
+
+            @return the last key name in the contained hash or @ref nothing if the contained hash has no keys
+
+            @see firstKey()
+        */
         *string lastKey() {
             return h.lastKey();
         }
 
+        #! must return the name of the contained element
         abstract string getElementName();
     }
 
@@ -156,6 +284,22 @@ public namespace SqlUtil {
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
+        #! returns the AbstractColumn object corresponding to the key given or throws a KEY-ERROR exception
+        /** @par Example:
+            @code
+my AbstractColumn $c = $cols.id;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
         AbstractColumn memberGate(string k) {
             return AbstractHashContainer::memberGate(k);
         }
@@ -212,6 +356,7 @@ public namespace SqlUtil {
             def_val = dv;
         }
 
+        #! returns the string describing the native type that can be used in SQL (for example to add the colunn to a table or when creating the table)
         string getNativeTypeString() {            
             string sql = native_type;
             if (precision) {
@@ -226,6 +371,7 @@ public namespace SqlUtil {
             return sql;
         }
 
+        #! returns an sql string that can be used to add the column to a table
         string getCreateSql() {
             string sql = sprintf("%s %s", name, getNativeTypeString());
             if (def_val)
@@ -247,6 +393,7 @@ my list $l = $col.getCreateSql($t);
             return sprintf("alter table %s add %s", t.getSqlName(), getCreateSql());
         }
 
+        #! returns a string that can be used to drop the column from the table
         string getDropSql(string table_name) {
             return sprintf("alter table %s drop column %s", table_name, name);
         }
@@ -257,6 +404,22 @@ my list $l = $col.getCreateSql($t);
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
+        #! returns the AbstractIndex object corresponding to the key given or throws a KEY-ERROR exception
+        /** @par Example:
+            @code
+my AbstractIndex $ix = $indexes.pk_jobs;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
         AbstractIndex memberGate(string k) {
             return AbstractHashContainer::memberGate(k);
         }
@@ -285,8 +448,10 @@ my list $l = $col.getCreateSql($t);
             columns = new Columns(c);
         }
 
+        #! returns a string that can be used to create the index in the database
         abstract string getCreateSql(string table_name, *hash opt);
 
+        #! returns a string that can be used to drop the constraint from the database
         string getDropSql(string table_name) {
             return sprintf("drop index %s", name);
         }
@@ -297,6 +462,22 @@ my list $l = $col.getCreateSql($t);
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
+        #! returns the AbstractConstraint object corresponding to the key given or throws a KEY-ERROR exception
+        /** @par Example:
+            @code
+my AbstractConstraint $ix = $constraints.uk_jobs;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
         AbstractConstraint memberGate(string k) {
             return AbstractHashContainer::memberGate(k);
         }
@@ -323,8 +504,10 @@ my list $l = $col.getCreateSql($t);
             return name;
         }
 
+        #! returns a string that can be used to create the constraint in the database
         abstract string getCreateSql(string table_name, *hash opt);        
 
+        #! returns a string that can be used to drop the constraint from the database
         string getDropSql(string table_name) {
             return sprintf("alter table %s drop constraint %s", table_name, name);
         }
@@ -335,8 +518,10 @@ my list $l = $col.getCreateSql($t);
         constructor(string n, *hash c) : AbstractConstraint(n), Columns(c) {
         }
 
+        #! returns a string that can be used to create the primary key in the database
         abstract string getCreateSql(string table_name, *hash opts);
         
+        #! returns a string that can be used to drop the primary key from the database
         string getDropSql(string table_name) {
             return sprintf("alter table %s drop constraint %s", table_name, name);
         }
@@ -348,6 +533,22 @@ my list $l = $col.getCreateSql($t);
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
+        #! returns the AbstractForeignConstraint object corresponding to the key given or throws a KEY-ERROR exception
+        /** @par Example:
+            @code
+my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
         AbstractForeignConstraint memberGate(string k) {
             return AbstractHashContainer::memberGate(k);
         }
@@ -404,6 +605,7 @@ my list $l = $col.getCreateSql($t);
             src = n_src;
         }
 
+        #! returns a string that can be used to create the trigger in the database
         abstract string getCreateSql(string table_name, *hash opt);
     }
 
@@ -412,6 +614,22 @@ my list $l = $col.getCreateSql($t);
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
+        #! returns the AbstractTrigger object corresponding to the key given or throws a KEY-ERROR exception
+        /** @par Example:
+            @code
+my AbstractTrigger $trig = $trigs.job_trig;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
         AbstractTrigger memberGate(string k) {
             return AbstractHashContainer::memberGate(k);
         }
@@ -431,11 +649,16 @@ my list $l = $col.getCreateSql($t);
             string src;
         }
 
+        #! creates the object from the arguments passed
+        /** @param n the name of the function
+            @param n_src the source of the function
+         */
         constructor(string n, string n_src) {
             name = n;
             src = n_src;
         }
-
+        
+        #! returns a string that can be used to create the function in the database
         abstract string getCreateSql(*hash opt);
     }
 
@@ -444,6 +667,22 @@ my list $l = $col.getCreateSql($t);
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
+        #! returns the AbstractFunction object corresponding to the key given or throws a KEY-ERROR exception
+        /** @par Example:
+            @code
+my AbstractFunction $f = $funcs.func1;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
         AbstractFunction memberGate(string k) {
             return AbstractHashContainer::memberGate(k);
         }
@@ -459,14 +698,58 @@ my list $l = $col.getCreateSql($t);
             AbstractTable t;
         }
 
+        #! creates the Table object
+        /** @par Example:
+            @code
+my Table $table($ds, "table");
+            @endcode
+
+            @param ds the AbstractDatasource object used to provide the DB connection
+            @param name the name of the table
+            @param opts a hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
         constructor(AbstractDatasource ds, string name, *hash opts) {
             t = AbstractTable::getTable(ds, name, opts);
         }
 
+        #! creates the Table object
+        /** @par Example:
+            @code
+my Table $table("pgsql:user/pass@db%host", "table");
+            @endcode
+
+            @param ds a datasource description string in the format that can be parsed by parse_datasource()
+            @param name the name of the table
+            @param opts a hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
         constructor(string ds, string name, *hash opts) {
             t = AbstractTable::getTable(ds, name, opts);
         }
         
+        #! creates the Table object
+        /** @par Example:
+            @code
+my Table $table("pgsql:user/pass@db%host", "table");
+            @endcode
+
+            @param ds a hash giving parameters for the new datasource with the following possible keys (the \c "type" key is mandatory, also usable with the output of the parse_datasource() function):
+            - \c type: (@ref string_or_nothing_type "*string") The name of the database driver to use; this key is mandatory; if not present, an exception will be raised. See @ref sql_constants for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
+            - \c user: (@ref string_or_nothing_type "*string") The user name for the new connection
+            - \c pass: (@ref string_or_nothing_type "*string") The password for the new connection
+            - \c db: (@ref string_or_nothing_type "*string") The database name for the new connection
+            - \c charset: (@ref string_or_nothing_type "*string") The database-specific name of the character encoding to use for the new connection. Also see Qore::SQL::Datasource::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the %Qore process will be used instead.
+            - \c host: (@ref string_or_nothing_type "*string") The host name for the new connection
+            - \c port: (@ref softint_type "softint") The port number for the new connection
+            - \c options: (@ref hash_or_nothing_type "*hash") Any options for the new connection
+            @param name the name of the table
+            @param opts a hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
         constructor(hash ds, string name, *hash opts) {
             t = AbstractTable::getTable(ds, name, opts);
         }
@@ -516,7 +799,7 @@ $table.drop();
 $table.dropNoCommit();
             @endcode
 
-            @note Transaction management is normally not performed when dropping tables, however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+            @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
         dropNoCommit() {
             t.dropNoCommit();
@@ -540,7 +823,7 @@ $table.truncate();
 $table.truncateNoCommit();
             @endcode
 
-            @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+            @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
         truncateNoCommit() {
             t.truncateNoCommit();
@@ -552,9 +835,11 @@ $table.truncateNoCommit();
 $table.create();
             @endcode
 
-            @param opt a hash of options for the SQL creation strings
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @note The transaction is committed if successful or rolled back if an exception occurs; use @ref createNoCommit() to execute without any transaction management
+
+            @throw OPTION-ERROR invalid or unsupported option passed
          */
         create(*hash opt) {
             t.create(opt);
@@ -566,9 +851,9 @@ $table.create();
 $table.createNoCommit();
             @endcode
 
-            @param opt a hash of options for the SQL creation strings
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
-            @note Transaction management is normally not performed when creating tables, however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+            @note Transaction management is normally not performed when creating tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
         createNoCommit(*hash opt) {
             t.createNoCommit(opt);
@@ -596,6 +881,8 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
 
             @note make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractColumn addColumn(string cname, hash opt, bool nullable = True, *reference lsql) {
             return t.addColumn(cname, opt, nullable, \lsql);
@@ -613,12 +900,15 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new primary key constraint
             @param cols a single column name or a list of columns that make up the primary key
-            @param opt a hash of options for the new primary key; each driver may implement it's own options; for common options, see @ref PrimaryKeyOptions
+            @param opt a hash of options for the new primary key; each driver may implement it's own options; for common options, see @ref AbstractTable::PrimaryKeyOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractPrimaryKey object corresponding to the primary key created
 
-            @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
+            @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns passed
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractPrimaryKey addPrimaryKey(string cname, softlist cols, *hash opt, *reference sql) {
             return t.addPrimaryKey(cname, cols, opt, \sql);
@@ -636,6 +926,8 @@ $table.dropPrimaryKey();
             @return the primary key dropped from the table
 
             @note this method retrieves the primary key definition from the database if none has already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractPrimaryKey dropPrimaryKey(*reference sql) {
             return t.dropPrimaryKey(\sql);
@@ -654,12 +946,15 @@ printf("%s;\n", $sql);
             @param iname the name of the new index
             @param unique a flag to tell if the new index should be unique or not
             @param cols a single column name or a list of columns that make up the index
-            @param opt a hash of options for the new index; each driver may implement it's own options; for common options, see @ref IndexOptions
+            @param opt a hash of options for the new index; each driver may implement it's own options; for common options, see @ref AbstractTable::IndexOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractIndex object corresponding to the index created
 
-            @throw INDEX-ERROR the table already has an index with the given name or invalid columns or options were passed
+            @throw INDEX-ERROR the table already has an index with the given name or invalid columns were passed
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractIndex addIndex(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
             return t.addIndex(iname, unique, cols, opt, \sql);
@@ -679,6 +974,8 @@ $table.dropIndex("uk_mytable_name");
             @return the index dropped from the table
 
             @note this method retrieves all current index definitions from the database if none have already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractIndex dropIndex(string iname, *reference sql) {
             return t.dropIndex(iname, \sql);
@@ -698,12 +995,15 @@ printf("%s;\n", $sql);
             @param cols a single column name or a list of columns in the local table that make up the foreign constraint
             @param table the name of the other table that the constraint targets
             @oaram tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
-            @param opt a hash of options for the new foreign constraint; each driver may implement it's own options; for common options, see @ref ForeignConstraintOptions
+            @param opt a hash of options for the new foreign constraint; each driver may implement it's own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractForeignConstraint object corresponding to the foreign constraint created
 
-            @throw FOREIGN-CONSTRAINT-ERROR the table already has an foreign constraint with the given name or invalid columns or options were passed
+            @throw FOREIGN-CONSTRAINT-ERROR the table already has an foreign constraint with the given name or invalid columns were passed
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractForeignConstraint addForeignConstraint(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
             return t.addForeignConstraint(cname, cols, table, tcols, opt, \sql);
@@ -723,6 +1023,8 @@ $table.dropForeignConstraint("uk_mytable_name");
             @return the foreign constraint dropped from the table
 
             @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractForeignConstraint dropForeignConstraint(string cname, *reference sql) {
             return t.dropForeignConstraint(cname, \sql);
@@ -742,6 +1044,8 @@ $table.dropConstraint("uk_mytable_name");
             @return the constraint dropped from the table
 
             @note this method retrieves current constraint definitions from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractConstraint dropConstraint(string cname, *reference sql) {
             return t.dropConstraint(cname, \sql); 
@@ -775,6 +1079,8 @@ $table.dropColumn("notes_2");
             @throw COLUMN-ERROR the named column is not present in the table
 
             @note this method retrieves the table definition from the database if none has already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
          AbstractColumn dropColumn(string cname, *reference sql) {
              return t.dropColumn(cname, \sql);
@@ -810,9 +1116,11 @@ $table.insert($row);
 printf("%s\n", $table.getCreateSqlString());
             @endcode
 
-            @param opt a hash of options for the SQL creation string
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be used to create the table and all known properties of the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         string getCreateSqlString(*hash opt) {
             return t.getCreateSqlString(opt);
@@ -824,7 +1132,7 @@ printf("%s\n", $table.getCreateSqlString());
 map printf("$1;\n", $1), $table.getCreateSql();
             @endcode
 
-            @param opt a hash of options for the SQL creation strings
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that could be used to create the table and all known properties of the table
         */
@@ -838,9 +1146,11 @@ map printf("$1;\n", $1), $table.getCreateSql();
 my string $sql = $table.getCreateTableSql();
             @endcode
 
-            @param opt a hash of options for the table creation string
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be used to create the basic table structure without indexes and constraints 
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         string getCreateTableSql(*hash opt) {
             return t.getCreateTableSql(opt);
@@ -852,9 +1162,11 @@ my string $sql = $table.getCreateTableSql();
 my *list $l = $table.getCreateIndexesSql();
             @endcode
 
-            @param opt a hash of options for the index creation string
+            @param opt a hash of options for the new index; each driver may implement it's own options; for common options, see @ref AbstractTable::IndexOptions
 
             @return a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         *list getCreateIndexesSql(*hash opt) {
             return t.getCreateIndexesSql(opt);
@@ -866,9 +1178,11 @@ my *list $l = $table.getCreateIndexesSql();
 my *string $sql = $table.getCreatePrimaryKeySql();
             @endcode
 
-            @param opt a hash of options for the primary key creation string
+            @param opt a hash of options for the new primary key; each driver may implement it's own options; for common options, see @ref AbstractTable::PrimaryKeyOptions
 
             @return an SQL string that could be used to create the primary key on the table or @ref nothing if there is no primary key on the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         *string getCreatePrimaryKeySql(*hash opt) {
             return t.getCreatePrimaryKeySql(opt);
@@ -880,9 +1194,11 @@ my *string $sql = $table.getCreatePrimaryKeySql();
 my *list $l = $table.getCreateForeignConstraintsSql();
             @endcode
 
-            @param opt a hash of options for the foreign constraint creation string
+            @param opt a hash of options for the new foreign constraint; each driver may implement it's own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
 
             @return a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         *list getCreateForeignConstraintsSql(*hash opt) {
             return t.getCreateForeignConstraintsSql(opt);
@@ -894,9 +1210,11 @@ my *list $l = $table.getCreateForeignConstraintsSql();
 my *list $l = $table.getCreateConstraintsSql();
             @endcode
 
-            @param opt a hash of options for the non-foreign constraint creation string
+            @param opt a hash of options for the non-foreign constraint creation string; see @ref AbstractTable::ConstraintOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that could be used to create non-foreign constraints on the table or @ref nothing if there are no non-foreign constraints on the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
 
             @see getCreateForeignConstraintsSql()
         */
@@ -910,9 +1228,11 @@ my *list $l = $table.getCreateConstraintsSql();
 my *list $l = $table.getCreateMiscSql();
             @endcode
 
-            @param opt a hash of options for the SQL creation string
+            @param opt a hash of options for the SQL creation string(s); see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or @ref nothing if there are none
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         *list getCreateMiscSql(*hash opt) {
             return t.getCreateMiscSql(opt);
@@ -924,9 +1244,11 @@ my *list $l = $table.getCreateMiscSql();
 my *list $l = $table.getCreateTriggersSql();
             @endcode
 
-            @param opt a hash of options for the trigger creation string
+            @param opt a hash of options for the trigger creation strings; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that could be used to create triggers on the table or @ref nothing if there are no triggers on the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         *list getCreateTriggersSql(*hash opt) {
             return t.getCreateTriggersSql(opt);
@@ -987,7 +1309,7 @@ my Columns $cols = $table.describe();
         }
 
         #! returns an object of class AbstractPrimaryKey describing the primary key of the table
-        /** If there is no primary key then the object returned will be empty (see @ref AbstractPrimaryKey::empty())
+        /** If there is no primary key then the object returned will be empty (see @ref SqlUtil::AbstractPrimaryKey::empty())
 
             @par Example:
             @code
@@ -1001,7 +1323,7 @@ my AbstractPrimaryKey $cols = $table.getPrimaryKey();
         }
 
         #! returns an object of class Indexes describing the indexes on the table
-        /** If there are no indexes on the table then the object returned will be empty (see @ref Indexes::empty())
+        /** If there are no indexes on the table then the object returned will be empty (see @ref SqlUtil::Indexes::empty())
 
             @par Example:
             @code
@@ -1015,7 +1337,7 @@ my Indexes $ix = $table.getIndexes();
         }
 
         #! returns an object of class Triggers describing the triggers on the table
-        /** If there are no triggers on the table then the object returned will be empty (see @ref Triggers::empty())
+        /** If there are no triggers on the table then the object returned will be empty (see @ref SqlUtil::Triggers::empty())
 
             @par Example:
             @code
@@ -1049,7 +1371,7 @@ my Triggers $trig = $table.getTriggers();
         public {
             #! table options
             const TableOptions = (
-                "native-case": True,
+                "native-case": Type::Boolean,
                 );
 
             #! default index options
@@ -1059,6 +1381,9 @@ my Triggers $trig = $table.getTriggers();
 
             #! default pk options
             const PrimaryKeyOptions = IndexOptions;
+
+            #! default constraint options
+            const ConstraintOptions = hash();
 
             #! default foreign constraint options
             const ForeignConstraintOptions = hash();
@@ -1108,8 +1433,15 @@ my Triggers $trig = $table.getTriggers();
             bool manual = False;
         }
 
-        private constructor(AbstractDatasource nds, string nname, *hash nopts, hash rh = TableOptions) {
-            checkOptions(nopts, rh);
+        #! creates the object; private constructor
+        /** @param nds the AbstractDatasource for the connection to the database
+            @param nname the name of the table
+            @param opt a hash of options for the table creation string; see @ref TableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+         */
+        private constructor(AbstractDatasource nds, string nname, *hash nopts) {
+            validateOptionsIntern("OPTION-ERROR", getTableOptions(), \nopts);
             opts = nopts;
             name = nname;
             ds = nds;
@@ -1154,7 +1486,7 @@ $table.drop();
 $table.dropNoCommit();
             @endcode
 
-            @note Transaction management is normally not performed when dropping tables, however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+            @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
         dropNoCommit() {
             ds.exec("drop table %s", getSqlName());
@@ -1181,7 +1513,7 @@ $table.truncate();
 $table.truncateNoCommit();
             @endcode
 
-            @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+            @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
         truncateNoCommit() {
             ds.exec("truncate table %s", getSqlName());
@@ -1212,7 +1544,9 @@ $table.createNoCommit();
 
             @param opt a hash of options for the SQL creation strings
 
-            @note Transaction management is normally not performed when creating tables, however this method uses the AbstractDtasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+            @note Transaction management is normally not performed when creating tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+
+            @throw CREATE-TABLE-ERROR table has already been read from or created in the database
          */
         createNoCommit(*hash opt) {
             if (inDb) 
@@ -1247,6 +1581,8 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
 
             @note make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractColumn addColumn(string cname, hash opt, bool nullable = True, *reference lsql) {
             if (!columns)
@@ -1298,6 +1634,8 @@ printf("%s;\n", $sql);
             @return an AbstractPrimaryKey object corresponding to the primary key created
 
             @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractPrimaryKey addPrimaryKey(string pkname, softlist cols, *hash opt, *reference sql) {
             l.lock();
@@ -1348,6 +1686,8 @@ $table.dropPrimaryKey();
             @return the primary key dropped from the table
 
             @note this method retrieves the primary key definition from the database if none has already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractPrimaryKey dropPrimaryKey(*reference sql) {
             l.lock();
@@ -1381,6 +1721,8 @@ printf("%s;\n", $sql);
             @return an AbstractIndex object corresponding to the index created
 
             @throw INDEX-ERROR the table already has an index with the given name or invalid columns or options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractIndex addIndex(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
             l.lock();
@@ -1436,6 +1778,8 @@ $table.dropIndex("uk_mytable_name");
             @return the index dropped from the table
 
             @note this method retrieves all current index definitions from the database if none have already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractIndex dropIndex(string iname, *reference sql) {
             l.lock();
@@ -1471,6 +1815,8 @@ printf("%s;\n", $sql);
             @return an AbstractForeignConstraint object corresponding to the foreign constraint created
 
             @throw FOREIGN-CONSTRAINT-ERROR the table already has an foreign constraint with the given name or invalid columns or options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractForeignConstraint addForeignConstraint(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
             l.lock();
@@ -1541,6 +1887,8 @@ $table.dropForeignConstraint("uk_mytable_name");
             @return the foreign constraint dropped from the table
 
             @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractForeignConstraint dropForeignConstraint(string cname, *reference sql) {
             l.lock();
@@ -1570,6 +1918,8 @@ $table.dropConstraint("uk_mytable_name");
             @return the constraint dropped from the table
 
             @note this method retrieves current constraint definitions from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractConstraint dropConstraint(string cname, *reference sql) {
             l.lock();
@@ -1728,6 +2078,8 @@ $table.dropColumn("notes_2");
             @throw COLUMN-ERROR the named column is not present in the table
 
             @note this method retrieves the table definition from the database if none has already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractColumn dropColumn(string cname, *reference sql) {
             l.lock();
@@ -1892,7 +2244,7 @@ my hash $h = $table.describe();
         }
 
         #! returns an object of class AbstractPrimaryKey describing the primary key of the table
-        /** If there is no primary key then the object returned will be empty (see @ref AbstractPrimaryKey::empty())
+        /** If there is no primary key then the object returned will be empty (see @ref SqlUtil::AbstractPrimaryKey::empty())
 
             @par Example:
             @code
@@ -1908,7 +2260,7 @@ my hash $h = $table.describe();
         }
 
         #! returns an object of class Indexes describing the indexes on the table
-        /** If there are no indexes on the table then the object returned will be empty (see @ref Indexes::empty())
+        /** If there are no indexes on the table then the object returned will be empty (see @ref SqlUtil::Indexes::empty())
 
             @par Example:
             @code
@@ -1941,7 +2293,7 @@ my Indexes $ix = $table.getIndexes();
         }
 
         #! returns an object of class Triggers describing the triggers on the table
-        /** If there are no triggers on the table then the object returned will be empty (see @ref Triggers::empty())
+        /** If there are no triggers on the table then the object returned will be empty (see @ref SqlUtil::Triggers::empty())
 
             @par Example:
             @code
@@ -1980,7 +2332,7 @@ printf("%s\n", $table.getCreateSqlString());
 map printf("$1;\n", $1), $table.getCreateSql();
             @endcode
 
-            @param opt a hash of options for the table, index, and constraint creation strings
+            @param opt a hash of options for the table, index, and constraint creation strings; see @ref TableCreationOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create the table and all known properties of the table
@@ -1997,11 +2349,14 @@ map printf("$1;\n", $1), $table.getCreateSql();
 my string $sql = $table.getCreateTableSql();
             @endcode
 
-            @param opt a hash of options for the table creation string
+            @param opt a hash of options for the table creation string; see @ref TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be used to create the basic table structure without indexes and constraints 
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         string getCreateTableSql(*hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getTableCreationOptions(), \opt);
             l.lock();
             on_exit l.unlock();
             getColumnsUnlocked();
@@ -2014,12 +2369,15 @@ my string $sql = $table.getCreateTableSql();
 my *list $l = $table.getCreateIndexesSql();
             @endcode
 
-            @param opt a hash of options for the index creation string
+            @param opt a hash of options for the index creation string; see @ref IndexOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         *list getCreateIndexesSql(*hash opt, bool cache = True) {
+            validateOptionsIntern("OPTION-ERROR", getIndexOptions(), \opt);
             l.lock();
             on_exit l.unlock();
             if (cache)
@@ -2035,12 +2393,15 @@ my *list $l = $table.getCreateIndexesSql();
 my *string $sql = $table.getCreatePrimaryKeySql();
             @endcode
 
-            @param opt a hash of options for the primary key creation string
+            @param opt a hash of options for the primary key creation string; see @ref PrimaryKeyOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return an SQL string that could be used to create the primary key on the table or @ref nothing if there is no primary key on the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         *string getCreatePrimaryKeySql(*hash opt, bool cache = True) {
+            validateOptionsIntern("OPTION-ERROR", getPrimaryKeyOptions(), \opt);
             l.lock();
             on_exit l.unlock();
             if (cache)
@@ -2056,12 +2417,15 @@ my *string $sql = $table.getCreatePrimaryKeySql();
 my *list $l = $table.getCreateForeignConstraintsSql();
             @endcode
 
-            @param opt a hash of options for the foreign constraint creation string
+            @param opt a hash of options for the foreign constraint creation string; see @ref ForeignConstraintOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         *list getCreateForeignConstraintsSql(*hash opt, bool cache = True) {
+            validateOptionsIntern("OPTION-ERROR", getForeignConstraintOptions(), \opt);
             l.lock();
             on_exit l.unlock();
             if (cache)
@@ -2077,14 +2441,17 @@ my *list $l = $table.getCreateForeignConstraintsSql();
 my *list $l = $table.getCreateConstraintsSql();
             @endcode
 
-            @param opt a hash of options for the non-foreign constraint creation string
+            @param opt a hash of options for the non-foreign constraint creation string; see @ref ConstraintOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create non-foreign constraints on the table or @ref nothing if there are no non-foreign constraints on the table
 
             @see getCreateForeignConstraintsSql()
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         *list getCreateConstraintsSql(*hash opt, bool cache = True) {
+            validateOptionsIntern("OPTION-ERROR", getConstraintOptions(), \opt);
             l.lock();
             on_exit l.unlock();
             if (cache)
@@ -2100,12 +2467,15 @@ my *list $l = $table.getCreateConstraintsSql();
 my *list $l = $table.getCreateMiscSql();
             @endcode
 
-            @param opt a hash of options for the SQL creation string
+            @param opt a hash of options for the SQL creation string; see @ref TableCreationOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or @ref nothing if there are none
+
+            @throw OPTION-ERROR invalid or unsupported option passed
         */
         *list getCreateMiscSql(*hash opt, bool cache = True) {
+            validateOptionsIntern("OPTION-ERROR", getTableCreationOptions(), \opt);
             l.lock();
             on_exit l.unlock();
             return getCreateMiscSqlImpl(opt, cache);
@@ -2117,14 +2487,17 @@ my *list $l = $table.getCreateMiscSql();
 my *list $l = $table.getCreateTriggersSql();
             @endcode
 
-            @param opt a hash of options for the trigger creation strings
+            @param opt a hash of options for the trigger creation strings; see @ref TableCreationOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create triggers on the table or @ref nothing if there are no triggers on the table
 
+            @throw OPTION-ERROR invalid or unsupported option passed
+
             @see getCreateTriggersSql()
         */
         *list getCreateTriggersSql(*hash opt, bool cache = True) {
+            validateOptionsIntern("OPTION-ERROR", getTableCreationOptions(), \opt);
             l.lock();
             on_exit l.unlock();
             if (cache)
@@ -2213,63 +2586,9 @@ my *list $rows = $table.find($list);
             getTriggersUnlocked();
         }
 
-        private checkCreateOptions(*hash nopts, *hash rh) {
-            foreach string k in (nopts.keyIterator()) {
-                if (!rh{k})
-                    throw "TABLE-CREATION-ERROR", sprintf("creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
-                if (rh{k} && nopts{k}.type() != rh{k})
-                    throw "TABLE-CREATION-ERROR", sprintf("value passed to table creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
-            }
-        }
-
         #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
         string getSqlName() {
             return name;
-        }
-
-        private checkCreateIndexOptions(*hash nopts, *hash rh) {
-            foreach string k in (nopts.keyIterator()) {
-                if (!rh{k})
-                    throw "INDEX-CREATION-ERROR", sprintf("index creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
-                if (rh{k} && nopts{k}.type() != rh{k})
-                    throw "INDEX-CREATION-ERROR", sprintf("value passed to index creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
-            }
-        }
-
-        private checkCreatePrimaryKeyOptions(*hash nopts, *hash rh) {
-            foreach string k in (nopts.keyIterator()) {
-                if (!rh{k})
-                    throw "PK-CREATION-ERROR", sprintf("primary key creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
-                if (rh{k} && nopts{k}.type() != rh{k})
-                    throw "PK-CREATION-ERROR", sprintf("value passed to primary key creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
-            }
-        }
-
-        private checkCreateConstraintOptions(*hash nopts, *hash rh) {
-            foreach string k in (nopts.keyIterator()) {
-                if (!rh{k})
-                    throw "CONSTRAINT-CREATION-ERROR", sprintf("constraint creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
-                if (rh{k} && nopts{k}.type() != rh{k})
-                    throw "CONSTRAINT-CREATION-ERROR", sprintf("value passed to constraint creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
-            }
-        }
-
-        private checkCreateMiscOptions(*hash nopts, *hash rh) {
-            foreach string k in (nopts.keyIterator()) {
-                if (!rh{k})
-                    throw "SQL-CREATION-ERROR", sprintf("SQL creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
-                if (rh{k} && nopts{k}.type() != rh{k})
-                    throw "SQL-CREATION-ERROR", sprintf("value passed to SQL creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
-            }
-        }
-
-        private checkCreateTriggerOptions(*hash nopts, *hash rh) {
-            foreach string k in (nopts.keyIterator()) {
-                if (!rh{k})
-                    throw "TRIGGER-CREATION-ERROR", sprintf("trigger creation option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
-                if (rh{k} && nopts{k}.type() != rh{k})
-                    throw "TRIGGER-CREATION-ERROR", sprintf("value passed to trigger creation option %y is type %y (%y); expecting %y", k, nopts{k}.type(), nopts{k}, rh{k});
-            }
         }
 
         private checkOptions(*hash nopts, hash rh) {
@@ -2361,6 +2680,26 @@ my *list $rows = $table.find($list);
         }
 
         #! override in subclasses to return driver-specific options
+        private hash getTableOptions() {
+            return TableOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getForeignConstraintOptions() {
+            return ForeignConstraintOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getConstraintOptions() {
+            return ConstraintOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getTableCreationOptions() {
+            return TableCreationOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
         private hash getColumnOptions() {
             return ColumnOptions;
         }
@@ -2373,11 +2712,6 @@ my *list $rows = $table.find($list);
         #! override in subclasses to return driver-specific options
         private hash getPrimaryKeyOptions() {
             return PrimaryKeyOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getForeignConstraintOptions() {
-            return ForeignConstraintOptions;
         }
 
         private abstract Columns describeImpl();

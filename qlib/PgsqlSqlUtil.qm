@@ -449,7 +449,6 @@ my list $l = $col.getCreateSql($t);
         }
 
         string getCreateTableSqlImpl(*hash opt) {
-            checkCreateOptions(opt, TableCreationOptions);
             string sql = sprintf("create table %s (\n", name);
 
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
@@ -463,22 +462,18 @@ my list $l = $col.getCreateSql($t);
         }
 
         *list getCreateIndexesSqlImpl(*hash opt) {
-            checkCreateIndexOptions(opt, TableCreationOptions);
             return map $1.getCreateSql(name, opt), indexes.iterator();
         }
 
         *string getCreatePrimaryKeySqlImpl(*hash opt) {
-            checkCreatePrimaryKeyOptions(opt, TableCreationOptions);
             return primaryKey.getCreateSql(name, opt);
         }
 
         *list getCreateForeignConstraintsSqlImpl(*hash opt) {
-            checkCreateConstraintOptions(opt, TableCreationOptions);
             return map $1.getCreateSql(name, opt), foreignConstraints.iterator();
         }
 
         *list getCreateConstraintsSqlImpl(*hash opt) {
-            checkCreateConstraintOptions(opt, TableCreationOptions);
             return map $1.getCreateSql(name, opt), constraints.iterator();
         }
 
@@ -487,7 +482,6 @@ my list $l = $col.getCreateSql($t);
                 getColumnsUnlocked();
                 getTriggersUnlocked();
             }
-            checkCreateMiscOptions(opt, TableCreationOptions);
             list l = map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
             l += map $1.getCreateSql(opt), triggerFunctions.iterator();
 
@@ -497,7 +491,6 @@ my list $l = $col.getCreateSql($t);
         }
 
         *list getCreateTriggersSqlImpl(*hash opt) {
-            checkCreateTriggerOptions(opt, TableCreationOptions);
             return map $1.getCreateSql(name, opt), triggers.iterator();
         }
 
