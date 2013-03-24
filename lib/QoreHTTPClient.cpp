@@ -181,7 +181,7 @@ struct qore_qtc_private {
    DLLLOCAL ~qore_qtc_private() {
    }
 
-   DLLLOCAL void setSocketPathIntern(const con_info &con) {
+   DLLLOCAL void setSocketPathIntern(const con_info& con) {
       if (con.path.empty() || !con.host.empty()) {
 	 socketpath = con.host;
 	 socketpath += ":";
@@ -389,7 +389,7 @@ struct qore_qtc_private {
 	    : (const char *)connection.path.c_str();
 
       if (proxy_connection.port) {
-	 // create URL string for path for proxy
+         // create URL string for path for proxy
 	 pstr.concat("http");
 	 if (connection.ssl)
 	    pstr.concat('s');

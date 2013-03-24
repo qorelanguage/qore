@@ -88,21 +88,21 @@ public namespace RestHandler {
         #! this method will be called to find a sub-class (ie with GET /invoices/1 - if this class represents "invoices", then subClass("1") will be called to return invoice 1; return NOTHING if the object doesn't exist
         /** @param name the name of the subclass
          */
-        *AbstractRestClass subClass(string $name) {
+        *AbstractRestClass subClass(string $name, hash $cx, *hash $args) {
         }
 
         #! this method is called by the RestHandler class to match the right object with incoming requests
-        hash handleRequest(RestHandler $rh, *list $cl, string $mn, *hash $args, hash $cx) {            
+        hash handleRequest(RestHandler $rh, *list $cl, string $mn, hash $cx, *hash $args) {            
             if ($cl) {
                 my string $cname = shift $cl;
-                my *AbstractRestClass $cls = $.subClass($cname);
+                my *AbstractRestClass $cls = $.subClass($cname, $cx, $args);
                 if (!$cls) {
-                    $rh.logDebug("unknown subclass %y: class %y: method %y args: %y", $cname, $.name(), $mn, $args);
+                    $rh.logDebug("class %y: unknown subclass %y: method %y args: %y", $.name(), $cname, $mn, $args);
                     return $.unknownSubClassError($cname);
                 }
 
                 $rh.logDebug("class %y: dispatching to subclass class %y: method %y args: %y", $.name(), $cname, $mn, $args);
-                return $cls.handleRequest($rh, $cl, $mn, $args, $cx);
+                return $cls.handleRequest($rh, $cl, $mn, $cx, $args);
             }
             
             $rh.logDebug("class %y: dispatching method %y args: %y", $.name(), $mn, $args);
@@ -238,35 +238,6 @@ public namespace RestHandler {
 
             $.removeRootPath(\$path);
 
-            my *string $cls = ($path =~ x/^([^\/?]+)/)[0];
-
-            my AbstractRestClass $rcls;
-
-            if (!$cls) {
-                #return RestHandler::make400("cannot find REST class in path %y", $cx.url.path);
-                $rcls = $self;
-            }
-            else {
-                if (!$.ch{$cls}) {
-                    $cls = $.subClass($cls);
-                    if (!$cls)
-                        return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", $cls, $cx.url.path, $.ch.keys());
-                }
-                else
-                    $rcls = $.ch{$cls};
-            }
-
-            # check method
-            if (!Methods.($hdr.method))
-                return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", $hdr.method, Methods.keys());
-            
-            # remove class and trailing "/" from path
-            if ($path) {
-                splice $path, 0, $cls.size();
-                if ($path[0] == "/")
-                    splice $path, 0, 1;
-            }
-
             # get object and args
             my hash $ah = $path ? parse_uri_query($path) : hash();
 
@@ -318,7 +289,7 @@ public namespace RestHandler {
             }
             else
                 $body = $args;
-            
+
             # make method name
             my string $mn;
             if ($args.action) {
@@ -333,14 +304,51 @@ public namespace RestHandler {
             else
                 $mn = $hdr.method == "DELETE" ? "del" : $hdr.method.lwr();
 
+            # remove leading slash from method name
+            if ($ah.method =~ /^\//)
+                splice $ah.method, 0, 1;
+            
             # get class chain
             my *list $cl = $ah.method ? $ah.method.split("/") : NOTHING;
+
+            # get initial class
+            my *string $cls = shift $cl;
+
+            # set up context hash
+            $cx += ("hdr": $hdr, "body": $body);
+
+            my AbstractRestClass $rcls;
+
+            if (!$cls)
+                $rcls = $self;
+            else {
+                if (!$.ch{$cls}) {
+                    $cls = $.subClass($cls, $cx, $args);
+                    if (!$cls)
+                        return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", $cls, $cx.url.path, $.ch.keys());
+                }
+                else
+                    $rcls = $.ch{$cls};
+            }
+
+            # check method
+            if (!Methods.($hdr.method))
+                return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", $hdr.method, Methods.keys());
+            
+            # remove class and trailing "/" from path
+            /*
+            if ($path) {
+                splice $path, 0, $cls.size();
+                if ($path[0] == "/")
+                    splice $path, 0, 1;
+            }
+            */
 
             # handle call with class
             my hash $rv;
             
             try {
-                $rv = $rcls.handleRequest($self, $cl, $mn, $args, $cx + ("hdr": $hdr, "body": $body));
+                $rv = $rcls.handleRequest($self, $cl, $mn, $cx, $args);
             }
             catch (hash $ex) {
                 $.logDebug("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
@@ -362,7 +370,7 @@ public namespace RestHandler {
                 map $aih.$1 = True, $astr.split(",");
             }
 
-            $.logInfo("aih: %y", $aih);
+            $.logDebug("aih: %y", $aih);
 
             my bool $encoded;
 %ifndef NoYaml

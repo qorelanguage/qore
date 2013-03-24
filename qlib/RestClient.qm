@@ -390,7 +390,7 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             on_exit if ($rb) $info."request-body" = $rb;
 
             # prepare path
-            if ($.path)
+            if ($.path && $path)
                 $path = $.path + "/" + $path;
 
             my hash $h = $.send($body, $m, $path, $hdr, False, \$info);

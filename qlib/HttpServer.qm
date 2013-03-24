@@ -914,7 +914,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 
 		# remove leading / if present in path
 		if ($hdr.path =~ /^\//)
-		    $hdr.path = substr($hdr.path, 1);
+                    splice $hdr.path, 0, 1;
 
 		# process ascii encodings in url if present
 		$hdr.path = decode_url($hdr.path);
@@ -1719,13 +1719,13 @@ public class HttpServer::HttpServer {
     # don't reimplement this method; fix/enhance it in the module
     final private hash noHandlerError(hash $cx, hash $hdr, any $body) {
 	my string $str = "";
-	if (strlen($hdr.path))
-	    $str = sprintf("url=%n", $hdr.path);
+	if ($hdr.path)
+	    $str = sprintf("url=%y", $hdr.path);
 	else
 	    $str = "<no URL>";
 
 	if (strlen($hdr."content-type"))
-	    $str += sprintf(", content-type=%n", $hdr."content-type");
+	    $str += sprintf(", content-type=%y", $hdr."content-type");
 	else
 	    $str += ", <no content-type>";
 
@@ -1773,10 +1773,10 @@ public class HttpServer::HttpServer {
 	    $url = ( "path" : $url.host );
 
 	# add logging functions and url
-	$cx += 
-	    ( "logfunc"     : $.logfunc,
-	      "errlogfunc"  : $.errlogfunc,
-	      "url"         : $url 
+	$cx += (
+            "logfunc"     : $.logfunc,
+            "errlogfunc"  : $.errlogfunc,
+            "url"         : $url 
 	    );
 
 	# find a handler for the request

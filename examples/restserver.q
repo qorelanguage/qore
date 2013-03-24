@@ -98,25 +98,25 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
         h = n_h;
     }
 
-    hash get(*hash cx, *hash ah) {
+    hash get(hash cx, *hash ah) {
         return RestHandler::makeResponse(200, h);
     }
 
-    hash putChown(*hash cx, *hash ah) {
+    hash putChown(hash cx, *hash ah) {
         if (!exists cx.body.user && !exists cx.body.group)
             return RestHandler::make400("missing 'user' and/or 'group' parameters for chown(%y)", h.path);
         int rc = chown(h.path, cx.body.user, cx.body.group);
         return rc ? RestHandler::make400("ERROR chown(%y): %s", h.path, strerror()) : RestHandler::makeResponse(200, "OK");
     }
 
-    hash putChmod(*hash cx, *hash ah) {
+    hash putChmod(hash cx, *hash ah) {
         if (!exists cx.body.mode)
             return RestHandler::make400("missing 'mode' parameter for chmod(%y)", h.path);        
         int rc = chmod(h.path, cx.body.mode);
         return rc ? RestHandler::make400("ERROR chmod(%y): %s", h.path, strerror()) : RestHandler::makeResponse(200, "OK");
     }
 
-    hash putRename(*hash cx, *hash ah) {
+    hash putRename(hash cx, *hash ah) {
         if (!exists cx.body.newPath)
             return RestHandler::make400("missing 'newPath' parameter for rename(%y)", h.path);        
         try {
@@ -137,14 +137,14 @@ class ExampleFileInstanceClass inherits AbstractExampleInstanceBaseClass {
         return "file";
     }
 
-    hash del(*hash cx, *hash ah) {
+    hash del(hash cx, *hash ah) {
         int rc = unlink(h.path);
         return rc ? RestHandler::make400("ERROR unlink(%y): %s", h.path, strerror()) : RestHandler::makeResponse(200, "OK");
     }
 }
 
 class ExampleFilesClass inherits AbstractRestClass {
-    *AbstractRestClass subClass(string name) {
+    *AbstractRestClass subClass(string name, hash cx, *hash args) {
         string path = ExampleRestHandler::Dir.path() + "/" + name;
         *hash h = hstat(path);
         if (!h)
@@ -160,11 +160,11 @@ class ExampleFilesClass inherits AbstractRestClass {
         return "files";
     }
 
-    hash get(*hash cx, *hash ah) {
+    hash get(hash cx, *hash ah) {
         return RestHandler::makeResponse(200, ExampleRestHandler::Dir.listFiles());
     }
 
-    hash post(*hash cx, *hash ah) {
+    hash post(hash cx, *hash ah) {
         if (!cx.body.name)
             return RestHandler::make400("missing 'name' parameter for new file");        
 
@@ -184,14 +184,14 @@ class ExampleDirInstanceClass inherits AbstractExampleInstanceBaseClass {
         return "directory";
     }
 
-    hash del(*hash cx, *hash ah) {
+    hash del(hash cx, *hash ah) {
         int rc = rmdir(h.path);
         return rc ? RestHandler::make400("ERROR rmdir(%y): %s", h.path, strerror()) : RestHandler::makeResponse(200, "OK");
     }
 }
 
 class ExampleDirsClass inherits AbstractRestClass {
-    *AbstractRestClass subClass(string name) {
+    *AbstractRestClass subClass(string name, hash cx, *hash args) {
         string path = ExampleRestHandler::Dir.path() + "/" + name;
         *hash h = hstat(path);
         if (!h)
@@ -207,11 +207,11 @@ class ExampleDirsClass inherits AbstractRestClass {
         return "dirs";
     }
 
-    hash get(*hash cx, *hash ah) {
+    hash get(hash cx, *hash ah) {
         return RestHandler::makeResponse(200, ExampleRestHandler::Dir.listDirs());
     }
 
-    hash post(*hash cx, *hash ah) {
+    hash post(hash cx, *hash ah) {
         if (!cx.body.name)
             return RestHandler::make400("missing 'name' parameter for new directory");
 
@@ -255,7 +255,6 @@ class ExampleRestHandler inherits RestHandler {
         printf("%s: DEBUG: ", now_us().format("YYYY-MM-DD HH:mm:SS.uu"));
         vprintf(fmt + "\n", argv);
     }
-
 }
 
 class restServer {

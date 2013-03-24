@@ -113,9 +113,10 @@ sub main() {
     any body = shift ARGV;
     if (exists body)
         body = parse_arg(body);
-    printf("body: %y\n", body);
+    #printf("body: %y\n", body);
     any ans = rest.doRequest(meth, "", body, \info);
     switch (opt.verbose) {
+        case NOTHING:
         case 0: printf("%N\n", ans.body); break;
         case 1: printf("response headers: %N\nresponse body:\n%N\n", info."response-headers" - "body", ans.body); break;
         default: {
