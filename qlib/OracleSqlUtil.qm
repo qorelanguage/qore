@@ -107,10 +107,10 @@ my list $l = $col.getCreateSql($t);
             string native_type;
 
             #! the tablespace name of the index (if supported)
-            string tablespace;
+            *string tablespace;
         }
 
-        constructor(string n, bool u, hash c, string nt, string t) : AbstractIndex(n, u, c) {
+        constructor(string n, bool u, hash c, string nt, *string t) : AbstractIndex(n, u, c) {
             native_type = nt;
             tablespace = t;
         }
@@ -660,7 +660,7 @@ my list $l = $col.getCreateSql($t);
 
         *list getCreateMiscSqlImpl(*hash opt, bool cache) {
 	    if (cache)
-		getColumnsIntern();
+		getColumnsUnlocked();
             checkCreateMiscOptions(opt, TableCreationOptions);
             return map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
         }
@@ -670,9 +670,9 @@ my list $l = $col.getCreateSql($t);
             return map $1.getCreateSql(name, opt), triggers.iterator();
         }
 
-        string getCreateSqlStringImpl(*hash opt) {
+        string getCreateSqlStringImpl(list l) {
             string str;
-            map str += sprintf("%s%s\n", $1, $1 =~ /;$/ ? "\n/" : ";"), getCreateSql(opt);
+            map str += sprintf("%s%s\n", $1, $1 =~ /;$/ ? "\n/" : ";"), l;
             return str;
         }
 
@@ -686,6 +686,15 @@ my list $l = $col.getCreateSql($t);
 
         private AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt) {
             return new OraclePrimaryKey(cname, ch, opt.index_tablespace);
+        }
+
+        private AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt) {
+            return new OracleIndex(iname, enabled, ch, opt.index_tablespace);
+        }
+
+        private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt) {
+            ForeignConstraintTarget fct(table, new Columns(tch));
+            return new OracleForeignConstraint(cname, new Columns(ch), fct, True);
         }
 
         private hash getQoreTypeMapImpl() {

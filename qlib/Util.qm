@@ -233,7 +233,7 @@ my string $dir = normalize_dir_windows($dir, "c:\\qore"));
         return $dir ? $dir : "\\";
     }
 
-    #! returns True if the argument is an absolute path, False if not
+    #! returns @ref Qore::True "True" if the argument is an absolute path, @ref Qore::False "False" if not
     /** @par Example:
         @code
 my bool $abs = absolute_path($path);
@@ -241,13 +241,13 @@ my bool $abs = absolute_path($path);
 
         @param $path the path to check
 
-        @return True if the argument is an absolute path, False if not
+        @return @ref Qore::True "True" if the argument is an absolute path, @ref Qore::False "False" if not
      */
     public bool sub absolute_path(string $path) {
         return PlatformOS != "Windows" ? absolute_path_unix($path) : absolute_path_windows($path);
     }
 
-    #! returns True if the argument is a UNIX absolute path, False if not
+    #! returns @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
     /** @par Example:
         @code
 my bool $abs = absolute_path_unix($path);
@@ -255,13 +255,13 @@ my bool $abs = absolute_path_unix($path);
 
         @param $path the path to check
 
-        @return True if the argument is a UNIX absolute path, False if not
+        @return @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
      */
     public bool sub absolute_path_unix(string $path) {
         return $path =~ /^\//;
     }
 
-    #! returns True if the argument is a Windows absolute path, False if not
+    #! returns @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
     /** @par Example:
         @code
 my bool $abs = absolute_path_windows($path);
@@ -269,7 +269,7 @@ my bool $abs = absolute_path_windows($path);
 
         @param $path the path to check
 
-        @return True if the argument is a Windows absolute path, False if not
+        @return @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
      */
     public bool sub absolute_path_windows(string $path) {        
         return $path =~ /^\\\\/ || $path =~ /^[a-z]:\\/;

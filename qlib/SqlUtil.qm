@@ -307,6 +307,10 @@ my list $l = $col.getCreateSql($t);
         }
 
         abstract string getCreateSql(string table_name, *hash opt);
+
+        string getDropSql(string table_name) {
+            return sprintf("drop index %s", name);
+        }
     }
 
     #! constraint container class that throws an exception if an unknown constraint is accessed
@@ -335,6 +339,10 @@ my list $l = $col.getCreateSql($t);
         }
 
         abstract string getCreateSql(string table_name, *hash opt);        
+
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop constraint %s", table_name, name);
+        }
     }
 
     #! foreign constraint container class that throws an exception if an unknown constraint is accessed
@@ -615,7 +623,7 @@ printf("%s;\n", $sql);
             @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
          */
         AbstractPrimaryKey addPrimaryKey(string cname, softlist cols, *hash opt, *reference sql) {
-            return t.addPrimaryKey(cname, cols, opt, sql);
+            return t.addPrimaryKey(cname, cols, opt, \sql);
         }
 
         #! drops the primary key from the table
@@ -632,7 +640,94 @@ $table.dropPrimaryKey();
             @note this method retrieves the primary key definition from the database if none has already been defined
          */
         AbstractPrimaryKey dropPrimaryKey(*reference sql) {
-            return t.dropPrimaryKey();
+            return t.dropPrimaryKey(\sql);
+        }
+
+        #! adds an index to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractIndex $ix = $table.addIndex("uk_mytable_name", True, "name", ("index_tablespace": "index1"), \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param iname the name of the new index
+            @param unique a flag to tell if the new index should be unique or not
+            @param cols a single column name or a list of columns that make up the index
+            @param opt a hash of options for the new index; each driver may implement it's own options; for common options, see @ref IndexOptions
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return an AbstractIndex object corresponding to the index created
+
+            @throw INDEX-ERROR the table already has an index with the given name or invalid columns or options were passed
+         */
+        AbstractIndex addIndex(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
+            return t.addIndex(iname, unique, cols, opt, \sql);
+        }
+
+        #! drops the index from the table
+        /** @par Example:
+            @code
+$table.dropIndex("uk_mytable_name");
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param iname the name of the index to drop
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return the index dropped from the table
+
+            @note this method retrieves all current index definitions from the database if none have already been defined
+         */
+        AbstractIndex dropIndex(string iname, *reference sql) {
+            return t.dropIndex(iname, \sql);
+        }
+
+        #! adds an foreign constraint to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractForeignConstraint $fc = $table.addForeignConstraint("fk_mytable_other_table", ("name", "version"), "other_table", NOTHING, \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the new foreign constraint
+            @param cols a single column name or a list of columns in the local table that make up the foreign constraint
+            @param table the name of the other table that the constraint targets
+            @oaram tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
+            @param opt a hash of options for the new foreign constraint; each driver may implement it's own options; for common options, see @ref ForeignConstraintOptions
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return an AbstractForeignConstraint object corresponding to the foreign constraint created
+
+            @throw FOREIGN-CONSTRAINT-ERROR the table already has an foreign constraint with the given name or invalid columns or options were passed
+         */
+        AbstractForeignConstraint addForeignConstraint(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
+            return t.addForeignConstraint(cname, cols, table, tcols, opt, \sql);
+        }
+
+        #! drops the foreign constraint from the table
+        /** @par Example:
+            @code
+$table.dropForeignConstraint("uk_mytable_name");
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the foreign constraint to drop
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return the foreign constraint dropped from the table
+
+            @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
+         */
+        AbstractForeignConstraint dropForeignConstraint(string cname, *reference sql) {
+            return t.dropForeignConstraint(cname, \sql);
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
@@ -734,7 +829,7 @@ my string $sql = $table.getCreateTableSql();
             return t.getCreateTableSql(opt);
         }
 
-        #! returns a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
+        #! returns a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
         /** @par Example:
             @code
 my *list $l = $table.getCreateIndexesSql();
@@ -742,7 +837,7 @@ my *list $l = $table.getCreateIndexesSql();
 
             @param opt a hash of options for the index creation string
 
-            @return a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
+            @return a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
         */
         *list getCreateIndexesSql(*hash opt) {
             return t.getCreateIndexesSql(opt);
@@ -756,13 +851,13 @@ my *string $sql = $table.getCreatePrimaryKeySql();
 
             @param opt a hash of options for the primary key creation string
 
-            @return an SQL string that could be used to create the primary key on the table or NOTHING if there is no primary key on the table
+            @return an SQL string that could be used to create the primary key on the table or @ref nothing if there is no primary key on the table
         */
         *string getCreatePrimaryKeySql(*hash opt) {
             return t.getCreatePrimaryKeySql(opt);
         }
 
-        #! returns a list of SQL strings that could be used to create foreign constraints on the table or NOTHING if there are no foreign constraints on the table
+        #! returns a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
         /** @par Example:
             @code
 my *list $l = $table.getCreateForeignConstraintsSql();
@@ -770,13 +865,13 @@ my *list $l = $table.getCreateForeignConstraintsSql();
 
             @param opt a hash of options for the foreign constraint creation string
 
-            @return a list of SQL strings that could be used to create foreign constraints on the table or NOTHING if there are no foreign constraints on the table
+            @return a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
         */
         *list getCreateForeignConstraintsSql(*hash opt) {
             return t.getCreateForeignConstraintsSql(opt);
         }
 
-        #! returns a list of SQL strings that could be used to create non-foreign constraints on the table or NOTHING if there are no non-foreign constraints on the table
+        #! returns a list of SQL strings that could be used to create non-foreign constraints on the table or @ref nothing if there are no non-foreign constraints on the table
         /** @par Example:
             @code
 my *list $l = $table.getCreateConstraintsSql();
@@ -784,7 +879,7 @@ my *list $l = $table.getCreateConstraintsSql();
 
             @param opt a hash of options for the non-foreign constraint creation string
 
-            @return a list of SQL strings that could be used to create non-foreign constraints on the table or NOTHING if there are no non-foreign constraints on the table
+            @return a list of SQL strings that could be used to create non-foreign constraints on the table or @ref nothing if there are no non-foreign constraints on the table
 
             @see getCreateForeignConstraintsSql()
         */
@@ -792,7 +887,7 @@ my *list $l = $table.getCreateConstraintsSql();
             return t.getCreateConstraintsSql(opt);
         }
 
-        #! returns a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or NOTHING if there are none
+        #! returns a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or @ref nothing if there are none
         /** @par Example:
             @code
 my *list $l = $table.getCreateMiscSql();
@@ -800,13 +895,13 @@ my *list $l = $table.getCreateMiscSql();
 
             @param opt a hash of options for the SQL creation string
 
-            @return a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or NOTHING if there are none
+            @return a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or @ref nothing if there are none
         */
         *list getCreateMiscSql(*hash opt) {
             return t.getCreateMiscSql(opt);
         }
 
-        #! returns a list of SQL strings that could be used to create triggers on the table or NOTHING if there are no triggers on the table
+        #! returns a list of SQL strings that could be used to create triggers on the table or @ref nothing if there are no triggers on the table
         /** @par Example:
             @code
 my *list $l = $table.getCreateTriggersSql();
@@ -814,13 +909,13 @@ my *list $l = $table.getCreateTriggersSql();
 
             @param opt a hash of options for the trigger creation string
 
-            @return a list of SQL strings that could be used to create triggers on the table or NOTHING if there are no triggers on the table
+            @return a list of SQL strings that could be used to create triggers on the table or @ref nothing if there are no triggers on the table
         */
         *list getCreateTriggersSql(*hash opt) {
             return t.getCreateTriggersSql(opt);
         }
 
-        #! finds a row in the table with the given primary key value; if no row matches the primary key value passed then NOTHING is returned
+        #! finds a row in the table with the given primary key value; if no row matches the primary key value passed then @ref nothing is returned
         /** @par Example:
             @code
 my *hash $row = $table.find($id);
@@ -828,7 +923,7 @@ my *hash $row = $table.find($id);
 
             @param id the primary key ID to find
 
-            @return a hash of the row value matching the primary key ID or NOTHING if no row matches the primary key value passed
+            @return a hash of the row value matching the primary key ID or @ref nothing if no row matches the primary key value passed
 
             @throw PRIMARY-KEY-ERROR the table has no primary key or the primary key has more than one column
          */
@@ -836,7 +931,7 @@ my *hash $row = $table.find($id);
             return t.find(id);
         }
 
-        #! finds rows in the table with the given primary key values; if no row matches any primary key value passed then NOTHING is returned
+        #! finds rows in the table with the given primary key values; if no row matches any primary key value passed then @ref nothing is returned
         /** @par Example:
             @code
 my *list $rows = $table.find($list);
@@ -844,7 +939,7 @@ my *list $rows = $table.find($list);
 
             @param ids the list of primary key IDs to find
 
-            @return a list of hashes of rows matching the primary key IDs passed or NOTHING if no row matches any primary key value passed
+            @return a list of hashes of rows matching the primary key IDs passed or @ref nothing if no row matches any primary key value passed
 
             @throw PRIMARY-KEY-ERROR the table has no primary key or the primary key has more than one column
          */
@@ -947,6 +1042,9 @@ my Triggers $trig = $table.getTriggers();
 
             #! default pk options
             const PrimaryKeyOptions = IndexOptions;
+
+            #! default foreign constraint options
+            const ForeignConstraintOptions = hash();
 
             #! table creation options
             const TableCreationOptions = IndexOptions + (
@@ -1170,7 +1268,7 @@ printf("%s;\n", $sql);
 
             In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
 
-            @param cname the name of the new primary key constraint
+            @param pkname the name of the new primary key constraint
             @param cols a single column name or a list of columns that make up the primary key
             @param opt a hash of options for the new primary key; each driver may implement it's own options; for common options, see @ref PrimaryKeyOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
@@ -1179,24 +1277,26 @@ printf("%s;\n", $sql);
 
             @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
          */
-        AbstractPrimaryKey addPrimaryKey(string cname, softlist cols, *hash opt, *reference sql) {
-            getColumnsIntern();
+        AbstractPrimaryKey addPrimaryKey(string pkname, softlist cols, *hash opt, *reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
             if (inDb)
-                getPrimaryKeyIntern();
+                getPrimaryKeyUnlocked();
 
             if (!primaryKey.empty())
-                throw "PRIMARY-KEY-ERROR", sprintf("%s: already has a primary key with columns: %y", name, primaryKey.keys());
+                throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: already has primary key %y with columns: %y", name, pkname, primaryKey.name, primaryKey.keys());
 
             if (!cols)
-                throw "PRIMARY-KEY-ERROR", sprintf("%s: no column names passed to %s::addPrimaryKey()", name, self.className());
+                throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: no column names passed to %s::addPrimaryKey()", name, pkname, self.className());
 
             hash ch;
             while (cols) {
                 any v = shift cols;
                 if (v.typeCode() != NT_STRING)
-                    throw "PRIMARY-KEY-ERROR", sprintf("%s: %y argument passed as column name to %s::addPrimaryKey(); expecting \"string\" (value: %y)", name, v.type(), self.className(), v);
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: %y argument passed as column name to %s::addPrimaryKey(); expecting \"string\" (value: %y)", name, pkname, v.type(), self.className(), v);
                 if (!columns.hasKey(v))
-                    throw "PRIMARY-KEY-ERROR", sprintf("%s: has no column named %y", name, v);
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: table has no column named %y", name, pkname, v);
                 ch{v} = columns{v};
             }
 
@@ -1205,7 +1305,7 @@ printf("%s;\n", $sql);
             validateOptionsIntern("PRIMARY-KEY-ERROR", pkopt, \opt);
 
             # get the new primary key object
-            AbstractPrimaryKey pk = addPrimaryKeyImpl(cname, ch, opt);
+            AbstractPrimaryKey pk = addPrimaryKeyImpl(pkname, ch, opt);
             
             # add pk to table if the table already exists in the DB
             execSql(sql = pk.getCreateSql(getSqlName()));
@@ -1228,7 +1328,9 @@ $table.dropPrimaryKey();
             @note this method retrieves the primary key definition from the database if none has already been defined
          */
         AbstractPrimaryKey dropPrimaryKey(*reference sql) {
-            getPrimaryKeyIntern();
+            l.lock();
+            on_exit l.unlock();
+            getPrimaryKeyUnlocked();
             if (primaryKey.empty())
                 throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", name);
 
@@ -1238,6 +1340,229 @@ $table.dropPrimaryKey();
             return remove primaryKey;
         }
         
+        #! adds an index to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractIndex $ix = $table.addIndex("uk_mytable_name", True, "name", ("index_tablespace": "index1"), \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param iname the name of the new index
+            @param unique a flag to tell if the new index should be unique or not
+            @param cols a single column name or a list of columns that make up the index
+            @param opt a hash of options for the new index; each driver may implement it's own options; for common options, see @ref IndexOptions
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return an AbstractIndex object corresponding to the index created
+
+            @throw INDEX-ERROR the table already has an index with the given name or invalid columns or options were passed
+         */
+        AbstractIndex addIndex(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+            if (inDb)
+                getIndexesUnlocked();
+
+            if (indexes.hasKey(iname))
+                throw "INDEX-ERROR", sprintf("%s: already has an index named %y with columns: %y", name, iname, indexes{iname}.columns.keys());
+
+            if (!cols)
+                throw "INDEX-ERROR", sprintf("%s: no column names passed to %s::addIndex()", name, self.className());
+
+            hash ch;
+            while (cols) {
+                any v = shift cols;
+                if (v.typeCode() != NT_STRING)
+                    throw "INDEX-ERROR", sprintf("%s: %y argument passed as column name to %s::addIndex(); expecting \"string\" (value: %y)", name, v.type(), self.className(), v);
+                if (!columns.hasKey(v))
+                    throw "INDEX-ERROR", sprintf("%s: has no column named %y", name, v);
+                ch{v} = columns{v};
+            }
+
+            # validate options
+            hash ixopt = getIndexOptions();
+            validateOptionsIntern("INDEX-ERROR", ixopt, \opt);
+
+            # get the new index object
+            AbstractIndex ix = addIndexImpl(iname, unique, ch, opt);
+            
+            # add index to table in the DB if the table already exists in the DB
+            execSql(sql = ix.getCreateSql(getSqlName()));
+
+            # set as index for the table
+            indexes.add(iname, ix);
+
+            # return the new index
+            return ix;
+        }
+
+        #! drops the given index from the table
+        /** @par Example:
+            @code
+$table.dropIndex("uk_mytable_name");
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param iname the name of the index to drop
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return the index dropped from the table
+
+            @note this method retrieves all current index definitions from the database if none have already been defined
+         */
+        AbstractIndex dropIndex(string iname, *reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            getIndexesUnlocked();
+            if (!indexes.hasKey(iname))
+                throw "INDEX-ERROR", sprintf("%s: has no index %y; valid indexes: %y", name, iname, indexes.keys());
+
+            # drop index from table if the table already exists in the DB
+            execSql(sql = indexes{iname}.getDropSql(getSqlName()));
+
+            # remove from index structure and return removed index
+            return indexes.take(iname);
+        }
+
+        #! adds a foreign constraint to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractForeignConstraint $fc = $table.addForeignConstraint("fk_mytable_other_table", ("name", "version"), "other_table", NOTHING, \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the new foreign constraint
+            @param cols a single column name or a list of columns in the local table that make up the foreign constraint
+            @param table the name of the other table that the constraint targets
+            @oaram tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
+            @param opt a hash of options for the new foreign constraint; each driver may implement it's own options; for common options, see @ref ForeignConstraintOptions
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return an AbstractForeignConstraint object corresponding to the foreign constraint created
+
+            @throw FOREIGN-CONSTRAINT-ERROR the table already has an foreign constraint with the given name or invalid columns or options were passed
+         */
+        AbstractForeignConstraint addForeignConstraint(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+            if (inDb)
+                getForeignConstraintsUnlocked();
+
+            if (foreignConstraints.hasKey(cname))
+                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: already has a foreign constraint named %y with columns: %y", name, cname, foreignConstraints{cname}.columns.keys());
+
+            if (!cols)
+                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: no column names passed to %s::addForeignConstraint()", name, self.className());
+
+            hash ch;
+            while (cols) {
+                any v = shift cols;
+                if (v.typeCode() != NT_STRING)
+                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: %y argument passed as column name to %s::addForeignConstraint(); expecting \"string\" (value: %y)", name, v.type(), self.className(), v);
+                if (!columns.hasKey(v))
+                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: has no column named %y", name, v);
+                ch{v} = columns{v};
+            }
+
+            if (!tcols)
+                tcols = ch.keys();
+
+            # get target table description
+            Table targ(ds, table);
+            Columns targ_cols = targ.describe();
+            hash tch;
+            while (tcols) {
+                any v = shift tcols;
+                if (v.typeCode() != NT_STRING)
+                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y target %y: %y argument passed as target column name to %s::addForeignConstraint(); expecting \"string\" (value: %y)", name, table, v.type(), self.className(), v);
+                if (!targ_cols.hasKey(v))
+                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y target %y: target table has no column named %y", name, table, v);
+                tch{v} = targ_cols{v};
+            }
+
+            # validate options
+            validateOptionsIntern("FOREIGN-CONSTRAINT-ERROR", getForeignConstraintOptions(), \opt);
+
+            # get the new foreign constraint object
+            AbstractForeignConstraint fc = addForeignConstraintImpl(cname, ch, table, tch, opt);
+            
+            # add foreign constraint to table in the DB if the table already exists in the DB
+            execSql(sql = fc.getCreateSql(getSqlName()));
+
+            # set as foreign constraint for the table
+            foreignConstraints.add(cname, fc);
+
+            # return the new foreign constraint
+            return fc;
+        }
+
+        #! drops a foreign constraint from the table
+        /** @par Example:
+            @code
+$table.dropForeignConstraint("uk_mytable_name");
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the foreign constraint to drop
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return the foreign constraint dropped from the table
+
+            @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
+         */
+        AbstractForeignConstraint dropForeignConstraint(string cname, *reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            getForeignConstraintsUnlocked();
+            if (!foreignConstraints.hasKey(cname))
+                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%s: has no foreign constraint %y; valid foreign constraints: %y", name, cname, foreignConstraints.keys());
+
+            # drop foreign constraint from table if the table already exists in the DB
+            execSql(sql = foreignConstraints{cname}.getDropSql(getSqlName()));
+
+            # remove from foreign constraint structure and return removed foreign constraint
+            return foreignConstraints.take(cname);
+        }
+
+        #! drops a constraint from the table
+        /** @par Example:
+            @code
+$table.dropForeignConstraint("uk_mytable_name");
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the constraint to drop
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return the foreign constraint dropped from the table
+
+            @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
+         */
+        AbstractConstraint dropConstraint(string cname, *reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            getConstraintsUnlocked();
+            if (!foreignConstraints.hasKey(cname))
+                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%s: has no foreign constraint %y; valid foreign constraints: %y", name, cname, foreignConstraints.keys());
+
+            # drop foreign constraint from table if the table already exists in the DB
+            execSql(sql = foreignConstraints{cname}.getDropSql(getSqlName()));
+
+            # remove from foreign constraint structure and return removed foreign constraint
+            return foreignConstraints.take(cname);
+        }
+
         private validateOptionsIntern(string err, hash ropt, reference opt, *string tag) {
             if (!tag)
                 tag = name;
@@ -1348,7 +1673,9 @@ $table.dropColumn("notes_2");
             @note this method retrieves the table definition from the database if none has already been defined
          */
         AbstractColumn dropColumn(string cname, *reference sql) {
-            getColumnsIntern();
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
             if (!columns.hasKey(cname))
                 throw "COLUMN-ERROR", sprintf("%s.%s: no such column (valid columns: %y)", name, cname, columns.keys());
             # drop column from table if the table already exists in the DB
@@ -1380,7 +1707,9 @@ $table.insert($row);
             @param row a hash representing the row to insert
          */
         insertNoCommit(hash row) {
-            getColumnsIntern();
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
             string sql = sprintf("insert into %s (", getSqlName());
             foreach string k in (row.keyIterator()) {
                 if (!columns{k})
@@ -1484,11 +1813,9 @@ $table.cache();
             @endcode
         */
         cache() {
-            getColumnsIntern();
-            getTriggersIntern();
-            getPrimaryKeyIntern();
-            getForeignConstraintsIntern();
-            getConstraintsIntern();
+            l.lock();
+            on_exit l.unlock();
+            cacheUnlocked();
         }
 
         # returns the table description hash as acquired in the constructor
@@ -1501,7 +1828,9 @@ my hash $h = $table.describe();
 
         */
         Columns describe() {
-            getColumnsIntern();
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
             return columns;
         }
 
@@ -1515,7 +1844,9 @@ my hash $h = $table.describe();
             @return an object of class AbstractPrimaryKey describing the primary key of the table
         */
         *AbstractPrimaryKey getPrimaryKey() {
-            getPrimaryKeyIntern();
+            l.lock();
+            on_exit l.unlock();
+            getPrimaryKeyUnlocked();
             return primaryKey;
         }
 
@@ -1530,19 +1861,25 @@ my Indexes $ix = $table.getIndexes();
             @return an object of class Indexes describing the indexes on the table
         */
         Indexes getIndexes() {
-            getIndexesIntern();
+            l.lock();
+            on_exit l.unlock();
+            getIndexesUnlocked();
             return indexes;
         }
 
         #! returns a ForeignConstraints object describing the foreign constraints that the table has on other tables
         ForeignConstraints getForeignConstraints() {
-            getForeignConstraintsIntern();
+            l.lock();
+            on_exit l.unlock();
+            getForeignConstraintsUnlocked();
             return foreignConstraints;
         }
 
         #! returns a Constraints object describing the non-foreign constraints on the table
         Constraints getConstraints() {
-            getConstraintsIntern();
+            l.lock();
+            on_exit l.unlock();
+            getConstraintsUnlocked();
             return constraints;
         }
 
@@ -1557,7 +1894,9 @@ my Triggers $trig = $table.getTriggers();
             @return an object of class Triggers describing the triggers on the table
         */
         Triggers getTriggers() {
-            getTriggersIntern();
+            l.lock();
+            on_exit l.unlock();
+            getTriggersUnlocked();
             return triggers;
         }
 
@@ -1572,8 +1911,10 @@ printf("%s\n", $table.getCreateSqlString());
             @return an SQL string that could be used to create the table and all known properties of the table
         */
         string getCreateSqlString(*hash opt) {
-            cache();
-            return getCreateSqlStringImpl(opt);
+            l.lock();
+            on_exit l.unlock();
+            cacheUnlocked();
+            return getCreateSqlStringImpl(getCreateSqlUnlocked(opt));
         }
 
         #! returns a list of SQL strings that could be used to create the table and all known properties of the table
@@ -1588,15 +1929,9 @@ map printf("$1;\n", $1), $table.getCreateSql();
             @return a list of SQL strings that could be used to create the table and all known properties of the table
         */
         list getCreateSql(*hash opt, bool cache = True) {
-            list l += getCreateTableSql(opt);
-            *list tl = getCreateIndexesSql(opt, cache); if (tl) l += tl;
-            *string sql = getCreatePrimaryKeySql(opt, cache); if (sql) l += sql;
-            tl = getCreateForeignConstraintsSql(opt, cache); if (tl) l += tl;
-            tl = getCreateConstraintsSql(opt, cache); if (tl) l += tl;
-            tl = getCreateMiscSql(opt, cache); if (tl) l += tl;
-            tl = getCreateTriggersSql(opt, cache); if (tl) l += tl;
-
-            return l;
+            l.lock();
+            on_exit l.unlock();
+            return getCreateSqlUnlocked(opt, cache);
         }
 
         #! returns an SQL string that could be used to create the basic table structure without indexes and constraints 
@@ -1610,11 +1945,13 @@ my string $sql = $table.getCreateTableSql();
             @return an SQL string that could be used to create the basic table structure without indexes and constraints 
         */
         string getCreateTableSql(*hash opt) {
-            getColumnsIntern();
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
             return getCreateTableSqlImpl(opt);
         }
 
-        #! returns a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
+        #! returns a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
         /** @par Example:
             @code
 my *list $l = $table.getCreateIndexesSql();
@@ -1623,11 +1960,13 @@ my *list $l = $table.getCreateIndexesSql();
             @param opt a hash of options for the index creation string
             @param cache read in data from the database for uncached properties of the table
 
-            @return a list of SQL strings that could be used to create indexes on the table or NOTHING if there are no indexes on the table
+            @return a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
         */
         *list getCreateIndexesSql(*hash opt, bool cache = True) {
+            l.lock();
+            on_exit l.unlock();
             if (cache)
-                getIndexesIntern();
+                getIndexesUnlocked();
             if (!indexes)
                 return;
             return getCreateIndexesSqlImpl(opt);
@@ -1642,17 +1981,19 @@ my *string $sql = $table.getCreatePrimaryKeySql();
             @param opt a hash of options for the primary key creation string
             @param cache read in data from the database for uncached properties of the table
 
-            @return an SQL string that could be used to create the primary key on the table or NOTHING if there is no primary key on the table
+            @return an SQL string that could be used to create the primary key on the table or @ref nothing if there is no primary key on the table
         */
         *string getCreatePrimaryKeySql(*hash opt, bool cache = True) {
+            l.lock();
+            on_exit l.unlock();
             if (cache)
-            getPrimaryKeyIntern();
+                getPrimaryKeyUnlocked();
             if (!primaryKey)
                 return;
             return getCreatePrimaryKeySqlImpl(opt);
         }
 
-        #! returns a list of SQL strings that could be used to create foreign constraints on the table or NOTHING if there are no foreign constraints on the table
+        #! returns a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
         /** @par Example:
             @code
 my *list $l = $table.getCreateForeignConstraintsSql();
@@ -1661,17 +2002,19 @@ my *list $l = $table.getCreateForeignConstraintsSql();
             @param opt a hash of options for the foreign constraint creation string
             @param cache read in data from the database for uncached properties of the table
 
-            @return a list of SQL strings that could be used to create foreign constraints on the table or NOTHING if there are no foreign constraints on the table
+            @return a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
         */
         *list getCreateForeignConstraintsSql(*hash opt, bool cache = True) {
+            l.lock();
+            on_exit l.unlock();
             if (cache)
-                getForeignConstraintsIntern();
+                getForeignConstraintsUnlocked();
             if (!foreignConstraints)
                 return;
             return getCreateForeignConstraintsSqlImpl(opt);
         }
 
-        #! returns a list of SQL strings that could be used to create non-foreign constraints on the table or NOTHING if there are no non-foreign constraints on the table
+        #! returns a list of SQL strings that could be used to create non-foreign constraints on the table or @ref nothing if there are no non-foreign constraints on the table
         /** @par Example:
             @code
 my *list $l = $table.getCreateConstraintsSql();
@@ -1680,19 +2023,21 @@ my *list $l = $table.getCreateConstraintsSql();
             @param opt a hash of options for the non-foreign constraint creation string
             @param cache read in data from the database for uncached properties of the table
 
-            @return a list of SQL strings that could be used to create non-foreign constraints on the table or NOTHING if there are no non-foreign constraints on the table
+            @return a list of SQL strings that could be used to create non-foreign constraints on the table or @ref nothing if there are no non-foreign constraints on the table
 
             @see getCreateForeignConstraintsSql()
         */
         *list getCreateConstraintsSql(*hash opt, bool cache = True) {
+            l.lock();
+            on_exit l.unlock();
             if (cache)
-                getConstraintsIntern();
+                getConstraintsUnlocked();
             if (!constraints)
                 return;
             return getCreateConstraintsSqlImpl(opt);
         }
 
-        #! returns a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or NOTHING if there are none
+        #! returns a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or @ref nothing if there are none
         /** @par Example:
             @code
 my *list $l = $table.getCreateMiscSql();
@@ -1701,13 +2046,15 @@ my *list $l = $table.getCreateMiscSql();
             @param opt a hash of options for the SQL creation string
             @param cache read in data from the database for uncached properties of the table
 
-            @return a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or NOTHING if there are none
+            @return a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or @ref nothing if there are none
         */
         *list getCreateMiscSql(*hash opt, bool cache = True) {
+            l.lock();
+            on_exit l.unlock();
             return getCreateMiscSqlImpl(opt, cache);
         }
 
-        #! returns a list of SQL strings that could be used to create triggers on the table or NOTHING if there are no triggers on the table
+        #! returns a list of SQL strings that could be used to create triggers on the table or @ref nothing if there are no triggers on the table
         /** @par Example:
             @code
 my *list $l = $table.getCreateTriggersSql();
@@ -1716,19 +2063,21 @@ my *list $l = $table.getCreateTriggersSql();
             @param opt a hash of options for the trigger creation strings
             @param cache read in data from the database for uncached properties of the table
 
-            @return a list of SQL strings that could be used to create triggers on the table or NOTHING if there are no triggers on the table
+            @return a list of SQL strings that could be used to create triggers on the table or @ref nothing if there are no triggers on the table
 
             @see getCreateTriggersSql()
         */
         *list getCreateTriggersSql(*hash opt, bool cache = True) {
+            l.lock();
+            on_exit l.unlock();
             if (cache)
-                getTriggersIntern();
+                getTriggersUnlocked();
             if (!triggers)
                 return;
             return getCreateTriggersSqlImpl(opt);
         }
 
-        #! finds a row in the table with the given primary key value; if no row matches the primary key value passed then NOTHING is returned
+        #! finds a row in the table with the given primary key value; if no row matches the primary key value passed then @ref nothing is returned
         /** @par Example:
             @code
 my *hash $row = $table.find($id);
@@ -1737,39 +2086,74 @@ my *hash $row = $table.find($id);
             @throw PRIMARY-KEY-ERROR the table has no primary key or the primary key has more than one column
          */
         *hash find(any id) {
-            getPrimaryKeyIntern();
-            if (!primaryKey)
-                throw "PRIMARY-KEY-ERROR", sprintf("table %s has no primary key", name);
-            if (primaryKey.size() > 1)
-                throw "PRIMARY-KEY-ERROR", sprintf("table %s has a primary key with %d columns (%y)", name, primaryKey.size(), primaryKey.keys());
+            string cname;
+            {
+                l.lock();
+                on_exit l.unlock();
+                getPrimaryKeyUnlocked();
+                if (!primaryKey)
+                    throw "PRIMARY-KEY-ERROR", sprintf("table %s has no primary key", name);
+                if (primaryKey.size() > 1)
+                    throw "PRIMARY-KEY-ERROR", sprintf("table %s has a primary key with %d columns (%y)", name, primaryKey.size(), primaryKey.keys());
 
-            return ds.selectRow("select * from %s where %s = %v", getSqlName(), primaryKey.firstKey(), id);
+                cname = primaryKey.firstKey();
+            }
+
+            return ds.selectRow("select * from %s where %s = %v", getSqlName(), cname, id);
         }
 
-        #! finds rows in the table with the given primary key values; if no row matches any primary key value passed then NOTHING is returned
+        #! finds rows in the table with the given primary key values; if no row matches any primary key value passed then @ref nothing is returned
         /** @par Example:
             @code
 my *list $rows = $table.find($list);
             @endcode
 
-            @param ids the list of primary key IDs to find; if the list is empty then NOTHING is returned
+            @param ids the list of primary key IDs to find; if the list is empty then @ref nothing is returned
 
-            @return a list of hashes of rows matching the primary key IDs passed or NOTHING if no row matches any primary key value passed
+            @return a list of hashes of rows matching the primary key IDs passed or @ref nothing if no row matches any primary key value passed
 
             @throw PRIMARY-KEY-ERROR the table has no primary key or the primary key has more than one column
             */
         *list find(list ids) {
-            getPrimaryKeyIntern();
-            if (!primaryKey)
-                throw "PRIMARY-KEY-ERROR", sprintf("table %s has no primary key", name);
-            if (primaryKey.size() > 1)
-                throw "PRIMARY-KEY-ERROR", sprintf("table %s has a primary key with %d columns (%y)", name, primaryKey.size(), primaryKey.keys());
-            if (!ids)
-                return;
+            string cname;
+            {
+                l.lock();
+                on_exit l.unlock();
+                getPrimaryKeyUnlocked();
+                if (!primaryKey)
+                    throw "PRIMARY-KEY-ERROR", sprintf("table %s has no primary key", name);
+                if (primaryKey.size() > 1)
+                    throw "PRIMARY-KEY-ERROR", sprintf("table %s has a primary key with %d columns (%y)", name, primaryKey.size(), primaryKey.keys());
+                if (!ids)
+                    return;
 
-            string sql = sprintf("select * from %s where %s in (%s)", getSqlName(), primaryKey.firstKey(), (foldl $1 + "," + $2, (map "%v", ids)));
+                cname = primaryKey.firstKey();
+            }
+
+            string sql = sprintf("select * from %s where %s in (%s)", getSqlName(), cname, (foldl $1 + "," + $2, (map "%v", ids)));
 
             return ds.vselectRows(sql, ids);
+        }
+
+        private list getCreateSqlUnlocked(*hash opt, bool cache = True) {
+            list l += getCreateTableSql(opt);
+            *list tl = getCreateIndexesSql(opt, cache); if (tl) l += tl;
+            *string sql = getCreatePrimaryKeySql(opt, cache); if (sql) l += sql;
+            tl = getCreateForeignConstraintsSql(opt, cache); if (tl) l += tl;
+            tl = getCreateConstraintsSql(opt, cache); if (tl) l += tl;
+            tl = getCreateMiscSql(opt, cache); if (tl) l += tl;
+            tl = getCreateTriggersSql(opt, cache); if (tl) l += tl;
+
+            return l;
+        }
+
+        private cacheUnlocked() {
+            getColumnsUnlocked();
+            getPrimaryKeyUnlocked();
+            getIndexesUnlocked();
+            getForeignConstraintsUnlocked();
+            getConstraintsUnlocked();
+            getTriggersUnlocked();
         }
 
         private checkCreateOptions(*hash nopts, *hash rh) {
@@ -1873,74 +2257,50 @@ my *list $rows = $table.find($list);
             return AbstractTable::getTable(nds, nname, opts);
         }
 
-        private getColumnsIntern() {
+        private getColumnsUnlocked() {
             if (columns)
                 return;
-            l.lock();
-            on_exit l.unlock();
-            if (!columns) {
-                columns = describeImpl();
-                inDb = True;
-            }
+            columns = describeImpl();
+            inDb = True;
         }
 
-        private getPrimaryKeyIntern() {
+        private getPrimaryKeyUnlocked() {
             if (primaryKey)
                 return;
-            getColumnsIntern();
-            l.lock();
-            on_exit l.unlock();
-            if (!primaryKey) {
-                primaryKey = getPrimaryKeyImpl();
-                inDb = True;
-            }
+            getColumnsUnlocked();
+            primaryKey = getPrimaryKeyImpl();
+            inDb = True;
         }
 
-        private getIndexesIntern() {
+        private getIndexesUnlocked() {
             if (indexes)
                 return;
-            getColumnsIntern();
-            l.lock();
-            on_exit l.unlock();
-            if (!indexes) {
-                indexes = getIndexesImpl();
-                inDb = True;
-            }
+            getColumnsUnlocked();
+            indexes = getIndexesImpl();
+            inDb = True;
         }
 
-        private getForeignConstraintsIntern() {
+        private getForeignConstraintsUnlocked() {
             if (foreignConstraints)
                 return;
-            getColumnsIntern();
-            l.lock();
-            on_exit l.unlock();
-            if (!foreignConstraints) {
-                foreignConstraints = getForeignConstraintsImpl();
-                inDb = True;
-            }
+            getColumnsUnlocked();
+            foreignConstraints = getForeignConstraintsImpl();
+            inDb = True;
         }
 
-        private getConstraintsIntern() {
+        private getConstraintsUnlocked() {
             if (constraints)
                 return;
-            getColumnsIntern();
-            l.lock();
-            on_exit l.unlock();
-            if (!constraints) {
-                constraints = getConstraintsImpl();            
-                inDb = True;
-            }
+            getColumnsUnlocked();
+            constraints = getConstraintsImpl();            
+            inDb = True;
         }
 
-        private getTriggersIntern() {
+        private getTriggersUnlocked() {
             if (triggers)
                 return;
-            l.lock();
-            on_exit l.unlock();
-            if (!triggers) {
-                triggers = getTriggersImpl();
-                inDb = True;
-            }
+            triggers = getTriggersImpl();
+            inDb = True;
         }
 
         #! override in subclasses to return driver-specific options
@@ -1958,6 +2318,11 @@ my *list $rows = $table.find($list);
             return PrimaryKeyOptions;
         }
 
+        #! override in subclasses to return driver-specific options
+        private hash getForeignConstraintOptions() {
+            return ForeignConstraintOptions;
+        }
+
         private abstract Columns describeImpl();
         private abstract *AbstractPrimaryKey getPrimaryKeyImpl();
         private abstract Indexes getIndexesImpl();
@@ -1972,10 +2337,12 @@ my *list $rows = $table.find($list);
         private abstract *list getCreateConstraintsSqlImpl(*hash opt);
         private abstract *list getCreateMiscSqlImpl(*hash opt, bool cache);
         private abstract *list getCreateTriggersSqlImpl(*hash opt);
-        private abstract string getCreateSqlStringImpl(*hash opt);
+        private abstract string getCreateSqlStringImpl(list l);
 
         private abstract AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True);
         private abstract AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt);
+        private abstract AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt);
+        private abstract AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt);
 
         #! returns the qore type -> column type map
         private abstract hash getQoreTypeMapImpl();
@@ -1983,7 +2350,7 @@ my *list $rows = $table.find($list);
         #! returns the type name -> type description hash
         private abstract hash getTypeMapImpl();
 
-        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns @ref nothing if the type cannot be converted to an SQL string
         private abstract *string getSqlValueImpl(any v);
     }
 
@@ -2049,3 +2416,4 @@ my *list $rows = $table.find($list);
     }
 */
 }
+
