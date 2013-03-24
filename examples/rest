@@ -114,21 +114,34 @@ sub main() {
     if (exists body)
         body = parse_arg(body);
     #printf("body: %y\n", body);
-    any ans = rest.doRequest(meth, "", body, \info);
-    switch (opt.verbose) {
-        case NOTHING:
-        case 0: printf("%N\n", ans.body); break;
-        case 1: printf("response headers: %N\nresponse body:\n%N\n", info."response-headers" - "body", ans.body); break;
-        default: {
-            printf("request URI: %s\n", info."request-uri");
-            printf("request headers: %N\n", info.headers);
-            if (info."request-body")
-                printf("request body: %s\n", info."request-body");
-            printf("response URI: %s\n", info."response-uri");
-            printf("response headers: %N\n", info."response-headers" - "body");
-            if (info."response-body")
-                printf("response body: %s\n", info."response-body");
-            break;
+    try {
+        any ans = rest.doRequest(meth, "", body, \info);
+        switch (opt.verbose) {
+            case NOTHING:
+            case 0: printf("%N\n", ans.body); break;
+            case 1: printf("response headers: %N\nresponse body:\n%N\n", info."response-headers" - "body", ans.body); break;
+          default: {
+              printf("request URI: %s\n", info."request-uri");
+              printf("request headers: %N\n", info.headers);
+              if (info."request-body")
+                  printf("request body: %s\n", info."request-body");
+              printf("response URI: %s\n", info."response-uri");
+              printf("response headers: %N\n", info."response-headers" - "body");
+              if (info."response-body")
+                  printf("response body: %s\n", info."response-body");
+              break;
+            }
         }
+    }
+    catch (hash ex) {
+        printf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
+        if (ex.arg) {
+            print(": ");
+            if (ex.arg.body.typeCode() == NT_STRING)
+                print(ex.arg.body);
+            else
+                printf(ex.arg.typeCode() == NT_STRING ? "%s" : "%y", ex.arg);
+        }
+        print("\n");
     }
 }

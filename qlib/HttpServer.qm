@@ -1180,6 +1180,16 @@ public class HttpServer::HttpServer {
             # RFC 6585: The client needs to authenticate to gain network access. Intended for use by intercepting proxies used to control access to the network (e.g. "captive portals" used to require agreement to Terms of Service before granting full Internet access via a Wi-Fi hotspot)
             "511": "Network Authentication Required",
             );
+
+        #! content-encodings supported; this is a hash to simulate a set with O(ln(n)) access times
+        const ContentEncodings = (
+            "gzip": True,
+            "deflate": True,
+            "x-deflate": True,
+            "x-gzip": True,
+            "bzip2": True,
+            "x-bzip2": True,
+            );
     }
 
     #! @cond nodoc
@@ -1749,7 +1759,7 @@ public class HttpServer::HttpServer {
 		# get encoding
 		my any $enc = $acc =~ x/^(\w+|\*)/[0];
 		# ignore encodings we don't recognize
-		if (!inlist($enc, ("gzip", "deflate", "x-deflate", "x-gzip", "bzip2", "x-bzip2")))
+		if (!ContentEncodings.$enc)
 		    continue;
 		# get q value
 		$q = $acc =~ x/;q=(.*)$/[0];
