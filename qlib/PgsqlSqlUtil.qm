@@ -415,11 +415,15 @@ my list $l = $col.getCreateSql($t);
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("event_manipulation", "action_statement", "action_timing", "action_orientation");
                 if (rv{row.trigger_name}) {
-                    rv{row.trigger_name}.event += " or " + row.event_manipulation;
+                    # add event to trigger
+                    *string px = (rv{row.trigger_name}.src =~ x/(.+) on/i)[0];
+                    if (!px)
+                        throw "PGSQL-TRIGGER-ERROR", sprintf("cannot find beginning of trigger source: %s", rv{row.trigger_name}.src);
+                    splice rv{row.trigger_name}.src, px.size(), 0, " or " + row.event_manipulation;
                     continue;
                 }
 
-                string src = sprintf("%s %s on %s for each %s %s", row.action_timing, row.event_manipulation, getSqlName(), row.action_orientation, row.action_statment);
+                string src = sprintf("%s %s on %s for each %s %s", row.action_timing, row.event_manipulation, getSqlName(), row.action_orientation, row.action_statement);
                 rv{row.trigger_name} = new PgsqlTrigger(row.trigger_name, src);
             }
 

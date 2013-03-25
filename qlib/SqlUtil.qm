@@ -2856,7 +2856,7 @@ my *list $l = $table.getCreateMiscSql();
             validateOptionsIntern("OPTION-ERROR", getTableCreationOptions(), \opt);
             l.lock();
             on_exit l.unlock();
-            return getCreateMiscSqlImpl(opt, cache);
+            return getCreateMiscSqlUnlocked(opt, cache);
         }
 
         #! returns a list of SQL strings that could be used to create triggers on the table or @ref nothing if there are no triggers on the table
@@ -2878,11 +2878,7 @@ my *list $l = $table.getCreateTriggersSql();
             validateOptionsIntern("OPTION-ERROR", getTableCreationOptions(), \opt);
             l.lock();
             on_exit l.unlock();
-            if (cache)
-                getTriggersUnlocked();
-            if (!triggers)
-                return;
-            return getCreateTriggersSqlImpl(opt);
+            return getCreateTriggersSqlUnlocked(opt, cache);
         }
 
         #! finds a row in the table with the given primary key value; if no row matches the primary key value passed then @ref nothing is returned
@@ -2985,14 +2981,26 @@ my *list $rows = $table.find($list);
             return getCreateForeignConstraintsSqlImpl(opt);
         }
 
+        private *list getCreateMiscSqlUnlocked(*hash opt, bool cache = True) {
+            return getCreateMiscSqlImpl(opt, cache);
+        }
+
+        private *list getCreateTriggersSqlUnlocked(*hash opt, bool cache = True) {
+            if (cache)
+                getTriggersUnlocked();
+            if (!triggers)
+                return;
+            return getCreateTriggersSqlImpl(opt);
+        }
+
         private list getCreateSqlUnlocked(*hash opt, bool cache = True) {
             list l += getCreateTableSqlUnlocked(opt);
             *list tl = getCreateIndexesSqlUnlocked(opt, cache); if (tl) l += tl;
             *string sql = getCreatePrimaryKeySqlUnlocked(opt, cache); if (sql) l += sql;
             tl = getCreateForeignConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
             tl = getCreateConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
-            tl = getCreateMiscSql(opt, cache); if (tl) l += tl;
-            tl = getCreateTriggersSql(opt, cache); if (tl) l += tl;
+            tl = getCreateMiscSqlUnlocked(opt, cache); if (tl) l += tl;
+            tl = getCreateTriggersSqlUnlocked(opt, cache); if (tl) l += tl;
 
             return l;
         }
