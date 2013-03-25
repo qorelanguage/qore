@@ -314,8 +314,22 @@ public namespace RestHandler {
             # get initial class
             my *string $cls = shift $cl;
 
+            # make a hash of "accept" values
+            my *string $astr = $hdr.accept;
+            my hash $aih;
+            if ($astr) {
+                $astr =~ s/;.*//;#/;
+                map $aih.$1 = True, $astr.split(",");
+            }
+            else {
+                # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If no Accept header field is present, then it is assumed that the client accepts all media types
+                $aih."*/*" = True;
+            }
+
+            $.logDebug("aih: %y", $aih);
+
             # set up context hash
-            $cx += ("hdr": $hdr, "body": $body);
+            $cx += ("hdr": $hdr, "body": $body, "aih": $aih);
 
             my AbstractRestClass $rcls;
 
@@ -335,15 +349,6 @@ public namespace RestHandler {
             if (!Methods.($hdr.method))
                 return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", $hdr.method, Methods.keys());
             
-            # remove class and trailing "/" from path
-            /*
-            if ($path) {
-                splice $path, 0, $cls.size();
-                if ($path[0] == "/")
-                    splice $path, 0, 1;
-            }
-            */
-
             # handle call with class
             my hash $rv;
             
@@ -351,9 +356,10 @@ public namespace RestHandler {
                 $rv = $rcls.handleRequest($self, $cl, $mn, $cx, $args);
             }
             catch (hash $ex) {
+                # if there is an exception, return a 409 Conflict error to the client with the exception information
                 $.logDebug("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
                 $rv = (
-                    "code": 200,
+                    "code": 409,
                     "body": $ex,
                     );
             }
@@ -362,29 +368,19 @@ public namespace RestHandler {
             if (!exists $rv.body)
                 $rv.body = "OK";
 
-            # make a hash of "accept" values
-            my *string $astr = $hdr.accept;
-            my hash $aih;
-            if ($astr) {
-                $astr =~ s/;.*//;#/;
-                map $aih.$1 = True, $astr.split(",");
-            }
-            else {
-                # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If no Accept header field is present, then it is assumed that the client accepts all media types
-                $aih."*/*" = True;
-            }
-
-            $.logDebug("aih: %y", $aih);
-
             my bool $encoded;
+            if ($rv.already_encoded)
+                $encoded = True;
 %ifndef NoYaml
             # check for yaml support
-            foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
-                if ($aih.$ct || $aih."*/*") {
-                    $rv.body = makeYAML($rv.body);
-                    $rv.hdr = ("Content-Type": $ct);
-                    $encoded = True;
-                    break;
+            if (!$encoded) {
+                foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
+                    if ($aih.$ct || $aih."*/*") {
+                        $rv.body = makeYAML($rv.body);
+                        $rv.hdr = ("Content-Type": $ct);
+                        $encoded = True;
+                        break;
+                    }
                 }
             }
 %endif
