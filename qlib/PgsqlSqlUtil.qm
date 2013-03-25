@@ -95,14 +95,8 @@ public namespace PgsqlSqlUtil {
         }
     }
 
-    public class PgsqlCheckConstraint inherits AbstractConstraint {
-        public {
-            string src;
-        }
-
-        constructor(string n, string n_src) : AbstractConstraint(n) {
-            name = n;
-            src = n_src;
+    public class PgsqlCheckConstraint inherits AbstractCheckConstraint {
+        constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
         }        
 
         string getCreateSql(string table_name, *hash opt) {
@@ -516,6 +510,10 @@ my list $l = $col.getCreateSql($t);
         private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt) {
             ForeignConstraintTarget fct(table, new Columns(tch));
             return new PgsqlForeignConstraint(cname, new Columns(ch), fct);
+        }
+
+        private AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt) {
+            return new PgsqlCheckConstraint(cname, src);
         }
 
         private hash getQoreTypeMapImpl() {

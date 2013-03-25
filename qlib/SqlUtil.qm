@@ -487,7 +487,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         }
     }
 
-    #! AbstractConstraint base class
+    #! abstract base class for constraints
     public class AbstractConstraint {
         public {}
 
@@ -496,10 +496,12 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
             string name;
         }
         
+        #! creates the object and sets its name
         constructor(string n) {
             name = n;
         }
 
+        #! returns the constraint name
         string getName() {
             return name;
         }
@@ -513,6 +515,20 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         }
     }
 
+    #! abstract class for check constraints
+    public class AbstractCheckConstraint inherits AbstractConstraint {
+        public {
+            #! the source of the check clause
+            string src;
+        }
+
+        #! creates the object and sets its name and the check clause source
+        constructor(string n, string n_src) : AbstractConstraint(n) {
+            name = n;
+            src = n_src;
+        }        
+    }
+
     #! represents a primary key
     public class AbstractPrimaryKey inherits AbstractConstraint, Columns {
         constructor(string n, *hash c) : AbstractConstraint(n), Columns(c) {
@@ -520,12 +536,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
 
         #! returns a string that can be used to create the primary key in the database
         abstract string getCreateSql(string table_name, *hash opts);
-        
-        #! returns a string that can be used to drop the primary key from the database
-        string getDropSql(string table_name) {
-            return sprintf("alter table %s drop constraint %s", table_name, name);
-        }
-    }
+            }
 
 
     #! foreign constraint container class that throws an exception if an unknown constraint is accessed
@@ -568,6 +579,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             Columns columns;
         }
 
+        #! creates the object and sets the target table name and the target columns
         constructor(string t, Columns c) {
             table = t;
             columns = c;
@@ -600,6 +612,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             string src;
         }
 
+        #! creates the object and sets its name and the trigger source
         constructor(string n, string n_src) {
             name = n;
             src = n_src;
@@ -692,9 +705,19 @@ my AbstractFunction $f = $funcs.func1;
         }
     }
 
-    #! represents a database table
+    #! represents a database table; this class embeds an AbstractTable object that is created automatically in the constructor based on the database driver for the AbstractDatasource object providing the database connection
+    /** Driver-specific modules that provide the AbstractTable implementation embedded in this class are loaded on demand based on the driver's name.
+        The driver-specific module's name is generated based on the db-driver's name with the first letter capitalized then with \c "SqlUtil" appended.
+
+        For example:
+        - \c "oracle": \c "OracleSqlUtil"
+        - \c "pgsql": \c "PgsqlSqlUtil"
+
+        etc.
+    */
     public class Table {
         private {
+            #! the embedded AbstractTable object that actually provides the functionality for this class
             AbstractTable t;
         }
 
@@ -900,7 +923,7 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new primary key constraint
             @param cols a single column name or a list of columns that make up the primary key
-            @param opt a hash of options for the new primary key; each driver may implement it's own options; for common options, see @ref AbstractTable::PrimaryKeyOptions
+            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::PrimaryKeyOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractPrimaryKey object corresponding to the primary key created
@@ -946,7 +969,7 @@ printf("%s;\n", $sql);
             @param iname the name of the new index
             @param unique a flag to tell if the new index should be unique or not
             @param cols a single column name or a list of columns that make up the index
-            @param opt a hash of options for the new index; each driver may implement it's own options; for common options, see @ref AbstractTable::IndexOptions
+            @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref AbstractTable::IndexOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractIndex object corresponding to the index created
@@ -995,7 +1018,7 @@ printf("%s;\n", $sql);
             @param cols a single column name or a list of columns in the local table that make up the foreign constraint
             @param table the name of the other table that the constraint targets
             @oaram tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
-            @param opt a hash of options for the new foreign constraint; each driver may implement it's own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
+            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractForeignConstraint object corresponding to the foreign constraint created
@@ -1028,6 +1051,31 @@ $table.dropForeignConstraint("uk_mytable_name");
          */
         AbstractForeignConstraint dropForeignConstraint(string cname, *reference sql) {
             return t.dropForeignConstraint(cname, \sql);
+        }
+
+        #! adds a check constraint to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractCheckConstraint $cc = $table.addCheckConstraint("check_mytable_id", "id > 10", NOTHING, \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the new constraint
+            @param src the source of the constraint clause
+            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref ConstraintOptions
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return an AbstractCheckConstraint object corresponding to the check constraint created
+
+            @throw CHECK-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns or options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractCheckConstraint addCheckConstraint(string cname, string src, *hash opt, *reference sql) {
+            return t.addCheckConstraint(cname, src, opt, \sql);
         }
 
         #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
@@ -1162,7 +1210,7 @@ my string $sql = $table.getCreateTableSql();
 my *list $l = $table.getCreateIndexesSql();
             @endcode
 
-            @param opt a hash of options for the new index; each driver may implement it's own options; for common options, see @ref AbstractTable::IndexOptions
+            @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref AbstractTable::IndexOptions
 
             @return a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
 
@@ -1178,7 +1226,7 @@ my *list $l = $table.getCreateIndexesSql();
 my *string $sql = $table.getCreatePrimaryKeySql();
             @endcode
 
-            @param opt a hash of options for the new primary key; each driver may implement it's own options; for common options, see @ref AbstractTable::PrimaryKeyOptions
+            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::PrimaryKeyOptions
 
             @return an SQL string that could be used to create the primary key on the table or @ref nothing if there is no primary key on the table
 
@@ -1194,7 +1242,7 @@ my *string $sql = $table.getCreatePrimaryKeySql();
 my *list $l = $table.getCreateForeignConstraintsSql();
             @endcode
 
-            @param opt a hash of options for the new foreign constraint; each driver may implement it's own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
+            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
 
             @return a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
 
@@ -1404,32 +1452,33 @@ my Triggers $trig = $table.getTriggers();
         }
 
         private {
+            #! the connection to the database server
             AbstractDatasource ds;
-            # table name
+            #! the table's name
             string name;
-            # datasource description
+            #! datasource description
             string dsdesc;
-            # column description hash
+            #! column description object
             Columns columns;
-            # primary key description
+            #! primary key description
             *AbstractPrimaryKey primaryKey;
-            # index description
+            #! index descriptions
             Indexes indexes;
-            # foreign constraints description
+            #! foreign constraints description
             ForeignConstraints foreignConstraints;
-            # constraints description
+            #! constraint descriptions
             Constraints constraints;
-            # trigger description
+            #! trigger descriptions
             Triggers triggers;
-            # mutex for on-demand retrieval of table attributes
+            #! mutex for atomic table actions
             Mutex l();
-            # option hash
+            #! option hash
             *hash opts;
-            # native case option
+            #! native case option
             bool native_case = False;
-            # in database
+            #! in database
             bool inDb = False;
-            # manual edits
+            #! manual edits
             bool manual = False;
         }
 
@@ -1628,7 +1677,7 @@ printf("%s;\n", $sql);
 
             @param pkname the name of the new primary key constraint
             @param cols a single column name or a list of columns that make up the primary key
-            @param opt a hash of options for the new primary key; each driver may implement it's own options; for common options, see @ref PrimaryKeyOptions
+            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref PrimaryKeyOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractPrimaryKey object corresponding to the primary key created
@@ -1641,8 +1690,8 @@ printf("%s;\n", $sql);
             l.lock();
             on_exit l.unlock();
             getColumnsUnlocked();
-            if (inDb)
-                getPrimaryKeyUnlocked();
+            # load constraints if needed, verify unique constraint name, validate/process options
+            checkUniqueConstraintNameValidateOptions("PRIMARY-KEY-ERROR", pkname, getPrimaryKeyOptions(), \opt);
 
             if (!primaryKey.empty())
                 throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: already has primary key %y with columns: %y", name, pkname, primaryKey.getName(), primaryKey.keys());
@@ -1660,10 +1709,6 @@ printf("%s;\n", $sql);
                 ch{v} = columns{v};
             }
 
-            # validate options
-            hash pkopt = getPrimaryKeyOptions();
-            validateOptionsIntern("PRIMARY-KEY-ERROR", pkopt, \opt);
-
             # get the new primary key object
             AbstractPrimaryKey pk = addPrimaryKeyImpl(pkname, ch, opt);
             
@@ -1674,7 +1719,7 @@ printf("%s;\n", $sql);
             return primaryKey = pk;
         }
 
-        #! drops the primary key from the table
+        #! drops the primary key from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only dropped internally
         /** @par Example:
             @code
 $table.dropPrimaryKey();
@@ -1715,7 +1760,7 @@ printf("%s;\n", $sql);
             @param iname the name of the new index
             @param unique a flag to tell if the new index should be unique or not
             @param cols a single column name or a list of columns that make up the index
-            @param opt a hash of options for the new index; each driver may implement it's own options; for common options, see @ref IndexOptions
+            @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref IndexOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractIndex object corresponding to the index created
@@ -1809,12 +1854,12 @@ printf("%s;\n", $sql);
             @param cols a single column name or a list of columns in the local table that make up the foreign constraint
             @param table the name of the other table that the constraint targets
             @oaram tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
-            @param opt a hash of options for the new foreign constraint; each driver may implement it's own options; for common options, see @ref ForeignConstraintOptions
+            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref ForeignConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractForeignConstraint object corresponding to the foreign constraint created
 
-            @throw FOREIGN-CONSTRAINT-ERROR the table already has an foreign constraint with the given name or invalid columns or options were passed
+            @throw FOREIGN-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns or options were passed
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -1822,11 +1867,8 @@ printf("%s;\n", $sql);
             l.lock();
             on_exit l.unlock();
             getColumnsUnlocked();
-            if (inDb)
-                getForeignConstraintsUnlocked();
-
-            if (foreignConstraints.hasKey(cname))
-                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: already has a foreign constraint named %y with columns: %y", name, cname, foreignConstraints{cname}.columns.keys());
+            # load constraints if needed, verify unique constraint name, validate/process options
+            checkUniqueConstraintNameValidateOptions("FOREIGN-CONSTRAINT-ERROR", cname, getForeignConstraintOptions(), \opt);
 
             if (!cols)
                 throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: no column names passed to %s::addForeignConstraint()", name, self.className());
@@ -1856,9 +1898,6 @@ printf("%s;\n", $sql);
                     throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y target %y: target table has no column named %y", name, table, v);
                 tch{v} = targ_cols{v};
             }
-
-            # validate options
-            validateOptionsIntern("FOREIGN-CONSTRAINT-ERROR", getForeignConstraintOptions(), \opt);
 
             # get the new foreign constraint object
             AbstractForeignConstraint fc = addForeignConstraintImpl(cname, ch, table, tch, opt);
@@ -1902,6 +1941,70 @@ $table.dropForeignConstraint("uk_mytable_name");
 
             # remove from foreign constraint structure and return removed foreign constraint
             return foreignConstraints.take(cname);
+        }
+
+        #! adds a check constraint to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractCheckConstraint $cc = $table.addCheckConstraint("check_mytable_id", "id > 10", NOTHING, \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the new constraint
+            @param src the source of the constraint clause
+            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref ConstraintOptions
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return an AbstractCheckConstraint object corresponding to the check constraint created
+
+            @throw CHECK-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns or options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractCheckConstraint addCheckConstraint(string cname, string src, *hash opt, *reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            # load constraints if needed, verify unique constraint name, validate/process options
+            checkUniqueConstraintNameValidateOptions("CHECK-CONSTRAINT-ERROR", cname, getConstraintOptions(), \opt);
+
+            # get the new constraint object
+            AbstractCheckConstraint cc = addCheckConstraintImpl(cname, src, opt);
+            
+            # add foreign constraint to table in the DB if the table already exists in the DB
+            execSql(sql = cc.getCreateSql(getSqlName()));
+
+            # set as constraint for the table
+            constraints.add(cname, cc);
+
+            # return the new constraint
+            return cc;
+        }
+
+        private getAllConstraintsUnlocked() {
+            if (!inDb && manual)
+                return;
+
+            getPrimaryKeyUnlocked();
+            getForeignConstraintsUnlocked();
+            getConstraintsUnlocked();
+        }
+
+        private checkUniqueConstraintNameValidateOptions(string err, string cname, hash ropt, reference opt) {
+            getAllConstraintsUnlocked();
+            if (foreignConstraints && foreignConstraints.hasKey(cname))
+                throw err, printf("%y: already has a foreign constraint named %y with columns: %y", name, cname, foreignConstraints{cname}.columns.keys());
+
+            if (constraints && constraints.hasKey(cname))
+                throw err, printf("%y: already has a constraint named %y", name, cname);
+
+            if (primaryKey && primaryKey.getName() == cname)
+                throw err, printf("%y: already has a primary key constraint named %y with columns: %y", name, cname, primaryKey.columns.keys());
+
+            # validate options
+            validateOptionsIntern(err, ropt, \opt);
         }
 
         #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
@@ -2565,6 +2668,11 @@ my *list $rows = $table.find($list);
             return ds.vselectRows(sql, ids);
         }
 
+        #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
+        string getSqlName() {
+            return name;
+        }
+
         private list getCreateSqlUnlocked(*hash opt, bool cache = True) {
             list l += getCreateTableSql(opt);
             *list tl = getCreateIndexesSql(opt, cache); if (tl) l += tl;
@@ -2584,11 +2692,6 @@ my *list $rows = $table.find($list);
             getForeignConstraintsUnlocked();
             getConstraintsUnlocked();
             getTriggersUnlocked();
-        }
-
-        #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
-        string getSqlName() {
-            return name;
         }
 
         private checkOptions(*hash nopts, hash rh) {
@@ -2734,6 +2837,7 @@ my *list $rows = $table.find($list);
         private abstract AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt);
         private abstract AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt);
         private abstract AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt);
+        private abstract AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt);
 
         #! returns the qore type -> column type map
         private abstract hash getQoreTypeMapImpl();

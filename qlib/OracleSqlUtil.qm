@@ -144,19 +144,9 @@ my list $l = $col.getCreateSql($t);
         }
     }
 
-    public class OracleCheckConstraint inherits AbstractConstraint {
-        public {
-            #! the constraint source
-            string src;
-
-            #! @ref Qore::True if the constraint is enabled, @ref Qore::False if not
-            bool enabled;
-        }
-
-        constructor(string n, string n_src, bool e) : AbstractConstraint(n) {
-            src = n_src;
-            enabled = e;
-        }
+    public class OracleCheckConstraint inherits AbstractCheckConstraint {
+        constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
+        }        
 
         string getCreateSql(string table_name, *hash opt) {
             return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
@@ -696,6 +686,10 @@ my list $l = $col.getCreateSql($t);
         private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt) {
             ForeignConstraintTarget fct(table, new Columns(tch));
             return new OracleForeignConstraint(cname, new Columns(ch), fct, True);
+        }
+
+        private AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt) {
+            return new OracleCheckConstraint(cname, src);
         }
 
         private hash getQoreTypeMapImpl() {
