@@ -536,8 +536,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
 
         #! returns a string that can be used to create the primary key in the database
         abstract string getCreateSql(string table_name, *hash opts);
-            }
-
+    }
 
     #! foreign constraint container class that throws an exception if an unknown constraint is accessed
     public class ForeignConstraints inherits AbstractHashContainer {
@@ -602,56 +601,6 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         }
     }
 
-    #! the base class for triggers
-    public class AbstractTrigger {
-        public {
-            #! the name of the trigger
-            string name;
-            
-            #! the source of the trigger
-            string src;
-        }
-
-        #! creates the object and sets its name and the trigger source
-        constructor(string n, string n_src) {
-            name = n;
-            src = n_src;
-        }
-
-        #! returns a string that can be used to create the trigger in the database
-        abstract string getCreateSql(string table_name, *hash opt);
-    }
-
-    #! trigger container class that throws an exception if an unknown trigger is accessed
-    public class Triggers inherits AbstractHashContainer {
-        constructor(*hash c) : AbstractHashContainer(c) {
-        }
-
-        #! returns the AbstractTrigger object corresponding to the key given or throws a KEY-ERROR exception
-        /** @par Example:
-            @code
-my AbstractTrigger $trig = $trigs.job_trig;
-            @endcode
-
-            @param k the name of the key to access
-
-            @return the value of the given key in the contained hash if it exists
-
-            @throw KEY-ERROR the given key does not exist in the contained hash
-
-            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
-            @see @ref memberGate_methods
-        */
-        AbstractTrigger memberGate(string k) {
-            return AbstractHashContainer::memberGate(k);
-        }
-
-        string getElementName() {
-            return "trigger";
-        }
-    }
-
     #! base class for functions
     public class AbstractFunction {
         public {
@@ -702,6 +651,202 @@ my AbstractFunction $f = $funcs.func1;
 
         string getElementName() {
             return "function";
+        }
+    }
+
+    #! the base class for triggers
+    public class AbstractTrigger {
+        public {
+            #! the name of the trigger
+            string name;
+            
+            #! the source of the trigger
+            string src;
+        }
+
+        #! creates the object and sets its name and the trigger source
+        constructor(string n, string n_src) {
+            name = n;
+            src = n_src;
+        }
+
+        #! returns a string that can be used to create the trigger in the database
+        abstract string getCreateSql(string table_name, *hash opt);
+
+        #! returns a string that can be used to drop the trigger from the database
+        string getDropSql(string table_name) {
+            return sprintf("drop trigger %s", name);
+        }
+    }
+
+    #! trigger container class that throws an exception if an unknown trigger is accessed
+    public class Triggers inherits AbstractHashContainer {
+        constructor(*hash c) : AbstractHashContainer(c) {
+        }
+
+        #! returns the AbstractTrigger object corresponding to the key given or throws a KEY-ERROR exception
+        /** @par Example:
+            @code
+my AbstractTrigger $trig = $trigs.job_trig;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
+        AbstractTrigger memberGate(string k) {
+            return AbstractHashContainer::memberGate(k);
+        }
+
+        string getElementName() {
+            return "trigger";
+        }
+    }
+
+    #! represents a database; this class embeds an AbstractDatabase object that is created automatically in the constructor based on the database driver for the AbstractDatasource object providing the database connection
+    /** Driver-specific modules that provide the AbstractDatabase implementation embedded in this class are loaded on demand based on the driver's name.
+        The driver-specific module's name is generated based on the db-driver's name with the first letter capitalized then with \c "SqlUtil" appended.
+
+        For example:
+        - \c "oracle": \c "OracleSqlUtil"
+        - \c "pgsql": \c "PgsqlSqlUtil"
+
+        etc.
+    */
+    public class Database {
+        private {
+            #! the embedded AbstractDatabase object that actually provides the functionality for this class
+            AbstractDatabase db;
+        }
+
+        #! creates the Database object
+        /** @par Example:
+            @code
+my Database $db($ds);
+            @endcode
+
+            @param ds the AbstractDatasource object used to provide the DB connection
+            @param opts a hash of options for the function creation string; see @ref AbstractDatabase::DatabaseOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        constructor(AbstractDatasource ds, *hash opts) {
+            db = AbstractDatabase::getDatabase(ds, opts);
+        }
+
+        #! creates the AbstractDatabase object
+        /** @par Example:
+            @code
+my AbstractDatabase $db("pgsql:user/pass@db%host");
+            @endcode
+
+            @param ds a datasource description string in the format that can be parsed by parse_datasource()
+            @param opts a hash of options for the function creation string; see @ref AbstractDatabase::DatabaseOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        constructor(string ds, *hash opts) {
+            db = AbstractDatabase::getDatabase(ds, opts);
+        }
+        
+        #! creates the AbstractDatabase object
+        /** @par Example:
+            @code
+my AbstractDatabase $db("pgsql:user/pass@db%host");
+            @endcode
+
+            @param ds a hash giving parameters for the new datasource with the following possible keys (the \c "type" key is mandatory, also usable with the output of the parse_datasource() function):
+            - \c type: (@ref string_or_nothing_type "*string") The name of the database driver to use; this key is mandatory; if not present, an exception will be raised. See @ref sql_constants for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
+            - \c user: (@ref string_or_nothing_type "*string") The user name for the new connection
+            - \c pass: (@ref string_or_nothing_type "*string") The password for the new connection
+            - \c db: (@ref string_or_nothing_type "*string") The database name for the new connection
+            - \c charset: (@ref string_or_nothing_type "*string") The database-specific name of the character encoding to use for the new connection. Also see Qore::SQL::Datasource::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the %Qore process will be used instead.
+            - \c host: (@ref string_or_nothing_type "*string") The host name for the new connection
+            - \c port: (@ref softint_type "softint") The port number for the new connection
+            - \c options: (@ref hash_or_nothing_type "*hash") Any options for the new connection
+            @param opts a hash of options for the table creation string; see @ref AbstractDatabase::DatabaseOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        constructor(hash ds, *hash opts) {
+            db = AbstractDatabase::getDatabase(ds, opts);
+        }
+
+        #! gets the underlying AbstractDatasource
+        AbstractDatasource getDatasource() {
+            return db.getDatasource();
+        }
+
+        #! executes a method on the contained AbstractDatabase object
+        any methodGate(string meth) {
+            return callObjectMethodArgs(db, meth, argv);
+        }
+    }
+
+    #! the base abstract class for the database implementation
+    public class AbstractDatabase {
+        public {
+            #! database options
+            const DatabaseOptions = (
+                "native-case": Type::Boolean,
+                );
+        }
+
+        private {
+            #! the connection to the database server
+            AbstractDatasource ds;
+            #! datasource description
+            string dsdesc;
+            #! mutex for atomic actions
+            Mutex l();
+            #! option hash
+            *hash opts;
+            #! native case option
+            bool native_case = False;
+        }
+
+        static AbstractDatabase getDatabase(AbstractDatasource nds, *hash opts) {
+            string drv = nds.getDriverName();
+
+            # generate module and module namespace name
+            string mn = drv[0].upr() + drv.substr(1) + "SqlUtil";
+
+            # try to load module
+            try {
+                load_module(mn);                
+            }
+            catch (hash ex) {
+                throw "TABLE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
+            }
+
+            # try to get AbstractFunction object
+            try {
+                return call_function(mn + "::" + "get_database", nds, opts);
+            }
+            catch (hash ex) {
+                throw "DATABASE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractDatabase object for driver %y: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
+            }
+        }
+
+        static AbstractDatabase getDatabase(string dsstr, *hash opts) {
+            Datasource nds(dsstr);
+            return AbstractDatabase::getDatabase(nds, opts);
+        }
+
+        static AbstractDatabase getDatabase(hash dsh, *hash opts) {
+            Datasource nds(dsh);
+            return AbstractDatabase::getDatabase(nds, opts);
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getDatabaseOptions() {
+            return DatabaseOptions;
         }
     }
 
@@ -937,7 +1082,7 @@ printf("%s;\n", $sql);
             return t.addPrimaryKey(cname, cols, opt, \sql);
         }
 
-        #! drops the primary key from the table
+        #! drops the primary key from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
 $table.dropPrimaryKey();
@@ -983,7 +1128,7 @@ printf("%s;\n", $sql);
             return t.addIndex(iname, unique, cols, opt, \sql);
         }
 
-        #! drops the index from the table
+        #! drops the index from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
 $table.dropIndex("uk_mytable_name");
@@ -1032,7 +1177,7 @@ printf("%s;\n", $sql);
             return t.addForeignConstraint(cname, cols, table, tcols, opt, \sql);
         }
 
-        #! drops the foreign constraint from the table
+        #! drops the foreign constraint from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
 $table.dropForeignConstraint("uk_mytable_name");
@@ -1078,7 +1223,7 @@ printf("%s;\n", $sql);
             return t.addCheckConstraint(cname, src, opt, \sql);
         }
 
-        #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
+        #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
 $table.dropConstraint("uk_mytable_name");
@@ -1099,6 +1244,52 @@ $table.dropConstraint("uk_mytable_name");
             return t.dropConstraint(cname, \sql); 
         }
 
+        #! adds a trigger to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractTrigger $trig = $table.addTrigger("trig_mytable", "", NOTHING, \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param tname the name of the new trigger
+            @param src the source of the trigger
+            @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref TriggerOptions
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return an AbstractTrigger object corresponding to the trigger created
+
+            @throw CHECK-TRIGGER-ERROR the table already has a trigger with the given name or invalid options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractTrigger addTrigger(string tname, string src, *hash opt, *reference sql) {
+            return t.addTrigger(tname, src, opt, \sql);
+        }
+
+        #! drops the given trigger from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
+        /** @par Example:
+            @code
+$table.dropTrigger("trig_mytable");
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param tname the name of the trigger to drop
+            @param sql an optional reference to a string to retrieve the SQL used to modify the database (only executed if the table is already in the database)
+
+            @return the trigger dropped from the table
+
+            @note this method retrieves all current trigger definitions from the database if none have already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractTrigger dropTrigger(string tname, *reference sql) {
+            return t.dropTrigger(tname, \sql);
+        }
+
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
         /** @par Example:
             @code
@@ -1113,7 +1304,7 @@ my string $str = $table.getSqlValue($date);
             return t.getSqlValue(v);
         }
         
-        #! drops a column from the table
+        #! drops a column from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
 $table.dropColumn("notes_2");
@@ -1425,16 +1616,24 @@ my Triggers $trig = $table.getTriggers();
             #! default index options
             const IndexOptions = (
                 "index_tablespace": Type::String,
+                "replace": Type::Boolean,
                 );
 
             #! default pk options
             const PrimaryKeyOptions = IndexOptions;
 
             #! default constraint options
-            const ConstraintOptions = hash();
+            const ConstraintOptions = (
+                "replace": Type::Boolean,
+                );
 
             #! default foreign constraint options
-            const ForeignConstraintOptions = hash();
+            const ForeignConstraintOptions = ConstraintOptions;
+
+            #! default trigger options
+            const TriggerOptions = (
+                "replace": Type::Boolean,
+                );
 
             #! table creation options
             const TableCreationOptions = IndexOptions + (
@@ -1490,10 +1689,12 @@ my Triggers $trig = $table.getTriggers();
             @throw OPTION-ERROR invalid or unsupported option passed
          */
         private constructor(AbstractDatasource nds, string nname, *hash nopts) {
-            validateOptionsIntern("OPTION-ERROR", getTableOptions(), \nopts);
             opts = nopts;
             name = nname;
             ds = nds;
+
+            validateOptionsIntern("OPTION-ERROR", getTableOptions(), \nopts);
+
             # ensure datasource is open
             ds.getServerVersion();
             dsdesc = sprintf("%s:%s@%s", ds.getDriverName(), ds.getUserName(), ds.getDBName());
@@ -1719,7 +1920,7 @@ printf("%s;\n", $sql);
             return primaryKey = pk;
         }
 
-        #! drops the primary key from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only dropped internally
+        #! drops the primary key from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
 $table.dropPrimaryKey();
@@ -1809,7 +2010,7 @@ printf("%s;\n", $sql);
             return ix;
         }
 
-        #! drops the given index from the table
+        #! drops the given index from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
 $table.dropIndex("uk_mytable_name");
@@ -1912,7 +2113,7 @@ printf("%s;\n", $sql);
             return fc;
         }
 
-        #! drops a foreign constraint from the table
+        #! drops a foreign constraint from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
 $table.dropForeignConstraint("uk_mytable_name");
@@ -1955,7 +2156,7 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new constraint
             @param src the source of the constraint clause
-            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref ConstraintOptions
+            @param opt a hash of options for the new constraint; each driver may implement its own options; for common options, see @ref ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractCheckConstraint object corresponding to the check constraint created
@@ -1983,6 +2184,156 @@ printf("%s;\n", $sql);
             return cc;
         }
 
+        #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
+        /** @par Example:
+            @code
+$table.dropConstraint("uk_mytable_name");
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the constraint to drop
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return the constraint dropped from the table
+
+            @throw DROP-CONSTRAINT-ERROR the given constraint does not exist in the table
+
+            @note this method retrieves current constraint definitions from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractConstraint dropConstraint(string cname, *reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            getConstraintsUnlocked();
+            
+            AbstractConstraint c;
+
+            code rmv;
+
+            if (constraints && constraints.hasKey(cname)) {
+                c = constraints{cname};
+                rmv = sub () { constraints.take(cname); };
+            }
+            else {
+                if (inDb) {
+                    getPrimaryKeyUnlocked();
+                    if (primaryKey && primaryKey.getName() == cname) {
+                        c = primaryKey;
+                        rmv = sub () { remove primaryKey; };
+                    }
+                    else {
+                        getForeignConstraintsUnlocked();
+                        if (foreignConstraints && foreignConstraints.hasKey(cname)) {
+                            c = foreignConstraints{cname};
+                            rmv = sub () { foreignConstraints.take(cname); };
+                        }
+                    }
+                }
+            }
+            
+            if (!c) {
+                list cl = ();
+                # get a list of all constraint names
+                cl += constraints.keys();
+                if (primaryKey)
+                    cl += primaryKey.getName();
+                if (foreignConstraints)
+                    cl += foreignConstraints.keys();
+                throw "DROP-CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", name, cname, cl);
+            }
+
+            # drop foreign constraint from table if the table already exists in the DB
+            execSql(sql = c.getDropSql(getSqlName()));
+
+            # remove from foreign constraint structure and return removed foreign constraint
+            rmv();
+            return c;
+        }
+
+        #! adds a trigger to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractTrigger $trig = $table.addTrigger("trig_mytable", "", NOTHING, \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param tname the name of the new trigger
+            @param src the source of the trigger
+            @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref TriggerOptions
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return an AbstractTrigger object corresponding to the trigger created
+
+            @throw CHECK-TRIGGER-ERROR the table already has a trigger with the given name or invalid options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractTrigger addTrigger(string tname, string src, *hash opt, *reference sql) {
+            l.lock();
+            on_exit l.unlock();
+
+            # load triggers if needed
+            if (inDb || !manual)
+                getTriggersUnlocked();
+
+            # verify unique trigger name
+            if (triggers && triggers.hasKey(tname))
+                throw "CHECK-TRIGGER-ERROR", sprintf("%y: already has a trigger named %y, drop the trigger before adding it", name, tname);
+
+            # validate/process options
+            validateOptionsIntern("CHECK-TRIGGER-ERROR", getTriggerOptions(), \opt);
+
+            # get the new constraint object
+            AbstractTrigger trig = addTriggerImpl(tname, src, opt);
+            
+            # add foreign constraint to table in the DB if the table already exists in the DB
+            execSql(sql = trig.getCreateSql(getSqlName()));
+
+            # store trigger in trigger container
+            triggers.add(tname, trig);
+
+            # return the new trigger
+            return trig;
+        }
+
+        #! drops the given trigger from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
+        /** @par Example:
+            @code
+$table.dropTrigger("trig_mytable");
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param tname the name of the trigger to drop
+            @param sql an optional reference to a string to retrieve the SQL used to modify the database (only executed if the table is already in the database)
+
+            @return the trigger dropped from the table
+
+            @throw TRIGGER-ERROR the given trigger does not exist
+
+            @note this method retrieves all current trigger definitions from the database if none have already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractTrigger dropTrigger(string tname, *reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            getTriggersUnlocked();
+            if (!triggers.hasKey(tname))
+                throw "TRIGGER-ERROR", sprintf("%s: has no trigger %y; valid triggers: %y", name, tname, triggers.keys());
+
+            # drop trigger from table if the table already exists in the DB
+            execSql(sql = triggers{tname}.getDropSql(getSqlName()));
+
+            # remove from trigger structure and return removed trigger
+            return triggers.take(tname);
+        }
+
         private getAllConstraintsUnlocked() {
             if (!inDb && manual)
                 return;
@@ -2007,75 +2358,16 @@ printf("%s;\n", $sql);
             validateOptionsIntern(err, ropt, \opt);
         }
 
-        #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
-        /** @par Example:
-            @code
-$table.dropConstraint("uk_mytable_name");
-            @endcode
-
-            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
-
-            @param cname the name of the constraint to drop
-            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
-
-            @return the constraint dropped from the table
-
-            @note this method retrieves current constraint definitions from the database if not already loaded or defined
-
-            @see inDb() for a method that tells if the table is already in the database or not
-         */
-        AbstractConstraint dropConstraint(string cname, *reference sql) {
-            l.lock();
-            on_exit l.unlock();
-            getConstraintsUnlocked();
-            
-            AbstractConstraint c;
-
-            code rmv;
-
-            if (constraints.hasKey(cname)) {
-                c = constraints{cname};
-                rmv = sub () { constraints.take(cname); };
-            }
-            else {
-                if (inDb) {
-                    getPrimaryKeyUnlocked();
-                    if (primaryKey.getName() == cname) {
-                        c = primaryKey;
-                        rmv = sub () { remove primaryKey; };
-                    }
-                    else {
-                        getForeignConstraintsUnlocked();
-                        if (foreignConstraints.hasKey(cname)) {
-                            c = foreignConstraints{cname};
-                            rmv = sub () { foreignConstraints.take(cname); };
-                        }
-                    }
-                }
-            }
-            
-            if (!c) {
-                list cl = ();
-                # get a list of all constraint names
-                cl += constraints.keys();
-                if (primaryKey)
-                    cl += primaryKey.getName();
-                if (foreignConstraints)
-                    cl += foreignConstraints.keys();
-                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", name, cname, cl);
-            }
-
-            # drop foreign constraint from table if the table already exists in the DB
-            execSql(sql = c.getDropSql(getSqlName()));
-
-            # remove from foreign constraint structure and return removed foreign constraint
-            rmv();
-            return c;
-        }
-
         private validateOptionsIntern(string err, hash ropt, reference opt, *string tag) {
             if (!tag)
                 tag = name;
+
+            # make sure driver-specific options take precedence over generic options            
+            string dn = getDriverName();
+            if (opt.driver{dn})
+                opt += remove opt.driver{dn};
+            delete opt.driver;
+
             # check valid options and option value types
             foreach string k in (opt.keyIterator()) {
                 if (!ropt.hasKey(k))
@@ -2462,8 +2754,7 @@ my string $sql = $table.getCreateTableSql();
             validateOptionsIntern("OPTION-ERROR", getTableCreationOptions(), \opt);
             l.lock();
             on_exit l.unlock();
-            getColumnsUnlocked();
-            return getCreateTableSqlImpl(opt);
+            return getCreateTableSqlUnlocked(opt);
         }
 
         #! returns a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
@@ -2483,11 +2774,7 @@ my *list $l = $table.getCreateIndexesSql();
             validateOptionsIntern("OPTION-ERROR", getIndexOptions(), \opt);
             l.lock();
             on_exit l.unlock();
-            if (cache)
-                getIndexesUnlocked();
-            if (!indexes)
-                return;
-            return getCreateIndexesSqlImpl(opt);
+            return getCreateIndexesSqlUnlocked(opt, cache);
         }
 
         #! returns an SQL string that could be used to create the primary key on the table
@@ -2507,11 +2794,7 @@ my *string $sql = $table.getCreatePrimaryKeySql();
             validateOptionsIntern("OPTION-ERROR", getPrimaryKeyOptions(), \opt);
             l.lock();
             on_exit l.unlock();
-            if (cache)
-                getPrimaryKeyUnlocked();
-            if (!primaryKey)
-                return;
-            return getCreatePrimaryKeySqlImpl(opt);
+            return getCreatePrimaryKeySqlUnlocked(opt, cache);
         }
 
         #! returns a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
@@ -2531,11 +2814,7 @@ my *list $l = $table.getCreateForeignConstraintsSql();
             validateOptionsIntern("OPTION-ERROR", getForeignConstraintOptions(), \opt);
             l.lock();
             on_exit l.unlock();
-            if (cache)
-                getForeignConstraintsUnlocked();
-            if (!foreignConstraints)
-                return;
-            return getCreateForeignConstraintsSqlImpl(opt);
+            return getCreateForeignConstraintsSqlUnlocked(opt, cache);
         }
 
         #! returns a list of SQL strings that could be used to create non-foreign constraints on the table or @ref nothing if there are no non-foreign constraints on the table
@@ -2557,11 +2836,7 @@ my *list $l = $table.getCreateConstraintsSql();
             validateOptionsIntern("OPTION-ERROR", getConstraintOptions(), \opt);
             l.lock();
             on_exit l.unlock();
-            if (cache)
-                getConstraintsUnlocked();
-            if (!constraints)
-                return;
-            return getCreateConstraintsSqlImpl(opt);
+            return getCreateConstraintsSql(opt, cache);
         }
 
         #! returns a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or @ref nothing if there are none
@@ -2673,12 +2948,49 @@ my *list $rows = $table.find($list);
             return name;
         }
 
+        private string getCreateTableSqlUnlocked(*hash opt) {
+            getColumnsUnlocked();
+            return getCreateTableSqlImpl(opt);
+        }
+
+        private *list getCreateIndexesSqlUnlocked(*hash opt, bool cache = True) {
+            if (cache)
+                getIndexesUnlocked();
+            if (!indexes)
+                return;
+            return getCreateIndexesSqlImpl(opt);
+        }
+
+        private *string getCreatePrimaryKeySqlUnlocked(*hash opt, bool cache = True) {
+            if (cache)
+                getPrimaryKeyUnlocked();
+            if (!primaryKey)
+                return;
+            return getCreatePrimaryKeySqlImpl(opt);
+        }
+
+        private *list getCreateConstraintsSqlUnlocked(*hash opt, bool cache = True) {
+            if (cache)
+                getConstraintsUnlocked();
+            if (!constraints)
+                return;
+            return getCreateConstraintsSqlImpl(opt);
+        }
+
+        private *list getCreateForeignConstraintsSqlUnlocked(*hash opt, bool cache = True) {
+            if (cache)
+                getForeignConstraintsUnlocked();
+            if (!foreignConstraints)
+                return;
+            return getCreateForeignConstraintsSqlImpl(opt);
+        }
+
         private list getCreateSqlUnlocked(*hash opt, bool cache = True) {
-            list l += getCreateTableSql(opt);
-            *list tl = getCreateIndexesSql(opt, cache); if (tl) l += tl;
-            *string sql = getCreatePrimaryKeySql(opt, cache); if (sql) l += sql;
-            tl = getCreateForeignConstraintsSql(opt, cache); if (tl) l += tl;
-            tl = getCreateConstraintsSql(opt, cache); if (tl) l += tl;
+            list l += getCreateTableSqlUnlocked(opt);
+            *list tl = getCreateIndexesSqlUnlocked(opt, cache); if (tl) l += tl;
+            *string sql = getCreatePrimaryKeySqlUnlocked(opt, cache); if (sql) l += sql;
+            tl = getCreateForeignConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
+            tl = getCreateConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
             tl = getCreateMiscSql(opt, cache); if (tl) l += tl;
             tl = getCreateTriggersSql(opt, cache); if (tl) l += tl;
 
@@ -2817,6 +3129,11 @@ my *list $rows = $table.find($list);
             return PrimaryKeyOptions;
         }
 
+        #! override in subclasses to return driver-specific options
+        private hash getTriggerOptions() {
+            return TriggerOptions;
+        }
+
         private abstract Columns describeImpl();
         private abstract *AbstractPrimaryKey getPrimaryKeyImpl();
         private abstract Indexes getIndexesImpl();
@@ -2838,6 +3155,7 @@ my *list $rows = $table.find($list);
         private abstract AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt);
         private abstract AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt);
         private abstract AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt);
+        private abstract AbstractTrigger addTriggerImpl(string tname, string src, *hash opt);
 
         #! returns the qore type -> column type map
         private abstract hash getQoreTypeMapImpl();

@@ -77,7 +77,7 @@ public namespace PgsqlSqlUtil {
         }
 
         string getCreateSql(string table_name, *hash opt) {
-            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+            string sql = sprintf("create%s %sindex %s on %s (%s)", opt.replace ? " or replace" : "", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
 
             *string ts = opt.index_tablespace ? opt.index_tablespace : tablespace;
             if (ts)
@@ -172,46 +172,37 @@ my list $l = $col.getCreateSql($t);
     }
 
     public class PgsqlTrigger inherits AbstractTrigger {
-        public {
-            #! trigger timing
-            string timing;
-
-            #! trigger event
-            string event;
-
-            #! action orientation
-            string orientation;
+        #! creates the object and sets its name and the trigger source
+        constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
         }
 
-        constructor(string n, string n_src, string t, string e, string o) : AbstractTrigger(n, n_src) {
-            timing = t;
-            event = e;
-            orientation = o;
-        }
-
+        #! returns a string that can be used to create the trigger in the database
         string getCreateSql(string table_name, *hash opt) {
-            return sprintf("create trigger %s %s %s on %s for each %s %s", name, timing, event, table_name, orientation, src);
+            return sprintf("create trigger %s %s", name, src);
+        }
+
+        #! returns a string that can be used to drop the trigger from the database
+        string getDropSql(string table_name) {
+            return sprintf("drop trigger %s on %s", name, table_name);
         }
     }
 
     public class PgsqlFunction inherits AbstractFunction {
         public {
-            string hdr;
-            
-            string lang;
-
-            string stability;
+            *string args;
         }
 
-        constructor(string n, string n_src, string h, string l, string n_stability) : AbstractFunction(n, n_src) {
-            hdr = h;
-            lang = l;
-            stability = n_stability;
+        constructor(string n, string n_src, *string a) : AbstractFunction(n, n_src) {
+            args = a;
         }
 
         string getCreateSql(*hash opt) {
-            return sprintf("%s", hdr);
-        }        
+            return sprintf("create%s function %s(%s) %s", opt.replace ? " or replace" : "", name, args, src);
+        }
+
+        string getDropSql() {
+            return sprintf("drop function %s(%s)", name, args);
+        }
     }
 
     public class PgsqlTable inherits AbstractTable {
@@ -258,7 +249,7 @@ my list $l = $col.getCreateSql($t);
                 "timestamp without time zone": "timestamp",
                 "time without time zone": "time",
                 );
-            
+
             const QoreTypeMap = (
                 "integer": "bigint",
                 "float": "double precision",
@@ -271,6 +262,10 @@ my list $l = $col.getCreateSql($t);
 
             const PgsqlColumnOptions = AbstractTable::ColumnOptions + (
                 "comment": Type::String,
+                );
+
+            const PgsqlTableCreationOptions = AbstractTable::TableCreationOptions + (
+                "omit_trigger_functions": Type::Boolean,
                 );
         }
 
@@ -292,6 +287,10 @@ my list $l = $col.getCreateSql($t);
 
         private hash getColumnOptions() {
             return PgsqlColumnOptions;
+        }
+
+        private hash getTableCreationOptions() {
+            return PgsqlTableCreationOptions;
         }
 
         private Columns describeImpl() {
@@ -420,19 +419,36 @@ my list $l = $col.getCreateSql($t);
                     continue;
                 }
 
-                rv{row.trigger_name} = new PgsqlTrigger(row.trigger_name, row.action_statement, row.action_timing, row.event_manipulation, row.action_orientation);
+                string src = sprintf("%s %s on %s for each %s %s", row.action_timing, row.event_manipulation, getSqlName(), row.action_orientation, row.action_statment);
+                rv{row.trigger_name} = new PgsqlTrigger(row.trigger_name, src);
             }
 
             if (fl) {
                 hash fh;
                 # also get trigger functions
-                qh = ds.select("select p.proname, t1.typname AS return_type, a.rolname AS procedure_owner, l.lanname AS lang, prosrc AS body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 ON p.prorettype=t1.oid left join pg_authid a ON p.proowner=a.oid left join pg_language l ON p.prolang=l.oid where proname in (%s)", (foldl $1 + "," + $2, (map sprintf("'%s'", $1), fl)));
+                qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname in (%s)", (foldl $1 + "," + $2, (map sprintf("'%s'", $1), fl)));
                 foreach hash row in (qh.contextIterator()) {
                     if (!native_case)
                         map row.$1 = row.$1.lwr(), ("stability");
 
                     trim row.hdr;
-                    fh{row.proname} = new PgsqlFunction(row.proname, row.body, row.hdr, row.lang, row.stability);
+                    # remove "create or replace function" from the beginning of hdr
+                    if (row.hdr !~ /^create or replace function /i)
+                        throw "PGSQL-TRIGGER-FUNCTION-ERROR", sprintf("function does not begin with 'create or replace function': %y", row.hdr);
+
+                    # remove function name and "()" from beginning of hdr
+                    int i = row.hdr.find("()");
+                    if (i == -1)
+                        throw "PGSQL-TRIGGER-FUNCTION-ERROR", sprintf("cannot find function arguments: %y", row.hdr);
+                    splice row.hdr, 0, i + 2;
+
+                    if (!native_case) {
+                        row.hdr =~ s/ RETURNS / returns /;
+                        row.hdr =~ s/ LANGUAGE / language /;
+                        row.hdr =~ s/ AS / as /;
+                    }
+
+                    fh{row.proname} = new PgsqlFunction(row.proname, row.hdr);
                 }
                 triggerFunctions = new Functions(fh);
             }
@@ -477,8 +493,9 @@ my list $l = $col.getCreateSql($t);
                 getTriggersUnlocked();
             }
             list l = map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
-            l += map $1.getCreateSql(opt), triggerFunctions.iterator();
-
+            if (!opt.omit_trigger_functions) {
+                l += map $1.getCreateSql(opt), triggerFunctions.iterator();
+            }
             #printf("gCMSI triggerFunctions: %N\n", triggerFunctions);
 
             return l;
@@ -514,6 +531,10 @@ my list $l = $col.getCreateSql($t);
 
         private AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt) {
             return new PgsqlCheckConstraint(cname, src);
+        }
+
+        private AbstractTrigger addTriggerImpl(string tname, string src, *hash opt) {
+            return new PgsqlTrigger(tname, src);
         }
 
         private hash getQoreTypeMapImpl() {

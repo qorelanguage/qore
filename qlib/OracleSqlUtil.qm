@@ -145,7 +145,13 @@ my list $l = $col.getCreateSql($t);
     }
 
     public class OracleCheckConstraint inherits AbstractCheckConstraint {
-        constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
+        public {
+            #! @ref Qore::True if the constraint is enabled, @ref Qore::False if not
+            bool enabled;
+        }
+
+        constructor(string n, string n_src, bool e = True) : AbstractCheckConstraint(n, n_src) {
+            enabled = e;
         }        
 
         string getCreateSql(string table_name, *hash opt) {
@@ -166,46 +172,28 @@ my list $l = $col.getCreateSql($t);
         string getCreateSql(string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
             *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
-            if (ts)
+            if (ts) {
                 sql += sprintf(" using index tablespace %s", ts);
+                if (opts.compute_statistics)
+                    sql += " compute statistics";
+            }
+
             return sql;
         }
     }
 
     public class OracleTrigger inherits AbstractTrigger {
         public {
-            #! trigger type
-            string type;
-            
-            #! the triggering event
-            string event;
-
-            #! referencing names
-            string ref;
-
             #! @ref Qore::True if the trigger is enabled, @ref Qore::False if not
             bool enabled;
-
-            #! the trigger description
-            string desc;
-
-            #! then when clause
-            *string when;
         }
 
-        constructor(string n, string n_src, string t, string ev, string r, bool en, string d, *string w) : AbstractTrigger(n, n_src) {
-            type = t;
-            event = ev;
-            ref = r;
+        constructor(string n, string n_src, bool en = True) : AbstractTrigger(n, n_src) {
             enabled = en;
-            desc = d;
-            when = w;
-
-            desc =~ s/\n/ /g;
         }
 
         string getCreateSql(string table_name, *hash opt) {
-            return sprintf("create trigger %s\n%s", desc, src); 
+            return sprintf("create trigger %s %s", name, src);
         }
     }
 
@@ -316,6 +304,11 @@ my list $l = $col.getCreateSql($t);
             const OracleIndexOptions = AbstractTable::IndexOptions + (
                 "compute_statistics": Type::Boolean,
                 );
+
+            const OraclePrimaryKeyOptions = OracleIndexOptions;
+
+            #! Oracle table creation options
+            const OracleTableCreationOptions = AbstractTable::TableCreationOptions + OracleIndexOptions;
         }
 
         private {
@@ -616,7 +609,14 @@ my list $l = $col.getCreateSql($t);
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names", "description");
                 #printf("%y: %s\n", row.trigger_name, row.description);
-                rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.trigger_body, row.trigger_type, row.triggering_event, row.referencing_names, row.status == "ENABLED", row.description, row.when ? row.when : NOTHING);
+
+                # replace newlines with spaces
+                row.description =~ s/\n/ /g;
+                trim row.description;
+
+                # remove trigger name from description line
+                splice row.description, 0, row.trigger_name.size() + 1;
+                rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.description + "\n" + row.trigger_body, row.status == "ENABLED");
             }
             
             return new Triggers(rv);
@@ -692,6 +692,10 @@ my list $l = $col.getCreateSql($t);
             return new OracleCheckConstraint(cname, src);
         }
 
+        private AbstractTrigger addTriggerImpl(string tname, string src, *hash opt) {
+            return new OracleTrigger(tname, src);
+        }
+
         private hash getQoreTypeMapImpl() {
             return QoreTypeMap;
         }
@@ -702,6 +706,14 @@ my list $l = $col.getCreateSql($t);
 
         private hash getIndexOptions() {
             return OracleIndexOptions;
+        }
+
+        private hash getPrimaryKeyOptions() {
+            return OraclePrimaryKeyOptions;
+        }
+
+        private hash getTableCreationOptions() {
+            return OracleTableCreationOptions;
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
