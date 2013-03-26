@@ -373,6 +373,8 @@ my list $l = $col.getCreateSql($t);
             @endcode
 
             @param t the AbstractTable object to modify
+
+            @return a list of sql strings that can be used to add the column to an existing table
          */
         abstract list getCreateSql(AbstractTable t);
 
@@ -389,8 +391,23 @@ my list $l = $col.getModifySql($t, $newcol);
 
             @param t the AbstractTable object to modify
             @param c the new column definition
+            
+            @return a list of sql strings that can be used to modify the column to the new definition
          */
         abstract list getModifySql(AbstractTable t, AbstractColumn c);
+
+        #! returns a string that can be used to rename the column
+        /** @par Example:
+            @code
+my string $str = $col.getRenameSql($t, "new_name");
+            @endcode
+
+            @param t the AbstractTable object to modify
+            @param new_name the new name for the column
+
+            @return a string that can be used to rename the column
+        */
+        abstract string getRenameSql(AbstractTable t, string new_name);
     }
 
     #! the base class to use to extend AbstractColumn to implement numeric columns
@@ -522,6 +539,11 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         #! returns the constraint name
         string getName() {
             return name;
+        }
+
+        #! renames the constraint
+        rename(string n) {
+            name = n;
         }
 
         #! returns a string that can be used to create the constraint in the database
@@ -1044,7 +1066,23 @@ $table.createNoCommit();
         createNoCommit(*hash opt) {
             t.createNoCommit(opt);
         }
-        
+
+        #! renames the table; if the table already exists in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        /** @par Example:
+            @code
+$table.rename("old_name", "new_name");
+            @endcode
+
+            @param old_name the current name of the table
+            @param new_name the new name for the table
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @see getRenameSql()
+        */
+        rename(string old_name, string new_name, reference sql) {
+            return t.rename(old_name, new_name, \sql);
+        }
+
         #! adds a column to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
@@ -1097,10 +1135,31 @@ $table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
 
             @note make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
 
-            @see inDb() for a method that tells if the table is already in the database or not
+            @see
+            - inDb() for a method that tells if the table is already in the database or not
+            - renameColumn() for a method that allows the column name to be changed
          */
         AbstractColumn modifyColumn(string cname, hash opt, bool nullable = True, *reference lsql) {
             return t.modifyColumn(cname, opt, nullable, \lsql);
+        }
+
+        #! renames an existing column; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        /** @par Example:
+            @code
+my AbstractColumn $col = $table.renameColumn("name", "family_name");
+            @endcode
+
+            @param old_name the current name of the column
+            @param new_name the new name for the column
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @return the column object that was updated
+
+            @throw COLUMN-ERROR if the given column does not exist in the table
+
+            @see modifyColumn() for a method that allows the column definition to be updated
+        */
+        AbstractColumn renameColumn(string old_name, string new_name, reference sql) {
+            return t.renameColumn(old_name, new_name, \sql);
         }
 
         #! adds a primary key to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -1270,6 +1329,23 @@ printf("%s;\n", $sql);
             return t.addCheckConstraint(cname, src, opt, \sql);
         }
 
+        #! renames an existing constraint; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        /** @par Example:
+            @code
+my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_table_name");
+            @endcode
+
+            @param old_name the current name of the constraint
+            @param new_name the new name for the constraint
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @return the constraint object that was updated
+
+            @throw CONSTRAINT-ERROR if the old constraint does not exist in the table or if the new constraint name already exists
+        */
+        AbstractConstraint renameConstraint(string old_name, string new_name, reference sql) {
+            return t.renameConstraint(old_name, new_name, \sql);
+        }
+
         #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
@@ -1394,6 +1470,24 @@ $table.insert($row);
          */
         insertNoCommit(hash row) {
             t.insertNoCommit(row);
+        }
+
+        #! returns an SQL string that could be used to rename the table in the database
+        /** @par Example:
+            @code
+my string $sql = $table.getRenameSql("new_name");
+            @endcode
+
+            @param new_name the new name for the table
+
+            @return an SQL string that could be used to rename the table in the database
+
+            @note does not rename the table; the new name is only used in the SQL string return value
+
+            @see rename()
+        */
+        string getRenameSql(string new_name) {
+            return t.getRenameSql(new_name);
         }
 
         #! returns an SQL string that could be used to create the table and all known properties of the table
@@ -1855,6 +1949,25 @@ $table.createNoCommit();
             manual = False;
         }
 
+        #! renames the table; if the table already exists in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        /** @par Example:
+            @code
+$table.rename("old_name", "new_name");
+            @endcode
+
+            @param old_name the current name of the table
+            @param new_name the new name for the table
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @see getRenameSql()
+        */
+        rename(string old_name, string new_name, reference sql) {
+            l.lock();
+            on_exit l.unlock();
+
+            execSql(sql = getRenameSqlImpl(old_name, new_name));
+        }
+
         #! adds a column to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
@@ -1948,6 +2061,38 @@ $table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
 
             # replaces the column in the internal column representation with the new definition
 	    columns.add(cname, c);
+            return c;
+        }
+
+        #! renames an existing column; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        /** @par Example:
+            @code
+my AbstractColumn $col = $table.renameColumn("name", "family_name");
+            @endcode
+
+            @return the column object that was updated
+
+            @throw COLUMN-ERROR if the given column does not exist in the table
+
+            @see modifyColumn() for a method that allows the column definition to be updated
+        */
+        AbstractColumn renameColumn(string old_name, string new_name, reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+            if (!columns.hasKey(old_name))
+                throw "COLUMN-ERROR", sprintf("%s.%s: the given column does not exist", name, old_name);
+
+            AbstractColumn c = columns{old_name};
+            
+            # add column in table if the table already exists in the DB
+            execSql(sql = c.getRenameSql(self, new_name));
+
+            # rename column after database is updated
+            c.name = new_name;
+
+            # replaces the column in the internal column representation with the new definition
+	    columns.add(new_name, columns.take(old_name));
             return c;
         }
 
@@ -2280,6 +2425,73 @@ printf("%s;\n", $sql);
             return cc;
         }
 
+        #! renames an existing constraint; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        /** @par Example:
+            @code
+my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_table_name");
+            @endcode
+
+            @param old_name the current name of the constraint
+            @param new_name the new name for the constraint
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @return the constraint object that was updated
+
+            @throw CONSTRAINT-ERROR if the old constraint does not exist in the table or if the new constraint name already exists
+        */
+        AbstractConstraint renameConstraint(string old_name, string new_name, reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            getAllConstraintsUnlocked();
+            
+            AbstractConstraint c;
+
+            code rename;
+
+            if (constraints && constraints.hasKey(old_name)) {
+                c = constraints{old_name};
+                rename = sub () { constraints.add(new_name, constraints.take(old_name)); };
+            }
+            else {
+                if (inDb) {
+                    getPrimaryKeyUnlocked();
+                    if (primaryKey && primaryKey.getName() == old_name) {
+                        c = primaryKey;
+                        # no need to update any container if the primary key is being updated
+                        rename = sub () { };
+                    }
+                    else {
+                        getForeignConstraintsUnlocked();
+                        if (foreignConstraints && foreignConstraints.hasKey(old_name)) {
+                            c = foreignConstraints{old_name};
+                            rename = sub () { foreignConstraints.take(old_name); };
+                        }
+                    }
+                }
+            }
+            
+            if (!c) {
+                list cl = ();
+                # get a list of all constraint names
+                cl += constraints.keys();
+                if (primaryKey)
+                    cl += primaryKey.getName();
+                if (foreignConstraints)
+                    cl += foreignConstraints.keys();
+                throw "CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", name, old_name, cl);
+            }
+
+            # rename foreign constraint from table if the table already exists in the DB
+            execSql(sql = c.getRenameSql(getSqlName()));
+
+            c.rename(new_name);
+
+            # rename constraint in container structure
+            rename();
+            
+            # return the updated constraint
+            return c;
+        }
+
         #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
@@ -2302,7 +2514,7 @@ $table.dropConstraint("uk_mytable_name");
         AbstractConstraint dropConstraint(string cname, *reference sql) {
             l.lock();
             on_exit l.unlock();
-            getConstraintsUnlocked();
+            getAllConstraintsUnlocked();
             
             AbstractConstraint c;
 
@@ -2439,7 +2651,7 @@ $table.dropTrigger("trig_mytable");
             getConstraintsUnlocked();
         }
 
-        private checkUniqueConstraintNameValidateOptions(string err, string cname, hash ropt, reference opt) {
+        private checkUniqueConstraintName(string err, string cname) {
             getAllConstraintsUnlocked();
             if (foreignConstraints && foreignConstraints.hasKey(cname))
                 throw err, printf("%y: already has a foreign constraint named %y with columns: %y", name, cname, foreignConstraints{cname}.columns.keys());
@@ -2449,7 +2661,10 @@ $table.dropTrigger("trig_mytable");
 
             if (primaryKey && primaryKey.getName() == cname)
                 throw err, printf("%y: already has a primary key constraint named %y with columns: %y", name, cname, primaryKey.columns.keys());
+        }
 
+        private checkUniqueConstraintNameValidateOptions(string err, string cname, hash ropt, reference opt) {
+            checkUniqueConstraintName(err, cname);
             # validate options
             validateOptionsIntern(err, ropt, \opt);
         }
@@ -2803,10 +3018,30 @@ my Triggers $trig = $table.getTriggers();
             return triggers;
         }
 
+        #! returns an SQL string that could be used to rename the table in the database
+        /** @par Example:
+            @code
+my string $sql = $table.getRenameSql("new_name");
+            @endcode
+
+            @param new_name the new name for the table
+
+            @return an SQL string that could be used to rename the table in the database
+
+            @note does not rename the table; the new name is only used in the SQL string return value
+
+            @see rename()
+        */
+        string getRenameSql(string new_name) {
+            l.lock();
+            on_exit l.unlock();
+            return getRenameSqlImpl(new_name);
+        }
+
         #! returns an SQL string that could be used to create the table and all known properties of the table
         /** @par Example:
             @code
-printf("%s\n", $table.getCreateSqlString());
+printf("%s\n", $table.getCreateSql());
             @endcode
 
             @param opt a hash of options for the SQL creation string
@@ -2817,7 +3052,7 @@ printf("%s\n", $table.getCreateSqlString());
             l.lock();
             on_exit l.unlock();
             cacheUnlocked();
-            return getCreateSqlStringImpl(getCreateSqlUnlocked(opt));
+            return getCreateSqlImpl(getCreateSqlUnlocked(opt));
         }
 
         #! returns a list of SQL strings that could be used to create the table and all known properties of the table
@@ -3255,7 +3490,8 @@ my *list $rows = $table.find($list);
         private abstract *list getCreateConstraintsSqlImpl(*hash opt);
         private abstract *list getCreateMiscSqlImpl(*hash opt, bool cache);
         private abstract *list getCreateTriggersSqlImpl(*hash opt);
-        private abstract string getCreateSqlStringImpl(list l);
+        private abstract string getCreateSqlImpl(list l);
+        private abstract string getRenameSqlImpl(string new_name);
 
         private abstract AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True);
         private abstract AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt);

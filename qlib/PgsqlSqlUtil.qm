@@ -182,6 +182,21 @@ my list $l = $col.getModifySql($t, $newcol);
 		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(c.comment));
             return l;
         }
+
+        #! returns a string that can be used to rename the column
+        /** @par Example:
+            @code
+my string $str = $col.getRenameSql($t, "new_name");
+            @endcode
+
+            @param t the AbstractTable object to modify
+            @param new_name the new name for the column
+
+            @return a string that can be used to rename the column
+        */
+        string getRenameSql(AbstractTable t, string new_name) {
+            return sprintf("alter table %s rename %s to %s", t.getSqlName(), name, new_name);
+        }
     }
 
     public class PgsqlNumericColumn inherits PgsqlColumn, NumericColumnInfo {
@@ -556,10 +571,14 @@ my list $l = $col.getModifySql($t, $newcol);
             return map $1.getCreateSql(name, opt), triggers.iterator();
         }
 
-        string getCreateSqlStringImpl(list l) {
+        string getCreateSqlImpl(list l) {
             string str;
             map str += sprintf("%s%s\n", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l;
             return str;
+        }
+
+        string getRenameSqlImpl(string new_name) {
+            return sprintf("alter table %s rename to %s", getSqlName(), new_name);
         }
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
