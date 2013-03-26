@@ -359,7 +359,7 @@ my AbstractColumn $c = $cols.id;
         #! returns an sql string that can be used to add the column to a table
         string getCreateSql() {
             string sql = sprintf("%s %s", name, getNativeTypeString());
-            if (def_val)
+            if (exists def_val)
                 sql += " default " + def_val + "";
             if (!nullable)
                 sql += " not null";
@@ -464,7 +464,7 @@ my AbstractIndex $ix = $indexes.pk_jobs;
         }
     }
 
-    #! the base class for index information
+    #! the abstract base class for index information
     public class AbstractIndex {
         public {
             #! the name of the index
