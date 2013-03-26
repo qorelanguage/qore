@@ -106,15 +106,11 @@ public namespace PgsqlSqlUtil {
 
     public class PgsqlColumn inherits AbstractColumn {
         public {
-            #! any comments on the column
-            *string comment;
-
             #! byte size of the column
             int byte_size;
         }
 
-        constructor(string n, string nt, *string qt, int sz, int cs, softint prec, softint sc, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, cs, prec, sc, nul, dv) {
-            comment = cm;
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
             byte_size = bs;
         }
 
@@ -124,13 +120,7 @@ public namespace PgsqlSqlUtil {
                 case =~ /^timestamp/: return splice sql, 9, 0, "(" + string(size) + ")";
                 case =~ /^time/: return splice sql, 4, 0, string(size);
             }
-            if (precision) {
-                sql += sprintf("(%d", precision);
-                if (scale)
-                    sql += sprintf(",%d", scale);
-                sql += ")";
-            }
-            else if (size)
+            if (size)
                 sql += sprintf("(%d)", size);
             #printf("%y: %s\n", self, sql);
             return sql;
@@ -147,7 +137,7 @@ my list $l = $col.getCreateSql($t);
         list getCreateSql(AbstractTable t) {
 	    list l += sprintf("alter table %s add %s", t.getSqlName(), getCreateSql());	    
 	    if (comment)
-		l += sprintf("comment on %s.%s is %s", t.getSqlName(), name, comment);
+		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
             return l;
         }
 
@@ -165,16 +155,15 @@ my list $l = $col.getModifySql($t, $newcol);
         list getModifySql(AbstractTable t, AbstractColumn col) {
             list l = ();
             PgsqlColumn c = col;
-            
-            if (native_type != c.native_type
-                || size != c.size
-                || scale != c.scale
-                ) {
+
+            # get new native type declaration string
+            string nts = c.getNativeTypeString();
+            if (getNativeTypeString() != nts) {
                 # first drop any default value if it's changing 
                 if (def_val != c.def_val)
                     l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
 
-                l += sprintf("alter table %s alter %s type %s", t.getSqlName(), name, c.getNativeTypeString());
+                l += sprintf("alter table %s alter %s type %s", t.getSqlName(), name, nts);
 
                 if (def_val != c.def_val && exists c.def_val)
                     l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
@@ -190,8 +179,17 @@ my list $l = $col.getModifySql($t, $newcol);
             }
 
             if (c.comment != comment)
-		l += sprintf("comment on %s.%s is %s", t.getSqlName(), name, c.comment);
+		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(c.comment));
             return l;
+        }
+    }
+
+    public class PgsqlNumericColumn inherits PgsqlColumn, NumericColumnInfo {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : PgsqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
+        }
+
+        string getNativeTypeString() {
+            return NumericColumnInfo::getNativeTypeString(native_type, size);
         }
     }
 
@@ -348,7 +346,6 @@ my list $l = $col.getModifySql($t, $newcol);
                 softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
                 if (!size)
                     size = row.datetime_precision;
-                softint cs = row.character_maximum_length ? row.character_maximum_length : 0;
                 # use short names in descriptions
                 *string an = PgsqlNameMap{row.data_type};
                 if (an)
@@ -360,7 +357,14 @@ my list $l = $col.getModifySql($t, $newcol);
                         break;
                     }
                 }
-                rv.(row.column_name) = new PgsqlColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, cs, row.numeric_precision, row.numeric_scale, row.is_nullable == "YES", row.column_default ? row.column_default : NOTHING, row.description ? row.description : NOTHING, row.character_octet_length);
+
+                PgsqlColumn c;
+                if (row.numeric_precision)
+                    c = new PgsqlNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", row.column_default ? row.column_default : NOTHING, row.description ? row.description : NOTHING, 0, row.numeric_scale);
+                else
+                    c = new PgsqlColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", row.column_default ? row.column_default : NOTHING, row.description ? row.description : NOTHING, row.character_octet_length);
+
+                rv.(row.column_name) = c;
             }
 
             return new Columns(rv);
@@ -559,8 +563,9 @@ my list $l = $col.getModifySql($t, $newcol);
         }
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
-            PgsqlColumn c(cname, opt.native_type, opt.qore_type, opt.size, 0, opt.precision, opt.scale, nullable, opt.default_value, opt.comment, 0);
-            return c;
+            if (opt.precision)
+                return new PgsqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale);
+            return new PgsqlColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, 0);
         }
 
         private AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt) {

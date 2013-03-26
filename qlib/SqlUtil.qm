@@ -322,52 +322,37 @@ my AbstractColumn $c = $cols.id;
             #! the native type name of the column
             string native_type;
 
-            #! the equivalent qore type name of the column if the native type is known
+            #! the equivalent qore type name of the column if known
             *string qore_type;
 
             #! the size of the column
             int size;
-
-            #! the size of the column in characters
-            int char_size;
-
-            #! the precision for numeric columns
-            int precision;
-            
-            #! the scale for numeric columns
-            int scale;
 
             #! Qore::True "True" if the column can hold a NULL value, @ref Qore::False "False" if not
             bool nullable; 
 
             #! default value for column
             *string def_val;
+
+            #! comment on the column
+            *string comment;
         }
 
-        constructor(string n, string nt, *string qt, int sz, int cs, int prec, int sc, bool nul, *string dv) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string c) {
             name = n;
             native_type = nt;
             qore_type = qt;
             size = sz;
-            char_size = cs;
-            precision = prec;
-            scale = sc;
             nullable = nul;
             def_val = dv;
+            comment = c;
         }
 
         #! returns the string describing the native type that can be used in SQL (for example to add the colunn to a table or when creating the table)
         string getNativeTypeString() {
             string sql = native_type;
-            if (precision) {
-                sql += sprintf("(%d", precision);
-                if (scale)
-                    sql += sprintf(",%d", scale);
-                sql += ")";
-            }
-            else if (size)
+            if (size)
                 sql += sprintf("(%d)", size);
-            #printf("%y: %s\n", self, sql);
             return sql;
         }
 
@@ -389,9 +374,7 @@ my list $l = $col.getCreateSql($t);
 
             @param t the AbstractTable object to modify
          */
-        softlist getCreateSql(AbstractTable t) {
-            return sprintf("alter table %s add %s", t.getSqlName(), getCreateSql());
-        }
+        abstract list getCreateSql(AbstractTable t);
 
         #! returns a string that can be used to drop the column from the table
         string getDropSql(string table_name) {
@@ -407,9 +390,33 @@ my list $l = $col.getModifySql($t, $newcol);
             @param t the AbstractTable object to modify
             @param c the new column definition
          */
-        abstract softlist getModifySql(AbstractTable t, AbstractColumn c);
+        abstract list getModifySql(AbstractTable t, AbstractColumn c);
     }
 
+    #! the base class to use to extend AbstractColumn to implement numeric columns
+    public class NumericColumnInfo {
+        public {
+            #! the scale for numeric columns
+            int scale;
+        }
+
+        constructor(softint n_scale = 0) {
+            scale = n_scale;
+        }
+ 
+        #! returns the string describing the native type that can be used in SQL (for example to add the column to a table or when creating the table)
+        string getNativeTypeString(string native_type, int precision) {
+            string sql = native_type;
+            if (precision) {
+                sql += sprintf("(%d", precision);
+                if (scale)
+                    sql += sprintf(",%d", scale);
+                sql += ")";
+            }
+            return sql;
+        }
+   }
+    
     #! index container class that throws an exception if an unknown index is accessed
     public class Indexes inherits AbstractHashContainer {
         constructor(*hash c) : AbstractHashContainer(c) {
@@ -2516,6 +2523,7 @@ $table.dropTrigger("trig_mytable");
 
             # reset qore type from native type
             opt.qore_type = th.qore;
+            opt.local_def = th;
 
             if (exists opt.size) {
                 if (!th.size)
