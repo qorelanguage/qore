@@ -829,15 +829,7 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
         }
     }
 
-    #! the base abstract class for the database implementation
-    public class AbstractDatabase {
-        public {
-            #! database options
-            const DatabaseOptions = (
-                "native-case": Type::Boolean,
-                );
-        }
-
+    public class AbstractSqlUtilBase {
         private {
             #! the connection to the database server
             AbstractDatasource ds;
@@ -847,8 +839,163 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
             Mutex l();
             #! option hash
             *hash opts;
+        }
+
+        #! creates the object; private constructor
+        /** @param nds the AbstractDatasource for the connection to the database
+            @param opt a hash of options for the table creation string; see @ref TableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+         */
+        private constructor(AbstractDatasource nds, *hash nopts) {
+            opts = nopts;
+            ds = nds;
+
+            # ensure datasource is open
+            ds.getServerVersion();
+            dsdesc = sprintf("%s:%s@%s", ds.getDriverName(), ds.getUserName(), ds.getDBName());
+            if (ds.getHostName())
+                dsdesc += "%" + ds.getHostName();
+            if (ds.getPort())
+                dsdesc += sprintf(":%d", ds.getPort());
+        }
+
+        private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
+            # make sure driver-specific options take precedence over generic options            
+            string dn = getDriverName();
+            if (opt.driver{dn})
+                opt += remove opt.driver{dn};
+            delete opt.driver;
+
+            # check valid options and option value types
+            foreach string k in (opt.keyIterator()) {
+                if (!ropt.hasKey(k))
+                    throw err, sprintf("%s: unknown option %y; valid options for %y: %y", tag, k, self.className(), ropt.keys());
+
+                switch (ropt{k}) {
+                    case Type::Int: {
+                        if (!opt{k}.intp())
+                            throw err, sprintf("%s: option %y has type %y, expecting \"int\" (value: %y)", tag, k, opt{k}.type(), opt{k});
+                        if (opt{k}.type() != ropt{k})
+                            opt{k} = opt{k}.toInt();
+                        break;
+                    }
+                    case Type::Boolean: {
+                        if (!opt{k}.intp())
+                            throw err, sprintf("%s: option %y has type %y, expecting \"boolean\" (value: %y)", tag, k, opt{k}.type(), opt{k});
+                        if (opt{k}.type() != ropt{k})
+                            opt{k} = opt{k}.toBool();
+                        break;
+                    }
+                    case Type::String: {
+                        if (!opt{k}.strp())
+                            throw err, sprintf("%s: option %y has type %y, expecting \"string\" (value: %y)", tag, k, opt{k}.type(), opt{k});
+                        if (opt{k}.type() != ropt{k})
+                            opt{k} = opt{k}.toString();
+                        break;
+                    }
+                    # no validation for NOTHING
+                    case NOTHING: break;
+
+                    # throw an exception if the type is not supported
+                    default: throw err, sprintf("option %y requires type %y which is not currently supported", k, ropt{k});
+                }
+            }
+        }
+
+        #! gets the underlying AbstractDatasource
+        AbstractDatasource getDatasource() {
+            return ds;
+        }
+
+        #! returns the database driver name 
+        string getDriverName() {
+            return ds.getDriverName();
+        }
+    }
+
+    #! the base abstract class for the database implementation
+    public class AbstractDatabase inherits AbstractSqlUtilBase {
+        public {
+            #! database options
+            const DatabaseOptions = (
+                "native-case": Type::Boolean,
+                );
+        }
+
+        private {
             #! native case option
             bool native_case = False;
+        }
+
+        #! creates the object; private constructor
+        /** @param nds the AbstractDatasource for the connection to the database
+            @param opt a hash of options for the table creation string; see @ref TableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+         */
+        private constructor(AbstractDatasource nds, *hash nopts) : AbstractSqlUtilBase(nds, nopts) {
+            validateOptionsIntern("OPTION-ERROR", getDatabaseOptions(), \nopts);
+            if (nopts."native-case")
+                native_case = True;
+        }
+
+        #! returns a list of string table names in the database
+        list listTables() {
+            return listTablesImpl();
+        }
+        
+        #! returns an iterator listing the string table names in the database
+        ListIterator tableIterator() {
+            return listTablesImpl().iterator();            
+        }
+ 
+        #! returns a list of string function names in the database
+        list listFunctions() {
+            return listFunctionsImpl();
+        }
+        
+        #! returns an iterator listing the string function names in the database
+        ListIterator functionIterator() {
+            return listFunctionsImpl().iterator();            
+        }
+
+        #! returns a list of string procedure names in the database
+        list listProcedures() {
+            return listProceduresImpl();
+        }
+        
+        #! returns an iterator listing the string procedure names in the database
+        ListIterator procedureIterator() {
+            return listProceduresImpl().iterator();            
+        }
+
+        #! returns a list of string sequence names in the database
+        list listSequences() {
+            return listSequencesImpl();
+        }
+        
+        #! returns an iterator listing the string sequence names in the database
+        ListIterator sequenceIterator() {
+            return listSequencesImpl().iterator();            
+        }
+
+        #! returns a list of string view names in the database
+        list listViews() {
+            return listViewsImpl();
+        }
+        
+        #! returns an iterator listing the string view names in the database
+        ListIterator viewIterator() {
+            return listViewsImpl().iterator();            
+        }
+
+        private validateOptionsIntern(string err, hash ropt, reference opt) {
+            AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, ds.getDBName());
+        }
+
+        private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
+            AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, tag);
         }
 
         static AbstractDatabase getDatabase(AbstractDatasource nds, *hash opts) {
@@ -888,6 +1035,12 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
         private hash getDatabaseOptions() {
             return DatabaseOptions;
         }
+
+        abstract list listTablesImpl();
+        abstract list listFunctionsImpl();
+        abstract list listProceduresImpl();
+        abstract list listSequencesImpl();
+        abstract list listViewsImpl();
     }
 
     #! represents a database table; this class embeds an AbstractTable object that is created automatically in the constructor based on the database driver for the AbstractDatasource object providing the database connection
@@ -1747,7 +1900,7 @@ my Triggers $trig = $table.getTriggers();
     }
 
     #! the base abstract class for the table implementation
-    public class AbstractTable {
+    public class AbstractTable inherits AbstractSqlUtilBase {
         public {
             #! table options
             const TableOptions = (
@@ -1788,16 +1941,13 @@ my Triggers $trig = $table.getTriggers();
                 "size": Type::Int,
                 "scale": Type::Int,
                 "default_value": NOTHING,
+                "comment": Type::String,
                 );
         }
 
         private {
-            #! the connection to the database server
-            AbstractDatasource ds;
             #! the table's name
             string name;
-            #! datasource description
-            string dsdesc;
             #! column description object
             Columns columns;
             #! primary key description
@@ -1810,10 +1960,6 @@ my Triggers $trig = $table.getTriggers();
             Constraints constraints;
             #! trigger descriptions
             Triggers triggers;
-            #! mutex for atomic table actions
-            Mutex l();
-            #! option hash
-            *hash opts;
             #! native case option
             bool native_case = False;
             #! in database
@@ -1829,20 +1975,12 @@ my Triggers $trig = $table.getTriggers();
 
             @throw OPTION-ERROR invalid or unsupported option passed
          */
-        private constructor(AbstractDatasource nds, string nname, *hash nopts) {
-            opts = nopts;
+        private constructor(AbstractDatasource nds, string nname, *hash nopts) : AbstractSqlUtilBase(nds, nopts) {
             name = nname;
-            ds = nds;
 
             validateOptionsIntern("OPTION-ERROR", getTableOptions(), \nopts);
-
-            # ensure datasource is open
-            ds.getServerVersion();
-            dsdesc = sprintf("%s:%s@%s", ds.getDriverName(), ds.getUserName(), ds.getDBName());
-            if (ds.getHostName())
-                dsdesc += "%" + ds.getHostName();
-            if (nds.getPort())
-                dsdesc += sprintf(":%d", ds.getPort());
+            if (nopts."native-case")
+                native_case = True;
         }
 
         #! returns @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
@@ -2094,6 +2232,14 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
             # replaces the column in the internal column representation with the new definition
 	    columns.add(new_name, columns.take(old_name));
             return c;
+        }
+
+        private validateOptionsIntern(string err, hash ropt, reference opt) {
+            AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, name);
+        }
+
+        private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
+            AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, tag);
         }
 
         private execSql(softlist lsql) {
@@ -2669,52 +2815,6 @@ $table.dropTrigger("trig_mytable");
             validateOptionsIntern(err, ropt, \opt);
         }
 
-        private validateOptionsIntern(string err, hash ropt, reference opt, *string tag) {
-            if (!tag)
-                tag = name;
-
-            # make sure driver-specific options take precedence over generic options            
-            string dn = getDriverName();
-            if (opt.driver{dn})
-                opt += remove opt.driver{dn};
-            delete opt.driver;
-
-            # check valid options and option value types
-            foreach string k in (opt.keyIterator()) {
-                if (!ropt.hasKey(k))
-                    throw err, sprintf("%s: unknown option %y; valid options for %y: %y", tag, k, self.className(), ropt.keys());
-
-                switch (ropt{k}) {
-                    case Type::Int: {
-                        if (!opt{k}.intp())
-                            throw err, sprintf("%s: option %y has type %y, expecting \"int\" (value: %y)", tag, k, opt{k}.type(), opt{k});
-                        if (opt{k}.type() != ropt{k})
-                            opt{k} = opt{k}.toInt();
-                        break;
-                    }
-                    case Type::Boolean: {
-                        if (!opt{k}.intp())
-                            throw err, sprintf("%s: option %y has type %y, expecting \"boolean\" (value: %y)", tag, k, opt{k}.type(), opt{k});
-                        if (opt{k}.type() != ropt{k})
-                            opt{k} = opt{k}.toBool();
-                        break;
-                    }
-                    case Type::String: {
-                        if (!opt{k}.strp())
-                            throw err, sprintf("%s: option %y has type %y, expecting \"string\" (value: %y)", tag, k, opt{k}.type(), opt{k});
-                        if (opt{k}.type() != ropt{k})
-                            opt{k} = opt{k}.toString();
-                        break;
-                    }
-                    # no validation for NOTHING
-                    case NOTHING: break;
-
-                    # throw an exception if the type is not supported
-                    default: throw err, sprintf("option %y requires type %y which is not currently supported", k, ropt{k});
-                }
-            }
-        }
-
         #! validates column options
         private validateColumnOptions(string cname, reference opt, bool nullable) {
             hash copt = getColumnOptions();
@@ -2912,16 +3012,6 @@ my string $str = $table.getSqlValue($date);
         #! returns the name of the table
         string getName() {
             return name;
-        }
-
-        #! gets the underlying AbstractDatasource
-        AbstractDatasource getDatasource() {
-            return ds;
-        }
-
-        #! returns the database driver name 
-        string getDriverName() {
-            return ds.getDriverName();
         }
 
         #! reads in all attributes of the table from the database
@@ -3346,15 +3436,6 @@ my *list $rows = $table.find($list);
             getForeignConstraintsUnlocked();
             getConstraintsUnlocked();
             getTriggersUnlocked();
-        }
-
-        private checkOptions(*hash nopts, hash rh) {
-            foreach string k in (nopts.keyIterator()) {
-                if (!rh{k})
-                    throw "TABLE-ERROR", sprintf("option %y is not supported by class %y; possible options: %y", k, self.className(), rh.keys());
-            }
-            if (nopts."native-case")
-                native_case = True;
         }
 
         static AbstractTable getTable(AbstractDatasource nds, string nname, *hash opts) {

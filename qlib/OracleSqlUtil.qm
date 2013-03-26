@@ -69,6 +69,10 @@ public namespace OracleSqlUtil {
 	return new OracleTable(nds, nname, opts);
     }
 
+    public OracleDatabase sub get_database(AbstractDatasource nds, *hash opts) {
+	return new OracleDatabase(nds, opts);
+    }
+
     public class OracleColumn inherits AbstractColumn {
         public {
             #! the column uses character semantics
@@ -198,7 +202,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     public class OracleForeignConstraint inherits AbstractForeignConstraint {
         public {
-            #! @ref Qore::True if the constraint is enabled, @ref Qore::False if not
+            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
         }
 
@@ -213,7 +217,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     public class OracleCheckConstraint inherits AbstractCheckConstraint {
         public {
-            #! @ref Qore::True if the constraint is enabled, @ref Qore::False if not
+            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
         }
 
@@ -251,7 +255,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     public class OracleTrigger inherits AbstractTrigger {
         public {
-            #! @ref Qore::True if the trigger is enabled, @ref Qore::False if not
+            #! @ref Qore::True "True" if the trigger is enabled, @ref Qore::False "False" if not
             bool enabled;
         }
 
@@ -261,6 +265,49 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         string getCreateSql(string table_name, *hash opt) {
             return sprintf("create trigger %s %s", name, src);
+        }
+    }
+
+    public class OracleDatabase inherits AbstractDatabase {
+        constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+        }
+
+        #! returns a list of string synonym names in the database
+        list listSynonyms() {
+            return listSynonymsImpl();
+        }
+        
+        #! returns an iterator listing the string synonym names in the database
+        ListIterator synonymIterator() {
+            return listSynonymsImpl().iterator();            
+        }
+
+        list listTablesImpl() {
+            return getListIntern(ds.select("select table_name from all_tables").table_name);
+        }
+
+        list listFunctionsImpl() {
+            return getListIntern(ds.select("select object_name from user_objects where object_type = 'FUNCTION'").object_name);
+        }
+
+        list listProceduresImpl() {
+            return getListIntern(ds.select("select object_name from user_objects where object_type = 'PROCEDURE'").object_name);
+        }
+
+        list listSynonymsImpl() {
+            return getListIntern(ds.select("select object_name from user_objects where object_type = 'SYNONYM'").object_name);
+        }
+
+        list listSequencesImpl() {
+            return getListIntern(ds.select("select object_name from user_objects where object_type = 'SEQUENCE'").object_name);
+        }
+
+        list listViewsImpl() {
+            return getListIntern(ds.select("select object_name from user_objects where object_type = 'VIEW'").object_name);
+        }
+
+        private list getListIntern(list l) {
+            return native_case ? l : (map $1.lwr(), l);
         }
     }
 
@@ -365,7 +412,6 @@ my string $str = $col.getRenameSql($t, "new_name");
                 );
 
             const OraColumnOptions = AbstractTable::ColumnOptions + (
-                "comment": Type::String,
                 "character_semantics": Type::Boolean,
                 );
 
