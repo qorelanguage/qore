@@ -96,7 +96,44 @@ my list $l = $col.getCreateSql($t);
         list getCreateSql(AbstractTable t) {
 	    list l += sprintf("alter table %s add %s", t.getSqlName(), getCreateSql());	    
 	    if (comment)
-		l += sprintf("comment on %s.%s is %s", t.getSqlName(), name, comment);
+		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
+            return l;
+        }
+
+        #! returns a list of sql strings that can be used to modify the column to the new definition
+        /** @par Example:
+            @code
+my list $l = $col.getModifySql($t, $newcol);
+            @endcode
+
+            The column names are assumed to be equal.
+
+            @param t the AbstractTable object to modify
+            @param c the new column definition
+         */
+        list getModifySql(AbstractTable t, AbstractColumn col) {
+            list l = ();
+            OracleColumn c = col;
+
+            string sql = sprintf("alter table %s modify %s", t.getSqlName(), name);
+            
+            if (native_type != c.native_type
+                || size != c.size
+                || scale != c.scale
+                )
+                sql += sprintf(" %s", c.getNativeTypeString());
+
+            if (def_val != c.def_val)
+                sql += sprintf(" default %s", exists c.def_val ? c.def_val : "null");
+
+            if (nullable != c.nullable) {
+                sql += sprintf("%snull", c.nullable ? "" : "not ");
+            }
+            l += sql;
+
+            # to remove a comment we set it to the empty string ('')
+            if (c.comment != comment)
+		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, c.comment ? t.getSqlValue(c.comment) : "''");
             return l;
         }
     }
@@ -720,8 +757,9 @@ my list $l = $col.getCreateSql($t);
         private *string getSqlValueImpl(any v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
-                case NT_NUMBER:
                 case NT_INT: return v.toStr();
+
+                case NT_NUMBER: return string(v);
 
                 # double any single quotes in strings
                 case NT_STRING: v =~ s/'/''/g; return "'" + v + "'";

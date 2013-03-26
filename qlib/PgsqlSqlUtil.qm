@@ -150,6 +150,49 @@ my list $l = $col.getCreateSql($t);
 		l += sprintf("comment on %s.%s is %s", t.getSqlName(), name, comment);
             return l;
         }
+
+        #! returns a list of sql strings that can be used to modify the column to the new definition
+        /** @par Example:
+            @code
+my list $l = $col.getModifySql($t, $newcol);
+            @endcode
+
+            The column names are assumed to be equal.
+
+            @param t the AbstractTable object to modify
+            @param c the new column definition
+         */
+        list getModifySql(AbstractTable t, AbstractColumn col) {
+            list l = ();
+            PgsqlColumn c = col;
+            
+            if (native_type != c.native_type
+                || size != c.size
+                || scale != c.scale
+                ) {
+                # first drop any default value if it's changing 
+                if (def_val != c.def_val)
+                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
+
+                l += sprintf("alter table %s alter %s type %s", t.getSqlName(), name, c.getNativeTypeString());
+
+                if (def_val != c.def_val && exists c.def_val)
+                    l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
+            }
+            else if (def_val != c.def_val) {
+                if (exists c.def_val)
+                    l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
+                else
+                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);                    
+            }
+            if (nullable != c.nullable) {
+                l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), name, c.nullable ? "set" : "drop");
+            }
+
+            if (c.comment != comment)
+		l += sprintf("comment on %s.%s is %s", t.getSqlName(), name, c.comment);
+            return l;
+        }
     }
 
     public class PgsqlPrimaryKey inherits AbstractPrimaryKey {
@@ -553,8 +596,9 @@ my list $l = $col.getCreateSql($t);
         private *string getSqlValueImpl(any v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
-                case NT_NUMBER:
                 case NT_INT: return v.toStr();
+
+                case NT_NUMBER: return string(v);
 
                 # double any single quotes in strings
                 case NT_STRING: v =~ s/'/''/g; return "'" + v + "'";

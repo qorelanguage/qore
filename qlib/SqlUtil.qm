@@ -357,7 +357,7 @@ my AbstractColumn $c = $cols.id;
         }
 
         #! returns the string describing the native type that can be used in SQL (for example to add the colunn to a table or when creating the table)
-        string getNativeTypeString() {            
+        string getNativeTypeString() {
             string sql = native_type;
             if (precision) {
                 sql += sprintf("(%d", precision);
@@ -397,6 +397,17 @@ my list $l = $col.getCreateSql($t);
         string getDropSql(string table_name) {
             return sprintf("alter table %s drop column %s", table_name, name);
         }
+
+        #! returns a list of sql strings that can be used to modify the column to the new definition
+        /** @par Example:
+            @code
+my list $l = $col.getModifySql($t, $newcol);
+            @endcode
+
+            @param t the AbstractTable object to modify
+            @param c the new column definition
+         */
+        abstract softlist getModifySql(AbstractTable t, AbstractColumn c);
     }
 
     #! index container class that throws an exception if an unknown index is accessed
@@ -1054,6 +1065,35 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
          */
         AbstractColumn addColumn(string cname, hash opt, bool nullable = True, *reference lsql) {
             return t.addColumn(cname, opt, nullable, \lsql);
+        }
+
+        #! modifies an existing column in the table; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally and the new column definition will be created when create() is called for example
+        /** @par Example:
+            @code
+$table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the column
+            @param opt a hash describing the column; the following keys are permitted (other column options may be supported depending on the underlying AbstractTable implementation):
+            - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion;
+            - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+            - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
+            - \c scale: for numeric data types, this value gives the scale
+            - \c default_value: the default value for the column
+            @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+
+            @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column does not exist, invalid column data
+
+            @note make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractColumn modifyColumn(string cname, hash opt, bool nullable = True, *reference lsql) {
+            return t.modifyColumn(cname, opt, nullable, \lsql);
         }
 
         #! adds a primary key to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -1802,8 +1842,6 @@ $table.createNoCommit();
             if (inDb) 
                 throw "CREATE-TABLE-ERROR", sprintf("table %s has already been read from or created in the database", getSqlName());
 
-            map printf("%s\n", $1), getCreateSql(opt, False);
-
             # get and execute all the creation strings
             map ds.exec($1), getCreateSql(opt, False);
             inDb = True;
@@ -1835,6 +1873,8 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractColumn addColumn(string cname, hash opt, bool nullable = True, *reference lsql) {
+            l.lock();
+            on_exit l.unlock();
             if (!columns)
                 columns = new Columns();
             else if (columns.hasKey(cname))
@@ -1856,7 +1896,56 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             return c;
         }
 
+        #! modifies an existing column in the table; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally and the new column definition will be created when create() is called for example
+        /** @par Example:
+            @code
+$table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the column
+            @param opt a hash describing the column; the following keys are permitted (other column options may be supported depending on the underlying AbstractTable implementation):
+            - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion;
+            - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+            - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
+            - \c scale: for numeric data types, this value gives the scale
+            - \c default_value: the default value for the column
+            @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+
+            @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column does not exist, invalid column data
+
+            @note make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractColumn modifyColumn(string cname, hash opt, bool nullable = True, *reference lsql) {
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+            if (!columns.hasKey(cname))
+                throw "COLUMN-ERROR", sprintf("%s.%s: the given column does not exist", name, cname);    
+
+            if (!opt.native_type && !opt.qore_type)
+                throw "COLUMN-ERROR", sprintf("%s.%s: no native_type or qore_type keys in column option hash: %y", name, cname, opt);
+
+            validateColumnOptions(cname, \opt, nullable);
+
+            # get the new column object
+            AbstractColumn c = addColumnImpl(cname, opt, nullable);
+            
+            # add column in table if the table already exists in the DB
+            execSql(lsql = columns{cname}.getModifySql(self, c));
+
+            # replaces the column in the internal column representation with the new definition
+	    columns.add(cname, c);
+            return c;
+        }
+
         private execSql(softlist lsql) {
+            #map printf("%s;\n", $1), lsql;
             if (inDb) {
                 on_success ds.commit();
                 on_error ds.rollback();
@@ -2444,6 +2533,8 @@ $table.dropTrigger("trig_mytable");
                     if (th.scale_range && (opt.scale < th.scale_range[0] || opt.scale > th.scale_range[1]))
                         throw "COLUMN-ERROR", sprintf("%s.%s: scale %y is not valid for type %y; must be between %d and %d inclusive", name, cname, opt.scale, opt.native_type, th.scale_range[0], th.scale_range[1]);
                 }
+                else
+                    opt.scale = 0;
             }
             else if (opt.scale) 
                 throw "COLUMN-ERROR", sprintf("%s.%s: scale %y is not valid for type %y; it is not a numeric type", name, cname, opt.scale, opt.native_type);
@@ -2589,7 +2680,7 @@ my string $str = $table.getSqlValue($date);
          */
         string getSqlValue(any v) {
             *string str = getSqlValueImpl(v);
-            if (!str)
+            if (!exists str)
                 throw "VALUE-ERROR", sprintf("class %s cannot convert type %y to an SQL string (value: %y)", self.className(), v.type(), v);
 
             return str;
