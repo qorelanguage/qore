@@ -2513,7 +2513,9 @@ printf("%s;\n", $sql);
             if (inDb)
                 getIndexesUnlocked();
 
-            if (indexes.hasKey(iname))
+            if (!indexes)
+                indexes = new Indexes();
+            else if (indexes.hasKey(iname))
                 throw "INDEX-ERROR", sprintf("%s: already has an index named %y with columns: %y", name, iname, indexes{iname}.columns.keys());
 
             if (!cols)
@@ -2995,8 +2997,11 @@ $table.dropTrigger("trig_mytable");
                 if (th.size_range && (opt.size < th.size_range[0] || opt.size > th.size_range[1]))
                     throw "COLUMN-ERROR", sprintf("%s.%s: size %y is not valid for type %y; must be between %d and %d inclusive", name, cname, opt.size, opt.native_type, th.size_range[0], th.size_range[1]);
             }
-            else if (th.size == SZ_MAND)
-                throw "COLUMN-ERROR", sprintf("%s.%s: type %y requires a size argument but none was supplied (options: %y)", name, cname, opt.native_type, opt);
+            else {
+                if (th.size == SZ_MAND)
+                    throw "COLUMN-ERROR", sprintf("%s.%s: type %y requires a size argument but none was supplied (options: %y)", name, cname, opt.native_type, opt);
+                opt.size = 0;
+            }
 
             if (th.size == SZ_NUM) {
                 opt.precision = opt.size;
@@ -3012,6 +3017,7 @@ $table.dropTrigger("trig_mytable");
                 throw "COLUMN-ERROR", sprintf("%s.%s: scale %y is not valid for type %y; it is not a numeric type", name, cname, opt.scale, opt.native_type);
             else
                 opt.precision = opt.scale = 0;
+
             
             # check type of default value (must match column type)
             if (exists opt.default_value) {
@@ -3567,6 +3573,14 @@ my *list $rows = $table.find($list);
         }
 
         private list getCreateSqlUnlocked(*hash opt, bool cache = True) {
+            # make sure driver options take precedence over generic options
+            if (opt) {
+                string dn = getDriverName();
+                if (opt.driver{dn})
+                    opt += remove opt.driver{dn};
+                delete opt.driver;
+            }
+
             list l += getCreateTableSqlUnlocked(opt);
             *list tl = getCreateIndexesSqlUnlocked(opt, cache); if (tl) l += tl;
             *string sql = getCreatePrimaryKeySqlUnlocked(opt, cache); if (sql) l += sql;

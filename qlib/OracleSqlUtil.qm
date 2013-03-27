@@ -275,7 +275,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         softlist getCreateSql(string table_name, *hash opt) {
-            return sprintf("create trigger %s %s", name, src);
+            return sprintf("create%s trigger %s %s", opt.replace ? " or replace" : "", name, src);
         }
     }
 
@@ -907,7 +907,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         private AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt) {
-            return new OracleIndex(iname, enabled, ch, opt.index_tablespace);
+            return new OracleIndex(iname, enabled, ch, "normal", opt.index_tablespace);
         }
 
         private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt) {
