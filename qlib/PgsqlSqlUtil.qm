@@ -237,8 +237,8 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         #! returns a string that can be used to create the trigger in the database
-        string getCreateSql(string table_name, *hash opt) {
-            return sprintf("create trigger %s %s", name, src);
+        softlist getCreateSql(string table_name, *hash opt) {
+            return sprintf("create%s trigger %s %s", opt.replace ? " or replace" : "", name, src);
         }
 
         #! returns a string that can be used to drop the trigger from the database
@@ -252,12 +252,12 @@ my string $str = $col.getRenameSql($t, "new_name");
             *string args;
         }
 
-        constructor(string n, string n_src, *string a) : AbstractFunction(n, n_src) {
+        constructor(string n, string n_src, *string a) : AbstractFunction(n, "function", n_src) {
             args = a;
         }
 
         #! returns a string that can be used to create the function in the database
-        string getCreateSql(*hash opt) {
+        softlist getCreateSql(*hash opt) {
             return sprintf("create%s function %s(%s) %s", opt.replace ? " or replace" : "", name, args, src);
         }
 
@@ -585,7 +585,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         string getCreateTableSqlImpl(*hash opt) {
-            string sql = sprintf("create table %s (\n", name);
+            string sql = sprintf("create%s table %s (\n", opt.replace ? " or replace": "", name);
 
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
             sql += "\n)";
@@ -619,16 +619,17 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 getTriggersUnlocked();
             }
             list l = map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
-            if (!opt.omit_trigger_functions) {
-                l += map $1.getCreateSql(opt), triggerFunctions.iterator();
-            }
-            #printf("gCMSI triggerFunctions: %N\n", triggerFunctions);
+            if (!opt.omit_trigger_functions)
+                map l += $1.getCreateSql(opt), triggerFunctions.iterator();
 
+            #printf("gCMSI triggerFunctions: %N\n", triggerFunctions);
             return l;
         }
 
         *list getCreateTriggersSqlImpl(*hash opt) {
-            return map $1.getCreateSql(name, opt), triggers.iterator();
+            list l = ();
+            map l += $1.getCreateSql(name, opt), triggers.iterator();
+            return l;
         }
 
         string getCreateSqlImpl(list l) {

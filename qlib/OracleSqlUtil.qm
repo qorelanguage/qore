@@ -263,33 +263,23 @@ my string $str = $col.getRenameSql($t, "new_name");
             enabled = en;
         }
 
-        string getCreateSql(string table_name, *hash opt) {
+        softlist getCreateSql(string table_name, *hash opt) {
             return sprintf("create trigger %s %s", name, src);
         }
     }
 
     public class OracleFunctionBase inherits AbstractFunction {
-        private {
-            string type;
-        }
-
         #! creates the object from the arguments passed
-        /** @param n the name of the function
+        /** @param n the name of the object
             @param n_type the type of object
-            @param n_src the source of the function
+            @param n_src the source of the object
          */
-        constructor(string n, string n_type, string n_src) : AbstractFunction(n, n_src) {
-            type = n_type;
+        constructor(string n, string n_type, string n_src) : AbstractFunction(n, n_type, n_src) {
         }
 
-        #! returns a string that can be used to create the function in the database
-        string getCreateSql(*hash opt) {
+        #! returns a string that can be used to create the object in the database
+        softlist getCreateSql(*hash opt) {
             return sprintf("create%s %s", opt.replace ? " or replace" : "", src);
-        }
-
-        #! returns a string that can be used to drop the function from the database
-        string getDropSql() {
-            return sprintf("drop %s %s", type, name);
         }
     }
 
@@ -299,7 +289,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             @param n_src the source of the function
          */
         constructor(string n, string n_src) : OracleFunctionBase(n, "function", n_src) {
-        }   
+        }
     }
 
     public class OracleProcedure inherits OracleFunctionBase {
@@ -308,7 +298,33 @@ my string $str = $col.getRenameSql($t, "new_name");
             @param n_src the source of the function
          */
         constructor(string n, string n_src) : OracleFunctionBase(n, "procedure", n_src) {
-        }   
+        }
+    }
+
+    public class OraclePackage inherits OracleFunctionBase {
+        private {
+            #! package body source
+            string body_src;
+        }
+
+        #! creates the object from the arguments passed
+        /** @param n the name of the package
+            @param n_src the source of the package declaration
+            @param n_body_src the package body source
+         */
+        constructor(string n, string n_src, string n_body_src) : OracleFunctionBase(n, "package", n_src) {
+            body_src = n_body_src;
+        }
+
+        #! returns a string that can be used to create the package in the database
+        list getCreateSql(*hash opt) {
+            list l = ();
+            # package declaration
+            l += sprintf("create%s %s", opt.replace ? " or replace" : "", src);
+            # package body
+            l += sprintf("create%s body %s", opt.replace ? " or replace" : "", body_src);
+            return l;
+        }
     }
 
     public class OracleDatabase inherits AbstractDatabase {
@@ -319,7 +335,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             *list l = ds.select("select text from user_source where type = 'FUNCTION' and name = %v order by line", name.upr()).text;
             if (!l)
                 throw "FUNCTION-ERROR", sprintf("cannot find any function %y", name);
-            string src = foldl $1 + "\n" + $2, l;
+            string src = foldl $1 + $2, l;
 
             return new FunctionList(new OracleFunction(name, src));
         }
@@ -328,9 +344,23 @@ my string $str = $col.getRenameSql($t, "new_name");
             *list l = ds.select("select text from user_source where type = 'PROCEDURE' and name = %v order by line", name.upr()).text;
             if (!l)
                 throw "PROCEDURE-ERROR", sprintf("cannot find any procedure %y", name);
-            string src = foldl $1 + "\n" + $2, l;
+            string src = foldl $1 + $2, l;
 
             return new FunctionList(new OracleProcedure(name, src));
+        }
+
+        OraclePackage getPackage(string name) {
+            *list l = ds.select("select text from user_source where type = 'PACKAGE' and name = %v order by line", name.upr()).text;
+            if (!l)
+                throw "PACKAGE-ERROR", sprintf("cannot find any package %y", name);
+            string src = foldl $1 + $2, l;
+
+            l = ds.select("select text from user_source where type = 'PACKAGE BODY' and name = %v order by line", name.upr()).text;
+            if (!l)
+                throw "PACKAGE-ERROR", sprintf("cannot find body for package %y", name);
+            string body_src = foldl $1 + $2, l;
+
+            return new OraclePackage(name, src, body_src);
         }
 
         #! returns a list of string synonym names in the database
@@ -805,7 +835,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         string getCreateTableSqlImpl(*hash opt) {
-            string sql = sprintf("create table %s (\n", name);
+            string sql = sprintf("create%s table %s (\n", opt.replace ? " or replace" : "", name);
 
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
             sql += "\n)";
@@ -840,7 +870,9 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         *list getCreateTriggersSqlImpl(*hash opt) {
-            return map $1.getCreateSql(name, opt), triggers.iterator();
+            list l = ();
+            map l += $1.getCreateSql(name, opt), triggers.iterator();
+            return l;
         }
 
         string getCreateSqlImpl(list l) {

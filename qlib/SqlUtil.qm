@@ -736,30 +736,53 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         }
     }
 
-    #! base class for functions
-    public class AbstractFunction {
+    #! base class for function or objects with code
+    public class AbstractFunctionBase {
         public {
-            #! the name of the function
+            #! the name of the object
             string name;
+
+            #! the type of object
+            string type;
             
-            #! the source of the function
+            #! the source of the object
             string src;
         }
 
         #! creates the object from the arguments passed
-        /** @param n the name of the function
-            @param n_src the source of the function
+        /** @param n the name of the object
+            @param n_type the type of object
+            @param n_src the source of the object
          */
-        constructor(string n, string n_src) {
+        constructor(string n, string n_type, string n_src) {
             name = n;
+            type = n_type;
             src = n_src;
         }
         
-        #! returns a string that can be used to create the function in the database
-        abstract string getCreateSql(*hash opt);
-
+        #! returns the type of object
+        string getType() {
+            return type;
+        }
+        
         #! returns a string that can be used to drop the function from the database
-        abstract string getDropSql();
+        string getDropSql() {
+            return sprintf("drop %s %s", type, name);
+        }
+    }
+
+    #! base class for functions
+    public class AbstractFunction inherits AbstractFunctionBase {
+        #! creates the object from the arguments passed
+        /** @param n the name of the object
+            @param n_type the type of object
+            @param n_src the source of the object
+         */
+        constructor(string n, string n_type, string n_src) : AbstractFunctionBase(n, n_type, n_src) {
+        }
+
+        #! returns a list of SQL strings that can be used to create the function in the database
+        abstract list getCreateSql(*hash opt);
     }
 
     #! function container class that throws an exception if an unknown function is accessed
@@ -820,28 +843,13 @@ my AbstractFunction $v = $c.get(2);
     }
 
     #! the base class for triggers
-    public class AbstractTrigger {
-        public {
-            #! the name of the trigger
-            string name;
-            
-            #! the source of the trigger
-            string src;
-        }
-
+    public class AbstractTrigger inherits AbstractFunctionBase {
         #! creates the object and sets its name and the trigger source
-        constructor(string n, string n_src) {
-            name = n;
-            src = n_src;
+        constructor(string n, string n_src) : AbstractFunctionBase(n, "trigger", n_src) {
         }
 
         #! returns a string that can be used to create the trigger in the database
-        abstract string getCreateSql(string table_name, *hash opt);
-
-        #! returns a string that can be used to drop the trigger from the database
-        string getDropSql(string table_name) {
-            return sprintf("drop trigger %s", name);
-        }
+        abstract list getCreateSql(string table_name, *hash opt);
     }
 
     #! trigger container class that throws an exception if an unknown trigger is accessed
@@ -1045,6 +1053,11 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
             #! database options
             const DatabaseOptions = (
                 "native-case": Type::Boolean,
+                );
+
+            #! default generic creation options
+            const CreationOptions = (
+                "replace": Type::Boolean,
                 );
         }
 
@@ -1669,7 +1682,7 @@ printf("%s;\n", $sql);
             @param tname the name of the new trigger
             @param src the source of the trigger
             @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref TriggerOptions
-            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractTrigger object corresponding to the trigger created
 
@@ -1677,8 +1690,8 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractTrigger addTrigger(string tname, string src, *hash opt, *reference sql) {
-            return t.addTrigger(tname, src, opt, \sql);
+        AbstractTrigger addTrigger(string tname, string src, *hash opt, *reference lsql) {
+            return t.addTrigger(tname, src, opt, \lsql);
         }
 
         #! drops the given trigger from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
@@ -2061,12 +2074,10 @@ my Triggers $trig = $table.getTriggers();
             const ForeignConstraintOptions = ConstraintOptions;
 
             #! default trigger options
-            const TriggerOptions = (
-                "replace": Type::Boolean,
-                );
+            const TriggerOptions = AbstractDatabase::CreationOptions;
 
             #! table creation options
-            const TableCreationOptions = IndexOptions + (
+            const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions + (
                 "data_tablespace": Type::String,
                 );
 
@@ -2855,7 +2866,7 @@ printf("%s;\n", $sql);
             @param tname the name of the new trigger
             @param src the source of the trigger
             @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref TriggerOptions
-            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractTrigger object corresponding to the trigger created
 
@@ -2863,7 +2874,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractTrigger addTrigger(string tname, string src, *hash opt, *reference sql) {
+        AbstractTrigger addTrigger(string tname, string src, *hash opt, *reference lsql) {
             l.lock();
             on_exit l.unlock();
 
@@ -2882,7 +2893,7 @@ printf("%s;\n", $sql);
             AbstractTrigger trig = addTriggerImpl(tname, src, opt);
             
             # add foreign constraint to table in the DB if the table already exists in the DB
-            execSql(sql = trig.getCreateSql(getSqlName()));
+            execSql(lsql = trig.getCreateSql(getSqlName()));
 
             # store trigger in trigger container
             triggers.add(tname, trig);
