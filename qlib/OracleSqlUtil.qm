@@ -108,7 +108,7 @@ my list $l = $col.getCreateSql($t);
             return l;
         }
 
-        #! returns a list of sql strings that can be used to modify the column to the new definition
+        #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
             @code
 my list $l = $col.getModifySql($t, $newcol);
@@ -123,20 +123,27 @@ my list $l = $col.getModifySql($t, $newcol);
             list l = ();
             OracleColumn c = col;
 
+            bool modified;
             string sql = sprintf("alter table %s modify %s", t.getSqlName(), name);
 
             # get new native type declaration string
             string nts = c.getNativeTypeString();
-            if (getNativeTypeString() != nts)
+            if (getNativeTypeString() != nts) {
                 sql += sprintf(" %s", nts);
+                modified = True;
+            }
 
-            if (def_val != c.def_val)
+            if (def_val != c.def_val) {
                 sql += sprintf(" default %s", exists c.def_val ? c.def_val : "null");
+                modified = True;
+            }
 
             if (nullable != c.nullable) {
-                sql += sprintf("%snull", c.nullable ? "" : "not ");
+                sql += sprintf(" %snull", c.nullable ? "" : "not ");
+                modified = True;
             }
-            l += sql;
+            if (modified)
+                l += sql;
 
             # to remove a comment we set it to the empty string ('')
             # http://docs.oracle.com/cd/B28359_01/server.111/b28286/statements_4009.htm
@@ -887,7 +894,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         string getCreateSqlImpl(list l) {
-            string str;
+            string str = "";
             map str += sprintf("%s%s\n", $1, $1 =~ /;$/ ? "\n/" : ";"), l;
             return str;
         }

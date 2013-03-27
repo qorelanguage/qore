@@ -477,16 +477,18 @@ my list $l = $col.getCreateSql($t);
             return sprintf("alter table %s drop column %s", table_name, name);
         }
 
-        #! returns a list of sql strings that can be used to modify the column to the new definition
+        #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
             @code
 my list $l = $col.getModifySql($t, $newcol);
             @endcode
 
+            The column names are assumed to be equal.
+
             @param t the AbstractTable object to modify
             @param c the new column definition
-            
-            @return a list of sql strings that can be used to modify the column to the new definition
+
+            @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
          */
         abstract list getModifySql(AbstractTable t, AbstractColumn c);
 
@@ -1938,6 +1940,78 @@ my *list $l = $table.getCreateTriggersSql();
             return t.getCreateTriggersSql(opt);
         }
 
+        #! accepts a AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
+        /** @par Example:
+            @code
+my *list $l = $table.getAlignSql($table2);
+            @endcode
+
+            @param table the template table that the current table will be compared to
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
+
+            @throw TABLE-COMPATIBILITY-ERROR the argument must be of the same class as the current object
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        list getAlignSql(AbstractTable table, *hash opt) {
+            return t.getAlignSql(table, opt);
+        }
+
+        #! accepts a AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
+        /** @par Example:
+            @code
+my list $l = $table.getAlignSql($table2);
+            @endcode
+
+            @param t the template table that the current table will be compared to
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
+
+            @throw TABLE-COMPATIBILITY-ERROR the argument must be of the same class as the current object
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        list getAlignSql(Table table, *hash opt) {
+            return t.getAlignSql(table.t, opt);
+        }
+
+        #! accepts a AbstractTable argument and returns an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
+        /** @par Example:
+            @code
+my string $sql = $table.getAlignSqlString($table2);
+            @endcode
+
+            @param table the template table that the current table will be compared to
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+
+            @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
+
+            @throw ALIGN-TABLE-ERROR the argument must be of the same class as the current object; template table has no columns
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        string getAlignSqlString(AbstractTable table, *hash opt) {
+            return t.getAlignSqlString(table, opt);
+        }
+
+        #! accepts a AbstractTable argument and returns an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
+        /** @par Example:
+            @code
+my string $sql = $table.getAlignSqlString($table2);
+            @endcode
+
+            @param table the template table that the current table will be compared to
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+
+            @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
+
+            @throw ALIGN-TABLE-ERROR the argument must be of the same class as the current object; template table has no columns
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        string getAlignSqlString(Table table, *hash opt) {
+            return t.getAlignSqlString(table.t, opt);
+        }
+
         #! finds a row in the table with the given primary key value; if no row matches the primary key value passed then @ref nothing is returned
         /** @par Example:
             @code
@@ -3296,7 +3370,10 @@ printf("%s\n", $table.getCreateSql());
         string getCreateSqlString(*hash opt) {
             l.lock();
             on_exit l.unlock();
-            cacheUnlocked();
+
+            if (!inDb && !manual)
+                cacheUnlocked();
+
             return getCreateSqlImpl(getCreateSqlUnlocked(opt));
         }
 
@@ -3314,6 +3391,8 @@ map printf("$1;\n", $1), $table.getCreateSql();
         list getCreateSql(*hash opt, bool cache = True) {
             l.lock();
             on_exit l.unlock();
+            if (!inDb && !manual)
+                cacheUnlocked();
             return getCreateSqlUnlocked(opt, cache);
         }
 
@@ -3334,6 +3413,89 @@ my string $sql = $table.getCreateTableSql();
             l.lock();
             on_exit l.unlock();
             return getCreateTableSqlUnlocked(opt);
+        }
+
+        #! accepts a AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
+        /** @par Example:
+            @code
+my list $l = $table.getAlignSql($table2);
+            @endcode
+
+            @param t the template table that the current table will be compared to
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
+
+            @throw ALIGN-TABLE-ERROR the argument must be of the same class as the current object; template table has no columns
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        list getAlignSql(AbstractTable t, *hash opt) {
+            if (self.className() != t.className())
+                throw "TABLE-COMPATIBILITY-ERROR", sprintf("cannot align table %y of class %y with table %y of class %y", name, self.className(), t.name, t.className());
+
+            validateOptionsIntern("OPTION-ERROR", getTableCreationOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+            
+            # cache tables if not already cached
+            if (!inDb && !manual)
+                cacheUnlocked();
+            if (!t.inDb && !t.manual)
+                t.cacheUnlocked();
+
+            if (!t.columns || t.columns.empty())
+                throw "ALIGN-TABLE-ERROR", sprintf("cannot align table %y with table %y: table %y has no columns", name, t.name, t.name);
+
+            if (!columns)
+                columns = new Columns();
+
+            list l = ();
+
+            # check name
+            if (name != t.name)
+                l += getRenameSql(t.name);
+
+            # first check for columns in the template that are not present or different in the current table
+            foreach AbstractColumn c in (t.columns.iterator()) {
+                if (!columns.hasKey(c.name)) {
+                    # add column to table
+                    l += c.getCreateSql(self);
+                }
+                else {
+                    # get any delta SQL
+                    list cl = columns{c.name}.getModifySql(self, c);
+                    # add delta SQL to list if there is any to add
+                    if (cl)
+                        l += cl;
+                }
+            }
+
+            # check for columns not in the template
+            foreach AbstractColumn c in (columns.iterator()) {
+                if (!t.columns.hasKey(c.name))
+                    l += c.getDropSql(getSqlName());
+            }
+            
+            return l;
+        }
+
+        #! accepts a AbstractTable argument and returns an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
+        /** @par Example:
+            @code
+my string $sql = $table.getAlignSqlString($table2);
+            @endcode
+
+            @param table the template table that the current table will be compared to
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+
+            @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
+
+            @throw ALIGN-TABLE-ERROR the argument must be of the same class as the current object; template table has no columns
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        string getAlignSqlString(AbstractTable t, *hash opt) {
+            return getCreateSqlImpl(getAlignSql(t, opt));
         }
 
         #! returns a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table

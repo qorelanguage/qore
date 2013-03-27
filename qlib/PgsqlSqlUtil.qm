@@ -152,7 +152,7 @@ my list $l = $col.getCreateSql($t);
             return l;
         }
 
-        #! returns a list of sql strings that can be used to modify the column to the new definition
+        #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
             @code
 my list $l = $col.getModifySql($t, $newcol);
@@ -162,6 +162,8 @@ my list $l = $col.getModifySql($t, $newcol);
 
             @param t the AbstractTable object to modify
             @param c the new column definition
+
+            @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
          */
         list getModifySql(AbstractTable t, AbstractColumn col) {
             list l = ();
@@ -671,7 +673,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         string getCreateSqlImpl(list l) {
-            string str;
+            string str = "";
             map str += sprintf("%s%s\n", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l;
             return str;
         }
