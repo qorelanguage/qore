@@ -3437,6 +3437,9 @@ my list $l = $table.getAlignSql($table2);
 
             l.lock();
             on_exit l.unlock();
+            # lock "template" table
+            t.l.lock();
+            on_exit t.l.unlock();
             
             # cache tables if not already cached
             if (!inDb && !manual)
