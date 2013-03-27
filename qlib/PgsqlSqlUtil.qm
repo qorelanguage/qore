@@ -271,42 +271,51 @@ my string $str = $col.getRenameSql($t, "new_name");
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
-        AbstractFunction getFunctionImpl(string name) {
+        FunctionList getFunctionsImpl(string name) {
             *hash qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v", name);
             if (!qh.proname)
                 throw "FUNCTION-ERROR", sprintf("cannot find any function %y", name);
-           
-            if (!native_case)
-                map qh.$1 = qh.$1.lwr(), ("stability");
 
-            trim qh.hdr;
+            FunctionList l();
+
+            # add functions to list
+            map l.add(PgsqlDatabase::processFunction($1, native_case)), qh.contextIterator();
+
+            return l;
+        }
+
+        FunctionList getProceduresImpl(string name) {
+            return getFunctionsImpl(name);
+        }
+
+        static PgsqlFunction processFunction(hash row, bool native_case) {
+            if (!native_case)
+                map row.$1 = row.$1.lwr(), ("stability");
+
+            trim row.hdr;
             # remove "create or replace function" from the beginning of hdr
-            if (qh.hdr !~ /^create or replace function /i)
-                throw "FUNCTION-ERROR", sprintf("function does not begin with 'create or replace function': %y", qh.hdr);
+            if (row.hdr !~ /^create or replace function /i)
+                throw "FUNCTION-ERROR", sprintf("function does not begin with 'create or replace function': %y", row.hdr);
 
             # remove function name and "(" at beginning of hdr
-            int i = qh.hdr.find("(");
+            int i = row.hdr.find("(");
             if (i == -1)
-                throw "FUNCTION-ERROR", sprintf("cannot find function arguments: %y", qh.hdr);
-            int e = qh.hdr.find(")", i + 1);
+                throw "FUNCTION-ERROR", sprintf("cannot find function arguments: %y", row.hdr);
+            int e = row.hdr.find(")", i + 1);
             if (e == -1)
-                throw "FUNCTION-ERROR", sprintf("cannot find function arguments: %y", qh.hdr);
+                throw "FUNCTION-ERROR", sprintf("cannot find function arguments: %y", row.hdr);
 
-            *string args = extract qh.hdr, i + 1, e - i - 1;
-            splice qh.hdr, 0, e + 1;
+            *string args = extract row.hdr, i + 1, e - i - 1;
+            splice row.hdr, 0, e + 1;
 
             printf("args: %y\n", args);
             if (!native_case) {
-                qh.hdr =~ s/ RETURNS / returns /;
-                qh.hdr =~ s/ LANGUAGE / language /;
-                qh.hdr =~ s/ AS / as /;
+                row.hdr =~ s/ RETURNS / returns /;
+                row.hdr =~ s/ LANGUAGE / language /;
+                row.hdr =~ s/ AS / as /;
             }
 
-            return new PgsqlFunction(qh.proname, qh.hdr, args);
-        }
-
-        AbstractFunction getProcedureImpl(string name) {
-            return getFunctionImpl(name);
+            return new PgsqlFunction(row.proname, row.hdr, args);
         }
 
         list listTablesImpl() {
@@ -563,29 +572,10 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 hash fh;
                 # also get trigger functions
                 qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname in (%s)", (foldl $1 + "," + $2, (map sprintf("'%s'", $1), fl)));
-                foreach hash row in (qh.contextIterator()) {
-                    if (!native_case)
-                        map row.$1 = row.$1.lwr(), ("stability");
 
-                    trim row.hdr;
-                    # remove "create or replace function" from the beginning of hdr
-                    if (row.hdr !~ /^create or replace function /i)
-                        throw "PGSQL-TRIGGER-FUNCTION-ERROR", sprintf("function does not begin with 'create or replace function': %y", row.hdr);
+                # create trigger function map
+                map fh{$1.proname} = PgsqlDatabase::processFunction($1, native_case), qh.contextIterator();
 
-                    # remove function name and "()" from beginning of hdr
-                    int i = row.hdr.find("()");
-                    if (i == -1)
-                        throw "PGSQL-TRIGGER-FUNCTION-ERROR", sprintf("cannot find function arguments: %y", row.hdr);
-                    splice row.hdr, 0, i + 2;
-
-                    if (!native_case) {
-                        row.hdr =~ s/ RETURNS / returns /;
-                        row.hdr =~ s/ LANGUAGE / language /;
-                        row.hdr =~ s/ AS / as /;
-                    }
-
-                    fh{row.proname} = new PgsqlFunction(row.proname, row.hdr);
-                }
                 triggerFunctions = new Functions(fh);
             }
 

@@ -169,7 +169,7 @@ my list $l = $h.values();
         #! Returns a @ref Qore::HashIterator "HashIterator" object for the contained hash
         /** @par Example:
             @code
-map printf("+ %s: %y\n", $1.key, $1.value), $h.iterator();
+map printf("+ %y\n", $1.value), $h.iterator();
             @endcode
 
             @return a @ref Qore::HashIterator "HashIterator" object for the contained hash
@@ -193,7 +193,7 @@ map printf("+ %s\n", $1), $h.keyIterator();
         #! Returns a @ref Qore::HashPairIterator "HashPairIterator" object for the contained hash
         /** @par Example:
             @code
-map printf("+ %s\n", $1), $h.pairIterator();
+map printf("+ %s: %y\n", $1.key, $1.value), $h.pairIterator();
             @endcode
 
             @return a @ref Qore::HashPairIterator "HashPairIterator" object for the contained hash
@@ -277,6 +277,101 @@ my *string $n = $h.lastKey();
 
         #! must return the name of the contained element
         abstract string getElementName();
+    }
+
+    #! abstract container class that throws an exception if an unknown key is accessed
+    public class AbstractListContainer {
+        public {}
+
+        private {
+            softlist l;
+        }
+
+        #! creates the object with the list argument passed
+        constructor(softlist nl) {
+            l = nl;
+        }
+
+        #! returns the value of the given element in the contained list if it exists, otherwise throws an \c ELEMENT-ERROR exception
+        /** @par Example:
+            @code
+my any $v = $c.get(2);
+            @endcode
+
+            @param i the index of the element to access
+
+            @return the value of the given index in the contained list if it exists
+
+            @throw ELEMENT-ERROR the given element does not exist in the contained list
+        */
+        abstract any get(softint i);
+
+        #! adds the given value to the list
+        add(any val) {            
+            l += val;
+        }
+
+        #! removes the given element from the contained list and returns the value
+        any take(int i) {
+            checkIndex(i);
+            return extract l, i, 1;
+        }
+
+        #! returns the list contained by this object
+        list getList() {
+            return l;
+        }
+
+        #! Returns @ref Qore::False "False" if the contained list is empty, @ref Qore::True "True" if not
+        /** @par Example:
+            @code
+my bool $b = $l.val();
+            @endcode
+
+            The opposite of empty()
+
+            @return @ref Qore::False "False" if the contained list is empty, @ref Qore::True "True" if not
+        */
+        bool val() {
+            return l.val();
+        }
+
+        #! Returns a @ref Qore::ListIterator "ListIterator" object for the contained list
+        /** @par Example:
+            @code
+map printf("+ %s: %y\n", $1), $h.iterator();
+            @endcode
+
+            @return a @ref Qore::HashIterator "HashIterator" object for the contained hash
+        */
+        ListIterator iterator() {
+            return l.iterator();
+        }
+
+        #! returns @ref Qore::True "True" if the container is empty, @ref Qore::False "False" if not
+        bool empty() {
+            return l.empty();
+        }
+
+        #! Returns the number of elements in the contained list
+        /** @par Example:
+            @code
+my int $num = $l.size();
+            @endcode
+
+            @return the number of elements in the contained list
+        */
+        int size() {
+            return l.size();
+        }
+
+        #! must return the name of the contained element
+        abstract string getElementName();
+
+        private checkIndex(int i) {
+            if (i < 0 || i >= l.size())
+                throw "ELEMENT-ERROR", sprintf("cannot access %s element %d; total elements: %d", getElementName(), i, l.size());
+        }
     }
 
     #! column container class that throws an exception if an unknown column is accessed
@@ -697,6 +792,33 @@ my AbstractFunction $f = $funcs.func1;
         }
     }
 
+    #! function list container class that throws an exception if an invalid index is accessed
+    public class FunctionList inherits AbstractListContainer {
+        constructor(softlist l) : AbstractListContainer(l) {
+        }
+
+        #! returns the AbstractFunction object for the given element in the contained list if it exists, otherwise throws an \c ELEMENT-ERROR exception
+        /** @par Example:
+            @code
+my AbstractFunction $v = $c.get(2);
+            @endcode
+
+            @param i the index of the element to access
+
+            @return the AbstractFunction object for the given element in the contained list if it exists
+
+            @throw ELEMENT-ERROR the given element does not exist in the contained list
+        */
+        AbstractFunction get(softint i) {
+            checkIndex(i);
+            return l[i];
+        }
+
+        string getElementName() {
+            return "function";
+        }
+    }
+
     #! the base class for triggers
     public class AbstractTrigger {
         public {
@@ -943,12 +1065,12 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
                 native_case = True;
         }
 
-        AbstractFunction getFunction(string name) {
-            return getFunctionImpl(name);
+        FunctionList getFunctions(string name) {
+            return getFunctionsImpl(name);
         }
 
-        AbstractFunction getProcedure(string name) {
-            return getProcedureImpl(name);
+        FunctionList getProcedures(string name) {
+            return getProceduresImpl(name);
         }
 
         #! returns a list of string table names in the database
@@ -1047,8 +1169,8 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
             return DatabaseOptions;
         }
 
-        abstract AbstractFunction getFunctionImpl(string name);
-        abstract AbstractFunction getProcedureImpl(string name);
+        abstract FunctionList getFunctionsImpl(string name);
+        abstract FunctionList getProceduresImpl(string name);
 
         abstract list listTablesImpl();
         abstract list listFunctionsImpl();
