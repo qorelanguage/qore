@@ -299,6 +299,20 @@ my string $str = $col.getRenameSql($t, "new_name");
             return getFunctionsImpl(name);
         }
 
+        static *string getFunctionArgs(string err, reference src) {
+            # remove function name and "(" at beginning of hdr
+            int i = src.find("(");
+            if (i == -1)
+                throw err, sprintf("cannot find function arguments: %y", src);
+            int e = src.find(")", i + 1);
+            if (e == -1)
+                throw err, sprintf("cannot find function arguments: %y", src);
+
+            *string args = extract src, i + 1, e - i - 1;
+            splice src, 0, e + 1;
+            return args;
+        }
+
         static PgsqlFunction processFunction(hash row, bool native_case) {
             if (!native_case)
                 map row.$1 = row.$1.lwr(), ("stability");
@@ -308,18 +322,10 @@ my string $str = $col.getRenameSql($t, "new_name");
             if (row.hdr !~ /^create or replace function /i)
                 throw "FUNCTION-ERROR", sprintf("function does not begin with 'create or replace function': %y", row.hdr);
 
-            # remove function name and "(" at beginning of hdr
-            int i = row.hdr.find("(");
-            if (i == -1)
-                throw "FUNCTION-ERROR", sprintf("cannot find function arguments: %y", row.hdr);
-            int e = row.hdr.find(")", i + 1);
-            if (e == -1)
-                throw "FUNCTION-ERROR", sprintf("cannot find function arguments: %y", row.hdr);
+            # get and remove arguments
+            *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \row.hdr);
 
-            *string args = extract row.hdr, i + 1, e - i - 1;
-            splice row.hdr, 0, e + 1;
-
-            printf("args: %y\n", args);
+            #printf("args: %y\n", args);
             if (!native_case) {
                 row.hdr =~ s/ RETURNS / returns /;
                 row.hdr =~ s/ LANGUAGE / language /;
@@ -429,6 +435,27 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         *string getTablespaceName() {
             return tablespace;
+        }
+
+        PgsqlFunction addTriggerFunction(string tfname, string src) {
+            l.lock();
+            on_exit l.unlock();
+
+            if (!triggerFunctions)
+                triggerFunctions = new Functions();
+            else if (triggerFunctions.hasKey(tfname))
+                throw "TRIGGERFUNCTION-ERROR", sprintf("table %y: already has a trigger function %y associated with it", name, tfname);
+
+            trim src;
+            *string args = PgsqlDatabase::getFunctionArgs("TRIGGERFUNCTION-ERROR", \src);
+
+            if (args)
+                throw "TRIGGERFUNCTION-ERROR", sprintf("table %y trigger function %y: trigger function cannot have any arguments: args: %y", name, tfname, args);
+
+            PgsqlFunction f(tfname, src);
+
+            triggerFunctions.add(tfname, f);
+            return f;
         }
 
         private hash getColumnOptions() {
