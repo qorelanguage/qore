@@ -36,7 +36,6 @@
 
 # enable all warnings
 %enable-all-warnings
-%disable-warning non-existent-method-call
 
 module PgsqlSqlUtil {
     version = "1.0";
@@ -97,6 +96,10 @@ public namespace PgsqlSqlUtil {
         string getCreateSql(string table_name, *hash opt) {
             return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, columns.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
         }
+
+        string getRenameSql(string table_name, string new_name) {
+            return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+        }
     }
 
     public class PgsqlCheckConstraint inherits AbstractCheckConstraint {
@@ -105,6 +108,10 @@ public namespace PgsqlSqlUtil {
 
         string getCreateSql(string table_name, *hash opt) {
             return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
+        }
+
+        string getRenameSql(string table_name, string new_name) {
+            return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
         }
     }
 
@@ -228,6 +235,10 @@ my string $str = $col.getRenameSql($t, "new_name");
             if (ts)
                 sql += sprintf(" using index tablespace %s", ts);
             return sql;
+        }
+
+        string getRenameSql(string table_name, string new_name) {
+            return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
         }
     }
 

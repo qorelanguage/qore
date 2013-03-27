@@ -36,7 +36,6 @@
 
 # enable all warnings
 %enable-all-warnings
-%disable-warning non-existent-method-call
 
 module SqlUtil {
     version = "1.0";
@@ -648,6 +647,9 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         string getDropSql(string table_name) {
             return sprintf("alter table %s drop constraint %s", table_name, name);
         }
+
+        #! returns a string that can be used to rename the constraint in the database
+        abstract string getRenameSql(string table_name, string new_name);
     }
 
     #! abstract class for check constraints
@@ -2773,8 +2775,8 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
                 throw "CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", name, old_name, cl);
             }
 
-            # rename foreign constraint from table if the table already exists in the DB
-            execSql(sql = c.getRenameSql(getSqlName()));
+            # rename foreign constraint in table if the table already exists in the DB
+            execSql(sql = c.getRenameSql(getSqlName(), new_name));
 
             c.rename(new_name);
 
