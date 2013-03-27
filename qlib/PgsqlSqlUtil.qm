@@ -256,10 +256,12 @@ my string $str = $col.getRenameSql($t, "new_name");
             args = a;
         }
 
+        #! returns a string that can be used to create the function in the database
         string getCreateSql(*hash opt) {
             return sprintf("create%s function %s(%s) %s", opt.replace ? " or replace" : "", name, args, src);
         }
 
+        #! returns a string that can be used to drop the function from the database
         string getDropSql() {
             return sprintf("drop function %s(%s)", name, args);
         }
@@ -267,6 +269,44 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     public class PgsqlDatabase inherits AbstractDatabase {
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+        }
+
+        AbstractFunction getFunctionImpl(string name) {
+            *hash qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v", name);
+            if (!qh.proname)
+                throw "FUNCTION-ERROR", sprintf("cannot find any function %y", name);
+           
+            if (!native_case)
+                map qh.$1 = qh.$1.lwr(), ("stability");
+
+            trim qh.hdr;
+            # remove "create or replace function" from the beginning of hdr
+            if (qh.hdr !~ /^create or replace function /i)
+                throw "FUNCTION-ERROR", sprintf("function does not begin with 'create or replace function': %y", qh.hdr);
+
+            # remove function name and "(" at beginning of hdr
+            int i = qh.hdr.find("(");
+            if (i == -1)
+                throw "FUNCTION-ERROR", sprintf("cannot find function arguments: %y", qh.hdr);
+            int e = qh.hdr.find(")", i + 1);
+            if (e == -1)
+                throw "FUNCTION-ERROR", sprintf("cannot find function arguments: %y", qh.hdr);
+
+            *string args = extract qh.hdr, i + 1, e - i - 1;
+            splice qh.hdr, 0, e + 1;
+
+            printf("args: %y\n", args);
+            if (!native_case) {
+                qh.hdr =~ s/ RETURNS / returns /;
+                qh.hdr =~ s/ LANGUAGE / language /;
+                qh.hdr =~ s/ AS / as /;
+            }
+
+            return new PgsqlFunction(qh.proname, qh.hdr, args);
+        }
+
+        AbstractFunction getProcedureImpl(string name) {
+            return getFunctionImpl(name);
         }
 
         list listTablesImpl() {

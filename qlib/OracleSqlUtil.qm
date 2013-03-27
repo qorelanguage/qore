@@ -268,8 +268,69 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    public class OracleFunctionBase inherits AbstractFunction {
+        private {
+            string type;
+        }
+
+        #! creates the object from the arguments passed
+        /** @param n the name of the function
+            @param n_type the type of object
+            @param n_src the source of the function
+         */
+        constructor(string n, string n_type, string n_src) : AbstractFunction(n, n_src) {
+            type = n_type;
+        }
+
+        #! returns a string that can be used to create the function in the database
+        string getCreateSql(*hash opt) {
+            return sprintf("create%s %s", opt.replace ? " or replace" : "", src);
+        }
+
+        #! returns a string that can be used to drop the function from the database
+        string getDropSql() {
+            return sprintf("drop %s %s", type, name);
+        }
+    }
+
+    public class OracleFunction inherits OracleFunctionBase {
+        #! creates the object from the arguments passed
+        /** @param n the name of the function
+            @param n_src the source of the function
+         */
+        constructor(string n, string n_src) : OracleFunctionBase(n, "function", n_src) {
+        }   
+    }
+
+    public class OracleProcedure inherits OracleFunctionBase {
+        #! creates the object from the arguments passed
+        /** @param n the name of the function
+            @param n_src the source of the function
+         */
+        constructor(string n, string n_src) : OracleFunctionBase(n, "procedure", n_src) {
+        }   
+    }
+
     public class OracleDatabase inherits AbstractDatabase {
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+        }
+
+        AbstractFunction getFunctionImpl(string name) {
+            *list l = ds.select("select text from user_source where type = 'FUNCTION' and name = %v order by line", name.upr()).text;
+            if (!l)
+                throw "FUNCTION-ERROR", sprintf("cannot find any function %y", name);
+            string src = foldl $1 + "\n" + $2, l;
+
+            return new OracleFunction(name, src);
+        }
+
+        AbstractFunction getProcedureImpl(string name) {
+            *list l = ds.select("select text from user_source where type = 'PROCEDURE' and name = %v order by line", name.upr()).text;
+            if (!l)
+                throw "PROCEDURE-ERROR", sprintf("cannot find any procedure %y", name);
+            string src = foldl $1 + "\n" + $2, l;
+
+            return new OracleProcedure(name, src);
         }
 
         #! returns a list of string synonym names in the database

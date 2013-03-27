@@ -662,6 +662,9 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         
         #! returns a string that can be used to create the function in the database
         abstract string getCreateSql(*hash opt);
+
+        #! returns a string that can be used to drop the function from the database
+        abstract string getDropSql();
     }
 
     #! function container class that throws an exception if an unknown function is accessed
@@ -940,6 +943,14 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
                 native_case = True;
         }
 
+        AbstractFunction getFunction(string name) {
+            return getFunctionImpl(name);
+        }
+
+        AbstractFunction getProcedure(string name) {
+            return getProcedureImpl(name);
+        }
+
         #! returns a list of string table names in the database
         list listTables() {
             return listTablesImpl();
@@ -1035,6 +1046,9 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
         private hash getDatabaseOptions() {
             return DatabaseOptions;
         }
+
+        abstract AbstractFunction getFunctionImpl(string name);
+        abstract AbstractFunction getProcedureImpl(string name);
 
         abstract list listTablesImpl();
         abstract list listFunctionsImpl();
