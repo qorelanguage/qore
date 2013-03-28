@@ -894,9 +894,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         string getCreateSqlImpl(list l) {
-            string str = "";
-            map str += sprintf("%s%s\n", $1, $1 =~ /;$/ ? "\n/" : ";"), l;
-            return str;
+            return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /;$/ ? "\n/" : ";"), l);
         }
 
         string getRenameSqlImpl(string new_name) {

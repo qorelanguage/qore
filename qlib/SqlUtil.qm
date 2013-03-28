@@ -122,6 +122,15 @@ my any $v = $c.name;
             return remove h{k};
         }
 
+        #! renames the given key; maintains the key order
+        renameKey(string old_name, string new_name) {
+            hash nh;
+            foreach hash kh in (h.pairIterator())
+                nh{kh.key == old_name ? new_name : kh.key} = kh.value;
+
+            h = nh;
+        }
+
         #! returns the hash contained by this object
         *hash getHash() {
             return h;
@@ -1463,6 +1472,8 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
             @throw COLUMN-ERROR if the given column does not exist in the table
 
             @see modifyColumn() for a method that allows the column definition to be updated
+
+            @note if any primary key or foreign table constraints refer to the column, the internal reprepsentations are also renamed, however check constraints are not updated and will be invalid if they refer to the renamed column
         */
         AbstractColumn renameColumn(string old_name, string new_name, reference sql) {
             return t.renameColumn(old_name, new_name, \sql);
@@ -2436,6 +2447,8 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
             @throw COLUMN-ERROR if the given column does not exist in the table
 
             @see modifyColumn() for a method that allows the column definition to be updated
+
+            @note if any primary key or foreign table constraints refer to the column, the internal reprepsentations are also renamed, however check constraints are not updated and will be invalid if they refer to the renamed column
         */
         AbstractColumn renameColumn(string old_name, string new_name, reference sql) {
             l.lock();
@@ -2444,6 +2457,10 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
             if (!columns.hasKey(old_name))
                 throw "COLUMN-ERROR", sprintf("%s.%s: the given column does not exist", name, old_name);
 
+            return renameColumnIntern(old_name, new_name, \sql);
+        }
+
+        private AbstractColumn renameColumnIntern(string old_name, string new_name, reference sql) {
             AbstractColumn c = columns{old_name};
             
             # add column in table if the table already exists in the DB
@@ -2453,7 +2470,21 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
             c.name = new_name;
 
             # replaces the column in the internal column representation with the new definition
-	    columns.add(new_name, columns.take(old_name));
+	    columns.renameKey(old_name, new_name);
+
+            # now rename column in any constraints
+            # check primary key
+            if (primaryKey && primaryKey.hasKey(old_name))
+                primaryKey.renameKey(old_name, new_name);
+
+            # check foreign constraints
+            foreach AbstractForeignConstraint fk in (foreignConstraints) {
+                if (fk.columns.hasKey(old_name))
+                    fk.columns.renameKey(old_name, new_name);
+            }
+
+            # FIXME: check constraints are not updated
+
             return c;
         }
 
@@ -2820,7 +2851,7 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
 
             if (constraints && constraints.hasKey(old_name)) {
                 c = constraints{old_name};
-                rename = sub () { constraints.add(new_name, constraints.take(old_name)); };
+                rename = sub () { constraints.renameKey(old_name, new_name); };
             }
             else {
                 if (inDb) {
@@ -3255,14 +3286,13 @@ $table.cache();
             cacheUnlocked();
         }
 
-        # returns the table description hash as acquired in the constructor
+        #! returns an object of class Columns describing the table
         /** @par Example:
             @code
 my hash $h = $table.describe();
             @endcode
 
-            @return a hash of column names assigned to AbstractColumn objects
-
+            @return an object of class Columns describing the table
         */
         Columns describe() {
             l.lock();

@@ -673,9 +673,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         string getCreateSqlImpl(list l) {
-            string str = "";
-            map str += sprintf("%s%s\n", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l;
-            return str;
+            return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l);
         }
 
         string getRenameSqlImpl(string new_name) {
