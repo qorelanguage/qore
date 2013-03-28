@@ -166,6 +166,11 @@ my string $str = $col.getRenameSql($t, "new_name");
         string getRenameSql(AbstractTable t, string new_name) {
             return sprintf("alter table %s rename column %s to %s", t.getSqlName(), name, new_name);
         }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractColumn c) {
+            return char_used == cast<OracleColumn>(c).char_used;
+        }
     }
 
     public class OracleNumberColumn inherits OracleColumn, NumericColumnInfo {
@@ -187,11 +192,13 @@ my string $str = $col.getRenameSql($t, "new_name");
             *string tablespace;
         }
 
+        #! creates the object from the arguments
         constructor(string n, bool u, hash c, string nt, *string t) : AbstractIndex(n, u, c) {
             native_type = nt;
             tablespace = t;
         }
 
+        #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash opt) {
             string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
 
@@ -203,6 +210,11 @@ my string $str = $col.getRenameSql($t, "new_name");
                 sql += " compute statistics";
 
             return sql;
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        bool equalImpl(AbstractIndex ix) {
+            return True;
         }
     }
 
@@ -349,22 +361,22 @@ my string $str = $col.getRenameSql($t, "new_name");
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
-        FunctionList getFunctionsImpl(string name) {
+        OracleFunction getFunctionImpl(string name) {
             *list l = ds.select("select text from user_source where type = 'FUNCTION' and name = %v order by line", name.upr()).text;
             if (!l)
                 throw "FUNCTION-ERROR", sprintf("cannot find any function %y", name);
             string src = foldl $1 + $2, l;
 
-            return new FunctionList(new OracleFunction(name, src));
+            return new OracleFunction(name, src);
         }
 
-        FunctionList getProceduresImpl(string name) {
+        OracleProcedure getProcedureImpl(string name) {
             *list l = ds.select("select text from user_source where type = 'PROCEDURE' and name = %v order by line", name.upr()).text;
             if (!l)
                 throw "PROCEDURE-ERROR", sprintf("cannot find any procedure %y", name);
             string src = foldl $1 + $2, l;
 
-            return new FunctionList(new OracleProcedure(name, src));
+            return new OracleProcedure(name, src);
         }
 
         OraclePackage getPackage(string name) {
@@ -837,7 +849,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             *hash qh = ds.select("select * from all_triggers where owner = %v and table_name = %v", schema.upr(), name.upr());
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
-                    map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names", "description");
+                    map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names");
                 #printf("%y: %s\n", row.trigger_name, row.description);
 
                 # replace newlines with spaces

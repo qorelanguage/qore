@@ -407,12 +407,26 @@ my AbstractColumn $c = $cols.id;
             return AbstractHashContainer::memberGate(k);
         }
 
+        #! returns a subset of the current columns according to the list argument
         Columns subset(list l) {
             return new Columns(h{l});
         }
 
+        #! returns \c "column" since this object stores column objects
         string getElementName() {
             return "column";
+        }
+
+        #! returns @ref Qore::True "True" if the argument has the same columns in the same order as the current object, @ref Qore::False "False" if not
+        bool equal(Columns cols) {
+            AbstractIterator i = cols.iterator();
+            foreach AbstractColumn c in (iterator()) {
+                if (!i.next())
+                    return False;
+                if (!c.equal(i.getValue()))
+                    return False;
+            }
+            return True;
         }
     }
 
@@ -513,6 +527,17 @@ my string $str = $col.getRenameSql($t, "new_name");
             @return a string that can be used to rename the column
         */
         abstract string getRenameSql(AbstractTable t, string new_name);
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equal(AbstractColumn c) {
+            if (self.className() != c.className() || name != c.name || native_type != c.native_type || size != c.size || nullable != c.nullable || def_val != c.def_val || comment != c.comment)
+                return False;
+
+            return equalImpl(c);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        abstract bool equalImpl(AbstractColumn c);
     }
 
     #! the base class to use to extend AbstractColumn to implement numeric columns
@@ -595,6 +620,20 @@ my AbstractIndex $ix = $indexes.pk_jobs;
         string getDropSql(string table_name) {
             return sprintf("drop index %s", name);
         }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        bool equal(AbstractIndex ix) {
+            if (ix.className() != self.className())
+                return False;
+
+            if (name != ix.name || unique != ix.unique || (columns.keys() != ix.columns.keys()))
+                return False;
+            
+            return equalImpl(ix);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        abstract bool equalImpl(AbstractIndex ix);
     }
 
     #! constraint container class that throws an exception if an unknown constraint is accessed
@@ -661,6 +700,17 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
 
         #! returns a string that can be used to rename the constraint in the database
         abstract string getRenameSql(string table_name, string new_name);
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equal(AbstractConstraint c) {
+            if (c.className() != self.className() || name != c.name)
+                return False;
+
+            return equalImpl(c);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        abstract bool equalImpl(AbstractConstraint c);
     }
 
     #! abstract class for check constraints
@@ -674,7 +724,12 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         constructor(string n, string n_src) : AbstractConstraint(n) {
             name = n;
             src = n_src;
-        }        
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractConstraint c) {
+            return src != cast<AbstractCheckConstraint>(c).src ? False : True;
+        }
     }
 
     #! represents a primary key
@@ -684,6 +739,11 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
 
         #! returns a string that can be used to create the primary key in the database
         abstract string getCreateSql(string table_name, *hash opts);
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractConstraint pk) {
+            return (self.keys() != cast<AbstractPrimaryKey>(pk).keys()) ? False : True;
+        }
     }
 
     #! foreign constraint container class that throws an exception if an unknown constraint is accessed
@@ -731,6 +791,11 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             table = t;
             columns = c;
         }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equal(ForeignConstraintTarget targ) {
+            return table != targ.table || (columns.keys() != targ.columns.keys()) ? False : True;
+        }
     }
 
     #! the base class for foreign key constraint information
@@ -746,6 +811,14 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractConstraint(n) {
             columns = c;
             target = t;
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractConstraint con) {
+            AbstractForeignConstraint c = cast<AbstractForeignConstraint>(con);
+            return (columns.keys() != c.columns.keys())
+                || !target.equal(c.target)
+                ? False : True;
         }
     }
 
@@ -781,6 +854,30 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         #! returns a string that can be used to drop the function from the database
         string getDropSql() {
             return sprintf("drop %s %s", type, name);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equal(AbstractTrigger t) {
+            if (self.className() != t.className() || name != t.name || type != t.type)
+                return False;
+
+            string src1 = src;
+            src1 =~ s/\n/ /g;
+            string src2 = t.src;
+            src2 =~ s/\n/ /g;
+
+            if (src1 != src2) {
+                #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
+                return False;
+            }
+
+            return equalImpl(t);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractTrigger t) {
+            # XXX
+            return True;
         }
     }
 
@@ -828,33 +925,6 @@ my AbstractFunction $f = $funcs.func1;
         }
     }
 
-    #! function list container class that throws an exception if an invalid index is accessed
-    public class FunctionList inherits AbstractListContainer {
-        constructor(softlist l) : AbstractListContainer(l) {
-        }
-
-        #! returns the AbstractFunction object for the given element in the contained list if it exists, otherwise throws an \c ELEMENT-ERROR exception
-        /** @par Example:
-            @code
-my AbstractFunction $v = $c.get(2);
-            @endcode
-
-            @param i the index of the element to access
-
-            @return the AbstractFunction object for the given element in the contained list if it exists
-
-            @throw ELEMENT-ERROR the given element does not exist in the contained list
-        */
-        AbstractFunction get(softint i) {
-            checkIndex(i);
-            return l[i];
-        }
-
-        string getElementName() {
-            return "function";
-        }
-    }
-
     #! the base class for triggers
     public class AbstractTrigger inherits AbstractFunctionBase {
         #! creates the object and sets its name and the trigger source
@@ -862,7 +932,7 @@ my AbstractFunction $v = $c.get(2);
         }
 
         #! returns a string that can be used to create the trigger in the database
-        abstract list getCreateSql(string table_name, *hash opt);
+        abstract list getCreateSql(string table_name, *hash opt);        
     }
 
     #! trigger container class that throws an exception if an unknown trigger is accessed
@@ -1091,12 +1161,19 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
                 native_case = True;
         }
 
-        FunctionList getFunctions(string name) {
-            return getFunctionsImpl(name);
+        #! returns a list of SQL strings that can be used to update a function in the database to the function definition passed as an argument
+        /**
+         */
+        #list getAlignFunctionSql(AbstractFunction f, *hash opt) {
+        #    FunctionList fl = getFunctions(f.name);
+        #}
+
+        AbstractFunction getFunction(string name) {
+            return getFunctionImpl(name);
         }
 
-        FunctionList getProcedures(string name) {
-            return getProceduresImpl(name);
+        AbstractFunction getProcedure(string name) {
+            return getProcedureImpl(name);
         }
 
         #! returns a list of string table names in the database
@@ -1195,8 +1272,8 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
             return DatabaseOptions;
         }
 
-        abstract FunctionList getFunctionsImpl(string name);
-        abstract FunctionList getProceduresImpl(string name);
+        abstract AbstractFunction getFunctionImpl(string name);
+        abstract AbstractFunction getProcedureImpl(string name);
 
         abstract list listTablesImpl();
         abstract list listFunctionsImpl();
@@ -2478,7 +2555,7 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
                 primaryKey.renameKey(old_name, new_name);
 
             # check foreign constraints
-            foreach AbstractForeignConstraint fk in (foreignConstraints) {
+            foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
                 if (fk.columns.hasKey(old_name))
                     fk.columns.renameKey(old_name, new_name);
             }
@@ -2531,6 +2608,7 @@ printf("%s;\n", $sql);
         AbstractPrimaryKey addPrimaryKey(string pkname, softlist cols, *hash opt, *reference sql) {
             l.lock();
             on_exit l.unlock();
+
             getColumnsUnlocked();
             # load constraints if needed, verify unique constraint name, validate/process options
             checkUniqueConstraintNameValidateOptions("PRIMARY-KEY-ERROR", pkname, getPrimaryKeyOptions(), \opt);
@@ -3005,6 +3083,9 @@ printf("%s;\n", $sql);
             execSql(lsql = trig.getCreateSql(getSqlName()));
 
             # store trigger in trigger container
+            if (!triggers)
+                triggers = new Triggers();
+
             triggers.add(tname, trig);
 
             # return the new trigger
@@ -3123,6 +3204,8 @@ $table.dropTrigger("trig_mytable");
             else
                 opt.precision = opt.scale = 0;
 
+            if (!opt.size && th.default_size)
+                opt.size = th.default_size;
             
             # check type of default value (must match column type)
             if (exists opt.default_value) {
@@ -3504,12 +3587,104 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
-            # check for columns not in the template
+            # check for columns not in the template and drop them
             foreach AbstractColumn c in (columns.iterator()) {
                 if (!t.columns.hasKey(c.name))
                     l += c.getDropSql(getSqlName());
             }
-            
+
+            # check for indexes in the template that are not present or different in the current table
+            foreach AbstractIndex ix in (t.indexes.iterator()) {
+                if (!indexes.hasKey(ix.name)) {
+                    # add index to table
+                    l += ix.getCreateSql(getSqlName());
+                }
+                else if (!ix.equal(indexes{ix.name})) {
+                    # drop current index
+                    l += indexes{ix.name}.getDropSql(getSqlName());
+                    # add new index to table
+                    l += ix.getCreateSql(getSqlName());
+                }
+            }
+
+            # check for indexes not in the template and drop them
+            foreach AbstractIndex ix in (indexes.iterator()) {
+                if (!t.indexes.hasKey(ix.name))
+                    l += ix.getDropSql(getSqlName());
+            }
+
+            # check for primary key differences
+            if (t.primaryKey) {
+                if (primaryKey && !primaryKey.equal(t.primaryKey)) {
+                    l += primaryKey.getDropSql(getSqlName());
+                    l += t.primaryKey.getCreateSql(getSqlName());
+                }
+                else if (!t.primaryKey)
+                    l += t.primaryKey.getCreateSql(getSqlName());
+            }
+            else if (primaryKey && !primaryKey.empty())
+                l += primaryKey.getDropSql(getSqlName());
+
+            # check for foreign constraints in the template that are not present or different in the current table
+            foreach AbstractForeignConstraint c in (t.foreignConstraints.iterator()) {
+                if (!foreignConstraints.hasKey(c.getName())) {
+                    # add constraint to table
+                    l += c.getCreateSql(getSqlName());
+                }
+                else if (!c.equal(foreignConstraints{c.getName()})) {
+                    # drop current constraint
+                    l += foreignConstraints{c.getName()}.getDropSql(getSqlName());
+                    # add new constraint to table
+                    l += c.getCreateSql(getSqlName());
+                }
+            }
+
+            # check for foreign constraints not in the template and drop them
+            foreach AbstractForeignConstraint c in (foreignConstraints.iterator()) {
+                if (!t.foreignConstraints.hasKey(c.getName()))
+                    l += c.getDropSql(getSqlName());
+            }
+
+            # check for other constraints in the template that are not present or different in the current table
+            foreach AbstractConstraint c in (t.constraints.iterator()) {
+                if (!constraints.hasKey(c.getName())) {
+                    # add constraint to table
+                    l += c.getCreateSql(getSqlName());
+                }
+                else if (!c.equal(constraints{c.getName()})) {
+                    # drop current constraint
+                    l += constraints{c.getName()}.getDropSql(getSqlName());
+                    # add new constraint to table
+                    l += c.getCreateSql(getSqlName());
+                }
+            }
+
+            # check for other constraints not in the template and drop them
+            foreach AbstractConstraint c in (constraints.iterator()) {
+                if (!t.constraints.hasKey(c.getName()))
+                    l += c.getDropSql(getSqlName());
+            }
+
+            # check for triggers in the template that are not present or different in the current able
+            foreach AbstractTrigger trig in (t.triggers.iterator()) {
+                if (!triggers.hasKey(trig.name)) {
+                    # add trigger to table
+                    l += trig.getCreateSql(getSqlName());
+                }
+                else if (!trig.equal(triggers{trig.name})) {
+                    # drop current trigger
+                    l += triggers{trig.name}.getDropSql();
+                    # add new trigger to table
+                    l += trig.getCreateSql(getSqlName());
+                }
+            }
+
+            # check for triggers not in the template and drop them
+            foreach AbstractTrigger trig in (triggers.iterator()) {
+                if (!t.triggers.hasKey(trig.name))
+                    l += trig.getDropSql();
+            }
+
             return l;
         }
 

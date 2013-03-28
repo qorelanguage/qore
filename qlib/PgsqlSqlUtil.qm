@@ -75,10 +75,12 @@ public namespace PgsqlSqlUtil {
             *string tablespace;
         }
 
+        #! creates the object from the arguments
         constructor(string n, bool u, hash c, *string t) : AbstractIndex(n, u, c) {
             tablespace = t;
         }
 
+        #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash opt) {
             string sql = sprintf("create%s %sindex %s on %s (%s)", opt.replace ? " or replace" : "", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
 
@@ -86,6 +88,11 @@ public namespace PgsqlSqlUtil {
             if (ts)
                 sql += sprintf(" tablespace %s", ts);
             return sql;
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        bool equalImpl(AbstractIndex ix) {
+            return True;
         }
     }
 
@@ -210,6 +217,11 @@ my string $str = $col.getRenameSql($t, "new_name");
         string getRenameSql(AbstractTable t, string new_name) {
             return sprintf("alter table %s rename %s to %s", t.getSqlName(), name, new_name);
         }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractColumn c) {
+            return True;
+        }
     }
 
     public class PgsqlNumericColumn inherits PgsqlColumn, NumericColumnInfo {
@@ -271,7 +283,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns a string that can be used to create the function in the database
         softlist getCreateSql(*hash opt) {
-            return sprintf("create%s function %s(%s) %s", opt.replace ? " or replace" : "", name, args, src);
+            return sprintf("create%s function %s %s", opt.replace ? " or replace" : "", name, src);
         }
 
         #! returns a string that can be used to drop the function from the database
@@ -284,21 +296,23 @@ my string $str = $col.getRenameSql($t, "new_name");
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
-        FunctionList getFunctionsImpl(string name) {
-            *hash qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v", name);
-            if (!qh.proname)
-                throw "FUNCTION-ERROR", sprintf("cannot find any function %y", name);
+        AbstractFunction getFunctionImpl(string name) {
+            string nc = name;
+            *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
+            nc = name.substr(0, name.find('('));
+            # replace common type names with verbose type names as stored in postgresql
+            foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator())
+                args = replace(args, h.value, h.key);
 
-            FunctionList l();
-
-            # add functions to list
-            map l.add(PgsqlDatabase::processFunction($1, native_case)), qh.contextIterator();
-
-            return l;
+            *hash qh = ds.selectRow("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_identity_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v and pg_catalog.pg_get_function_identity_arguments(proname::regproc) = %v", nc, args);
+            if (!qh)
+                throw "FUNCTION-ERROR", sprintf("cannot find any function \"%s(%s)\"; check arguments; arguments must match for the function to be retrieved", nc, args);
+            
+            return PgsqlDatabase::processFunction(qh, native_case);
         }
 
-        FunctionList getProceduresImpl(string name) {
-            return getFunctionsImpl(name);
+        AbstractFunction getProcedureImpl(string name) {
+            return getFunctionImpl(name);
         }
 
         static *string getFunctionArgs(string err, reference src) {
@@ -310,9 +324,9 @@ my string $str = $col.getRenameSql($t, "new_name");
             if (e == -1)
                 throw err, sprintf("cannot find function arguments: %y", src);
 
-            *string args = extract src, i + 1, e - i - 1;
-            splice src, 0, e + 1;
-            return args;
+            string tmp = extract src, 0, e + 1;
+            trim src;
+            return extract tmp, i + 1, e - i - 1;
         }
 
         static PgsqlFunction processFunction(hash row, bool native_case) {
@@ -329,12 +343,13 @@ my string $str = $col.getRenameSql($t, "new_name");
 
             #printf("args: %y\n", args);
             if (!native_case) {
-                row.hdr =~ s/ RETURNS / returns /;
-                row.hdr =~ s/ LANGUAGE / language /;
-                row.hdr =~ s/ AS / as /;
+                row.hdr =~ s/^RETURNS /returns /;
+                row.hdr =~ s/\n LANGUAGE / language /;
+                row.hdr =~ s/\nAS / as /;
             }
 
-            return new PgsqlFunction(row.proname, row.hdr, args);
+            string name = sprintf("%s(%s)", row.proname, row.args);
+            return new PgsqlFunction(name, row.hdr, args);
         }
 
         list listTablesImpl() {
@@ -381,13 +396,13 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "character varying": ("qore": Type::String, "size": SZ_MAND,),
                 "varchar": ("qore": Type::String, "size": SZ_MAND,),
                 "date": ("qore": Type::Date,),
-                "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
-                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
-                "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
-                "time without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
-                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
-                "time with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
-                "interval": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),),
+                "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "time without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "time with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "interval": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
                 "abstime": ("qore": Type::Date,),
                 "reltime": ("qore": Type::Date,),
                 "text": ("qore": Type::String,),
@@ -411,7 +426,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "float": "double precision",
                 "number": "numeric",
                 "string": "varchar",
-                "date": "timestamp with time zone",
+                "date": "timestamp",
                 "binary": "bytea",
                 "bool": "boolean",
                 );
@@ -611,7 +626,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             if (fl) {
                 hash fh;
                 # also get trigger functions
-                qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname in (%s)", (foldl $1 + "," + $2, (map sprintf("'%s'", $1), fl)));
+                qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname in (%s)", (foldl $1 + "," + $2, (map sprintf("'%s'", $1), fl)));
 
                 # create trigger function map
                 map fh{$1.proname} = PgsqlDatabase::processFunction($1, native_case), qh.contextIterator();
