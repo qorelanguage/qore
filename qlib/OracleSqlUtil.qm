@@ -296,6 +296,11 @@ my string $str = $col.getRenameSql($t, "new_name");
         softlist getCreateSql(string table_name, *hash opt) {
             return sprintf("create%s trigger %s %s", opt.replace ? " or replace" : "", name, src);
         }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractFunctionBase t) {
+            return enabled == cast<OracleTrigger>(t).enabled;
+        }
     }
 
     public class OracleFunctionBase inherits AbstractFunction {
@@ -310,6 +315,11 @@ my string $str = $col.getRenameSql($t, "new_name");
         #! returns a string that can be used to create the object in the database
         softlist getCreateSql(*hash opt) {
             return sprintf("create%s %s", opt.replace ? " or replace" : "", src);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractFunctionBase t) {
+            return True;
         }
     }
 
@@ -359,6 +369,18 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     public class OracleDatabase inherits AbstractDatabase {
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+        }
+
+        OracleFunction makeFunctionImpl(string name, string src, *hash opts) {
+            return new OracleFunction(name, src);
+        }
+
+        OracleProcedure makeProcedureImpl(string name, string src, *hash opts) {
+            return new OracleProcedure(name, src);
+        }
+
+        OraclePackage makePackage(string name, string src, string body, *hash opts) {
+            return new OraclePackage(name, src, body);
         }
 
         OracleFunction getFunctionImpl(string name) {

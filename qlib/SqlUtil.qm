@@ -857,7 +857,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equal(AbstractTrigger t) {
+        bool equal(AbstractFunctionBase t) {
             if (self.className() != t.className() || name != t.name || type != t.type)
                 return False;
 
@@ -875,10 +875,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equalImpl(AbstractTrigger t) {
-            # XXX
-            return True;
-        }
+        abstract bool equalImpl(AbstractFunctionBase t);
     }
 
     #! base class for functions
@@ -1161,12 +1158,33 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
                 native_case = True;
         }
 
+        AbstractFunction makeFunction(string name, string src, *hash opts) {
+            validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opts);
+
+            return makeFunctionImpl(name, src, opts);
+        }
+
+        AbstractFunction makeProcedure(string name, string src, *hash opts) {
+            validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opts);
+
+            return makeProcedureImpl(name, src, opts);
+        }
+
         #! returns a list of SQL strings that can be used to update a function in the database to the function definition passed as an argument
         /**
          */
-        #list getAlignFunctionSql(AbstractFunction f, *hash opt) {
-        #    FunctionList fl = getFunctions(f.name);
-        #}
+        list getAlignFunctionSql(AbstractFunction f, *hash opt) {
+            AbstractFunction of = getFunction(f.name);
+
+            list l = ();
+
+            if (!of.equal(f)) {
+                l += of.getDropSql();
+                l += f.getCreateSql(opt);
+            }
+                
+            return l;
+        }
 
         AbstractFunction getFunction(string name) {
             return getFunctionImpl(name);
@@ -1272,8 +1290,16 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
             return DatabaseOptions;
         }
 
+        #! override in subclasses to return driver-specific options
+        private hash getCreationOptions() {
+            return CreationOptions;
+        }
+
         abstract AbstractFunction getFunctionImpl(string name);
         abstract AbstractFunction getProcedureImpl(string name);
+
+        abstract AbstractFunction makeFunctionImpl(string name, string src, *hash opts);
+        abstract AbstractFunction makeProcedureImpl(string name, string src, *hash opts);
 
         abstract list listTablesImpl();
         abstract list listFunctionsImpl();
@@ -2031,7 +2057,7 @@ my *list $l = $table.getCreateTriggersSql();
         #! accepts a AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
         /** @par Example:
             @code
-my *list $l = $table.getAlignSql($table2);
+my list $l = $table.getAlignSql($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
@@ -2525,7 +2551,7 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
 
             @see modifyColumn() for a method that allows the column definition to be updated
 
-            @note if any primary key or foreign table constraints refer to the column, the internal reprepsentations are also renamed, however check constraints are not updated and will be invalid if they refer to the renamed column
+            @note if any primary key or foreign table constraints refer to the column, the internal representations are also renamed, however check constraints are not updated and will be invalid if they refer to the renamed column
         */
         AbstractColumn renameColumn(string old_name, string new_name, reference sql) {
             l.lock();

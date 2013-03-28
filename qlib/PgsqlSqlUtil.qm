@@ -270,6 +270,11 @@ my string $str = $col.getRenameSql($t, "new_name");
         string getDropSql(string table_name) {
             return sprintf("drop trigger %s on %s", name, table_name);
         }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractFunctionBase t) {
+            return True;
+        }
     }
 
     public class PgsqlFunction inherits AbstractFunction {
@@ -288,12 +293,29 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns a string that can be used to drop the function from the database
         string getDropSql() {
-            return sprintf("drop function %s(%s)", name, args);
+            return sprintf("drop function %s", args);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractFunctionBase t) {
+            return True;
         }
     }
 
     public class PgsqlDatabase inherits AbstractDatabase {
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+        }
+
+        PgsqlFunction makeFunctionImpl(string name, string src, *hash opts) {
+            string nc = name;
+            *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
+
+            trim src;
+            return new PgsqlFunction(name, src, args);
+        }
+
+        PgsqlFunction makeProcedureImpl(string name, string src, *hash opts) {
+            return makeFunctionImpl(name, src, opts);
         }
 
         AbstractFunction getFunctionImpl(string name) {
