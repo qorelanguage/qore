@@ -51,11 +51,170 @@ module SqlUtil {
 
 /** @mainpage SqlUtil Module
 
+    @section intro Introduction
+
     The %SqlUtil module provides a high level API for working with database objects.
 
     To use this module, use \c "%requires SqlUtil" in your code.
     
     All the public symbols in the module are defined in the SqlUtil namespace
+
+    @section schema_management Schema Management
+
+    @anchor table_desc_hash
+    <b>Table Description Hash</b>
+    
+    Table description hashes have the following structure:
+    - \c columns: (required) a hash of column information keyed by column name; the values are @ref column_desc_hash "column description hashes"
+    - \c primary_key: (optional) a @ref pk_desc_hash "primary key description hash" describing the primary key for the table
+    - \c indexes: (optional) a hash of index information keyed by index name; the values are @ref index_desc_hash "index description hashes"
+    - \c triggers: (optional) a hash of trigger information keyed by trigger name; the values are the trigger source code; since triggers are driver-dependent, a driver-independent table description would include trigger hashes under the \c drivers key and the driver key name under that; see below for an example
+
+    Here is an example of a table description hash:
+    @code
+my hash $table_desc = (
+    "columns": (
+        "domain": (
+            "qore_type": Type::String, 
+            "size": 240,
+            "notnull": True,
+        ),
+        "keyname": (
+            "qore_type": Type::String,
+            "size": 240,
+            "notnull": True,
+        ),
+        "value": (
+            "qore_type": Type::String,
+            "size": 4000,
+        ),
+        "created": (
+            "qore_type": Type::Date,
+            "notnull": True,
+            "driver": (
+                "oracle": (
+                    "native_type": "date",
+                ),
+            ),
+        ),
+        "modified": (
+            "qore_type": Type::Date,
+            "driver": (
+                "oracle": (
+                    "native_type": "date",
+                ),
+            ),
+        ),
+    ),
+    "primary_key": ("name": "pk_system_properties", "columns": ("domain", "keyname")),
+    "indexes": (
+        "sk_system_properties_domain": ("columns": "domain"),
+        "driver": (
+            "oracle": (
+                "pk_system_properties": ("columns": ("domain", "keyname"), "unique": True),
+            ),
+        ),
+    ),
+    "driver": (
+        "pgsql": (
+            "functions": (
+                "trig_system_properties()": "returns trigger language plpgsql as $function$
+begin
+  if (tg_op = 'INSERT') then
+    if new.created is null then
+      select current_timestamp into new.created;
+    end if;
+  end if;
+  if new.modified is null  then
+    select current_timestamp into new.modified;
+  end if;
+  return new;
+end;
+$function$", #",
+            ),
+        ),
+    ),
+    "triggers": (
+        "driver": (
+            "oracle": (
+                "trig_system_properties": "BEFORE INSERT OR UPDATE ON SYSTEM_PROPERTIES
+REFERENCING NEW AS NEW OLD AS OLD
+FOR EACH ROW
+begin
+  if inserting then
+    if :new.created is null then
+      :new.created := sysdate;
+    end if;
+  end if;
+  --
+  if :new.modified is null or :new.modified = :old.modified then
+    :new.modified := sysdate;
+  end if;
+end;",
+            ),
+            "pgsql": (
+                    "trig_system_properties": "before insert or update on system_properties for each row execute procedure trig_system_properties()",
+            ),
+            "mysql": (
+            ),
+        ),
+    ),
+);
+    @endcode
+
+    @note the above example includes an additional driver-specific key for the \c "pgsql" driver: \c "functions" which is used by the PgsqlSqlUtil module to create trigger functions used by the table's trigger.
+
+    @anchor column_desc_hash
+    <b>Column Description Hash</b>
+
+    Column description hashes have the following structure:
+    - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion
+    - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+    - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
+    - \c scale: for numeric data types, this value gives the scale
+    - \c default_value: the default value for the column
+    - \c comment: an optional comment for the column
+    - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
+    - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
+
+    Note that the above structure is an extension of the fields in @ref SqlUtil::AbstractTable::ColumnOptions, adding \c nullable and \c driver keys for additional information to create the column in the table.
+
+    Here is an example of a column description hash:
+    @code
+my hash $date_col_desc = (
+    "qore_type": Type::Date,
+    "notnull": True,
+    "driver": (
+        "oracle": (
+            "native_type": "date",
+        ),
+    ),
+);
+    @endcode
+
+    The above hash describes a column that will be have \c TIMESTAMP type on most databases, but \c DATE on Oracle.
+
+    @anchor pk_desc_hash
+    <b>Primary Key Description Hash</b>
+
+    The primary key description hash has the following keys:
+    - \c name: (required) the name of the primary key
+    - \c columns: (required) a single column name or a list of column names making up the primary key
+
+    Here is an example of a primary key description hash:
+    @code
+my hash $pk_desc = (
+    "name": "pk_queue",
+    "columns": "queueid",
+);
+    @endcode
+
+    @anchor index_desc_hash
+    <b>Index Description Hash</b>
+
+    Index description hashes have the following structure:
+    - \c columns: (required) a single column or a list of column names making up the index
+    - \c unique: a boolean value indicating if the index is unique or not, if missing, then the index is assumed to e not unique
 */
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
@@ -233,7 +392,7 @@ my int $num = $h.size();
 my bool $b = $h.hasKey($key);
             @endcode
 
-            @param key the key name to check
+            @param k the key name to check
 
             @return @ref Qore::True "True" if the key exists in the contained hash (may or may not be assigned a value), @ref Qore::False "False" if not
         */
@@ -247,7 +406,7 @@ my bool $b = $h.hasKey($key);
 my bool $b = $h.hasKeyValue($key);
             @endcode
 
-            @param key the key name to check
+            @param k the key name to check
 
             @return @ref Qore::True "True" if the key exists in the contained hash and is assigned a value, @ref Qore::False "False" if not
         */
@@ -870,7 +1029,8 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
                 #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
                 return False;
             }
-
+            #printf("%s\nXXXXXX EQUAL XXXXXXXXX\n%s\n", src1, src2);
+            
             return equalImpl(t);
         }
 
@@ -987,6 +1147,7 @@ my Database $db($ds);
             @param ds the AbstractDatasource object used to provide the DB connection
             @param opts a hash of options for the function creation string; see @ref AbstractDatabase::DatabaseOptions for common options; each driver can support additional driver-specific options
 
+            @throw DATABASE-DRIVER-ERROR no database-specific module can be loaded 
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         constructor(AbstractDatasource ds, *hash opts) {
@@ -1039,6 +1200,154 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
         #! executes a method on the contained AbstractDatabase object
         any methodGate(string meth) {
             return callObjectMethodArgs(db, meth, argv);
+        }
+
+        #! creates a database-specific AbstractFunction object corresponding to the arguments
+        /** @par Example:
+            @code
+my AbstractFunction $f = $db.makeFunction("update_queue", $src);
+            @endcode
+
+            @param name the name of the function
+            @param src the database-specific source code of the function (see the database-specific documentation for information about the format of this parameter; generally it's simply the normal source code for the function required by the database)
+            @param opt an optional hash of options for the creation of the function; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        AbstractFunction makeFunction(string name, string src, *hash opt) {
+            return db.makeFunction(name, src, opt);
+        }
+
+        #! creates a database-specific AbstractFunction object for a stored procedure corresponding to the arguments
+        /** @par Example:
+            @code
+my AbstractFunction $f = $db.makeProcedure("get_queue_info", $src);
+            @endcode
+
+            @param name the name of the stored procedure
+            @param src the database-specific source code of the stored procedure (see the database-specific documentation for information about the format of this parameter; generally it's simply the normal source code for the stored procedure required by the database)
+            @param opt an optional hash of options for the creation of the stored procedure; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        AbstractFunction makeProcedure(string name, string src, *hash opt) {
+            return db.makeProcedure(name, src, opt);
+        }
+
+        #! returns a list of SQL strings that can be used to update a function in the database to the function definition passed as an argument
+        /** @par Example:
+            @code
+my list $l = $db.getAlignFunctionSql(f);
+            @endcode
+
+            @param f the template or target version of the function to compare to the database version
+            @param opt an optional hash of options for the generation of the SQL strings; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be used to update a function in the database to the function definition passed as an argument
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+         */
+        list getAlignFunctionSql(AbstractFunction f, *hash opt) {
+            return db.getAlignFunctionSql(f, opt);
+        }
+
+        #! returns a list of SQL strings that can be used to update a stored procedure in the database to the stored procedure definition passed as an argument
+        /** @par Example:
+            @code
+my list $l = $db.getAlignProcedureSql(f);
+            @endcode
+
+            @param f the template or target version of the stored procedure to compare to the database version
+            @param opt an optional hash of options for the generation of the SQL strings; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be used to update a stored procedure in the database to the stored procedure definition passed as an argument
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+         */
+        list getAlignProcedureSql(AbstractFunction f, *hash opt) {
+            return db.getAlignProcedureSql(f, opt);
+        }
+
+        #! returns an AbstractFunction argument for the given function name or @ref nothing if the function cannot be found
+        /** @par Example:
+            @code
+my *AbstractFunction $f = $db.getFunction("update_queue");
+            @endcode
+
+            @param name the uniquely-identifying name of the function to retrieve
+
+            @return an AbstractFunction argument for the given function name or @ref nothing if the function cannot be found
+
+            @note for databases that support overloaded functions, the arguments must be passed in parentheses after the name to match overloaded functions properly
+         */
+        *AbstractFunction getFunction(string name) {
+            return db.getFunction(name);
+        }
+
+        #! returns an AbstractFunction argument for the given stored procedure name or @ref nothing if the stored procedur  cannot be found
+        /** @par Example:
+            @code
+my *AbstractFunction $f = $db.getProcedure("update_queue");
+            @endcode
+
+            @param name the uniquely-identifying name of the stored procedure to retrieve
+
+            @return an AbstractFunction argument for the given stored procedure name or @ref nothing if the stored procedure cannot be found
+
+            @note for databases that support overloaded stored procedures, the arguments must be passed in parentheses after the name to match overloaded stored procedures properly
+         */
+        *AbstractFunction getProcedure(string name) {
+            return db.getProcedure(name);
+        }
+
+        #! returns a list of string table names in the database
+        list listTables() {
+            return db.listTables();
+        }
+        
+        #! returns an iterator listing the string table names in the database
+        ListIterator tableIterator() {
+            return db.tableIterator();            
+        }
+ 
+        #! returns a list of string function names in the database
+        list listFunctions() {
+            return db.listFunctions();
+        }
+        
+        #! returns an iterator listing the string function names in the database
+        ListIterator functionIterator() {
+            return db.functionIterator();            
+        }
+
+        #! returns a list of string procedure names in the database
+        list listProcedures() {
+            return db.listProcedures();
+        }
+        
+        #! returns an iterator listing the string procedure names in the database
+        ListIterator procedureIterator() {
+            return db.procedureIterator();            
+        }
+
+        #! returns a list of string sequence names in the database
+        list listSequences() {
+            return db.listSequences();
+        }
+        
+        #! returns an iterator listing the string sequence names in the database
+        ListIterator sequenceIterator() {
+            return db.sequenceIterator();            
+        }
+
+        #! returns a list of string view names in the database
+        list listViews() {
+            return db.listViews();
+        }
+        
+        #! returns an iterator listing the string view names in the database
+        ListIterator viewIterator() {
+            return db.viewIterator();
         }
     }
 
@@ -1111,7 +1420,9 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
                     case NOTHING: break;
 
                     # throw an exception if the type is not supported
-                    default: throw err, sprintf("option %y requires type %y which is not currently supported", k, ropt{k});
+                    default: 
+                        if (opt{k}.type() != ropt{k})
+                            throw err, sprintf("option %y requires type %y but type %y was passed (%y)", k, ropt{k}, opt{k}.type(), opt{k});
                 }
             }
         }
@@ -1148,7 +1459,7 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
 
         #! creates the object; private constructor
         /** @param nds the AbstractDatasource for the connection to the database
-            @param opt a hash of options for the table creation string; see @ref TableOptions for common options; each driver can support additional driver-specific options
+            @param nopts a hash of options for the function creation string; see @ref AbstractDatabase::DatabaseOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
          */
@@ -1158,27 +1469,65 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
                 native_case = True;
         }
 
+        #! creates a database-specific AbstractFunction object corresponding to the arguments
+        /** @par Example:
+            @code
+my AbstractFunction $f = $db.makeFunction("update_queue", $src);
+            @endcode
+
+            @param name the name of the function
+            @param src the database-specific source code of the function (see the database-specific documentation for information about the format of this parameter; generally it's simply the normal source code for the function required by the database)
+            @param opts an optional hash of options for the creation of the function; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
         AbstractFunction makeFunction(string name, string src, *hash opts) {
             validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opts);
 
             return makeFunctionImpl(name, src, opts);
         }
 
-        AbstractFunction makeProcedure(string name, string src, *hash opts) {
-            validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opts);
+        #! creates a database-specific AbstractFunction object for a stored procedure corresponding to the arguments
+        /** @par Example:
+            @code
+my AbstractFunction $f = $db.makeProcedure("get_queue_info", $src);
+            @endcode
 
-            return makeProcedureImpl(name, src, opts);
+            @param name the name of the stored procedure
+            @param src the database-specific source code of the stored procedure (see the database-specific documentation for information about the format of this parameter; generally it's simply the normal source code for the stored procedure required by the database)
+            @param opt an optional hash of options for the creation of the stored procedure; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        AbstractFunction makeProcedure(string name, string src, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opt);
+
+            return makeProcedureImpl(name, src, opt);
         }
 
         #! returns a list of SQL strings that can be used to update a function in the database to the function definition passed as an argument
-        /**
+        /** @par Example:
+            @code
+my list $l = $db.getAlignFunctionSql(f);
+            @endcode
+
+            @param f the template or target version of the function to compare to the database version
+            @param opt an optional hash of options for the generation of the SQL strings; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be used to update a function in the database to the function definition passed as an argument
+
+            @throw OPTION-ERROR invalid or unsupported option passed
          */
         list getAlignFunctionSql(AbstractFunction f, *hash opt) {
-            AbstractFunction of = getFunction(f.name);
+            validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opt);
+
+            *AbstractFunction of = getFunctionImpl(f.name);
 
             list l = ();
 
-            if (!of.equal(f)) {
+            if (!of)
+                l += f.getCreateSql(opt);
+            else if (!of.equal(f)) {
                 l += of.getDropSql();
                 l += f.getCreateSql(opt);
             }
@@ -1186,11 +1535,63 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
             return l;
         }
 
-        AbstractFunction getFunction(string name) {
+        #! returns a list of SQL strings that can be used to update a stored procedure in the database to the stored procedure definition passed as an argument
+        /** @par Example:
+            @code
+my list $l = $db.getAlignProcedureSql(f);
+            @endcode
+
+            @param f the template or target version of the stored procedure to compare to the database version
+            @param opt an optional hash of options for the generation of the SQL strings; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be used to update a stored procedure in the database to the stored procedure definition passed as an argument
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+         */
+        list getAlignProcedureSql(AbstractFunction f, *hash opt) {
+            *AbstractFunction of = getProcedureImpl(f.name);
+
+            list l = ();
+
+            if (!of)
+                l += f.getCreateSql(opt);
+            else if (!of.equal(f)) {
+                l += of.getDropSql();
+                l += f.getCreateSql(opt);
+            }
+                
+            return l;
+        }
+
+        #! returns an AbstractFunction argument for the given function name or @ref nothing if the function cannot be found
+        /** @par Example:
+            @code
+my *AbstractFunction $f = $db.getFunction("update_queue");
+            @endcode
+
+            @param name the uniquely-identifying name of the function to retrieve
+
+            @return an AbstractFunction argument for the given function name or @ref nothing if the function cannot be found
+
+            @note for databases that support overloaded functions, the arguments must be passed in parentheses after the name to match overloaded functions properly
+         */
+        *AbstractFunction getFunction(string name) {
             return getFunctionImpl(name);
         }
 
-        AbstractFunction getProcedure(string name) {
+        #! returns an AbstractFunction argument for the given stored procedure name or @ref nothing if the stored procedur  cannot be found
+        /** @par Example:
+            @code
+my *AbstractFunction $f = $db.getProcedure("update_queue");
+            @endcode
+
+            @param name the uniquely-identifying name of the stored procedure to retrieve
+
+            @return an AbstractFunction argument for the given stored procedure name or @ref nothing if the stored procedure cannot be found
+
+            @note for databases that support overloaded stored procedures, the arguments must be passed in parentheses after the name to match overloaded stored procedures properly
+         */
+        *AbstractFunction getProcedure(string name) {
             return getProcedureImpl(name);
         }
 
@@ -1263,7 +1664,7 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
                 load_module(mn);                
             }
             catch (hash ex) {
-                throw "TABLE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
+                throw "DATABASE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
             }
 
             # try to get AbstractFunction object
@@ -1295,8 +1696,8 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
             return CreationOptions;
         }
 
-        abstract AbstractFunction getFunctionImpl(string name);
-        abstract AbstractFunction getProcedureImpl(string name);
+        abstract *AbstractFunction getFunctionImpl(string name);
+        abstract *AbstractFunction getProcedureImpl(string name);
 
         abstract AbstractFunction makeFunctionImpl(string name, string src, *hash opts);
         abstract AbstractFunction makeProcedureImpl(string name, string src, *hash opts);
@@ -1334,6 +1735,7 @@ my Table $table($ds, "table");
             @param name the name of the table
             @param opts a hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
+            @throw TABLE-DRIVER-ERROR no database-specific module can be loaded
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         constructor(AbstractDatasource ds, string name, *hash opts) {
@@ -1350,6 +1752,7 @@ my Table $table("pgsql:user/pass@db%host", "table");
             @param name the name of the table
             @param opts a hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
+            @throw TABLE-DRIVER-ERROR no database-specific module can be loaded
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         constructor(string ds, string name, *hash opts) {
@@ -1374,10 +1777,25 @@ my Table $table("pgsql:user/pass@db%host", "table");
             @param name the name of the table
             @param opts a hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
+            @throw TABLE-DRIVER-ERROR no database-specific module can be loaded
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         constructor(hash ds, string name, *hash opts) {
             t = AbstractTable::getTable(ds, name, opts);
+        }
+
+        #! creates the object from a table description hash
+        /** @param ds the AbstractDatasource for the connection to the database
+            @param desc a @ref table_desc_hash "table description hash" describing the table
+            @param name the name of the table
+            @param opts an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw DESCRIPTION-ERROR invalid or unsupported description hash value passed
+        */
+        constructor(AbstractDatasource ds, hash desc, string name, *hash opts) {
+            t = AbstractTable::getTable(ds, name);
+            t.setupTable(desc, opts);
         }
 
         #! returns the name of the table
@@ -1619,6 +2037,8 @@ $table.dropPrimaryKey();
 
             @return the primary key dropped from the table
 
+            @throw PRIMARY-KEY-ERROR no primary key exists
+
             @note this method retrieves the primary key definition from the database if none has already been defined
 
             @see inDb() for a method that tells if the table is already in the database or not
@@ -1667,6 +2087,8 @@ $table.dropIndex("uk_mytable_name");
 
             @return the index dropped from the table
 
+            @throw INDEX-ERROR the given index does not exist
+
             @note this method retrieves all current index definitions from the database if none have already been defined
 
             @see inDb() for a method that tells if the table is already in the database or not
@@ -1688,7 +2110,7 @@ printf("%s;\n", $sql);
             @param cname the name of the new foreign constraint
             @param cols a single column name or a list of columns in the local table that make up the foreign constraint
             @param table the name of the other table that the constraint targets
-            @oaram tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
+            @param tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
             @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
@@ -1716,6 +2138,8 @@ $table.dropForeignConstraint("uk_mytable_name");
 
             @return the foreign constraint dropped from the table
 
+            @throw FOREIGN-CONSTRAINT-ERROR the given constraint does not exist
+
             @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
 
             @see inDb() for a method that tells if the table is already in the database or not
@@ -1736,7 +2160,7 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new constraint
             @param src the source of the constraint clause
-            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref ConstraintOptions
+            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractCheckConstraint object corresponding to the check constraint created
@@ -1779,6 +2203,8 @@ $table.dropConstraint("uk_mytable_name");
 
             @return the constraint dropped from the table
 
+            @throw CONSTRAINT-ERROR the given constraint does not exist in the table
+
             @note this method retrieves current constraint definitions from the database if not already loaded or defined
 
             @see inDb() for a method that tells if the table is already in the database or not
@@ -1799,12 +2225,12 @@ printf("%s;\n", $sql);
 
             @param tname the name of the new trigger
             @param src the source of the trigger
-            @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref TriggerOptions
+            @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref AbstractTable::TriggerOptions
             @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractTrigger object corresponding to the trigger created
 
-            @throw CHECK-TRIGGER-ERROR the table already has a trigger with the given name or invalid options were passed
+            @throw TRIGGER-ERROR the table already has a trigger with the given name or invalid options were passed
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -1842,6 +2268,8 @@ my string $str = $table.getSqlValue($date);
             @param v the value to convert to an SQL value
 
             @return a string representing the value usable in SQL strings for the given database driver
+
+            @throw VALUE-ERROR the given value cannot be converted to an SQL string (missing rules for value)
          */
         string getSqlValue(any v) {
             return t.getSqlValue(v);
@@ -1875,6 +2303,8 @@ $table.insert($row);
             @endcode
 
             @param row a hash representing the row to insert
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
         insert(hash row) {
             t.insert(row);
@@ -1887,6 +2317,8 @@ $table.insert($row);
             @endcode
 
             @param row a hash representing the row to insert
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
         insertNoCommit(hash row) {
             t.insertNoCommit(row);
@@ -2078,7 +2510,7 @@ my list $l = $table.getAlignSql($table2);
 my list $l = $table.getAlignSql($table2);
             @endcode
 
-            @param t the template table that the current table will be compared to
+            @param table the template table that the current table will be compared to
             @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
@@ -2271,6 +2703,16 @@ my Triggers $trig = $table.getTriggers();
                 "data_tablespace": Type::String,
                 );
 
+            #! Table description options
+            const TableDescriptionHashOptions = (
+                "columns": Type::Hash,
+                "primary_key": Type::Hash,
+                "indexes": Type::Hash,
+                "triggers": Type::Hash,
+                #"foreignconstraints": Type::Hash,
+                #"checkconstraints": Type::Hash,
+                );
+
             #! Column options
             const ColumnOptions = (
                 "qore_type": Type::String,
@@ -2308,13 +2750,24 @@ my Triggers $trig = $table.getTriggers();
         #! creates the object; private constructor
         /** @param nds the AbstractDatasource for the connection to the database
             @param nname the name of the table
-            @param opt a hash of options for the table creation string; see @ref TableOptions for common options; each driver can support additional driver-specific options
+            @param nopts an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
          */
         private constructor(AbstractDatasource nds, string nname, *hash nopts) : AbstractSqlUtilBase(nds, nopts) {
             name = nname;
+            doTableOptions(nopts);
+        }
 
+        private static checkDriverOptions(reference h, string drv) {
+            if (h.driver) {
+                if (h.driver{drv})
+                    h += h.driver{drv};
+                delete h.driver;
+            }
+        }
+
+        private doTableOptions(*hash nopts) {
             validateOptionsIntern("OPTION-ERROR", getTableOptions(), \nopts);
             if (nopts."native-case")
                 native_case = True;
@@ -2443,6 +2896,97 @@ $table.rename("old_name", "new_name");
             execSql(sql = getRenameSqlImpl(old_name, new_name));
         }
 
+        #! returns @ref Qore::True "True" if the table has no definitions, @ref Qore::False "False" if not
+        bool empty() {
+            l.lock();
+            on_exit l.unlock();
+            return emptyUnlocked();
+        }
+
+        private bool emptyUnlocked() {
+            if (!columns.empty()
+                || !primaryKey.empty()
+                || !indexes.empty()
+                || !foreignConstraints.empty()
+                || !constraints.empty()
+                || !triggers.empty())
+                return False;
+
+            return emptyImpl();
+        }
+
+        #! creates the object from a table description hash
+        /** @param desc a @ref table_desc_hash "table description hash" describing the table
+            @param opt an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw DESCRIPTION-ERROR invalid or unsupported description hash value passed
+        */
+        setupTable(hash desc, *hash opt) {
+            # check description
+            validateOptionsIntern("DESCRIPTION-ERROR", getTableDescriptionHashOptions(), \desc);
+
+            # check options
+            hash copt = getColumnOptions();
+            validateOptionsIntern("OPTION-ERROR", getTableCreationOptions() + copt, \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            if (!emptyUnlocked())
+                throw "DESCRIPTION-ERROR", sprintf("%s: cannot set up a non-empty table from a hash description", name);
+
+            string drv = ds.getDriverName();
+
+            # extract column options
+            *hash oc = opt.(copt.keys());
+
+            # add columns to table
+            AbstractTable::checkDriverOptions(\desc.columns, drv);
+            foreach string cn in (desc.columns.keyIterator()) {
+                if (desc.columns{cn}.typeCode() != NT_HASH)
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", name, cn, desc.columns{cn}.type(), desc.columns{cn});
+                hash ch = desc.columns{cn};
+                softbool nullable = !exists ch.notnull ? True : !(remove ch.notnull);
+                addColumnUnlocked(cn, ch, nullable ? True : False, oc);
+            }
+
+            # add primary key to table
+            AbstractTable::checkDriverOptions(\desc.primary_key, drv);
+            if (desc.primary_key) {
+                if (desc.primary_key.typeCode() != NT_HASH)
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to primary_key is not a hash, got type %y instead (%y)", name, desc.primary_key.type(), desc.primary_key);
+                if (!desc.primary_key.name || desc.primary_key.name.typeCode() != NT_STRING)
+                    throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for 'name' key in primary_key hash: %y", name, desc.primary_key);
+                
+                addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getPrimaryKeyOptions().keys()));
+            }
+            
+            # add indexes to table
+            AbstractTable::checkDriverOptions(\desc.indexes, drv);
+            foreach string ixn in (desc.indexes.keyIterator()) {
+                if (desc.indexes{ixn}.typeCode() != NT_HASH)
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", name, ixn, desc.indexes{ixn}.type(), desc.indexes{ixn});
+
+                hash ih = desc.indexes{ixn};
+                
+                addIndexUnlocked(ixn, ih.unique ? True : False, ih.columns, opt.(getIndexOptions().keys()));
+            }
+
+            # add triggers to table
+            AbstractTable::checkDriverOptions(\desc.triggers, drv);
+            foreach string tn in (desc.triggers.keyIterator()) {
+                if (desc.triggers{tn}.typeCode() != NT_STRING)
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to trigger key %y is not a string giving the trigger source code, got type %y instead (%y)", name, tn, desc.triggers{tn}.type(), desc.triggers{tn});
+                string src = desc.triggers{tn};
+                
+                addTriggerUnlocked(tn, src, opt.(getTriggerOptions().keys()));
+            }
+            
+            setupTableImpl(desc, opt);
+            #xxx
+        }
+
         #! adds a column to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
@@ -2459,7 +3003,7 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
-            @param sql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
 
@@ -2470,6 +3014,11 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
         AbstractColumn addColumn(string cname, hash opt, bool nullable = True, *reference lsql) {
             l.lock();
             on_exit l.unlock();
+
+            return addColumnUnlocked(cname, opt, nullable, \lsql);
+        }
+
+        private AbstractColumn addColumnUnlocked(string cname, hash opt, bool nullable = True, *reference lsql) {
             if (!columns)
                 columns = new Columns();
             else if (columns.hasKey(cname))
@@ -2635,7 +3184,12 @@ printf("%s;\n", $sql);
             l.lock();
             on_exit l.unlock();
 
+            return addPrimaryKeyUnlocked(pkname, cols, opt, \sql);
+        }
+
+        private AbstractPrimaryKey addPrimaryKeyUnlocked(string pkname, softlist cols, *hash opt, *reference sql) {
             getColumnsUnlocked();
+
             # load constraints if needed, verify unique constraint name, validate/process options
             checkUniqueConstraintNameValidateOptions("PRIMARY-KEY-ERROR", pkname, getPrimaryKeyOptions(), \opt);
 
@@ -2675,6 +3229,8 @@ $table.dropPrimaryKey();
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return the primary key dropped from the table
+
+            @throw PRIMARY-KEY-ERROR no primary key exists
 
             @note this method retrieves the primary key definition from the database if none has already been defined
 
@@ -2718,6 +3274,11 @@ printf("%s;\n", $sql);
         AbstractIndex addIndex(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
             l.lock();
             on_exit l.unlock();
+
+            return addIndexUnlocked(iname, unique, cols, opt, \sql);
+        }
+
+        private AbstractIndex addIndexUnlocked(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
             getColumnsUnlocked();
             if (inDb)
                 getIndexesUnlocked();
@@ -2770,6 +3331,8 @@ $table.dropIndex("uk_mytable_name");
 
             @return the index dropped from the table
 
+            @throw INDEX-ERROR the given index does not exist
+
             @note this method retrieves all current index definitions from the database if none have already been defined
 
             @see inDb() for a method that tells if the table is already in the database or not
@@ -2801,7 +3364,7 @@ printf("%s;\n", $sql);
             @param cname the name of the new foreign constraint
             @param cols a single column name or a list of columns in the local table that make up the foreign constraint
             @param table the name of the other table that the constraint targets
-            @oaram tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
+            @param tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
             @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref ForeignConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
@@ -2872,6 +3435,8 @@ $table.dropForeignConstraint("uk_mytable_name");
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return the foreign constraint dropped from the table
+
+            @throw FOREIGN-CONSTRAINT-ERROR the given constraint does not exist
 
             @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
 
@@ -3011,7 +3576,7 @@ $table.dropConstraint("uk_mytable_name");
 
             @return the constraint dropped from the table
 
-            @throw DROP-CONSTRAINT-ERROR the given constraint does not exist in the table
+            @throw CONSTRAINT-ERROR the given constraint does not exist in the table
 
             @note this method retrieves current constraint definitions from the database if not already loaded or defined
 
@@ -3055,7 +3620,7 @@ $table.dropConstraint("uk_mytable_name");
                     cl += primaryKey.getName();
                 if (foreignConstraints)
                     cl += foreignConstraints.keys();
-                throw "DROP-CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", name, cname, cl);
+                throw "CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", name, cname, cl);
             }
 
             # drop foreign constraint from table if the table already exists in the DB
@@ -3083,7 +3648,7 @@ printf("%s;\n", $sql);
 
             @return an AbstractTrigger object corresponding to the trigger created
 
-            @throw CHECK-TRIGGER-ERROR the table already has a trigger with the given name or invalid options were passed
+            @throw TRIGGER-ERROR the table already has a trigger with the given name or invalid options were passed
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -3091,16 +3656,20 @@ printf("%s;\n", $sql);
             l.lock();
             on_exit l.unlock();
 
+            return addTriggerUnlocked(tname, src, opt, \lsql);
+        }
+
+        private AbstractTrigger addTriggerUnlocked(string tname, string src, *hash opt, *reference lsql) {
             # load triggers if needed
             if (inDb || !manual)
                 getTriggersUnlocked();
 
             # verify unique trigger name
             if (triggers && triggers.hasKey(tname))
-                throw "CHECK-TRIGGER-ERROR", sprintf("%y: already has a trigger named %y, drop the trigger before adding it", name, tname);
+                throw "TRIGGER-ERROR", sprintf("%y: already has a trigger named %y, drop the trigger before adding it", name, tname);
 
             # validate/process options
-            validateOptionsIntern("CHECK-TRIGGER-ERROR", getTriggerOptions(), \opt);
+            validateOptionsIntern("TRIGGER-ERROR", getTriggerOptions(), \opt);
 
             # get the new constraint object
             AbstractTrigger trig = addTriggerImpl(tname, src, opt);
@@ -3277,6 +3846,8 @@ $table.insert($row);
             @endcode
 
             @param row a hash representing the row to insert
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
         insert(hash row) {
             on_success ds.commit();
@@ -3292,6 +3863,8 @@ $table.insert($row);
             @endcode
 
             @param row a hash representing the row to insert
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
         insertNoCommit(hash row) {
             l.lock();
@@ -3369,6 +3942,8 @@ my string $str = $table.getSqlValue($date);
             @param v the value to convert to an SQL value
 
             @return a string representing the value usable in SQL strings for the given database driver
+
+            @throw VALUE-ERROR the given value cannot be converted to an SQL string (missing rules for value)
          */
         string getSqlValue(any v) {
             *string str = getSqlValueImpl(v);
@@ -3570,7 +4145,7 @@ my list $l = $table.getAlignSql($table2);
         */
         list getAlignSql(AbstractTable t, *hash opt) {
             if (self.className() != t.className())
-                throw "TABLE-COMPATIBILITY-ERROR", sprintf("cannot align table %y of class %y with table %y of class %y", name, self.className(), t.name, t.className());
+                throw "ALIGN-TABLE-ERROR", sprintf("cannot align table %y of class %y with table %y of class %y", name, self.className(), t.name, t.className());
 
             validateOptionsIntern("OPTION-ERROR", getTableCreationOptions(), \opt);
 
@@ -3581,8 +4156,12 @@ my list $l = $table.getAlignSql($table2);
             on_exit t.l.unlock();
             
             # cache tables if not already cached
-            if (!inDb && !manual)
+            if (!inDb && !manual) {
+                # if the table does not exist, then just return the create table strings for the template table
+                if (!checkExistenceImpl())
+                    return t.getCreateSqlUnlocked(opt, False);
                 cacheUnlocked();
+            }
             if (!t.inDb && !t.manual)
                 t.cacheUnlocked();
 
@@ -3691,7 +4270,14 @@ my list $l = $table.getAlignSql($table2);
                     l += c.getDropSql(getSqlName());
             }
 
-            # check for triggers in the template that are not present or different in the current able
+            # check for table-specific alignment actions before triggers
+            {
+                *list fl = getAlignSqlImpl(t, opt);
+                if (fl)
+                    l += fl;
+            }
+
+            # check for triggers in the template that are not present or different in the current table
             foreach AbstractTrigger trig in (t.triggers.iterator()) {
                 if (!triggers.hasKey(trig.name)) {
                     # add trigger to table
@@ -3720,7 +4306,7 @@ my list $l = $table.getAlignSql($table2);
 my string $sql = $table.getAlignSqlString($table2);
             @endcode
 
-            @param table the template table that the current table will be compared to
+            @param t the template table that the current table will be compared to
             @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
@@ -4097,6 +4683,11 @@ my *list $rows = $table.find($list);
         }
 
         #! override in subclasses to return driver-specific options
+        private hash getTableDescriptionHashOptions() {
+            return TableDescriptionHashOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
         private hash getColumnOptions() {
             return ColumnOptions;
         }
@@ -4116,6 +4707,11 @@ my *list $rows = $table.find($list);
             return TriggerOptions;
         }
 
+        private abstract bool emptyImpl();
+        private abstract bool checkExistenceImpl();
+
+        private abstract setupTableImpl(hash desc, *hash opt);
+
         private abstract Columns describeImpl();
         private abstract *AbstractPrimaryKey getPrimaryKeyImpl();
         private abstract Indexes getIndexesImpl();
@@ -4132,7 +4728,8 @@ my *list $rows = $table.find($list);
         private abstract *list getCreateTriggersSqlImpl(*hash opt);
         private abstract string getCreateSqlImpl(list l);
         private abstract string getRenameSqlImpl(string new_name);
-
+        private abstract *list getAlignSqlImpl(AbstractTable t, *hash opt);
+        
         private abstract AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True);
         private abstract AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt);
         private abstract AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt);

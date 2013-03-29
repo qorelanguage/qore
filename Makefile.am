@@ -784,13 +784,13 @@ doxygen/qlib/SqlUtil.qm.dox.h: qlib/SqlUtil.qm $(QDX)
 	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.PgsqlSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/PgsqlSqlUtil.qm:doxygen/qlib/PgsqlSqlUtil.qm.dox.h $< $@
+	$(QDX) -M=qlib/PgsqlSqlUtil.qm:doxygen/qlib/PgsqlSqlUtil.qm.dox.h -tSqlUtil.tag=../../SqlUtil/html $< $@
 
 doxygen/qlib/PgsqlSqlUtil.qm.dox.h: qlib/PgsqlSqlUtil.qm $(QDX)
 	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.OracleSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/OracleSqlUtil.qm:doxygen/qlib/OracleSqlUtil.qm.dox.h $< $@
+	$(QDX) -M=qlib/OracleSqlUtil.qm:doxygen/qlib/OracleSqlUtil.qm.dox.h -tSqlUtil.tag=../../SqlUtil/html $< $@
 
 doxygen/qlib/OracleSqlUtil.qm.dox.h: qlib/OracleSqlUtil.qm $(QDX)
 	$(QDX) $< $@
@@ -847,15 +847,15 @@ docs/modules/RestClient/html: docs/lang/html doxygen/qlib/RestClient.qm.dox.h do
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.RestClient
 	$(top_srcdir)/doxygen/pdox docs/modules/RestClient/html docs/modules/RestClient/html/search
 
-docs/modules/SqlUtil/html: docs/lang/html doxygen/qlib/SqlUtil.qm.dox.h doxygen/qlib/Doxyfile.SqlUtil
+docs/modules/SqlUtil/html: doxygen/qlib/SqlUtil.qm.dox.h doxygen/qlib/Doxyfile.SqlUtil
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.SqlUtil
 	$(top_srcdir)/doxygen/pdox docs/modules/SqlUtil/html docs/modules/SqlUtil/html/search
 
-docs/modules/PgsqlSqlUtil/html: docs/lang/html doxygen/qlib/PgsqlSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.PgsqlSqlUtil
+docs/modules/PgsqlSqlUtil/html: doxygen/qlib/PgsqlSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.PgsqlSqlUtil
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.PgsqlSqlUtil
 	$(top_srcdir)/doxygen/pdox docs/modules/PgsqlSqlUtil/html docs/modules/PgsqlSqlUtil/html/search
 
-docs/modules/OracleSqlUtil/html: docs/lang/html doxygen/qlib/OracleSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.OracleSqlUtil
+docs/modules/OracleSqlUtil/html: doxygen/qlib/OracleSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.OracleSqlUtil
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.OracleSqlUtil
 	$(top_srcdir)/doxygen/pdox docs/modules/OracleSqlUtil/html docs/modules/OracleSqlUtil/html/search
 
