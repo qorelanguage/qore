@@ -512,7 +512,7 @@ dummy:
 	./next_build.sh
 
 if COND_DOXYGEN
-DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/RestClient/html docs/modules/SqlUtil/html docs/modules/Util/html
+DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/RestClient/html docs/modules/SqlUtil/html docs/modules/PgsqlSqlUtil/html docs/modules/OracleSqlUtil/html docs/modules/Util/html
 
 LIB_TMP_DOXYFILES_SRC = \
 	doxygen/lib/Doxyfile
@@ -698,6 +698,8 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	doxygen/qlib/RestHandler.qm.dox.h \
 	doxygen/qlib/RestClient.qm.dox.h \
 	doxygen/qlib/SqlUtil.qm.dox.h \
+	doxygen/qlib/PgsqlSqlUtil.qm.dox.h \
+	doxygen/qlib/OracleSqlUtil.qm.dox.h \
 	doxygen/qlib/Util.qm.dox.h \
 	HttpServer.tag \
 	Mime.tag \
@@ -709,6 +711,8 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	RestHandler.tag \
 	RestClient.tag \
 	SqlUtil.tag \
+	PgsqlSqlUtil.tag \
+	OracleSqlUtil.tag \
 	Util.tag
 
 lib/libqore.la: dummy
@@ -779,6 +783,18 @@ doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
 doxygen/qlib/SqlUtil.qm.dox.h: qlib/SqlUtil.qm $(QDX)
 	$(QDX) $< $@
 
+doxygen/qlib/Doxyfile.PgsqlSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
+	$(QDX) -M=qlib/PgsqlSqlUtil.qm:doxygen/qlib/PgsqlSqlUtil.qm.dox.h $< $@
+
+doxygen/qlib/PgsqlSqlUtil.qm.dox.h: qlib/PgsqlSqlUtil.qm $(QDX)
+	$(QDX) $< $@
+
+doxygen/qlib/Doxyfile.OracleSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
+	$(QDX) -M=qlib/OracleSqlUtil.qm:doxygen/qlib/OracleSqlUtil.qm.dox.h $< $@
+
+doxygen/qlib/OracleSqlUtil.qm.dox.h: qlib/OracleSqlUtil.qm $(QDX)
+	$(QDX) $< $@
+
 doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX)
 	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm.dox.h $< $@
 
@@ -834,6 +850,14 @@ docs/modules/RestClient/html: docs/lang/html doxygen/qlib/RestClient.qm.dox.h do
 docs/modules/SqlUtil/html: docs/lang/html doxygen/qlib/SqlUtil.qm.dox.h doxygen/qlib/Doxyfile.SqlUtil
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.SqlUtil
 	$(top_srcdir)/doxygen/pdox docs/modules/SqlUtil/html docs/modules/SqlUtil/html/search
+
+docs/modules/PgsqlSqlUtil/html: docs/lang/html doxygen/qlib/PgsqlSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.PgsqlSqlUtil
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.PgsqlSqlUtil
+	$(top_srcdir)/doxygen/pdox docs/modules/PgsqlSqlUtil/html docs/modules/PgsqlSqlUtil/html/search
+
+docs/modules/OracleSqlUtil/html: docs/lang/html doxygen/qlib/OracleSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.OracleSqlUtil
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.OracleSqlUtil
+	$(top_srcdir)/doxygen/pdox docs/modules/OracleSqlUtil/html docs/modules/OracleSqlUtil/html/search
 
 docs/modules/Util/html: docs/lang/html doxygen/qlib/Util.qm.dox.h doxygen/qlib/Doxyfile.Util
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.Util

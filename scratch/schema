@@ -1,0 +1,239 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires ../qlib/SqlUtil.qm
+%requires ../qlib/OracleSqlUtil.qm
+%requires ../qlib/PgsqlSqlUtil.qm
+#/;
+
+%new-style
+
+%require-types
+
+%enable-all-warnings
+
+const GenericOptions = (
+    "replace": True,
+    );
+
+const IndexOptions = (
+    "driver": (
+        "oracle": (
+            "index_tablespace": "omq_index",
+            "compute_statistics": True,
+        ),
+        "pgsql": (
+            "index_tablespace": "omq_index",
+            ),
+        ),
+    );
+
+const ColumnOptions = (
+    "driver": (
+        "oracle": (
+            "character_semantics": True,
+        ),
+    ),
+    );
+
+# tables
+const Tables = (
+    "system_properties": (
+        "columns": (
+            "domain": (
+                "qore_type": Type::String, 
+                "size": 240,
+                "nullable": False,
+            ),
+            "keyname": (
+                "qore_type": Type::String,
+                "size": 240,
+                "nullable": False,
+            ),
+            "value": (
+                "qore_type": Type::String,
+                "size": 4000,
+            ),
+            "created": (
+                "qore_type": Type::Date,
+                "nullable": False,
+                "driver": (
+                    "oracle": (
+                        "native_type": "date",
+                    ),
+                ),
+            ),
+            "modified": (
+                "qore_type": Type::Date,
+                "driver": (
+                    "oracle": (
+                        "native_type": "date",
+                    ),
+                ),
+            ),
+        ),
+        "primary_key": ("name": "pk_system_properties", "columns": ("domain", "keyname")),
+        "indexes": (
+            "sk_system_properties_domain": ("columns": "domain"),
+
+            "driver": (
+                "oracle": (
+                    "pk_system_properties": ("columns": ("domain", "keyname"), "unique": True),
+                ),
+            ),
+        ),
+        "functions": (
+            "driver": (
+                "pgsql": (
+                    "trig_system_properties()": "returns trigger language plpgsql as $function$
+begin
+  if (tg_op = 'INSERT') then
+    if new.created is null then
+      select current_timestamp into new.created;
+    end if;
+  end if;
+  if new.modified is null  then
+    select current_timestamp into new.modified;
+  end if;
+  return new;
+end;
+$function$",
+                ),
+            ),
+        ),
+        "triggers": (
+            "driver": (
+                "oracle": (
+                    "trig_system_properties": "BEFORE INSERT OR UPDATE ON SYSTEM_PROPERTIES
+REFERENCING NEW AS NEW OLD AS OLD
+FOR EACH ROW
+begin
+  if inserting then
+    if :new.created is null then
+      :new.created := sysdate;
+    end if;
+  end if;
+  --
+  if :new.modified is null or :new.modified = :old.modified then
+    :new.modified := sysdate;
+  end if;
+end;",
+                ),
+                "pgsql": (
+                    "trig_system_properties": "before insert or update on system_properties for each row execute procedure trig_system_properties()",
+                ),
+                "mysql": (
+                ),
+            ),
+        ),
+    ),
+    );
+
+main();
+
+hash sub combine_options(hash h) {
+    foreach hash h1 in (argv) {
+        foreach string k in (h.keyIterator()) {
+            if (h1.hasKey(k)) {
+                h{k} = combine_options(h{k}, h1{k});
+                remove h1{k};
+            }
+        }
+        h += h1;
+    }
+    return h;
+}
+
+string sub get_dsstr() {
+    switch (gethostname()) {
+        case =~ /prague.qoretechnologies.com$/: 
+            #return "oracle:omq/omq@xbox";
+            return "pgsql:omq/omq@omq";
+        
+        case "quark":
+            return "oracle:omq/omq@el6";
+    }
+
+    throw "HOST-ERROR", sprintf("no configuration for host %y", gethostname());
+}
+
+sub check_driver_options(reference h, string drv) {
+    if (h.driver) {
+        if (h.driver{drv})
+            h = combine_options(h, h.driver{drv});
+        delete h.driver;
+    }
+}
+
+sub main() {
+    hash all_options = combine_options(IndexOptions);
+
+    # get db connection
+    Datasource ds(get_dsstr());
+
+    # get Database object
+    Database db(ds);
+
+    string drv = ds.getDriverName();
+
+    # first build tables    
+    foreach string name in (Tables.keyIterator()) {
+        Table t(ds, name);
+        
+        hash th = Tables{name};
+
+        # add columns to table
+        check_driver_options(\th.columns, drv);
+        foreach string cn in (th.columns.keyIterator()) {
+            hash ch = th.columns{cn};
+            softbool nullable;
+            nullable = !exists ch.nullable ? True : remove ch.nullable;
+            t.addColumn(cn, ch, nullable ? True : False, ColumnOptions);
+        }
+
+        # add primary key to table
+        check_driver_options(\th.primary_key, drv);
+        if (th.primary_key)
+            t.addPrimaryKey(th.primary_key.name, th.primary_key.columns, IndexOptions);
+
+        # add indexes to table
+        check_driver_options(\th.indexes, drv);
+        foreach string ixn in (th.indexes.keyIterator()) {
+            hash ih = th.indexes{ixn};
+
+            t.addIndex(ixn, ih.unique ? True : False, ih.columns, IndexOptions);
+        }
+
+        # check table functions (if any)
+        check_driver_options(\th.functions, drv);
+        list l = ();
+        foreach string fn in (th.functions.keyIterator()) {
+            string src = th.functions{fn};
+
+            # create AbstractFunction object
+            AbstractFunction f = db.makeFunction(fn, src);
+
+            list fl = db.getAlignFunctionSql(f, GenericOptions);
+            if (fl)
+                l += fl;
+        }
+        map printf("%s\n", $1), l;
+
+        # add triggers to table
+        check_driver_options(\th.triggers, drv);
+        foreach string tn in (th.triggers.keyIterator()) {
+            string src = th.triggers{tn};
+
+            t.addTrigger(tn, src, GenericOptions);
+        }
+
+        #printf("%s\n", t.getCreateSqlString(all_options));
+
+        Table t2(ds, name);
+        string sql = t2.getAlignSqlString(t, all_options);
+        if (sql)
+            printf("%s\n", sql);
+    }
+    
+}
+

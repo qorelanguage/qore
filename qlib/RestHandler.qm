@@ -87,6 +87,20 @@ public namespace RestHandler {
 
         #! this method will be called to find a sub-class (ie with GET /invoices/1 - if this class represents "invoices", then subClass("1") will be called to return invoice 1; return NOTHING if the object doesn't exist
         /** @param name the name of the subclass
+            @param cx call context hash; this hash will have the following keys:
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+            - \c url: a hash of broken-down URL information (as returned from parseURL())
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c user: the current RBAC username (if any)
+            - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
+            - \c body: the deserialized message body
+            - \c aih: a hash of \c "Accept" values
+            @param args any URI arguments in the request
+
+            @return an object corresponding to the \c name argument or @ref nothing if none can be matched
          */
         *AbstractRestClass subClass(string $name, hash $cx, *hash $args) {
         }
@@ -217,7 +231,7 @@ public namespace RestHandler {
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
             - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
             - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
-            @param body message body, if any
+            @param b message body, if any
 
             @return a hash with the following keys:
             - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)

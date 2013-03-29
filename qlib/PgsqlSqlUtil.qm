@@ -51,12 +51,57 @@ module PgsqlSqlUtil {
 
 /** @mainpage PgsqlSqlUtil Module
 
-    The %SqlUtil module provides a high level API for working with PostgreSQL database objects.
+    @section intro Introduction
+
+    The %PgsqlSqlUtil module provides a high level API for working with PostgreSQL database objects.
 
     Usually this module is loaded on demand from the SqlUtil module, however to use this module
     directly, use \c "%requires PgsqlSqlUtil" in your code.
     
     All the public symbols in the module are defined in the PgsqlSqlUtil namespace
+
+    @section functions Functions
+    
+    @subsection function_names Function Names and Matching
+
+    PostgreSQL functions are identified by their name and arguments; the algorithm implemented in this
+    module is fairly simple; the argument names and types are used when trying to find functions, so they
+    must match almost exactly.
+
+    The only exception to the exact matching algorithm is that some simple substitutions are done on
+    user-supplied arguments to try and use the verbose type names as retrieved by
+    <a href="http://www.postgresql.org/docs/9.2/static/functions-info.html">pg_catalog.pg_get_function_identity_arguments()</a>,
+    which always returns verbose type names (ie \c "character varying" instead of \c "varchar").
+
+    Substitutions are made according to the inverse value of @ref PgsqlSqlUtil::PgsqlTable::PgsqlNameMap.
+
+    This is done so that a user-supplied function name like \c "update_queue(qkey varchar, qdata text)" will match the
+    value returned by <a href="http://www.postgresql.org/docs/9.2/static/functions-info.html">pg_catalog.pg_get_function_identity_arguments()</a>, which would be \c "update_queue(character varying queue)"
+
+    @subsection function_management Schema Management with Functions
+
+    In order to use schema management with functions properly, the function source has to be in the format returned by 
+    <a href="http://www.postgresql.org/docs/9.2/static/functions-info.html">pg_catalog.pg_get_functiondef()</a>
+    which requires the following string to follow the function name and arguments:
+    - <tt><b>returns</b></tt> <i>type</i> <tt><b>language</b></tt> <i>lang</i> <tt><b>as $function$</b></tt> 
+
+    For example:
+    @code
+update_queue_data(qkey varchar, qdata text) returns integer language plpgsql as $function$
+declare
+  rowcount integer;
+begin
+  update queue_data set data = qdata, queue_data_status = 'R' where queuekey = qkey and queue_data_status = 'W';
+  get diagnostics rowcount = row_count;
+  return rowcount;  
+end;
+$function$
+    @endcode
+
+    @note Future versions of the module may provide more intelligence to reformat user-supplied functions to match the
+    format retrieved from the database, however currently functions should be provided in the format above in order
+    to use functionality like @ref PgsqlSqlUtil::PgsqlDatabase::getAlignFunctionSql() for example.
+
 */
 
 #! the PgsqlSqlUtil namespace contains all the objects in the PgsqlSqlUtil module
@@ -69,6 +114,7 @@ public namespace PgsqlSqlUtil {
 	return new PgsqlDatabase(nds, opts);
     }
 
+    #! represents a PostgreSQL-specific index
     public class PgsqlIndex inherits AbstractIndex {
         public {
             #! the tablespace name of the index
@@ -96,6 +142,7 @@ public namespace PgsqlSqlUtil {
         }
     }
 
+    #! represents a PostgreSQL-specific foreign constraint
     public class PgsqlForeignConstraint inherits AbstractForeignConstraint {
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
         }
@@ -109,6 +156,7 @@ public namespace PgsqlSqlUtil {
         }
     }
 
+    #! represents a PostgreSQL-specific check constraint
     public class PgsqlCheckConstraint inherits AbstractCheckConstraint {
         constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
         }        
@@ -122,6 +170,7 @@ public namespace PgsqlSqlUtil {
         }
     }
 
+    #! represents a PostgreSQL-specific column
     public class PgsqlColumn inherits AbstractColumn {
         public {
             #! byte size of the column
@@ -224,6 +273,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    #! represents a PostgreSQL-specific numeric column
     public class PgsqlNumericColumn inherits PgsqlColumn, NumericColumnInfo {
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : PgsqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
         }
@@ -233,6 +283,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    #! represents a PostgreSQL-specific primary key constraint
     public class PgsqlPrimaryKey inherits AbstractPrimaryKey {
         public {
             #! any tablespace for the primary key index
@@ -256,6 +307,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    #! represents a PostgreSQL-specific trigger
     public class PgsqlTrigger inherits AbstractTrigger {
         #! creates the object and sets its name and the trigger source
         constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
@@ -277,6 +329,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    #! represents a PostgreSQL-specific function
     public class PgsqlFunction inherits AbstractFunction {
         public {
             *string args;
@@ -302,6 +355,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    #! provides the PostgreSQL-specific implementation of the AbstractDatabase interface
     public class PgsqlDatabase inherits AbstractDatabase {
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
@@ -319,17 +373,29 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         AbstractFunction getFunctionImpl(string name) {
-            string nc = name;
-            *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
-            nc = name.substr(0, name.find('('));
-            # replace common type names with verbose type names as stored in postgresql
-            foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator())
-                args = replace(args, h.value, h.key);
+            *hash qh;
+            # try to find a unique function without arguments
+            if (name !~ /\(/) {
+                qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_identity_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v", name);
+                if (!qh.proname)
+                    throw "FUNCTION-ERROR", sprintf("cannot find any function %y", name);
+                if (qh.proname.size() > 1)
+                    throw "FUNCTION-ERROR", sprintf("found %d matches for function name %y: %y; use the full argument list in the name to match only function (ex: \"%s(%s)\"", qh.proname.size(), name, (foldl $1 + ", " + $2, (map sprintf("%s(%s)", name, $1.args), qh.contextIterator())), name, qh.args[0]);
+                # assign first row to qh
+                context (qh) qh = %%;
+            }
+            else {
+                string nc = name;
+                *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
+                nc = name.substr(0, name.find('('));
+                # replace common type names with verbose type names as stored in postgresql
+                foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator())
+                    args = replace(args, h.value, h.key);
 
-            *hash qh = ds.selectRow("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_identity_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v and pg_catalog.pg_get_function_identity_arguments(proname::regproc) = %v", nc, args);
-            if (!qh)
-                throw "FUNCTION-ERROR", sprintf("cannot find any function \"%s(%s)\"; check arguments; arguments must match for the function to be retrieved", nc, args);
-            
+                qh = ds.selectRow("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_identity_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v and pg_catalog.pg_get_function_identity_arguments(proname::regproc) = %v", nc, args);
+                if (!qh)
+                    throw "FUNCTION-ERROR", sprintf("cannot find any function \"%s(%s)\"; check arguments; arguments must match for the function to be retrieved", nc, args);
+            }
             return PgsqlDatabase::processFunction(qh, native_case);
         }
 
@@ -398,8 +464,10 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
     }
 
+    #! provides the PostgreSQL-specific implementation of the AbstractTable interface
     public class PgsqlTable inherits AbstractTable {
         public {
+            #! maps postgresql type names to type configurations
             const PgsqlTypeMap = (
                 "numeric": ("qore": Type::Number, "size": SZ_NUM,),
                 "decimal": ("qore": Type::Number, "size": SZ_NUM,),
@@ -437,12 +505,14 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "cidr": ("qore": Type::String,),
                 );
 
+            #! maps from verbose type names to simple type names
             const PgsqlNameMap = (
                 "character varying": "varchar",
                 "timestamp without time zone": "timestamp",
                 "time without time zone": "time",
                 );
 
+            #! maps qore type names to postgresql type names
             const QoreTypeMap = (
                 "integer": "bigint",
                 "float": "double precision",
