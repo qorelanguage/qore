@@ -130,7 +130,7 @@ begin
   end if;
   return new;
 end;
-$function$", #",
+$function$",
             ),
         ),
     ),
@@ -177,7 +177,7 @@ end;",
     - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
     - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
 
-    Note that the above structure is an extension of the fields in @ref SqlUtil::AbstractTable::ColumnOptions, adding \c nullable and \c driver keys for additional information to create the column in the table.
+    Note that the above structure is an extension of the fields in @ref SqlUtil::AbstractTable::ColumnOptions, adding \c notnull and \c driver keys for additional information to create the column in the table.
 
     Here is an example of a column description hash:
     @code
