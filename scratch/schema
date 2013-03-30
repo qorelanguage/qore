@@ -36,56 +36,54 @@ const ColumnOptions = (
     ),
     );
 
-# tables
-const Tables = (
-    "system_properties": (
-        "columns": (
-            "domain": (
-                "qore_type": Type::String, 
-                "size": 240,
-                "notnull": True,
-            ),
-            "keyname": (
-                "qore_type": Type::String,
-                "size": 240,
-                "notnull": True,
-            ),
-            "value": (
-                "qore_type": Type::String,
-                "size": 4000,
-            ),
-            "created": (
-                "qore_type": Type::Date,
-                "notnull": True,
-                "driver": (
-                    "oracle": (
-                        "native_type": "date",
-                    ),
-                ),
-            ),
-            "modified": (
-                "qore_type": Type::Date,
-                "driver": (
-                    "oracle": (
-                        "native_type": "date",
-                    ),
-                ),
-            ),
+const C_Modified = (
+    "qore_type": Type::Date,
+    "driver": (
+        "oracle": (
+            "native_type": "date",
         ),
-        "primary_key": ("name": "pk_system_properties", "columns": ("domain", "keyname")),
-        "indexes": (
-            "sk_system_properties_domain": ("columns": "domain"),
+    ),
+    );
 
-            "driver": (
-                "oracle": (
-                    "pk_system_properties": ("columns": ("domain", "keyname"), "unique": True),
-                ),
+const C_Created = C_Modified + ("notnull": True, );
+
+hash sub get_pgsql_trigger(string name) {
+    hash h{"trig_" + name} = sprintf("before insert or update on %s for each row execute procedure trig_%s()", name, name);
+    return h;
+}
+
+const T_SystemProperties = (
+    "columns": (
+        "domain": (
+            "qore_type": Type::String, 
+            "size": 240,
+            "notnull": True,
+        ),
+        "keyname": (
+            "qore_type": Type::String,
+            "size": 240,
+            "notnull": True,
+        ),
+        "value": (
+            "qore_type": Type::String,
+            "size": 4000,
+        ),
+        "created": C_Created,
+        "modified": C_Modified,
+    ),
+    "indexes": (
+        "sk_system_properties_domain": ("columns": "domain"),
+        "driver": (
+            "oracle": (
+                "pk_system_properties": ("columns": ("domain", "keyname"), "unique": True),
             ),
         ),
-        "driver": (
-            "pgsql": (
-                "functions": (
-                    "trig_system_properties()": "returns trigger language plpgsql as $function$
+    ),
+    "primary_key": ("name": "pk_system_properties", "columns": ("domain", "keyname")),
+    "driver": (
+        "pgsql": (
+            "functions": (
+                "trig_system_properties()": "returns trigger language plpgsql as $function$
 begin
   if (tg_op = 'INSERT') then
     if new.created is null then
@@ -98,13 +96,13 @@ begin
   return new;
 end;
 $function$", #",
-                ),
             ),
         ),
-        "triggers": (
-            "driver": (
-                "oracle": (
-                    "trig_system_properties": "BEFORE INSERT OR UPDATE ON SYSTEM_PROPERTIES
+    ),
+    "triggers": (
+        "driver": (
+            "oracle": (
+                "trig_system_properties": "BEFORE INSERT OR UPDATE ON SYSTEM_PROPERTIES
 REFERENCING NEW AS NEW OLD AS OLD
 FOR EACH ROW
 begin
@@ -118,15 +116,84 @@ begin
     :new.modified := sysdate;
   end if;
 end;",
-                ),
-                "pgsql": (
-                    "trig_system_properties": "before insert or update on system_properties for each row execute procedure trig_system_properties()",
-                ),
-                "mysql": (
-                ),
+            ),
+            "pgsql": (
+                "trig_system_properties": "before insert or update on system_properties for each row execute procedure trig_system_properties()",
+            ),
+            "mysql": (
             ),
         ),
     ),
+    );
+
+const T_SessionStatus = (
+    "columns": (
+        "sessionstatus": (
+            "qore_type": Type::String,
+            "size": 40,
+            "notnull": True,
+        ),
+        "description": (
+            "qore_type": Type::String,
+            "size": 240,
+        ),
+        "created": C_Created,
+        "modified": C_Modified,
+    ),
+    "indexes": (
+        "driver": (
+            "oracle": (
+                "pk_session_status": ("columns": "sessionstatus", "unique": True),
+            ),
+        ),
+    ),
+    "primary_key": ("name": "pk_session_status", "columns": "sessionstatus"),
+    "driver": (
+        "pgsql": (
+            "functions": (
+                "trig_session_status()": "returns trigger language plpgsql as $function$
+begin
+  if (tg_op = 'INSERT') then
+    if new.created is null then
+      select current_timestamp into new.created;
+    end if;
+  end if;
+  if new.modified is null then
+    select current_timestamp into new.modified;
+  end if;
+  return new;
+end;
+$function$", #",
+            ),
+        ),
+    ),
+    "triggers": (
+        "driver": (
+            "oracle": (
+                "trig_session_status": "BEFORE INSERT OR UPDATE ON SESSION_STATUS 
+REFERENCING NEW AS NEW OLD AS OLD
+FOR EACH ROW
+begin
+  if inserting then
+    if :new.created is null then
+      :new.created := sysdate;
+    end if;
+  end if;
+  --
+  if :new.modified is null or :new.modified = :old.modified then
+    :new.modified := sysdate;
+  end if;
+end;",
+            ),
+            "pgsql": get_pgsql_trigger("session_status"),
+        ),
+    ),
+    );
+
+# tables
+const Tables = (
+    "system_properties": T_SystemProperties,
+    "session_status": T_SessionStatus,
     );
 
 main();
@@ -137,11 +204,25 @@ string sub get_dsstr() {
             #return "oracle:omq/omq@xbox";
             return "pgsql:omq/omq@omq";
         
-        case "quark":
-            return "oracle:omq/omq@el6";
+        case =~ /^quark/:
+            #return "oracle:omq/omq@el6";
+            return "pgsql:omq/omq@omq%localhost";
     }
 
     throw "HOST-ERROR", sprintf("no configuration for host %y", gethostname());
+}
+
+hash sub combine_options(hash h) {
+    foreach hash h1 in (argv) {
+        foreach string k in (h.keyIterator()) {
+            if (h1.hasKey(k)) {
+                h{k} = combine_options(h{k}, h1{k});
+                remove h1{k};
+            }
+        }
+        h += h1;
+    }
+    return h;
 }
 
 sub main() {

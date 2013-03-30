@@ -244,7 +244,7 @@ my list $l = $col.getModifySql($t, $newcol);
                     l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);                    
             }
             if (nullable != c.nullable) {
-                l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), name, c.nullable ? "set" : "drop");
+                l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), name, c.nullable ? "drop" : "set");
             }
 
             if (c.comment != comment)
