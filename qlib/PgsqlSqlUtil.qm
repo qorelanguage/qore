@@ -683,10 +683,13 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private Indexes getIndexesImpl() {
+            # make sure constraints are also loaded
+            getConstraintsUnlocked();
+
             hash rv;
 
             # get index description
-            *hash qh = ds.select("select i.relname index_name, a.attname column_name, indisunique, tablespace from pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_indexes xs where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = any(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary and i.relname = xs.indexname group by i.relname, a.attname, indisunique, tablespace order by i.relname", name);
+            *hash qh = ds.select("select i.relname index_name, a.attname column_name, indisunique, tablespace from pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_indexes xs where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = any(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary and i.relname = xs.indexname group by i.relname, a.attname, a.attnum, indisunique, tablespace order by i.relname, attnum", name);
             if (qh.index_name) {
                 hash ih;
                 foreach hash row in (qh.contextIterator()) {
@@ -698,8 +701,13 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
                 }
 
-                foreach hash i in (ih.pairIterator())
+                foreach hash i in (ih.pairIterator()) {
+                    # check unique indexes to make sure they are not matched with a unique constraint
+                    if (constraints && constraints.hasKey(i.key) && constraints{i.key} instanceof AbstractUniqueConstraint
+                        && cast<AbstractUniqueConstraint>(constraints{i.key}).keys() == i.value.columns.keys())
+                        continue;
                     rv.(i.key) = new PgsqlIndex(i.key, i.value.unique, i.value.columns, i.value.tablespace);
+                }
             }
 
             return new Indexes(rv);
@@ -741,8 +749,22 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             foreach hash row in (qh.contextIterator())
                 rv.(row.constraint_name) = new PgsqlCheckConstraint(row.constraint_name, row.consrc);
 
-            # unique constraints are retrieved as unique indexes
-            return new Constraints(rv);
+            Constraints c = new Constraints(rv);
+
+            # get unique constraints
+            qh = ds.select("select tc.constraint_name, kcu.column_name from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name = kcu.constraint_name where constraint_type = 'UNIQUE' and tc.table_name = %v order by ordinal_position", name);
+            delete rv;
+            foreach hash row in (qh.contextIterator()) {
+                reference ch = \rv.(row.constraint_name);
+                if (!ch)
+                    ch = new PgsqlUniqueConstraint(row.constraint_name, hash(), row.status == "ENABLED");
+                ch.add(row.column_name, columns{row.column_name});
+            }
+            
+            # add unique constraints to constraint hash
+            map c.add($1.key, $1.value), rv.pairIterator();
+
+            return c;
         }
 
         private Triggers getTriggersImpl() {
