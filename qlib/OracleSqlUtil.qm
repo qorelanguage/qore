@@ -256,6 +256,36 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    public class OracleUniqueConstraint inherits AbstractUniqueConstraint {
+        public {
+            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+            bool enabled;
+
+            #! any tablespace for the unique key index
+            *string tablespace;
+        }
+
+        constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols) {
+            enabled = e;
+            tablespace = ts;
+        }        
+
+        string getCreateSql(string table_name, *hash opts) {
+            string sql = sprintf("alter table %s add constraint %s unique (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
+            *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
+            if (ts) {
+                sql += sprintf(" using index tablespace %s", ts);
+                if (opts.compute_statistics)
+                    sql += " compute statistics";
+            }
+            return sql;
+        }
+
+        string getRenameSql(string table_name, string new_name) {
+            return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+        }
+    }
+
     public class OraclePrimaryKey inherits AbstractPrimaryKey {
         public {
             #! any tablespace for the primary key index
@@ -868,7 +898,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             if (!has_long)
                 return new Constraints();
 
-            # get only user constraints
+            # get only user check constraints
             *hash qh = ds.select("select constraint_name, search_condition, status from all_constraints where owner = %v and table_name = %v and constraint_type = 'C' and generated != 'GENERATED NAME'", schema.upr(), name.upr());
             hash rv;
             foreach hash row in (qh.contextIterator()) {
@@ -876,7 +906,25 @@ my string $str = $col.getRenameSql($t, "new_name");
                     row.constraint_name = row.constraint_name.lwr();
                 rv.(row.constraint_name) = new OracleCheckConstraint(row.constraint_name, row.search_condition, row.status == "ENABLED");
             }
-            return new Constraints(rv);
+            
+            Constraints c(rv);
+
+            # now get unique constraints
+            qh = ds.select("select c.constraint_name, status, cols.column_name, cols.position, status from all_constraints c, all_cons_columns cols where c.owner = %v and c.table_name = %v and c.constraint_name = cols.constraint_name and constraint_type = 'U' and cols.owner = c.owner and generated != 'GENERATED NAME' order by cols.position", schema.upr(), name.upr());
+            delete rv;
+            foreach hash row in (qh.contextIterator()) {
+                if (!native_case)
+                    map row.$1 = row.$1.lwr(), ("constraint_name", "column_name");
+                reference ch = \rv.(row_constraint_name);
+                if (!ch)
+                    ch = new OracleUniqueConstraint(row.constraint_name, hash(), row.status == "ENABLED");
+                ch.add(row.column_name, columns{row.column_name});
+            }
+            
+            # add unique constraints to constraint hash
+            map c.add($1.key, $1.value), rv.pairIterator();
+
+            return c;
         }
 
         private Triggers getTriggersImpl() {
@@ -974,6 +1022,10 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         private AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt) {
             return new OracleCheckConstraint(cname, src);
+        }
+
+        private AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash opt) {
+            return new OracleUniqueConstraint(cname, ch, True, opt.index_tablespace);
         }
 
         private AbstractTrigger addTriggerImpl(string tname, string src, *hash opt) {

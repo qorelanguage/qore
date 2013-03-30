@@ -891,6 +891,20 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         }
     }
 
+    #! represents a unique column constraint
+    public class AbstractUniqueConstraint inherits AbstractConstraint, Columns {
+        constructor(string n, *hash c) : AbstractConstraint(n), Columns(c) {
+        }
+
+        #! returns a string that can be used to create the constraint in the database
+        abstract string getCreateSql(string table_name, *hash opts);
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractConstraint c) {
+            return (self.keys() != cast<AbstractUniqueConstraint>(c).keys()) ? False : True;
+        }
+    }
+
     #! represents a primary key
     public class AbstractPrimaryKey inherits AbstractConstraint, Columns {
         constructor(string n, *hash c) : AbstractConstraint(n), Columns(c) {
@@ -2047,6 +2061,34 @@ $table.dropPrimaryKey();
             return t.dropPrimaryKey(\sql);
         }
 
+        #! adds a unique constraint to the table; if the table is known to be in the database already, then the constraint is added to the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractUniqueConstraint $c = $table.addUniqueConstraint("uk_mytable", "name", ("index_tablespace": "index1"), \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the new unique constraint
+            @param cols a single column name or a list of columns that make up the unique constraint
+            @param opt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return an AbstractUniqueConstraint object corresponding to the unique constraint created
+
+            @throw UNIQUE-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns passed
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @see 
+            - inDb() for a method that tells if the table is already in the database or not
+            - dropUniqueConstraint() for a method that allows unique constraints to be dropped from the table
+         */
+        AbstractUniqueConstraint addUniqueConstraint(string cname, softlist cols, *hash opt, *reference sql) {
+            return t.addUniqueConstraint(cname, cols, opt, \sql);
+        }
+
         #! adds an index to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
@@ -2710,6 +2752,7 @@ my Triggers $trig = $table.getTriggers();
                 "indexes": Type::Hash,
                 "triggers": Type::Hash,
                 "foreign_constraints": Type::Hash,
+                "unique_constraints": Type::Hash,
                 #"check_constraints": Type::Hash,
                 );
 
@@ -2958,6 +3001,9 @@ $table.rename("old_name", "new_name");
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", name, ixn, desc.indexes{ixn}.type(), desc.indexes{ixn});
 
                 hash ih = desc.indexes{ixn};
+
+                if (!ih.columns || !inlist(ih.columns.typeCode(), (NT_LIST, NT_STRING)))
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for index %y is not a list or a string, got type %y instead (%y)", name, ixn, ih.columns.type(), ih.columns);
                 
                 addIndexUnlocked(ixn, ih.unique ? True : False, ih.columns, opt.(getIndexOptions().keys()));
             }
@@ -2971,6 +3017,20 @@ $table.rename("old_name", "new_name");
                     throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for 'name' key in primary_key hash: %y", name, desc.primary_key);
                 
                 addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getPrimaryKeyOptions().keys()));
+            }
+
+            # add unique constraints to table
+            AbstractTable::checkDriverOptions(\desc.unique_constraints, drv);
+            foreach string un in (desc.unique_constraints.keyIterator()) {
+                if (desc.unique_constraints{un}.typeCode() != NT_HASH)
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", name, un, desc.unique_constraints{un}.type(), desc.unique_constraints{un});
+
+                hash ch = desc.unique_constraints{un};
+
+                if (!ch.columns || !inlist(ch.columns.typeCode(), (NT_LIST, NT_STRING)))
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for unique constraint %y is not a list or a string, got type %y instead (%y)", name, un, ch.columns.type(), ch.columns);
+                
+                addUniqueConstraintUnlocked(un, ch.columns, opt.(getConstraintOptions().keys()));
             }
             
             # add foreign constraints to table
@@ -3157,6 +3217,15 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
                     fk.columns.renameKey(old_name, new_name);
             }
 
+            # check unique constraints
+            foreach AbstractConstraint ac in (constraints.iterator()) {
+                if (!(ac instanceof AbstractUniqueConstraint))
+                    continue;
+                AbstractUniqueConstraint uc = cast<AbstractUniqueConstraint>(ac);
+                if (uc.hasKey(old_name))
+                    uc.renameKey(old_name, new_name);
+            }
+
             # FIXME: check constraints are not updated
 
             return c;
@@ -3271,6 +3340,66 @@ $table.dropPrimaryKey();
             return remove primaryKey;
         }
         
+        #! adds a unique constraint to the table; if the table is known to be in the database already, then the constraint is added to the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        /** @par Example:
+            @code
+my string $sql;
+my AbstractUniqueConstraint $c = $table.addUniqueConstraint("uk_mytable", "name", ("index_tablespace": "index1"), \$sql);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the new unique constraint
+            @param cols a single column name or a list of columns that make up the unique constraint
+            @param opt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+
+            @return an AbstractUniqueConstraint object corresponding to the unique constraint created
+
+            @throw UNIQUE-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns passed
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractUniqueConstraint addUniqueConstraint(string cname, softlist cols, *hash opt, *reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            return addUniqueConstraintUnlocked(cname, cols, opt, \sql);
+        }
+
+        private AbstractUniqueConstraint addUniqueConstraintUnlocked(string cname, softlist cols, *hash opt, *reference sql) {
+            # load constraints if needed, verify unique constraint name, validate/process options
+            checkUniqueConstraintNameValidateOptions("UNIQUE-CONSTRAINT-ERROR", cname, getConstraintOptions(), \opt);
+
+            if (!cols)
+                throw "UNIQUE-CONSTRAINT-ERROR", sprintf("%s add unique constraint %y: no column names passed to %s::addUniqueConstraint()", name, cname, self.className());
+
+            hash ch;
+            while (cols) {
+                any v = shift cols;
+                if (v.typeCode() != NT_STRING)
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s add unique constraint %y: %y argument passed as column name to %s::addUniqueConstraint(); expecting \"string\" (value: %y)", name, cname, v.type(), self.className(), v);
+                if (!columns.hasKey(v))
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s add unique constraint %y: table has no column named %y", name, cname, v);
+                ch{v} = columns{v};
+            }
+
+            # get the new constraint object
+            AbstractUniqueConstraint c = addUniqueConstraintImpl(cname, ch, opt);
+            
+            # add foreign constraint to table in the DB if the table already exists in the DB
+            execSql(sql = c.getCreateSql(getSqlName()));
+
+            # set as constraint for the table
+            if (!constraints)
+                constraints = new Constraints();
+            constraints.add(cname, c);
+
+            # return the new constraint
+            return c;
+        }
+
         #! adds an index to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
@@ -3508,6 +3637,10 @@ printf("%s;\n", $sql);
         AbstractCheckConstraint addCheckConstraint(string cname, string src, *hash opt, *reference sql) {
             l.lock();
             on_exit l.unlock();
+            return addCheckConstraintUnlocked(cname, src, opt, \sql);
+        }
+
+        private AbstractCheckConstraint addCheckConstraintUnlocked(string cname, string src, *hash opt, *reference sql) {
             # load constraints if needed, verify unique constraint name, validate/process options
             checkUniqueConstraintNameValidateOptions("CHECK-CONSTRAINT-ERROR", cname, getConstraintOptions(), \opt);
 
@@ -3518,6 +3651,8 @@ printf("%s;\n", $sql);
             execSql(sql = cc.getCreateSql(getSqlName()));
 
             # set as constraint for the table
+            if (!constraints)
+                constraints = new Constraints();
             constraints.add(cname, cc);
 
             # return the new constraint
@@ -4763,6 +4898,8 @@ my *list $rows = $table.find($list);
         private abstract AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt);
         private abstract AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt);
         private abstract AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt);
+        private abstract AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash opt);
+
         private abstract AbstractTrigger addTriggerImpl(string tname, string src, *hash opt);
 
         #! returns the qore type -> column type map

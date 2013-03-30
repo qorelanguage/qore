@@ -283,6 +283,33 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    public class PgsqlUniqueConstraint inherits AbstractUniqueConstraint {
+        public {
+            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+            bool enabled;
+
+            #! any tablespace for the unique key index
+            *string tablespace;
+        }
+
+        constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols) {
+            enabled = e;
+            tablespace = ts;
+        }        
+
+        string getCreateSql(string table_name, *hash opts) {
+            string sql = sprintf("alter table %s add constraint %s unique (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
+            *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" using index tablespace %s", ts);
+            return sql;
+        }
+
+        string getRenameSql(string table_name, string new_name) {
+            return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+        }
+    }
+
     #! represents a PostgreSQL-specific primary key constraint
     public class PgsqlPrimaryKey inherits AbstractPrimaryKey {
         public {
@@ -714,6 +741,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             foreach hash row in (qh.contextIterator())
                 rv.(row.constraint_name) = new PgsqlCheckConstraint(row.constraint_name, row.consrc);
 
+            # unique constraints are retrieved as unique indexes
             return new Constraints(rv);
         }
 
@@ -865,6 +893,10 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         private AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt) {
             return new PgsqlCheckConstraint(cname, src);
+        }
+
+        private AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash opt) {
+            return new PgsqlUniqueConstraint(cname, ch, True, opt.index_tablespace);
         }
 
         private AbstractTrigger addTriggerImpl(string tname, string src, *hash opt) {
