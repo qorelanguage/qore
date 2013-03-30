@@ -915,7 +915,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("constraint_name", "column_name");
-                reference ch = \rv.(row_constraint_name);
+                reference ch = \rv.(row.constraint_name);
                 if (!ch)
                     ch = new OracleUniqueConstraint(row.constraint_name, hash(), row.status == "ENABLED");
                 ch.add(row.column_name, columns{row.column_name});
