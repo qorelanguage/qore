@@ -551,6 +551,8 @@ my string $str = $col.getRenameSql($t, "new_name");
                 "string": "varchar2",
                 "date": "timestamp(6)",
                 "binary": "blob",
+                SQL::CLOB: "clob",
+                SQL::BLOB: "blob",
                 );
 
             const OraColumnOptions = AbstractTable::ColumnOptions + (
@@ -830,12 +832,12 @@ my string $str = $col.getRenameSql($t, "new_name");
                         "enabled": row.status == "ENABLED",
                         );
                 }
-                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from all_constraints c, all_cons_columns cols1, all_cons_columns cols2 where c.owner = %v and c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position and cols1.owner = %v and cols2.owner = %v order by cols1.position", schema.upr(), name.upr(), schema.upr(), schema.upr());
+                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from all_constraints c, all_cons_columns cols1, all_cons_columns cols2 where c.owner = %v and c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position and cols1.owner = c.owner and cols2.owner = c.owner order by cols1.position", schema.upr(), name.upr());
                 foreach hash row in (qh.contextIterator()) {
                     if (!native_case) {
                         row.constraint_name = row.constraint_name.lwr();
                         row.source_column = row.source_column.lwr();
-                        row.target_column = row.source_column.lwr();
+                        row.target_column = row.target_column.lwr();
                         row.target_table = row.target_table.lwr();
                     }
                     reference c = \rv.(row.constraint_name);

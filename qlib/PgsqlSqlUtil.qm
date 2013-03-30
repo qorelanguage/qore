@@ -530,6 +530,8 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "date": "timestamp",
                 "binary": "bytea",
                 "bool": "boolean",
+                SQL::CLOB: "text",
+                SQL::BLOB: "bytea",
                 );
 
             #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "functions" for table functions required by triggers on the table

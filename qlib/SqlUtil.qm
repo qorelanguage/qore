@@ -2709,8 +2709,8 @@ my Triggers $trig = $table.getTriggers();
                 "primary_key": Type::Hash,
                 "indexes": Type::Hash,
                 "triggers": Type::Hash,
-                #"foreignconstraints": Type::Hash,
-                #"checkconstraints": Type::Hash,
+                "foreign_constraints": Type::Hash,
+                #"check_constraints": Type::Hash,
                 );
 
             #! Column options
@@ -2948,7 +2948,18 @@ $table.rename("old_name", "new_name");
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", name, cn, desc.columns{cn}.type(), desc.columns{cn});
                 hash ch = desc.columns{cn};
                 softbool nullable = !exists ch.notnull ? True : !(remove ch.notnull);
-                addColumnUnlocked(cn, ch, nullable ? True : False, oc);
+                addColumnUnlocked(cn, ch + oc, nullable ? True : False, oc);
+            }
+
+            # add indexes to table
+            AbstractTable::checkDriverOptions(\desc.indexes, drv);
+            foreach string ixn in (desc.indexes.keyIterator()) {
+                if (desc.indexes{ixn}.typeCode() != NT_HASH)
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", name, ixn, desc.indexes{ixn}.type(), desc.indexes{ixn});
+
+                hash ih = desc.indexes{ixn};
+                
+                addIndexUnlocked(ixn, ih.unique ? True : False, ih.columns, opt.(getIndexOptions().keys()));
             }
 
             # add primary key to table
@@ -2962,15 +2973,26 @@ $table.rename("old_name", "new_name");
                 addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getPrimaryKeyOptions().keys()));
             }
             
-            # add indexes to table
-            AbstractTable::checkDriverOptions(\desc.indexes, drv);
-            foreach string ixn in (desc.indexes.keyIterator()) {
-                if (desc.indexes{ixn}.typeCode() != NT_HASH)
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", name, ixn, desc.indexes{ixn}.type(), desc.indexes{ixn});
+            # add foreign constraints to table
+            AbstractTable::checkDriverOptions(\desc.foreign_constraints, drv);
+            foreach string cn in (desc.foreign_constraints.keyIterator()) {
+                if (desc.foreign_constraints{cn}.typeCode() != NT_HASH)
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to foreign constraint key %y is not a hash, got type %y instead (%y)", name, cn, desc.foreign_constraints{cn}.type(), desc.foreign_constraints{cn});
 
-                hash ih = desc.indexes{ixn};
+                hash ch = desc.foreign_constraints{cn};
+
+                if (!ch.columns || !inlist(ch.columns.typeCode(), (NT_LIST, NT_STRING)))
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for foreign constraint %y is not a list or a string, got type %y instead (%y)", name, cn, ch.columns.type(), ch.columns);
+
+                if (!ch.table || ch.table.typeCode() != NT_STRING)
+                    throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for \"table\" key in foreign constraint %y description: %y", name, cn, ch);
+
+                if (exists ch.target_columns && !inlist(ch.target_columns.typeCode(), (NT_LIST, NT_STRING)))
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"target_columns\" key for foreign constraint %y is not a list or a string, got type %y instead (%y)", name, cn, ch.target_columns.type(), ch.target_columns);
                 
-                addIndexUnlocked(ixn, ih.unique ? True : False, ih.columns, opt.(getIndexOptions().keys()));
+                if (!ch.target_columns)
+                    ch.target_columns = ch.columns;
+                addForeignConstraintUnlocked(cn, ch.columns, ch.table, ch.target_columns, opt.(getForeignConstraintOptions().keys()));
             }
 
             # add triggers to table
@@ -3377,7 +3399,11 @@ printf("%s;\n", $sql);
         AbstractForeignConstraint addForeignConstraint(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
             l.lock();
             on_exit l.unlock();
-            getColumnsUnlocked();
+
+            return addForeignConstraintUnlocked(cname, cols, table, tcols, opt, \sql);
+        }
+
+        AbstractForeignConstraint addForeignConstraintUnlocked(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {              getColumnsUnlocked();
             # load constraints if needed, verify unique constraint name, validate/process options
             checkUniqueConstraintNameValidateOptions("FOREIGN-CONSTRAINT-ERROR", cname, getForeignConstraintOptions(), \opt);
 
@@ -3417,6 +3443,8 @@ printf("%s;\n", $sql);
             execSql(sql = fc.getCreateSql(getSqlName()));
 
             # set as foreign constraint for the table
+            if (!foreignConstraints)
+                foreignConstraints = new ForeignConstraints();
             foreignConstraints.add(cname, fc);
 
             # return the new foreign constraint
