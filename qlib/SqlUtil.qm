@@ -3085,7 +3085,14 @@ $table.rename("old_name", "new_name");
                 if (!desc.primary_key.name || desc.primary_key.name.typeCode() != NT_STRING)
                     throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for 'name' key in primary_key hash: %y", name, desc.primary_key);
                 
-                addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getConstraintOptions().keys()));
+                AbstractPrimaryKey pk = addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getConstraintOptions().keys()));
+
+                # see if the primary key corresponds to a unique index with the same name & columns
+                if (indexes.hasKey(pk.getName())) {
+                    AbstractIndex ix = cast<AbstractIndex>(indexes{pk.getName()});
+                    if (ix.columns.matchKeys(pk))
+                        pk.setIndexBase(ix.name);
+                }
             }
 
             # add unique constraints to table
@@ -3099,7 +3106,13 @@ $table.rename("old_name", "new_name");
                 if (!ch.columns || !inlist(ch.columns.typeCode(), (NT_LIST, NT_STRING)))
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for unique constraint %y is not a list or a string, got type %y instead (%y)", name, un, ch.columns.type(), ch.columns);
                 
-                addUniqueConstraintUnlocked(un, ch.columns, opt.(getConstraintOptions().keys()));
+                AbstractUniqueConstraint uk = addUniqueConstraintUnlocked(un, ch.columns, opt.(getConstraintOptions().keys()));
+                # see if the unique key corresponds to a unique index with the same name & columns
+                if (indexes.hasKey(uk.getName())) {
+                    AbstractIndex ix = cast<AbstractIndex>(indexes{uk.getName()});
+                    if (ix.columns.matchKeys(uk))
+                        uk.setIndexBase(ix.name);
+                }
             }
             
             # add foreign constraints to table
