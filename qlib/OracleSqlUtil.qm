@@ -216,6 +216,11 @@ my string $str = $col.getRenameSql($t, "new_name");
         bool equalImpl(AbstractIndex ix) {
             return True;
         }
+
+        #! returns a string that can be used to rename the index in the database
+        string getRenameSql(string table_name, string new_name) {
+            return sprintf("alter index %s rename to %s", name, new_name);
+        }
     }
 
     public class OracleForeignConstraint inherits AbstractForeignConstraint {

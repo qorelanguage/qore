@@ -249,6 +249,11 @@ public namespace SqlUtil {
             h = nh;
         }
 
+        #! creates a "deep copy" of the object
+        copy(AbstractHashContainer old) {
+            map h.$1 = old.h.$1.copy(), old.h.keyIterator();
+        }
+
         #! returns the value of the given key in the contained hash if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code
@@ -293,6 +298,42 @@ my any $v = $c.name;
         #! returns the hash contained by this object
         *hash getHash() {
             return h;
+        }
+
+        #! returns @ref Qore::True "True" if the hash argument has the same keys (in any order), @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $c.matchKeys($h);
+            @endcode
+
+            @param h1 the hash to compare
+
+            @return @ref Qore::True "True" if the hash argument has the same keys (in any order), @ref Qore::False "False" if not
+        */
+        bool matchKeys(hash h1) {
+            if (h.size() != h1.size())
+                return False;
+
+            foreach string k in (h.keyIterator()) {
+                if (!h1.hasKey(k))
+                    return False;
+            }
+
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if the container argument has the same keys (in any order), @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $c.matchKeys($c1);
+            @endcode
+
+            @param c the container to compare
+
+            @return @ref Qore::True "True" if the container argument has the same keys (in any order), @ref Qore::False "False" if not
+        */
+        bool matchKeys(AbstractHashContainer c) {
+            return matchKeys(c.h);
         }
 
         #! Returns @ref Qore::False "False" if the contained hash has no keys, @ref Qore::True "True" if it does
@@ -793,6 +834,9 @@ my AbstractIndex $ix = $indexes.pk_jobs;
 
         #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
         abstract bool equalImpl(AbstractIndex ix);
+
+        #! returns a string that can be used to rename the index in the database
+        abstract string getRenameSql(string table_name, string new_name);
     }
 
     #! constraint container class that throws an exception if an unknown constraint is accessed
@@ -2116,6 +2160,23 @@ printf("%s;\n", $sql);
             return t.addIndex(iname, unique, cols, opt, \sql);
         }
 
+        #! renames an existing index; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        /** @par Example:
+            @code
+my AbstractIndex $ix = $table.renameIndex("uk_table_name", "unique_table_name");
+            @endcode
+
+            @param old_name the current name of the index
+            @param new_name the new name for the index
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @return the index object that was updated
+
+            @throw INDEX-ERROR if the old index does not exist in the table or if the new index name already exists
+        */
+        AbstractIndex renameIndex(string old_name, string new_name, reference sql) {
+            return t.renameIndex(old_name, new_name, \sql);
+        }
+
         #! drops the index from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
@@ -2139,7 +2200,7 @@ $table.dropIndex("uk_mytable_name");
             return t.dropIndex(iname, \sql);
         }
 
-        #! adds an foreign constraint to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        #! adds an foreign constraint to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
 my string $sql;
@@ -2190,7 +2251,7 @@ $table.dropForeignConstraint("uk_mytable_name");
             return t.dropForeignConstraint(cname, \sql);
         }
 
-        #! adds a check constraint to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        #! adds a check constraint to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
 my string $sql;
@@ -2215,7 +2276,7 @@ printf("%s;\n", $sql);
             return t.addCheckConstraint(cname, src, opt, \sql);
         }
 
-        #! renames an existing constraint; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        #! renames an existing constraint; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
             @code
 my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_table_name");
@@ -2255,7 +2316,7 @@ $table.dropConstraint("uk_mytable_name");
             return t.dropConstraint(cname, \sql); 
         }
 
-        #! adds a trigger to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        #! adds a trigger to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
 my string $sql;
@@ -2535,7 +2596,7 @@ my list $l = $table.getAlignSql($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
 
@@ -2553,7 +2614,7 @@ my list $l = $table.getAlignSql($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
 
@@ -2571,7 +2632,7 @@ my string $sql = $table.getAlignSqlString($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
 
@@ -2589,7 +2650,7 @@ my string $sql = $table.getAlignSqlString($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
 
@@ -2743,6 +2804,14 @@ my Triggers $trig = $table.getTriggers();
             #! table creation options
             const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions + (
                 "data_tablespace": Type::String,
+                );
+
+            #! table alignment options
+            const TableAlignOptions = TableCreationOptions + (
+                "column_map": Type::Hash,
+                "index_map": Type::Hash,
+                "constraint_map": Type::Hash,
+                "trigger_map": Type::Hash,
                 );
 
             #! Table description options
@@ -2920,7 +2989,7 @@ $table.createNoCommit();
             manual = False;
         }
 
-        #! renames the table; if the table already exists in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        #! renames the table; if the table is already known to be in the database in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
             @code
 $table.rename("old_name", "new_name");
@@ -3069,7 +3138,7 @@ $table.rename("old_name", "new_name");
             #xxx
         }
 
-        #! adds a column to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        #! adds a column to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
 $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
@@ -3114,7 +3183,7 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             # get the new column object
             AbstractColumn c = addColumnImpl(cname, opt, nullable);
 
-            # add column in table if the table already exists in the DB
+            # add column in table if the table is already known to be in the database
             execSql(lsql = c.getCreateSql(self));
 
             # add the column to the internal column representation
@@ -3122,7 +3191,7 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             return c;
         }
 
-        #! modifies an existing column in the table; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally and the new column definition will be created when create() is called for example
+        #! modifies an existing column in the table; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally and the new column definition will be created when create() is called for example
         /** @par Example:
             @code
 $table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
@@ -3170,7 +3239,7 @@ $table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
             return c;
         }
 
-        #! renames an existing column; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        #! renames an existing column; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
             @code
 my AbstractColumn $col = $table.renameColumn("name", "family_name");
@@ -3250,7 +3319,7 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
                 manual = True;
         }
 
-        #! adds a primary key to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        #! adds a primary key to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
 my string $sql;
@@ -3400,7 +3469,7 @@ printf("%s;\n", $sql);
             return c;
         }
 
-        #! adds an index to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        #! adds an index to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
 my string $sql;
@@ -3469,6 +3538,46 @@ printf("%s;\n", $sql);
             return ix;
         }
 
+        #! renames an existing index; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        /** @par Example:
+            @code
+my AbstractIndex $ix = $table.renameIndex("uk_table_name", "unique_table_name");
+            @endcode
+
+            @param old_name the current name of the index
+            @param new_name the new name for the index
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @return the index object that was updated
+
+            @throw INDEX-ERROR if the old index does not exist in the table or if the new index name already exists
+        */
+        AbstractIndex renameIndex(string old_name, string new_name, reference sql) {
+            l.lock();
+            on_exit l.unlock();
+            getIndexesUnlocked();
+            
+            AbstractIndex ix;
+
+            code rename;
+
+            if (!indexes || !indexes.hasKey(old_name))
+                throw "INDEX-ERROR", sprintf("%s: has no index %y; valid index: %y", name, old_name, indexes.keys());
+
+            ix = indexes{old_name};
+            rename = sub () { indexes.renameKey(old_name, new_name); };
+
+            # rename index in table if the table already exists in the DB
+            execSql(sql = ix.getRenameSql(getSqlName(), new_name));
+
+            ix.name = new_name;
+
+            # rename index in container structure
+            rename();
+            
+            # return the updated index
+            return ix;
+        }
+
         #! drops the given index from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
@@ -3502,7 +3611,7 @@ $table.dropIndex("uk_mytable_name");
             return indexes.take(iname);
         }
 
-        #! adds a foreign constraint to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        #! adds a foreign constraint to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
 my string $sql;
@@ -3613,7 +3722,7 @@ $table.dropForeignConstraint("uk_mytable_name");
             return foreignConstraints.take(cname);
         }
 
-        #! adds a check constraint to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        #! adds a check constraint to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
 my string $sql;
@@ -3659,7 +3768,7 @@ printf("%s;\n", $sql);
             return cc;
         }
 
-        #! renames an existing constraint; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally
+        #! renames an existing constraint; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
             @code
 my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_table_name");
@@ -3794,7 +3903,7 @@ $table.dropConstraint("uk_mytable_name");
             return c;
         }
 
-        #! adds a trigger to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+        #! adds a trigger to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
 my string $sql;
@@ -3894,10 +4003,10 @@ $table.dropTrigger("trig_mytable");
 
         private checkUniqueConstraintName(string err, string cname) {
             getAllConstraintsUnlocked();
-            if (foreignConstraints && foreignConstraints.hasKey(cname))
+            if (foreignConstraints.hasKey(cname))
                 throw err, printf("%y: already has a foreign constraint named %y with columns: %y", name, cname, foreignConstraints{cname}.columns.keys());
 
-            if (constraints && constraints.hasKey(cname))
+            if (constraints.hasKey(cname))
                 throw err, printf("%y: already has a constraint named %y", name, cname);
 
             if (primaryKey && primaryKey.getName() == cname)
@@ -4299,7 +4408,7 @@ my list $l = $table.getAlignSql($table2);
             @endcode
 
             @param t the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
 
@@ -4310,7 +4419,7 @@ my list $l = $table.getAlignSql($table2);
             if (self.className() != t.className())
                 throw "ALIGN-TABLE-ERROR", sprintf("cannot align table %y of class %y with table %y of class %y", name, self.className(), t.name, t.className());
 
-            validateOptionsIntern("OPTION-ERROR", getTableCreationOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getTableAlignOptions(), \opt);
 
             l.lock();
             on_exit l.unlock();
@@ -4361,74 +4470,113 @@ my list $l = $table.getAlignSql($table2);
                     l += c.getDropSql(getSqlName());
             }
 
+            # copy indexes
+            *Indexes indexes_copy = indexes ? indexes.copy() : NOTHING;
+
+            # process index_map: rename indexes
+            foreach hash rh in (opt.index_map.pairIterator()) {
+                if (indexes_copy.hasKey(rh.key)) {
+                    AbstractIndex ix = indexes_copy{rh.key};
+                    l += ix.getRenameSql(getSqlName(), rh.value);
+                    indexes_copy.renameKey(rh.key, rh.value);
+                    ix.name = rh.value;
+                }
+            }
+
             # check for indexes in the template that are not present or different in the current table
             foreach AbstractIndex ix in (t.indexes.iterator()) {
-                if (!indexes.hasKey(ix.name)) {
+                if (!indexes_copy.hasKey(ix.name)) {
                     # add index to table
                     l += ix.getCreateSql(getSqlName());
                 }
-                else if (!ix.equal(indexes{ix.name})) {
+                else if (!ix.equal(indexes_copy{ix.name})) {
                     # drop current index
-                    l += indexes{ix.name}.getDropSql(getSqlName());
+                    l += indexes_copy{ix.name}.getDropSql(getSqlName());
                     # add new index to table
                     l += ix.getCreateSql(getSqlName());
                 }
             }
 
             # check for indexes not in the template and drop them
-            foreach AbstractIndex ix in (indexes.iterator()) {
+            foreach AbstractIndex ix in (indexes_copy.iterator()) {
                 if (!t.indexes.hasKey(ix.name))
                     l += ix.getDropSql(getSqlName());
             }
 
+            # copy constraints
+            *Constraints constraints_copy = constraints ? constraints.copy() : NOTHING;
+            *AbstractPrimaryKey primaryKey_copy = primaryKey ? primaryKey.copy() : NOTHING;
+            *ForeignConstraints foreignConstraints_copy = foreignConstraints ? foreignConstraints.copy() : NOTHING;
+
+            # process constraint_map: rename constraints
+            foreach hash rh in (opt.constraint_map.pairIterator()) {
+                *AbstractConstraint c;
+
+                if (foreignConstraints_copy.hasKey(rh.key)) {
+                    c = foreignConstraints_copy{rh.key};
+                    foreignConstraints_copy.renameKey(rh.key, rh.value);
+                }
+                else if (constraints_copy.hasKey(rh.key)) {
+                    c = constraints_copy{rh.key};
+                    constraints_copy.renameKey(rh.key, rh.value);
+                }
+                else if (primaryKey_copy && primaryKey_copy.getName() == rh.key)
+                    c = primaryKey_copy;
+
+                if (c) {
+                    l += c.getRenameSql(getSqlName(), rh.value);
+                    c.rename(rh.value);
+                }
+            }
+
             # check for primary key differences
             if (t.primaryKey) {
-                if (primaryKey && !primaryKey.equal(t.primaryKey)) {
-                    l += primaryKey.getDropSql(getSqlName());
+                if (primaryKey_copy && !primaryKey_copy.equal(t.primaryKey)) {
+                    l += primaryKey_copy.getDropSql(getSqlName());
                     l += t.primaryKey.getCreateSql(getSqlName());
                 }
                 else if (!t.primaryKey)
                     l += t.primaryKey.getCreateSql(getSqlName());
             }
-            else if (primaryKey && !primaryKey.empty())
-                l += primaryKey.getDropSql(getSqlName());
+            else if (primaryKey_copy && !primaryKey_copy.empty())
+                l += primaryKey_copy.getDropSql(getSqlName());
 
             # check for foreign constraints in the template that are not present or different in the current table
             foreach AbstractForeignConstraint c in (t.foreignConstraints.iterator()) {
-                if (!foreignConstraints.hasKey(c.getName())) {
+                if (!foreignConstraints_copy.hasKey(c.getName())) {
                     # add constraint to table
                     l += c.getCreateSql(getSqlName());
                 }
-                else if (!c.equal(foreignConstraints{c.getName()})) {
+                else if (!c.equal(foreignConstraints_copy{c.getName()})) {
                     # drop current constraint
-                    l += foreignConstraints{c.getName()}.getDropSql(getSqlName());
+                    l += foreignConstraints_copy{c.getName()}.getDropSql(getSqlName());
                     # add new constraint to table
                     l += c.getCreateSql(getSqlName());
                 }
             }
 
             # check for foreign constraints not in the template and drop them
-            foreach AbstractForeignConstraint c in (foreignConstraints.iterator()) {
+            foreach AbstractForeignConstraint c in (foreignConstraints_copy.iterator()) {
                 if (!t.foreignConstraints.hasKey(c.getName()))
                     l += c.getDropSql(getSqlName());
             }
 
             # check for other constraints in the template that are not present or different in the current table
             foreach AbstractConstraint c in (t.constraints.iterator()) {
-                if (!constraints.hasKey(c.getName())) {
+                if (!constraints_copy.hasKey(c.getName())) {
                     # add constraint to table
                     l += c.getCreateSql(getSqlName());
                 }
-                else if (!c.equal(constraints{c.getName()})) {
+                else if (!c.equal(constraints_copy{c.getName()})) {
                     # drop current constraint
-                    l += constraints{c.getName()}.getDropSql(getSqlName());
+                    l += constraints_copy{c.getName()}.getDropSql(getSqlName());
                     # add new constraint to table
                     l += c.getCreateSql(getSqlName());
                 }
             }
 
             # check for other constraints not in the template and drop them
-            foreach AbstractConstraint c in (constraints.iterator()) {
+            foreach AbstractConstraint c in (constraints_copy.iterator()) {
                 if (!t.constraints.hasKey(c.getName()))
                     l += c.getDropSql(getSqlName());
             }
@@ -4470,7 +4618,7 @@ my string $sql = $table.getAlignSqlString($table2);
             @endcode
 
             @param t the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
 
@@ -4797,7 +4945,12 @@ my *list $rows = $table.find($list);
         private getIndexesUnlocked() {
             if (indexes)
                 return;
+            # make sure columns are loaded
             getColumnsUnlocked();
+            # make sure any primary key is loaded
+            getPrimaryKeyUnlocked();
+            # make sure constraints are also loaded
+            getConstraintsUnlocked();
             indexes = getIndexesImpl();
             inDb = True;
         }
@@ -4843,6 +4996,11 @@ my *list $rows = $table.find($list);
         #! override in subclasses to return driver-specific options
         private hash getTableCreationOptions() {
             return TableCreationOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getTableAlignOptions() {
+            return TableAlignOptions;
         }
 
         #! override in subclasses to return driver-specific options

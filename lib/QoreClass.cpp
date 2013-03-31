@@ -2320,8 +2320,13 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, Exceptio
 AbstractQoreNode* QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
    QORE_TRACE("QoreClass::evalMethod()");
 
-   if (!strcmp(nme, "copy"))
+   if (!strcmp(nme, "copy")) {
+      if (args) {
+         xsink->raiseException("COPY-ERROR", "while calling %s::copy(): it is illegal to pass arguments to copy methods", self->getClassName());
+         return 0;
+      }
       return execCopy(self, xsink);
+   }
 
    const QoreMethod* w = priv->getMethodForEval(nme, xsink);
    if (*xsink)
@@ -3886,7 +3891,7 @@ void CopyMethodFunction::evalCopy(const QoreClass &thisclass, QoreObject* self, 
    qore_call_t ct = variant->getCallType();
 
    // setup call, save runtime position
-   CodeEvaluationHelper ceh(xsink, this, variant, "copy", 0, thisclass.getName(), ct);
+   CodeEvaluationHelper ceh(xsink, this, variant, "copy", 0, thisclass.getName(), ct, true);
    if (*xsink) return;
 
    COPYMV_const(variant)->evalCopy(thisclass, self, old, ceh, scl, xsink);

@@ -140,6 +140,11 @@ public namespace PgsqlSqlUtil {
         bool equalImpl(AbstractIndex ix) {
             return True;
         }
+
+        #! returns a string that can be used to rename the index in the database
+        string getRenameSql(string table_name, string new_name) {
+            return sprintf("alter table %s rename index %s to %s", table_name, name, new_name);
+        }
     }
 
     #! represents a PostgreSQL-specific foreign constraint
@@ -683,11 +688,6 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private Indexes getIndexesImpl() {
-            # make sure any primary key is loaded
-            getPrimaryKeyUnlocked();
-            # make sure constraints are also loaded
-            getConstraintsUnlocked();
-
             hash rv;
 
             # get index description
@@ -716,7 +716,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     # check unique indexes to make sure they are not matched with a unique constraint
                     if (i.value.unique && constraints.hasKey(i.key) && (constraints{i.key} instanceof AbstractUniqueConstraint)) {
                         PgsqlUniqueConstraint uk = cast<PgsqlUniqueConstraint>(constraints{i.key});
-                        if (uk.keys() == i.value.columns.keys()) {
+                        if (uk.matchKeys(i.value.columns)) {
                             # set tablespace in constraint
                             if (i.value.tablespace && !uk.tablespace)
                                 uk.tablespace = i.value.tablespace;

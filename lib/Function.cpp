@@ -74,7 +74,7 @@ bool AbstractQoreFunctionVariant::hasBody() const {
    return is_user ? getUserVariantBase()->hasBody() : true;
 }
 
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const char* n_class_name, qore_call_t n_ct)
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const char* n_class_name, qore_call_t n_ct, bool is_copy)
    : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()) {
    tmp.assignEval(args);
    // reset program position if arguments were evaluated
@@ -94,7 +94,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    }
 
    class_name = variant->className();
-   if (processDefaultArgs(func, variant, check_args))
+   if (processDefaultArgs(func, variant, check_args, is_copy))
       return;
 
    setCallType(variant->getCallType());
@@ -135,7 +135,7 @@ static void addArgs(QoreStringNode &desc, const QoreListNode* args) {
    }
 }
 
-int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args) {
+int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy) {
    bool edit_done = false;
 
    // get default argument list of variant
@@ -168,6 +168,10 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
       else if (i < typeList.size()) {
 	 const AbstractQoreNode* n = tmp ? tmp->retrieve_entry(i) : 0;
 	 const QoreTypeInfo* paramTypeInfo = sig->getParamTypeInfo(i);
+
+	 if (is_copy && !i && !n) {
+	    continue;
+	 }
 
 	 // test for change or incompatibility
 	 if (check_args || paramTypeInfo->mayRequireFilter(n)) {

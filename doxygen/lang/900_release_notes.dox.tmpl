@@ -29,6 +29,7 @@
     - really fixed the bug thought to be fixed in 0.8.7 "where SSL errors would cause the affected thread to go into a infinite loop using 100% CPU" - this turned out to be easily reproducible on all platforms; when the SSL connection was shut down cleanly by the remote end before a response message was returned, an infinite loop would result
     - fixed a bug where it was impossible to output a single '\' character in regex substitution expressions; '\' was taken as an escape character, and '\\' was output literally, now '\\' is output as '\'
     - fixed a bug where a parse-time crash would occur when calling the copy() method for a class that does not implement an explicit copy() method
+    - fixed a bug where arguments passed to a copy method were ignored; now an exception is thrown
 
     @section qore_087 Qore 0.8.7
 

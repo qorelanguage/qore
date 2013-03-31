@@ -250,7 +250,7 @@ protected:
 
 public:
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = 0, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED);
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = 0, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
 
    DLLLOCAL ~CodeEvaluationHelper();
 
@@ -261,7 +261,7 @@ public:
    DLLLOCAL void setCallType(qore_call_t n_ct) {
       ct = n_ct;
    }
-   DLLLOCAL int processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args);
+   DLLLOCAL int processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy = false);
 
    DLLLOCAL void setArgs(QoreListNode* n_args) {
       assert(!*tmp);
