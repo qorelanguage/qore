@@ -120,10 +120,10 @@ public namespace PgsqlSqlUtil {
             #! the tablespace name of the index
             *string tablespace;
         }
-
+       
         #! creates the object from the arguments
-        constructor(string n, bool u, hash c, *string t) : AbstractIndex(n, u, c) {
-            tablespace = t;
+        constructor(string n_name, bool n_unique, hash n_cols, *string n_tablespace) : AbstractIndex(n_name, n_unique, n_cols) {
+            tablespace = n_tablespace;
         }
 
         #! returns a string that can be used to create the index in the database
@@ -295,19 +295,35 @@ my string $str = $col.getRenameSql($t, "new_name");
 
             #! any tablespace for the unique key index
             *string tablespace;
+
+            #! index the constraint is based on
+            *string index;
         }
 
         constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols) {
             enabled = e;
             tablespace = ts;
-        }        
+        }
 
         string getCreateSql(string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s unique (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
-            *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
-            if (ts)
-                sql += sprintf(" using index tablespace %s", ts);
+            *string ix = opts.index ? opts.index : index;
+            if (ix)
+                sql += sprintf(" using index %s", ix);
+            else {
+                *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
+                if (ts)
+                    sql += sprintf(" using index tablespace %s", ts);
+            }
             return sql;
+        }
+
+        bool setIndexBase(string ix) {
+            if (index && index != ix)
+                return False;
+            index = ix;
+            delete tablespace;
+            return True;
         }
 
         string getRenameSql(string table_name, string new_name) {
@@ -320,6 +336,9 @@ my string $str = $col.getRenameSql($t, "new_name");
         public {
             #! any tablespace for the primary key index
             *string tablespace;
+
+            #! index the constraint is based on
+            *string index;
         }
 
         constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c) {
@@ -328,10 +347,24 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         string getCreateSql(string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
-            *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
-            if (ts)
-                sql += sprintf(" using index tablespace %s", ts);
+            *string ix = opts.index ? opts.index : index;
+            if (ix)
+                sql += sprintf(" using index %s", ix);
+            else {
+                *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
+                if (ts)
+                    sql += sprintf(" using index tablespace %s", ts);
+                return sql;
+            }
             return sql;
+        }
+
+        bool setIndexBase(string ix) {
+            if (index && index != ix)
+                return False;
+            index = ix;
+            delete tablespace;
+            return True;
         }
 
         string getRenameSql(string table_name, string new_name) {
@@ -573,9 +606,17 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
             const PgsqlColumnOptions = AbstractTable::ColumnOptions;
 
-            const PgsqlTableCreationOptions = AbstractTable::TableCreationOptions + (
+            const PgsqlIndexOptions = AbstractTable::IndexOptions;
+
+            const PgsqlConstraintOptions = AbstractTable::ConstraintOptions + PgsqlIndexOptions + (
+                "index": Type::String,
+                );
+
+            const PgsqlTableCreationOptions = AbstractTable::TableCreationOptions + PgsqlConstraintOptions + (
                 "omit_trigger_functions": Type::Boolean,
                 );
+
+            const PgsqlAlignTableOptions = AbstractTable::AlignTableOptions + PgsqlTableCreationOptions;
         }
 
         private {
@@ -630,6 +671,18 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         private hash getColumnOptions() {
             return PgsqlColumnOptions;
+        }
+
+        private hash getIndexOptions() {
+            return PgsqlIndexOptions;
+        }
+
+        private hash getConstraintOptions() {
+            return PgsqlConstraintOptions;
+        }
+
+        private hash getAlignTableOptions() {
+            return PgsqlAlignTableOptions;
         }
 
         private bool checkExistenceImpl() {

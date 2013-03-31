@@ -914,6 +914,11 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
         abstract bool equalImpl(AbstractConstraint c);
+
+        #! returns @ref Qore::True "True" if the object supports an index property and is set, @ref Qore::False "False" if not
+        bool setIndexBase(string ix) {
+            return False;
+        }
     }
 
     #! abstract class for check constraints
@@ -2070,7 +2075,7 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new primary key constraint
             @param cols a single column name or a list of columns that make up the primary key
-            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::PrimaryKeyOptions
+            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractPrimaryKey object corresponding to the primary key created
@@ -2513,7 +2518,7 @@ my *list $l = $table.getCreateIndexesSql();
 my *string $sql = $table.getCreatePrimaryKeySql();
             @endcode
 
-            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::PrimaryKeyOptions
+            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
 
             @return an SQL string that could be used to create the primary key on the table or @ref nothing if there is no primary key on the table
 
@@ -2596,7 +2601,7 @@ my list $l = $table.getAlignSql($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
 
@@ -2614,7 +2619,7 @@ my list $l = $table.getAlignSql($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
 
@@ -2632,7 +2637,7 @@ my string $sql = $table.getAlignSqlString($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
 
@@ -2650,7 +2655,7 @@ my string $sql = $table.getAlignSqlString($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
 
@@ -2787,13 +2792,8 @@ my Triggers $trig = $table.getTriggers();
                 "replace": Type::Boolean,
                 );
 
-            #! default pk options
-            const PrimaryKeyOptions = IndexOptions;
-
             #! default constraint options
-            const ConstraintOptions = (
-                "replace": Type::Boolean,
-                );
+            const ConstraintOptions = IndexOptions;
 
             #! default foreign constraint options
             const ForeignConstraintOptions = ConstraintOptions;
@@ -2807,7 +2807,7 @@ my Triggers $trig = $table.getTriggers();
                 );
 
             #! table alignment options
-            const TableAlignOptions = TableCreationOptions + (
+            const AlignTableOptions = TableCreationOptions + (
                 "column_map": Type::Hash,
                 "index_map": Type::Hash,
                 "constraint_map": Type::Hash,
@@ -3085,7 +3085,7 @@ $table.rename("old_name", "new_name");
                 if (!desc.primary_key.name || desc.primary_key.name.typeCode() != NT_STRING)
                     throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for 'name' key in primary_key hash: %y", name, desc.primary_key);
                 
-                addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getPrimaryKeyOptions().keys()));
+                addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getConstraintOptions().keys()));
             }
 
             # add unique constraints to table
@@ -3331,7 +3331,7 @@ printf("%s;\n", $sql);
 
             @param pkname the name of the new primary key constraint
             @param cols a single column name or a list of columns that make up the primary key
-            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref PrimaryKeyOptions
+            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractPrimaryKey object corresponding to the primary key created
@@ -3351,7 +3351,7 @@ printf("%s;\n", $sql);
             getColumnsUnlocked();
 
             # load constraints if needed, verify unique constraint name, validate/process options
-            checkUniqueConstraintNameValidateOptions("PRIMARY-KEY-ERROR", pkname, getPrimaryKeyOptions(), \opt);
+            checkUniqueConstraintNameValidateOptions("PRIMARY-KEY-ERROR", pkname, getConstraintOptions(), \opt);
 
             if (!primaryKey.empty())
                 throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: already has primary key %y with columns: %y", name, pkname, primaryKey.getName(), primaryKey.keys());
@@ -4408,7 +4408,7 @@ my list $l = $table.getAlignSql($table2);
             @endcode
 
             @param t the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
 
@@ -4419,7 +4419,9 @@ my list $l = $table.getAlignSql($table2);
             if (self.className() != t.className())
                 throw "ALIGN-TABLE-ERROR", sprintf("cannot align table %y of class %y with table %y of class %y", name, self.className(), t.name, t.className());
 
-            validateOptionsIntern("OPTION-ERROR", getTableAlignOptions(), \opt);
+            hash ato = getAlignTableOptions();
+
+            validateOptionsIntern("OPTION-ERROR", ato, \opt);
 
             l.lock();
             on_exit l.unlock();
@@ -4487,20 +4489,37 @@ my list $l = $table.getAlignSql($table2);
             foreach AbstractIndex ix in (t.indexes.iterator()) {
                 if (!indexes_copy.hasKey(ix.name)) {
                     # add index to table
-                    l += ix.getCreateSql(getSqlName());
+                    l += ix.getCreateSql(getSqlName(), opt);
                 }
                 else if (!ix.equal(indexes_copy{ix.name})) {
                     # drop current index
                     l += indexes_copy{ix.name}.getDropSql(getSqlName());
                     # add new index to table
-                    l += ix.getCreateSql(getSqlName());
+                    l += ix.getCreateSql(getSqlName(), opt);
                 }
             }
 
             # check for indexes not in the template and drop them
             foreach AbstractIndex ix in (indexes_copy.iterator()) {
-                if (!t.indexes.hasKey(ix.name))
+                if (!t.indexes.hasKey(ix.name)) {
+                    # make sure there is no unique constraint or primary key for the unique index if the "index" option is supported
+                    # in which case update the constraint to be based on the index and do not drop the index
+                    if (ix.unique) {
+                        if (t.primaryKey && t.primaryKey.matchKeys(ix.columns)) {
+                            if (t.primaryKey.setIndexBase(ix.name))
+                                continue;
+                        }
+                        else {
+                            # see if a unique constraint with the same name and columns exists
+                            if (t.constraints.hasKey(ix.name) && t.constraints{ix.name} instanceof AbstractUniqueConstraint) {
+                                AbstractUniqueConstraint uk = cast<AbstractUniqueConstraint>(t.constraints{ix.name});
+                                if (uk.matchKeys(ix.columns) && uk.setIndexBase(ix.name))
+                                    continue;
+                            }
+                        }
+                    }
                     l += ix.getDropSql(getSqlName());
+                }
             }
 
             # copy constraints
@@ -4533,10 +4552,10 @@ my list $l = $table.getAlignSql($table2);
             if (t.primaryKey) {
                 if (primaryKey_copy && !primaryKey_copy.equal(t.primaryKey)) {
                     l += primaryKey_copy.getDropSql(getSqlName());
-                    l += t.primaryKey.getCreateSql(getSqlName());
+                    l += t.primaryKey.getCreateSql(getSqlName(), opt);
                 }
                 else if (!t.primaryKey)
-                    l += t.primaryKey.getCreateSql(getSqlName());
+                    l += t.primaryKey.getCreateSql(getSqlName(), opt);
             }
             else if (primaryKey_copy && !primaryKey_copy.empty())
                 l += primaryKey_copy.getDropSql(getSqlName());
@@ -4545,13 +4564,13 @@ my list $l = $table.getAlignSql($table2);
             foreach AbstractForeignConstraint c in (t.foreignConstraints.iterator()) {
                 if (!foreignConstraints_copy.hasKey(c.getName())) {
                     # add constraint to table
-                    l += c.getCreateSql(getSqlName());
+                    l += c.getCreateSql(getSqlName(), opt);
                 }
                 else if (!c.equal(foreignConstraints_copy{c.getName()})) {
                     # drop current constraint
                     l += foreignConstraints_copy{c.getName()}.getDropSql(getSqlName());
                     # add new constraint to table
-                    l += c.getCreateSql(getSqlName());
+                    l += c.getCreateSql(getSqlName(), opt);
                 }
             }
 
@@ -4565,20 +4584,21 @@ my list $l = $table.getAlignSql($table2);
             foreach AbstractConstraint c in (t.constraints.iterator()) {
                 if (!constraints_copy.hasKey(c.getName())) {
                     # add constraint to table
-                    l += c.getCreateSql(getSqlName());
+                    l += c.getCreateSql(getSqlName(), opt);
                 }
                 else if (!c.equal(constraints_copy{c.getName()})) {
                     # drop current constraint
                     l += constraints_copy{c.getName()}.getDropSql(getSqlName());
                     # add new constraint to table
-                    l += c.getCreateSql(getSqlName());
+                    l += c.getCreateSql(getSqlName(), opt);
                 }
             }
 
             # check for other constraints not in the template and drop them
             foreach AbstractConstraint c in (constraints_copy.iterator()) {
-                if (!t.constraints.hasKey(c.getName()))
+                if (!t.constraints.hasKey(c.getName())) {
                     l += c.getDropSql(getSqlName());
+                }
             }
 
             # check for table-specific alignment actions before triggers
@@ -4592,13 +4612,13 @@ my list $l = $table.getAlignSql($table2);
             foreach AbstractTrigger trig in (t.triggers.iterator()) {
                 if (!triggers.hasKey(trig.name)) {
                     # add trigger to table
-                    l += trig.getCreateSql(getSqlName());
+                    l += trig.getCreateSql(getSqlName(), opt);
                 }
                 else if (!trig.equal(triggers{trig.name})) {
                     # drop current trigger
                     l += triggers{trig.name}.getDropSql();
                     # add new trigger to table
-                    l += trig.getCreateSql(getSqlName());
+                    l += trig.getCreateSql(getSqlName(), opt);
                 }
             }
 
@@ -4618,7 +4638,7 @@ my string $sql = $table.getAlignSqlString($table2);
             @endcode
 
             @param t the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableAlignOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
 
@@ -4655,7 +4675,7 @@ my *list $l = $table.getCreateIndexesSql();
 my *string $sql = $table.getCreatePrimaryKeySql();
             @endcode
 
-            @param opt a hash of options for the primary key creation string; see @ref PrimaryKeyOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the primary key creation string; see @ref ConstraintOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return an SQL string that could be used to create the primary key on the table or @ref nothing if there is no primary key on the table
@@ -4663,7 +4683,7 @@ my *string $sql = $table.getCreatePrimaryKeySql();
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         *string getCreatePrimaryKeySql(*hash opt, bool cache = True) {
-            validateOptionsIntern("OPTION-ERROR", getPrimaryKeyOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getConstraintOptions(), \opt);
             l.lock();
             on_exit l.unlock();
             return getCreatePrimaryKeySqlUnlocked(opt, cache);
@@ -4999,8 +5019,8 @@ my *list $rows = $table.find($list);
         }
 
         #! override in subclasses to return driver-specific options
-        private hash getTableAlignOptions() {
-            return TableAlignOptions;
+        private hash getAlignTableOptions() {
+            return AlignTableOptions;
         }
 
         #! override in subclasses to return driver-specific options
@@ -5016,11 +5036,6 @@ my *list $rows = $table.find($list);
         #! override in subclasses to return driver-specific options
         private hash getIndexOptions() {
             return IndexOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getPrimaryKeyOptions() {
-            return PrimaryKeyOptions;
         }
 
         #! override in subclasses to return driver-specific options

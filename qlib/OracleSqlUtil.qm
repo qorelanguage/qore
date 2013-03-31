@@ -268,21 +268,38 @@ my string $str = $col.getRenameSql($t, "new_name");
 
             #! any tablespace for the unique key index
             *string tablespace;
+
+            #! index the constraint is based on
+            *string index;
         }
 
         constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols) {
             enabled = e;
             tablespace = ts;
-        }        
+        }
+
+        bool setIndexBase(string ix) {
+            if (index && index != ix)
+                return False;
+            index = ix;
+            delete tablespace;
+            return True;
+        }
 
         string getCreateSql(string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s unique (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
-            *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
-            if (ts) {
-                sql += sprintf(" using index tablespace %s", ts);
-                if (opts.compute_statistics)
-                    sql += " compute statistics";
+            *string ix = opts.index ? opts.index : index;
+            if (ix)
+                sql += sprintf(" using index %s", ix);
+            else {
+                *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
+                if (ts) {
+                    sql += sprintf(" using index tablespace %s", ts);
+                    if (opts.compute_statistics)
+                        sql += " compute statistics";
+                }
             }
+
             return sql;
         }
 
@@ -295,19 +312,35 @@ my string $str = $col.getRenameSql($t, "new_name");
         public {
             #! any tablespace for the primary key index
             *string tablespace;
+
+            #! index the constraint is based on
+            *string index;
         }
 
         constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c) {
             tablespace = ts;
         }
 
+        bool setIndexBase(string ix) {
+            if (index && index != ix)
+                return False;
+            index = ix;
+            delete tablespace;
+            return True;
+        }
+
         string getCreateSql(string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
-            *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
-            if (ts) {
-                sql += sprintf(" using index tablespace %s", ts);
-                if (opts.compute_statistics)
-                    sql += " compute statistics";
+            *string ix = opts.index ? opts.index : index;
+            if (ix)
+                sql += sprintf(" using index %s", ix);
+            else {
+                *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
+                if (ts) {
+                    sql += sprintf(" using index tablespace %s", ts);
+                    if (opts.compute_statistics)
+                        sql += " compute statistics";
+                }
             }
 
             return sql;
@@ -598,7 +631,9 @@ my string $str = $col.getRenameSql($t, "new_name");
                 "compute_statistics": Type::Boolean,
                 );
 
-            const OraclePrimaryKeyOptions = OracleIndexOptions;
+            const OracleConstraintOptions = OracleIndexOptions + (
+                "index": Type::String,
+                );
 
             #! Oracle table creation options
             const OracleTableCreationOptions = AbstractTable::TableCreationOptions + OracleIndexOptions;
@@ -1052,8 +1087,8 @@ my string $str = $col.getRenameSql($t, "new_name");
             return OracleIndexOptions;
         }
 
-        private hash getPrimaryKeyOptions() {
-            return OraclePrimaryKeyOptions;
+        private hash getConstraintOptions() {
+            return OracleConstraintOptions;
         }
 
         private hash getTableCreationOptions() {
