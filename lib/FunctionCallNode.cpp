@@ -143,6 +143,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar 
       // turn off reference ok and retval ignored flags
       int n_pflag = pflag & ~(PF_RETURN_VALUE_IGNORED);
       
+      update_parse_location(loc);
       // loop through all args
       for (unsigned i = 0; i < num_args; ++i) {
 	 AbstractQoreNode **n = args->get_entry_ptr(i);
