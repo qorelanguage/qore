@@ -683,29 +683,46 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private Indexes getIndexesImpl() {
+            # make sure any primary key is loaded
+            getPrimaryKeyUnlocked();
             # make sure constraints are also loaded
             getConstraintsUnlocked();
 
             hash rv;
 
             # get index description
-            *hash qh = ds.select("select i.relname index_name, a.attname column_name, indisunique, tablespace from pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_indexes xs where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = any(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary and i.relname = xs.indexname group by i.relname, a.attname, a.attnum, indisunique, tablespace order by i.relname, attnum", name);
+            *hash qh = ds.select("select i.relname index_name, a.attname column_name, indisprimary, indisunique, tablespace from pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_indexes xs where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = any(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary and i.relname = xs.indexname group by i.relname, a.attname, a.attnum, indisprimary, indisunique, tablespace order by i.relname, attnum", name);
             if (qh.index_name) {
                 hash ih;
                 foreach hash row in (qh.contextIterator()) {
-                    if (!ih.(row.index_name))
+                    if (!ih.(row.index_name)) {
                         ih.(row.index_name) = (
                             "unique": row.indisunique,
                             "tablespace": row.tablespace,
+                            "primary": row.indisprimary,
                         );
+                    }
                     ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
                 }
 
                 foreach hash i in (ih.pairIterator()) {
-                    # check unique indexes to make sure they are not matched with a unique constraint
-                    if (constraints && constraints.hasKey(i.key) && constraints{i.key} instanceof AbstractUniqueConstraint
-                        && cast<AbstractUniqueConstraint>(constraints{i.key}).keys() == i.value.columns.keys())
+                    # check primary key index and add tablespace to primary key definition
+                    if (i.primary && primaryKey) {
+                        PgsqlPrimaryKey pk = cast<PgsqlPrimaryKey>(primaryKey);
+                        if (i.value.tablespace && !pk.tablespace)
+                            pk.tablespace = i.value.tablespace;
                         continue;
+                    }
+                    # check unique indexes to make sure they are not matched with a unique constraint
+                    if (i.value.unique && constraints.hasKey(i.key) && (constraints{i.key} instanceof AbstractUniqueConstraint)) {
+                        PgsqlUniqueConstraint uk = cast<PgsqlUniqueConstraint>(constraints{i.key});
+                        if (uk.keys() == i.value.columns.keys()) {
+                            # set tablespace in constraint
+                            if (i.value.tablespace && !uk.tablespace)
+                                uk.tablespace = i.value.tablespace;
+                            continue;
+                        }
+                    }
                     rv.(i.key) = new PgsqlIndex(i.key, i.value.unique, i.value.columns, i.value.tablespace);
                 }
             }
