@@ -219,6 +219,23 @@ my hash $pk_desc = (
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
+    /* @defgroup SqlTypeConstants SQL Type Constants
+        These constants can be used for the \c "qore_type" values when creating columns to specify additional SQL column types
+    */
+    #@{
+    #! specifies a \c VARCHAR column (equivalent to @ref Qore::Type::String)
+    public const VARCHAR = "string";
+
+    #! specifies a \c CHAR column
+    public const CHAR = "char";
+
+    #! specifies a large variable-length binary column (ie \c BLOB or \c BYTEA, etc)
+    public const BLOB = "blob";
+
+    #! specifies a large variable-length character column (ie \c CLOB or \c TEXT, etc)
+    public const CLOB = "clob";
+    #@}
+
     /** @defgroup ColumnSizeOptions Column Size Options
         These constants represent the possible values for column size options
      */
@@ -3529,9 +3546,14 @@ printf("%s;\n", $sql);
                 any v = shift cols;
                 if (v.typeCode() != NT_STRING)
                     throw "INDEX-ERROR", sprintf("%s: %y argument passed as column name to %s::addIndex(); expecting \"string\" (value: %y)", name, v.type(), self.className(), v);
-                if (!columns.hasKey(v))
-                    throw "INDEX-ERROR", sprintf("%s: has no column named %y", name, v);
-                ch{v} = columns{v};
+                # only check for column if the index is not a function index
+                if (!columns.hasKey(v)) {
+                    if (v !~ /\(.*\)/)
+                        throw "INDEX-ERROR", sprintf("%s: has no column named %y", name, v);
+                    ch{v} = hash();
+                }
+                else
+                    ch{v} = columns{v};
             }
 
             # validate options
@@ -4481,8 +4503,9 @@ my list $l = $table.getAlignSql($table2);
 
             # check for columns not in the template and drop them
             foreach AbstractColumn c in (columns.iterator()) {
-                if (!t.columns.hasKey(c.name))
+                if (!t.columns.hasKey(c.name)) {
                     l += c.getDropSql(getSqlName());
+                }
             }
 
             # copy indexes

@@ -619,8 +619,9 @@ my string $str = $col.getRenameSql($t, "new_name");
                 "string": "varchar2",
                 "date": "timestamp(6)",
                 "binary": "blob",
-                SQL::CLOB: "clob",
-                SQL::BLOB: "blob",
+                SqlUtil::CHAR: "char",
+                SqlUtil::CLOB: "clob",
+                SqlUtil::BLOB: "blob",
                 );
 
             const OraColumnOptions = AbstractTable::ColumnOptions + (
@@ -861,14 +862,19 @@ my string $str = $col.getRenameSql($t, "new_name");
             *hash qh = ds.select("select index_name, index_type, uniqueness, tablespace_name from all_indexes where owner = %v and table_name = %v", schema.upr(), name.upr());
             if (qh.index_name) {
                 hash ih;
+
                 # get column info for all indexes in 1 query
-                *hash iqh = ds.select("select * from all_ind_columns where table_owner = %v and table_name = %v order by index_name, column_position", schema.upr(), name.upr());
+                *hash iqh = ds.select("select c.index_name, c.column_name, e.column_expression from all_ind_columns c left join all_ind_expressions e on (c.table_owner = e.index_owner and c.index_name = e.index_name and c.table_name = e.table_name) where c.table_owner = %v and c.table_name = %v order by c.index_name, c.column_position", schema.upr(), name.upr());
                 foreach hash row in (iqh.contextIterator()) {
-                    if (!native_case) {  
-                        row.index_name = row.index_name.lwr();
-                        row.column_name = row.column_name.lwr();
+                    if (!native_case)
+                        map row.$1 = row.$1.lwr(), ("index_name", "column_name", "column_expression"), row.$1;
+                    # process function indexes
+                    if (row.column_expression) {
+                        row.column_expression =~ s/"//g;
+                        ih{row.index_name}{row.column_expression} = hash();
                     }
-                    ih{row.index_name}{row.column_name} = columns{row.column_name};
+                    else
+                        ih{row.index_name}{row.column_name} = columns{row.column_name};
                 }
                 
                 foreach hash row in (qh.contextIterator()) {

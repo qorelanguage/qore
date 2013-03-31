@@ -581,6 +581,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
             #! maps from verbose type names to simple type names
             const PgsqlNameMap = (
+                "character": "char",
                 "character varying": "varchar",
                 "timestamp without time zone": "timestamp",
                 "time without time zone": "time",
@@ -595,8 +596,9 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "date": "timestamp",
                 "binary": "bytea",
                 "bool": "boolean",
-                SQL::CLOB: "text",
-                SQL::BLOB: "bytea",
+                SqlUtil::CHAR: "char",
+                SqlUtil::CLOB: "text",
+                SqlUtil::BLOB: "bytea",
                 );
 
             #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "functions" for table functions required by triggers on the table
@@ -743,8 +745,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         private Indexes getIndexesImpl() {
             hash rv;
 
-            # get index description
-            *hash qh = ds.select("select i.relname index_name, a.attname column_name, indisprimary, indisunique, tablespace from pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_indexes xs where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = any(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary and i.relname = xs.indexname group by i.relname, a.attname, a.attnum, indisprimary, indisunique, tablespace order by i.relname, attnum", name);
+            # get index descriptions
+            *hash qh = ds.select("SELECT i.relname index_name, d.indisunique, d.indisprimary, pg_get_indexdef(i.oid, a.attnum, false) column_name, tablespace FROM pg_class t, pg_class i, pg_index d, pg_attribute a, pg_indexes xs WHERE i.relkind = 'i' and i.relname = xs.indexname AND d.indexrelid = i.oid and t.oid = d.indrelid AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN ('public')) AND a.attrelid = i.oid AND t.relname = %v ORDER BY i.relname, attnum", name);
+
+            #*hash qh = ds.select("select i.relname index_name, a.attname column_name, indisprimary, indisunique, tablespace from pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_indexes xs where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = any(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary and i.relname = xs.indexname group by i.relname, a.attname, a.attnum, indisprimary, indisunique, tablespace order by i.relname, attnum", name);
+
             if (qh.index_name) {
                 hash ih;
                 foreach hash row in (qh.contextIterator()) {
@@ -755,7 +760,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                             "primary": row.indisprimary,
                         );
                     }
-                    ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
+                    # send "blank" column for function index
+                    if (row.column_name =~ /\(.*\)/)
+                        ih.(row.index_name).columns{row.column_name} = hash();
+                    else
+                        ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
                 }
 
                 foreach hash i in (ih.pairIterator()) {
