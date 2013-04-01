@@ -333,6 +333,7 @@ public namespace RestHandler {
             my hash $aih;
             if ($astr) {
                 $astr =~ s/;.*//;#/;
+                $astr =~ s/ +//g;
                 map $aih.$1 = True, $astr.split(",");
             }
             else {
