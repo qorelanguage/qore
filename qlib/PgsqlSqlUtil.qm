@@ -372,6 +372,25 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    #! class for PostgreSQL sequences
+    public class PgsqlSequence inherits AbstractSequence {
+        #! creates the object from the arguments
+        constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
+        }
+
+        #! returns a string that can be used to create the sequence in the database
+        string getCreateSql(*hash opt) {
+            string sql = sprintf("create sequence %s start with %d increment by %d ", name, start, increment);
+            sql += max ? sprintf("maxvalue %d", max) : "no maxvalue";
+            return sql;
+        }
+
+        #! returns a string that can be used to rename the sequence in the database
+        string getRenameSql(string new_name) {
+            return sprintf("alter sequence %s rename to %s", name, new_name);
+        }
+    }
+
     #! represents a PostgreSQL-specific trigger
     public class PgsqlTrigger inherits AbstractTrigger {
         #! creates the object and sets its name and the trigger source
@@ -423,6 +442,19 @@ my string $str = $col.getRenameSql($t, "new_name");
     #! provides the PostgreSQL-specific implementation of the AbstractDatabase interface
     public class PgsqlDatabase inherits AbstractDatabase {
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+        }
+
+        PgsqlSequence makeSequenceImpl(string name, int start = 1, int increment = 1, *int end, *hash opts) {
+            return new PgsqlSequence(name, start, increment, end);
+        }
+
+        *AbstractSequence getSequenceImpl(string name) {
+            *hash row = ds.selectRow("select relname from pg_class where relkind = 'S' and relname = %v", name);
+            if (!row)
+                return;
+
+            row = ds.selectRow("select * from %s", name);
+            return new PgsqlSequence(name, row.start, row.increment, row.max == 9223372036854775807 ? NOTHING : row.max);
         }
 
         PgsqlFunction makeFunctionImpl(string name, string src, *hash opts) {
@@ -1042,7 +1074,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         private setupTableImpl(hash desc, *hash opt) {
             # add trigger functions to table
-            AbstractTable::checkDriverOptions(\desc.functions, ds.getDriverName());
+            AbstractDatabase::checkDriverOptions(\desc.functions, ds.getDriverName());
 
             foreach string fn in (desc.functions.keyIterator()) {
                 if (desc.functions{fn}.typeCode() != NT_STRING)

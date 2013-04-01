@@ -1163,6 +1163,50 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         }
     }
 
+    #! base class for sequences
+    public class AbstractSequence {
+        public {
+            #! the name of the sequence
+            string name;
+
+            #! the starting number
+            number start;
+
+            #! the increment
+            number increment;
+            
+            #! the ending number
+            *number max;
+        }
+
+        #! creates the object from the arguments
+        constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_max) {
+            name = n_name;
+            start = n_start;
+            increment = n_increment;
+            max = n_max;
+            if (!increment)
+                throw "SEQUENCE-ERROR", sprintf("sequence %y: increment cannot be zero", name);
+            if (max) {
+                if (increment > 0 && max < start)
+                    throw "SEQUENCE-ERROR", sprintf("ascending sequence %y increment %d: max value %d is less than the starting value: %d", name, increment, max, start);
+                if (increment < 0 && max > start)
+                    throw "SEQUENCE-ERROR", sprintf("descending sequence %y increment %d: max value %d is less than the starting value: %d", name, increment, max, start);
+            }
+        }
+
+        #! returns a string that can be used to create the sequence in the database
+        abstract string getCreateSql(*hash opt);        
+
+        #! returns a string that can be used to drop the sequence from the database
+        string getDropSql() {
+            return sprintf("drop sequence %s", name);
+        }
+
+        #! returns a string that can be used to rename the sequence in the database
+        abstract string getRenameSql(string new_name);
+    }
+
     #! base class for function or objects with code
     public class AbstractFunctionBase {
         public {
@@ -1384,6 +1428,25 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
             return callObjectMethodArgs(db, meth, argv);
         }
 
+        #! creates a database-specific AbstractSequence object corresponding to the arguments
+        /** @par Example:
+            @code
+my AbstractSequence $seq = $db.makeSequence("seq_queues");
+            @endcode
+
+            @param name the name of the sequence
+            @param start the starting value of the sequence
+            @param increment the increment value of the sequence
+            @param end the endinf value of the sequence, omit for no ending value
+            @param opts an optional hash of options for the creation of the sequence; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw SEQUENCE-ERROR end not compatible with start and increment, increment is zero
+        */
+        AbstractSequence makeSequence(string name, int start = 1, int increment = 1, *int end, *hash opts) {
+            return db.makeSequence(name, start, increment, end, opts);
+        }
+
         #! creates a database-specific AbstractFunction object corresponding to the arguments
         /** @par Example:
             @code
@@ -1448,6 +1511,20 @@ my list $l = $db.getAlignProcedureSql(f);
          */
         list getAlignProcedureSql(AbstractFunction f, *hash opt) {
             return db.getAlignProcedureSql(f, opt);
+        }
+
+        #! returns an AbstractSequence argument for the given sequence name or @ref nothing if the sequence cannot be found
+        /** @par Example:
+            @code
+my *AbstractSequence $seq = $db.getSequence("seq_queues");
+            @endcode
+
+            @param name the uniquely-identifying name of the sequence to retrieve
+
+            @return an AbstractSequence argument for the given sequence name or @ref nothing if the sequence cannot be found
+         */
+        *AbstractSequence getSequence(string name) {
+            return db.getSequence(name);
         }
 
         #! returns an AbstractFunction argument for the given function name or @ref nothing if the function cannot be found
@@ -1652,15 +1729,22 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
             #! default generic schema description keys
             const SchemaDescriptionOptions = (
                 "tables": Type::Hash,
-                #"sequences": Type::Hash,
+                "sequences": Type::Hash,
                 #"views": Type::Hash,
                 #"functions": Type::Hash,
                 #"procedures": Type::Hash,
                 "table_map": Type::Hash,
-                #"sequence_map": Type::Hash,
+                "sequence_map": Type::Hash,
                 #"view_map": Type::Hash,
                 #"function_map": Type::Hash,
                 #"procedure_map": Type::Hash,
+                );
+
+            #! default generic sequence description keys
+            const SequenceDescriptionOptions = (
+                "start": Type::Int,
+                "increment": Type::Int,
+                "end": Type::Int,
                 );
         }
 
@@ -1692,7 +1776,7 @@ my list $l = $db.getAlignSql($schema_hash);
 
             @return a list of SQL strings that can be used to align the structure and configuration of the current schema with that of the argument; if the objects described are identical then an empty list is returned
 
-            @throw SCHEMA-DESCRIPTION-ERROR the schema description hash has an invalid format
+            @throw SCHEMA-DESCRIPTION-ERROR the schema description hash has an error or a required object does not exist
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         list getAlignSql(hash schema_hash, *hash opt) {
@@ -1700,9 +1784,38 @@ my list $l = $db.getAlignSql($schema_hash);
             validateOptionsIntern("OPTION-ERROR", getAlignSchemaOptions(), \opt);
 
             list l = ();
-            # xxx yyy zzz
+
+            string drv = getDriverName();
+            AbstractDatabase::checkDriverOptions(\schema_hash, drv);
+
+            # rename any sequences
+            AbstractDatabase::checkDriverOptions(\schema_hash.sequence_map, drv);
+            foreach hash sh in (schema_hash.sequence_map.pairIterator()) {
+                *AbstractSequence seq = getSequence(sh.key);
+                if (!seq)
+                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("sequence %y: cannot be renamed to %y because it does not exist", sh.key, sh.value);
+                l += seq.getRenameSql(sh.value);
+                # remove sequence from list since we know it exists
+                remove schema_hash.sequences{sh.value};
+            }
+
+            # create any missing sequences
+            AbstractDatabase::checkDriverOptions(\schema_hash.sequences, drv);
+            foreach string name in (schema_hash.sequences.keyIterator()) {
+                hash sh = schema_hash.sequences{name};
+
+                validateOptionsIntern("SEQUENCE-DESCRIPTION-ERROR", getSequenceDescriptionOptions(), \sh);
+
+                # see if sequence exists
+                if (getSequence(name))
+                    continue;
+
+                AbstractSequence seq = makeSequence(name, sh.start, sh.increment, sh.end);
+                l += seq.getCreateSql();
+            }
 
             # create template tables
+            AbstractDatabase::checkDriverOptions(\schema_hash.tables, drv);
             foreach string name in (schema_hash.tables.keyIterator()) {
                 hash th = schema_hash.tables{name} - "rename";
                 # create table template
@@ -1714,19 +1827,53 @@ my list $l = $db.getAlignSql($schema_hash);
                 #printf("%s\n", t.getCreateSqlString(allOptions));
             }
 
+            # rename any tables
+            AbstractDatabase::checkDriverOptions(\schema_hash.table_map, drv);
+            foreach hash th in (schema_hash.table_map) {
+                Table t(ds, th.key);
+                l += t.getRenameSql(th.value);
+                opt.db_table_cache{th.value} = t;
+            }
+
             # now process DB tables
             foreach string name in (schema_hash.tables.keyIterator()) {
                 #printf("processing table %y\n", name);
-                Table t2(ds, name);
-                # store in db_table_cache
-                opt.db_table_cache{name} = t2;
-                
-                list tl = t2.getAlignSql(opt.table_cache{name}, opt + schema_hash.tables{name}.rename + ("table_cache": opt.table_cache, "db_table_cache": opt.db_table_cache));
+                Table t;
+                if (opt.db_table_cache{name})
+                    t = opt.db_table_cache{name};
+                else {
+                    t = new Table(ds, name);
+                    # store in db_table_cache
+                    opt.db_table_cache{name} = t;
+                }
+
+                list tl = t.getAlignSql(opt.table_cache{name}, opt + schema_hash.tables{name}.rename + ("table_cache": opt.table_cache, "db_table_cache": opt.db_table_cache));
                 if (tl)
                     l += tl;
             }
 
             return l;
+        }
+
+        #! creates a database-specific AbstractSequence object corresponding to the arguments
+        /** @par Example:
+            @code
+my AbstractSequence $seq = $db.makeSequence("seq_queues");
+            @endcode
+
+            @param name the name of the sequence
+            @param start the starting value of the sequence
+            @param increment the increment value of the sequence
+            @param end the endinf value of the sequence, omit for no ending value
+            @param opts an optional hash of options for the creation of the sequence; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw SEQUENCE-ERROR end not compatible with start and increment, increment is zero
+        */
+        AbstractSequence makeSequence(string name, int start = 1, int increment = 1, *int end, *hash opts) {
+            validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opts);
+
+            return makeSequenceImpl(name, start, increment, end, opts);
         }
 
         #! creates a database-specific AbstractFunction object corresponding to the arguments
@@ -1821,6 +1968,20 @@ my list $l = $db.getAlignProcedureSql(f);
             }
                 
             return l;
+        }
+
+        #! returns an AbstractSequence argument for the given sequence name or @ref nothing if the sequence cannot be found
+        /** @par Example:
+            @code
+my *AbstractSequence $seq = $db.getSequence("seq_queues");
+            @endcode
+
+            @param name the uniquely-identifying name of the sequence to retrieve
+
+            @return an AbstractSequence argument for the given sequence name or @ref nothing if the sequence cannot be found
+         */
+        *AbstractSequence getSequence(string name) {
+            return getSequenceImpl(name);
         }
 
         #! returns an AbstractFunction argument for the given function name or @ref nothing if the function cannot be found
@@ -1960,6 +2121,14 @@ my string $sql = $t.getSqlFromList($list);
             return AbstractDatabase::getDatabase(nds, opts);
         }
 
+        static checkDriverOptions(reference h, string drv) {
+            if (h.driver) {
+                if (h.driver{drv})
+                    h += h.driver{drv};
+                delete h.driver;
+            }
+        }
+
         #! override in subclasses to return driver-specific options
         private hash getDatabaseOptions() {
             return DatabaseOptions;
@@ -1985,11 +2154,18 @@ my string $sql = $t.getSqlFromList($list);
             return SchemaDescriptionOptions;
         }
 
+        #! override in subclasses to return driver-specific options
+        private hash getSequenceDescriptionOptions() {
+            return SequenceDescriptionOptions;
+        }
+
         abstract string getCreateSqlImpl(list l);
 
+        abstract *AbstractSequence getSequenceImpl(string name);
         abstract *AbstractFunction getFunctionImpl(string name);
         abstract *AbstractFunction getProcedureImpl(string name);
 
+        abstract AbstractSequence makeSequenceImpl(string name, int start = 1, int increment = 1, *int end, *hash opts);
         abstract AbstractFunction makeFunctionImpl(string name, string src, *hash opts);
         abstract AbstractFunction makeProcedureImpl(string name, string src, *hash opts);
 
@@ -2202,17 +2378,16 @@ $table.createNoCommit();
         #! renames the table; if the table already exists in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
             @code
-$table.rename("old_name", "new_name");
+$table.rename("new_name");
             @endcode
 
-            @param old_name the current name of the table
             @param new_name the new name for the table
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @see getRenameSql()
         */
-        rename(string old_name, string new_name, reference sql) {
-            return t.rename(old_name, new_name, \sql);
+        rename(string new_name, *reference sql) {
+            return t.rename(new_name, \sql);
         }
 
         #! adds a column to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -3128,14 +3303,6 @@ my Triggers $trig = $table.getTriggers();
             doTableOptions(nopts);
         }
 
-        private static checkDriverOptions(reference h, string drv) {
-            if (h.driver) {
-                if (h.driver{drv})
-                    h += h.driver{drv};
-                delete h.driver;
-            }
-        }
-
         private doTableOptions(*hash nopts) {
             validateOptionsIntern("OPTION-ERROR", getTableOptions(), \nopts);
             if (nopts.native_case)
@@ -3249,20 +3416,20 @@ $table.createNoCommit();
         #! renames the table; if the table is already known to be in the database in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
             @code
-$table.rename("old_name", "new_name");
+$table.rename("new_name");
             @endcode
 
-            @param old_name the current name of the table
             @param new_name the new name for the table
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @see getRenameSql()
         */
-        rename(string old_name, string new_name, reference sql) {
+        rename(string new_name, *reference sql) {
             l.lock();
             on_exit l.unlock();
 
-            execSql(sql = getRenameSqlImpl(old_name, new_name));
+            execSql(sql = getRenameSqlImpl(name, new_name));
+            name = new_name;
         }
 
         #! returns @ref Qore::True "True" if the table has no definitions, @ref Qore::False "False" if not
@@ -3314,7 +3481,7 @@ $table.rename("old_name", "new_name");
             *hash oc = opt.(copt.keys());
 
             # add columns to table
-            AbstractTable::checkDriverOptions(\desc.columns, drv);
+            AbstractDatabase::checkDriverOptions(\desc.columns, drv);
             foreach string cn in (desc.columns.keyIterator()) {
                 if (desc.columns{cn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", name, cn, desc.columns{cn}.type(), desc.columns{cn});
@@ -3324,7 +3491,7 @@ $table.rename("old_name", "new_name");
             }
 
             # add indexes to table
-            AbstractTable::checkDriverOptions(\desc.indexes, drv);
+            AbstractDatabase::checkDriverOptions(\desc.indexes, drv);
             foreach string ixn in (desc.indexes.keyIterator()) {
                 if (desc.indexes{ixn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", name, ixn, desc.indexes{ixn}.type(), desc.indexes{ixn});
@@ -3338,7 +3505,7 @@ $table.rename("old_name", "new_name");
             }
 
             # add primary key to table
-            AbstractTable::checkDriverOptions(\desc.primary_key, drv);
+            AbstractDatabase::checkDriverOptions(\desc.primary_key, drv);
             if (desc.primary_key) {
                 if (desc.primary_key.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to primary_key is not a hash, got type %y instead (%y)", name, desc.primary_key.type(), desc.primary_key);
@@ -3349,7 +3516,7 @@ $table.rename("old_name", "new_name");
             }
 
             # add unique constraints to table
-            AbstractTable::checkDriverOptions(\desc.unique_constraints, drv);
+            AbstractDatabase::checkDriverOptions(\desc.unique_constraints, drv);
             foreach string un in (desc.unique_constraints.keyIterator()) {
                 if (desc.unique_constraints{un}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", name, un, desc.unique_constraints{un}.type(), desc.unique_constraints{un});
@@ -3363,7 +3530,7 @@ $table.rename("old_name", "new_name");
             }
             
             # add foreign constraints to table
-            AbstractTable::checkDriverOptions(\desc.foreign_constraints, drv);
+            AbstractDatabase::checkDriverOptions(\desc.foreign_constraints, drv);
             foreach string cn in (desc.foreign_constraints.keyIterator()) {
                 if (desc.foreign_constraints{cn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to foreign constraint key %y is not a hash, got type %y instead (%y)", name, cn, desc.foreign_constraints{cn}.type(), desc.foreign_constraints{cn});
@@ -3385,7 +3552,7 @@ $table.rename("old_name", "new_name");
             }
 
             # add triggers to table
-            AbstractTable::checkDriverOptions(\desc.triggers, drv);
+            AbstractDatabase::checkDriverOptions(\desc.triggers, drv);
             foreach string tn in (desc.triggers.keyIterator()) {
                 if (desc.triggers{tn}.typeCode() != NT_STRING)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to trigger key %y is not a string giving the trigger source code, got type %y instead (%y)", name, tn, desc.triggers{tn}.type(), desc.triggers{tn});

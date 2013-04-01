@@ -391,6 +391,25 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    #! class for Oracle sequences
+    public class OracleSequence inherits AbstractSequence {
+        #! creates the object from the arguments
+        constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
+        }
+
+        #! returns a string that can be used to create the sequence in the database
+        string getCreateSql(*hash opt) {
+            string sql = sprintf("create sequence %s start with %d increment by %d ", name, start, increment);
+            sql += max ? sprintf("maxvalue %d", max) : "nomaxvalue";
+            return sql;
+        }
+
+        #! returns a string that can be used to rename the sequence in the database
+        string getRenameSql(string new_name) {
+            return sprintf("rename %s to %s", name, new_name);
+        }
+    }
+
     public class OracleTrigger inherits AbstractTrigger {
         public {
             #! @ref Qore::True "True" if the trigger is enabled, @ref Qore::False "False" if not
@@ -495,6 +514,17 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+        }
+
+        OracleSequence makeSequenceImpl(string name, int start = 1, int increment = 1, *int end, *hash opts) {
+            return new OracleSequence(name, start, increment, end);
+        }
+
+        *AbstractSequence getSequenceImpl(string name) {
+            *hash row = ds.selectRow("select * from user_sequences where sequence_name = %v", name.upr());
+            if (!row)
+                return;
+            return new OracleSequence(name, row.min_value, row.increment_by, row.max_value == 10000000000000000000000000000n ? NOTHING : row.max_value);
         }
 
         OracleFunction makeFunctionImpl(string name, string src, *hash opts) {

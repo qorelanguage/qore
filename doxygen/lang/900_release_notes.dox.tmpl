@@ -26,10 +26,12 @@
     - fixed a bug parsing arguments in parse_uri_query() in the HttpServer module
     - fixed a bug where parse exceptions with type errors in function calls could be reported at the wrong source location
     - fixed a bug where parse exceptions resolving global variables could be reported at the wrong source location
+    - fixed a bug where parse exceptions in base class constructor arguments could be reported at the wrong source location
     - really fixed the bug thought to be fixed in 0.8.7 "where SSL errors would cause the affected thread to go into a infinite loop using 100% CPU" - this turned out to be easily reproducible on all platforms; when the SSL connection was shut down cleanly by the remote end before a response message was returned, an infinite loop would result
     - fixed a bug where it was impossible to output a single '\' character in regex substitution expressions; '\' was taken as an escape character, and '\\' was output literally, now '\\' is output as '\'
     - fixed a bug where a parse-time crash would occur when calling the copy() method for a class that does not implement an explicit copy() method
     - fixed a bug where arguments passed to a copy method were ignored; now an exception is thrown
+    - fixed a bug where public members and static variables of privately-inherited classes were incorrectly treated as public attributes of the child class
 
     @section qore_087 Qore 0.8.7
 
