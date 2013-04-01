@@ -1325,8 +1325,11 @@ int BCList::initialize(QoreClass* cls, bool &has_delete_blocker, qcp_set_t& qcp_
 
 bool BCList::isPublicOrPrivateMember(const char* mem, bool &priv) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
-      if ((*i)->sclass && (*i)->sclass->isPublicOrPrivateMember(mem, priv))
+      if ((*i)->sclass && (*i)->sclass->isPublicOrPrivateMember(mem, priv)) {
+         if (!priv && (*i)->priv)
+            priv = true;
 	 return true;
+      }
    return false;
 }
 
@@ -1339,8 +1342,11 @@ bool BCList::parseHasPublicMembersInHierarchy() const {
    
 bool BCList::runtimeGetMemberInfo(const char* mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
-      if ((*i)->sclass && (*i)->sclass->priv->runtimeGetMemberInfo(mem, memberTypeInfo, priv))
+      if ((*i)->sclass && (*i)->sclass->priv->runtimeGetMemberInfo(mem, memberTypeInfo, priv)) {
+         if (!priv && (*i)->priv)
+               priv = true;
 	 return true;
+      }
    return false;
 }
 
@@ -1351,8 +1357,12 @@ const QoreClass* BCList::parseFindPublicPrivateMember(const QoreProgramLocation*
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 const QoreClass* qc = (*i)->sclass->priv->parseFindPublicPrivateMember(loc, mem, memberTypeInfo, member_has_type_info, priv);
-	 if (qc)
+	 if (qc) {
+	    if (!priv && (*i)->priv)
+	       priv = true;
+
 	    return qc;
+	 }
       }
    }
    return 0;
@@ -1365,8 +1375,12 @@ const QoreClass* BCList::parseFindPublicPrivateVar(const QoreProgramLocation*& l
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 const QoreClass* qc = (*i)->sclass->priv->parseFindPublicPrivateVar(loc, name, varTypeInfo, has_type_info, priv);
-	 if (qc)
-	    return qc;
+         if (qc) {
+            if (!priv && (*i)->priv)
+               priv = true;
+
+            return qc;
+         }
       }
    }
    return 0;
@@ -1383,7 +1397,7 @@ const QoreMethod* BCList::findCommittedMethod(const char* name, bool &priv_flag)
 
 	 const QoreMethod* m;
 	 if ((m = (*i)->sclass->priv->findCommittedMethod(name, priv_flag))) {
-	    if ((*i)->priv)
+	    if (!priv_flag && (*i)->priv)
 	       priv_flag = true;
 	    return m;
 	 }
