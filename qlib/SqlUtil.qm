@@ -1042,7 +1042,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         }
 
         #! find an index that matches the constraint and marks both objects as related
-        findMatchingIndex(Indexes indexes) {
+        findMatchingIndex(*Indexes indexes) {
             # see if the primary key corresponds to a unique index with the same name & columns
             if (indexes.hasKey(name)) {
                 AbstractIndex ix = indexes{name};
@@ -1642,6 +1642,25 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
             const CreationOptions = (
                 "replace": Type::Boolean,
                 "table_cache": Type::Hash,
+                "data_tablespace": Type::String,
+                "index_tablespace": Type::String,
+                );
+
+            #! default generic schema description / alignment options
+            const AlignSchemaOptions = CreationOptions;
+
+            #! default generic schema description keys
+            const SchemaDescriptionOptions = (
+                "tables": Type::Hash,
+                #"sequences": Type::Hash,
+                #"views": Type::Hash,
+                #"functions": Type::Hash,
+                #"procedures": Type::Hash,
+                "table_map": Type::Hash,
+                #"sequence_map": Type::Hash,
+                #"view_map": Type::Hash,
+                #"function_map": Type::Hash,
+                #"procedure_map": Type::Hash,
                 );
         }
 
@@ -1660,6 +1679,54 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
             validateOptionsIntern("OPTION-ERROR", getDatabaseOptions(), \nopts);
             if (nopts.native_case)
                 native_case = True;
+        }
+
+        #! accepts a hash argument describing a database schema and returns a list of SQL strings that can be used to align the structure and configuration of the current schema with that of the argument; if the objects described are identical then an empty list is returned
+        /** @par Example:
+            @code
+my list $l = $db.getAlignSql($schema_hash);
+            @endcode
+
+            @param schema_hash the schema template hash that decribes the target state of the schema
+            @param opt a hash of options for the SQL creation strings; see @ref AbstractDatabase::AlignSchemaOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be used to align the structure and configuration of the current schema with that of the argument; if the objects described are identical then an empty list is returned
+
+            @throw SCHEMA-DESCRIPTION-ERROR the schema description hash has an invalid format
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        list getAlignSql(hash schema_hash, *hash opt) {
+            validateOptionsIntern("SCHEMA-DESCRIPTION-ERROR", getSchemaDescriptionOptions(), \schema_hash);
+            validateOptionsIntern("OPTION-ERROR", getAlignSchemaOptions(), \opt);
+
+            list l = ();
+            # xxx yyy zzz
+
+            # create template tables
+            foreach string name in (schema_hash.tables.keyIterator()) {
+                hash th = schema_hash.tables{name} - "rename";
+                # create table template
+                Table t(ds, th, name, opt + ("table_cache": opt.table_cache));
+                # store in table_cache
+                opt.table_cache{name} = t;
+                
+                #printf("%N\n", t.describe().domain);exit();
+                #printf("%s\n", t.getCreateSqlString(allOptions));
+            }
+
+            # now process DB tables
+            foreach string name in (schema_hash.tables.keyIterator()) {
+                #printf("processing table %y\n", name);
+                Table t2(ds, name);
+                # store in db_table_cache
+                opt.db_table_cache{name} = t2;
+                
+                list tl = t2.getAlignSql(opt.table_cache{name}, opt + schema_hash.tables{name}.rename + ("table_cache": opt.table_cache, "db_table_cache": opt.db_table_cache));
+                if (tl)
+                    l += tl;
+            }
+
+            return l;
         }
 
         #! creates a database-specific AbstractFunction object corresponding to the arguments
@@ -1788,6 +1855,20 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
             return getProcedureImpl(name);
         }
 
+        #! returns an SQL string corresponding to the list of commands in the argument
+        /** @par Example:
+            @code
+my string $sql = $t.getSqlFromList($list);
+            @endcode
+
+            @param l a list of SQL commands
+            
+            @return an SQL string corresponding to the list of commands in the argument
+        */
+        string getSqlFromList(list l) {
+            return getCreateSqlImpl(l);
+        }
+
         #! returns a list of string table names in the database
         list listTables() {
             return listTablesImpl();
@@ -1893,6 +1974,18 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
         private hash getCacheOptions() {
             return CacheOptions;
         }
+
+        #! override in subclasses to return driver-specific options
+        private hash getAlignSchemaOptions() {
+            return AlignSchemaOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getSchemaDescriptionOptions() {
+            return SchemaDescriptionOptions;
+        }
+
+        abstract string getCreateSqlImpl(list l);
 
         abstract *AbstractFunction getFunctionImpl(string name);
         abstract *AbstractFunction getProcedureImpl(string name);
@@ -2572,6 +2665,20 @@ $table.insert($row);
             t.insertNoCommit(row);
         }
 
+        #! returns an SQL string corresponding to the list of commands in the argument
+        /** @par Example:
+            @code
+my string $sql = $t.getSqlFromList($list);
+            @endcode
+
+            @param l a list of SQL commands
+            
+            @return an SQL string corresponding to the list of commands in the argument
+        */
+        string getSqlFromList(list l) {
+            return t.getSqlFromList(l);
+        }
+
         #! returns an SQL string that could be used to rename the table in the database
         /** @par Example:
             @code
@@ -2734,7 +2841,7 @@ my *list $l = $table.getCreateTriggersSql();
             return t.getCreateTriggersSql(opt);
         }
 
-        #! accepts a AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
+        #! accepts an AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
         /** @par Example:
             @code
 my list $l = $table.getAlignSql($table2);
@@ -2752,7 +2859,7 @@ my list $l = $table.getAlignSql($table2);
             return t.getAlignSql(table, opt);
         }
 
-        #! accepts a AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
+        #! accepts an AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
         /** @par Example:
             @code
 my list $l = $table.getAlignSql($table2);
@@ -2770,7 +2877,7 @@ my list $l = $table.getAlignSql($table2);
             return t.getAlignSql(table.t, opt);
         }
 
-        #! accepts a AbstractTable argument and returns an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
+        #! accepts an AbstractTable argument and returns an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
         /** @par Example:
             @code
 my string $sql = $table.getAlignSqlString($table2);
@@ -2788,7 +2895,7 @@ my string $sql = $table.getAlignSqlString($table2);
             return t.getAlignSqlString(table, opt);
         }
 
-        #! accepts a AbstractTable argument and returns an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
+        #! accepts an AbstractTable argument and returns an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
         /** @par Example:
             @code
 my string $sql = $table.getAlignSqlString($table2);
@@ -2952,9 +3059,7 @@ my Triggers $trig = $table.getTriggers();
             const TriggerOptions = AbstractDatabase::CreationOptions;
 
             #! table creation options
-            const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions + (
-                "data_tablespace": Type::String,
-                );
+            const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions;
 
             #! table alignment options
             const AlignTableOptions = TableCreationOptions + (
@@ -4396,6 +4501,20 @@ $table.insert($row);
             }
         }
 
+        #! returns an SQL string corresponding to the list of commands in the argument
+        /** @par Example:
+            @code
+my string $sql = $t.getSqlFromList($list);
+            @endcode
+
+            @param l a list of SQL commands
+            
+            @return an SQL string corresponding to the list of commands in the argument
+        */
+        string getSqlFromList(list l) {
+            return getCreateSqlImpl(l);
+        }
+
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
         /** @par Example:
             @code
@@ -4594,7 +4713,7 @@ my string $sql = $table.getCreateTableSql();
             return getCreateTableSqlUnlocked(opt);
         }
 
-        #! accepts a AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
+        #! accepts an AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
         /** @par Example:
             @code
 my list $l = $table.getAlignSql($table2);
@@ -4829,7 +4948,7 @@ my list $l = $table.getAlignSql($table2);
             return l;
         }
 
-        #! accepts a AbstractTable argument and returns an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
+        #! accepts an AbstractTable argument and returns an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
         /** @par Example:
             @code
 my string $sql = $table.getAlignSqlString($table2);

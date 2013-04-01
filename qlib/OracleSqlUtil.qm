@@ -476,6 +476,24 @@ my string $str = $col.getRenameSql($t, "new_name");
     }
 
     public class OracleDatabase inherits AbstractDatabase {
+        public {
+            #! default generic creation options
+            const OracleCreationOptions = AbstractDatabase::CreationOptions + (
+                "compute_statistics": Type::Boolean,
+                );
+
+            #! oracle schema description / alignment options
+            const OracleAlignSchemaOptions = AbstractDatabase::CreationOptions + OracleCreationOptions;
+
+            #! default generic schema description keys
+            const OracleSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + (
+                "materialized_views": Type::Hash,
+                #"synonyms": Type::Hash,
+                "materialized_view_map": Type::Hash,
+                #"synonym_map": Type::Hash,
+                );
+        }
+
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
@@ -558,6 +576,29 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         private list getListIntern(list l) {
             return native_case ? l : (map $1.lwr(), l);
+        }
+
+        string getCreateSqlImpl(list l) {
+            return OracleDatabase::getCreateSql(l);
+        }
+
+        static string getCreateSql(list l) {
+            return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l);
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getCreationOptions() {
+            return OracleCreationOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getAlignSchemaOptions() {
+            return OracleAlignSchemaOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getSchemaDescriptionOptions() {
+            return OracleSchemaDescriptionOptions;
         }
     }
 
@@ -1079,7 +1120,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         string getCreateSqlImpl(list l) {
-            return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /;$/ ? "\n/" : ";"), l);
+            return OracleDatabase::getCreateSql(l);
         }
 
         string getRenameSqlImpl(string new_name) {

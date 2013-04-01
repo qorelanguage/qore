@@ -536,6 +536,14 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         list listViewsImpl() {
             return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false))").table_name;
         }
+
+        string getCreateSqlImpl(list l) {
+            return PgsqlDatabase::getCreateSql(l);
+        }
+
+        static string getCreateSql(list l) {
+            return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l);
+        }
     }
 
     #! provides the PostgreSQL-specific implementation of the AbstractTable interface
@@ -785,7 +793,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                             continue;
                         }
                     }
-                    rv.(i.key) = new PgsqlIndex(i.key, i.value.unique, i.value.columns, i.value.tablespace);
+                    rv.(i.key) = new PgsqlIndex(i.key, i.value.unique, i.value.columns, i.value.tablespace ? i.value.tablespace : NOTHING);
                 }
             }
 
@@ -962,7 +970,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         string getCreateSqlImpl(list l) {
-            return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l);
+            return PgsqlDatabase::getCreateSql(l);
         }
 
         string getRenameSqlImpl(string new_name) {
