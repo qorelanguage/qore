@@ -1443,7 +1443,7 @@ my AbstractSequence $seq = $db.makeSequence("seq_queues");
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw SEQUENCE-ERROR end not compatible with start and increment, increment is zero
         */
-        AbstractSequence makeSequence(string name, int start = 1, int increment = 1, *int end, *hash opts) {
+        AbstractSequence makeSequence(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
             return db.makeSequence(name, start, increment, end, opts);
         }
 
@@ -1870,7 +1870,7 @@ my AbstractSequence $seq = $db.makeSequence("seq_queues");
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw SEQUENCE-ERROR end not compatible with start and increment, increment is zero
         */
-        AbstractSequence makeSequence(string name, int start = 1, int increment = 1, *int end, *hash opts) {
+        AbstractSequence makeSequence(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
             validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opts);
 
             return makeSequenceImpl(name, start, increment, end, opts);
@@ -2165,7 +2165,7 @@ my string $sql = $t.getSqlFromList($list);
         abstract *AbstractFunction getFunctionImpl(string name);
         abstract *AbstractFunction getProcedureImpl(string name);
 
-        abstract AbstractSequence makeSequenceImpl(string name, int start = 1, int increment = 1, *int end, *hash opts);
+        abstract AbstractSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts);
         abstract AbstractFunction makeFunctionImpl(string name, string src, *hash opts);
         abstract AbstractFunction makeProcedureImpl(string name, string src, *hash opts);
 

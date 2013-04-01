@@ -444,7 +444,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
-        PgsqlSequence makeSequenceImpl(string name, int start = 1, int increment = 1, *int end, *hash opts) {
+        PgsqlSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
             return new PgsqlSequence(name, start, increment, end);
         }
 
