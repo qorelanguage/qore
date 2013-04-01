@@ -240,6 +240,16 @@ my string $str = $col.getRenameSql($t, "new_name");
         string getRenameSql(string table_name, string new_name) {
             return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
         }
+
+        #! returns a string that can be used to temporarily disable the constraint from the database
+        string getDisableSql(string table_name) {
+            return sprintf("alter table %s disable constraint %s", table_name, name);
+        }
+
+        #! returns a string that can be used to enable the constraint in the database
+        string getEnableSql(string table_name, *hash opt) {
+            return sprintf("alter table %s enable constraint %s", table_name, name);
+        }
     }
 
     public class OracleCheckConstraint inherits AbstractCheckConstraint {
@@ -258,6 +268,16 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         string getRenameSql(string table_name, string new_name) {
             return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+        }
+
+        #! returns a string that can be used to temporarily disable the constraint from the database
+        string getDisableSql(string table_name) {
+            return sprintf("alter table %s disable constraint %s", table_name, name);
+        }
+
+        #! returns a string that can be used to enable the constraint in the database
+        string getEnableSql(string table_name, *hash opt) {
+            return sprintf("alter table %s enable constraint %s", table_name, name);
         }
     }
 
@@ -306,6 +326,16 @@ my string $str = $col.getRenameSql($t, "new_name");
         string getRenameSql(string table_name, string new_name) {
             return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
         }
+
+        #! returns a string that can be used to temporarily disable the constraint from the database
+        string getDisableSql(string table_name) {
+            return sprintf("alter table %s disable constraint %s", table_name, name);
+        }
+
+        #! returns a string that can be used to enable the constraint in the database
+        string getEnableSql(string table_name, *hash opt) {
+            return sprintf("alter table %s enable constraint %s", table_name, name);
+        }
     }
 
     public class OraclePrimaryKey inherits AbstractPrimaryKey {
@@ -348,6 +378,16 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         string getRenameSql(string table_name, string new_name) {
             return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+        }
+
+        #! returns a string that can be used to temporarily disable the constraint from the database
+        string getDisableSql(string table_name) {
+            return sprintf("alter table %s disable constraint %s", table_name, name);
+        }
+
+        #! returns a string that can be used to enable the constraint in the database
+        string getEnableSql(string table_name, *hash opt) {
+            return sprintf("alter table %s enable constraint %s", table_name, name);
         }
     }
 
@@ -893,7 +933,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             return new Indexes(rv);
         }
 
-        private ForeignConstraints getForeignConstraintsImpl() {
+        private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
 	    if (!tablespace)
 		setTableInfoIntern();
 
@@ -924,13 +964,10 @@ my string $str = $col.getRenameSql($t, "new_name");
                     c.target.columns.(row.target_column) = True;
                 }
 
-                # temporary foreign table buffer hash
-                hash fth;
                 foreach hash c in (rv.pairIterator()) {
-                    # get a description of the target table for the target column descriptions
-                    if (!fth{c.value.target.table})
-                        fth{c.value.target.table} = new OracleTable(ds, c.value.target.table, opts);
-                    ForeignConstraintTarget fct(c.value.target.table, fth{c.value.target.table}.describe().subset(c.value.target.columns.keys()));
+                    # get a description of the target table's columns
+                    Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, \opts.table_cache);
+                    ForeignConstraintTarget fct(c.value.target.table, targ_columns.subset(c.value.target.columns.keys()));
                     ch.(c.key) = new OracleForeignConstraint(c.key, new Columns(c.value.columns), fct, c.value.enabled);
                 }
             }

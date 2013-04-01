@@ -824,6 +824,12 @@ my AbstractIndex $ix = $indexes.pk_jobs;
             Columns columns;
         }
 
+        private {
+            #! the AbstractUniqueConstraint that this index supports, if any
+            *AbstractUniqueConstraint constraint;
+        }
+
+        #! creates the object from the name, a unique flag, and a hash of column information
         constructor(string n, bool u, hash c) {
             name = n;
             unique = u;
@@ -833,7 +839,7 @@ my AbstractIndex $ix = $indexes.pk_jobs;
         #! returns a string that can be used to create the index in the database
         abstract string getCreateSql(string table_name, *hash opt);
 
-        #! returns a string that can be used to drop the constraint from the database
+        #! returns a string that can be used to drop the index from the database
         string getDropSql(string table_name) {
             return sprintf("drop index %s", name);
         }
@@ -854,6 +860,35 @@ my AbstractIndex $ix = $indexes.pk_jobs;
 
         #! returns a string that can be used to rename the index in the database
         abstract string getRenameSql(string table_name, string new_name);
+
+        #! tags the index with a unique constraint that the index supports
+        setSupportingConstraint(AbstractUniqueConstraint c) {
+            constraint = c;
+        }
+
+        #! returns a list of strings to drop and recreate the current index; if there are dependent constraints, the list contains commands to disable the constraints before dropping the index and also contains commands to re-enable the contraints after re-creating the index
+        list getRecreateSql(string table_name, *hash opt) {
+            list l = ();
+            list enl;
+            # get drop SQL and disable any dependent constraints plus a list of strings to re-enable the constraints
+            if (constraint) {
+                hash drh = constraint.getDisableReenableSql(table_name, opt);
+                l += drh.disable;
+                enl = drh.enable;
+            }
+
+            ## drop current index
+            l += getDropSql(table_name);
+
+            # add new index to table
+            l += getCreateSql(table_name, opt);
+
+            # re-enable any constraints disabled when dropping the index
+            if (enl)
+                l += enl;
+
+            return l;
+        }
     }
 
     #! constraint container class that throws an exception if an unknown constraint is accessed
@@ -921,6 +956,16 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         #! returns a string that can be used to rename the constraint in the database
         abstract string getRenameSql(string table_name, string new_name);
 
+        #! returns a string that can be used to temporarily disable the constraint from the database; if disabling constraints is not supported, then the constraint will be dropped
+        string getDisableSql(string table_name) {
+            return getDropSql(table_name);
+        }
+
+        #! returns a string that can be used to enable the constraint in the database; if disabling constraints is not supported, then the constraint will be dropped
+        string getEnableSql(string table_name, *hash opt) {
+            return getCreateSql(table_name, opt);
+        }
+
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
         bool equal(AbstractConstraint c) {
             if (c.className() != self.className() || name != c.name)
@@ -959,6 +1004,12 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
 
     #! represents a unique column constraint
     public class AbstractUniqueConstraint inherits AbstractConstraint, Columns {
+        private {
+            # a hash of ForeignConstraintSources, keyed by table name, the value is a hash of foreign constraints keyed by constraint name
+            hash sourceConstraints;
+        }
+
+        #! creates the object from the name an a hash of column information
         constructor(string n, *hash c) : AbstractConstraint(n), Columns(c) {
         }
 
@@ -969,19 +1020,70 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         bool equalImpl(AbstractConstraint c) {
             return (self.keys() != cast<AbstractUniqueConstraint>(c).keys()) ? False : True;
         }
+
+        #! returns lists of SQL strings to disable this constraint plus any dependent constraints and another list of SQL strings to reenable the same constraints; used when updating indexes that depend on constraints
+        hash getDisableReenableSql(string table_name, *hash opts) {
+            hash ch = (
+                "disable": (),
+                "enable": (),
+                );
+
+            foreach hash sch in (sourceConstraints.pairIterator()) {
+                foreach AbstractForeignConstraint fk in (sch.value.iterator()) {
+                    ch.disable += fk.getDisableSql(sch.key);
+                    unshift ch.enable, fk.getEnableSql(sch.key, opts);
+                }
+            }
+            
+            ch.disable += getDisableSql(table_name);
+            unshift ch.enable, getEnableSql(table_name, opts);
+
+            return ch;
+        }
+
+        #! find an index that matches the constraint and marks both objects as related
+        findMatchingIndex(Indexes indexes) {
+            # see if the primary key corresponds to a unique index with the same name & columns
+            if (indexes.hasKey(name)) {
+                AbstractIndex ix = indexes{name};
+                if (ix.columns.matchKeys(h) && setIndexBase(ix.name))
+                    ix.setSupportingConstraint(self);
+            }
+            else {
+                # search for an index with matching columns
+                # FIXME: should look for best match (however having duplicate indexes on the same columns, one unique, one not unique, would be a pretty bad DB design)
+                foreach AbstractIndex ix in (indexes.iterator()) {
+                    if (ix.columns.matchKeys(h)) {
+                        if (setIndexBase(ix.name))
+                            ix.setSupportingConstraint(self);
+                        break;
+                    }
+                }
+            }
+        }
+
+        #! adds a foreign constraint source to the unique constraint
+        /** @par Example:
+            @code
+$uk.addSourceConstraint($table_name, constraint_name);
+            @endcode
+
+            @param tname the name of the source table
+            @param cname the name of the source constraint
+
+            @throw SOURCE-CONSTRAINT-ERROR a different source constraint with the given name already exists
+        */
+        addSourceConstraint(string tname, AbstractForeignConstraint fk) {
+            if (sourceConstraints{tname}{fk.getName()})
+                throw "SOURCE-CONSTRAINT-ERROR", sprintf("unique constraint %y: already has a source constraint from table %y from foreign constraint %y", name, tname, fk.getName());
+            sourceConstraints{tname}{fk.getName()} = fk;
+            #printf("added source constraint to %y: %s.%s\n", name, tname, fk.getName());
+        }
     }
 
     #! represents a primary key
-    public class AbstractPrimaryKey inherits AbstractConstraint, Columns {
-        constructor(string n, *hash c) : AbstractConstraint(n), Columns(c) {
-        }
-
-        #! returns a string that can be used to create the primary key in the database
-        abstract string getCreateSql(string table_name, *hash opts);
-
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equalImpl(AbstractConstraint pk) {
-            return (self.keys() != cast<AbstractPrimaryKey>(pk).keys()) ? False : True;
+    public class AbstractPrimaryKey inherits AbstractUniqueConstraint {
+        constructor(string n, *hash c) : AbstractUniqueConstraint(n, c) {
         }
     }
 
@@ -1473,6 +1575,11 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
             foreach string k in (opt.keyIterator()) {
                 if (!ropt.hasKey(k))
                     throw err, sprintf("%s: unknown option %y; valid options for %y: %y", tag, k, self.className(), ropt.keys());
+                
+                if (!exists opt{k}) {
+                    delete opt{k};
+                    continue;
+                }
 
                 switch (ropt{k}) {
                     case Type::Int: {
@@ -1523,12 +1630,18 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
         public {
             #! database options
             const DatabaseOptions = (
-                "native-case": Type::Boolean,
+                "native_case": Type::Boolean,
+                );
+
+            #! generic cache options
+            const CacheOptions = (
+                "table_cache": Type::Hash,
                 );
 
             #! default generic creation options
             const CreationOptions = (
                 "replace": Type::Boolean,
+                "table_cache": Type::Hash,
                 );
         }
 
@@ -1545,7 +1658,7 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
          */
         private constructor(AbstractDatasource nds, *hash nopts) : AbstractSqlUtilBase(nds, nopts) {
             validateOptionsIntern("OPTION-ERROR", getDatabaseOptions(), \nopts);
-            if (nopts."native-case")
+            if (nopts.native_case)
                 native_case = True;
         }
 
@@ -1776,6 +1889,11 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
             return CreationOptions;
         }
 
+        #! override in subclasses to return driver-specific options
+        private hash getCacheOptions() {
+            return CacheOptions;
+        }
+
         abstract *AbstractFunction getFunctionImpl(string name);
         abstract *AbstractFunction getProcedureImpl(string name);
 
@@ -1886,6 +2004,11 @@ my Table $table("pgsql:user/pass@db%host", "table");
         #! gets the underlying AbstractDatasource
         AbstractDatasource getDatasource() {
             return t.getDatasource();
+        }
+
+        #! returns the AbstractTable object contained by this object
+        AbstractTable getTable() {
+            return t;
         }
 
         #! executes a method on the contained AbstractTable object
@@ -2720,9 +2843,11 @@ my *list $rows = $table.find($list);
             @code
 $table.cache();
             @endcode
+
+            @param opts cache options; see @ref AbstractTable::CacheOptions for common options; each driver can support additional driver-specific options
         */
-        cache() {
-            t.cache();
+        cache(*hash opts) {
+            t.cache(opts);
         }
 
         #! returns an object of class Columns describing the Table
@@ -2780,8 +2905,8 @@ my Triggers $trig = $table.getTriggers();
         }
 
         #! returns a ForeignConstraints object describing the foreign constraints that the table has on other tables
-        ForeignConstraints getForeignConstraints() {
-            return t.getForeignConstraints();
+        ForeignConstraints getForeignConstraints(*hash opt) {
+            return t.getForeignConstraints(opt);
         }
 
         #! returns a Constraints object describing non-foreign constraints on the table
@@ -2800,7 +2925,8 @@ my Triggers $trig = $table.getTriggers();
         public {
             #! table options
             const TableOptions = (
-                "native-case": Type::Boolean,
+                "native_case": Type::Boolean,
+                "table_cache": Type::Hash,
                 );
 
             #! default index options
@@ -2812,8 +2938,15 @@ my Triggers $trig = $table.getTriggers();
             #! default constraint options
             const ConstraintOptions = IndexOptions;
 
+            #! default cache options
+            const CacheOptions = (
+                "table_cache": Type::Hash,
+                );
+
             #! default foreign constraint options
-            const ForeignConstraintOptions = ConstraintOptions;
+            const ForeignConstraintOptions = ConstraintOptions + (
+                "table_cache": Type::Hash,
+                );
 
             #! default trigger options
             const TriggerOptions = AbstractDatabase::CreationOptions;
@@ -2829,6 +2962,7 @@ my Triggers $trig = $table.getTriggers();
                 "index_map": Type::Hash,
                 "constraint_map": Type::Hash,
                 "trigger_map": Type::Hash,
+                "db_table_cache": Type::Hash,
                 );
 
             #! Table description options
@@ -2840,6 +2974,7 @@ my Triggers $trig = $table.getTriggers();
                 "foreign_constraints": Type::Hash,
                 "unique_constraints": Type::Hash,
                 #"check_constraints": Type::Hash,
+                "table_cache": Type::Hash,
                 );
 
             #! Column options
@@ -2898,7 +3033,7 @@ my Triggers $trig = $table.getTriggers();
 
         private doTableOptions(*hash nopts) {
             validateOptionsIntern("OPTION-ERROR", getTableOptions(), \nopts);
-            if (nopts."native-case")
+            if (nopts.native_case)
                 native_case = True;
         }
 
@@ -3065,6 +3200,9 @@ $table.rename("old_name", "new_name");
             if (!emptyUnlocked())
                 throw "DESCRIPTION-ERROR", sprintf("%s: cannot set up a non-empty table from a hash description", name);
 
+            # add current table to cache
+            opt.table_cache{name} = self;
+
             string drv = ds.getDriverName();
 
             # extract column options
@@ -3102,14 +3240,7 @@ $table.rename("old_name", "new_name");
                 if (!desc.primary_key.name || desc.primary_key.name.typeCode() != NT_STRING)
                     throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for 'name' key in primary_key hash: %y", name, desc.primary_key);
                 
-                AbstractPrimaryKey pk = addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getConstraintOptions().keys()));
-
-                # see if the primary key corresponds to a unique index with the same name & columns
-                if (indexes.hasKey(pk.getName())) {
-                    AbstractIndex ix = cast<AbstractIndex>(indexes{pk.getName()});
-                    if (ix.columns.matchKeys(pk))
-                        pk.setIndexBase(ix.name);
-                }
+                addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getConstraintOptions().keys()));
             }
 
             # add unique constraints to table
@@ -3123,13 +3254,7 @@ $table.rename("old_name", "new_name");
                 if (!ch.columns || !inlist(ch.columns.typeCode(), (NT_LIST, NT_STRING)))
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for unique constraint %y is not a list or a string, got type %y instead (%y)", name, un, ch.columns.type(), ch.columns);
                 
-                AbstractUniqueConstraint uk = addUniqueConstraintUnlocked(un, ch.columns, opt.(getConstraintOptions().keys()));
-                # see if the unique key corresponds to a unique index with the same name & columns
-                if (indexes.hasKey(uk.getName())) {
-                    AbstractIndex ix = cast<AbstractIndex>(indexes{uk.getName()});
-                    if (ix.columns.matchKeys(uk))
-                        uk.setIndexBase(ix.name);
-                }
+                addUniqueConstraintUnlocked(un, ch.columns, opt.(getConstraintOptions().keys()));
             }
             
             # add foreign constraints to table
@@ -3379,6 +3504,8 @@ printf("%s;\n", $sql);
 
         private AbstractPrimaryKey addPrimaryKeyUnlocked(string pkname, softlist cols, *hash opt, *reference sql) {
             getColumnsUnlocked();
+            if (!manual)
+                getIndexesUnlocked();
 
             # load constraints if needed, verify unique constraint name, validate/process options
             checkUniqueConstraintNameValidateOptions("PRIMARY-KEY-ERROR", pkname, getConstraintOptions(), \opt);
@@ -3402,6 +3529,9 @@ printf("%s;\n", $sql);
             # get the new primary key object
             AbstractPrimaryKey pk = addPrimaryKeyImpl(pkname, ch, opt);
             
+            # find matching index for unique constraint
+            pk.findMatchingIndex(indexes);
+
             # add pk to table if the table already exists in the DB
             execSql(sql = pk.getCreateSql(getSqlName()));
 
@@ -3468,6 +3598,10 @@ printf("%s;\n", $sql);
         }
 
         private AbstractUniqueConstraint addUniqueConstraintUnlocked(string cname, softlist cols, *hash opt, *reference sql) {
+            getColumnsUnlocked();
+            if (!manual)
+                getIndexesUnlocked();
+
             # load constraints if needed, verify unique constraint name, validate/process options
             checkUniqueConstraintNameValidateOptions("UNIQUE-CONSTRAINT-ERROR", cname, getConstraintOptions(), \opt);
 
@@ -3487,6 +3621,9 @@ printf("%s;\n", $sql);
             # get the new constraint object
             AbstractUniqueConstraint c = addUniqueConstraintImpl(cname, ch, opt);
             
+            # find matching index for unique constraint
+            c.findMatchingIndex(indexes);
+
             # add foreign constraint to table in the DB if the table already exists in the DB
             execSql(sql = c.getCreateSql(getSqlName()));
 
@@ -3676,7 +3813,23 @@ printf("%s;\n", $sql);
             return addForeignConstraintUnlocked(cname, cols, table, tcols, opt, \sql);
         }
 
-        AbstractForeignConstraint addForeignConstraintUnlocked(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {              getColumnsUnlocked();
+        private Columns getReferencedTableColumnsUnlocked(string table, reference cache, string err = "FOREIGN-CONSTRAINT-ERROR") {
+            if (table == name) {
+                getColumnsUnlocked();
+                return columns;
+            }
+            if (cache{table}) {
+                if (cache{table} instanceof Table)
+                    return cache{table}.getTable().describe();
+                else if (cache{table} instanceof AbstractTable)
+                    return cache{table}.describe();
+                throw err, sprintf("cached table %y is not a Table or AbstractTable object; got %y instead (%y)", table, cache{table}.type(), cache{table});
+            }
+            return (cache{table} = new Table(ds, table).getTable()).describe();
+        }
+
+        private AbstractForeignConstraint addForeignConstraintUnlocked(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
+            getColumnsUnlocked();
             # load constraints if needed, verify unique constraint name, validate/process options
             checkUniqueConstraintNameValidateOptions("FOREIGN-CONSTRAINT-ERROR", cname, getForeignConstraintOptions(), \opt);
 
@@ -3697,8 +3850,7 @@ printf("%s;\n", $sql);
                 tcols = ch.keys();
 
             # get target table description
-            Table targ(ds, table);
-            Columns targ_cols = targ.describe();
+            Columns targ_cols = getReferencedTableColumnsUnlocked(table, \opt.table_cache);
             hash tch;
             while (tcols) {
                 any v = shift tcols;
@@ -3710,18 +3862,22 @@ printf("%s;\n", $sql);
             }
 
             # get the new foreign constraint object
-            AbstractForeignConstraint fc = addForeignConstraintImpl(cname, ch, table, tch, opt);
+            AbstractForeignConstraint fk = addForeignConstraintImpl(cname, ch, table, tch, opt);
             
             # add foreign constraint to table in the DB if the table already exists in the DB
-            execSql(sql = fc.getCreateSql(getSqlName()));
+            execSql(sql = fk.getCreateSql(getSqlName()));
+
+            # update cached tables with foreign constraint source info
+            if (opt.table_cache{fk.target.table})
+                opt.table_cache{fk.target.table}.addSourceConstraint(getSqlName(), fk);
 
             # set as foreign constraint for the table
             if (!foreignConstraints)
                 foreignConstraints = new ForeignConstraints();
-            foreignConstraints.add(cname, fc);
+            foreignConstraints.add(cname, fk);
 
             # return the new foreign constraint
-            return fc;
+            return fk;
         }
 
         #! drops a foreign constraint from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
@@ -3968,7 +4124,7 @@ printf("%s;\n", $sql);
 
         private AbstractTrigger addTriggerUnlocked(string tname, string src, *hash opt, *reference lsql) {
             # load triggers if needed
-            if (inDb || !manual)
+            if (!manual)
                 getTriggersUnlocked();
 
             # verify unique trigger name
@@ -4027,12 +4183,12 @@ $table.dropTrigger("trig_mytable");
             return triggers.take(tname);
         }
 
-        private getAllConstraintsUnlocked() {
-            if (!inDb && manual)
+        private getAllConstraintsUnlocked(*hash opt) {
+            if (manual)
                 return;
 
             getPrimaryKeyUnlocked();
-            getForeignConstraintsUnlocked();
+            getForeignConstraintsUnlocked(opt);
             getConstraintsUnlocked();
         }
 
@@ -4270,11 +4426,13 @@ my string $str = $table.getSqlValue($date);
             @code
 $table.cache();
             @endcode
+
+            @param opts cache options; see @ref AbstractTable::CacheOptions for common options; each driver can support additional driver-specific options
         */
-        cache() {
+        cache(*hash opts) {
             l.lock();
             on_exit l.unlock();
-            cacheUnlocked();
+            cacheUnlocked(opts);
         }
 
         #! returns an object of class Columns describing the table
@@ -4326,10 +4484,10 @@ my Indexes $ix = $table.getIndexes();
         }
 
         #! returns a ForeignConstraints object describing the foreign constraints that the table has on other tables
-        ForeignConstraints getForeignConstraints() {
+        ForeignConstraints getForeignConstraints(*hash opt) {
             l.lock();
             on_exit l.unlock();
-            getForeignConstraintsUnlocked();
+            getForeignConstraintsUnlocked(opt);
             return foreignConstraints;
         }
 
@@ -4392,8 +4550,8 @@ printf("%s\n", $table.getCreateSql());
             l.lock();
             on_exit l.unlock();
 
-            if (!inDb && !manual)
-                cacheUnlocked();
+            if (!manual)
+                cacheUnlocked(opt);
 
             return getCreateSqlImpl(getCreateSqlUnlocked(opt));
         }
@@ -4412,8 +4570,8 @@ map printf("$1;\n", $1), $table.getCreateSql();
         list getCreateSql(*hash opt, bool cache = True) {
             l.lock();
             on_exit l.unlock();
-            if (!inDb && !manual)
-                cacheUnlocked();
+            if (!manual)
+                cacheUnlocked(opt);
             return getCreateSqlUnlocked(opt, cache);
         }
 
@@ -4465,14 +4623,17 @@ my list $l = $table.getAlignSql($table2);
             on_exit t.l.unlock();
             
             # cache tables if not already cached
-            if (!inDb && !manual) {
+            if (!manual) {
                 # if the table does not exist, then just return the create table strings for the template table
                 if (!checkExistenceImpl())
                     return t.getCreateSqlUnlocked(opt, False);
-                cacheUnlocked();
+                # use db_table_cache for table_cache when caching DB objects
+                *hash db_opt = opt;
+                db_opt.table_cache = remove db_opt.db_table_cache;
+                cacheUnlocked(db_opt);
             }
-            if (!t.inDb && !t.manual)
-                t.cacheUnlocked();
+            if (!t.manual)
+                t.cacheUnlocked(opt);
 
             if (!t.columns || t.columns.empty())
                 throw "ALIGN-TABLE-ERROR", sprintf("cannot align table %y with table %y: table %y has no columns", name, t.name, t.name);
@@ -4528,10 +4689,7 @@ my list $l = $table.getAlignSql($table2);
                     l += ix.getCreateSql(getSqlName(), opt);
                 }
                 else if (!ix.equal(indexes_copy{ix.name})) {
-                    # drop current index
-                    l += indexes_copy{ix.name}.getDropSql(getSqlName());
-                    # add new index to table
-                    l += ix.getCreateSql(getSqlName(), opt);
+                    l += ix.getRecreateSql(getSqlName(), opt);
                 }
             }
 
@@ -4542,15 +4700,19 @@ my list $l = $table.getAlignSql($table2);
                     # in which case update the constraint to be based on the index and do not drop the index
                     if (ix.unique) {
                         if (t.primaryKey && t.primaryKey.matchKeys(ix.columns)) {
-                            if (t.primaryKey.setIndexBase(ix.name))
+                            if (t.primaryKey.setIndexBase(ix.name)) {
+                                ix.setSupportingConstraint(primaryKey);
                                 continue;
+                            }
                         }
                         else {
                             # see if a unique constraint with the same name and columns exists
                             if (t.constraints.hasKey(ix.name) && t.constraints{ix.name} instanceof AbstractUniqueConstraint) {
                                 AbstractUniqueConstraint uk = cast<AbstractUniqueConstraint>(t.constraints{ix.name});
-                                if (uk.matchKeys(ix.columns) && uk.setIndexBase(ix.name))
+                                if (uk.matchKeys(ix.columns) && uk.setIndexBase(ix.name)) {
+                                    ix.setSupportingConstraint(uk);
                                     continue;
+                                }
                             }
                         }
                     }
@@ -4903,7 +5065,7 @@ my *list $rows = $table.find($list);
 
         private *list getCreateForeignConstraintsSqlUnlocked(*hash opt, bool cache = True) {
             if (cache)
-                getForeignConstraintsUnlocked();
+                getForeignConstraintsUnlocked(opt);
             if (!foreignConstraints)
                 return;
             return getCreateForeignConstraintsSqlImpl(opt);
@@ -4941,11 +5103,11 @@ my *list $rows = $table.find($list);
             return l;
         }
 
-        private cacheUnlocked() {
+        private cacheUnlocked(*hash opt) {
             getColumnsUnlocked();
             getPrimaryKeyUnlocked();
             getIndexesUnlocked();
-            getForeignConstraintsUnlocked();
+            getForeignConstraintsUnlocked(opt);
             getConstraintsUnlocked();
             getTriggersUnlocked();
         }
@@ -4995,35 +5157,84 @@ my *list $rows = $table.find($list);
                 return;
             getColumnsUnlocked();
             primaryKey = getPrimaryKeyImpl();
+
+            # get indexes
+            if (!manual && !indexes)
+                indexes = getIndexesImpl();
+
+            if (!primaryKey.empty())
+                primaryKey.findMatchingIndex(indexes);
+
             inDb = True;
         }
 
+        # also loads primary key and constraints (for unique constraints)
         private getIndexesUnlocked() {
             if (indexes)
                 return;
             # make sure columns are loaded
             getColumnsUnlocked();
-            # make sure any primary key is loaded
-            getPrimaryKeyUnlocked();
-            # make sure constraints are also loaded
-            getConstraintsUnlocked();
+            if (!manual) {
+                # make sure any primary key is loaded
+                getPrimaryKeyUnlocked();
+                # make sure constraints are also loaded
+                getConstraintsUnlocked();
+            }
             indexes = getIndexesImpl();
             inDb = True;
         }
 
-        private getForeignConstraintsUnlocked() {
+        private getForeignConstraintsUnlocked(*hash opt) {
             if (foreignConstraints)
                 return;
             getColumnsUnlocked();
-            foreignConstraints = getForeignConstraintsImpl();
+            foreignConstraints = getForeignConstraintsImpl(opt);
+
+            # update cached tables with foreign constraint source info
+            if (opt.table_cache) {
+                foreach AbstractForeignConstraint fk in (foreignConstraints.iterator())
+                    opt.table_cache{fk.target.table}.addSourceConstraint(getSqlName(), fk);
+            }
             inDb = True;
+        }
+
+        private addSourceConstraint(string table_name, AbstractForeignConstraint fk) {
+            bool lock = !l.lockOwner();
+            if (lock) l.lock();
+            on_exit if (lock) l.unlock();
+
+            # find unique constraint with the given columns
+            if (primaryKey && primaryKey.matchKeys(fk.target.columns)) {
+                primaryKey.addSourceConstraint(table_name, fk);
+                return;
+            }
+            foreach AbstractConstraint c in (constraints.iterator()) {
+                if (!(c instanceof AbstractUniqueConstraint))
+                    continue;
+                AbstractUniqueConstraint uk = cast<AbstractUniqueConstraint>(c);
+                if (uk.matchKeys(fk.target.columns)) {
+                    uk.addSourceConstraint(table_name, fk);
+                    return;
+                }
+            }
         }
 
         private getConstraintsUnlocked() {
             if (constraints)
                 return;
             getColumnsUnlocked();
-            constraints = getConstraintsImpl();            
+            constraints = getConstraintsImpl();
+            # get indexes
+            if (!manual && !indexes)
+                indexes = getIndexesImpl();
+
+            foreach AbstractConstraint c in (constraints.iterator()) {
+                if (!(c instanceof AbstractUniqueConstraint))
+                    continue;
+                AbstractUniqueConstraint uk = cast<AbstractUniqueConstraint>(c);
+                uk.findMatchingIndex(indexes);
+            }
+
             inDb = True;
         }
 
@@ -5047,6 +5258,11 @@ my *list $rows = $table.find($list);
         #! override in subclasses to return driver-specific options
         private hash getConstraintOptions() {
             return ConstraintOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getCacheOptions() {
+            return CacheOptions;
         }
 
         #! override in subclasses to return driver-specific options
@@ -5087,7 +5303,7 @@ my *list $rows = $table.find($list);
         private abstract Columns describeImpl();
         private abstract *AbstractPrimaryKey getPrimaryKeyImpl();
         private abstract Indexes getIndexesImpl();
-        private abstract ForeignConstraints getForeignConstraintsImpl();
+        private abstract ForeignConstraints getForeignConstraintsImpl(*hash opt);
         private abstract Constraints getConstraintsImpl();
         private abstract Triggers getTriggersImpl();
 

@@ -792,7 +792,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return new Indexes(rv);
         }
 
-        private ForeignConstraints getForeignConstraintsImpl() {
+        private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
             hash rv;
 
             # get foreign referential constraints
@@ -806,14 +806,10 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     c.target.columns.(row.target_column) = True;
                 }
                 
-                # temporary foreign table buffer hash
-                hash fth;
                 foreach hash c in (ch.pairIterator()) {
-                    # get a description of the target table for the target column descriptions
-                    if (!fth{c.value.target.table})
-                        fth{c.value.target.table} = new PgsqlTable(ds, c.value.target.table);
-                    
-                    ForeignConstraintTarget fct(c.value.target.table, fth{c.value.target.table}.describe().subset(c.value.target.columns.keys()));
+                    # get a description of the target table's columns
+                    Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, \opts.table_cache);
+                    ForeignConstraintTarget fct(c.value.target.table, targ_columns.subset(c.value.target.columns.keys()));
                     rv.(c.key) = new PgsqlForeignConstraint(c.key, new Columns(c.value.columns), fct);
                 }
             }
