@@ -368,7 +368,6 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag) {
    return 0;
 }
 
-// can also be called with this = 0
 void StatementBlock::parseInit(UserVariantBase *uvb) {
    QORE_TRACE("StatementBlock::parseInit");
 
@@ -377,30 +376,24 @@ void StatementBlock::parseInit(UserVariantBase *uvb) {
    UserParamListLocalVarHelper ph(uvb);
 
    // initialize code block
-   if (this)
-      parseInitImpl(0);
+   parseInitImpl(0);
 
    parseCheckReturn();
 }
 
-// can also be called with this = 0
 void StatementBlock::parseCheckReturn() {
    const QoreTypeInfo *returnTypeInfo = getReturnTypeInfo();
    if (returnTypeInfo->hasType() && !returnTypeInfo->parseAccepts(nothingTypeInfo)) {
       // make sure the last statement is a return statement if the block has a return type
-      if (!this || statement_list.empty() || !(*statement_list.last())->hasFinalReturn()) {
+      if (statement_list.empty() || !(*statement_list.last())->hasFinalReturn()) {
 	 QoreStringNode* desc = new QoreStringNode("this code block has declared return type ");
 	 returnTypeInfo->getThisType(*desc);
 	 desc->concat(" but does not have a return statement as the last statement in the block");
-	 if (!this)
-	    qore_program_private::makeParseException(getProgram(), "MISSING-RETURN", desc);
-	 else
-	    qore_program_private::makeParseException(getProgram(), QoreProgramLocation(loc), "MISSING-RETURN", desc);
+	 qore_program_private::makeParseException(getProgram(), loc, "MISSING-RETURN", desc);
       }
    }
 }
 
-// can also be called with this=NULL
 void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserVariantBase *uvb) {
    QORE_TRACE("StatementBlock::parseInitMethod");
 
@@ -409,13 +402,11 @@ void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserVariantBa
    UserParamListLocalVarHelper ph(uvb, typeInfo);
 
    // initialize code block
-   if (this)
-      parseInitImpl(uvb->getUserSignature()->selfid);
+   parseInitImpl(uvb->getUserSignature()->selfid);
 
    parseCheckReturn();
 }
 
-// can also be called with this=NULL
 void StatementBlock::parseInitConstructor(const QoreTypeInfo *typeInfo, UserVariantBase *uvb, BCAList *bcal, BCList *bcl) {
    QORE_TRACE("StatementBlock::parseInitConstructor");
 
@@ -433,11 +424,9 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo *typeInfo, UserVari
    }
 
    // initialize code block
-   if (this)
-      parseInitImpl(uvb->getUserSignature()->selfid);
+   parseInitImpl(uvb->getUserSignature()->selfid);
 }
 
-// can also be called with this=NULL
 void StatementBlock::parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
    QORE_TRACE("StatementBlock::parseInitClosure");
 
@@ -445,16 +434,12 @@ void StatementBlock::parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *
    UserParamListLocalVarHelper ph(uvb, classTypeInfo);
 
    // initialize code block
-   if (this)
-      parseInitImpl(uvb->getUserSignature()->selfid);
+   parseInitImpl(uvb->getUserSignature()->selfid);
    parseCheckReturn();
 }
 
-// never called with this=0
 void TopLevelStatementBlock::parseInit(int64 po) {
    QORE_TRACE("TopLevelStatementBlock::parseInit");
-
-   assert(this);
 
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d\n", &rns, first);
 
