@@ -1243,8 +1243,9 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
         bool equal(AbstractFunctionBase t) {
-            if (self.className() != t.className() || name != t.name || type != t.type)
+            if (self.className() != t.className() || name != t.name || type != t.type) {
                 return False;
+            }
 
             string src1 = src;
             src1 =~ s/\n/ /g;
@@ -1732,12 +1733,12 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
                 "tables": Type::Hash,
                 "sequences": Type::Hash,
                 #"views": Type::Hash,
-                #"functions": Type::Hash,
+                "functions": Type::Hash,
                 #"procedures": Type::Hash,
                 "table_map": Type::Hash,
                 "sequence_map": Type::Hash,
                 #"view_map": Type::Hash,
-                #"function_map": Type::Hash,
+                "function_map": Type::Hash,
                 #"procedure_map": Type::Hash,
                 );
 
@@ -1863,6 +1864,54 @@ my list $l = $db.getAlignSql($schema_hash);
                 tl = t.getAlignSql(opt.table_cache{name}, opt + schema_hash.tables{name}.rename + ("table_cache": opt.table_cache, "db_table_cache": opt.db_table_cache));
                 if (tl)
                     l += tl;
+            }
+
+            hash function_cache;
+
+            # rename any functions
+            AbstractDatabase::checkDriverOptions(\schema_hash.function_map, drv);
+            foreach hash fh in (schema_hash.function_map.pairIterator()) {
+                if (fh.value.typeCode() != NT_STRING)
+                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("function_map %y value is not a string in the schema description hash; got type %y instead (%y)", fh.key, fh.value.type(), fh.value);
+
+                *AbstractFunction f = getFunction(fh.key);
+                if (f) {
+                    l += f.getRenameSql(fh.value);
+                    # add to function cache
+                    f.name = fh.value;
+                    function_cache{fh.value} = f;
+                }
+            }
+
+            hash copt = getCreationOptions();
+
+            # create any missing functions; replace updated functions
+            AbstractDatabase::checkDriverOptions(\schema_hash.functions, drv);
+            foreach string name in (schema_hash.functions.keyIterator()) {
+                if (schema_hash.functions{name}.typeCode() != NT_STRING)
+                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("function %y value is not a source string in the schema description hash; got type %y instead (%y)", name, schema_hash.functions{name}.type(), schema_hash.functions{name});
+
+                # make template function
+                AbstractFunction templateFunc = makeFunction(name, schema_hash.functions{name}, opt.(copt.keys()));
+
+                # see if sequence exists
+                *AbstractFunction f;
+                if (function_cache{name})
+                    f = function_cache{name};
+                else {
+                    f = getFunction(name);
+                    if (!f) {
+                        l += templateFunc.getCreateSql(opt);
+                        continue;
+                    }
+                }
+
+                if (!templateFunc.equal(f)) {
+                    #printf("%N\nXXXXXXXXXXXXXXX\n%N\n", templateFunc, f);
+
+                    l += f.getDropSql();
+                    l += templateFunc.getCreateSql(opt);
+                }
             }
 
             # call driver-specifc align schema sql function

@@ -571,7 +571,43 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         private PgsqlFunction makeFunctionImpl(string name, string src, *hash opts) {
             string nc = name;
+
+            trim src;
+
+            # change $ quoting to standard form
+            *string dq = (src =~ x/as (\$.*\$)/i)[0];
+            if (dq)
+                src = replace(src, dq, "$function\$");
+
+            # move trailing "language xxx" and type to start of declaration
+            if (src =~ / as /i) {
+               *string type = (src =~ x/(stable|volatile|immutable)$/)[0];
+               if (type)
+                   splice src, -(type.size() + 1);
+
+               *string tlang = (src =~ x/language (.*)$/i)[0];
+               if (tlang) {
+                   src =~ s/language .*$//i; 
+                   src = regex_subst(src, " as ", " language " + tlang + " as ", RE_Caseless);
+               }
+               if (type)
+                   src = regex_subst(src, " as ", " " + type + " as ", RE_Caseless);
+            }
+
             *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
+
+            if (args) {
+                # remove " in " in arg list & name since it's the default and not returned by pg_get_function_identity_arguments()
+                args =~ s/ in / /ig;
+
+                # replace verbose type names with short type names
+                foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                    args = replace(args, h.key, h.value);
+                }
+
+                # use our args in name
+                name = regex_subst(name, "\\((.*)\\)", "(" + args + ")");
+            }
 
             trim src;
             return new PgsqlFunction(name, src, args);
@@ -599,14 +635,18 @@ my string $str = $col.getRenameSql($t, "new_name");
                 nc = name.substr(0, name.find('('));
                 # replace common type names with verbose type names as stored in postgresql
                 if (args) {
-                    foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator())
-                        args = replace(args, h.value, h.key);
+                    foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                        args = regex_subst(args, " " + h.value + "(,|$)", " " + h.key + "$1", RE_Caseless|RE_Global);
+                    }
+                    # remove " in " in argument list since it's the default and not returned by pg_get_function_identity_arguments()
+                    args =~ s/ in / /ig;
                 }
 
-                qh = ds.selectRow("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_identity_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v and pg_catalog.pg_get_function_identity_arguments(proname::regproc) = %v", nc, args);
+                qh = ds.selectRow("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(p.oid) hdr, pg_catalog.pg_get_function_identity_arguments(p.oid) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v and pg_catalog.pg_get_function_identity_arguments(p.oid) = %v", nc, args);
                 if (!qh)
                     return;
             }
+
             return PgsqlDatabase::processFunction(qh, native_case);
         }
 
@@ -640,14 +680,36 @@ my string $str = $col.getRenameSql($t, "new_name");
             # get and remove arguments
             *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \row.hdr);
 
+            if (args) {
+                # replace verbose type names with short type names
+                foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                    args = replace(args, h.key, h.value);
+                }
+            }
+
+            # fix return type
+            *string rt = (row.hdr =~ x/returns (.*)/i)[0];
+            if (rt) {
+                string ort;
+                # replace verbose type names with short type names
+                foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                    rt = replace(rt, h.key, h.value);
+                }
+                if (ort != rt)
+                    row.hdr = regex_subst(row.hdr, "returns .*", "returns " + rt, RE_Caseless);
+            }
+
             #printf("args: %y\n", args);
             if (!native_case) {
                 row.hdr =~ s/^RETURNS /returns /;
+                row.hdr =~ s/ SETOF / setof /;
                 row.hdr =~ s/\n LANGUAGE / language /;
+                row.hdr =~ s/\n STABLE/ stable/;
+                row.hdr =~ s/\n IMMUTABLE/ immutable/;
                 row.hdr =~ s/\nAS / as /;
             }
 
-            string name = sprintf("%s(%s)", row.proname, row.args);
+            string name = sprintf("%s(%s)", row.proname, args);
             return new PgsqlFunction(name, row.hdr, args);
         }
 
