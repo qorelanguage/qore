@@ -1610,6 +1610,7 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
         }
     }
 
+    #! base class for abstract SqlUtil classes
     public class AbstractSqlUtilBase {
         private {
             #! the connection to the database server
@@ -1788,15 +1789,22 @@ my list $l = $db.getAlignSql($schema_hash);
             string drv = getDriverName();
             AbstractDatabase::checkDriverOptions(\schema_hash, drv);
 
+            # call driver-specifc align schema sql function
+            list tl = getAlignSqlImpl(schema_hash, opt + ("start": True));
+            if (tl) l += tl;
+
             # rename any sequences
             AbstractDatabase::checkDriverOptions(\schema_hash.sequence_map, drv);
             foreach hash sh in (schema_hash.sequence_map.pairIterator()) {
+                if (sh.value.typeCode() != NT_STRING)
+                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("sequence_map %y value is not a string in the schema description hash; got type %y instead (%y)", sh.key, sh.value.type(), sh.value);
+
                 *AbstractSequence seq = getSequence(sh.key);
-                if (!seq)
-                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("sequence %y: cannot be renamed to %y because it does not exist", sh.key, sh.value);
-                l += seq.getRenameSql(sh.value);
-                # remove sequence from list since we know it exists
-                remove schema_hash.sequences{sh.value};
+                if (seq) {
+                    l += seq.getRenameSql(sh.value);
+                    # remove sequence from list since we know it exists
+                    remove schema_hash.sequences{sh.value};
+                }
             }
 
             # create any missing sequences
@@ -1829,10 +1837,15 @@ my list $l = $db.getAlignSql($schema_hash);
 
             # rename any tables
             AbstractDatabase::checkDriverOptions(\schema_hash.table_map, drv);
-            foreach hash th in (schema_hash.table_map) {
+            foreach hash th in (schema_hash.table_map) {                
+                if (th.value.typeCode() != NT_STRING)
+                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("table_map %y value is not a string in the schema description hash; got type %y instead (%y)", th.key, th.value.type(), th.value);
+
                 Table t(ds, th.key);
-                l += t.getRenameSql(th.value);
-                opt.db_table_cache{th.value} = t;
+                if (t.checkExistence()) {
+                    l += t.getRenameSql(th.value);
+                    opt.db_table_cache{th.value} = t;
+                }
             }
 
             # now process DB tables
@@ -1847,10 +1860,14 @@ my list $l = $db.getAlignSql($schema_hash);
                     opt.db_table_cache{name} = t;
                 }
 
-                list tl = t.getAlignSql(opt.table_cache{name}, opt + schema_hash.tables{name}.rename + ("table_cache": opt.table_cache, "db_table_cache": opt.db_table_cache));
+                tl = t.getAlignSql(opt.table_cache{name}, opt + schema_hash.tables{name}.rename + ("table_cache": opt.table_cache, "db_table_cache": opt.db_table_cache));
                 if (tl)
                     l += tl;
             }
+
+            # call driver-specifc align schema sql function
+            tl = getAlignSqlImpl(schema_hash, opt);
+            if (tl) l += tl;
 
             return l;
         }
@@ -2102,7 +2119,7 @@ my string $sql = $t.getSqlFromList($list);
                 throw "DATABASE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
             }
 
-            # try to get AbstractFunction object
+            # try to get AbstractDatabase object
             try {
                 return call_function(mn + "::" + "get_database", nds, opts);
             }
@@ -2159,21 +2176,22 @@ my string $sql = $t.getSqlFromList($list);
             return SequenceDescriptionOptions;
         }
 
-        abstract string getCreateSqlImpl(list l);
+        private abstract string getCreateSqlImpl(list l);
+        private abstract list getAlignSqlImpl(hash schema_hash, *hash opt);
 
-        abstract *AbstractSequence getSequenceImpl(string name);
-        abstract *AbstractFunction getFunctionImpl(string name);
-        abstract *AbstractFunction getProcedureImpl(string name);
+        private abstract *AbstractSequence getSequenceImpl(string name);
+        private abstract *AbstractFunction getFunctionImpl(string name);
+        private abstract *AbstractFunction getProcedureImpl(string name);
 
-        abstract AbstractSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts);
-        abstract AbstractFunction makeFunctionImpl(string name, string src, *hash opts);
-        abstract AbstractFunction makeProcedureImpl(string name, string src, *hash opts);
+        private abstract AbstractSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts);
+        private abstract AbstractFunction makeFunctionImpl(string name, string src, *hash opts);
+        private abstract AbstractFunction makeProcedureImpl(string name, string src, *hash opts);
 
-        abstract list listTablesImpl();
-        abstract list listFunctionsImpl();
-        abstract list listProceduresImpl();
-        abstract list listSequencesImpl();
-        abstract list listViewsImpl();
+        private abstract list listTablesImpl();
+        private abstract list listFunctionsImpl();
+        private abstract list listProceduresImpl();
+        private abstract list listSequencesImpl();
+        private abstract list listViewsImpl();
     }
 
     #! represents a database table; this class embeds an AbstractTable object that is created automatically in the constructor based on the database driver for the AbstractDatasource object providing the database connection
@@ -4878,6 +4896,15 @@ my string $sql = $table.getCreateTableSql();
             l.lock();
             on_exit l.unlock();
             return getCreateTableSqlUnlocked(opt);
+        }
+
+        #! returns @ref Qore::True "True" if the table exists in the database, @ref Qore::False "False" if not
+        bool checkExistence() {
+            l.lock();
+            on_exit l.unlock();
+            if (inDb)
+                return True;
+            return checkExistenceImpl();
         }
 
         #! accepts an AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned

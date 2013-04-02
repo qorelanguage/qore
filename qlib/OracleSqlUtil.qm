@@ -516,22 +516,22 @@ my string $str = $col.getRenameSql($t, "new_name");
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
-        OracleSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
+        private OracleSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
             return new OracleSequence(name, start, increment, end);
         }
 
-        *AbstractSequence getSequenceImpl(string name) {
+        private *AbstractSequence getSequenceImpl(string name) {
             *hash row = ds.selectRow("select * from user_sequences where sequence_name = %v", name.upr());
             if (!row)
                 return;
             return new OracleSequence(name, row.min_value, row.increment_by, row.max_value == 10000000000000000000000000000n ? NOTHING : row.max_value);
         }
 
-        OracleFunction makeFunctionImpl(string name, string src, *hash opts) {
+        private OracleFunction makeFunctionImpl(string name, string src, *hash opts) {
             return new OracleFunction(name, src);
         }
 
-        OracleProcedure makeProcedureImpl(string name, string src, *hash opts) {
+        private OracleProcedure makeProcedureImpl(string name, string src, *hash opts) {
             return new OracleProcedure(name, src);
         }
 
@@ -539,7 +539,11 @@ my string $str = $col.getRenameSql($t, "new_name");
             return new OraclePackage(name, src, body);
         }
 
-        *OracleFunction getFunctionImpl(string name) {
+        private list getAlignSqlImpl(hash schema_hash, *hash opt) {
+            return ();
+        }
+
+        private *OracleFunction getFunctionImpl(string name) {
             *list l = ds.select("select text from user_source where type = 'FUNCTION' and name = %v order by line", name.upr()).text;
             if (!l)
                 return;
@@ -547,7 +551,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             return new OracleFunction(name, src);
         }
 
-        *OracleProcedure getProcedureImpl(string name) {
+        private *OracleProcedure getProcedureImpl(string name) {
             *list l = ds.select("select text from user_source where type = 'PROCEDURE' and name = %v order by line", name.upr()).text;
             if (!l)
                 return;
@@ -580,27 +584,27 @@ my string $str = $col.getRenameSql($t, "new_name");
             return listSynonymsImpl().iterator();            
         }
 
-        list listTablesImpl() {
+        private list listTablesImpl() {
             return getListIntern(ds.select("select table_name from all_tables").table_name);
         }
 
-        list listFunctionsImpl() {
+        private list listFunctionsImpl() {
             return getListIntern(ds.select("select object_name from user_objects where object_type = 'FUNCTION'").object_name);
         }
 
-        list listProceduresImpl() {
+        private list listProceduresImpl() {
             return getListIntern(ds.select("select object_name from user_objects where object_type = 'PROCEDURE'").object_name);
         }
 
-        list listSynonymsImpl() {
+        private list listSynonymsImpl() {
             return getListIntern(ds.select("select object_name from user_objects where object_type = 'SYNONYM'").object_name);
         }
 
-        list listSequencesImpl() {
+        private list listSequencesImpl() {
             return getListIntern(ds.select("select object_name from user_objects where object_type = 'SEQUENCE'").object_name);
         }
 
-        list listViewsImpl() {
+        private list listViewsImpl() {
             return getListIntern(ds.select("select object_name from user_objects where object_type = 'VIEW'").object_name);
         }
 
@@ -608,7 +612,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             return native_case ? l : (map $1.lwr(), l);
         }
 
-        string getCreateSqlImpl(list l) {
+        private string getCreateSqlImpl(list l) {
             return OracleDatabase::getCreateSql(l);
         }
 
@@ -616,17 +620,17 @@ my string $str = $col.getRenameSql($t, "new_name");
             return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l);
         }
 
-        #! override in subclasses to return driver-specific options
+        #! returns driver-specific options to the base abstract class
         private hash getCreationOptions() {
             return OracleCreationOptions;
         }
 
-        #! override in subclasses to return driver-specific options
+        #! returns driver-specific options to the base abstract class
         private hash getAlignSchemaOptions() {
             return OracleAlignSchemaOptions;
         }
 
-        #! override in subclasses to return driver-specific options
+        #! returns driver-specific options to the base abstract class
         private hash getSchemaDescriptionOptions() {
             return OracleSchemaDescriptionOptions;
         }
@@ -1121,39 +1125,39 @@ my string $str = $col.getRenameSql($t, "new_name");
             return sql;
         }
 
-        *list getCreateIndexesSqlImpl(*hash opt) {
+        private *list getCreateIndexesSqlImpl(*hash opt) {
             return map $1.getCreateSql(name, opt), indexes.iterator();
         }
 
-        *string getCreatePrimaryKeySqlImpl(*hash opt) {
+        private *string getCreatePrimaryKeySqlImpl(*hash opt) {
             return primaryKey.getCreateSql(name, opt);
         }
-
-        *list getCreateForeignConstraintsSqlImpl(*hash opt) {
+        
+        private *list getCreateForeignConstraintsSqlImpl(*hash opt) {
             return map $1.getCreateSql(name, opt), foreignConstraints.iterator();
         }
 
-        *list getCreateConstraintsSqlImpl(*hash opt) {
+        private *list getCreateConstraintsSqlImpl(*hash opt) {
             return map $1.getCreateSql(name, opt), constraints.iterator();
         }
 
-        *list getCreateMiscSqlImpl(*hash opt, bool cache) {
+        private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
 	    if (cache)
 		getColumnsUnlocked();
             return map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
         }
 
-        *list getCreateTriggersSqlImpl(*hash opt) {
+        private *list getCreateTriggersSqlImpl(*hash opt) {
             list l = ();
             map l += $1.getCreateSql(name, opt), triggers.iterator();
             return l;
         }
 
-        string getCreateSqlImpl(list l) {
+        private string getCreateSqlImpl(list l) {
             return OracleDatabase::getCreateSql(l);
         }
 
-        string getRenameSqlImpl(string new_name) {
+        private string getRenameSqlImpl(string new_name) {
             return sprintf("alter table %s rename to %s", getSqlName(), new_name);
         }
 

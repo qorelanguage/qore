@@ -83,7 +83,7 @@ module PgsqlSqlUtil {
     In order to use schema management with functions properly, the function source has to be in the format returned by 
     <a href="http://www.postgresql.org/docs/9.2/static/functions-info.html">pg_catalog.pg_get_functiondef()</a>
     which requires the following string to follow the function name and arguments:
-    - <tt><b>returns</b></tt> <i>type</i> <tt><b>language</b></tt> <i>lang</i> <tt><b>as $function$</b></tt> 
+    - <tt><b>returns</b></tt> <i>type</i> <tt><b>language</b></tt> <i>lang</i> <tt><b>as $function$ </b></tt> 
 
     For example:
     @code
@@ -101,28 +101,111 @@ $function$
     @note Future versions of the module may provide more intelligence to reformat user-supplied functions to match the
     format retrieved from the database, however currently functions should be provided in the format above in order
     to use functionality like @ref SqlUtil::Database::getAlignFunctionSql() for example.
-
 */
 
 #! the PgsqlSqlUtil namespace contains all the objects in the PgsqlSqlUtil module
 public namespace PgsqlSqlUtil {
+
     public PgsqlTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
-	return new PgsqlTable(nds, nname, opts);
+        return new PgsqlTable(nds, nname, opts);
     }
 
     public PgsqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
 	return new PgsqlDatabase(nds, opts);
     }
 
+    #! represents a PostgreSQL type
+    public class PgsqlType {
+	public {
+	    #! the name of the type
+	    string name;
+
+	    #! the source of the type
+	    string src;
+	}
+
+	list getTypeList() {
+	    list sl = src.split(",");
+            trim sl;
+
+	    list l = ();
+            foreach string str in (sl) {
+                (*string tname, *string type) = (str =~ x/(\w+) (.*)/);
+                if (!tname || !type)
+                    throw "TYPE-COMPONENT-ERROR", sprintf("type %y: can't find element name and type in element %d %y of source %y", name, $# + 1, str, src);
+                l += (
+                    "name": tname,
+                    "type": type,
+                );
+            }
+            return l;
+	}
+
+	list getModifySql(PgsqlType old, *hash opt) {
+	    list sqll = ();
+
+	    list tl = getTypeList();
+            list oldtl = old.getTypeList();
+
+            printf("tl: %N\noldtl: %N\n", tl, oldtl);
+
+            # process differences in old attributes
+            foreach hash oldh in (oldtl.iterator()) {
+                if ($# >= tl.size()) {
+                    sqll += sprintf("alter type %s drop attribute %s", name, oldh.name);
+                    continue;
+                }
+                hash h = tl[$#];
+                if (oldh.type != h.type)
+                    sqll += sprintf("alter type %s alter attribute %s type %s%s", name, oldh.name, h.type, opt.cascade ? " cascade" : "");
+                if (oldh.name != h.name)
+                    sqll += sprintf("alter type %s rename attribute %s to %s", name, oldh.name, h.name);
+            }
+
+            # add any new attributes
+            for (int i = oldtl.size(); i < tl.size(); ++i)
+                sqll += sprintf("alter type %s add attribute %s %s", name, tl[i].name, tl[i].type);
+
+	    return sqll;
+	}
+
+	string getCreateSql(*hash opt) {
+	    return sprintf("create %stype %s as (%s)", opt.replace ? "or replace " : "", name, src);
+	}
+
+	string getDropSql(*hash opt) {
+	    return sprintf("drop type %s%s", name, opt.cascade ? " cascade" : "");
+	}
+
+	string getRenameSql(string new_name) {
+	    return sprintf("alter type %s rename to %s", name, new_name);
+	}
+
+	bool equal(PgsqlType type) {
+	    /*
+	    if (name != type.name)
+                printf("PgsqlType::equal() NOT EQUAL name: %y != %y\n", name, type.name);
+	    if (src != type.src)
+                printf("PgsqlType::equal() NOT EQUAL src: %y != %y\n", src, type.src);
+            */
+	    return name == type.name && src == type.src;
+	}
+
+	constructor(string n_name, string n_src) {
+	    name = n_name;
+            src = n_src;
+        }
+    }
+
     #! represents a PostgreSQL-specific index
     public class PgsqlIndex inherits AbstractIndex {
-        public {
+	public {
             #! the tablespace name of the index
             *string tablespace;
         }
        
         #! creates the object from the arguments
-        constructor(string n_name, bool n_unique, hash n_cols, *string n_tablespace) : AbstractIndex(n_name, n_unique, n_cols) {
+	constructor(string n_name, bool n_unique, hash n_cols, *string n_tablespace) : AbstractIndex(n_name, n_unique, n_cols) {
             tablespace = n_tablespace;
         }
 
@@ -441,14 +524,43 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     #! provides the PostgreSQL-specific implementation of the AbstractDatabase interface
     public class PgsqlDatabase inherits AbstractDatabase {
+       public {
+            #! PostgreSQL-specific schema description keys
+            const PgsqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + (
+                "types": Type::Hash,
+                "type_map": Type::Hash,
+                );
+        }
+
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
-        PgsqlSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
+        PgsqlType makeType(string name, string src) {
+            return new PgsqlType(name, src);
+        }
+
+        *PgsqlType getType(string name) {
+            *hash qh = ds.select("select attname, pg_catalog.format_type(a.atttypid, a.atttypmod) typedef from pg_class c, pg_catalog.pg_attribute a where relkind = 'c' and attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped and relname = %v order by attnum", name);
+            if (!qh.attname)
+                return;
+
+            string src = foldl $1 + ", " + $2, (map sprintf("%s %s", $1.attname, $1.typedef), qh.contextIterator());
+
+            # replace common type names with verbose type names as stored in postgresql
+            foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                src = replace(src, h.key, h.value);
+            }
+            # remove invalid "(1)" strings
+            src = replace(src, "(1)", "");
+
+            return new PgsqlType(name, src);
+        }
+
+        private PgsqlSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
             return new PgsqlSequence(name, start, increment, end);
         }
 
-        *AbstractSequence getSequenceImpl(string name) {
+        private *AbstractSequence getSequenceImpl(string name) {
             *hash row = ds.selectRow("select relname from pg_class where relkind = 'S' and relname = %v", name);
             if (!row)
                 return;
@@ -457,7 +569,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             return new PgsqlSequence(name, row.start, row.increment, row.max == 9223372036854775807 ? NOTHING : row.max);
         }
 
-        PgsqlFunction makeFunctionImpl(string name, string src, *hash opts) {
+        private PgsqlFunction makeFunctionImpl(string name, string src, *hash opts) {
             string nc = name;
             *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
 
@@ -465,11 +577,11 @@ my string $str = $col.getRenameSql($t, "new_name");
             return new PgsqlFunction(name, src, args);
         }
 
-        PgsqlFunction makeProcedureImpl(string name, string src, *hash opts) {
+        private PgsqlFunction makeProcedureImpl(string name, string src, *hash opts) {
             return makeFunctionImpl(name, src, opts);
         }
 
-        *AbstractFunction getFunctionImpl(string name) {
+        private *AbstractFunction getFunctionImpl(string name) {
             *hash qh;
             # try to find a unique function without arguments
             if (name !~ /\(/) {
@@ -486,8 +598,10 @@ my string $str = $col.getRenameSql($t, "new_name");
                 *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
                 nc = name.substr(0, name.find('('));
                 # replace common type names with verbose type names as stored in postgresql
-                foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator())
-                    args = replace(args, h.value, h.key);
+                if (args) {
+                    foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator())
+                        args = replace(args, h.value, h.key);
+                }
 
                 qh = ds.selectRow("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_identity_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v and pg_catalog.pg_get_function_identity_arguments(proname::regproc) = %v", nc, args);
                 if (!qh)
@@ -496,7 +610,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             return PgsqlDatabase::processFunction(qh, native_case);
         }
 
-        AbstractFunction getProcedureImpl(string name) {
+        private AbstractFunction getProcedureImpl(string name) {
             return getFunctionImpl(name);
         }
 
@@ -537,8 +651,58 @@ my string $str = $col.getRenameSql($t, "new_name");
             return new PgsqlFunction(name, row.hdr, args);
         }
 
+        private list getAlignSqlImpl(hash schema_hash, *hash opt) {
+            string drv = getDriverName();            
+            list l = ();
+            if (opt.start) {
+                hash type_cache;
+
+                # rename any types
+                AbstractDatabase::checkDriverOptions(\schema_hash.type_map, drv);
+                foreach hash th in (schema_hash.type_map.pairIterator()) {
+                    if (th.value.typeCode() != NT_STRING)
+                        throw "SCHEMA-DESCRIPTION-ERROR", sprintf("type_map %y value is not a string in the schema description hash; got type %y instead (%y)", th.key, th.value.type(), th.value);
+
+                    *PgsqlType type = getType(th.key);
+                    if (type) {
+                        l += type.getRenameSql(th.value);
+                        type.name = th.value;
+                        type_cache{th.value} = type;
+                    }
+                }
+
+                # create missing types; update different types
+                AbstractDatabase::checkDriverOptions(\schema_hash.types, drv);
+                foreach string name in (schema_hash.types.keyIterator()) {
+                    if (schema_hash.types{name}.typeCode() != NT_STRING)
+                        throw "SCHEMA-DESCRIPTION-ERROR", sprintf("type %y value is not a string in the schema description hash; got type %y instead (%y)", name, schema_hash.types{name}.type(), schema_hash.types{name});
+
+                    string src = schema_hash.types{name};
+                  
+                    PgsqlType templateType(name, src);
+
+                    # see if type exists
+                    *PgsqlType type;
+                    if (type_cache{name})
+                        type = type_cache{name};
+                    else {
+                        type = getType(name);
+                        if (!type) {
+                            l += templateType.getCreateSql(opt);
+                            continue;
+                        }
+                    }
+
+                    if (!templateType.equal(type))
+                        l += templateType.getModifySql(type, opt);
+                }
+                return l;
+            }
+            return l;
+        }
+
         #! returns a list of string table names in the database
-        list listTablesImpl() {
+        private list listTablesImpl() {
             return ds.select("select n.nspname \"schema\", c.relname \"name\", case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end \"Type\", pg_catalog.pg_get_userbyid(c.relowner) \"owner\" from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace
 WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'information_schema' and n.nspname !~ '^pg_toast' and pg_catalog.pg_table_is_visible(c.oid) order by 1,2").name;
         }
@@ -548,7 +712,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
             @return a list of string function names in the database
         */
-        list listFunctionsImpl() {
+        private list listFunctionsImpl() {
             *hash qh = ds.select("select n.nspname schema, p.proname name, pg_catalog.pg_get_function_result(p.oid) result_type, pg_catalog.pg_get_function_arguments(p.oid) args, case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end type from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n ON n.oid = p.pronamespace where n.nspname ~ '^(public)$' order by 1, 2, 4");
             
             return map sprintf("%s(%s)", $1.name, $1.args), qh.contextIterator();            
@@ -557,24 +721,29 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         #! since PostgreSQL only supports functions, this method is identical to listFunctionsImpl()
         /** @see listFunctionsImpl()
         */
-        list listProceduresImpl() {
+        private list listProceduresImpl() {
             return listFunctionsImpl();
         }
 
-        list listSequencesImpl() {
+        private list listSequencesImpl() {
             return ds.select("select relname from pg_class where relkind = 'S'").relname;
         }
 
-        list listViewsImpl() {
+        private list listViewsImpl() {
             return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false))").table_name;
         }
 
-        string getCreateSqlImpl(list l) {
+        private string getCreateSqlImpl(list l) {
             return PgsqlDatabase::getCreateSql(l);
         }
 
         static string getCreateSql(list l) {
             return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l);
+        }
+
+        #! returns driver-specific options to the base abstract class
+        private hash getSchemaDescriptionOptions() {
+            return PgsqlSchemaDescriptionOptions;
         }
     }
 
@@ -621,8 +790,8 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
             #! maps from verbose type names to simple type names
             const PgsqlNameMap = (
-                "character": "char",
                 "character varying": "varchar",
+                "character": "char",
                 "timestamp without time zone": "timestamp",
                 "time without time zone": "time",
                 );
@@ -1001,11 +1170,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return l;
         }
 
-        string getCreateSqlImpl(list l) {
+        private string getCreateSqlImpl(list l) {
             return PgsqlDatabase::getCreateSql(l);
         }
 
-        string getRenameSqlImpl(string new_name) {
+        private string getRenameSqlImpl(string new_name) {
             return sprintf("alter table %s rename to %s", getSqlName(), new_name);
         }
 
