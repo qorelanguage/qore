@@ -494,6 +494,11 @@ my string $str = $col.getRenameSql($t, "new_name");
         bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
+
+        #! returns a string that can be used to rename the trigger in the database
+	softlist getRenameSql(string table_name, string new_name) {
+	    return sprintf("alter trigger %s on %s rename to %s", name, table_name, new_name);
+	}
     }
 
     #! represents a PostgreSQL-specific function
@@ -519,6 +524,16 @@ my string $str = $col.getRenameSql($t, "new_name");
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
         bool equalImpl(AbstractFunctionBase t) {
             return True;
+        }
+
+        #! returns a string that can be used to rename the function in the database
+	softlist getRenameSql(string new_name) {
+	    return sprintf("alter function %s rename to %s(%s)", name, new_name, args);
+	}
+
+        #! sets the new name of the function
+        setName(string new_name) {
+            name = sprintf("%s(%s)", new_name, args);
         }
     }
 
@@ -727,7 +742,8 @@ my string $str = $col.getRenameSql($t, "new_name");
 
                     *PgsqlType type = getType(th.key);
                     if (type) {
-                        l += type.getRenameSql(th.value);
+                        AbstractDatabase::doInfoCallback(opt, "renaming type %s to %s", th.key, th.value);
+                        l += AbstractDatabase::doSqlCallback(opt, type.getRenameSql(th.value));
                         type.name = th.value;
                         type_cache{th.value} = type;
                     }
@@ -750,13 +766,16 @@ my string $str = $col.getRenameSql($t, "new_name");
                     else {
                         type = getType(name);
                         if (!type) {
-                            l += templateType.getCreateSql(opt);
+                            AbstractDatabase::doInfoCallback(opt, "creating type %s", name);
+                            l += AbstractDatabase::doSqlCallback(opt, templateType.getCreateSql(opt));
                             continue;
                         }
                     }
 
-                    if (!templateType.equal(type))
-                        l += templateType.getModifySql(type, opt + ("cascade": True));
+                    if (!templateType.equal(type)) {
+                        AbstractDatabase::doInfoCallback(opt, "updating type %s", name);
+                        l += AbstractDatabase::doSqlCallback(opt, templateType.getModifySql(type, opt + ("cascade": True)));
+                    }
                 }
                 return l;
             }
@@ -1191,9 +1210,17 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 getColumnsUnlocked();
                 getTriggersUnlocked();
             }
+
             list l = map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
-            if (!opt.omit_trigger_functions)
-                map l += $1.getCreateSql(opt), triggerFunctions.iterator();
+            if (l)
+                map AbstractDatabase::doTandemCallback(opt, l[$#], "create comment on column %s.%s", $1, name), columns.iterator(), $1.comment;
+
+            if (!opt.omit_trigger_functions && !triggerFunctions.empty()) {
+                list tl = ();
+                map tl += $1.getCreateSql(opt), triggerFunctions.iterator();
+                map AbstractDatabase::doTandemCallback(opt, tl[$#], "create trigger function %s for table %s", $1.name, name), triggerFunctions.iterator();
+                l += tl;
+            }
 
             #printf("gCMSI triggerFunctions: %N\n", triggerFunctions);
             return l;
@@ -1206,14 +1233,16 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             # check for trigger functions in the template that are not present or different in the current table
             foreach AbstractFunction f in (t.triggerFunctions.iterator()) {
                 if (!triggerFunctions.hasKey(f.name)) {
+                    AbstractDatabase::doInfoCallback(opt, "creating trigger function %s for %s", f.name, name);
                     # create trigger function
-                    l += f.getCreateSql(opt);
+                    l += AbstractDatabase::doSqlCallback(opt, f.getCreateSql(opt));
                 }
                 else if (!f.equal(triggerFunctions{f.name})) {
+                    AbstractDatabase::doInfoCallback(opt, "updating trigger function %s for %s", f.name, name);
                     # drop current trigger function
-                    l += triggerFunctions{f.name}.getDropSql();
+                    l += AbstractDatabase::doSqlCallback(opt, triggerFunctions{f.name}.getDropSql());
                     # add new trigger function to table
-                    l += f.getCreateSql(opt);
+                    l += AbstractDatabase::doSqlCallback(opt, f.getCreateSql(opt));
                 }
             }
 
