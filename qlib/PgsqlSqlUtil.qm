@@ -147,7 +147,7 @@ public namespace PgsqlSqlUtil {
 	    list tl = getTypeList();
             list oldtl = old.getTypeList();
 
-            printf("tl: %N\noldtl: %N\n", tl, oldtl);
+            #printf("tl: %N\noldtl: %N\n", tl, oldtl);
 
             # process differences in old attributes
             foreach hash oldh in (oldtl.iterator()) {
