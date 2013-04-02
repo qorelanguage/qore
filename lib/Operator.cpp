@@ -1058,14 +1058,16 @@ static AbstractQoreNode* op_trim(const AbstractQoreNode* arg, const AbstractQore
 static QoreListNode* op_map_iterator(const AbstractQoreNode *left, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
    ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode : 0, xsink);
 
+   qore_size_t i = 0;
    // set offset in thread-local data for "$#"
-   ImplicitElementHelper eh(-1);
    while (true) {
       bool b = h.next(xsink);
       if (*xsink)
          return 0;
       if (!b)
          return rv.release();
+
+      ImplicitElementHelper eh(i++);
 
       ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
@@ -1119,14 +1121,16 @@ static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQore
 static AbstractQoreNode* op_map_select_iterator(const AbstractQoreNode* left, const AbstractQoreNode* select, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
    ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
 
-   // set offset in thread-local data for "$#"
-   ImplicitElementHelper eh(-1);
+   qore_size_t i = 0;
    while (true) {
       bool b = h.next(xsink);
       if (*xsink)
          return 0;
       if (!b)
          return rv.release();
+
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(i++);
 
       // check if value can be mapped
       ReferenceHolder<> iv(h.getValue(xsink), xsink);
@@ -1347,9 +1351,7 @@ static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQo
 }
 
 static AbstractQoreNode *op_select_iterator(const AbstractQoreNode *select, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink *xsink) {
-   // set offset in thread-local data for "$#"
-   ImplicitElementHelper eh(-1);
-
+   qore_size_t i = 0;
    ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
    while (true) {
       bool b = h.next(xsink);
@@ -1357,6 +1359,9 @@ static AbstractQoreNode *op_select_iterator(const AbstractQoreNode *select, Abst
          return 0;
       if (!b)
          break;
+
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(i++);
 
       ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
