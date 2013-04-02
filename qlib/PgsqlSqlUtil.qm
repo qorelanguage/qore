@@ -694,7 +694,7 @@ my string $str = $col.getRenameSql($t, "new_name");
                     }
 
                     if (!templateType.equal(type))
-                        l += templateType.getModifySql(type, opt);
+                        l += templateType.getModifySql(type, opt + ("cascade": True));
                 }
                 return l;
             }
