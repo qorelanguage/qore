@@ -98,6 +98,8 @@ end;
 $function$
     @endcode
 
+    There is some simple logic that attempts to move any language and volatility declarations from the end of the declaration to the beginning.  Additionally, dollar-quoting is detected automatically and substituted with \c "$function$" automatically.
+
     @note Future versions of the module may provide more intelligence to reformat user-supplied functions to match the
     format retrieved from the database, however currently functions should be provided in the format above in order
     to use functionality like @ref SqlUtil::Database::getAlignFunctionSql() for example.
@@ -123,6 +125,11 @@ public namespace PgsqlSqlUtil {
 	    #! the source of the type
 	    string src;
 	}
+
+	constructor(string n_name, string n_src) {
+	    name = n_name;
+            src = n_src;
+        }
 
 	list getTypeList() {
 	    list sl = src.split(",");
@@ -190,11 +197,6 @@ public namespace PgsqlSqlUtil {
             */
 	    return name == type.name && src == type.src;
 	}
-
-	constructor(string n_name, string n_src) {
-	    name = n_name;
-            src = n_src;
-        }
     }
 
     #! represents a PostgreSQL-specific index

@@ -1664,46 +1664,61 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
             # check valid options and option value types
             foreach string k in (opt.keyIterator()) {
                 if (!ropt.hasKey(k))
-                    throw err, sprintf("%s: unknown option %y; valid options for %y: %y", tag, k, self.className(), ropt.keys());
+                    throw err, sprintf("%s: unknown key %y; valid keys for %y: %y", tag, k, self.className(), ropt.keys());
                 
                 if (!exists opt{k}) {
                     delete opt{k};
                     continue;
                 }
 
-                switch (ropt{k}) {
-                    case Type::Int: {
-                        if (!opt{k}.intp())
-                            throw err, sprintf("%s: option %y has type %y, expecting \"int\" (value: %y)", tag, k, opt{k}.type(), opt{k});
-                        if (opt{k}.type() != ropt{k})
-                            opt{k} = opt{k}.toInt();
-                        break;
-                    }
-                    case Type::Boolean: {
-                        if (!opt{k}.intp())
-                            throw err, sprintf("%s: option %y has type %y, expecting \"boolean\" (value: %y)", tag, k, opt{k}.type(), opt{k});
-                        if (opt{k}.type() != ropt{k})
-                            opt{k} = opt{k}.toBool();
-                        break;
-                    }
-                    case Type::String: {
-                        if (!opt{k}.strp())
-                            throw err, sprintf("%s: option %y has type %y, expecting \"string\" (value: %y)", tag, k, opt{k}.type(), opt{k});
-                        if (opt{k}.type() != ropt{k})
-                            opt{k} = opt{k}.toString();
-                        break;
-                    }
-                    # no validation for NOTHING
-                    case NOTHING: break;
+                validateOptionIntern(err, ropt{k}, \opt{k}, k, tag);
+            }
+        }
 
-                    case "code": if (opt{k}.typeCode() == NT_CLOSURE || opt{k}.typeCode() == NT_CALLREF)
-                        break;
-
-                    # throw an exception if the type is not supported
-                    default: 
-                        if (opt{k}.type() != ropt{k})
-                            throw err, sprintf("option %y requires type %y but type %y was passed (%y)", k, ropt{k}, opt{k}.type(), opt{k});
+        private validateOptionIntern(string err, string type, reference opt, string k, string tag) {
+            switch (type) {
+                case Type::Int: {
+                    if (opt.type() != type) {
+                        if (!opt.intp())
+                            throw err, sprintf("%s: key %y has type %y, expecting \"int\" (value: %y)", tag, k, opt.type(), opt);
+                        opt = opt.toInt();
+                    }
+                    break;
                 }
+                case Type::Number: {
+                    if (opt.type() != type) {
+                        if (!opt.intp())
+                            throw err, sprintf("%s: key %y has type %y, expecting \"number\" (value: %y)", tag, k, opt.type(), opt);
+                        opt = number(opt);
+                    }
+                    break;
+                }
+                case Type::Boolean: {
+                    if (opt.type() != type) {
+                        if (!opt.intp())
+                            throw err, sprintf("%s: key %y has type %y, expecting \"boolean\" (value: %y)", tag, k, opt.type(), opt);
+                        opt = opt.toBool();
+                    }
+                    break;
+                }
+                case Type::String: {
+                    if (opt.type() != type) {
+                        if (!opt.strp())
+                            throw err, sprintf("%s: key %y has type %y, expecting \"string\" (value: %y)", tag, k, opt.type(), opt);
+                        opt = opt.toString();
+                    }
+                    break;
+                }
+                # no validation for NOTHING
+                case NOTHING: break;
+                
+                case "code": if (opt.typeCode() == NT_CLOSURE || opt.typeCode() == NT_CALLREF)
+                    break;
+                
+                # throw an exception if the type is not supported
+              default: 
+                if (opt.type() != type)
+                    throw err, sprintf("key %y requires type %y but type %y was passed (%y)", k, type, opt.type(), opt);
             }
         }
 
@@ -1917,10 +1932,10 @@ my list $l = $db.getAlignSql($schema_hash);
             }
 
 
-            tl = alignFunctions("function", schema_hash, \getFunction(), \makeFunction(), opt);
+            tl = alignCodeUnlocked("function", schema_hash, \getFunction(), \makeFunction(), opt, Type::String);
             if (tl) l += tl;
 
-            tl = alignFunctions("procedure", schema_hash, \getProcedure(), \makeProcedure(), opt);
+            tl = alignCodeUnlocked("procedure", schema_hash, \getProcedure(), \makeProcedure(), opt, Type::String);
             if (tl) l += tl;
 
             # call driver-specifc align schema sql function
@@ -1930,17 +1945,17 @@ my list $l = $db.getAlignSql($schema_hash);
             return l;
         }
 
-        private list alignFunctions(string type, hash schema_hash, code get, code make, *hash opt) {
+        private list alignCodeUnlocked(string type, hash schema_hash, code get, code make, *hash opt, string make_arg_type) {
             list l = ();
             hash copt = getCreationOptions();
             string drv = getDriverName();
 
-            hash function_cache;
+            hash code_cache;
 
-            # rename any procedures
+            # rename objects
             reference fmap = \schema_hash{type + "_map"};
             AbstractDatabase::checkDriverOptions(\fmap, drv);
-            foreach hash fh in (fmap.pairIterator()) {
+            foreach hash fh in (fmap.pairIterator()) {                
                 if (fh.value.typeCode() != NT_STRING)
                     throw "SCHEMA-DESCRIPTION-ERROR", sprintf("%s %y value is not a string in the schema description hash; got type %y instead (%y)", type + "_map", fh.key, fh.value.type(), fh.value);
 
@@ -1953,7 +1968,7 @@ my list $l = $db.getAlignSql($schema_hash);
 
                     # add to function cache
                     f.setName(fh.value);
-                    function_cache{fh.value} = f;
+                    code_cache{fh.value} = f;
                 }
             }
 
@@ -1961,16 +1976,15 @@ my list $l = $db.getAlignSql($schema_hash);
             fmap = \schema_hash{type + "s"};
             AbstractDatabase::checkDriverOptions(\fmap, drv);
             foreach string name in (fmap.keyIterator()) {
-                if (fmap{name}.typeCode() != NT_STRING)
-                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("%s %y value is not a source string in the schema description hash; got type %y instead (%y)", type, name, fmap{name}.type(), fmap{name});
+                validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fmap{name}, name, type + "s");
 
                 # make template function
                 AbstractFunction templateFunc = make(name, fmap{name}, opt.(copt.keys()));
 
                 # see if function exists
                 *AbstractFunction f;
-                if (function_cache{name})
-                    f = function_cache{name};
+                if (code_cache{name})
+                    f = code_cache{name};
                 else {
                     f = get(name);
                     if (!f) {

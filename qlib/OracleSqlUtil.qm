@@ -435,7 +435,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 	}
     }
 
-    public class OracleFunctionBase inherits AbstractFunction {
+    public class OracleCodeBase inherits AbstractFunction {
         #! creates the object from the arguments passed
         /** @param n the name of the object
             @param n_type the type of object
@@ -446,7 +446,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns a string that can be used to create the object in the database
         softlist getCreateSql(*hash opt) {
-            return sprintf("create%s %s", opt.replace ? " or replace" : "", src);
+            return sprintf("create%s %s %s", opt.replace ? " or replace" : "", type, src);
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
@@ -463,25 +463,30 @@ my string $str = $col.getRenameSql($t, "new_name");
 	}
     }
 
-    public class OracleFunction inherits OracleFunctionBase {
+    public class OracleType inherits OracleCodeBase {
+        constructor(string n_name, string n_src) : OracleCodeBase(n_name, "type", n_src) {
+        }
+    }
+
+    public class OracleFunction inherits OracleCodeBase {
         #! creates the object from the arguments passed
         /** @param n the name of the function
             @param n_src the source of the function
          */
-        constructor(string n, string n_src) : OracleFunctionBase(n, "function", n_src) {
+        constructor(string n, string n_src) : OracleCodeBase(n, "function", n_src) {
         }
     }
 
-    public class OracleProcedure inherits OracleFunctionBase {
+    public class OracleProcedure inherits OracleCodeBase {
         #! creates the object from the arguments passed
         /** @param n the name of the function
             @param n_src the source of the function
          */
-        constructor(string n, string n_src) : OracleFunctionBase(n, "procedure", n_src) {
+        constructor(string n, string n_src) : OracleCodeBase(n, "procedure", n_src) {
         }
     }
 
-    public class OraclePackage inherits OracleFunctionBase {
+    public class OraclePackage inherits OracleCodeBase {
         private {
             #! package body source
             string body_src;
@@ -492,7 +497,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             @param n_src the source of the package declaration
             @param n_body_src the package body source
          */
-        constructor(string n, string n_src, string n_body_src) : OracleFunctionBase(n, "package", n_src) {
+        constructor(string n, string n_src, string n_body_src) : OracleCodeBase(n, "package", n_src) {
             body_src = n_body_src;
         }
 
@@ -500,9 +505,9 @@ my string $str = $col.getRenameSql($t, "new_name");
         list getCreateSql(*hash opt) {
             list l = ();
             # package declaration
-            l += sprintf("create%s %s", opt.replace ? " or replace" : "", src);
+            l += sprintf("create%s package %s", opt.replace ? " or replace" : "", src);
             # package body
-            l += sprintf("create%s body %s", opt.replace ? " or replace" : "", body_src);
+            l += sprintf("create%s package body %s", opt.replace ? " or replace" : "", body_src);
             return l;
         }
     }
@@ -548,10 +553,14 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         private OracleFunction makeFunctionImpl(string name, string src, *hash opts) {
+            checkSource("function", name, \src);
+
             return new OracleFunction(name, src);
         }
 
         private OracleProcedure makeProcedureImpl(string name, string src, *hash opts) {
+            checkSource("procedure", name, \src);
+
             return new OracleProcedure(name, src);
         }
 
@@ -559,78 +568,132 @@ my string $str = $col.getRenameSql($t, "new_name");
             return new OraclePackage(name, src, body);
         }
 
+        OraclePackage makePackageFromDescription(string name, hash ph, *hash opts) {
+            throw "UNIMPLEMENTED";
+        }
+
+        OracleType makeType(string name, string src, *hash opts) {
+            return new OracleType(name, sprintf("%s as %s", name, src));
+        }
+
         private list getAlignSqlImpl(hash schema_hash, *hash opt) {
             list l = ();
 
-            #tl = alignFunctions("package", schema_hash, \getPackage(), \makePackage(), opt);
-            #if (tl) l += tl;
+            if (opt.start) {
+                list tl = alignCodeUnlocked("type", schema_hash, \getType(), \makeType(), opt, Type::String);
+                if (tl) l += tl;
+
+                return l;
+            }
+            
+            list tl = alignCodeUnlocked("package", schema_hash, \getPackage(), \makePackageFromDescription(), opt, Type::Hash);
+            if (tl) l += tl;
 
             return l;
         }
 
         private *OracleFunction getFunctionImpl(string name) {
-            *list l = ds.select("select text from user_source where type = 'FUNCTION' and name = %v order by line", name.upr()).text;
-            if (!l)
+            *string src = getSource("FUNCTION", name);
+            if (!src)
                 return;
-            string src = foldl $1 + $2, l;
+
             return new OracleFunction(name, src);
         }
 
         private *OracleProcedure getProcedureImpl(string name) {
-            *list l = ds.select("select text from user_source where type = 'PROCEDURE' and name = %v order by line", name.upr()).text;
-            if (!l)
+            *string src = getSource("PROCEDURE", name);
+            if (!src)
                 return;
-            string src = foldl $1 + $2, l;
 
             return new OracleProcedure(name, src);
         }
 
-        OraclePackage getPackage(string name) {
-            *list l = ds.select("select text from user_source where type = 'PACKAGE' and name = %v order by line", name.upr()).text;
-            if (!l)
-                throw "PACKAGE-ERROR", sprintf("cannot find any package %y", name);
-            string src = foldl $1 + $2, l;
+        *OraclePackage getPackage(string name) {
+            *string src = getSource("PACKAGE", name);
+            if (!src)
+                return;
 
-            l = ds.select("select text from user_source where type = 'PACKAGE BODY' and name = %v order by line", name.upr()).text;
-            if (!l)
+            *string body_src = getSource("PACKAGE BODY", name);
+            if (!body_src)
                 throw "PACKAGE-ERROR", sprintf("cannot find body for package %y", name);
-            string body_src = foldl $1 + $2, l;
 
             return new OraclePackage(name, src, body_src);
         }
 
+        *OracleType getType(string name) {
+            *string src = getSource("TYPE", name);
+            if (!src)
+                return;
+
+            return new OracleType(name, src);
+        }
+
+        private *string getSource(string type, string name) {
+            *list l = ds.select("select text from user_source where type = %v and name = %v order by line", type, name.upr()).text;
+            if (!l)
+                return;
+            string src = foldl $1 + $2, l;
+
+            if (!regex(src, "^" + type + "( |\n)", RE_Caseless))
+                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the type name: %y", type, name, src.substr(0, 50));
+
+            # remove the type name from the beginning of the string
+            splice src, 0, type.size() + 1;
+
+            checkSource(type, name, \src);
+            return src;
+        }
+        
+        private checkSource(string type, string name, reference src) {
+            # remove whitespace from the beginning and end of the string
+            trim src;
+
+            # ensure the name of the object is at the beginning of the string
+            if (!regex(src, "^" + name, RE_Caseless))
+                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the %s name: %y", type, name, type, src.substr(0, 50));
+        }
+
         #! returns a list of string synonym names in the database
         list listSynonyms() {
-            return listSynonymsImpl();
+            return getListIntern("SYNONYM");
         }
         
         #! returns an iterator listing the string synonym names in the database
         ListIterator synonymIterator() {
-            return listSynonymsImpl().iterator();            
+            return listSynonyms().iterator();            
+        }
+
+        list listTypes() {
+            return getListIntern("TYPE");
+        }
+
+        #! returns an iterator listing the string type names in the database
+        ListIterator typeIterator() {
+            return listTypes().iterator();            
         }
 
         private list listTablesImpl() {
-            return getListIntern(ds.select("select table_name from all_tables").table_name);
+            return getListIntern(ds.select("select table_name from user_tables").table_name);
         }
 
         private list listFunctionsImpl() {
-            return getListIntern(ds.select("select object_name from user_objects where object_type = 'FUNCTION'").object_name);
+            return getListIntern("FUNCTION");
         }
 
         private list listProceduresImpl() {
-            return getListIntern(ds.select("select object_name from user_objects where object_type = 'PROCEDURE'").object_name);
-        }
-
-        private list listSynonymsImpl() {
-            return getListIntern(ds.select("select object_name from user_objects where object_type = 'SYNONYM'").object_name);
+            return getListIntern("PROCEDURE");
         }
 
         private list listSequencesImpl() {
-            return getListIntern(ds.select("select object_name from user_objects where object_type = 'SEQUENCE'").object_name);
+            return getListIntern("SEQUENCE");
         }
 
         private list listViewsImpl() {
-            return getListIntern(ds.select("select object_name from user_objects where object_type = 'VIEW'").object_name);
+            return getListIntern("VIEW");
+        }
+
+        private list getListIntern(string type) {
+            return getListIntern(ds.select("select object_name from user_objects where object_type = %v", type).object_name);
         }
 
         private list getListIntern(list l) {
@@ -1133,7 +1196,7 @@ my string $str = $col.getRenameSql($t, "new_name");
                 splice row.description, 0, row.trigger_name.size() + 1;
                 rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.description + "\n" + row.trigger_body, row.status == "ENABLED");
             }
-            
+
             return new Triggers(rv);
         }
 
