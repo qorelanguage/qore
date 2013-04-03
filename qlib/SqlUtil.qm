@@ -1069,7 +1069,7 @@ $uk.addSourceConstraint($table_name, constraint_name);
             @endcode
 
             @param tname the name of the source table
-            @param cname the name of the source constraint
+            @param fk the source constraint
 
             @throw SOURCE-CONSTRAINT-ERROR a different source constraint with the given name already exists
         */
@@ -1491,6 +1491,74 @@ my AbstractFunction $f = $db.makeProcedure("get_queue_info", $src);
             return db.makeProcedure(name, src, opt);
         }
 
+        #! drops the given function if it exists; returns @ref Qore::True "True" if the function was dropped, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+$db.dropFunctionIfExists($name);
+            @endcode
+
+            @param name the name of the function
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+            
+            @return @ref Qore::True "True" if the function was dropped, @ref Qore::False "False" if not
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        bool dropFunctionIfExists(string name, *hash opt) {
+            return db.dropFunctionIfExists(name, opt);
+        }
+
+        #! drops the given procedure if it exists; returns @ref Qore::True "True" if the procedure was dropped, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+$db.dropProcedureIfExists($name);
+            @endcode
+
+            @param name the name of the procedure
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @return @ref Qore::True "True" if the procedure was dropped, @ref Qore::False "False" if not
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        bool dropProcedureIfExists(string name, *hash opt) {
+            return db.dropProcedureIfExists(name, opt);
+        }
+
+        #! drops the given sequence if it exists; returns @ref Qore::True "True" if the sequence was dropped, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+$db.dropSequenceIfExists($name);
+            @endcode
+
+            @param name the name of the sequence
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @return @ref Qore::True "True" if the sequence was dropped, @ref Qore::False "False" if not
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        bool dropSequenceIfExists(string name, *hash opt) {
+            return db.dropSequenceIfExists(name, opt);
+        }
+
+        #! drops the given table if it exists; returns @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+$db.dropTableIfExists($name);
+            @endcode
+
+            @param name the name of the table
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @return @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        bool dropTableIfExists(string name, *hash opt) {            
+            return db.dropTableIfExists(name, opt);
+        }
+
         #! returns a list of SQL strings that can be used to update a function in the database to the function definition passed as an argument
         /** @par Example:
             @code
@@ -1523,6 +1591,20 @@ my list $l = $db.getAlignProcedureSql(f);
          */
         list getAlignProcedureSql(AbstractFunction f, *hash opt) {
             return db.getAlignProcedureSql(f, opt);
+        }
+
+        #! returns an AbstractTable argument for the given table name or @ref nothing if the table cannot be found
+        /** @par Example:
+            @code
+my *AbstractTable $table = $db.getTable("queues");
+            @endcode
+
+            @param name the uniquely-identifying name of the table to retrieve
+
+            @return an AbstractTable argument for the given table name or @ref nothing if the table cannot be found
+         */
+        *AbstractTable getTable(string name) {
+            return db.getTable(name);
         }
 
         #! returns an AbstractSequence argument for the given sequence name or @ref nothing if the sequence cannot be found
@@ -1637,7 +1719,7 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
 
         #! creates the object; private constructor
         /** @param nds the AbstractDatasource for the connection to the database
-            @param opt a hash of options for the table creation string; see @ref TableOptions for common options; each driver can support additional driver-specific options
+            @param nopts a hash of options for the table creation string; see @ref TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
          */
@@ -1746,14 +1828,18 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
                 "table_cache": Type::Hash,
                 );
 
+            #! generic callback options
+            const CallbackOptions = (
+                "info_callback": "code",
+                "sql_callback": "code",
+                );
+
             #! default generic creation options
-            const CreationOptions = (
+            const CreationOptions = CallbackOptions + (
                 "replace": Type::Boolean,
                 "table_cache": Type::Hash,
                 "data_tablespace": Type::String,
                 "index_tablespace": Type::String,
-                "info_callback": "code",
-                "sql_callback": "code",
                 );
 
             #! default generic schema description / alignment options
@@ -1814,7 +1900,7 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
                 opt.info_callback(vsprintf(fmt, argv));
         }
 
-        static string doSqlCallback(*hash opt, string sql) {
+        static *string doSqlCallback(*hash opt, *string sql) {
             if (opt.sql_callback)
                 opt.sql_callback(sql);
             return sql;
@@ -1826,7 +1912,24 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
             return sql;
         }
 
-        static nothing doSqlCallback(*hash opt, nothing sql) {
+        static *string doCallback(*hash opt, *string sql, string fmt) {
+            if (!sql)
+                return;
+            if (opt.info_callback)
+                opt.info_callback(vsprintf(fmt, argv));
+            if (opt.sql_callback)
+                opt.sql_callback(sql);
+            return sql;
+        }
+
+        static list doCallback(*hash opt, list sql, string fmt) {
+            if (sql) {
+                if (opt.info_callback)
+                    opt.info_callback(vsprintf(fmt, argv));
+                if (opt.sql_callback)
+                    map opt.sql_callback($1), sql;
+            }
+            return sql;
         }
 
         #! accepts a hash argument describing a database schema and returns a list of SQL strings that can be used to align the structure and configuration of the current schema with that of the argument; if the objects described are identical then an empty list is returned
@@ -1864,8 +1967,7 @@ my list $l = $db.getAlignSql($schema_hash);
 
                 *AbstractSequence seq = getSequence(sh.key);
                 if (seq) {
-                    AbstractDatabase::doInfoCallback(opt, "rename sequence %s to %s", sh.key, sh.value);
-                    l += AbstractDatabase::doSqlCallback(opt, seq.getRenameSql(sh.value));
+                    l += AbstractDatabase::doSqlCallback(opt, seq.getRenameSql(sh.value), "rename sequence %s to %s", sh.key, sh.value);
                     # remove sequence from list since we know it exists
                     remove schema_hash.sequences{sh.value};
                 }
@@ -1882,9 +1984,8 @@ my list $l = $db.getAlignSql($schema_hash);
                 if (getSequence(name))
                     continue;
 
-                AbstractDatabase::doInfoCallback(opt, "create sequence %s", name);
                 AbstractSequence seq = makeSequence(name, sh.start, sh.increment, sh.end);
-                l += AbstractDatabase::doSqlCallback(opt, seq.getCreateSql());
+                l += AbstractDatabase::doCallback(opt, seq.getCreateSql(), "create sequence %s", name);
             }
 
             # create template tables
@@ -1908,8 +2009,7 @@ my list $l = $db.getAlignSql($schema_hash);
 
                 Table t(ds, th.key);
                 if (t.checkExistence()) {
-                    AbstractDatabase::doInfoCallback(opt, "rename table %s to %s", th.key, th.value);
-                    l += AbstractDatabase::doSqlCallback(opt, t.getRenameSql(th.value));
+                    l += AbstractDatabase::doCallback(opt, t.getRenameSql(th.value), "rename table %s to %s", th.key, th.value);
                     opt.db_table_cache{th.value} = t;
                 }
             }
@@ -2062,6 +2162,191 @@ my AbstractFunction $f = $db.makeProcedure("get_queue_info", $src);
             return makeProcedureImpl(name, src, opt);
         }
 
+        #! drops the given function if it exists; returns @ref Qore::True "True" if the function was dropped, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+$db.dropFunctionIfExists($name);
+            @endcode
+
+            @param name the name of the function
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+            
+            @return @ref Qore::True "True" if the function was dropped, @ref Qore::False "False" if not
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        bool dropFunctionIfExists(string name, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            *AbstractFunction f = getFunction(name);
+            if (!f)
+                return False;
+            return AbstractDatabase::doDrop(f.getDropSql(), "function", name, opt);
+        }
+
+        #! drops the given procedure if it exists; returns @ref Qore::True "True" if the procedure was dropped, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+$db.dropProcedureIfExists($name);
+            @endcode
+
+            @param name the name of the procedure
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @return @ref Qore::True "True" if the procedure was dropped, @ref Qore::False "False" if not
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        bool dropProcedureIfExists(string name, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            *AbstractFunction f = getProcedure(name);
+            if (!f)
+                return False;
+            return AbstractDatabase::doDrop(f.getDropSql(), "procedure", name, opt);
+        }
+
+        #! drops the given sequence if it exists; returns @ref Qore::True "True" if the sequence was dropped, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+$db.dropSequenceIfExists($name);
+            @endcode
+
+            @param name the name of the sequence
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @return @ref Qore::True "True" if the sequence was dropped, @ref Qore::False "False" if not
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        bool dropSequenceIfExists(string name, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            *AbstractSequence seq = getSequence(name);
+            if (!seq)
+                return False;
+            return AbstractDatabase::doDrop(seq.getDropSql(), "sequence", name, opt);
+        }
+
+        #! drops the given table if it exists; returns @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+$db.dropTableIfExists($name);
+            @endcode
+
+            @param name the name of the table
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @return @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        bool dropTableIfExists(string name, *hash opt) {            
+            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            *AbstractTable obj = getTable(name);
+            if (!obj)
+                return False;
+            obj.drop(opt);
+            return True;
+        }
+
+        #! returns the SQL require to drop the given function if it exists or @ref nothing if the named function does not exist
+        /** @par Example:
+            @code
+my string $sql = $db.getDropFunctionSqlIfExists($name);
+            @endcode
+
+            @param name the name of the function
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+            
+            @return the SQL require to drop the given function if it exists or @ref nothing if the named function does not exist
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        *string getDropFunctionSqlIfExists(string name, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            *AbstractFunction f = getFunction(name);
+            if (!f)
+                return;
+            return AbstractDatabase::doDropSql(f.getDropSql(), "function", name, opt);
+        }
+
+        #! returns the SQL require to drop the given procedure if it exists or @ref nothing if the named procedure does not exist
+        /** @par Example:
+            @code
+my string $sql = $db.getDropProcedureSqlIfExists($name);
+            @endcode
+
+            @param name the name of the procedure
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+            
+            @return the SQL require to drop the given procedure if it exists or @ref nothing if the named procedure does not exist
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        *string getDropProcedureSqlIfExists(string name, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            *AbstractFunction f = getProcedure(name);
+            if (!f)
+                return;
+            return AbstractDatabase::doDropSql(f.getDropSql(), "procedure", name, opt);
+        }
+
+        #! returns the SQL require to drop the given sequence if it exists or @ref nothing if the named sequence does not exist
+        /** @par Example:
+            @code
+my string $sql = $db.getDropSequenceSqlIfExists($name);
+            @endcode
+
+            @param name the name of the sequence
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+            
+            @return the SQL require to drop the given sequence if it exists or @ref nothing if the named sequence does not exist
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        *string getDropSequenceSqlIfExists(string name, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            *AbstractSequence obj = getSequence(name);
+            if (!obj)
+                return;
+            return AbstractDatabase::doDropSql(obj.getDropSql(), "sequence", name, opt);
+        }
+
+        #! returns the SQL require to drop the given table if it exists or @ref nothing if the named table does not exist
+        /** @par Example:
+            @code
+my string $sql = $db.getDropTableSqlIfExists($name);
+            @endcode
+
+            @param name the name of the table
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+            
+            @return the SQL require to drop the given table if it exists or @ref nothing if the named table does not exist
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        *list getDropTableSqlIfExists(string name, *hash opt) {            
+            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            *AbstractTable t = getTable(name);
+            if (!t)
+                return;
+            return t.getDropSql(opt);
+        }
+
+        doDropSql(*softlist l, string type, string name, *hash opt) {
+            if (l)
+                AbstractDatabase::doCallback(opt, l, "drop %s %s", type, name);
+        }
+
+        bool doDrop(*softlist l, string type, string name, *hash opt) {
+            if (l) {
+                AbstractDatabase::doCallback(opt, l, "drop %s %s", type, name);
+                on_success ds.commit();
+                on_error ds.rollback();
+                map ds.exec($1), l;
+                return True;
+            }
+            return False;
+        }
+
         #! returns a list of SQL strings that can be used to update a function in the database to the function definition passed as an argument
         /** @par Example:
             @code
@@ -2082,11 +2367,12 @@ my list $l = $db.getAlignFunctionSql(f);
 
             list l = ();
 
-            if (!of)
-                l += f.getCreateSql(opt);
+            if (!of) {
+                l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), "create function %s", f.name);
+            }
             else if (!of.equal(f)) {
-                l += of.getDropSql();
-                l += f.getCreateSql(opt);
+                l += AbstractDatabase::doCallback(opt, of.getDropSql(), "drop function %s", f.name);
+                l += AbstractDatabase::doCallback(opt, of.getCreateSql(opt), "create function %s", f.name);
             }
                 
             return l;
@@ -2118,6 +2404,21 @@ my list $l = $db.getAlignProcedureSql(f);
             }
                 
             return l;
+        }
+
+        #! returns an AbstractTable argument for the given table name or @ref nothing if the table cannot be found
+        /** @par Example:
+            @code
+my *AbstractTable $table = $db.getTable("queues");
+            @endcode
+
+            @param name the uniquely-identifying name of the table to retrieve
+
+            @return an AbstractTable argument for the given table name or @ref nothing if the table cannot be found
+         */
+        *AbstractTable getTable(string name) {
+            AbstractTable t = AbstractTable::getTable(ds, name);
+            return t.checkExistence() ? t : NOTHING;
         }
 
         #! returns an AbstractSequence argument for the given sequence name or @ref nothing if the sequence cannot be found
@@ -2282,6 +2583,11 @@ my string $sql = $t.getSqlFromList($list);
         #! override in subclasses to return driver-specific options
         private hash getDatabaseOptions() {
             return DatabaseOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getCallbackOptions() {
+            return CallbackOptions;
         }
 
         #! override in subclasses to return driver-specific options
@@ -2454,10 +2760,14 @@ my bool $b = $table.inDb();
 $table.drop();
             @endcode
 
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @throw OPTION-ERROR invalid or unknown callback option
+
             @note The transaction is committed if successful or rolled back if an exception occurs; use @ref dropNoCommit() to execute without any transaction management
          */
-        drop() {
-            t.drop();
+        drop(*hash opt) {
+            t.drop(opt);
         }
 
         #! drops the table from the database without any transaction management
@@ -2466,10 +2776,14 @@ $table.drop();
 $table.dropNoCommit();
             @endcode
 
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @throw OPTION-ERROR invalid or unknown callback option
+
             @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
-        dropNoCommit() {
-            t.dropNoCommit();
+        dropNoCommit(*hash opt) {
+            t.dropNoCommit(opt);
         }
         
         #! truncates all the table data; releases the transaction lock after executing
@@ -2884,14 +3198,14 @@ $table.dropConstraint("uk_mytable_name");
         /** @par Example:
             @code
 my string $sql;
-my AbstractTrigger $trig = $table.addTrigger("trig_mytable", "", NOTHING, \$sql);
+my AbstractTrigger $trig = $table.addTrigger("trig_mytable",x $trigger_source, NOTHING, \$sql);
 printf("%s;\n", $sql);
             @endcode
 
             In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
 
             @param tname the name of the new trigger
-            @param src the source of the trigger
+            @param src the database-specific source of the trigger
             @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref AbstractTable::TriggerOptions
             @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
@@ -3478,12 +3792,16 @@ my bool $b = $table.inDb();
 $table.drop();
             @endcode
 
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @throw OPTION-ERROR invalid or unknown callback option
+
             @note The transaction is committed if successful or rolled back if an exception occurs; use @ref dropNoCommit() to execute without any transaction management
          */
-        drop() {
+        drop(*hash opt) {
             on_exit ds.commit();
             on_error ds.rollback();
-            dropNoCommit();
+            dropNoCommit(opt);
         }
 
         #! drops the table from the database without any transaction management
@@ -3492,13 +3810,32 @@ $table.drop();
 $table.dropNoCommit();
             @endcode
 
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @throw OPTION-ERROR invalid or unknown callback option
+
             @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
-        dropNoCommit() {
-            ds.exec("drop table %s", getSqlName());
+        dropNoCommit(*hash opt) {
+            ds.exec(AbstractDatabase::doCallback(opt, getDropSql(), "dropping table %s", getSqlName()));
             inDb = False;
         }
-        
+
+        #! returns the sql required to drop the table; reimplement in subclasses if necessary
+        /** @par Example:
+            @code
+            @endcode
+
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @return a list of strings that can be used to drop the table and any other objects assocatied with the table (for example: PostgreSQL table trigger function(s))
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        softlist getDropSql(*hash opt) {
+            return AbstractDatabase::doCallback(opt, getDropSqlImpl(), "dropping table %s", getSqlName());
+        }
+
         #! truncates all the table data; releases the transaction lock after executing
         /** @par Example:
             @code
@@ -3713,7 +4050,6 @@ $table.rename("new_name");
             }
             
             setupTableImpl(desc, opt);
-            #xxx
         }
 
         #! adds a column to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -5796,7 +6132,16 @@ my *list $rows = $table.find($list);
             return TriggerOptions;
         }
 
+        private softlist getDropSqlImpl() {
+            return sprintf("drop table %s", getSqlName());
+        }
+        
         private abstract bool emptyImpl();
+
+        #! returns @ref Qore::True "True" if the table exists in the DB, @ref Qore::False "False" if not
+        /** this method will only be called if inDb is @ref Qore::False "False" and 
+            should set inDb = True if it returns @ref Qore::True "True"
+         */
         private abstract bool checkExistenceImpl();
 
         private abstract setupTableImpl(hash desc, *hash opt);

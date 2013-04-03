@@ -981,7 +981,9 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         private bool checkExistenceImpl() {
             *hash qh = ds.selectRow("select * from  pg_catalog.pg_statio_all_tables where relname = %v", name);
-            return qh ? True : False;
+            if (qh)
+                return inDb = True;
+            return False;
         }
 
         private Columns describeImpl() {
@@ -1334,6 +1336,13 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return triggerFunctions.empty();
         }
 
+        private softlist getDropSqlImpl() {
+            list l = ();
+            l += sprintf("drop table %s", getSqlName());
+            map l += $1.getDropSql(), triggerFunctions.iterator();
+            return l;
+        }
+        
         private setupTableImpl(hash desc, *hash opt) {
             # add trigger functions to table
             AbstractDatabase::checkDriverOptions(\desc.functions, ds.getDriverName());

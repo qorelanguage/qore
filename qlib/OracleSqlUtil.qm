@@ -489,7 +489,7 @@ my string $str = $col.getRenameSql($t, "new_name");
     public class OraclePackage inherits OracleCodeBase {
         private {
             #! package body source
-            string body_src;
+            *string body_src;
         }
 
         #! creates the object from the arguments passed
@@ -497,7 +497,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             @param n_src the source of the package declaration
             @param n_body_src the package body source
          */
-        constructor(string n, string n_src, string n_body_src) : OracleCodeBase(n, "package", n_src) {
+        constructor(string n, string n_src, *string n_body_src) : OracleCodeBase(n, "package", n_src) {
             body_src = n_body_src;
         }
 
@@ -507,7 +507,8 @@ my string $str = $col.getRenameSql($t, "new_name");
             # package declaration
             l += sprintf("create%s package %s", opt.replace ? " or replace" : "", src);
             # package body
-            l += sprintf("create%s package body %s", opt.replace ? " or replace" : "", body_src);
+            if (body_src)
+                l += sprintf("create%s package body %s", opt.replace ? " or replace" : "", body_src);
             return l;
         }
     }
@@ -535,6 +536,11 @@ my string $str = $col.getRenameSql($t, "new_name");
 
                 #"synonyms": Type::Hash,
                 #"synonym_map": Type::Hash,
+                );
+
+            const OraclePackageDescriptionOptions = (
+                "src": Type::String,
+                "body": Type::String,
                 );
         }
 
@@ -565,11 +571,21 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         OraclePackage makePackage(string name, string src, string body, *hash opts) {
+            checkSource("package", name, \src);
+
             return new OraclePackage(name, src, body);
         }
 
         OraclePackage makePackageFromDescription(string name, hash ph, *hash opts) {
-            throw "UNIMPLEMENTED";
+            validateOptionsIntern("PACKAGE-DESCRIPTION-ERROR", OraclePackageDescriptionOptions, \ph);
+            if (!ph.src)
+                throw "PACKAGE-DESCRIPTION-ERROR", sprintf("package %y: description hash has no 'src' key (keys: %y)", name, ph.keys());
+
+            checkSource("package", name, \ph.src);
+            if (ph.body)
+                checkSource("package", name, \ph.body);
+
+            return new OraclePackage(name, ph.src, ph.body);
         }
 
         OracleType makeType(string name, string src, *hash opts) {
@@ -614,9 +630,6 @@ my string $str = $col.getRenameSql($t, "new_name");
                 return;
 
             *string body_src = getSource("PACKAGE BODY", name);
-            if (!body_src)
-                throw "PACKAGE-ERROR", sprintf("cannot find body for package %y", name);
-
             return new OraclePackage(name, src, body_src);
         }
 
@@ -878,20 +891,15 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         private bool checkExistenceImpl() {
-            if (schema.lwr() == ds.getUserName().lwr()) {
-                try {
-                    setTable();
-                }
-                catch (hash ex) {
-                    if (ex.err == "TABLE-ERROR")
-                        return False;
-                    rethrow;
-                }
-                return True;
+            try {
+                setTableInfoIntern();
             }
-
-            *hash row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
-            return row ? True : False;
+            catch (hash ex) {
+                if (ex.err == "TABLE-ERROR")
+                    return False;
+                rethrow;
+            }
+            return True;
         }
 
 	private setTableInfoIntern() {
