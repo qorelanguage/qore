@@ -519,9 +519,16 @@ my string $str = $col.getRenameSql($t, "new_name");
 
             #! default generic schema description keys
             const OracleSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + (
-                "materialized_views": Type::Hash,
+                "types": Type::Hash,
+                "type_map": Type::Hash,
+
+                "packages": Type::Hash,
+                "package_map": Type::Hash,
+
+                #"materialized_views": Type::Hash,
+                #"materialized_view_map": Type::Hash,
+
                 #"synonyms": Type::Hash,
-                "materialized_view_map": Type::Hash,
                 #"synonym_map": Type::Hash,
                 );
         }
@@ -553,7 +560,12 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         private list getAlignSqlImpl(hash schema_hash, *hash opt) {
-            return ();
+            list l = ();
+
+            #tl = alignFunctions("package", schema_hash, \getPackage(), \makePackage(), opt);
+            #if (tl) l += tl;
+
+            return l;
         }
 
         private *OracleFunction getFunctionImpl(string name) {

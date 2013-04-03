@@ -1962,7 +1962,7 @@ my list $l = $db.getAlignSql($schema_hash);
             AbstractDatabase::checkDriverOptions(\fmap, drv);
             foreach string name in (fmap.keyIterator()) {
                 if (fmap{name}.typeCode() != NT_STRING)
-                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("function %y value is not a source string in the schema description hash; got type %y instead (%y)", name, fmap{name}.type(), fmap{name});
+                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("%s %y value is not a source string in the schema description hash; got type %y instead (%y)", type, name, fmap{name}.type(), fmap{name});
 
                 # make template function
                 AbstractFunction templateFunc = make(name, fmap{name}, opt.(copt.keys()));
@@ -1974,18 +1974,16 @@ my list $l = $db.getAlignSql($schema_hash);
                 else {
                     f = get(name);
                     if (!f) {
-                        AbstractDatabase::doInfoCallback(opt, "create function %s", name);
+                        AbstractDatabase::doInfoCallback(opt, "create %s %s", type, name);
                         l += AbstractDatabase::doSqlCallback(opt, templateFunc.getCreateSql(opt));
                         continue;
                     }
                 }
 
                 if (!templateFunc.equal(f)) {
-                    #printf("%N\nXXXXXXXXXXXXXXX\n%N\n", templateFunc, f);
-
-                    AbstractDatabase::doInfoCallback(opt, "drop function %s", name);
+                    AbstractDatabase::doInfoCallback(opt, "drop %s %s", type, name);
                     l += AbstractDatabase::doSqlCallback(opt, f.getDropSql());
-                    AbstractDatabase::doInfoCallback(opt, "create function %s", name);
+                    AbstractDatabase::doInfoCallback(opt, "create %s %s", type, name);
                     l += AbstractDatabase::doSqlCallback(opt, templateFunc.getCreateSql(opt));
                 }
             }
