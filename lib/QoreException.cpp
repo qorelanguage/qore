@@ -27,6 +27,8 @@
 
 #include <assert.h>
 
+#define Q_MAX_EXCEPTIONS 10
+
 void QoreException::del(ExceptionSink *xsink) {
    if (callStack) {
       callStack->deref(xsink);
@@ -107,6 +109,8 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
       now.setNow();
       now.format(nstr, "YYYY-MM-DD HH:mm:SS.xx Dy Z (z)");
    }
+
+   unsigned ecnt = 0;
 
    while (e) {
       //printd(5, "ExceptionSink::defaultExceptionHandler() cs size=%d\n", cs->size());
@@ -299,8 +303,14 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
 	 }
       }
       e = e->next;
-      if (e)
+      if (e) {
+	 ++ecnt;
+	 if (ecnt == Q_MAX_EXCEPTIONS) {
+	    printe("*** maximum exception count reached (%d); supressing further output\n", ecnt);
+	    break;
+	 }
 	 printe("chained exception:\n");
+      }
    }
 }
 
