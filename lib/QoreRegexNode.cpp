@@ -139,10 +139,10 @@ QoreListNode *QoreRegexNode::extractSubstrings(const QoreString* target, Excepti
    int offset = 0;
    while (true) {
       int ovector[OVECCOUNT];
-      if (offset >= t->size())
+      if (offset >= t->strlen())
          break;
       int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, OVECCOUNT);
-      //printd(5, "QoreRegexNode::exec(%s =~ /xxx/ = %d (global: %d)\n", t->getBuffer() + offset, rc, global);
+      //printd(5, "QoreRegexNode::exec(%s) =~ /xxx/ = %d (global: %d)\n", t->getBuffer() + offset, rc, global);
 
       // FIXME: rc = 0 means that not enough space was available in ovector!
       if (rc < 1)
@@ -164,7 +164,8 @@ QoreListNode *QoreRegexNode::extractSubstrings(const QoreString* target, Excepti
             l->push(tstr);
          }
 
-         offset += ovector[(x - 1) * 2 + 1];
+         offset = ovector[(x - 1) * 2 + 1];
+         //printd(5, "QoreRegexNode::exec() offset: %d size: %d ovector[%d]: %d\n", offset, t->strlen(), (x - 1) * 2 + 1, ovector[(x - 1) * 2 + 1]);
       }
       else
          break;
