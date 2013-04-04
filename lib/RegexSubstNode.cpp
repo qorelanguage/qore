@@ -40,8 +40,8 @@ void RegexSubstNode::init() {
 RegexSubstNode::RegexSubstNode() : ParseNoEvalNode(NT_REGEX_SUBST) {
    //printd(5, "RegexSubstNode::RegexSubstNode() this=%p\n", this);
    init();
-   str = new QoreString();
-   newstr = new QoreString();
+   str = new QoreString;
+   newstr = new QoreString;
 }
 
 // constructor when used at run-time
@@ -155,15 +155,20 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
    if (*xsink)
       return 0;
 
-   QoreStringNode *tstr = new QoreStringNode();
+   QoreStringNode *tstr = new QoreStringNode;
    
    const char *ptr = t->getBuffer();
    //printd(5, "RegexSubstNode::exec(%s) this=%p: global=%s\n", ptr, this, global ? "true" : "false"); 
    while (true) {
       int ovector[SUBST_OVECSIZE];
       int offset = ptr - t->getBuffer();
+      if (offset >= t->size())
+         break;
       int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, SUBST_OVECSIZE);
-      if (rc < 0)
+
+      //printd(5, "RegexSubstNode::exec() prec_exec() rc: %d\n", rc);
+      // FIXME: rc = 0 means that not enough space was available in ovector!
+      if (rc < 1)
 	 break;
       
       if (ovector[0] > offset)

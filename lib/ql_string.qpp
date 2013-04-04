@@ -327,7 +327,7 @@ const RE_Extended = PCRE_EXTENDED;
 //! makes start-of-line (^) or end-of-line ($) match after or before any newline in the subject string, equivalent to <tt>/m</tt>
 const RE_MultiLine = PCRE_MULTILINE;
 
-//! replace all matches globally in the string, equivalent to <tt>/g</tt>
+//! replace all matches globally in the string or extract all occurrences of the pattern(s) in the string, equivalent to <tt>/g</tt>
 const RE_Global = QRE_GLOBAL;
 //@}
 
@@ -1053,12 +1053,14 @@ my *list $rv = regex_extract("ns:element", "(\\w+):(\\w+)");
     @note equivalent <string>::regexExtract(string, int)
 
     @see @ref qore_regex for more information about regular expression support in Qore
+
+    @since %Qore 0.8.8 this function accepts the @ref Qore::RE_Global option to extract all occurrences of the pattern(s) in a string
  */
 *list regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    QoreRegexNode qr(*regex, options, xsink);
    if (*xsink)
       return 0;
-   
+
    return qr.extractSubstrings(str, xsink);
 }
 

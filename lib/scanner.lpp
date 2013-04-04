@@ -470,7 +470,7 @@ static inline DateTimeNode *makeRelativeDateTime(char *str) {
    return DateTimeNode::makeRelative(year, month, day, hour, minute, second, us);
 }
 
-static inline DateTimeNode *makeRelativeTime(char *str) {
+static DateTimeNode *makeRelativeTime(char *str) {
    const char *p = str;
 
    int hour = 0, minute = 0, second = 0, us = 0;
@@ -479,7 +479,7 @@ static inline DateTimeNode *makeRelativeTime(char *str) {
    return DateTimeNode::makeRelative(0, 0, 0, hour, minute, second, us);
 }
 
-static inline bool isRegexModifier(QoreRegexNode *qr, int c) {
+static bool isRegexModifier(QoreRegexNode *qr, int c) {
    if (c == 'i')
       qr->setCaseInsensitive();
    else if (c == 's')
@@ -493,7 +493,17 @@ static inline bool isRegexModifier(QoreRegexNode *qr, int c) {
    return true;
 }
 
-static inline bool isRegexSubstModifier(RegexSubstNode *qr, int c) {
+static bool isRegexExtractModifier(QoreRegexNode *qr, int c) {
+   if (isRegexModifier(qr, c))
+      return true;
+   if (c == 'g')
+      qr->setGlobal();
+   else
+      return false;
+   return true;
+}
+
+static bool isRegexSubstModifier(RegexSubstNode *qr, int c) {
    if (c == 'g')
       qr->setGlobal();
    else if (c == 'i')
@@ -1122,7 +1132,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 	                                   int c;
 	                                   do {
 					      c = yyinput(yyscanner);
-					   } while (isRegexModifier(yylval->Regex, c));
+					   } while (isRegexExtractModifier(yylval->Regex, c));
 					   unput(c);
 					   BEGIN(INITIAL); 
 					   yylval->Regex->parse(); 

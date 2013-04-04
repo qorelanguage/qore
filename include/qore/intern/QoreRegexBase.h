@@ -37,16 +37,16 @@
 #define QRE_GLOBAL 0x100000000LL
 
 class QoreRegexBase {
-   protected:
-      pcre *p;
-      int options;
-      class QoreString *str;
+protected:
+   pcre* p;
+   int options;
+   QoreString* str;
 
-   public:
-      DLLLOCAL void setCaseInsensitive();
-      DLLLOCAL void setDotAll();
-      DLLLOCAL void setExtended();
-      DLLLOCAL void setMultiline();
+public:
+   DLLLOCAL void setCaseInsensitive();
+   DLLLOCAL void setDotAll();
+   DLLLOCAL void setExtended();
+   DLLLOCAL void setMultiline();
 };
 
 #endif

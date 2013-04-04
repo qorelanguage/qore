@@ -32,17 +32,15 @@ QoreRegexNode::QoreRegexNode(QoreString *s) : ParseNoEvalNode(NT_REGEX) {
    parse();
 }
 
-QoreRegexNode::QoreRegexNode(const QoreString &s, int opts, ExceptionSink *xsink) : ParseNoEvalNode(NT_REGEX) {
-   init();
+QoreRegexNode::QoreRegexNode(const QoreString &s, int64 opts, ExceptionSink *xsink) : ParseNoEvalNode(NT_REGEX) {
+   init(opts);
    str = 0;
-   
-   if (check_re_options(opts)) {
+
+   if (check_re_options(options)) {
       xsink->raiseException("REGEX-OPTION-ERROR", "%d contains invalid option bits", opts);
       options = 0;
    }
-   else
-      options = opts;
-   
+
    parseRT(&s, xsink);
 }
 
@@ -131,46 +129,57 @@ bool QoreRegexNode::exec(const char *str, size_t len) const {
 }
 
 #define OVEC_LATELEM 20
-QoreListNode *QoreRegexNode::extractSubstrings(const QoreString *target, ExceptionSink *xsink) const {
+QoreListNode *QoreRegexNode::extractSubstrings(const QoreString* target, ExceptionSink* xsink) const {
    TempEncodingHelper t(target, QCS_UTF8, xsink);
    if (!t)
       return 0;
    
-   // FIXME: rc = 0 means that not enough space was available in ovector!
-   
-   // the PCRE docs say that if we don't send an ovector here the library may have to malloc
-   // memory, so, even though we don't need the results, we include the vector to avoid 
-   // extraneous malloc()s
-   int ovector[OVECCOUNT];
-   int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), 0, 0, ovector, OVECCOUNT);
-   //printd(0, "QoreRegexNode::exec(%s =~ /%s/ = %d\n", target->getBuffer(), str->getBuffer(), rc);
-   
-   if (rc < 1)
-      return 0;
-   
-   QoreListNode *l = new QoreListNode();
-   
-   if (rc > 1) {
-      int x = 0;
-      while (++x < rc) {
-	 int pos = x * 2;
-	 if (ovector[pos] == -1) {
-	    l->push(nothing());
-	    continue;
-	 }
-	 QoreStringNode *tstr = new QoreStringNode();
-	 //printd(5, "substring %d: %d - %d (len %d)\n", x, ovector[pos], ovector[pos + 1], ovector[pos + 1] - ovector[pos]);
-	 tstr->concat(t->getBuffer() + ovector[pos], ovector[pos + 1] - ovector[pos]);
-	 l->push(tstr);
+   ReferenceHolder<QoreListNode> l(xsink);
+
+   int offset = 0;
+   while (true) {
+      int ovector[OVECCOUNT];
+      if (offset >= t->size())
+         break;
+      int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, OVECCOUNT);
+      //printd(5, "QoreRegexNode::exec(%s =~ /xxx/ = %d (global: %d)\n", t->getBuffer() + offset, rc, global);
+
+      // FIXME: rc = 0 means that not enough space was available in ovector!
+      if (rc < 1)
+         break;
+
+      if (rc > 1) {
+         int x = 0;
+         while (++x < rc) {
+            int pos = x * 2;
+            if (ovector[pos] == -1) {
+               if (!l) l = new QoreListNode;
+               l->push(nothing());
+               continue;
+            }
+            QoreStringNode *tstr = new QoreStringNode;
+            //printd(5, "substring %d: %d - %d (len %d)\n", x, ovector[pos], ovector[pos + 1], ovector[pos + 1] - ovector[pos]);
+            tstr->concat(t->getBuffer() + ovector[pos], ovector[pos + 1] - ovector[pos]);
+            if (!l) l = new QoreListNode;
+            l->push(tstr);
+         }
+
+         offset += ovector[(x - 1) * 2 + 1];
       }
+      else
+         break;
+
+      if (!global)
+         break;
    }
    
-   return l;
+   return l.release();
 }
 
-void QoreRegexNode::init() {
+void QoreRegexNode::init(int64 opt) {
    p = 0;
-   options = PCRE_UTF8;
+   options = (int)opt;
+   global = opt & QRE_GLOBAL ? true : false;
 }
 
 QoreString *QoreRegexNode::getString() {

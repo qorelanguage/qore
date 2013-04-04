@@ -35,7 +35,9 @@
 
 class QoreRegexNode : public ParseNoEvalNode, public QoreRegexBase {
 private:
-   DLLLOCAL void init();
+   bool global;
+
+   DLLLOCAL void init(int64 opt = PCRE_UTF8);
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       // FIXME: implement a type for this
@@ -53,7 +55,7 @@ public:
    // this version is used while parsing, takes ownership of str
    DLLLOCAL QoreRegexNode(QoreString *str);
    // used at run-time, does not change str
-   DLLLOCAL QoreRegexNode(const QoreString &str, int options, ExceptionSink *xsink);
+   DLLLOCAL QoreRegexNode(const QoreString &str, int64 options, ExceptionSink *xsink);
    DLLLOCAL virtual ~QoreRegexNode();
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
@@ -73,6 +75,10 @@ public:
    DLLLOCAL QoreListNode *extractSubstrings(const QoreString *target, ExceptionSink *xsink) const;
    // caller owns QoreString returned
    DLLLOCAL QoreString *getString();
+
+   DLLLOCAL void setGlobal() {
+      global = true;
+   }
 };
 
 #endif // _QORE_QOREREGEXNODE_H
