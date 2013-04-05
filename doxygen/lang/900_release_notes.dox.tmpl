@@ -18,6 +18,9 @@
       - Qore::SQL::DatasourcePool::getConfigString()
     - new functions:
       - call_pseudo_args()
+    - new pseudo methods:
+      - <int>::encodeMsb(int)
+      - <int>::encodeLsb(int)
     - @ref implicit_index "implicit index" references now work in the @ref map "map" and @ref select "select" operators with lists and iterators
     - the @ref regex_extract_operator now accepts an optional \c g specifier to extract all occurrences of the pattern(s) in a string; also @ref Qore::regex_extract "regex_extract()" and <string>::regexExtract(string, int) now accept @ref Qore::RE_Global to extract all occurrences of the pattern(s) in a string
 

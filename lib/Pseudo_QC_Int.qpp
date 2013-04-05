@@ -133,3 +133,127 @@ int <int>::sign() [flags=CONSTANT] {
       return 0;
    return i->val > 0 ? 1 : -1;
 }
+
+//! returns a binary object with the integer encoded in the given number of bytes in most significant byte order
+/** @par Example:
+    @code
+$b += $i.encodeMsb(8);
+    @endcode
+
+    @param size the size of the encoded binary object; must be 1, 2, 4, or 8 or a SIZE-ERROR exception is raised
+
+    @return a binary object with the integer encoded in the given number of bytes in most significant byte order
+
+    @throw SIZE-ERROR the argument is not 1, 2, 4, or 8 or the argument cannot fit in the number of bytes requested
+
+    @since %Qore 0.8.8
+ */
+binary <int>::encodeMsb(int size = 4) [flags=RET_VALUE_ONLY] {
+   SimpleRefHolder<BinaryNode> b(new BinaryNode);
+   switch (size) {
+      case 1: {
+         signed char c = i->val;
+         if (i->val != c) {
+            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(1) ("QLLD") is too large to fit in 1 byte", i->val);
+            return 0;
+         }
+         b->append((void*)&c, 1);
+         break;
+      }
+
+      case 2: {
+         int16_t num = i->val;
+         if (i->val != num) {
+            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(2) ("QLLD") is too large to fit in 2 bytes", i->val);
+            return 0;
+         }
+         num = htons(num);
+         b->append((void*)&num, 2);
+         break;
+      }
+
+      case 4: {
+         int32_t num = i->val;
+         if (i->val != num) {
+            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(4) ("QLLD") is too large to fit in 4 bytes", i->val);
+            return 0;
+         }
+         num = htonl(num);
+         b->append((void*)&num, 4);
+         break;
+      }
+
+      case 8: {
+         int64 num = i8MSB(i->val);
+         b->append((void*)&num, 8);
+         break;
+      }
+
+      default:
+         xsink->raiseException("SIZE-ERROR", "the size given to <int>::encodeMsb("QLLD") is not 1, 2, 4, or 8", size);
+         return 0;
+   }
+   return b.release();
+}
+
+//! returns a binary object with the integer encoded in the given number of bytes in least significant byte order
+/** @par Example:
+    @code
+$b += $i.encodeLsb(8);
+    @endcode
+
+    @param size the size of the encoded binary object; must be 1, 2, 4, or 8 or a SIZE-ERROR exception is raised
+
+    @return a binary object with the integer encoded in the given number of bytes in least significant byte order
+
+    @throw SIZE-ERROR the argument is not 1, 2, 4, or 8 or the argument cannot fit in the number of bytes requested
+
+    @since %Qore 0.8.8
+ */
+binary <int>::encodeLsb(int size = 4) [flags=RET_VALUE_ONLY] {
+   SimpleRefHolder<BinaryNode> b(new BinaryNode);
+   switch (size) {
+      case 1: {
+         signed char c = i->val;
+         if (i->val != c) {
+            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(1) ("QLLD") is too large to fit in 1 byte", i->val);
+            return 0;
+         }
+         b->append((void*)&c, 1);
+         break;
+      }
+
+      case 2: {
+         int16_t num = i->val;
+         if (i->val != num) {
+            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(2) ("QLLD") is too large to fit in 2 bytes", i->val);
+            return 0;
+         }
+         num = i2LSB(num);
+         b->append((void*)&num, 2);
+         break;
+      }
+
+      case 4: {
+         int32_t num = i->val;
+         if (i->val != num) {
+            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(4) ("QLLD") is too large to fit in 4 bytes", i->val);
+            return 0;
+         }
+         num = i4LSB(num);
+         b->append((void*)&num, 4);
+         break;
+      }
+
+      case 8: {
+         int64 num = i8LSB(i->val);
+         b->append((void*)&num, 8);
+         break;
+      }
+
+      default:
+         xsink->raiseException("SIZE-ERROR", "the size given to <int>::encodeLsb("QLLD") is not 1, 2, 4, or 8", size);
+         return 0;
+   }
+   return b.release();
+}
