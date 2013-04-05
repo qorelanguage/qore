@@ -368,7 +368,7 @@ public:
    }
 
    DLLLOCAL QoreHashNode *getSlice(const QoreListNode *l, ExceptionSink *xsink) const {
-      AutoLocker al(mutex);
+      SafeLocker sl(mutex);
 
       if (status == OS_DELETED) {
 	 makeAccessDeletedObjectException(xsink, theclass->getName());
@@ -381,6 +381,8 @@ public:
       // check key list if necessary
       if (has_public_members || !private_access_ok) {
 	 ReferenceHolder<QoreListNode> nl(new QoreListNode, xsink);
+	 ReferenceHolder<QoreListNode> mgl(theclass->hasMemberGate() ? new QoreListNode : 0, xsink);
+
 	 ConstListIterator li(l);
 	 while (li.next()) {
 	    QoreStringValueHelper key(li.getValue(), QCS_DEFAULT, xsink);
@@ -390,11 +392,37 @@ public:
 	    int rc = checkMemberAccessIntern(key->getBuffer(), has_public_members, private_access_ok);
 	    if (!rc)
 	       nl->push(new QoreStringNode(*key));
-	    else if (rc == QOA_PUB_ERROR) {
-	       doPublicException(key->getBuffer(), xsink);
-	       return 0;
+	    else {
+	       if (theclass->hasMemberGate())
+	          mgl->push(new QoreStringNode(*key));
+	       else if (rc == QOA_PUB_ERROR) {
+	          doPublicException(key->getBuffer(), xsink);
+	          return 0;
+	       }
+	       else {
+	          doPrivateException(key->getBuffer(), xsink);
+	          return 0;
+	       }
 	    }
 	 }
+
+	 ReferenceHolder<QoreHashNode> rv(data->getSlice(*nl, xsink), xsink);
+	 if (*xsink)
+	    return 0;
+	 if (mgl && !mgl->empty()) {
+	    // unlock lock and execute memberGate() method for each method in the memger gate list (mgl)
+	    sl.unlock();
+
+	    ConstListIterator mgli(*mgl);
+	    while (mgli.next()) {
+	       const QoreStringNode* k = reinterpret_cast<const QoreStringNode*>(mgli.getValue());
+	       AbstractQoreNode* n = theclass->evalMemberGate(obj, k, xsink);
+	       if (*xsink)
+	          return 0;
+	       rv->setKeyValue(k->getBuffer(), n, xsink);
+	    }
+	 }
+	 return rv.release();
       }
 
       return data->getSlice(l, xsink);

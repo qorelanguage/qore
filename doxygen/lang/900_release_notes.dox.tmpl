@@ -35,6 +35,8 @@
     - fixed a bug where a parse-time crash would occur when calling the copy() method for a class that does not implement an explicit copy() method
     - fixed a bug where arguments passed to a copy method were ignored; now an exception is thrown
     - fixed a bug where public members and static variables of privately-inherited classes were incorrectly treated as public attributes of the child class
+    - fixed a bug where slices could be made of objects from outside the class including private members
+    - fixed a bug where @ref Qore::SQL::SQLStatement::memberGate() "memberGate() methods" were not being respected when taking a slice of an object
 
     @section qore_087 Qore 0.8.7
 
