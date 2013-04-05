@@ -298,6 +298,28 @@ my string $str = $col.getRenameSql($t, "new_name");
             tablespace = ts;
         }
 
+        #! returns the OracleColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
+        /** @par Example:
+            @code
+my any $v = $c.name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
+        OracleColumn memberGate(string k) {
+            if (!h.hasKey(k))
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+            return h{k};
+        }
+
         bool setIndexBase(string ix) {
             if (index && index != ix)
                 return False;
@@ -349,6 +371,28 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c) {
             tablespace = ts;
+        }
+
+        #! returns the OracleColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
+        /** @par Example:
+            @code
+my any $v = $c.name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
+        OracleColumn memberGate(string k) {
+            if (!h.hasKey(k))
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+            return h{k};
         }
 
         bool setIndexBase(string ix) {
@@ -1286,6 +1330,18 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         private AbstractTrigger addTriggerImpl(string tname, string src, *hash opt) {
             return new OracleTrigger(tname, src);
+        }
+
+        private bool tryInsertImpl(string sql, hash row) {
+            try {
+                ds.vexec(sql, row.values());
+            }
+            catch (hash ex) {
+                if (ex.desc =~ /ORA-00001/)
+                    return False;
+                rethrow;
+            }
+            return True;
         }
 
         private *list getAlignSqlImpl(AbstractTable t, *hash opt) {

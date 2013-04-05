@@ -3731,6 +3731,39 @@ my Triggers $trig = $table.getTriggers();
                 "default_value": NOTHING,
                 "comment": Type::String,
                 );
+
+            /** @defgroup upsert_options Upsert Options
+                These options are used with @ref AbstractTable::upsert() and @ref AbstractTable::upsertNoCommit() when synchornizing table data
+             */
+            #@{
+            #! Upsert option: insert first
+            /** with this option an insert is attempted, and if it fails due to a duplicate row, then an update is made unconditionally
+             */
+            const UpsertInsertFirst = 1;
+
+            #! Upsert option: update first
+            /** with this option an update is attempted, and if it fails due to a missing row, then an insert is performed
+             */
+            const UpsertUpdateFirst = 2;
+
+            #! Upsert option: select first
+            /** with this option the row is selected, if it doesn't exist, an insert is made, and an update is made only if the values are different
+             */
+            const UpsertSelectFirst = 3;
+            #@}
+
+            /** @defgroup upsert_results Upsert Result Codes
+             */
+            #@{
+            #! row was inserted
+            const UR_Inserted = 1;
+            
+            #! row was updated
+            const UR_Updated = 2;
+
+            #! row was unchanged (only possible with @ref UpsertSelectFirst)
+            const UR_Unchanged = 3;
+            #@}
         }
 
         private {
@@ -5105,6 +5138,187 @@ $table.insert($row);
             ds.vexec(sql, row.values());
         }
 
+        #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this; the transaction is committed if successful, if an error occurs then it is rolled back
+        /** @par Example:
+            @code
+$table.upsert($row);
+            @endcode
+
+            @param row a hash representing the row to insert or update
+            @param upsert_type one of @ref UpsertInsertFirst, @ref UpsertUpdateFirst, or @ref UpsertSelectFirst for the upsert strategy
+
+            @return an integer code giving the result of the update; see @ref upsert_results for more information 
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+            @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
+         */
+        int upsert(hash row, int upsert_type = UpsertInsertFirst) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return upsertNoCommit(row, upsert_type);
+        }
+
+        #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this
+        /** @par Example:
+            @code
+$table.upsertNoCommit($row);
+            @endcode
+
+            @param row a hash representing the row to insert or update
+            @param upsert_type one of @ref UpsertInsertFirst, @ref UpsertUpdateFirst, or @ref UpsertSelectFirst for the upsert strategy
+
+            @return an integer code giving the result of the update; see @ref upsert_results for more information 
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+            @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
+         */
+        int upsertNoCommit(hash row, int upsert_type = UpsertInsertFirst) {
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+            getPrimaryKeyUnlocked();
+            # get unique columns
+            Columns cols;
+            # unique column source
+            string csrc;
+            if (!primaryKey.empty()) {
+                cols = primaryKey;
+                csrc = sprintf("primary key %s", primaryKey.getName());
+            }
+            else {
+                getConstraintsUnlocked();
+                # find first unique constraint
+                foreach AbstractConstraint c in (constraints.iterator()) {
+                    if (c instanceof AbstractUniqueConstraint) {
+                        cols = cast<AbstractUniqueConstraint>(c);
+                        csrc = sprintf("unique constraint %s", c.getName());
+                        break;
+                    }
+                }
+                if (!cols) {
+                    getIndexesUnlocked();
+                    foreach AbstractIndex ix in (indexes.iterator()) {
+                        if (ix.unique) {
+                            cols = ix.columns;
+                            csrc = sprintf("unique index %s", ix.name);
+                            break;
+                        }
+                    }
+
+                    if (!cols)
+                        throw "UPSERT-ERROR", sprintf("cannot perform an upsert on %s because it has no primary key, unique constraint, or unique index", name);
+                }
+            }
+
+            # column list: make sure all columns in the key are used and have a value
+            list cl = ();
+            foreach string k in (row.keyIterator()) {
+                if (!columns{k})
+                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column (valid columns: %y)", name, k, columns.keys());
+                if (cols.hasKey(k))
+                    cl += k;
+            }
+
+            # if not all columns of the unique constraint are used, then throw an exception
+            if (cl.size() != cols.size())
+                throw "UPSERT-ERROR", sprintf("not all columns from %s are used in the upsert statement; required: %y; used: %y", csrc, columns.keys(), cl);
+
+            # use UpsertSelectFirst if the row size == the key size (ie only key values are used)
+            if (cols.size() == row.size())
+                upsert_type = UpsertSelectFirst;
+
+            switch (upsert_type) {
+                case UpsertInsertFirst: {
+                    string sql = getInsertSql(row);
+                    if (tryInsertImpl(sql, row))
+                        return UR_Inserted;
+                    
+                    list updc = ();
+                    sql = getUpdateSql(row, cols, \updc);
+                    tryUpdate(sql, row, cols, updc);
+                    return UR_Updated;
+                }
+
+                case UpsertUpdateFirst: {
+                    list updc = ();
+                    string sql = getUpdateSql(row, cols, \updc);
+                    if (tryUpdate(sql, row, cols, updc))
+                        return UR_Updated;
+
+                    sql = getInsertSql(row);
+                    ds.vexec(sql, row.values());
+                    return UR_Inserted;
+                }
+
+                case UpsertSelectFirst: {
+                    list updc = ();
+                    string sql = getSelectSql(row, cols, \updc);
+                    list args = row.(cols.keys()).values();
+                    #printf("sql: %s args: %y\n", sql, args);
+                    *hash dbrow = ds.vselectRow(sql, args);
+                    if (!dbrow) {
+                        sql = getInsertSql(row);
+                        ds.vexec(sql, row.values());
+                        return UR_Inserted;
+                    }
+                    if (dbrow == row{updc})
+                        return UR_Unchanged;
+                    #printf("dbrow: %y row{%y}: %y\n", dbrow, updc, row{updc});
+                    sql = getUpdateSql(row, cols, \updc);
+                    tryUpdate(sql, row, cols, updc);
+                    return UR_Updated;
+                }
+
+                default:
+                    throw "UPSERT-ERROR", sprintf("invalid upsert code: %d", upsert_type);
+            }
+        }
+
+        private string getSelectSql(hash row, Columns cols, reference updc) {
+            if (cols.size() != row.size()) {
+                # make list of columns not in unique key
+                map updc += $1, row.keyIterator(), !cols.hasKey($1);
+            }
+            else
+                updc = cols.keys();
+
+            return sprintf("select %s from %s where %s", 
+                           (foldl $1 + "," + $2, updc),
+                           getSqlName(),
+                           (foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), cols.keyIterator()))
+                );            
+        }
+
+        private string getInsertSql(hash row) {
+            string sql = sprintf("insert into %s (", getSqlName());
+            sql += (foldl $1 + "," + $2, row.keyIterator());
+            sql += ") values (";
+            sql += (foldl $1 + "," + $2, (map "%v", row.keyIterator()));
+            sql += ")";
+            return sql;
+        }
+
+        private string getUpdateSql(hash row, Columns cols, reference updc) {
+            # make list of columns not in unique key if necessary
+            if (!updc)
+                map updc += $1, row.keyIterator(), !cols.hasKey($1);
+
+            # make sql
+            string sql = sprintf("update %s set ", getSqlName());
+            sql += foldl $1 + "," + $2, (map sprintf("%s = %v", $1), updc);
+            sql += " where ";
+            sql += foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), cols.keyIterator());
+
+            return sql;
+        }
+
+        private softbool tryUpdate(string sql, hash row, Columns cols, list updc) {
+            list args = row{updc}.values() + row{cols.keys()}.values();
+            printf("sql: %s args: %y\n", sql, args);
+            return ds.vexec(sql, args);
+        }
+
         private checkValue(string cname, string argname, reference val, string type) {
             if (val === NULL) {
                 delete val;
@@ -6172,6 +6386,9 @@ my *list $rows = $table.find($list);
         private abstract AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash opt);
 
         private abstract AbstractTrigger addTriggerImpl(string tname, string src, *hash opt);
+
+        #! tries to insert a row, if there is a duplicate key, then it returns @ref Qore::False "False", if successful, returns @ref Qore::True "True"
+        private abstract bool tryInsertImpl(string sql, hash row);
 
         #! returns the qore type -> column type map
         private abstract hash getQoreTypeMapImpl();

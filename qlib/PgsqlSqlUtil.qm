@@ -390,6 +390,28 @@ my string $str = $col.getRenameSql($t, "new_name");
             tablespace = ts;
         }
 
+        #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
+        /** @par Example:
+            @code
+my any $v = $c.name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
+        PgsqlColumn memberGate(string k) {
+            if (!h.hasKey(k))
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+            return h{k};
+        }
+
         string getCreateSql(string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s unique (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
             *string ix = opts.index ? opts.index : index;
@@ -428,6 +450,28 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c) {
             tablespace = ts;
+        }
+
+        #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
+        /** @par Example:
+            @code
+my any $v = $c.name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
+        PgsqlColumn memberGate(string k) {
+            if (!h.hasKey(k))
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+            return h{k};
         }
 
         string getCreateSql(string table_name, *hash opts) {
@@ -1302,6 +1346,9 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         private AbstractTrigger addTriggerImpl(string tname, string src, *hash opt) {
             return new PgsqlTrigger(tname, src);
+        }
+
+        private bool tryInsertImpl(string sql, hash row) {
         }
 
         private hash getQoreTypeMapImpl() {
