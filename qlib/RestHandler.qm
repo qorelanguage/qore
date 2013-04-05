@@ -183,17 +183,32 @@ public namespace RestHandler {
 
             #! supported mime types for de/serializing responses
             const MimeDataTypes = (
+%ifndef NoJson
+                MimeTypeJsonRpc: (
+                    "serialize": \makeJSONString(),
+                    "deserialize": \parseJSON(),
+                ),
+%endif
 %ifndef NoYaml
-                MimeTypeYaml: True,
-                MimeTypeYamlRpc: True,
+                MimeTypeYaml: (
+                    "serialize": \makeYAML(),
+                    "deserialize": \parseYAML(),
+                ),
+
+                MimeTypeYamlRpc: (
+                    "serialize": \makeYAML(),
+                    "deserialize": \parseYAML(),
+                ),
 %endif
 %ifndef NoXml
-                MimeTypeXml: True,
+                MimeTypeXml: (
+                    "serialize": \makeXMLRPCValueString(),
+                    "deserialize": \parseXMLRPCValue(),
+                ),
 %endif
-%ifndef NoJson
-                MimeTypeJsonRpc: True,
-%endif
-                MimeTypeHtml: True,
+                MimeTypeHtml: (
+                    "serialize": \RestHandler::serializeHtml(),
+                ),
                 );
         }
         
@@ -266,40 +281,13 @@ public namespace RestHandler {
 
             # deserialize body according to Content-Type
             if ($body) {
-                my bool $decoded = False;
-%ifndef NoYaml
-                # check for yaml support
-                foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
-                    if ($hdr."content-type" == $ct) {
-                        $body = parseYAML($body);
-                        $decoded = True;
-                        break;
-                    }
-                }
-%endif
-%ifndef NoXml
-                # check for xml-rpc support
-                if (!$decoded && $hdr."content-type" == MimeTypeXml) {
-                    $body = parseXMLRPCValue($body);
-                    $decoded = True;
-                }
-%endif
-%ifndef NoJson
-                # check for json support
-                if (!$decoded && $hdr."content-type" == MimeTypeJsonRpc) {
-                    $body = parseJSON($body);
-                    $decoded = True;
-                }
-%endif
-                if (!$decoded) {
+                my *code $ds = MimeDataTypes.($hdr."content-type").deserialize;
+                if (!$ds) {
                     $.requestDeserializationError($hdr, $cx, $body);
                     return RestHandler::make501("cannot deserialize request body; content-type is: %y; types supported: %y; discarding request body: %y", $hdr."content-type", MimeDataTypes.keys(), $body);
                 }
 
-                # add any hash body to query arguments for easier processing if the HTTP method is not GET
-                # and comliance with lazy clients that put arguments in the URI with non GET methods
-                if ($hdr.method != "GET" && $body.typeCode() == NT_HASH)
-                    $args += $body;
+                $body = $ds($body);
             }
             else
                 $body = $args;
@@ -386,49 +374,46 @@ public namespace RestHandler {
             my bool $encoded;
             if ($rv.already_encoded)
                 $encoded = True;
-%ifndef NoJson
-            # check for json support
-            if (!$encoded && ($aih{MimeTypeJsonRpc} || $aih."*/*")) {
-                $rv.body = makeJSONString($rv.body);
-                $rv.hdr = ("Content-Type": MimeTypeJsonRpc);
-                $encoded = True;
-            }
-%endif
-%ifndef NoYaml
-            # check for yaml support
+
+            # process Accept values in the order sent by the sender
             if (!$encoded) {
-                foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
-                    if ($aih.$ct || $aih."*/*") {
-                        $rv.body = makeYAML($rv.body);
-                        $rv.hdr = ("Content-Type": $ct);
-                        $encoded = True;
-                        break;
+                my *code $ds;
+                foreach my string $a in ($aih.keyIterator()) {
+                    $ds = MimeDataTypes.$a.serialize;
+                    if ($ds) {
+                        $rv.body = $ds($rv.body);
+                        $rv.hdr = ("Content-Type": $a);
+                    }
+                }
+
+                # if still not encoded and the client accepts anything, encode with the first possible serialization method
+                if (!$ds && $aih."*/*") {
+                    foreach my string $k in (MimeDataTypes.keyIterator()) {
+                        $ds = MimeDataTypes.$k.serialize;
+                        if ($ds) {
+                            $rv.body = $ds($rv.body);
+                            $rv.hdr = ("Content-Type": $k);
+                            break;
+                        }
+                    }
+                    if (!$ds) {
+                        $.responseSerializationError($cx, $aih, $rv);
+                        # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.
+                        return RestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", $aih.keys(), MimeDataTypes.keys(), $rv.body);
                     }
                 }
             }
-%endif
-%ifndef NoXml
-            # check for xml-rpc support
-            if (!$encoded && ($aih{MimeTypeXml} || $aih."*/*")) {
-                $rv.body = makeXMLRPCValueString($rv.body);
-                $rv.hdr = ("Content-Type": MimeTypeXml);
-                $encoded = True;
-            }
-%endif
-            # check for html support
-            if (!$encoded && ($aih{MimeTypeHtml} || $aih."*/*")) {
-                $rv.body = sprintf("<pre>%N</pre>", $rv.body);
-                $rv.hdr = ("Content-Type": MimeTypeHtml);
-                $encoded = True;
-            }
 
-            if (!$encoded) {
-                $.responseSerializationError($cx, $aih, $rv);
-                # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.
-                return RestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", $aih.keys(), MimeDataTypes.keys(), $rv.body);
-            }
+            $.logDebug("response serialization: %s (%d bytes)", $rv.hdr."Content-Type", $rv.body.size());
 
             return $rv;
+        }
+
+        static hash serializeHtml(any $body) {
+            return (
+                "body": sprintf("<pre>%N</pre>", $body),
+                "hdr": ("Content-Type": MimeTypeHtml),
+                );
         }
 
         #! default implementation is empty
