@@ -386,6 +386,14 @@ public namespace RestHandler {
             my bool $encoded;
             if ($rv.already_encoded)
                 $encoded = True;
+%ifndef NoJson
+            # check for json support
+            if (!$encoded && ($aih{MimeTypeJsonRpc} || $aih."*/*")) {
+                $rv.body = makeJSONString($rv.body);
+                $rv.hdr = ("Content-Type": MimeTypeJsonRpc);
+                $encoded = True;
+            }
+%endif
 %ifndef NoYaml
             # check for yaml support
             if (!$encoded) {
@@ -404,14 +412,6 @@ public namespace RestHandler {
             if (!$encoded && ($aih{MimeTypeXml} || $aih."*/*")) {
                 $rv.body = makeXMLRPCValueString($rv.body);
                 $rv.hdr = ("Content-Type": MimeTypeXml);
-                $encoded = True;
-            }
-%endif
-%ifndef NoJson
-            # check for json support
-            if (!$encoded && ($aih{MimeTypeJsonRpc} || $aih."*/*")) {
-                $rv.body = makeJSONString($rv.body);
-                $rv.hdr = ("Content-Type": MimeTypeJsonRpc);
                 $encoded = True;
             }
 %endif
