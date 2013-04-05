@@ -383,6 +383,7 @@ public namespace RestHandler {
                     if ($ds) {
                         $rv.body = $ds($rv.body);
                         $rv.hdr = ("Content-Type": $a);
+                        break;
                     }
                 }
 
