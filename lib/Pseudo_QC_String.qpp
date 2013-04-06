@@ -689,3 +689,48 @@ my bool $b = $str.isDataPrintableAscii();
 bool <string>::isDataPrintableAscii() [flags=CONSTANT] {
    return str->isDataPrintableAscii();
 }
+
+//! returns a string of hexadecimal digits corresponding to the contents of the string
+/** @par Example:
+    @code
+my string $str = $str.toHex();
+    @endcode
+
+    @return a string of hexadecimal digits corresponding to the contents of the string
+
+    @since %Qore 0.8.8
+
+    @see
+    - <binary>::toHex()
+    - makeHexString(string)
+ */
+string <string>::toHex() [flags=CONSTANT] {
+   QoreStringNode *rv = new QoreStringNode;
+   rv->concatHex(str);
+   return rv;
+}
+
+//! Returns the base64-encoded representation of the string
+/** @par Example:
+    @code
+my string $base64 = $str.toBase64(64);
+    @endcode
+
+    Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
+
+    @param maxlinelen the maximum length of a line in the resulting output string in bytes; if this value is > 0 then output lines will be separated by CRLF characters
+
+    @return the base64-encoded string of the data passed
+
+    @since %Qore 0.8.8
+
+    @see
+    - <binary>::toBase64()
+    - makeBase64String(string)
+*/
+string <string>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
+   QoreStringNode *rv = new QoreStringNode;
+   rv->concatBase64(str, maxlinelen);
+   return rv;
+}
+

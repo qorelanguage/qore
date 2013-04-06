@@ -310,3 +310,46 @@ string <binary>::toSHA512() [flags=RET_VALUE_ONLY] {
    return 0;
 #endif
 }
+
+//! returns a string of hexadecimal digits corresponding to the contents of the binary object
+/** @par Example:
+    @code
+my string $str = $b.toHex();
+    @endcode
+
+    @return a string of hexadecimal digits corresponding to the contents of the binary object
+
+    @since %Qore 0.8.8
+
+    @see
+    - @ref <string>::toHex()
+    - @ref Qore::makeHexString(binary)
+
+ */
+string <binary>::toHex() [flags=CONSTANT] {
+   QoreStringNode *rv = new QoreStringNode;
+   rv->concatHex(b);
+   return rv;
+}
+
+//! Returns the base64-encoded representation of the binary object
+/** @par Example:
+    @code
+my string $base64 = $bin.toBase64(64);
+    @endcode
+
+    Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
+
+    @param maxlinelen the maximum length of a line in the resulting output string in bytes; if this value is > 0 then output lines will be separated by CRLF characters
+
+    @return the base64-encoded string of the data passed
+
+    @since %Qore 0.8.8
+
+    @see
+    - <string>::toBase64()
+    - makeBase64String(binary)
+*/
+string <binary>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
+   return new QoreStringNode(b, maxlinelen);
+}

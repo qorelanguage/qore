@@ -880,7 +880,9 @@ my string $base64 = makeBase64String($data, 64);
 
     @since the maxlinelen parameter was added in %Qore 0.8.4
 
-    @see makeHexString()
+    @see
+    - <string>::toBase64()
+    - makeHexString(string)
 */
 string makeBase64String(string str, softint maxlinelen = -1) [flags=CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
@@ -902,6 +904,10 @@ my string $base64 = makeBase64String($data, 64);
     @endcode
 
     @since the maxlinelen parameter was added in %Qore 0.8.4
+
+    @see
+    - <binary>::toBase64()
+    - makeHexString(binary)
 */
 string makeBase64String(binary bin, softint maxlinelen = -1) [flags=CONSTANT] {
    return new QoreStringNode(bin, maxlinelen);
@@ -1700,7 +1706,9 @@ nothing splice() [flags=RUNTIME_NOOP] {
 my string $str = makeHexString($str2);
     @endcode
 
-    @see makeBase64String()
+    @see
+    - <string>::toHex()
+    - makeBase64String(string)
 */
 string makeHexString(string str) [flags=CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
@@ -1718,7 +1726,9 @@ string makeHexString(string str) [flags=CONSTANT] {
 my string $str = makeHexString($bin);
     @endcode
 
-    @see makeBase64String()
+    @see
+    - <binary>::toHex()
+    - makeBase64String(binary)
 */
 string makeHexString(binary bin) {
    QoreStringNode *str = new QoreStringNode;

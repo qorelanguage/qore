@@ -2722,7 +2722,7 @@ int QoreSocket::recvu1(int timeout, unsigned char *val) {
    if (priv->sock == QORE_INVALID_SOCKET)
       return -1;
    
-   return (int)priv->recv(0, "recvu1", (char *)val, 1, 0, timeout);
+   return priv->recv(0, "recvu1", (char *)val, 1, 0, timeout);
 }
 
 int QoreSocket::recvu2(int timeout, unsigned short *val) {
@@ -2813,8 +2813,17 @@ int QoreSocket::recvu4LSB(int timeout, unsigned int *val) {
    return 4;
 }
 
+static int do_read_error(qore_offset_t rc, const char *method_name, int timeout_ms, ExceptionSink *xsink) {
+   if (rc > 0)
+      return 0;
+   if (!*xsink)
+      QoreSocket::doException(rc, method_name, timeout_ms, xsink);
+   return -1;
+}
+
 int64 QoreSocket::recvi1(int timeout, char *val, ExceptionSink* xsink) {
-   return priv->recv(xsink, "recvi1", val, 1, 0, timeout);
+   qore_offset_t rc = priv->recv(xsink, "recvi1", val, 1, 0, timeout);
+   return rc <= 0 ? do_read_error(rc, "recvi1", timeout, xsink) : rc;
 }
 
 int64 QoreSocket::recvi2(int timeout, short *val, ExceptionSink* xsink) {
@@ -2824,7 +2833,7 @@ int64 QoreSocket::recvi2(int timeout, short *val, ExceptionSink* xsink) {
    while (true) {
       qore_offset_t rc = priv->recv(xsink, "recvi2", buf + br, 2 - br, 0, timeout);
       if (rc <= 0)
-         return rc;
+         return do_read_error(rc, "recvi2", timeout, xsink);
 
       br += rc;
 
@@ -2843,7 +2852,7 @@ int64 QoreSocket::recvi4(int timeout, int *val, ExceptionSink* xsink) {
    while (true) {
       qore_offset_t rc = priv->recv(xsink, "recvi4", buf + br, 4 - br, 0, timeout);
       if (rc <= 0)
-         return rc;
+         return do_read_error(rc, "recvi4", timeout, xsink);
 
       br += rc;
 
@@ -2862,7 +2871,7 @@ int64 QoreSocket::recvi8(int timeout, int64 *val, ExceptionSink* xsink) {
    while (true) {
       qore_offset_t rc = priv->recv(xsink, "recvi8", buf + br, 8 - br, 0, timeout);
       if (rc <= 0)
-         return rc;
+         return do_read_error(rc, "recvi8", timeout, xsink);
 
       br += rc;
 
@@ -2881,7 +2890,7 @@ int64 QoreSocket::recvi2LSB(int timeout, short *val, ExceptionSink* xsink) {
    while (true) {
       qore_offset_t rc = priv->recv(xsink, "recvi2LSB", buf + br, 2 - br, 0, timeout);
       if (rc <= 0)
-         return rc;
+         return do_read_error(rc, "recvi2LSB", timeout, xsink);
 
       br += rc;
 
@@ -2900,7 +2909,7 @@ int64 QoreSocket::recvi4LSB(int timeout, int *val, ExceptionSink* xsink) {
    while (true) {
       qore_offset_t rc = priv->recv(xsink, "recvi4LSB", buf + br, 4 - br, 0, timeout);
       if (rc <= 0)
-         return rc;
+         return do_read_error(rc, "recvi4LSB", timeout, xsink);
 
       br += rc;
 
@@ -2919,7 +2928,7 @@ int64 QoreSocket::recvi8LSB(int timeout, int64 *val, ExceptionSink* xsink) {
    while (true) {
       qore_offset_t rc = priv->recv(xsink, "recvi8LSB", buf + br, 8 - br, 0, timeout);
       if (rc <= 0)
-         return rc;
+         return do_read_error(rc, "recvi8LSB", timeout, xsink);
 
       br += rc;
 
@@ -2932,7 +2941,9 @@ int64 QoreSocket::recvi8LSB(int timeout, int64 *val, ExceptionSink* xsink) {
 }
 
 int64 QoreSocket::recvu1(int timeout, unsigned char *val, ExceptionSink* xsink) {
-   return priv->recv(xsink, "recvu1", (char *)val, 1, 0, timeout);
+   qore_offset_t rc = priv->recv(xsink, "recvu1", (char *)val, 1, 0, timeout);
+   //printd(5, "QoreSocket::recvu1() val: %d rc: %lld *xsink: %d\n", (int)*val, rc, (int)(bool)*xsink);
+   return rc <= 0 ? do_read_error(rc, "recvu1", timeout, xsink) : rc;
 }
 
 int64 QoreSocket::recvu2(int timeout, unsigned short *val, ExceptionSink* xsink) {
@@ -2942,7 +2953,7 @@ int64 QoreSocket::recvu2(int timeout, unsigned short *val, ExceptionSink* xsink)
    while (true) {
       qore_offset_t rc = priv->recv(xsink, "recvu2", buf + br, 2 - br, 0, timeout);
       if (rc <= 0)
-         return rc;
+         return do_read_error(rc, "recvu2", timeout, xsink);
 
       br += rc;
 
@@ -2961,7 +2972,7 @@ int64 QoreSocket::recvu4(int timeout, unsigned int *val, ExceptionSink* xsink) {
    while (true) {
       qore_offset_t rc = priv->recv(xsink, "recvu4", buf + br, 4 - br, 0, timeout);
       if (rc <= 0)
-         return rc;
+         return do_read_error(rc, "recvu4", timeout, xsink);
 
       br += rc;
 
@@ -2980,7 +2991,7 @@ int64 QoreSocket::recvu2LSB(int timeout, unsigned short *val, ExceptionSink* xsi
    while (true) {
       qore_offset_t rc = priv->recv(xsink, "recvu2LSB", buf + br, 2 - br, 0, timeout);
       if (rc <= 0)
-         return rc;
+         return do_read_error(rc, "recvu2LSB", timeout, xsink);;
 
       br += rc;
 
@@ -2999,7 +3010,7 @@ int64 QoreSocket::recvu4LSB(int timeout, unsigned int *val, ExceptionSink* xsink
    while (true) {
       qore_offset_t rc = priv->recv(xsink, "recvu4LSB", buf + br, 4 - br, 0, timeout);
       if (rc <= 0)
-         return rc;
+         return do_read_error(rc, "recvu4LSB", timeout, xsink);
 
       br += rc;
 

@@ -11,7 +11,7 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil OracleSqlUtil PgsqlSqlUtil RestHandler RestClient
+USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil OracleSqlUtil PgsqlSqlUtil RestHandler RestClient WebSocketHandler
 USER_MODULES = qlib/HttpServer.qm \
 	qlib/SmtpClient.qm \
 	qlib/Mime.qm \
@@ -24,7 +24,8 @@ USER_MODULES = qlib/HttpServer.qm \
 	qlib/PgsqlSqlUtil.qm \
 	qlib/Util.qm \
 	qlib/RestHandler.qm \
-	qlib/RestClient.qm
+	qlib/RestClient.qm \
+	qlib/WebSocketHandler.qm
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC
@@ -512,7 +513,7 @@ dummy:
 	./next_build.sh
 
 if COND_DOXYGEN
-DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/RestClient/html docs/modules/SqlUtil/html docs/modules/PgsqlSqlUtil/html docs/modules/OracleSqlUtil/html docs/modules/Util/html
+DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/RestClient/html docs/modules/SqlUtil/html docs/modules/PgsqlSqlUtil/html docs/modules/OracleSqlUtil/html docs/modules/Util/html docs/modules/WebSocketHandler/html
 
 LIB_TMP_DOXYFILES_SRC = \
 	doxygen/lib/Doxyfile
@@ -701,6 +702,7 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	doxygen/qlib/PgsqlSqlUtil.qm.dox.h \
 	doxygen/qlib/OracleSqlUtil.qm.dox.h \
 	doxygen/qlib/Util.qm.dox.h \
+	doxygen/qlib/WebSocketHandler.qm.dox.h \
 	HttpServer.tag \
 	Mime.tag \
 	TelnetClient.tag \
@@ -713,7 +715,8 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	SqlUtil.tag \
 	PgsqlSqlUtil.tag \
 	OracleSqlUtil.tag \
-	Util.tag
+	Util.tag \
+	WebSocketHandler.tag
 
 lib/libqore.la: dummy
 	cd lib; make
@@ -801,6 +804,12 @@ doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX)
 doxygen/qlib/Util.qm.dox.h: qlib/Util.qm $(QDX)
 	$(QDX) $< $@
 
+doxygen/qlib/Doxyfile.WebSocketHandler: doxygen/qlib/Doxyfile.tmpl $(QDX)
+	$(QDX) -M=qlib/WebSocketHandler.qm:doxygen/qlib/WebSocketHandler.qm.dox.h $< $@
+
+doxygen/qlib/WebSocketHandler.qm.dox.h: qlib/WebSocketHandler.qm $(QDX)
+	$(QDX) $< $@
+
 DX_CLEANFILES = $(LIB_TMP_DOXYFILES) $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
 
 docs/library/html: $(include_HEADERS) $(LIB_DOXYFILES)
@@ -862,6 +871,10 @@ docs/modules/OracleSqlUtil/html: doxygen/qlib/OracleSqlUtil.qm.dox.h doxygen/qli
 docs/modules/Util/html: docs/lang/html doxygen/qlib/Util.qm.dox.h doxygen/qlib/Doxyfile.Util
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.Util
 	$(top_srcdir)/doxygen/pdox docs/modules/Util/html docs/modules/Util/html/search
+
+docs/modules/WebSocketHandlerHandler/html: docs/lang/html doxygen/qlib/WebSocketHandlerHandler.qm.dox.h doxygen/qlib/Doxyfile.WebSocketHandlerHandler
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.WebSocketHandlerHandler
+	$(top_srcdir)/doxygen/pdox docs/modules/WebSocketHandlerHandler/html docs/modules/WebSocketHandlerHandler/html/search
 
 doxygen-doc: $(DOXYGEN_OUTPUT)
 

@@ -1,0 +1,264 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file WebSocketHandler.qm Qore handler definition for the HttpServer module for providing WebSocket server services
+
+/*  WebSocketHandler.qm Copyright 2013 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.8 or better
+%requires qore >= 0.8.8
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+%requires HttpServer >= 0.3.7
+
+module WebSocketHandler {
+    version = "1.0";
+    desc = "user module for providing WebSocket server services";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+}
+
+/*  Version History
+    * 2013-xx-xx v1.0: David Nichols <david@qore.org>
+      + the initial version of the WebSocketHandler module
+*/
+
+/** @mainpage WebSocketHandler Module
+
+    The %WebSocketHandler module provides a handler to be used with the <a href="../../HttpServer/html/index.html">HttpServer module</a> to
+    provide server-side <a href="http://tools.ietf.org/html/rfc6455">RFC-6455 based WebSocket services</a> to clients.
+*/
+
+#! the WebSocketHandler namespace contains all the objects in the WebSocketHandler module
+public namespace WebSocketHandler {
+    #! the main web socket handler class
+    public class WebSocketHandler inherits AbstractHttpSocketHandler {
+        public {
+            #! WebSocket GUID
+            const GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+            #! the final fragment in a message
+            const FIN = (1 << 7); 
+
+            #! continuation frame opcode
+            const OP_Continuation = 0x0;
+
+            #! text frame opcode
+            const OP_Text = 0x1;
+
+            #! binary frame opcode
+            const OP_Binary = 0x2;
+
+            #! connection code opcode
+            const OP_Close = 0x8;
+
+            #! ping opcode
+            const OP_Ping = 0x9;
+
+            #! pong opcode
+            const OP_Pong = 0xa;
+
+            #! maps from opcodes to text descriptions
+            const OpMap = (
+                OP_Continuation: "CONTINUATION",
+                OP_Text: "TEXT",
+                OP_Binary: "BINARY",
+                OP_Close: "CLOSE",
+                OP_Ping: "PING",
+                OP_Pong: "PONG",
+                );
+        }
+
+        private {
+            #! stop listener flag
+            bool $.stop = False;
+        }
+
+        #! create the object optionally with the given AbstractAuthenticator
+        /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+         */
+        constructor(*AbstractAuthenticator $auth) : AbstractHttpSocketHandler($auth) {
+        }
+
+        #! called by the HTTP server to handle incoming HTTP requests
+        /** Requests will be dispatched to REST classes registered with this object
+
+            @param cx call context hash; this hash will have the following keys:
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+            - \c url: a hash of broken-down URL information (as returned from parseURL())
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c user: the current RBAC username (if any)
+            @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+            - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+            - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
+            - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+            @param b message body, if any
+
+            @return a hash representing the response to the client as follows; to accept a dedicated connection; make sure the \c "code" is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref Qore::False "False":
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
+            - \c "body": the message body to return in the response
+            - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+            - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+         */
+        hash handleRequest(hash $cx, hash $hdr, *data $b) {
+            if (!$hdr."sec-websocket-key")
+                return (
+                    "code": 400,
+                    "body": "cannot open WebSocket connection; no Sec-WebSocket-Key header found in request",
+                );
+
+            my string $key = $hdr."sec-websocket-key";
+            my string $response_key = makeBase64String(SHA1_bin($key + GUID));
+
+            my hash $rhdr = (
+                "Upgrade": "websocket",
+                "Connection": "Upgrade",
+                "Sec-WebSocket-Accept": $response_key,
+                );
+
+            return (
+                "code": 101,
+                "hdr": $rhdr,
+                );
+        }
+
+        #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
+        /** This method should not return until the connection is closed or the stop() method is called
+         */
+        start(Socket $sock) {
+            printf("WebSocketHandler::start() sock: %N open: %y\n", $sock, $sock.isOpen());
+            while (!$.stop) {
+                # send test msg
+                #my binary $msg = $.encodeMessage("2013-04-05 18:49:00.854199 +02:00: 00129: (INFO) JOB JOB_INSTANCE_START: test-shortrun v1.0 jid 3 jiid 18043");
+                #printf("sending message: %s\n", $msg.toHex());
+                #$sock.send($msg);
+
+
+                my int $b0;
+                try {
+                    $b0 = $sock.recvu1(500ms);
+                }
+                catch (hash $ex) {
+                    if ($ex.err == "SOCKET-CLOSED") {
+                        return;
+                    }
+                    if ($ex.err != "SOCKET-TIMEOUT")
+                        printf("%s: %s\n", $ex.err, $ex.desc);
+                    continue;
+                }
+
+                # get opcode
+                my int $op = $b0 & 0xf;
+
+                # get next byte
+                my int $b1 = $sock.recvu1();
+                my softbool $masked = $b1 & 0x80;
+                $b1 &= 0x7f;
+	  
+                my int $data_len;
+                if ($b1 < 126)
+                    $data_len = $b1;
+                else if ($b1 < 65535)
+                    $data_len = $sock.recvu2();
+                else
+                    $data_len = $sock.recvi8();
+                
+                if ($op == OP_Close) {
+                    # FIXME: get/log close msg
+                    printf("received msg (%s: %d bytes)\n", OpMap.$op, $data_len);
+                    break;
+                }
+
+                my *binary $mask;
+                if (!$masked) {
+                    #throw "CLIENT-ERROR", sprintf("unmasked client frame received: %s size: %d", OpMap.$op, $data_len);
+                    printf("unmasked client frame received: %s size: %d", OpMap.$op, $data_len);
+                    continue;
+                }
+
+                $mask = $sock.recvBinary(4);
+
+                my *data $data;
+                if ($data_len)
+                    $data = $sock.recvBinary($data_len);
+
+                # unmask data if necessary
+                if ($mask) {
+                    # unmasked data
+                    my binary $udata;
+                    for (my int $i = 0; $i < $data.size(); ++$i)
+                        $udata += ($data[$i] ^ $mask[$i % 4]);
+                    $data = $udata;
+                }
+
+                printf("received msg (%s: %d bytes): %s\n", OpMap.$op, $data.size(), $data ? ($data.typeCode() == NT_STRING ? $data : $data.toHex()) : "n/a");
+
+                if ($op == OP_Ping) {
+                    $sock.send(WebSocketHandler::encodeMessage($data, OP_Pong));
+                    continue;
+                }
+                
+                if ($op == OP_Text)
+                    $data = binary_to_string($data, $sock.getEncoding());
+
+                # xxxx
+            }
+        }
+
+        private static binary encodeMessage(data $msg, int $op = -1) {
+            if ($op == -1)
+                $op = $msg.typeCode() == NT_STRING ? OP_Text : OP_Binary;
+            my binary $frame += chr(FIN | $op);
+            
+            # encode frames with a message size < 126 directly in the second byte
+            switch ($msg.size()) {
+                case < 126: {
+                    $frame += chr($msg.size());
+                    break;
+                }
+                case < 65536: {
+                    $frame += chr(126);
+                    $frame += $msg.size().encodeMsb(2);
+                    break;
+                }
+              default: {
+                  $frame += chr(127);
+                  $frame += $msg.size().encodeMsb(8);
+                }
+            }
+            $frame += $msg;
+            
+            return $frame;
+        }
+
+        #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
+        stop() {
+            $.stop = True;
+        }
+    }
+}

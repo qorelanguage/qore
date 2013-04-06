@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file RestHandler.qm Qore user module for working with SQL data
+#! @file RestHandler.qm Qore @brief handler definition for the HttpServer module for exporting REST services
 
 /*  RestHandler.qm Copyright 2013 Qore Technologies, sro
 

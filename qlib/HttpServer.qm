@@ -39,6 +39,9 @@ module HttpServer {
       + updated parse_uri_query() to accept both "&" and ";" as argument separators
       + added support for the PUT and DELETE methods and for optional message bodies independent of the HTTP method
       + fixed handler matching to use a score for each handler and to check dynamic handlers also for a match if the fixed handlers don't provide a perfect match
+      + fixed response handling to not overwrite the Connection header if present from the handler
+      + fixed response handling to only return error reponses with codes >= 400
+      + implemented the AbstractHttpSocketHandler handler class to support dedicated socket connections when switching protocols in handlers
 
     * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
       + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
@@ -618,6 +621,50 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 }
 
+public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
+    #! create the object optionally with the given AbstractAuthenticator
+    /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+      */
+    constructor(*AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth) {
+    }
+
+    #! called by the HTTP server to handle incoming HTTP requests
+    /** Requests will be dispatched to REST classes registered with this object
+
+        @param cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from parseURL())
+        - \c id: the unique HTTP connection ID
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+        - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+        - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
+        - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+        @param b message body, if any
+
+        @return to accept a dedicated connection, return a hash with the following key:
+        - \c "accepted": assign to a boolean value of @ref Qore::True "True"; if this is returned, then the start() method will be called with the @ref Qore::Socket "Socket object" for the new connection
+        .
+        or, to handle the request without a dedicated connection, return a hash with the following keys
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+        - \c "body": the message body to return in the response
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+     */
+    abstract hash handleRequest(hash $cx, hash $hdr, *data $b);
+
+    #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
+    /** This method should not return until the connection is closed or the stop() method is called
+     */
+    abstract start(Socket $s);
+
+    #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
+    abstract stop();
+}
+
 # Listener will be assigned to private members of the HttpServer; is not directly accessible from code outside the HttpServer (private)
 class HttpServer::HttpListener inherits Qore::Socket {
     private {
@@ -635,8 +682,11 @@ class HttpServer::HttpListener inherits Qore::Socket {
         bool $.stopped = False;
         int $.id;
 
-        # stop mutex
-        Mutex $.sm();
+        # socket handler hash
+        hash $.shh;
+
+        # mutex
+        Mutex $.m();
 
 	# code references to external logging functions
 	*code $.logger;
@@ -760,8 +810,8 @@ class HttpServer::HttpListener inherits Qore::Socket {
 
     stop() {
         {
-            $.sm.lock();
-            on_exit $.sm.unlock();
+            $.m.lock();
+            on_exit $.m.unlock();
 
             if ($.stopped)
                 return;
@@ -770,6 +820,9 @@ class HttpServer::HttpListener inherits Qore::Socket {
                 return;
 
             $.exit = True;
+
+            # stop all dedicated socket connections
+            map $1.stop(), $.shh.iterator();
 
             # wait for all connection threads to terminate
             $.cThreads.waitForZero();
@@ -1033,7 +1086,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
                     }
 
                     default: {
-                        my string $err = sprintf("unknown HTTP method %n", $hdr.method);
+                        my string $err = sprintf("unknown / unsupported HTTP method %n", $hdr.method);
                         my string $str = sprintf("%s: received from %s via %s", $err, $info.address_desc, $.socket_info.address_desc);
                         $.logError($str);
                         $.serv.sendHttpError($s, 501, $err, True, NOTHING, $cx."response-encoding");
@@ -1058,6 +1111,25 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	}
 
 	$s.close();
+    }
+
+    bool registerDedicatedSocket(softstring $id, AbstractHttpSocketHandler $h) {
+        $.m.lock();
+        on_exit $.m.unlock();
+
+        if ($.exit)
+            return False;
+
+        $.shh.$id = $h;
+
+        return True;        
+    }
+
+    removeDedicatedSocket(softstring $id, AbstractHttpSocketHandler $h) {
+        $.m.lock();
+        on_exit $.m.unlock();
+
+        remove $.shh.$id;
     }
 }
 
@@ -1964,7 +2036,7 @@ public class HttpServer::HttpServer {
                 # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
                 $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
             }
-            else if ($rv.code != 200) {
+            else if ($rv.code >= 400) {
 		if (!$rv.body)
 		    $rv.body = sprintf("unknown error in %s handler", $handlerName);
 		
@@ -1973,10 +2045,12 @@ public class HttpServer::HttpServer {
 	    else {
 		#printf("\n**** REQUEST: %N\n", $body);
 		#printf("\n**** RESPONSE: %N\n", $rv.body);
-		if ($rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
-		    $rv.hdr.Connection = "close";
-		else
-		    $rv.hdr.Connection = "Keep-Alive";
+                if (!$rv.hdr.Connection) {
+                    if ($rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
+                        $rv.hdr.Connection = "close";
+                    else
+                        $rv.hdr.Connection = "Keep-Alive";
+                }
 
 		if (!$rv.hdr.Date) # RFC 2616 sec 14.18 date format
 		    $rv.hdr.Date = format_date("Dy, DD Mon YYYY HH:mm:SS", gmtime()) + " GMT";
@@ -1992,10 +2066,12 @@ public class HttpServer::HttpServer {
                 else if ($cx."response-encoding" != tolower($s.getEncoding()))
                     $s.setEncoding($cx."response-encoding");
 
-                if (!$rv.hdr."Content-Type")
-                    $rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + $cx."response-encoding";
-                else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING))
-                    $rv.hdr."Content-Type" += ";charset=" + $cx."response-encoding";
+                if ($rv.body) {
+                    if (!$rv.hdr."Content-Type")
+                        $rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + $cx."response-encoding";
+                    else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING))
+                        $rv.hdr."Content-Type" += ";charset=" + $cx."response-encoding";
+                }
 
 		if ($head)
 		    $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr);
@@ -2014,7 +2090,7 @@ public class HttpServer::HttpServer {
 		    }
 		    
 		    $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
-		    #$.log("HTTP DEBUG hdr=%N\nbody=%s", $rv.hdr, $rv.body);
+		    $.log("HTTP DEBUG hdr=%N\nbody=%s", $rv.hdr, $rv.body);
 		    #printf("HTTP DEBUG: response hdr=%n\n", $rv.hdr);
 		}
 	    }
@@ -2023,6 +2099,27 @@ public class HttpServer::HttpServer {
 		$listener.log("%s (from %s): %s", $handlerName, $cx."peer-info".address_desc, $rv.log);
 	    if ($rv.errlog)
 		$listener.logError("%s (from %s): %s", $handlerName, $cx."peer-info".address_desc, $rv.errlog);
+
+            if ($rv.code == 101) {
+                if ($rv.close)
+                    $listener.logError("101 Switching Protocols returned from handler %y, but the connection close flag set", $handlerName);
+                else if (!($handler instanceof AbstractHttpSocketHandler)) {
+                    $listener.logError("101 Switching Protocols returned from handler %y, but the handler is not derived from AbstractHttpSocketHandler (class: %y)", $handlerName, $handler.className());
+                }
+                else {
+                    if ($listener.registerDedicatedSocket($cx.id, $handler)) {
+                        try {
+                            cast<AbstractHttpSocketHandler>($handler).start($s);
+                        }
+                        catch (hash $ex) {
+                            $listener.logError("error in dedicated socket handler %y: %s: %s: %s", $handlerName, get_ex_pos($ex), $ex.err, $ex.desc);
+                        }
+                        $listener.removeDedicatedSocket($cx.id, $handler);
+                    }
+                    else
+                        $listener.logError("cannot start dedicated socket handler %y because the listener is shutting down", $handlerName);
+                }
+            }
 	}
 	catch (hash $ex) {
             my string $desc = !$.debug

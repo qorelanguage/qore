@@ -31,16 +31,6 @@
 #include <errno.h>
 #include <string.h>
 
-#if 0
-static int64 doReadResult(int rc, int64 val, const char *method_name, int timeout_ms, ExceptionSink *xsink) {
-   if (rc > 0)
-      return val;
-
-   QoreSocket::doException(rc, method_name, timeout_ms, xsink);
-   return 0;
-}
-#endif
-
 static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsink) {
    if (*xsink)
       return 0;

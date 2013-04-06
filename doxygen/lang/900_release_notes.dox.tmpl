@@ -19,8 +19,12 @@
     - new functions:
       - call_pseudo_args()
     - new pseudo methods:
-      - <int>::encodeMsb(int)
+      - <binary>::toBase64()
+      - <binary>::toHex()
       - <int>::encodeLsb(int)
+      - <int>::encodeMsb(int)
+      - <string>::toBase64()
+      - <string>::toHex()
     - @ref implicit_index "implicit index" references now work in the @ref map "map" and @ref select "select" operators with lists and iterators
     - the @ref regex_extract_operator now accepts an optional \c g specifier to extract all occurrences of the pattern(s) in a string; also @ref Qore::regex_extract "regex_extract()" and <string>::regexExtract(string, int) now accept @ref Qore::RE_Global to extract all occurrences of the pattern(s) in a string
 
@@ -40,6 +44,7 @@
     - fixed a bug where public members and static variables of privately-inherited classes were incorrectly treated as public attributes of the child class
     - fixed a bug where slices could be made of objects from outside the class including private members
     - fixed a bug where @ref Qore::SQL::SQLStatement::memberGate() "memberGate() methods" were not being respected when taking a slice of an object
+    - fixed bugs in the integer Socket::recv*() methods where a \c SOCKET-CLOSED exception was not thrown when the remote end closed the connection
 
     @section qore_087 Qore 0.8.7
 
