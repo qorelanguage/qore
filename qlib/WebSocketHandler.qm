@@ -53,6 +53,19 @@ module WebSocketHandler {
 
 #! the WebSocketHandler namespace contains all the objects in the WebSocketHandler module
 public namespace WebSocketHandler {
+    #! the class handling a dedicated connection
+    public class WebSocketConnection {
+        public {
+            Queue $.queue();
+
+            Socket $.sock;
+        }
+
+        constructor(Socket $s) {
+            $.sock = $s;
+        }
+    }
+
     #! the main web socket handler class
     public class WebSocketHandler inherits AbstractHttpSocketHandler {
         public {
@@ -154,6 +167,12 @@ public namespace WebSocketHandler {
         private {
             #! stop listener flag
             bool $.stop = False;
+
+            #! connection read-write lock
+            RWLock $.rwl();
+
+            #! connection hash
+            hash $.ch;            
         }
 
         #! create the object optionally with the given AbstractAuthenticator
@@ -209,9 +228,37 @@ public namespace WebSocketHandler {
 
         #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
         /** This method should not return until the connection is closed or the stop() method is called
+
+            @param cx call context hash; this hash will have the following keys:
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+            - \c url: a hash of broken-down URL information (as returned from parseURL())
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see HttpServer
+            - \c user: the current RBAC username (if any)
+            @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
          */
-        start(Socket $sock) {
-            $.logDebug("WebSocketHandler::start() sock: %N open: %y", $sock, $sock.isOpen());
+        start(hash $cx, Socket $sock) {
+            $.logDebug("WebSocketHandler::start() cid: %y from %s:%d", $cx.id, $cx."peer-info".hostname_desc, $cx."peer-info".port);
+
+            my softstring $cid = $cx.id;
+
+            my WebSocketConnection $wsc;
+            # setup new connection
+            {
+                $.rwl.writeLock();
+                on_exit $.rwl.writeUnlock();
+
+                $.ch.$cid = $wsc = new WebSocketConnection($sock);
+            }
+
+            on_exit {
+                $.rwl.writeLock();
+                on_exit $.rwl.writeUnlock();
+
+                delete $.ch.$cid;
+            }
 
             while (!$.stop) {
                 # send test msg
@@ -219,9 +266,20 @@ public namespace WebSocketHandler {
                 #printf("sending message: %s\n", $msg.toHex());
                 #$sock.send($msg);
 
+                # send any messages on the queue
+                try {
+                    my *data $d = $wsc.queue.get(50ms);
+                    if ($d)
+                        $sock.send(WebSocketHandler::encodeMessage($d));
+                }
+                catch (hash $ex) {
+                    if ($ex.err != "QUEUE-TIMEOUT")
+                        rethrow;
+                }
+
                 my int $b0;
                 try {
-                    $b0 = $sock.recvu1(500ms);
+                    $b0 = $sock.recvu1(1ms);
                 }
                 catch (hash $ex) {
                     if ($ex.err == "SOCKET-CLOSED") {
@@ -296,6 +354,14 @@ public namespace WebSocketHandler {
             }
 
             $.logDebug("WebSocketHandler::start() exiting");
+        }
+
+        sendAll(data $d) {
+            $.rwl.writeLock();
+            on_exit $.rwl.writeUnlock();
+
+            # push the data on all connection queues
+            map $1.queue.push($d), $.ch.iterator();
         }
 
         private sendClose(Socket $sock, int $code, *string $txtmsg) {

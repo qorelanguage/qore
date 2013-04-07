@@ -2109,7 +2109,7 @@ public class HttpServer::HttpServer {
                 else {
                     if ($listener.registerDedicatedSocket($cx.id, $handler)) {
                         try {
-                            cast<AbstractHttpSocketHandler>($handler).start($s);
+                            cast<AbstractHttpSocketHandler>($handler).start($cx, $s);
                         }
                         catch (hash $ex) {
                             $listener.logError("error in dedicated socket handler %y: %s: %s: %s", $handlerName, get_ex_pos($ex), $ex.err, $ex.desc);
