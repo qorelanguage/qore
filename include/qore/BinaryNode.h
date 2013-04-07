@@ -45,6 +45,9 @@ protected:
    //! frees and memory owned by the object
    DLLEXPORT virtual ~BinaryNode();
 
+   DLLLOCAL void checkOffset(qore_offset_t& offset) const;
+   DLLLOCAL void checkOffset(qore_offset_t& offset, qore_offset_t& num) const;
+
 public:
    //! creates the object
    /** @param p a pointer to the memory, the BinaryNode object takes over ownership of this pointer
@@ -152,6 +155,45 @@ public:
        @return 0 for OK, -1 for error (size > current size)
    */
    DLLEXPORT int setSize(qore_size_t size);
+
+   //! removes "length" characters from the binary data starting at position "offset"
+   /** @param offset byte position to start (rest of the data is removed) (offset starts with 0, negative offset means that many positions from the end of the data)
+       @param length the number of bytes to remove (negative length means all but that many bytes from the end of the data)
+       @param extract if non-null, the data removed will be written to this argument
+
+       @since Qore 0.8.8
+   */
+   DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, BinaryNode* extract = 0);
+
+   //! removes "length" characters from the binary data starting at position "offset" and replaces them with the data passed
+   /** @param offset byte position to start (rest of the data is removed) (offset starts with 0, negative offset means that many positions from the end of the data)
+       @param length the number of bytes to remove (negative length means all but that many bytes from the end of the data)
+       @param data the data to insert at byte position "offset" after "length" characters are removed
+       @param data_len the lenght of the data to insert
+       @param extract if non-null, the data removed will be written to this argument
+
+       @since Qore 0.8.8
+   */
+   DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const void* data, qore_size_t data_len, BinaryNode* extract = 0);
+
+   //! copies data to the BinaryNode argument starting with byte position "offset"
+   /** @param b the target for copying the data
+       @param offset the offset in bytes from the beginning of the data (starting with 0)
+       @return 0 = OK, -1 = error (invalid offset)
+
+       @since Qore 0.8.8
+   */
+   DLLEXPORT int substr(BinaryNode& b, qore_offset_t offset) const;
+
+   //! copies data to the BinaryNode argument starting with byte position "offset"
+   /** @param b the target for copying the data
+       @param offset the offset in bytes from the beginning of the data (starting with 0)
+       @param length the number of bytes to copy
+       @return 0 = OK, -1 = error (invalid offset)
+
+       @since Qore 0.8.8
+   */
+   DLLEXPORT int substr(BinaryNode& b, qore_offset_t offset, qore_offset_t length) const;
 
    //! frees any managed memory and sets the size to 0
    DLLEXPORT void clear();

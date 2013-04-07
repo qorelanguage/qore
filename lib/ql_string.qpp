@@ -587,6 +587,55 @@ string substr(softstring str, softint start, softint len) [flags=RET_VALUE_ONLY]
    return str->substr(start, len, xsink);
 }
 
+//! Returns a portion of a binary object starting from an integer offset
+/** Arguments can be negative, giving offsets from the end of the data.
+
+    @param b The binary object to process
+    @param start The starting byte for the portion of the binary object where the first byte is at offset 0; if the offset is negative, it designates the number of bytes from the end of the data
+
+    @return the portion of the binary data argument starting from an integer byte offset; the rest of the data is returned after this offset
+
+    @par Example:
+    @code
+# get the last 10 bytes
+my binary $b1 = substr($b, -10);
+    @endcode
+
+    @note equivalent to <binary>::substr(softint)
+
+    @since %Qore 0.8.8
+ */
+binary substr(binary b, softint start) [flags=CONSTANT] {
+   BinaryNode* b1 = new BinaryNode;
+   b->substr(*b1, start);
+   return b1;
+}
+
+//! Returns a portion of a binary object starting from an integer offset, with a length parameter
+/** Arguments can be negative, giving offsets from the end of the data.
+
+    @param b The binary object to process
+    @param start The starting byte for the portion of the binary object where the first byte is at offset 0; if the offset is negative, it designates the number of bytes from the end of the data
+    @param len The maximum number of bytes to copy; if this value is negative, the rest of the data from \a start will be copied to the return value, except without - \a len bytes from the end of the data
+
+    @return the portion of the binary data argument according to the arguments passed
+
+    @par Example:
+    @code
+# get a binary object 10 characters into the data except omitting the last 2 bytes
+my binary $b1 = substr($b, 10, -2);
+    @endcode
+
+    @note equivalent to <binary>::substr(softint, softint)
+
+    @since %Qore 0.8.8
+ */
+binary substr(binary b, softint start, softint len) [flags=CONSTANT] {
+   BinaryNode* b1 = new BinaryNode;
+   b->substr(*b1, start, len);
+   return b1;
+}
+
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */

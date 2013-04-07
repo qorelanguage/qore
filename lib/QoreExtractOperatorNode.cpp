@@ -58,10 +58,11 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
 
    if (expTypeInfo->hasType()) {
       if (!expTypeInfo->parseAcceptsReturns(NT_LIST)
-	  && !expTypeInfo->parseAcceptsReturns(NT_STRING)) {
+            && !expTypeInfo->parseAcceptsReturns(NT_BINARY)
+            && !expTypeInfo->parseAcceptsReturns(NT_STRING)) {
 	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'extract' operator is ");
 	 expTypeInfo->getThisType(*desc);
-	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'extract' operator only operates on lists and strings");
+	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'extract' operator only operates on lists, strings, and binary objects");
 	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
       else
@@ -125,8 +126,8 @@ AbstractQoreNode *QoreExtractOperatorNode::extract(ExceptionSink *xsink) const {
       }
    }
 
-   if (vt != NT_LIST && vt != NT_STRING) {
-      xsink->raiseException("EXTRACT-ERROR", "first (lvalue) argument to the extract operator is not a list or a string");
+   if (vt != NT_LIST && vt != NT_STRING && vt != NT_BINARY) {
+      xsink->raiseException("EXTRACT-ERROR", "first (lvalue) argument to the extract operator is not a list, string, or binary object");
       return 0;
    }
    
@@ -160,16 +161,42 @@ AbstractQoreNode *QoreExtractOperatorNode::extract(ExceptionSink *xsink) const {
 	    rv = vl->extract(offset, length, *exp, xsink);
       }
    }
-   else { // must be a string
+   else if (vt == NT_STRING) {
       QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.getValue());
       if (!length_exp && !new_exp)
-	 rv = vs->extract(offset, xsink);
+         rv = vs->extract(offset, xsink);
       else {
-	 qore_size_t length = elength ? (qore_size_t)elength->getAsBigInt() : 0;
-	 if (!new_exp)
-	    rv = vs->extract(offset, length, xsink);
-	 else
-	    rv = vs->extract(offset, length, *exp, xsink);
+         qore_size_t length = elength ? (qore_size_t)elength->getAsBigInt() : 0;
+         if (!new_exp)
+            rv = vs->extract(offset, length, xsink);
+         else
+            rv = vs->extract(offset, length, *exp, xsink);
+      }
+   }
+   else { // must be a binary
+      BinaryNode* b = reinterpret_cast<BinaryNode*>(val.getValue());
+      BinaryNode *bout = new BinaryNode;
+      rv = bout;
+      if (!length_exp && !new_exp)
+         b->splice(offset, b->size(), bout);
+      else {
+         qore_size_t length = elength ? (qore_size_t)elength->getAsBigInt() : 0;
+         if (!new_exp)
+            b->splice(offset, length, bout);
+         else {
+            qore_type_t t = get_node_type(*exp);
+            if (t == NT_BINARY) {
+               const BinaryNode* b1 = reinterpret_cast<const BinaryNode*>(*exp);
+               b->splice(offset, length, b1->getPtr(), b1->size(), bout);
+            }
+            else {
+               QoreStringNodeValueHelper sv(*exp);
+               if (!sv->strlen())
+                  b->splice(offset, length, bout);
+               else
+                  b->splice(offset, length, sv->getBuffer(), sv->size(), bout);
+            }
+         }
       }
    }
 

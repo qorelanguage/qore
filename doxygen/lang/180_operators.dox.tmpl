@@ -1541,52 +1541,54 @@ if ($x || $y)
     @section splice Splice Operator (splice)
 
     @par Synopsis
-    Removes and optionally inserts elements in lists and strings and returns the lvalue after processing. For a similar operator that returns the values removed, see the @ref extract "extract operator".\n\n
-    Works on either strings or lists in a similar way; removes elements from a list or characters from a string and optionally inserts new ones. If no \a length_expression is given, splice removes all elements/characters from the list or string starting at \a offset_expression (list and string offsets begin at 0). Otherwise, a number of elements/characters equal to \a length_expression is removed (or up to the end of the list/string if applicable). If \a substitution_expression is present, then the removed elements/characters are substituted with the elements/string given by this expression.\n\n
+    Removes and optionally inserts elements in lists, strings, and binary objects and returns the lvalue after processing. For a similar operator that returns the values removed, see the @ref extract "extract operator".\n\n
+    Works on strings, lists, and binary data in a similar way; removes elements from a list, characters from a string, or bytes from binary data and optionally inserts new ones. If no \a length_expression is given, splice removes all elements/characters/bytes from the list, string, or binary data lvalue starting at \a offset_expression (offsets begin at 0). Otherwise, a number of elements/characters/bytes equal to \a length_expression is removed (or up to the end of the list/string/data if applicable). If \a substitution_expression is present, then the removed elements/characters/bytes are substituted with the elements/string/bytes given by this expression.\n\n
     Note that string splice takes character offsets, which may not be the same as byte offsets for multi-byte character encodings, such as \c UTF-8
 
     @par Syntax
     <tt><b>splice</b></tt> \a lvalue, \a offset_expression<em>, [length_expression, [substitution_expression]]</em>
 
     @par Return Type
-    @ref list_type "list" or @ref string_type "string" (returns \a lvalue after processing)
+    @ref list_type "list", @ref string_type "string", or @ref binary_type "binary" (returns \a lvalue after processing)
 
     @par Example
     @code splice $list, 2, 2;@endcode
     @code splice $string, 2, 2, "-text-";@endcode
+    @code splice $bin, 2, 2, <deadbeef>;@endcode
 
     <b>Arguments Processed by splice</b>
     |!Argument|!Processing
-    |\a lvalue (@ref list_type "list" or @ref string_type "string")|If the lvalue is a list, list elements are processed, otherwise, if it is a string, characters in the string are processed. For any other data type, no action is taken.
-    |\a offset_expression|The start element/character position for removing elements/characters from the list or string; if this value is negative, it gives the offset from the end of the list or string
-    |\a length_expression|The number of elements/characters to remove. If this expression is not present, then all elements/characters from the offset to the end of the list/string are removed. If this expression is present and evaluates to 0, no characters/elements are removed; if this value is negative, then it gives an offset from the end of the list or string (ie -2 means remove all elements/characters up to but not including the last two)
-    |\a substitution_expression|For list splice, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list). For string splice, an optional string to substitute for the removed characters.
+    |\a lvalue (@ref list_type "list", @ref string_type "string", or @ref binary_type "binary")|If the lvalue is a list, list elements are processed, if it is a string, characters in the string are processed, and for binary data, bytes are processed. For any other data type, no action is taken.
+    |\a offset_expression|The start element/character/byte position for removing elements/characters/bytes from the list, string, or binary data; if this value is negative, it gives the element offset from the end of the data
+    |\a length_expression|The number of elements/characters/bytes to remove. If this expression is not present, then all elements/characters/bytes from the offset to the end of the list/string/binary data are removed. If this expression is present and evaluates to 0, no characters/elements/byte are removed; if this value is negative, then it gives an offset from the end of the data (ie -2 means remove all elements/characters/bytes up to but not including the last two)
+    |\a substitution_expression|For list splice, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list). For string splice, an optional string to substitute for the removed characters.  For binary splice, string or binary data to substitute for any removed bytes.
 
     <hr>
     @section extract Extract Operator (extract)
 
     @par Synopsis
     Removes and optionally inserts elements in lists and strings. For a similar operator that removes values from an lvalue and returns the lvalue (instead of the value removed), see the @ref splice "splice operator".\n\n
-    Works on either strings or lists in a similar way; removes elements from a list or characters from a string and optionally inserts new ones. If no length_expression is given, extract removes all elements/characters from the list or string starting at \a offset_expression (list and string offsets begin at 0). Otherwise, a number of elements/characters equal to \a length_expression is removed (or up to the end of the list/string if applicable). If \a substitution_expression is present, then the removed elements/characters are substituted with the elements/string given by this expression.\n\n
-    When operating on lists, a list is returned of any elements extracted (if no elements are extracted, then an empty list is returned); when operating on strings, a string is extracted of all characters extracted from the string (if no characters are extracted, then an empty string is returned).\n\n
+    Works on either strings, lists, and binary data in a similar way; removes elements from a list, characters from a string, and bytes from binary data and optionally inserts new ones. If no length_expression is given, extract removes all elements/characters/bytes from the lvalue starting at \a offset_expression (offsets begin at 0). Otherwise, a number of elements/characters/bytes equal to \a length_expression is removed (or up to the end of the data if applicable). If \a substitution_expression is present, then the removed elements/characters/bytes are substituted with the data given by this expression.\n\n
+    When operating on lists, a list is returned of any elements extracted (if no elements are extracted, then an empty list is returned); when operating on strings, a string is extracted of all characters extracted from the string (if no characters are extracted, then an empty string is returned).  When operating on binary data, a binary object is returned.\n\n
     Note that string extract takes character offsets, which may not be the same as byte offsets for multi-byte character encodings, such as \c UTF-8
 
     @par Syntax
     <tt><b>extract</b></tt> \a lvalue, \a offset_expression<em>, [length_expression, [substitution_expression]]</em>
 
     @par Return Type
-    @ref list_type "list" or @ref string_type "string" (the value(s) removed from \a lvalue)
+    @ref list_type "list", @ref string_type "string", or @ref binary_type "binary" (the value(s) removed from \a lvalue)
 
     @par Example
     @code my list $sublist = extract $list, 2, 2;@endcode
     @code my string $substring = extract $string, 2, 2, "-text-";@endcode
+    @code my binary $b = extract $bin, 2, 2, <deadbeef>;@endcode
 
     <b>Arguments Processed by extract</b>
     |!Argument|!Processing
-    |\a lvalue (@ref list_type "list" or @ref string_type "string")|If the lvalue is a list, list elements are processed, otherwise, if it is a string, characters in the string are processed. For any other data type, no action is taken.
-    |\a offset_expression|The start element/character position for removing elements/characters from the list or string; if this value is negative, it gives the offset from the end of the list or string
-    |\a length_expression|The number of elements/characters to remove. If this expression is not present, then all elements/characters from the offset to the end of the list/string are removed. If this expression is present and evaluates to 0, no characters/elements are removed; if this value is negative, then it gives an offset from the end of the list or string (ie -2 means extract all elements/characters up to but not including the last two)
-    |\a substitution_expression|For list extract, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list). For string extract, an optional string to substitute for the removed characters.
+    |\a lvalue (@ref list_type "list", @ref string_type "string", or @ref binary_type "binary")|If the lvalue is a list, list elements are processed, if it is a string, characters in the string are processed, and for binary data, bytes are processed. For any other data type, no action is taken.
+    |\a offset_expression|The start element/character/byte position for removing elements/characters/bytes from the list, string, or binary data; if this value is negative, it gives the element offset from the end of the data
+    |\a length_expression|The number of elements/characters/bytes to remove. If this expression is not present, then all elements/characters/bytes from the offset to the end of the list/string/binary data are removed. If this expression is present and evaluates to 0, no characters/elements/byte are removed; if this value is negative, then it gives an offset from the end of the data (ie -2 means remove all elements/characters/bytes up to but not including the last two)
+    |\a substitution_expression|For list extract, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list). For string splice, an optional string to substitute for the removed characters.  For binary splice, string or binary data to substitute for any removed bytes.
 
     <hr>
     @section assignment_operator Assignment Operator (=)

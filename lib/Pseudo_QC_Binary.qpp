@@ -353,3 +353,70 @@ my string $base64 = $bin.toBase64(64);
 string <binary>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
    return new QoreStringNode(b, maxlinelen);
 }
+
+//! Returns a portion of the binary data starting from an integer offset
+/** Arguments can be negative, giving offsets from the end of the data.
+
+    @param start The starting byte for the portion of the data where the first byte is at offset 0; if the offset is negative, it designates the number of bytes from the end of the data
+
+    @return the portion of the data starting from an integer bte offset; the rest of the data is returned after this offset
+
+    @par Example:
+    @code
+# get the last 10 bytes of a binary object
+my binary $b1 = $b0.substr(-10);
+    @endcode
+
+    @note equivalent to @ref Qore::substr(binary, softint)
+
+    @since %Qore 0.8.8
+ */
+binary <binary>::substr(softint start) [flags=CONSTANT] {
+   BinaryNode* b1 = new BinaryNode;
+   b->substr(*b1, start);
+   return b1;
+}
+
+//! Returns a portion of the binary data starting from an integer offset
+/** Arguments can be negative, giving offsets from the end of the data.
+
+    @param start The starting byte for the portion of the data where the first byte is at offset 0; if the offset is negative, it designates the number of bytes from the end of the data
+    @param len The maximum number of characters to copy; if this value is negative, the rest of the string from \a start will be copied to the substring, except without - \a len characters from the end of the string
+
+    @return the portion of the data starting from an integer bte offset; the rest of the data is returned after this offset
+
+    @par Example:
+    @code
+# get the last 5 bytes of the last 10 bytes of a binary object
+my binary $b1 = $b0.substr(-10, 5);
+    @endcode
+
+    @note equivalent to @ref Qore::substr(binary, softint, softint)
+
+    @since %Qore 0.8.8
+ */
+binary <binary>::substr(softint start, softint len) [flags=CONSTANT] {
+   BinaryNode* b1 = new BinaryNode;
+   b->substr(*b1, start, len);
+   return b1;
+}
+
+//! Returns a string created from the binary data, taking an optional second argument giving the string encoding; if no second argument is passed then the @ref default_encoding "default character encoding" is assumed
+/**
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a string created from the binary data passed
+
+    @par Example:
+    @code
+my string $str = $b.toString($b, "iso-8859-1");
+    @endcode
+
+    @since %Qore 0.8.8
+*/
+string <binary>::toString(*string encoding) [flags=CONSTANT] {
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   if (!b->size())
+      return new QoreStringNode(qe);
+   return new QoreStringNode((const char *)b->getPtr(), b->size(), qe);
+}

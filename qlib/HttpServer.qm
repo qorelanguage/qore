@@ -820,16 +820,16 @@ class HttpServer::HttpListener inherits Qore::Socket {
                 return;
 
             $.exit = True;
-
-            # stop all dedicated socket connections
-            map $1.stop(), $.shh.iterator();
-
-            # wait for all connection threads to terminate
-            $.cThreads.waitForZero();
-            
-            $.stopped = True;
-            $.log("stopped listener");
         }
+
+        # stop all dedicated socket connections
+        map $1.stop(), $.shh.iterator();
+
+        # wait for all connection threads to terminate
+        $.cThreads.waitForZero();
+            
+        $.stopped = True;
+        $.log("stopped listener");
 
         $.serv.listenerStopped($self);
         if ($.stopc)

@@ -84,7 +84,7 @@ void BinaryNode::append(const void *nptr, qore_size_t size) {
       assert(size == len);
       nptr = ptr;
    }
-   memcpy((char *)ptr + len, nptr, size);
+   memcpy((char*)ptr + len, nptr, size);
    len += size;
 }
 
@@ -99,9 +99,9 @@ void BinaryNode::append(const BinaryNode &b) {
 void BinaryNode::prepend(const void *nptr, qore_size_t size) {
    ptr = realloc(ptr, len + size);
    // move memory forward
-   memmove((char *)ptr + size, ptr, len);
+   memmove((char*)ptr + size, ptr, len);
    // copy new memory to beginning
-   memcpy((char *)ptr, nptr, size);
+   memcpy((char*)ptr, nptr, size);
    len += size;
 }
 
@@ -181,4 +181,124 @@ bool BinaryNode::getAsBoolImpl() const {
    if (pgm && (pgm->getParseOptions64() & PO_STRICT_BOOLEAN_EVAL))
       return false;
    return !empty();
+}
+
+void BinaryNode::checkOffset(qore_offset_t& offset) const {
+   if (offset < 0) {
+      offset = len + offset;
+      if (offset < 0)
+         offset = 0;
+      return;
+   }
+   if ((qore_size_t)offset > len)
+      offset = len;
+   return;
+}
+
+void BinaryNode::checkOffset(qore_offset_t& offset, qore_offset_t& num) const {
+   checkOffset(offset);
+
+   if (num < 0) {
+      num = len + num - offset;
+      if (num < 0)
+         num = 0;
+      return;
+   }
+}
+
+void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, BinaryNode* extract) {
+   checkOffset(offset, length);
+  //printd(5, "BinaryNode::splice(offset="QSD", length="QSD", priv->len="QSD")\n", offset, length, len);
+
+   if (offset == len || !length)
+      return;
+
+   qore_size_t end;
+   if (length > (len - offset)) {
+      end = len;
+      length = len - offset;
+   }
+   else
+      end = offset + length;
+
+   // add to extract string if any
+   if (extract && length)
+      extract->append((char*)ptr + offset, length);
+
+   // move down entries if necessary
+   if (end != len)
+      memmove((char*)ptr + offset, (char*)ptr + end, len - end);
+
+   // calculate new length
+   len -= length;
+}
+
+void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* data, qore_size_t data_len, BinaryNode* extract) {
+   //printd(5, "BinaryNode::splice() before offset: %lld length: %lld (len: %lld data_len: %lld)\n", offset, length, len, data_len);
+   checkOffset(offset, length);
+
+   if (offset == len) {
+      if (!data_len)
+         return;
+      length = 0;
+   }
+
+   //printd(5, "BinaryNode::splice(offset="QSD", length="QSD", priv->len="QSD")\n", offset, length, len);
+
+   qore_size_t end;
+   if (length > (len - offset)) {
+      end = len;
+      length = len - offset;
+   }
+   else
+      end = offset + length;
+
+   // add to extract string if any
+   if (extract && length)
+      extract->append((char*)ptr + offset, length);
+
+   // get number of entries to insert
+   if (data_len > length) { // make bigger
+      qore_size_t ol = len;
+
+      // resize buffer
+      ptr = q_realloc(ptr, len - length + data_len);
+
+      // move trailing entries forward if necessary
+      if (end != ol)
+         memmove((char*)ptr + (end - length + data_len), (char*)ptr + end, ol - end);
+   }
+   else if (length > data_len) // make smaller
+      memmove((char*)ptr + offset + data_len, (char*)ptr + offset + length, len - offset - data_len);
+
+   memcpy((char*)ptr + offset, data, data_len);
+
+   // calculate new length
+   len = len - length + data_len;
+}
+
+int BinaryNode::substr(BinaryNode& b, qore_offset_t offset) const {
+   printd(5, "BinaryNode::substr(offset: "QSD") this: %p len: "QSD")\n", offset, this, len);
+
+   checkOffset(offset);
+   if (offset == len)
+      return -1;
+
+   b.append((char*)ptr + offset, len - offset);
+   return 0;
+}
+
+int BinaryNode::substr(BinaryNode& b, qore_offset_t offset, qore_offset_t length) const {
+   printd(5, "BinaryNode::substr(offset: "QSD", length: "QSD") this: %p len: "QSD"\n", offset, length, this, len);
+
+   checkOffset(offset, length);
+
+   if (offset == len)
+      return -1;
+
+   if ((qore_size_t)length > (len - offset))
+      length = len - offset;
+
+   b.append((char*)ptr + offset, length);
+   return 0;
 }

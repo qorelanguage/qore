@@ -18,15 +18,21 @@
       - Qore::SQL::DatasourcePool::getConfigString()
     - new functions:
       - call_pseudo_args()
+      - substr(binary, softint)
+      - substr(binary, softint, softint)
     - new pseudo methods:
+      - <binary>::substr(softint)
+      - <binary>::substr(softint, softint)
       - <binary>::toBase64()
       - <binary>::toHex()
+      - <binary>::toString(*string)
       - <int>::encodeLsb(int)
       - <int>::encodeMsb(int)
       - <string>::toBase64()
       - <string>::toHex()
     - @ref implicit_index "implicit index" references now work in the @ref map "map" and @ref select "select" operators with lists and iterators
     - the @ref regex_extract_operator now accepts an optional \c g specifier to extract all occurrences of the pattern(s) in a string; also @ref Qore::regex_extract "regex_extract()" and <string>::regexExtract(string, int) now accept @ref Qore::RE_Global to extract all occurrences of the pattern(s) in a string
+    - the @ref splice "splice" and @ref extract "extract" operators were extended to work on @ref binary "binary objects" as well as lists and strings
 
     @subsection qore_088_bug_fixes Bug Fixes in Qore
     - fixed a bug where the ?: operator could thrown spurious exceptions when parsing because it would return the type of the initial boolean expression as the return type of the operator
