@@ -327,8 +327,10 @@ public namespace WebSocketHandler {
                         $data_len = $sock.recvi8();
                     
                     my *binary $mask;
-                    if ($masked)
+                    if ($masked) {
                         $mask = $sock.recvBinary(4);
+                        $.logDebug("mask: %s", $mask.toHex());
+                    }
                     
                     my *data $data;
                     if ($data_len)
@@ -339,11 +341,15 @@ public namespace WebSocketHandler {
                         # unmasked data
                         my binary $udata;
                         for (my int $i = 0; $i < $data.size(); ++$i)
-                            $udata += ($data[$i] ^ $mask[$i % 4]);
+                            $udata += chr(($data[$i] ^ $mask[$i % 4]));
                         $data = $udata;
                     }
-                    
+
                     if ($op == Op_Close) {
+                        if (!$data) {
+                            $.logDebug("client sent OpClose without code; closing immediately");
+                            break;
+                        }
                         my int $code = get_word_32($data, 0);
                         # remove the first 4 bytes extracted above
                         splice $data, 0, 4;
@@ -353,7 +359,10 @@ public namespace WebSocketHandler {
                         break;
                     }
 
-                    $.logDebug("received msg (%s: %d bytes): %s\n", OpMap.$op, $data.size(), WebSocketHandler::getDataString($data));
+                    if ($op == Op_Text)
+                        $data = $data.toString($sock.getEncoding());
+
+                    $.logDebug("received msg (%s: %d bytes%s): %s", OpMap.$op, $data.size(), $masked ? " masked" : "", WebSocketHandler::getDataString($data));
 
                     if (!$masked) {
                         $.logError("unmasked client frame received");
@@ -366,16 +375,10 @@ public namespace WebSocketHandler {
                         continue;
                     }
                     
-                    if ($op == Op_Text) {
-                        $wsc.gotMessage($data.toString($sock.getEncoding()));
-                        continue;
-                    }
-                    
-                    if ($op == Op_Binary) {
+                    if ($op == Op_Text || $op == Op_Binary) {
                         $wsc.gotMessage($data);
                         continue;
                     }
-                    
                     # unrecognized opcode - close the connection
                     $.sendClose($sock, CC_UnsupportedData);
                     break;
@@ -435,9 +438,12 @@ public namespace WebSocketHandler {
         static string getDataString(*data $data) {
             if (!$data)
                 return "n/a";
+            return sprintf("type: %s: %y", $data.type(), $data);
+            /*
             if ($data.typeCode() == NT_STRING)
                 return $data;
             return $data.toHex();
+            */
         }
 
         private static binary encodeMessage(data $msg, int $op = -1) {
