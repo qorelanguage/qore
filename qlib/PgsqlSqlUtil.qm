@@ -1297,7 +1297,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             # check for trigger functions not in the template and drop them
             foreach AbstractFunction f in (triggerFunctions.iterator()) {
                 if (!t.triggerFunctions.hasKey(f.name))
-                    l += f.getDropSql();
+                    l += AbstractDatabase::doCallback(opt, f.getDropSql(), "dropping trigger function %s on %s", f.name, name);
             }
 
             return l ? l : NOTHING;
