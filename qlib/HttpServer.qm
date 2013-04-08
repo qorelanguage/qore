@@ -658,8 +658,18 @@ public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
 
     #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
     /** This method should not return until the connection is closed or the stop() method is called
+
+        @param cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from parseURL())
+        - \c id: the unique HTTP connection ID
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        @param s the @ref Qore::Socket "Socket" object for the dedicated connection
      */
-    abstract start(Socket $s);
+    abstract start(hash $cx, Socket $s);
 
     #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
     abstract stop();

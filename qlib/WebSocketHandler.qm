@@ -57,12 +57,32 @@ public namespace WebSocketHandler {
     public class WebSocketConnection {
         public {
             Queue $.queue();
-
             Socket $.sock;
+
+            WebSocketHandler $.handler;
+
+            const DefaultQueuePollingInterval = 50ms;
         }
 
-        constructor(Socket $s) {
+        constructor(WebSocketHandler $handler, Socket $s) {
             $.sock = $s;
+            $.handler = $handler;
+        }
+
+        *data pollData() {
+            try {
+                return $.queue.get(DefaultQueuePollingInterval);
+            }
+            catch (hash $ex) {
+                if ($ex.err != "QUEUE-TIMEOUT")
+                    rethrow;
+            }
+        }
+
+        gotMessage(string $msg) {
+        }
+
+        gotMessage(binary $msg) {
         }
     }
 
@@ -235,7 +255,7 @@ public namespace WebSocketHandler {
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parseURL())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer
+            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
          */
@@ -244,124 +264,156 @@ public namespace WebSocketHandler {
 
             my softstring $cid = $cx.id;
 
-            my WebSocketConnection $wsc;
-            # setup new connection
+            # get new connection object
+            my WebSocketConnection $wsc = $.getConnectionImpl($cid, $sock);
+
+            # add connection object to hash
             {
                 $.rwl.writeLock();
                 on_exit $.rwl.writeUnlock();
-
-                $.ch.$cid = $wsc = new WebSocketConnection($sock);
+                $.ch.$cid = $wsc;
             }
 
             on_exit {
                 $.rwl.writeLock();
                 on_exit $.rwl.writeUnlock();
-
                 delete $.ch.$cid;
             }
 
-            while (!$.stop) {
+            while (True) {
+                if ($.stop) {
+                    $.sendClose($sock, CC_GoingAway);
+                    break;
+                }
+
                 # send test msg
                 #my binary $msg = $.encodeMessage("2013-04-05 18:49:00.854199 +02:00: 00129: (INFO) JOB JOB_INSTANCE_START: test-shortrun v1.0 jid 3 jiid 18043");
                 #printf("sending message: %s\n", $msg.toHex());
                 #$sock.send($msg);
 
-                # send any messages on the queue
                 try {
-                    my *data $d = $wsc.queue.get(50ms);
+                    # send any messages on the queue
+                    my *data $d = $wsc.pollData();
                     if ($d)
                         $sock.send(WebSocketHandler::encodeMessage($d));
-                }
-                catch (hash $ex) {
-                    if ($ex.err != "QUEUE-TIMEOUT")
-                        rethrow;
-                }
 
-                my int $b0;
-                try {
-                    $b0 = $sock.recvu1(1ms);
-                }
-                catch (hash $ex) {
-                    if ($ex.err == "SOCKET-CLOSED") {
-                        return;
+                    my int $b0;
+                    try {
+                        $b0 = $sock.recvu1(1ms);
                     }
-                    if ($ex.err != "SOCKET-TIMEOUT")
-                        printf("%s: %s\n", $ex.err, $ex.desc);
-                    continue;
-                }
+                    catch (hash $ex) {
+                        if ($ex.err == "SOCKET-CLOSED") {
+                            return;
+                        }
+                        if ($ex.err != "SOCKET-TIMEOUT")
+                            printf("%s: %s\n", $ex.err, $ex.desc);
+                        continue;
+                    }
 
-                # get opcode
-                my int $op = $b0 & 0xf;
+                    # get opcode
+                    my int $op = $b0 & 0xf;
+                    
+                    # get next byte
+                    my int $b1 = $sock.recvu1();
+                    my softbool $masked = $b1 & 0x80;
+                    $b1 &= 0x7f;
+                    
+                    my int $data_len;
+                    if ($b1 < 126)
+                        $data_len = $b1;
+                    else if ($b1 < 65535)
+                        $data_len = $sock.recvu2();
+                    else
+                        $data_len = $sock.recvi8();
+                    
+                    my *binary $mask;
+                    if ($masked)
+                        $mask = $sock.recvBinary(4);
+                    
+                    my *data $data;
+                    if ($data_len)
+                        $data = $sock.recvBinary($data_len);
+                    
+                    # unmask data if necessary
+                    if ($mask) {
+                        # unmasked data
+                        my binary $udata;
+                        for (my int $i = 0; $i < $data.size(); ++$i)
+                            $udata += ($data[$i] ^ $mask[$i % 4]);
+                        $data = $udata;
+                    }
+                    
+                    if ($op == Op_Close) {
+                        my int $code = get_word_32($data, 0);
+                        # remove the first 4 bytes extracted above
+                        splice $data, 0, 4;
+                        my *string $txtmsg = $data ? $data.toString("utf8") : NOTHING;
+                        $.logDebug("client sent Op_Close code %d (%s): %s", $code, CcMap.$code, $txtmsg);
+                        $.sendClose($sock, $code, $txtmsg);
+                        break;
+                    }
 
-                # get next byte
-                my int $b1 = $sock.recvu1();
-                my softbool $masked = $b1 & 0x80;
-                $b1 &= 0x7f;
-	  
-                my int $data_len;
-                if ($b1 < 126)
-                    $data_len = $b1;
-                else if ($b1 < 65535)
-                    $data_len = $sock.recvu2();
-                else
-                    $data_len = $sock.recvi8();
-                
-                my *binary $mask;
-                if ($masked)
-                    $mask = $sock.recvBinary(4);
+                    $.logDebug("received msg (%s: %d bytes): %s\n", OpMap.$op, $data.size(), WebSocketHandler::getDataString($data));
 
-                my *data $data;
-                if ($data_len)
-                    $data = $sock.recvBinary($data_len);
-
-                # unmask data if necessary
-                if ($mask) {
-                    # unmasked data
-                    my binary $udata;
-                    for (my int $i = 0; $i < $data.size(); ++$i)
-                        $udata += ($data[$i] ^ $mask[$i % 4]);
-                    $data = $udata;
-                }
-
-                if ($op == Op_Close) {
-                    my int $code = get_word_32($data, 0);
-                    # remove the first 4 bytes extracted above
-                    splice $data, 0, 4;
-                    my *string $txtmsg = $data ? $data.toString("utf8") : NOTHING;
-                    $.logDebug("client sent Op_Close code %d (%s): %s", $code, CcMap.$code, $txtmsg);
-                    $.sendClose($sock, $code, $txtmsg);
+                    if (!$masked) {
+                        $.logError("unmasked client frame received");
+                        $.sendClose($sock, CC_ProtocolError);
+                        break;
+                    }
+                    
+                    if ($op == Op_Ping) {
+                        $sock.send(WebSocketHandler::encodeMessage($data, Op_Pong));
+                        continue;
+                    }
+                    
+                    if ($op == Op_Text) {
+                        $wsc.gotMessage($data.toString($sock.getEncoding()));
+                        continue;
+                    }
+                    
+                    if ($op == Op_Binary) {
+                        $wsc.gotMessage($data);
+                        continue;
+                    }
+                    
+                    # unrecognized opcode - close the connection
+                    $.sendClose($sock, CC_UnsupportedData);
                     break;
                 }
-
-                $.logDebug("received msg (%s: %d bytes): %s\n", OpMap.$op, $data.size(), WebSocketHandler::getDataString($data));
-
-                if (!$masked) {
-                    $.logError("unmasked client frame received");
-
-                    $.sendClose($sock, CC_ProtocolError);
+                catch (hash $ex) {
+                    # error in websocket handler server, log and close the connection
+                    my string $err = sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
+                    $.logError($err);
+                    $.sendClose($sock, CC_InternalServerError, $err);
                     break;
                 }
-
-                if ($op == Op_Ping) {
-                    $sock.send(WebSocketHandler::encodeMessage($data, Op_Pong));
-                    continue;
-                }
-                
-                if ($op == Op_Text)
-                    $data = $data.toString($sock.getEncoding());
-
-                # xxxx
             }
 
             $.logDebug("WebSocketHandler::start() exiting");
         }
 
+        WebSocketConnection getConnectionImpl(string $cid, Socket $sock) {
+            return new WebSocketConnection($self, $sock);
+        }
+
         sendAll(data $d) {
-            $.rwl.writeLock();
-            on_exit $.rwl.writeUnlock();
+            $.rwl.readLock();
+            on_exit $.rwl.readUnlock();
 
             # push the data on all connection queues
             map $1.queue.push($d), $.ch.iterator();
+
+            $.logDebug("sending data to connections: %y", $.ch.keys());
+        }
+
+        sendOne(string $id, data $d) {
+            $.rwl.readLock();
+            on_exit $.rwl.readUnlock();
+
+            if (!$.ch.$id)
+                throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", $id, $.ch.keys());
+
+            $.ch.$id.queue.push($d);
         }
 
         private sendClose(Socket $sock, int $code, *string $txtmsg) {

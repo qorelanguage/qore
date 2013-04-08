@@ -2272,7 +2272,7 @@ bool Socket::getNoDelay() [flags=CONSTANT] {
 my hash $h = $sock.getPeerInfo();
     @endcode
 
-    @return a @ref socket_info_hash "hash of information" about the local socket
+    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
     @throw SOCKET-GETPEERINFO-ERROR Socket is not open or error in getpeername()
  */
