@@ -330,3 +330,32 @@ map printf("+ %s\n", $1), $h.contextIterator();
 HashListIterator <hash>::contextIterator() [flags=CONSTANT] {
    return new QoreObject(QC_HASHLISTITERATOR, 0, new QoreHashListIterator(h));
 }
+
+//! Returns @ref Qore::True "True" if the hash argument passed has the same keys in the same order as the current hash, @ref Qore::False "False" if not
+/** @par Example:
+    @code
+my bool $b = $h.compareKeys($oh);
+    @endcode
+
+    Values are not compraed, only the key names and order
+
+    @param oh a hash to compare the keys against
+
+    @return @ref Qore::True "True" if the hash argument passed has the same keys in the same order as the current hash, @ref Qore::False "False" if not
+
+    @since %Qore 0.8.8
+ */
+bool <hash>::compareKeys(hash oh) [flags=CONSTANT] {
+   if (h->size() != oh->size())
+      return false;
+
+   ConstHashIterator hi1(h);
+   ConstHashIterator hi2(oh);
+   while (hi1.next()) {
+      hi2.next();
+      if (strcmp(hi1.getKey(), hi2.getKey()))
+         return false;
+   }
+
+   return true;
+}

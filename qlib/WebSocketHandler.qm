@@ -286,11 +286,6 @@ public namespace WebSocketHandler {
                     break;
                 }
 
-                # send test msg
-                #my binary $msg = $.encodeMessage("2013-04-05 18:49:00.854199 +02:00: 00129: (INFO) JOB JOB_INSTANCE_START: test-shortrun v1.0 jid 3 jiid 18043");
-                #printf("sending message: %s\n", $msg.toHex());
-                #$sock.send($msg);
-
                 try {
                     # send any messages on the queue
                     my *data $d = $wsc.pollData();

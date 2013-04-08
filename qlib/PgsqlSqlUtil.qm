@@ -1349,6 +1349,15 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private bool tryInsertImpl(string sql, hash row) {
+            try {
+                ds.vexec(sql, row.values());
+            }
+            catch (hash ex) {
+                if (ex.desc =~ /duplicate key value/)
+                    return False;
+                rethrow;
+            }
+            return True;
         }
 
         private hash getQoreTypeMapImpl() {
