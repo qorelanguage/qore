@@ -774,8 +774,21 @@ my any $v = $c.name;
             return new PgsqlFunction(name, row.hdr, args);
         }
 
+        private list getDropSchemaSqlImpl(hash schema_hash, *hash opt) {
+            list l = ();
+
+            if (opt.start) {
+                return l;
+            }
+            
+            list tl = dropSqlUnlocked("type", schema_hash, \getType(), \makeType(), opt, Type::String);
+            if (tl) l += tl;
+
+            return l;
+        }
+
         private list getAlignSqlImpl(hash schema_hash, *hash opt) {
-            string drv = getDriverName();            
+            string drv = getDriverName();
             list l = ();
             if (opt.start) {
                 hash type_cache;

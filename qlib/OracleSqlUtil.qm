@@ -636,6 +636,22 @@ my any $v = $c.name;
             return new OracleType(name, sprintf("%s as %s", name, src));
         }
 
+        private list getDropSchemaSqlImpl(hash schema_hash, *hash opt) {
+            list l = ();
+
+            if (opt.start) {
+                list tl = dropSqlUnlocked("package", schema_hash, \getPackage(), \makePackageFromDescription(), opt, Type::Hash);
+                if (tl) l += tl;
+
+                return l;
+            }
+            
+            list tl = dropSqlUnlocked("type", schema_hash, \getType(), \makeType(), opt, Type::String);
+            if (tl) l += tl;
+
+            return l;
+        }
+
         private list getAlignSqlImpl(hash schema_hash, *hash opt) {
             list l = ();
 

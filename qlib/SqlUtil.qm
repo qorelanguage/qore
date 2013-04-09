@@ -1449,6 +1449,24 @@ my list $l = $db.getAlignSql($schema_hash);
             return db.getAlignSql(schema_hash, opt, \table_cache);
         }
 
+        #! accepts a hash argument describing a database schema and returns a list of SQL strings that can be used to drop any existing objects described in the schema; if none of the described objects exist, then an empty list is returned
+        /** @par Example:
+            @code
+my list $l = $db.getDropSchemaSql($schema_hash);
+            @endcode
+
+            @param schema_hash the schema template hash that decribes the state of the schema
+            @param opt a hash of options for the SQL creation strings; see @ref AbstractDatabase::DropSchemaOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be used to drop any existing objects in the database; if none of the described objects exist, then an empty list is returned
+
+            @throw SCHEMA-DESCRIPTION-ERROR the schema description hash has an error
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        list getDropSchemaSql(hash schema_hash, *hash opt) {
+            return db.getDropSchemaSql(schema_hash, opt);
+        }
+
         #! gets the underlying AbstractDatasource
         AbstractDatasource getDatasource() {
             return db.getDatasource();
@@ -1869,6 +1887,9 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
             #! default generic schema description / alignment options
             const AlignSchemaOptions = CreationOptions;
 
+            #! default generic drop schema options
+            const DropSchemaOptions = CallbackOptions;
+
             #! default generic schema description keys
             const SchemaDescriptionOptions = (
                 "tables": Type::Hash,
@@ -1980,7 +2001,7 @@ my list $l = $db.getAlignSql($schema_hash);
             string drv = getDriverName();
             AbstractDatabase::checkDriverOptions(\schema_hash, drv);
 
-            # call driver-specifc align schema sql function
+            # call driver-specific align schema sql function (start)
             list tl = getAlignSqlImpl(schema_hash, opt + ("start": True));
             if (tl) l += tl;
 
@@ -2021,9 +2042,6 @@ my list $l = $db.getAlignSql($schema_hash);
                 Table t(ds, th, name, opt + ("table_cache": opt.table_cache));
                 # store in table_cache
                 opt.table_cache{name} = t.getTable();
-
-                #printf("%N\n", t.describe().domain);exit();
-                #printf("%s\n", t.getCreateSqlString(allOptions));
             }
 
             # rename any tables
@@ -2063,12 +2081,139 @@ my list $l = $db.getAlignSql($schema_hash);
             tl = alignCodeUnlocked("procedure", schema_hash, \getProcedure(), \makeProcedure(), opt, Type::String);
             if (tl) l += tl;
 
-            # call driver-specifc align schema sql function
+            # call driver-specific align schema sql function (end)
             tl = getAlignSqlImpl(schema_hash, opt);
             if (tl) l += tl;
 
             table_cache = opt.table_cache;                
             
+            return l;
+        }
+
+        #! accepts a hash argument describing a database schema and returns a list of SQL strings that can be used to drop any existing objects described in the schema; if none of the described objects exist, then an empty list is returned
+        /** @par Example:
+            @code
+my list $l = $db.getDropSchemaSql($schema_hash);
+            @endcode
+
+            @param schema_hash the schema template hash that decribes the state of the schema
+            @param opt a hash of options for the SQL creation strings; see @ref AbstractDatabase::DropSchemaOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be used to drop any existing objects in the database; if none of the described objects exist, then an empty list is returned
+
+            @throw SCHEMA-DESCRIPTION-ERROR the schema description hash has an error
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        list getDropSchemaSql(hash schema_hash, *hash opt) {
+            validateOptionsIntern("SCHEMA-DESCRIPTION-ERROR", getSchemaDescriptionOptions(), \schema_hash);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
+
+            list l = ();
+
+            string drv = getDriverName();
+            AbstractDatabase::checkDriverOptions(\schema_hash, drv);
+
+            # call driver-specific align schema sql function (start)
+            list tl = getDropSchemaSqlImpl(schema_hash, opt + ("start": True));
+            if (tl) l += tl;
+
+            # drop procedures
+            tl = dropSqlUnlocked("procedure", schema_hash, \getProcedure(), \makeProcedure(), opt, Type::String);
+            if (tl) l += tl;
+
+            # drop functions
+            tl = dropSqlUnlocked("function", schema_hash, \getFunction(), \makeFunction(), opt, Type::String);
+            if (tl) l += tl;
+
+            # drop tables in order
+            # create template tables
+            hash table_cache;
+            AbstractDatabase::checkDriverOptions(\schema_hash.tables, drv);
+            foreach string name in (schema_hash.tables.keyIterator()) {
+                hash th = schema_hash.tables{name} - "rename";
+                # create table template
+                Table t(ds, th, name, opt + ("table_cache": table_cache));
+                # store in table_cache
+                table_cache{t.getName()} = t.getTable();
+            }
+
+            # foreign dependency hash: table -> hash: source table (ie table with foreign constraint on key)
+            hash tdh;
+            # source dependency hash: table -> list: foreign table (key has foreign constraint on value)
+            hash sdh;
+            # list of tables not in DB
+            list nt = ();
+            foreach AbstractTable t in (table_cache.iterator()) {
+                if (!t.checkExistence()) {
+                    nt += t.getName();
+                    continue;
+                }
+                foreach AbstractForeignConstraint fk in (t.getForeignConstraints().iterator()) {
+                    if (fk.target.table == t.getName())
+                        continue;
+                    sdh{t.getName()}{fk.target.table} = True;
+                    tdh{fk.target.table}{t.getName()} = True;
+                }
+            }
+
+            # process tables not in DB
+            foreach string name in (nt) {
+                remove table_cache{name};
+                map remove tdh.$1{name}, sdh{name}.keyIterator();
+                remove sdh{name};
+            }
+
+            #printf("TDH: %N\nSDH: %N\nNT: %y", tdh, sdh, nt);exit(1);
+
+            # drop tables in dependency order
+            while (True) {
+                bool dropped = False;
+                foreach AbstractTable t in (table_cache.iterator()) {
+                    if (!tdh{t.getName()}) {
+                        if (t.checkExistence())
+                            l += AbstractDatabase::doCallback(opt, t.getDropSql(), "drop table %s", t.getName());
+                        dropped = True;
+                        remove table_cache{t.getName()};
+                        map remove tdh.$1{t.getName()}, sdh{t.getName()}.keyIterator();
+                        remove sdh{t.getName()};
+                    }
+                }
+                if (!dropped)
+                    break;
+            }
+
+            # drop sequences
+            tl = dropSqlUnlocked("sequence", schema_hash, \getSequence(), \makeSequenceFromDescription(), opt, Type::Hash);
+            if (tl) l += tl;            
+
+            # call driver-specific align schema sql function (end)
+            tl = getDropSchemaSqlImpl(schema_hash, opt);
+            if (tl) l += tl;
+
+            return l;
+        }
+
+        private list dropSqlUnlocked(string type, hash schema_hash, code get, code make, *hash opt, string make_arg_type) {
+            list l = ();
+            hash copt = getCreationOptions();
+            string drv = getDriverName();
+
+            # drop objects
+            reference fmap = \schema_hash{type + "s"};
+            AbstractDatabase::checkDriverOptions(\fmap, drv);
+            foreach string name in (fmap.keyIterator()) {
+                validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fmap{name}, name, type + "s");
+
+                # make template object
+                object tmpl = make(name, fmap{name}, opt.(copt.keys()));
+
+                # see if object exists
+                *object f = get(name);
+                if (f) {
+                    l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(), "drop %s %s", type, name);
+                }
+            }
+
             return l;
         }
 
@@ -2151,6 +2296,12 @@ my AbstractSequence $seq = $db.makeSequence("seq_queues");
             validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opts);
 
             return makeSequenceImpl(name, start, increment, end, opts);
+        }
+
+        AbstractSequence makeSequenceFromDescription(string name, *hash sh, *hash opts) {
+            validateOptionsIntern("SEQUENCE-DESCRIPTION-ERROR", getSequenceDescriptionOptions(), \sh);
+
+            return makeSequence(name, sh.start, sh.increment, sh.end);
         }
 
         #! creates a database-specific AbstractFunction object corresponding to the arguments
@@ -2633,6 +2784,11 @@ my string $sql = $t.getSqlFromList($list);
         }
 
         #! override in subclasses to return driver-specific options
+        private hash getDropSchemaOptions() {
+            return DropSchemaOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
         private hash getSchemaDescriptionOptions() {
             return SchemaDescriptionOptions;
         }
@@ -2644,6 +2800,7 @@ my string $sql = $t.getSqlFromList($list);
 
         private abstract string getCreateSqlImpl(list l);
         private abstract list getAlignSqlImpl(hash schema_hash, *hash opt);
+        private abstract list getDropSchemaSqlImpl(hash schema_hash, *hash opt);
 
         private abstract *AbstractSequence getSequenceImpl(string name);
         private abstract *AbstractFunction getFunctionImpl(string name);
