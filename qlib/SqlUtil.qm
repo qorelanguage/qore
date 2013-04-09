@@ -3442,6 +3442,66 @@ map $upsert($1), $row_list;
             return t.getUpsertClosureWithValidation(example_row, upsert_strategy);
         }
 
+        #! returns the number of rows in the table
+        /** @par Example:
+            @code
+my int $cnt = $table.rowCount();
+            @endcode
+
+            @return the number of rows in the table
+         */
+        softint rowCount() {
+            return t.rowCount();
+        }
+
+        #! returns an SQLStatement object that will iterate the results of a select statement matching the arguments
+        /** @par Example:
+            @code
+my SQLStatement $i = $table.getRowIterator();
+            @endcode
+
+            @param cond a hash of conditions for the where clause
+            @param orderby a list of columns for an "order by" clause
+            @param desc if @ref Qore::True "True" then the order by clause will be descending
+
+            @return an SQLStatement object that will iterate the results of a select statement matching the arguments
+         */
+        SQLStatement getRowIterator(*hash cond, *softlist orderby, bool desc = False) {
+            return t.getRowIterator(cond, orderby, desc);
+        }
+
+        #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
+        /** @par Example:
+            @code
+my int $dcnt = $table.del(("name": $name));
+            @endcode
+
+            @param cond a hash of conditions for the where clause
+
+            @return the count of rows deleted
+
+            @see delNoCommit(*hash)
+         */
+        int del(*hash cond) {
+            return t.del(cond);
+        }
+
+        #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
+        /** @par Example:
+            @code
+my int $dcnt = $table.del(("name": $name));
+            @endcode
+
+            @param cond a hash of conditions for the where clause
+
+            @return the count of rows deleted
+
+            @see del(*hash)
+         */
+        int delNoCommit(*hash cond) {
+            return t.delNoCommit(cond);
+        }
+
         #! returns an SQL string corresponding to the list of commands in the argument
         /** @par Example:
             @code
@@ -5412,6 +5472,88 @@ map $upsert($1), $row_list;
             };
         }        
 
+        #! returns the number of rows in the table
+        /** @par Example:
+            @code
+my int $cnt = $table.rowCount();
+            @endcode
+
+            @return the number of rows in the table
+         */
+        softint rowCount() {
+            return ds.selectRow("select count(1) cnt from %s", getSqlName()).cnt;
+        }
+
+        #! returns an SQLStatement object that will iterate the results of a select statement matching the arguments
+        /** @par Example:
+            @code
+my SQLStatement $i = $table.getRowIterator();
+            @endcode
+
+            @param cond a hash of conditions for the where clause
+            @param orderby a list of columns for an "order by" clause
+            @param desc if @ref Qore::True "True" then the order by clause will be descending
+
+            @return an SQLStatement object that will iterate the results of a select statement matching the arguments
+         */
+        SQLStatement getRowIterator(*hash cond, *softlist orderby, bool desc = False) {
+            # make query
+            string sql = sprintf("select * from %s", getSqlName());
+            if (cond)
+                sql += " where " + (foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), cond.keyIterator()));
+            if (orderby) {
+                sql += " order by " + (foldl $1 + "," + $2, orderby);
+                if (desc)
+                    sql += " desc";
+            }
+
+            SQLStatement stmt(ds);
+            stmt.prepare(sql);
+            stmt.execArgs(cond.values());
+
+            return stmt;
+        }
+
+        #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
+        /** @par Example:
+            @code
+my int $dcnt = $table.del(("name": $name));
+            @endcode
+
+            @param cond a hash of conditions for the where clause
+
+            @return the count of rows deleted
+
+            @see delNoCommit(*hash)
+         */
+        int del(*hash cond) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return delNoCommit(cond);
+        }
+
+        #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
+        /** @par Example:
+            @code
+my int $dcnt = $table.del(("name": $name));
+            @endcode
+
+            @param cond a hash of conditions for the where clause
+
+            @return the count of rows deleted
+
+            @see del(*hash)
+         */
+        int delNoCommit(*hash cond) {
+            # make query
+            string sql = sprintf("delete from %s", getSqlName());
+            if (cond)
+                sql += " where " + (foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), cond.keyIterator()));
+
+            return ds.vexec(sql, cond.values());
+        }
+
         private code getUpsertClosureUnlocked(hash row, int upsert_strategy = UpsertInsertFirst) {
             # unique column source
             string csrc;
@@ -5496,7 +5638,7 @@ map $upsert($1), $row_list;
                 if (dbrow == row{updc})
                     return UR_Unchanged;
 
-                printf("dbrow: %y row{%y}: %y\n", dbrow, updc, row{updc});
+                #printf("dbrow: %y row{%y}: %y\n", dbrow, updc, row{updc});
                 tryUpdate(update_sql, row, cols, updc);
                 return UR_Updated;
             };
