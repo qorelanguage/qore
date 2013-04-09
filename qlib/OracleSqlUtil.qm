@@ -557,17 +557,59 @@ my any $v = $c.name;
         }
     }
 
+    public class OracleMaterializedView inherits OracleCodeBase {
+        public {
+            bool logging;
+            bool use_index;
+            *string tablespace;
+        }
+
+        #! creates the object from the arguments passed
+        /** @param n the name of the materialized view
+            @param n_src the source of the materialized view
+            @param n_tablespace the optional data tablespace used by the materialized view
+            @param n_logging if the materialized view should use logging
+            @param n_use_index if the materialized view should use an index
+         */
+        constructor(string n, string n_src, bool n_logging = True, bool n_use_index = True, *string n_tablespace) : OracleCodeBase(n, "materialized view", n_src) {
+            logging = n_logging;
+            use_index = n_use_index;
+            tablespace = n_tablespace;
+        }
+
+        #! returns a string that can be used to create the object in the database
+        softlist getCreateSql(*hash opt) {
+            string sql = sprintf("create %s %s", type, name);
+
+            *string ts = opt.data_tablespace ? opt.data_tablespace : tablespace;
+            if (ts)
+                sql += sprintf(" tablespace %s", ts);
+
+            sql += logging ? " logging" : " nologging";
+            sql += use_index ? " using index" : " using no index";
+
+            sql += " as " + src;
+
+            return sql;
+        }
+
+        bool equalImpl(AbstractFunctionBase t) {
+            OracleMaterializedView mv = cast<OracleMaterializedView>(t);
+            return mv.logging == logging && mv.use_index == use_index;
+        }
+    }
+
     public class OracleDatabase inherits AbstractDatabase {
         public {
-            #! default generic creation options
+            #! oracle-specific generic creation options
             const OracleCreationOptions = AbstractDatabase::CreationOptions + (
                 "compute_statistics": Type::Boolean,
                 );
 
-            #! oracle schema description / alignment options
+            #! oracle-specific schema description / alignment options
             const OracleAlignSchemaOptions = AbstractDatabase::CreationOptions + OracleCreationOptions;
 
-            #! default generic schema description keys
+            #! oracle-specific schema description keys
             const OracleSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + (
                 "types": Type::Hash,
                 "type_map": Type::Hash,
@@ -575,16 +617,25 @@ my any $v = $c.name;
                 "packages": Type::Hash,
                 "package_map": Type::Hash,
 
-                #"materialized_views": Type::Hash,
-                #"materialized_view_map": Type::Hash,
+                "materialized_views": Type::Hash,
+                "materialized_view_map": Type::Hash,
 
                 #"synonyms": Type::Hash,
                 #"synonym_map": Type::Hash,
                 );
 
+            #! oracle-specific package description options
             const OraclePackageDescriptionOptions = (
                 "src": Type::String,
                 "body": Type::String,
+                );
+
+            #! oracle-specific materialized view description options
+            const OracleMaterializedViewDescriptionOptions = (
+                "logging": Type::Boolean,
+                "use_index": Type::Boolean,
+                "tablespace": Type::String,
+                "src": Type::String,
                 );
         }
 
@@ -636,16 +687,34 @@ my any $v = $c.name;
             return new OracleType(name, sprintf("%s as %s", name, src));
         }
 
+        OracleMaterializedView makeMaterializedView(string name, string src, bool logging = True, bool use_index = True, *string tablespace, *hash opts) {
+            return new OracleMaterializedView(name, src, logging, use_index, tablespace);
+        }
+
+        OracleMaterializedView makeMaterializedViewFromDescription(string name, hash mvh, *hash opts) {
+            validateOptionsIntern("MATERIALIZEDVIEW-DESCRIPTION-ERROR", OracleMaterializedViewDescriptionOptions, \mvh);
+            if (!mvh.src)
+                throw "MATERIALIZEDVIEW-DESCRIPTION-ERROR", sprintf("materialized view %y: description hash has no 'src' key (keys: %y)", name, mvh.keys());
+
+            return new OracleMaterializedView(name, mvh.src, mvh.logging, mvh.use_index, mvh.tablespace);
+        }
+
         private list getDropSchemaSqlImpl(hash schema_hash, *hash opt) {
             list l = ();
 
             if (opt.start) {
-                list tl = dropSqlUnlocked("package", schema_hash, \getPackage(), \makePackageFromDescription(), opt, Type::Hash);
+                # drop materialized views
+                list tl = dropSqlUnlocked("materialized_view", schema_hash, \getMaterializedView(), \makeMaterializedViewFromDescription(), opt, Type::Hash);
+                if (tl) l += tl;
+
+                # drop packages
+                tl = dropSqlUnlocked("package", schema_hash, \getPackage(), \makePackageFromDescription(), opt, Type::Hash);
                 if (tl) l += tl;
 
                 return l;
             }
             
+            # drop types
             list tl = dropSqlUnlocked("type", schema_hash, \getType(), \makeType(), opt, Type::String);
             if (tl) l += tl;
 
@@ -656,13 +725,19 @@ my any $v = $c.name;
             list l = ();
 
             if (opt.start) {
+                # create types
                 list tl = alignCodeUnlocked("type", schema_hash, \getType(), \makeType(), opt, Type::String);
                 if (tl) l += tl;
 
                 return l;
             }
             
+            # create packages
             list tl = alignCodeUnlocked("package", schema_hash, \getPackage(), \makePackageFromDescription(), opt, Type::Hash);
+            if (tl) l += tl;
+
+            # create materialized views
+            tl = alignCodeUnlocked("materialized_view", schema_hash, \getMaterializedView(), \makeMaterializedViewFromDescription(), opt, Type::Hash);
             if (tl) l += tl;
 
             return l;
@@ -699,6 +774,17 @@ my any $v = $c.name;
                 return;
 
             return new OracleType(name, src);
+        }
+
+        *OracleMaterializedView getMaterializedView(string name) {
+            *hash row = ds.selectRow("select * from user_mviews mv, user_tables t where mview_name = %v and mview_name = table_name", name.upr());
+            if (!row)
+                return;
+
+            if (!native_case)
+                map row.$1 = row.$1.lwr(), ("tablespace_name");
+
+            return new OracleMaterializedView(name, row.query, row.logging == "YES", row.use_no_index == "N", row.tablespace_name);
         }
 
         private *string getSource(string type, string name) {
@@ -1269,7 +1355,7 @@ my any $v = $c.name;
         }
 
         string getCreateTableSqlImpl(*hash opt) {
-            string sql = sprintf("create%s table %s (\n", opt.replace ? " or replace" : "", name);
+            string sql = sprintf("create table %s (\n", name);
 
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
             sql += "\n)";
