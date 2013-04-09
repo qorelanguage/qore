@@ -953,8 +953,8 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
             return sprintf("alter table %s drop constraint %s", table_name, name);
         }
 
-        #! returns a string that can be used to rename the constraint in the database
-        abstract string getRenameSql(string table_name, string new_name);
+        #! returns a list of SQL strings that can be used to rename the constraint in the database
+        abstract list getRenameSql(string table_name, string new_name);
 
         #! returns a string that can be used to temporarily disable the constraint from the database; if disabling constraints is not supported, then the constraint will be dropped
         string getDisableSql(string table_name) {
@@ -980,6 +980,10 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         #! returns @ref Qore::True "True" if the object supports an index property and is set, @ref Qore::False "False" if not
         bool setIndexBase(string ix) {
             return False;
+        }
+
+        #! clears any index base for the constraint
+        clearIndex() {
         }
     }
 
@@ -1829,7 +1833,7 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
                     break;
                 }
                 # no validation for NOTHING
-                case NOTHING: break;
+                case Type::NothingType: break;
                 
                 case "code": if (opt.typeCode() == NT_CLOSURE || opt.typeCode() == NT_CALLREF)
                     break;
@@ -3346,13 +3350,13 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
 
             @param old_name the current name of the constraint
             @param new_name the new name for the constraint
-            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the constraint (only executed if the table is already in the database)
             @return the constraint object that was updated
 
             @throw CONSTRAINT-ERROR if the old constraint does not exist in the table or if the new constraint name already exists
         */
-        AbstractConstraint renameConstraint(string old_name, string new_name, reference sql) {
-            return t.renameConstraint(old_name, new_name, \sql);
+        AbstractConstraint renameConstraint(string old_name, string new_name, reference lsql) {
+            return t.renameConstraint(old_name, new_name, \lsql);
         }
 
         #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
@@ -4098,7 +4102,7 @@ my Triggers $trig = $table.getTriggers();
                 "native_type": Type::String,
                 "size": Type::Int,
                 "scale": Type::Int,
-                "default_value": NOTHING,
+                "default_value": Type::NothingType,
                 "comment": Type::String,
                 );
 
@@ -5143,12 +5147,12 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
 
             @param old_name the current name of the constraint
             @param new_name the new name for the constraint
-            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the constraint (only executed if the table is already in the database)
             @return the constraint object that was updated
 
             @throw CONSTRAINT-ERROR if the old constraint does not exist in the table or if the new constraint name already exists
         */
-        AbstractConstraint renameConstraint(string old_name, string new_name, reference sql) {
+        AbstractConstraint renameConstraint(string old_name, string new_name, reference lsql) {
             l.lock();
             on_exit l.unlock();
             getAllConstraintsUnlocked();
@@ -5191,7 +5195,7 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
             }
 
             # rename foreign constraint in table if the table already exists in the DB
-            execSql(sql = c.getRenameSql(getSqlName(), new_name));
+            execSql(lsql = c.getRenameSql(getSqlName(), new_name));
 
             c.rename(new_name);
 
@@ -6321,8 +6325,11 @@ my list $l = $table.getAlignSql($table2);
             # check for primary key differences
             if (t.primaryKey) {
                 if (primaryKey_copy && !primaryKey_copy.equal(t.primaryKey)) {
+                    #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey_copy, t.primaryKey);
                     AbstractDatabase::doInfoCallback(opt, "updating primary key %s on %s", t.primaryKey.getName(), name);
                     l += AbstractDatabase::doSqlCallback(opt, primaryKey_copy.getDropSql(getSqlName()));
+                    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey_copy.getName()))
+                        t.primaryKey.clearIndex();
                     l += AbstractDatabase::doSqlCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt));
                 }
                 else if (!primaryKey_copy) {
@@ -6370,6 +6377,9 @@ my list $l = $table.getAlignSql($table2);
                     AbstractDatabase::doInfoCallback(opt, "updating constraint %s on %s", c.getName(), name);
                     # drop current constraint
                     l += AbstractDatabase::doSqlCallback(opt, constraints_copy{c.getName()}.getDropSql(getSqlName()));
+                    if (constraints_copy{c.getName()} instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl() && indexes.hasKey(c.getName()))
+                        cast<AbstractUniqueConstraint>(c).clearIndex();
+
                     # add new constraint to table
                     l += AbstractDatabase::doSqlCallback(opt, c.getCreateSql(getSqlName(), opt));
                 }
@@ -6834,8 +6844,11 @@ my *hash $row = $table.find($id);
 
             # update cached tables with foreign constraint source info
             if (opt.table_cache) {
-                foreach AbstractForeignConstraint fk in (foreignConstraints.iterator())
+                foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
+                    if (!opt.table_cache{fk.target.table})
+                        printf("ERROR: missing %y in table cache (adding fk %y to %y)\n", fk.target.table, fk.getName(), getName());
                     opt.table_cache{fk.target.table}.addSourceConstraint(getSqlName(), fk);
+                }
             }
             inDb = True;
         }
@@ -6949,6 +6962,9 @@ my *hash $row = $table.find($id);
          */
         private abstract bool checkExistenceImpl();
 
+        #! this must return @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
+        private abstract bool constraintsLinkedToIndexesImpl();
+                    
         private abstract setupTableImpl(hash desc, *hash opt);
 
         private abstract Columns describeImpl();

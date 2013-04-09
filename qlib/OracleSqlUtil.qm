@@ -237,7 +237,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, columns.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
         }
 
-        string getRenameSql(string table_name, string new_name) {
+        softlist getRenameSql(string table_name, string new_name) {
             return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
         }
 
@@ -266,7 +266,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
         }
 
-        string getRenameSql(string table_name, string new_name) {
+        softlist getRenameSql(string table_name, string new_name) {
             return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
         }
 
@@ -328,6 +328,11 @@ my any $v = $c.name;
             return True;
         }
 
+        #! clears any index base for the constraint
+        clearIndex() {
+            delete index;
+        }
+
         string getCreateSql(string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s unique (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
             *string ix = opts.index ? opts.index : index;
@@ -345,7 +350,7 @@ my any $v = $c.name;
             return sql;
         }
 
-        string getRenameSql(string table_name, string new_name) {
+        softlist getRenameSql(string table_name, string new_name) {
             return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
         }
 
@@ -403,6 +408,11 @@ my any $v = $c.name;
             return True;
         }
 
+        #! clears any index base for the constraint
+        clearIndex() {
+            delete index;
+        }
+
         string getCreateSql(string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
             *string ix = opts.index ? opts.index : index;
@@ -420,7 +430,7 @@ my any $v = $c.name;
             return sql;
         }
 
-        string getRenameSql(string table_name, string new_name) {
+        softlist getRenameSql(string table_name, string new_name) {
             return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
         }
 
@@ -1176,10 +1186,11 @@ my any $v = $c.name;
                 trim row.data_default;
 
                 OracleColumn c;
+                *string defval = exists row.data_default && row.data_default !== NULL ? row.data_default : NOTHING;
                 if (row.data_precision) 
-                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, row.nullable == "Y", row.data_default ? row.data_default : NOTHING, row.comments ? row.comments : NOTHING, row.char_used == "C", row.data_length, row.data_scale);
+                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, row.nullable == "Y", defval, row.comments ? row.comments : NOTHING, row.char_used == "C", row.data_length, row.data_scale);
                 else
-                    c = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.nullable == "Y", row.data_default ? row.data_default : NOTHING, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
+                    c = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.nullable == "Y", defval, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
 
                 rv.(row.column_name) = c;
             }
@@ -1498,6 +1509,10 @@ my any $v = $c.name;
         }
 
         private setupTableImpl(hash desc, *hash opt) {
+        }
+
+        private bool constraintsLinkedToIndexesImpl() {
+            return False;
         }
     }
 }

@@ -177,7 +177,7 @@ public namespace PgsqlSqlUtil {
 	}
 
 	string getCreateSql(*hash opt) {
-	    return sprintf("create %stype %s as (%s)", opt.replace ? "or replace " : "", name, src);
+	    return sprintf("create type %s as (%s)", name, src);
 	}
 
 	string getDropSql(*hash opt) {
@@ -213,7 +213,7 @@ public namespace PgsqlSqlUtil {
 
         #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash opt) {
-            string sql = sprintf("create%s %sindex %s on %s (%s)", opt.replace ? " or replace" : "", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
 
             *string ts = opt.index_tablespace ? opt.index_tablespace : tablespace;
             if (ts)
@@ -228,7 +228,7 @@ public namespace PgsqlSqlUtil {
 
         #! returns a string that can be used to rename the index in the database
         string getRenameSql(string table_name, string new_name) {
-            return sprintf("alter table %s rename index %s to %s", table_name, name, new_name);
+            return sprintf("alter index %s rename to %s", name, new_name);
         }
     }
 
@@ -238,11 +238,19 @@ public namespace PgsqlSqlUtil {
         }
 
         string getCreateSql(string table_name, *hash opt) {
-            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, columns.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+            return getCreateSql(name, table_name, opt);
         }
 
-        string getRenameSql(string table_name, string new_name) {
-            return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+        softlist getRenameSql(string table_name, string new_name) {
+            # the following is only valid with PostgreSQL 9.2+
+            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+            list l += getDropSql(table_name);
+            l += getCreateSql(new_name, table_name);
+            return l;
+        }
+
+        string getCreateSql(string name, string table_name, *hash opt) {
+            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, columns.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
         }
     }
 
@@ -252,11 +260,19 @@ public namespace PgsqlSqlUtil {
         }        
 
         string getCreateSql(string table_name, *hash opt) {
-            return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
+            return getCreateSql(name, table_name, opt);
         }
 
-        string getRenameSql(string table_name, string new_name) {
-            return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+        list getRenameSql(string table_name, string new_name) {
+            # the following is only valid with PostgreSQL 9.2+
+            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+            list l += getDropSql(table_name);
+            l += getCreateSql(new_name, table_name);
+            return l;
+        }
+
+        string getCreateSql(string name, string table_name, *hash opt) {
+            return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
         }
     }
 
@@ -413,16 +429,7 @@ my any $v = $c.name;
         }
 
         string getCreateSql(string table_name, *hash opts) {
-            string sql = sprintf("alter table %s add constraint %s unique (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
-            *string ix = opts.index ? opts.index : index;
-            if (ix)
-                sql += sprintf(" using index %s", ix);
-            else {
-                *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
-                if (ts)
-                    sql += sprintf(" using index tablespace %s", ts);
-            }
-            return sql;
+            return getCreateSql(name, table_name, opts);
         }
 
         bool setIndexBase(string ix) {
@@ -433,8 +440,33 @@ my any $v = $c.name;
             return True;
         }
 
-        string getRenameSql(string table_name, string new_name) {
-            return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+        #! clears any index base for the constraint
+        clearIndex() {
+            delete index;
+        }
+
+        list getRenameSql(string table_name, string new_name) {
+            # the following is only valid with PostgreSQL 9.2+
+            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+            list l += getDropSql(table_name);
+            l += getCreateSql(new_name, table_name);
+            return l;
+        }
+
+        string getCreateSql(string name, string table_name, *hash opts) {
+            string sql = sprintf("alter table %s add constraint %s unique ", table_name, name);
+
+            *string ix = opts.index ? opts.index : index;
+            if (ix)
+                sql += sprintf("using index %s", ix);
+            else {
+                sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
+
+                *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
+                if (ts)
+                    sql += sprintf(" using index tablespace %s", ts);
+            }
+            return sql;
         }
     }
 
@@ -475,11 +507,13 @@ my any $v = $c.name;
         }
 
         string getCreateSql(string table_name, *hash opts) {
-            string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
+            string sql = sprintf("alter table %s add constraint %s primary key", table_name, name);
+
             *string ix = opts.index ? opts.index : index;
             if (ix)
                 sql += sprintf(" using index %s", ix);
             else {
+                sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
                 *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
                 if (ts)
                     sql += sprintf(" using index tablespace %s", ts);
@@ -496,8 +530,15 @@ my any $v = $c.name;
             return True;
         }
 
-        string getRenameSql(string table_name, string new_name) {
-            return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+        #! clears any index base for the constraint
+        clearIndex() {
+            delete index;
+        }
+
+        softlist getRenameSql(string table_name, string new_name) {
+            # the following is only valid with postgresql 9.2+
+            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+            return sprintf("alter index %s rename to %s", name, new_name);
         }
     }
 
@@ -528,7 +569,7 @@ my any $v = $c.name;
 
         #! returns a string that can be used to create the trigger in the database
         softlist getCreateSql(string table_name, *hash opt) {
-            return sprintf("create%s trigger %s %s", opt.replace ? " or replace" : "", name, src);
+            return sprintf("create trigger %s %s", name, src);
         }
 
         #! returns a string that can be used to drop the trigger from the database
@@ -596,7 +637,7 @@ my any $v = $c.name;
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
-        PgsqlType makeType(string name, string src) {
+        PgsqlType makeType(string name, string src, *hash opts) {
             return new PgsqlType(name, src);
         }
 
@@ -968,6 +1009,8 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 );
 
             const PgsqlAlignTableOptions = AbstractTable::AlignTableOptions + PgsqlTableCreationOptions;
+
+            const PGSQL_TryInsertSavepoint = "qore_try_Insert_Impl";
         }
 
         private {
@@ -1068,10 +1111,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 }
 
                 PgsqlColumn c;
+                *string defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
                 if (row.numeric_precision)
-                    c = new PgsqlNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", row.column_default ? row.column_default : NOTHING, row.description ? row.description : NOTHING, 0, row.numeric_scale);
+                    c = new PgsqlNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.description ? row.description : NOTHING, 0, row.numeric_scale);
                 else
-                    c = new PgsqlColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", row.column_default ? row.column_default : NOTHING, row.description ? row.description : NOTHING, row.character_octet_length);
+                    c = new PgsqlColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.description ? row.description : NOTHING, row.character_octet_length);
 
                 rv.(row.column_name) = c;
             }
@@ -1083,7 +1127,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             hash rv;
 
             # get primary key description
-            *hash qh = ds.select("select c1.relname index_name, a.attname, format_type(a.atttypid, a.atttypmod) coltype, tablespace from pg_index i, pg_class c, pg_attribute a, pg_class c1, pg_indexes xs where c.oid = %v::regclass and indrelid = c.oid and a.attrelid = c.oid and a.attnum = any(i.indkey) and indisprimary and c1.oid = indexrelid and c1.relname = xs.indexname", name);
+            *hash qh = ds.select("select c1.relname index_name, a.attname, format_type(a.atttypid, a.atttypmod) coltype, tablespace from pg_index i, pg_class c, pg_attribute a, pg_class c1, pg_indexes xs where c.oid = %v::regclass and indrelid = c.oid and a.attrelid = c.oid and a.attnum = any(i.indkey) and indisprimary and c1.oid = indexrelid and c1.relname = xs.indexname order by attnum", name);
             if (!qh.index_name)
                 return;
 
@@ -1238,7 +1282,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         string getCreateTableSqlImpl(*hash opt) {
-            string sql = sprintf("create%s table %s (\n", opt.replace ? " or replace": "", name);
+            string sql = sprintf("create table %s (\n", name);
 
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
             sql += "\n)";
@@ -1272,14 +1316,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 getTriggersUnlocked();
             }
 
-            list l = map sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), columns.iterator(), $1.comment;
-            if (l)
-                map AbstractDatabase::doTandemCallback(opt, l[$#], "create comment on column %s.%s", $1, name), columns.iterator(), $1.comment;
+            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), "create comment on column %s.%s", name, $1.name), columns.iterator(), $1.comment;
 
             if (!opt.omit_trigger_functions && !triggerFunctions.empty()) {
                 list tl = ();
-                map tl += $1.getCreateSql(opt), triggerFunctions.iterator();
-                map AbstractDatabase::doTandemCallback(opt, tl[$#], "create trigger function %s for table %s", $1.name, name), triggerFunctions.iterator();
+                map tl += AbstractDatabase::doCallback(opt, $1.getCreateSql(opt), "create trigger function %s for table %s", $1.name, name), triggerFunctions.iterator();
                 l += tl;
             }
 
@@ -1300,10 +1341,10 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 }
                 else if (!f.equal(triggerFunctions{f.name})) {
                     AbstractDatabase::doInfoCallback(opt, "updating trigger function %s for %s", f.name, name);
-                    # drop current trigger function
-                    l += AbstractDatabase::doSqlCallback(opt, triggerFunctions{f.name}.getDropSql());
+                    # replace current trigger function
+                    #l += AbstractDatabase::doSqlCallback(opt, triggerFunctions{f.name}.getDropSql());
                     # add new trigger function to table
-                    l += AbstractDatabase::doSqlCallback(opt, f.getCreateSql(opt));
+                    l += AbstractDatabase::doSqlCallback(opt, f.getCreateSql(opt + ("replace": True)));
                 }
             }
 
@@ -1362,12 +1403,17 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private bool tryInsertImpl(string sql, hash row) {
+            ds.exec("savepoint " + PGSQL_TryInsertSavepoint);
+
             try {
                 ds.vexec(sql, row.values());
+                ds.exec("release savepoint " + PGSQL_TryInsertSavepoint);
             }
             catch (hash ex) {
-                if (ex.desc =~ /duplicate key value/)
+                if (ex.desc =~ /duplicate key value/) {
+                    ds.exec("rollback to savepoint " + PGSQL_TryInsertSavepoint);
                     return False;
+                }
                 rethrow;
             }
             return True;
@@ -1424,5 +1470,41 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 addTriggerFunctionUnlocked(fn, src);
             }
         }
+
+        private bool constraintsLinkedToIndexesImpl() {
+            return True;
+        }
+
+        /*
+        private code getUpsertInsertFirst(Columns cols, hash example_row) {
+            string insert_sql = getInsertSql(example_row);
+            list updc = ();
+            string update_sql = getUpdateSql(example_row, cols, \updc);
+
+            return int sub (hash row) {
+                
+
+                if (tryInsertImpl(insert_sql, row))
+                    return UR_Inserted;
+            
+                tryUpdate(update_sql, row, cols, updc);
+                return UR_Updated;            
+            };
+        }
+
+        private code getUpsertUpdateFirst(Columns cols, hash example_row) {
+            list updc = ();
+            string update_sql = getUpdateSql(example_row, cols, \updc);
+            string insert_sql = getInsertSql(example_row);
+
+            return int sub (hash row) {
+                if (tryUpdate(update_sql, row, cols, updc))
+                    return UR_Updated;
+                
+                ds.vexec(insert_sql, row.values());
+                return UR_Inserted;
+            };
+        }
+        */
     }
 }
