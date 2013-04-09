@@ -2368,7 +2368,7 @@ my string $sql = $db.getDropTableSqlIfExists($name);
                 AbstractDatabase::doCallback(opt, l, "drop %s %s", type, name);
                 on_success ds.commit();
                 on_error ds.rollback();
-                map ds.exec($1), l;
+                map ds.execRaw($1), l;
                 return True;
             }
             return False;
@@ -4077,7 +4077,7 @@ $table.dropNoCommit();
             @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
         dropNoCommit(*hash opt) {
-            ds.exec(AbstractDatabase::doCallback(opt, getDropSql(), "dropping table %s", getSqlName()));
+            ds.execRaw(AbstractDatabase::doCallback(opt, getDropSql(), "dropping table %s", getSqlName()));
             inDb = False;
         }
 
@@ -4156,7 +4156,7 @@ $table.createNoCommit();
                 throw "CREATE-TABLE-ERROR", sprintf("table %s has already been read from or created in the database", getSqlName());
 
             # get and execute all the creation strings
-            map ds.exec($1), getCreateSql(opt, False);
+            map ds.execRaw($1), getCreateSql(opt, False);
             inDb = True;
             manual = False;
         }
@@ -4487,7 +4487,7 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
             if (inDb) {
                 on_success ds.commit();
                 on_error ds.rollback();
-                map ds.exec($1), lsql;
+                map ds.execRaw($1), lsql;
             }
             else 
                 manual = True;
