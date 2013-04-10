@@ -1552,6 +1552,17 @@ public:
       pgm->priv->warnSink->raiseException(ne);
    }
 
+   DLLLOCAL static void makeParseWarning(QoreProgram* pgm, const QoreProgramLocation &loc, int code, const char* warn, QoreStringNode* desc) {
+      //printd(5, "QoreProgram::makeParseWarning(code=%d, warn='%s', desc='%s') priv->pwo.warn_mask=%d priv->warnSink=%p %s\n", code, warn, desc->getBuffer(), priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
+      if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask)) {
+         desc->deref();
+         return;
+      }
+      
+      QoreException *ne = new ParseException(loc, warn, desc);
+      pgm->priv->warnSink->raiseException(ne);
+   }
+
    DLLLOCAL static void exportGlobalVariable(QoreProgram* pgm, const char* name, bool readonly, QoreProgram* tpgm, ExceptionSink* xsink) {
       pgm->priv->exportGlobalVariable(name, readonly, *(tpgm->priv), xsink);
    }
