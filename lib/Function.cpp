@@ -1681,7 +1681,8 @@ void QoreFunction::parseInit() {
       return;
    parse_init_done = true;
 
-   parse_same_return_type = same_return_type;
+   if (parse_same_return_type)
+      parse_same_return_type = same_return_type;
 
    OptionalNamespaceParseContextHelper pch(ns);
 
