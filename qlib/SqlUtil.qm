@@ -1240,6 +1240,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             return type;
         }
         
+        # FIXME: not appropriate for pgsql triggers for example
         #! returns a string that can be used to drop the function from the database
         string getDropSql() {
             return sprintf("drop %s %s", type, name);

@@ -624,6 +624,18 @@ my any $v = $c.name;
         }
     }
 
+    #! represents a PostgreSQL-specific trigger function
+    public class PgsqlTriggerFunction inherits PgsqlFunction {
+        public {
+            #! trigger name
+            string trigger;
+        }
+
+        constructor(string n, string n_src, string n_trigger) : PgsqlFunction(n, n_src) {
+            trigger = n_trigger;
+        }
+    }
+
     #! provides the PostgreSQL-specific implementation of the AbstractDatabase interface
     public class PgsqlDatabase inherits AbstractDatabase {
        public {
@@ -812,7 +824,7 @@ my any $v = $c.name;
             }
 
             string name = sprintf("%s(%s)", row.proname, args);
-            return new PgsqlFunction(name, row.hdr, args);
+            return row.trigger_name ? new PgsqlTriggerFunction(name, row.hdr, row.trigger_name) : new PgsqlFunction(name, row.hdr, args);
         }
 
         private list getDropSchemaSqlImpl(hash schema_hash, *hash opt) {
@@ -1029,14 +1041,14 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return tablespace;
         }
 
-        PgsqlFunction addTriggerFunction(string tfname, string src) {
+        PgsqlFunction addTriggerFunction(string tfname, string src, string trigger) {
             l.lock();
             on_exit l.unlock();
 
-            return addTriggerFunctionUnlocked(tfname, src);
+            return addTriggerFunctionUnlocked(tfname, src, trigger);
         }
 
-        private PgsqlFunction addTriggerFunctionUnlocked(string tfname, string src) {
+        private PgsqlFunction addTriggerFunctionUnlocked(string tfname, string src, string trigger) {
             if (!triggerFunctions)
                 triggerFunctions = new Functions();
             else if (triggerFunctions.hasKey(tfname))
@@ -1049,7 +1061,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             if (args)
                 throw "TRIGGERFUNCTION-ERROR", sprintf("table %y trigger function %y: trigger function cannot have any arguments: args: %y", name, tfname, args);
 
-            PgsqlFunction f(tfname, src);
+            PgsqlTriggerFunction f(tfname, src, trigger);
 
             triggerFunctions.add(tfname, f);
             return f;
@@ -1245,10 +1257,14 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
             # list of trigger functions
             list fl = ();
+            # map trigger function name -> trigger name
+            hash tfh;
             foreach hash row in (qh.contextIterator()) {
                 *string f = (row.action_statement =~ x/EXECUTE PROCEDURE (\w+)\(\)$/)[0];
-                if (f)
+                if (f) {
                     fl += f;
+                    tfh{f} = row.trigger_name;
+                }
                     
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("event_manipulation", "action_statement", "action_timing", "action_orientation");
@@ -1271,7 +1287,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname in (%s)", (foldl $1 + "," + $2, (map sprintf("'%s'", $1), fl)));
 
                 # create trigger function map
-                map fh{$1.proname + "()"} = PgsqlDatabase::processFunction($1, native_case), qh.contextIterator();
+                map fh{$1.proname + "()"} = PgsqlDatabase::processFunction($1 + ("trigger_name": tfh{$1.proname}), native_case), qh.contextIterator();
 
                 triggerFunctions = new Functions(fh);
             }
@@ -1340,18 +1356,20 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     l += AbstractDatabase::doSqlCallback(opt, f.getCreateSql(opt));
                 }
                 else if (!f.equal(triggerFunctions{f.name})) {
-                    AbstractDatabase::doInfoCallback(opt, "updating trigger function %s for %s", f.name, name);
                     # replace current trigger function
-                    #l += AbstractDatabase::doSqlCallback(opt, triggerFunctions{f.name}.getDropSql());
-                    # add new trigger function to table
-                    l += AbstractDatabase::doSqlCallback(opt, f.getCreateSql(opt + ("replace": True)));
+                    l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt + ("replace": True)), "updating trigger function %s for %s", f.name, name);
                 }
             }
 
             # check for trigger functions not in the template and drop them
-            foreach AbstractFunction f in (triggerFunctions.iterator()) {
-                if (!t.triggerFunctions.hasKey(f.name))
+            foreach PgsqlTriggerFunction f in (triggerFunctions.iterator()) {
+                if (!t.triggerFunctions.hasKey(f.name)) {
+                    if (triggers{f.trigger}) {
+                        l += AbstractDatabase::doCallback(opt, triggers{f.trigger}.getDropSql(name), "dropping trigger %s on %s", f.trigger, name);
+                        triggers.take(f.trigger);
+                    }
                     l += AbstractDatabase::doCallback(opt, f.getDropSql(), "dropping trigger function %s on %s", f.name, name);
+                }
             }
 
             return l ? l : NOTHING;
@@ -1467,7 +1485,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to function key %y is not a string giving the function source code, got type %y instead (%y)", name, fn, desc.functions{fn}.type(), desc.functions{fn});
 
                 string src = desc.functions{fn};
-                addTriggerFunctionUnlocked(fn, src);
+                addTriggerFunctionUnlocked(fn, src, fn);
             }
         }
 
