@@ -303,6 +303,14 @@ public namespace RestHandler {
                 splice $mn, 0, 1, $mn[0].upr();
                 $mn = ($hdr.method == "DELETE" ? "del" : $hdr.method.lwr()) + $mn;
             }
+            else if ($body.action) {
+                if ($body.action.typeCode() != NT_STRING)
+                    return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", $path, $args.action.type());
+                $mn = $body.action;
+                # ensure first letter of the action is in upper case
+                splice $mn, 0, 1, $mn[0].upr();
+                $mn = ($hdr.method == "DELETE" ? "del" : $hdr.method.lwr()) + $mn;
+            }
             else
                 $mn = $hdr.method == "DELETE" ? "del" : $hdr.method.lwr();
 
@@ -406,6 +414,8 @@ public namespace RestHandler {
             }
 
             $.logDebug("response serialization: %s (%d bytes)", $rv.hdr."Content-Type", $rv.body.size());
+
+            #$.logDebug("rv: %N", $rv);
 
             return $rv;
         }
