@@ -176,10 +176,10 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar 
 
       QoreProgram* pgm = getProgram();
 
-      //printd(5, "FunctionCallBase::parseArgsVariant() this=%p po=%lld, ign=%d func=%p have_arg_type_info=%d variant=%p\n", this, po, pflag & PF_RETURN_VALUE_IGNORED, func, have_arg_type_info, variant);
+      //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p have_arg_type_info: %d variant: %p rt: %s\n", this, func->className() ? func->className() : "", func->getName(), pflag & PF_RETURN_VALUE_IGNORED, func, have_arg_type_info, variant, func->parseGetUniqueReturnTypeInfo()->getName());
 
       if (variant) {
-         //printd(5, "FunctionCallBase::parseArgsVariant() this=%p variant=%p f=%lld (%lld) c=%lld (%lld)\n", this, variant, variant->getFunctionality(), variant->getFunctionality() & po, variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY);
+         //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p f: %lld (%lld) (%lld) rt: %s\n", this, func->className() ? func->className() : "", func->getName(), variant, variant->getFunctionality(), variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY, variant->parseGetReturnTypeInfo()->getName());
          if (qc) {
             assert(dynamic_cast<const MethodVariantBase*>(variant));
             const MethodVariantBase* mv = reinterpret_cast<const MethodVariantBase*>(variant);

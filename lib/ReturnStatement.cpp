@@ -72,6 +72,8 @@ int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 	 returnTypeInfo->getThisType(*desc);
 	 desc->concat(", but value given to the return statement is ");
 	 argTypeInfo->getThisType(*desc);
+	 //printd(0, "ReturnStatement::parseInitImpl() %s\n", desc->getBuffer());
+	 //assert(false);
 	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
    }

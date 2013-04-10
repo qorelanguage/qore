@@ -867,12 +867,12 @@ my AbstractIndex $ix = $indexes.pk_jobs;
         }
 
         #! returns a list of strings to drop and recreate the current index; if there are dependent constraints, the list contains commands to disable the constraints before dropping the index and also contains commands to re-enable the contraints after re-creating the index
-        list getRecreateSql(string table_name, *hash opt) {
+        list getRecreateSql(AbstractDatasource ds, string table_name, *hash opt) {
             list l = ();
             list enl;
             # get drop SQL and disable any dependent constraints plus a list of strings to re-enable the constraints
             if (constraint) {
-                hash drh = constraint.getDisableReenableSql(table_name, opt);
+                hash drh = constraint.getDisableReenableSql(ds, table_name, opt);
                 l += drh.disable;
                 enl = drh.enable;
             }
@@ -1026,13 +1026,17 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         }
 
         #! returns lists of SQL strings to disable this constraint plus any dependent constraints and another list of SQL strings to reenable the same constraints; used when updating indexes that depend on constraints
-        hash getDisableReenableSql(string table_name, *hash opts) {
+        hash getDisableReenableSql(AbstractDatasource ds, string table_name, *hash opts) {
             hash ch = (
                 "disable": (),
                 "enable": (),
                 );
 
             foreach hash sch in (sourceConstraints.pairIterator()) {
+                # make sure table actually exists before disabling constraints
+                Table t(ds, sch.key);
+                if (!t.checkExistence())
+                    continue;
                 foreach AbstractForeignConstraint fk in (sch.value.iterator()) {
                     ch.disable += fk.getDisableSql(sch.key);
                     unshift ch.enable, fk.getEnableSql(sch.key, opts);
@@ -2999,6 +3003,24 @@ $table.truncateNoCommit();
             t.truncateNoCommit();
         }
         
+        #! gets the SQL that can be used to truncate the table
+        /** @par Example:
+            @code
+my string $sql = $table.getTruncateSql();
+            @endcode
+
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to truncate the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        string getTruncateSql(*hash opt) {
+            return t.getTruncateSql(opt);
+        }
+
         #! creates the table in the database; releases the transaction lock after creating the table
         /** @par Example:
             @code
@@ -3073,6 +3095,37 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             return t.addColumn(cname, opt, nullable, \lsql);
         }
 
+        #! returns a list of SQL strings that can be use to add a column to the table
+        /** @par Example:
+            @code
+my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), False);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the column
+            @param copt a hash describing the column; the following keys are permitted (other column options may be supported depending on the underlying AbstractTable implementation):
+            - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion;
+            - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+            - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
+            - \c scale: for numeric data types, this value gives the scale
+            - \c default_value: the default value for the column
+            @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be use to add a column to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
+
+            @note make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        list getAddColumnSql(string cname, hash copt, bool nullable = True, *hash opt) {
+            return t.getAddColumnSql(cname, copt, nullable, opt);
+        }
+
         #! modifies an existing column in the table; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally and the new column definition will be created when create() is called for example
         /** @par Example:
             @code
@@ -3104,6 +3157,35 @@ $table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
             return t.modifyColumn(cname, opt, nullable, \lsql);
         }
 
+        #! gets a list of SQL strings that can be used to modify an existing column in the table
+        /** @par Example:
+            @code
+my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 240), False);
+            @endcode
+
+            @param cname the name of the column
+            @param copt a hash describing the column; the following keys are permitted (other column options may be supported depending on the underlying AbstractTable implementation):
+            - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion;
+            - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+            - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
+            - \c scale: for numeric data types, this value gives the scale
+            - \c default_value: the default value for the column
+            @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+                
+            @return a list of SQL strings that can be used to modify an existing column in the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column does not exist, invalid column data
+
+            @note make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        list getModifyColumnSql(string cname, hash copt, bool nullable = True, *hash opt) {
+            return t.getModifyColumnSql(cname, copt, nullable, opt);
+        }
+
         #! renames an existing column; if the table already exists, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
             @code
@@ -3123,6 +3205,27 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
         */
         AbstractColumn renameColumn(string old_name, string new_name, reference sql) {
             return t.renameColumn(old_name, new_name, \sql);
+        }
+
+        #! gets an SQL string that can be used to rename an existing column in the table
+        /** @par Example:
+            @code
+my string $sql = $table.getRenameColumnSql("name", "family_name");
+            @endcode
+
+            @param old_name the current name of the column
+            @param new_name the new name of the column
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+                
+            @return an SQL string that can be used to rename an existing column in the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw COLUMN-ERROR if the given column does not exist in the table
+
+            @see getModifyColumnSql() for a method that allows the column definition to be updated
+        */
+        string getRenameColumnSql(string old_name, string new_name, *hash opt) {
+            return t.getRenameColumnSql(old_name, new_name, opt);
         }
 
         #! adds a primary key to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -3170,6 +3273,27 @@ $table.dropPrimaryKey();
          */
         AbstractPrimaryKey dropPrimaryKey(*reference sql) {
             return t.dropPrimaryKey(\sql);
+        }
+
+        #! gets the SQL that can be used to drop the primary key from the table
+        /** @par Example:
+            @code
+my string $sql = $table.getDropPrimaryKeySql();
+            @endcode
+
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop the primary key from the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw PRIMARY-KEY-ERROR the table has no primary key
+
+            @note this method retrieves current primary key definition from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        string getDropPrimaryKeySql(*hash opt) {
+            return t.getDropPrimaryKeySql(opt);
         }
 
         #! adds a unique constraint to the table; if the table is known to be in the database already, then the constraint is added to the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -3242,6 +3366,50 @@ my AbstractIndex $ix = $table.renameIndex("uk_table_name", "unique_table_name");
         */
         AbstractIndex renameIndex(string old_name, string new_name, reference sql) {
             return t.renameIndex(old_name, new_name, \sql);
+        }
+
+        #! gets the SQL that can be used to drop an index from the table
+        /** @par Example:
+            @code
+my string $sql = $table.getDropIndexSql("uk_mytable_name");
+            @endcode
+
+            @param iname the name of the index to drop
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop an index from the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw INDEX-ERROR the given index does not exist in the table
+
+            @note this method retrieves current index definitions from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        string getDropIndexSql(string iname, *hash opt) {
+            return t.getDropIndexSql(iname, opt);
+        }
+
+        #! gets the SQL that can be used to drop a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
+        /** @par Example:
+            @code
+my string $sql = $table.getDropConstraintSql("uk_mytable_name");
+            @endcode
+
+            @param cname the name of the constraint to drop
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw CONSTRAINT-ERROR the given constraint does not exist in the table
+
+            @note this method retrieves current constraint definitions from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        string getDropConstraintSql(string cname, *hash opt) {
+            return t.getDropConstraintSql(cname, opt);
         }
 
         #! drops the index from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
@@ -4239,7 +4407,7 @@ $table.dropNoCommit();
             @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
         dropNoCommit(*hash opt) {
-            ds.execRaw(AbstractDatabase::doCallback(opt, getDropSql(), "dropping table %s", getSqlName()));
+            map ds.execRaw($1), getDropSql(opt);
             inDb = False;
         }
 
@@ -4281,10 +4449,29 @@ $table.truncateNoCommit();
             @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
         truncateNoCommit() {
-            ds.exec("truncate table %s", getSqlName());
+            ds.exec(getTruncateSqlImpl());
             inDb = False;
         }
-        
+
+        #! gets the SQL that can be used to truncate the table
+        /** @par Example:
+            @code
+my string $sql = $table.getTruncateSql();
+            @endcode
+
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to truncate the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        string getTruncateSql(*hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);        
+            return AbstractDatabase::doCallback(opt, getTruncateSqlImpl(), "truncating table %s", name);
+        }
+
         #! creates the table in the database; releases the transaction lock after creating the table
         /** @par Example:
             @code
@@ -4505,7 +4692,48 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             return addColumnUnlocked(cname, opt, nullable, \lsql);
         }
 
-        private AbstractColumn addColumnUnlocked(string cname, hash opt, bool nullable = True, *reference lsql) {
+        #! returns a list of SQL strings that can be use to add a column to the table
+        /** @par Example:
+            @code
+my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), False);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the column
+            @param copt a hash describing the column; the following keys are permitted (other column options may be supported depending on the underlying AbstractTable implementation):
+            - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion;
+            - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+            - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
+            - \c scale: for numeric data types, this value gives the scale
+            - \c default_value: the default value for the column
+            @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be use to add a column to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
+
+            @note make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        list getAddColumnSql(string cname, hash copt, bool nullable = True, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            list lsql;
+
+            {
+                l.lock();
+                on_exit l.unlock();
+                addColumnUnlocked(cname, copt, nullable, \lsql, False);
+            }
+            
+            return AbstractDatabase::doCallback(opt, lsql, "add column %s.%s", name, cname);
+        }
+
+        private AbstractColumn addColumnUnlocked(string cname, hash opt, bool nullable = True, *reference lsql, bool do_exec = True) {
             if (!columns)
                 columns = new Columns();
             else if (columns.hasKey(cname))
@@ -4520,10 +4748,14 @@ $table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             AbstractColumn c = addColumnImpl(cname, opt, nullable);
 
             # add column in table if the table is already known to be in the database
-            execSql(lsql = c.getCreateSql(self));
+            lsql = c.getCreateSql(self);
+            if (do_exec) {
+                execSql(lsql);
 
-            # add the column to the internal column representation
-	    columns.add(cname, c);
+                # add the column to the internal column representation
+                columns.add(cname, c);
+            }
+
             return c;
         }
 
@@ -4575,12 +4807,66 @@ $table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
             return c;
         }
 
+        #! gets a list of SQL strings that can be used to modify an existing column in the table
+        /** @par Example:
+            @code
+my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 240), False);
+            @endcode
+
+            @param cname the name of the column
+            @param copt a hash describing the column; the following keys are permitted (other column options may be supported depending on the underlying AbstractTable implementation):
+            - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion;
+            - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+            - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
+            - \c scale: for numeric data types, this value gives the scale
+            - \c default_value: the default value for the column
+            @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+                
+            @return a list of SQL strings that can be used to modify an existing column in the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column does not exist, invalid column data
+
+            @note make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        list getModifyColumnSql(string cname, hash copt, bool nullable = True, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+            if (!columns.hasKey(cname))
+                throw "COLUMN-ERROR", sprintf("%s.%s: the given column does not exist", name, cname);    
+
+            if (!copt.native_type && !copt.qore_type)
+                throw "COLUMN-ERROR", sprintf("%s.%s: no native_type or qore_type keys in column option hash: %y", name, cname, copt);
+
+            validateColumnOptions(cname, \copt, nullable);
+
+            # get the new column object
+            AbstractColumn c = addColumnImpl(cname, copt, nullable);
+            
+            # add column in table if the table already exists in the DB
+            #list l = columns{cname}.getModifySql(self, c);
+            #any rvl = AbstractDatabase::doCallback(opt, l, "update column %s.%s to %s", name, cname, c.getNativeTypeString());
+            #printf("getModifyColumnSql(): rvl: %N\n", rvl);
+            #return rvl;
+            return AbstractDatabase::doCallback(opt, columns{cname}.getModifySql(self, c), "update column %s.%s to %s", name, cname, c.getNativeTypeString());
+        }
+
         #! renames an existing column; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
             @code
 my AbstractColumn $col = $table.renameColumn("name", "family_name");
             @endcode
 
+            @param old_name the current name of the column
+            @param new_name the new name of the column
+            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+                
             @return the column object that was updated
 
             @throw COLUMN-ERROR if the given column does not exist in the table
@@ -4597,6 +4883,36 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
                 throw "COLUMN-ERROR", sprintf("%s.%s: the given column does not exist", name, old_name);
 
             return renameColumnIntern(old_name, new_name, \sql);
+        }
+
+        #! gets an SQL string that can be used to rename an existing column in the table
+        /** @par Example:
+            @code
+my string $sql = $table.getRenameColumnSql("name", "family_name");
+            @endcode
+
+            @param old_name the current name of the column
+            @param new_name the new name of the column
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+                
+            @return an SQL string that can be used to rename an existing column in the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw COLUMN-ERROR if the given column does not exist in the table
+
+            @see getModifyColumnSql() for a method that allows the column definition to be updated
+        */
+        string getRenameColumnSql(string old_name, string new_name, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+
+            if (!columns.hasKey(old_name))
+                throw "COLUMN-ERROR", sprintf("%s.%s: the given column does not exist", name, old_name);
+
+            return AbstractDatabase::doCallback(opt, columns{old_name}.getRenameSql(self, new_name), "rename column %s.%s to %s", name, old_name, new_name);
         }
 
         private AbstractColumn renameColumnIntern(string old_name, string new_name, reference sql) {
@@ -4718,6 +5034,36 @@ printf("%s;\n", $sql);
 
             # set as primary key for the table
             return primaryKey = pk;
+        }
+
+        #! gets the SQL that can be used to drop the primary key from the table
+        /** @par Example:
+            @code
+my string $sql = $table.getDropPrimaryKeySql();
+            @endcode
+
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop the primary key from the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw PRIMARY-KEY-ERROR the table has no primary key
+
+            @note this method retrieves current primary key definition from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        string getDropPrimaryKeySql(*hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            getPrimaryKeyUnlocked();
+            if (primaryKey.empty())
+                throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", name);
+
+            return AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "drop primary key %s from %s", primaryKey.getName(), name);
         }
 
         #! drops the primary key from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
@@ -4964,6 +5310,37 @@ $table.dropIndex("uk_mytable_name");
             return indexes.take(iname);
         }
 
+        #! gets the SQL that can be used to drop an index from the table
+        /** @par Example:
+            @code
+my string $sql = $table.getDropIndexSql("uk_mytable_name");
+            @endcode
+
+            @param iname the name of the index to drop
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop an index from the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw INDEX-ERROR the given index does not exist in the table
+
+            @note this method retrieves current index definitions from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        string getDropIndexSql(string iname, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            getIndexesUnlocked();
+            if (!indexes.hasKey(iname))
+                throw "INDEX-ERROR", sprintf("%s: has no index %y; valid indexes: %y", name, iname, indexes.keys());
+
+            return AbstractDatabase::doCallback(opt, indexes{iname}.getDropSql(getSqlName()), "drop index %s on %s", iname, name);
+        }
+
         #! adds a foreign constraint to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
@@ -5205,6 +5582,65 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
             
             # return the updated constraint
             return c;
+        }
+
+        #! gets the SQL that can be used to drop a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
+        /** @par Example:
+            @code
+my string $sql = $table.getDropConstraintSql("uk_mytable_name");
+            @endcode
+
+            @param cname the name of the constraint to drop
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw CONSTRAINT-ERROR the given constraint does not exist in the table
+
+            @note this method retrieves current constraint definitions from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        string getDropConstraintSql(string cname, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+            getAllConstraintsUnlocked();
+            
+            AbstractConstraint c;
+
+            if (constraints && constraints.hasKey(cname)) {
+                c = constraints{cname};
+            }
+            else {
+                if (inDb) {
+                    getPrimaryKeyUnlocked();
+                    if (primaryKey && primaryKey.getName() == cname) {
+                        c = primaryKey;
+                    }
+                    else {
+                        getForeignConstraintsUnlocked();
+                        if (foreignConstraints && foreignConstraints.hasKey(cname)) {
+                            c = foreignConstraints{cname};
+                        }
+                    }
+                }
+            }
+            
+            if (!c) {
+                list cl = ();
+                # get a list of all constraint names
+                cl += constraints.keys();
+                if (primaryKey)
+                    cl += primaryKey.getName();
+                if (foreignConstraints)
+                    cl += foreignConstraints.keys();
+                throw "CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", name, cname, cl);
+            }
+
+            return AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s from %s", c.getName(), name);
         }
 
         #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
@@ -6215,16 +6651,28 @@ my list $l = $table.getAlignSql($table2);
                 l += AbstractDatabase::doSqlCallback(opt, getRenameSql(t.name));
             }
 
-            # first check for columns in the template that are not present or different in the current table
+            # copy columns
+            *Columns columns_copy = columns ? columns.copy() : NOTHING;
+
+            # process column_map: rename columns
+            foreach hash rh in (opt.column_map.pairIterator()) {
+                if (columns_copy.hasKey(rh.key)) {
+                    AbstractColumn c = columns_copy{rh.key};
+                    l += AbstractDatabase::doCallback(opt, c.getRenameSql(self, rh.value), "renaming column %s.%s to %s", name, c.name, rh.value);
+                    columns_copy.renameKey(rh.key, rh.value);
+                    c.name = rh.value;
+                }
+            }
+
+            # check for columns in the template that are not present or different in the current table
             foreach AbstractColumn c in (t.columns.iterator()) {
-                if (!columns.hasKey(c.name)) {
-                    AbstractDatabase::doInfoCallback(opt, "add column %s to %s", c.name, name);
+                if (!columns_copy.hasKey(c.name)) {
                     # add column to table
-                    l += AbstractDatabase::doSqlCallback(opt, c.getCreateSql(self));
+                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(self), "add column %s to %s", c.name, name);
                 }
                 else {
                     # get any delta SQL
-                    list cl = columns{c.name}.getModifySql(self, c);
+                    list cl = columns_copy{c.name}.getModifySql(self, c);
                     # add delta SQL to list if there is any to add
                     if (cl) {
                         AbstractDatabase::doInfoCallback(opt, "updating column %s in %s", c.name, name);
@@ -6234,7 +6682,7 @@ my list $l = $table.getAlignSql($table2);
             }
 
             # check for columns not in the template and drop them
-            foreach AbstractColumn c in (columns.iterator()) {
+            foreach AbstractColumn c in (columns_copy.iterator()) {
                 if (!t.columns.hasKey(c.name)) {
                     AbstractDatabase::doInfoCallback(opt, "dropping column %s in %s", c.name, name);
                     l += AbstractDatabase::doSqlCallback(opt, c.getDropSql(getSqlName()));
@@ -6248,8 +6696,7 @@ my list $l = $table.getAlignSql($table2);
             foreach hash rh in (opt.index_map.pairIterator()) {
                 if (indexes_copy.hasKey(rh.key)) {
                     AbstractIndex ix = indexes_copy{rh.key};
-                    AbstractDatabase::doInfoCallback(opt, "renaming index %s on %s to %s", ix.name, name, rh.value);
-                    l += AbstractDatabase::doSqlCallback(opt, ix.getRenameSql(getSqlName(), rh.value));
+                    l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), rh.value), "renaming index %s on %s to %s", ix.name, name, rh.value);
                     indexes_copy.renameKey(rh.key, rh.value);
                     ix.name = rh.value;
                 }
@@ -6259,12 +6706,10 @@ my list $l = $table.getAlignSql($table2);
             foreach AbstractIndex ix in (t.indexes.iterator()) {
                 if (!indexes_copy.hasKey(ix.name)) {
                     # add index to table
-                    AbstractDatabase::doInfoCallback(opt, "adding index %s to %s", ix.name, name);
-                    l += AbstractDatabase::doSqlCallback(opt, ix.getCreateSql(getSqlName(), opt));
+                    l += AbstractDatabase::doCallback(opt, ix.getCreateSql(getSqlName(), opt), "adding index %s to %s", ix.name, name);
                 }
                 else if (!ix.equal(indexes_copy{ix.name})) {
-                    AbstractDatabase::doInfoCallback(opt, "recreating index %s on %s", ix.name, name);
-                    l += AbstractDatabase::doSqlCallback(opt, ix.getRecreateSql(getSqlName(), opt));
+                    l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt), "recreating index %s on %s", ix.name, name);
                 }
             }
 
@@ -6955,6 +7400,10 @@ my *hash $row = $table.find($id);
             return sprintf("drop table %s", getSqlName());
         }
         
+        private string getTruncateSqlImpl() {
+            return sprintf("truncate table %s", getSqlName());
+        }
+
         private abstract bool emptyImpl();
 
         #! returns @ref Qore::True "True" if the table exists in the DB, @ref Qore::False "False" if not
