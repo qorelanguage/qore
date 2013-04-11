@@ -1378,32 +1378,10 @@ my any $v = $c.name;
             return sql;
         }
 
-        private *list getCreateIndexesSqlImpl(*hash opt) {
-            return map $1.getCreateSql(name, opt), indexes.iterator();
-        }
-
-        private *string getCreatePrimaryKeySqlImpl(*hash opt) {
-            return primaryKey.getCreateSql(name, opt);
-        }
-        
-        private *list getCreateForeignConstraintsSqlImpl(*hash opt) {
-            return map $1.getCreateSql(name, opt), foreignConstraints.iterator();
-        }
-
-        private *list getCreateConstraintsSqlImpl(*hash opt) {
-            return map $1.getCreateSql(name, opt), constraints.iterator();
-        }
-
         private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
 	    if (cache)
 		getColumnsUnlocked();
             return map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), "adding comment to column %s.%s", name, $1.name), columns.iterator(), $1.comment;
-        }
-
-        private *list getCreateTriggersSqlImpl(*hash opt) {
-            list l = ();
-            map l += $1.getCreateSql(name, opt), triggers.iterator();
-            return l;
         }
 
         private string getCreateSqlImpl(list l) {

@@ -854,8 +854,7 @@ my any $v = $c.name;
 
                     *PgsqlType type = getType(th.key);
                     if (type) {
-                        AbstractDatabase::doInfoCallback(opt, "renaming type %s to %s", th.key, th.value);
-                        l += AbstractDatabase::doSqlCallback(opt, type.getRenameSql(th.value));
+                        l += AbstractDatabase::doCallback(opt, type.getRenameSql(th.value), "renaming type %s to %s", th.key, th.value);
                         type.name = th.value;
                         type_cache{th.value} = type;
                     }
@@ -878,15 +877,13 @@ my any $v = $c.name;
                     else {
                         type = getType(name);
                         if (!type) {
-                            AbstractDatabase::doInfoCallback(opt, "creating type %s", name);
-                            l += AbstractDatabase::doSqlCallback(opt, templateType.getCreateSql(opt));
+                            l += AbstractDatabase::doCallback(opt, templateType.getCreateSql(opt), "creating type %s", name);
                             continue;
                         }
                     }
 
                     if (!templateType.equal(type)) {
-                        AbstractDatabase::doInfoCallback(opt, "updating type %s", name);
-                        l += AbstractDatabase::doSqlCallback(opt, templateType.getModifySql(type, opt + ("cascade": True)));
+                        l += AbstractDatabase::doCallback(opt, templateType.getModifySql(type, opt + ("cascade": True)), "updating type %s", name);
                     }
                 }
                 return l;
@@ -1202,8 +1199,9 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
             hash rv;
 
-            # get foreign referential constraints
-            *hash qh = ds.select("select tc.constraint_name, kcu.column_name source_column, ccu.table_name target_table, ccu.column_name target_column from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name = kcu.constraint_name join information_schema.constraint_column_usage as ccu on ccu.constraint_name = tc.constraint_name where constraint_type = 'FOREIGN KEY' and tc.table_name = %v order by ordinal_position", name);
+            # get foreign referential constraints 
+            # FIXME: hardcoded schema to 'public'
+            *hash qh = ds.select("select constraint_name, att2.attname source_column, cl.relname target_table, att.attname target_column from (select con1.conname constraint_name, unnest(con1.conkey) parent, unnest(con1.confkey) child, con1.confrelid, con1.conrelid from pg_class cl join pg_namespace ns on cl.relnamespace = ns.oid join pg_constraint con1 on con1.conrelid = cl.oid where cl.relname = %v and ns.nspname = 'public' and con1.contype = 'f') con join pg_attribute att on att.attrelid = con.confrelid and att.attnum = con.child join pg_class cl on cl.oid = con.confrelid join pg_attribute att2 on att2.attrelid = con.conrelid and att2.attnum = con.parent", name);
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
@@ -1310,22 +1308,6 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return sql;
         }
 
-        *list getCreateIndexesSqlImpl(*hash opt) {
-            return map $1.getCreateSql(name, opt), indexes.iterator();
-        }
-
-        *string getCreatePrimaryKeySqlImpl(*hash opt) {
-            return primaryKey.getCreateSql(name, opt);
-        }
-
-        *list getCreateForeignConstraintsSqlImpl(*hash opt) {
-            return map $1.getCreateSql(name, opt), foreignConstraints.iterator();
-        }
-
-        *list getCreateConstraintsSqlImpl(*hash opt) {
-            return map $1.getCreateSql(name, opt), constraints.iterator();
-        }
-
         *list getCreateMiscSqlImpl(*hash opt, bool cache) {
             if (cache) {
                 getColumnsUnlocked();
@@ -1335,9 +1317,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), "create comment on column %s.%s", name, $1.name), columns.iterator(), $1.comment;
 
             if (!opt.omit_trigger_functions && !triggerFunctions.empty()) {
-                list tl = ();
-                map tl += AbstractDatabase::doCallback(opt, $1.getCreateSql(opt), "create trigger function %s for table %s", $1.name, name), triggerFunctions.iterator();
-                l += tl;
+                map l += AbstractDatabase::doCallback(opt, $1.getCreateSql(opt), "create trigger function %s for table %s", $1.name, name), triggerFunctions.iterator();
             }
 
             #printf("gCMSI triggerFunctions: %N\n", triggerFunctions);
@@ -1351,9 +1331,8 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             # check for trigger functions in the template that are not present or different in the current table
             foreach AbstractFunction f in (t.triggerFunctions.iterator()) {
                 if (!triggerFunctions.hasKey(f.name)) {
-                    AbstractDatabase::doInfoCallback(opt, "creating trigger function %s for %s", f.name, name);
                     # create trigger function
-                    l += AbstractDatabase::doSqlCallback(opt, f.getCreateSql(opt));
+                    l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), "creating trigger function %s for %s", f.name, name);
                 }
                 else if (!f.equal(triggerFunctions{f.name})) {
                     # replace current trigger function
@@ -1469,7 +1448,13 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return triggerFunctions.empty();
         }
 
+        #! clears PostgreSQL-specific table information
+        private clearImpl() {
+            delete triggerFunctions;
+        }
+
         private softlist getDropSqlImpl() {
+            getTriggers();
             list l = ();
             l += sprintf("drop table %s", getSqlName());
             map l += $1.getDropSql(), triggerFunctions.iterator();
