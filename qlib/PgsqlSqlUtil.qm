@@ -1165,7 +1165,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                         );
                     }
                     # send "blank" column for function index
-                    if (row.column_name =~ /\(.*\)/)
+                    if (row.column_name =~ /\(.*\)/ || !ih.(row.index_name).columns.hasKey(row.column_name))
                         ih.(row.index_name).columns{row.column_name} = hash();
                     else
                         ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
@@ -1475,6 +1475,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private bool constraintsLinkedToIndexesImpl() {
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if the database support tablespaces
+        private bool supportsTablespacesImpl() {
             return True;
         }
 

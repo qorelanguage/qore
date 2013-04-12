@@ -1492,5 +1492,10 @@ my any $v = $c.name;
         private bool constraintsLinkedToIndexesImpl() {
             return False;
         }
+
+        #! returns @ref Qore::True "True" if the database support tablespaces
+        private bool supportsTablespacesImpl() {
+            return True;
+        }
     }
 }

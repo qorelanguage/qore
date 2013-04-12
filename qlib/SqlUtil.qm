@@ -3606,9 +3606,31 @@ $table.dropColumn("notes_2");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-         AbstractColumn dropColumn(string cname, *reference sql) {
-             return t.dropColumn(cname, \sql);
-         }
+        AbstractColumn dropColumn(string cname, *reference sql) {
+            return t.dropColumn(cname, \sql);
+        }
+
+        #! returns the SQL that can be used to drop a column from the table
+        /** @par Example:
+            @code
+my string $sql = $table.getDropColumnSql("notes_2");
+            @endcode
+
+            @param cname the name of the column to drop
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop a column from the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw COLUMN-ERROR the named column is not present in the table
+
+            @note this method retrieves the table definition from the database if none has already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        string getDropColumnSql(string cname, *hash opt) {
+            return t.getDropColumnSql(cname, opt);
+        }
 
         #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
@@ -4154,7 +4176,7 @@ my AbstractPrimaryKey $cols = $table.getPrimaryKey();
 
             @return an object of class AbstractPrimaryKey describing the primary key of the table
         */
-        AbstractPrimaryKey getPrimaryKey() {
+        *AbstractPrimaryKey getPrimaryKey() {
             return t.getPrimaryKey();
         }
 
@@ -5907,6 +5929,40 @@ $table.dropColumn("notes_2");
             return columns.take(cname);
         }
 
+        #! returns the SQL that can be used to drop a column from the table
+        /** @par Example:
+            @code
+my string $sql = $table.getDropColumnSql("notes_2");
+            @endcode
+
+            @param cname the name of the column to drop
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop a column from the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw COLUMN-ERROR the named column is not present in the table
+
+            @note this method retrieves the table definition from the database if none has already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        string getDropColumnSql(string cname, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+            if (!columns.hasKey(cname))
+                throw "COLUMN-ERROR", sprintf("%s.%s: no such column (valid columns: %y)", name, cname, columns.keys());
+
+            on_success if (opt.sql_callback_executed)
+                columns.take(cname);
+
+            # drop column from table if the table already exists in the DB
+            return AbstractDatabase::doCallback(opt, columns{cname}.getDropSql(getSqlName()), "drop column %s.%s", name, cname);
+        }
+
         #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
@@ -7448,6 +7504,9 @@ my *hash $row = $table.find($id);
             should set inDb = True if it returns @ref Qore::True "True"
          */
         private abstract bool checkExistenceImpl();
+
+        #! returns @ref Qore::True "True" if the database support tablespaces
+        private abstract bool supportsTablespacesImpl();
 
         #! this must return @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
         private abstract bool constraintsLinkedToIndexesImpl();
