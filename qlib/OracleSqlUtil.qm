@@ -1154,6 +1154,29 @@ my any $v = $c.name;
             return OraColumnOptions;
         }
 
+        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh) {
+            AbstractTable::getSelectWhereSqlUnlocked(\sql, qh);
+            if (qh.limit && !qh.orderby && !qh.offset) {
+                if (!qh.cond)
+                    sql += " where ";
+                else
+                    sql += " and ";
+                sql += sprintf("rownum < %v", qh.limit);
+                args += qh.limit;
+            }
+        }
+
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh) {
+            string sort = foldl $1 + ", " + $2, qh.orderby;
+            # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
+            # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
+            sql = sprintf("select * from (select /*+ first_rows(%d) */ a.*, rownum rnum from (%s order by %s) a where rownum <= %v) where rnum >= %v", qh.limit, sql, sort);
+            if (qh.offset)
+                qh.limit += qh.offset - 1;
+            args += qh.limit;
+            args += qh.offset ? qh.offset : 0;
+        }
+
         private Columns describeImpl() {
 	    if (!tablespace)
 		setTableInfoIntern();

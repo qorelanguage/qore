@@ -339,6 +339,28 @@ my bool $b = $c.matchKeys($h);
             return True;
         }
 
+        #! returns @ref Qore::True "True" if the list argument has the same list of key strings as the keys in the object (in any order), @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $c.matchKeys($l);
+            @endcode
+
+            @param l the hash to compare
+
+            @return @ref Qore::True "True" if the list argument has the same list of key strings as the keys in the object (in any order), @ref Qore::False "False" if not
+        */
+        bool matchKeys(list l) {
+            if (h.size() != l.size())
+                return False;
+
+            foreach string k in (l.iterator()) {
+                if (!h.hasKey(k))
+                    return False;
+            }
+
+            return True;
+        }
+
         #! returns @ref Qore::True "True" if the container argument has the same keys (in any order), @ref Qore::False "False" if not
         /** @par Example:
             @code
@@ -1442,6 +1464,53 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
             db = AbstractDatabase::getDatabase(ds, opts);
         }
 
+        #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExec("drop table tmp_table");
+            @endcode
+
+            Include any arguments in the parameter list after the \a sql argument
+
+            @param sql the SQL to execute
+
+            @return any return value from the SQL command executed
+         */
+        any tryExec(string sql) {
+            return db.tryExecArgs(sql, argv);
+        }
+
+        #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
+            @endcode
+
+            @param sql the SQL to execute
+            @param args the bind / placeholder or other arguments corresponding to the SQL string
+
+            @return any return value from the SQL command executed
+         */
+        any tryExecArgs(string sql, *softlist args) {
+            return db.tryExecArgs(sql, args);
+        }
+
+        #! executes some SQL so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExecRaw("drop table tmp_table");
+            @endcode
+
+            Include any arguments in the parameter list after the \a sql argument
+
+            @param sql the SQL to execute
+
+            @return any return value from the SQL command executed
+         */
+        any tryExecRaw(string sql) {
+            return db.tryExecRaw(sql);
+        }
+
         #! accepts a hash argument describing a database schema and returns a list of SQL strings that can be used to align the structure and configuration of the current schema with that of the argument; if the objects described are identical then an empty list is returned
         /** @par Example:
             @code
@@ -1840,6 +1909,16 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
                     }
                     break;
                 }
+                case "softstringlist": {
+                    softlist l = opt;
+                    foreach any v in (l) {
+                        if (v.typeCode() != NT_STRING)
+                            throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
+                    }
+
+                    opt = l;
+                }
+
                 # no validation for NOTHING
                 case Type::NothingType: break;
                 
@@ -1964,6 +2043,53 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
                     map opt.sql_callback($1), sql;
             }
             return sql;
+        }
+
+        #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExec("drop table tmp_table");
+            @endcode
+
+            Include any arguments in the parameter list after the \a sql argument
+
+            @param sql the SQL to execute
+
+            @return any return value from the SQL command executed
+         */
+        any tryExec(string sql) {
+            return tryExecArgsImpl(sql, argv);
+        }
+
+        #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
+            @endcode
+
+            @param sql the SQL to execute
+            @param args the bind / placeholder or other arguments corresponding to the SQL string
+
+            @return any return value from the SQL command executed
+         */
+        any tryExecArgs(string sql, *softlist args) {
+            return tryExecArgsImpl(sql, args);
+        }
+
+        #! executes some SQL so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExecRaw("drop table tmp_table");
+            @endcode
+
+            Include any arguments in the parameter list after the \a sql argument
+
+            @param sql the SQL to execute
+
+            @return any return value from the SQL command executed
+         */
+        any tryExecRaw(string sql) {
+            return tryExecRawImpl(sql);
         }
 
         #! accepts a hash argument describing a database schema and returns a list of SQL strings that can be used to align the structure and configuration of the current schema with that of the argument; if the objects described are identical then an empty list is returned
@@ -2783,6 +2909,16 @@ my string $sql = $t.getSqlFromList($list);
             return SequenceDescriptionOptions;
         }
 
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        private any tryExecArgsImpl(string sql, *softlist args) {
+            return ds.vexec(sql, args);
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        private any tryExecRawImpl(string sql) {
+            return ds.execRaw(sql);
+        }
+
         private abstract string getCreateSqlImpl(list l);
         private abstract list getAlignSqlImpl(hash schema_hash, *hash opt);
         private abstract list getDropSchemaSqlImpl(hash schema_hash, *hash opt);
@@ -2955,6 +3091,53 @@ $table.dropNoCommit();
             t.dropNoCommit(opt);
         }
         
+        #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExec("drop table tmp_table");
+            @endcode
+
+            Include any arguments in the parameter list after the \a sql argument
+
+            @param sql the SQL to execute
+
+            @return any return value from the SQL command executed
+         */
+        any tryExec(string sql) {
+            return t.tryExecArgs(sql, argv);
+        }
+
+        #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
+            @endcode
+
+            @param sql the SQL to execute
+            @param args the bind / placeholder or other arguments corresponding to the SQL string
+
+            @return any return value from the SQL command executed
+         */
+        any tryExecArgs(string sql, *softlist args) {
+            return t.tryExecArgs(sql, args);
+        }
+
+        #! executes some SQL so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExecRaw("drop table tmp_table");
+            @endcode
+
+            Include any arguments in the parameter list after the \a sql argument
+
+            @param sql the SQL to execute
+
+            @return any return value from the SQL command executed
+         */
+        any tryExecRaw(string sql) {
+            return t.tryExecRaw(sql);
+        }
+
         #! truncates all the table data; releases the transaction lock after executing
         /** @par Example:
             @code
@@ -3040,6 +3223,17 @@ $table.rename("new_name");
         */
         rename(string new_name, *reference sql) {
             return t.rename(new_name, \sql);
+        }
+
+        #! returns @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+            @endcode
+
+            @return @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
+        */
+        bool emptyData() {
+            return t.emptyData();
         }
 
         #! adds a column to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -3788,14 +3982,32 @@ my int $cnt = $table.rowCount();
 my SQLStatement $i = $table.getRowIterator();
             @endcode
 
-            @param cond a hash of conditions for the where clause
-            @param orderby a list of columns for an "order by" clause
-            @param desc if @ref Qore::True "True" then the order by clause will be descending
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
 
             @return an SQLStatement object that will iterate the results of a select statement matching the arguments
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw SELECT-ERROR 'limit' or 'offset' supplied without 'orderby', 'offset' supplied without 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
          */
         SQLStatement getRowIterator(*hash cond, *softlist orderby, bool desc = False) {
             return t.getRowIterator(cond, orderby, desc);
+        }
+
+        #! returns a list of hashes representing the rows in the table that match the argument hash
+        /** @par Example:
+            @code
+my *list $l = $table.selectRows($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+
+            @return a list of hashes representing the rows in the table that match the argument hash
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+         */
+        *list selectRows(*hash sh) {
+            return t.selectRows(sh);
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -4131,6 +4343,20 @@ my *hash $row = $table.find($id);
             return t.find(row);
         }
 
+        #! finds a single row in the table with the given column values; the input hash may match multiple rows, but only one row will be returned; if no row matches the primary key value passed then @ref nothing is returned
+        /** @par Example:
+            @code
+my *hash $row = $table.findSingle($h);
+            @endcode
+
+            @param row a hash giving the column values to find
+
+            @return a hash representing a single row in the table with the given column values; the input hash may match multiple rows, but only one row will be returned; if no row matches the primary key value passed then @ref nothing is returned
+         */
+        *hash findSingle(*hash row) {
+            return t.findSingle(row);
+        }
+
         #! reads in all attributes of the table from the database
         /** @par Example:
             @code
@@ -4254,6 +4480,15 @@ my Triggers $trig = $table.getTriggers();
 
             #! default trigger options
             const TriggerOptions = AbstractDatabase::CreationOptions;
+
+            #! default select options
+            const SelectOptions = (
+                "where": Type::Hash,
+                "orderby": "softstringlist",
+                "desc": Type::Boolean,
+                "limit": Type::Int,
+                "offset": Type::Int,
+                );
 
             #! table creation options
             const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions;
@@ -4408,6 +4643,53 @@ $table.drop();
             dropNoCommit(opt);
         }
 
+        #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExec("drop table tmp_table");
+            @endcode
+
+            Include any arguments in the parameter list after the \a sql argument
+
+            @param sql the SQL to execute
+
+            @return any return value from the SQL command executed
+         */
+        any tryExec(string sql) {
+            return tryExecArgsImpl(sql, argv);
+        }
+
+        #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
+            @endcode
+
+            @param sql the SQL to execute
+            @param args the bind / placeholder or other arguments corresponding to the SQL string
+
+            @return any return value from the SQL command executed
+         */
+        any tryExecArgs(string sql, *softlist args) {
+            return tryExecArgsImpl(sql, args);
+        }
+
+        #! executes some SQL so that if an error occurs the current transaction state is not lost
+        /** @par Example: 
+            @code
+$t.tryExecRaw("drop table tmp_table");
+            @endcode
+
+            Include any arguments in the parameter list after the \a sql argument
+
+            @param sql the SQL to execute
+
+            @return any return value from the SQL command executed
+         */
+        any tryExecRaw(string sql) {
+            return tryExecRawImpl(sql);
+        }
+
         #! drops the table from the database without any transaction management
         /** @par Example:
             @code
@@ -4542,6 +4824,17 @@ $table.rename("new_name");
 
             execSql(sql = getRenameSqlImpl(name, new_name));
             name = new_name;
+        }
+
+        #! returns @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+            @endcode
+
+            @return @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
+        */
+        bool emptyData() {
+            return findSingle() ? False : True;
         }
 
         #! returns @ref Qore::True "True" if the table has no definitions, @ref Qore::False "False" if not
@@ -4742,13 +5035,13 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
             {
                 l.lock();
                 on_exit l.unlock();
-                addColumnUnlocked(cname, copt, nullable, \lsql, opt.sql_callback_executed);
+                addColumnUnlocked(cname, copt, nullable, \lsql, False, opt.sql_callback_executed);
             }
             
             return AbstractDatabase::doCallback(opt, lsql, "add column %s.%s", name, cname);
         }
 
-        private AbstractColumn addColumnUnlocked(string cname, hash opt, bool nullable = True, *reference lsql, bool do_exec = True) {
+        private AbstractColumn addColumnUnlocked(string cname, hash opt, bool nullable = True, *reference lsql, bool do_exec = True, bool modify_table = True) {
             if (!columns)
                 columns = new Columns();
             else if (columns.hasKey(cname))
@@ -4764,12 +5057,12 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
 
             # add column in table if the table is already known to be in the database
             lsql = c.getCreateSql(self);
-            if (do_exec) {
+            if (do_exec)
                 execSql(lsql);
 
-                # add the column to the internal column representation
+            # add the column to the internal column representation
+            if (modify_table)
                 columns.add(cname, c);
-            }
 
             return c;
         }
@@ -5654,23 +5947,27 @@ my string $sql = $table.getDropConstraintSql("uk_mytable_name");
 
             if (constraints && constraints.hasKey(cname)) {
                 c = constraints{cname};
-                rmv = sub () { constraints.take(cname); };
+                rmv = sub () {
+                    constraints.take(cname); 
+                    # if it's a unique constraint, remove any index with the same name
+                    if (c instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl())
+                        indexes.take(cname);
+                };
             }
-            else {
-                if (inDb) {
-                    getPrimaryKeyUnlocked();
-                    if (primaryKey && primaryKey.getName() == cname) {
-                        c = primaryKey;
-                        rmv = sub () { remove primaryKey; };
-                    }
-                    else {
-                        getForeignConstraintsUnlocked();
-                        if (foreignConstraints && foreignConstraints.hasKey(cname)) {
-                            c = foreignConstraints{cname};
-                            rmv = sub () { foreignConstraints.take(cname); };
-                        }
-                    }
-                }
+            else if (primaryKey && primaryKey.getName() == cname) {
+                c = primaryKey;
+                rmv = sub () { 
+                    remove self.primaryKey; 
+                    # remove any index with the same name
+                    if (constraintsLinkedToIndexesImpl())
+                        indexes.take(cname);
+                };
+            }
+            else if (foreignConstraints && foreignConstraints.hasKey(cname)) {
+                c = foreignConstraints{cname};
+                rmv = sub () {
+                    foreignConstraints.take(cname); 
+                };
             }
             
             if (!c) {
@@ -6129,31 +6426,118 @@ my int $cnt = $table.rowCount();
         #! returns an SQLStatement object that will iterate the results of a select statement matching the arguments
         /** @par Example:
             @code
-my SQLStatement $i = $table.getRowIterator();
+my SQLStatement $i = $table.getRowIterator($sh);
             @endcode
 
-            @param cond a hash of conditions for the where clause
-            @param orderby a list of columns for an "order by" clause
-            @param desc if @ref Qore::True "True" then the order by clause will be descending
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
 
             @return an SQLStatement object that will iterate the results of a select statement matching the arguments
-         */
-        SQLStatement getRowIterator(*hash cond, *softlist orderby, bool desc = False) {
-            # make query
-            string sql = sprintf("select * from %s", getSqlName());
-            if (cond)
-                sql += " where " + (foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), cond.keyIterator()));
-            if (orderby) {
-                sql += " order by " + (foldl $1 + "," + $2, orderby);
-                if (desc)
-                    sql += " desc";
-            }
 
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+         */
+        SQLStatement getRowIterator(*hash sh) {
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+
+            string sql;
+            list args;
+
+            {
+                l.lock();
+                on_exit l.unlock();
+
+                sql = getSelectSqlUnlocked(sh, \args);
+            }
+                
             SQLStatement stmt(ds);
             stmt.prepare(sql);
-            stmt.execArgs(cond.values());
+            stmt.execArgs(args);
 
             return stmt;
+        }
+
+        #! returns a list of hashes representing the rows in the table that match the argument hash
+        /** @par Example:
+            @code
+my *list $l = $table.selectRows($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+
+            @return a list of hashes representing the rows in the table that match the argument hash
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+         */
+        *list selectRows(*hash sh) {
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+
+            string sql;
+            list args;
+
+            {
+                l.lock();
+                on_exit l.unlock();
+
+                sql = getSelectSqlUnlocked(sh, \args);
+            }
+            
+            return ds.vselectRows(sql, args);
+        }
+
+        *AbstractUniqueConstraint matchAnyUnique(list cols) {
+            if (!manual)
+                getPrimaryKeyUnlocked();
+            if (!primaryKey.empty() && primaryKey.matchKeys(cols))
+                return primaryKey;
+            if (!manual)
+                getConstraintsUnlocked();
+            foreach AbstractConstraint c in (constraints.iterator()) {
+                if (c instanceof AbstractUniqueConstraint) {
+                    AbstractUniqueConstraint uk = c;
+                    if (uk.matchKeys(cols))
+                        return uk;                    
+                }
+            }
+        }
+
+        string getSelectSqlUnlocked(*hash qh, reference args) {            
+            if (qh.offset) {
+                if (!qh.orderby)
+                    throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) but no 'orderby'", getName(), qh.offset);
+                if (!qh.limit)
+                    throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) without limit", getName(), qh.offset);
+            }
+            args = ();
+
+            # make query
+            string sql = sprintf("select * from %s", getSqlName());
+            getSelectWhereSqlUnlocked(\sql, \args, qh);
+            if (qh.orderby) {
+                if (qh.offset) {
+                    if (!matchAnyUnique(qh.orderby))
+                        throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d does not match any unique constraint", getName(), qh.orderby, qh.offset);
+
+                    doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh);
+                }
+                else
+                    doSelectOrderBySqlUnlocked(\sql, \args, qh);
+            }
+
+            return sql;
+        }
+
+        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh) {
+            if (qh."where") {
+                args += qh."where".values();
+                sql += " where " + (foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), qh."where".keyIterator()));
+            }
+        }
+
+        private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh) {
+            sql += " order by " + (foldl $1 + "," + $2, qh.orderby);
+            if (qh.desc)
+                sql += " desc";
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -6235,9 +6619,9 @@ my int $dcnt = $table.del(("name": $name));
         }
 
         private code getUpsertInsertFirst(Columns cols, hash example_row) {
-            string insert_sql = getInsertSql(example_row);
+            string insert_sql = getUpsertInsertSql(example_row);
             list updc = ();
-            string update_sql = getUpdateSql(example_row, cols, \updc);
+            string update_sql = getUpsertUpdateSql(example_row, cols, \updc);
 
             return int sub (hash row) {
                 if (tryInsertImpl(insert_sql, row))
@@ -6250,8 +6634,8 @@ my int $dcnt = $table.del(("name": $name));
 
         private code getUpsertUpdateFirst(Columns cols, hash example_row) {
             list updc = ();
-            string update_sql = getUpdateSql(example_row, cols, \updc);
-            string insert_sql = getInsertSql(example_row);
+            string update_sql = getUpsertUpdateSql(example_row, cols, \updc);
+            string insert_sql = getUpsertInsertSql(example_row);
 
             return int sub (hash row) {
                 if (tryUpdate(update_sql, row, cols, updc))
@@ -6265,9 +6649,9 @@ my int $dcnt = $table.del(("name": $name));
         private code getUpsertSelectFirst(Columns cols, hash example_row) {
             #printf("getUpsertSelectFirst() %s: %y\n", name, cols.keys()); 
             list updc = ();
-            string select_sql = getSelectSql(example_row, cols, \updc);
-            string insert_sql = getInsertSql(example_row);
-            string update_sql = getUpdateSql(example_row, cols, \updc);
+            string select_sql = getUpsertSelectSql(example_row, cols, \updc);
+            string insert_sql = getUpsertInsertSql(example_row);
+            string update_sql = getUpsertUpdateSql(example_row, cols, \updc);
 
             return int sub (hash row) {
                 list args = row.(cols.keys()).values();
@@ -6324,7 +6708,7 @@ my int $dcnt = $table.del(("name": $name));
             return cols;
         }
 
-        private string getSelectSql(hash row, Columns cols, reference updc) {
+        private string getUpsertSelectSql(hash row, Columns cols, reference updc) {
             if (cols.size() != row.size()) {
                 # make list of columns not in unique key
                 map updc += $1, row.keyIterator(), !cols.hasKey($1);
@@ -6339,7 +6723,7 @@ my int $dcnt = $table.del(("name": $name));
                 );            
         }
 
-        private string getInsertSql(hash row) {
+        private string getUpsertInsertSql(hash row) {
             string sql = sprintf("insert into %s (", getSqlName());
             sql += (foldl $1 + "," + $2, row.keyIterator());
             sql += ") values (";
@@ -6348,7 +6732,7 @@ my int $dcnt = $table.del(("name": $name));
             return sql;
         }
 
-        private string getUpdateSql(hash row, Columns cols, reference updc) {
+        private string getUpsertUpdateSql(hash row, Columns cols, reference updc) {
             # make list of columns not in unique key if necessary
             if (!updc)
                 map updc += $1, row.keyIterator(), !cols.hasKey($1);
@@ -6631,16 +7015,15 @@ map printf("$1;\n", $1), $table.getCreateSql();
             @endcode
 
             @param opt a hash of options for the table, index, and constraint creation strings; see @ref TableCreationOptions for common options; each driver can support additional driver-specific options
-            @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create the table and all known properties of the table
         */
-        list getCreateSql(*hash opt, bool cache = True) {
+        list getCreateSql(*hash opt) {
             l.lock();
             on_exit l.unlock();
             if (!manual)
                 cacheUnlocked(opt);
-            return getCreateSqlUnlocked(opt, cache);
+            return getCreateSqlUnlocked(opt, False);
         }
 
         #! returns an SQL string that could be used to create the basic table structure without indexes and constraints 
@@ -6751,6 +7134,7 @@ my list $l = $table.getAlignSql($table2);
                     # rename column in indexes
                     foreach AbstractIndex ix in (indexes_copy.iterator()) {
                         if (ix.columns.hasKey(rh.key)) {
+                            printf("%s.%s: col %y %N\n", getName(), ix.name, rh.key, ix.columns);
                             AbstractColumn rc = ix.columns{rh.key};
                             rc.name = rh.value;
                             ix.columns.renameKey(rh.key, rh.value);
@@ -6817,7 +7201,7 @@ my list $l = $table.getAlignSql($table2);
 
                     # if constraints are linked to indexes, then rename any matching constraint as well
                     if (constraintsLinkedToIndexesImpl()) {
-                        if (primaryKey_copy.getName() == rh.key) {
+                        if (primaryKey_copy && primaryKey_copy.getName() == rh.key) {
                             primaryKey_copy.rename(rh.value);
                         }
                         else {
@@ -6969,7 +7353,7 @@ my list $l = $table.getAlignSql($table2);
                 }
                 else if (!trig.equal(triggers{trig.name})) {
                     # drop current trigger
-                    l += AbstractDatabase::doCallback(opt, triggers{trig.name}.getDropSql(), "updating trigger %s on %s (dropping old trigger)", trig.name, name);
+                    l += AbstractDatabase::doCallback(opt, triggers{trig.name}.getDropSql(getSqlName()), "updating trigger %s on %s (dropping old trigger)", trig.name, name);
                     # add new trigger to table
                     l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), "updating trigger %s on %s (adding updated trigger)", trig.name, name);
                 }
@@ -7178,7 +7562,7 @@ my *list $rows = $table.find($list);
         #! finds a row in the table with the given primary key value given as a hash; if no row matches the primary key value passed then @ref nothing is returned
         /** @par Example:
             @code
-my *hash $row = $table.find($id);
+my *hash $row = $table.find($h);
             @endcode
 
             @param row a hash giving the primary key value to find; other columns may also appear in the hash, however at least all columns of the primary key must be present
@@ -7210,6 +7594,22 @@ my *hash $row = $table.find($id);
             string sql = sprintf("select * from %s where ", getSqlName());
             sql += foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), row.keyIterator());
             return ds.vselectRow(sql, row.values());
+        }
+
+        #! finds a single row in the table with the given column values; the input hash may match multiple rows, but only one row will be returned; if no row matches the primary key value passed then @ref nothing is returned
+        /** @par Example:
+            @code
+my *hash $row = $table.findSingle($h);
+            @endcode
+
+            @param row a hash giving the column values to find
+
+            @return a hash representing a single row in the table with the given column values; the input hash may match multiple rows, but only one row will be returned; if no row matches the primary key value passed then @ref nothing is returned
+         */
+        *hash findSingle(*hash row) {
+            *list l = selectRows(("where": row));
+            if (l)
+                return l[0];
         }
 
         #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
@@ -7485,6 +7885,11 @@ my *hash $row = $table.find($id);
             return TriggerOptions;
         }
 
+        #! override in subclasses to return driver-specific options
+        private hash getSelectOptions() {
+            return SelectOptions;
+        }
+
         private softlist getDropSqlImpl() {
             return sprintf("drop table %s", getSqlName());
         }
@@ -7493,11 +7898,24 @@ my *hash $row = $table.find($id);
             return sprintf("truncate table %s", getSqlName());
         }
 
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        private any tryExecArgsImpl(string sql, *softlist args) {
+            return ds.vexec(sql, args);
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        private any tryExecRawImpl(string sql) {
+            return ds.execRaw(sql);
+        }
+
         #! clears any driver-specific table information
         private clearImpl() {
         }
 
         private abstract bool emptyImpl();
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
+        private abstract *string getSqlValueImpl(any v);
 
         #! returns @ref Qore::True "True" if the table exists in the DB, @ref Qore::False "False" if not
         /** this method will only be called if inDb is @ref Qore::False "False" and 
@@ -7545,8 +7963,8 @@ my *hash $row = $table.find($id);
         #! returns the type name -> type description hash
         private abstract hash getTypeMapImpl();
 
-        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns @ref nothing if the type cannot be converted to an SQL string
-        private abstract *string getSqlValueImpl(any v);
+        #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
+        private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh);
     }
 
 /*

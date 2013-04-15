@@ -644,6 +644,8 @@ my any $v = $c.name;
                 "types": Type::Hash,
                 "type_map": Type::Hash,
                 );
+
+            const PGSQL_TempSavepoint = "qore_pgsql_tmp_savepoint";
         }
 
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
@@ -935,6 +937,49 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         private hash getSchemaDescriptionOptions() {
             return PgsqlSchemaDescriptionOptions;
         }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        any tryExecArgsImpl(string sql, *softlist args) {
+            return PgsqlDatabase::tryExecArgs(ds, sql, args);
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        any tryExecRawImpl(string sql, *softlist args) {
+            return PgsqlDatabase::tryExecRaw(ds, sql);
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        static any tryExecArgs(AbstractDatasource ds, string sql, *softlist args) {
+            ds.exec("savepoint " + PGSQL_TempSavepoint);
+
+            any rv;
+            try {
+                rv = ds.vexec(sql, args);
+                ds.exec("release savepoint " + PGSQL_TempSavepoint);
+            }
+            catch (hash ex) {
+                ds.exec("rollback to savepoint " + PGSQL_TempSavepoint);
+                rethrow;
+            }
+            return rv;
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        static any tryExecRaw(AbstractDatasource ds, string sql) {
+            ds.exec("savepoint " + PGSQL_TempSavepoint);
+
+            any rv;
+            try {
+                rv = ds.execRaw(sql);
+                ds.exec("release savepoint " + PGSQL_TempSavepoint);
+            }
+            catch (hash ex) {
+                ds.exec("rollback to savepoint " + PGSQL_TempSavepoint);
+                rethrow;
+            }
+            return rv;
+        }
+
     }
 
     #! provides the PostgreSQL-specific implementation of the AbstractTable interface
@@ -1018,8 +1063,6 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 );
 
             const PgsqlAlignTableOptions = AbstractTable::AlignTableOptions + PgsqlTableCreationOptions;
-
-            const PGSQL_TryInsertSavepoint = "qore_try_Insert_Impl";
         }
 
         private {
@@ -1136,11 +1179,12 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             hash rv;
 
             # get primary key description
-            *hash qh = ds.select("select c1.relname index_name, a.attname, format_type(a.atttypid, a.atttypmod) coltype, tablespace from pg_index i, pg_class c, pg_attribute a, pg_class c1, pg_indexes xs where c.oid = %v::regclass and indrelid = c.oid and a.attrelid = c.oid and a.attnum = any(i.indkey) and indisprimary and c1.oid = indexrelid and c1.relname = xs.indexname order by attnum", name);
+            *hash qh = ds.select("select c1.relname index_name, a.attname, pg_catalog.pg_get_indexdef(a.attrelid, a.attnum, TRUE) AS column_name, pg_catalog.format_type(a.atttypid, a.atttypmod), tablespace from pg_class c, pg_index i, pg_attribute a, pg_class c1, pg_indexes ix where c.oid = %v::regclass and c.oid = i.indrelid and i.indisprimary and i.indexrelid = a.attrelid and c1.oid = i.indexrelid and c1.relname = ix.indexname and i.indisvalid and not a.attisdropped order by a.attnum", name);
             if (!qh.index_name)
                 return;
 
-            foreach string col in (qh.attname)
+            #printf("PgsqlTable::getPrimaryKeyImpl(): %s: %N\n", getName(), qh);
+            foreach string col in (qh.column_name)
                 rv{col} = columns{col};
 
             return new PgsqlPrimaryKey(qh.index_name[0], rv, qh.tablespace[0] ? qh.tablespace[0] : NOTHING);
@@ -1165,7 +1209,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                         );
                     }
                     # send "blank" column for function index
-                    if (row.column_name =~ /\(.*\)/ || !ih.(row.index_name).columns.hasKey(row.column_name))
+                    if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name))
                         ih.(row.index_name).columns{row.column_name} = hash();
                     else
                         ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
@@ -1400,15 +1444,15 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private bool tryInsertImpl(string sql, hash row) {
-            ds.exec("savepoint " + PGSQL_TryInsertSavepoint);
+            ds.exec("savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
 
             try {
                 ds.vexec(sql, row.values());
-                ds.exec("release savepoint " + PGSQL_TryInsertSavepoint);
+                ds.exec("release savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
             }
             catch (hash ex) {
                 if (ex.desc =~ /duplicate key value/) {
-                    ds.exec("rollback to savepoint " + PGSQL_TryInsertSavepoint);
+                    ds.exec("rollback to savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
                     return False;
                 }
                 rethrow;
@@ -1481,6 +1525,30 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         #! returns @ref Qore::True "True" if the database support tablespaces
         private bool supportsTablespacesImpl() {
             return True;
+        }
+
+        #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh) {
+            doSelectOrderBySqlUnlocked(\sql, \args, qh);
+            if (qh.limit) {
+                sql += " limit %v";
+                args += qh.limit;
+            }
+
+            if (qh.offset) {
+                sql += " offset %v";
+                args += qh.offset;
+            }
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        any tryExecArgsImpl(string sql, *softlist args) {
+            return PgsqlDatabase::tryExecArgs(ds, sql, args);
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        any tryExecRawImpl(string sql, *softlist args) {
+            return PgsqlDatabase::tryExecRaw(ds, sql);
         }
 
         /*
