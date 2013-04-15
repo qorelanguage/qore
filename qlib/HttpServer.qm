@@ -2100,7 +2100,7 @@ public class HttpServer::HttpServer {
 		    }
 		    
 		    $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
-		    $.log("HTTP DEBUG hdr=%N\nbody=%s", $rv.hdr, $rv.body);
+		    #$.log("HTTP DEBUG hdr=%N\nbody=%s", $rv.hdr, $rv.body);
 		    #printf("HTTP DEBUG: response hdr=%n\n", $rv.hdr);
 		}
 	    }
