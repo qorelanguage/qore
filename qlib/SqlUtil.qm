@@ -621,6 +621,157 @@ my int $num = $l.size();
         }
     }
 
+    #! the table container class stores a collection of tables in a schema
+    public class Tables inherits AbstractHashContainer {
+        #! creates and populates the object from a hash description
+        constructor(AbstractDatasource ds, hash tables, *hash opt) {
+            AbstractDatabase::checkDriverOptions(\tables, ds.getDriverName());
+            foreach string name in (tables.keyIterator()) {
+                if (h.hasKey(name))
+                    continue;
+                hash th = tables{name} - "rename";
+                # create table template
+                Table t(ds, th, name, opt + ("table_cache": h));
+                # store in table_cache
+                h{name} = t.getTable();
+            }
+        }
+
+        #! creates and populates the object from tables in the database
+        constructor(AbstractDatasource ds) {
+            Database db(ds);
+            foreach string name in (db.tableIterator()) {
+                if (h.hasKey(name))
+                    continue;
+                Table t(ds, name);
+                t.cache();
+                h{name} = t.getTable();
+            }
+        }
+
+        #! returns the AbstractTable object corresponding to the key given or throws a KEY-ERROR exception
+        /** @par Example:
+            @code
+my AbstractTable $t = $tables.table_name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
+        AbstractColumn memberGate(string k) {
+            return AbstractHashContainer::memberGate(k);
+        }
+
+        #! returns \c "table" since this object stores AbstractTable objects
+        string getElementName() {
+            return "table";
+        }
+
+        list getCreateList() {
+            # foreign dependency hash: table -> hash: source table (ie table with foreign constraint on key)
+            hash tdh;
+            # source dependency hash: table -> list: foreign table (key has foreign constraint on value)
+            hash sdh;
+            getDependencies(\tdh, \sdh);
+
+            hash th = h;
+
+            #printf("TDH: %N\nSDH: %N\nNT: %y", tdh, sdh, nt);exit(1);
+
+            # make a list of tables in dependency order
+            list l = ();
+            while (True) {
+                bool found = False;
+                foreach AbstractTable t in (th.iterator()) {
+                    if (!sdh{t.getName()}) {
+                        l += t;
+                        found = True;
+                        remove th{t.getName()};
+                        map remove sdh.$1{t.getName()}, tdh{t.getName()}.keyIterator();
+                        remove tdh{t.getName()};
+                    }
+                }
+                if (!found)
+                    break;
+            }
+
+            return l;
+        }
+
+        AbstractIterator createIterator() {
+            return getCreateList().iterator();
+        }
+
+        list getDropList() {
+            # foreign dependency hash: table -> hash: source table (ie table with foreign constraint on key)
+            hash tdh;
+            # source dependency hash: table -> list: foreign table (key has foreign constraint on value)
+            hash sdh;
+            # table hash
+            hash th = h;
+            getDependencies(\tdh, \sdh, \th);
+
+            #printf("TDH: %N\nSDH: %N\nNT: %y", tdh, sdh, nt);exit(1);
+
+            # make a list of tables in dependency order
+            list l = ();
+            while (True) {
+                bool found = False;
+                foreach AbstractTable t in (th.iterator()) {
+                    if (!tdh{t.getName()}) {
+                        if (t.checkExistence())
+                            l += t;
+                        found = True;
+                        remove th{t.getName()};
+                        map remove tdh.$1{t.getName()}, sdh{t.getName()}.keyIterator();
+                        remove sdh{t.getName()};
+                    }
+                }
+                if (!found)
+                    break;
+            }
+
+            return l;
+        }
+
+        AbstractIterator dropIterator() {
+            return getDropList().iterator();
+        }
+
+        private getDependencies(reference tdh, reference sdh, *reference th) {
+            # list of tables not in DB
+            list nt = ();
+            foreach AbstractTable t in (h.iterator()) {
+                if (th && !t.checkExistence()) {
+                    nt += t.getName();
+                    continue;
+                }
+                foreach AbstractForeignConstraint fk in (t.getForeignConstraints().iterator()) {
+                    # skip constraints on the same table
+                    if (fk.target.table == t.getName())
+                        continue;
+                    # make dependency map entries
+                    sdh{t.getName()}{fk.target.table} = True;
+                    tdh{fk.target.table}{t.getName()} = True;
+                }
+            }
+
+            # process tables not in DB
+            foreach string name in (nt) {
+                remove th{name};
+                map remove tdh.$1{name}, sdh{name}.keyIterator();
+                remove sdh{name};
+            }
+        }
+    }
+
     #! column container class that throws an exception if an unknown column is accessed
     public class Columns inherits AbstractHashContainer {
         constructor(*hash c) : AbstractHashContainer(c) {
@@ -2240,61 +2391,9 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             tl = dropSqlUnlocked("function", schema_hash, \getFunction(), \makeFunction(), opt, Type::String);
             if (tl) l += tl;
 
-            # drop tables in order
-            # create template tables
-            hash table_cache;
-            AbstractDatabase::checkDriverOptions(\schema_hash.tables, drv);
-            foreach string name in (schema_hash.tables.keyIterator()) {
-                hash th = schema_hash.tables{name} - "rename";
-                # create table template
-                Table t(ds, th, name, opt + ("table_cache": table_cache));
-                # store in table_cache
-                table_cache{t.getName()} = t.getTable();
-            }
-
-            # foreign dependency hash: table -> hash: source table (ie table with foreign constraint on key)
-            hash tdh;
-            # source dependency hash: table -> list: foreign table (key has foreign constraint on value)
-            hash sdh;
-            # list of tables not in DB
-            list nt = ();
-            foreach AbstractTable t in (table_cache.iterator()) {
-                if (!t.checkExistence()) {
-                    nt += t.getName();
-                    continue;
-                }
-                foreach AbstractForeignConstraint fk in (t.getForeignConstraints().iterator()) {
-                    if (fk.target.table == t.getName())
-                        continue;
-                    sdh{t.getName()}{fk.target.table} = True;
-                    tdh{fk.target.table}{t.getName()} = True;
-                }
-            }
-
-            # process tables not in DB
-            foreach string name in (nt) {
-                remove table_cache{name};
-                map remove tdh.$1{name}, sdh{name}.keyIterator();
-                remove sdh{name};
-            }
-
-            #printf("TDH: %N\nSDH: %N\nNT: %y", tdh, sdh, nt);exit(1);
-
-            # drop tables in dependency order
-            while (True) {
-                bool dropped = False;
-                foreach AbstractTable t in (table_cache.iterator()) {
-                    if (!tdh{t.getName()}) {
-                        if (t.checkExistence())
-                            l += AbstractDatabase::doCallback(opt, t.getDropSql(), "drop table %s", t.getName());
-                        dropped = True;
-                        remove table_cache{t.getName()};
-                        map remove tdh.$1{t.getName()}, sdh{t.getName()}.keyIterator();
-                        remove sdh{t.getName()};
-                    }
-                }
-                if (!dropped)
-                    break;
+            Tables tables(ds, schema_hash.tables, opt);
+            foreach AbstractTable t in (tables.dropIterator()) {
+                l += AbstractDatabase::doCallback(opt, t.getDropSql(), "drop table %s", t.getName());
             }
 
             # drop sequences

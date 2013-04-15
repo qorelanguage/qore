@@ -282,7 +282,7 @@ my string $str = $col.getRenameSql($t, "new_name");
     }
 
     public class OracleUniqueConstraint inherits AbstractUniqueConstraint {
-        public {
+        private {
             #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
 
@@ -366,7 +366,7 @@ my any $v = $c.name;
     }
 
     public class OraclePrimaryKey inherits AbstractPrimaryKey {
-        public {
+        private {
             #! any tablespace for the primary key index
             *string tablespace;
 
