@@ -3987,10 +3987,10 @@ my SQLStatement $i = $table.getRowIterator();
             @return an SQLStatement object that will iterate the results of a select statement matching the arguments
 
             @throw OPTION-ERROR invalid or unsupportd select option
-            @throw SELECT-ERROR 'limit' or 'offset' supplied without 'orderby', 'offset' supplied without 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
          */
-        SQLStatement getRowIterator(*hash cond, *softlist orderby, bool desc = False) {
-            return t.getRowIterator(cond, orderby, desc);
+        SQLStatement getRowIterator(*hash sh) {
+            return t.getRowIterator(sh);
         }
 
         #! returns a list of hashes representing the rows in the table that match the argument hash
