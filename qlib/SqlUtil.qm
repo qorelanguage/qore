@@ -7940,7 +7940,6 @@ my *hash $row = $table.findSingle($h);
 
         private abstract string getCreateTableSqlImpl(*hash opt);
         private abstract *list getCreateMiscSqlImpl(*hash opt, bool cache);
-        private abstract *list getCreateTriggersSqlImpl(*hash opt);
         private abstract string getCreateSqlImpl(list l);
         private abstract string getRenameSqlImpl(string new_name);
         private abstract *list getAlignSqlImpl(AbstractTable t, *hash opt);

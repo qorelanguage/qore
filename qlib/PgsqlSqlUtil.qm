@@ -1397,12 +1397,6 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return l ? l : NOTHING;
         }
 
-        *list getCreateTriggersSqlImpl(*hash opt) {
-            list l = ();
-            map l += $1.getCreateSql(name, opt), triggers.iterator();
-            return l;
-        }
-
         private string getCreateSqlImpl(list l) {
             return PgsqlDatabase::getCreateSql(l);
         }

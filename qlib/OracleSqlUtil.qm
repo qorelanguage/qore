@@ -1155,7 +1155,7 @@ my any $v = $c.name;
         }
 
         private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh) {
-            AbstractTable::getSelectWhereSqlUnlocked(\sql, qh);
+            AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh);
             if (qh.limit && !qh.orderby && !qh.offset) {
                 if (!qh.cond)
                     sql += " where ";
