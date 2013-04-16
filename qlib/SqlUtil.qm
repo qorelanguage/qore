@@ -293,15 +293,19 @@ my any $v = $c.name;
             return h{k};
         }
 
-        #! adds the given value to the hash with the given key name
-        add(string k, any val) {
-            h{k} = val;
+        #! purges the contained data
+        /** @par Example:
+            @code
+$c.clear();
+            @endcode
+
+        */
+        clear() {
+            delete h;
         }
 
         #! removes the given key from the contained hash and returns the value
-        any take(string k) {
-            return remove h{k};
-        }
+        abstract any take(string k);
 
         #! renames the given key; maintains the key order
         renameKey(string old_name, string new_name) {
@@ -623,30 +627,90 @@ my int $num = $l.size();
 
     #! the table container class stores a collection of tables in a schema
     public class Tables inherits AbstractHashContainer {
+        #! creates an empty object
+        constructor() {
+        }
+
         #! creates and populates the object from a hash description
         constructor(AbstractDatasource ds, hash tables, *hash opt) {
+            populate(ds, tables, opt);
+        }
+
+        #! creates and populates the object from tables in the database
+        constructor(AbstractDatasource ds) {
+            populate(ds);
+        }
+
+        #! adds the given value to the hash with the given key name
+        add(string k, Table val) {
+            h{k} = val.getTable();
+        }
+
+        #! adds the given value to the hash with the given key name
+        add(string k, AbstractTable val) {
+            h{k} = val;
+        }
+
+        #! removes the given key from the contained hash and returns the value
+        AbstractTable take(string k) {
+            return remove h{k};
+        }
+
+        #! populates the object from a hash description
+        populate(AbstractDatasource ds, hash tables, *hash opt) {            
+            delete h;
             AbstractDatabase::checkDriverOptions(\tables, ds.getDriverName());
             foreach string name in (tables.keyIterator()) {
                 if (h.hasKey(name))
                     continue;
                 hash th = tables{name} - "rename";
                 # create table template
-                Table t(ds, th, name, opt + ("table_cache": h));
+                Table t(ds, th, name, opt + ("table_cache": self));
                 # store in table_cache
                 h{name} = t.getTable();
             }
         }
 
-        #! creates and populates the object from tables in the database
-        constructor(AbstractDatasource ds) {
+        #! populates the object from tables in the database
+        populate(AbstractDatasource ds) {
+            delete h;
             Database db(ds);
             foreach string name in (db.tableIterator()) {
                 if (h.hasKey(name))
                     continue;
                 Table t(ds, name);
-                t.cache();
+                t.cache(("table_cache": self));
                 h{name} = t.getTable();
             }
+        }
+
+        #! returns a list of SQL strings that can be used to drop all the foreign constraints on a particular table
+        /** @par Example:
+            @code
+my *list $l = $tables.getDropAllForeignConstraintsOnTable($name);
+            @endcode
+
+            Make sure that all relevant tables are cached before calling this method; if the table is not cached, then @ref nothing is returned
+
+            @param name the name of the table to find all the foreigjn constraints for
+            @param opt a hash of options for the SQL strings; see @ref AbstractDatabase::DropSchemaOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be used to drop all the foreign constraints on a particular table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+        */
+        *list getDropAllForeignConstraintsOnTable(string name, *hash opt) {
+            if (!h{name})
+                return;
+
+            AbstractTable t = h{name};
+
+            list l = ();
+            foreach AbstractUniqueConstraint uk in (t.getUniqueConstraintIterator()) {
+                map l += AbstractDatabase::doCallback(opt, $1.fk.getDropSql($1.table), "dropping foreign constraint %s from table %s", $1.fk.getName(), $1.table), uk.getSourceConstraintIterator();
+            }
+
+            return l;            
         }
 
         #! returns the AbstractTable object corresponding to the key given or throws a KEY-ERROR exception
@@ -665,13 +729,23 @@ my AbstractTable $t = $tables.table_name;
             
             @see @ref memberGate_methods
         */
-        AbstractColumn memberGate(string k) {
+        AbstractTable memberGate(string k) {
             return AbstractHashContainer::memberGate(k);
         }
 
         #! returns \c "table" since this object stores AbstractTable objects
         string getElementName() {
             return "table";
+        }
+
+        #! gets a table from the database or from the cache if already cached
+        AbstractTable get(AbstractDatasource ds, string name) {
+            if (h{name})
+                return h{name};
+            
+            Table t(ds, name);
+            t.cache(("table_cache": self));
+            return h{name} = t.getTable();
         }
 
         list getCreateList() {
@@ -775,6 +849,16 @@ my AbstractTable $t = $tables.table_name;
     #! column container class that throws an exception if an unknown column is accessed
     public class Columns inherits AbstractHashContainer {
         constructor(*hash c) : AbstractHashContainer(c) {
+        }
+
+        #! adds the given value to the hash with the given key name
+        add(string k, AbstractColumn val) {
+            h{k} = val;
+        }
+
+        #! removes the given key from the contained hash and returns the value
+        AbstractColumn take(string k) {
+            return remove h{k};
         }
 
         #! returns the AbstractColumn object corresponding to the key given or throws a KEY-ERROR exception
@@ -962,6 +1046,16 @@ my string $str = $col.getRenameSql($t, "new_name");
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
+        #! adds the given value to the hash with the given key name
+        add(string k, AbstractIndex val) {
+            h{k} = val;
+        }
+
+        #! removes the given key from the contained hash and returns the value
+        AbstractIndex take(string k) {
+            return remove h{k};
+        }
+
         #! returns the AbstractIndex object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
             @code
@@ -1010,6 +1104,16 @@ my AbstractIndex $ix = $indexes.pk_jobs;
             name = n;
             unique = u;
             columns = new Columns(c);
+        }
+
+        #! returns the index name
+        string getName() {
+            return name;
+        }
+
+        #! returns @ref Qore::True "True" if the constraint references the named column
+        bool hasColumn(string cname) {
+            return columns.hasKey(cname);
         }
 
         #! returns a string that can be used to create the index in the database
@@ -1070,6 +1174,16 @@ my AbstractIndex $ix = $indexes.pk_jobs;
     #! constraint container class that throws an exception if an unknown constraint is accessed
     public class Constraints inherits AbstractHashContainer {
         constructor(*hash c) : AbstractHashContainer(c) {
+        }
+
+        #! adds the given value to the hash with the given key name
+        add(string k, AbstractConstraint val) {
+            h{k} = val;
+        }
+
+        #! removes the given key from the contained hash and returns the value
+        AbstractConstraint take(string k) {
+            return remove h{k};
         }
 
         #! returns the AbstractConstraint object corresponding to the key given or throws a KEY-ERROR exception
@@ -1161,6 +1275,11 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         #! clears any index base for the constraint
         clearIndex() {
         }
+
+        #! returns @ref Qore::True "True" if the constraint references the named column
+        bool hasColumn(string cname) {
+            return False;
+        }
     }
 
     #! abstract class for check constraints
@@ -1199,6 +1318,20 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
         bool equalImpl(AbstractConstraint c) {
             return (self.keys() != cast<AbstractUniqueConstraint>(c).keys()) ? False : True;
+        }
+
+        #! returns an iterator through all known source foreign constraints on the current table
+        /** each element is a hash with the following keys:
+            - \c fk: the AbstractForeignConstraint object
+            - \c table: the table name
+        */
+        AbstractIterator getSourceConstraintIterator() {
+            list l = ();
+            foreach hash sch in (sourceConstraints.pairIterator()) {
+                map l += ("fk": $1, "table": sch.key), sch.value.iterator();
+            }
+
+            return l.iterator();
         }
 
         #! returns lists of SQL strings to disable this constraint plus any dependent constraints and another list of SQL strings to reenable the same constraints; used when updating indexes that depend on constraints
@@ -1263,6 +1396,11 @@ $uk.addSourceConstraint($table_name, constraint_name);
             sourceConstraints{tname}{fk.getName()} = fk;
             #printf("added source constraint to %y: %s.%s\n", name, tname, fk.getName());
         }
+
+        #! returns @ref Qore::True "True" if the constraint references the named column
+        bool hasColumn(string cname) {
+            return h.hasKey(cname);
+        }
     }
 
     #! represents a primary key
@@ -1274,6 +1412,16 @@ $uk.addSourceConstraint($table_name, constraint_name);
     #! foreign constraint container class that throws an exception if an unknown constraint is accessed
     public class ForeignConstraints inherits AbstractHashContainer {
         constructor(*hash c) : AbstractHashContainer(c) {
+        }
+
+        #! adds the given value to the hash with the given key name
+        add(string k, AbstractForeignConstraint val) {
+            h{k} = val;
+        }
+
+        #! removes the given key from the contained hash and returns the value
+        AbstractForeignConstraint take(string k) {
+            return remove h{k};
         }
 
         #! returns the AbstractForeignConstraint object corresponding to the key given or throws a KEY-ERROR exception
@@ -1344,6 +1492,11 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             return (columns.keys() != c.columns.keys())
                 || !target.equal(c.target)
                 ? False : True;
+        }
+
+        #! returns @ref Qore::True "True" if the constraint references the named column
+        bool hasColumn(string cname) {
+            return columns.hasKey(cname);
         }
     }
 
@@ -1477,6 +1630,16 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
+        #! adds the given value to the hash with the given key name
+        add(string k, AbstractFunction val) {
+            h{k} = val;
+        }
+
+        #! removes the given key from the contained hash and returns the value
+        AbstractFunction take(string k) {
+            return remove h{k};
+        }
+
         #! returns the AbstractFunction object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
             @code
@@ -1513,11 +1676,24 @@ my AbstractFunction $f = $funcs.func1;
 
         #! returns a string that can be used to rename the trigger in the database
 	abstract list getRenameSql(string table_name, string new_name);
+
+        #! returns a string that can be used to drop the trigger in the database
+	abstract list getDropSql(string table_name);
     }
 
     #! trigger container class that throws an exception if an unknown trigger is accessed
     public class Triggers inherits AbstractHashContainer {
         constructor(*hash c) : AbstractHashContainer(c) {
+        }
+
+        #! adds the given value to the hash with the given key name
+        add(string k, AbstractTrigger val) {
+            h{k} = val;
+        }
+
+        #! removes the given key from the contained hash and returns the value
+        AbstractTrigger take(string k) {
+            return remove h{k};
         }
 
         #! returns the AbstractTrigger object corresponding to the key given or throws a KEY-ERROR exception
@@ -1670,15 +1846,15 @@ my list $l = $db.getAlignSql($schema_hash);
 
             @param schema_hash the schema template hash that decribes the target state of the schema
             @param opt a hash of options for the SQL creation strings; see @ref AbstractDatabase::AlignSchemaOptions for common options; each driver can support additional driver-specific options
-            @param table_cache an optional reference to a hash to return the cache of AbstractTable objects keyed by table name for the schema template (ie target table definitions)
+            @param table_cache an optional object of class Tables to return the cache of AbstractTable objects keyed by table name for the schema template (ie target table definitions)
 
             @return a list of SQL strings that can be used to align the structure and configuration of the current schema with that of the argument; if the objects described are identical then an empty list is returned
 
             @throw SCHEMA-DESCRIPTION-ERROR the schema description hash has an error or a required object does not exist
             @throw OPTION-ERROR invalid or unsupported option passed
         */
-        list getAlignSql(hash schema_hash, *hash opt, *reference table_cache) {
-            return db.getAlignSql(schema_hash, opt, \table_cache);
+        list getAlignSql(hash schema_hash, *hash opt, *Tables table_cache) {
+            return db.getAlignSql(schema_hash, opt, table_cache);
         }
 
         #! accepts a hash argument describing a database schema and returns a list of SQL strings that can be used to drop any existing objects described in the schema; if none of the described objects exist, then an empty list is returned
@@ -1688,7 +1864,7 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             @endcode
 
             @param schema_hash the schema template hash that decribes the state of the schema
-            @param opt a hash of options for the SQL creation strings; see @ref AbstractDatabase::DropSchemaOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL strings; see @ref AbstractDatabase::DropSchemaOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that can be used to drop any existing objects in the database; if none of the described objects exist, then an empty list is returned
 
@@ -1922,6 +2098,25 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
             return db.getProcedure(name);
         }
 
+        #! returns an SQL string corresponding to the list of commands in the argument
+        /** @par Example:
+            @code
+my string $sql = $t.getSqlFromList($list);
+            @endcode
+
+            @param l a list of SQL commands
+            
+            @return an SQL string corresponding to the list of commands in the argument
+        */
+        string getSqlFromList(list l) {
+            return db.getSqlFromList(l);
+        }
+
+        #! returns @ref Qore::True "True" if the database supports sequences
+        bool supportsSequences() {
+            return db.supportsSequences();
+        }
+
         #! returns a list of string table names in the database
         list listTables() {
             return db.listTables();
@@ -2022,11 +2217,11 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
                     continue;
                 }
 
-                validateOptionIntern(err, ropt{k}, \opt{k}, k, tag);
+                AbstractSqlUtilBase::validateOptionIntern(err, ropt{k}, \opt{k}, k, tag);
             }
         }
 
-        private validateOptionIntern(string err, string type, reference opt, string k, string tag) {
+        private static validateOptionIntern(string err, string type, reference opt, string k, string tag) {
             switch (type) {
                 case Type::Int: {
                     if (opt.type() != type) {
@@ -2068,6 +2263,12 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
                     }
 
                     opt = l;
+                    break;
+                }
+                case "Tables": {
+                    if (!(opt instanceof Tables))
+                        throw err, sprintf("%s: key %y has type %s, expecting class \"Tables\"", tag, k, opt.typeCode() == NT_OBJECT ? sprintf("class \"%s\"", opt.className()) : sprintf("\"%s\"", opt.type()));
+                    break;
                 }
 
                 # no validation for NOTHING
@@ -2109,7 +2310,7 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
 
             #! generic cache options
             const CacheOptions = (
-                "table_cache": Type::Hash,
+                "table_cache": "Tables",
                 );
 
             #! generic callback options
@@ -2122,7 +2323,7 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
             #! default generic creation options
             const CreationOptions = CallbackOptions + (
                 "replace": Type::Boolean,
-                "table_cache": Type::Hash,
+                "table_cache": "Tables",
                 "data_tablespace": Type::String,
                 "index_tablespace": Type::String,
                 );
@@ -2251,16 +2452,22 @@ my list $l = $db.getAlignSql($schema_hash);
 
             @param schema_hash the schema template hash that decribes the target state of the schema
             @param opt a hash of options for the SQL creation strings; see @ref AbstractDatabase::AlignSchemaOptions for common options; each driver can support additional driver-specific options
-            @param table_cache an optional reference to a hash to return the cache of AbstractTable objects keyed by table name for the schema template (ie target table definitions)
+            @param table_cache an optional object of class Tables to return the cache of AbstractTable objects keyed by table name for the schema template (ie target table definitions)
 
             @return a list of SQL strings that can be used to align the structure and configuration of the current schema with that of the argument; if the objects described are identical then an empty list is returned
 
             @throw SCHEMA-DESCRIPTION-ERROR the schema description hash has an error or a required object does not exist
             @throw OPTION-ERROR invalid or unsupported option passed
         */
-        list getAlignSql(hash schema_hash, *hash opt, *reference table_cache) {
+        list getAlignSql(hash schema_hash, *hash opt, *Tables table_cache) {
             validateOptionsIntern("SCHEMA-DESCRIPTION-ERROR", getSchemaDescriptionOptions(), \schema_hash);
             validateOptionsIntern("OPTION-ERROR", getAlignSchemaOptions(), \opt);
+
+            if (!table_cache)
+                table_cache = new Tables();
+
+            # setup db table cache
+            opt.db_table_cache = new Tables();
 
             list l = ();
 
@@ -2301,14 +2508,7 @@ my list $l = $db.getAlignSql($schema_hash);
             }
 
             # create template tables
-            AbstractDatabase::checkDriverOptions(\schema_hash.tables, drv);
-            foreach string name in (schema_hash.tables.keyIterator()) {
-                hash th = schema_hash.tables{name} - "rename";
-                # create table template
-                Table t(ds, th, name, opt + ("table_cache": opt.table_cache));
-                # store in table_cache
-                opt.table_cache{name} = t.getTable();
-            }
+            table_cache.populate(ds, schema_hash.tables, opt - "db_table_cache");
 
             # rename any tables
             AbstractDatabase::checkDriverOptions(\schema_hash.table_map, drv);
@@ -2319,7 +2519,7 @@ my list $l = $db.getAlignSql($schema_hash);
                 Table t(ds, th.key);
                 if (t.checkExistence()) {
                     l += AbstractDatabase::doCallback(opt, t.getRenameSql(th.value), "rename table %s to %s", th.key, th.value);
-                    opt.db_table_cache{th.value} = t;
+                    opt.db_table_cache.add(th.value, t);
                 }
             }
 
@@ -2327,15 +2527,15 @@ my list $l = $db.getAlignSql($schema_hash);
             foreach string name in (schema_hash.tables.keyIterator()) {
                 #printf("processing table %y\n", name);
                 Table t;
-                if (opt.db_table_cache{name})
+                if (opt.db_table_cache.hasKey(name))
                     t = opt.db_table_cache{name};
                 else {
                     t = new Table(ds, name);
                     # store in db_table_cache
-                    opt.db_table_cache{name} = t;
+                    opt.db_table_cache.add(name, t);
                 }
 
-                tl = t.getAlignSql(opt.table_cache{name}, opt + schema_hash.tables{name}.rename + ("table_cache": opt.table_cache, "db_table_cache": opt.db_table_cache));
+                tl = t.getAlignSql(table_cache{name}, opt + schema_hash.tables{name}.rename + ("table_cache": table_cache));
                 if (tl)
                     l += tl;
             }
@@ -2351,8 +2551,6 @@ my list $l = $db.getAlignSql($schema_hash);
             tl = getAlignSqlImpl(schema_hash, opt);
             if (tl) l += tl;
 
-            table_cache = opt.table_cache;                
-            
             return l;
         }
 
@@ -2416,7 +2614,7 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             reference fmap = \schema_hash{type + "s"};
             AbstractDatabase::checkDriverOptions(\fmap, drv);
             foreach string name in (fmap.keyIterator()) {
-                validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fmap{name}, name, type + "s");
+                AbstractSqlUtilBase::validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fmap{name}, name, type + "s");
 
                 # make template object
                 object tmpl = make(name, fmap{name}, opt.(copt.keys()));
@@ -2461,7 +2659,7 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             fmap = \schema_hash{type + "s"};
             AbstractDatabase::checkDriverOptions(\fmap, drv);
             foreach string name in (fmap.keyIterator()) {
-                validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fmap{name}, name, type + "s");
+                AbstractSqlUtilBase::validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fmap{name}, name, type + "s");
 
                 # make template function
                 AbstractFunction templateFunc = make(name, fmap{name}, opt.(copt.keys()));
@@ -2869,6 +3067,11 @@ my string $sql = $t.getSqlFromList($list);
             return getCreateSqlImpl(l);
         }
 
+        #! returns @ref Qore::True "True" if the database supports sequences
+        bool supportsSequences() {
+            return supportsSequencesImpl();
+        }
+
         #! returns a list of string table names in the database
         list listTables() {
             return listTablesImpl();
@@ -3035,6 +3238,9 @@ my string $sql = $t.getSqlFromList($list);
         private abstract list listProceduresImpl();
         private abstract list listSequencesImpl();
         private abstract list listViewsImpl();
+
+        #! returns @ref Qore::True "True" if the database supports sequences
+        private abstract bool supportsSequencesImpl();
     }
 
     #! represents a database table; this class embeds an AbstractTable object that is created automatically in the constructor based on the database driver for the AbstractDatasource object providing the database connection
@@ -3156,6 +3362,18 @@ my bool $b = $table.inDb();
          */
         bool inDb() {
             return t.inDb();
+        }
+
+        #! returns an iterator for all unique constraints on the table (including the primary key if any)
+        /** @par Example:
+            @code
+map printf("unique constraint %s\n", $1.getName()), $table.getUniqueConstraintIterator();
+            @endcode
+
+            @return an iterator for all unique constraints on the table (including the primary key if any)
+        */
+        AbstractIterator getUniqueConstraintIterator() {
+            return t.getUniqueConstraintIterator();
         }
 
         #! drops the table from the database; releases the transaction lock after dropping the table
@@ -4555,7 +4773,7 @@ my Triggers $trig = $table.getTriggers();
             #! table options
             const TableOptions = (
                 "native_case": Type::Boolean,
-                "table_cache": Type::Hash,
+                "table_cache": "Tables",
                 );
 
             #! default index options
@@ -4569,12 +4787,12 @@ my Triggers $trig = $table.getTriggers();
 
             #! default cache options
             const CacheOptions = (
-                "table_cache": Type::Hash,
+                "table_cache": "Tables",
                 );
 
             #! default foreign constraint options
             const ForeignConstraintOptions = ConstraintOptions + (
-                "table_cache": Type::Hash,
+                "table_cache": "Tables",
                 );
 
             #! default trigger options
@@ -4598,7 +4816,7 @@ my Triggers $trig = $table.getTriggers();
                 "index_map": Type::Hash,
                 "constraint_map": Type::Hash,
                 "trigger_map": Type::Hash,
-                "db_table_cache": Type::Hash,
+                "db_table_cache": "Tables",
                 );
 
             #! Table description options
@@ -4610,7 +4828,7 @@ my Triggers $trig = $table.getTriggers();
                 "foreign_constraints": Type::Hash,
                 "unique_constraints": Type::Hash,
                 #"check_constraints": Type::Hash,
-                "table_cache": Type::Hash,
+                "table_cache": "Tables",
                 );
 
             #! Column options
@@ -4722,6 +4940,35 @@ my bool $b = $table.inDb();
          */
         bool inDb() {
             return inDb;
+        }
+
+        #! returns an iterator for all unique constraints on the table (including the primary key if any)
+        /** @par Example:
+            @code
+map printf("unique constraint %s\n", $1.getName()), $table.getUniqueConstraintIterator();
+            @endcode
+
+            @return an iterator for all unique constraints on the table (including the primary key if any)
+        */
+        AbstractIterator getUniqueConstraintIterator() {
+            l.lock();
+            on_exit l.unlock();
+
+            if (!manual) {
+                getPrimaryKeyUnlocked();
+                getConstraintsUnlocked();
+            }
+
+            list l = ();
+            if (primaryKey)
+                l += primaryKey;
+
+            foreach AbstractConstraint c in (constraints.iterator()) {
+                if (c instanceof AbstractUniqueConstraint)
+                    l += c;
+            }
+
+            return l.iterator();
         }
 
         #! drops the table from the database; releases the transaction lock after dropping the table
@@ -4970,6 +5217,10 @@ $table.rename("new_name");
             hash copt = getColumnOptions();
             validateOptionsIntern("OPTION-ERROR", getTableCreationOptions() + copt, \opt);
 
+            # setup table cache
+            if (!opt.table_cache)
+                opt.table_cache = new Tables();
+
             l.lock();
             on_exit l.unlock();
 
@@ -4977,7 +5228,7 @@ $table.rename("new_name");
                 throw "DESCRIPTION-ERROR", sprintf("%s: cannot set up a non-empty table from a hash description", name);
 
             # add current table to cache
-            opt.table_cache{name} = self;
+            opt.table_cache.add(name, self);
 
             string drv = ds.getDriverName();
 
@@ -5452,6 +5703,73 @@ printf("%s;\n", $sql);
             return primaryKey = pk;
         }
 
+        #! gets a list of SQL strings to drop all constraints and indexes with the given column name; if the column does not exist then an empty list is returned
+        /** @par Example:
+            @code
+my list $l = $table.getDropAllConstraintsAndIndexesOnColumn("status");
+            @endcode
+
+            @param cname the name of the column
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @note this method retrieves current primary key definition from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+        */
+        list getDropAllConstraintsAndIndexesOnColumn(string cname, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            getAllConstraintsUnlocked();
+            getIndexesUnlocked();
+
+            list lst = ();
+
+            if (primaryKey && primaryKey.hasColumn(cname)) {
+                on_success if (opt.sql_callback_executed)
+                    remove primaryKey;
+
+                lst += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "drop primary key %s from %s", primaryKey.getName(), name);
+            }
+
+            foreach AbstractConstraint c in (constraints.iterator()) {
+                if (c.hasColumn(cname)) {
+                    on_success if (opt.sql_callback_executed) {
+                        constraints.take(c.getName()); 
+                        # if it's a unique constraint, remove any index with the same name
+                        if (c instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl())
+                            indexes.take(c.getName());
+                    }
+
+                    AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s from %s", c.getName(), name);
+                }
+            }
+            
+            foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
+                if (fk.hasColumn(cname)) {
+                    on_success if (opt.sql_callback_executed)
+                        foreignConstraints.take(fk.getName()); 
+
+                    AbstractDatabase::doCallback(opt, fk.getDropSql(getSqlName()), "dropping constraint %s from %s", fk.getName(), name);
+                }
+            }
+            
+            foreach AbstractIndex ix in (indexes.iterator()) {
+                if (ix.hasColumn(cname)) {
+                    on_success if (opt.sql_callback_executed)
+                        indexes.take(ix.name); 
+
+                    AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), "dropping index %s from %s", ix.name, name);
+                }
+            }
+            
+            return lst;
+        }
+
         #! gets the SQL that can be used to drop the primary key from the table
         /** @par Example:
             @code
@@ -5793,19 +6111,17 @@ printf("%s;\n", $sql);
             return addForeignConstraintUnlocked(cname, cols, table, tcols, opt, \sql);
         }
 
-        private Columns getReferencedTableColumnsUnlocked(string table, reference cache, string err = "FOREIGN-CONSTRAINT-ERROR") {
+        private Columns getReferencedTableColumnsUnlocked(string table, *Tables cache, string err = "FOREIGN-CONSTRAINT-ERROR") {
             if (table == name) {
                 getColumnsUnlocked();
                 return columns;
             }
-            if (cache{table}) {
-                if (cache{table} instanceof Table)
-                    return cache{table}.getTable().describe();
-                else if (cache{table} instanceof AbstractTable)
-                    return cache{table}.describe();
-                throw err, sprintf("cached table %y is not a Table or AbstractTable object; got %y instead (%y)", table, cache{table}.type(), cache{table});
-            }
-            return (cache{table} = new Table(ds, table).getTable()).describe();
+            if (cache.hasKey(table))
+                return cache{table}.describe();
+            Table t(ds, table);
+            if (cache)
+                cache.add(table, t.getTable());
+            return t.describe();
         }
 
         private AbstractForeignConstraint addForeignConstraintUnlocked(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
@@ -5830,7 +6146,7 @@ printf("%s;\n", $sql);
                 tcols = ch.keys();
 
             # get target table description
-            Columns targ_cols = getReferencedTableColumnsUnlocked(table, \opt.table_cache);
+            Columns targ_cols = getReferencedTableColumnsUnlocked(table, opt.table_cache);
             hash tch;
             while (tcols) {
                 any v = shift tcols;
@@ -5848,7 +6164,7 @@ printf("%s;\n", $sql);
             execSql(sql = fk.getCreateSql(getSqlName()));
 
             # update cached tables with foreign constraint source info
-            if (opt.table_cache{fk.target.table})
+            if (opt.table_cache.hasKey(fk.target.table))
                 opt.table_cache{fk.target.table}.addSourceConstraint(getSqlName(), fk);
 
             # set as foreign constraint for the table
@@ -7879,8 +8195,12 @@ my *hash $row = $table.findSingle($h);
             # update cached tables with foreign constraint source info
             if (opt.table_cache) {
                 foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
-                    if (!opt.table_cache{fk.target.table})
-                        printf("ERROR: missing %y in table cache (adding fk %y to %y)\n", fk.target.table, fk.getName(), getName());
+                    if (!opt.table_cache.hasKey(fk.target.table)) {
+                        Table t(ds, fk.target.table);
+                        t.getAllConstraintsUnlocked();
+                        opt.table_cache.add(fk.target.table, t.getTable());
+                        #printf("ERROR: missing %y in table cache (adding fk %y to %y)\n", fk.target.table, fk.getName(), getName());
+                    }
                     opt.table_cache{fk.target.table}.addSourceConstraint(getSqlName(), fk);
                 }
             }

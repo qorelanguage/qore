@@ -938,13 +938,18 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return PgsqlSchemaDescriptionOptions;
         }
 
+        #! returns @ref Qore::True "True" if the database supports sequences
+        private bool supportsSequencesImpl() {
+            return True;
+        }
+
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        any tryExecArgsImpl(string sql, *softlist args) {
+        private any tryExecArgsImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        any tryExecRawImpl(string sql, *softlist args) {
+        private any tryExecRawImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecRaw(ds, sql);
         }
 
@@ -979,7 +984,6 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             }
             return rv;
         }
-
     }
 
     #! provides the PostgreSQL-specific implementation of the AbstractTable interface
@@ -1256,7 +1260,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 
                 foreach hash c in (ch.pairIterator()) {
                     # get a description of the target table's columns
-                    Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, \opts.table_cache);
+                    Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, opts.table_cache);
                     ForeignConstraintTarget fct(c.value.target.table, targ_columns.subset(c.value.target.columns.keys()));
                     rv.(c.key) = new PgsqlForeignConstraint(c.key, new Columns(c.value.columns), fct);
                 }
@@ -1535,12 +1539,12 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        any tryExecArgsImpl(string sql, *softlist args) {
+        private any tryExecArgsImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        any tryExecRawImpl(string sql, *softlist args) {
+        private any tryExecRawImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecRaw(ds, sql);
         }
 
