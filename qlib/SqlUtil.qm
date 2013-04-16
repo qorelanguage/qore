@@ -7549,7 +7549,7 @@ my list $l = $table.getAlignSql($table2);
                     # rename column in indexes
                     foreach AbstractIndex ix in (indexes_copy.iterator()) {
                         if (ix.columns.hasKey(rh.key)) {
-                            printf("%s.%s: col %y %N\n", getName(), ix.name, rh.key, ix.columns);
+                            #printf("%s.%s: col %y %N\n", getName(), ix.name, rh.key, ix.columns);
                             AbstractColumn rc = ix.columns{rh.key};
                             rc.name = rh.value;
                             ix.columns.renameKey(rh.key, rh.value);
