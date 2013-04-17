@@ -5842,7 +5842,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
                             indexes.take(c.getName());
                     }
 
-                    AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s from %s", c.getName(), getSqlName());
+                    lst += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s from %s", c.getName(), getSqlName());
                 }
             }
             
@@ -5851,7 +5851,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
                     on_success if (opt.sql_callback_executed)
                         foreignConstraints.take(fk.getName()); 
 
-                    AbstractDatabase::doCallback(opt, fk.getDropSql(getSqlName()), "dropping foreign constraint %s from %s", fk.getName(), getSqlName());
+                    lst += AbstractDatabase::doCallback(opt, fk.getDropSql(getSqlName()), "dropping foreign constraint %s from %s", fk.getName(), getSqlName());
                 }
             }
             
@@ -5860,7 +5860,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
                     on_success if (opt.sql_callback_executed)
                         indexes.take(ix.name); 
 
-                    AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), "dropping index %s from %s", ix.name, getSqlName());
+                    lst += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), "dropping index %s from %s", ix.name, getSqlName());
                 }
             }
             
@@ -7717,7 +7717,7 @@ my list $l = $table.getAlignSql($table2);
             # process column_map: rename columns
             foreach hash rh in (opt.column_map.pairIterator()) {
                 if (columns.hasKey(rh.key)) {
-                    printf("%s rename %s -> %s cols: %y\n", name, rh.key, rh.value, columns.keys());
+                    #printf("%s rename %s -> %s cols: %y\n", name, rh.key, rh.value, columns.keys());
                     AbstractColumn c = columns{rh.key};
                     l += AbstractDatabase::doCallback(opt, c.getRenameSql(self, rh.value), "renaming column %s.%s to %s", name, c.name, rh.value);
                     columns.renameKey(rh.key, rh.value);
