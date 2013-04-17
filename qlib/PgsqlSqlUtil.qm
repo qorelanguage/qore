@@ -1548,6 +1548,12 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return PgsqlDatabase::tryExecRaw(ds, sql);
         }
 
+        #! db-specific copy actions
+        private copyImpl(AbstractTable old) {            
+            if (triggerFunctions)
+                triggerFunctions = triggerFunctions.copy();
+        }
+
         /*
         private code getUpsertInsertFirst(Columns cols, hash example_row) {
             string insert_sql = getInsertSql(example_row);

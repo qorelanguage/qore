@@ -651,6 +651,16 @@ my int $num = $l.size();
             h{k} = val;
         }
 
+        #! adds the given value to the hash with the given key name
+        add(Table val) {
+            h{val.getName()} = val.getTable();
+        }
+
+        #! adds the given value to the hash with the given key name
+        add(AbstractTable val) {
+            h{val.getName()} = val;
+        }
+
         #! removes the given key from the contained hash and returns the value
         AbstractTable take(string k) {
             return remove h{k};
@@ -687,7 +697,7 @@ my int $num = $l.size();
         #! returns a list of SQL strings that can be used to drop all the foreign constraints on a particular table
         /** @par Example:
             @code
-my *list $l = $tables.getDropAllForeignConstraintsOnTable($name);
+my *list $l = $tables.getDropAllForeignConstraintsOnTableSql($name);
             @endcode
 
             Make sure that all relevant tables are cached before calling this method; if the table is not cached, then @ref nothing is returned
@@ -699,7 +709,7 @@ my *list $l = $tables.getDropAllForeignConstraintsOnTable($name);
 
             @throw OPTION-ERROR invalid or unsupported option passed
         */
-        *list getDropAllForeignConstraintsOnTable(string name, *hash opt) {
+        *list getDropAllForeignConstraintsOnTableSql(string name, *hash opt) {
             if (!h{name})
                 return;
 
@@ -707,7 +717,13 @@ my *list $l = $tables.getDropAllForeignConstraintsOnTable($name);
 
             list l = ();
             foreach AbstractUniqueConstraint uk in (t.getUniqueConstraintIterator()) {
-                map l += AbstractDatabase::doCallback(opt, $1.fk.getDropSql($1.table), "dropping foreign constraint %s from table %s", $1.fk.getName(), $1.table), uk.getSourceConstraintIterator();
+                foreach hash sch in (uk.getSourceConstraintIterator()) {
+                    l += AbstractDatabase::doCallback(opt, sch.fk.getDropSql(sch.table), "dropping foreign constraint %s from table %s", sch.fk.getName(), sch.table);
+                    string tn = sch.table;
+                    tn =~ s/.*\.//;
+                    if (opt.sql_callback_executed && h{tn})
+                        h{tn}.removeForeignConstraint(sch.fk.getName());
+                }
             }
 
             return l;            
@@ -736,6 +752,18 @@ my AbstractTable $t = $tables.table_name;
         #! returns \c "table" since this object stores AbstractTable objects
         string getElementName() {
             return "table";
+        }
+
+        #! gets a table from the database or from the cache if already cached; if the table does not exist, then @ref nothing is returned
+        *AbstractTable getIfExists(AbstractDatasource ds, string name) {
+            if (h{name})
+                return h{name};
+            
+            Table t(ds, name);
+            if (!t.checkExistence())
+                return;
+            t.cache(("table_cache": self));
+            return h{name} = t.getTable();
         }
 
         #! gets a table from the database or from the cache if already cached
@@ -2589,7 +2617,9 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             tl = dropSqlUnlocked("function", schema_hash, \getFunction(), \makeFunction(), opt, Type::String);
             if (tl) l += tl;
 
-            Tables tables(ds, schema_hash.tables, opt);
+            # setup tables with names from description but contents from DB
+            Tables tables();
+            map tables.getIfExists(ds, $1), schema_hash.tables.keyIterator();
             foreach AbstractTable t in (tables.dropIterator()) {
                 l += AbstractDatabase::doCallback(opt, t.getDropSql(), "drop table %s", t.getName());
             }
@@ -3973,6 +4003,26 @@ $table.dropForeignConstraint("uk_mytable_name");
             return t.dropForeignConstraint(cname, \sql);
         }
 
+        #! removes the named foreign constraint from the table; no SQL is executed in any case, only the named foreign constraint is removed from the table definition
+        /** @par Example:
+            @code
+$table.removeForeignConstraint("uk_mytable_name");
+            @endcode
+
+            @param cname the name of the foreign constraint to remove
+
+            @return the foreign constraint removed from the table
+
+            @throw FOREIGN-CONSTRAINT-ERROR the given constraint does not exist
+
+            @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractForeignConstraint removeForeignConstraint(string cname) {
+            return t.removeForeignConstraint(cname);
+        }
+
         #! adds a check constraint to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
@@ -4076,12 +4126,36 @@ $table.dropTrigger("trig_mytable");
 
             @return the trigger dropped from the table
 
+            @throw TRIGGER-ERROR the given trigger does not exist
+
             @note this method retrieves all current trigger definitions from the database if none have already been defined
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractTrigger dropTrigger(string tname, *reference sql) {
             return t.dropTrigger(tname, \sql);
+        }
+
+        #! returns SQL that can be used to drop the given trigger from the table
+        /** @par Example:
+            @code
+my list $l = $table.getDropTriggerSql("trig_mytable");
+            @endcode
+
+            @param tname the name of the trigger to drop
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop the given trigger from the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw TRIGGER-ERROR the given trigger does not exist
+
+            @note this method retrieves all current trigger definitions from the database if none have already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        list getDropTriggerSql(string tname, *hash opt) {
+            return t.getDropTriggerSql(tname, opt);
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
@@ -4109,7 +4183,7 @@ $table.dropColumn("notes_2");
             In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
 
             @param cname the name of the column to drop
-            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @throw COLUMN-ERROR the named column is not present in the table
 
@@ -4117,14 +4191,14 @@ $table.dropColumn("notes_2");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractColumn dropColumn(string cname, *reference sql) {
-            return t.dropColumn(cname, \sql);
+        AbstractColumn dropColumn(string cname, *reference lsql) {
+            return t.dropColumn(cname, \lsql);
         }
 
         #! returns the SQL that can be used to drop a column from the table
         /** @par Example:
             @code
-my string $sql = $table.getDropColumnSql("notes_2");
+my list $l = $table.getDropColumnSql("notes_2");
             @endcode
 
             @param cname the name of the column to drop
@@ -4139,7 +4213,7 @@ my string $sql = $table.getDropColumnSql("notes_2");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        string getDropColumnSql(string cname, *hash opt) {
+        list getDropColumnSql(string cname, *hash opt) {
             return t.getDropColumnSql(cname, opt);
         }
 
@@ -4924,6 +4998,25 @@ my Triggers $trig = $table.getTriggers();
             doTableOptions(nopts);
         }
 
+        #! copies the object
+        copy(AbstractTable old) {
+            # copy container objects
+            if (columns)
+                columns = columns.copy();
+            if (primaryKey)
+                primaryKey = primaryKey.copy();
+            if (indexes)
+                indexes = indexes.copy();
+            if (foreignConstraints)
+                foreignConstraints = foreignConstraints.copy();
+            if (constraints)
+                constraints = constraints.copy();
+            if (triggers)
+                triggers = triggers.copy();
+
+            copyImpl(old);
+        }
+
         private doTableOptions(*hash nopts) {
             validateOptionsIntern("OPTION-ERROR", getTableOptions(), \nopts);
             if (nopts.native_case)
@@ -5706,7 +5799,7 @@ printf("%s;\n", $sql);
         #! gets a list of SQL strings to drop all constraints and indexes with the given column name; if the column does not exist then an empty list is returned
         /** @par Example:
             @code
-my list $l = $table.getDropAllConstraintsAndIndexesOnColumn("status");
+my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
             @endcode
 
             @param cname the name of the column
@@ -5718,12 +5811,16 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumn("status");
 
             @see inDb() for a method that tells if the table is already in the database or not
         */
-        list getDropAllConstraintsAndIndexesOnColumn(string cname, *hash opt) {
+        list getDropAllConstraintsAndIndexesOnColumnSql(string cname, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
             l.lock();
             on_exit l.unlock();
 
+            return getDropAllConstraintsAndIndexesOnColumnSqlUnlocked(cname, opt);
+        }
+
+        private list getDropAllConstraintsAndIndexesOnColumnSqlUnlocked(string cname, *hash opt) {
             getAllConstraintsUnlocked();
             getIndexesUnlocked();
 
@@ -5733,7 +5830,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumn("status");
                 on_success if (opt.sql_callback_executed)
                     remove primaryKey;
 
-                lst += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "drop primary key %s from %s", primaryKey.getName(), name);
+                lst += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "dropping primary key %s from %s", primaryKey.getName(), getSqlName());
             }
 
             foreach AbstractConstraint c in (constraints.iterator()) {
@@ -5745,7 +5842,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumn("status");
                             indexes.take(c.getName());
                     }
 
-                    AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s from %s", c.getName(), name);
+                    AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s from %s", c.getName(), getSqlName());
                 }
             }
             
@@ -5754,7 +5851,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumn("status");
                     on_success if (opt.sql_callback_executed)
                         foreignConstraints.take(fk.getName()); 
 
-                    AbstractDatabase::doCallback(opt, fk.getDropSql(getSqlName()), "dropping constraint %s from %s", fk.getName(), name);
+                    AbstractDatabase::doCallback(opt, fk.getDropSql(getSqlName()), "dropping foreign constraint %s from %s", fk.getName(), getSqlName());
                 }
             }
             
@@ -5763,7 +5860,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumn("status");
                     on_success if (opt.sql_callback_executed)
                         indexes.take(ix.name); 
 
-                    AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), "dropping index %s from %s", ix.name, name);
+                    AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), "dropping index %s from %s", ix.name, getSqlName());
                 }
             }
             
@@ -6119,8 +6216,10 @@ printf("%s;\n", $sql);
             if (cache.hasKey(table))
                 return cache{table}.describe();
             Table t(ds, table);
-            if (cache)
+            if (cache) {
+                #printf("*** adding %s to cache\n", name);
                 cache.add(table, t.getTable());
+            }
             return t.describe();
         }
 
@@ -6204,6 +6303,33 @@ $table.dropForeignConstraint("uk_mytable_name");
 
             # drop foreign constraint from table if the table already exists in the DB
             execSql(sql = foreignConstraints{cname}.getDropSql(getSqlName()));
+
+            # remove from foreign constraint structure and return removed foreign constraint
+            return foreignConstraints.take(cname);
+        }
+
+        #! removes the named foreign constraint from the table; no SQL is executed in any case, only the named foreign constraint is removed from the table definition
+        /** @par Example:
+            @code
+$table.removeForeignConstraint("uk_mytable_name");
+            @endcode
+
+            @param cname the name of the foreign constraint to remove
+
+            @return the foreign constraint removed from the table
+
+            @throw FOREIGN-CONSTRAINT-ERROR the given constraint does not exist
+
+            @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        AbstractForeignConstraint removeForeignConstraint(string cname) {
+            l.lock();
+            on_exit l.unlock();
+            getForeignConstraintsUnlocked();
+            if (!foreignConstraints.hasKey(cname))
+                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%s: has no foreign constraint %y; valid foreign constraints: %y", name, cname, foreignConstraints.keys());
 
             # remove from foreign constraint structure and return removed foreign constraint
             return foreignConstraints.take(cname);
@@ -6522,6 +6648,42 @@ $table.dropTrigger("trig_mytable");
             return triggers.take(tname);
         }
 
+        #! returns SQL that can be used to drop the given trigger from the table
+        /** @par Example:
+            @code
+my string $sql = $table.getDropTriggerSql("trig_mytable");
+            @endcode
+
+            @param tname the name of the trigger to drop
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop the given trigger from the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw TRIGGER-ERROR the given trigger does not exist
+
+            @note this method retrieves all current trigger definitions from the database if none have already been defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        list getDropTriggerSql(string tname, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            getTriggersUnlocked();
+            if (!triggers.hasKey(tname))
+                throw "TRIGGER-ERROR", sprintf("%s: has no trigger %y; valid triggers: %y", name, tname, triggers.keys());
+
+            # remove from trigger structure if sql is executed
+            on_success if (opt.callback_executed)
+                triggers.take(tname);
+
+            # drop trigger from table if the table already exists in the DB
+            return AbstractDatabase::doCallback(opt, triggers{tname}.getDropSql(getSqlName()), "dropping trigger %s from %s", tname, getSqlName());
+        }
+
         private getAllConstraintsUnlocked(*hash opt) {
             if (manual)
                 return;
@@ -6620,7 +6782,7 @@ $table.dropColumn("notes_2");
             In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
 
             @param cname the name of the column to drop
-            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return the AbstractColumn object representing the column dropped from the table
 
@@ -6630,14 +6792,25 @@ $table.dropColumn("notes_2");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractColumn dropColumn(string cname, *reference sql) {
+        AbstractColumn dropColumn(string cname, *reference lsql) {
             l.lock();
             on_exit l.unlock();
             getColumnsUnlocked();
             if (!columns.hasKey(cname))
                 throw "COLUMN-ERROR", sprintf("%s.%s: no such column (valid columns: %y)", name, cname, columns.keys());
+
+            code sc;
+            if (inDb) {
+                sc = sub (string str) {
+                    ds.execRaw(str);
+                }; 
+            }
+
+            # if there are any indexes or constraints on this column, remove them from the table first
+            lsql = getDropAllConstraintsAndIndexesOnColumnSql(cname, ("sql_callback": sc, "sql_callback_executed": True));
+
             # drop column from table if the table already exists in the DB
-            execSql(sql = columns{cname}.getDropSql(getSqlName()));
+            execSql(lsql += columns{cname}.getDropSql(getSqlName()));
             return columns.take(cname);
         }
 
@@ -6659,7 +6832,7 @@ my string $sql = $table.getDropColumnSql("notes_2");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        string getDropColumnSql(string cname, *hash opt) {
+        list getDropColumnSql(string cname, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
             l.lock();
@@ -6671,8 +6844,10 @@ my string $sql = $table.getDropColumnSql("notes_2");
             on_success if (opt.sql_callback_executed)
                 columns.take(cname);
 
-            # drop column from table if the table already exists in the DB
-            return AbstractDatabase::doCallback(opt, columns{cname}.getDropSql(getSqlName()), "drop column %s.%s", name, cname);
+            list lst = ();
+            lst += getDropAllConstraintsAndIndexesOnColumnSqlUnlocked(cname, opt);
+            lst += AbstractDatabase::doCallback(opt, columns{cname}.getDropSql(getSqlName()), "drop column %s.%s", name, cname);
+            return lst;
         }
 
         #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
@@ -6944,8 +7119,16 @@ my *list $l = $table.selectRows($sh);
 
         private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh) {
             if (qh."where") {
-                args += qh."where".values();
-                sql += " where " + (foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), qh."where".keyIterator()));
+                list wl = ();
+                foreach hash h in (qh."where".pairIterator()) {
+                    if (h.value === NULL || !exists h.value)
+                        wl += sprintf("%s is null", h.key);
+                    else {
+                        wl += sprintf("%s = %v", h.key);
+                        args += h.value;
+                    }
+                }
+                sql += " where " + (foldl $1 + " and " + $2, wl);
             }
         }
 
@@ -7517,37 +7700,31 @@ my list $l = $table.getAlignSql($table2);
             if (!columns)
                 columns = new Columns();
 
+            AbstractTable this = opt.sql_callback_executed ? self : self.copy();
+
+            return this.getAlignSqlUnlocked(t, opt);
+        }
+
+        private list getAlignSqlUnlocked(AbstractTable t, *hash opt) {
             list l = ();
 
             # check name
             if (name != t.name) {
                 l += AbstractDatabase::doCallback(opt, getRenameSql(t.name), "rename table %s to %s", name, t.name);
-                if (opt.sql_callback_executed)
-                    name = t.name;
+                name = t.name;
             }
-
-            # copy columns
-            *Columns columns_copy = opt.sql_callback_executed ? columns : (columns ? columns.copy() : NOTHING);
-
-            # copy indexes
-            *Indexes indexes_copy = opt.sql_callback_executed ? indexes : (indexes ? indexes.copy() : NOTHING);
-
-            # copy constraints
-            *Constraints constraints_copy = opt.sql_callback_executed ? constraints : (constraints ? constraints.copy() : NOTHING);
-            *AbstractPrimaryKey primaryKey_copy = opt.sql_callback_executed ? primaryKey : (primaryKey ? primaryKey.copy() : NOTHING);
-            *ForeignConstraints foreignConstraints_copy = opt.sql_callback_executed ? foreignConstraints : (foreignConstraints ? foreignConstraints.copy() : NOTHING);
 
             # process column_map: rename columns
             foreach hash rh in (opt.column_map.pairIterator()) {
-                if (columns_copy.hasKey(rh.key)) {
-                    printf("%s rename %s -> %s cols: %y\n", name, rh.key, rh.value, columns_copy.keys());
-                    AbstractColumn c = columns_copy{rh.key};
+                if (columns.hasKey(rh.key)) {
+                    printf("%s rename %s -> %s cols: %y\n", name, rh.key, rh.value, columns.keys());
+                    AbstractColumn c = columns{rh.key};
                     l += AbstractDatabase::doCallback(opt, c.getRenameSql(self, rh.value), "renaming column %s.%s to %s", name, c.name, rh.value);
-                    columns_copy.renameKey(rh.key, rh.value);
+                    columns.renameKey(rh.key, rh.value);
                     c.name = rh.value;
 
                     # rename column in indexes
-                    foreach AbstractIndex ix in (indexes_copy.iterator()) {
+                    foreach AbstractIndex ix in (indexes.iterator()) {
                         if (ix.columns.hasKey(rh.key)) {
                             #printf("%s.%s: col %y %N\n", getName(), ix.name, rh.key, ix.columns);
                             AbstractColumn rc = ix.columns{rh.key};
@@ -7556,13 +7733,13 @@ my list $l = $table.getAlignSql($table2);
                         }
                     }
                     # rename column in pk
-                    if (primaryKey_copy.hasKey(rh.key)) {
-                        AbstractColumn rc = primaryKey_copy{rh.key};
+                    if (primaryKey.hasKey(rh.key)) {
+                        AbstractColumn rc = primaryKey{rh.key};
                         rc.name = rh.value;
-                        primaryKey_copy.renameKey(rh.key, rh.value);
+                        primaryKey.renameKey(rh.key, rh.value);
                     }
                     # rename column in unique constraints
-                    foreach AbstractConstraint ct in (constraints_copy.iterator()) {
+                    foreach AbstractConstraint ct in (constraints.iterator()) {
                         if (ct instanceof AbstractUniqueConstraint) {
                             AbstractUniqueConstraint uk = ct;
                             if (uk.hasKey(rh.key)) {
@@ -7573,7 +7750,7 @@ my list $l = $table.getAlignSql($table2);
                         }
                     }
                     # rename column in foreign constraints
-                    foreach AbstractForeignConstraint fk in (foreignConstraints_copy.iterator()) {
+                    foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
                         if (fk.columns.hasKey(rh.key)) {
                             AbstractColumn rc = fk.columns{rh.key};
                             rc.name = rh.value;
@@ -7585,13 +7762,13 @@ my list $l = $table.getAlignSql($table2);
 
             # check for columns in the template that are not present or different in the current table
             foreach AbstractColumn c in (t.columns.iterator()) {
-                if (!columns_copy.hasKey(c.name)) {
+                if (!columns.hasKey(c.name)) {
                     # add column to table
                     l += AbstractDatabase::doCallback(opt, c.getCreateSql(self), "add column %s to %s", c.name, name);
                 }
                 else {
                     # get any delta SQL
-                    list cl = columns_copy{c.name}.getModifySql(self, c);
+                    list cl = columns{c.name}.getModifySql(self, c);
                     # add delta SQL to list if there is any to add
                     if (cl) {
                         l += AbstractDatabase::doCallback(opt, cl, "updating column %s in %s", c.name, name);
@@ -7600,30 +7777,31 @@ my list $l = $table.getAlignSql($table2);
             }
 
             # check for columns not in the template and drop them
-            foreach AbstractColumn c in (columns_copy.iterator()) {
+            foreach AbstractColumn c in (columns.iterator()) {
                 if (!t.columns.hasKey(c.name)) {
+                    l += getDropAllConstraintsAndIndexesOnColumnSqlUnlocked(c.name, opt);
                     l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping column %s in %s", c.name, name);
                 }
             }
 
             # process index_map: rename indexes
             foreach hash rh in (opt.index_map.pairIterator()) {
-                if (indexes_copy.hasKey(rh.key)) {
-                    AbstractIndex ix = indexes_copy{rh.key};
+                if (indexes.hasKey(rh.key)) {
+                    AbstractIndex ix = indexes{rh.key};
                     l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), rh.value), "renaming index %s on %s to %s", ix.name, name, rh.value);
-                    indexes_copy.renameKey(rh.key, rh.value);
+                    indexes.renameKey(rh.key, rh.value);
                     ix.name = rh.value;
 
                     # if constraints are linked to indexes, then rename any matching constraint as well
                     if (constraintsLinkedToIndexesImpl()) {
-                        if (primaryKey_copy && primaryKey_copy.getName() == rh.key) {
-                            primaryKey_copy.rename(rh.value);
+                        if (primaryKey && primaryKey.getName() == rh.key) {
+                            primaryKey.rename(rh.value);
                         }
                         else {
-                            foreach AbstractConstraint uk in (constraints_copy.iterator()) {
+                            foreach AbstractConstraint uk in (constraints.iterator()) {
                                 if (uk instanceof AbstractUniqueConstraint && uk.getName() == rh.key) {
                                     uk.rename(rh.value);
-                                    constraints_copy.renameKey(rh.key, rh.value);
+                                    constraints.renameKey(rh.key, rh.value);
                                     break;
                                 }
                             }
@@ -7634,17 +7812,17 @@ my list $l = $table.getAlignSql($table2);
 
             # check for indexes in the template that are not present or different in the current table
             foreach AbstractIndex ix in (t.indexes.iterator()) {
-                if (!indexes_copy.hasKey(ix.name)) {
+                if (!indexes.hasKey(ix.name)) {
                     # add index to table
                     l += AbstractDatabase::doCallback(opt, ix.getCreateSql(getSqlName(), opt), "adding index %s to %s", ix.name, name);
                 }
-                else if (!ix.equal(indexes_copy{ix.name})) {
+                else if (!ix.equal(indexes{ix.name})) {
                     l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt), "recreating index %s on %s", ix.name, name);
                 }
             }
 
             # check for indexes not in the template and drop them
-            foreach AbstractIndex ix in (indexes_copy.iterator()) {
+            foreach AbstractIndex ix in (indexes.iterator()) {
                 if (!t.indexes.hasKey(ix.name)) {
                     # make sure there is no unique constraint or primary key for the unique index if the "index" option is supported
                     # in which case update the constraint to be based on the index and do not drop the index
@@ -7674,16 +7852,16 @@ my list $l = $table.getAlignSql($table2);
             foreach hash rh in (opt.constraint_map.pairIterator()) {
                 *AbstractConstraint c;
 
-                if (foreignConstraints_copy.hasKey(rh.key)) {
-                    c = foreignConstraints_copy{rh.key};
-                    foreignConstraints_copy.renameKey(rh.key, rh.value);
+                if (foreignConstraints.hasKey(rh.key)) {
+                    c = foreignConstraints{rh.key};
+                    foreignConstraints.renameKey(rh.key, rh.value);
                 }
-                else if (constraints_copy.hasKey(rh.key)) {
-                    c = constraints_copy{rh.key};
-                    constraints_copy.renameKey(rh.key, rh.value);
+                else if (constraints.hasKey(rh.key)) {
+                    c = constraints{rh.key};
+                    constraints.renameKey(rh.key, rh.value);
                 }
-                else if (primaryKey_copy && primaryKey_copy.getName() == rh.key)
-                    c = primaryKey_copy;
+                else if (primaryKey && primaryKey.getName() == rh.key)
+                    c = primaryKey;
 
                 if (c) {
                     l += AbstractDatabase::doCallback(opt, c.getRenameSql(getSqlName(), rh.value), "renaming constraint %s on %s to %s", c.getName(), name, rh.value);
@@ -7693,37 +7871,37 @@ my list $l = $table.getAlignSql($table2);
 
             # check for primary key differences
             if (t.primaryKey) {
-                if (primaryKey_copy && !primaryKey_copy.equal(t.primaryKey)) {
-                    #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey_copy, t.primaryKey);
-                    l += AbstractDatabase::doCallback(opt, primaryKey_copy.getDropSql(getSqlName()), "updating primary key %s on %s (dropping old primary key)", t.primaryKey.getName(), name);
-                    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey_copy.getName()))
+                if (primaryKey && !primaryKey.equal(t.primaryKey)) {
+                    #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey, t.primaryKey);
+                    l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "updating primary key %s on %s (dropping old primary key)", t.primaryKey.getName(), name);
+                    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
                         t.primaryKey.clearIndex();
                     l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), "updating primary key %s on %s (readding new primary key)", t.primaryKey.getName(), name);
                 }
-                else if (!primaryKey_copy) {
+                else if (!primaryKey) {
                     l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), "creating primary key %s on %s", t.primaryKey.getName(), name);
                 }
             }
-            else if (primaryKey_copy && !primaryKey_copy.empty()) {
-                l += AbstractDatabase::doCallback(opt, primaryKey_copy.getDropSql(getSqlName()), "dropping primary key %s on %s", primaryKey_copy.getName(), name);
+            else if (primaryKey && !primaryKey.empty()) {
+                l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "dropping primary key %s on %s", primaryKey.getName(), name);
             }
 
             # check for foreign constraints in the template that are not present or different in the current table
             foreach AbstractForeignConstraint c in (t.foreignConstraints.iterator()) {
-                if (!foreignConstraints_copy.hasKey(c.getName())) {
+                if (!foreignConstraints.hasKey(c.getName())) {
                     # add constraint to table
                     l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), "adding foreign constraint %s to %s", c.getName(), name);
                 }
-                else if (!c.equal(foreignConstraints_copy{c.getName()})) {
+                else if (!c.equal(foreignConstraints{c.getName()})) {
                     # drop current constraint
-                    l += AbstractDatabase::doCallback(opt, foreignConstraints_copy{c.getName()}.getDropSql(getSqlName()), "updating foreign constraint %s on %s (dropping old constraint)", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, foreignConstraints{c.getName()}.getDropSql(getSqlName()), "updating foreign constraint %s on %s (dropping old constraint)", c.getName(), name);
                     # add new constraint to table
                     l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), "updating foreign constraint %s on %s (adding updated constraint)", c.getName(), name);
                 }
             }
 
             # check for foreign constraints not in the template and drop them
-            foreach AbstractForeignConstraint c in (foreignConstraints_copy.iterator()) {
+            foreach AbstractForeignConstraint c in (foreignConstraints.iterator()) {
                 if (!t.foreignConstraints.hasKey(c.getName())) {
                     l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping foreign constraint %s on %s", c.getName(), name);
                 }
@@ -7731,14 +7909,14 @@ my list $l = $table.getAlignSql($table2);
 
             # check for other constraints in the template that are not present or different in the current table
             foreach AbstractConstraint c in (t.constraints.iterator()) {
-                if (!constraints_copy.hasKey(c.getName())) {
+                if (!constraints.hasKey(c.getName())) {
                     # add constraint to table
                     l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), "adding constraint %s to %s", c.getName(), name);
                 }
-                else if (!c.equal(constraints_copy{c.getName()})) {
+                else if (!c.equal(constraints{c.getName()})) {
                      # drop current constraint
-                    l += AbstractDatabase::doCallback(opt, constraints_copy{c.getName()}.getDropSql(getSqlName()), "updating constraint %s on %s (dropping old constraint)", c.getName(), name);
-                    if (constraints_copy{c.getName()} instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl() && indexes.hasKey(c.getName()))
+                    l += AbstractDatabase::doCallback(opt, constraints{c.getName()}.getDropSql(getSqlName()), "updating constraint %s on %s (dropping old constraint)", c.getName(), name);
+                    if (constraints{c.getName()} instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl() && indexes.hasKey(c.getName()))
                         cast<AbstractUniqueConstraint>(c).clearIndex();
 
                     # add new constraint to table
@@ -7747,7 +7925,7 @@ my list $l = $table.getAlignSql($table2);
             }
 
             # check for other constraints not in the template and drop them
-            foreach AbstractConstraint c in (constraints_copy.iterator()) {
+            foreach AbstractConstraint c in (constraints.iterator()) {
                 if (!t.constraints.hasKey(c.getName())) {
                     l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s on %s", c.getName(), name);
                 }
@@ -8150,12 +8328,16 @@ my *hash $row = $table.findSingle($h);
         private getColumnsUnlocked() {
             if (columns)
                 return;
+            if (manual) {
+                columns = new Columns();
+                return;
+            }
             columns = describeImpl();
             inDb = True;
         }
 
         private getPrimaryKeyUnlocked() {
-            if (primaryKey)
+            if (primaryKey || manual)
                 return;
             getColumnsUnlocked();
             primaryKey = getPrimaryKeyImpl();
@@ -8174,6 +8356,10 @@ my *hash $row = $table.findSingle($h);
         private getIndexesUnlocked() {
             if (indexes)
                 return;
+            if (manual) {
+                indexes = new Indexes();
+                return;
+            }
             # make sure columns are loaded
             getColumnsUnlocked();
             if (!manual) {
@@ -8189,6 +8375,11 @@ my *hash $row = $table.findSingle($h);
         private getForeignConstraintsUnlocked(*hash opt) {
             if (foreignConstraints)
                 return;
+            if (manual) {
+                foreignConstraints = new ForeignConstraints();
+                return;
+            }
+                
             getColumnsUnlocked();
             foreignConstraints = getForeignConstraintsImpl(opt);
 
@@ -8231,6 +8422,10 @@ my *hash $row = $table.findSingle($h);
         private getConstraintsUnlocked() {
             if (constraints)
                 return;
+            if (manual) {
+                constraints = new Constraints();
+                return;
+            }
             getColumnsUnlocked();
             constraints = getConstraintsImpl();
             # get indexes
@@ -8250,6 +8445,10 @@ my *hash $row = $table.findSingle($h);
         private getTriggersUnlocked() {
             if (triggers)
                 return;
+            if (manual) {
+                triggers = new Triggers();
+                return;
+            }
             triggers = getTriggersImpl();
             inDb = True;
         }
@@ -8383,6 +8582,9 @@ my *hash $row = $table.findSingle($h);
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
         private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh);
+
+        #! db-specific copy actions
+        private abstract copyImpl(AbstractTable old);
     }
 
 /*

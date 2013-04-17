@@ -1320,6 +1320,8 @@ my any $v = $c.name;
                         row.target_table = row.target_table.lwr();
                     }
                     reference c = \rv.(row.constraint_name);
+                    #if (!columns.hasKey(row.source_column))# && c.target.columns.(row.target_column)) {
+                    #    printf("ERROR: %y.%y ->  %y.%y (%y): %y\n", name, row.source_column, row.target_table, row.target_column, row.constraint_name, columns.keys());
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.target_table;
                     c.target.columns.(row.target_column) = True;
@@ -1529,6 +1531,10 @@ my any $v = $c.name;
         #! returns @ref Qore::True "True" if the database support tablespaces
         private bool supportsTablespacesImpl() {
             return True;
+        }
+
+        #! db-specific copy actions
+        private copyImpl(AbstractTable old) {            
         }
     }
 }
