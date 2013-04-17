@@ -27,6 +27,29 @@
 /** Call ObjectKeyReverseIterator::next() to iterate through the object in reverse order; do not use the iterator if ObjectKeyReverseIterator::next() returns @ref False.
     A object can be iterated in reverse order by calling ObjectKeyReverseIterator::prev() instead of ObjectKeyReverseIterator::next()
 
+    @par Example: ObjectKeyReverseIterator basic usage
+    @code
+    class Class1 {
+       public {
+          int $.attr1;
+          date $.attr2;
+       }
+       constructor() {
+          $.attr1 = 1;
+          $.attr2 = now();
+       }
+    }
+    my Class1 $o();
+
+    my ObjectKeyReverseIterator $it($o);
+    while ($it.next()) {
+        printf("iter: %n\n", $it.getValue());
+    }
+
+    iter: "attr2"
+    iter: "attr1"
+    @endcode
+
     @note
     - In general, the ObjectKeyReverseIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of

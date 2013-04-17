@@ -122,6 +122,26 @@ public:
 
 //! This class defines a line iterator for text files
 /** @since %Qore 0.8.6
+
+    @par Example: FileLineIterator basic usage
+    @code
+    file content:
+    a2ps-4.13-1332.1.x86_64
+    a2ps-devel-4.13-1332.1.x86_64
+    aaa_base-11.3-7.2.x86_64
+    ...
+
+    my FileLineIterator $it("/export/home/pvanek/ren.list");
+    while($it.next()) {
+        printf("%s:%d = %n\n", $it.getFileName(), $it.index(), $it.getValue());
+    }
+
+    /export/home/pvanek/ren.list:1 = "a2ps-4.13-1332.1.x86_64"
+    /export/home/pvanek/ren.list:2 = "a2ps-devel-4.13-1332.1.x86_64"
+    /export/home/pvanek/ren.list:3 = "aaa_base-11.3-7.2.x86_64"
+    ...
+    /export/home/pvanek/ren.list:2155 = "zypper-1.4.5-1.10.x86_64"
+    @endcode
  */
 qclass FileLineIterator [arg=FileLineIterator* i; ns=Qore; vparent=AbstractIterator; dom=FILESYSTEM];
 

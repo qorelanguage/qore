@@ -27,6 +27,29 @@
 /** Call ObjectIterator::next() to iterate through the object; do not use the iterator if ObjectIterator::next() returns @ref False.
     An object can be iterated in reverse order by calling ObjectIterator::prev() instead of ObjectIterator::next()
 
+    @par Example: ObjectIterator basic usage
+    @code
+    class Class1 {
+       public {
+          int $.attr1;
+          date $.attr2;
+       }
+       constructor() {
+          $.attr1 = 1;
+          $.attr2 = now();
+       }
+    }
+    my Class1 $o();
+
+    my ObjectIterator $it($o);
+    while ($it.next()) {
+        printf("iter: %n\n", $it.getValue());
+    }
+
+    iter: 1
+    iter: 2013-04-17 16:27:28 Wed +02:00 (CEST)
+    @endcode
+
     @note
     - In general, the ObjectIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of

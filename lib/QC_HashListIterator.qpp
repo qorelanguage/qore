@@ -29,6 +29,22 @@
     Call HashListIterator::next() to iterate through the lists of column values assigned to each hash key; do not use the iterator if HashListIterator::next() returns @ref False.
     A result list can be iterated in reverse order by calling HashListIterator::prev() instead of HashListIterator::next()
 
+    @par Example: HashListIterator basic usge
+    @code
+    my hash $data = ( "column1" : ( 1, 2, 3, ),
+                      "column2" : ( "a", "b", "c", ) );
+
+    my HashListIterator $it($data);
+    while ($it.next()) {
+        printf("iter %d: getValue: %n; getKeyValue('column1'): %n\n",
+               $it.index(), $it.getValue(), $it.getKeyValue('column1'));
+    }
+
+    iter 0: getValue: hash: (column1 : 1, column2 : "a"); getKeyValue('column1'): 1
+    iter 1: getValue: hash: (column1 : 2, column2 : "b"); getKeyValue('column1'): 2
+    iter 2: getValue: hash: (column1 : 3, column2 : "c"); getKeyValue('column1'): 3
+    @endcode
+
     @note
     - In general, the HashListIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of

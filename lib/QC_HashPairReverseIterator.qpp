@@ -27,6 +27,24 @@
 /** Call HashPairReverseIterator::next() to iterate through the hash in reverse order; do not use the iterator if HashPairReverseIterator::next() returns @ref False.
     A hash can be iterated in reverse order by calling HashPairReverseIterator::prev() instead of HashPairReverseIterator::next()
 
+    @par Example: HashPairReverseIterator basic usage
+    @code
+    my hash $data = (
+            "key1" : 1,
+            "key2" : 2,
+            "key3" : 3,
+        );
+
+    my HashPairReverseIterator $it($data);
+    while ($it.next()) {
+        printf("iter: %n\n", $it.getValue());
+    }
+
+    iter: hash: (key : "key3", value : 3)
+    iter: hash: (key : "key2", value : 2)
+    iter: hash: (key : "key1", value : 1)
+    @endcode
+
     @note
     - In general, the HashPairReverseIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of

@@ -27,6 +27,29 @@
 /** Call ObjectPairIterator::next() to iterate through the object; do not use the iterator if ObjectPairIterator::next() returns @ref False.
     A object can be iterated in reverse order by calling ObjectPairIterator::prev() instead of ObjectPairIterator::next()
 
+    @par Example: ObjectPairIterator basic usage
+    @code
+    class Class1 {
+       public {
+          int $.attr1;
+          date $.attr2;
+       }
+       constructor() {
+          $.attr1 = 1;
+          $.attr2 = now();
+       }
+    }
+    my Class1 $o();
+
+    my ObjectPairIterator $it($o);
+    while ($it.next()) {
+        printf("iter: %n\n", $it.getValue());
+    }
+
+    iter: hash: (key : "attr1", value : 1)
+    iter: hash: (key : "attr2", value : 2013-04-17 16:37:26 Wed +02:00 (CEST))
+    @endcode
+
     @note
     - In general, the ObjectPairIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of

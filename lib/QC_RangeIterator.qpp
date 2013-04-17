@@ -34,7 +34,7 @@
     This results in memory-friendly handling for large numerical sequences compared to
     generating a list in memory and iterating that list (as with @ref Qore::range()).
 
-   @par Example:
+   @par Example: RangeIterator basic usage
    @code
 my RangeIterator $r(2);
 for my int $i in ($r)

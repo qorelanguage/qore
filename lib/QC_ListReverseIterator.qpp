@@ -42,6 +42,19 @@ public:
 /** Call ListReverseIterator::next() to iterate through the list in reverse order; do not use the iterator if ListReverseIterator::next() returns @ref False.
     A list can be iterated in reverse order by calling ListReverseIterator::prev() instead of ListReverseIterator::next()
 
+    @par Example: ListIterator basic usage
+    @code
+    my list $data = (1, "foo", 2);
+    my ListReverseIterator $it($data);
+    while ($it.next()) {
+        printf("iter: %n\n", $it.getValue());
+    }
+
+    iter: 2
+    iter: "foo"
+    iter: 1
+    @endcode
+
     @note
     - In general, the ListReverseIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of

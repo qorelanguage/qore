@@ -25,6 +25,25 @@
 
 //! This class defines a simple iterator to be used to iterate single values (or complex objects where no iterator has been implemented yet)
 /** @since %Qore 0.8.6
+
+    @par Example: SingleValueIterator basic usage
+    @code
+    my any $val = 1;
+    my SingleValueIterator $it($val);
+    while ($it.next()) {
+        printf("iter: %n\n", $it.getValue());
+    }
+
+    iter: 1
+    @endcode
+
+    Remember that input value is taken as a single token so result of the code above for a list as an input argument will be like this:
+
+    @code
+    my any $val = (1, 2, 3);
+    iter: list: (1, 2, 3)
+    @endcode
+
  */
 qclass SingleValueIterator [arg=SingleValueIterator* i; ns=Qore; vparent=AbstractIterator];
 

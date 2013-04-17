@@ -42,6 +42,22 @@ public:
 /** Call ListHashReverseIterator::next() to iterate through the lists of column values assigned to each hash key in reverse order; do not use the iterator if ListHashReverseIterator::next() returns @ref False.
     A result list can be iterated in reverse order by calling ListHashReverseIterator::prev() instead of ListHashReverseIterator::next()
 
+    @par Example: ListHashReverseIterator basic usage
+    @code
+    my list $data = (
+             ( "column1" : 1, "column2" : "a"),
+             ( "column1" : 2, "column2" : "b"),
+        );
+
+    my ListHashReverseIterator $it($data);
+    while ($it.next()) {
+        printf("iter %d: %n\n", $it.index(), $it.getValue());
+    }
+
+    iter 1: hash: (column1 : 2, column2 : "b")
+    iter 0: hash: (column1 : 1, column2 : "a")
+    @endcode 
+
     @note
     - In general, the ListHashReverseIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of

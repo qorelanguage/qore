@@ -27,12 +27,26 @@
 /** Call ListIterator::next() to iterate through the list; do not use the iterator if ListIterator::next() returns @ref False.
     A list can be iterated in reverse order by calling ListIterator::prev() instead of ListIterator::next()
 
+    @par Example: ListIterator basic usage
+    @code
+    my list $data = (1, "foo", 2);
+    my ListIterator $it($data);
+    while ($it.next()) {
+        printf("iter: %n\n", $it.getValue());
+    }
+
+    iter: 1
+    iter: "foo"
+    iter: 2
+    @endcode
+
     @note
     - In general, the ListIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
       such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.
 
     @see ListReverseIterator
+
  */
 qclass ListIterator [arg=QoreListIterator* i; ns=Qore; vparent=AbstractQuantifiedBidirectionalIterator];
 
