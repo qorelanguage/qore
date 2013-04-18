@@ -440,6 +440,10 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
 
             # take a copy of a reference to the Counter
             $c = $dhi.counter;
+
+            # stop handler if it is a dedicated socket handler
+            if ($dhi.obj instanceof AbstractHttpSocketHandler)
+                cast<AbstractHttpSocketHandler>($dhi.obj).stop();
         }
 
         # wait for the call counter to reach zero
