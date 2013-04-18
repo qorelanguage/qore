@@ -1167,12 +1167,17 @@ my any $v = $c.name;
         private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh) {
             AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh);
             if (qh.limit && !qh.orderby && !qh.offset) {
-                if (!qh.cond)
+                if (!qh."where")
                     sql += " where ";
                 else
                     sql += " and ";
-                sql += sprintf("rownum < %v", qh.limit);
+                sql += sprintf("rownum <= %v", qh.limit);
                 args += qh.limit;
+                # insert optimizer hint
+                int i = sql.find(" from ");
+                # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
+                # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
+                splice sql, i + 5, 0, sprintf(" /*+ first_rows(%d) */", qh.limit);
             }
         }
 

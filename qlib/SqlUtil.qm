@@ -69,6 +69,7 @@ module SqlUtil {
     - @ref SqlUtil::AbstractTable::findAll()
     - @ref SqlUtil::AbstractTable::findSingle()
     - @ref SqlUtil::AbstractTable::getRowIterator()
+    - @ref SqlUtil::AbstractTable::getSelectSql();
     - @ref SqlUtil::AbstractTable::selectRows()
     - @ref SqlUtil::AbstractTable::update()
     - @ref SqlUtil::AbstractTable::updateNoCommit()
@@ -930,6 +931,9 @@ my AbstractTable $t = $tables.table_name;
         }
 
         list getDropList() {
+            if (!h)
+                return ();
+
             # foreign dependency hash: table -> hash: source table (ie table with foreign constraint on key)
             hash tdh;
             # source dependency hash: table -> list: foreign table (key has foreign constraint on value)
@@ -4519,6 +4523,27 @@ my *list $l = $table.selectRows($sh);
             return t.selectRows(sh);
         }
 
+        #! returns the SQL string to be executed corresponding to the argument hash with an output parameter for the select bind arguments
+        /** @par Example:
+            @code
+my list $args;
+my string $sql = $table.getSelectSql($sh, \$args);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param args an optional reference to a list for any bind arguments
+
+            @return the SQL that can be used to execute a select on the database corresponding to the arguments; the select bind arguments are returned in an output parameter
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+
+            @note the select string is specific to the arguments passed (for example @ref null arguments will have clauses like 'is null')
+         */
+        string getSelectSql(*hash sh, *reference args) {
+            return t.getSelectSql(sh, \args);
+        }
+
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
@@ -7261,9 +7286,38 @@ my *list $l = $table.selectRows($sh);
                 on_exit l.unlock();
 
                 sql = getSelectSqlUnlocked(sh, \args);
+                #printf("sql: %s\nargs: %y\n", sql, args);
             }
             
             return ds.vselectRows(sql, args);
+        }
+
+        #! returns the SQL string to be executed corresponding to the argument hash with an output parameter for the select bind arguments
+        /** @par Example:
+            @code
+my list $args;
+my string $sql = $table.getSelectSql($sh, \$args);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param args an optional reference to a list for any bind arguments
+
+            @return the SQL that can be used to execute a select on the database corresponding to the arguments; the select bind arguments are returned in an output parameter
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+
+            @note the select string is specific to the arguments passed (for example @ref null arguments will have clauses like 'is null')
+         */
+        string getSelectSql(*hash sh, *reference args) {
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+
+            args = ();
+
+            l.lock();
+            on_exit l.unlock();
+
+            return getSelectSqlUnlocked(sh, \args);
         }
 
         *AbstractUniqueConstraint matchAnyUnique(list cols) {
