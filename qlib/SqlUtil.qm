@@ -51,9 +51,11 @@ module SqlUtil {
 
 /** @mainpage SqlUtil Module
 
+    @tableofcontents
+
     @section intro Introduction
 
-    The %SqlUtil module provides a high level API for working with database objects.
+    The %SqlUtil module provides a high level database-independent API for working with database objects and SQL.
 
     To use this module, use \c "%requires SqlUtil" in your code.
     
@@ -88,9 +90,192 @@ my *hash $row = $table.findSingle(("permission_type": op_between("US", "UX")));
     Delete all rows in the table where the \c "name" column is like "%Smith%":\n
     @code
 my int $row_count = $table.del(("name": op_like("%Smith%")));
+    @endcode \n
+    Find all rows where \c "id" is greater than 100 and \c "created" is after 2013-03-01:\n
+    @code
+my *list $rows = $table.findAll(("id": op_gt(100), "created": op_gt(2013-03-01)));
+    @endcode
+
+    @subsection sql_paging Select With Paging
+
+    There is support for paging query results in the following methods:
+    - @ref SqlUtil::AbstractTable::getRowIterator()
+    - @ref SqlUtil::AbstractTable::getSelectSql();
+    - @ref SqlUtil::AbstractTable::selectRows()
+
+    @note the above list also applies to the corresponding @ref SqlUtil::Table methods
+
+    Each of these methods takes a @ref SqlUtil::AbstractTable::SelectOptions "select option hash argument" that allows the \c "limit" and \c "offset" options to be specified to specify the data window for the results.
+
+    If the \c "offset" options is used, then an \c "orderby" option is required which must match some unique constraint or unique index on the table to guarantee the order of results, unless the table has a primary key, in which case the primary key will be used by default if no \c "orderby" option is supplied.
+
+    @par Example:
+    Select 100 rows starting at row 200 (the table's primary key will be used for the \c "orderby" option by default): \n
+    @code
+my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
+    @endcode
+
+    @subsection sql_upsert Upserting or Merging Data
+
+    This module offers a high-level api for "upserting" or merging data from one table into another table based on one of the following three strategies (see @ref upsert_options):
+    - @ref SqlUtil::AbstractTable::UpsertInsertFirst "AbstractTable::UpsertInsertFirst": first an insert will be attempted, if it fails due to a duplicate key, then an update will be made; this strategy should be used if more inserts will be made than updates
+    - @ref SqlUtil::AbstractTable::UpsertUpdateFirst "AbstractTable::UpsertUpdateFirst": first an update will be attempted, if it fails due to missing data, then an insert is performed; this strategy should be used if more updates will be made then inserts
+    - @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst": first a select is made on the unique key, if the data to be updated is equal, nothing is done and @ref upsert_results "upsert result" @ref SqlUtil::AbstractTable::UR_Unchanged is returned; this is the only upsert strategy that can return this value; this strategy should be used when verbose reporting is required, particularly if it's necessary to report the actual number of changed rows
+
+    @par Example:
+    @code
+# set the upsert strategy depending on the use case
+my int $upsert_strategy;
+if ($verbose)
+    $upsert_strategy = AbstractTable::UpsertSelectFirst;
+else if ($new_install)
+    $upsert_strategy = AbstractTable::UpsertInsertFirst;
+else
+    $upsert_strategy = AbstractTable::UpsertUpdateFirst;
+
+# get the rows to be inserted
+my list $l = get_table_rows();
+
+# get the upsert closure to use based on the first row to be inserted
+my code $upsert = $table.getUpsertClosure($l[0], $upsert_strategy);
+
+# hash summarizing changes
+my hash $sh;
+
+on_success $ds.commit();
+on_error $ds.rollback();
+
+# loop through the reference data rows
+foreach my hash $h in ($l) {
+    my int $code = $upsert($h);
+    if ($code == AbstractTable::UR_Unchanged)
+        continue;
+
+    my string $change = !$verbose && $code == AbstractTable::UR_Updated ? "verified" : AbstractTable::UpsertResultMap{$code};
+    ++$sh{$change};
+
+    if (!$verbose) {
+        printf(".");
+        flush();
+    }
+    else if ($verbose > 1)
+        printf("*** reference data %s: %y: %s\n", $table.getName(), $h, $change);
+}
+
+# show table summary
+if ($sh)
+    printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
+else
+    printf("*** reference data %s: OK\n", $table.getName());
     @endcode
 
     @section schema_management Schema Management
+
+    @anchor creating_new_objects
+    <b>Creating New Objects</b>
+
+    @anchor retrieving_objects
+    <b>Retrieving Objects from the DB</b>
+
+    @anchor aligning_schemas
+    <b>Aligning Schemas With a Template</b>
+
+    @subsection table_management Table Management
+
+    The main class to be used for table management is @ref SqlUtil::Table.  This class can be used both for building a table from scratch or for retrieving the structure of a table from the database.
+
+    @anchor creating_new_tables
+    <b>Creating New Tables</b>
+
+    Tables can be created manually, by creating a @ref SqlUtil::Table object and then populating the table with columns, indexes, etc, and then calling @ref SqlUtil::Table::create() for example.
+    The following methods can be used for adding new attributes to a table:
+    - @ref SqlUtil::Table::addColumn()
+    - @ref SqlUtil::Table::addPrimaryKey()
+    - @ref SqlUtil::Table::addUniqueConstraint()
+    - @ref SqlUtil::Table::addIndex()
+    - @ref SqlUtil::Table::addForeignConstraint()
+    - @ref SqlUtil::Table::addCheckConstraint()
+    - @ref SqlUtil::Table::addTrigger()
+
+    Note that if the table is known to be in the database already (for example, if the original table info was read from the database), then calling one of the above methods will also effect the change in the database immediately.
+
+    Alternatively, the following methods can be used to retrieve the SQL that can be executed for the particular database driver that the @ref SqlUtil::Table object is based on:
+    - @ref SqlUtil::Table::getAddColumnSql()
+    - @ref SqlUtil::Table::getAddPrimaryKeySql()
+    - @ref SqlUtil::Table::getAddUniqueConstraintSql()
+    - @ref SqlUtil::Table::getAddIndexSql()
+    - @ref SqlUtil::Table::getAddForeignConstraintSql()
+    - @ref SqlUtil::Table::getAddCheckConstraintSql()
+    - @ref SqlUtil::Table::getAddTriggerSql()
+
+    Otherwise a table can be built from a @ref table_desc_hash "table description hash" with one of the following methods:
+    - @ref SqlUtil::Table::constructor()
+    - @ref SqlUtil::Table::setupTable()
+    
+    Table description hashes are also used when aligning tables to a template, which can be used to automate schema upgrades; see @ref SqlUtil::Table::getAlignSql(), @ref SqlUtil::Database::getAlignSql(), and @ref table_desc_hash "table description hash" for more information.
+
+    @anchor retrieving_table_info
+    <b>Retrieving Table Information</b>
+
+    The following methods retrieve table information from the database:
+    - @ref SqlUtil::Table::cache() "Table::cache()": this method reads in the entire table configuration immediately
+    - @ref SqlUtil::Table::describe() "Table::describe()": this method returns an object of class @ref SqlUtil::Columns describing the table's columns 
+    - @ref SqlUtil::Table::getPrimaryKey() "Table::getPrimaryKey()": this method returns an object of class @ref SqlUtil::AbstractPrimaryKey describing the table's primary key if it has one
+    - @ref SqlUtil::Table::getIndexes() "Table::getIndexes()": this method returns an object of class @ref SqlUtil::Indexes describing the table's indexes 
+    - @ref SqlUtil::Table::getForeignConstraints() "Table::getForeignConstraints()": this method returns an object of class @ref SqlUtil::ForeignConstraints describing the table's foreign constraints
+    - @ref SqlUtil::Table::getConstraints() "Table::getConstraints()": this method returns an object of class @ref SqlUtil::Constraints describing the table's non-foreign constraints
+    - @ref SqlUtil::Table::getTriggers() "Table::getTriggers()": this method returns an object of class @ref SqlUtil::Triggers describing the table's triggers
+
+    The @ref SqlUtil::Table::cache() method can be used to retrieve all table information from the database immediately as in the following example:
+    @code
+my Table $table($ds, "table_name");
+$table.cache();
+my string $sql = $table.getCreateSqlString();
+    @endcode
+
+    Use the following code to test if a table exists:
+    @code
+my Table $table($ds, "table_name");
+if ($table.checkExistence())
+    printf("table exists\n");
+    @endcode
+
+    Or the following:
+    @code
+Database $db($ds);
+*AbstractTable $table = $db.getTable("table_name");
+    @endcode
+
+    @anchor aligning_tables
+    <b>Aligning Tables With a Template</b>
+
+    Template tables can be created any way required (ie by hand, or by retrieving the description from another database), but typically they will be created from a @ref table_desc_hash "table description hash".
+
+    The following code provides an example of creating a template table and using it to align a table in the database with the template using callbacks:
+    @code
+my int $change_count;
+my code $info_callback = sub (string $str) {
+    ++$change_count;
+    if ($verbose)
+        printf("*** %s\n", $str);
+    else {
+        print(".");
+        flush();
+    }
+};
+
+my code $sql_callback = sub (string $str) {
+    if ($verbose > 1)
+        printf("%s\n", $str);
+    $ds.execRaw($str);
+};
+
+my hash $callback_opts = ("info_callback": $info_callback, "sql_callback": $sql_callback, "sql_callback_executed": True);
+
+my Table $template_table($ds, $table_desc_hash, "table_name");
+my Table $db_table($ds, "table_name");
+$db_table.getAlignSql($template_table, $callback_opts);
+    @endcode
 
     @anchor table_desc_hash
     <b>Table Description Hash</b>
@@ -100,6 +285,8 @@ my int $row_count = $table.del(("name": op_like("%Smith%")));
     - \c primary_key: (optional) a @ref pk_desc_hash "primary key description hash" describing the primary key for the table
     - \c indexes: (optional) a hash of index information keyed by index name; the values are @ref index_desc_hash "index description hashes"
     - \c triggers: (optional) a hash of trigger information keyed by trigger name; the values are the trigger source code; since triggers are driver-dependent, a driver-independent table description would include trigger hashes under the \c drivers key and the driver key name under that; see below for an example
+    - \c foreign_constraints: (optional) a hash of foreign constraint information keyed by constraint name; the values are @ref fk_desc_hash "foreign constraint hashes"
+    - \c unique_constraints: (optional) a hash of unique constraint information keyed by constraint name; the values are @ref uk_desc_hash "unique constraint hashes"
 
     Here is an example of a table description hash:
     @code
@@ -193,7 +380,9 @@ end;",
 );
     @endcode
 
-    @note the above example includes an additional driver-specific key for the \c "pgsql" driver: \c "functions" which is used by the PgsqlSqlUtil module to create trigger functions used by the table's trigger.
+    @note
+    - some databases will automatically create indexes for you when you create primary keys and unique constraints; some do not (ex: oracle).  In the above example, an index is created explicitly for the primary key constraint for oracle only.
+    - the above example includes an additional driver-specific key for the \c "pgsql" driver: \c "functions" which is used by the PgsqlSqlUtil module to create trigger functions used by the table's trigger.
 
     @anchor column_desc_hash
     <b>Column Description Hash</b>
@@ -240,12 +429,50 @@ my hash $pk_desc = (
 );
     @endcode
 
+    @anchor fk_desc_hash
+    <b>Foreign Constraint Description Hash</b>
+
+    The foreign constraint description hash has the following keys:
+    - \c columns: (required) a single column name or a list of column names in the current table making up the foreign constraint
+    - \c table: (required) a string giving the name of the table the foreign constraint is on
+    - \c target_columns: (optional) this key is only necessary if the columns in the foreign table have different names than in the current table; if so, it must be assigned to a single column name or a list of column names in the foreign table; if this key is present then the same number of columns must appear in each key
+
+    The following is an example of a foreign key description hash:
+    @code
+my hash $fk_desc = (
+    "columns": "queueid",
+    "tables": "queues",
+);
+    @endcode
+
+    @anchor uk_desc_hash
+    <b>Unique Constraint Description Hash</b>
+
+    The unique constraint description hash has the following key:
+    - \c columns: (required) a single column name or a list of column names in the current table making up the unique constraint
+
+    The following is an example of a unique constraint description hash:
+    @code
+my hash $uk_desc = (
+    "columns": ("type", "name"),
+);
+    @endcode
+
     @anchor index_desc_hash
     <b>Index Description Hash</b>
 
     Index description hashes have the following structure:
     - \c columns: (required) a single column or a list of column names making up the index
     - \c unique: a boolean value indicating if the index is unique or not, if missing, then the index is assumed to e not unique
+
+    The following is an example of an index description hash:
+    @code
+my hash $ix_desc = (
+    "columns": ("type", "name"),
+    "unique": True,
+);
+    @endcode
+
 */
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
@@ -2333,7 +2560,7 @@ my string $sql = $t.getSqlFromList($list);
 
         #! creates the object; private constructor
         /** @param nds the AbstractDatasource for the connection to the database
-            @param nopts a hash of options for the table creation string; see @ref TableOptions for common options; each driver can support additional driver-specific options
+            @param nopts a hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
          */
@@ -3516,6 +3743,17 @@ my bool $b = $table.inDb();
             return t.inDb();
         }
 
+        #! creates the object from a table description hash
+        /** @param desc a @ref table_desc_hash "table description hash" describing the table
+            @param opt an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw DESCRIPTION-ERROR invalid or unsupported description hash value passed
+        */
+        setupTable(hash desc, *hash opt) {
+            t.setupTable(desc, opt);
+        }
+
         #! returns an iterator for all unique constraints on the table (including the primary key if any)
         /** @par Example:
             @code
@@ -3757,7 +3995,9 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
 
-            @note make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
+            @note
+            - make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -3893,6 +4133,33 @@ printf("%s;\n", $sql);
             return t.addPrimaryKey(cname, cols, opt, \sql);
         }
 
+        #! returns the SQL that can be used to add a primary key to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddPrimaryKeySql("pk_mytable", "id", ("index_tablespace": "index1"), opt);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param pkname the name of the new primary key constraint
+            @param cols a single column name or a list of columns that make up the primary key
+            @param pkopt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to add a primary key to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        string getAddPrimaryKeySql(string pkname, softlist cols, *hash pkopt, *hash opt) {
+            return t.getAddPrimaryKeySql(pkname, cols, pkopt, opt);
+        }
+
         #! drops the primary key from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
@@ -3963,6 +4230,31 @@ printf("%s;\n", $sql);
             return t.addUniqueConstraint(cname, cols, opt, \sql);
         }
 
+        #! returns an SQL string that can be used to add a unique constraint to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddUniqueConstraintSql("uk_mytable", "name", ("index_tablespace": "index1"));
+printf("%s;\n", $sql);
+            @endcode
+
+            @param cname the name of the new unique constraint
+            @param cols a single column name or a list of columns that make up the unique constraint
+            @param ukopt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return an SQL string that can be used to add a unique constraint to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw UNIQUE-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        string getAddUniqueConstraintSql(string cname, softlist cols, *hash ukopt, *hash opt) {
+            return t.getAddUniqueConstraintSql(cname, cols, ukopt, opt);
+        }
+
         #! adds an index to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
@@ -3988,6 +4280,32 @@ printf("%s;\n", $sql);
          */
         AbstractIndex addIndex(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
             return t.addIndex(iname, unique, cols, opt, \sql);
+        }
+
+        #! returns an SQL string that can be used to add an index to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddIndexSql("uk_mytable_name", True, "name", ("index_tablespace": "index1"));
+printf("%s;\n", $sql);
+            @endcode
+
+            @param iname the name of the new index
+            @param unique a flag to tell if the new index should be unique or not
+            @param cols a single column name or a list of columns that make up the index
+            @param ixopt a hash of options for the new index; each driver may implement its own options; for common options, see @ref AbstractTable::IndexOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return an SQL string that can be used to add an index to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw INDEX-ERROR the table already has an index with the given name or invalid columns or options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        string getAddIndexSql(string iname, bool unique, softlist cols, *hash ixopt, *hash opt) {
+            return t.getAddIndexSql(iname, unique, cols, ixopt, opt);
         }
 
         #! renames an existing index; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
@@ -4102,6 +4420,33 @@ printf("%s;\n", $sql);
             return t.addForeignConstraint(cname, cols, table, tcols, opt, \sql);
         }
 
+        #! returns an SQL string that can be used to add a foreign constraint to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddForeignConstraintSql("fk_mytable_other_table", ("name", "version"), "other_table");
+printf("%s;\n", $sql);
+            @endcode
+
+            @param cname the name of the new foreign constraint
+            @param cols a single column name or a list of columns in the local table that make up the foreign constraint
+            @param table the name of the other table that the constraint targets
+            @param tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
+            @param fkopt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return an SQL string that can be used to add a foreign constraint to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw FOREIGN-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns or options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        string getAddForeignConstraintSql(string cname, softlist cols, string table, *softlist tcols, *hash fkopt, *hash opt) {
+            return t.getAddForeignConstraintSql(cname, cols, table, tcols, fkopt, opt);
+        }
+
         #! drops the foreign constraint from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
@@ -4170,6 +4515,33 @@ printf("%s;\n", $sql);
             return t.addCheckConstraint(cname, src, opt, \sql);
         }
 
+        #! returns an SQL string that can be used to add a check constraint to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddCheckConstraintSql("check_mytable_id", "id > 10");
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the new constraint
+            @param src the source of the constraint clause
+            @param copt a hash of options for the new constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return an SQL string that can be used to add a check constraint to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw CHECK-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns or options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        string getAddCheckConstraintSql(string cname, string src, *hash copt, *hash opt) {
+            return t.getAddCheckConstraintSql(cname, src, copt, opt);
+        }
+
         #! renames an existing constraint; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
             @code
@@ -4233,6 +4605,33 @@ printf("%s;\n", $sql);
          */
         AbstractTrigger addTrigger(string tname, string src, *hash opt, *reference lsql) {
             return t.addTrigger(tname, src, opt, \lsql);
+        }
+
+        #! returns a list of SQL strings that can be used to add a trigger to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddTriggerSql("trig_mytable", $trigger_src);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param tname the name of the new trigger
+            @param src the source of the trigger
+            @param topt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref AbstractTable::TriggerOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be used to add a trigger to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw TRIGGER-ERROR the table already has a trigger with the given name or invalid options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        list getAddTriggerSql(string tname, string src, *hash topt, *hash opt) {
+            return t.getAddTriggerSql(tname, src, topt, opt);
         }
 
         #! drops the given trigger from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
@@ -4500,7 +4899,9 @@ my SQLStatement $i = $table.getRowIterator();
             @return an SQLStatement object that will iterate the results of a select statement matching the arguments
 
             @throw OPTION-ERROR invalid or unsupportd select option
-            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
          */
         SQLStatement getRowIterator(*hash sh) {
             return t.getRowIterator(sh);
@@ -4517,7 +4918,9 @@ my *list $l = $table.selectRows($sh);
             @return a list of hashes representing the rows in the table that match the argument hash
 
             @throw OPTION-ERROR invalid or unsupportd select option
-            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
          */
         *list selectRows(*hash sh) {
             return t.selectRows(sh);
@@ -4536,9 +4939,11 @@ my string $sql = $table.getSelectSql($sh, \$args);
             @return the SQL that can be used to execute a select on the database corresponding to the arguments; the select bind arguments are returned in an output parameter
 
             @throw OPTION-ERROR invalid or unsupportd select option
-            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note the select string is specific to the arguments passed (for example @ref null arguments will have clauses like 'is null')
+            @note
+            - the select string is specific to the arguments passed (for example @ref null arguments will have clauses like 'is null')
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
          */
         string getSelectSql(*hash sh, *reference args) {
             return t.getSelectSql(sh, \args);
@@ -4933,7 +5338,7 @@ my *hash $row = $table.findSingle($h);
 
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @note this is equivalent to calling selectRows() with \c where = \c cond argument and \c limit = 1
+            @note this is equivalent to calling selectRows() with \c where = \c cond and \c limit = 1
          */
         *hash findSingle(*hash cond) {
             return t.findSingle(cond);
@@ -4951,7 +5356,7 @@ my *list $rows = $table.findAll($h);
 
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @note this is equivalent to calling selectRows() with \c where = \c cond argument
+            @note this is equivalent to calling selectRows() with \c where = \c cond
          */
         *list findAll(*hash cond) {
             return t.findAll(cond);
@@ -5682,7 +6087,9 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
 
-            @note make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
+            @note
+            - make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -5959,7 +6366,7 @@ printf("%s;\n", $sql);
 
             @param pkname the name of the new primary key constraint
             @param cols a single column name or a list of columns that make up the primary key
-            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref ConstraintOptions
+            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractPrimaryKey object corresponding to the primary key created
@@ -5975,7 +6382,50 @@ printf("%s;\n", $sql);
             return addPrimaryKeyUnlocked(pkname, cols, opt, \sql);
         }
 
+        #! returns the SQL that can be used to add a primary key to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddPrimaryKeySql("pk_mytable", "id", ("index_tablespace": "index1"), opt);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param pkname the name of the new primary key constraint
+            @param cols a single column name or a list of columns that make up the primary key
+            @param pkopt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to add a primary key to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        string getAddPrimaryKeySql(string pkname, softlist cols, *hash pkopt, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+            l.lock();
+            on_exit l.unlock();
+
+            string sql;
+            AbstractPrimaryKey pk = addPrimaryKeyUnlockedIntern(pkname, cols, pkopt, \sql);
+            on_success if (opt.sql_callback_executed) {
+                primaryKey = pk;
+                manual = True;
+            }
+            return AbstractDatabase::doCallback(opt, sql, "adding primary key %s to %s", pkname, getSqlName());
+        }
+
         private AbstractPrimaryKey addPrimaryKeyUnlocked(string pkname, softlist cols, *hash opt, *reference sql) {
+            AbstractPrimaryKey pk = addPrimaryKeyUnlockedIntern(pkname, cols, opt, \sql);
+            execSql(sql);
+            return primaryKey = pk;
+        }
+
+        private AbstractPrimaryKey addPrimaryKeyUnlockedIntern(string pkname, softlist cols, *hash opt, *reference sql) {
             getColumnsUnlocked();
             if (!manual)
                 getIndexesUnlocked();
@@ -6006,10 +6456,9 @@ printf("%s;\n", $sql);
             pk.findMatchingIndex(indexes);
 
             # add pk to table if the table already exists in the DB
-            execSql(sql = pk.getCreateSql(getSqlName()));
+            sql = pk.getCreateSql(getSqlName());
 
-            # set as primary key for the table
-            return primaryKey = pk;
+            return pk;
         }
 
         #! gets a list of SQL strings to drop all constraints and indexes with the given column name; if the column does not exist then an empty list is returned
@@ -6174,7 +6623,57 @@ printf("%s;\n", $sql);
             return addUniqueConstraintUnlocked(cname, cols, opt, \sql);
         }
 
+        #! returns an SQL string that can be used to add a unique constraint to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddUniqueConstraintSql("uk_mytable", "name", ("index_tablespace": "index1"));
+printf("%s;\n", $sql);
+            @endcode
+
+            @param cname the name of the new unique constraint
+            @param cols a single column name or a list of columns that make up the unique constraint
+            @param ukopt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return an SQL string that can be used to add a unique constraint to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw UNIQUE-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        string getAddUniqueConstraintSql(string cname, softlist cols, *hash ukopt, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            string sql;
+            AbstractUniqueConstraint uk = addUniqueConstraintUnlockedIntern(cname, cols, ukopt, \sql);
+            on_success if (opt.sql_callback_executed) {
+                # set as constraint for the table
+                if (!constraints)
+                    constraints = new Constraints();
+                constraints.add(cname, uk);
+                manual = True;
+            }
+            return AbstractDatabase::doCallback(opt, sql, "adding unique constraint %s to %s", cname, getSqlName());
+        }
+
         private AbstractUniqueConstraint addUniqueConstraintUnlocked(string cname, softlist cols, *hash opt, *reference sql) {
+            AbstractUniqueConstraint uk = addUniqueConstraintUnlockedIntern(cname, cols, opt, \sql);
+            # add foreign constraint to table in the DB if the table already exists in the DB
+            execSql(sql);
+            # set as constraint for the table
+            if (!constraints)
+                constraints = new Constraints();
+            constraints.add(cname, uk);
+            return uk;
+        }
+
+        private AbstractUniqueConstraint addUniqueConstraintUnlockedIntern(string cname, softlist cols, *hash opt, *reference sql) {
             getColumnsUnlocked();
             if (!manual)
                 getIndexesUnlocked();
@@ -6202,12 +6701,7 @@ printf("%s;\n", $sql);
             c.findMatchingIndex(indexes);
 
             # add foreign constraint to table in the DB if the table already exists in the DB
-            execSql(sql = c.getCreateSql(getSqlName()));
-
-            # set as constraint for the table
-            if (!constraints)
-                constraints = new Constraints();
-            constraints.add(cname, c);
+            sql = c.getCreateSql(getSqlName());
 
             # return the new constraint
             return c;
@@ -6226,7 +6720,7 @@ printf("%s;\n", $sql);
             @param iname the name of the new index
             @param unique a flag to tell if the new index should be unique or not
             @param cols a single column name or a list of columns that make up the index
-            @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref IndexOptions
+            @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref AbstractTable::IndexOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractIndex object corresponding to the index created
@@ -6242,7 +6736,53 @@ printf("%s;\n", $sql);
             return addIndexUnlocked(iname, unique, cols, opt, \sql);
         }
 
+        #! returns an SQL string that can be used to add an index to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddIndexSql("uk_mytable_name", True, "name", ("index_tablespace": "index1"));
+printf("%s;\n", $sql);
+            @endcode
+
+            @param iname the name of the new index
+            @param unique a flag to tell if the new index should be unique or not
+            @param cols a single column name or a list of columns that make up the index
+            @param ixopt a hash of options for the new index; each driver may implement its own options; for common options, see @ref AbstractTable::IndexOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return an SQL string that can be used to add an index to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw INDEX-ERROR the table already has an index with the given name or invalid columns or options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        string getAddIndexSql(string iname, bool unique, softlist cols, *hash ixopt, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            string sql;
+            AbstractIndex ix = addIndexUnlockedIntern(iname, unique, cols, ixopt, \sql);
+            on_success if (opt.sql_callback_executed) {
+                # set as index for the table
+                indexes.add(iname, ix);
+                manual = True;
+            }
+            return AbstractDatabase::doCallback(opt, sql, "adding index %s to %s", iname, getSqlName());
+        }
+
         private AbstractIndex addIndexUnlocked(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
+            AbstractIndex ix = addIndexUnlockedIntern(iname, unique, cols, opt, \sql);
+            execSql(sql);
+            # set as index for the table
+            indexes.add(iname, ix);
+            return ix;
+        }
+
+        private AbstractIndex addIndexUnlockedIntern(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
             getColumnsUnlocked();
             if (inDb)
                 getIndexesUnlocked();
@@ -6278,10 +6818,7 @@ printf("%s;\n", $sql);
             AbstractIndex ix = addIndexImpl(iname, unique, ch, opt);
             
             # add index to table in the DB if the table already exists in the DB
-            execSql(sql = ix.getCreateSql(getSqlName(), opt));
-
-            # set as index for the table
-            indexes.add(iname, ix);
+            sql = ix.getCreateSql(getSqlName(), opt);
 
             # return the new index
             return ix;
@@ -6408,7 +6945,7 @@ printf("%s;\n", $sql);
             @param cols a single column name or a list of columns in the local table that make up the foreign constraint
             @param table the name of the other table that the constraint targets
             @param tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
-            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref ForeignConstraintOptions
+            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractForeignConstraint object corresponding to the foreign constraint created
@@ -6422,6 +6959,51 @@ printf("%s;\n", $sql);
             on_exit l.unlock();
 
             return addForeignConstraintUnlocked(cname, cols, table, tcols, opt, \sql);
+        }
+
+        #! returns an SQL string that can be used to add a foreign constraint to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddForeignConstraintSql("fk_mytable_other_table", ("name", "version"), "other_table");
+printf("%s;\n", $sql);
+            @endcode
+
+            @param cname the name of the new foreign constraint
+            @param cols a single column name or a list of columns in the local table that make up the foreign constraint
+            @param table the name of the other table that the constraint targets
+            @param tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
+            @param fkopt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return an SQL string that can be used to add a foreign constraint to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw FOREIGN-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns or options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        string getAddForeignConstraintSql(string cname, softlist cols, string table, *softlist tcols, *hash fkopt, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            string sql;
+            AbstractForeignConstraint fk = addForeignConstraintUnlockedIntern(cname, cols, table, tcols, fkopt, \sql);
+            on_success if (opt.sql_callback_executed) {
+                # update cached tables with foreign constraint source info
+                if (opt.table_cache.hasKey(fk.target.table))
+                    opt.table_cache{fk.target.table}.addSourceConstraint(getSqlName(), fk);
+                
+                # set as foreign constraint for the table
+                if (!foreignConstraints)
+                    foreignConstraints = new ForeignConstraints();
+                foreignConstraints.add(cname, fk);
+                manual = True;
+            }
+            return AbstractDatabase::doCallback(opt, sql, "adding foreign constraint %s to %s", cname, getSqlName());
         }
 
         private Columns getReferencedTableColumnsUnlocked(string table, *Tables cache, string err = "FOREIGN-CONSTRAINT-ERROR") {
@@ -6440,6 +7022,21 @@ printf("%s;\n", $sql);
         }
 
         private AbstractForeignConstraint addForeignConstraintUnlocked(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
+            AbstractForeignConstraint fk = addForeignConstraintUnlockedIntern(cname, cols, table, tcols, opt, \sql);
+            execSql(sql);
+
+            # update cached tables with foreign constraint source info
+            if (opt.table_cache.hasKey(fk.target.table))
+                opt.table_cache{fk.target.table}.addSourceConstraint(getSqlName(), fk);
+
+            # set as foreign constraint for the table
+            if (!foreignConstraints)
+                foreignConstraints = new ForeignConstraints();
+            foreignConstraints.add(cname, fk);
+            return fk;
+        }
+
+        private AbstractForeignConstraint addForeignConstraintUnlockedIntern(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
             getColumnsUnlocked();
             # load constraints if needed, verify unique constraint name, validate/process options
             checkUniqueConstraintNameValidateOptions("FOREIGN-CONSTRAINT-ERROR", cname, getForeignConstraintOptions(), \opt);
@@ -6475,17 +7072,7 @@ printf("%s;\n", $sql);
             # get the new foreign constraint object
             AbstractForeignConstraint fk = addForeignConstraintImpl(cname, ch, table, tch, opt);
             
-            # add foreign constraint to table in the DB if the table already exists in the DB
-            execSql(sql = fk.getCreateSql(getSqlName()));
-
-            # update cached tables with foreign constraint source info
-            if (opt.table_cache.hasKey(fk.target.table))
-                opt.table_cache{fk.target.table}.addSourceConstraint(getSqlName(), fk);
-
-            # set as foreign constraint for the table
-            if (!foreignConstraints)
-                foreignConstraints = new ForeignConstraints();
-            foreignConstraints.add(cname, fk);
+            sql = fk.getCreateSql(getSqlName());
 
             # return the new foreign constraint
             return fk;
@@ -6563,7 +7150,7 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new constraint
             @param src the source of the constraint clause
-            @param opt a hash of options for the new constraint; each driver may implement its own options; for common options, see @ref ConstraintOptions
+            @param opt a hash of options for the new constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractCheckConstraint object corresponding to the check constraint created
@@ -6578,20 +7165,69 @@ printf("%s;\n", $sql);
             return addCheckConstraintUnlocked(cname, src, opt, \sql);
         }
 
+        #! returns an SQL string that can be used to add a check constraint to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddCheckConstraintSql("check_mytable_id", "id > 10");
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param cname the name of the new constraint
+            @param src the source of the constraint clause
+            @param copt a hash of options for the new constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return an SQL string that can be used to add a check constraint to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw CHECK-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns or options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        string getAddCheckConstraintSql(string cname, string src, *hash copt, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            string sql;
+            AbstractCheckConstraint cc = addCheckConstraintUnlocked(cname, src, copt, \sql);
+            on_success if (opt.sql_callback_executed) {
+                # set as constraint for the table
+                if (!constraints)
+                    constraints = new Constraints();
+                constraints.add(cname, cc);
+                manual = True;
+            }
+            return AbstractDatabase::doCallback(opt, sql, "adding check constraint %s to %s", cname, getSqlName());
+        }
+
         private AbstractCheckConstraint addCheckConstraintUnlocked(string cname, string src, *hash opt, *reference sql) {
+            AbstractCheckConstraint cc = addCheckConstraintUnlockedIntern(cname, src, opt, \sql);
+            execSql(sql);
+            
+            # set as constraint for the table
+            if (!constraints)
+                constraints = new Constraints();
+            constraints.add(cname, cc);
+
+            # return the new constraint
+            return cc;
+        }
+
+        private AbstractCheckConstraint addCheckConstraintUnlockedIntern(string cname, string src, *hash opt, *reference sql) {
             # load constraints if needed, verify unique constraint name, validate/process options
             checkUniqueConstraintNameValidateOptions("CHECK-CONSTRAINT-ERROR", cname, getConstraintOptions(), \opt);
 
             # get the new constraint object
             AbstractCheckConstraint cc = addCheckConstraintImpl(cname, src, opt);
             
-            # add foreign constraint to table in the DB if the table already exists in the DB
-            execSql(sql = cc.getCreateSql(getSqlName()));
-
-            # set as constraint for the table
-            if (!constraints)
-                constraints = new Constraints();
-            constraints.add(cname, cc);
+            # get the sql creation string
+            sql = cc.getCreateSql(getSqlName());
 
             # return the new constraint
             return cc;
@@ -6787,7 +7423,7 @@ printf("%s;\n", $sql);
 
             @param tname the name of the new trigger
             @param src the source of the trigger
-            @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref TriggerOptions
+            @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref AbstractTable::TriggerOptions
             @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractTrigger object corresponding to the trigger created
@@ -6803,7 +7439,63 @@ printf("%s;\n", $sql);
             return addTriggerUnlocked(tname, src, opt, \lsql);
         }
 
+        #! returns a list of SQL strings that can be used to add a trigger to the table
+        /** @par Example:
+            @code
+my string $sql = $table.getAddTriggerSql("trig_mytable", $trigger_src);
+printf("%s;\n", $sql);
+            @endcode
+
+            In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+            @param tname the name of the new trigger
+            @param src the source of the trigger
+            @param topt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref AbstractTable::TriggerOptions
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return a list of SQL strings that can be used to add a trigger to the table
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+            @throw TRIGGER-ERROR the table already has a trigger with the given name or invalid options were passed
+
+            @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+         */
+        list getAddTriggerSql(string tname, string src, *hash topt, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            list lsql;
+            AbstractTrigger trig = addTriggerUnlockedIntern(tname, src, topt, \lsql);
+            on_success if (opt.sql_callback_executed) {
+                # store trigger in trigger container
+                if (!triggers)
+                    triggers = new Triggers();
+                
+                triggers.add(tname, trig);
+                manual = True;
+            }
+            return AbstractDatabase::doCallback(opt, lsql, "adding trigger %s to %s", tname, getSqlName());
+        }
+
         private AbstractTrigger addTriggerUnlocked(string tname, string src, *hash opt, *reference lsql) {
+            AbstractTrigger trig = addTriggerUnlockedIntern(tname, src, opt, \lsql);
+            execSql(lsql);
+
+            # store trigger in trigger container
+            if (!triggers)
+                triggers = new Triggers();
+
+            triggers.add(tname, trig);
+
+            # return the new trigger
+            return trig;
+       }
+
+        private AbstractTrigger addTriggerUnlockedIntern(string tname, string src, *hash opt, *reference lsql) {
             # load triggers if needed
             if (!manual)
                 getTriggersUnlocked();
@@ -6818,14 +7510,7 @@ printf("%s;\n", $sql);
             # get the new constraint object
             AbstractTrigger trig = addTriggerImpl(tname, src, opt);
             
-            # add foreign constraint to table in the DB if the table already exists in the DB
-            execSql(lsql = trig.getCreateSql(getSqlName()));
-
-            # store trigger in trigger container
-            if (!triggers)
-                triggers = new Triggers();
-
-            triggers.add(tname, trig);
+            lsql = trig.getCreateSql(getSqlName());
 
             # return the new trigger
             return trig;
@@ -7240,7 +7925,9 @@ my SQLStatement $i = $table.getRowIterator($sh);
             @return an SQLStatement object that will iterate the results of a select statement matching the arguments
 
             @throw OPTION-ERROR invalid or unsupportd select option
-            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
          */
         SQLStatement getRowIterator(*hash sh) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
@@ -7273,7 +7960,9 @@ my *list $l = $table.selectRows($sh);
             @return a list of hashes representing the rows in the table that match the argument hash
 
             @throw OPTION-ERROR invalid or unsupportd select option
-            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
          */
         *list selectRows(*hash sh) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
@@ -7305,9 +7994,11 @@ my string $sql = $table.getSelectSql($sh, \$args);
             @return the SQL that can be used to execute a select on the database corresponding to the arguments; the select bind arguments are returned in an output parameter
 
             @throw OPTION-ERROR invalid or unsupportd select option
-            @throw SELECT-ERROR 'offset' supplied without 'orderby' or 'limit', 'orderby' with 'limit' and 'offset' does not match any unique constraint
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note the select string is specific to the arguments passed (for example @ref null arguments will have clauses like 'is null')
+            @note
+            - the select string is specific to the arguments passed (for example @ref null arguments will have clauses like 'is null')
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
          */
         string getSelectSql(*hash sh, *reference args) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
@@ -7338,8 +8029,14 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
         string getSelectSqlUnlocked(*hash qh, reference args) {            
             if (qh.offset) {
-                if (!qh.orderby)
-                    throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) but no 'orderby'", getName(), qh.offset);
+                if (!qh.orderby) {
+                    # use primary key by default
+                    getPrimaryKeyUnlocked();
+                    if (!primaryKey.empty())
+                        qh.orderby = primaryKey.keys();
+                    else
+                        throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) but no 'orderby'", getName(), qh.offset);
+                }
                 if (!qh.limit)
                     throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) without limit", getName(), qh.offset);
             }
@@ -8363,7 +9060,7 @@ my string $sql = $table.getAlignSqlString($table2);
 my *list $l = $table.getCreateIndexesSql();
             @endcode
 
-            @param opt a hash of options for the index creation string; see @ref IndexOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the index creation string; see @ref AbstractTable::IndexOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
@@ -8383,7 +9080,7 @@ my *list $l = $table.getCreateIndexesSql();
 my *string $sql = $table.getCreatePrimaryKeySql();
             @endcode
 
-            @param opt a hash of options for the primary key creation string; see @ref ConstraintOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the primary key creation string; see @ref AbstractTable::ConstraintOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return an SQL string that could be used to create the primary key on the table or @ref nothing if there is no primary key on the table
@@ -8403,7 +9100,7 @@ my *string $sql = $table.getCreatePrimaryKeySql();
 my *list $l = $table.getCreateForeignConstraintsSql();
             @endcode
 
-            @param opt a hash of options for the foreign constraint creation string; see @ref ForeignConstraintOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the foreign constraint creation string; see @ref AbstractTable::ForeignConstraintOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
@@ -8423,7 +9120,7 @@ my *list $l = $table.getCreateForeignConstraintsSql();
 my *list $l = $table.getCreateConstraintsSql();
             @endcode
 
-            @param opt a hash of options for the non-foreign constraint creation string; see @ref ConstraintOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the non-foreign constraint creation string; see @ref AbstractTable::ConstraintOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create non-foreign constraints on the table or @ref nothing if there are no non-foreign constraints on the table
@@ -8578,7 +9275,7 @@ my *hash $row = $table.findSingle($h);
 
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @note this is equivalent to calling selectRows() with \c where = \c cond argument and \c limit = 1
+            @note this is equivalent to calling selectRows() with \c where = \c cond and \c limit = 1
          */
         *hash findSingle(*hash cond) {
             return selectRows(("where": cond, "limit": 1))[0];
@@ -8596,7 +9293,7 @@ my *list $rows = $table.findAll($h);
 
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @note this is equivalent to calling selectRows() with \c where = \c cond argument
+            @note this is equivalent to calling selectRows() with \c where = \c cond
          */
         *list findAll(*hash cond) {
             return selectRows(("where": cond));
