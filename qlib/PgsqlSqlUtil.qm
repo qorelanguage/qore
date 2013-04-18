@@ -573,7 +573,7 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to drop the trigger from the database
-        string getDropSql(string table_name) {
+        softlist getDropSql(string table_name) {
             return sprintf("drop trigger %s on %s", name, table_name);
         }
 

@@ -59,6 +59,36 @@ module SqlUtil {
     
     All the public symbols in the module are defined in the SqlUtil namespace
 
+    @section sql_operations SQL Operations
+
+    @subsection where_clauses Where Clauses
+
+    Several methods accept a hash of conditions to build a \c "where" clause to restrict the rows that are operated on or returned; for example:
+    - @ref SqlUtil::AbstractTable::del()
+    - @ref SqlUtil::AbstractTable::delNoCommit()
+    - @ref SqlUtil::AbstractTable::findAll()
+    - @ref SqlUtil::AbstractTable::findSingle()
+    - @ref SqlUtil::AbstractTable::getRowIterator()
+    - @ref SqlUtil::AbstractTable::selectRows()
+    - @ref SqlUtil::AbstractTable::update()
+    - @ref SqlUtil::AbstractTable::updateNoCommit()
+
+    @note the above list also applies to the corresponding @ref SqlUtil::Table methods
+
+    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.
+
+    See @ref sql_op_funcs for a list of operator functions.
+
+    @par Examples:
+    Find a single row in the table where the \c "permission_type" column is a value between \c "US" and \c "UX":\n
+    @code
+my *hash $row = $table.findSingle(("permission_type": op_between("US", "UX")));
+    @endcode \n
+    Delete all rows in the table where the \c "name" column is like "%Smith%":\n
+    @code
+my int $row_count = $table.del(("name": op_like("%Smith%")));
+    @endcode
+
     @section schema_management Schema Management
 
     @anchor table_desc_hash
@@ -254,10 +284,7 @@ public namespace SqlUtil {
     #@}
 
     /** @defgroup sql_ops SQL Operators
-        These are the operators that can be used in where clauses, for example, in:
-        - @ref AbstractTable::del()
-        - @ref AbstractTable::findSingle()
-        - @ref AbstractTable::selectRows()
+        These are the operators that can be used in where clauses; see @ref where_clauses for more information
      */
     #@{
     #! the SQL "like" operator
@@ -294,10 +321,7 @@ public namespace SqlUtil {
     #@}
 
     /** @defgroup sql_op_funcs SQL Operator Functions
-        These functions can be used to provide operators or functions in where clauses, for example, in
-        - @ref AbstractTable::del()
-        - @ref AbstractTable::findSingle()
-        - @ref AbstractTable::selectRows()
+        These are the operators that can be used in where clauses; see @ref where_clauses for more information
      */
     #@{
     #! returns a hash with \c op and \c arg keys
@@ -4501,30 +4525,74 @@ my *list $l = $table.selectRows($sh);
 my int $dcnt = $table.del(("name": $name));
             @endcode
 
-            @param cond a hash of conditions for the where clause
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
 
             @return the count of rows deleted
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
             @see delNoCommit(*hash)
          */
         int del(*hash cond) {
-            return t.del(cond);
+            return del(cond);
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
         /** @par Example:
             @code
-my int $dcnt = $table.del(("name": $name));
+my int $dcnt = $table.delNoCommit(("name": $name));
             @endcode
 
-            @param cond a hash of conditions for the where clause
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
 
             @return the count of rows deleted
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
             @see del(*hash)
          */
         int delNoCommit(*hash cond) {
             return t.delNoCommit(cond);
+        }
+
+        #! updates rows in the table matching an optional condition and returns the count of rows updated; the transaction is committed if successful, if an error occurs then it is rolled back
+        /** @par Example:
+            @code
+my int $ucnt = $table.update(("id": $id), ("name": $name));
+            @endcode
+
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+
+            @return the count of rows updated
+
+            @throw UPDATE-ERROR the set hash is empty
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see updateNoCommit(hash, *hash)
+         */
+        int update(hash set, *hash cond) {
+            return t.update(set, cond);
+        }
+
+        #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
+        /** @par Example:
+            @code
+my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
+            @endcode
+
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+
+            @return the count of rows updated
+
+            @throw UPDATE-ERROR the set hash is empty
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see update(hash, *hash)
+         */
+        int updateNoCommit(hash set, *hash cond) {
+            return t.updateNoCommit(set, cond);
         }
 
         #! returns an SQL string corresponding to the list of commands in the argument
@@ -4828,18 +4896,40 @@ my *hash $row = $table.find($id);
             return t.find(row);
         }
 
-        #! finds a single row in the table with the given column values; the input hash may match multiple rows, but only one row will be returned; if no row matches the primary key value passed then @ref nothing is returned
+        #! finds a single row in the table that match the row condition passed; multiple rows may match, but only one row will be returned from the database; if no row matches the condition hash passed then @ref nothing is returned
         /** @par Example:
             @code
 my *hash $row = $table.findSingle($h);
             @endcode
 
-            @param row a hash giving the column values to find
+            @param cond a hash giving the column values to find; see @ref where_clauses for the format of this argument
 
-            @return a hash representing a single row in the table with the given column values; the input hash may match multiple rows, but only one row will be returned; if no row matches the primary key value passed then @ref nothing is returned
+            @return a hash representing a single row in the table with the given column values; multiple rows may match, but only one row will be returned from the database; if no row matches the condition hash passed then @ref nothing is returned
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @note this is equivalent to calling selectRows() with \c where = \c cond argument and \c limit = 1
          */
-        *hash findSingle(*hash row) {
-            return t.findSingle(row);
+        *hash findSingle(*hash cond) {
+            return t.findSingle(cond);
+        }
+
+        #! finds all rows in the table with the given column values; a list of hashes is returned representing the rows returned
+        /** @par Example:
+            @code
+my *list $rows = $table.findAll($h);
+            @endcode
+
+            @param cond a hash giving the column values to find; see @ref where_clauses for the format of this argument
+
+            @return a list of hashes is returned representing the rows returned
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @note this is equivalent to calling selectRows() with \c where = \c cond argument
+         */
+        *list findAll(*hash cond) {
+            return t.findAll(cond);
         }
 
         #! reads in all attributes of the table from the database
@@ -4967,6 +5057,13 @@ my Triggers $trig = $table.getTriggers();
             const TriggerOptions = AbstractDatabase::CreationOptions;
 
             #! default select options
+            /** the possible keys for select options are as follows (all keys are optional):
+                - \c where: see @ref where_clauses for more information about the hash that can be assigned to this key
+                - \c orderby: an optional list of strings that can be used to order the results
+                - \c desc: an optional boolean flag to return results in descending order
+                - \c limit: an optional integer value to limit the number of rows returned
+                - \c offset: an optional integer value to give the row number offset for the rows returned; if this is present, then \c orderby must also be present
+             */
             const SelectOptions = (
                 "where": Type::Hash,
                 "orderby": "softstringlist",
@@ -7211,19 +7308,84 @@ my *list $l = $table.selectRows($sh);
             return sql;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh) {
-            if (qh."where") {
-                list wl = ();
-                foreach hash h in (qh."where".pairIterator()) {
-                    if (h.value === NULL || !exists h.value)
-                        wl += sprintf("%s is null", h.key);
-                    else {
-                        wl += sprintf("%s = %v", h.key);
-                        args += h.value;
+        private *string getWhereClause(*hash cond, reference args) {
+            if (!cond)
+                return;
+
+            list wl = ();
+            foreach hash h in (cond.pairIterator()) {
+                # process SQL operators
+                if (h.value.typeCode() == NT_HASH) {
+                    hash oh = h.value;
+                    switch (oh.op) {
+                        case OP_LIKE: {
+                            wl += sprintf("%s like %v", h.key);
+                            args += oh.arg;
+                            break;
+                        }
+
+                        case OP_LT: {
+                            wl += sprintf("%s < %v", h.key);
+                            args += oh.arg;
+                            break;
+                        }
+                        
+                        case OP_LE: {
+                            wl += sprintf("%s <= %v", h.key);
+                            args += oh.arg;
+                            break;
+                        }
+                        
+                        case OP_GT: {
+                            wl += sprintf("%s > %v", h.key);
+                            args += oh.arg;
+                            break;
+                        }
+                        
+                        case OP_GE: {
+                            wl += sprintf("%s >= %v", h.key);
+                            args += oh.arg;
+                            break;
+                        }
+                        
+                        case OP_NE: {
+                            if (oh.arg === NULL || !exists oh.arg)
+                                wl += sprintf("%s is not null", h.key);
+                            else {
+                                wl += sprintf("%s != %v", h.key);
+                                args += oh.arg;
+                            }
+                            break;
+                        }
+
+                        case OP_BETWEEN: {
+                            wl += sprintf("%s between %v and %v", h.key);
+                            args += oh.arg[0];
+                            args += oh.arg[1];
+                            break;
+                        }
+                       
+                        case NOTHING:
+                            throw "WHERE-ERROR", sprintf("argument to key %y is a hash without an \"op\" key: %y", h.key, oh);
+                        default:
+                            throw "WHERE-ERROR", sprintf("operator hash for key %y hash unknown operator %y: expecting one of: %y (operator hash: %y)", h.key, oh.op, OpMap.keys(), oh);
                     }
+                    continue;
                 }
-                sql += " where " + (foldl $1 + " and " + $2, wl);
+                if (h.value === NULL || !exists h.value)
+                    wl += sprintf("%s is null", h.key);
+                else {
+                    wl += sprintf("%s = %v", h.key);
+                    args += h.value;
+                }
             }
+            return " where " + (foldl $1 + " and " + $2, wl);
+
+        }
+
+        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh) {
+            if (qh."where")
+                sql += getWhereClause(qh."where", \args);
         }
 
         private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh) {
@@ -7238,9 +7400,11 @@ my *list $l = $table.selectRows($sh);
 my int $dcnt = $table.del(("name": $name));
             @endcode
 
-            @param cond a hash of conditions for the where clause
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
 
             @return the count of rows deleted
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
             @see delNoCommit(*hash)
          */
@@ -7254,24 +7418,89 @@ my int $dcnt = $table.del(("name": $name));
         #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
         /** @par Example:
             @code
-my int $dcnt = $table.del(("name": $name));
+my int $dcnt = $table.delNoCommit(("name": $name));
             @endcode
 
-            @param cond a hash of conditions for the where clause
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
 
             @return the count of rows deleted
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
             @see del(*hash)
          */
         int delNoCommit(*hash cond) {
             # make query
             string sql = sprintf("delete from %s", getSqlName());
+            list args;
             if (cond)
-                sql += " where " + (foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), cond.keyIterator()));
+                sql += getWhereClause(cond, \args);
 
-            return ds.vexec(sql, cond.values());
+            return ds.vexec(sql, args);
         }
 
+        #! updates rows in the table matching an optional condition and returns the count of rows updated; the transaction is committed if successful, if an error occurs then it is rolled back
+        /** @par Example:
+            @code
+my int $ucnt = $table.update(("id": $id), ("name": $name));
+            @endcode
+
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+
+            @return the count of rows updated
+
+            @throw UPDATE-ERROR the set hash is empty
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see updateNoCommit(hash, *hash)
+         */
+        int update(hash set, *hash cond) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return updateNoCommit(cond);
+        }
+
+        #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
+        /** @par Example:
+            @code
+my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
+            @endcode
+
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+
+            @return the count of rows updated
+
+            @throw UPDATE-ERROR the set hash is empty
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see update(hash, *hash)
+         */
+        int updateNoCommit(hash set, *hash cond) {
+            # make query
+            string sql = sprintf("update %s set ", getSqlName());
+
+            if (!set)
+                throw "UPDATE-ERROR", "the set hash is empty";
+
+            list args;
+
+            list sl = ();
+            foreach hash h in (set.pairIterator()) {
+                sl += sprintf("%s = %v", h.key);
+                args += h.value;
+            }
+
+            sql += foldl $1 + "," + $2, sl;
+            
+            if (cond)
+                sql += getWhereClause(cond, \args);
+
+            return ds.vexec(sql, args);
+        }
+        
         private code getUpsertClosureUnlocked(hash row, int upsert_strategy = UpsertInsertFirst) {
             # unique column source
             string csrc;
@@ -8283,20 +8512,40 @@ my *hash $row = $table.find($h);
             return ds.vselectRow(sql, row.values());
         }
 
-        #! finds a single row in the table with the given column values; the input hash may match multiple rows, but only one row will be returned; if no row matches the primary key value passed then @ref nothing is returned
+        #! finds a single row in the table that match the row condition passed; multiple rows may match, but only one row will be returned from the database; if no row matches the condition hash passed then @ref nothing is returned
         /** @par Example:
             @code
 my *hash $row = $table.findSingle($h);
             @endcode
 
-            @param row a hash giving the column values to find
+            @param cond a hash giving the column values to find; see @ref where_clauses for the format of this argument
 
-            @return a hash representing a single row in the table with the given column values; the input hash may match multiple rows, but only one row will be returned; if no row matches the primary key value passed then @ref nothing is returned
+            @return a hash representing a single row in the table with the given column values; multiple rows may match, but only one row will be returned from the database; if no row matches the condition hash passed then @ref nothing is returned
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @note this is equivalent to calling selectRows() with \c where = \c cond argument and \c limit = 1
          */
-        *hash findSingle(*hash row) {
-            *list l = selectRows(("where": row));
-            if (l)
-                return l[0];
+        *hash findSingle(*hash cond) {
+            return selectRows(("where": cond, "limit": 1))[0];
+        }
+
+        #! finds all rows in the table with the given column values; a list of hashes is returned representing the rows returned
+        /** @par Example:
+            @code
+my *list $rows = $table.findAll($h);
+            @endcode
+
+            @param cond a hash giving the column values to find; see @ref where_clauses for the format of this argument
+
+            @return a list of hashes is returned representing the rows returned
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @note this is equivalent to calling selectRows() with \c where = \c cond argument
+         */
+        *list findAll(*hash cond) {
+            return selectRows(("where": cond));
         }
 
         #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)

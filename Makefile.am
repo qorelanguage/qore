@@ -872,9 +872,9 @@ docs/modules/Util/html: docs/lang/html doxygen/qlib/Util.qm.dox.h doxygen/qlib/D
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.Util
 	$(top_srcdir)/doxygen/pdox docs/modules/Util/html docs/modules/Util/html/search
 
-docs/modules/WebSocketHandlerHandler/html: docs/lang/html doxygen/qlib/WebSocketHandlerHandler.qm.dox.h doxygen/qlib/Doxyfile.WebSocketHandlerHandler
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.WebSocketHandlerHandler
-	$(top_srcdir)/doxygen/pdox docs/modules/WebSocketHandlerHandler/html docs/modules/WebSocketHandlerHandler/html/search
+docs/modules/WebSocketHandler/html: docs/lang/html doxygen/qlib/WebSocketHandler.qm.dox.h doxygen/qlib/Doxyfile.WebSocketHandler
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.WebSocketHandler
+	$(top_srcdir)/doxygen/pdox docs/modules/WebSocketHandler/html docs/modules/WebSocketHandler/html/search
 
 doxygen-doc: $(DOXYGEN_OUTPUT)
 
