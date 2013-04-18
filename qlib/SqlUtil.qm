@@ -253,6 +253,100 @@ public namespace SqlUtil {
     public const SZ_NUM = 3;
     #@}
 
+    /** @defgroup sql_ops SQL Operators
+        These are the operators that can be used in where clauses, for example, in:
+        - @ref AbstractTable::del()
+        - @ref AbstractTable::findSingle()
+        - @ref AbstractTable::selectRows()
+     */
+    #@{
+    #! the SQL "like" operator
+    public const OP_LIKE = "like";
+
+    #! the SQL less than (<) operator
+    public const OP_LT = "<";
+
+    #! the SQL less than or equals (<=) operator
+    public const OP_LE = "<=";
+
+    #! the SQL greater than operator (>)
+    public const OP_GT = ">";
+
+    #! the SQL greater than or equals operator (>=)
+    public const OP_GE = ">=";
+
+    #! the SQL not equals operator (!= or <>)
+    public const OP_NE = "!=";
+
+    #! the SQL \c "between" operator
+    public const OP_BETWEEN = "between";
+
+    #! a hash of valid operators
+    public const OpMap = (
+      OP_LIKE: True,
+      OP_LT: True,
+      OP_LE: True,
+      OP_GT: True,
+      OP_GE: True,
+      OP_NE: True,
+      OP_BETWEEN: True
+        );
+    #@}
+
+    /** @defgroup sql_op_funcs SQL Operator Functions
+        These functions can be used to provide operators or functions in where clauses, for example, in
+        - @ref AbstractTable::del()
+        - @ref AbstractTable::findSingle()
+        - @ref AbstractTable::selectRows()
+     */
+    #@{
+    #! returns a hash with \c op and \c arg keys
+    public hash sub make_op(string op, any arg) {
+        return ("op": op, "arg": arg);
+    }
+
+    #! returns a hash for the \c "like" operator with the given argument
+    public hash sub op_like(string str) {
+        return make_op(OP_LIKE, str);
+    }
+
+    #! returns a hash for the \c "<" operator with the given argument
+    public hash sub op_lt(any arg) {
+        return make_op(OP_LT, arg);
+    }
+
+    #! returns a hash for the \c "<=" operator with the given argument
+    public hash sub op_le(any arg) {
+        return make_op(OP_LE, arg);
+    }
+
+    #! returns a hash for the \c ">" operator with the given argument
+    public hash sub op_gt(any arg) {
+        return make_op(OP_GT, arg);
+    }
+
+    #! returns a hash for the \c ">=" operator with the given argument
+    public hash sub op_ge(any arg) {
+        return make_op(OP_GE, arg);
+    }
+
+    #! returns a hash for the \c "!=" operator with the given argument
+    public hash sub op_ne(any arg) {
+        return make_op(OP_NE, arg);
+    }
+
+    #! returns a hash for the \c "between" operator with the given arguments, neither of which can be @ref null or @ref nothing
+    /** @throw BETWEEN-ERROR one or both of the required arguments are @ref null or @ref nothing
+     */
+    public hash sub op_between(any l, any r) {
+        if (!exists l || l === NULL)
+            throw "BETWEEN-ERROR", sprintf("the first argument is %y; both arguments to op_between() must be values that can be used with the BETWEEN operator (ie not NULL or NOTHING)", l);
+        if (!exists r || r === NULL)
+            throw "BETWEEN-ERROR", sprintf("the second argument is %y; both arguments to op_between() must be values that can be used with the BETWEEN operator (ie not NULL or NOTHING)", r);
+        return make_op(OP_BETWEEN, (l, r));
+    }
+    #@}
+
     #! abstract container class that throws an exception if an unknown key is accessed
     public class AbstractHashContainer {
         public {}
