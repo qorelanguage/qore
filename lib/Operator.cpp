@@ -358,15 +358,9 @@ static bool op_instanceof(const AbstractQoreNode *l, const AbstractQoreNode *r, 
 static bool op_log_and(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    // if left side is 0, then do not evaluate right side
    bool l = left->boolEval(xsink);
-   if (xsink->isEvent())
+   if (!l || xsink->isEvent())
       return false;
-   bool b;
-   if (!l)
-      b = false;
-   else
-      b = right->boolEval(xsink);
-   
-   return b;
+   return right->boolEval(xsink);
 }
 
 static int64 op_cmp_bigint(int64 left, int64 right) {

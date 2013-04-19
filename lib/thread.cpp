@@ -236,6 +236,7 @@ typedef std::set<const lvalue_ref*> ref_set_t;
 // this structure holds all thread-specific data
 class ThreadData {
 public:
+   int64 runtime_po;
    int tid;
    VLock vlock;     // for deadlock detection
    Context *context_stack;
@@ -322,7 +323,7 @@ public:
    foreign : 1; // true if the thread is a foreign thread
 
    DLLLOCAL ThreadData(int ptid, QoreProgram* p, bool n_foreign = false) :
-      tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
+      runtime_po(0), tid(ptid), vlock(ptid), context_stack(0), plStack(0),
       parse_code(0), parseState(0), vstack(0), cvarstack(0),
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
       current_pgm(p), current_ns(0), current_implicit_arg(0), tlpd(0), tpd(new ThreadProgramData(this)),
@@ -1229,8 +1230,25 @@ const qore_class_private* runtime_get_class() {
    return (thread_data.get())->current_classobj.getClass();
 }
 
+QoreProgramBlockParseOptionHelper::QoreProgramBlockParseOptionHelper(int64 n_po) {
+   ThreadData *td = thread_data.get();
+   if (td->runtime_po != n_po) {
+      po = td->runtime_po;
+      td->runtime_po = n_po;
+   }
+   else
+      po = -1;
+}
+
+QoreProgramBlockParseOptionHelper::~QoreProgramBlockParseOptionHelper() {
+   if (po != -1) {
+      ThreadData *td = thread_data.get();
+      td->runtime_po = po;
+   }
+}
+
 ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) :
-            old_pgm(0), old_tlpd(0), restore(false) {
+      old_pgm(0), old_tlpd(0), restore(false) {
    if (!pgm)
       return;
 
@@ -1275,13 +1293,20 @@ RootQoreNamespace *getRootNS() {
    //return (thread_data.get())->pgmStack->getProgram()->getRootNS();
 }
 
-int64 getParseOptions() {
+int64 parse_get_parse_options() {
    return (thread_data.get())->current_pgm->getParseOptions64();
-   //return (thread_data.get())->pgmStack->getProgram()->getParseOptions();
 }
 
-bool checkParseOption(int64 o) {
-   return (getParseOptions() & o) == o;
+int64 runtime_get_parse_options() {
+   return (thread_data.get())->runtime_po;
+}
+
+bool parse_check_parse_option(int64 o) {
+   return (parse_get_parse_options() & o) == o;
+}
+
+bool runtime_check_parse_option(int64 o) {
+   return (runtime_get_parse_options() & o) == o;
 }
 
 void updateCVarStack(CVNode* ncvs) {

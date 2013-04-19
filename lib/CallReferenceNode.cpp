@@ -462,7 +462,7 @@ AbstractQoreNode *UnresolvedCallReferenceNode::parseInit(LocalVar *oflag, int pf
 
    // try to resolve a method call if bare references are allowed
    // and we are parsing in an object context
-   if (checkParseOption(PO_ALLOW_BARE_REFS) && oflag) {
+   if (parse_check_parse_option(PO_ALLOW_BARE_REFS) && oflag) {
       const QoreClass *qc = oflag->getTypeInfo()->getUniqueReturnClass();
       const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass *>(qc), str);
       if (m) {
@@ -581,7 +581,7 @@ AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *o
    const QoreMethod *qm = 0;
    // try to find a pointer to a non-static method if parsing in the class' context
    // and bare references are enabled
-   if (oflag && checkParseOption(PO_ALLOW_BARE_REFS) && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc)) {
+   if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS) && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc)) {
       qm = qc->parseFindMethodTree(scope->getIdentifier());
       assert(!qm || !qm->isStatic());
    }

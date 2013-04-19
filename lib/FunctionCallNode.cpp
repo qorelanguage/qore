@@ -194,12 +194,12 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar 
          }
       }
       else {
-         //printd(5, "FunctionCallBase::parseArgsVariant() this=%p func=%p f=%lld (%lld) c=%lld (%lld)\n", this, func, func->getUniqueFunctionality(), func->getUniqueFunctionality() & po, func->getUniqueFlags(), func->getUniqueFlags() & QC_RET_VALUE_ONLY);
+         //printd(5, "FunctionCallBase::parseArgsVariant() this=%p func=%p f=%lld (%lld) c=%lld (%lld)\n", this, func, func->parseGetUniqueFunctionality(), func->parseGetUniqueFunctionality() & po, func->parseGetUniqueFlags(), func->parseGetUniqueFlags() & QC_RET_VALUE_ONLY);
 
-         int64 po = pgm->getParseOptions64();
-         if (func->getUniqueFunctionality() & po)
+         int64 po = parse_get_parse_options();
+         if (func->parseGetUniqueFunctionality() & po)
             invalid_access(func);
-         check_flags(func, func->getUniqueFlags(), pflag);
+         check_flags(func, func->parseGetUniqueFlags(), pflag);
       }
 
       returnTypeInfo = variant ? variant->parseGetReturnTypeInfo() : func->parseGetUniqueReturnTypeInfo();
@@ -379,7 +379,7 @@ AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, in
    //assert(!func);
    assert(c_str);
 
-   bool abr = checkParseOption(PO_ALLOW_BARE_REFS);
+   bool abr = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
    // try to resolve bare reference if allowed
    if (abr) {
@@ -453,7 +453,7 @@ AbstractQoreNode *FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, in
    assert(c_str);
    assert(!returnTypeInfo);
 
-   bool abr = checkParseOption(PO_ALLOW_BARE_REFS);
+   bool abr = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
    AbstractQoreNode *n = 0;
 
@@ -608,7 +608,7 @@ AbstractQoreNode *StaticMethodCallNode::makeReferenceNodeAndDeref() {
 
 AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
-   bool abr = checkParseOption(PO_ALLOW_BARE_REFS);
+   bool abr = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
    QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(*scope, false);
 

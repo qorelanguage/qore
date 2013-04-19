@@ -96,7 +96,7 @@ public:
       if (variant)
          doFlags(variant->getFlags());
       else if (func)
-         doFlags(func->getUniqueFlags());
+         doFlags(func->parseGetUniqueFlags());
       return lvids;
    }
 

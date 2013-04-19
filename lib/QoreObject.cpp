@@ -1031,7 +1031,6 @@ bool QoreObject::getAsBoolImpl() const {
       return false;
 
    AutoLocker al(priv->mutex);
-
    return priv->status != OS_DELETED;
 }
 

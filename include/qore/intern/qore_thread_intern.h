@@ -234,8 +234,13 @@ DLLLOCAL const char* get_parse_code();
 DLLLOCAL QoreProgramLocation get_parse_location();
 DLLLOCAL void update_parse_location(const QoreProgramLocation& loc);
 
+DLLLOCAL int64 parse_get_parse_options();
+DLLLOCAL int64 runtime_get_parse_options();
+
+DLLLOCAL bool parse_check_parse_option(int64 o);
+DLLLOCAL bool runtime_check_parse_option(int64 o);
+
 DLLLOCAL RootQoreNamespace* getRootNS();
-DLLLOCAL int64 getParseOptions();
 DLLLOCAL void updateCVarStack(CVNode* ncvs);
 DLLLOCAL CVNode* getCVarStack();
 DLLLOCAL void updateVStack(VNode* nvs);
@@ -578,6 +583,15 @@ public:
 };
 
 struct ThreadLocalProgramData;
+
+class QoreProgramBlockParseOptionHelper {
+protected:
+   int64 po;
+
+public:
+   DLLLOCAL QoreProgramBlockParseOptionHelper(int64 n_po);
+   DLLLOCAL ~QoreProgramBlockParseOptionHelper();
+};
 
 class ProgramThreadCountContextHelper {
 protected:

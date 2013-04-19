@@ -374,8 +374,6 @@ DLLLOCAL int check_lvalue_float(const QoreTypeInfo *&typeInfo, const char* name)
 DLLLOCAL int check_lvalue_int_float_number(const QoreTypeInfo *&typeInfo, const char* name);
 DLLLOCAL int check_lvalue_number(const QoreTypeInfo *&typeInfo, const char* name);
 
-DLLLOCAL bool checkParseOption(int64 o);
-
 DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
 DLLLOCAL extern QoreClass* QC_PSEUDONOTHING;
 

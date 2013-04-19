@@ -811,14 +811,14 @@ public:
 
    DLLLOCAL AbstractFunctionSignature* parseGetUniqueSignature() const;
 
-   DLLLOCAL int64 getUniqueFunctionality() const {
-      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
+   DLLLOCAL int64 parseGetUniqueFunctionality() const {
+      if (parse_get_parse_options() & PO_REQUIRE_TYPES)
          return nn_unique_functionality;
       return unique_functionality;
    }
 
-   DLLLOCAL int64 getUniqueFlags() const {
-      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
+   DLLLOCAL int64 parseGetUniqueFlags() const {
+      if (parse_get_parse_options() & PO_REQUIRE_TYPES)
          return nn_unique_flags;
       return unique_flags;
    }
@@ -833,7 +833,7 @@ public:
    DLLLOCAL void parseRollback();
 
    DLLLOCAL const QoreTypeInfo* getUniqueReturnTypeInfo() const {
-      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
+      if (runtime_get_parse_options() & PO_REQUIRE_TYPES)
          return nn_uniqueReturnType;
 
       return same_return_type && !vlist.empty() ? first()->getReturnTypeInfo() : 0;
@@ -842,7 +842,7 @@ public:
    DLLLOCAL const QoreTypeInfo* parseGetUniqueReturnTypeInfo() {
       parseCheckReturnType();
 
-      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES) {
+      if (parse_get_parse_options() & PO_REQUIRE_TYPES) {
          if (!nn_same_return_type || !parse_same_return_type)
             return 0;
 

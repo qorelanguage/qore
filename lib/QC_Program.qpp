@@ -456,23 +456,7 @@ Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
       return;
    }
 
-   /*
-   int64 current_po = getParseOptions();
-   bool user_module = current_po & PO_IN_MODULE;
-   // set parse options for user modules
-   if (user_module) {
-      // only allow positive options that are also set in the current Program
-      po &= ((PO_POSITIVE_OPTIONS & current_po & po) | ~PO_POSITIVE_OPTIONS);
-      // only allow options also set in the current pgm
-      po &= current_po;
-   }
-   */
    QoreProgram* pgm = new QoreProgram(getProgram(), po);
-
-   /*
-   if (user_module)
-      pgm->lockOptions();
-   */
    self->setPrivate(CID_PROGRAM, pgm);
 }
 
@@ -862,7 +846,7 @@ my int $mask = $pgm.getParseOptions();
     @endcode
  */
 int Program::getParseOptions() {
-   return p->getParseOptions64();
+   return runtime_get_parse_options();
 }
 
 //! Sets parse options in the parse option mask for the Program object

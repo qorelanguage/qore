@@ -123,7 +123,7 @@ public:
 
    DLLLOCAL ConstNode(char* n, AbstractQoreNode* v, bool p = false) : name(n), value(v), pub(p) {
       // see if constant definitions are allowed
-      if (checkParseOption(PO_NO_CONSTANT_DEFS))
+      if (parse_check_parse_option(PO_NO_CONSTANT_DEFS))
          parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", n);
    }
    DLLLOCAL AbstractQoreNode* takeValue() {
@@ -182,7 +182,7 @@ public:
       qore_root_ns_private::addPendingVariant(ns, name, variant);
       variant = 0;
       // make sure definition was legal
-      if (checkParseOption(PO_NO_SUBROUTINE_DEFS)) {
+      if (parse_check_parse_option(PO_NO_SUBROUTINE_DEFS)) {
          const char* nsn = ns.name.c_str();
          parse_error("function '%s%s%s()' cannot be defined (conflicts with parse option NO_SUBROUTINE_DEFS)", nsn[0] ? nsn : "", nsn[0] ? "::" : "", name);
       }
@@ -202,7 +202,7 @@ public:
       qore_root_ns_private::addPendingVariant(ns, name, variant);
       variant = 0;
       // make sure definition was legal
-      if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
+      if (parse_check_parse_option(PO_NO_SUBROUTINE_DEFS))
          parse_error("function '%s()' cannot be defined (conflicts with parse option NO_SUBROUTINE_DEFS)", name.ostr);
 
       delete this;
@@ -230,11 +230,11 @@ struct GVarSingleDecl : public GVarDecl {
 
    DLLLOCAL GVarSingleDecl(char* n, const QoreTypeInfo* ti, QoreParseTypeInfo* pti, bool p, bool bare) : GVarDecl(p), name(n), typeInfo(ti), parseTypeInfo(pti) {
       if (bare) {
-         if (!checkParseOption(PO_ALLOW_BARE_REFS))
+         if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
             parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", n);
       }
       else {
-         if (checkParseOption(PO_ALLOW_BARE_REFS))
+         if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
             parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", n);
       }
    }
@@ -279,7 +279,7 @@ struct GVarListDecl : public GVarDecl {
    QoreListNode* l;
 
    DLLLOCAL GVarListDecl(QoreListNode* list, bool p) : GVarDecl(p), l(list) {
-      bool bareok = checkParseOption(PO_ALLOW_BARE_REFS);
+      bool bareok = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
       ListIterator li(l);
       while (li.next()) {
@@ -1164,7 +1164,7 @@ void ignore_return_value(AbstractQoreNode* n) {
 }
 
 static qore_var_t get_var_type() {
-   return checkParseOption(PO_ASSUME_LOCAL) ? VT_LOCAL : VT_UNRESOLVED;
+   return parse_check_parse_option(PO_ASSUME_LOCAL) ? VT_LOCAL : VT_UNRESOLVED;
 }
 
 %}
@@ -1468,7 +1468,7 @@ top_level_command:
            qore_root_ns_private::parseAddClass(*($1->name), $1->oc);
 
 	   // see if class definitions are allowed
-	   if (checkParseOption(PO_NO_CLASS_DEFS))
+	   if (parse_check_parse_option(PO_NO_CLASS_DEFS))
 	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
 	   delete $1;
 	}
@@ -1500,7 +1500,7 @@ top_level_command:
         | top_namespace_decl {
            qore_root_ns_private::parseAddNamespace($1); 
 	   // see if ns declaration is legal
-	   if (checkParseOption(PO_NO_NAMESPACE_DEFS))
+	   if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
 	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
         | TOK_MODULE '{' module_decls '}' {
@@ -1513,16 +1513,16 @@ top_level_command:
         | TRY_MODULE_ERROR {
            bool has_dollar = $1->var[0] == '$';
            if (!has_dollar) {
-              if (!checkParseOption(PO_ALLOW_BARE_REFS))
+              if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
                  parse_error("%%try-module variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $1->var);
            }
            else {
               $1->fixName();
-              if (checkParseOption(PO_ALLOW_BARE_REFS))
+              if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
                  parse_error("%%try-module variable '%s' declared with '$' prefix, but parse option 'allow-bare-refs' is set", $1->var);
            }
 
-           if (checkParseOption(PO_NO_TOP_LEVEL_STATEMENTS)) {
+           if (parse_check_parse_option(PO_NO_TOP_LEVEL_STATEMENTS)) {
               parse_error("'%%try-module' with exception variable cannot be used with parse option NO_TOP_LEVEL_STATEMENTS; use %%try-module without an exception variable instead");
               delete $1;
            }
@@ -1636,7 +1636,7 @@ namespace_decl:
 	| class_def {
 	   $$ = new NSNode($1);
 	   // see if class definitions are allowed
-	   if (checkParseOption(PO_NO_CLASS_DEFS))
+	   if (parse_check_parse_option(PO_NO_CLASS_DEFS))
 	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
 	}
         | sub_def {
@@ -1651,7 +1651,7 @@ namespace_decl:
 	| top_namespace_decl { 
 	   $$ = new NSNode($1); 
 	   // see if ns declaration is legal
-	   if (checkParseOption(PO_NO_NAMESPACE_DEFS))
+	   if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
 	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
         | outofline_methoddef {
@@ -1782,7 +1782,7 @@ statement:
         | return_statement ';' { $$ = $1; }
         | TOK_THREAD_EXIT ';' {
 	   // see if thread exit is allowed
-	   if (checkParseOption(PO_NO_THREAD_CONTROL))
+	   if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
 	      parse_error("illegal use of \"thread_exit\" (conflicts with parse option NO_THREAD_CONTROL)");
 
 	   $$ = new ThreadExitStatement(@1.first_line, @1.last_line); 
@@ -1959,7 +1959,7 @@ try_statement:
 		 param = reinterpret_cast<VarRefNode*>($5)->takeName();
 	      else if ($5->getType() == NT_BAREWORD) {
 		 param = reinterpret_cast<BarewordNode*>($5)->takeString();
-		 if (!checkParseOption(PO_ALLOW_BARE_REFS))
+		 if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
 		    parse_error("local variable '%s' in catch parameter list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", param);
 	      }
 	      else
@@ -2189,14 +2189,14 @@ member2:
 	   int fl = $1 ? @1.first_line : @2.first_line;
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @2.last_line, $1->getTypeInfo(), $1->getParseTypeInfo()));
 	   delete $1;
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
 	}
         | qtypedef SELF_REF '=' exp ';' {
 	   int fl = $1 ? @1.first_line : @2.first_line;
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, $1->getTypeInfo(), $1->getParseTypeInfo(), $4));
 	   delete $1;
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
 	}
         | qtypedef SELF_REF '(' myexp ')' ';' {
@@ -2214,21 +2214,21 @@ member2:
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, $1->getTypeInfo(), $1->getParseTypeInfo(), new_call));
 
 	   delete $1;
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
 	}
         | uncqtypedef IDENTIFIER ';' {
 	   int fl = @1.first_line;
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @2.last_line, $1->getTypeInfo(), $1->getParseTypeInfo()));
 	   delete $1;
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);
 	}
         | uncqtypedef IDENTIFIER '=' exp ';' {
 	   int fl = @1.first_line;
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, $1->getTypeInfo(), $1->getParseTypeInfo(), $4));
 	   delete $1;
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);
 	}
         | uncqtypedef IDENTIFIER '(' myexp ')' ';' {
@@ -2246,19 +2246,19 @@ member2:
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, $1->getTypeInfo(), $1->getParseTypeInfo(), new_call));
 
 	   delete $1;
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);
 	}
         | IDENTIFIER ';' {
 	   int fl = @1.first_line;
 	   $$ = new MemberInfo($1, new QoreMemberInfo(fl, @1.last_line));
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);
 	}
         | IDENTIFIER '=' exp ';' {
 	   int fl = @1.first_line;
 	   $$ = new MemberInfo($1, new QoreMemberInfo(fl, @3.last_line, $3));
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);
 	}
         | classvardecl {
@@ -2275,12 +2275,12 @@ member2:
 member:
 	SELF_REF {
 	   $$ = new MemberInfo($1);
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
         }
         | SELF_REF SCOPED_REF {
 	   $$ = new MemberInfo($1, new QoreMemberInfo(@1.first_line, @2.last_line, $2));
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
 	}
         ;
@@ -2623,7 +2623,7 @@ exp:    scalar
 	      $$ = new VarRefNode($2, get_var_type());
 
 	   delete $1;
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to variable '%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
 	}
         | qtypedef SCOPED_VREF {
@@ -2636,7 +2636,7 @@ exp:    scalar
 	      $$ = new VarRefNode($2, get_var_type());
 
 	   delete $1;
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to variable '%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
 	}
         | uncqtypedef IDENTIFIER {
@@ -2648,17 +2648,17 @@ exp:    scalar
 	   v->setExplicitScope();
 	   $$ = v;
 	   delete $2;
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("local variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $3);
 	}
         | TOK_MY IDENTIFIER {
 	   // see if types are required
-	   if (checkParseOption(PO_REQUIRE_TYPES))
+	   if (parse_check_parse_option(PO_REQUIRE_TYPES))
 	      parse_error("local variable '%s' declared without type information, but parse options require all declarations to have type information", $2);
 	   VarRefNode* v = new VarRefNode($2, VT_LOCAL);
 	   v->setExplicitScope();
 	   $$ = v;
-	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("local variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $2);
 	}
         | TOK_MY qtypedef VAR_REF {
@@ -2669,13 +2669,13 @@ exp:    scalar
 	   }
 	   else {
 	      // see if types are required
-	      if (checkParseOption(PO_REQUIRE_TYPES))
+	      if (parse_check_parse_option(PO_REQUIRE_TYPES))
 		 parse_error("local variable '%s' declared without type information, but parse options require all declarations to have type information", $3);
 	      v = new VarRefNode($3, VT_LOCAL);
 	   }
 	   v->setExplicitScope();
 	   $$ = v;
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $3);
 	}
         | TOK_MY '(' list ')' {
@@ -2686,9 +2686,9 @@ exp:    scalar
 	      qore_type_t t = get_node_type(n);
 	      if (t == NT_BAREWORD) {
 		 BarewordNode* b = reinterpret_cast<BarewordNode*>(n);
-		 if (checkParseOption(PO_REQUIRE_TYPES))
+		 if (parse_check_parse_option(PO_REQUIRE_TYPES))
 		    parse_error("local variable '%s' declared without type information, but parse options require all declarations to have type information", b->str);
-		 if (!checkParseOption(PO_ALLOW_BARE_REFS))
+		 if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
 		    parse_error("local variable '%s' in local variable declaration list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", b->str);
 		 VarRefNode* v = new VarRefNode(b->takeString(), VT_LOCAL);
 		 v->setExplicitScope();
@@ -2699,7 +2699,7 @@ exp:    scalar
 	      else if (t == NT_VARREF) {
 		 VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
 		 // see if types are required
-		 if (checkParseOption(PO_REQUIRE_TYPES) && !v->isDecl())
+		 if (parse_check_parse_option(PO_REQUIRE_TYPES) && !v->isDecl())
 		    parse_error("local variable '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
 		 if (v->explicitScope()) {
 		    if (v->getType() == VT_LOCAL)
@@ -2721,7 +2721,7 @@ exp:    scalar
         }
 	| IDENTIFIER
         {
-	   if (checkParseOption(PO_ASSUME_LOCAL & PO_ALLOW_BARE_REFS) && !strcmp($1, "argv"))
+	   if (parse_check_parse_option(PO_ASSUME_LOCAL & PO_ALLOW_BARE_REFS) && !strcmp($1, "argv"))
 	      inc_argv_ref();
 
 	   $$ = new BarewordNode($1);
@@ -3031,7 +3031,7 @@ exp:    scalar
         | SELF_REF
 	{
 	   $$ = new SelfVarrefNode($1); 
-	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
 	}
         | exp LOGICAL_AND exp	     { $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
@@ -3110,25 +3110,25 @@ exp:    scalar
 	}
 	| TOK_NEW IDENTIFIER '(' myexp ')' {
 	   $$ = new ScopedObjectCallNode(new NamedScope($2), makeArgs($4));
-	   if (checkParseOption(PO_NO_NEW))
+	   if (parse_check_parse_option(PO_NO_NEW))
 	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
         }
 	| TOK_NEW SCOPED_REF '(' myexp ')' {
 	   $$ = new ScopedObjectCallNode(new NamedScope($2), makeArgs($4));
-	   if (checkParseOption(PO_NO_NEW))
+	   if (parse_check_parse_option(PO_NO_NEW))
 	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
         }
         | TOK_BACKGROUND exp {
 	   $$ = new QoreTreeNode($2, OP_BACKGROUND, 0);
 	   // check to see if the expression is legal
-	   if (checkParseOption(PO_NO_THREAD_CONTROL))
+	   if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
 	      parse_error("illegal use of \"background\" operator (conflicts with parse option NO_THREAD_CONTROL)");
 	   else if (!node_has_effect($2))
 	      parse_error("argument to background operator (%s) has no effect", get_type_name($2));
 	}
         | BACKQUOTE {
 	   $$ = new BackquoteNode($1);
-	   if (checkParseOption(PO_NO_EXTERNAL_PROCESS))
+	   if (parse_check_parse_option(PO_NO_EXTERNAL_PROCESS))
 	      parse_error("illegal use of backquote operator (conflicts with parse option NO_EXTERNAL_PROCESS)");
 	}
         | exp '[' exp ']'            { $$ = new QoreTreeNode($1, OP_LIST_REF, $3); }

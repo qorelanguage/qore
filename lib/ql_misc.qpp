@@ -2055,7 +2055,7 @@ my int $i = get_parse_options();
     @since %Qore 0.8.7
  */
 int get_parse_options() [flags=CONSTANT] {
-   return getParseOptions();
+   return runtime_get_parse_options();
 }
 
 //! returns a descriptive string for an exception location; the \c source and \c offset information will also be included in the string returned if present in the @ref exception_hash "exception hash" argument

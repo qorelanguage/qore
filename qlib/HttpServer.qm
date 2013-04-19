@@ -1907,14 +1907,17 @@ public class HttpServer::HttpServer {
 
 	try {
 	    my any $rv;
-	    
-	    #printf("HTTP DEBUG: handler=%n: context=%n, hdr=%n, body=%n\n", $handlerName, $cx, $hdr, $body);
+
+	    #printf("HTTP DEBUG: B: handler: %y strict-bool-eval: %y\n", $handlerName, get_parse_options() & PO_STRICT_BOOLEAN_EVAL);	   
+	    #printf("HTTP DEBUG: B: handler: %y: context: %y, hdr: %y, body: %y\n", $handlerName, $cx, $hdr, $body);
 	    #printf("HTTP DEBUG: BEFORE handler=%s", dbg_node_info($.handlers.$handlerName));
 
             if (!$handler && $.defaultHandler) {
                 $handler = $.defaultHandler.obj;
                 $handlerName = $.defaultHandler.name;
             }
+
+	    #printf("HTTP DEBUG: A: handler: %y\n", $handlerName);
 
             if ($handler) {
 		# check for authentication info

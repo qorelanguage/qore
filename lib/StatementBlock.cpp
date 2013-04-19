@@ -243,7 +243,7 @@ LocalVar *push_local_var(const char *name, const QoreProgramLocation& loc, const
 
    bool found_block = false;
    // check stack for duplicate entries
-   bool avs = checkParseOption(PO_ASSUME_LOCAL);
+   bool avs = parse_check_parse_option(PO_ASSUME_LOCAL);
    if (is_arg) {
       lv->parseAssigned();
       if (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS | QP_WARN_DUPLICATE_BLOCK_VARS) || avs) {

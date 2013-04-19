@@ -42,6 +42,7 @@ int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsin
 #endif
    pthread_testcancel();
 
+   QoreProgramBlockParseOptionHelper bh(pwo.parse_options);
    return execImpl(return_value, xsink);
 }
 

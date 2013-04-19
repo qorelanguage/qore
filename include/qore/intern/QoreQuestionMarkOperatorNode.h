@@ -34,7 +34,7 @@ protected:
       const QoreTypeInfo *leftTypeInfo = 0;
       e[0] = e[0]->parseInit(oflag, pflag, lvids, leftTypeInfo);
 
-      if (leftTypeInfo->nonNumericValue() && checkParseOption(PO_STRICT_BOOLEAN_EVAL))
+      if (leftTypeInfo->nonNumericValue() && parse_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
          leftTypeInfo->doNonBooleanWarning("the initial expression with the '?:' operator is ");
 
       leftTypeInfo = 0;
