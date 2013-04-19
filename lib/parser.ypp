@@ -300,7 +300,7 @@ struct GVarListDecl : public GVarDecl {
             }
          }
          else
-            parse_error("element %d in list following 'our' is not a variable reference (%s)", li.index(), get_node_type(n));
+            parse_error("element %d in list following 'our' is not a variable reference (%s)", li.index(), get_type_name(n));
       }
    }
 

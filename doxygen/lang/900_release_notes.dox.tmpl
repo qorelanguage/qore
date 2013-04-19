@@ -54,6 +54,7 @@
     - fixed a bug where @ref Qore::SQL::SQLStatement::memberGate() "memberGate() methods" were not being respected when taking a slice of an object
     - fixed bugs in the integer Socket::recv*() methods where a \c SOCKET-CLOSED exception was not thrown when the remote end closed the connection
     - fixed a bug related to out-of-order parse initialization for functions and methods which resulted in the wrong return type being returned for a method with more than 1 variant where the variant could not be matched at parse time
+    - fixed a bug where a non-variable-reference member of an "our" variable declaration list would cause a crash due to passing the incorrect argument in sprintf()
 
     @section qore_087 Qore 0.8.7
 
