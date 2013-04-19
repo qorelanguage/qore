@@ -147,7 +147,6 @@ public namespace RestClient {
 %endif
 %ifndef NoXml
                 MimeTypeXml,
-                MimeTypeXmlApp,
 %endif
 %ifndef NoJson
                 MimeTypeJsonRpc,
@@ -412,7 +411,7 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
 %endif
 %ifndef NoXml
                 # check for xml-rpc support
-                if (!$decoded && inlist($h."content-type", (MimeTypeXml, MimeTypeXmlApp))) {
+                if (!$decoded && $h."content-type" == MimeTypeXml) {
                     $h.body = parseXMLRPCValue($h.body);
                     $decoded = True;
                 }
