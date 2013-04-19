@@ -107,7 +107,7 @@ int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (param) {
       // push as if the variable is already referenced so no warning will be emitted
       // in case the variable is not actually referenced in the catch block
-      id = push_local_var(param, 0, true, 1);
+      id = push_local_var(param, loc, 0, true, 1);
       printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%p)\n", param, id);
    }
    else

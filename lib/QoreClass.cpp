@@ -285,7 +285,7 @@ void AbstractMethodMap::parseCheckAbstractNew(const char* name) const {
 // FIXME: check private method variant access at runtime
 
 struct SelfLocalVarParseHelper {
-   DLLLOCAL SelfLocalVarParseHelper(LocalVar *selfid) { push_local_var(selfid); }
+   DLLLOCAL SelfLocalVarParseHelper(LocalVar *selfid) { push_local_var(selfid, QoreProgramLocation()); }
    DLLLOCAL ~SelfLocalVarParseHelper() { pop_local_var(); }
 };
 

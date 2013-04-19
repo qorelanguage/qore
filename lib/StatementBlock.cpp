@@ -45,7 +45,7 @@ protected:
    int refs;
 
    // to store parse location in case of errors
-   QoreProgramLocation loc;
+   const QoreProgramLocation* loc;
    bool block_start;
    bool top_level;
    
@@ -53,7 +53,7 @@ public:
    LocalVar *lvar;
    VNode* next;
 
-   DLLLOCAL VNode(LocalVar *lv, int n_refs = 0, bool n_top_level = false) : refs(n_refs), loc(ParseLocation), block_start(false), top_level(n_top_level), lvar(lv), next(getVStack()) {
+   DLLLOCAL VNode(LocalVar *lv, const QoreProgramLocation* n_loc = 0, int n_refs = 0, bool n_top_level = false) : refs(n_refs), loc(n_loc), block_start(false), top_level(n_top_level), lvar(lv), next(getVStack()) {
       updateVStack(this);
 
       //printd(5, "VNode::VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
@@ -66,7 +66,7 @@ public:
       //printd(5, "VNode::~VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
 
       if (lvar && !refs)
-	 qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
+	 qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
    }
 
    DLLLOCAL void setRef() {
@@ -227,16 +227,16 @@ void StatementBlock::exec() {
    exec(&xsink);
 }
 
-static void push_top_level_local_var(LocalVar *lv) {
-   new VNode(lv, 1, true);
+static void push_top_level_local_var(LocalVar *lv, const QoreProgramLocation& loc) {
+   new VNode(lv, &loc, 1, true);
 }
 
 // used for constructor methods sharing a common "self" local variable
-void push_local_var(LocalVar *lv) {
-   new VNode(lv, 1);
+void push_local_var(LocalVar *lv, const QoreProgramLocation& loc) {
+   new VNode(lv, &loc, 1);
 }
 
-LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool is_arg, int n_refs, bool top_level) {
+LocalVar *push_local_var(const char *name, const QoreProgramLocation& loc, const QoreTypeInfo *typeInfo, bool is_arg, int n_refs, bool top_level) {
    QoreProgram *pgm = getProgram();
 
    LocalVar *lv = pgm->createLocalVar(name, typeInfo);
@@ -254,14 +254,15 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool is
                found_block = true;
             if (!strcmp(vnode->getName(), name)) {
                if (!found_block && avs) {
-                  parse_error("local variable '%s' was already declared in the same block", name);
+                  parse_error(loc, "local variable '%s' was already declared in the same block", name);
                }
                else {
                   if (!found_block)
-                     qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", "local variable '%s' was already declared in the same block", name);
+                     qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", "local variable '%s' was already declared in the same block", name);
                   else {
-                     if (top_level || !vnode->isTopLevel())
-                        qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '%s' was already declared in this lexical scope", name);
+                     if (top_level || !vnode->isTopLevel()) {
+                        qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '%s' was already declared in this lexical scope", name);
+		     }
                   }
                   break;
                }
@@ -272,7 +273,7 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool is
    }
    
    //printd(5, "push_local_var(): pushing var %s\n", name);
-   new VNode(lv, n_refs, top_level);
+   new VNode(lv, &loc, n_refs, top_level);
    return lv;
 }
 
@@ -446,7 +447,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    if (!first && lvars) {
       // push already-registered local variables on the stack
       for (unsigned i = 0; i < lvars->size(); ++i)
-         push_top_level_local_var(lvars->lv[i]);
+         push_top_level_local_var(lvars->lv[i], loc);
    }
 
    // resolve global variables before initializing the top-level statements
