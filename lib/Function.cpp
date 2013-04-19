@@ -196,7 +196,8 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
    unsigned nparams = sig->numParams();
 
    //printd(5, "processDefaultArgs() %s nargs=%d nparams=%d flags=%lld po=%d\n", func->getName(), nargs, nparams, variant->getFlags(), (bool)(getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)));
-   if (nargs > nparams && (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS))) {
+   //if (nargs > nparams && (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS))) {
+if (nargs > nparams && (runtime_get_parse_options() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS))) {
       int64 flags = variant->getFlags();
 
       if (!(flags & QC_USES_EXTRA_ARGS)) {
@@ -242,14 +243,14 @@ void AbstractFunctionSignature::addDefaultArgument(const AbstractQoreNode* arg) 
    str.append("<exp>");
 }
 
-UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* params, RetTypeInfo* retTypeInfo) :
+UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* params, RetTypeInfo* retTypeInfo, int64 po) :
    AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : 0), 
    parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0), 
    loc(first_line, last_line),
    lv(0), argvid(0), selfid(0), resolved(false) {
-   int64 po = getProgram()->getParseOptions64();
 
    bool needs_types = (bool)(po & (PO_REQUIRE_TYPES | PO_REQUIRE_PROTOTYPES));
+   bool bare_refs = (bool)(po & PO_ALLOW_BARE_REFS);
 
    // assign no return type if return type declaration is missing and PO_REQUIRE_TYPES or PO_REQUIRE_PROTOTYPES is set
    if (!retTypeInfo && needs_types)
@@ -269,7 +270,7 @@ UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* pa
    }
 
    if (params->getType() == NT_BAREWORD) {
-      pushParam(reinterpret_cast<BarewordNode*>(params), needs_types);
+      pushParam(reinterpret_cast<BarewordNode*>(params), needs_types, bare_refs);
       return;
    }
 
@@ -296,7 +297,7 @@ UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* pa
       if (t == NT_OPERATOR)
 	 pushParam(reinterpret_cast<QoreOperatorNode*>(n), needs_types);
       else if (t == NT_BAREWORD)
-	 pushParam(reinterpret_cast<BarewordNode*>(n), needs_types);
+	 pushParam(reinterpret_cast<BarewordNode*>(n), needs_types, bare_refs);
       else if (t == NT_VARREF)
 	 pushParam(reinterpret_cast<VarRefNode*>(n), 0, needs_types);
       else {
@@ -328,7 +329,7 @@ void UserSignature::pushParam(QoreOperatorNode* t, bool needs_types) {
    pushParam(v, defArg, needs_types);
 }
 
-void UserSignature::pushParam(BarewordNode* b, bool needs_types) {
+void UserSignature::pushParam(BarewordNode* b, bool needs_types, bool bare_refs) {
    names.push_back(b->str);
    parseTypeList.push_back(0);
    typeList.push_back(0);
@@ -340,7 +341,8 @@ void UserSignature::pushParam(BarewordNode* b, bool needs_types) {
    if (needs_types)
       parse_error(loc, "parameter '%s' declared without type information, but parse options require all declarations to have type information", b->str);
 
-   if (!(getProgram()->getParseOptions64() & PO_ALLOW_BARE_REFS))
+   //if (!(getProgram()->getParseOptions64() & PO_ALLOW_BARE_REFS))
+   if (!bare_refs)
       parse_error("parameter '%s' declared without '$' prefix, but parse option 'allow-bare-defs' is not set", b->str);
    return;
 }
@@ -644,7 +646,8 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
       // pgm could be zero if called from a foreign thread with no current Program
       if (pgm) {
          // check parse options
-         int64 po = pgm->getParseOptions64();
+	 int64 po = runtime_get_parse_options();
+         //int64 po = pgm->getParseOptions64();
          if (variant->getFunctionality() & po) {
             //printd(5, "QoreFunction::findVariant() this=%p %s(%s) getProgram()=%p getProgram()->getParseOptions64()=%x variant->getFunctionality()=%x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions64(), variant->getFunctionality());
             if (!only_user) {
@@ -783,7 +786,8 @@ static void warn_excess_args(QoreFunction* func, const type_vec_t &argTypeInfo, 
    unsigned diff = nargs - nparams;
    desc->sprintf(" (with %d excess argument%s)", diff, diff == 1 ? "" : "s");
    // raise warning if require-types is not set
-   if (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)) {
+   //if (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)) {
+   if (parse_get_parse_options() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)) {
       desc->concat("; this is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
       qore_program_private::makeParseException(getProgram(), "CALL-WITH-TYPE-ERRORS", desc);
    }
@@ -1106,7 +1110,8 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
       int64 flags = variant->getFlags();
       if (flags & (QC_NOOP | QC_RUNTIME_NOOP)) {
 	 QoreStringNode* desc = getNoopError(this, aqf, variant);
-	 if ((flags & QC_RUNTIME_NOOP) && (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES|PO_STRICT_ARGS))) {
+	 //if ((flags & QC_RUNTIME_NOOP) && (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES|PO_STRICT_ARGS))) {
+	 if ((flags & QC_RUNTIME_NOOP) && (parse_get_parse_options() & (PO_REQUIRE_TYPES|PO_STRICT_ARGS))) {
 	    desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
 	    qore_program_private::makeParseException(getProgram(), "CALL-WITH-TYPE-ERRORS", desc);
 	 }
@@ -1231,9 +1236,9 @@ UserVariantExecHelper::~UserVariantExecHelper() {
 }
 
 UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced)
-   : signature(n_sig_first_line, n_sig_last_line, params, rv), statements(b), gate(synced ? new VRMutex() : 0),
+   : signature(n_sig_first_line, n_sig_last_line, params, rv, b ? b->pwo.parse_options : parse_get_parse_options()), statements(b), gate(synced ? new VRMutex() : 0),
      pgm(getProgram()), recheck(false), init(false) {
-   printd(5, "UserVariantBase::UserVariantBase() params=%p rv=%p b=%p synced=%d\n", params, rv, b, synced);
+   //printd(5, "UserVariantBase::UserVariantBase() this: %p params: %p rv: %p b: %p synced: %d\n", params, rv, b, synced);
 }
 
 UserVariantBase::~UserVariantBase() {

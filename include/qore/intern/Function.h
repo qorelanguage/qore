@@ -163,7 +163,7 @@ protected:
 
    QoreProgramLocation loc;
 
-   DLLLOCAL void pushParam(BarewordNode* b, bool needs_types);
+   DLLLOCAL void pushParam(BarewordNode* b, bool needs_types, bool bare_refs);
    DLLLOCAL void pushParam(QoreOperatorNode* t, bool needs_types);
    DLLLOCAL void pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool needs_types);
 
@@ -177,7 +177,7 @@ public:
    LocalVar* selfid;
    bool resolved;
 
-   DLLLOCAL UserSignature(int n_first_line, int n_last_line, AbstractQoreNode* params, RetTypeInfo* retTypeInfo);
+   DLLLOCAL UserSignature(int n_first_line, int n_last_line, AbstractQoreNode* params, RetTypeInfo* retTypeInfo, int64 po);
 
    DLLLOCAL virtual ~UserSignature() {
       for (ptype_vec_t::iterator i = parseTypeList.begin(), e = parseTypeList.end(); i != e; ++i)

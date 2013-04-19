@@ -59,7 +59,7 @@ int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       // check if a warning should be generated, if require-types is not set and it is a class-special method
       const QoreClass *qc = getParseClass();
       const char *fname = get_parse_code();
-      if (!(getProgram()->getParseOptions64() & PO_REQUIRE_TYPES) && qc && 
+      if (!parse_check_parse_option(PO_REQUIRE_TYPES) && qc && 
 	  (!strcmp(fname, "constructor") || !strcmp(fname, "copy") || !strcmp(fname, "destructor"))) {
 	 QoreStringNode *desc = new QoreStringNode;
 	 desc->sprintf("the return statement for %s::%s() returns ", qc->getName(), fname);

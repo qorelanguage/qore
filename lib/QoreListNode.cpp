@@ -945,8 +945,7 @@ QoreString *QoreListNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 
 bool QoreListNode::getAsBoolImpl() const {
    // check if we should do perl-style boolean evaluation
-   QoreProgram* pgm = getProgram();
-   if (pgm && (pgm->getParseOptions64() & PO_STRICT_BOOLEAN_EVAL))
+   if (runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
       return false;
    return !empty();
 }

@@ -803,6 +803,8 @@ public:
    }
 
    DLLLOCAL void parse(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = 0, int offset = 0) {
+      //printd(5, "qore_program_private::parse(%s) pgm: %p po: %lld\n", label, pgm, pwo.parse_options);
+
       assert(code && code[0]);
 
       ProgramThreadCountContextHelper pch(xsink, pgm, false);
@@ -1047,6 +1049,7 @@ public:
          return;
       }
 
+      //printd(5, "qore_program_private::replaceParseOptions() this: %p pgm: %p replacing po: %lld with po: %lld\n", this, pgm, pwo.parse_options, po);
       pwo.parse_options = po;
    }
 

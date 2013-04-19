@@ -658,12 +658,12 @@ public:
 
    DLLLOCAL MemberInfo(char* n, QoreMemberInfo* mi) : name(n), type(Member)  {
       u.memberInfo = mi; 
-      if (!mi->parseHasTypeInfo() && getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
+      if (!mi->parseHasTypeInfo() && parse_check_parse_option(PO_REQUIRE_TYPES))
 	 parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
    DLLLOCAL MemberInfo(char* n) : name(n), type(Member)  {
       u.memberInfo = 0; 
-      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
+      if (parse_check_parse_option(PO_REQUIRE_TYPES))
 	 parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
    DLLLOCAL MemberInfo(char* n, AbstractQoreNode* exp) : name(n), type(Constant) {
@@ -712,18 +712,9 @@ struct ClassVarInfo : public MemberInfo {
       name = n;
       type = Var;
       u.varInfo = vi; 
-      if (!vi->parseHasTypeInfo() && getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
+      if (!vi->parseHasTypeInfo() && parse_check_parse_option(PO_REQUIRE_TYPES))
 	 parse_error("class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
    }
-/*
-   DLLLOCAL ClassVarInfo(char* n) {
-      name = n;
-      type = Var;
-      u.varInfo = 0; 
-      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
-	 parse_error("class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
-   }
-*/
    DLLLOCAL char* takeName() {
       char* n = name;
       name = 0;
