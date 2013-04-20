@@ -1645,13 +1645,10 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         abstract bool equalImpl(AbstractConstraint c);
 
         #! returns @ref Qore::True "True" if the object supports an index property and is set, @ref Qore::False "False" if not
-        bool setIndexBase(string ix) {
-            return False;
-        }
+        abstract bool setIndexBase(string ix);
 
         #! clears any index base for the constraint
-        clearIndex() {
-        }
+        abstract clearIndex();
 
         #! returns @ref Qore::True "True" if the constraint references the named column
         bool hasColumn(string cname) {
@@ -1675,6 +1672,15 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
         bool equalImpl(AbstractConstraint c) {
             return src != cast<AbstractCheckConstraint>(c).src ? False : True;
+        }
+
+        #! returns @ref Qore::True "True" if the object supports an index property and is set, @ref Qore::False "False" if not
+        bool setIndexBase(string ix) {
+            return False;
+        }
+
+        #! clears any index base for the constraint
+        clearIndex() {
         }
     }
 
@@ -1874,6 +1880,15 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         #! returns @ref Qore::True "True" if the constraint references the named column
         bool hasColumn(string cname) {
             return columns.hasKey(cname);
+        }
+
+        #! returns @ref Qore::True "True" if the object supports an index property and is set, @ref Qore::False "False" if not
+        bool setIndexBase(string ix) {
+            return False;
+        }
+
+        #! clears any index base for the constraint
+        clearIndex() {
         }
     }
 

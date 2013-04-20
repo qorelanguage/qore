@@ -389,11 +389,8 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
-    public class PgsqlUniqueConstraint inherits AbstractUniqueConstraint {
+    public class PgsqlUniqueConstraintCommon {
         private {
-            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
-            bool enabled;
-
             #! any tablespace for the unique key index
             *string tablespace;
 
@@ -401,9 +398,48 @@ my string $str = $col.getRenameSql($t, "new_name");
             *string index;
         }
 
-        constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols) {
-            enabled = e;
+        constructor(*string ts) {
             tablespace = ts;
+        }
+
+        bool setIndexBase(string ix) {
+            if (index && index != ix)
+                return False;
+            index = ix;
+            delete tablespace;
+            return True;
+        }
+
+        #! clears any index base for the constraint
+        clearIndex() {
+            delete index;
+        }
+
+        abstract AbstractIterator keyIterator();
+
+        #! adds index options onto the sql creation string
+        getIndexSql(reference sql, string name, *hash opts) {
+            *string ix = opts.index ? opts.index : index;
+            if (ix)
+                sql += sprintf("using index %s", ix);
+            else {
+                sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
+
+                *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
+                if (ts)
+                    sql += sprintf(" using index tablespace %s", ts);
+            }
+        }
+    }
+
+    public class PgsqlUniqueConstraint inherits AbstractUniqueConstraint, PgsqlUniqueConstraintCommon {
+        private {
+            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+            bool enabled;
+        }
+
+        constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols), PgsqlUniqueConstraintCommon(ts) {
+            enabled = e;
         }
 
         #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
@@ -432,19 +468,6 @@ my any $v = $c.name;
             return getCreateSql(name, table_name, opts);
         }
 
-        bool setIndexBase(string ix) {
-            if (index && index != ix)
-                return False;
-            index = ix;
-            delete tablespace;
-            return True;
-        }
-
-        #! clears any index base for the constraint
-        clearIndex() {
-            delete index;
-        }
-
         list getRenameSql(string table_name, string new_name) {
             # the following is only valid with PostgreSQL 9.2+
             #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
@@ -455,33 +478,14 @@ my any $v = $c.name;
 
         string getCreateSql(string name, string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s unique ", table_name, name);
-
-            *string ix = opts.index ? opts.index : index;
-            if (ix)
-                sql += sprintf("using index %s", ix);
-            else {
-                sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
-
-                *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
-                if (ts)
-                    sql += sprintf(" using index tablespace %s", ts);
-            }
+            getIndexSql(\sql, name, opts);
             return sql;
         }
     }
 
     #! represents a PostgreSQL-specific primary key constraint
-    public class PgsqlPrimaryKey inherits AbstractPrimaryKey {
-        private {
-            #! any tablespace for the primary key index
-            *string tablespace;
-
-            #! index the constraint is based on
-            *string index;
-        }
-
-        constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c) {
-            tablespace = ts;
+    public class PgsqlPrimaryKey inherits AbstractPrimaryKey, PgsqlUniqueConstraintCommon {
+        constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c), PgsqlUniqueConstraintCommon(ts) {
         }
 
         #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
@@ -508,31 +512,8 @@ my any $v = $c.name;
 
         string getCreateSql(string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s primary key", table_name, name);
-
-            *string ix = opts.index ? opts.index : index;
-            if (ix)
-                sql += sprintf(" using index %s", ix);
-            else {
-                sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
-                *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
-                if (ts)
-                    sql += sprintf(" using index tablespace %s", ts);
-                return sql;
-            }
+            getIndexSql(\sql, name, opts);
             return sql;
-        }
-
-        bool setIndexBase(string ix) {
-            if (index && index != ix)
-                return False;
-            index = ix;
-            delete tablespace;
-            return True;
-        }
-
-        #! clears any index base for the constraint
-        clearIndex() {
-            delete index;
         }
 
         softlist getRenameSql(string table_name, string new_name) {
