@@ -44,6 +44,18 @@ protected:
 
    DLLLOCAL ~VarRefNode() {
       printd(3, "VarRefNode::~VarRefNode() deleting variable reference %p %s\n", this, name.ostr ? name.ostr : "<taken>");
+      assert(type != VT_IMMEDIATE || !ref.cvv);
+   }
+
+   DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink) {
+      if (type == VT_IMMEDIATE) {
+         assert(false);
+         ref.cvv->deref(xsink);
+#ifdef DEBUG
+         ref.cvv = 0;
+#endif
+      }
+      return true;
    }
 
    // evalImpl(): return value requires a deref(xsink)
