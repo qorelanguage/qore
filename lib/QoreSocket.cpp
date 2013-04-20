@@ -2118,7 +2118,7 @@ struct qore_socket_private {
 	       l = reinterpret_cast<QoreListNode *>(*ha);
 	    else {
 	       l = new QoreListNode;
-	       l->push(ha.swap(l, 0));
+	       l->push(ha.swap(l));
 	    }
 	    l->push(val);
 	 }

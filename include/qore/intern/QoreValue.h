@@ -239,6 +239,12 @@ public:
       }
    }
 
+#ifdef DEBUG
+   DLLLOCAL ~QoreLValue() {
+      assert(type != QV_Node || !v.n);
+   }
+#endif
+
    DLLLOCAL bool optimized() const {
       return type != QV_Node && type != QV_Ref;
    }

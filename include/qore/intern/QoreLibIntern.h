@@ -663,7 +663,7 @@ public:
 
    DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode &n_h, const QoreString *key, bool must_already_exist = false);
 
-   DLLLOCAL AbstractQoreNode* swapImpl(AbstractQoreNode* v, ExceptionSink* xsink);
+   DLLLOCAL AbstractQoreNode* swapImpl(AbstractQoreNode* v);
 
    DLLLOCAL AbstractQoreNode* getValueImpl() const;
 
@@ -672,9 +672,7 @@ public:
    }
 
    DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink* xsink) {
-      AbstractQoreNode* old = swapImpl(v, xsink);
-      if (*xsink)
-         return;
+      AbstractQoreNode* old = swapImpl(v);
       //qoreCheckContainer(v);
       if (old) {
          // "remove" logic here
@@ -682,14 +680,8 @@ public:
       }
    }
 
-   DLLLOCAL AbstractQoreNode* swap(AbstractQoreNode* v, ExceptionSink* xsink) {
-      AbstractQoreNode* old = swapImpl(v, xsink);
-      if (*xsink)
-         return 0;
-      if (old == v)
-         return v;
-      // "remove" and "add" logic here
-      return old;
+   DLLLOCAL AbstractQoreNode* swap(AbstractQoreNode* v) {
+      return swapImpl(v);
    }
 };
 

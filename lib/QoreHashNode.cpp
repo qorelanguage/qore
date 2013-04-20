@@ -159,7 +159,6 @@ void QoreHashNode::setKeyValue(const QoreString& key, AbstractQoreNode* val, Exc
 
 void QoreHashNode::setKeyValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
    hash_assignment_priv ha(*priv, key);
-
    ha.assign(val, xsink);
 }
 
@@ -172,19 +171,19 @@ AbstractQoreNode* QoreHashNode::swapKeyValue(const QoreString* key, AbstractQore
    }
 
    hash_assignment_priv ha(*priv, tmp->getBuffer());
-   return ha.swap(val, xsink);
+   return ha.swap(val);
 }
 
 AbstractQoreNode* QoreHashNode::swapKeyValue(const char* key, AbstractQoreNode* val) {
    //printd(0, "QoreHashNode::swapKeyValue() this=%p key=%s val=%p (%s) deprecated API called\n", this, key, val, get_node_type(val));
    //assert(false);
    hash_assignment_priv ha(*priv, key);
-   return ha.swap(val, 0);
+   return ha.swap(val);
 }
 
 AbstractQoreNode* QoreHashNode::swapKeyValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
    hash_assignment_priv ha(*priv, key);
-   return ha.swap(val, xsink);
+   return ha.swap(val);
 }
 
 // deprecated
@@ -242,10 +241,10 @@ void QoreHashNode::merge(const class QoreHashNode* h, ExceptionSink* xsink) {
 
 // returns the same order
 QoreHashNode* QoreHashNode::copy() const {
-   QoreHashNode* h = new QoreHashNode();
+   QoreHashNode* h = new QoreHashNode;
 
    // copy all members to new object
-   class HashMember* where = priv->member_list;
+   HashMember* where = priv->member_list;
    while (where) {
       //printd(5, "QoreHashNode::copy() this=%p node=%p key='%s'\n", this, where->node, where->key);
       h->setKeyValue(where->key, where->node ? where->node->refSelf() : 0, 0);
@@ -895,7 +894,8 @@ hash_assignment_priv::hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n
    om = must_already_exist ? h.findMember(k->getBuffer()) : h.findCreateMember(k->getBuffer());
 }
 
-AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v, ExceptionSink* xsink) {
+AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
+   assert(om);
    // before we can entirely get rid of QoreNothingNode, try to convert pointers to NOTHING to 0
    if (v == &Nothing)
       v = 0;
@@ -948,7 +948,7 @@ void HashAssignmentHelper::assign(AbstractQoreNode* v, ExceptionSink* xsink) {
 
 AbstractQoreNode* HashAssignmentHelper::swap(AbstractQoreNode* v, ExceptionSink* xsink) {
    assert(priv);
-   return priv->swap(v, xsink);
+   return priv->swap(v);
 }
 
 AbstractQoreNode* HashAssignmentHelper::operator*() const {
