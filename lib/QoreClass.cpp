@@ -222,6 +222,53 @@ void AbstractMethod::parseCheckAbstract(const char* cname, const char* mname, vm
    }
 }
 
+// try to find match non-abstract variants in base classes (allows concrete variants to be inherited from another parent class)
+void AbstractMethodMap::parseInit(qore_class_private& qc, BCList *scl) {
+   if (!scl)
+      return;
+   //printd(5, "AbstractMethodMap::parseInit() this: %p cname: %s scl: %p ae: %d\n", this, qc.name.c_str(), scl, empty());
+   for (amap_t::iterator i = begin(), e = end(); i != e; ++i) {
+      for (vmap_t::iterator vi = i->second->vlist.begin(), ve = i->second->vlist.end(); vi != ve;) {
+	 // if there is a matching non-abstract variant in any parent class, then move the variant from vlist to pending_save
+	 MethodVariantBase* v = scl->matchNonAbstractVariant(i->first, vi->second);
+	 if (v) {
+	    const char* sig = vi->second->getAbstractSignature();
+	    i->second->pending_save.insert(vmap_t::value_type(sig, vi->second));
+	    vmap_t::iterator ti = vi++;
+	    i->second->vlist.erase(ti);
+	    // replace abstract variant
+	    QoreMethod* m = qc.parseFindLocalMethod(i->first);
+	    if (!m) {
+	       m = new QoreMethod(qc.cls, new NormalUserMethod(qc.cls, i->first.c_str()), false);
+	       qc.hm[m->getName()] = m;
+	    }
+	    m->getFunction()->replaceAbstractVariant(v);
+	    continue;
+	 }
+	 ++vi;
+      }
+      //printd(5, "AbstractMethodMap::parseInit() this: %p %s::%s() vle: %d\n", this, qc.name.c_str(), i->first.c_str(), i->second->vlist.empty());
+      for (vmap_t::iterator vi = i->second->pending_vlist.begin(), ve = i->second->pending_vlist.end(); vi != ve;) {
+	 // if there is a matching non-abstract variant in any parent class, then remove the variant from pending_vlist
+	 MethodVariantBase* v = scl->matchNonAbstractVariant(i->first, vi->second);
+	 if (v) {
+	    vmap_t::iterator ti = vi++;	    
+	    i->second->pending_vlist.erase(ti);
+	    // replace abstract variant
+	    QoreMethod* m = qc.parseFindLocalMethod(i->first);
+	    //printd(5, "AbstractMethodMap::parseInit() this: %p %s::%s() v: %p m: %p\n", this, qc.name.c_str(), i->first.c_str(), v, m);
+	    if (!m) {
+	       m = new QoreMethod(qc.cls, new NormalUserMethod(qc.cls, i->first.c_str()), false);
+	       qc.hm[m->getName()] = m;
+	    }
+	    m->getFunction()->replaceAbstractVariant(v);
+	    continue;
+	 }
+	 ++vi;
+      }
+   }
+}
+
 void AbstractMethodMap::parseAddAbstractVariant(const char* name, MethodVariantBase* f) {
    amap_t::iterator i = amap_t::find(name);
    if (i == end()) {
@@ -330,6 +377,10 @@ public:
 
    DLLLOCAL const char* getName() const {
       return func->getName();
+   }
+
+   DLLLOCAL const std::string& getNameStr() const {
+      return func->getNameStr();
    }
 
    DLLLOCAL void parseInit() {
@@ -1623,10 +1674,10 @@ void BCList::parseAddAncestors(QoreMethod* m) {
 	 continue;
 
       const QoreMethod* w = qc->priv->parseFindLocalMethod(name);
-      //printd(5, "BCList::parseAddAncestors(%p %s) this=%p qc=%p w=%p\n", m, m->getName(), this, qc, w);
+      //printd(5, "BCList::parseAddAncestors(%p %s) this: %p qc: %p w: %p am: %p\n", m, m->getName(), this, qc, w, am);
 
       if (w)
-	 m->getFunction()->addAncestor(w->getFunction());
+         m->getFunction()->addAncestor(w->getFunction());
 
       qc->priv->parseAddAncestors(m);
    }
@@ -1698,6 +1749,31 @@ const QoreClass* BCList::getClass(const qore_class_private& qc, bool &priv) cons
 	 return rv;
    }
 	 
+   return 0;
+}
+
+MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const {
+   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
+      const QoreClass* nqc = (*i)->sclass;
+      //printd(5, "BCList::matchNonAbstractVariant() this: %p %s %p (%s) ncq: %p %s\n", this, name.c_str(), v, v->getAbstractSignature(), nqc, nqc ? nqc->getName() : "n/a");
+      // nqc may be 0 if there were a parse error with an unknown class earlier
+      if (!nqc)
+	 continue;
+
+      QoreMethod* m = nqc->priv->parseFindLocalMethod(name);
+      if (m) {
+	 MethodFunctionBase* f = m->getFunction();
+	 MethodVariantBase* ov = f->parseHasVariantWithSignature(v);
+	 if (ov && !ov->isAbstract())
+	    return ov;
+      }
+      if (nqc->priv->scl) {
+	 MethodVariantBase* ov = nqc->priv->scl->matchNonAbstractVariant(name, v);
+	 if (ov)
+	    return ov;
+      }
+   }
+
    return 0;
 }
 
@@ -1955,6 +2031,10 @@ bool QoreMethod::isStatic() const {
 
 const char* QoreMethod::getName() const {
    return priv->getName();
+}
+
+const std::string& QoreMethod::getNameStr() const {
+   return priv->getNameStr();
 }
 
 const QoreClass* QoreMethod::getClass() const {
@@ -3211,13 +3291,16 @@ void qore_class_private::parseInitPartialIntern() {
          }
       }
    }
-   ahm.parseInit(name.c_str());
+
+   //printd(5, "qore_class_private::parseInitPartialIntern() this: %p cls: %p %s scl: %p\n", this, cls, name.c_str(), scl);
+   ahm.parseInit(*this, scl);
 
    if (!has_new_user_changes)
       return;
 
    // do processing related to parent classes
    if (scl) {
+
       // setup inheritance list for new methods
       for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
          bool is_new = i->second->priv->func->committedEmpty();
@@ -3660,6 +3743,30 @@ void QoreClass::addBuiltinStaticVar(const char* name, AbstractQoreNode* value, b
    priv->addBuiltinStaticVar(name, value, is_priv, typeInfo);
 }
 
+void MethodFunctionBase::parseInit() {
+   QoreFunction::parseInit();
+}
+
+void MethodFunctionBase::parseCommit() {
+   QoreFunction::parseCommit();
+   if (!pending_save.empty()) {
+      // purge abstract variants from pending_save
+      for (vlist_t::iterator i = pending_save.begin(), e = pending_save.end(); i != e; ++i)
+	 (*i)->deref();
+      pending_save.clear();
+   }
+}
+
+void MethodFunctionBase::parseRollback() {
+   QoreFunction::parseRollback();
+   if (!pending_save.empty()) {
+      // move abstract variants from pending_save back to vlist
+      for (vlist_t::iterator i = pending_save.begin(), e = pending_save.end(); i != e; ++i)
+	 vlist.push_back(*i);
+      pending_save.clear();
+   }
+}
+
 int MethodFunctionBase::checkFinalVariant(const MethodFunctionBase* m, const MethodVariantBase* v) const {
    if (!v->isFinal())
       return 0;
@@ -3753,6 +3860,53 @@ void MethodFunctionBase::parseCommitMethod(QoreString& csig, const char* mod) {
 void MethodFunctionBase::parseRollbackMethod() {
    parseRollback();
    pending_all_private = true;
+}
+
+void MethodFunctionBase::replaceAbstractVariantIntern(MethodVariantBase* variant) {
+   variant->ref();
+   AbstractFunctionSignature& sig = *(variant->getSignature());
+   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+      (*i)->parseResolveUserSignature();
+      if ((*i)->isSignatureIdentical(sig)) {
+	 (*i)->deref();
+	 pending_vlist.erase(i);
+	 pending_vlist.push_back(variant);
+	 return;
+      }
+   }
+   for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+      if ((*i)->isSignatureIdentical(sig)) {
+	 pending_vlist.push_back(*i);
+	 vlist.erase(i);
+	 vlist.push_back(variant);
+	 return;
+      }
+   }
+   pending_vlist.push_back(variant);
+}
+
+void MethodFunctionBase::replaceAbstractVariant(MethodVariantBase* variant) {
+   replaceAbstractVariantIntern(variant);
+   if (pending_all_private && !variant->isPrivate())
+      pending_all_private = false;
+   if (!pending_has_final && variant->isFinal())
+      pending_has_final = true;
+}
+
+// if an identical signature is found to the passed variant, then it is removed from the abstract list
+MethodVariantBase* MethodFunctionBase::parseHasVariantWithSignature(MethodVariantBase* v) const {
+   v->parseResolveUserSignature();
+   AbstractFunctionSignature& sig = *(v->getSignature());
+   for (vlist_t::const_iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+      (*i)->parseResolveUserSignature();
+      if ((*i)->isSignatureIdentical(sig))
+	 return reinterpret_cast<MethodVariantBase*>(*i);
+   }
+   for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+      if ((*i)->isSignatureIdentical(sig))
+	 return reinterpret_cast<MethodVariantBase*>(*i);
+   }
+   return 0;
 }
 
 int ConstructorMethodVariant::constructorPrelude(const QoreClass &thisclass, CodeEvaluationHelper &ceh, QoreObject* self, BCList *bcl, BCEAList *bceal, ExceptionSink* xsink) const {

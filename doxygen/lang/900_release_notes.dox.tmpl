@@ -5,27 +5,29 @@
     @section qore_088 Qore 0.8.8
 
     @par Release Summary
-    Bug fixes and --- in progress
+    Major new features and bug fixes --  in progress
 
     @subsection qore_088_compatibility Changes That Can Affect Backwards-Compatibility
     - Fixed method resolution order; it's now possible to call pseudo-methods directly on classes that implement @ref methodGate_methods "methodGate() methods"
 
     @subsection qore_088_new_features New Features in Qore
-    - new Datasource and DatasourcePool methods:
+    - it's possible to inherit concrete versions of abstract method variants from a parent class\n
+      this makes using abstract base classes much easier in complex hierarchies using multiple inheritance; now common code can be separated into a single class and inherited by child classes sharing the common implementation
+    - new @ref Qore::SQL::Datasource "Datasource" and @ref Qore::SQL::DatasourcePool "DatasourcePool" methods:
       - Qore::SQL::Datasource::getConfigHash()
       - Qore::SQL::Datasource::getConfigString()
       - Qore::SQL::DatasourcePool::getConfigHash()
       - Qore::SQL::DatasourcePool::getConfigString()
     - new functions:
       - call_pseudo_args()
-      - substr(binary, softint)
-      - substr(binary, softint, softint)
+      - @ref Qore::substr(binary, softint) "substr(binary, softint)"
+      - @ref Qore::substr(binary, softint, softint) "substr(binary, softint, softint)"
     - new pseudo methods:
       - <binary>::substr(softint)
       - <binary>::substr(softint, softint)
       - <binary>::toBase64()
       - <binary>::toHex()
-      - <binary>::toString(*string)
+      - <binary>::toString()
       - <hash>::compareKeys(hash)
       - <int>::encodeLsb(int)
       - <int>::encodeMsb(int)

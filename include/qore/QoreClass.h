@@ -135,7 +135,13 @@ public:
    /**
       @return the method's name
    */
-   DLLEXPORT const char *getName() const;
+   DLLEXPORT const char* getName() const;
+
+   //! returns the method's name
+   /**
+      @return the method's name
+   */
+   DLLEXPORT const std::string& getNameStr() const;
 
    //! returns a pointer to the parent class
    DLLEXPORT const QoreClass *getClass() const;

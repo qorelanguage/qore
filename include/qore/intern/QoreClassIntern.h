@@ -140,6 +140,11 @@ struct AbstractMethodMap : amap_t {
          delete i->second;
    }
 
+   DLLLOCAL AbstractMethod* findMethod(const std::string& name) {
+      amap_t::iterator i = find(name);
+      return i == end() ? 0 : i->second;
+   }
+
    // adds a pending abstract variant if it doesn't already exist
    DLLLOCAL void parseAddAbstractVariant(const char* name, MethodVariantBase* f);
 
@@ -168,8 +173,7 @@ struct AbstractMethodMap : amap_t {
          i->second->parseRollback();
    }
 
-   DLLLOCAL void parseInit(const char* name) {
-   }
+   DLLLOCAL void parseInit(qore_class_private& qc, BCList* scl);
 
    // we check if there are any abstract method variants still in the committed lists
    DLLLOCAL void parseCheckAbstractNew(const char* name) const;
@@ -1586,6 +1590,8 @@ public:
    DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, bool check) const;
 
    DLLLOCAL void resolveCopy();
+
+   DLLLOCAL MethodVariantBase* matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const;
 };
 
 // BCEANode
@@ -2482,6 +2488,16 @@ public:
    }
    // returns a non-static method if it exists in the local class
    DLLLOCAL const QoreMethod* parseFindLocalMethod(const char* nme) const {
+      hm_method_t::const_iterator i = hm.find(nme);
+      return (i != hm.end()) ? i->second : 0;
+   }
+
+   DLLLOCAL QoreMethod* parseFindLocalMethod(const std::string& nme) {
+      hm_method_t::iterator i = hm.find(nme);
+      return (i != hm.end()) ? i->second : 0;
+   }
+   // returns a non-static method if it exists in the local class
+   DLLLOCAL const QoreMethod* parseFindLocalMethod(const std::string& nme) const {
       hm_method_t::const_iterator i = hm.find(nme);
       return (i != hm.end()) ? i->second : 0;
    }

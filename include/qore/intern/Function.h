@@ -933,6 +933,7 @@ class MethodFunctionBase;
 #define METHFB_const(f) (reinterpret_cast<const MethodFunctionBase*>(f))
 
 class MethodFunctionBase : public QoreFunction {
+friend struct AbstractMethod;
 protected:
    bool all_private, 
       pending_all_private,
@@ -941,10 +942,15 @@ protected:
       pending_has_final;
    const QoreClass* qc;   
 
+   // for concrete variants for local abstract variants inherited from base classes
+   VList pending_save;
+
    // pointer to copy, only valid during copy
    mutable MethodFunctionBase* new_copy;
 
    DLLLOCAL int checkFinalVariant(const MethodFunctionBase* m, const MethodVariantBase* v) const;
+
+   DLLLOCAL void replaceAbstractVariantIntern(MethodVariantBase* variant);
 
 public:
    DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), all_private(true), pending_all_private(true), is_static(n_is_static), has_final(false), pending_has_final(false), qc(n_qc), new_copy(0) {
@@ -987,6 +993,10 @@ public:
       }
    }
 
+   DLLLOCAL void parseInit();
+   DLLLOCAL void parseCommit();
+   DLLLOCAL void parseRollback();
+
    // returns -1 for error, 0 = OK
    DLLLOCAL int parseAddUserMethodVariant(MethodVariantBase* variant);
    // maintains all_private flag and commits the builtin variant
@@ -995,20 +1005,9 @@ public:
    DLLLOCAL void parseCommitMethod(QoreString& csig, const char* mod);
 
    // if an identical signature is found to the passed variant, then it is removed from the abstract list
-   DLLLOCAL bool parseHasVariantWithSignature(AbstractQoreFunctionVariant* v) const {
-      v->parseResolveUserSignature();
-      AbstractFunctionSignature& sig = *(v->getSignature());
-      for (vlist_t::const_iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-         (*i)->parseResolveUserSignature();
-         if ((*i)->isSignatureIdentical(sig))
-            return true;
-      }
-      for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-         if ((*i)->isSignatureIdentical(sig))
-            return true;
-      }
-      return false;
-   }
+   DLLLOCAL MethodVariantBase* parseHasVariantWithSignature(MethodVariantBase* v) const;
+
+   DLLLOCAL void replaceAbstractVariant(MethodVariantBase* variant);
 
    DLLLOCAL void parseRollbackMethod();
    DLLLOCAL bool isUniquelyPrivate() const {
