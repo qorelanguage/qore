@@ -140,8 +140,17 @@ struct QoreValue {
       return 0;
    }
 
-   DLLLOCAL AbstractQoreNode* getNode() const {
-      return type == QV_Node ? v.n : 0;
+   DLLLOCAL AbstractQoreNode* takeIfNode() {
+      if (type == QV_Node) {
+#ifdef DEBUG
+         AbstractQoreNode* rv = v.n;
+         v.n = 0;
+         return rv;
+#else
+         return v.n;
+#endif
+      }
+      return 0;
    }
 
    DLLLOCAL qore_type_t getType() const {
@@ -217,14 +226,24 @@ public:
    bool assigned : 1;
 
    DLLLOCAL QoreLValue() : type(QV_Node), assigned(false) {
+#ifdef DEBUG
+      v.n = 0;
+#endif
       reset();
    }
 
    DLLLOCAL QoreLValue(valtype_t t) : type(t), assigned(false) {
+#ifdef DEBUG
+      if (t == QV_Node)
+         v.n = 0;
+#endif
       reset();
    }
 
    DLLLOCAL QoreLValue(const QoreTypeInfo* typeInfo) : assigned(false) {
+#ifdef DEBUG
+      type = QV_Bool;
+#endif
       set(typeInfo);
    }
 
@@ -249,6 +268,7 @@ public:
       return type != QV_Node && type != QV_Ref;
    }
 
+#ifdef DEBUG
    DLLLOCAL bool hasValue() const {
       if (!assigned)
          return false;
@@ -262,6 +282,7 @@ public:
       }
       return false;
    }
+#endif
 
    DLLLOCAL void set(const QoreTypeInfo* typeInfo) {
       if (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)
@@ -275,6 +296,7 @@ public:
    }
 
    DLLLOCAL void set(valtype_t t) {
+      assert(type != QV_Node || !v.n);
       type = t;
       reset();
    }
@@ -283,10 +305,14 @@ public:
       if (!assigned)
          assigned = true;
       switch (type) {
-         case QV_Bool: v.b = val.getAsBool(); return val.getNode();
-         case QV_Int: v.i = val.getAsBigInt(); return val.getNode();
-         case QV_Float: v.f = val.getAsFloat(); return val.getNode();
-         case QV_Node: { AbstractQoreNode* rv = v.n; v.n = val.takeNode(); return rv; }
+         case QV_Bool: v.b = val.getAsBool(); return val.takeIfNode();
+         case QV_Int: v.i = val.getAsBigInt(); return val.takeIfNode();
+         case QV_Float: v.f = val.getAsFloat(); return val.takeIfNode();
+         case QV_Node: {
+            AbstractQoreNode* rv = v.n;
+            v.n = val.takeNode();
+            return rv;
+         }
          default: assert(false);
          // no break
       }
@@ -348,6 +374,7 @@ public:
    }
 
    DLLLOCAL void assignSetInitialSwap(QoreLValue<U>& n, QoreValue& val) {
+      assert(type != QV_Node || !v.n);
       assert(!assigned);
       assigned = true;
       type = n.type;
@@ -362,6 +389,7 @@ public:
    }
 
    DLLLOCAL void assignSetTakeInitial(QoreLValue<U>& n) {
+      assert(type != QV_Node || !v.n);
       assert(!assigned);
       assigned = true;
       type = n.type;
@@ -376,6 +404,7 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* assignInitial(QoreValue& n) {
+      assert(type != QV_Node || !v.n);
       assert(!assigned);
       return assign(n);
    }
@@ -397,6 +426,7 @@ public:
    */
 
    DLLLOCAL void assignInitial(bool n) {
+      assert(type != QV_Node || !v.n);
       assert(!assigned);
       assigned = true;
       type = QV_Bool;
@@ -404,6 +434,7 @@ public:
    }
 
    DLLLOCAL void assignInitial(int64 n) {
+      assert(type != QV_Node || !v.n);
       assert(!assigned);
       assigned = true;
       type = QV_Int;
@@ -411,6 +442,7 @@ public:
    }
 
    DLLLOCAL void assignInitial(double n) {
+      assert(type != QV_Node || !v.n);
       assert(!assigned);
       assigned = true;
       type = QV_Float;
@@ -418,6 +450,7 @@ public:
    }
 
    DLLLOCAL void assignInitial(AbstractQoreNode* n) {
+      assert(type != QV_Node || !v.n);
       assert(!assigned);
       assigned = true;
       type = QV_Node;
@@ -425,6 +458,7 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* assign(AbstractQoreNode* n) {
+      assert(type != QV_Node || !v.n);
       if (!assigned)
          assigned = true;
       switch (type) {
