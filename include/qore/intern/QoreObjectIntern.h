@@ -722,11 +722,11 @@ public:
 class qore_object_recursive_lock_handoff_helper {
 private:
    qore_object_private *pobj;
-   AutoVLock &vl;
+   //AutoVLock &vl;
    bool locked;
 
 public:
-   DLLLOCAL qore_object_recursive_lock_handoff_helper(qore_object_private *n_pobj, AutoVLock &n_vl) : pobj(n_pobj), vl(n_vl) {
+   DLLLOCAL qore_object_recursive_lock_handoff_helper(qore_object_private *n_pobj, AutoVLock &n_vl) : pobj(n_pobj) /*, vl(n_vl)*/ {
       // try to lock current object
       locked = !pobj->mutex.trylock();
    }

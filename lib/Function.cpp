@@ -1231,8 +1231,10 @@ UserVariantExecHelper::~UserVariantExecHelper() {
       return;
    UserSignature* sig = uvb->getUserSignature();
    // uninstantiate local vars from param list
-   for (unsigned i = 0; i < sig->numParams(); ++i)
+   for (unsigned i = 0; i < sig->numParams(); ++i) {
+      //printd(5, "UserVariantExecHelper::~UserVariantExecHelper() this: %p %s %d/%d %p lv: %s (%s)\n", this, sig->getSignatureText(), i, sig->numParams(), sig->lv[i], sig->lv[i]->getName(), sig->lv[i]->getValueTypeName());
       sig->lv[i]->uninstantiate(xsink);
+   }
 }
 
 UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced)

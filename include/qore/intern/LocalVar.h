@@ -242,7 +242,7 @@ public:
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
 
    DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), typeInfo(varTypeInfo) {
-      //printd(5, "ClosureVarValue::ClosureVarValue() this: %p pgm: %p\n", this, getProgram());
+      //printd(0, "ClosureVarValue::ClosureVarValue() this: %p pgm: %p\n", this, getProgram());
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
       discard(val.assignInitial(nval), 0);
    }
@@ -253,9 +253,18 @@ public:
    }
 #endif
 
-   DLLLOCAL void ref() { ROreference(); }
+   DLLLOCAL void ref() {
+      //printd(5, "ClosureVarValue::ref() this: %p refs: %d -> %d\n", this, references, references + 1);
+      ROreference(); 
+   }
 
-   DLLLOCAL void deref(ExceptionSink* xsink) { if (ROdereference()) { del(xsink); delete this; } }
+   DLLLOCAL void deref(ExceptionSink* xsink) {
+      //printd(5, "ClosureVarValue::deref() this: %p refs: %d -> %d\n", this, references, references - 1);
+      if (ROdereference()) {
+         del(xsink);
+         delete this;
+      }
+   }
 
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
@@ -383,7 +392,7 @@ public:
    }
 
    DLLLOCAL void instantiate(QoreValue nval) const {
-      //printd(5, "LocalVar::instantiate(%p) this=%p '%s' value type=%s closure_use=%s pgm=%p\n", value, this, name.c_str(), get_type_name(value), closure_use ? "true" : "false", getProgram());
+      //printd(5, "LocalVar::instantiate(%s) this: %p '%s' value closure_use: %s pgm: %p\n", nval.getTypeName(), this, name.c_str(), closure_use ? "true" : "false", getProgram());
 
       if (!closure_use) {
          LocalVarValue* val = thread_instantiate_lvar();
@@ -400,7 +409,7 @@ public:
    }
 
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) const  {
-      //printd(5, "LocalVar::uninstantiate() this=%p '%s' closure_use=%s pgm=%p\n", this, name.c_str(), closure_use ? "true" : "false", getProgram());
+      //printd(5, "LocalVar::uninstantiate() this: %p '%s' closure_use: %s pgm: %p\n", this, name.c_str(), closure_use ? "true" : "false", getProgram());
 
       if (!closure_use)
          thread_uninstantiate_lvar(xsink);

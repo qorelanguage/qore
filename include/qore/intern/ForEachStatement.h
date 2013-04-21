@@ -35,8 +35,7 @@ private:
    StatementBlock* code;
    LVList* lvars;
    bool is_ref,
-      is_keys,
-      is_iterator;
+      is_keys;
    
    DLLLOCAL int execRef(AbstractQoreNode** return_value, ExceptionSink* xsink);
    DLLLOCAL int execKeys(AbstractQoreNode** return_value, ExceptionSink* xsink);

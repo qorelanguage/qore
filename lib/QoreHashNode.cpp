@@ -434,9 +434,9 @@ bool QoreHashNode::derefImpl(ExceptionSink* xsink) {
    HashMember* where = priv->member_list;
    while (where) {
 #if 0
-      printd(5, "QoreHashNode::derefImpl() this=%p %s=%p type=%s references=%d\n", this,
+      printd(5, "QoreHashNode::derefImpl() this: %p size: %d '%s': %p %s refs: %d\n", this, priv->len,
              where->key ? where->key : "(null)",
-             where->node, where->node ? where->node->getTypeName() : "(null)",
+             where->node, get_type_name(where->node),
              where->node ? where->node->reference_count() : 0);
 #endif
       if (where->node)

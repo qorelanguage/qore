@@ -3050,13 +3050,13 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             }
 
             # create any missing functions; replace updated functions
-            fmap = \schema_hash{type + "s"};
-            AbstractDatabase::checkDriverOptions(\fmap, drv);
-            foreach string name in (fmap.keyIterator()) {
-                AbstractSqlUtilBase::validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fmap{name}, name, type + "s");
+            reference fh = \schema_hash{type + "s"};
+            AbstractDatabase::checkDriverOptions(\fh, drv);
+            foreach string name in (fh.keyIterator()) {
+                AbstractSqlUtilBase::validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fh{name}, name, type + "s");
 
                 # make template function
-                AbstractFunction templateFunc = make(name, fmap{name}, opt.(copt.keys()));
+                AbstractFunction templateFunc = make(name, fh{name}, opt.(copt.keys()));
 
                 # see if function exists
                 *AbstractFunction f;

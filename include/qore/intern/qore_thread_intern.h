@@ -521,16 +521,19 @@ public:
    QoreProgram* pgm;
 
    DLLLOCAL lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self) : vexp(n_lvexp), self(n_self), pgm(getProgram()) {
+      //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
       if (self)
          self->tRef();
    }
 
    DLLLOCAL lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm) {
+      //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
       if (self)
          self->tRef();
    }
 
    DLLLOCAL ~lvalue_ref() {
+      //printd(5, "lvalue_ref::~lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
       if (self)
          self->tDeref();
       if (vexp)
@@ -538,6 +541,7 @@ public:
    }
 
    DLLLOCAL void del(ExceptionSink* xsink) {
+      //printd(5, "lvalue_ref::del() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
       if (vexp) {
          vexp->deref(xsink);
          vexp = 0;

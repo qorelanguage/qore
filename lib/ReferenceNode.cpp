@@ -64,6 +64,7 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
 ReferenceNode* ParseReferenceNode::evalToRef(ExceptionSink* xsink) const {
    QoreObject* self = 0;
    AbstractQoreNode* nv = doPartialEval(lvexp, self, xsink);
+   //printd(5, "ParseReferenceNode::evalToRef() this: %p nv: %p lvexp: %p\n", this, nv, lvexp);
    return nv ? new ReferenceNode(nv, self) : 0;
 }
 

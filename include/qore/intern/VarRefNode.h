@@ -43,7 +43,8 @@ protected:
    bool explicit_scope : 1; // scope was explicitly provided
 
    DLLLOCAL ~VarRefNode() {
-      printd(3, "VarRefNode::~VarRefNode() deleting variable reference %p %s\n", this, name.ostr ? name.ostr : "<taken>");
+      //printd(5, "VarRefNode::~VarRefNode() deleting variable reference %p %s\n", this, name.ostr ? name.ostr : "<taken>");
+      assert(type != VT_IMMEDIATE || !ref.cvv);
       assert(type != VT_IMMEDIATE || !ref.cvv);
    }
 
@@ -97,9 +98,8 @@ protected:
       type = VT_CLOSURE;
    }
 
-   DLLLOCAL VarRefNode(char* n, ClosureVarValue* cvv) : ParseNode(NT_VARREF, true, false), loc(RunTimeLocation), name(n), new_decl(false), explicit_scope(false) {
+   DLLLOCAL VarRefNode(char* n, ClosureVarValue* cvv) : ParseNode(NT_VARREF, true, false), loc(RunTimeLocation), name(n), type(VT_IMMEDIATE), new_decl(false), explicit_scope(false) {
       ref.cvv = cvv;
-      type = VT_IMMEDIATE;
       cvv->ref();
    }
 
@@ -121,8 +121,8 @@ protected:
 
 public:
    union var_u {
-      LocalVar *id;         // for local variables
-      Var *var;             // for global variables
+      LocalVar* id;         // for local variables
+      Var* var;             // for global variables
       ClosureVarValue* cvv; // for immediate values; used with references
    } ref;
 
@@ -328,6 +328,7 @@ private:
 
 protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink) {
+      //printd(5, "VarRefImmediateNode::derefImpl() this: %p '%s' cvv: %p\n", this, name.ostr, ref.cvv);
       ref.cvv->deref(xsink);
 #ifdef DEBUG
       ref.cvv = 0;
@@ -337,9 +338,11 @@ protected:
 
 public:
    DLLLOCAL VarRefImmediateNode(char* n, ClosureVarValue* cvv, const QoreTypeInfo* n_typeInfo) : VarRefDeclNode(n, cvv, n_typeInfo) {
+      //printd(5, "VarRefImmediateNode::VarRefImmediateNode() this: %p '%s' cvv: %p\n", this, name.ostr, cvv);
    }
 
    DLLLOCAL virtual ~VarRefImmediateNode() {
+      //printd(5, "VarRefImmediateNode::~VarRefImmediateNode() this: %p '%s'\n", this, name.ostr);
       assert(!ref.cvv);
    }
 };
