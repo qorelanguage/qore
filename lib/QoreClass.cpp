@@ -755,6 +755,8 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    assert(!name.empty());
    //printd(5, "QoreClass::initialize() %s class: %p scl: %p\n", name.c_str(), cls, scl);
 
+   QoreParseClassHelper qpch(cls);
+
    // first resolve types in pending variants in all method signatures (incl. return types)
    // since abstract method functions are copied by reference from the normal list; this resolves all pending
    // method function signatures as well
