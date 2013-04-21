@@ -1111,7 +1111,7 @@ protected:
 
    DLLLOCAL AbstractQoreNode *parseFindConstantValueIntern(const NamedScope& name, const QoreTypeInfo*& typeInfo, bool error);
 
-   DLLLOCAL AbstractQoreNode* parseResolveBarewordIntern(const char* bword, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL AbstractQoreNode* parseResolveBarewordIntern(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL AbstractQoreNode *parseResolveScopedReferenceIntern(const NamedScope& name, const QoreTypeInfo* &typeInfo);
 
@@ -1476,8 +1476,8 @@ public:
       return getRootNS()->rpriv->parseFindConstantValueIntern(name, typeInfo, error);
    }
 
-   DLLLOCAL static AbstractQoreNode* parseResolveBareword(const char* bword, const QoreTypeInfo* &typeInfo) {
-      return getRootNS()->rpriv->parseResolveBarewordIntern(bword, typeInfo);
+   DLLLOCAL static AbstractQoreNode* parseResolveBareword(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo* &typeInfo) {
+      return getRootNS()->rpriv->parseResolveBarewordIntern(loc, bword, typeInfo);
    }
 
    DLLLOCAL static AbstractQoreNode *parseResolveScopedReference(const NamedScope& name, const QoreTypeInfo*& typeInfo) {

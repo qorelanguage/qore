@@ -76,7 +76,7 @@ char *BarewordNode::takeString() {
 
 AbstractQoreNode *BarewordNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    //printd(5, "BarewordNode::parseInitImpl() this: %p str: %s\n", this, str);
-   AbstractQoreNode *n = qore_root_ns_private::parseResolveBareword(str, typeInfo);
+   AbstractQoreNode *n = qore_root_ns_private::parseResolveBareword(loc, str, typeInfo);
    if (!n)
       return this;
 

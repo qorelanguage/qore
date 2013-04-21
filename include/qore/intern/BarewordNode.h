@@ -27,6 +27,8 @@
 
 class BarewordNode : public ParseNoEvalNode {
 protected:
+   QoreProgramLocation loc;
+
    DLLLOCAL AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {

@@ -1667,6 +1667,18 @@ void QoreProgramLocation::parseSet() const {
    update_parse_location(*this);
 }
 
+void QoreProgramLocation::toString(QoreString& str) const {
+   str.concat(file ? file : "<unknown>");
+   if (start_line > 0) {
+      str.sprintf(":%d", start_line);
+      if (end_line > 0 && end_line != start_line)
+	 str.sprintf("-%d", end_line);
+   }
+
+   if (source)
+      str.sprintf(" (source \"%s\":%d)", source, start_line + offset);
+}
+
 bool q_parse_bool(const AbstractQoreNode* n) {
    if (get_node_type(n) == NT_STRING)
       return q_parse_bool(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());

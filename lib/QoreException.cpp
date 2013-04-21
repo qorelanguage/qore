@@ -142,7 +142,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
 
 	    if (e->start_line == e->end_line) {
 	       if (!e->source.empty())
-	          printe("source %s:%d", e->source.c_str(), e->start_line + e->offset);
+	          printe(", source %s:%d", e->source.c_str(), e->start_line + e->offset);
 	    }
 	    else {
                printe("-%d", e->end_line);
@@ -372,6 +372,8 @@ QoreHashNode *QoreException::getStackHash(int type, const char *class_name, cons
    if (class_name)
       str->sprintf("%s::", class_name);
    str->concat(code);
+
+   //printd(5, "QoreException::getStackHash() %s at %s:%d-%d src: %s+%d\n", str->getBuffer(), loc.file ? loc.file : "n/a", loc.start_line, loc.end_line, loc.source ? loc.source : "n/a", loc.offset);
    
    h->setKeyValue("function", str, 0);
    h->setKeyValue("line",     new QoreBigIntNode(loc.start_line), 0);

@@ -69,6 +69,13 @@ public:
 	 qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
    }
 
+   DLLLOCAL void appendLocation(QoreString& str) {
+      if (loc) {
+	 str.concat(" at ");
+	 loc->toString(str);
+      }
+   }
+
    DLLLOCAL void setRef() {
       ++refs;
    }
@@ -241,6 +248,10 @@ LocalVar *push_local_var(const char *name, const QoreProgramLocation& loc, const
 
    LocalVar *lv = pgm->createLocalVar(name, typeInfo);
 
+   QoreString ls;
+   loc.toString(ls);
+   //printd(5, "push_local_var() name: %s type: %s %s\n", name, typeInfo->getName(), ls.getBuffer());
+
    bool found_block = false;
    // check stack for duplicate entries
    bool avs = parse_check_parse_option(PO_ASSUME_LOCAL);
@@ -249,19 +260,25 @@ LocalVar *push_local_var(const char *name, const QoreProgramLocation& loc, const
       if (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS | QP_WARN_DUPLICATE_BLOCK_VARS) || avs) {
          VNode* vnode = getVStack();
          while (vnode) {
-            printd(5, "push_local_var() vnode=%p %s (top: %s) ibs=%d found_block=%d\n", vnode, vnode->getName(), vnode->isTopLevel() ? "true" : "false", vnode->isBlockStart(), found_block);
             if (!found_block && vnode->isBlockStart())
                found_block = true;
             if (!strcmp(vnode->getName(), name)) {
                if (!found_block && avs) {
-                  parse_error(loc, "local variable '%s' was already declared in the same block", name);
+		  QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in the same block", name);
+		  vnode->appendLocation(*desc);
+                  parseException(loc, "PARSE-ERRPR", desc);
                }
                else {
-                  if (!found_block)
-                     qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", "local variable '%s' was already declared in the same block", name);
+                  if (!found_block) {
+		     QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in the same block", name); 
+		     vnode->appendLocation(*desc);
+                     qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", desc);
+		  }
                   else {
                      if (top_level || !vnode->isTopLevel()) {
-                        qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '%s' was already declared in this lexical scope", name);
+			QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in this lexical scope", name);
+			vnode->appendLocation(*desc);
+                        qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", desc);
 		     }
                   }
                   break;

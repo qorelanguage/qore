@@ -753,7 +753,7 @@ int qore_root_ns_private::parseAddMethodToClassIntern(const NamedScope& scname, 
 }
 
 // returns 0 for success, non-zero for error
-AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const char* bword, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo *&typeInfo) {
    QoreClass* pc = getParseClass();
 
    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern(%s) pc=%p (%s)\n", b->str, pc, pc ? pc->getName() : "<none>");
@@ -813,7 +813,7 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const char* b
    if (rv)
       return rv->refSelf();
 
-   parse_error("cannot resolve bareword '%s' to any reachable object", bword);
+   parse_error(loc, "cannot resolve bareword '%s' to any reachable object", bword);
 
    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern(%s) %p %s\n", bword, rv, get_type_name(rv));
    return 0;

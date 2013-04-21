@@ -185,6 +185,8 @@ public:
    }
 
    DLLLOCAL void parseSet() const;
+
+   DLLLOCAL void toString(QoreString& str) const;
 };
 
 struct QoreCommandLineLocation : public QoreProgramLocation {

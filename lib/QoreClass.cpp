@@ -332,7 +332,8 @@ void AbstractMethodMap::parseCheckAbstractNew(const char* name) const {
 // FIXME: check private method variant access at runtime
 
 struct SelfLocalVarParseHelper {
-   DLLLOCAL SelfLocalVarParseHelper(LocalVar *selfid) { push_local_var(selfid, QoreProgramLocation()); }
+   QoreProgramLocation loc;
+   DLLLOCAL SelfLocalVarParseHelper(LocalVar* selfid) { push_local_var(selfid, loc); }
    DLLLOCAL ~SelfLocalVarParseHelper() { pop_local_var(); }
 };
 
@@ -3319,6 +3320,7 @@ void qore_class_private::parseInitPartialIntern() {
    }
 
    {
+      VariableBlockHelper vbh;
       SelfLocalVarParseHelper slvph(&selfid);
       // initialize new private members
       for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
