@@ -841,7 +841,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 
         # wait for all connection threads to terminate
         $.cThreads.waitForZero();
-            
+
         $.stopped = True;
         $.log("stopped listener");
 
@@ -854,7 +854,13 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	$argv[0] = sprintf("listener %s (%s): %s", $.name, $.socket_info.desc, $argv[0]);
 	if ($.logger) {
 	    $argv[0] = "HTTP " + $argv[0];
-	    call_function_args($.logger, $argv);
+            try {
+                call_function_args($.logger, $argv);
+            }
+            catch (hash $ex) {
+                $argv[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", $ex.err, $ex.desc, $argv[0]);
+                $.serv.logArgs($argv);
+            }
 	}
 	else
 	    $.serv.logArgs($argv);
@@ -864,7 +870,13 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	$argv[0] = sprintf("listener %s (%s): %s", $.name, $.socket_info.desc, $argv[0]);
 	if ($.errorlogger) {
 	    $argv[0] = "HTTP " + $argv[0];
-	    call_function_args($.errorlogger, $argv);
+            try {
+                call_function_args($.errorlogger, $argv);
+            }
+            catch (hash $ex) {
+                $argv[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", $ex.err, $ex.desc, $argv[0]);
+                $.serv.logArgs($argv);
+            }
 	}
 	else
 	    $.serv.logErrorArgs($argv);
@@ -1643,7 +1655,7 @@ public class HttpServer::HttpServer {
     }
     
     #! calls the log function/closure with the given args
-    logArgs(list $args = ()) {
+    logArgs(softlist $args = ()) {
 	if ($.logfunc) {
 	    $args[0] = "HttpServer: " + $args[0];
 	    call_function_args($.logfunc, $args);
@@ -1651,7 +1663,7 @@ public class HttpServer::HttpServer {
     }
     
     #! calls the error log function/closure with the given args
-    logErrorArgs(list $args = ()) {
+    logErrorArgs(softlist $args = ()) {
 	if ($.errlogfunc) {
 	    $args[0] = "HttpServer: " + $args[0];
 	    call_function_args($.errlogfunc, $args);
