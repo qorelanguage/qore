@@ -308,7 +308,7 @@ my list $l = $col.getCreateSql($t);
             @param t the AbstractTable object to modify
          */
         list getCreateSql(AbstractTable t) {
-	    list l += sprintf("alter table %s add %s", t.getSqlName(), getCreateSql());	    
+	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql());	    
 	    if (comment)
 		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
             return l;
