@@ -4196,15 +4196,15 @@ $table.dropPrimaryKey();
             return t.dropPrimaryKey(\sql);
         }
 
-        #! gets the SQL that can be used to drop the primary key from the table
+        #! gets a list of SQL strings that can be used to drop the primary key from the table
         /** @par Example:
             @code
-my string $sql = $table.getDropPrimaryKeySql();
+my list $l = $table.getDropPrimaryKeySql();
             @endcode
 
             @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
-            @return the SQL that can be used to drop the primary key from the table
+            @return a list of SQL strings that can be used to drop the primary key from the table
 
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw PRIMARY-KEY-ERROR the table has no primary key
@@ -4213,7 +4213,7 @@ my string $sql = $table.getDropPrimaryKeySql();
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        string getDropPrimaryKeySql(*hash opt) {
+        list getDropPrimaryKeySql(*hash opt) {
             return t.getDropPrimaryKeySql(opt);
         }
 
@@ -6547,15 +6547,15 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
             return lst;
         }
 
-        #! gets the SQL that can be used to drop the primary key from the table
+        #! gets a list of SQL strings that can be used to drop the primary key from the table
         /** @par Example:
             @code
-my string $sql = $table.getDropPrimaryKeySql();
+my list $l = $table.getDropPrimaryKeySql();
             @endcode
 
             @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
-            @return the SQL that can be used to drop the primary key from the table
+            @return a list of SQL strings that can be used to drop the primary key from the table
 
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw PRIMARY-KEY-ERROR the table has no primary key
@@ -6564,7 +6564,7 @@ my string $sql = $table.getDropPrimaryKeySql();
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        string getDropPrimaryKeySql(*hash opt) {
+        list getDropPrimaryKeySql(*hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
             l.lock();
@@ -6577,7 +6577,11 @@ my string $sql = $table.getDropPrimaryKeySql();
             on_success if (opt.sql_callback_executed)
                 remove primaryKey;
 
-            return AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "drop primary key %s from %s", primaryKey.getName(), name);
+            list l = ();
+            map l += AbstractDatabase::doCallback(opt, $1.fk.getDropSql($1.table), "dropping foreign constraint %s from %s", $1.fk.getName(), $1.table), primaryKey.getSourceConstraintIterator();
+
+            l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "dropping primary key %s from %s", primaryKey.getName(), name);
+            return l;
         }
 
         #! drops the primary key from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally

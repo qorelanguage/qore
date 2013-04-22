@@ -1408,7 +1408,7 @@ my any $v = $c.name;
         string getCreateTableSqlImpl(*hash opt) {
             string sql = sprintf("create table %s (\n", name);
 
-            sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
+            sql += foldl $1 + ",\n" + $2, (map sprintf("  %s", $1.getCreateSql()), columns.iterator());
             sql += "\n)";
 
             *string ts = opt.data_tablespace ? opt.data_tablespace : tablespace;

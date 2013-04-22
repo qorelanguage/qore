@@ -762,6 +762,9 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    assert(!name.empty());
    //printd(5, "QoreClass::initialize() %s class: %p scl: %p\n", name.c_str(), cls, scl);
 
+   if (scl && scl->initialize(cls, has_delete_blocker, qcp_set))
+      return -1;
+
    QoreParseClassHelper qpch(cls);
 
    // first resolve types in pending variants in all method signatures (incl. return types)
@@ -784,9 +787,6 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
 
    // initialize parent classes
    if (scl) {
-      if (scl->initialize(cls, has_delete_blocker, qcp_set))
-         return -1;
-
       // merge direct base class abstract method lists to ourselves
       for (BCList::iterator i = scl->begin(), e = scl->end(); i != e; ++i) {
          if ((*i)->sclass) {
@@ -1679,14 +1679,19 @@ void BCList::addStaticAncestors(QoreMethod* m) {
 
 void BCList::parseAddAncestors(QoreMethod* m) {
    const char* name = m->getName();
+
+   //printd(5, "BCList::parseAddAncestors(%p %s) this: %p size: %d\n", m, name, this, size());
+   
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       // if there was a parse error finding the base class, then skip
       QoreClass* qc = (*i)->sclass;
-      if (!qc)
+      if (!qc) {
+	 //printd(5, "BCList::parseAddAncestors(%p %s) this: %p qc: %p NOT FOUND\n", m, name, this, qc);
 	 continue;
+      }
 
       const QoreMethod* w = qc->priv->parseFindLocalMethod(name);
-      //printd(5, "BCList::parseAddAncestors(%p %s) this: %p qc: %p w: %p am: %p\n", m, m->getName(), this, qc, w, am);
+      //printd(5, "BCList::parseAddAncestors(%p %s) this: %p qc: %p w: %p\n", m, name, this, qc, w);
 
       if (w)
          m->getFunction()->addAncestor(w->getFunction());
@@ -3258,14 +3263,18 @@ void qore_class_private::parseInitPartial() {
    if (parse_init_partial_called)
       return;
 
+   initialize();
+
    NamespaceParseContextHelper nspch(ns);
-   
+
    parseInitPartialIntern();
 }
 
 void qore_class_private::parseInitPartialIntern() {
    assert(!parse_init_partial_called);
    parse_init_partial_called = true;
+
+   //printd(5, "class_private::parseInitPartialIntern() this: %p '%s' scl: %p user_changes: %d\n", this, name.c_str(), scl, has_new_user_changes);
 
    QoreParseClassHelper qpch(cls);
 
@@ -3309,14 +3318,14 @@ void qore_class_private::parseInitPartialIntern() {
 
    // do processing related to parent classes
    if (scl) {
-
       // setup inheritance list for new methods
       for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
          bool is_new = i->second->priv->func->committedEmpty();
-         if (is_new) {
-            if (!checkSpecial(i->second->getName()))
-               parseAddAncestors(i->second);
-         }
+
+	 //printd(5, "class_private::parseInitPartialIntern() this: %p %s::%s is_new: %d cs: %d (%s)\n", this, name.c_str(), i->first.c_str(), is_new, checkSpecial(i->second->getName()), i->second->getName());
+
+         if (is_new && !checkSpecial(i->second->getName()))
+	    parseAddAncestors(i->second);
       }
 
       // setup inheritance list for new static methods

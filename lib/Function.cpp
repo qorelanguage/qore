@@ -556,6 +556,9 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
    for (ilist_t::const_iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
       aqf = *aqfi;
 
+      //if (!strcmp(getName(), "getCreateSql") && aqf && !strcmp(aqf->className(), "OracleColumn"))
+      //printd(0, "QoreFunction::findVariant() this: %p %s::%s(...) size: %d\n", this, aqf->className(), getName(), ilist.size());
+
       for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
 	 // skip checking variant if we are only looking for user variants and this variant is builtin
 	 if (only_user && !(*i)->isUser())
@@ -564,7 +567,8 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
 	 sig = (*i)->getSignature();
 	 assert(sig);
 
-	 //printd(5, "QoreFunction::findVariant() this=%p %s(%s) args=%p (%d) class=%s\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0, aqf->className() ? aqf->className() : "n/a");
+	 if (!strcmp(getName(), "getCreateSql") && aqf && !strcmp(aqf->className(), "OracleColumn") && !sig->numParams())
+	 printd(0, "QoreFunction::findVariant() this: %p %s(%s) args: %p (%d) class: %s\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0, aqf->className() ? aqf->className() : "n/a");
 
 	 if (!variant && !sig->getParamTypes()) {
 	    match = 0;

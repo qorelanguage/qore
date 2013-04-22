@@ -2377,7 +2377,7 @@ public:
    }
 
    DLLLOCAL void parseAddAncestors(QoreMethod* m) {
-      //printd(5, "qore_class_private::parseAddAncestors(%p %s) this=%p cls=%p %s scl=%p\n", m, m->getName(), this, cls, name.c_str(), scl);
+      //printd(5, "qore_class_private::parseAddAncestors(%p %s) this: %p cls: %p %s scl: %p\n", m, m->getName(), this, cls, name.c_str(), scl);
       assert(strcmp(m->getName(), "constructor"));
 
       if (!scl)
