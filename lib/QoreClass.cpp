@@ -252,11 +252,12 @@ void AbstractMethodMap::parseInit(qore_class_private& qc, BCList *scl) {
 	 // if there is a matching non-abstract variant in any parent class, then remove the variant from pending_vlist
 	 MethodVariantBase* v = scl->matchNonAbstractVariant(i->first, vi->second);
 	 if (v) {
+	    //printd(5, "AbstractMethodMap::parseInit() this: %p %s::%s() FOUND v: %p (%s)\n", this, qc.name.c_str(), i->first.c_str(), v, v->getAbstractSignature());
 	    vmap_t::iterator ti = vi++;	    
 	    i->second->pending_vlist.erase(ti);
 	    // replace abstract variant
 	    QoreMethod* m = qc.parseFindLocalMethod(i->first);
-	    //printd(5, "AbstractMethodMap::parseInit() this: %p %s::%s() v: %p m: %p\n", this, qc.name.c_str(), i->first.c_str(), v, m);
+	    //printd(5, "AbstractMethodMap::parseInit() this: %p %s::%s() FOUND v: %p m: %p am: %p\n", this, qc.name.c_str(), i->first.c_str(), v, m, i->second);
 	    if (!m) {
 	       m = new QoreMethod(qc.cls, new NormalUserMethod(qc.cls, i->first.c_str()), false);
 	       qc.hm[m->getName()] = m;
@@ -1758,7 +1759,8 @@ const QoreClass* BCList::getClass(const qore_class_private& qc, bool &priv) cons
 MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       const QoreClass* nqc = (*i)->sclass;
-      //printd(5, "BCList::matchNonAbstractVariant() this: %p %s %p (%s) ncq: %p %s\n", this, name.c_str(), v, v->getAbstractSignature(), nqc, nqc ? nqc->getName() : "n/a");
+      //printd(5, "BCList::matchNonAbstractVariant() this: %p %s::%s %p (%s) ncq: %p\n", this, nqc ? nqc->getName() : "n/a", name.c_str(), v, v->getAbstractSignature(), nqc);
+
       // nqc may be 0 if there were a parse error with an unknown class earlier
       if (!nqc)
 	 continue;
@@ -1767,6 +1769,7 @@ MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, Meth
       if (m) {
 	 MethodFunctionBase* f = m->getFunction();
 	 MethodVariantBase* ov = f->parseHasVariantWithSignature(v);
+	 //printd(5, "BCList::matchNonAbstractVariant() this: %p %s::%s %p (%s) m: %p (%s) ov: %p (%s) abstract: %d\n", this, nqc ? nqc->getName() : "n/a", name.c_str(), v, v->getAbstractSignature(), m, m->getName(), ov, ov ? ov->getAbstractSignature() : "n/a", ov ? ov->isAbstract() : 0);
 	 if (ov && !ov->isAbstract())
 	    return ov;
       }
@@ -3258,8 +3261,6 @@ void qore_class_private::parseInitPartialIntern() {
 
    QoreParseClassHelper qpch(cls);
 
-   initialize();
-
    // initialize parents first for abstract method handling
    if (scl) {
       for (bclist_t::iterator i = scl->begin(), e = scl->end(); i != e; ++i) {
@@ -3294,9 +3295,6 @@ void qore_class_private::parseInitPartialIntern() {
          }
       }
    }
-
-   //printd(5, "qore_class_private::parseInitPartialIntern() this: %p cls: %p %s scl: %p\n", this, cls, name.c_str(), scl);
-   ahm.parseInit(*this, scl);
 
    if (!has_new_user_changes)
       return;
@@ -3360,35 +3358,41 @@ void qore_class_private::parseInitPartialIntern() {
 }
 
 void qore_class_private::parseInit() {
+   // make sure initialize() is called first
+   initialize();
+
    //printd(5, "qore_class_private::parseInit() this: %p '%s' parse_init_called: %d parse_init_partial_called: %d\n", this, name.c_str(), parse_init_called, parse_init_partial_called);
    if (parse_init_called)
       return;
 
    parse_init_called = true;
 
-   if (!has_new_user_changes)
-      return;
+   if (has_new_user_changes) {
+      NamespaceParseContextHelper nspch(ns);
 
-   NamespaceParseContextHelper nspch(ns);
+      if (!parse_init_partial_called)
+	 parseInitPartialIntern();
 
-   if (!parse_init_partial_called)
-      parseInitPartialIntern();
+      QoreParseClassHelper qpch(cls);
 
-   QoreParseClassHelper qpch(cls);
+      // initialize constants
+      pend_priv_const.parseInit();
+      pend_pub_const.parseInit();
 
-   // initialize constants
-   pend_priv_const.parseInit();
-   pend_pub_const.parseInit();
+      // initialize methods
+      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+	 i->second->priv->parseInit();
+      }
 
-   // initialize methods
-   for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      i->second->priv->parseInit();
+      // initialize static methods
+      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
+	 i->second->priv->parseInitStatic();
+      }
    }
 
-   // initialize static methods
-   for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
-      i->second->priv->parseInitStatic();
-   }
+   //printd(5, "qore_class_private::parseInit() this: %p cls: %p %s scl: %p\n", this, cls, name.c_str(), scl);
+   // search for new concrete variants of abstract variants last
+   ahm.parseInit(*this, scl);
 }
 
 void qore_class_private::recheckBuiltinMethodHierarchy() {
@@ -3875,17 +3879,20 @@ void MethodFunctionBase::replaceAbstractVariantIntern(MethodVariantBase* variant
 	 (*i)->deref();
 	 pending_vlist.erase(i);
 	 pending_vlist.push_back(variant);
+	 //printd(5, "MethodFunctionBase::replaceAbstractVariantIntern() this: %p replacing %p ::%s%s in pending_vlist\n", this, variant, getName(), variant->getAbstractSignature());
 	 return;
       }
    }
    for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
       if ((*i)->isSignatureIdentical(sig)) {
-	 pending_vlist.push_back(*i);
+	 pending_save.push_back(*i);
 	 vlist.erase(i);
 	 vlist.push_back(variant);
+	 //printd(5, "MethodFunctionBase::replaceAbstractVariantIntern() this: %p replacing %p ::%s%s in vlist\n", this, variant, getName(), variant->getAbstractSignature());
 	 return;
       }
    }
+   //printd(5, "MethodFunctionBase::replaceAbstractVariantIntern() this: %p adding %p ::%s%s to pending_vlist\n", this, variant, getName(), variant->getAbstractSignature());
    pending_vlist.push_back(variant);
 }
 
