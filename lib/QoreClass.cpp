@@ -736,10 +736,16 @@ qore_class_private::~qore_class_private() {
       delete orNothingTypeInfo;
 }
 
+static void breaky() {
+}
+
 void qore_class_private::initialize() {
    //printd(5, "qore_class_private::initialize() this: %p '%s' initialized: %d scl: %p\n", this, name.c_str(), initialized, scl);
    if (initialized)
       return;
+
+   if (!sys)
+      breaky();
 
    qcp_set_t qcp_set;
    initializeIntern(qcp_set);
@@ -1406,6 +1412,8 @@ bool BCList::runtimeGetMemberInfo(const char* mem, const QoreTypeInfo *&memberTy
 }
 
 const QoreClass* BCList::parseFindPublicPrivateMember(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const {
+   //printd(5, "BCList::parseFindPublicPrivateMember() this: %p '%s' valid: %d\n", this, mem, valid);
+
    if (!valid)
       return 0;
 

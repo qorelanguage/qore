@@ -1967,8 +1967,14 @@ public:
    }
 
    DLLLOCAL const QoreClass* parseFindPublicPrivateMember(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, bool &has_type_info, bool &priv) const {
+      const_cast<qore_class_private*>(this)->initialize();
+      return parseFindPublicPrivateMemberNoInit(loc, mem, memberTypeInfo, has_type_info, priv);
+   }
+
+   DLLLOCAL const QoreClass* parseFindPublicPrivateMemberNoInit(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, bool &has_type_info, bool &priv) const {
       bool found = false;
       member_map_t::const_iterator i = private_members.find(const_cast<char*>(mem));
+
       if (i != private_members.end())
 	 found = true;
       else {
@@ -1976,7 +1982,10 @@ public:
 	 if (i != pending_private_members.end())
 	    found = true;
       }
+
       if (found) {
+         //printd(5, "qore_class_private:::parseFindPublicPrivateMember() this: %p %s.%s found private\n", this, name.c_str(), mem);
+
 	 priv = true;
 	 has_type_info = i->second->parseHasTypeInfo();
 	 memberTypeInfo = i->second->getTypeInfo();
@@ -1994,6 +2003,8 @@ public:
       }
 
       if (found) {
+         //printd(5, "qore_class_private:::parseFindPublicPrivateMember() this: %p %s.%s found public\n", this, name.c_str(), mem);
+
 	 priv = false;
 	 has_type_info = i->second->parseHasTypeInfo();
 	 memberTypeInfo = i->second->getTypeInfo();
@@ -2059,7 +2070,7 @@ public:
       bool has_type_info;
       bool is_priv;
       const QoreProgramLocation* loc = 0;
-      const QoreClass* sclass = parseFindPublicPrivateMember(loc, mem, memberTypeInfo, has_type_info, is_priv);
+      const QoreClass* sclass = parseFindPublicPrivateMemberNoInit(loc, mem, memberTypeInfo, has_type_info, is_priv);
       if (!sclass)
 	 return 0;
 
