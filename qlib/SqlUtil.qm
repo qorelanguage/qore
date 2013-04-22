@@ -4182,18 +4182,20 @@ $table.dropPrimaryKey();
             @endcode
 
             In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
-            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the database (only executed if the table is already in the database)
 
             @return the primary key dropped from the table
 
             @throw PRIMARY-KEY-ERROR no primary key exists
 
-            @note this method retrieves the primary key definition from the database if none has already been defined
+            @note
+            - this method retrieves the primary key definition from the database if none has already been defined
+            - if there are known foreign contraints on the primary key, SQL for dropping those constraints is also included
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractPrimaryKey dropPrimaryKey(*reference sql) {
-            return t.dropPrimaryKey(\sql);
+        AbstractPrimaryKey dropPrimaryKey(*reference lsql) {
+            return t.dropPrimaryKey(\lsql);
         }
 
         #! gets a list of SQL strings that can be used to drop the primary key from the table
@@ -4209,7 +4211,9 @@ my list $l = $table.getDropPrimaryKeySql();
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw PRIMARY-KEY-ERROR the table has no primary key
 
-            @note this method retrieves current primary key definition from the database if not already loaded or defined
+            @note
+            - this method retrieves current primary key definition from the database if not already loaded or defined
+            - if there are known foreign contraints on the primary key, SQL for dropping those constraints is also returned
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -6560,7 +6564,9 @@ my list $l = $table.getDropPrimaryKeySql();
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw PRIMARY-KEY-ERROR the table has no primary key
 
-            @note this method retrieves current primary key definition from the database if not already loaded or defined
+            @note
+            - this method retrieves current primary key definition from the database if not already loaded or defined
+            - if there are known foreign contraints on the primary key, SQL for dropping those constraints is also returned
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -6591,25 +6597,30 @@ $table.dropPrimaryKey();
             @endcode
 
             In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
-            @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @param lsql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return the primary key dropped from the table
 
             @throw PRIMARY-KEY-ERROR no primary key exists
 
-            @note this method retrieves the primary key definition from the database if none has already been defined
+            @note
+            - this method retrieves the primary key definition from the database if none has already been defined
+            - if there are known foreign contraints on the primary key, SQL for dropping those constraints is also included
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractPrimaryKey dropPrimaryKey(*reference sql) {
+        AbstractPrimaryKey dropPrimaryKey(*reference lsql) {
             l.lock();
             on_exit l.unlock();
             getPrimaryKeyUnlocked();
             if (primaryKey.empty())
                 throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", name);
 
+            lsql = ();
+            map execSql(lsql += $1.fk.getDropSql($1.table)), primaryKey.getSourceConstraintIterator();
+
             # drop pk from table if the table already exists in the DB
-            execSql(sql = primaryKey.getDropSql(getSqlName()));
+            execSql(lsql += primaryKey.getDropSql(getSqlName()));
 
             return remove primaryKey;
         }
