@@ -9044,7 +9044,7 @@ my list $l = $table.getAlignSql($table2);
             # check for triggers not in the template and drop them
             foreach AbstractTrigger trig in (triggers.iterator()) {
                 if (!t.triggers.hasKey(trig.name)) {
-                    l += AbstractDatabase::doCallback(opt, trig.getDropSql(), "dropping trigger %s on %s", trig.name, name);
+                    l += AbstractDatabase::doCallback(opt, trig.getDropSql(getSqlName()), "dropping trigger %s on %s", trig.name, name);
                 }
             }
 
