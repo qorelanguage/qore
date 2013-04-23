@@ -247,7 +247,7 @@ public namespace HttpServer {
         my string $sep = $path.find(";") == -1 ? "&" : ";";
         foreach my any $arg in (split($sep, $path)) {
             my (*string $key, *string $value) = ($arg =~ x/([^=]+)=(.*)$/);
-            if (!$value) {
+            if (!exists $value) {
                 $h.params += $arg;
                 continue;
             }
