@@ -1199,7 +1199,17 @@ my any $v = $c.name;
             # get column descriptions
             *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, data_default, char_length, char_used, comments from all_tab_columns col, all_col_comments com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
             if (!qh.column_name)
-                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y.%y in %y", schema, name, dsdesc);
+
+            # now we have to find unvalidated but enabled not null constraints - because these cause the column to appear to be "nullable" when it really isn't
+            # also we can't filter by search_condition, because it's a LONG, otherwise we could make a left join above :(
+            *hash nnq = ds.select("select * from all_constraints where owner = %v and table_name = %v and generated = 'GENERATED NAME' and constraint_type = 'C' and status = 'ENABLED' and validated != 'VALIDATED'", schema.upr(), name.upr());
+            hash cnh;
+            context (nnq) {
+                *string cn = (%search_condition =~ x/"([^"]+)" IS NOT NULL$/)[0];
+                if (cn)
+                    cnh{cn} = True;
+            }
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
@@ -1217,6 +1227,7 @@ my any $v = $c.name;
                     case "BLOB":
                     case "CLOB": size = 0; break;
                 }
+                bool nullable = row.nullable == "Y" && !cnh{row.column_name};
                 if (!native_case) {
                     row.column_name = row.column_name.lwr();
                     row.data_type = row.data_type.lwr();
@@ -1226,9 +1237,9 @@ my any $v = $c.name;
                 OracleColumn c;
                 *string defval = exists row.data_default && row.data_default !== NULL ? row.data_default : NOTHING;
                 if (row.data_precision) 
-                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, row.nullable == "Y", defval, row.comments ? row.comments : NOTHING, row.char_used == "C", row.data_length, row.data_scale);
+                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable, defval, row.comments ? row.comments : NOTHING, row.char_used == "C", row.data_length, row.data_scale);
                 else
-                    c = new OracleColumn(row.column_name, row.data_type, th.qore, size, row.nullable == "Y", defval, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
+                    c = new OracleColumn(row.column_name, row.data_type, th.qore, size, nullable, defval, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
 
                 rv.(row.column_name) = c;
             }
