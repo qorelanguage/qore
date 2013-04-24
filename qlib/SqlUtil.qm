@@ -566,7 +566,7 @@ public namespace SqlUtil {
      */
     #@{
     #! returns a hash keyed with the table name assigned to a hash with \c jop, \c table, \c jcols, \c cond and \c alias keys
-    public hash sub make_jop(string jop, AbstractTable table, *hash jcols, *hash cond, *string alias) {
+    public hash sub make_jop(string jop, AbstractTable table, *string alias, *hash jcols, *hash cond) {
         hash h{table.getSqlName()} = ("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias);
         return h;
     }
@@ -578,11 +578,11 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @endcode
 
         @param table the table to join with
-        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
         @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
     */
-    public hash sub join_inner(AbstractTable table, *hash jcols, *string alias) {
-        return make_jop(JOP_INNER, table, jcols, NOTHING, alias);
+    public hash sub join_inner(AbstractTable table, *string alias, *hash jcols) {
+        return make_jop(JOP_INNER, table, alias, jcols);
     }
 
     #! returns a hash for standard inner joins with the given arguments
@@ -592,11 +592,11 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @endcode
 
         @param table the table to join with
-        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
         @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
     */
-    public hash sub join_inner(Table table, *hash jcols, *string alias) {
-        return make_jop(JOP_INNER, table.getTable(), jcols, NOTHING, alias);
+    public hash sub join_inner(Table table, *string alias, *hash jcols) {
+        return make_jop(JOP_INNER, table.getTable(), alias, jcols);
     }
 
     #! returns a hash for left outer joins with the given arguments
@@ -606,12 +606,12 @@ my *list $rows = $table.selectRows(("join": join_left($table2, ("id": "altid"), 
         @endcode
 
         @param table the table to join with
+        @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
-        @param alias the alias for \a table in the query
     */
-    public hash sub join_left(AbstractTable table, *hash jcols, *hash cond, *string alias) {
-        return make_jop(JOP_LEFT, table, jcols, cond, alias);
+    public hash sub join_left(AbstractTable table, *string alias, *hash jcols, *hash cond) {
+        return make_jop(JOP_LEFT, table, alias, jcols, cond);
     }
 
     #! returns a hash for left outer joins with the given arguments
@@ -621,12 +621,12 @@ my *list $rows = $table.selectRows(("join": join_left($table2, ("id": "altid"), 
         @endcode
 
         @param table the table to join with
+        @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
-        @param alias the alias for \a table in the query
     */
-    public hash sub join_left(Table table, *hash jcols, *hash cond, *string alias) {
-        return make_jop(JOP_LEFT, table.getTable(), jcols, cond, alias);
+    public hash sub join_left(Table table, *string alias, *hash jcols, *hash cond) {
+        return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond);
     }
 
     #! returns a hash for right outer joins with the given arguments
@@ -636,12 +636,12 @@ my *list $rows = $table.selectRows(("join": join_right($table2, ("id": "altid"),
         @endcode
 
         @param table the table to join with
+        @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
-        @param alias the alias for \a table in the query
     */
-    public hash sub join_right(AbstractTable table, *hash jcols, *hash cond, *string alias) {
-        return make_jop(JOP_RIGHT, table, jcols, cond, alias);
+    public hash sub join_right(AbstractTable table, *string alias, *hash jcols, *hash cond) {
+        return make_jop(JOP_RIGHT, table, alias, jcols, cond);
     }
 
     #! returns a hash for right outer joins with the given arguments
@@ -651,12 +651,12 @@ my *list $rows = $table.selectRows(("join": join_right($table2, ("id": "altid"),
         @endcode
 
         @param table the table to join with
+        @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
-        @param alias the alias for \a table in the query
     */
-    public hash sub join_right(Table table, *hash jcols, *hash cond, *string alias) {
-        return make_jop(JOP_RIGHT, table.getTable(), jcols, cond, alias);
+    public hash sub join_right(Table table, *string alias, *hash jcols, *hash cond) {
+        return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond);
     }
     #@}
 
@@ -8384,8 +8384,17 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 # create "join on" clause
                 # the join clause expression list
                 list jel = ();
-                if (jh.jcols)
-                    jel = map sprintf("%s.%s = %s.%s", getSqlName(), $1.key, an, $1.value), jh.cols.pairIterator();
+                if (jh.jcols) {
+                    if (jh.jcols.typeCode() != NT_HASH)
+                        throw "SELECT-ERROR", sprintf("join clause error; expecting a hash assigned to the \"jcols\" key; got %y instead", jh.jcols.type());
+                    foreach hash jmh in (jh.jcols.pairIterator()) {
+                        if (!columns.hasKey(jmh.key))
+                            throw "SELECT-ERROR", sprintf("cannot join on unknown column %y.%y; known columns: %y", getSqlName(), jmh.key, columns.keys());
+                        if (!t.columns.hasKey(jmh.value))
+                            throw "SELECT-ERROR", sprintf("cannot join on unknown column %y.%y; known columns: %y", t.getSqlName(), jmh.value, t.columns.keys());
+                        jel += sprintf("%s.%s = %s.%s", getSqlName(), jmh.key, an, jmh.value);
+                    }
+                }
                 else {
                     *hash fkh;
                     getPrimaryKeyUnlocked();
@@ -8439,7 +8448,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     doSelectOrderBySqlUnlocked(\sql, \args, qh);
             }
 
-            #printf("SQL: %s\nargs: %y\n", sql, args);
+            printf("SQL: %s\nargs: %y\n", sql, args);
             return sql;
         }
 
