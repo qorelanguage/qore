@@ -524,8 +524,8 @@ public namespace SqlUtil {
         );
     #@}
 
-    /** @defgroup sql_op_funcs SQL Operator Functions
-        These are the operators that can be used in where clauses; see @ref where_clauses for more information
+    /** @defgroup sql_cop_funcs SQL Column Operator Functions
+        These are functions that can be used in the \c "columns" argument for select statements
      */
     #@{
     #! returns a hash with \c cop, \c column, and \c arg keys
@@ -765,6 +765,68 @@ my bool $b = $c.matchKeys($c1);
         */
         bool matchKeys(AbstractHashContainer c) {
             return matchKeys(c.h);
+        }
+
+        #! returns @ref Qore::True "True" if the hash argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $c.partialMatchKeys($h);
+            @endcode
+
+            @param h1 the hash to compare
+
+            @return @ref Qore::True "True" if the hash argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+        */
+        bool partialMatchKeys(hash h1) {
+            if (h.size() > h1.size())
+                return False;
+
+            foreach string k in (h.keyIterator()) {
+                if (!h1.hasKey(k))
+                    return False;
+            }
+
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if the list argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $c.partialMatchKeys($l);
+            @endcode
+
+            @param l the list of strings to compare
+
+            @return @ref Qore::True "True" if the list argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+        */
+        bool partialMatchKeys(list l) {
+            if (h.size() > l.size())
+                return False;
+            
+            # make a hash of the list for quick searching
+            hash h1;
+            map h1.$1 = True, l;
+
+            foreach string k in (h.keyIterator()) {
+                if (!h1.hasKey(k))
+                    return False;
+            }
+
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if the container argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $c.partialMatchKeys($c1);
+            @endcode
+
+            @param c the container to compare
+
+            @return @ref Qore::True "True" if the container argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+        */
+        bool partialMatchKeys(AbstractHashContainer c) {
+            return partialMatchKeys(c.h);
         }
 
         #! Returns @ref Qore::False "False" if the contained hash has no keys, @ref Qore::True "True" if it does
@@ -8088,15 +8150,15 @@ my string $sql = $table.getSelectSql($sh, \$args);
         *AbstractUniqueConstraint matchAnyUnique(list cols) {
             if (!manual)
                 getPrimaryKeyUnlocked();
-            if (!primaryKey.empty() && primaryKey.matchKeys(cols))
+            if (!primaryKey.empty() && primaryKey.partialMatchKeys(cols))
                 return primaryKey;
             if (!manual)
                 getConstraintsUnlocked();
             foreach AbstractConstraint c in (constraints.iterator()) {
                 if (c instanceof AbstractUniqueConstraint) {
                     AbstractUniqueConstraint uk = c;
-                    if (uk.matchKeys(cols))
-                        return uk;                    
+                    if (uk.partialMatchKeys(cols))
+                        return uk;
                 }
             }
         }
