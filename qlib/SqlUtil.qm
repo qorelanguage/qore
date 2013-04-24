@@ -539,6 +539,127 @@ public namespace SqlUtil {
     }
     #@}
 
+
+    /** @defgroup sql_jops SQL Join Operators
+        These are the operators that can be used in the \c "join" argument for select statements
+     */
+    #@{
+    #! for standard inner joins
+    public const JOP_INNER = "inner";
+
+    #! for left outer joins
+    public const JOP_LEFT = "left";
+
+    #! for right outer joins
+    public const JOP_RIGHT = "right";
+
+    #! a hash of valid column operators
+    public const JopMap = (
+      JOP_INNER: "inner",
+      JOP_LEFT: "left outer",
+      JOP_RIGHT: "right outer",
+        );
+    #@}
+
+    /** @defgroup sql_jop_funcs SQL Join Operator Functions
+        These are functions that can be used in the \c "join" argument for select statements
+     */
+    #@{
+    #! returns a hash keyed with the table name assigned to a hash with \c jop, \c table, \c jcols, \c cond and \c alias keys
+    public hash sub make_jop(string jop, AbstractTable table, *hash jcols, *hash cond, *string alias) {
+        hash h{table.getSqlName()} = ("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias);
+        return h;
+    }
+
+    #! returns a hash for standard inner joins with the given arguments
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2)));
+        @endcode
+
+        @param table the table to join with
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param alias the alias for \a table in the query
+    */
+    public hash sub join_inner(AbstractTable table, *hash jcols, *string alias) {
+        return make_jop(JOP_INNER, table, jcols, NOTHING, alias);
+    }
+
+    #! returns a hash for standard inner joins with the given arguments
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2)));
+        @endcode
+
+        @param table the table to join with
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param alias the alias for \a table in the query
+    */
+    public hash sub join_inner(Table table, *hash jcols, *string alias) {
+        return make_jop(JOP_INNER, table.getTable(), jcols, NOTHING, alias);
+    }
+
+    #! returns a hash for left outer joins with the given arguments
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, ("id": "altid"), ("tag", op_like("offset%")))));
+        @endcode
+
+        @param table the table to join with
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param alias the alias for \a table in the query
+    */
+    public hash sub join_left(AbstractTable table, *hash jcols, *hash cond, *string alias) {
+        return make_jop(JOP_LEFT, table, jcols, cond, alias);
+    }
+
+    #! returns a hash for left outer joins with the given arguments
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, ("id": "altid"), ("tag", op_like("offset%")))));
+        @endcode
+
+        @param table the table to join with
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param alias the alias for \a table in the query
+    */
+    public hash sub join_left(Table table, *hash jcols, *hash cond, *string alias) {
+        return make_jop(JOP_LEFT, table.getTable(), jcols, cond, alias);
+    }
+
+    #! returns a hash for right outer joins with the given arguments
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, ("id": "altid"), ("tag", op_like("offset%")))));
+        @endcode
+
+        @param table the table to join with
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param alias the alias for \a table in the query
+    */
+    public hash sub join_right(AbstractTable table, *hash jcols, *hash cond, *string alias) {
+        return make_jop(JOP_RIGHT, table, jcols, cond, alias);
+    }
+
+    #! returns a hash for right outer joins with the given arguments
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, ("id": "altid"), ("tag", op_like("offset%")))));
+        @endcode
+
+        @param table the table to join with
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param alias the alias for \a table in the query
+    */
+    public hash sub join_right(Table table, *hash jcols, *hash cond, *string alias) {
+        return make_jop(JOP_RIGHT, table.getTable(), jcols, cond, alias);
+    }
+    #@}
+
     /** @defgroup sql_ops SQL Operators
         These are the operators that can be used in where clauses; see @ref where_clauses for more information
      */
@@ -1931,6 +2052,15 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             return AbstractHashContainer::memberGate(k);
         }
 
+        #! returns either a hash of AbstractColumn information or @ref nothing if no foreign constraint can be found that matches the arguments
+        *hash findConstraintOn(string table, softlist cols) {
+            foreach AbstractForeignConstraint fk in (h.iterator()) {
+                if (fk.target.table == table && fk.target.columns.matchKeys(cols))
+                    return fk.columns.getHash();
+            }
+        }
+
+        #! returns \c "foreign constraint" for the type of object encapsulated
         string getElementName() {
             return "foreign constraint";
         }
@@ -5024,7 +5154,9 @@ my SQLStatement $i = $table.getRowIterator();
             @throw OPTION-ERROR invalid or unsupportd select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
          */
         SQLStatement getRowIterator(*hash sh) {
             return t.getRowIterator(sh);
@@ -5625,6 +5757,7 @@ my Triggers $trig = $table.getTriggers();
                 "desc": Type::Boolean,
                 "limit": Type::Int,
                 "offset": Type::Int,
+                "join": Type::Hash,
                 );
 
             #! table creation options
@@ -8063,7 +8196,9 @@ my SQLStatement $i = $table.getRowIterator($sh);
             @throw OPTION-ERROR invalid or unsupportd select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
          */
         SQLStatement getRowIterator(*hash sh) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
@@ -8178,6 +8313,10 @@ my string $sql = $table.getSelectSql($sh, \$args);
             }
             args = ();
 
+            # make a hash of aliases to tables when using joins
+            hash jch;
+            map jch{$1.alias ? $1.alias : $1.table.getName()} = $1.table, qh.join.iterator();
+
             string cstr;
             # make query
             if (qh.columns) {
@@ -8188,16 +8327,14 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 foreach any cv in (qh.columns) {
                     switch (cv.typeCode()) {
                         case NT_STRING: {
-                            if (!exists columns{cv})
-                                throw "SELECT-ERROR", sprintf("query references unknown column %y; known columns: %y", cv, qh.columns.keys());
-                            ce += cv;
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join));
                             break;
                         }
 
                         case NT_HASH: {
                             if (cv.cop.typeCode() != NT_STRING)
                                 throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"cop\" key giving the column operator name", cv);
-                            if (!exists cv.column)
+                            if (cv.column.typeCode() != NT_STRING)
                                 throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"column\" key giving the column name", cv);
 
                             # process column operators
@@ -8205,7 +8342,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                                 case COP_AS: {
                                     if (cv.arg.typeCode() != NT_STRING)
                                         throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the output column name", cv);
-                                    ce += sprintf("%s as %y", cv.column, cv.arg);
+                                    ce += sprintf("%s as %y", getColumnNameIntern(cv.column, jch, boolean(qh.join)), cv.arg);
                                     break;
                                 }
                        
@@ -8227,7 +8364,70 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 cstr = "*";
 
             string sql = sprintf("select %s from %s", cstr, getSqlName());
-            getSelectWhereSqlUnlocked(\sql, \args, qh);
+
+            # process join specifications
+            foreach any js in (qh.join.iterator()) {
+                hash jh;
+                if (js.typeCode() == NT_HASH)
+                    jh = js;
+                else if (js instanceof AbstractTable)
+                    jh.table = js;
+                else if (js instanceof Table)
+                    jh.table = js.getTable();
+                else
+                    throw "SELECT-ERROR", sprintf("don't know how to process join element of type %y; expecting a join hash, an AbstractTable object, or a Table object", js.type());
+
+                AbstractTable t = jh.table;
+
+                string an = jh.alias ? jh.alias : t.getSqlName();
+
+                # create "join on" clause
+                # the join clause expression list
+                list jel = ();
+                if (jh.jcols)
+                    jel = map sprintf("%s.%s = %s.%s", getSqlName(), $1.key, an, $1.value), jh.cols.pairIterator();
+                else {
+                    *hash fkh;
+                    getPrimaryKeyUnlocked();
+                    if (!primaryKey.empty()) {
+                        # see if there is a foreign constraint from table -> pk of self
+                        fkh = t.getForeignConstraints().findConstraintOn(name, primaryKey.keys());
+                        if (fkh) {
+                            AbstractIterator pki = primaryKey.keyIterator();
+                            AbstractIterator fki = fkh.keyIterator();
+                            while (pki.next() && fki.next())
+                                jel += sprintf("%s.%s = %s.%s", getSqlName(), pki.getValue(), an, fki.getValue());
+                        } 
+                    }
+                    if (!fkh) {
+                        # see if there is a foreign constraint in self -> pk of table
+                        getForeignConstraintsUnlocked();
+                        if (!foreignConstraints.empty()) {
+                            AbstractPrimaryKey pk = t.getPrimaryKey();
+                            if (!pk.empty()) {
+                                fkh = foreignConstraints.findConstraintOn(t.getName(), pk.keys());
+                                if (fkh) {
+                                    AbstractIterator fki = fkh.keyIterator();
+                                    AbstractIterator pki = pk.keyIterator();
+                                    while (pki.next() && fki.next())
+                                        jel += sprintf("%s.%s = %s.%s", getSqlName(), fki.getValue(), an, pki.getValue());
+                                }
+                            }
+                        }
+
+                        if (!fkh)
+                            throw "SELECT-ERROR", sprintf("cannot perform a %s join from %s on %s without a column specification since neither table has a foreign constraint on the primary key of the other table", jh.jop, getSqlName(), t.getSqlName());
+                    }
+                }
+
+                # process any additional join conditions
+                if (jh.cond)
+                    jel += getWhereClauseIntern(jh.cond, \args, an);
+
+                sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSqlName(), jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
+            }
+
+            getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join));
             if (qh.orderby) {
                 if (qh.offset || qh.limit) {
                     if (!matchAnyUnique(qh.orderby))
@@ -8243,89 +8443,121 @@ my string $sql = $table.getSelectSql($sh, \$args);
             return sql;
         }
 
-        private *string getWhereClause(*hash cond, reference args) {
+        private string getColumnNameIntern(string cv, *hash jch, bool join) {
+            Columns cols;
+            # see if we have a table.column spec
+            *string tp = (cv =~ x/(\w+)\.\w+/)[0];
+            if (tp) {
+                if (!jch{tp})
+                    throw "SELECT-ERROR", sprintf("query references unknown alias %y in %y; known aliases in this query: %y", tp, cv);
+                cols = jch{tp}.describe();
+                splice cv, 0, tp.size() + 1;
+            }
+            else {
+                cols = columns;
+                tp = getSqlName();
+            }
+
+            if (cv != "*" && !cols.hasKey(cv))
+                throw "SELECT-ERROR", sprintf("query references unknown column %y.%y; known columns: %y", tp, cv, cols.keys());
+            return join ? sprintf("%s.%s", tp, cv) : cv;
+        }
+
+        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False) {
+            if (qh."where")
+                sql += getWhereClause(qh."where", \args, NOTHING, jch, join);
+        }
+
+        private *string getWhereClause(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
+            *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join);
+            if (l)
+                return " where " + (foldl $1 + " and " + $2, wl);
+        }
+
+        private *list getWhereClauseIntern(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
             if (!cond)
                 return;
 
             list wl = ();
             foreach hash h in (cond.pairIterator()) {
+                string cn;
+                if (cprefix)
+                    cn = sprintf("%s.%s", cprefix, h.key);
+                else 
+                    cn = getColumnNameIntern(h.key, jch, join);
+
                 # process SQL operators
                 if (h.value.typeCode() == NT_HASH) {
                     hash oh = h.value;
                     switch (oh.op) {
                         case OP_LIKE: {
-                            wl += sprintf("%s like %v", h.key);
+                            wl += sprintf("%s like %v", cn);
                             args += oh.arg;
                             break;
                         }
 
                         case OP_LT: {
-                            wl += sprintf("%s < %v", h.key);
+                            wl += sprintf("%s < %v", cn);
                             args += oh.arg;
                             break;
                         }
                         
                         case OP_LE: {
-                            wl += sprintf("%s <= %v", h.key);
+                            wl += sprintf("%s <= %v", cn);
                             args += oh.arg;
                             break;
                         }
                         
                         case OP_GT: {
-                            wl += sprintf("%s > %v", h.key);
+                            wl += sprintf("%s > %v", cn);
                             args += oh.arg;
                             break;
                         }
                         
                         case OP_GE: {
-                            wl += sprintf("%s >= %v", h.key);
+                            wl += sprintf("%s >= %v", cn);
                             args += oh.arg;
                             break;
                         }
                         
                         case OP_NE: {
                             if (oh.arg === NULL || !exists oh.arg)
-                                wl += sprintf("%s is not null", h.key);
+                                wl += sprintf("%s is not null", cn);
                             else {
-                                wl += sprintf("%s != %v", h.key);
+                                wl += sprintf("%s != %v", cn);
                                 args += oh.arg;
                             }
                             break;
                         }
 
                         case OP_BETWEEN: {
-                            wl += sprintf("%s between %v and %v", h.key);
+                            wl += sprintf("%s between %v and %v", cn);
                             args += oh.arg[0];
                             args += oh.arg[1];
                             break;
                         }
 
                         case OP_IN: {
-                            wl += sprintf("%s in (%s)", h.key, getInArgImpl(oh.arg, \args));
+                            wl += sprintf("%s in (%s)", cn, getInArgImpl(oh.arg, \args));
                             break;
                         }
                        
                         case NOTHING:
-                            throw "WHERE-ERROR", sprintf("argument to key %y is a hash without an \"op\" key: %y", h.key, oh);
+                            throw "WHERE-ERROR", sprintf("argument to key %y is a hash without an \"op\" key: %y", cn, oh);
                         default:
-                            throw "WHERE-ERROR", sprintf("operator hash for key %y hash unknown operator %y: expecting one of: %y (operator hash: %y)", h.key, oh.op, OpMap.keys(), oh);
+                            throw "WHERE-ERROR", sprintf("operator hash for key %y hash unknown operator %y: expecting one of: %y (operator hash: %y)", cn, oh.op, OpMap.keys(), oh);
                     }
                     continue;
                 }
                 if (h.value === NULL || !exists h.value)
-                    wl += sprintf("%s is null", h.key);
+                    wl += sprintf("%s is null", cn);
                 else {
-                    wl += sprintf("%s = %v", h.key);
+                    wl += sprintf("%s = %v", cn);
                     args += h.value;
                 }
             }
-            return " where " + (foldl $1 + " and " + $2, wl);
 
-        }
-
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh) {
-            if (qh."where")
-                sql += getWhereClause(qh."where", \args);
+            return wl;
         }
 
         private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh) {

@@ -1164,8 +1164,8 @@ my any $v = $c.name;
             return OraColumnOptions;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh) {
-            AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh);
+        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False) {
+            AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join);
             if (qh.limit && !qh.orderby && !qh.offset) {
                 if (!qh."where")
                     sql += " where ";
