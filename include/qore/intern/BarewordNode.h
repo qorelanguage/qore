@@ -39,7 +39,7 @@ public:
    char *str;
 
    // object takes over ownership of str
-   DLLLOCAL BarewordNode(char *c_str);
+   DLLLOCAL BarewordNode(char *c_str, int sline, int eline);
    DLLLOCAL virtual ~BarewordNode();
 
    // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks

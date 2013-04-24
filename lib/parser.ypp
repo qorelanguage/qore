@@ -2715,7 +2715,7 @@ exp:    scalar
 	   if (parse_check_parse_option(PO_ASSUME_LOCAL & PO_ALLOW_BARE_REFS) && !strcmp($1, "argv"))
 	      inc_argv_ref();
 
-	   $$ = new BarewordNode($1);
+	   $$ = new BarewordNode($1, @1.first_line, @1.last_line);
 	}
 	| CONTEXT_REF
         { $$ = new ContextrefNode($1); }
