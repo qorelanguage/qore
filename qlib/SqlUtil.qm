@@ -511,6 +511,34 @@ public namespace SqlUtil {
     public const SZ_NUM = 3;
     #@}
 
+    /** @defgroup sql_cops SQL Column Operators
+        These are the operators that can be used in the \c "columns" argument for select statements
+     */
+    #@{
+    #! to rename a column on output
+    public const COP_AS = "as";
+
+    #! a hash of valid column operators
+    public const CopMap = (
+      COP_AS: True,
+        );
+    #@}
+
+    /** @defgroup sql_op_funcs SQL Operator Functions
+        These are the operators that can be used in where clauses; see @ref where_clauses for more information
+     */
+    #@{
+    #! returns a hash with \c cop, \c column, and \c arg keys
+    public hash sub make_cop(string cop, string column, any arg) {
+        return ("cop": cop, "column": column, "arg": arg);
+    }
+
+    #! returns a hash for the \c "as" operator with the given argument
+    public hash sub cop_as(string column, string arg) {
+        return make_cop(COP_AS, column, arg);
+    }
+    #@}
+
     /** @defgroup sql_ops SQL Operators
         These are the operators that can be used in where clauses; see @ref where_clauses for more information
      */
@@ -536,6 +564,9 @@ public namespace SqlUtil {
     #! the SQL \c "between" operator
     public const OP_BETWEEN = "between";
 
+    #! the SQL \c "in" operator
+    public const OP_IN = "in";
+
     #! a hash of valid operators
     public const OpMap = (
       OP_LIKE: True,
@@ -544,7 +575,8 @@ public namespace SqlUtil {
       OP_GT: True,
       OP_GE: True,
       OP_NE: True,
-      OP_BETWEEN: True
+      OP_BETWEEN: True,
+      OP_IN: True,
         );
     #@}
 
@@ -597,6 +629,16 @@ public namespace SqlUtil {
             throw "BETWEEN-ERROR", sprintf("the second argument is %y; both arguments to op_between() must be values that can be used with the BETWEEN operator (ie not NULL or NOTHING)", r);
         return make_op(OP_BETWEEN, (l, r));
     }
+
+    #! returns a hash for the \c "in" operator with the given argument list
+    public hash sub op_in() {
+        return make_op(OP_IN, argv);
+    }    
+
+    #! returns a hash for the \c "in" operator with the given argument list
+    public hash sub op_in(list args) {
+        return make_op(OP_IN, args);
+    }    
     #@}
 
     #! abstract container class that throws an exception if an unknown key is accessed
@@ -5507,6 +5549,7 @@ my Triggers $trig = $table.getTriggers();
 
             #! default select options
             /** the possible keys for select options are as follows (all keys are optional):
+                - \c columns: an optional list of string column names for the output of the query
                 - \c where: see @ref where_clauses for more information about the hash that can be assigned to this key
                 - \c orderby: an optional list of strings that can be used to order the results
                 - \c desc: an optional boolean flag to return results in descending order
@@ -5514,6 +5557,7 @@ my Triggers $trig = $table.getTriggers();
                 - \c offset: an optional integer value to give the row number offset for the rows returned; if this is present, then \c orderby must also be present
              */
             const SelectOptions = (
+                "columns": Type::NothingType,
                 "where": Type::Hash,
                 "orderby": "softstringlist",
                 "desc": Type::Boolean,
@@ -8072,11 +8116,58 @@ my string $sql = $table.getSelectSql($sh, \$args);
             }
             args = ();
 
+            string cstr;
             # make query
-            string sql = sprintf("select * from %s", getSqlName());
+            if (qh.columns) {
+                getColumnsUnlocked();
+
+                # column expressions
+                list ce = ();
+                foreach any cv in (qh.columns) {
+                    switch (cv.typeCode()) {
+                        case NT_STRING: {
+                            if (!exists columns{cv})
+                                throw "SELECT-ERROR", sprintf("query references unknown column %y; known columns: %y", cv, qh.columns.keys());
+                            ce += cv;
+                            break;
+                        }
+
+                        case NT_HASH: {
+                            if (cv.cop.typeCode() != NT_STRING)
+                                throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"cop\" key giving the column operator name", cv);
+                            if (!exists cv.column)
+                                throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"column\" key giving the column name", cv);
+
+                            # process column operators
+                            switch (cv.cop) {
+                                case COP_AS: {
+                                    if (cv.arg.typeCode() != NT_STRING)
+                                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the output column name", cv);
+                                    ce += sprintf("%s as %y", cv.column, cv.arg);
+                                    break;
+                                }
+                       
+                                case NOTHING:
+                                    throw "SELECT-ERROR", sprintf("column argument is a hash without an \"cop\" key giving the column operator: %y", cv);
+                                default:
+                                    throw "SELECT-ERROR", sprintf("unknown column operator %y in %y: expecting one of: %y", cv.cop, cv, CopMap.keys());
+                            }
+                            break;
+                        }
+
+                        default:
+                            throw "SELECT-ERROR", sprintf("don't know how to parse argument type %y (value: %y) in column list, expecting \"string\" or \"hash\"", cv.type(), cv);
+                    }
+                }
+                cstr = foldl $1 + "," + $2, ce.iterator();
+            }
+            else
+                cstr = "*";
+
+            string sql = sprintf("select %s from %s", cstr, getSqlName());
             getSelectWhereSqlUnlocked(\sql, \args, qh);
             if (qh.orderby) {
-                if (qh.offset) {
+                if (qh.offset || qh.limit) {
                     if (!matchAnyUnique(qh.orderby))
                         throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d does not match any unique constraint", getName(), qh.orderby, qh.offset);
 
@@ -8086,6 +8177,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     doSelectOrderBySqlUnlocked(\sql, \args, qh);
             }
 
+            #printf("SQL: %s\nargs: %y\n", sql, args);
             return sql;
         }
 
@@ -8143,6 +8235,11 @@ my string $sql = $table.getSelectSql($sh, \$args);
                             wl += sprintf("%s between %v and %v", h.key);
                             args += oh.arg[0];
                             args += oh.arg[1];
+                            break;
+                        }
+
+                        case OP_IN: {
+                            wl += sprintf("%s in (%s)", h.key, getInArgImpl(oh.arg, \args));
                             break;
                         }
                        
@@ -8893,24 +8990,7 @@ my list $l = $table.getAlignSql($table2);
                 if (indexes.hasKey(rh.key)) {
                     AbstractIndex ix = indexes{rh.key};
                     l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), rh.value), "renaming index %s on %s to %s", ix.name, name, rh.value);
-                    indexes.renameKey(rh.key, rh.value);
-                    ix.name = rh.value;
-
-                    # if constraints are linked to indexes, then rename any matching constraint as well
-                    if (constraintsLinkedToIndexesImpl()) {
-                        if (primaryKey && primaryKey.getName() == rh.key) {
-                            primaryKey.rename(rh.value);
-                        }
-                        else {
-                            foreach AbstractConstraint uk in (constraints.iterator()) {
-                                if (uk instanceof AbstractUniqueConstraint && uk.getName() == rh.key) {
-                                    uk.rename(rh.value);
-                                    constraints.renameKey(rh.key, rh.value);
-                                    break;
-                                }
-                            }
-                        }
-                   }
+                    renameIndexUnlocked(ix, rh.value);
                 }
             }
 
@@ -9064,6 +9144,28 @@ my list $l = $table.getAlignSql($table2);
             }
 
             return l;
+        }
+
+        private renameIndexUnlocked(AbstractIndex ix, string new_name) {
+            string old_name = ix.name;
+            indexes.renameKey(old_name, new_name);
+            ix.name = new_name;
+
+            # if constraints are linked to indexes, then rename any matching constraint as well
+            if (constraintsLinkedToIndexesImpl()) {
+                if (primaryKey && primaryKey.getName() == old_name) {
+                    primaryKey.rename(new_name);
+                }
+                else {
+                    foreach AbstractConstraint uk in (constraints.iterator()) {
+                        if (uk instanceof AbstractUniqueConstraint && uk.getName() == old_name) {
+                            uk.rename(new_name);
+                            constraints.renameKey(old_name, new_name);
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         #! accepts an AbstractTable argument and returns an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
@@ -9638,6 +9740,11 @@ my *list $rows = $table.findAll($h);
         
         private string getTruncateSqlImpl() {
             return sprintf("truncate table %s", getSqlName());
+        }
+
+        #! returns a string to be used with the \c "in" argument, can be the literal arguments to the operator, or can be a single %v if supported by the db driver (see OracleSqlUtil::getInArgImpl() for an example)
+        private string getInArgImpl(softlist sqlargs, reference args) {
+            return (foldl $1 + "," + $2, (map getSqlValue($1), sqlargs));
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost

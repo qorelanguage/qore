@@ -1185,9 +1185,9 @@ my any $v = $c.name;
             string sort = foldl $1 + ", " + $2, qh.orderby;
             # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
             # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
-            sql = sprintf("select * from (select /*+ first_rows(%d) */ a.*, rownum rnum from (%s order by %s) a where rownum <= %v) where rnum >= %v", qh.limit, sql, sort);
+            sql = sprintf("select * from (select /*+ first_rows(%d) */ a.*, rownum rnum from (%s order by %s) a where rownum <= %v) where rnum > %v", qh.limit, sql, sort);
             if (qh.offset)
-                qh.limit += qh.offset - 1;
+                qh.limit += qh.offset;
             args += qh.limit;
             args += qh.offset ? qh.offset : 0;
         }
@@ -1511,6 +1511,16 @@ my any $v = $c.name;
 
         private hash getAlignTableOptions() {
             return OracleAlignTableOptions;
+        }
+
+        #! returns a string to be used with the \c "in" argument, we use bind by value to keep the statement cache small; in this case we use two %v placeholders for the calculated string argument
+        private string getInArgImpl(softlist sqlargs, reference args) {
+            string arg = (foldl $1 + "," + $2, (map $1.toString(), sqlargs));
+
+            args += arg;
+            args += arg;
+
+            return "select regexp_substr(%v,'[^,]+', 1, level) from dual connect by regexp_substr(%v, '[^,]+', 1, level) is not null";
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
