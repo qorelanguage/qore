@@ -1505,6 +1505,12 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return True;
         }
 
+        #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
+        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+           sql += " limit %v";
+           args += qh.limit;
+        }
+
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
         private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh) {
             doSelectOrderBySqlUnlocked(\sql, \args, qh);

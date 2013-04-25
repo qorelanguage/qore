@@ -1166,7 +1166,7 @@ my any $v = $c.name;
 
         private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False) {
             AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join);
-            if (qh.limit && !qh.orderby && !qh.offset) {
+            if (qh.limit && !qh.orderby) {
                 if (!qh."where")
                     sql += " where ";
                 else
@@ -1190,6 +1190,11 @@ my any $v = $c.name;
                 qh.limit += qh.offset;
             args += qh.limit;
             args += qh.offset ? qh.offset : 0;
+        }
+
+        #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
+        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+            # nothing to do for Oracle
         }
 
         private Columns describeImpl() {

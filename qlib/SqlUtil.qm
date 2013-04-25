@@ -1653,6 +1653,14 @@ my string $str = $col.getRenameSql($t, "new_name");
             h{k} = val;
         }
 
+        #! find an index with columns equal to the index passed
+        *AbstractIndex findEqual(AbstractIndex ix) {
+            foreach AbstractIndex ix2 in (h.iterator()) {
+                if (ix2.equalExceptName(ix))
+                    return ix2;
+            }
+        }
+        
         #! removes the given key from the contained hash and returns the value
         AbstractIndex take(string k) {
             return remove h{k};
@@ -1737,6 +1745,17 @@ my AbstractIndex $ix = $indexes.pk_jobs;
             return equalImpl(ix);
         }
 
+        #! returns @ref Qore::True "True" if the argument is equal to the current index with the exception of the name, @ref Qore::False "False" if not
+        bool equalExceptName(AbstractIndex ix) {
+            if (ix.className() != self.className())
+                return False;
+
+            if (unique != ix.unique || (columns.keys() != ix.columns.keys()))
+                return False;
+            
+            return equalImpl(ix);
+        }        
+
         #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
         abstract bool equalImpl(AbstractIndex ix);
 
@@ -1786,6 +1805,17 @@ my AbstractIndex $ix = $indexes.pk_jobs;
         #! removes the given key from the contained hash and returns the value
         AbstractConstraint take(string k) {
             return remove h{k};
+        }
+
+        #! finds a unique constraint with the same columns as the unique constraint passed
+        *AbstractUniqueConstraint findEqualUniqueConstraint(AbstractUniqueConstraint uk) {
+            foreach AbstractConstraint c in (h.iterator()) {
+                if (!(c instanceof AbstractUniqueConstraint))
+                    continue;
+                AbstractUniqueConstraint uk2 = c;
+                if (uk2.matchKeys(uk))
+                    return uk2;
+            }
         }
 
         #! returns the AbstractConstraint object corresponding to the key given or throws a KEY-ERROR exception
@@ -2032,6 +2062,14 @@ $uk.addSourceConstraint($table_name, constraint_name);
             return remove h{k};
         }
 
+        #! find an index with columns equal to the index passed
+        *AbstractForeignConstraint findEqual(AbstractForeignConstraint fk) {
+            foreach AbstractForeignConstraint fk2 in (h.iterator()) {
+                if (fk2.columns.matchKeys(fk.columns) && fk2.target.table == fk.target.table && fk2.target.columns.matchKeys(fk.target.columns))
+                    return fk2;
+            }
+        }
+        
         #! returns the AbstractForeignConstraint object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
             @code
@@ -8447,6 +8485,8 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 else
                     doSelectOrderBySqlUnlocked(\sql, \args, qh);
             }
+            else if (qh.limit)
+                doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
 
             #printf("SQL: %s\nargs: %y\n", sql, args);
             return sql;
@@ -9303,6 +9343,15 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
+            # check for indexes with different names than in the template and rename them automatically
+            foreach AbstractIndex ix in (indexes.iterator()) {
+                if (!t.indexes.hasKey(ix.name) && (*AbstractIndex other = t.indexes.findEqual(ix))) {
+                    # rename index
+                    l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), other.name), "renaming index %s on %s to %s", ix.name, name, other.name);
+                    renameIndexUnlocked(ix, other.name);
+                }
+            }
+
             # check for indexes in the template that are not present or different in the current table
             foreach AbstractIndex ix in (t.indexes.iterator()) {
                 if (!indexes.hasKey(ix.name)) {
@@ -9362,14 +9411,45 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
+            # check for unique constraints with different names than in the template and rename them automatically
+            foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
+                if (!t.foreignConstraints.hasKey(fk.getName()) && (*AbstractForeignConstraint other = t.foreignConstraints.findEqual(fk))) {
+                    # rename constraint
+                    l += AbstractDatabase::doCallback(opt, fk.getRenameSql(getSqlName(), other.getName()), "renaming constraint %s on %s to %s", fk.getName(), name, other.getName());
+                    foreignConstraints.renameKey(fk.getName(), other.getName());
+                    fk.rename(other.getName());
+                }
+            }
+
+            # check for unique constraints with different names than in the template and rename them automatically
+            foreach AbstractConstraint c in (constraints.iterator()) {
+                if (!(c instanceof AbstractUniqueConstraint))
+                    continue;
+                AbstractUniqueConstraint uk = c;
+                if (!t.constraints.hasKey(uk.getName()) && (*AbstractUniqueConstraint other = t.constraints.findEqualUniqueConstraint(uk))) {
+                    # rename constraint
+                    l += AbstractDatabase::doCallback(opt, uk.getRenameSql(getSqlName(), other.getName()), "renaming constraint %s on %s to %s", uk.getName(), name, other.getName());
+                    constraints.renameKey(uk.getName(), other.getName());
+                    uk.rename(other.getName());
+                }
+            }
+
             # check for primary key differences
             if (t.primaryKey) {
                 if (primaryKey && !primaryKey.equal(t.primaryKey)) {
-                    #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey, t.primaryKey);
-                    l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "updating primary key %s on %s (dropping old primary key)", t.primaryKey.getName(), name);
-                    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
-                        t.primaryKey.clearIndex();
-                    l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), "updating primary key %s on %s (readding new primary key)", t.primaryKey.getName(), name);
+                    # see if pk has the same definition but a different name
+                    if (primaryKey.getName() != t.primaryKey.getName()
+                        && primaryKey.matchKeys(t.primaryKey)) {
+                        l += AbstractDatabase::doCallback(opt, primaryKey.getRenameSql(getSqlName(), t.primaryKey.getName()), "renaming constraint %s on %s to %s", primaryKey.getName(), name, t.primaryKey.getName());
+                        primaryKey.rename(t.primaryKey.getName());
+                    }
+                    else {
+                        #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey, t.primaryKey);
+                        l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "updating primary key %s on %s (dropping old primary key)", t.primaryKey.getName(), name);
+                        if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
+                            t.primaryKey.clearIndex();
+                        l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), "updating primary key %s on %s (readding new primary key)", t.primaryKey.getName(), name);
+                    }
                 }
                 else if (!primaryKey) {
                     l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), "creating primary key %s on %s", t.primaryKey.getName(), name);
@@ -10122,6 +10202,9 @@ my *list $rows = $table.findAll($h);
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
         private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh);
+
+        #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
+        private abstract doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh);
 
         #! db-specific copy actions
         private abstract copyImpl(AbstractTable old);
