@@ -8390,7 +8390,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     foreach hash jmh in (jh.jcols.pairIterator()) {
                         if (!columns.hasKey(jmh.key))
                             throw "SELECT-ERROR", sprintf("cannot join on unknown column %y.%y; known columns: %y", getSqlName(), jmh.key, columns.keys());
-                        if (!t.columns.hasKey(jmh.value))
+                        if (!t.describe().hasKey(jmh.value))
                             throw "SELECT-ERROR", sprintf("cannot join on unknown column %y.%y; known columns: %y", t.getSqlName(), jmh.value, t.columns.keys());
                         jel += sprintf("%s.%s = %s.%s", getSqlName(), jmh.key, an, jmh.value);
                     }
