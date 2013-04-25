@@ -8474,10 +8474,17 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
         private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False) {
             if (qh."where")
-                sql += getWhereClause(qh."where", \args, NOTHING, jch, join);
+                sql += getWhereClauseUnlocked(qh."where", \args, NOTHING, jch, join);
         }
 
         private *string getWhereClause(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
+            l.lock();
+            on_exit l.unlock();
+            return getWhereClauseUnlocked(cond, \args, cprefix, jch, join);
+        }
+
+        private *string getWhereClauseUnlocked(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
+            getColumnsUnlocked();
             *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join);
             if (l)
                 return " where " + (foldl $1 + " and " + $2, wl);
@@ -8616,7 +8623,6 @@ my int $dcnt = $table.delNoCommit(("name": $name));
             list args;
             if (cond)
                 sql += getWhereClause(cond, \args);
-
             return ds.vexec(sql, args);
         }
 
