@@ -1450,7 +1450,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         private *string getSqlValueImpl(any v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
-                case NT_INT: return v.toStr();
+                case NT_INT: return v.toString();
 
                 case NT_NUMBER: return string(v);
 
