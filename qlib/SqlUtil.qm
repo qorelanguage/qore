@@ -8448,7 +8448,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     doSelectOrderBySqlUnlocked(\sql, \args, qh);
             }
 
-            printf("SQL: %s\nargs: %y\n", sql, args);
+            #printf("SQL: %s\nargs: %y\n", sql, args);
             return sql;
         }
 

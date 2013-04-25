@@ -229,6 +229,8 @@ public namespace WebSocketHandler {
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
          */
         hash handleRequest(hash $cx, hash $hdr, *data $b) {
+            #$.logDebug("websocket request: cx: %N", $cx);
+            #$.logDebug("websocket request: hdr: %N", $hdr);
             if (!$hdr."sec-websocket-key")
                 return (
                     "code": 400,
@@ -405,7 +407,7 @@ public namespace WebSocketHandler {
             # push the data on all connection queues
             map $1.queue.push($d), $.ch.iterator();
 
-            $.logDebug("sending data to connections: %y", $.ch.keys());
+            #if ($.ch) $.logDebug("sending data to connections: %y", $.ch.keys());
         }
 
         sendOne(string $id, data $d) {
