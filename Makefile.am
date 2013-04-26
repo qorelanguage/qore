@@ -11,7 +11,7 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil OracleSqlUtil PgsqlSqlUtil RestHandler RestClient WebSocketHandler
+USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil OracleSqlUtil PgsqlSqlUtil MysqlSqlUtil RestHandler RestClient WebSocketHandler
 USER_MODULES = qlib/HttpServer.qm \
 	qlib/SmtpClient.qm \
 	qlib/Mime.qm \
@@ -22,6 +22,7 @@ USER_MODULES = qlib/HttpServer.qm \
 	qlib/SqlUtil.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
+	qlib/MysqlSqlUtil.qm \
 	qlib/Util.qm \
 	qlib/RestHandler.qm \
 	qlib/RestClient.qm \
@@ -513,7 +514,7 @@ dummy:
 	./next_build.sh
 
 if COND_DOXYGEN
-DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/RestClient/html docs/modules/SqlUtil/html docs/modules/PgsqlSqlUtil/html docs/modules/OracleSqlUtil/html docs/modules/Util/html docs/modules/WebSocketHandler/html
+DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/RestClient/html docs/modules/SqlUtil/html docs/modules/PgsqlSqlUtil/html docs/modules/MysqlSqlUtil/html docs/modules/OracleSqlUtil/html docs/modules/Util/html docs/modules/WebSocketHandler/html
 
 LIB_TMP_DOXYFILES_SRC = \
 	doxygen/lib/Doxyfile
@@ -700,6 +701,7 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	doxygen/qlib/RestClient.qm.dox.h \
 	doxygen/qlib/SqlUtil.qm.dox.h \
 	doxygen/qlib/PgsqlSqlUtil.qm.dox.h \
+	doxygen/qlib/MysqlSqlUtil.qm.dox.h \
 	doxygen/qlib/OracleSqlUtil.qm.dox.h \
 	doxygen/qlib/Util.qm.dox.h \
 	doxygen/qlib/WebSocketHandler.qm.dox.h \
@@ -714,6 +716,7 @@ QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
 	RestClient.tag \
 	SqlUtil.tag \
 	PgsqlSqlUtil.tag \
+	MysqlSqlUtil.tag \
 	OracleSqlUtil.tag \
 	Util.tag \
 	WebSocketHandler.tag
@@ -792,6 +795,12 @@ doxygen/qlib/Doxyfile.PgsqlSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
 doxygen/qlib/PgsqlSqlUtil.qm.dox.h: qlib/PgsqlSqlUtil.qm $(QDX)
 	$(QDX) $< $@
 
+doxygen/qlib/Doxyfile.MysqlSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
+	$(QDX) -M=qlib/MysqlSqlUtil.qm:doxygen/qlib/MysqlSqlUtil.qm.dox.h -tSqlUtil.tag=../../SqlUtil/html $< $@
+
+doxygen/qlib/MysqlSqlUtil.qm.dox.h: qlib/MysqlSqlUtil.qm $(QDX)
+	$(QDX) $< $@
+
 doxygen/qlib/Doxyfile.OracleSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
 	$(QDX) -M=qlib/OracleSqlUtil.qm:doxygen/qlib/OracleSqlUtil.qm.dox.h -tSqlUtil.tag=../../SqlUtil/html $< $@
 
@@ -863,6 +872,10 @@ docs/modules/SqlUtil/html: doxygen/qlib/SqlUtil.qm.dox.h doxygen/qlib/Doxyfile.S
 docs/modules/PgsqlSqlUtil/html: doxygen/qlib/PgsqlSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.PgsqlSqlUtil
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.PgsqlSqlUtil
 	$(top_srcdir)/doxygen/pdox docs/modules/PgsqlSqlUtil/html docs/modules/PgsqlSqlUtil/html/search
+
+docs/modules/MysqlSqlUtil/html: doxygen/qlib/MysqlSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.MysqlSqlUtil
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.MysqlSqlUtil
+	$(top_srcdir)/doxygen/pdox docs/modules/MysqlSqlUtil/html docs/modules/MysqlSqlUtil/html/search
 
 docs/modules/OracleSqlUtil/html: doxygen/qlib/OracleSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.OracleSqlUtil
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.OracleSqlUtil

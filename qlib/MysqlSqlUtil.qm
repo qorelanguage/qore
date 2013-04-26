@@ -1,0 +1,1099 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
+
+/*  MysqlSqlUtil.qm Copyright 2013 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.8 or better
+%requires qore >= 0.8.8
+
+# requires the SqlUtil module
+%requires SqlUtil >= 1.0
+
+# don't use "$" signs for variables and class members, assume local variable scope
+%new-style
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+module MysqlSqlUtil {
+    version = "1.0";
+    desc = "user module for working with MySQL SQL data";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+}
+
+/*  Version History
+    * 2013-xx-xx v1.0: David Nichols <david@qore.org>
+      + the initial version of the MysqlSqlUtil module
+*/
+
+/** @mainpage MysqlSqlUtil Module
+
+    @section intro Introduction
+
+    The %MysqlSqlUtil module provides a high level API for working with MySQL database objects.
+
+    Usually this module is loaded on demand from the SqlUtil module, however to use this module
+    directly, use \c "%requires MysqlSqlUtil" in your code.
+    
+    All the public symbols in the module are defined in the MysqlSqlUtil namespace
+*/
+
+#! the MysqlSqlUtil namespace contains all the objects in the MysqlSqlUtil module
+public namespace MysqlSqlUtil {
+
+    public MysqlTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
+        return new MysqlTable(nds, nname, opts);
+    }
+
+    public MysqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
+	return new MysqlDatabase(nds, opts);
+    }
+
+
+    #! represents a MySQL-specific index
+    public class MysqlIndex inherits AbstractIndex {
+        #! creates the object from the arguments
+	constructor(string n_name, bool n_unique, hash n_cols) : AbstractIndex(n_name, n_unique, n_cols) {
+        }
+
+        #! returns a string that can be used to create the index in the database
+        string getCreateSql(string table_name, *hash opt) {
+            return sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        bool equalImpl(AbstractIndex ix) {
+            return True;
+        }
+
+        #! returns a string that can be used to rename the index in the database
+        string getRenameSql(string table_name, string new_name) {
+            return sprintf("alter index %s rename to %s", name, new_name);
+        }
+    }
+
+    #! represents a MySQL-specific foreign constraint
+    public class MysqlForeignConstraint inherits AbstractForeignConstraint {
+        constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
+        }
+
+        string getCreateSql(string table_name, *hash opt) {
+            return getCreateSql(name, table_name, opt);
+        }
+
+        softlist getRenameSql(string table_name, string new_name) {
+            # the following is only valid with MySQL 9.2+
+            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+            list l += getDropSql(table_name);
+            l += getCreateSql(new_name, table_name);
+            return l;
+        }
+
+        string getCreateSql(string name, string table_name, *hash opt) {
+            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, columns.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+        }
+    }
+
+    #! represents a MySQL-specific check constraint
+    public class MysqlCheckConstraint inherits AbstractCheckConstraint {
+        constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
+        }        
+
+        string getCreateSql(string table_name, *hash opt) {
+            return getCreateSql(name, table_name, opt);
+        }
+
+        list getRenameSql(string table_name, string new_name) {
+            # the following is only valid with MySQL 9.2+
+            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+            list l += getDropSql(table_name);
+            l += getCreateSql(new_name, table_name);
+            return l;
+        }
+
+        string getCreateSql(string name, string table_name, *hash opt) {
+            return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
+        }
+    }
+
+    #! represents a MySQL-specific column
+    public class MysqlColumn inherits AbstractColumn {
+        public {
+            #! byte size of the column
+            int byte_size;
+        }
+
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+            byte_size = bs;
+        }
+
+        string getNativeTypeString() {
+            string sql = native_type;
+            switch (native_type) {
+                case =~ /^timestamp/: return splice sql, 9, 0, "(" + string(size) + ")";
+                case =~ /^time/: return splice sql, 4, 0, string(size);
+            }
+            if (size)
+                sql += sprintf("(%d)", size);
+            #printf("%y: %s\n", self, sql);
+            return sql;
+        }
+
+        #! returns a list of sql strings that can be used to add the column to an existing table
+        /** @par Example:
+            @code
+my list $l = $col.getCreateSql($t);
+            @endcode
+
+            @param t the AbstractTable object to modify
+         */
+        list getCreateSql(AbstractTable t) {
+	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql());	    
+	    if (comment)
+		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
+            return l;
+        }
+
+        #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
+        /** @par Example:
+            @code
+my list $l = $col.getModifySql($t, $newcol);
+            @endcode
+
+            The column names are assumed to be equal.
+
+            @param t the AbstractTable object to modify
+            @param col the new column definition
+
+            @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
+         */
+        list getModifySql(AbstractTable t, AbstractColumn col) {
+            list l = ();
+            MysqlColumn c = col;
+
+            # get new native type declaration string
+            string nts = c.getNativeTypeString();
+            if (getNativeTypeString() != nts) {
+                # first drop any default value if it's changing 
+                if (def_val != c.def_val)
+                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
+
+                l += sprintf("alter table %s alter %s type %s", t.getSqlName(), name, nts);
+
+                if (def_val != c.def_val && exists c.def_val)
+                    l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
+            }
+            else if (def_val != c.def_val) {
+                if (exists c.def_val)
+                    l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
+                else
+                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);                    
+            }
+            if (nullable != c.nullable) {
+                l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), name, c.nullable ? "drop" : "set");
+            }
+
+            if (c.comment != comment)
+		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(c.comment));
+            return l;
+        }
+
+        #! returns a string that can be used to rename the column
+        /** @par Example:
+            @code
+my string $str = $col.getRenameSql($t, "new_name");
+            @endcode
+
+            @param t the AbstractTable object to modify
+            @param new_name the new name for the column
+
+            @return a string that can be used to rename the column
+        */
+        string getRenameSql(AbstractTable t, string new_name) {
+            return sprintf("alter table %s rename %s to %s", t.getSqlName(), name, new_name);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractColumn c) {
+            return True;
+        }
+    }
+
+    #! represents a MySQL-specific numeric column
+    public class MysqlNumericColumn inherits MysqlColumn, NumericColumnInfo {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
+        }
+
+        string getNativeTypeString() {
+            return NumericColumnInfo::getNativeTypeString(native_type, size);
+        }
+    }
+
+    public class MysqlUniqueConstraintCommon {
+        private {
+            #! index the constraint is based on
+            *string index;
+        }
+
+        constructor() {
+        }
+
+        bool setIndexBase(string ix) {
+            if (index && index != ix)
+                return False;
+            index = ix;
+            return True;
+        }
+
+        #! clears any index base for the constraint
+        clearIndex() {
+            delete index;
+        }
+
+        abstract AbstractIterator keyIterator();
+
+        #! adds index options onto the sql creation string
+        getIndexSql(reference sql, string name, *hash opts) {
+            *string ix = opts.index ? opts.index : index;
+            if (ix)
+                sql += sprintf("using index %s", ix);
+            else
+                sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
+        }
+    }
+
+    public class MysqlUniqueConstraint inherits AbstractUniqueConstraint, MysqlUniqueConstraintCommon {
+        private {
+            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+            bool enabled;
+        }
+
+        constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols), MysqlUniqueConstraintCommon(ts) {
+            enabled = e;
+        }
+
+        #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
+        /** @par Example:
+            @code
+my any $v = $c.name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
+        MysqlColumn memberGate(string k) {
+            if (!h.hasKey(k))
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+            return h{k};
+        }
+
+        string getCreateSql(string table_name, *hash opts) {
+            return getCreateSql(name, table_name, opts);
+        }
+
+        list getRenameSql(string table_name, string new_name) {
+            # the following is only valid with MySQL 9.2+
+            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+            list l += getDropSql(table_name);
+            l += getCreateSql(new_name, table_name);
+            return l;
+        }
+
+        string getCreateSql(string name, string table_name, *hash opts) {
+            string sql = sprintf("alter table %s add constraint %s unique ", table_name, name);
+            getIndexSql(\sql, name, opts);
+            return sql;
+        }
+    }
+
+    #! represents a MySQL-specific primary key constraint
+    public class MysqlPrimaryKey inherits AbstractPrimaryKey, MysqlUniqueConstraintCommon {
+        constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c), MysqlUniqueConstraintCommon(ts) {
+        }
+
+        #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
+        /** @par Example:
+            @code
+my any $v = $c.name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            
+            @see @ref memberGate_methods
+        */
+        MysqlColumn memberGate(string k) {
+            if (!h.hasKey(k))
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+            return h{k};
+        }
+
+        string getCreateSql(string table_name, *hash opts) {
+            string sql = sprintf("alter table %s add constraint %s primary key", table_name, name);
+            getIndexSql(\sql, name, opts);
+            return sql;
+        }
+
+        softlist getRenameSql(string table_name, string new_name) {
+            # the following is only valid with postgresql 9.2+
+            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+            return sprintf("alter index %s rename to %s", name, new_name);
+        }
+    }
+
+    #! class for MySQL sequences
+    public class MysqlSequence inherits AbstractSequence {
+        #! creates the object from the arguments
+        constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
+        }
+
+        #! returns a string that can be used to create the sequence in the database
+        string getCreateSql(*hash opt) {
+            string sql = sprintf("create sequence %s start with %d increment by %d ", name, start, increment);
+            sql += max ? sprintf("maxvalue %d", max) : "no maxvalue";
+            return sql;
+        }
+
+        #! returns a string that can be used to rename the sequence in the database
+        string getRenameSql(string new_name) {
+            return sprintf("alter sequence %s rename to %s", name, new_name);
+        }
+    }
+
+    #! represents a MySQL-specific trigger
+    public class MysqlTrigger inherits AbstractTrigger {
+        #! creates the object and sets its name and the trigger source
+        constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
+        }
+
+        #! returns a string that can be used to create the trigger in the database
+        softlist getCreateSql(string table_name, *hash opt) {
+            return sprintf("create trigger %s %s", name, src);
+        }
+
+        #! returns a string that can be used to drop the trigger from the database
+        softlist getDropSql(string table_name) {
+            return sprintf("drop trigger %s on %s", name, table_name);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractFunctionBase t) {
+            return True;
+        }
+
+        #! returns a string that can be used to rename the trigger in the database
+	softlist getRenameSql(string table_name, string new_name) {
+	    return sprintf("alter trigger %s on %s rename to %s", name, table_name, new_name);
+	}
+    }
+
+    #! represents a MySQL-specific function
+    public class MysqlFunction inherits AbstractFunction {
+        public {
+            *string args;
+        }
+
+        constructor(string n, string n_src, *string a) : AbstractFunction(n, "function", n_src) {
+            args = a;
+        }
+
+        #! returns a string that can be used to create the function in the database
+        softlist getCreateSql(*hash opt) {
+            return sprintf("create%s function %s %s", opt.replace ? " or replace" : "", name, src);
+        }
+
+        #! returns a string that can be used to drop the function from the database
+        string getDropSql() {
+            return sprintf("drop function %s", name);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractFunctionBase t) {
+            return True;
+        }
+
+        #! returns a string that can be used to rename the function in the database
+	softlist getRenameSql(string new_name) {
+	    return sprintf("alter function %s rename to %s(%s)", name, new_name, args);
+	}
+
+        #! sets the new name of the function
+        setName(string new_name) {
+            name = sprintf("%s(%s)", new_name, args);
+        }
+    }
+
+    #! provides the MySQL-specific implementation of the AbstractDatabase interface
+    public class MysqlDatabase inherits AbstractDatabase {
+       public {
+            #! MySQL-specific schema description keys
+            const MysqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions;
+        }
+
+        constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+        }
+
+        private MysqlSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
+            return new MysqlSequence(name, start, increment, end);
+        }
+
+        private *AbstractSequence getSequenceImpl(string name) {
+            *hash row = ds.selectRow("select relname from pg_class where relkind = 'S' and relname = %v", name);
+            if (!row)
+                return;
+
+            row = ds.selectRow("select * from %s", name);
+            return new MysqlSequence(name, row.start, row.increment, row.max == 9223372036854775807 ? NOTHING : row.max);
+        }
+
+        private MysqlFunction makeFunctionImpl(string name, string src, *hash opts) {
+            string nc = name;
+
+            trim src;
+
+            # change $ quoting to standard form
+            *string dq = (src =~ x/as (\$.*\$)/i)[0];
+            if (dq)
+                src = replace(src, dq, "$function\$");
+
+            # move trailing "language xxx" and type to start of declaration
+            if (src =~ / as /i) {
+               *string type = (src =~ x/(stable|volatile|immutable)$/)[0];
+               if (type)
+                   splice src, -(type.size() + 1);
+
+               *string tlang = (src =~ x/language (.*)$/i)[0];
+               if (tlang) {
+                   src =~ s/language .*$//i; 
+                   src = regex_subst(src, " as ", " language " + tlang + " as ", RE_Caseless);
+               }
+               if (type)
+                   src = regex_subst(src, " as ", " " + type + " as ", RE_Caseless);
+            }
+
+            *string args = MysqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
+
+            if (args) {
+                # remove " in " in arg list & name since it's the default and not returned by pg_get_function_identity_arguments()
+                args =~ s/ in / /ig;
+
+                # replace verbose type names with short type names
+                foreach hash h in (MysqlTable::MysqlNameMap.pairIterator()) {
+                    args = replace(args, h.key, h.value);
+                }
+
+                # use our args in name
+                name = regex_subst(name, "\\((.*)\\)", "(" + args + ")");
+            }
+
+            trim src;
+            return new MysqlFunction(name, src, args);
+        }
+
+        private MysqlFunction makeProcedureImpl(string name, string src, *hash opts) {
+            return makeFunctionImpl(name, src, opts);
+        }
+
+        private *AbstractFunction getFunctionImpl(string name) {
+            *hash qh;
+            # try to find a unique function without arguments
+            if (name !~ /\(/) {
+                qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_identity_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v", name);
+                if (!qh.proname)
+                    return;
+                if (qh.proname.size() > 1)
+                    throw "FUNCTION-ERROR", sprintf("found %d matches for function name %y: %y; use the full argument list in the name to match only function (ex: \"%s(%s)\"", qh.proname.size(), name, (foldl $1 + ", " + $2, (map sprintf("%s(%s)", name, $1.args), qh.contextIterator())), name, qh.args[0]);
+                # assign first row to qh
+                context (qh) qh = %%;
+            }
+            else {
+                string nc = name;
+                *string args = MysqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
+                nc = name.substr(0, name.find('('));
+                # replace common type names with verbose type names as stored in postgresql
+                if (args) {
+                    foreach hash h in (MysqlTable::MysqlNameMap.pairIterator()) {
+                        args = regex_subst(args, " " + h.value + "(,|$)", " " + h.key + "$1", RE_Caseless|RE_Global);
+                    }
+                    # remove " in " in argument list since it's the default and not returned by pg_get_function_identity_arguments()
+                    args =~ s/ in / /ig;
+                }
+
+                qh = ds.selectRow("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(p.oid) hdr, pg_catalog.pg_get_function_identity_arguments(p.oid) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v and pg_catalog.pg_get_function_identity_arguments(p.oid) = %v", nc, args);
+                if (!qh)
+                    return;
+            }
+
+            return MysqlDatabase::processFunction(qh);
+        }
+
+        private AbstractFunction getProcedureImpl(string name) {
+            return getFunctionImpl(name);
+        }
+
+        static *string getFunctionArgs(string err, reference src) {
+            # remove function name and "(" at beginning of hdr
+            int i = src.find("(");
+            if (i == -1)
+                throw err, sprintf("cannot find function arguments: %y", src);
+            int e = src.find(")", i + 1);
+            if (e == -1)
+                throw err, sprintf("cannot find function arguments: %y", src);
+
+            string tmp = extract src, 0, e + 1;
+            trim src;
+            return extract tmp, i + 1, e - i - 1;
+        }
+
+        static MysqlFunction processFunction(hash row) {
+            trim row.hdr;
+            # remove "create or replace function" from the beginning of hdr
+            if (row.hdr !~ /^create or replace function /i)
+                throw "FUNCTION-ERROR", sprintf("function does not begin with 'create or replace function': %y", row.hdr);
+
+            # get and remove arguments
+            *string args = MysqlDatabase::getFunctionArgs("FUNCTION-ERROR", \row.hdr);
+
+            if (args) {
+                # replace verbose type names with short type names
+                foreach hash h in (MysqlTable::MysqlNameMap.pairIterator()) {
+                    args = replace(args, h.key, h.value);
+                }
+            }
+
+            # fix return type
+            *string rt = (row.hdr =~ x/returns (.*)/i)[0];
+            if (rt) {
+                string ort;
+                # replace verbose type names with short type names
+                foreach hash h in (MysqlTable::MysqlNameMap.pairIterator()) {
+                    rt = replace(rt, h.key, h.value);
+                }
+                if (ort != rt)
+                    row.hdr = regex_subst(row.hdr, "returns .*", "returns " + rt, RE_Caseless);
+            }
+
+            #printf("args: %y\n", args);
+            string name = sprintf("%s(%s)", row.proname, args);
+            return new MysqlFunction(name, row.hdr, args);
+        }
+
+        private list getDropSchemaSqlImpl(hash schema_hash, *hash opt) {
+            list l = ();
+
+            if (opt.start) {
+                return l;
+            }
+            
+            return l;
+        }
+
+        private list getAlignSqlImpl(hash schema_hash, *hash opt) {
+            return ();
+        }
+
+        #! returns a list of string table names in the database
+        private list listTablesImpl() {
+            return ds.select("select n.nspname \"schema\", c.relname \"name\", case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end \"Type\", pg_catalog.pg_get_userbyid(c.relowner) \"owner\" from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'information_schema' and n.nspname !~ '^pg_toast' and pg_catalog.pg_table_is_visible(c.oid) order by 1,2").name;
+        }
+
+        #! returns a list of string function names in the database
+        /** The function names will include arguments in parentheses after the names
+
+            @return a list of string function names in the database
+        */
+        private list listFunctionsImpl() {
+            *hash qh = ds.select("select n.nspname schema, p.proname name, pg_catalog.pg_get_function_result(p.oid) result_type, pg_catalog.pg_get_function_arguments(p.oid) args, case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end type from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n ON n.oid = p.pronamespace where n.nspname ~ '^(public)$' order by 1, 2, 4");
+            
+            return map sprintf("%s(%s)", $1.name, $1.args), qh.contextIterator();            
+        }
+
+        #! since MySQL only supports functions, this method is identical to listFunctionsImpl()
+        /** @see listFunctionsImpl()
+        */
+        private list listProceduresImpl() {
+            return listFunctionsImpl();
+        }
+
+        private list listSequencesImpl() {
+            return ds.select("select relname from pg_class where relkind = 'S'").relname;
+        }
+
+        private list listViewsImpl() {
+            return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false))").table_name;
+        }
+
+        private string getCreateSqlImpl(list l) {
+            return MysqlDatabase::getCreateSql(l);
+        }
+
+        static string getCreateSql(list l) {
+            return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l);
+        }
+
+        #! returns driver-specific options to the base abstract class
+        private hash getSchemaDescriptionOptions() {
+            return MysqlSchemaDescriptionOptions;
+        }
+
+        #! returns @ref Qore::True "True" if the database supports sequences
+        private bool supportsSequencesImpl() {
+            return True;
+        }
+    }
+
+    #! provides the MySQL-specific implementation of the AbstractTable interface
+    public class MysqlTable inherits AbstractTable {
+        public {
+            #! maps postgresql type names to type configurations
+            const MysqlTypeMap = (
+                "numeric": ("qore": Type::Number, "size": SZ_NUM,),
+                "decimal": ("qore": Type::Number, "size": SZ_NUM,),
+                "money": ("qore": Type::Number,),
+                "smallint": ("qore": Type::Int,),
+                "integer": ("qore": Type::Int,),
+                "bigint": ("qore": Type::Int,),
+                "smallserial": ("qore": Type::Int,),
+                "serial": ("qore": Type::Int,),
+                "bigserial": ("qore": Type::Int,),
+                "real": ("qore": Type::Float,),
+                "double precision": ("qore": Type::Float,),
+                "oid": ("qore": Type::Number,),
+                "character": ("qore": Type::String, "size": SZ_MAND,),
+                "char": ("qore": Type::String, "size": SZ_MAND,),
+                "character varying": ("qore": Type::String, "size": SZ_MAND,),
+                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+                "date": ("qore": Type::Date,),
+                "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "time without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "time with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "interval": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "abstime": ("qore": Type::Date,),
+                "reltime": ("qore": Type::Date,),
+                "text": ("qore": Type::String,),
+                "bytea": ("qore": Type::Binary,),
+                "bit": ("qore": Type::Binary,),
+                "bit varying": ("qore": Type::Binary,),
+                "boolean": ("qore": Type::Boolean,),
+                "macaddr": ("qore": Type::String,),
+                "inet": ("qore": Type::String,),
+                "cidr": ("qore": Type::String,),
+                );
+
+            #! maps from verbose type names to simple type names
+            const MysqlNameMap = (
+                "character varying": "varchar",
+                "character": "char",
+                "timestamp without time zone": "timestamp",
+                "time without time zone": "time",
+                );
+
+            #! maps qore type names to postgresql type names
+            const QoreTypeMap = (
+                "integer": "bigint",
+                "float": "double precision",
+                "number": "numeric",
+                "string": "varchar",
+                "date": "timestamp",
+                "binary": "bytea",
+                "bool": "boolean",
+                SqlUtil::CHAR: "char",
+                SqlUtil::CLOB: "text",
+                SqlUtil::BLOB: "bytea",
+                );
+
+            #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "functions" for table functions required by triggers on the table
+            const MysqlTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions + (
+                "functions": Type::Hash,
+                );
+
+            const MysqlColumnOptions = AbstractTable::ColumnOptions;
+
+            const MysqlIndexOptions = AbstractTable::IndexOptions;
+
+            const MysqlConstraintOptions = AbstractTable::ConstraintOptions + MysqlIndexOptions + (
+                "index": Type::String,
+                );
+
+            const MysqlTableCreationOptions = AbstractTable::TableCreationOptions + MysqlConstraintOptions + (
+                "omit_trigger_functions": Type::Boolean,
+                );
+
+            const MysqlAlignTableOptions = AbstractTable::AlignTableOptions + MysqlTableCreationOptions;
+        }
+
+        constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
+        }
+
+        private hash getTableCreationOptions() {
+            return MysqlTableCreationOptions;
+        }
+
+        private hash getTableDescriptionHashOptions() {
+            return MysqlTableDescriptionHashOptions;
+        }
+
+        private hash getColumnOptions() {
+            return MysqlColumnOptions;
+        }
+
+        private hash getIndexOptions() {
+            return MysqlIndexOptions;
+        }
+
+        private hash getConstraintOptions() {
+            return MysqlConstraintOptions;
+        }
+
+        private hash getAlignTableOptions() {
+            return MysqlAlignTableOptions;
+        }
+
+        private bool checkExistenceImpl() {
+            *hash qh = ds.selectRow("select * from  pg_catalog.pg_statio_all_tables where relname = %v", name);
+            if (qh)
+                return inDb = True;
+            return False;
+        }
+
+        private Columns describeImpl() {
+            # get column descriptions
+            *hash qh = ds.select("select * from information_schema.columns where table_name = %v order by ordinal_position", name);
+            if (!qh.column_name)
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
+
+            hash rv;
+            foreach hash row in (qh.contextIterator()) {
+                *hash th = MysqlTypeMap.(row.column_type);
+                softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
+                # use short names in descriptions
+                *string an = MysqlNameMap{row.data_type};
+                if (an)
+                    row.column_type = an;
+                switch (th.qore) {
+                    case "int":
+                    case "float": {
+                        size = 0;
+                        break;
+                    }
+                }
+
+                MysqlColumn c;
+                *string defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
+                if (row.numeric_precision)
+                    c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.description ? row.description : NOTHING, 0, row.numeric_scale);
+                else
+                    c = new MysqlColumn(row.column_name, row.column_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, row.character_octet_length);
+
+                rv.(row.column_name) = c;
+            }
+
+            return new Columns(rv);
+        }
+
+        private *MysqlPrimaryKey getPrimaryKeyImpl() {
+            hash rv;
+
+            # get primary key description
+            *hash qh = ds.select("select c1.relname index_name, a.attname, pg_catalog.pg_get_indexdef(a.attrelid, a.attnum, TRUE) AS column_name, pg_catalog.format_type(a.atttypid, a.atttypmod), tablespace from pg_class c, pg_index i, pg_attribute a, pg_class c1, pg_indexes ix where c.oid = %v::regclass and c.oid = i.indrelid and i.indisprimary and i.indexrelid = a.attrelid and c1.oid = i.indexrelid and c1.relname = ix.indexname and i.indisvalid and not a.attisdropped order by a.attnum", name);
+            if (!qh.index_name)
+                return;
+
+            #printf("MysqlTable::getPrimaryKeyImpl(): %s: %N\n", getName(), qh);
+            foreach string col in (qh.column_name)
+                rv{col} = columns{col};
+
+            return new MysqlPrimaryKey(qh.index_name[0], rv);
+        }
+
+        private Indexes getIndexesImpl() {
+            hash rv;
+
+            # get index descriptions
+            *hash qh = ds.select("SELECT i.relname index_name, d.indisunique, d.indisprimary, pg_get_indexdef(i.oid, a.attnum, false) column_name, tablespace FROM pg_class t, pg_class i, pg_index d, pg_attribute a, pg_indexes xs WHERE i.relkind = 'i' and i.relname = xs.indexname AND d.indexrelid = i.oid and t.oid = d.indrelid AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN ('public')) AND a.attrelid = i.oid AND t.relname = %v ORDER BY i.relname, attnum", name);
+
+            #*hash qh = ds.select("select i.relname index_name, a.attname column_name, indisprimary, indisunique, tablespace from pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_indexes xs where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = any(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary and i.relname = xs.indexname group by i.relname, a.attname, a.attnum, indisprimary, indisunique, tablespace order by i.relname, attnum", name);
+
+            if (qh.index_name) {
+                hash ih;
+                foreach hash row in (qh.contextIterator()) {
+                    if (!ih.(row.index_name)) {
+                        ih.(row.index_name) = (
+                            "unique": row.indisunique,
+                            "primary": row.indisprimary,
+                        );
+                    }
+                    # send "blank" column for function index
+                    if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name))
+                        ih.(row.index_name).columns{row.column_name} = hash();
+                    else
+                        ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
+                }
+
+                foreach hash i in (ih.pairIterator()) {
+                    # check primary key index
+                    if (i.primary && primaryKey) {
+                        continue;
+                    }
+                    rv.(i.key) = new MysqlIndex(i.key, i.value.unique, i.value.columns);
+                }
+            }
+
+            return new Indexes(rv);
+        }
+
+        private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
+            hash rv;
+            # get foreign referential constraints 
+            # FIXME: hardcoded schema to 'public'
+            *hash qh = ds.select("select constraint_name, att2.attname source_column, cl.relname target_table, att.attname target_column from (select con1.conname constraint_name, generate_subscripts(con1.conkey, 1) AS rn, unnest(con1.conkey) parent, unnest(con1.confkey) child, con1.confrelid, con1.conrelid from pg_class cl join pg_namespace ns on cl.relnamespace = ns.oid join pg_constraint con1 on con1.conrelid = cl.oid where cl.relname = %v and ns.nspname = 'public' and con1.contype = 'f' order by conname, rn) con join pg_attribute att on att.attrelid = con.confrelid and att.attnum = con.child join pg_class cl on cl.oid = con.confrelid join pg_attribute att2 on att2.attrelid = con.conrelid and att2.attnum = con.parent", name);
+            if (qh.constraint_name) {
+                hash ch;
+                foreach hash row in (qh.contextIterator()) {
+                    reference c = \ch.(row.constraint_name); 
+                    c.columns.(row.source_column) = columns{row.source_column};
+                    c.target.table = row.target_table;
+                    c.target.columns.(row.target_column) = True;
+                }
+                
+                foreach hash c in (ch.pairIterator()) {
+                    # get a description of the target table's columns
+                    Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, opts.table_cache);
+                    ForeignConstraintTarget fct(c.value.target.table, targ_columns.subset(c.value.target.columns.keys()));
+                    rv.(c.key) = new MysqlForeignConstraint(c.key, new Columns(c.value.columns), fct);
+                }
+            }
+
+            return new ForeignConstraints(rv);
+        }
+
+        private Constraints getConstraintsImpl() {
+            # get check constraints
+            *hash qh = ds.select("SELECT c.conname AS constraint_name, CASE WHEN c.condeferrable = 'f' THEN 0 ELSE 1 END AS is_deferrable, CASE WHEN c.condeferred = 'f' THEN 0 ELSE 1 END AS is_deferred, t.relname AS table_name, array_to_string(c.conkey, ' ') AS constraint_key, CASE confupdtype WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE' WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END AS on_update, CASE confdeltype WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE' WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END AS on_delete, CASE confmatchtype WHEN 'u' THEN 'UNSPECIFIED' WHEN 'f' THEN 'FULL' WHEN 'p' THEN 'PARTIAL' END AS match_type, t2.relname AS references_table, array_to_string(c.confkey, ' ') AS fk_constraint_key, consrc FROM pg_constraint c LEFT JOIN pg_class t  ON c.conrelid  = t.oid LEFT JOIN pg_class t2 ON c.confrelid = t2.oid WHERE c.contype = 'c' and t.relname = %v", name);
+            hash rv;
+            foreach hash row in (qh.contextIterator())
+                rv.(row.constraint_name) = new MysqlCheckConstraint(row.constraint_name, row.consrc);
+
+            Constraints c = new Constraints(rv);
+
+            # get unique constraints
+            qh = ds.select("select tc.constraint_name, kcu.column_name from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name = kcu.constraint_name where constraint_type = 'UNIQUE' and tc.table_name = %v order by ordinal_position", name);
+            delete rv;
+            foreach hash row in (qh.contextIterator()) {
+                reference ch = \rv.(row.constraint_name);
+                if (!ch)
+                    ch = new MysqlUniqueConstraint(row.constraint_name, hash(), row.status == "ENABLED");
+                ch.add(row.column_name, columns{row.column_name});
+            }
+            
+            # add unique constraints to constraint hash
+            map c.add($1.key, $1.value), rv.pairIterator();
+
+            return c;
+        }
+
+        private Triggers getTriggersImpl() {
+            hash rv;
+
+            # get trigger description
+            *hash qh = ds.select("select * from information_schema.triggers where event_object_table = %v", name);
+
+            foreach hash row in (qh.contextIterator()) {                    
+                if (rv{row.trigger_name}) {
+                    # add event to trigger
+                    *string px = (rv{row.trigger_name}.src =~ x/(.+) on/i)[0];
+                    if (!px)
+                        throw "MYSQL-TRIGGER-ERROR", sprintf("cannot find beginning of trigger source: %s", rv{row.trigger_name}.src);
+                    splice rv{row.trigger_name}.src, px.size(), 0, " or " + row.event_manipulation;
+                    continue;
+                }
+
+                string src = sprintf("%s %s on %s for each %s %s", row.action_timing, row.event_manipulation, getSqlName(), row.action_orientation, row.action_statement);
+                rv{row.trigger_name} = new MysqlTrigger(row.trigger_name, src);
+            }
+
+            return new Triggers(rv);
+        }
+
+        string getCreateTableSqlImpl(*hash opt) {
+            string sql = sprintf("create table %s (\n", name);
+
+            sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
+            sql += "\n)";
+
+            return sql;
+        }
+
+        *list getCreateMiscSqlImpl(*hash opt, bool cache) {
+            if (cache) {
+                getColumnsUnlocked();
+                getTriggersUnlocked();
+            }
+
+            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), "create comment on column %s.%s", name, $1.name), columns.iterator(), $1.comment;
+
+            return l;
+        }
+
+        private *list getAlignSqlImpl(AbstractTable table, *hash opt) {
+        }
+
+        private string getCreateSqlImpl(list l) {
+            return MysqlDatabase::getCreateSql(l);
+        }
+
+        private string getRenameSqlImpl(string new_name) {
+            return sprintf("alter table %s rename to %s", getSqlName(), new_name);
+        }
+
+        private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
+            if (opt.precision)
+                return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale);
+            return new MysqlColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, 0);
+        }
+
+        private AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt) {
+            return new MysqlPrimaryKey(cname, ch);
+        }
+
+        private AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt) {
+            return new MysqlIndex(iname, enabled, ch);
+        }
+
+        private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt) {
+            ForeignConstraintTarget fct(table, new Columns(tch));
+            return new MysqlForeignConstraint(cname, new Columns(ch), fct);
+        }
+
+        private AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt) {
+            return new MysqlCheckConstraint(cname, src);
+        }
+
+        private AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash opt) {
+            return new MysqlUniqueConstraint(cname, ch, True);
+        }
+
+        private AbstractTrigger addTriggerImpl(string tname, string src, *hash opt) {
+            return new MysqlTrigger(tname, src);
+        }
+
+        private bool tryInsertImpl(string sql, hash row) {
+            try {
+                ds.vexec(sql, row.values());
+            }
+            catch (hash ex) {
+                if (ex.desc =~ /^Duplicate entry /)
+                    return False;
+                rethrow;
+            }
+            return True;
+        }
+
+        private hash getQoreTypeMapImpl() {
+            return QoreTypeMap;
+        }
+
+        private hash getTypeMapImpl() {
+            return MysqlTypeMap;
+        }
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
+        private *string getSqlValueImpl(any v) {
+            switch (v.typeCode()) {
+                case NT_FLOAT:
+                case NT_INT: return v.toString();
+
+                case NT_NUMBER: return string(v);
+
+                # double any single quotes in strings
+                case NT_STRING: v =~ s/'/''/g; return "'" + v + "'";
+
+                case NT_NULL:
+                case NT_NOTHING: return "null";
+
+                case NT_BOOLEAN: return v ? "true" : "false";
+
+                case NT_DATE: return v.format("'YYYY-MM-DD HH:mm:SS.us'");
+            }
+        }
+
+        private bool emptyImpl() {
+            return True;
+        }
+
+        private setupTableImpl(hash desc, *hash opt) {
+        }
+
+        private bool constraintsLinkedToIndexesImpl() {
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if the database support tablespaces
+        private bool supportsTablespacesImpl() {
+            return False;
+        }
+
+        #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
+        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+           sql += " limit %v";
+           args += qh.limit;
+        }
+
+        #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh) {
+            doSelectOrderBySqlUnlocked(\sql, \args, qh);
+            if (qh.limit) {
+                sql += " limit %v";
+                args += qh.limit;
+            }
+
+            if (qh.offset) {
+                sql += " offset %v";
+                args += qh.offset;
+            }
+        }
+
+        #! db-specific copy actions
+        private copyImpl(AbstractTable old) {
+        }
+    }
+}
