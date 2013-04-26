@@ -71,7 +71,8 @@ module SqlUtil {
     - @ref SqlUtil::AbstractTable::findAll()
     - @ref SqlUtil::AbstractTable::findSingle()
     - @ref SqlUtil::AbstractTable::getRowIterator()
-    - @ref SqlUtil::AbstractTable::getSelectSql();
+    - @ref SqlUtil::AbstractTable::getSelectSql()
+    - @ref SqlUtil::AbstractTable::select()
     - @ref SqlUtil::AbstractTable::selectRows()
     - @ref SqlUtil::AbstractTable::update()
     - @ref SqlUtil::AbstractTable::updateNoCommit()
@@ -101,6 +102,7 @@ my *list $rows = $table.findAll(("id": op_gt(100), "created": op_gt(2013-03-01))
     There is support for paging query results in the following methods:
     - @ref SqlUtil::AbstractTable::getRowIterator()
     - @ref SqlUtil::AbstractTable::getSelectSql();
+    - @ref SqlUtil::AbstractTable::select()
     - @ref SqlUtil::AbstractTable::selectRows()
 
     @note the above list also applies to the corresponding @ref SqlUtil::Table methods
@@ -5107,7 +5109,7 @@ $table.upsertNoCommit($row);
             return t.upsertNoCommit(row, upsert_strategy);
         }
 
-        #! returns a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned does not validate the input hash for validity
+        #! returns a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned does not check the input hash for validity
         /** @par Example:
             @code
 my Datasource $ds("pgsql:user/pass@db%localhost");
@@ -5121,7 +5123,7 @@ map $upsert($1), $row_list;
             @param example_row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not validate the input hash for validity; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information 
+            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information 
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -5137,7 +5139,7 @@ map $upsert($1), $row_list;
             return t.getUpsertClosure(example_row, upsert_strategy);
         }
 
-        #! returns a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned does not validate the input hash for validity
+        #! returns a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned validates the input hash for validity
         /** @par Example:
             @code
 my Datasource $ds("pgsql:user/pass@db%localhost");
@@ -8175,7 +8177,7 @@ $table.upsertNoCommit($row);
             return upsert(row);
         }
 
-        #! returns a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned does not validate the input hash for validity
+        #! returns a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned does not check the input hash for validity
         /** @par Example:
             @code
 my Datasource $ds("pgsql:user/pass@db%localhost");
@@ -8189,7 +8191,7 @@ map $upsert($1), $row_list;
             @param example_row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not validate the input hash for validity; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information 
+            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information 
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -8203,7 +8205,7 @@ map $upsert($1), $row_list;
             return getUpsertClosureUnlocked(example_row, upsert_strategy);
         }
 
-        #! returns a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned does not validate the input hash for validity
+        #! returns a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned checks the input hash for validity
         /** @par Example:
             @code
 my Datasource $ds("pgsql:user/pass@db%localhost");
