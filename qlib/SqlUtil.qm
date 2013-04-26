@@ -5186,6 +5186,7 @@ my SQLStatement $i = $table.getRowIterator();
             @endcode
 
             @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return an SQLStatement object that will iterate the results of a select statement matching the arguments
 
@@ -5196,8 +5197,8 @@ my SQLStatement $i = $table.getRowIterator();
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
          */
-        SQLStatement getRowIterator(*hash sh) {
-            return t.getRowIterator(sh);
+        SQLStatement getRowIterator(*hash sh, *reference sql) {
+            return t.getRowIterator(sh, \sql);
         }
 
         #! returns a list of hashes representing the rows in the table that match the argument hash
@@ -5215,8 +5216,28 @@ my *list $l = $table.selectRows($sh);
 
             @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
          */
-        *list selectRows(*hash sh) {
-            return t.selectRows(sh);
+        *list selectRows(*hash sh, *reference sql) {
+            return t.selectRows(sh, \sql);
+        }
+
+        #! returns a hash of lists representing the columns and rows in the table that match the argument hahs
+        /** @par Example:
+            @code
+my *hash $h = $table.select($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+
+            @return a hash of lists representing the columns and rows in the table that match the argument hash
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+         */
+        *hash select(*hash sh, *reference sql) {
+            return t.select(sh, \sql);
         }
 
         #! returns the SQL string to be executed corresponding to the argument hash with an output parameter for the select bind arguments
@@ -5249,6 +5270,7 @@ my int $dcnt = $table.del(("name": $name));
             @endcode
 
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param sql an optional reference to a string to return the SQL generated for the delete statement
 
             @return the count of rows deleted
 
@@ -5256,8 +5278,8 @@ my int $dcnt = $table.del(("name": $name));
 
             @see delNoCommit(*hash)
          */
-        int del(*hash cond) {
-            return del(cond);
+        int del(*hash cond, *reference sql) {
+            return del(cond, \sql);
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
@@ -5267,6 +5289,7 @@ my int $dcnt = $table.delNoCommit(("name": $name));
             @endcode
 
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param sql an optional reference to a string to return the SQL generated for the delete statement
 
             @return the count of rows deleted
 
@@ -5274,8 +5297,8 @@ my int $dcnt = $table.delNoCommit(("name": $name));
 
             @see del(*hash)
          */
-        int delNoCommit(*hash cond) {
-            return t.delNoCommit(cond);
+        int delNoCommit(*hash cond, *reference sql) {
+            return t.delNoCommit(cond, \sql);
         }
 
         #! updates rows in the table matching an optional condition and returns the count of rows updated; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -5286,6 +5309,7 @@ my int $ucnt = $table.update(("id": $id), ("name": $name));
 
             @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param sql an optional reference to a string to return the SQL generated for the update statement
 
             @return the count of rows updated
 
@@ -5294,8 +5318,8 @@ my int $ucnt = $table.update(("id": $id), ("name": $name));
 
             @see updateNoCommit(hash, *hash)
          */
-        int update(hash set, *hash cond) {
-            return t.update(set, cond);
+        int update(hash set, *hash cond, *reference sql) {
+            return t.update(set, cond, \sql);
         }
 
         #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
@@ -5306,6 +5330,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
 
             @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param sql an optional reference to a string to return the SQL generated for the update statement
 
             @return the count of rows updated
 
@@ -5314,8 +5339,8 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
 
             @see update(hash, *hash)
          */
-        int updateNoCommit(hash set, *hash cond) {
-            return t.updateNoCommit(set, cond);
+        int updateNoCommit(hash set, *hash cond, *reference sql) {
+            return t.updateNoCommit(set, cond, \sql);
         }
 
         #! returns an SQL string corresponding to the list of commands in the argument
@@ -8228,6 +8253,7 @@ my SQLStatement $i = $table.getRowIterator($sh);
             @endcode
 
             @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return an SQLStatement object that will iterate the results of a select statement matching the arguments
 
@@ -8238,19 +8264,12 @@ my SQLStatement $i = $table.getRowIterator($sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
          */
-        SQLStatement getRowIterator(*hash sh) {
+        SQLStatement getRowIterator(*hash sh, *reference sql) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
-            string sql;
             list args;
+            sql = getSelectSqlIntern(sh, \args);
 
-            {
-                l.lock();
-                on_exit l.unlock();
-
-                sql = getSelectSqlUnlocked(sh, \args);
-            }
-                
             SQLStatement stmt(ds);
             stmt.prepare(sql);
             stmt.execArgs(args);
@@ -8265,6 +8284,7 @@ my *list $l = $table.selectRows($sh);
             @endcode
 
             @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return a list of hashes representing the rows in the table that match the argument hash
 
@@ -8273,21 +8293,38 @@ my *list $l = $table.selectRows($sh);
 
             @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
          */
-        *list selectRows(*hash sh) {
+        *list selectRows(*hash sh, *reference sql) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
-            string sql;
             list args;
-
-            {
-                l.lock();
-                on_exit l.unlock();
-
-                sql = getSelectSqlUnlocked(sh, \args);
-                #printf("sql: %s\nargs: %y\n", sql, args);
-            }
+            sql = getSelectSqlUnlocked(sh, \args);
             
             return ds.vselectRows(sql, args);
+        }
+
+        #! returns a hash of lists representing the columns and rows in the table that match the argument hahs
+        /** @par Example:
+            @code
+my *hash $h = $table.select($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+
+            @return a hash of lists representing the columns and rows in the table that match the argument hash
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+         */
+        *hash select(*hash sh, *reference sql) {
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+
+            list args;
+            sql = getSelectSqlUnlocked(sh, \args);
+            
+            return ds.vselect(sql, args);
         }
 
         #! returns the SQL string to be executed corresponding to the argument hash with an output parameter for the select bind arguments
@@ -8313,11 +8350,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             args = ();
-
-            l.lock();
-            on_exit l.unlock();
-
-            return getSelectSqlUnlocked(sh, \args);
+            return getSelectSqlIntern(sh, \args);
         }
 
         *AbstractUniqueConstraint matchAnyUnique(list cols) {
@@ -8334,6 +8367,13 @@ my string $sql = $table.getSelectSql($sh, \$args);
                         return uk;
                 }
             }
+        }
+
+        string getSelectSqlIntern(*hash qh, reference args) {            
+            l.lock();
+            l.unlock();
+
+            return getSelectSqlUnlocked(qh, \args);
         }
 
         string getSelectSqlUnlocked(*hash qh, reference args) {            
@@ -8629,6 +8669,7 @@ my int $dcnt = $table.del(("name": $name));
             @endcode
 
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return the count of rows deleted
 
@@ -8636,11 +8677,11 @@ my int $dcnt = $table.del(("name": $name));
 
             @see delNoCommit(*hash)
          */
-        int del(*hash cond) {
+        int del(*hash cond, *reference sql) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            return delNoCommit(cond);
+            return delNoCommit(cond, \sql);
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
@@ -8650,6 +8691,7 @@ my int $dcnt = $table.delNoCommit(("name": $name));
             @endcode
 
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return the count of rows deleted
 
@@ -8657,9 +8699,9 @@ my int $dcnt = $table.delNoCommit(("name": $name));
 
             @see del(*hash)
          */
-        int delNoCommit(*hash cond) {
+        int delNoCommit(*hash cond, *reference sql) {
             # make query
-            string sql = sprintf("delete from %s", getSqlName());
+            sql = sprintf("delete from %s", getSqlName());
             list args;
             if (cond)
                 sql += getWhereClause(cond, \args);
@@ -8674,6 +8716,7 @@ my int $ucnt = $table.update(("id": $id), ("name": $name));
 
             @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return the count of rows updated
 
@@ -8682,11 +8725,11 @@ my int $ucnt = $table.update(("id": $id), ("name": $name));
 
             @see updateNoCommit(hash, *hash)
          */
-        int update(hash set, *hash cond) {
+        int update(hash set, *hash cond, *reference sql) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            return updateNoCommit(cond);
+            return updateNoCommit(cond, \sql);
         }
 
         #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
@@ -8697,6 +8740,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
 
             @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return the count of rows updated
 
@@ -8705,9 +8749,9 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
 
             @see update(hash, *hash)
          */
-        int updateNoCommit(hash set, *hash cond) {
+        int updateNoCommit(hash set, *hash cond, *reference sql) {
             # make query
-            string sql = sprintf("update %s set ", getSqlName());
+            sql = sprintf("update %s set ", getSqlName());
 
             if (!set)
                 throw "UPDATE-ERROR", "the set hash is empty";
@@ -9731,11 +9775,13 @@ my *list $rows = $table.find($list);
             if (!ids)
                 return;
 
-            string sql = sprintf("select * from %s where %s in (%s)", getSqlName(), cname, (foldl $1 + "," + $2, (map "%v", ids)));
+            list args;
+            hash cond{cname} = op_in(ids);
+            string sql = getSelectSqlIntern(("where": cond), \args);
 
-            return ds.vselectRows(sql, ids);
+            return ds.vselectRows(sql, args);
         }
-
+                
         private string getPrimaryKeyColumn() {
             l.lock();
             on_exit l.unlock();
