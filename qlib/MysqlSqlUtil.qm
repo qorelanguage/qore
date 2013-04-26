@@ -265,11 +265,19 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     #! represents a MySQL-specific numeric column
     public class MysqlNumericColumn inherits MysqlColumn, NumericColumnInfo {
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
+        public {
+            bool unsigned;
+        }
+
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
+            unsigned = n_unsigned;
         }
 
         string getNativeTypeString() {
-            return NumericColumnInfo::getNativeTypeString(native_type, size);
+            string str = NumericColumnInfo::getNativeTypeString(native_type, size);
+            if (unsigned)
+                str += " unsigned";
+            return str;
         }
     }
 
@@ -688,7 +696,7 @@ my any $v = $c.name;
             #! maps postgresql type names to type configurations
             const MysqlTypeMap = (
                 "decimal": ("qore": Type::Number, "size": SZ_NUM,),
-                "money": ("qore": Type::Number,),
+                "tinyint": ("qore": Type::Int,),
                 "smallint": ("qore": Type::Int,),
                 "integer": ("qore": Type::Int,),
                 "bigint": ("qore": Type::Int,),
@@ -716,6 +724,7 @@ my any $v = $c.name;
                 "bytea": ("qore": Type::Binary,),
                 "bit": ("qore": Type::Binary,),
                 "bit varying": ("qore": Type::Binary,),
+                "bool": ("qore": Type::Boolean,),
                 "boolean": ("qore": Type::Boolean,),
                 "macaddr": ("qore": Type::String,),
                 "inet": ("qore": Type::String,),
@@ -806,6 +815,12 @@ my any $v = $c.name;
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
+                bool unsigned = False;
+                if (row.column_type =~ / unsigned$/) {
+                    unsigned = True;
+                    row.column_type =~ s/ unsigned$//;
+                }
+
                 # remove size from type name
                 row.column_type =~ s/\(.*\)$//;
 
@@ -816,8 +831,15 @@ my any $v = $c.name;
                 if (an)
                     row.column_type = an;
                 switch (row.column_type) {
+                    case "tinyint":
+                    case "smallint":
+                    case "mediumint":
+                    case "int":
+                    case "bigint":
                     case "text":
+                    case "double":
                     case "float": {
+                        row.numeric_precision = 0;
                         size = 0;
                         break;
                     }
@@ -825,8 +847,8 @@ my any $v = $c.name;
 
                 MysqlColumn c;
                 *string defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
-                if (row.numeric_precision)
-                    c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.description ? row.description : NOTHING, 0, row.numeric_scale);
+                if (row.numeric_precision || unsigned)
+                    c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.description ? row.description : NOTHING, 0, row.numeric_scale, unsigned);
                 else
                     c = new MysqlColumn(row.column_name, row.column_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, row.character_octet_length);
 
@@ -988,7 +1010,7 @@ my any $v = $c.name;
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
             if (opt.precision)
-                return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale);
+                return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale, opt.unsigned);
             return new MysqlColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, 0);
         }
 
