@@ -72,7 +72,6 @@ public namespace MysqlSqlUtil {
 	return new MysqlDatabase(nds, opts);
     }
 
-
     #! represents a MySQL-specific index
     public class MysqlIndex inherits AbstractIndex {
         #! creates the object from the arguments
@@ -89,9 +88,14 @@ public namespace MysqlSqlUtil {
             return True;
         }
 
-        #! returns a string that can be used to rename the index in the database
+        #! returns a string that can be used to rename the index in the database; hwoever mysql does not support renaming indexes, so the index is dropped and recreated :(
         string getRenameSql(string table_name, string new_name) {
-            return sprintf("alter index %s rename to %s", name, new_name);
+            return sprintf("alter table %s drop index %s, add %sindex %s (%s)", table_name, name, unique ? "unique " : "", new_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+        }
+
+        #! returns a string that can be used to drop the index from the table
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop index %s", table_name, name);
         }
     }
 
@@ -104,16 +108,22 @@ public namespace MysqlSqlUtil {
             return getCreateSql(name, table_name, opt);
         }
 
+        #! returns a string that drops the constraint and re-adds it, since MySQL does not support renaming constraints
         softlist getRenameSql(string table_name, string new_name) {
-            # the following is only valid with MySQL 9.2+
-            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
-            list l += getDropSql(table_name);
-            l += getCreateSql(new_name, table_name);
-            return l;
+            return getDropSql(table_name) + ", " + getAddSql(new_name, table_name);
         }
 
         string getCreateSql(string name, string table_name, *hash opt) {
-            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, columns.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+            return sprintf("alter table %s ", name) + getAddSql(name, table_name, opt);
+        }
+
+        string getAddSql(string name, string table_name, *hash opt) {
+            return sprintf("add constraint %s foreign key (%s) references %s (%s)", name, (foldl $1 + ", " + $2, columns.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+        }
+
+        #! returns a string that can be used to drop the foreign constraint from the database
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop foreign key %s", table_name, name);
         }
     }
 
@@ -126,16 +136,22 @@ public namespace MysqlSqlUtil {
             return getCreateSql(name, table_name, opt);
         }
 
-        list getRenameSql(string table_name, string new_name) {
-            # the following is only valid with MySQL 9.2+
-            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
-            list l += getDropSql(table_name);
-            l += getCreateSql(new_name, table_name);
-            return l;
+        #! returns a string that can be used to drop the check constraint from the table
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop check %s", table_name, name);
+        }
+
+        #! returns a string that drops the constraint and re-adds it, since MySQL does not support renaming constraints
+        softlist getRenameSql(string table_name, string new_name) {
+            return getDropSql(table_name) + ", " + getAddSql(new_name, table_name);
         }
 
         string getCreateSql(string name, string table_name, *hash opt) {
-            return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
+            return sprintf("alter table %s %s", table_name, getAddSql(name, table_name, opt));
+        }
+
+        string getAddSql(string name, string table_name, *hash opt) {
+            return sprintf("add constraint %s check (%s)", name, src);
         }
     }
 
@@ -334,6 +350,11 @@ my any $v = $c.name;
             getIndexSql(\sql, name, opts);
             return sql;
         }
+
+        #! returns a string that can be used to drop the constraint from the database
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop index %s", table_name, name);
+        }
     }
 
     #! represents a MySQL-specific primary key constraint
@@ -373,6 +394,11 @@ my any $v = $c.name;
             # the following is only valid with postgresql 9.2+
             #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
             return sprintf("alter index %s rename to %s", name, new_name);
+        }
+
+        #! returns a string that can be used to drop the constraint from the database
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop primary key", table_name);
         }
     }
 
