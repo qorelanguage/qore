@@ -171,18 +171,6 @@ public namespace MysqlSqlUtil {
             byte_size = bs;
         }
 
-        string getNativeTypeString() {
-            string sql = native_type;
-            switch (native_type) {
-                case =~ /^timestamp/: return splice sql, 9, 0, "(" + string(size) + ")";
-                case =~ /^time/: return splice sql, 4, 0, string(size);
-            }
-            if (size)
-                sql += sprintf("(%d)", size);
-            #printf("%y: %s\n", self, sql);
-            return sql;
-        }
-
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
             @code
@@ -693,42 +681,40 @@ my any $v = $c.name;
     #! provides the MySQL-specific implementation of the AbstractTable interface
     public class MysqlTable inherits AbstractTable {
         public {
-            #! maps postgresql type names to type configurations
+            #! maps mysql type names to type configurations
             const MysqlTypeMap = (
                 "decimal": ("qore": Type::Number, "size": SZ_NUM,),
                 "tinyint": ("qore": Type::Int,),
                 "smallint": ("qore": Type::Int,),
-                "integer": ("qore": Type::Int,),
+                "mediumint": ("qore": Type::Int,),
+                "int": ("qore": Type::Int,),
                 "bigint": ("qore": Type::Int,),
-                "smallserial": ("qore": Type::Int,),
-                "serial": ("qore": Type::Int,),
-                "bigserial": ("qore": Type::Int,),
-                "real": ("qore": Type::Float,),
-                "double precision": ("qore": Type::Float,),
-                "oid": ("qore": Type::Number,),
-                "character": ("qore": Type::String, "size": SZ_MAND,),
-                "char": ("qore": Type::String, "size": SZ_MAND,),
-                "character varying": ("qore": Type::String, "size": SZ_MAND,),
-                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+                "float": ("qore": Type::Float,),
+                "double": ("qore": Type::Float,),
+
                 "date": ("qore": Type::Date,),
-                "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "datetime": ("qore": Type::Date,),
                 "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "time without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
                 "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "time with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "interval": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "abstime": ("qore": Type::Date,),
-                "reltime": ("qore": Type::Date,),
+                "year": ("qore": Type::Int,),
+
+                "char": ("qore": Type::String, "size": SZ_MAND,),
+                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+
+                "binary": ("qore": Type::Binary,),
+                "varbinary": ("qore": Type::Binary,),
+
+                "tinytext": ("qore": Type::String,),
                 "text": ("qore": Type::String,),
-                "bytea": ("qore": Type::Binary,),
-                "bit": ("qore": Type::Binary,),
-                "bit varying": ("qore": Type::Binary,),
-                "bool": ("qore": Type::Boolean,),
-                "boolean": ("qore": Type::Boolean,),
-                "macaddr": ("qore": Type::String,),
-                "inet": ("qore": Type::String,),
-                "cidr": ("qore": Type::String,),
+                "mediumtext": ("qore": Type::String,),
+                "longtext": ("qore": Type::String,),
+
+                "tinyblob": ("qore": Type::Binary,),
+                "blob": ("qore": Type::Binary,),
+                "mediumblob": ("qore": Type::Binary,),
+                "longblob": ("qore": Type::Binary,),
+
+                "bit": ("qore": Type::Int,),
                 );
 
             #! maps from verbose type names to simple type names
@@ -742,15 +728,15 @@ my any $v = $c.name;
             #! maps qore type names to postgresql type names
             const QoreTypeMap = (
                 "integer": "bigint",
-                "float": "double precision",
+                "float": "double",
                 "number": "decimal",
                 "string": "varchar",
-                "date": "timestamp",
-                "binary": "bytea",
-                "bool": "boolean",
+                "date": "datetime",
+                "binary": "varbinary",
+                "bool": "tinyint",
                 SqlUtil::CHAR: "char",
-                SqlUtil::CLOB: "text",
-                SqlUtil::BLOB: "bytea",
+                SqlUtil::CLOB: "mediumtext",
+                SqlUtil::BLOB: "mediumblob",
                 );
 
             #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "functions" for table functions required by triggers on the table
@@ -815,17 +801,22 @@ my any $v = $c.name;
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
+                printf("%y: %s\n", row.column_name, row.column_type);
                 bool unsigned = False;
                 if (row.column_type =~ / unsigned$/) {
                     unsigned = True;
                     row.column_type =~ s/ unsigned$//;
                 }
 
+                softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
+
+                if (row.column_type == "year(2)")
+                    size = 2;
+
                 # remove size from type name
                 row.column_type =~ s/\(.*\)$//;
 
                 *hash th = MysqlTypeMap.(row.column_type);
-                softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
                 # use short names in descriptions
                 *string an = MysqlNameMap{row.data_type};
                 if (an)
