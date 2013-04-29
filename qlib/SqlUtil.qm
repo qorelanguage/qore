@@ -2257,7 +2257,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             src2 =~ s/\n/ /g;
 
             if (src1 != src2) {
-                #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
+                printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
                 return False;
             }
             #printf("%s\nXXXXXX EQUAL XXXXXXXXX\n%s\n", src1, src2);
@@ -6278,6 +6278,10 @@ $table.rename("new_name");
                 if (desc.columns{cn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", name, cn, desc.columns{cn}.type(), desc.columns{cn});
                 hash ch = desc.columns{cn};
+                if (ch.driver) {
+                    ch += ch.driver{drv};
+                    delete ch.driver;
+                }
                 softbool nullable = !exists ch.notnull ? True : !(remove ch.notnull);
                 addColumnUnlocked(cn, ch + oc, nullable ? True : False, oc);
             }
@@ -6320,7 +6324,7 @@ $table.rename("new_name");
                 
                 addUniqueConstraintUnlocked(un, ch.columns, opt.(getConstraintOptions().keys()));
             }
-            
+
             # add foreign constraints to table
             AbstractDatabase::checkDriverOptions(\desc.foreign_constraints, drv);
             foreach string cn in (desc.foreign_constraints.keyIterator()) {
@@ -6340,6 +6344,7 @@ $table.rename("new_name");
                 
                 if (!ch.target_columns)
                     ch.target_columns = ch.columns;
+
                 addForeignConstraintUnlocked(cn, ch.columns, ch.table, ch.target_columns, opt.(getForeignConstraintOptions().keys()));
             }
 
@@ -9391,7 +9396,10 @@ my list $l = $table.getAlignSql($table2);
 
             # check for indexes with different names than in the template and rename them automatically
             foreach AbstractIndex ix in (indexes.iterator()) {
-                if (!t.indexes.hasKey(ix.name) && (*AbstractIndex other = t.indexes.findEqual(ix))) {
+                if (!t.indexes.hasKey(ix.name)
+                    && t.indexes
+                    && (*AbstractIndex other = t.indexes.findEqual(ix))
+                    && !indexes.hasKey(other.name)) {
                     # rename index
                     l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), other.name), "renaming index %s on %s to %s", ix.name, name, other.name);
                     renameIndexUnlocked(ix, other.name);
@@ -9457,9 +9465,12 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
-            # check for unique constraints with different names than in the template and rename them automatically
+            # check for foreign constraints with different names than in the template and rename them automatically
             foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
-                if (!t.foreignConstraints.hasKey(fk.getName()) && (*AbstractForeignConstraint other = t.foreignConstraints.findEqual(fk))) {
+                if (!t.foreignConstraints.hasKey(fk.getName())
+                    && t.foreignConstraints
+                    && (*AbstractForeignConstraint other = t.foreignConstraints.findEqual(fk))
+                    && !foreignConstraints.hasKey(other.getName())) {
                     # rename constraint
                     l += AbstractDatabase::doCallback(opt, fk.getRenameSql(getSqlName(), other.getName()), "renaming constraint %s on %s to %s", fk.getName(), name, other.getName());
                     foreignConstraints.renameKey(fk.getName(), other.getName());
@@ -9472,7 +9483,10 @@ my list $l = $table.getAlignSql($table2);
                 if (!(c instanceof AbstractUniqueConstraint))
                     continue;
                 AbstractUniqueConstraint uk = c;
-                if (!t.constraints.hasKey(uk.getName()) && (*AbstractUniqueConstraint other = t.constraints.findEqualUniqueConstraint(uk))) {
+                if (!t.constraints.hasKey(uk.getName())
+                    && t.constraints
+                    && (*AbstractUniqueConstraint other = t.constraints.findEqualUniqueConstraint(uk))
+                    && !constraints.hasKey(other.getName())) {
                     # rename constraint
                     l += AbstractDatabase::doCallback(opt, uk.getRenameSql(getSqlName(), other.getName()), "renaming constraint %s on %s to %s", uk.getName(), name, other.getName());
                     constraints.renameKey(uk.getName(), other.getName());
@@ -10212,9 +10226,9 @@ my *list $rows = $table.findAll($h);
         #! returns @ref Qore::True "True" if the database support tablespaces
         private abstract bool supportsTablespacesImpl();
 
-        #! this must return @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
+        #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
         private abstract bool constraintsLinkedToIndexesImpl();
-                    
+
         private abstract setupTableImpl(hash desc, *hash opt);
 
         private abstract Columns describeImpl();

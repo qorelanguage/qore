@@ -1555,6 +1555,7 @@ my any $v = $c.name;
         private setupTableImpl(hash desc, *hash opt) {
         }
 
+        #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
         private bool constraintsLinkedToIndexesImpl() {
             return False;
         }

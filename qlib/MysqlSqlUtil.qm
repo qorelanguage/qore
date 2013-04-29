@@ -119,7 +119,7 @@ public namespace MysqlSqlUtil {
         }
 
         string getCreateSql(string name, string table_name, *hash opt) {
-            return sprintf("alter table %s ", name) + getAddSql(name, table_name, opt);
+            return sprintf("alter table %s ", table_name) + getAddSql(name, table_name, opt);
         }
 
         string getAddSql(string name, string table_name, *hash opt) {
@@ -179,11 +179,11 @@ my list $l = $col.getCreateSql($t);
 
             @param t the AbstractTable object to modify
          */
-        list getCreateSql(AbstractTable t) {
-	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql());	    
+        softlist getCreateSql(AbstractTable t) {
+            string sql = sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql());
 	    if (comment)
-		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
-            return l;
+		sql += " comment " + t.getSqlValue(comment);
+            return sql;
         }
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
@@ -199,35 +199,17 @@ my list $l = $col.getModifySql($t, $newcol);
 
             @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
          */
-        list getModifySql(AbstractTable t, AbstractColumn col) {
-            list l = ();
+        softlist getModifySql(AbstractTable t, AbstractColumn col) {
             MysqlColumn c = col;
 
-            # get new native type declaration string
-            string nts = c.getNativeTypeString();
-            if (getNativeTypeString() != nts) {
-                # first drop any default value if it's changing 
-                if (def_val != c.def_val)
-                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
+            string ntd = c.getCreateSql();
+            if (ntd == getCreateSql() || c.comment != comment)
+                return;
 
-                l += sprintf("alter table %s alter %s type %s", t.getSqlName(), name, nts);
-
-                if (def_val != c.def_val && exists c.def_val)
-                    l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
-            }
-            else if (def_val != c.def_val) {
-                if (exists c.def_val)
-                    l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
-                else
-                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);                    
-            }
-            if (nullable != c.nullable) {
-                l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), name, c.nullable ? "drop" : "set");
-            }
-
-            if (c.comment != comment)
-		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(c.comment));
-            return l;
+            string sql = sprintf("alter table %s modify %s", t.getSqlName(), ntd);
+            if (c.comment)
+		sql += "comment " + t.getSqlValue(c.comment);
+            return sql;
         }
 
         #! returns a string that can be used to rename the column
@@ -257,7 +239,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             bool unsigned;
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned = False) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
             unsigned = n_unsigned;
         }
 
@@ -414,7 +396,7 @@ my any $v = $c.name;
 
         #! returns a string that can be used to drop the trigger from the database
         softlist getDropSql(string table_name) {
-            return sprintf("drop trigger %s on %s", name, table_name);
+            return sprintf("drop trigger %s", name);
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
@@ -739,9 +721,9 @@ my any $v = $c.name;
                 SqlUtil::BLOB: "mediumblob",
                 );
 
-            #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "functions" for table functions required by triggers on the table
+            #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "engine" for the DB engine behind the table (default: \c innodb")
             const MysqlTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions + (
-                "functions": Type::Hash,
+                "engine": Type::String,
                 );
 
             const MysqlColumnOptions = AbstractTable::ColumnOptions;
@@ -752,14 +734,34 @@ my any $v = $c.name;
                 "index": Type::String,
                 );
 
-            const MysqlTableCreationOptions = AbstractTable::TableCreationOptions + MysqlConstraintOptions + (
-                "omit_trigger_functions": Type::Boolean,
-                );
+            const MysqlTableCreationOptions = AbstractTable::TableCreationOptions + MysqlConstraintOptions;
 
             const MysqlAlignTableOptions = AbstractTable::AlignTableOptions + MysqlTableCreationOptions;
         }
 
+        private {
+            string schema;
+            string engine = "innodb";
+        }
+
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
+            # see if there is a schema in the name
+            *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
+            if (sstr) {
+                schema = sstr;
+                splice nname, 0, schema.size() + 1;
+                name = nname;
+            }
+            else
+                schema = ds.getUserName();
+
+            if (opts.engine)
+                engine = opts.engine;
+        }
+
+        #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
+        string getSqlName() {
+            return schema + "." + name;
         }
 
         private hash getTableCreationOptions() {
@@ -787,7 +789,7 @@ my any $v = $c.name;
         }
 
         private bool checkExistenceImpl() {
-            *hash qh = ds.selectRow("select * from  pg_catalog.pg_statio_all_tables where relname = %v", name);
+            *hash qh = ds.selectRow("select * from information_schema.tables where table_name = %v and table_schema = %v", name, schema);
             if (qh)
                 return inDb = True;
             return False;
@@ -795,13 +797,13 @@ my any $v = $c.name;
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select * from information_schema.columns where table_name = %v order by ordinal_position", name);
+            *hash qh = ds.select("select * from information_schema.columns where table_name = %v and table_schema = %v order by ordinal_position", name, schema);
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
-                printf("%y: %s\n", row.column_name, row.column_type);
+                #printf("%y: %s\n", row.column_name, row.column_type);
                 bool unsigned = False;
                 if (row.column_type =~ / unsigned$/) {
                     unsigned = True;
@@ -838,8 +840,9 @@ my any $v = $c.name;
 
                 MysqlColumn c;
                 *string defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
-                if (row.numeric_precision || unsigned)
+                if (row.numeric_precision || unsigned) {
                     c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.description ? row.description : NOTHING, 0, row.numeric_scale, unsigned);
+                }
                 else
                     c = new MysqlColumn(row.column_name, row.column_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, row.character_octet_length);
 
@@ -853,7 +856,7 @@ my any $v = $c.name;
             hash rv;
 
             # get primary key description
-            *hash qh = ds.select("select column_name from information_schema.key_column_usage k where constraint_name = 'PRIMARY' and table_name = %v order by ordinal_position", name);
+            *hash qh = ds.select("select column_name from information_schema.key_column_usage k where constraint_name = 'PRIMARY' and table_name = %v and table_schema = %v order by ordinal_position", name, schema);
             if (!qh.column_name)
                 return;
 
@@ -868,8 +871,7 @@ my any $v = $c.name;
             hash rv;
 
             # get index descriptions
-            *hash qh = ds.select("select index_name, non_unique, column_name, index_type from information_schema.statistics s
- where index_name != 'PRIMARY' and table_name = %v order by index_name, seq_in_index", name);
+            *hash qh = ds.select("select index_name, non_unique, column_name, index_type from information_schema.statistics s where index_name != 'PRIMARY' and table_name = %v and table_schema = %v order by index_name, seq_in_index", name, schema);
 
             if (qh.index_name) {
                 hash ih;
@@ -899,7 +901,7 @@ my any $v = $c.name;
             hash rv;
             # get foreign referential constraints 
             # FIXME: use schema name
-            *hash qh = ds.select("select t.constraint_name, column_name source_column, referenced_table_name target_table, referenced_column_name target_column from information_schema.table_constraints t inner join information_schema.key_column_usage k on (t.constraint_schema = k.constraint_schema and t.table_name = k.table_name and t.constraint_name = k.constraint_name) where constraint_type = 'FOREIGN KEY' and t.table_name = %v order by position_in_unique_constraint", name);
+            *hash qh = ds.select("select t.constraint_name, column_name source_column, referenced_table_name target_table, referenced_column_name target_column from information_schema.table_constraints t inner join information_schema.key_column_usage k on (t.constraint_schema = k.constraint_schema and t.table_name = k.table_name and t.table_schema = k.table_schema and t.constraint_name = k.constraint_name) where constraint_type = 'FOREIGN KEY' and t.table_name = %v and t.table_schema = %v order by position_in_unique_constraint", name, schema);
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
@@ -930,7 +932,7 @@ my any $v = $c.name;
             Constraints c = new Constraints(rv);
 
             # get unique constraints
-            my *hash qh = ds.select("select t.constraint_name, column_name from information_schema.table_constraints t inner join information_schema.key_column_usage k on (t.constraint_schema = k.constraint_schema and t.table_name = k.table_name and t.constraint_name = k.constraint_name) where constraint_type = 'UNIQUE' and t.table_name = %v order by position_in_unique_constraint", name);
+            my *hash qh = ds.select("select t.constraint_name, column_name from information_schema.table_constraints t inner join information_schema.key_column_usage k on (t.constraint_schema = k.constraint_schema and t.table_name = k.table_name and t.table_schema = k.table_schema and t.constraint_name = k.constraint_name) where constraint_type = 'UNIQUE' and t.table_name = %v and t.table_schema = %v order by ordinal_position", name, schema);
             delete rv;
             foreach hash row in (qh.contextIterator()) {
                 reference ch = \rv.(row.constraint_name);
@@ -949,19 +951,10 @@ my any $v = $c.name;
             hash rv;
 
             # get trigger description
-            *hash qh = ds.select("select * from information_schema.triggers where event_object_table = %v", name);
+            *hash qh = ds.select("select * from information_schema.triggers where event_object_table = %v and event_object_schema = %v", name, schema);
 
-            foreach hash row in (qh.contextIterator()) {                    
-                if (rv{row.trigger_name}) {
-                    # add event to trigger
-                    *string px = (rv{row.trigger_name}.src =~ x/(.+) on/i)[0];
-                    if (!px)
-                        throw "MYSQL-TRIGGER-ERROR", sprintf("cannot find beginning of trigger source: %s", rv{row.trigger_name}.src);
-                    splice rv{row.trigger_name}.src, px.size(), 0, " or " + row.event_manipulation;
-                    continue;
-                }
-
-                string src = sprintf("%s %s on %s for each %s %s", row.action_timing, row.event_manipulation, getSqlName(), row.action_orientation, row.action_statement);
+            foreach hash row in (qh.contextIterator()) {
+                string src = sprintf("%s %s on %s for each %s %s", row.action_timing.lwr(), row.event_manipulation.lwr(), name, row.action_orientation.lwr(), row.action_statement);
                 rv{row.trigger_name} = new MysqlTrigger(row.trigger_name, src);
             }
 
@@ -1077,7 +1070,13 @@ my any $v = $c.name;
         private setupTableImpl(hash desc, *hash opt) {
         }
 
+        #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
         private bool constraintsLinkedToIndexesImpl() {
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if foreign keys require indexes
+        private bool foreignKeysRequireIndexesImpl() {
             return True;
         }
 
