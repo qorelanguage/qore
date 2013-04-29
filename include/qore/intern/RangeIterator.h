@@ -65,6 +65,10 @@ public:
       return m_valid;
    }
 
+   DLLLOCAL bool valid() const {
+      return m_valid;
+   }
+
    DLLLOCAL AbstractQoreNode* getValue(ExceptionSink *xsink) {
       if (!m_valid) {
          xsink->raiseException("INVALID-ITERATOR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());

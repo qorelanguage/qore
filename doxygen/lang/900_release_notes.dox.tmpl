@@ -58,6 +58,7 @@
     - fixed a bug related to out-of-order parse initialization for functions and methods which resulted in the wrong return type being returned for a method with more than 1 variant where the variant could not be matched at parse time
     - fixed a bug where a non-variable-reference member of an "our" variable declaration list would cause a crash due to passing the incorrect argument in sprintf()
     - fixed sandboxing / protection errors with inherited code; subclasses inheriting code from a parent class with different parse options would cause the child parse options to be used when running the parent class code which caused errors; now parse options are enforced properly on the block level
+    - fixed the RangeIterator class; it was still abstract due to a missing @ref Qore::RangeIterator::valid() method
 
     @section qore_087 Qore 0.8.7
 

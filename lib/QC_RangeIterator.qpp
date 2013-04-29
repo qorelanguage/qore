@@ -77,7 +77,7 @@ RangeIterator::copy() {
    self->setPrivate(CID_RANGEITERATOR, new RangeIterator(*i));
 }
 
-//! This method returns @ref Qore::True "True" while there are more numbers to iterate and @ref Qore::False "False" when the range has been completed iterated
+//! This method returns @ref Qore::True "True" while there are more numbers to iterate and @ref Qore::False "False" when the range has been completely iterated
 /** The iterator object should not be used after this method returns @ref Qore::False "False".
 
     @return @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate.
@@ -146,6 +146,19 @@ RangeIterator::reset() {
    if (i->check(xsink))
        return 0;
    i->reset();
+}
+
+//! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+/** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+
+    @par Example:
+    @code
+if ($i.valid())
+    printf("current value: %y\n", $i.getValue());
+    @endcode
+ */
+bool RangeIterator::valid() [flags=CONSTANT] {
+   return i->valid();
 }
 
 /** @defgroup range_functions RangeIterator helper functions
