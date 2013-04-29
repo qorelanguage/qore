@@ -251,3 +251,18 @@ bool <nothing>::hasKeyValue(softstring[doc] key) [flags=CONSTANT] {
    return false;
 }
 
+//! Returns an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
+/** @return an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
+
+    @par Example:
+    @code
+map printf("+ %y\n", $1), get_list_or_nothing().rangeIterator();
+    @endcode
+
+    @see <list>::rangeIterator()
+
+    @since %Qore 0.8.8
+ */
+SingleValueIterator <nothing>::rangeIterator() [flags=CONSTANT] {
+   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(0));
+}

@@ -23,7 +23,7 @@
 
 #ifndef _QORE_RANGEITERATOR_H
 
-#define _QORE_RANGEEITERATOR_H
+#define _QORE_RANGEITERATOR_H
 
 // the c++ object. See QC_RangeIterator.qpp for docs.
 class RangeIterator : public QoreIteratorBase {

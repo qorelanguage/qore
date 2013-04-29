@@ -219,6 +219,9 @@ public:
    //! returns the type information
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
+   //! returns the representation of the value as a number if possible (otherwise returns 0), caller owns the reference returned
+   DLLEXPORT static QoreNumberNode* toNumber(const AbstractQoreNode* v);
+
    //! returns the type name (useful in templates)
    /**
       @return the type name as a c string

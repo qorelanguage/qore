@@ -444,3 +444,21 @@ void QoreNumberNode::toString(QoreString& str, int fmt) const {
 unsigned QoreNumberNode::getPrec() const {
    return priv->getPrec();
 }
+
+QoreNumberNode* QoreNumberNode::toNumber(const AbstractQoreNode* n) {
+   qore_type_t t = get_node_type(n);
+   
+   if (t == NT_NUMBER)
+      return reinterpret_cast<const QoreNumberNode*>(n)->numberRefSelf();
+   
+   if (t == NT_FLOAT)
+      return new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
+
+   if (t == NT_STRING)
+      return new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
+
+   if (t == NT_INT || (t > QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n)))
+      return new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
+
+   return new QoreNumberNode(n ? n->getAsFloat() : 0.0);
+}
