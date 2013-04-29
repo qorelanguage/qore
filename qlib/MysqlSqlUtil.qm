@@ -224,7 +224,10 @@ my string $str = $col.getRenameSql($t, "new_name");
             @return a string that can be used to rename the column
         */
         string getRenameSql(AbstractTable t, string new_name) {
-            return sprintf("alter table %s rename %s to %s", t.getSqlName(), name, new_name);
+            string sql = getCreateSql();
+            int i = sql.find(" ");
+            splice sql, 0, i + 1;
+            return sprintf("alter table %s change %s %s %s", t.getSqlName(), name, new_name, sql);
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
