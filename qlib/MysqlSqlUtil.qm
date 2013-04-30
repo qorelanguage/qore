@@ -496,12 +496,15 @@ my any $v = $c.name;
                 map params += MysqlDatabase::makeParameter($1), al;
             }
 
-            string src = sprintf("%s(%s) returns %s\n", name, (foldl $1 + ", " + $2, params), rt);
+            string src = sprintf("%s(%s) returns %s\n%s", name, (foldl $1 + ", " + $2, params), rt, qh.routine_definition);
             return new MysqlFunction(name, src);
         }
 
         private static string makeParameter(hash row) {
-            string str = row.data_type;
+            string str;
+            if (row.parameter_name)
+                str = row.parameter_name + " ";
+            str += row.data_type;
             if (row.character_maximum_length)
                 str += sprintf("(%d)", row.character_maximum_length);
             else if (row.numeric_precision) {
@@ -750,9 +753,10 @@ my any $v = $c.name;
                     case "mediumint":
                     case "int":
                     case "bigint":
-                    case "text":
                     case "double":
-                    case "float": {
+                    case "float": 
+                    case /text$/:
+                    case /blob$/: {
                         row.numeric_precision = 0;
                         size = 0;
                         break;

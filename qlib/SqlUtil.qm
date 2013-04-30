@@ -72,6 +72,8 @@ module SqlUtil {
     - @ref SqlUtil::AbstractTable::findSingle()
     - @ref SqlUtil::AbstractTable::getRowIterator()
     - @ref SqlUtil::AbstractTable::getSelectSql()
+    - @ref SqlUtil::AbstractTable::insertFromSelect()
+    - @ref SqlUtil::AbstractTable::insertFromSelectNoCommit()
     - @ref SqlUtil::AbstractTable::select()
     - @ref SqlUtil::AbstractTable::selectRows()
     - @ref SqlUtil::AbstractTable::update()
