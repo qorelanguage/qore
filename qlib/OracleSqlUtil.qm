@@ -288,9 +288,6 @@ my string $str = $col.getRenameSql($t, "new_name");
 
             #! any tablespace for the unique key index
             *string tablespace;
-
-            #! index the constraint is based on
-            *string index;
         }
 
         constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols) {
@@ -369,9 +366,6 @@ my any $v = $c.name;
         private {
             #! any tablespace for the primary key index
             *string tablespace;
-
-            #! index the constraint is based on
-            *string index;
         }
 
         constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c) {
@@ -1259,7 +1253,7 @@ my any $v = $c.name;
             hash rv;
 
             # get primary key description
-            *hash qh = ds.select("select cons.constraint_name, cols.column_name, cols.position, cons.status, cons.owner from all_constraints cons, all_cons_columns cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = %v and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr(), schema.upr());
+            *hash qh = ds.select("select cons.constraint_name, cols.column_name, cols.position, cons.status, cons.index_name from all_constraints cons, all_cons_columns cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = cols.owner and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr());
             if (!qh.constraint_name)
                 return;
 
@@ -1271,7 +1265,12 @@ my any $v = $c.name;
             string pkname = qh.constraint_name[0];
             if (!native_case)
                 pkname = pkname.lwr();
-            return new OraclePrimaryKey(pkname, rv);
+
+            OraclePrimaryKey pk(pkname, rv);
+            # set the base index if present
+            if (qh.index_name[0])
+                pk.setIndexBase(qh.index_name[0]);            
+            return pk;
         }
 
         private Indexes getIndexesImpl() {
@@ -1281,7 +1280,9 @@ my any $v = $c.name;
             hash rv;
 
             # get index description
-            *hash qh = ds.select("select index_name, index_type, uniqueness, tablespace_name from all_indexes where owner = %v and table_name = %v", schema.upr(), name.upr());
+            *hash qh = ds.select("select i.index_name, index_type, uniqueness, tablespace_name, constraint_name
+ from all_indexes i left join all_constraints c on (i.index_name = c.index_name and i.owner = c.owner and i.table_name = c.table_name)
+ where i.owner = %v and i.table_name = %v", schema.upr(), name.upr());
             if (qh.index_name) {
                 hash ih;
 
@@ -1300,14 +1301,19 @@ my any $v = $c.name;
                 }
                 
                 foreach hash row in (qh.contextIterator()) {
-                    if (!native_case) {
-                        row.index_name = row.index_name.lwr();
-                        row.tablespace_name = row.tablespace_name.lwr();
-                    }
+                    if (!native_case)
+                        map row.$1 = row.$1.lwr(), ("index_name", "tablespace_name", "constraint_name"), row.$1;
+
                     # skip system indexes
                     if (!ih{row.index_name})
-                        continue;
+                        continue;                    
                     rv.(row.index_name) = new OracleIndex(row.index_name, row.uniqueness == "UNIQUE", ih{row.index_name}, row.index_type, row.tablespace_name);
+                    if (row.constraint_name) {
+                        *AbstractUniqueConstraint uk = findUniqueConstraintUnlocked(row.constraint_name);
+                        if (uk)
+                            rv.(row.index_name).setSupportingConstraint(uk);
+                        uk.setIndexBase(row.index_name);
+                    }
                 }
 
             }
@@ -1379,14 +1385,17 @@ my any $v = $c.name;
             Constraints c(rv);
 
             # now get unique constraints
-            qh = ds.select("select c.constraint_name, status, cols.column_name, cols.position, status from all_constraints c, all_cons_columns cols where c.owner = %v and c.table_name = %v and c.constraint_name = cols.constraint_name and constraint_type = 'U' and cols.owner = c.owner and generated != 'GENERATED NAME' order by cols.position", schema.upr(), name.upr());
+            qh = ds.select("select c.constraint_name, status, cols.column_name, cols.position, status, c.index_name from all_constraints c, all_cons_columns cols where c.owner = %v and c.table_name = %v and c.constraint_name = cols.constraint_name and constraint_type = 'U' and cols.owner = c.owner and generated != 'GENERATED NAME' order by cols.position", schema.upr(), name.upr());
             delete rv;
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("constraint_name", "column_name");
                 reference ch = \rv.(row.constraint_name);
-                if (!ch)
+                if (!ch) {
                     ch = new OracleUniqueConstraint(row.constraint_name, hash(), row.status == "ENABLED");
+                    if (row.index_name)
+                        ch.setIndexBase(row.index_name);
+                }
                 ch.add(row.column_name, columns{row.column_name});
             }
             

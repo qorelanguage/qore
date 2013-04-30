@@ -389,13 +389,10 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
-    public class PgsqlUniqueConstraintCommon {
+    public class PgsqlUniqueConstraintCommon inherits AbstractUniqueConstraint {
         private {
             #! any tablespace for the unique key index
             *string tablespace;
-
-            #! index the constraint is based on
-            *string index;
         }
 
         constructor(*string ts) {

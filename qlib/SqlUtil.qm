@@ -1820,6 +1820,16 @@ my AbstractIndex $ix = $indexes.pk_jobs;
             constraint = c;
         }
 
+        #! clears the supporting constraint
+        setSupportingConstraint() {
+            remove constraint;
+        }
+
+        #! returns the supporting constraint, if any
+        *AbstractUniqueConstraint getSupportingConstraint() {
+            return constraint;
+        }
+
         #! returns a list of strings to drop and recreate the current index; if there are dependent constraints, the list contains commands to disable the constraints before dropping the index and also contains commands to re-enable the contraints after re-creating the index
         list getRecreateSql(AbstractDatasource ds, string table_name, *hash opt) {
             list l = ();
@@ -1995,12 +2005,16 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
     #! represents a unique column constraint
     public class AbstractUniqueConstraint inherits AbstractConstraint, Columns {
         private {
-            # a hash of ForeignConstraintSources, keyed by table name, the value is a hash of foreign constraints keyed by constraint name
+            #! a hash of ForeignConstraintSources, keyed by table name, the value is a hash of foreign constraints keyed by constraint name
             hash sourceConstraints;
+
+            #! the index supporting the constraint
+            *string index;
         }
 
         #! creates the object from the name an a hash of column information
-        constructor(string n, *hash c) : AbstractConstraint(n), Columns(c) {
+        constructor(string n, *hash c, *string n_index) : AbstractConstraint(n), Columns(c) {
+            index = n_index;
         }
 
         #! returns a string that can be used to create the constraint in the database
@@ -2051,6 +2065,12 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
 
         #! find an index that matches the constraint and marks both objects as related
         findMatchingIndex(*Indexes indexes) {
+            if (index) {
+                if (indexes.hasKey(index))
+                    indexes{index}.setSupportingConstraint(self);
+                return;
+            }
+
             # see if the primary key corresponds to a unique index with the same name & columns
             if (indexes.hasKey(name)) {
                 AbstractIndex ix = indexes{name};
@@ -2059,7 +2079,6 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
             }
             else {
                 # search for an index with matching columns
-                # FIXME: should look for best match (however having duplicate indexes on the same columns, one unique, one not unique, would be a pretty bad DB design)
                 foreach AbstractIndex ix in (indexes.iterator()) {
                     if (ix.columns.matchKeys(h)) {
                         if (setIndexBase(ix.name))
@@ -5844,6 +5863,20 @@ my AbstractPrimaryKey $cols = $table.getPrimaryKey();
             return t.getPrimaryKey();
         }
 
+        #! returns the given AbstractUniqueConstraint object if defined for the table (also includes the primary key)
+        /** @par Example:
+            @code
+my *AbstractUniqueConstraint uk = $table.findUniqueConstraint("uk_table2");
+            @endcode
+
+            @param name the name of the unique constraint to find
+
+            @return the given AbstractUniqueConstraint object if defined for the table (also includes the primary key)
+        */
+        *AbstractUniqueConstraint findUniqueConstraint(string name) {
+            return t.findUniqueConstraint(name);
+        }
+
         #! returns an object of class Indexes describing the indexes on the table
         /** If there are no indexes on the table then the object returned will be empty (see @ref SqlUtil::Indexes::empty())
 
@@ -9360,6 +9393,32 @@ my hash $h = $table.describe();
             return primaryKey;
         }
 
+        #! returns the given AbstractUniqueConstraint object if defined for the table (also includes the primary key)
+        /** @par Example:
+            @code
+my *AbstractUniqueConstraint uk = $table.findUniqueConstraint("uk_table2");
+            @endcode
+
+            @param name the name of the unique constraint to find
+
+            @return the given AbstractUniqueConstraint object if defined for the table (also includes the primary key)
+        */
+        *AbstractUniqueConstraint findUniqueConstraint(string name) {
+            l.lock();
+            on_exit l.unlock();
+
+            return findUniqueConstraintUnlocked(name);
+        }
+
+        *AbstractUniqueConstraint findUniqueConstraintUnlocked(string name) {
+            getPrimaryKeyUnlocked();
+            getConstraintsUnlocked();
+            if (primaryKey && primaryKey.getName() == name)
+                return primaryKey;
+
+            return constraints.hasKey(name) && constraints{name} instanceof AbstractUniqueConstraint ? constraints{name} : NOTHING;
+        }
+
         #! returns an object of class Indexes describing the indexes on the table
         /** If there are no indexes on the table then the object returned will be empty (see @ref SqlUtil::Indexes::empty())
 
@@ -9694,7 +9753,17 @@ my list $l = $table.getAlignSql($table2);
                             }
                         }
                     }
+                    # see if the index is supporting a constraint that has to be dropped first
+                    *AbstractUniqueConstraint uk = ix.getSupportingConstraint();
+                    if (uk && !constraintsLinkedToIndexesImpl()) {
+                        code rmv;
+                        AbstractConstraint c = findDropConstraintUnlocked(uk.getName(), \rmv);
+
+                        l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s on %s", c.getName(), name);
+                        rmv();
+                    }
                     l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), "dropping index %s on %s", ix.name, name);
+                    indexes.take(ix.name);
                 }
             }
 
