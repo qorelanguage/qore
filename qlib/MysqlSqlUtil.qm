@@ -415,17 +415,12 @@ my any $v = $c.name;
 
     #! represents a MySQL-specific function
     public class MysqlFunction inherits AbstractFunction {
-        public {
-            *string args;
-        }
-
-        constructor(string n, string n_src, *string a) : AbstractFunction(n, "function", n_src) {
-            args = a;
+        constructor(string n, string n_src) : AbstractFunction(n, "function", n_src) {
         }
 
         #! returns a string that can be used to create the function in the database
         softlist getCreateSql(*hash opt) {
-            return sprintf("create%s function %s %s", opt.replace ? " or replace" : "", name, src);
+            return sprintf("create function %s", src);
         }
 
         #! returns a string that can be used to drop the function from the database
@@ -440,13 +435,8 @@ my any $v = $c.name;
 
         #! returns a string that can be used to rename the function in the database
 	softlist getRenameSql(string new_name) {
-	    return sprintf("alter function %s rename to %s(%s)", name, new_name, args);
+	    return sprintf("alter function %s rename to %s", name, new_name);
 	}
-
-        #! sets the new name of the function
-        setName(string new_name) {
-            name = sprintf("%s(%s)", new_name, args);
-        }
     }
 
     #! provides the MySQL-specific implementation of the AbstractDatabase interface
@@ -477,47 +467,8 @@ my any $v = $c.name;
         }
 
         private MysqlFunction makeFunctionImpl(string name, string src, *hash opts) {
-            string nc = name;
-
             trim src;
-
-            # change $ quoting to standard form
-            *string dq = (src =~ x/as (\$.*\$)/i)[0];
-            if (dq)
-                src = replace(src, dq, "$function\$");
-
-            # move trailing "language xxx" and type to start of declaration
-            if (src =~ / as /i) {
-               *string type = (src =~ x/(stable|volatile|immutable)$/)[0];
-               if (type)
-                   splice src, -(type.size() + 1);
-
-               *string tlang = (src =~ x/language (.*)$/i)[0];
-               if (tlang) {
-                   src =~ s/language .*$//i; 
-                   src = regex_subst(src, " as ", " language " + tlang + " as ", RE_Caseless);
-               }
-               if (type)
-                   src = regex_subst(src, " as ", " " + type + " as ", RE_Caseless);
-            }
-
-            *string args = MysqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
-
-            if (args) {
-                # remove " in " in arg list & name since it's the default and not returned by pg_get_function_identity_arguments()
-                args =~ s/ in / /ig;
-
-                # replace verbose type names with short type names
-                foreach hash h in (MysqlTable::MysqlNameMap.pairIterator()) {
-                    args = replace(args, h.key, h.value);
-                }
-
-                # use our args in name
-                name = regex_subst(name, "\\((.*)\\)", "(" + args + ")");
-            }
-
-            trim src;
-            return new MysqlFunction(name, src, args);
+            return new MysqlFunction(name, src);
         }
 
         private MysqlFunction makeProcedureImpl(string name, string src, *hash opts) {
@@ -525,87 +476,45 @@ my any $v = $c.name;
         }
 
         private *AbstractFunction getFunctionImpl(string name) {
-            *hash qh;
-            # try to find a unique function without arguments
-            if (name !~ /\(/) {
-                qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_identity_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v", name);
-                if (!qh.proname)
-                    return;
-                if (qh.proname.size() > 1)
-                    throw "FUNCTION-ERROR", sprintf("found %d matches for function name %y: %y; use the full argument list in the name to match only function (ex: \"%s(%s)\"", qh.proname.size(), name, (foldl $1 + ", " + $2, (map sprintf("%s(%s)", name, $1.args), qh.contextIterator())), name, qh.args[0]);
-                # assign first row to qh
-                context (qh) qh = %%;
-            }
-            else {
-                string nc = name;
-                *string args = MysqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
-                nc = name.substr(0, name.find('('));
-                # replace common type names with verbose type names as stored in postgresql
-                if (args) {
-                    foreach hash h in (MysqlTable::MysqlNameMap.pairIterator()) {
-                        args = regex_subst(args, " " + h.value + "(,|$)", " " + h.key + "$1", RE_Caseless|RE_Global);
-                    }
-                    # remove " in " in argument list since it's the default and not returned by pg_get_function_identity_arguments()
-                    args =~ s/ in / /ig;
-                }
+            *string sm = (name =~ x/^(\w+)\.\w+$/[0]);
+            if (sm)
+                splice name, 0, sm.size() + 1;
+            else
+                sm = schema;
+            *hash qh = ds.selectRow("select * from information_schema.routines where routine_name = %v and routine_schema = %v", name, sm);
+            if (!qh)
+                return;
 
-                qh = ds.selectRow("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(p.oid) hdr, pg_catalog.pg_get_function_identity_arguments(p.oid) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname = %v and pg_catalog.pg_get_function_identity_arguments(p.oid) = %v", nc, args);
-                if (!qh)
-                    return;
+            # get arguments
+            *list al = ds.selectRows("select * from information_schema.parameters where specific_name = %v and specific_schema = %v order by ordinal_position", name, sm);
+
+            string rt;
+            list params = ();
+            if (al) {
+                rt = MysqlDatabase::makeParameter(shift al);
+                
+                map params += MysqlDatabase::makeParameter($1), al;
             }
 
-            return MysqlDatabase::processFunction(qh);
+            string src = sprintf("%s(%s) returns %s\n", name, (foldl $1 + ", " + $2, params), rt);
+            return new MysqlFunction(name, src);
+        }
+
+        private static string makeParameter(hash row) {
+            string str = row.data_type;
+            if (row.character_maximum_length)
+                str += sprintf("(%d)", row.character_maximum_length);
+            else if (row.numeric_precision) {
+                str += sprintf("(%d", row.numeric_precision);
+                if (row.numeric_scale)
+                    str += sprintf(",%d", row.numeric_scale);
+                str += ")";
+            }
+            return str;
         }
 
         private AbstractFunction getProcedureImpl(string name) {
             return getFunctionImpl(name);
-        }
-
-        static *string getFunctionArgs(string err, reference src) {
-            # remove function name and "(" at beginning of hdr
-            int i = src.find("(");
-            if (i == -1)
-                throw err, sprintf("cannot find function arguments: %y", src);
-            int e = src.find(")", i + 1);
-            if (e == -1)
-                throw err, sprintf("cannot find function arguments: %y", src);
-
-            string tmp = extract src, 0, e + 1;
-            trim src;
-            return extract tmp, i + 1, e - i - 1;
-        }
-
-        static MysqlFunction processFunction(hash row) {
-            trim row.hdr;
-            # remove "create or replace function" from the beginning of hdr
-            if (row.hdr !~ /^create or replace function /i)
-                throw "FUNCTION-ERROR", sprintf("function does not begin with 'create or replace function': %y", row.hdr);
-
-            # get and remove arguments
-            *string args = MysqlDatabase::getFunctionArgs("FUNCTION-ERROR", \row.hdr);
-
-            if (args) {
-                # replace verbose type names with short type names
-                foreach hash h in (MysqlTable::MysqlNameMap.pairIterator()) {
-                    args = replace(args, h.key, h.value);
-                }
-            }
-
-            # fix return type
-            *string rt = (row.hdr =~ x/returns (.*)/i)[0];
-            if (rt) {
-                string ort;
-                # replace verbose type names with short type names
-                foreach hash h in (MysqlTable::MysqlNameMap.pairIterator()) {
-                    rt = replace(rt, h.key, h.value);
-                }
-                if (ort != rt)
-                    row.hdr = regex_subst(row.hdr, "returns .*", "returns " + rt, RE_Caseless);
-            }
-
-            #printf("args: %y\n", args);
-            string name = sprintf("%s(%s)", row.proname, args);
-            return new MysqlFunction(name, row.hdr, args);
         }
 
         private list getDropSchemaSqlImpl(hash schema_hash, *hash opt) {
@@ -1053,6 +962,14 @@ my any $v = $c.name;
 
         private hash getTypeMapImpl() {
             return MysqlTypeMap;
+        }
+
+        private string getColumnOperatorPrepend(string cv, string arg) {
+            return sprintf("concat(%s,%s)", getSqlValueImpl(arg), cv);
+        }
+
+        private string getColumnOperatorAppend(string cv, string arg) {
+            return sprintf("concat(%s,%s)", cv, getSqlValueImpl(arg));
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string

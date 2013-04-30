@@ -520,9 +520,21 @@ public namespace SqlUtil {
     #! to rename a column on output
     public const COP_AS = "as";
 
+    #! to prepend a string to a column on output
+    public const COP_PREPEND = "prepend";
+
+    #! to append a string to a column on output
+    public const COP_APPEND = "append";
+
+    #! to append a constant value to use as an output column value
+    public const COP_VALUE = "value";
+
     #! a hash of valid column operators
     public const CopMap = (
       COP_AS: True,
+      COP_PREPEND: True,
+      COP_APPEND: True,
+      COP_VALUE: True,
         );
     #@}
 
@@ -539,8 +551,22 @@ public namespace SqlUtil {
     public hash sub cop_as(string column, string arg) {
         return make_cop(COP_AS, column, arg);
     }
-    #@}
 
+    #! returns a hash for the \c "prepend" operator with the given argument
+    public hash sub cop_prepend(string column, string arg) {
+        return make_cop(COP_PREPEND, column, arg);
+    }
+
+    #! returns a hash for the \c "append" operator with the given argument
+    public hash sub cop_append(string column, string arg) {
+        return make_cop(COP_APPEND, column, arg);
+    }
+
+    #! returns a hash for the \c "value" operator with the given argument
+    public hash sub cop_value(any arg) {
+        return make_cop(COP_VALUE, "", arg);
+    }
+    #@}
 
     /** @defgroup sql_jops SQL Join Operators
         These are the operators that can be used in the \c "join" argument for select statements
@@ -1347,6 +1373,29 @@ my AbstractTable $t = $tables.table_name;
             Table t(ds, name);
             t.cache(("table_cache": self));
             return h{name} = t.getTable();
+        }
+
+        #! returns an SQL string that can be used to rename the given table if it exists and the target does not exist, otherwise returns @ref nothing
+        /** @par Example:
+            @code
+my *string $sql = $tables.getRenameTableIfExistsSql($old_name, $new_name);
+            @endcode
+
+            @param old_name the current name of the table
+            @param new_name the new name of the table
+            @param opts optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @return an SQL string that can be used to rename the given table if it exists and the target does not exist, otherwise returns @ref nothing
+         */
+        *string getRenameTableIfExistsSql(string old_name, string new_name, *hash opts) {
+            if (!h{old_name} || h{new_name})
+                return;
+
+            AbstractTable t = h{old_name};
+            *string sql = t.getRenameSql(new_name, opts);
+            if (opts.sql_callback_executed)
+                renameKey(old_name, new_name);
+            return sql;
         }
 
         list getCreateList() {
@@ -4663,6 +4712,27 @@ my string $sql = $table.getDropConstraintSql("uk_mytable_name");
             return t.getDropConstraintSql(cname, opt);
         }
 
+        #! gets the SQL that can be used to drop a constraint from the table if it exists, otherwise returns @ref nothing; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
+        /** @par Example:
+            @code
+my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
+            @endcode
+
+            @param cname the name of the constraint to drop
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop a constraint from the table if it exists, otherwise returns @ref nothing; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @note this method retrieves current constraint definitions from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        *string getDropConstraintIfExistsSql(string cname, *hash opt) {
+            return t.getDropConstraintIfExistsSql(cname, opt);
+        }
+
         #! drops the index from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
@@ -5058,6 +5128,46 @@ $table.insert($row);
          */
         insertNoCommit(hash row) {
             t.insertNoCommit(row);
+        }
+
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
+        /** @par Example:
+            @code
+            @endcode
+
+            @param cols the list of column names to use to insert in the current able
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+        */
+        int insertFromSelect(list cols, AbstractTable source, *hash sh, *reference sql) {
+            return t.insertFromSelect(cols, source, sh, \sql);
+        }
+
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
+        /** @par Example:
+            @code
+            @endcode
+
+            @param cols the list of column names to use to insert in the current able
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+        */
+        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql) {
+            return t.insertFromSelectNoCommit(cols, source, sh, \sql);
         }
 
         #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -7673,6 +7783,46 @@ my string $sql = $table.getDropConstraintSql("uk_mytable_name");
             return AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s from %s", c.getName(), name);
         }
 
+        #! gets the SQL that can be used to drop a constraint from the table if it exists, otherwise returns @ref nothing; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
+        /** @par Example:
+            @code
+my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
+            @endcode
+
+            @param cname the name of the constraint to drop
+            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+
+            @return the SQL that can be used to drop a constraint from the table if it exists, otherwise returns @ref nothing; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @note this method retrieves current constraint definitions from the database if not already loaded or defined
+
+            @see inDb() for a method that tells if the table is already in the database or not
+         */
+        *string getDropConstraintIfExistsSql(string cname, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            code rmv;
+            AbstractConstraint c;
+            try {
+                c = findDropConstraintUnlocked(cname, \rmv);
+            }
+            catch (hash ex) {
+                if (ex.err == "CONSTRAINT-ERROR")
+                    return;
+                rethrow;
+            }
+
+            on_success if (opt.sql_callback_executed)
+                rmv();
+ 
+            return AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s from %s", c.getName(), name);
+        }
+
         private AbstractConstraint findDropConstraintUnlocked(string cname, reference rmv) {
             getAllConstraintsUnlocked();
             
@@ -8135,6 +8285,66 @@ $table.insert($row);
             ds.vexec(sql, row.values());
         }
 
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
+        /** @par Example:
+            @code
+            @endcode
+
+            @param cols the list of column names to use to insert in the current able
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+        */
+        int insertFromSelect(list cols, AbstractTable source, *hash sh, *reference sql) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return insertFromSelectNoCommit(cols, source, sh, \sql);
+        }
+
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
+        /** @par Example:
+            @code
+            @endcode
+
+            @param cols the list of column names to use to insert in the current able
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+        */
+        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql) {
+            list args;
+            string ssql = source.getSelectSql(sh, \args);
+
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+
+            sql = sprintf("insert into %s (", getSqlName());
+
+            foreach string k in (cols) {
+                if (!columns{k})
+                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column (valid columns: %y)", name, k, cols);
+            }
+
+            sql += (foldl $1 + "," + $2, cols);
+            sql += ") " + ssql;
+
+            return ds.vexec(sql, args);
+        }
+
         #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
@@ -8432,6 +8642,25 @@ my string $sql = $table.getSelectSql($sh, \$args);
                                     break;
                                 }
                        
+                                case COP_PREPEND: {
+                                    if (cv.arg.typeCode() != NT_STRING)
+                                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the string argument", cv);
+                                    ce += getColumnOperatorPrepend(getColumnNameIntern(cv.column, jch, boolean(qh.join)), cv.arg);
+                                    break;
+                                }
+
+                                case COP_APPEND: {
+                                    if (cv.arg.typeCode() != NT_STRING)
+                                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the string argument", cv);
+                                    ce += getColumnOperatorAppend(getColumnNameIntern(cv.column, jch, boolean(qh.join)), cv.arg);
+                                    break;
+                                }
+
+                                case COP_VALUE: {
+                                    ce += getSqlValue(cv.arg);
+                                    break;
+                                }
+
                                 case NOTHING:
                                     throw "SELECT-ERROR", sprintf("column argument is a hash without an \"cop\" key giving the column operator: %y", cv);
                                 default:
@@ -8538,6 +8767,14 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
             #printf("SQL: %s\nargs: %y\n", sql, args);
             return sql;
+        }
+
+        private string getColumnOperatorPrepend(string cv, string arg) {
+            return sprintf("%s||%s", getSqlValueImpl(arg), cv);
+        }
+
+        private string getColumnOperatorAppend(string cv, string arg) {
+            return sprintf("%s||%s", cv, getSqlValueImpl(arg));
         }
 
         private string getColumnNameIntern(string cv, *hash jch, bool join) {
@@ -9572,6 +9809,14 @@ my list $l = $table.getAlignSql($table2);
                     l += fl;
             }
 
+            # check for triggers not in the template and drop them
+            # do this before adding for dbs like mysql that cannot support multiple triggers with the same action on the same table
+            foreach AbstractTrigger trig in (triggers.iterator()) {
+                if (!t.triggers.hasKey(trig.name)) {
+                    l += AbstractDatabase::doCallback(opt, trig.getDropSql(getSqlName()), "dropping trigger %s on %s", trig.name, name);
+                }
+            }
+
             # check for triggers in the template that are not present or different in the current table
             foreach AbstractTrigger trig in (t.triggers.iterator()) {
                 if (!triggers.hasKey(trig.name)) {
@@ -9583,13 +9828,6 @@ my list $l = $table.getAlignSql($table2);
                     l += AbstractDatabase::doCallback(opt, triggers{trig.name}.getDropSql(getSqlName()), "updating trigger %s on %s (dropping old trigger)", trig.name, name);
                     # add new trigger to table
                     l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), "updating trigger %s on %s (adding updated trigger)", trig.name, name);
-                }
-            }
-
-            # check for triggers not in the template and drop them
-            foreach AbstractTrigger trig in (triggers.iterator()) {
-                if (!t.triggers.hasKey(trig.name)) {
-                    l += AbstractDatabase::doCallback(opt, trig.getDropSql(getSqlName()), "dropping trigger %s on %s", trig.name, name);
                 }
             }
 
