@@ -1560,6 +1560,11 @@ my any $v = $c.name;
             return False;
         }
 
+        #! returns @ref Qore::True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
+        private bool uniqueIndexCreatesConstraintImpl() {
+            return False;
+        }
+
         #! returns @ref Qore::True "True" if the database support tablespaces
         private bool supportsTablespacesImpl() {
             return True;

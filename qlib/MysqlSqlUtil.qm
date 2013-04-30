@@ -203,12 +203,14 @@ my list $l = $col.getModifySql($t, $newcol);
             MysqlColumn c = col;
 
             string ntd = c.getCreateSql();
-            if (ntd == getCreateSql() || c.comment != comment)
+            if (ntd == getCreateSql() && c.comment == comment)
                 return;
+
+            #printf("L: %s\nL: comment: %y\nXXXXXXXXXX\nR: %s\nR: comment: %y\n", getCreateSql(), comment, ntd, c.comment);
 
             string sql = sprintf("alter table %s modify %s", t.getSqlName(), ntd);
             if (c.comment)
-		sql += "comment " + t.getSqlValue(c.comment);
+		sql += " comment " + t.getSqlValue(c.comment);
             return sql;
         }
 
@@ -279,11 +281,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! adds index options onto the sql creation string
         getIndexSql(reference sql, string name, *hash opts) {
-            *string ix = opts.index ? opts.index : index;
-            if (ix)
-                sql += sprintf("using index %s", ix);
-            else
-                sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
+            sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
         }
     }
 
@@ -764,9 +762,21 @@ my any $v = $c.name;
                 }
 
                 MysqlColumn c;
-                *string defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
+                any defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
+                if (defval) {
+                    # process default value according to column type
+                    switch (th.qore) {
+                        case Type::Int: defval = defval.toInt(); break;
+                        case Type::Float: defval = defval.toFloat(); break;
+                        case Type::Number: defval = defval.toNumber(); break;
+                        case Type::Date: defval = date(defval); break;
+                        # don't know what to do with Type::Binary ???
+                        default: break;
+                    }
+                    defval = getSqlValue(defval);
+                }
                 if (row.numeric_precision || unsigned) {
-                    c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.description ? row.description : NOTHING, 0, row.numeric_scale, unsigned);
+                    c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, 0, row.numeric_scale, unsigned);
                 }
                 else
                     c = new MysqlColumn(row.column_name, row.column_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, row.character_octet_length);
@@ -890,20 +900,12 @@ my any $v = $c.name;
             string sql = sprintf("create table %s (\n", name);
 
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
-            sql += "\n)";
+            sql += sprintf("\n) engine %s", engine);            
 
             return sql;
         }
 
         *list getCreateMiscSqlImpl(*hash opt, bool cache) {
-            if (cache) {
-                getColumnsUnlocked();
-                getTriggersUnlocked();
-            }
-
-            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), "create comment on column %s.%s", name, $1.name), columns.iterator(), $1.comment;
-
-            return l;
         }
 
         private *list getAlignSqlImpl(AbstractTable table, *hash opt) {
@@ -1008,8 +1010,8 @@ my any $v = $c.name;
             return True;
         }
 
-        #! returns @ref Qore::True "True" if foreign keys require indexes
-        private bool foreignKeysRequireIndexesImpl() {
+        #! returns @ref Qore::True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
+        private bool uniqueIndexCreatesConstraintImpl() {
             return True;
         }
 

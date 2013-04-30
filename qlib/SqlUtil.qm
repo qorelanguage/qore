@@ -2308,7 +2308,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             src2 =~ s/\n/ /g;
 
             if (src1 != src2) {
-                printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
+                #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
                 return False;
             }
             #printf("%s\nXXXXXX EQUAL XXXXXXXXX\n%s\n", src1, src2);
@@ -6434,7 +6434,9 @@ $table.rename("new_name");
 
                 if (!ch.columns || !inlist(ch.columns.typeCode(), (NT_LIST, NT_STRING)))
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for unique constraint %y is not a list or a string, got type %y instead (%y)", name, un, ch.columns.type(), ch.columns);
-                
+
+                if (constraints.hasKey(un))                    
+                    continue;
                 addUniqueConstraintUnlocked(un, ch.columns, opt.(getConstraintOptions().keys()));
             }
 
@@ -7231,6 +7233,18 @@ printf("%s;\n", $sql);
             execSql(sql);
             # set as index for the table
             indexes.add(iname, ix);
+            if (ix.unique && uniqueIndexCreatesConstraintImpl()) {
+                getConstraintsUnlocked();
+                if (!constraints.hasKey(ix.name)) {
+                    string csql;
+                    AbstractUniqueConstraint uk = addUniqueConstraintUnlockedIntern(iname, cols, opt, \csql);
+                    uk.setIndexBase(ix.name);
+                    if (!constraints)
+                        constraints = new Constraints();
+                    constraints.add(iname, uk);
+                    ix.setSupportingConstraint(uk);
+                }
+            }
             return ix;
         }
 
@@ -10469,6 +10483,9 @@ my *list $rows = $table.findAll($h);
 
         #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
         private abstract bool constraintsLinkedToIndexesImpl();
+
+        #! returns @ref Qore::True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
+        private abstract bool uniqueIndexCreatesConstraintImpl();
 
         private abstract setupTableImpl(hash desc, *hash opt);
 
