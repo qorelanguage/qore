@@ -451,12 +451,21 @@ my any $v = $c.name;
 
     #! provides the MySQL-specific implementation of the AbstractDatabase interface
     public class MysqlDatabase inherits AbstractDatabase {
-       public {
+        public {
             #! MySQL-specific schema description keys
             const MysqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions;
         }
 
+        private {
+            string schema;
+        }
+
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+            schema = opts.schema ? opts.schema : ds.getDBName();
+        }
+
+        string getSchemaName() {
+            return schema;
         }
 
         private AbstractSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
@@ -615,7 +624,7 @@ my any $v = $c.name;
 
         #! returns a list of string table names in the database
         private list listTablesImpl() {
-            return ds.select("select n.nspname \"schema\", c.relname \"name\", case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end \"Type\", pg_catalog.pg_get_userbyid(c.relowner) \"owner\" from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'information_schema' and n.nspname !~ '^pg_toast' and pg_catalog.pg_table_is_visible(c.oid) order by 1,2").name;
+            return ds.select("select table_name from information_schema.tables where table_schema = %v", schema).table_name;
         }
 
         #! returns a list of string function names in the database
