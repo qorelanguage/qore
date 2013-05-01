@@ -89,6 +89,7 @@ void AbstractMethod::parseMergeBase(AbstractMethod& m, bool committed) {
          continue;
       }
       //printd(5, "AbstractMethod::parseMergeBase(m: %p) this: %p adding to pending_vlist from parent: '%s'\n", &m, this, sig);
+      i->second->ref();
       pending_vlist.insert(vmap_t::value_type(sig, i->second));
    }
 
@@ -102,11 +103,14 @@ void AbstractMethod::parseMergeBase(AbstractMethod& m, bool committed) {
       if (vlist.find(sig) != vlist.end())
          return;
       // add to vlist
+      i->second->ref();
       vlist.insert(vmap_t::value_type(sig, i->second));
       // remove from pending_vlist if present because we've already added it to the committed list
       vmap_t::iterator vi = pending_vlist.find(sig);
-      if (vi != pending_vlist.end())
+      if (vi != pending_vlist.end()) {
+	 vi->second->deref();
          pending_vlist.erase(vi);
+      }
    }
 }
 
@@ -130,6 +134,7 @@ void AbstractMethod::parseMergeBase(AbstractMethod& m, MethodFunctionBase* f, bo
 
       if (f && f->parseHasVariantWithSignature(i->second)) {
          // add to our pending_save
+	 i->second->ref();
          pending_save.insert(vmap_t::value_type(sig, i->second));
          continue;
       }
@@ -141,6 +146,7 @@ void AbstractMethod::parseMergeBase(AbstractMethod& m, MethodFunctionBase* f, bo
          continue;
       }
       //printd(5, "AbstractMethod::parseMergeBase(m: %p, f: %p %s::%s) this: %p adding to pending_vlist from parent: '%s'\n", &m, f, f ? f->getClassName() : "n/a", f ? f->getName() : "n/a", this, sig);
+      i->second->ref();
       pending_vlist.insert(vmap_t::value_type(sig, i->second));
    }
 
@@ -161,6 +167,7 @@ void AbstractMethod::parseMergeBase(AbstractMethod& m, MethodFunctionBase* f, bo
          //printd(5, "AbstractMethod::parseMergeCommitted() inheriting abstract method variant %s::%s asig: %s\n", f ? f->getClassName() : "xxx", f ? f->getName() : "xxx", sig);
          // insert in the committed list for this class
          assert(vlist.find(sig) == vlist.end());
+	 i->second->ref();
          vlist.insert(vmap_t::value_type(sig, i->second));
          // cannot be in pending_vlist
          assert(pending_vlist.find(sig) == pending_vlist.end());
@@ -174,6 +181,7 @@ void AbstractMethod::parseAdd(MethodVariantBase* v) {
    const char* sig = v->getAbstractSignature();
    if (vlist.find(sig) != vlist.end())
       return;
+   v->ref();
    pending_vlist.insert(vmap_t::value_type(sig, v));
 }
 
@@ -197,6 +205,7 @@ void AbstractMethod::add(MethodVariantBase* v) {
    const char* sig = v->getAbstractSignature();
    if (vlist.find(sig) != vlist.end())
       return;
+   v->ref();
    vlist.insert(vmap_t::value_type(sig, v));
    //printd(5, "AbstractMethod::add() adding xxx::xxx(%s)\n", sig);
 }
@@ -206,8 +215,10 @@ void AbstractMethod::override(MethodVariantBase* v) {
    // in this case it must be inherited
    const char* sig = v->getAbstractSignature();
    vmap_t::iterator vi = vlist.find(sig);
-   if (vi != vlist.end())
+   if (vi != vlist.end()) {
+      vi->second->deref();
       vlist.erase(vi);
+   }
 }
 
 void AbstractMethod::parseCheckAbstract(const char* cname, const char* mname, vmap_t& vlist, QoreStringNode*& desc) {
@@ -250,10 +261,12 @@ void AbstractMethodMap::parseInit(qore_class_private& qc, BCList *scl) {
       //printd(5, "AbstractMethodMap::parseInit() this: %p %s::%s() vle: %d\n", this, qc.name.c_str(), i->first.c_str(), i->second->vlist.empty());
       for (vmap_t::iterator vi = i->second->pending_vlist.begin(), ve = i->second->pending_vlist.end(); vi != ve;) {
 	 // if there is a matching non-abstract variant in any parent class, then remove the variant from pending_vlist
+	 //printd(5, "AbstractMethodMap::parseInit() this: %p checking abstract %s::%s(%s): %p\n", this, qc.name.c_str(), i->first.c_str(), vi->second->getAbstractSignature(), vi->second);
 	 MethodVariantBase* v = scl->matchNonAbstractVariant(i->first, vi->second);
 	 if (v) {
 	    //printd(5, "AbstractMethodMap::parseInit() this: %p %s::%s() FOUND v: %p (%s)\n", this, qc.name.c_str(), i->first.c_str(), v, v->getAbstractSignature());
-	    vmap_t::iterator ti = vi++;	    
+	    vmap_t::iterator ti = vi++;
+	    ti->second->deref();
 	    i->second->pending_vlist.erase(ti);
 	    // replace abstract variant
 	    QoreMethod* m = qc.parseFindLocalMethod(i->first);
@@ -274,6 +287,7 @@ void AbstractMethodMap::parseAddAbstractVariant(const char* name, MethodVariantB
    amap_t::iterator i = amap_t::find(name);
    if (i == end()) {
       AbstractMethod* m = new AbstractMethod;
+      f->ref();
       m->pending_vlist.insert(vmap_t::value_type(f->getAbstractSignature(), f));
       //printd(5, "AbstractMethodMap::parseAddAbstractVariant(name: '%s', v: %p) this: %p\n", name, f, this);
       insert(amap_t::value_type(name, m));
@@ -293,6 +307,7 @@ void AbstractMethodMap::addAbstractVariant(const char* name, MethodVariantBase* 
    amap_t::iterator i = amap_t::find(name);
    if (i == end()) {
       AbstractMethod* m = new AbstractMethod;
+      f->ref();
       m->vlist.insert(vmap_t::value_type(f->getAbstractSignature(), f));
       //printd(5, "AbstractMethodMap::addAbstractVariant(name: xxx::%s asig: %s, v: %p) this: %p (new)\n", name, f->getAbstractSignature(), f, this);
       insert(amap_t::value_type(name, m));
