@@ -1671,7 +1671,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        abstract bool equalImpl(AbstractColumn c);
+        private abstract bool equalImpl(AbstractColumn c);
     }
 
     #! the base class to use to extend AbstractColumn to implement numeric columns
@@ -1962,7 +1962,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        abstract bool equalImpl(AbstractConstraint c);
+        private abstract bool equalImpl(AbstractConstraint c);
 
         #! returns @ref Qore::True "True" if the object supports an index property and is set, @ref Qore::False "False" if not
         abstract bool setIndexBase(string ix);
@@ -1990,7 +1990,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equalImpl(AbstractConstraint c) {
+        private bool equalImpl(AbstractConstraint c) {
             return src != cast<AbstractCheckConstraint>(c).src ? False : True;
         }
 
@@ -2023,7 +2023,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         abstract string getCreateSql(string table_name, *hash opts);
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equalImpl(AbstractConstraint c) {
+        private bool equalImpl(AbstractConstraint c) {
             return (self.keys() != cast<AbstractUniqueConstraint>(c).keys()) ? False : True;
         }
 
@@ -2216,7 +2216,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equalImpl(AbstractConstraint con) {
+        private bool equalImpl(AbstractConstraint con) {
             AbstractForeignConstraint c = cast<AbstractForeignConstraint>(con);
             return (columns.keys() != c.columns.keys())
                 || !target.equal(c.target)
@@ -2338,7 +2338,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        abstract bool equalImpl(AbstractFunctionBase t);
+        private abstract bool equalImpl(AbstractFunctionBase t);
     }
 
     #! base class for functions
@@ -5132,11 +5132,12 @@ $table.insert($row);
             @endcode
 
             @param row a hash representing the row to insert
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insert(hash row) {
-            t.insert(row);
+        insert(hash row, *reference sql) {
+            t.insert(row, \sql);
         }
 
         #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
@@ -5146,11 +5147,12 @@ $table.insert($row);
             @endcode
 
             @param row a hash representing the row to insert
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insertNoCommit(hash row) {
-            t.insertNoCommit(row);
+        insertNoCommit(hash row, *reference sql) {
+            t.insertNoCommit(row, \sql);
         }
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
@@ -8299,14 +8301,15 @@ $table.insert($row);
             @endcode
 
             @param row a hash representing the row to insert
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insert(hash row) {
+        insert(hash row, *reference sql) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            insertNoCommit(row);
+            insertNoCommit(row, \sql);
         }
 
         #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
@@ -8316,14 +8319,16 @@ $table.insert($row);
             @endcode
 
             @param row a hash representing the row to insert
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insertNoCommit(hash row) {
+        insertNoCommit(hash row, *reference sql) {
             l.lock();
             on_exit l.unlock();
+
             getColumnsUnlocked();
-            string sql = sprintf("insert into %s (", getSqlName());
+            sql = sprintf("insert into %s (", getSqlName());
             foreach string k in (row.keyIterator()) {
                 if (!columns{k})
                     throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column (valid columns: %y)", name, k, columns.keys());

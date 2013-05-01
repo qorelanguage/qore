@@ -64,15 +64,18 @@ module OracleSqlUtil {
 
 #! the OracleSqlUtil namespace contains all the objects in the OracleSqlUtil module
 public namespace OracleSqlUtil {
+    #! returns an OracleTable object corresponding to the arguments
     public OracleTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
 	return new OracleTable(nds, nname, opts);
     }
 
+    #! returns an OracleDatabase object corresponding to the arguments
     public OracleDatabase sub get_database(AbstractDatasource nds, *hash opts) {
 	return new OracleDatabase(nds, opts);
     }
 
-    public class OracleColumn inherits AbstractColumn {
+    #! represents an Oracle column
+    public class OracleColumn inherits SqlUtil::AbstractColumn {
         public {
             #! the column uses character semantics
             bool char_used;
@@ -173,7 +176,8 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
-    public class OracleNumberColumn inherits OracleColumn, NumericColumnInfo {
+    #! represents an Oracle number column
+    public class OracleNumberColumn inherits OracleColumn, SqlUtil::NumericColumnInfo {
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, bool cu = False, int bs, int n_scale = 0) :
             OracleColumn(n, nt, qt, sz, nul, dv, cm, False, cu, bs), NumericColumnInfo(n_scale) {
         }
@@ -183,7 +187,8 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
-    public class OracleIndex inherits AbstractIndex {
+    #! represents an Oracle index
+    public class OracleIndex inherits SqlUtil::AbstractIndex {
         public {
             #! the native type of the index (if supported)
             string native_type;
@@ -223,7 +228,8 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
-    public class OracleForeignConstraint inherits AbstractForeignConstraint {
+    #! represents an Oracle foreign constraint
+    public class OracleForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
         public {
             #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
@@ -252,7 +258,8 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
-    public class OracleCheckConstraint inherits AbstractCheckConstraint {
+    #! represents an Oracle check constraint
+    public class OracleCheckConstraint inherits SqlUtil::AbstractCheckConstraint {
         public {
             #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
@@ -281,7 +288,8 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
-    public class OracleUniqueConstraint inherits AbstractUniqueConstraint {
+    #! represents an Oracle unique constraint
+    public class OracleUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint {
         private {
             #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
@@ -362,7 +370,8 @@ my any $v = $c.name;
         }
     }
 
-    public class OraclePrimaryKey inherits AbstractPrimaryKey {
+    #! represents an Oracle primary key
+    public class OraclePrimaryKey inherits SqlUtil::AbstractPrimaryKey {
         private {
             #! any tablespace for the primary key index
             *string tablespace;
@@ -439,8 +448,8 @@ my any $v = $c.name;
         }
     }
 
-    #! class for Oracle sequences
-    public class OracleSequence inherits AbstractSequence {
+    #! represents an Oracle sequence
+    public class OracleSequence inherits SqlUtil::AbstractSequence {
         #! creates the object from the arguments
         constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
         }
@@ -458,7 +467,8 @@ my any $v = $c.name;
         }
     }
 
-    public class OracleTrigger inherits AbstractTrigger {
+    #! represents an Oracle trigger
+    public class OracleTrigger inherits SqlUtil::AbstractTrigger {
         public {
             #! @ref Qore::True "True" if the trigger is enabled, @ref Qore::False "False" if not
             bool enabled;
@@ -488,7 +498,8 @@ my any $v = $c.name;
         }
     }
 
-    public class OracleCodeBase inherits AbstractFunction {
+    #! the base class for Oracle code objects
+    public class OracleCodeBase inherits SqlUtil::AbstractFunction {
         #! creates the object from the arguments passed
         /** @param n the name of the object
             @param n_type the type of object
@@ -516,11 +527,13 @@ my any $v = $c.name;
 	}
     }
 
+    #! represents an Oracle type
     public class OracleType inherits OracleCodeBase {
         constructor(string n_name, string n_src) : OracleCodeBase(n_name, "type", n_src) {
         }
     }
 
+    #! represents an Oracle function
     public class OracleFunction inherits OracleCodeBase {
         #! creates the object from the arguments passed
         /** @param n the name of the function
@@ -530,6 +543,7 @@ my any $v = $c.name;
         }
     }
 
+    #! represents an Oracle procedure
     public class OracleProcedure inherits OracleCodeBase {
         #! creates the object from the arguments passed
         /** @param n the name of the function
@@ -539,6 +553,7 @@ my any $v = $c.name;
         }
     }
 
+    #! represents an Oracle package
     public class OraclePackage inherits OracleCodeBase {
         private {
             #! package body source
@@ -566,6 +581,7 @@ my any $v = $c.name;
         }
     }
 
+    #! represents an Oracle materialized view
     public class OracleMaterializedView inherits OracleCodeBase {
         public {
             bool logging;
@@ -608,7 +624,8 @@ my any $v = $c.name;
         }
     }
 
-    public class OracleDatabase inherits AbstractDatabase {
+    #! the Oracle specialization for SqlUtil::AbstactDatabase
+    public class OracleDatabase inherits SqlUtil::AbstractDatabase {
         public {
             #! oracle-specific generic creation options
             const OracleCreationOptions = AbstractDatabase::CreationOptions + (
@@ -897,8 +914,12 @@ my any $v = $c.name;
         }
     }
 
-    public class OracleTable inherits AbstractTable {
+    #! represents an Oracle table
+    /** this is the specialization of SqlUtil::AbstractTable
+    */
+    public class OracleTable inherits SqlUtil::AbstractTable {
         public {
+            #! maps oracle type names to type descriptions
             const OraTypeMap = (
                 "number": ("qore": Type::Number, "size": SZ_NUM, "size_range": (1, 38), "scale_range": (-84, 127)),
                 "varchar2": ("qore": Type::String, "size": SZ_MAND, "size_range": (1, 4000), "is_char": True),
@@ -988,6 +1009,7 @@ my any $v = $c.name;
                 "urowid": ("qore": Type::String, "size": SZ_OPT, "size_range": (1, 4000)),
                 );
 
+            #! maps qore type names to an oracle type
             const QoreTypeMap = (
                 "integer": "number",
                 "float": "number",
@@ -1077,6 +1099,7 @@ my any $v = $c.name;
 	    inDb = True;
 	}
 
+        #! returns the schema and table naem in dot notation
         string getSqlName() {
             return sprintf("%s.%s", schema, name);
         }
@@ -1138,14 +1161,17 @@ my any $v = $c.name;
             return sprintf("%s@%s", ds.getUserName(), ds.getDBName());
         }
 
+        #! returns the schema name
         string getSchemaName() {
             return schema;
         }
 
+        #! returns the data tablespace name for the table if any or @nothing if none is known
         *string getTablespaceName() {
             return tablespace;
         }
 
+        #! returns any table comment or @ref nothing if none is known
         *string getComment() {
             return comment;
         }

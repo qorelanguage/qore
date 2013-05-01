@@ -63,17 +63,18 @@ module MysqlSqlUtil {
 
 #! the MysqlSqlUtil namespace contains all the objects in the MysqlSqlUtil module
 public namespace MysqlSqlUtil {
-
+    #! returns a MysqlTable object corresponding to the arguments
     public MysqlTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
         return new MysqlTable(nds, nname, opts);
     }
 
+    #! returns a MysqlDatabase object corresponding to the arguments
     public MysqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
 	return new MysqlDatabase(nds, opts);
     }
 
     #! represents a MySQL-specific index
-    public class MysqlIndex inherits AbstractIndex {
+    public class MysqlIndex inherits SqlUtil::AbstractIndex {
         public {
             string type;
         }
@@ -89,7 +90,7 @@ public namespace MysqlSqlUtil {
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
-        bool equalImpl(AbstractIndex ix) {
+        private bool equalImpl(AbstractIndex ix) {
             return type == cast<MysqlIndex>(ix).type;
         }
 
@@ -105,7 +106,7 @@ public namespace MysqlSqlUtil {
     }
 
     #! represents a MySQL-specific foreign constraint
-    public class MysqlForeignConstraint inherits AbstractForeignConstraint {
+    public class MysqlForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
         }
 
@@ -133,7 +134,7 @@ public namespace MysqlSqlUtil {
     }
 
     #! represents a MySQL-specific check constraint
-    public class MysqlCheckConstraint inherits AbstractCheckConstraint {
+    public class MysqlCheckConstraint inherits SqlUtil::AbstractCheckConstraint {
         constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
         }        
 
@@ -161,7 +162,7 @@ public namespace MysqlSqlUtil {
     }
 
     #! represents a MySQL-specific column
-    public class MysqlColumn inherits AbstractColumn {
+    public class MysqlColumn inherits SqlUtil::AbstractColumn {
         public {
             #! byte size of the column
             int byte_size;
@@ -233,13 +234,13 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equalImpl(AbstractColumn c) {
+        private bool equalImpl(AbstractColumn c) {
             return True;
         }
     }
 
     #! represents a MySQL-specific numeric column
-    public class MysqlNumericColumn inherits MysqlColumn, NumericColumnInfo {
+    public class MysqlNumericColumn inherits MysqlColumn, SqlUtil::NumericColumnInfo {
         public {
             bool unsigned;
         }
@@ -256,7 +257,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
-    public class MysqlUniqueConstraintCommon inherits AbstractUniqueConstraint {
+    public class MysqlUniqueConstraintCommon inherits SqlUtil::AbstractUniqueConstraint {
         constructor() {
         }
 
@@ -280,7 +281,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
-    public class MysqlUniqueConstraint inherits AbstractUniqueConstraint, MysqlUniqueConstraintCommon {
+    public class MysqlUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint, MysqlUniqueConstraintCommon {
         constructor(string n, hash n_cols) : AbstractUniqueConstraint(n, n_cols) {
         }
 
@@ -331,7 +332,7 @@ my any $v = $c.name;
     }
 
     #! represents a MySQL-specific primary key constraint
-    public class MysqlPrimaryKey inherits AbstractPrimaryKey, MysqlUniqueConstraintCommon {
+    public class MysqlPrimaryKey inherits SqlUtil::AbstractPrimaryKey, MysqlUniqueConstraintCommon {
         constructor(*hash c) : AbstractPrimaryKey("PRIMARY", c) {
         }
 
@@ -380,7 +381,7 @@ my any $v = $c.name;
     }
 
     #! represents a MySQL-specific trigger
-    public class MysqlTrigger inherits AbstractTrigger {
+    public class MysqlTrigger inherits SqlUtil::AbstractTrigger {
         #! creates the object and sets its name and the trigger source
         constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
         }
@@ -396,7 +397,7 @@ my any $v = $c.name;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equalImpl(AbstractFunctionBase t) {
+        private bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
 
@@ -407,7 +408,7 @@ my any $v = $c.name;
     }
 
     #! represents a MySQL-specific function
-    public class MysqlFunction inherits AbstractFunction {
+    public class MysqlFunction inherits SqlUtil::AbstractFunction {
         constructor(string n, string n_src) : AbstractFunction(n, "function", n_src) {
         }
 
@@ -422,7 +423,7 @@ my any $v = $c.name;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equalImpl(AbstractFunctionBase t) {
+        private bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
 
@@ -433,7 +434,7 @@ my any $v = $c.name;
     }
 
     #! provides the MySQL-specific implementation of the AbstractDatabase interface
-    public class MysqlDatabase inherits AbstractDatabase {
+    public class MysqlDatabase inherits SqlUtil::AbstractDatabase {
         public {
             #! MySQL-specific schema description keys
             const MysqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions;
@@ -580,7 +581,7 @@ my any $v = $c.name;
     }
 
     #! provides the MySQL-specific implementation of the AbstractTable interface
-    public class MysqlTable inherits AbstractTable {
+    public class MysqlTable inherits SqlUtil::AbstractTable {
         public {
             #! maps mysql type names to type configurations
             const MysqlTypeMap = (

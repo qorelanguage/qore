@@ -573,7 +573,12 @@ class qdx {
                 if (!--cnt)
                     return;
             }
-            else if (c == "#") {
+            else if (c == "$") {#"){
+                c = inf.read(1);
+                if (c != "#")
+                    need = False;
+            }
+            else if (c == "#") {                
                 # read until EOL
                 inf.readLine();
             }

@@ -169,7 +169,6 @@ public namespace PgsqlSqlUtil {
                 if (oldh.name != h.name)
                     sqll += sprintf("alter type %s rename attribute %s to %s", name, oldh.name, h.name);
             }
-
             # add any new attributes
             for (int i = oldtl.size(); i < tl.size(); ++i)
                 sqll += sprintf("alter type %s add attribute %s %s", name, tl[i].name, tl[i].type);
@@ -195,7 +194,7 @@ public namespace PgsqlSqlUtil {
     }
 
     #! represents a PostgreSQL-specific index
-    public class PgsqlIndex inherits AbstractIndex {
+    public class PgsqlIndex inherits SqlUtil::AbstractIndex {
 	public {
             #! the tablespace name of the index
             *string tablespace;
@@ -217,7 +216,7 @@ public namespace PgsqlSqlUtil {
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
-        bool equalImpl(AbstractIndex ix) {
+        private bool equalImpl(AbstractIndex ix) {
             return True;
         }
 
@@ -228,7 +227,7 @@ public namespace PgsqlSqlUtil {
     }
 
     #! represents a PostgreSQL-specific foreign constraint
-    public class PgsqlForeignConstraint inherits AbstractForeignConstraint {
+    public class PgsqlForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
         }
 
@@ -250,7 +249,7 @@ public namespace PgsqlSqlUtil {
     }
 
     #! represents a PostgreSQL-specific check constraint
-    public class PgsqlCheckConstraint inherits AbstractCheckConstraint {
+    public class PgsqlCheckConstraint inherits SqlUtil::AbstractCheckConstraint {
         constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
         }        
 
@@ -272,7 +271,7 @@ public namespace PgsqlSqlUtil {
     }
 
     #! represents a PostgreSQL-specific column
-    public class PgsqlColumn inherits AbstractColumn {
+    public class PgsqlColumn inherits SqlUtil::AbstractColumn {
         public {
             #! byte size of the column
             int byte_size;
@@ -370,13 +369,13 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equalImpl(AbstractColumn c) {
+        private bool equalImpl(AbstractColumn c) {
             return True;
         }
     }
 
     #! represents a PostgreSQL-specific numeric column
-    public class PgsqlNumericColumn inherits PgsqlColumn, NumericColumnInfo {
+    public class PgsqlNumericColumn inherits PgsqlColumn, SqlUtil::NumericColumnInfo {
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : PgsqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
         }
 
@@ -385,7 +384,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
-    public class PgsqlUniqueConstraintCommon inherits AbstractUniqueConstraint {
+    public class PgsqlUniqueConstraintCommon inherits SqlUtil::AbstractUniqueConstraint {
         private {
             #! any tablespace for the unique key index
             *string tablespace;
@@ -425,7 +424,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
-    public class PgsqlUniqueConstraint inherits AbstractUniqueConstraint, PgsqlUniqueConstraintCommon {
+    public class PgsqlUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint, PgsqlUniqueConstraintCommon {
         private {
             #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
@@ -477,7 +476,7 @@ my any $v = $c.name;
     }
 
     #! represents a PostgreSQL-specific primary key constraint
-    public class PgsqlPrimaryKey inherits AbstractPrimaryKey, PgsqlUniqueConstraintCommon {
+    public class PgsqlPrimaryKey inherits SqlUtil::AbstractPrimaryKey, PgsqlUniqueConstraintCommon {
         constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c), PgsqlUniqueConstraintCommon(ts) {
         }
 
@@ -517,7 +516,7 @@ my any $v = $c.name;
     }
 
     #! class for PostgreSQL sequences
-    public class PgsqlSequence inherits AbstractSequence {
+    public class PgsqlSequence inherits SqlUtil::AbstractSequence {
         #! creates the object from the arguments
         constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
         }
@@ -536,7 +535,7 @@ my any $v = $c.name;
     }
 
     #! represents a PostgreSQL-specific trigger
-    public class PgsqlTrigger inherits AbstractTrigger {
+    public class PgsqlTrigger inherits SqlUtil::AbstractTrigger {
         #! creates the object and sets its name and the trigger source
         constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
         }
@@ -552,7 +551,7 @@ my any $v = $c.name;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equalImpl(AbstractFunctionBase t) {
+        private bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
 
@@ -563,7 +562,7 @@ my any $v = $c.name;
     }
 
     #! represents a PostgreSQL-specific function
-    public class PgsqlFunction inherits AbstractFunction {
+    public class PgsqlFunction inherits SqlUtil::AbstractFunction {
         public {
             *string args;
         }
@@ -583,7 +582,7 @@ my any $v = $c.name;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        bool equalImpl(AbstractFunctionBase t) {
+        private bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
 
@@ -611,7 +610,7 @@ my any $v = $c.name;
     }
 
     #! provides the PostgreSQL-specific implementation of the AbstractDatabase interface
-    public class PgsqlDatabase inherits AbstractDatabase {
+    public class PgsqlDatabase inherits SqlUtil::AbstractDatabase {
        public {
             #! PostgreSQL-specific schema description keys
             const PgsqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + (
@@ -961,7 +960,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
     }
 
     #! provides the PostgreSQL-specific implementation of the AbstractTable interface
-    public class PgsqlTable inherits AbstractTable {
+    public class PgsqlTable inherits SqlUtil::AbstractTable {
         public {
             #! maps postgresql type names to type configurations
             const PgsqlTypeMap = (
@@ -1050,6 +1049,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             #! schema name for the table
             string schema;
 
+            #! contains any trigger functions supporting triggers on the table
             Functions triggerFunctions;
         }
 
@@ -1069,10 +1069,12 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             tablespace = row.tablespace ? row.tablespace : NOTHING;
         }
 
+        #! returns the schema name
         string getSchemaName() {
             return schema;
         }
 
+        #! returns the data tablespace name for the table or @ref nothing if none is known
         *string getTablespaceName() {
             return tablespace;
         }
@@ -1339,7 +1341,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return new Triggers(rv);
         }
 
-        string getCreateTableSqlImpl(*hash opt) {
+        private string getCreateTableSqlImpl(*hash opt) {
             string sql = sprintf("create table %s (\n", name);
 
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
@@ -1352,7 +1354,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return sql;
         }
 
-        *list getCreateMiscSqlImpl(*hash opt, bool cache) {
+        private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
             if (cache) {
                 getColumnsUnlocked();
                 getTriggersUnlocked();
