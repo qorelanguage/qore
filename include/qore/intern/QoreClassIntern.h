@@ -65,13 +65,9 @@ struct AbstractMethod {
    DLLLOCAL AbstractMethod() {
    }
 
-   DLLLOCAL AbstractMethod(const AbstractMethod& old) {
-      assert(!old.vlist.empty());
-      for (vmap_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
-         assert(vlist.find(i->first) == vlist.end());
-         vlist.insert(vmap_t::value_type(i->first, i->second));
-      }
-   }
+   DLLLOCAL AbstractMethod(const AbstractMethod& old);
+
+   DLLLOCAL ~AbstractMethod();
 
    // merge changes from parent class method of the same name during parse initialization
    DLLLOCAL void parseMergeBase(AbstractMethod& m, bool committed = false);

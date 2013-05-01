@@ -65,6 +65,24 @@ void SignatureHash::update(const QoreString& str) {
 #endif
 }
 
+AbstractMethod::AbstractMethod(const AbstractMethod& old) {
+   assert(!old.vlist.empty());
+   for (vmap_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
+      assert(vlist.find(i->first) == vlist.end());
+      i->second->ref();
+      vlist.insert(vmap_t::value_type(i->first, i->second));
+   }
+}
+
+AbstractMethod::~AbstractMethod() {
+   for (vmap_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i)
+      i->second->deref();
+   for (vmap_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i)
+      i->second->deref();
+   for (vmap_t::iterator i = pending_save.begin(), e = pending_save.end(); i != e; ++i)
+      i->second->deref();
+}
+
 // merge changes from parent class method of the same name during parse initialization
 void AbstractMethod::parseMergeBase(AbstractMethod& m, bool committed) {
    //printd(5, "AbstractMethod::parseMergeBase(m: %p) this: %p m.pending_save: %d m.pending_vlist: %d\n", &m, this, !m.pending_save.empty(), !m.pending_vlist.empty());
