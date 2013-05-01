@@ -781,12 +781,12 @@ my *list $rows = $table.selectRows(("join": join_right($table2, ("id": "altid"),
         return make_op(OP_BETWEEN, (l, r));
     }
 
-    #! returns a hash for the \c "in" operator with the given argument list
+    #! returns a hash for the \c "in" operator with all arguments passed to the function
     public hash sub op_in() {
         return make_op(OP_IN, argv);
     }    
 
-    #! returns a hash for the \c "in" operator with the given argument list
+    #! returns a hash for the \c "in" operator with the given argument list as the first argument
     public hash sub op_in(list args) {
         return make_op(OP_IN, args);
     }    
