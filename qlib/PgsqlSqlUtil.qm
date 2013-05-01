@@ -107,11 +107,12 @@ $function$
 
 #! the PgsqlSqlUtil namespace contains all the objects in the PgsqlSqlUtil module
 public namespace PgsqlSqlUtil {
-
+    #! returns a PgsqlTable object corresponding to the arguments
     public PgsqlTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
         return new PgsqlTable(nds, nname, opts);
     }
 
+    #! returns a PgsqlDatabase object corresponding to the arguments
     public PgsqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
 	return new PgsqlDatabase(nds, opts);
     }
@@ -126,8 +127,8 @@ public namespace PgsqlSqlUtil {
 	    string src;
 	}
 
-	constructor(string n_name, string n_src) {
-	    name = n_name;
+        constructor(string n_name, string n_src) {
+            name = n_name;
             src = n_src;
         }
 
@@ -188,13 +189,7 @@ public namespace PgsqlSqlUtil {
 	    return sprintf("alter type %s rename to %s", name, new_name);
 	}
 
-	bool equal(PgsqlType type) {
-	    /*
-	    if (name != type.name)
-                printf("PgsqlType::equal() NOT EQUAL name: %y != %y\n", name, type.name);
-	    if (src != type.src)
-                printf("PgsqlType::equal() NOT EQUAL src: %y != %y\n", src, type.src);
-            */
+ 	bool equal(PgsqlType type) {
 	    return name == type.name && src == type.src;
 	}
     }
@@ -207,7 +202,7 @@ public namespace PgsqlSqlUtil {
         }
        
         #! creates the object from the arguments
-	constructor(string n_name, bool n_unique, hash n_cols, *string n_tablespace) : AbstractIndex(n_name, n_unique, n_cols) {
+        constructor(string n_name, bool n_unique, hash n_cols, *string n_tablespace) : AbstractIndex(n_name, n_unique, n_cols) {
             tablespace = n_tablespace;
         }
 
@@ -344,6 +339,7 @@ my list $l = $col.getModifySql($t, $newcol);
                     l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
             }
             else if (def_val != c.def_val) {
+                #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
                 if (exists c.def_val)
                     l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
                 else
@@ -1048,15 +1044,33 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private {
+            #! tablespace name for the table, if known
             *string tablespace;
+         
+            #! schema name for the table
+            string schema;
 
             Functions triggerFunctions;
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
+            # see if there is a schema in the name
+            *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
+            if (sstr) {
+                schema = sstr;
+                splice nname, 0, schema.size() + 1;
+                name = nname;
+            }
+            else
+                schema = "public";
+
             # get table info
-            *hash row = ds.selectRow("select * from pg_tables where tablename = %v", name);
+            *hash row = ds.selectRow("select * from pg_tables where schemaname = %v and tablename = %v", schema, name);
             tablespace = row.tablespace ? row.tablespace : NOTHING;
+        }
+
+        string getSchemaName() {
+            return schema;
         }
 
         *string getTablespaceName() {
@@ -1089,6 +1103,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return f;
         }
 
+        #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
+        string getSqlName() {
+            return schema + "." + name;
+        }
+
         private hash getTableCreationOptions() {
             return PgsqlTableCreationOptions;
         }
@@ -1114,7 +1133,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private bool checkExistenceImpl() {
-            *hash qh = ds.selectRow("select * from  pg_catalog.pg_statio_all_tables where relname = %v", name);
+            *hash qh = ds.selectRow("select * from pg_catalog.pg_statio_all_tables where schemaname = %v and relname = %v", schema, name);
             if (qh)
                 return inDb = True;
             return False;
@@ -1122,7 +1141,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select column_name, data_type, character_maximum_length, character_octet_length, numeric_precision, numeric_scale, datetime_precision, is_nullable, column_default, description from information_schema.columns c join pg_catalog.pg_statio_all_tables st on (c.table_schema = st.schemaname and c.table_name = st.relname) left join pg_catalog.pg_description pgd on (st.relid = pgd.objoid and pgd.objsubid = c.ordinal_position) where table_name = %v order by ordinal_position", name);
+            *hash qh = ds.select("select column_name, data_type, character_maximum_length, character_octet_length, numeric_precision, numeric_scale, datetime_precision, is_nullable, column_default, description from information_schema.columns c join pg_catalog.pg_statio_all_tables st on (c.table_schema = st.schemaname and c.table_name = st.relname) left join pg_catalog.pg_description pgd on (st.relid = pgd.objoid and pgd.objsubid = c.ordinal_position) where table_schema = %v and table_name = %v order by ordinal_position", schema, name);
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
@@ -1146,6 +1165,9 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
                 PgsqlColumn c;
                 *string defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
+                # normalize default value expressions
+                if (defval =~ /::bpchar$/)
+                    defval =~ s/::bpchar$//;
                 if (row.numeric_precision)
                     c = new PgsqlNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.description ? row.description : NOTHING, 0, row.numeric_scale);
                 else
@@ -1161,7 +1183,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             hash rv;
 
             # get primary key description
-            *hash qh = ds.select("select c1.relname index_name, a.attname, pg_catalog.pg_get_indexdef(a.attrelid, a.attnum, TRUE) AS column_name, pg_catalog.format_type(a.atttypid, a.atttypmod), tablespace from pg_class c, pg_index i, pg_attribute a, pg_class c1, pg_indexes ix where c.oid = %v::regclass and c.oid = i.indrelid and i.indisprimary and i.indexrelid = a.attrelid and c1.oid = i.indexrelid and c1.relname = ix.indexname and i.indisvalid and not a.attisdropped order by a.attnum", name);
+            *hash qh = ds.select("select c1.relname index_name, a.attname, pg_catalog.pg_get_indexdef(a.attrelid, a.attnum, TRUE) AS column_name, pg_catalog.format_type(a.atttypid, a.atttypmod), tablespace from pg_class c, pg_index i, pg_attribute a, pg_class c1, pg_indexes ix where c.oid = %v::regclass and c.oid = i.indrelid and i.indisprimary and i.indexrelid = a.attrelid and c1.oid = i.indexrelid and c1.relname = ix.indexname and i.indisvalid and not a.attisdropped order by a.attnum", schema + "." + name);
             if (!qh.index_name)
                 return;
 
@@ -1176,9 +1198,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             hash rv;
 
             # get index descriptions
-            *hash qh = ds.select("SELECT i.relname index_name, d.indisunique, d.indisprimary, pg_get_indexdef(i.oid, a.attnum, false) column_name, tablespace FROM pg_class t, pg_class i, pg_index d, pg_attribute a, pg_indexes xs WHERE i.relkind = 'i' and i.relname = xs.indexname AND d.indexrelid = i.oid and t.oid = d.indrelid AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN ('public')) AND a.attrelid = i.oid AND t.relname = %v ORDER BY i.relname, attnum", name);
-
-            #*hash qh = ds.select("select i.relname index_name, a.attname column_name, indisprimary, indisunique, tablespace from pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_indexes xs where t.oid = ix.indrelid and i.oid = ix.indexrelid and a.attrelid = t.oid and a.attnum = any(ix.indkey) and t.relkind = 'r' and t.relname = %v and not indisprimary and i.relname = xs.indexname group by i.relname, a.attname, a.attnum, indisprimary, indisunique, tablespace order by i.relname, attnum", name);
+            *hash qh = ds.select("SELECT i.relname index_name, d.indisunique, d.indisprimary, pg_get_indexdef(i.oid, a.attnum, false) column_name, tablespace FROM pg_class t, pg_class i, pg_index d, pg_attribute a, pg_indexes xs WHERE i.relkind = 'i' and i.relname = xs.indexname AND d.indexrelid = i.oid and t.oid = d.indrelid AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN (%v)) AND a.attrelid = i.oid AND t.relname = %v ORDER BY i.relname, attnum", schema, name);
 
             if (qh.index_name) {
                 hash ih;
@@ -1225,8 +1245,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
             hash rv;
             # get foreign referential constraints 
-            # FIXME: hardcoded schema to 'public'
-            *hash qh = ds.select("select constraint_name, att2.attname source_column, cl.relname target_table, att.attname target_column from (select con1.conname constraint_name, generate_subscripts(con1.conkey, 1) AS rn, unnest(con1.conkey) parent, unnest(con1.confkey) child, con1.confrelid, con1.conrelid from pg_class cl join pg_namespace ns on cl.relnamespace = ns.oid join pg_constraint con1 on con1.conrelid = cl.oid where cl.relname = %v and ns.nspname = 'public' and con1.contype = 'f' order by conname, rn) con join pg_attribute att on att.attrelid = con.confrelid and att.attnum = con.child join pg_class cl on cl.oid = con.confrelid join pg_attribute att2 on att2.attrelid = con.conrelid and att2.attnum = con.parent", name);
+            *hash qh = ds.select("select constraint_name, att2.attname source_column, cl.relname target_table, att.attname target_column from (select con1.conname constraint_name, generate_subscripts(con1.conkey, 1) AS rn, unnest(con1.conkey) parent, unnest(con1.confkey) child, con1.confrelid, con1.conrelid from pg_class cl join pg_namespace ns on cl.relnamespace = ns.oid join pg_constraint con1 on con1.conrelid = cl.oid where cl.relname = %v and ns.nspname = %v and con1.contype = 'f' order by conname, rn) con join pg_attribute att on att.attrelid = con.confrelid and att.attnum = con.child join pg_class cl on cl.oid = con.confrelid join pg_attribute att2 on att2.attrelid = con.conrelid and att2.attnum = con.parent", name, schema);
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
@@ -1249,7 +1268,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         private Constraints getConstraintsImpl() {
             # get check constraints
-            *hash qh = ds.select("SELECT c.conname AS constraint_name, CASE WHEN c.condeferrable = 'f' THEN 0 ELSE 1 END AS is_deferrable, CASE WHEN c.condeferred = 'f' THEN 0 ELSE 1 END AS is_deferred, t.relname AS table_name, array_to_string(c.conkey, ' ') AS constraint_key, CASE confupdtype WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE' WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END AS on_update, CASE confdeltype WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE' WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END AS on_delete, CASE confmatchtype WHEN 'u' THEN 'UNSPECIFIED' WHEN 'f' THEN 'FULL' WHEN 'p' THEN 'PARTIAL' END AS match_type, t2.relname AS references_table, array_to_string(c.confkey, ' ') AS fk_constraint_key, consrc FROM pg_constraint c LEFT JOIN pg_class t  ON c.conrelid  = t.oid LEFT JOIN pg_class t2 ON c.confrelid = t2.oid WHERE c.contype = 'c' and t.relname = %v", name);
+            *hash qh = ds.select("select c.conname as constraint_name, case when c.condeferrable = 'f' then 0 else 1 end as is_deferrable, case when c.condeferred = 'f' then 0 else 1 end as is_deferred, t.relname as table_name, array_to_string(c.conkey, ' ') as constraint_key, case confupdtype when 'a' then 'NO ACTION' when 'r' then 'RESTRICT' when 'c' then 'CASCADE' when 'n' then 'SET NULL' when 'd' then 'SET DEFAULT' end as on_update, case confdeltype when 'a' then 'NO ACTION' when 'r' then 'RESTRICT' when 'c' then 'CASCADE' when 'n' then 'SET NULL' when 'd' then 'SET DEFAULT' end as on_delete, case confmatchtype when 'u' then 'UNSPECIFIED' when 'f' then 'FULL' when 'p' then 'PARTIAL' end as match_type, t2.relname as references_table, array_to_string(c.confkey, ' ') as fk_constraint_key, consrc from pg_constraint c left join pg_class t on c.conrelid  = t.oid left join pg_class t2 on c.confrelid = t2.oid join pg_catalog.pg_namespace n on n.oid = t.relnamespace where c.contype = 'c' and n.nspname = %v and t.relname = %v", schema, name);
             hash rv;
             foreach hash row in (qh.contextIterator())
                 rv.(row.constraint_name) = new PgsqlCheckConstraint(row.constraint_name, row.consrc);
@@ -1257,7 +1276,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             Constraints c = new Constraints(rv);
 
             # get unique constraints
-            qh = ds.select("select tc.constraint_name, kcu.column_name from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name = kcu.constraint_name where constraint_type = 'UNIQUE' and tc.table_name = %v order by ordinal_position", name);
+            qh = ds.select("select tc.constraint_name, kcu.column_name from information_schema.table_constraints tc join information_schema.key_column_usage kcu on (tc.table_schema = kcu.table_schema and tc.table_name = kcu.table_name and tc.constraint_name = kcu.constraint_name) where constraint_type = 'UNIQUE' and tc.table_schema = %v and tc.table_name = %v order by ordinal_position", schema, name);
             delete rv;
             foreach hash row in (qh.contextIterator()) {
                 reference ch = \rv.(row.constraint_name);
@@ -1276,7 +1295,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             hash rv;
 
             # get trigger description
-            *hash qh = ds.select("select * from information_schema.triggers where event_object_table = %v", name);
+            *hash qh = ds.select("select * from information_schema.triggers where event_object_schema = %v and event_object_table = %v", schema, name);
 
             # list of trigger functions
             list fl = ();
@@ -1300,7 +1319,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     continue;
                 }
 
-                string src = sprintf("%s %s on %s for each %s %s", row.action_timing, row.event_manipulation, getSqlName(), row.action_orientation, row.action_statement);
+                string src = sprintf("%s %s on %s for each %s %s", row.action_timing, row.event_manipulation, name, row.action_orientation, row.action_statement);
                 rv{row.trigger_name} = new PgsqlTrigger(row.trigger_name, src);
             }
 
@@ -1543,37 +1562,5 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             if (triggerFunctions)
                 triggerFunctions = triggerFunctions.copy();
         }
-
-        /*
-        private code getUpsertInsertFirst(Columns cols, hash example_row) {
-            string insert_sql = getInsertSql(example_row);
-            list updc = ();
-            string update_sql = getUpdateSql(example_row, cols, \updc);
-
-            return int sub (hash row) {
-                
-
-                if (tryInsertImpl(insert_sql, row))
-                    return UR_Inserted;
-            
-                tryUpdate(update_sql, row, cols, updc);
-                return UR_Updated;            
-            };
-        }
-
-        private code getUpsertUpdateFirst(Columns cols, hash example_row) {
-            list updc = ();
-            string update_sql = getUpdateSql(example_row, cols, \updc);
-            string insert_sql = getInsertSql(example_row);
-
-            return int sub (hash row) {
-                if (tryUpdate(update_sql, row, cols, updc))
-                    return UR_Updated;
-                
-                ds.vexec(insert_sql, row.values());
-                return UR_Inserted;
-            };
-        }
-        */
     }
 }

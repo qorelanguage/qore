@@ -760,7 +760,7 @@ my any $v = $c.name;
 
                 MysqlColumn c;
                 any defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
-                if (defval) {
+                if (exists defval) {
                     # process default value according to column type
                     switch (th.qore) {
                         case Type::Int: defval = defval.toInt(); break;

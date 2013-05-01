@@ -1662,8 +1662,10 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
         bool equal(AbstractColumn c) {
-            if (self.className() != c.className() || name != c.name || native_type != c.native_type || size != c.size || nullable != c.nullable || def_val != c.def_val || comment != c.comment)
+            if (self.className() != c.className() || name != c.name || native_type != c.native_type || size != c.size || nullable != c.nullable || def_val != c.def_val || comment != c.comment) {
+                #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
                 return False;
+            }
 
             return equalImpl(c);
         }
