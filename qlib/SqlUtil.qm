@@ -279,7 +279,7 @@ my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "of
     - If this option is present, then either an @ref select_option_orderby "orderby option" must be present of which at least a subset of the @ref select_option_orderby "orderby" columns must correspond to a unique key of the table, or, if no @ref select_option_orderby "orderby option" is used, then the table must have a primary key which is used for the ordering instead.
     - Additionally, this option requires the presence of the @ref select_option_limit "limit option", or an exception will be thrown.
 
-    @see sql_paging
+    @see @ref sql_paging
 
     @subsection select_option_join "join" Select Option
 
@@ -312,6 +312,14 @@ my *list $rows = $table.selectRows(("columns": ("name", "version", "id", cop_as(
     Select 100 rows starting at row 200 (the table's primary key will be used for the \c "orderby" option by default): \n
     @code
 my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
+    @endcode
+    As an illustration of the different SQL that is generated for different database types; for the above query, here is the SQL generated for Oracle:
+    @code
+$ds.vselectRows("select * from (select /*+ first_rows(100) *<!---->/ a.*, rownum rnum from (select * from schema.table where type = %v order by type) a where rownum <= %v) where rnum > %v", ("user", 300, 200));
+    @endcode
+    And for PostgreSQL:
+    @code
+$ds.vselectRows("select * from public.table where type = %v order by type limit %v offset %v", "user", 100, 200);
     @endcode
 
     @section where_clauses Where Clauses

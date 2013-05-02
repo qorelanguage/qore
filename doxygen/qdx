@@ -240,6 +240,10 @@ class qdx {
 		comment += line;
 		break;
 	    }
+
+            # remove <!-- ... --> comments to allow for invisible spacing, to allow for "*/" to be outout in particular places, for example
+            line =~ s/<!--.*-->//g;
+
             comment += line;
 	}
 	#printf("comment: %s", comment);
@@ -431,7 +435,7 @@ class qdx {
 		    of.print(line);
 		    continue;
 		}
-		else if (exists class_name) {
+		else if (class_name) {
 		    if (line =~ /{/) {
 			if (line !~ /}/)
 			    ++cbc;
@@ -443,7 +447,7 @@ class qdx {
 			    delete class_name;
 			}
 		    }
-		    
+
 		    if (exists (xs = (line =~ x/(public|private)[ \t]+{(.*)}/)[1])) {
 			of.printf("private:\n%s\npublic:\n", xs);
 			continue;
