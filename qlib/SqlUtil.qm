@@ -61,55 +61,250 @@ module SqlUtil {
     
     All the public symbols in the module are defined in the SqlUtil namespace
 
-    @section sql_operations SQL Operations
+    Major sections of this documentation:
+    - @subpage sql_operations
+    - @subpage schema_management
+*/
 
-    @subsection where_clauses Where Clauses
+/** @page sql_operations SQL Operations
 
-    Several methods accept a hash of conditions to build a \c "where" clause to restrict the rows that are operated on or returned; for example:
-    - @ref SqlUtil::AbstractTable::del()
-    - @ref SqlUtil::AbstractTable::delNoCommit()
-    - @ref SqlUtil::AbstractTable::findAll()
-    - @ref SqlUtil::AbstractTable::findSingle()
-    - @ref SqlUtil::AbstractTable::getRowIterator()
-    - @ref SqlUtil::AbstractTable::getSelectSql()
-    - @ref SqlUtil::AbstractTable::insertFromSelect()
-    - @ref SqlUtil::AbstractTable::insertFromSelectNoCommit()
-    - @ref SqlUtil::AbstractTable::select()
-    - @ref SqlUtil::AbstractTable::selectRows()
-    - @ref SqlUtil::AbstractTable::update()
-    - @ref SqlUtil::AbstractTable::updateNoCommit()
+    @tableofcontents
 
-    @note the above list also applies to the corresponding @ref SqlUtil::Table methods
+    @section sql_intro Introduction to SQL Operations
 
-    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.
+    The @ref SqlUtil::Table "Table" class (which is a wrapper for @ref SqlUtil::AbstractTable "AbstractTable") provides methods for SQL operations.
 
-    See @ref sql_op_funcs for a list of operator functions.
+    This class uses knowledge about the internal structure of database tables to create and execute SQL on the database.
 
-    @par Examples:
-    Find a single row in the table where the \c "permission_type" column is a value between \c "US" and \c "UX":\n
+    SQL strings are constructed programmatically for the following reasons:
+    - to present an abstract, database-independent interface to the programmer
+    - to allow for database-specific optimizations to be used without requiring programming expertise for the specific database being used
+    - to minimize dynamic SQL and therefore use the database server's SQL statement cache more efficiently (if applicable)
+    - to prevent SQL injection attacks
+
+    Also for the above reasons, values are bound by value in all possible cases rather than inserted into SQL strings directly.
+
+    @section retrieving_data Retrieving Data from the Database
+
+    There are many methods in the @ref SqlUtil::Table "Table" class for retrieving data from the database; here is an overview:
+    - @ref SqlUtil::Table::find(any): finds a row corresponding to the given single value of the primary key; if not present @ref nothing is returned
+    - @ref SqlUtil::Table::find(list): finds all rows corresponding to the given list of values of the primary key; if none are present @ref nothing is returned
+    - @ref SqlUtil::Table::find(hash): find a row corresponding to the given hash of column name/value pairs, which must at least reference all columns of the table's primary key; if no row matches, @ref nothing is returned
+    - @ref SqlUtil::Table::findSingle(): finds the first (of possibly many) rows that match the @ref where_clauses "where clause hash argument" or returns @ref nothing if no row matches
+    - @ref SqlUtil::Table::findAll(): returns all rows that match the @ref where_clauses "where clause hash argument" or returns @ref nothing if no row matches
+    - @ref SqlUtil::Table::getRowIterator(): returns an @ref Qore::SQL::SQLStatement "SQLStatement" object iterating rows that match the @ref select_option_hash "select option hash" argument
+    - @ref SqlUtil::Table::getSelectSql(): returns an SQL string and bind arguments for the @ref select_option_hash "select option hash" argument
+    - @ref SqlUtil::Table::insertFromSelect(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and commits the transaction
+    - @ref SqlUtil::Table::insertFromSelectNoCommit(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and without committing the transaction
+    - @ref SqlUtil::Table::select(): returns a hash keyed by column name of lists (row values) corresponding to the @ref select_option_hash "select option hash" argument
+    - @ref SqlUtil::Table::selectRows(): returns lists of row values corresponding to the @ref select_option_hash "select option hash" argument
+
+    @subsection find_single_row Retrieving a Single Row
+
+    @par From the Primary Key
+    To retrieve a single row based on a single primary key value, use @ref SqlUtil::Table::find(any):
+    @code
+my *hash $row = $table.find($id);
+    @endcode 
+    If no primary key value matches the given argument, then @ref nothing is returned.\n\n
+    To retrieve a single row based on a complex primary key value, or a single primary key value and extra criteria, use @ref SqlUtil::Table::find(hash):
+    @code
+my *hash $row = $table.find(("account_type": $type, "name": $name));
+    @endcode
+    If no primary key value matches the given argument hash, then @ref nothing is returned.
+
+    @par At Most One Matching Row From the Table
+    To retrieve at most one matching row from the table, use @ref SqlUtil::Table::findSingle():
     @code
 my *hash $row = $table.findSingle(("permission_type": op_between("US", "UX")));
-    @endcode \n
-    Delete all rows in the table where the \c "name" column is like "%Smith%":\n
+    @endcode
+    This method can be used to efficiently check the table if at least one record matches the given \c where criteria; even if more rows match,
+    only a single row is returned.  If no rows match, then @ref nothing is returned.
+
+    @subsection find_multiple_rows Retrieving Multiple Rows
+
+    @par From the Primary Key
+    To retrieve multiple rows from a list of single primary key values, use @ref SqlUtil::Table::find(list)
     @code
-my int $row_count = $table.del(("name": op_like("%Smith%")));
-    @endcode \n
-    Find all rows where \c "id" is greater than 100 and \c "created" is after 2013-03-01:\n
+my *list $rows = $table.find($list);
+    @endcode
+    All rows matching the single primary key values in the argument list are returned; if no rows match, @ref nothing is returned.
+
+    @par From Simple Where Criteria
+    To find all rows matching simple where criteria, use @ref SqlUtil::Table::findAll():
     @code
 my *list $rows = $table.findAll(("id": op_gt(100), "created": op_gt(2013-03-01)));
     @endcode
+    see @ref where_clauses for a description of the hash argument; if no rows match, @ref nothing is returned.
 
-    @subsection sql_paging Select With Paging
+    @par From Complex Select Criteria
+    To select a hash keyed by column name of lists (row values) based on complex select criteria, use @ref SqlUtil::Table::select():
+    @code
+my hash $sh = (
+    "columns": ("id", "name", "q.*"),
+    "where": ("type": "user"),
+    "limit": 100,
+    "offset": 200,
+    "join": join_inner("queues", "q"),
+);
+my *hash $h = $table.select($sh);
+    @endcode
+    If no rows match, then a hash with column names assigned to empty lists is returned.\n\n
+    To select a list of row hashes based on complex select criteria, use @ref SqlUtil::Table::selectRows():
+    @code
+my *list $rows = $table.selectRows($sh);
+    @endcode
+    If no rows match, then @ref nothing is returned.
+
+    @subsection get_row_iterator Acquire a Row Iterator for Query Results
+    @par From Complex Select Criteria
+    To get an iterator for the row values corresponding to a select statement, use @ref SqlUtil::Table::getRowIterator():
+    @code
+my Table $t($ds, "table_name");
+my SQLStatement $i = $table.getRowIterator($sh);
+on_exit $ds.commit();
+map printf("row: %y\n", $1), $i;
+    @endcode
+    If no argument is passed to the method, then an iterator for all rows in the table is returned.
+
+    @section selecting_data Selecting Data
+
+    Selecting data is performed by passing a select option hash argument to a suitable method that will build and execute a DB-specific SQL command based on this value; the following methods take a select option hash argument:
+    - @ref SqlUtil::Table::getRowIterator()
+    - @ref SqlUtil::Table::getSelectSql()
+    - @ref SqlUtil::Table::insertFromSelect()
+    - @ref SqlUtil::Table::insertFromSelectNoCommit()
+    - @ref SqlUtil::Table::select()
+    - @ref SqlUtil::Table::selectRows()
+
+    @subsection select_option_hash Select Option Hash
+
+    SQL strings for select statements are constructed programmatically based on a select option hash described below.
+    
+    @par Select Option Hash Example:
+    @code
+my hash $soh = (
+    "columns": ("id", "name", "q.*"),
+    "where": ("type": "user"),
+    "limit": 100,
+    "offset": 200,
+    "join": join_inner("queues", "q"),
+);
+    @endcode
+
+    The select option hash argument has the following keys; all of which are optional:
+    - @ref select_option_columns "columns": describes the output columns and any output column operations; if not present, then all columns are returned directly in the output
+    - @ref select_option_where "where": (@ref hash_type "hash") describes how any \c "where" clause will be built; if not present, then there is no \c where clause
+    - @ref select_option_orderby "orderby": (@ref list_type "list or strings") describes the ordering of the results; if not present (and no other output ordering is required, such as implied by the @ref select_option_offset "offset" option), then results are returned in the order returned by the database server
+    - @ref select_option_desc "desc": (@ref bool_type "bool") specifies descending order for results; if not present or not @ref Qore::True "True" and results are ordered, then the results are returned in ascending order
+    - @ref select_option_limit "limit": (@ref int_type "int") specifies the maximum number of results to be returned; if not present, then all results are returned
+    - @ref select_option_offset "offset": (@ref int_type "int") specifies the starting offset of the first record to be returned (starting with 0)
+    - @ref select_option_join "join": (@ref hash_type "hash") specifies any SQL join operations to return results from multiple tables
+
+    @subsection select_option_columns "columns" Select Option
+
+    @par Columns Example:
+    @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count")), "where": ("type": "user")));
+    @endcode
+
+    By default, all columns are returned from a query; to limit the columns returned, or to perform column operations on the columns returned, use the \c "columns" option of the @ref select_option_hash "select option hash".
+
+    This option takes a list, each element of the list can be one of the following:
+    - a simple string giving a column name; ex: \c "name"
+    - a string giving a table or table alias and a column name in dot notation (for use with @ref select_option_join "joins"); ex: \c "q.name"
+    - a column operation specified by a @ref sql_cop_funcs "column operator function"
+    - the value \c "*" meaning all columns
+    - a string giving a table or table alias and a \c "*" in dot notation, meaning all columns for that particular table or alias (ex: \c "q.*")
+
+    Note that for @ref sql_cop_funcs "column operator functions" taking a column name, either a string name or a name in dot notation is acceptable.
+
+    @subsection select_option_where "where" Select Option
+    
+    @par Where Example:
+    @code
+my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
+    @endcode
+
+    The hash value assigned to this key describes how the \c "where" clause in the query is built.  Because the \c "where" clause logic is common to many SQL methods, this topic is covered in a separate section.  See @ref where_clauses for a detailed description of the value of this key.
+
+    @subsection select_option_orderby "orderby" Select Option
+
+    @par Orderby Example:
+    @code
+my *list $rows = $table.selectRows(("where": ("account_type": "CUSTOMER"), "orderby": "created_date"));
+    @endcode
+
+    This option is a list of the following values:
+    - a simple string giving a column name; ex: \c "name"
+    - a string giving a table or table alias and a column name in dot notation (for use with @ref select_option_join "joins"); ex: \c "q.name"
+
+    @note
+    - By using the @ref select_option_offset "offset option" the results will be automatically ordered according to the primary key of the table
+
+    @subsection select_option_desc "desc" Select Option
+
+    @par Desc Example:
+    @code
+my *list $rows = $table.selectRows(("where": ("account_type": "CUSTOMER"), "orderby": "created_date", "desc": True));
+    @endcode
+
+    If the value of this key is @ref Qore::True "True" and results are ordered (either due to the @ref select_option_orderby "orderby option" or due to implicit ordering by the primary key due to the use of the @ref select_option_offset "offset option"), then results will be sorted in descending order.
+
+    Otherwise, ordered results are returned in ascending order by default.
+
+    @subsection select_option_limit "limit" Select Option
+
+    @par Limit Example:
+    @code
+my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
+    @endcode
+
+    This option will limit the number of rows returned.
+
+    @note
+    - This option is required if the @ref select_option_offset "offset option" is non-zero
+    - If this option is present and an @ref select_option_orderby "orderby option" is also present, then at least a subset of the @ref select_option_orderby "orderby" columns must correspond to a unique key of the table or an exception is raised
+
+    @subsection select_option_offset "offset" Select Option
+
+    @par Offset Example:
+    @code
+my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
+    @endcode
+
+    This option specifies the row number offset for the rows returned where the first row is at offset zero.
+
+    @note
+    - If this option is present, then either an @ref select_option_orderby "orderby option" must be present of which at least a subset of the @ref select_option_orderby "orderby" columns must correspond to a unique key of the table, or, if no @ref select_option_orderby "orderby option" is used, then the table must have a primary key which is used for the ordering instead.
+    - Additionally, this option requires the presence of the @ref select_option_limit "limit option", or an exception will be thrown.
+
+    @see sql_paging
+
+    @subsection select_option_join "join" Select Option
+
+    @par Join Example:
+    @code
+my *list $rows = $table.selectRows(("columns": ("name", "version", "id", cop_as("st.value", "source"), cop_as("st.value", "offset")),
+                                    "join": join_left("function_instance_tags", "st", NOTHING, ("st.tag": "_source"))
+                                            + join_left("function_instance_tags", "lt", NOTHING, ("st.tag": "_offset"))));
+    @endcode
+
+    To join multiple tables in a single query, use the \c "join" option.  The \c "join" hash key should be assigned to a join description hash as returned by one of the @ref sql_jop_funcs or combined join descripion hash created by concatenating such values (see an example of this above).
+
+    @note the join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
+
+    @section sql_paging Select With Paging
 
     There is support for paging query results in the following methods:
-    - @ref SqlUtil::AbstractTable::getRowIterator()
-    - @ref SqlUtil::AbstractTable::getSelectSql();
-    - @ref SqlUtil::AbstractTable::select()
-    - @ref SqlUtil::AbstractTable::selectRows()
+    - @ref SqlUtil::Table::getRowIterator()
+    - @ref SqlUtil::Table::getSelectSql()
+    - @ref SqlUtil::Table::select()
+    - @ref SqlUtil::Table::selectRows()
 
-    @note the above list also applies to the corresponding @ref SqlUtil::Table methods
+    @note the above list also applies to the corresponding @ref SqlUtil::AbstractTable methods
 
-    Each of these methods takes a @ref SqlUtil::AbstractTable::SelectOptions "select option hash argument" that allows the \c "limit" and \c "offset" options to be specified to specify the data window for the results.
+    Each of these methods takes a @ref select_option_hash "select option hash argument" that allows the \c "limit" and \c "offset" options to be specified to specify the data window for the results.
 
     If the \c "offset" options is used, then an \c "orderby" option is required which must match some unique constraint or unique index on the table to guarantee the order of results, unless the table has a primary key, in which case the primary key will be used by default if no \c "orderby" option is supplied.
 
@@ -119,7 +314,78 @@ my *list $rows = $table.findAll(("id": op_gt(100), "created": op_gt(2013-03-01))
 my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
 
-    @subsection sql_upsert Upserting or Merging Data
+    @section where_clauses Where Clauses
+
+    Several methods accept a hash of conditions to build a \c "where" clause to restrict the rows that are operated on or returned; for example:
+    - @ref SqlUtil::Table::del()
+    - @ref SqlUtil::Table::delNoCommit()
+    - @ref SqlUtil::Table::findAll()
+    - @ref SqlUtil::Table::findSingle()
+    - @ref SqlUtil::Table::getRowIterator()
+    - @ref SqlUtil::Table::getSelectSql()
+    - @ref SqlUtil::Table::insertFromSelect()
+    - @ref SqlUtil::Table::insertFromSelectNoCommit()
+    - @ref SqlUtil::Table::select()
+    - @ref SqlUtil::Table::selectRows()
+    - @ref SqlUtil::Table::update()
+    - @ref SqlUtil::Table::updateNoCommit()
+
+    @note the above list also applies to the corresponding @ref SqlUtil::AbstractTable methods
+
+    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.
+
+    The where condition hash has the following format:
+    - each key gives a column name or a table/alias with column name in dot notation
+    - the values are either direct values, meaning that the equality operator (\c "=") is used, or a @ref sql_op_funcs "SQL operator function" for operators in the where clause
+
+    See @ref sql_op_funcs for a list of operator functions.
+
+    @par Where Hash Example:
+    @code
+my hash $w = (
+    "name": "Smith",
+    "account_type": op_like("%CUSTOMER%"),
+    "id": op_ge(500),
+);
+    @endcode \n
+    The preceding example results in a where clause equivalent to: \c "name = 'Smith' and type like '%CUSTOMER%' and id >= 500", except
+    that bind by value is used, so, if used in a context like the following:
+    @code
+my Table $t($ds, "table");
+my *hash $qh = $t.select(("where": $w));
+    @endcode \n
+    the complete query would look instead as follows:
+    @code
+$ds.vselect("select * from table where name = %v and account_type like %v and id >= %v", ("Smith", "%CUSTOMER%", 500));
+    @endcode
+
+    @par Code Examples:
+    Find a single row in the table where the \c "permission_type" column is a value between \c "US" and \c "UX":\n
+    @code
+my *hash $row = $table.findSingle(("permission_type": op_between("US", "UX")));
+    @endcode
+    resulting in an internal SQL command that looks as follows (depending on the database):
+    @code
+$ds.vselect("select * from table where permission_type between %v and %v limit %v", ("US", "UX", 1));
+    @endcode \n
+    Delete all rows in the table where the \c "name" column is like \c "%Smith%":\n
+    @code
+my int $row_count = $table.del(("name": op_like("%Smith%")));
+    @endcode
+    resulting in an internal SQL command that looks as follows:
+    @code
+$ds.vexec("delete from table where name like %v", ("%Smith%"));
+    @endcode \n
+    Find all rows where \c "id" is greater than \c 100 and \c "created" is after \c 2013-03-01:\n
+    @code
+my *list $rows = $table.findAll(("id": op_gt(100), "created": op_gt(2013-03-01)));
+    @endcode
+    resulting in an internal SQL command that looks as follows:
+    @code
+$ds.vexec("select * from table where id > %v and created > %v", (100, 2013-03-01));
+    @endcode \n
+
+    @section sql_upsert Upserting or Merging Data
 
     This module offers a high-level api for "upserting" or merging data from one table into another table based on one of the following three strategies (see @ref upsert_options):
     - @ref SqlUtil::AbstractTable::UpsertInsertFirst "AbstractTable::UpsertInsertFirst": first an insert will be attempted, if it fails due to a duplicate key, then an update will be made; this strategy should be used if more inserts will be made than updates
@@ -172,24 +438,29 @@ if ($sh)
 else
     printf("*** reference data %s: OK\n", $table.getName());
     @endcode
+*/
 
-    @section schema_management Schema Management
+/** @page schema_management Schema Management
 
-    @anchor creating_new_objects
-    <b>Creating New Objects</b>
+    @tableofcontents
 
-    @anchor retrieving_objects
-    <b>Retrieving Objects from the DB</b>
+    @section schema_management_intro Introduction to Schema Management
 
-    @anchor aligning_schemas
-    <b>Aligning Schemas With a Template</b>
+    Most schema management is performed by using the @ref SqlUtil::Database "Database" class (which is a wrapper for the @ref SqlUtil::AbstractDatabase "AbstractDatabase" class).
 
-    @subsection table_management Table Management
+    The most complex object is the @ref SqlUtil::Table "Table", which has its own @ref table_management "section".
+    
+    @section creating_new_objects Creating New Objects
 
-    The main class to be used for table management is @ref SqlUtil::Table.  This class can be used both for building a table from scratch or for retrieving the structure of a table from the database.
+    @section retrieving_objects Retrieving Objects from the Database
 
-    @anchor creating_new_tables
-    <b>Creating New Tables</b>
+    @section aligning_schemas Aligning Schemas With a Template
+
+    @section table_management Table Management
+
+    The main class to be used for table management is @ref SqlUtil::Table "Table" (which is a wrapper for @ref SqlUtil::AbstractTable "AbstractTable").  This class can be used both for building a table from scratch or for retrieving the structure of a table from the database.
+
+    @subsection creating_new_tables Creating New Tables
 
     Tables can be created manually, by creating a @ref SqlUtil::Table object and then populating the table with columns, indexes, etc, and then calling @ref SqlUtil::Table::create() for example.
     The following methods can be used for adding new attributes to a table:
@@ -218,8 +489,7 @@ else
     
     Table description hashes are also used when aligning tables to a template, which can be used to automate schema upgrades; see @ref SqlUtil::Table::getAlignSql(), @ref SqlUtil::Database::getAlignSql(), and @ref table_desc_hash "table description hash" for more information.
 
-    @anchor retrieving_table_info
-    <b>Retrieving Table Information</b>
+    @subsection retrieving_table_info Retrieving Table Information
 
     The following methods retrieve table information from the database:
     - @ref SqlUtil::Table::cache() "Table::cache()": this method reads in the entire table configuration immediately
@@ -250,8 +520,7 @@ Database $db($ds);
 *AbstractTable $table = $db.getTable("table_name");
     @endcode
 
-    @anchor aligning_tables
-    <b>Aligning Tables With a Template</b>
+    @subsection aligning_tables Aligning Tables With a Template
 
     Template tables can be created any way required (ie by hand, or by retrieving the description from another database), but typically they will be created from a @ref table_desc_hash "table description hash".
 
@@ -281,8 +550,7 @@ my Table $db_table($ds, "table_name");
 $db_table.getAlignSql($template_table, $callback_opts);
     @endcode
 
-    @anchor table_desc_hash
-    <b>Table Description Hash</b>
+    @subsection table_desc_hash Table Description Hash
     
     Table description hashes have the following structure:
     - \c columns: (required) a hash of column information keyed by column name; the values are @ref column_desc_hash "column description hashes"
@@ -388,8 +656,7 @@ end;",
     - some databases will automatically create indexes for you when you create primary keys and unique constraints; some do not (ex: oracle).  In the above example, an index is created explicitly for the primary key constraint for oracle only.
     - the above example includes an additional driver-specific key for the \c "pgsql" driver: \c "functions" which is used by the PgsqlSqlUtil module to create trigger functions used by the table's trigger.
 
-    @anchor column_desc_hash
-    <b>Column Description Hash</b>
+    @subsection column_desc_hash Column Description Hash
 
     Column description hashes have the following structure:
     - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion
@@ -418,8 +685,7 @@ my hash $date_col_desc = (
 
     The above hash describes a column that will be have \c TIMESTAMP type on most databases, but \c DATE on Oracle.
 
-    @anchor pk_desc_hash
-    <b>Primary Key Description Hash</b>
+    @subsection pk_desc_hash Primary Key Description Hash
 
     The primary key description hash has the following keys:
     - \c name: (required) the name of the primary key
@@ -433,8 +699,7 @@ my hash $pk_desc = (
 );
     @endcode
 
-    @anchor fk_desc_hash
-    <b>Foreign Constraint Description Hash</b>
+    @subsection fk_desc_hash Foreign Constraint Description Hash
 
     The foreign constraint description hash has the following keys:
     - \c columns: (required) a single column name or a list of column names in the current table making up the foreign constraint
@@ -449,8 +714,7 @@ my hash $fk_desc = (
 );
     @endcode
 
-    @anchor uk_desc_hash
-    <b>Unique Constraint Description Hash</b>
+    @subsection uk_desc_hash Unique Constraint Description Hash
 
     The unique constraint description hash has the following key:
     - \c columns: (required) a single column name or a list of column names in the current table making up the unique constraint
@@ -462,8 +726,7 @@ my hash $uk_desc = (
 );
     @endcode
 
-    @anchor index_desc_hash
-    <b>Index Description Hash</b>
+    @subsection index_desc_hash Index Description Hash
 
     Index description hashes have the following structure:
     - \c columns: (required) a single column or a list of column names making up the index
@@ -520,15 +783,23 @@ public namespace SqlUtil {
      */
     #@{
     #! to rename a column on output
+    /** @see cop_as()
+    */
     public const COP_AS = "as";
 
     #! to prepend a string to a column on output
+    /** @see cop_prepend()
+    */
     public const COP_PREPEND = "prepend";
 
     #! to append a string to a column on output
+    /** @see cop_append()
+    */
     public const COP_APPEND = "append";
 
     #! to append a constant value to use as an output column value
+    /** @see cop_value()
+    */
     public const COP_VALUE = "value";
 
     #! a hash of valid column operators
@@ -541,46 +812,105 @@ public namespace SqlUtil {
     #@}
 
     /** @defgroup sql_cop_funcs SQL Column Operator Functions
-        These are functions that can be used in the \c "columns" argument for select statements
+        These are functions that can be used in the \c "columns" argument for select statements:
+        - @ref cop_as(): rename columns
+        - @ref cop_prepend(): prepend a string to the output of a column
+        - @ref cop_append(): append a string to the output of a column
+        - @ref cop_value(): return a constant value in a column
      */
     #@{
     #! returns a hash with \c cop, \c column, and \c arg keys
+    /** @param cop the column operator (one of @ref sql_cops)
+        @param column the column name
+        @param arg the argument to the operator
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @note Normally this function is not called directly, but rather by the other column operator functions
+    */
     public hash sub make_cop(string cop, string column, any arg) {
         return ("cop": cop, "column": column, "arg": arg);
     }
 
     #! returns a hash for the \c "as" operator with the given argument
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_as("errors", "error_count")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+        @param arg the new name of the output column
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
     public hash sub cop_as(string column, string arg) {
         return make_cop(COP_AS, column, arg);
     }
 
     #! returns a hash for the \c "prepend" operator with the given argument
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", cop_prepend("name", "migrated-")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+        @param arg the text to prepend to the row values in the output column
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
     public hash sub cop_prepend(string column, string arg) {
         return make_cop(COP_PREPEND, column, arg);
     }
 
     #! returns a hash for the \c "append" operator with the given argument
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", cop_append("name", "-migrated")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+        @param arg the text to append (ie concatenate) to the row values in the output column
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
     public hash sub cop_append(string column, string arg) {
         return make_cop(COP_APPEND, column, arg);
     }
 
     #! returns a hash for the \c "value" operator with the given argument
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_value(100)), "where": ("type": "user")));
+        @endcode
+
+        @param arg the value to be returned in the column
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
     public hash sub cop_value(any arg) {
         return make_cop(COP_VALUE, "", arg);
     }
     #@}
 
     /** @defgroup sql_jops SQL Join Operators
-        These are the operators that can be used in the \c "join" argument for select statements
-     */
+        These are the operators that can be used in the @ref select_option_join "join" argument in a @ref select_option_hash "select option hash"
+
+        @note these operators are normally not used directly, but rather are used by the @ref sql_jop_funcs
+    */
     #@{
     #! for standard inner joins
+    /** @see join_inner()
+    */
     public const JOP_INNER = "inner";
 
     #! for left outer joins
+    /** @see join_left()
+    */
     public const JOP_LEFT = "left";
 
     #! for right outer joins
+    /** @see join_right()
+    */
     public const JOP_RIGHT = "right";
 
     #! a hash of valid column operators
@@ -592,98 +922,154 @@ public namespace SqlUtil {
     #@}
 
     /** @defgroup sql_jop_funcs SQL Join Operator Functions
-        These are functions that can be used in the \c "join" argument for select statements
+        These are functions that can be used in the @ref select_option_join "join" argument in a @ref select_option_hash "select option hash":
+        - join_inner(): specifies an inner join
+        - join_left(): specifies a left outer join
+        - join_right(): specifies a right outer join
+
+        @note for join functions, explicit join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
      */
     #@{
     #! returns a hash keyed with the table name assigned to a hash with \c jop, \c table, \c jcols, \c cond and \c alias keys
+    /**
+        @note this function is normally not used directly, but rather is called by the other @ref sql_jop_funcs
+    */
     public hash sub make_jop(string jop, AbstractTable table, *string alias, *hash jcols, *hash cond) {
         hash h{table.getSqlName()} = ("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias);
         return h;
     }
 
     #! returns a hash for standard inner joins with the given arguments
-    /** @par Example:
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid"))));
+        @endcode
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
         @code
 my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @endcode
 
         @param table the table to join with
         @param alias the alias for \a table in the query
-        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
     public hash sub join_inner(AbstractTable table, *string alias, *hash jcols) {
         return make_jop(JOP_INNER, table, alias, jcols);
     }
 
     #! returns a hash for standard inner joins with the given arguments
-    /** @par Example:
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid"))));
+        @endcode
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
         @code
 my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @endcode
 
         @param table the table to join with
         @param alias the alias for \a table in the query
-        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
     public hash sub join_inner(Table table, *string alias, *hash jcols) {
         return make_jop(JOP_INNER, table.getTable(), alias, jcols);
     }
 
     #! returns a hash for left outer joins with the given arguments
-    /** @par Example:
+    /** @par Example With Explicit Join Columns:
         @code
-my *list $rows = $table.selectRows(("join": join_left($table2, ("id": "altid"), ("tag", op_like("offset%")))));
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+        @endcode 
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
         @param table the table to join with
         @param alias the alias for \a table in the query
-        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
     public hash sub join_left(AbstractTable table, *string alias, *hash jcols, *hash cond) {
         return make_jop(JOP_LEFT, table, alias, jcols, cond);
     }
 
     #! returns a hash for left outer joins with the given arguments
-    /** @par Example:
+    /** @par Example With Explicit Join Columns:
         @code
-my *list $rows = $table.selectRows(("join": join_left($table2, ("id": "altid"), ("tag", op_like("offset%")))));
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+        @endcode 
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
         @param table the table to join with
         @param alias the alias for \a table in the query
-        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
     public hash sub join_left(Table table, *string alias, *hash jcols, *hash cond) {
         return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond);
     }
 
     #! returns a hash for right outer joins with the given arguments
-    /** @par Example:
+    /** @par Example With Explicit Join Columns:
         @code
-my *list $rows = $table.selectRows(("join": join_right($table2, ("id": "altid"), ("tag", op_like("offset%")))));
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+        @endcode 
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
         @param table the table to join with
         @param alias the alias for \a table in the query
-        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
     public hash sub join_right(AbstractTable table, *string alias, *hash jcols, *hash cond) {
         return make_jop(JOP_RIGHT, table, alias, jcols, cond);
     }
 
     #! returns a hash for right outer joins with the given arguments
-    /** @par Example:
+    /** @par Example With Explicit Join Columns:
         @code
-my *list $rows = $table.selectRows(("join": join_right($table2, ("id": "altid"), ("tag", op_like("offset%")))));
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+        @endcode 
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
         @param table the table to join with
         @param alias the alias for \a table in the query
-        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
     public hash sub join_right(Table table, *string alias, *hash jcols, *hash cond) {
         return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond);
@@ -694,31 +1080,47 @@ my *list $rows = $table.selectRows(("join": join_right($table2, ("id": "altid"),
         These are the operators that can be used in where clauses; see @ref where_clauses for more information
      */
     #@{
-    #! the SQL "like" operator
+    #! the SQL "like" operator for use in @ref where_clauses
+    /** @see op_like()
+    */
     public const OP_LIKE = "like";
 
-    #! the SQL less than (<) operator
+    #! the SQL less than (<) operator for use in @ref where_clauses
+    /** @see op_lt()
+    */
     public const OP_LT = "<";
 
-    #! the SQL less than or equals (<=) operator
+    #! the SQL less than or equals (<=) operator for use in @ref where_clauses
+    /** @see op_le()
+    */
     public const OP_LE = "<=";
 
-    #! the SQL greater than operator (>)
+    #! the SQL greater than operator (>) for use in @ref where_clauses
+    /** @see op_gt()
+    */
     public const OP_GT = ">";
 
-    #! the SQL greater than or equals operator (>=)
+    #! the SQL greater than or equals operator (>=) for use in @ref where_clauses
+    /** @see op_ge()
+    */
     public const OP_GE = ">=";
 
-    #! the SQL not equals operator (!= or <>)
+    #! the SQL not equals operator (!= or <>) for use in @ref where_clauses
+    /** @see op_ne()
+    */
     public const OP_NE = "!=";
 
-    #! the SQL \c "between" operator
+    #! the SQL \c "between" operator for use in @ref where_clauses
+    /** @see op_between()
+    */
     public const OP_BETWEEN = "between";
 
-    #! the SQL \c "in" operator
+    #! the SQL \c "in" operator for use in @ref where_clauses
+    /** @see op_in()
+    */
     public const OP_IN = "in";
 
-    #! a hash of valid operators
+    #! a hash of valid operators for use in @ref where_clauses
     public const OpMap = (
       OP_LIKE: True,
       OP_LT: True,
@@ -732,7 +1134,15 @@ my *list $rows = $table.selectRows(("join": join_right($table2, ("id": "altid"),
     #@}
 
     /** @defgroup sql_op_funcs SQL Operator Functions
-        These are the operators that can be used in where clauses; see @ref where_clauses for more information
+        These are the operators that can be used in where clauses; see @ref where_clauses for more information:
+        - op_between(): for the \c "between" operator
+        - op_ge(): for the \c ">=" operator
+        - op_gt(): for the \c ">" operator
+        - op_in(): for the \c "in" operator
+        - op_like(): for the \c "like" operator
+        - op_le(): for the \c "<=" operator
+        - op_lt(): for the \c "<" operator
+        - op_ne(): for the \c "!=" or \c "<>" operator
      */
     #@{
     #! returns a hash with \c op and \c arg keys
@@ -740,38 +1150,102 @@ my *list $rows = $table.selectRows(("join": join_right($table2, ("id": "altid"),
         return ("op": op, "arg": arg);
     }
 
-    #! returns a hash for the \c "like" operator with the given argument
+    #! returns a hash for the \c "like" operator with the given argument for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_like("%smith%"))));
+        @endcode
+
+        @param str the argument for the operator
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+    */
     public hash sub op_like(string str) {
         return make_op(OP_LIKE, str);
     }
 
-    #! returns a hash for the \c "<" operator with the given argument
+    #! returns a hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_lt("Zebra"))));
+        @endcode
+
+        @param arg the argument for the operator
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+    */
     public hash sub op_lt(any arg) {
         return make_op(OP_LT, arg);
     }
 
-    #! returns a hash for the \c "<=" operator with the given argument
+    #! returns a hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_le("Zebra"))));
+        @endcode
+
+        @param arg the argument for the operator
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+    */
     public hash sub op_le(any arg) {
         return make_op(OP_LE, arg);
     }
 
-    #! returns a hash for the \c ">" operator with the given argument
+    #! returns a hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_gt("Apple"))));
+        @endcode
+
+        @param arg the argument for the operator
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+    */
     public hash sub op_gt(any arg) {
         return make_op(OP_GT, arg);
     }
 
-    #! returns a hash for the \c ">=" operator with the given argument
+    #! returns a hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_ge("Apple"))));
+        @endcode
+
+        @param arg the argument for the operator
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+    */
     public hash sub op_ge(any arg) {
         return make_op(OP_GE, arg);
     }
 
-    #! returns a hash for the \c "!=" operator with the given argument
+    #! returns a hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_ne("Smith"))));
+        @endcode
+
+        @param arg the argument for the operator
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+    */
     public hash sub op_ne(any arg) {
         return make_op(OP_NE, arg);
     }
 
-    #! returns a hash for the \c "between" operator with the given arguments, neither of which can be @ref null or @ref nothing
-    /** @throw BETWEEN-ERROR one or both of the required arguments are @ref null or @ref nothing
+    #! returns a hash for the \c "between" operator with the given arguments, neither of which can be @ref null or @ref nothing; for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_between("US", "UX"))));
+        @endcode
+
+        @param l the lower bound for the \c "between" operator
+        @param r the upper bound for the \c "between" operator
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @throw BETWEEN-ERROR one or both of the required arguments are @ref null or @ref nothing
      */
     public hash sub op_between(any l, any r) {
         if (!exists l || l === NULL)
@@ -781,12 +1255,28 @@ my *list $rows = $table.selectRows(("join": join_right($table2, ("id": "altid"),
         return make_op(OP_BETWEEN, (l, r));
     }
 
-    #! returns a hash for the \c "in" operator with all arguments passed to the function
+    #! returns a hash for the \c "in" operator with all arguments passed to the function; for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_in(200, 300, 500, 9))));
+        @endcode
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+    */
     public hash sub op_in() {
         return make_op(OP_IN, argv);
     }    
 
-    #! returns a hash for the \c "in" operator with the given argument list as the first argument
+    #! returns a hash for the \c "in" operator with the given argument list as the first argument; for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_in($idlist))));
+        @endcode
+
+        @param args a list of values for the \c "in" operator
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+    */
     public hash sub op_in(list args) {
         return make_op(OP_IN, args);
     }    
@@ -5162,7 +5652,7 @@ $table.insert($row);
 
             @param cols the list of column names to use to insert in the current able
             @param source the source table for the select statement
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return the number of rows inserted
@@ -5182,7 +5672,7 @@ $table.insert($row);
 
             @param cols the list of column names to use to insert in the current able
             @param source the source table for the select statement
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return the number of rows inserted
@@ -5323,7 +5813,7 @@ my int $cnt = $table.rowCount();
 my SQLStatement $i = $table.getRowIterator();
             @endcode
 
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return an SQLStatement object that will iterate the results of a select statement matching the arguments
@@ -5345,7 +5835,8 @@ my SQLStatement $i = $table.getRowIterator();
 my *list $l = $table.selectRows($sh);
             @endcode
 
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return a list of hashes representing the rows in the table that match the argument hash
 
@@ -5364,7 +5855,7 @@ my *list $l = $table.selectRows($sh);
 my *hash $h = $table.select($sh);
             @endcode
 
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return a hash of lists representing the columns and rows in the table that match the argument hash
@@ -5385,7 +5876,7 @@ my list $args;
 my string $sql = $table.getSelectSql($sh, \$args);
             @endcode
 
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param args an optional reference to a list for any bind arguments
 
             @return the SQL that can be used to execute a select on the database corresponding to the arguments; the select bind arguments are returned in an output parameter
@@ -5769,7 +6260,7 @@ my *list $rows = $table.find($list);
         #! finds a row in the table with the given primary key value given as a hash; if no row matches the primary key value passed then @ref nothing is returned
         /** @par Example:
             @code
-my *hash $row = $table.find($id);
+my *hash $row = $table.find(("account_type": $type, "name": $name));
             @endcode
 
             @param row a hash giving the primary key value to find; other columns may also appear in the hash, however at least all columns of the primary key must be present
@@ -5958,12 +6449,13 @@ my Triggers $trig = $table.getTriggers();
 
             #! default select options
             /** the possible keys for select options are as follows (all keys are optional):
-                - \c columns: an optional list of string column names for the output of the query
-                - \c where: see @ref where_clauses for more information about the hash that can be assigned to this key
-                - \c orderby: an optional list of strings that can be used to order the results
-                - \c desc: an optional boolean flag to return results in descending order
-                - \c limit: an optional integer value to limit the number of rows returned
-                - \c offset: an optional integer value to give the row number offset for the rows returned; if this is present, then \c orderby must also be present
+                - @ref select_option_columns "columns": describes the output columns and any output column operations
+                - @ref select_option_where "where": describes how any \c where" clause will be built
+                - @ref select_option_orderby "orderby": describes the ordering of the results
+                - @ref select_option_desc "desc": specifies descending order for results
+                - @ref select_option_limit "limit": specifies the maximum number of results to be returned
+                - @ref select_option_offset "offset": specifies the starting offset of the first record to be returned (starting with 0)
+                - @ref select_option_join "join": specifies any SQL join operations to return results from multiple tables
              */
             const SelectOptions = (
                 "columns": Type::NothingType,
@@ -8348,7 +8840,7 @@ $table.insert($row);
 
             @param cols the list of column names to use to insert in the current able
             @param source the source table for the select statement
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return the number of rows inserted
@@ -8371,7 +8863,7 @@ $table.insert($row);
 
             @param cols the list of column names to use to insert in the current able
             @param source the source table for the select statement
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return the number of rows inserted
@@ -8526,7 +9018,7 @@ my int $cnt = $table.rowCount();
 my SQLStatement $i = $table.getRowIterator($sh);
             @endcode
 
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return an SQLStatement object that will iterate the results of a select statement matching the arguments
@@ -8557,7 +9049,7 @@ my SQLStatement $i = $table.getRowIterator($sh);
 my *list $l = $table.selectRows($sh);
             @endcode
 
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return a list of hashes representing the rows in the table that match the argument hash
@@ -8582,7 +9074,7 @@ my *list $l = $table.selectRows($sh);
 my *hash $h = $table.select($sh);
             @endcode
 
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
             @return a hash of lists representing the columns and rows in the table that match the argument hash
@@ -8608,7 +9100,7 @@ my list $args;
 my string $sql = $table.getSelectSql($sh, \$args);
             @endcode
 
-            @param sh a hash of conditions for the select statement; see @ref AbstractTable::SelectOptions for information about this argument
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param args an optional reference to a list for any bind arguments
 
             @return the SQL that can be used to execute a select on the database corresponding to the arguments; the select bind arguments are returned in an output parameter
@@ -8658,7 +9150,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     if (!primaryKey.empty())
                         qh.orderby = primaryKey.keys();
                     else
-                        throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) but no 'orderby'", getName(), qh.offset);
+                        throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) but no 'orderby' and the table has no primary key", getName(), qh.offset);
                 }
                 if (!qh.limit)
                     throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) without limit", getName(), qh.offset);
@@ -10143,7 +10635,7 @@ my *list $rows = $table.find($list);
         #! finds a row in the table with the given primary key value given as a hash; if no row matches the primary key value passed then @ref nothing is returned
         /** @par Example:
             @code
-my *hash $row = $table.find($h);
+my *hash $row = $table.find(("account_type": $type, "name": $name));
             @endcode
 
             @param row a hash giving the primary key value to find; other columns may also appear in the hash, however at least all columns of the primary key must be present
