@@ -156,7 +156,7 @@ my *list $rows = $table.selectRows($sh);
     @endcode
     If no rows match, then @ref nothing is returned.
 
-    @subsection get_row_iterator Acquire a Row Iterator for Query Results
+    @subsection get_row_iterator Acquiring a Row Iterator for Query Results
     @par From Complex Select Criteria
     To get an iterator for the row values corresponding to a select statement, use @ref SqlUtil::Table::getRowIterator():
     @code
@@ -290,7 +290,7 @@ my *list $rows = $table.selectRows(("columns": ("name", "version", "id", cop_as(
                                             + join_left("function_instance_tags", "lt", NOTHING, ("st.tag": "_offset"))));
     @endcode
 
-    To join multiple tables in a single query, use the \c "join" option.  The \c "join" hash key should be assigned to a join description hash as returned by one of the @ref sql_jop_funcs or combined join descripion hash created by concatenating such values (see an example of this above).
+    To join multiple tables in a single query, use the \c "join" option.  The \c "join" hash key should be assigned to a join description hash as returned by one of the @ref sql_jop_funcs or combined join description hash created by concatenating such values (see an example of this above).
 
     @note the join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
 
