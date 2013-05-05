@@ -2095,9 +2095,54 @@ my *string $sql = $tables.getRenameTableIfExistsSql($old_name, $new_name);
                 return;
 
             AbstractTable t = h{old_name};
+            string oldsn = t.getSqlName();
             *string sql = t.getRenameSql(new_name, opts);
-            if (opts.sql_callback_executed)
+            if (opts.sql_callback_executed) {
                 renameKey(old_name, new_name);
+
+                # search through all unique keys and rename foreign keys in source tables
+                foreach AbstractUniqueConstraint uk in (t.getUniqueConstraintIterator()) {
+                    foreach hash sch in (uk.getSourceConstraintIterator()) {
+                        printf("RENAMING TABLE IN FOREIGN KEY in %y.%y\n", sch.table, sch.fk.getName());
+                        sch.fk.target.table = t.getName();
+                    }
+                }
+
+                if (!t.getForeignConstraints().empty()) {
+                    string newsn = t.getSqlName();
+
+                    # search through all foreign constraints and try to rename source constraints
+                    foreach AbstractForeignConstraint fk in (t.getForeignConstraints().iterator()) {
+                        if (h{fk.target.table}) {
+                            AbstractTable tt = h{fk.target.table};
+                            printf("RENAMING TABLE IN SOURCE CONSTRAINT in %y.%y\n", tt.getName(), fk.getName());
+                            foreach AbstractUniqueConstraint uk in (tt.getUniqueConstraintIterator())
+                                uk.renameSourceConstraintTable(oldsn, newsn);
+                        }
+                    }
+                }
+            }
+            return sql;
+        }
+
+        *string getDropConstraintIfExistsSql(string tname, string cname, *hash opts) {
+            if (!h{tname})
+                return;
+
+            AbstractTable t = h{tname};
+            AbstractConstraint c;
+            *string sql = t.getDropConstraintIfExistsSql(cname, opts, \c);
+            if (!sql)
+                return;
+            if (c instanceof AbstractForeignConstraint) {
+                AbstractForeignConstraint fk = c;
+                if (h{fk.target.table}) {
+                    AbstractTable tt = h{fk.target.table};
+                    list cols = fk.target.columns.keys();
+                    foreach AbstractUniqueConstraint uk in (tt.getUniqueConstraintIterator())
+                        uk.removeSourceConstraint(t.getSqlName(), cols);
+                }
+            }
             return sql;
         }
 
@@ -2808,6 +2853,18 @@ $uk.addSourceConstraint($table_name, constraint_name);
                 throw "SOURCE-CONSTRAINT-ERROR", sprintf("unique constraint %y: already has a source constraint from table %y from foreign constraint %y", name, tname, fk.getName());
             sourceConstraints{tname}{fk.getName()} = fk;
             #printf("added source constraint to %y: %s.%s\n", name, tname, fk.getName());
+        }
+
+        #! removes a source constraint
+        removeSourceConstraint(string tname, list cols) {
+            if (matchKeys(cols))
+                remove sourceConstraints{tname};
+        }
+
+        #! renames a table in a source constraint
+        renameSourceConstraintTable(string old_name, string new_name) {
+            if (sourceConstraints{old_name})
+                sourceConstraints{new_name} = remove sourceConstraints{old_name};
         }
 
         #! returns @ref Qore::True "True" if the constraint references the named column
@@ -5454,6 +5511,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
 
             @param cname the name of the constraint to drop
             @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param cref an optional reference to an AbstractConstraint object that will return the constraint dropped
 
             @return the SQL that can be used to drop a constraint from the table if it exists, otherwise returns @ref nothing; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
 
@@ -5463,8 +5521,8 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        *string getDropConstraintIfExistsSql(string cname, *hash opt) {
-            return t.getDropConstraintIfExistsSql(cname, opt);
+        *string getDropConstraintIfExistsSql(string cname, *hash opt, *reference cref) {
+            return t.getDropConstraintIfExistsSql(cname, opt, \cref);
         }
 
         #! drops the index from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
@@ -7079,6 +7137,10 @@ $table.rename("new_name");
             on_exit l.unlock();
 
             execSql(sql = getRenameSqlImpl(name, new_name));
+            doRenameIntern(new_name);
+        }
+
+        private doRenameIntern(string new_name) {
             name = new_name;
         }
 
@@ -8567,6 +8629,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
 
             @param cname the name of the constraint to drop
             @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param cref an optional reference to an AbstractConstraint object that will return the constraint dropped
 
             @return the SQL that can be used to drop a constraint from the table if it exists, otherwise returns @ref nothing; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
 
@@ -8576,7 +8639,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        *string getDropConstraintIfExistsSql(string cname, *hash opt) {
+        *string getDropConstraintIfExistsSql(string cname, *hash opt, *reference cref) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
             l.lock();
@@ -8586,6 +8649,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
             AbstractConstraint c;
             try {
                 c = findDropConstraintUnlocked(cname, \rmv);
+                cref = c;
             }
             catch (hash ex) {
                 if (ex.err == "CONSTRAINT-ERROR")
@@ -10281,7 +10345,7 @@ my string $sql = $table.getRenameSql("new_name");
             on_exit l.unlock();
 
             on_success if (opt.sql_callback_executed)
-                name = new_name;
+                doRenameIntern(new_name);
 
             return AbstractDatabase::doCallback(opt, getRenameSqlImpl(new_name), "rename table %s to %s", name, new_name);
         }

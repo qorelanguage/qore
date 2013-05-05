@@ -1294,8 +1294,11 @@ my any $v = $c.name;
 
             OraclePrimaryKey pk(pkname, rv);
             # set the base index if present
-            if (qh.index_name[0])
-                pk.setIndexBase(qh.index_name[0]);            
+            if (qh.index_name[0]) {
+                if (!native_case)
+                    qh.index_name[0] = qh.index_name[0].lwr();
+                pk.setIndexBase(qh.index_name[0]);
+            }
             return pk;
         }
 
