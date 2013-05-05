@@ -62,6 +62,7 @@
     - fixed a bug where a non-variable-reference member of an "our" variable declaration list would cause a crash due to passing the incorrect argument in sprintf()
     - fixed sandboxing / protection errors with inherited code; subclasses inheriting code from a parent class with different parse options would cause the child parse options to be used when running the parent class code which caused errors; now parse options are enforced properly on the block level
     - fixed the RangeIterator class; it was still abstract due to a missing @ref Qore::RangeIterator::valid() method
+    - fixed a bug where the wrong error was being returned after a connection reset (remote connection close) in sockets with integer recv*() methods which could in some cases lead to an infinite loop
 
     @section qore_087 Qore 0.8.7
 

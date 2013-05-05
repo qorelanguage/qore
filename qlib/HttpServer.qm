@@ -964,8 +964,9 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		delete $body;
 		delete $hdr;
 
-		if (!$s.isDataAvailable(HttpServer::PollTimeout))
+		if (!$s.isDataAvailable(HttpServer::PollTimeout)) {
 		    continue;
+                }
 		
 		try {
 		    $hdr = $s.readHTTPHeader(HttpServer::ReadTimeout);

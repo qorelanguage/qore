@@ -1565,6 +1565,12 @@ struct qore_socket_private {
    }
    
    DLLLOCAL qore_offset_t recv(ExceptionSink* xsink, const char* meth, char *buf, qore_size_t bs, int flags, int timeout, bool do_event = true) {
+      if (sock == QORE_INVALID_SOCKET) {
+	 if (xsink)
+	    se_not_open(meth, xsink);
+	 return QSE_NOT_OPEN;
+      }
+
       assert(meth);
 
       //printd(5, "qore_socket_private::recv(buf=%p, bs=%d, flags=%d, timeout=%d, do_event=%d) this=%p ssl=%d\n", buf, (int)bs, flags, timeout, (int)do_event, this, ssl);
@@ -1687,13 +1693,6 @@ struct qore_socket_private {
    }
 
    DLLLOCAL QoreStringNode* recv(qore_offset_t bufsize, int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
-      if (sock == QORE_INVALID_SOCKET) {
-	 if (xsink)
-	    se_not_open("recv", xsink);
-	 rc = QSE_NOT_OPEN;
-	 return 0;
-      }
-
       qore_size_t bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
       QoreStringNode *str = new QoreStringNode(enc);
@@ -1737,13 +1736,6 @@ struct qore_socket_private {
    }
 
    DLLLOCAL QoreStringNode* recv(int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
-      if (sock == QORE_INVALID_SOCKET) {
-	 if (xsink)
-	    se_not_open("recv", xsink);
-	 rc = QSE_NOT_OPEN;
-	 return 0;
-      }
-
       // perform first read with timeout
       char *buf = (char *)malloc(sizeof(char) * (DEFAULT_SOCKET_BUFSIZE + 1));
       rc = recv(xsink, "recv", buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
@@ -1786,13 +1778,6 @@ struct qore_socket_private {
    }
 
    DLLLOCAL BinaryNode *recvBinary(qore_offset_t bufsize, int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
-      if (sock == QORE_INVALID_SOCKET) {
-	 if (xsink)
-	    se_not_open("recvBinary", xsink);
-	 rc = QSE_NOT_OPEN;
-	 return 0;
-      }
-
       qore_size_t bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
       SimpleRefHolder<BinaryNode> b(new BinaryNode);
@@ -1827,13 +1812,6 @@ struct qore_socket_private {
 
    DLLLOCAL BinaryNode *recvBinary(int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
       //printd(5, "QoreSocket::recvBinary(%d, "QSD") this=%p\n", timeout, rc, this);
-      if (sock == QORE_INVALID_SOCKET) {
-	 if (xsink)
-	    se_not_open("recvBinary", xsink);
-	 rc = QSE_NOT_OPEN;
-	 return 0;
-      }
-
       // perform first read with timeout
       char *buf = (char *)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
       rc = recv(xsink, "recvBinary", buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
@@ -1874,14 +1852,6 @@ struct qore_socket_private {
    }
 
    DLLLOCAL AbstractQoreNode* readHTTPHeader(ExceptionSink* xsink, QoreHashNode *info, int timeout, qore_offset_t& rc, int source) {
-      if (sock == QORE_INVALID_SOCKET) {
-	 if (xsink)
-	    se_not_open("readHTTPHeader", xsink);
-
-	 rc = QSE_NOT_OPEN;
-	 return 0;
-      }
-
       QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPHeader", timeout, rc));
       if (!hdr) {
 	 assert(*xsink);
