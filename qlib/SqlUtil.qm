@@ -1988,8 +1988,10 @@ my int $num = $l.size();
             delete h;
             Database db(ds);
             foreach string name in (db.tableIterator()) {
-                if (h.hasKey(name))
+                if (h{name}) {
+                    h{name}.cache();
                     continue;
+                }
                 Table t(ds, name);
                 t.cache(("table_cache": self));
                 h{name} = t.getTable();
@@ -9573,24 +9575,24 @@ my string $sql = $table.getSelectSql($sh, \$args);
             return sql;
         }
 
+        private string getColumnExpressionIntern(any cvc, *hash jch, bool join) {
+            if (cvc.typeCode() == NT_HASH)
+                return doColumnOperatorIntern(cvc, jch, join);
+            if (cvc.typeCode() == NT_STRING)
+                return getColumnNameIntern(cvc, jch, join);
+            throw "SELECT-ERROR", sprintf("column operator hash %y has an invalid \"column\" key; expecting a string column specification or a column operator description hash", cvc);
+        }
+
         private string doColumnOperatorIntern(hash cv, *hash jch, bool join) {
             if (cv.cop.typeCode() != NT_STRING)
                 throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"cop\" key giving the column operator name", cv);
                             
             string rv;
-
-            # get column value expression (column name or subexpression)
-            string cve;
-            if (cv.column.typeCode() == NT_HASH)
-                cve = doColumnOperatorIntern(cv.column, jch, join);
-            else if (cv.column.typeCode() == NT_STRING)
-                cve = getColumnNameIntern(cv.column, jch, join);
-            else
-                throw "SELECT-ERROR", sprintf("column operator hash %y has an invalid \"column\" key; expecting a string column specification or a column operator description hash", cv.column);
-
             # process column operators
             switch (cv.cop) {
                 case COP_AS: {
+                    # get column value expression (column name or subexpression)
+                    string cve = getColumnExpressionIntern(cv.column, jch, join);
                     if (cv.arg.typeCode() != NT_STRING)
                         throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the output column name", cv);
                     rv = sprintf("%s as %y", cve, cv.arg);
@@ -9598,6 +9600,8 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 }
                        
                 case COP_PREPEND: {
+                    # get column value expression (column name or subexpression)
+                    string cve = getColumnExpressionIntern(cv.column, jch, join);
                     if (cv.arg.typeCode() != NT_STRING)
                         throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the string argument", cv);
                     rv = getColumnOperatorPrepend(cve, cv.arg);
@@ -9605,6 +9609,8 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 }
 
                 case COP_APPEND: {
+                    # get column value expression (column name or subexpression)
+                    string cve = getColumnExpressionIntern(cv.column, jch, join);
                     if (cv.arg.typeCode() != NT_STRING)
                         throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the string argument", cv);
                     rv = getColumnOperatorAppend(cve, cv.arg);
@@ -9617,11 +9623,15 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 }
 
                 case COP_UPPER: {
+                    # get column value expression (column name or subexpression)
+                    string cve = getColumnExpressionIntern(cv.column, jch, join);
                     rv = sprintf("upper(%s)", cve);
                     break;
                 }
 
                 case COP_LOWER: {
+                    # get column value expression (column name or subexpression)
+                    string cve = getColumnExpressionIntern(cv.column, jch, join);
                     rv = sprintf("lower(%s)", cve);
                     break;
                 }
@@ -10194,7 +10204,6 @@ $table.cache();
             @code
 $table.clear();
             @endcode
-
         */
         clear() {
             l.lock();
@@ -11237,7 +11246,6 @@ my *list $rows = $table.findAll($h);
                 foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
                     if (!opt.table_cache.hasKey(fk.target.table)) {
                         Table t(ds, fk.target.table);
-                        t.getAllConstraintsUnlocked();
                         opt.table_cache.add(fk.target.table, t.getTable());
                         #printf("ERROR: missing %y in table cache (adding fk %y to %y)\n", fk.target.table, fk.getName(), getName());
                     }
@@ -11251,6 +11259,8 @@ my *list $rows = $table.findAll($h);
             bool lock = !l.lockOwner();
             if (lock) l.lock();
             on_exit if (lock) l.unlock();
+
+            getAllConstraintsUnlocked();
 
             # find unique constraint with the given columns
             if (primaryKey && primaryKey.matchKeys(fk.target.columns)) {
