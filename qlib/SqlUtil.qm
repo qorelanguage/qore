@@ -135,7 +135,7 @@ my *list $rows = $table.find($list);
     @code
 my *list $rows = $table.findAll(("id": op_gt(100), "created": op_gt(2013-03-01)));
     @endcode
-    see @ref where_clauses for a description of the hash argument; if no rows match, @ref nothing is returned.
+    See @ref where_clauses for a description of the hash argument; if no rows match, @ref nothing is returned.
 
     @par From Complex Select Criteria
     To select a hash keyed by column name of lists (row values) based on complex select criteria, use @ref SqlUtil::Table::select():
@@ -149,7 +149,8 @@ my hash $sh = (
 );
 my *hash $h = $table.select($sh);
     @endcode
-    If no rows match, then a hash with column names assigned to empty lists is returned.\n\n
+    See @ref select_option_hash for a description of the hash argument; if no rows match, then a hash with column
+    names assigned to empty lists is returned.\n\n
     To select a list of row hashes based on complex select criteria, use @ref SqlUtil::Table::selectRows():
     @code
 my *list $rows = $table.selectRows($sh);
@@ -165,7 +166,33 @@ my SQLStatement $i = $table.getRowIterator($sh);
 on_exit $ds.commit();
 map printf("row: %y\n", $1), $i;
     @endcode
-    If no argument is passed to the method, then an iterator for all rows in the table is returned.
+    See @ref select_option_hash for a description of the hash argument; if no argument is passed to the method,
+    then an iterator for all rows in the table is returned.
+
+    @subsection get_rows_in_batches Retrieving Multiple Rows in Batches
+    @par From Complex Select Criteria
+    Multiple rows can be retrieved from a single call to an @ref Qore::SQL::SQLStatement object as returned by @ref SqlUtil::Table::getRowIterator():
+    @code
+my Table $t($ds, "table_name");
+my SQLStatement $i = $table.getRowIterator($sh);
+on_exit $ds.commit();
+while (True) {
+    my list $l = $i.fetchRows(1000);
+    if (!$l)
+        break;
+    printf("rows read: %d\n", $l.size());
+}
+    @endcode
+    See @ref select_option_hash for a description of the hash argument; if no argument is passed to the method,
+    then an iterator for all rows in the table is returned.
+
+    @subsection column_spec Specifying Columns in Query Output
+    @par From Complex Select Criteria
+    @ref SqlUtil::Table "Table" methods taking a @ref select_option_hash argument support specifying output columns including column operators by assigning a column / column operator list to the @ref select_option_columns "columns" key.
+    @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count")), "where": ("type": "user")));
+    @endcode
+    @see @ref select_option_columns for details about the \c "columns" option of the @ref select_option_hash
 
     @section selecting_data Selecting Data
 
@@ -210,14 +237,40 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", "started", cop_as(
 
     By default, all columns are returned from a query; to limit the columns returned, or to perform column operations on the columns returned, use the \c "columns" option of the @ref select_option_hash "select option hash".
 
-    This option takes a list, each element of the list can be one of the following:
-    - a simple string giving a column name; ex: \c "name"
-    - a string giving a table or table alias and a column name in dot notation (for use with @ref select_option_join "joins"); ex: \c "q.name"
-    - a column operation specified by a @ref sql_cop_funcs "column operator function"
-    - the value \c "*" meaning all columns
-    - a string giving a table or table alias and a \c "*" in dot notation, meaning all columns for that particular table or alias (ex: \c "q.*")
+    This option takes a list, each element of the list can be one of the following.
 
-    Note that for @ref sql_cop_funcs "column operator functions" taking a column name, either a string name or a name in dot notation is acceptable.
+    @par A Simple String Giving a Column Name
+    ex: \c "name"
+    @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", "started")));
+    @endcode
+
+    @par A String in Dot Notation
+    This format is for use with @ref select_option_join "joins"; ex: \c "q.name"
+    @code
+my *list $rows = $table.selectRows(("columns": ("table.id", "t2.customer_name"), "join": join_inner($table2, "t2", ("id": "altid"))));
+    @endcode
+
+    @par A Column Operation Specified by a Column Operator Function
+    ex: <tt>cop_as("column_name", "column_alias")</tt> \n
+    See @ref sql_cop_funcs "column operator function" for more information on column operator functions
+    @code
+my *list $rows = $table.selectRows(("columns": ("id", cop_as("warnings", "warning_count"), cop_as("errors", "error_count"))));
+    @endcode
+    For @ref sql_cop_funcs "column operator functions" taking a column name, either a string name or a name in dot notation is acceptable
+
+    @par The Value "*" Meaning All Columns
+    ex: \c "*"
+    @code
+my *list $rows = $table.selectRows(("columns": "*"));
+    @endcode
+    This is the default if no \c "columns" key is included in the @ref select_option_hash
+
+    @par An "*" in Dot Notation
+    ex: \c "q.*"
+    @code
+my *list $rows = $table.selectRows(("columns": ("table.id", "t2.*"), "join": join_inner($table2, "t2", ("id": "altid"))));
+    @endcode
 
     @subsection select_option_where "where" Select Option
     
@@ -340,7 +393,7 @@ $ds.vselectRows("select * from public.table where type = %v order by type limit 
 
     @note the above list also applies to the corresponding @ref SqlUtil::AbstractTable methods
 
-    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.
+    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; combining expressions with \c "OR" is not yet supported.
 
     The where condition hash has the following format:
     - each key gives a column name or a table/alias with column name in dot notation
@@ -810,12 +863,24 @@ public namespace SqlUtil {
     */
     public const COP_VALUE = "value";
 
+    #! to return column value in upper case
+    /** @see cop_upper()
+    */
+    public const COP_UPPER = "upper";
+
+    #! to return column value in lower case
+    /** @see cop_lower()
+    */
+    public const COP_LOWER = "lower";
+
     #! a hash of valid column operators
     public const CopMap = (
       COP_AS: True,
       COP_PREPEND: True,
       COP_APPEND: True,
       COP_VALUE: True,
+      COP_UPPER: True,
+      COP_LOWER: True,
         );
     #@}
 
@@ -825,6 +890,14 @@ public namespace SqlUtil {
         - @ref cop_prepend(): prepend a string to the output of a column
         - @ref cop_append(): append a string to the output of a column
         - @ref cop_value(): return a constant value in a column
+        - @ref cop_upper(): return a column in upper case
+        - @ref cop_lower(): return a column in lower case
+
+        Column operator functions can be nested as in the following example:
+        @par Example:
+        @code
+my *hash $rows = t.selectRows(("columns": cop_as(cop_lower("permission_type"), "perm"), "where": ("permission_type": "USER"), "limit": 100, "offset": 200));
+        @endcode
      */
     #@{
     #! returns a hash with \c cop, \c column, and \c arg keys
@@ -836,8 +909,12 @@ public namespace SqlUtil {
 
         @note Normally this function is not called directly, but rather by the other column operator functions
     */
-    public hash sub make_cop(string cop, string column, any arg) {
-        return ("cop": cop, "column": column, "arg": arg);
+    public hash sub make_cop(string cop, any column, any arg) {
+        switch (column.typeCode()) {
+            case NT_HASH:
+            case NT_STRING: return ("cop": cop, "column": column, "arg": arg);
+            default: throw "MAKE-COLUMN-OPERATOR-ERROR", sprintf("invalid column value passed to make_cop(); got type %y, expecting \"string\" or \"hash\"", column.type());
+        }
     }
 
     #! returns a hash for the \c "as" operator with the given argument
@@ -851,7 +928,7 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_as("errors", "
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_as(string column, string arg) {
+    public hash sub cop_as(any column, string arg) {
         return make_cop(COP_AS, column, arg);
     }
 
@@ -866,7 +943,7 @@ my *list $rows = $table.selectRows(("columns": ("id", cop_prepend("name", "migra
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_prepend(string column, string arg) {
+    public hash sub cop_prepend(any column, string arg) {
         return make_cop(COP_PREPEND, column, arg);
     }
 
@@ -881,7 +958,7 @@ my *list $rows = $table.selectRows(("columns": ("id", cop_append("name", "-migra
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_append(string column, string arg) {
+    public hash sub cop_append(any column, string arg) {
         return make_cop(COP_APPEND, column, arg);
     }
 
@@ -897,6 +974,132 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_value(100)), "
     */
     public hash sub cop_value(any arg) {
         return make_cop(COP_VALUE, "", arg);
+    }
+
+    #! returns a hash for the \c "upper" operator with the given argument; returns a column value in upper case
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", cop_upper("name")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_upper(any column) {
+        return make_cop(COP_UPPER, column);
+    }
+
+    #! returns a hash for the \c "lower" operator with the given argument; returns a column value in lower case
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", cop_lower("name")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_lower(any column) {
+        return make_cop(COP_LOWER, column);
+    }
+    #@}
+
+    /** @defgroup sql_uops SQL Update Operators
+        These are the operators that can be used in update statements to process column values automatically
+     */
+    #! a hash of valid update operators
+    public const UopMap = (
+      COP_PREPEND: True,
+      COP_APPEND: True,
+      COP_UPPER: True,
+      COP_LOWER: True,
+        );
+    #@}
+
+    /** @defgroup sql_uop_funcs SQL Update Operator Functions
+        These are functions that can be used as the values of update keys in select statements:
+        - @ref uop_prepend(): prepend a string to the output of a column
+        - @ref uop_append(): append a string to the output of a column
+        - @ref uop_upper(): return a column in upper case
+        - @ref uop_lower(): return a column in lower case
+
+        Update operator functions can be nested as in the following example:
+        @par Example:
+        @code
+my int $rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
+        @endcode
+     */
+    #@{
+    #! returns a hash with \c uop, \c arg, and \c nest keys
+    /** @param uop the update operator (one of @ref sql_uops)
+        @param arg the argument to the operator
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+
+        @note Normally this function is not called directly, but rather by the other update operator functions
+    */
+    public hash sub make_uop(string uop, any arg, *hash nest) {
+        return ("uop": uop, "arg": arg, "nest": nest);
+    }
+
+    #! returns a hash for the \c "prepend" operator with the given argument
+    /** @par Example:
+        @code
+my int $rows_updated = t.update(("permission_type": uop_prepend("migrated-", uop_lower())));
+        @endcode
+
+        @param arg the text to prepend to the row values in the output column
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_prepend(string arg, *hash nest) {
+        return make_uop(COP_PREPEND, arg, nest);
+    }
+
+    #! returns a hash for the \c "append" or concatenate operator with the given argument
+    /** @par Example:
+        @code
+my int $rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
+        @endcode
+
+        @param arg the text to prepend to the row values in the output column
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_append(string arg, *hash nest) {
+        return make_uop(COP_APPEND, arg, nest);
+    }
+
+    #! returns a hash for the \c "upper" operator with the given argument; returns a column value in upper case
+    /** @par Example:
+        @code
+my int $rows_updated = t.update(("permission_type": uop_upper()));
+        @endcode
+
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_upper(*hash nest) {
+        return make_uop(COP_UPPER, nest);
+    }
+
+    #! returns a hash for the \c "lower" operator with the given argument; returns a column value in lower case
+    /** @par Example:
+        @code
+my int $rows_updated = t.update(("permission_type": uop_lower()));
+        @endcode
+
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_lower(*hash nest) {
+        return make_uop(COP_LOWER, nest);
     }
     #@}
 
@@ -4571,6 +4774,16 @@ my Table $table("pgsql:user/pass@db%host", "table");
             t.setupTable(desc, opts);
         }
 
+        #! commits the current transaction on the underlying @ref Qore::SQL::AbstractDatasource
+        commit() {
+            t.commit();
+        }
+
+        #! rolls back the current transaction on the underlying @ref Qore::SQL::AbstractDatasource
+        rollback() {
+            t.rollback();
+        }
+
         #! returns the name of the table
         string getName() {
             return t.getName();
@@ -5944,7 +6157,7 @@ my int $dcnt = $table.delNoCommit(("name": $name));
 my int $ucnt = $table.update(("id": $id), ("name": $name));
             @endcode
 
-            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
             @param sql an optional reference to a string to return the SQL generated for the update statement
 
@@ -5965,7 +6178,7 @@ my int $ucnt = $table.update(("id": $id), ("name": $name));
 my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             @endcode
 
-            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
             @param sql an optional reference to a string to return the SQL generated for the update statement
 
@@ -6615,6 +6828,16 @@ my Triggers $trig = $table.getTriggers();
             validateOptionsIntern("OPTION-ERROR", getTableOptions(), \nopts);
             if (nopts.native_case)
                 native_case = True;
+        }
+
+        #! commits the current transaction on the underlying @ref Qore::SQL::AbstractDatasource
+        commit() {
+            ds.commit();
+        }
+
+        #! rolls back the current transaction on the underlying @ref Qore::SQL::AbstractDatasource
+        rollback() {
+            ds.rollback();
         }
 
         #! returns @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
@@ -9184,44 +9407,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                         }
 
                         case NT_HASH: {
-                            if (cv.cop.typeCode() != NT_STRING)
-                                throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"cop\" key giving the column operator name", cv);
-                            if (cv.column.typeCode() != NT_STRING)
-                                throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"column\" key giving the column name", cv);
-
-                            # process column operators
-                            switch (cv.cop) {
-                                case COP_AS: {
-                                    if (cv.arg.typeCode() != NT_STRING)
-                                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the output column name", cv);
-                                    ce += sprintf("%s as %y", getColumnNameIntern(cv.column, jch, boolean(qh.join)), cv.arg);
-                                    break;
-                                }
-                       
-                                case COP_PREPEND: {
-                                    if (cv.arg.typeCode() != NT_STRING)
-                                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the string argument", cv);
-                                    ce += getColumnOperatorPrepend(getColumnNameIntern(cv.column, jch, boolean(qh.join)), cv.arg);
-                                    break;
-                                }
-
-                                case COP_APPEND: {
-                                    if (cv.arg.typeCode() != NT_STRING)
-                                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the string argument", cv);
-                                    ce += getColumnOperatorAppend(getColumnNameIntern(cv.column, jch, boolean(qh.join)), cv.arg);
-                                    break;
-                                }
-
-                                case COP_VALUE: {
-                                    ce += getSqlValue(cv.arg);
-                                    break;
-                                }
-
-                                case NOTHING:
-                                    throw "SELECT-ERROR", sprintf("column argument is a hash without an \"cop\" key giving the column operator: %y", cv);
-                                default:
-                                    throw "SELECT-ERROR", sprintf("unknown column operator %y in %y: expecting one of: %y", cv.cop, cv, CopMap.keys());
-                            }
+                            ce += doColumnOperatorIntern(cv, jch, boolean(qh.join));
                             break;
                         }
 
@@ -9323,6 +9509,67 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
             #printf("SQL: %s\nargs: %y\n", sql, args);
             return sql;
+        }
+
+        private string doColumnOperatorIntern(hash cv, *hash jch, bool join) {
+            if (cv.cop.typeCode() != NT_STRING)
+                throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"cop\" key giving the column operator name", cv);
+                            
+            string rv;
+
+            # get column value expression (column name or subexpression)
+            string cve;
+            if (cv.column.typeCode() == NT_HASH)
+                cve = doColumnOperatorIntern(cv.column, jch, join);
+            else if (cv.column.typeCode() == NT_STRING)
+                cve = getColumnNameIntern(cv.column, jch, join);
+            else
+                throw "SELECT-ERROR", sprintf("column operator hash %y has an invalid \"column\" key; expecting a string column specification or a column operator description hash", cv.column);
+
+            # process column operators
+            switch (cv.cop) {
+                case COP_AS: {
+                    if (cv.arg.typeCode() != NT_STRING)
+                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the output column name", cv);
+                    rv = sprintf("%s as %y", cve, cv.arg);
+                    break;
+                }
+                       
+                case COP_PREPEND: {
+                    if (cv.arg.typeCode() != NT_STRING)
+                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the string argument", cv);
+                    rv = getColumnOperatorPrepend(cve, cv.arg);
+                    break;
+                }
+
+                case COP_APPEND: {
+                    if (cv.arg.typeCode() != NT_STRING)
+                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the string argument", cv);
+                    rv = getColumnOperatorAppend(cve, cv.arg);
+                    break;
+                }
+
+                case COP_VALUE: {
+                    rv = getSqlValue(cv.arg);
+                    break;
+                }
+
+                case COP_UPPER: {
+                    rv = sprintf("upper(%s)", cve);
+                    break;
+                }
+
+                case COP_LOWER: {
+                    rv = sprintf("lower(%s)", cve);
+                    break;
+                }
+
+                case NOTHING: throw "SELECT-ERROR", sprintf("column argument is a hash without an \"cop\" key giving the column operator: %y", cv);
+
+                default: throw "SELECT-ERROR", sprintf("unknown column operator %y in %y: expecting one of: %y", cv.cop, cv, CopMap.keys());
+            }
+
+            return rv;
         }
 
         private string getColumnOperatorPrepend(string cv, string arg) {
@@ -9515,7 +9762,7 @@ my int $dcnt = $table.delNoCommit(("name": $name));
 my int $ucnt = $table.update(("id": $id), ("name": $name));
             @endcode
 
-            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
@@ -9539,7 +9786,7 @@ my int $ucnt = $table.update(("id": $id), ("name": $name));
 my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             @endcode
 
-            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
@@ -9561,18 +9808,50 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
 
             list sl = ();
             foreach hash h in (set.pairIterator()) {
-                sl += sprintf("%s = %v", h.key);
-                args += h.value;
+                string exp = sprintf("%s = ", h.key);
+                if (h.value.typeCode() == NT_HASH)
+                    exp += getUpdateExpression(h.key, h.value);
+                else {
+                    exp += "%v";
+                    args += h.value;
+                }
+                sl += exp;
             }
 
             sql += foldl $1 + "," + $2, sl;
-            
+
             if (cond)
                 sql += getWhereClause(cond, \args);
 
+            #printf("sql: %y\nargs: %y\n", sql, args);
             return ds.vexec(sql, args);
         }
         
+        private string getUpdateExpression(string col, hash uh) {
+            string arg = (uh.nest ? getUpdateExpression(col, uh.nest) : col);
+            switch (uh.uop) {
+                case COP_PREPEND: {
+                    if (uh.arg.typeCode() != NT_STRING)
+                        throw "SELECT-ERROR", sprintf("invalid update operator hash %y; missing \"arg\" key giving the string argument", uh);
+                    return getColumnOperatorPrepend(arg, uh.arg);
+                }
+
+                case COP_APPEND: {
+                    if (uh.arg.typeCode() != NT_STRING)
+                        throw "SELECT-ERROR", sprintf("invalid update operator hash %y; missing \"arg\" key giving the string argument", uh);
+                    return getColumnOperatorAppend(arg, uh.arg);
+                }
+
+                case COP_UPPER: return sprintf("upper(%s)", arg);
+
+                case COP_LOWER: return sprintf("lower(%s)", arg);
+
+                case NOTHING: throw "UPDATE-ERROR", sprintf("update argument is a hash without an \"uop\" key giving the update operator: %y", uh);
+
+                default: throw "UPDATE-ERROR", sprintf("unknown update operator %y in %y: expecting one of: %y", uh.uop, uh, UopMap.keys());
+            }
+        }
+
         private code getUpsertClosureUnlocked(hash row, int upsert_strategy = UpsertInsertFirst) {
             # unique column source
             string csrc;
