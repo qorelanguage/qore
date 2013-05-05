@@ -2103,7 +2103,6 @@ my *string $sql = $tables.getRenameTableIfExistsSql($old_name, $new_name);
                 # search through all unique keys and rename foreign keys in source tables
                 foreach AbstractUniqueConstraint uk in (t.getUniqueConstraintIterator()) {
                     foreach hash sch in (uk.getSourceConstraintIterator()) {
-                        printf("RENAMING TABLE IN FOREIGN KEY in %y.%y\n", sch.table, sch.fk.getName());
                         sch.fk.target.table = t.getName();
                     }
                 }
@@ -2115,7 +2114,6 @@ my *string $sql = $tables.getRenameTableIfExistsSql($old_name, $new_name);
                     foreach AbstractForeignConstraint fk in (t.getForeignConstraints().iterator()) {
                         if (h{fk.target.table}) {
                             AbstractTable tt = h{fk.target.table};
-                            printf("RENAMING TABLE IN SOURCE CONSTRAINT in %y.%y\n", tt.getName(), fk.getName());
                             foreach AbstractUniqueConstraint uk in (tt.getUniqueConstraintIterator())
                                 uk.renameSourceConstraintTable(oldsn, newsn);
                         }
