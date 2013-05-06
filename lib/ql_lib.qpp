@@ -217,6 +217,10 @@ nothing exec(string command) [dom=EXTERNAL_PROCESS,PROCESS] {
     @code
 int rc = system("ls -l");
     @endcode
+
+    @see
+    - backquote()
+    - @ref backquote_operator "the backquote operator"
  */
 int system(string command) [dom=EXTERNAL_PROCESS] {
 #ifdef HAVE_FORK

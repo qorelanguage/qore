@@ -854,6 +854,10 @@ my string $files = $files = backquote("ls");
     @endcode
 
     @throw BACKQUOTE-ERROR An error occurred with the fork() or opening the stdout pipe
+
+    @see
+    - system()
+    - @ref backquote_operator "the backquote operator"
 */
 string backquote(string cmd) [dom=EXTERNAL_PROCESS] {
    return backquoteEval(cmd->getBuffer(), xsink);
