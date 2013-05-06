@@ -62,8 +62,20 @@ module SqlUtil {
     All the public symbols in the module are defined in the SqlUtil namespace
 
     Major sections of this documentation:
-    - @subpage sql_operations
-    - @subpage schema_management
+    - @subpage sql_operations "SQL Operations": working with database data (finding, updating, inserting, deleting, merging data, etc)
+    - @subpage schema_management "Schema Management": working schema definitions (creating, modifying, aligning tables, functions, types, triggers, etc)
+
+    The %SqlUtil module provides generic functionality and a framework for SQL operations and schema management, and in order
+    to use the %SqlUtil module with a particular database, a driver-specific module has to be available as well.
+
+    Currently the following driver-specific modules are available:
+    - <a href="../../MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>: for working with MySQL databases
+    - <a href="../../OracleSqlUtil/html/index.html">OracleSqlUtil</a>: for working with Oracle databases
+    - <a href="../../PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>: for working with PostgreSQL databases
+
+    The underlying driver-specific module is automatically loaded and used when required; the classes provided in 
+    the %SqlUtil module provide a generic API that uses the driver-specific implementations for the underlying driver-specific
+    implementation.
 */
 
 /** @page sql_operations SQL Operations
@@ -163,7 +175,7 @@ my *list $rows = $table.selectRows($sh);
     @code
 my Table $t($ds, "table_name");
 my SQLStatement $i = $table.getRowIterator($sh);
-on_exit $ds.commit();
+on_exit $table.commit();
 map printf("row: %y\n", $1), $i;
     @endcode
     See @ref select_option_hash for a description of the hash argument; if no argument is passed to the method,
@@ -175,7 +187,7 @@ map printf("row: %y\n", $1), $i;
     @code
 my Table $t($ds, "table_name");
 my SQLStatement $i = $table.getRowIterator($sh);
-on_exit $ds.commit();
+on_exit $table.commit();
 while (True) {
     my list $l = $i.fetchRows(1000);
     if (!$l)
@@ -188,13 +200,13 @@ while (True) {
 
     @subsection column_spec Specifying Columns in Query Output
     @par From Complex Select Criteria
-    @ref SqlUtil::Table "Table" methods taking a @ref select_option_hash argument support specifying output columns including column operators by assigning a column / column operator list to the @ref select_option_columns "columns" key.
+    @ref SqlUtil::Table "Table" methods taking a @ref select_option_hash "select option hash argument" support specifying output columns including column operators by assigning a column / column operator list to the @ref select_option_columns "columns" key.
     @code
 my *list $rows = $table.selectRows(("columns": ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count")), "where": ("type": "user")));
     @endcode
-    @see @ref select_option_columns for details about the \c "columns" option of the @ref select_option_hash
+    @see @ref select_option_columns "select option columns" for details about the \c "columns" option of the @ref select_option_hash "select option hash"
 
-    @section selecting_data Selecting Data
+    @subsection select_option_hash Complex Select Criteria
 
     Selecting data is performed by passing a select option hash argument to a suitable method that will build and execute a DB-specific SQL command based on this value; the following methods take a select option hash argument:
     - @ref SqlUtil::Table::getRowIterator()
@@ -203,8 +215,6 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", "started", cop_as(
     - @ref SqlUtil::Table::insertFromSelectNoCommit()
     - @ref SqlUtil::Table::select()
     - @ref SqlUtil::Table::selectRows()
-
-    @subsection select_option_hash Select Option Hash
 
     SQL strings for select statements are constructed programmatically based on a select option hash described below.
     
@@ -228,126 +238,107 @@ my hash $soh = (
     - @ref select_option_offset "offset": (@ref int_type "int") specifies the starting offset of the first record to be returned (starting with 0)
     - @ref select_option_join "join": (@ref hash_type "hash") specifies any SQL join operations to return results from multiple tables
 
-    @subsection select_option_columns "columns" Select Option
-
-    @par Columns Example:
+    @anchor select_option_columns
+    @par Select Option "columns"
+    <b>Columns Example:</b>
     @code
 my *list $rows = $table.selectRows(("columns": ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count")), "where": ("type": "user")));
     @endcode
-
-    By default, all columns are returned from a query; to limit the columns returned, or to perform column operations on the columns returned, use the \c "columns" option of the @ref select_option_hash "select option hash".
-
-    This option takes a list, each element of the list can be one of the following.
-
-    @par A Simple String Giving a Column Name
+    By default, all columns are returned from a query; to limit the columns returned, or to perform column operations on the columns returned, use the \c "columns" option of the @ref select_option_hash "select option hash".\n\n
+    This option takes a list, each element of the list can be one of the following.\n\n
+    <b>A Simple String Giving a Column Name</b>\n
     ex: \c "name"
     @code
 my *list $rows = $table.selectRows(("columns": ("id", "name", "started")));
-    @endcode
-
-    @par A String in Dot Notation
+    @endcode \n
+    <b>A String in Dot Notation</b>\n
     This format is for use with @ref select_option_join "joins"; ex: \c "q.name"
     @code
 my *list $rows = $table.selectRows(("columns": ("table.id", "t2.customer_name"), "join": join_inner($table2, "t2", ("id": "altid"))));
-    @endcode
-
-    @par A Column Operation Specified by a Column Operator Function
+    @endcode \n
+    <b>A Column Operation Specified by a Column Operator Function</b>\n
     ex: <tt>cop_as("column_name", "column_alias")</tt> \n
     See @ref sql_cop_funcs "column operator function" for more information on column operator functions
     @code
 my *list $rows = $table.selectRows(("columns": ("id", cop_as("warnings", "warning_count"), cop_as("errors", "error_count"))));
     @endcode
-    For @ref sql_cop_funcs "column operator functions" taking a column name, either a string name or a name in dot notation is acceptable
-
-    @par The Value "*" Meaning All Columns
+    For @ref sql_cop_funcs "column operator functions" taking a column name, either a string name or a name in dot notation is acceptable\n\n
+    <b>The Value \c "*", Meaning All Columns</b>\n
     ex: \c "*"
     @code
 my *list $rows = $table.selectRows(("columns": "*"));
     @endcode
-    This is the default if no \c "columns" key is included in the @ref select_option_hash
-
-    @par An "*" in Dot Notation
+    This is the default if no \c "columns" key is included in the @ref select_option_hash "select option hash"\n\n
+    <b>An \c "*" in Dot Notation</b>\n
     ex: \c "q.*"
     @code
 my *list $rows = $table.selectRows(("columns": ("table.id", "t2.*"), "join": join_inner($table2, "t2", ("id": "altid"))));
     @endcode
 
-    @subsection select_option_where "where" Select Option
-    
-    @par Where Example:
+    @anchor select_option_where 
+    @par Select Option "where"
+    <b>Where Example:</b>
     @code
 my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
-
     The hash value assigned to this key describes how the \c "where" clause in the query is built.  Because the \c "where" clause logic is common to many SQL methods, this topic is covered in a separate section.  See @ref where_clauses for a detailed description of the value of this key.
 
-    @subsection select_option_orderby "orderby" Select Option
-
-    @par Orderby Example:
+    @anchor select_option_orderby
+    @par Select Option "orderby"
+    <b>Orderby Example:</b>
     @code
 my *list $rows = $table.selectRows(("where": ("account_type": "CUSTOMER"), "orderby": "created_date"));
     @endcode
-
     This option is a list of the following values:
     - a simple string giving a column name; ex: \c "name"
     - a string giving a table or table alias and a column name in dot notation (for use with @ref select_option_join "joins"); ex: \c "q.name"
-
     @note
     - By using the @ref select_option_offset "offset option" the results will be automatically ordered according to the primary key of the table
 
-    @subsection select_option_desc "desc" Select Option
-
-    @par Desc Example:
+    @anchor select_option_desc
+    @par Select Option "desc"
+    <b>Desc Example:</b>
     @code
 my *list $rows = $table.selectRows(("where": ("account_type": "CUSTOMER"), "orderby": "created_date", "desc": True));
     @endcode
-
-    If the value of this key is @ref Qore::True "True" and results are ordered (either due to the @ref select_option_orderby "orderby option" or due to implicit ordering by the primary key due to the use of the @ref select_option_offset "offset option"), then results will be sorted in descending order.
-
+    If the value of this key is @ref Qore::True "True" and results are ordered (either due to the @ref select_option_orderby "orderby option" or due to implicit ordering by the primary key due to the use of the @ref select_option_offset "offset option"), then results will be sorted in descending order.\n\n
     Otherwise, ordered results are returned in ascending order by default.
 
-    @subsection select_option_limit "limit" Select Option
-
-    @par Limit Example:
+    @anchor select_option_limit
+    @par Select Option "limit"
+    <b>Limit Example:</b>
     @code
 my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
-
     This option will limit the number of rows returned.
-
     @note
     - This option is required if the @ref select_option_offset "offset option" is non-zero
     - If this option is present and an @ref select_option_orderby "orderby option" is also present, then at least a subset of the @ref select_option_orderby "orderby" columns must correspond to a unique key of the table or an exception is raised
 
-    @subsection select_option_offset "offset" Select Option
-
-    @par Offset Example:
+    @anchor select_option_offset
+    @par Select Option "offset"
+    <b>Offset Example:</b>
     @code
 my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
-
     This option specifies the row number offset for the rows returned where the first row is at offset zero.
-
     @note
     - If this option is present, then either an @ref select_option_orderby "orderby option" must be present of which at least a subset of the @ref select_option_orderby "orderby" columns must correspond to a unique key of the table, or, if no @ref select_option_orderby "orderby option" is used, then the table must have a primary key which is used for the ordering instead.
     - Additionally, this option requires the presence of the @ref select_option_limit "limit option", or an exception will be thrown.
-
     @see @ref sql_paging
 
-    @subsection select_option_join "join" Select Option
-
-    @par Join Example:
+    @anchor select_option_join
+    @par Select Option "join"
+    <b>Join Example:</b>
     @code
 my *list $rows = $table.selectRows(("columns": ("name", "version", "id", cop_as("st.value", "source"), cop_as("st.value", "offset")),
                                     "join": join_left("function_instance_tags", "st", NOTHING, ("st.tag": "_source"))
                                             + join_left("function_instance_tags", "lt", NOTHING, ("st.tag": "_offset"))));
     @endcode
-
     To join multiple tables in a single query, use the \c "join" option.  The \c "join" hash key should be assigned to a join description hash as returned by one of the @ref sql_jop_funcs or combined join description hash created by concatenating such values (see an example of this above).
-
     @note the join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
 
-    @section sql_paging Select With Paging
+    @subsection sql_paging Select With Paging
 
     There is support for paging query results in the following methods:
     - @ref SqlUtil::Table::getRowIterator()
@@ -372,8 +363,59 @@ $ds.vselectRows("select * from (select /*+ first_rows(100) *<!---->/ a.*, rownum
     @endcode
     And for PostgreSQL:
     @code
-$ds.vselectRows("select * from public.table where type = %v order by type limit %v offset %v", "user", 100, 200);
+$ds.vselectRows("select * from public.table where type = %v order by type limit %v offset %v", ("user", 100, 200));
     @endcode
+
+    @section inserting_data Inserting Data into the Database
+
+    The following methods can be used to insert data into the database:
+    - @ref SqlUtil::Table::insert()
+    - @ref SqlUtil::Table::insertNoCommit()
+    - @ref SqlUtil::Table::insertFromSelect()
+    - @ref SqlUtil::Table::insertFromSelectNoCommit()
+
+    @see sql_upsert for information about upserting or merging data
+
+    @subsection inserting_data_explicitly Inserting Data Explicitly
+
+    @par Example:
+    @code
+$table.insert(("id": $id, "name": $name, "created": now_us()));
+    @endcode
+
+    Data can be explicitly inserted into the database with immediate values with @ref SqlUtil::Table::insert() and @ref SqlUtil::Table::insertNoCommit() as in the above example.
+
+    @subsection inserting_data_from_select Inserting Data From a Select Statement
+
+    @par Example:
+    @code
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("cid", "fullname", "created"), "where": ("type": "CUSTOMER")))); 
+    @endcode
+
+    Data can be inserted into the database based on the results of a select statement with @ref SqlUtil::Table::insertFromSelect() and @ref SqlUtil::Table::insertFromSelectNoCommit() as in the above example.
+
+    The example above would generate a %Qore SQL command like the following:
+    @code
+return $ds.vexec("insert into schema.table (id,name,created) select cid,fullname,created from schema.source_table where type = %v", ("CUSTOMER"));
+    @endcode
+
+    The return value of these methods is the number of rows inserted.  See @ref select_option_hash "select option hash" for more information about how to form the select criteria in these methods.
+
+    @section deleting_data Deleting Data
+
+    @par Example:
+    @code
+my int $dcnt = $table.del(("record_type": "OLD-CUSTOMER"));
+    @endcode
+
+    The above example would generate a %Qore SQL command like the following:
+    @code
+return $ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOMER"));
+    @endcode
+
+    The @ref SqlUtil::Table::del() and @ref SqlUtil::Table::delNoCommit() methods can be used to delete data from the database.
+
+    See @ref where_clauses for information about specifying the criteria for the rows to be deleted.
 
     @section where_clauses Where Clauses
 
@@ -448,10 +490,21 @@ $ds.vexec("select * from table where id > %v and created > %v", (100, 2013-03-01
 
     @section sql_upsert Upserting or Merging Data
 
-    This module offers a high-level api for "upserting" or merging data from one table into another table based on one of the following three strategies (see @ref upsert_options):
-    - @ref SqlUtil::AbstractTable::UpsertInsertFirst "AbstractTable::UpsertInsertFirst": first an insert will be attempted, if it fails due to a duplicate key, then an update will be made; this strategy should be used if more inserts will be made than updates
-    - @ref SqlUtil::AbstractTable::UpsertUpdateFirst "AbstractTable::UpsertUpdateFirst": first an update will be attempted, if it fails due to missing data, then an insert is performed; this strategy should be used if more updates will be made then inserts
-    - @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst": first a select is made on the unique key, if the data to be updated is equal, nothing is done and @ref upsert_results "upsert result" @ref SqlUtil::AbstractTable::UR_Unchanged is returned; this is the only upsert strategy that can return this value; this strategy should be used when verbose reporting is required, particularly if it's necessary to report the actual number of changed rows
+    This module offers a high-level api for "upserting" or merging data from one table into another table.
+
+    @subsection sql_upsert_single Upsert a Single Row
+
+    @par Example:
+    @code
+$table.upsert(("id": $id, "name": $name, "account_type": $account_type));
+    @endcode
+
+    To upsert or merge a single row in the database, call @ref SqlUtil::Table::upsert() or @ref SqlUtil::Table::upsertNoCommit() with the
+    single row to be upserted or merged as a hash as in the preceding example.
+
+    @subsection sql_upsert_many Upserting Many Rows
+
+    To upsert or merge many rows, call @ref SqlUtil::Table::getUpsertClosure() or @ref SqlUtil::Table::getUpsertClosureWithValidation() and provide an example row as an argument to acquire a closure that will be executed on the rest of the rows as in the following example.
 
     @par Example:
     @code
@@ -499,6 +552,15 @@ if ($sh)
 else
     printf("*** reference data %s: OK\n", $table.getName());
     @endcode
+
+    @subsection sql_upsert_strategies Upsert Strategies
+    The approach used is based on one of the following three strategies (see @ref upsert_options):
+    - @ref SqlUtil::AbstractTable::UpsertInsertFirst "AbstractTable::UpsertInsertFirst": first an insert will be attempted, if it fails due to a duplicate key, then an update will be made; this strategy should be used if more inserts will be made than updates
+    - @ref SqlUtil::AbstractTable::UpsertUpdateFirst "AbstractTable::UpsertUpdateFirst": first an update will be attempted, if it fails due to missing data, then an insert is performed; this strategy should be used if more updates will be made then inserts
+    - @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst": first a select is made on the unique key, if the data to be updated is equal, nothing is done and @ref upsert_results "upsert result" @ref SqlUtil::AbstractTable::UR_Unchanged is returned
+
+    @note @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst" is the only upsert strategy that can return @ref SqlUtil::AbstractTable::UR_Unchanged; the @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst" strategy should be used when verbose reporting is required, particularly if it's necessary to report the actual number of changed rows
+
 */
 
 /** @page schema_management Schema Management
@@ -5927,6 +5989,7 @@ $table.insert($row);
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
             @endcode
 
             @param cols the list of column names to use to insert in the current able
@@ -5947,6 +6010,7 @@ $table.insert($row);
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
             @endcode
 
             @param cols the list of column names to use to insert in the current able
@@ -9131,6 +9195,7 @@ $table.insert($row);
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
             @endcode
 
             @param cols the list of column names to use to insert in the current able
@@ -9154,6 +9219,7 @@ $table.insert($row);
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
             @endcode
 
             @param cols the list of column names to use to insert in the current able
