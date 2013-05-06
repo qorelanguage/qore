@@ -109,6 +109,10 @@ static int sock_get_error() {
 	 errno = ENOFILE;
 	 break;
 
+      case WSAEBADF:
+	 errno = EBADF;
+	 break;
+
 #ifdef ECONNRESET
       case WSAECONNRESET:
 	 errno = ECONNRESET;
@@ -1028,7 +1032,7 @@ struct qore_socket_private {
    }
 
    // socket must be open!
-   DLLLOCAL int selectWrite(int timeout_ms) const {
+   DLLLOCAL int selectWrite(int timeout_ms) {
       assert(sock != QORE_INVALID_SOCKET);
 
       fd_set sfs;
@@ -1046,15 +1050,29 @@ struct qore_socket_private {
 	 if (rc != QORE_SOCKET_ERROR || sock_get_error() != EINTR)
 	    break;
       }
+#ifdef EBADF
+      // mark the socket as closed if the select call fails due to a bad file descriptor error
+      if (rc && sock_get_error() == EBADF)
+	 close();
+#endif
+
       return rc;
    }
 
-   DLLLOCAL bool isDataAvailable(int timeout_ms) const {
+   DLLLOCAL bool isDataAvailable(int timeout_ms) {
       if (sock == QORE_INVALID_SOCKET)
 	 return false;
 
-      return select(timeout_ms);
-
+      if (select(timeout_ms)) {
+#ifdef EBADF
+	 // mark the socket as closed if the select call fails due to a bad file descriptor error
+	 if (sock_get_error() == EBADF)
+	    close();
+#endif
+	 return -1;
+      }
+      return 0;
+      
 #if 0
       struct pollfd pfd;
       pfd.fd = sock;
@@ -1065,7 +1083,7 @@ struct qore_socket_private {
 #endif
    }
 
-   DLLLOCAL bool isWriteFinished(int timeout_ms) const {
+   DLLLOCAL bool isWriteFinished(int timeout_ms) {
       if (sock == QORE_INVALID_SOCKET)
 	 return false;
 
