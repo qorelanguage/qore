@@ -358,14 +358,14 @@ const QoreEncoding *mySocket::getEncoding() const {
    return socket->getEncoding();
 }
 
-bool mySocket::isDataAvailable(int timeout_ms) {
+bool mySocket::isDataAvailable(ExceptionSink* xsink, int timeout_ms) {
    AutoLocker al(m);
-   return socket->isDataAvailable(timeout_ms);
+   return socket->isDataAvailable(xsink, timeout_ms);
 }
 
-bool mySocket::isWriteFinished(int timeout_ms) {
+bool mySocket::isWriteFinished(ExceptionSink* xsink, int timeout_ms) {
    AutoLocker al(m);
-   return socket->isWriteFinished(timeout_ms);
+   return socket->isWriteFinished(xsink, timeout_ms);
 }
 
 bool mySocket::isOpen() const {

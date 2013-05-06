@@ -664,7 +664,9 @@ struct qore_socket_private {
 
    DLLLOCAL int accept_intern(struct sockaddr *addr, socklen_t *size, int timeout_ms = -1, ExceptionSink *xsink = 0) {
       while (true) {
-	 if (timeout_ms >= 0 && !isDataAvailable(timeout_ms)) {
+	 if (timeout_ms >= 0 && !isDataAvailable(timeout_ms, "accept", xsink)) {
+	    if (xsink && *xsink)
+	       return -1;
 	    // do not throw exception here, NOTHING will be returned in Qore on timeout
 	    return QSE_TIMEOUT; // -3
 	 }
@@ -1005,34 +1007,13 @@ struct qore_socket_private {
    }
 
    // socket must be open!
-   DLLLOCAL int select(int timeout_ms) const {
-      assert(sock != QORE_INVALID_SOCKET);
-
-      fd_set sfs;
-
-      FD_ZERO(&sfs);
-      FD_SET(sock, &sfs);
-
-      struct timeval tv;
-      int rc;
-      while (true) {
-	 tv.tv_sec  = timeout_ms / 1000;
-	 tv.tv_usec = (timeout_ms % 1000) * 1000;
-
-	 rc = ::select(sock + 1, &sfs, 0, 0, &tv);
-	 if (rc != QORE_SOCKET_ERROR || sock_get_error() != EINTR)
-	    break;
+   DLLLOCAL int select(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) {
+      if (sock == QORE_INVALID_SOCKET) {
+	 if (xsink)
+	    se_not_open(mname, xsink);
+	 return -1;
       }
-#ifdef DEBUG
-      //if (rc < 0)
-      // printd(0, "qore_socket_private::select(%d) this=%p rc=%d, errno=%d: %s\n", timeout_ms, this, rc, errno, strerror(errno));
-#endif
 
-      return rc;
-   }
-
-   // socket must be open!
-   DLLLOCAL int selectWrite(int timeout_ms) {
       assert(sock != QORE_INVALID_SOCKET);
 
       fd_set sfs;
@@ -1046,48 +1027,28 @@ struct qore_socket_private {
 	 tv.tv_sec  = timeout_ms / 1000;
 	 tv.tv_usec = (timeout_ms % 1000) * 1000;
 
-	 rc = ::select(sock + 1, 0, &sfs, 0, &tv);
+	 rc = read ? ::select(sock + 1, &sfs, 0, 0, &tv) : ::select(sock + 1, 0, &sfs, 0, &tv);
 	 if (rc != QORE_SOCKET_ERROR || sock_get_error() != EINTR)
 	    break;
       }
 #ifdef EBADF
       // mark the socket as closed if the select call fails due to a bad file descriptor error
-      if (rc && sock_get_error() == EBADF)
+      if (rc && sock_get_error() == EBADF) {
 	 close();
+	 if (xsink)
+	    se_closed(mname, xsink);
+      }
 #endif
 
       return rc;
    }
 
-   DLLLOCAL bool isDataAvailable(int timeout_ms) {
-      if (sock == QORE_INVALID_SOCKET)
-	 return false;
-
-      if (select(timeout_ms)) {
-#ifdef EBADF
-	 // mark the socket as closed if the select call fails due to a bad file descriptor error
-	 if (sock_get_error() == EBADF)
-	    close();
-#endif
-	 return -1;
-      }
-      return 0;
-      
-#if 0
-      struct pollfd pfd;
-      pfd.fd = sock;
-      pfd.events = POLLIN|POLLPRI;
-      pfd.revents = 0;
-      
-      return poll(&pfd, 1, timeout_ms);
-#endif
+   DLLLOCAL bool isDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
+      return select(timeout_ms, true, mname, xsink);
    }
 
-   DLLLOCAL bool isWriteFinished(int timeout_ms) {
-      if (sock == QORE_INVALID_SOCKET)
-	 return false;
-
-      return selectWrite(timeout_ms);
+   DLLLOCAL bool isWriteFinished(int timeout_ms, const char* mname, ExceptionSink* xsink) {
+      return select(timeout_ms, false, mname, xsink);
    }
 
    DLLLOCAL int close_and_exit() {
@@ -1123,9 +1084,11 @@ struct qore_socket_private {
 
 	 // check for timeout or connection with EINPROGRESS
 	 while (true) {
-	    int rc = selectWrite(timeout_ms);
+	    int rc = select(timeout_ms, false, "connectINETTimeout", xsink);
+	    if (xsink && *xsink)
+	       return -1;
 
-	    //printd(0, "selectWrite(%d) returned %d\n", timeout_ms, rc);
+	    //printd(0, "select(%d) returned %d\n", timeout_ms, rc);
 	    if (rc == QORE_SOCKET_ERROR && sock_get_error() != EINTR) { 
 	       if (xsink && !only_timeout)
 		  qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in select() with Socket::connect() with timeout", 0, 0, 0, ai_addr);
@@ -1595,9 +1558,12 @@ struct qore_socket_private {
 
       qore_offset_t rc;
       if (!ssl) {
-	 if (timeout != -1 && !isDataAvailable(timeout)) {
-	    if (xsink)
+	 if (timeout != -1 && !isDataAvailable(timeout, meth, xsink)) {
+	    if (xsink) {
+	       if (*xsink)
+		  return -1;
 	       se_timeout(meth, timeout, xsink);
+	    }
 
 	    return QSE_TIMEOUT;
 	 }
@@ -1767,7 +1733,7 @@ struct qore_socket_private {
       do_read_event(rc, rd);
 
       // keep reading data until no more data is available without a timeout
-      if (isDataAvailable(0)) {
+      if (isDataAvailable(0, "recv", xsink)) {
 	 int tot = DEFAULT_SOCKET_BUFSIZE + 1;
 	 do {
 	    if ((tot - rd) < DEFAULT_SOCKET_BUFSIZE) {
@@ -1787,7 +1753,12 @@ struct qore_socket_private {
 
 	    // register event
 	    do_read_event(rc, rd);
-	 } while (isDataAvailable(0));
+	 } while (isDataAvailable(0, "recv", xsink));
+      }
+
+      if (*xsink) {
+	 free(buf);
+	 return 0;
       }
 
       buf[rd] = '\0';
@@ -1843,7 +1814,7 @@ struct qore_socket_private {
       do_read_event(rc, rd);
 
       // keep reading data until no more data is available without a timeout
-      if (isDataAvailable(0)) {
+      if (isDataAvailable(0, "recvBinary", xsink)) {
 	 int tot = DEFAULT_SOCKET_BUFSIZE;
 	 do {
 	    if ((tot - rd) < DEFAULT_SOCKET_BUFSIZE) {
@@ -1862,7 +1833,12 @@ struct qore_socket_private {
 
 	    // register event
 	    do_read_event(rc, rd);
-	 } while (isDataAvailable(0));
+	 } while (isDataAvailable(0, "recvBinary", xsink));
+      }
+
+      if (*xsink) {
+	 free(buf);
+	 return 0;
       }
 
       rc = rd;
@@ -1986,9 +1962,12 @@ struct qore_socket_private {
 			  || errno == EWOULDBLOCK
 #endif
 		      )) {
-                  if (!isWriteFinished(timeout_ms)) {
-                     if (xsink)
+                  if (!isWriteFinished(timeout_ms, mname, xsink)) {
+                     if (xsink) {
+			if (*xsink)
+			   return -1;
                         se_timeout(mname, timeout_ms, xsink);
+		     }
                      rc = QSE_TIMEOUT;
                      break;
                   }
@@ -2153,17 +2132,23 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
          int err = SSL_get_error(ssl, rc);
 
          if (err == SSL_ERROR_WANT_READ) {
-            if (!qs.isDataAvailable(timeout_ms)) {
-               if (xsink)
+            if (!qs.isDataAvailable(timeout_ms, mname, xsink)) {
+               if (xsink) {
+		  if (*xsink)
+		     return -1;
                   se_timeout(mname, timeout_ms, xsink);
+	       }
                rc = QSE_TIMEOUT;
                break;
             }
          }
          else if (err == SSL_ERROR_WANT_WRITE) {
-            if (!qs.isWriteFinished(timeout_ms)) {
-               if (xsink)
+            if (!qs.isWriteFinished(timeout_ms, mname, xsink)) {
+               if (xsink) {
+		  if (*xsink)
+		     return -1;
                   se_timeout(mname, timeout_ms, xsink);
+	       }
                rc = QSE_TIMEOUT;
                break;
             }
@@ -3448,11 +3433,19 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 }
 
 bool QoreSocket::isDataAvailable(int timeout) const {
-   return priv->isDataAvailable(timeout);
+   return priv->isDataAvailable(timeout, 0, 0);
 }
 
 bool QoreSocket::isWriteFinished(int timeout) const {
-   return priv->isWriteFinished(timeout);
+   return priv->isWriteFinished(timeout, 0, 0);
+}
+
+bool QoreSocket::isDataAvailable(ExceptionSink* xsink, int timeout) const {
+   return priv->isDataAvailable(timeout, "isDataAvailable", xsink);
+}
+
+bool QoreSocket::isWriteFinished(ExceptionSink* xsink, int timeout) const {
+   return priv->isWriteFinished(timeout, "isWriteFinished", xsink);
 }
 
 int QoreSocket::upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {

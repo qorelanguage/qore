@@ -161,8 +161,8 @@ public:
    DLLLOCAL int getSocket();
    DLLLOCAL void setEncoding(const QoreEncoding *id);
    DLLLOCAL const QoreEncoding *getEncoding() const;
-   DLLLOCAL bool isDataAvailable(int timeout = 0);
-   DLLLOCAL bool isWriteFinished(int timeout = 0);
+   DLLLOCAL bool isDataAvailable(ExceptionSink* xsink, int timeout = 0);
+   DLLLOCAL bool isWriteFinished(ExceptionSink* xsink, int timeout = 0);
    DLLLOCAL bool isOpen() const;
    // c must be already referenced before this call
    DLLLOCAL void setCertificate(QoreSSLCertificate *c);

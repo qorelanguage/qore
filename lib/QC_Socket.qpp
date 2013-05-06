@@ -2016,9 +2016,12 @@ my bool $b = $sock.isDataAvailable();
     @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately; Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return @ref True if data is available on the Socket within the timeout period, @ref False if not
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-CLOSED The remote end closed the connection without sending any data
  */
 bool Socket::isDataAvailable(timeout timeout_ms = 0) {
-   return s->isDataAvailable((int)timeout_ms);
+   return s->isDataAvailable(xsink, (int)timeout_ms);
 }
 
 //! Returns @ref True or @ref False depending on whether all the data has been written to the socket
@@ -2032,9 +2035,12 @@ my bool $b = $sock.isWriteFinished();
     @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately; Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return @ref True if the send action completes within the timeout period, @ref False if not
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-CLOSED The remote end closed the connection without sending any data
  */
 bool Socket::isWriteFinished(timeout timeout_ms = 0) {
-   return s->isWriteFinished((int)timeout_ms);
+   return s->isWriteFinished(xsink, (int)timeout_ms);
 }
 
 //! Returns @ref True if the socket is open

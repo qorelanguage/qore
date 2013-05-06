@@ -1341,7 +1341,9 @@ public:
        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param source the event source code for socket events
+
        @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
+
        @see QoreStringNode
    */
    DLLEXPORT QoreHashNode *readHTTPChunkedBody(int timeout_ms, ExceptionSink *xsink, int source = QORE_SOURCE_SOCKET);
@@ -1365,6 +1367,18 @@ public:
        @return true if data is available within the timeout period
    */
    DLLEXPORT bool isDataAvailable(int timeout_ms = 0) const;
+
+   //! returns true if data is available on the socket in the timeout period in milliseconds
+   /** The socket must be connected before this call is made.
+       use a timeout of 0 to see if there is any data available on the socket
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
+       @return true if data is available within the timeout period
+
+       @since Qore 0.8.8
+   */
+   DLLEXPORT bool isDataAvailable(ExceptionSink* xsink, int timeout_ms = 0) const;
 
    //! closes the socket
    /** Deletes the socket file if it was a UNIX domain socket and was created with the QoreSocket::bind() call.
@@ -1456,6 +1470,18 @@ public:
        @return true if data is available within the timeout period
    */
    DLLEXPORT bool isWriteFinished(int timeout_ms = 0) const;
+
+   //! returns true if all write data has been written within the timeout period in milliseconds
+   /** The socket must be connected before this call is made.
+       use a timeout of 0 to receive an answer immediately
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
+       @return true if data is available within the timeout period
+
+       @since Qore 0.8.8
+   */
+   DLLEXPORT bool isWriteFinished(ExceptionSink* xsink, int timeout_ms = 0) const;
 
    //! returns peer information for a connected socket
    /** if the socket is not connected, a Qore-language exception is thrown
