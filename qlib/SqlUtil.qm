@@ -215,6 +215,8 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", "started", cop_as(
     - @ref SqlUtil::Table::insertFromSelectNoCommit()
     - @ref SqlUtil::Table::select()
     - @ref SqlUtil::Table::selectRows()
+    - @ref SqlUtil::Table::upsertFromSelect()
+    - @ref SqlUtil::Table::upsertFromSelectNoCommit()
 
     SQL strings for select statements are constructed programmatically based on a select option hash described below.
     
@@ -242,7 +244,8 @@ my hash $soh = (
     @par Select Option "columns"
     <b>Columns Example:</b>
     @code
-my *list $rows = $table.selectRows(("columns": ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count")), "where": ("type": "user")));
+my list $columns = ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count"));
+my *list $rows = $table.selectRows(("columns": $columns, "where": ("type": "user")));
     @endcode
     By default, all columns are returned from a query; to limit the columns returned, or to perform column operations on the columns returned, use the \c "columns" option of the @ref select_option_hash "select option hash".\n\n
     This option takes a list, each element of the list can be one of the following.\n\n
@@ -432,6 +435,8 @@ return $ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOM
     - @ref SqlUtil::Table::selectRows()
     - @ref SqlUtil::Table::update()
     - @ref SqlUtil::Table::updateNoCommit()
+    - @ref SqlUtil::Table::upsertFromSelect()
+    - @ref SqlUtil::Table::upsertFromSelectNoCommit()
 
     @note the above list also applies to the corresponding @ref SqlUtil::AbstractTable methods
 
@@ -490,7 +495,15 @@ $ds.vexec("select * from table where id > %v and created > %v", (100, 2013-03-01
 
     @section sql_upsert Upserting or Merging Data
 
-    This module offers a high-level api for "upserting" or merging data from one table into another table.
+    This module offers a high-level api for "upserting" or merging data from one table into another table through the following methods:
+    - @ref SqlUtil::Table::upsert()
+    - @ref SqlUtil::Table::upsertNoCommit()
+    - @ref SqlUtil::Table::getUpsertClosure()
+    - @ref SqlUtil::Table::getUpsertClosureWithValidation()
+    - @ref SqlUtil::Table::upsertFromIterator()
+    - @ref SqlUtil::Table::upsertFromIteratorNoCommit()
+    - @ref SqlUtil::Table::upsertFromSelect()
+    - @ref SqlUtil::Table::upsertFromSelectNoCommit()
 
     @subsection sql_upsert_single Upsert a Single Row
 
@@ -502,9 +515,9 @@ $table.upsert(("id": $id, "name": $name, "account_type": $account_type));
     To upsert or merge a single row in the database, call @ref SqlUtil::Table::upsert() or @ref SqlUtil::Table::upsertNoCommit() with the
     single row to be upserted or merged as a hash as in the preceding example.
 
-    @subsection sql_upsert_many Upserting Many Rows
+    @subsection sql_upsert_many Upserting Many Rows Using An Upsert Closure
 
-    To upsert or merge many rows, call @ref SqlUtil::Table::getUpsertClosure() or @ref SqlUtil::Table::getUpsertClosureWithValidation() and provide an example row as an argument to acquire a closure that will be executed on the rest of the rows as in the following example.
+    To upsert or merge many rows by using an upsert closure, call @ref SqlUtil::Table::getUpsertClosure() or @ref SqlUtil::Table::getUpsertClosureWithValidation() and provide an example row as an argument to acquire a closure that will be executed on the rest of the rows as in the following example.
 
     @par Example:
     @code
@@ -517,14 +530,14 @@ else if ($new_install)
 else
     $upsert_strategy = AbstractTable::UpsertUpdateFirst;
 
+# hash summarizing changes
+my hash $sh;
+
 # get the rows to be inserted
 my list $l = get_table_rows();
 
 # get the upsert closure to use based on the first row to be inserted
 my code $upsert = $table.getUpsertClosure($l[0], $upsert_strategy);
-
-# hash summarizing changes
-my hash $sh;
 
 on_success $ds.commit();
 on_error $ds.rollback();
@@ -553,6 +566,111 @@ else
     printf("*** reference data %s: OK\n", $table.getName());
     @endcode
 
+    @subsection sql_upsert_from_iterator Upserting Many Rows from an Iterator Source
+
+    To upsert or merge many rows from an iterator source (such as an @ref Qore::SQL::SQLStatement object), call @ref SqlUtil::Table::upsertFromIterator() or @ref SqlUtil::Table::upsertFromIteratorNoCommit() as in the following example:
+
+    @par Example:
+    @code
+# set the upsert strategy depending on the use case
+my int $upsert_strategy;
+if ($verbose)
+    $upsert_strategy = AbstractTable::UpsertSelectFirst;
+else if ($new_install)
+    $upsert_strategy = AbstractTable::UpsertInsertFirst;
+else
+    $upsert_strategy = AbstractTable::UpsertUpdateFirst;
+
+# get the rows to be inserted
+my list $l = get_table_rows();
+
+my code $callback = sub (string $table_name, hash $row, int $result) { 
+    if ($result == AbstractTable::UR_Unchanged)
+        return;
+    my string $change = AbstractTable::UpsertResultMap{$result};
+    if ($verbose)
+        printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
+};
+
+my hash $sh = $table.upsertFromIterator($l.iterator(), $upsert_strategy, False, $callback);
+if ($sh)
+    printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
+else
+    printf("*** reference data %s: OK\n", $table.getName());
+    @endcode
+
+    The iterator given to the @ref SqlUtil::Table::upsertFromIterator() or @ref SqlUtil::Table::upsertFromIteratorNoCommit() methods can be any iterator whose @ref Qore::AbstractIterator::getValue() "getValue()" method returns a @ref hash_type "hash".
+
+    @subsection sql_upsert_from_select Upserting Many Rows from a Select Statement
+
+    To upsert or merge many rows from a select statement, use @ref SqlUtil::Table::upsertFromSelect() or @ref SqlUtil::Table::upsertFromSelectNoCommit() as in the following example:
+
+    @par Example:
+    @code
+# set the upsert strategy depending on the use case
+my int $upsert_strategy;
+if ($verbose)
+    $upsert_strategy = AbstractTable::UpsertSelectFirst;
+else if ($new_install)
+    $upsert_strategy = AbstractTable::UpsertInsertFirst;
+else
+    $upsert_strategy = AbstractTable::UpsertUpdateFirst;
+
+# get the rows to be inserted
+my list $l = get_table_rows();
+
+my code $callback = sub (string $table_name, hash $row, int $result) { 
+    if ($result == AbstractTable::UR_Unchanged)
+        return;
+    my string $change = AbstractTable::UpsertResultMap{$result};
+    if ($verbose)
+        printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
+};
+
+my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, False, $callback);
+if ($sh)
+    printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
+else
+    printf("*** reference data %s: OK\n", $table.getName());
+    @endcode
+
+    The source table does not have to be in the same database or even of the same database type (ie you can upsert to and from any database type supported by SqlUtil).
+
+    @subsection sql_upsert_with_delete Upserting Many Rows and Deleting Unwanted Rows
+
+    Call any of the batch upsert methods with the \a delete_others argument @ref Qore::True "True" to perform a batch upsert / merge operation on a table, and then scan the table and delete any unwanted rows.  If there are no rows to be deleted, these calls have very similar performance to the batch upsert method calls without any deletions, however, if there are rows to be deleted, then the entire source table must be iterated to compare each row to valid data to delete the rows that do not belong.  Therefore for large tables this can be an expensive operation.
+
+    The only difference in the following example and the preceding one is that the \a delete_others argument is @ref Qore::True "True" in this example.
+
+    @par Example:
+    @code
+# set the upsert strategy depending on the use case
+my int $upsert_strategy;
+if ($verbose)
+    $upsert_strategy = AbstractTable::UpsertSelectFirst;
+else if ($new_install)
+    $upsert_strategy = AbstractTable::UpsertInsertFirst;
+else
+    $upsert_strategy = AbstractTable::UpsertUpdateFirst;
+
+# get the rows to be inserted
+my list $l = get_table_rows();
+
+my code $callback = sub (string $table_name, hash $row, int $result) { 
+    if ($result == AbstractTable::UR_Unchanged)
+        return;
+    my string $change = AbstractTable::UpsertResultMap{$result};
+    if ($verbose)
+        printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
+};
+
+my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, True, $callback);
+if ($sh)
+    printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
+else
+    printf("*** reference data %s: OK\n", $table.getName());
+    @endcode
+
     @subsection sql_upsert_strategies Upsert Strategies
     The approach used is based on one of the following three strategies (see @ref upsert_options):
     - @ref SqlUtil::AbstractTable::UpsertInsertFirst "AbstractTable::UpsertInsertFirst": first an insert will be attempted, if it fails due to a duplicate key, then an update will be made; this strategy should be used if more inserts will be made than updates
@@ -572,12 +690,89 @@ else
     Most schema management is performed by using the @ref SqlUtil::Database "Database" class (which is a wrapper for the @ref SqlUtil::AbstractDatabase "AbstractDatabase" class).
 
     The most complex object is the @ref SqlUtil::Table "Table", which has its own @ref table_management "section".
-    
+
     @section creating_new_objects Creating New Objects
+
+    New objects are generally creating using appropriate methods from the @ref SqlUtil::Database "Database" class, such as the following:
+    - @ref SqlUtil::Database::makeFunction() "Database::makeFunction()"
+    - @ref SqlUtil::Database::makeProcedure() "Database::makeProcedure()"
+    - @ref SqlUtil::Database::makeSequence() "Database::makeSequence()"
+    - @ref SqlUtil::Database::makeTable() "Database::makeTable()"
+
+    Tables can also be created by instantiating a @ref SqlUtil::Table "Table" object (see @ref SqlUtil::Table::constructor()).
+
+    Each database driver may provide additional objects (such as types or materialized views, etc); see driver-specific documentation for more
+    information.
 
     @section retrieving_objects Retrieving Objects from the Database
 
+    Existing objects can be retrieved from the database using appropriate methods from the @ref SqlUtil::Database "Database" class,
+    such as the following:
+    - @ref SqlUtil::Database::getFunction() "Database::getFunction()"
+    - @ref SqlUtil::Database::getProcedure() "Database::getProcedure()"
+    - @ref SqlUtil::Database::getSequence() "Database::getSequence()"
+    - @ref SqlUtil::Database::getTable() "Database::getTable()"
+
+    Each database driver may provide additional objects (such as types or materialized views, etc); see driver-specific documentation for more
+    information.
+    
+    @section listing_objects Listing Objects
+
+    Listing database objects can be performed using appropriate methods from the @ref SqlUtil::Database "Database" class, such as the following:
+    - @ref SqlUtil::Database::listFunctions() "Database::listFunctions()"
+    - @ref SqlUtil::Database::listProcedures() "Database::listProcedures()"
+    - @ref SqlUtil::Database::listSequences() "Database::listSequences()"
+    - @ref SqlUtil::Database::listTables() "Database::listTables()"
+    - @ref SqlUtil::Database::listViews() "Database::listViews()"
+    
+    Alternatively, iterators for lists of objects can be acquired with the following methods:
+    - @ref SqlUtil::Database::functionIterator() "Database::functionIterator()"
+    - @ref SqlUtil::Database::procedureIterator() "Database::procedureIterator()"
+    - @ref SqlUtil::Database::sequenceIterator() "Database::sequenceIterator()"
+    - @ref SqlUtil::Database::tableIterator() "Database::tableIterator()"
+    - @ref SqlUtil::Database::viewIterator() "Database::viewIterator()"
+
     @section aligning_schemas Aligning Schemas With a Template
+
+    A schema template can be created any way required (ie by hand, or by retrieving the description from another database), but typically they will be created from a @ref schema_desc_hash "schema description hash".
+
+    The following code provides an example of creating a schema template and using it to align the schema in the database with the template using callbacks:
+    @code
+my int $change_count;
+my code $info_callback = sub (string $str) {
+    ++$change_count;
+    if ($verbose)
+        printf("*** %s\n", $str);
+    else {
+        print(".");
+        flush();
+    }
+};
+
+my code $sql_callback = sub (string $str) {
+    if ($verbose > 1)
+        printf("%s\n", $str);
+    $ds.execRaw($str);
+};
+
+my hash $callback_opts = ("info_callback": $info_callback, "sql_callback": $sql_callback, "sql_callback_executed": True);
+
+my Database $db($ds);
+my Tables $table_cache;
+$db.getAlignSql($schema_template, $callback_opts, $table_cache);
+    @endcode
+
+    @subsection schema_desc_hash Schema Description Hash
+    
+    The schema description hash has the following structure:
+    - \c tables: a hash of @ref table_desc_hashes keyed by table name; each entry describes a table
+    - \c sequences: a hash of sequence description hashes keyed by sequence name; each entry describes a sequence
+    - \c functions: a hash of function description hashes keyed by function name; each entry describes a function
+    - \c procedure: a hash of procedure description hashes keyed by procedure name; each entry describes a procedure    
+    - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the schema description hash before processing; this way a schema description hash can contain all the information required for the schema including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys
+
+    Each database driver may provide additional objects (such as types or materialized views, packages, etc); see 
+    driver-specific documentation for more information.
 
     @section table_management Table Management
 
@@ -585,7 +780,7 @@ else
 
     @subsection creating_new_tables Creating New Tables
 
-    Tables can be created manually, by creating a @ref SqlUtil::Table object and then populating the table with columns, indexes, etc, and then calling @ref SqlUtil::Table::create() for example.
+    Tables can be created manually, by creating a @ref SqlUtil::Table "Table object" and then populating the table with columns, indexes, etc, and then calling @ref SqlUtil::Table::create() for example.
     The following methods can be used for adding new attributes to a table:
     - @ref SqlUtil::Table::addColumn()
     - @ref SqlUtil::Table::addPrimaryKey()
@@ -682,6 +877,7 @@ $db_table.getAlignSql($template_table, $callback_opts);
     - \c triggers: (optional) a hash of trigger information keyed by trigger name; the values are the trigger source code; since triggers are driver-dependent, a driver-independent table description would include trigger hashes under the \c drivers key and the driver key name under that; see below for an example
     - \c foreign_constraints: (optional) a hash of foreign constraint information keyed by constraint name; the values are @ref fk_desc_hash "foreign constraint hashes"
     - \c unique_constraints: (optional) a hash of unique constraint information keyed by constraint name; the values are @ref uk_desc_hash "unique constraint hashes"
+    - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the table description hash before processing; this way a table description hash can contain all the information required for the table including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
 
     Here is an example of a table description hash:
     @code
@@ -3462,6 +3658,23 @@ my AbstractSequence $seq = $db.makeSequence("seq_queues");
             return db.makeSequence(name, start, increment, end, opts);
         }
 
+        #! creates a database-specific AbstractSequence object corresponding to the arguments
+        /** @par Example:
+            @code
+my AbstractTable $table = $db.makeTable("table", $th);
+            @endcode
+
+            @param name the name of the table
+            @param opts an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @see SqlUtil::Table::constructor()
+        */
+        AbstractTable makeTable(string name, *hash opts) {
+            return db.makeTable(name, opts);
+        }
+
         #! creates a database-specific AbstractFunction object corresponding to the arguments
         /** @par Example:
             @code
@@ -4271,6 +4484,23 @@ my AbstractSequence $seq = $db.makeSequence("seq_queues");
             validateOptionsIntern("SEQUENCE-DESCRIPTION-ERROR", getSequenceDescriptionOptions(), \sh);
 
             return makeSequence(name, sh.start, sh.increment, sh.end);
+        }
+
+        #! creates a database-specific AbstractSequence object corresponding to the arguments
+        /** @par Example:
+            @code
+my AbstractTable $table = $db.makeTable("table", $th);
+            @endcode
+
+            @param name the name of the table
+            @param opts an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+
+            @throw OPTION-ERROR invalid or unsupported option passed
+
+            @see SqlUtil::Table::constructor()
+        */
+        AbstractTable makeTable(string name, *hash opts) {
+            return AbstractTable::getTable(ds, name, opts);
         }
 
         #! creates a database-specific AbstractFunction object corresponding to the arguments
@@ -6138,13 +6368,13 @@ map $upsert($1), $row_list;
             return t.getUpsertClosureWithValidation(example_row, upsert_strategy);
         }
 
-        #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
+        #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
 my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
             @endcode
 
-            @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
+            @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
             @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
             @param info_callback an optional callback to be called whenever an row result is available; this callback should
@@ -6177,13 +6407,13 @@ my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
             return t.upsertFromIterator(i, upsert_strategy, delete_others, info_callback);
         }
 
-        #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() method must return a hash giving row values) into the current table; no transaction management is performed with this method
+        #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
         /** @par Example:
             @code
 my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFirst);
             @endcode
 
-            @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
+            @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
             @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
             @param info_callback an optional callback to be called whenever an row result is available; this callback should
@@ -7047,7 +7277,7 @@ my Triggers $trig = $table.getTriggers();
             #! default select options
             /** the possible keys for select options are as follows (all keys are optional):
                 - @ref select_option_columns "columns": describes the output columns and any output column operations
-                - @ref select_option_where "where": describes how any \c where" clause will be built
+                - @ref select_option_where "where": describes how any \c "where" clause will be built
                 - @ref select_option_orderby "orderby": describes the ordering of the results
                 - @ref select_option_desc "desc": specifies descending order for results
                 - @ref select_option_limit "limit": specifies the maximum number of results to be returned
@@ -9646,13 +9876,13 @@ map $upsert($1), $row_list;
             };
         }        
 
-        #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
+        #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
 my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
             @endcode
 
-            @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
+            @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
             @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
             @param info_callback an optional callback to be called whenever an row result is available; this callback should
@@ -9688,13 +9918,13 @@ my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
             return upsertFromIteratorNoCommit(i, upsert_strategy, delete_others, info_callback);
         }
 
-        #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() method must return a hash giving row values) into the current table; no transaction management is performed with this method
+        #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
         /** @par Example:
             @code
 my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFirst);
             @endcode
 
-            @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
+            @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
             @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
             @param info_callback an optional callback to be called whenever an row result is available; this callback should
