@@ -69,6 +69,6 @@ public:
    DLLLOCAL virtual const char *getTypeName() const;
 };
 
-DLLLOCAL AbstractQoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink);
+DLLLOCAL QoreStringNode *backquoteEval(const char* cmd, int& rc, ExceptionSink* xsink);
 
 #endif

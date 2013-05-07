@@ -845,12 +845,14 @@ nothing parseURL() [flags=RUNTIME_NOOP] {
 //! Executes a process and returns a string of the output (stdout only)
 /** 
     @param cmd The shell command to executed as a subprocess
+    @param rc an optional reference to an integer to return the return code of the process
     
     @return The stdout of the shell command that was executed
 
     @par Example:
     @code
-my string $files = $files = backquote("ls");
+my int $rc;
+my string $files = $files = backquote("ls", \$rc);
     @endcode
 
     @throw BACKQUOTE-ERROR An error occurred with the fork() or opening the stdout pipe
@@ -858,9 +860,20 @@ my string $files = $files = backquote("ls");
     @see
     - system()
     - @ref backquote_operator "the backquote operator"
+
+    @since %Qore 0.8.8 the \a rc argument was added
 */
-string backquote(string cmd) [dom=EXTERNAL_PROCESS] {
-   return backquoteEval(cmd->getBuffer(), xsink);
+string backquote(string cmd, *reference rc) [dom=EXTERNAL_PROCESS] {
+   int prc;
+   SimpleRefHolder<QoreStringNode> str(backquoteEval(cmd->getBuffer(), prc, xsink));
+   if (!*xsink && rc) {
+      QoreTypeSafeReferenceHelper rh(rc, xsink);
+      if (!rh)
+         return 0;
+
+      rh.assignBigInt(prc);
+   }
+   return str.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

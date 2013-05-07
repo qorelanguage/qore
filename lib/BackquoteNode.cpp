@@ -56,32 +56,38 @@ const char *BackquoteNode::getTypeName() const {
 
 // eval(): return value requires a deref(xsink)
 AbstractQoreNode *BackquoteNode::evalImpl(ExceptionSink *xsink) const {
-   return backquoteEval(str, xsink);
+   int rc;
+   return backquoteEval(str, rc, xsink);
 }
 
 // eval(): return value requires a deref(xsink)
 AbstractQoreNode *BackquoteNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = true;
-   return backquoteEval(str, xsink);
+   int rc;
+   return backquoteEval(str, rc, xsink);
 }
 
 int64 BackquoteNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, xsink), xsink);
+   int rc;
+   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, rc, xsink), xsink);
    return rv ? rv->getAsBigInt() : 0;
 }
 
 int BackquoteNode::integerEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, xsink), xsink);
+   int rc;
+   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, rc, xsink), xsink);
    return rv ? rv->getAsInt() : 0;
 }
 
 bool BackquoteNode::boolEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, xsink), xsink);
+   int rc;
+   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, rc, xsink), xsink);
    return rv ? rv->getAsBool() : 0;
 }
 
-double BackquoteNode::floatEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, xsink), xsink);
+double BackquoteNode::floatEvalImpl(ExceptionSink* xsink) const {
+   int rc;
+   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, rc, xsink), xsink);
    return rv ? rv->getAsFloat() : 0;
 }
 
@@ -89,9 +95,10 @@ double BackquoteNode::floatEvalImpl(ExceptionSink *xsink) const {
 #define READ_BLOCK 1024
 #endif
 
-AbstractQoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink) {
+QoreStringNode* backquoteEval(const char* cmd, int& rc, ExceptionSink* xsink) {
+   rc = 0;
    // execute command in a new process and read stdout in parent
-   FILE *p = popen(cmd, "r");
+   FILE* p = popen(cmd, "r");
    if (!p) {
       // could not fork or create pipe
       xsink->raiseException("BACKQUOTE-ERROR", q_strerror(errno));
@@ -118,7 +125,7 @@ AbstractQoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink) {
    }
 
    // wait for child process to terminate and close pipe
-   pclose(p);
+   rc = pclose(p);
 
    return s.release();
 }
