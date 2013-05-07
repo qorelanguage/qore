@@ -3480,8 +3480,9 @@ my AbstractTrigger $trig = $trigs.job_trig;
         The driver-specific module's name is generated based on the db-driver's name with the first letter capitalized then with \c "SqlUtil" appended.
 
         For example:
-        - \c "oracle": \c "OracleSqlUtil"
-        - \c "pgsql": \c "PgsqlSqlUtil"
+        - \c "oracle": <a href="../../OracleSqlUtil/html/index.html">OracleSqlUtil</a>
+        - \c "pgsql": <a href="../../PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
+        - \c "mysql": <a href="../../MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>
 
         etc.
     */
@@ -3658,21 +3659,22 @@ my AbstractSequence $seq = $db.makeSequence("seq_queues");
             return db.makeSequence(name, start, increment, end, opts);
         }
 
-        #! creates a database-specific AbstractSequence object corresponding to the arguments
+        #! creates a database-specific AbstractTable object corresponding to the arguments
         /** @par Example:
             @code
 my AbstractTable $table = $db.makeTable("table", $th);
             @endcode
 
             @param name the name of the table
+            @param desc a @ref table_desc_hash "table description hash" describing the table
             @param opts an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
             @see SqlUtil::Table::constructor()
         */
-        AbstractTable makeTable(string name, *hash opts) {
-            return db.makeTable(name, opts);
+        AbstractTable makeTable(string name, hash desc, *hash opts) {
+            return db.makeTable(name, desc, opts);
         }
 
         #! creates a database-specific AbstractFunction object corresponding to the arguments
@@ -4486,21 +4488,24 @@ my AbstractSequence $seq = $db.makeSequence("seq_queues");
             return makeSequence(name, sh.start, sh.increment, sh.end);
         }
 
-        #! creates a database-specific AbstractSequence object corresponding to the arguments
+        #! creates a database-specific AbstractTable object corresponding to the arguments
         /** @par Example:
             @code
 my AbstractTable $table = $db.makeTable("table", $th);
             @endcode
 
             @param name the name of the table
+            @param desc a @ref table_desc_hash "table description hash" describing the table
             @param opts an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
             @see SqlUtil::Table::constructor()
         */
-        AbstractTable makeTable(string name, *hash opts) {
-            return AbstractTable::getTable(ds, name, opts);
+        AbstractTable makeTable(string name, hash desc, *hash opts) {
+            AbstractTable t = AbstractTable::getTable(ds, name, opts);
+            t.setupTable(desc, opts);
+            return t;
         }
 
         #! creates a database-specific AbstractFunction object corresponding to the arguments
@@ -5039,8 +5044,9 @@ my string $sql = $t.getSqlFromList($list);
         The driver-specific module's name is generated based on the db-driver's name with the first letter capitalized then with \c "SqlUtil" appended.
 
         For example:
-        - \c "oracle": \c "OracleSqlUtil"
-        - \c "pgsql": \c "PgsqlSqlUtil"
+        - \c "oracle": <a href="../../OracleSqlUtil/html/index.html">OracleSqlUtil</a>
+        - \c "pgsql": <a href="../../PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
+        - \c "mysql": <a href="../../MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>
 
         etc.
     */
