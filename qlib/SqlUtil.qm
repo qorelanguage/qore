@@ -4038,6 +4038,17 @@ my string $sql = $t.getSqlFromList($list);
                     opt = l;
                     break;
                 }
+                case "hash/list": {
+                    if (opt.typeCode() == NT_LIST) {
+                        foreach any v in (opt) {
+                            if (v.typeCode() != NT_HASH)
+                                throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"hash\" (value: %y)", tag, k, $#, opt.size(), v.type(), opt);                            
+                        }
+                    }
+                    else if (opt.typeCode() != NT_HASH)
+                        throw err, sprintf("key %y requires type \"list\" or \"hash\" but type %y was passed (%y)", k, opt.type(), opt);
+                    break;
+                }
                 case "Tables": {
                     if (!(opt instanceof Tables))
                         throw err, sprintf("%s: key %y has type %s, expecting class \"Tables\"", tag, k, opt.typeCode() == NT_OBJECT ? sprintf("class \"%s\"", opt.className()) : sprintf("\"%s\"", opt.type()));
@@ -7292,7 +7303,7 @@ my Triggers $trig = $table.getTriggers();
              */
             const SelectOptions = (
                 "columns": Type::NothingType,
-                "where": Type::Hash,
+                "where": "hash/list",
                 "orderby": "softstringlist",
                 "desc": Type::Boolean,
                 "limit": Type::Int,
@@ -10580,10 +10591,28 @@ my string $sql = $table.getSelectSql($sh, \$args);
             return getWhereClauseUnlocked(cond, \args, cprefix, jch, join);
         }
 
+        private *string getWhereClause(list cond, reference args, *string cprefix, *hash jch, bool join = False) {
+            l.lock();
+            on_exit l.unlock();
+            return getWhereClauseUnlocked(cond, \args, cprefix, jch, join);
+        }
+
+        private *string getWhereClauseUnlocked(list cond, reference args, *string cprefix, *hash jch, bool join = False) {
+            getColumnsUnlocked();
+            list al = ();
+            foreach hash ch in (cond) {
+                *list wl = getWhereClauseIntern(ch, \args, cprefix, jch, join);
+                if (wl)
+                    al += "(" + (foldl $1 + " and " + $2, wl) + ")";
+            }
+            if (al)
+                return " where " + (foldl $1 + " or " + $2, al);
+        }
+
         private *string getWhereClauseUnlocked(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
             getColumnsUnlocked();
             *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join);
-            if (l)
+            if (wl)
                 return " where " + (foldl $1 + " and " + $2, wl);
         }
 
