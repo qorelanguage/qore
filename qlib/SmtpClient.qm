@@ -251,7 +251,7 @@ public namespace SmtpClient {
 	#! creates the SmtpClient object
 	/** @par Example:
             @code
-my SmtpClient $smtp("smtptls://pop.gmail.com", \log(), \log());
+my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log());
             @endcode
 
             @param url the URL of the SMTP server (use \c "[hostname]" or \c "[address]" for ipv6 connections); if no protocol (scheme) and no port is given for non-UNIX sockets, then @ref SmtpPort is used as the default port number.  This argument is parsed with parse_url(); see @ref smtpclient_protocols for a description of the handling of the protocol (scheme) component of the URL including default ports per protocol (scheme). If an unknown protocol (scheme) is given then a \c SMTP-UNKNOWN-PROTOCOL exception is raised

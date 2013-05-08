@@ -95,7 +95,7 @@ nothing Condition::broadcast() {
 /** Must be called with an AbstractSmartLock argument, and the AbstractSmartLock must be locked before the call. This method will atomically unlock the AbstractSmartLock object and wait on this Condition object to be woken up with a Condition::signal() or Condition::broadcast() method call in another thread. At this point, the AbstractSmartLock will be reacquired with the same state as it was acquired previously before control returns to the blocked thread. The wait condition should always be tested again when the thread is unblocked.
 
     @param lock the AbstractSmartLock object to use for synchronization on this Condition object. The AbstractSmartLock must be locked before calling this method
-    @param timeout_ms a @ref timeout_type "timeout" value to wait to acquire the read lock; integers are interpreted as milliseconds; @ref relative_dates "relative date/time values" are interpreted literally (with a resolution of milliseconds).  Timeout values <= 0 mean do not time out.  If a timeout value > 0 is given and the call times out, the AbstractSmartLock will also be acquired when the Condition::wait() call returns and \c ETIMEDOUT will be returned.
+    @param timeout_ms a @ref timeout_type "timeout" value to wait for the condition to be triggered; integers are interpreted as milliseconds; @ref relative_dates "relative date/time values" are interpreted literally (with a resolution of milliseconds).  Timeout values <= 0 mean do not time out.  If a timeout value > 0 is given and the call times out, the AbstractSmartLock will also be acquired when the Condition::wait() call returns and \c ETIMEDOUT will be returned.
 
     @return 0 for success, \c ETIMEDOUT if a timeout has occurred
 
