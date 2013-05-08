@@ -1399,12 +1399,12 @@ my int $rows_updated = t.update(("permission_type": uop_lower()));
         @note for join functions, explicit join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
      */
     #@{
-    #! returns a hash keyed with the table name assigned to a hash with \c jop, \c table, \c jcols, \c cond and \c alias keys
+    #! returns a hash keyed with the table name assigned to a hash with \c jop, \c table, \c jcols, \c cond, \c alias, and \c ta keys
     /**
         @note this function is normally not used directly, but rather is called by the other @ref sql_jop_funcs
     */
-    public hash sub make_jop(string jop, AbstractTable table, *string alias, *hash jcols, *hash cond) {
-        hash h{table.getSqlName()} = ("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias);
+    public hash sub make_jop(string jop, AbstractTable table, *string alias, *hash jcols, *hash cond, *string ta) {
+        hash h{table.getSqlName()} = ("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta);
         return h;
     }
 
@@ -1450,6 +1450,52 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
     */
     public hash sub join_inner(Table table, *string alias, *hash jcols) {
         return make_jop(JOP_INNER, table.getTable(), alias, jcols);
+    }
+
+    #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid")) + join_inner("t2", $table3)));
+        @endcode
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2)));
+        @endcode
+
+        @param ta the table name or alias of the other table to join with when not joining with the primary table
+        @param table the table to join with
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub join_inner(string ta, AbstractTable table, *string alias, *hash jcols) {
+        return make_jop(JOP_INNER, table, alias, jcols, NOTHING, ta);
+    }
+
+    #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid")) + join_inner("t2", $table3)));
+        @endcode
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2)));
+        @endcode
+
+        @param ta the table name or alias of the other table to join with when not joining with the primary table
+        @param table the table to join with
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub join_inner(string ta, Table table, *string alias, *hash jcols) {
+        return make_jop(JOP_INNER, table.getTable(), alias, jcols, NOTHING, ta);
     }
 
     #! returns a hash for left outer joins with the given arguments
@@ -1498,6 +1544,54 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
         return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond);
     }
 
+    #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", $table3, "t3")));
+        @endcode 
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", $table3, "t3")));
+        @endcode
+
+        @param ta the table name or alias of the other table to join with when not joining with the primary table
+        @param table the table to join with
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub join_left(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond) {
+        return make_jop(JOP_LEFT, table, alias, jcols, cond, ta);
+    }
+
+    #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", $table3, "t3")));
+        @endcode 
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", $table3, "t3")));
+        @endcode
+
+        @param ta the table name or alias of the other table to join with when not joining with the primary table
+        @param table the table to join with
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub join_left(string ta, Table table, *string alias, *hash jcols, *hash cond) {
+        return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond, ta);
+    }
+
     #! returns a hash for right outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code
@@ -1542,6 +1636,54 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
     */
     public hash sub join_right(Table table, *string alias, *hash jcols, *hash cond) {
         return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond);
+    }
+
+    #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", $table3, "t3")));
+        @endcode 
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", $table3, "t3")));
+        @endcode
+
+        @param ta the table name or alias of the other table to join with when not joining with the primary table
+        @param table the table to join with
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub join_right(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond) {
+        return make_jop(JOP_RIGHT, table, alias, jcols, cond, ta);
+    }
+
+    #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", $table3, "t3")));
+        @endcode 
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", $table3, "t3")));
+        @endcode
+
+        @param ta the table name or alias of the other table to join with when not joining with the primary table
+        @param table the table to join with
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub join_right(string ta, Table table, *string alias, *hash jcols, *hash cond) {
+        return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond, ta);
     }
     #@}
 
@@ -10407,8 +10549,32 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     throw "SELECT-ERROR", sprintf("don't know how to process join element of type %y; expecting a join hash, an AbstractTable object, or a Table object", js.type());
 
                 AbstractTable t = jh.table;
+                t.describe();
 
                 string an = jh.alias ? jh.alias : t.getSqlName();
+
+                AbstractTable jt;
+                if (jh.ta) {
+                    if (!jch{jh.ta})
+                        throw "SELECT-ERROR", sprintf("can't join with unknown table/alias %y; known tables/aliases: %y", jh.ta, list(getName()) + jch.keys());
+                    jt = jch{jh.ta};                    
+                }
+                else
+                    jt = self;
+
+                # set join table name
+                string jtn;
+
+                if (jt != self) {
+                    jt.getPrimaryKey();
+                    jt.getForeignConstraints();
+                    jtn = jh.ta;
+                }
+                else {
+                    getPrimaryKeyUnlocked();
+                    getForeignConstraintsUnlocked();
+                    jtn = getSqlName();
+                }
 
                 # create "join on" clause
                 # the join clause expression list
@@ -10417,50 +10583,48 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     if (jh.jcols.typeCode() != NT_HASH)
                         throw "SELECT-ERROR", sprintf("join clause error; expecting a hash assigned to the \"jcols\" key; got %y instead", jh.jcols.type());
                     foreach hash jmh in (jh.jcols.pairIterator()) {
-                        if (!columns.hasKey(jmh.key))
-                            throw "SELECT-ERROR", sprintf("cannot join on unknown column %y.%y; known columns: %y", getSqlName(), jmh.key, columns.keys());
+                        if (!jt.columns.hasKey(jmh.key))
+                            throw "SELECT-ERROR", sprintf("cannot join on unknown column %y.%y; known columns: %y", jt.getSqlName(), jmh.key, jt.columns.keys());
                         if (!t.describe().hasKey(jmh.value))
                             throw "SELECT-ERROR", sprintf("cannot join on unknown column %y.%y; known columns: %y", t.getSqlName(), jmh.value, t.columns.keys());
-                        jel += sprintf("%s.%s = %s.%s", getSqlName(), jmh.key, an, jmh.value);
+                        jel += sprintf("%s.%s = %s.%s", jtn, jmh.key, an, jmh.value);
                     }
                 }
                 else {
                     *hash fkh;
-                    getPrimaryKeyUnlocked();
-                    if (!primaryKey.empty()) {
+                    if (!jt.primaryKey.empty()) {
                         # see if there is a foreign constraint from table -> pk of self
-                        fkh = t.getForeignConstraints().findConstraintOn(name, primaryKey.keys());
+                        fkh = t.getForeignConstraints().findConstraintOn(jt.name, jt.primaryKey.keys());
                         if (fkh) {
-                            AbstractIterator pki = primaryKey.keyIterator();
+                            AbstractIterator pki = jt.primaryKey.keyIterator();
                             AbstractIterator fki = fkh.keyIterator();
                             while (pki.next() && fki.next())
-                                jel += sprintf("%s.%s = %s.%s", getSqlName(), pki.getValue(), an, fki.getValue());
+                                jel += sprintf("%s.%s = %s.%s", jtn, pki.getValue(), an, fki.getValue());
                         } 
                     }
                     if (!fkh) {
                         # see if there is a foreign constraint in self -> pk of table
-                        getForeignConstraintsUnlocked();
-                        if (!foreignConstraints.empty()) {
+                        if (!jt.foreignConstraints.empty()) {
                             AbstractPrimaryKey pk = t.getPrimaryKey();
                             if (!pk.empty()) {
-                                fkh = foreignConstraints.findConstraintOn(t.getName(), pk.keys());
+                                fkh = jt.foreignConstraints.findConstraintOn(t.getName(), pk.keys());
                                 if (fkh) {
                                     AbstractIterator fki = fkh.keyIterator();
                                     AbstractIterator pki = pk.keyIterator();
                                     while (pki.next() && fki.next())
-                                        jel += sprintf("%s.%s = %s.%s", getSqlName(), fki.getValue(), an, pki.getValue());
+                                        jel += sprintf("%s.%s = %s.%s", jtn, fki.getValue(), an, pki.getValue());
                                 }
                             }
                         }
 
                         if (!fkh)
-                            throw "SELECT-ERROR", sprintf("cannot perform a %s join from %s on %s without a column specification since neither table has a foreign constraint on the primary key of the other table", jh.jop, getSqlName(), t.getSqlName());
+                            throw "SELECT-ERROR", sprintf("cannot perform a %s join from %s on %s without a column specification since neither table has a foreign constraint on the primary key of the other table", jh.jop, jt.getSqlName(), t.getSqlName());
                     }
                 }
 
                 # process any additional join conditions
                 if (jh.cond)
-                    jel += getWhereClauseIntern(jh.cond, \args, an);
+                    jel += jt.getWhereClauseIntern(jh.cond, \args, an);
 
                 sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSqlName(), jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
             }
