@@ -363,3 +363,27 @@ my bool $b = $db.inTransaction();
     @endcode
  */
 abstract bool AbstractDatasource::inTransaction();
+
+//! Returns a @ref datasource_hash "datasource hash" describing the configuration of the current object
+/** @par Example:
+    @code
+my hash $h = $ds.getConfigHash();
+    @endcode
+
+    @return a @ref datasource_hash "datasource hash" describing the configuration of the current object
+
+    @since %Qore 0.8.8
+ */
+abstract hash AbstractDatasource::getConfigHash();
+
+//! Returns a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
+/** @par Example:
+    @code
+my string $str = $ds.getConfigString();
+    @endcode
+
+    @return a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
+
+    @since %Qore 0.8.8
+ */
+abstract string AbstractDatasource::getConfigString();

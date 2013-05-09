@@ -243,16 +243,20 @@ my string $str = $col.getRenameSql($t, "new_name");
     public class MysqlNumericColumn inherits MysqlColumn, SqlUtil::NumericColumnInfo {
         public {
             bool unsigned;
+            bool auto_increment;
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned = False) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned = False, bool n_auto_increment = False) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
             unsigned = n_unsigned;
+            auto_increment = n_auto_increment;
         }
 
         string getNativeTypeString() {
             string str = NumericColumnInfo::getNativeTypeString(native_type, size);
             if (unsigned)
                 str += " unsigned";
+            if (auto_increment)
+                str += " auto_increment";
             return str;
         }
     }
@@ -691,13 +695,13 @@ end";
             #! maps mysql type names to type configurations
             const MysqlTypeMap = (
                 "decimal": ("qore": Type::Number, "size": SZ_NUM,),
-                "tinyint": ("qore": Type::Int,),
-                "smallint": ("qore": Type::Int,),
-                "mediumint": ("qore": Type::Int,),
-                "int": ("qore": Type::Int,),
-                "bigint": ("qore": Type::Int,),
-                "float": ("qore": Type::Float,),
-                "double": ("qore": Type::Float,),
+                "tinyint": ("qore": Type::Int, "ai": True,),
+                "smallint": ("qore": Type::Int, "ai": True,),
+                "mediumint": ("qore": Type::Int, "ai": True,),
+                "int": ("qore": Type::Int, "ai": True,),
+                "bigint": ("qore": Type::Int, "ai": True,),
+                "float": ("qore": Type::Float, "ai": True,),
+                "double": ("qore": Type::Float, "ai": True,),
 
                 "date": ("qore": Type::Date,),
                 "datetime": ("qore": Type::Date,),
@@ -743,7 +747,10 @@ end";
                 "engine": Type::String,
                 );
 
-            const MysqlColumnOptions = AbstractTable::ColumnOptions;
+            const MysqlColumnOptions = AbstractTable::ColumnOptions + (
+                "unsigned": Type::Boolean,
+                "auto_increment": Type::Boolean,
+                );
 
             const MysqlIndexOptions = AbstractTable::IndexOptions;
 
@@ -866,8 +873,9 @@ end";
                     }
                     defval = getSqlValue(defval);
                 }
-                if (row.numeric_precision || unsigned) {
-                    c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, 0, row.numeric_scale, unsigned);
+                bool ai = row.extra == "auto_increment";
+                if (row.numeric_precision || unsigned || ai) {
+                    c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, 0, row.numeric_scale, unsigned, ai);
                 }
                 else
                     c = new MysqlColumn(row.column_name, row.column_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, row.character_octet_length);
@@ -1011,8 +1019,8 @@ end";
         }
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
-            if (opt.precision)
-                return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale, opt.unsigned);
+            if (opt.precision || opt.auto_increment || opt.unsigned)
+                return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale, opt.unsigned, opt.auto_increment);
             return new MysqlColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, 0);
         }
 

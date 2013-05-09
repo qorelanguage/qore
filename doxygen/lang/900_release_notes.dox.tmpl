@@ -9,6 +9,9 @@
 
     @subsection qore_088_compatibility Changes That Can Affect Backwards-Compatibility
     - Fixed method resolution order; it's now possible to call pseudo-methods directly on classes that implement @ref methodGate_methods "methodGate() methods"
+    - Added the following abstract methods to @ref Qore::SQL::AbstractDatasource "AbstractDatasource":
+      - @ref Qore::SQL::AbstractDatasource::getConfigHash() "AbstractDatasource::getConfigHash()"
+      - @ref Qore::SQL::AbstractDatasource::getConfigString() "AbstractDatasource::getConfigString()"
 
     @subsection qore_088_new_features New Features in Qore
     - it's possible to inherit concrete versions of abstract method variants from a parent class\n
