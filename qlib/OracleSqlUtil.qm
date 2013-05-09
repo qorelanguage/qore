@@ -908,6 +908,11 @@ my any $v = $c.name;
             return OracleSchemaDescriptionOptions;
         }
 
+        #! returns the next value in the given sequence
+        private softint getNextSequenceValueImpl(string name) {
+            return ds.selectRow("select %s.nextval from dual", name).nextval
+        }
+
         #! returns @ref Qore::True "True" if the database supports sequences
         private bool supportsSequencesImpl() {
             return True;

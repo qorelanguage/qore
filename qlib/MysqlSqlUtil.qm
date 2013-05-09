@@ -432,20 +432,90 @@ my any $v = $c.name;
 	    return sprintf("alter function %s rename to %s", name, new_name);
 	}
     }
+    
+    #! class for MySQL sequences based on a sequence table and autonomous transactions
+    public class MysqlSequence inherits SqlUtil::AbstractSequence {
+        private {
+            string table_name;
+        }
+
+        #! creates the object from the arguments
+        constructor(string n_table_name, string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
+            if (increment != 1)
+                throw "MYSQL-SEQUENCE-ERROR", sprintf("cannot create a MySQL simulated sequence with any increment value other than 1");
+            table_name = n_table_name;
+        }
+
+        #! returns a string that can be used to create the sequence in the database
+        string getCreateSql(*hash opt) {
+            return sprintf("insert into %s (name, id) values ('%s', %d)", table_name, name, start);
+        }
+
+        #! returns a string that can be used to rename the sequence in the database
+        string getRenameSql(string new_name) {
+            return sprintf("update %s set name = '%s' where name = '%s'", table_name, new_name, name);
+        }
+
+        #! returns a string that can be used to drop the sequence from the database
+        string getDropSql() {
+            return sprintf("delete from %s where name = '%s'", table_name, name);
+        }
+    }
 
     #! provides the MySQL-specific implementation of the AbstractDatabase interface
     public class MysqlDatabase inherits SqlUtil::AbstractDatabase {
         public {
             #! MySQL-specific schema description keys
-            const MysqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions;
+            const MysqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + (
+                "sequence_table": Type::String,
+                "sequence_function": Type::String,
+                );
+
+
+            #! MySQL sequence emulation table
+            const MysqlSequenceTable = (
+                "columns": (
+                    "name": (
+                        "qore_type": SqlUtil::VARCHAR,
+                        "size": 40,
+                        "notnull": True,
+                    ),
+                    "id": (
+                        "qore_type": Type::Number,
+                        "size": 14,
+                        "notnull": True,
+                    ),
+                ),
+                );
+
+            #! MySQL sequence function
+            const MysqlSequenceFunction = "%s(seq_name varchar(40)) returns decimal(14)
+begin
+  update %s set id = last_insert_id(id + 1) where name = seq_name;
+  return last_insert_id();
+end";
         }
 
         private {
             string schema;
+
+            #! separate datasource dedicated for our sequence implementation with autonomous transactions
+            Datasource seqds;
+
+            string sequence_table = "sqlutil_sequences";
+            string sequence_function = "sqlutil_nextval";
         }
 
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
             schema = opts.schema ? opts.schema : ds.getDBName();
+
+            if (opts.sequence_table)
+                sequence_table = opts.sequence_table;
+
+            if (opts.sequence_function)
+                sequence_function = opts.sequence_function;
+
+            seqds = new Datasource(ds.getConfigString());
         }
 
         string getSchemaName() {
@@ -453,11 +523,17 @@ my any $v = $c.name;
         }
 
         private AbstractSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
-            throw "MYSQL-SEQUENCE-ERROR", sprintf("cannot create sequence %y because MySQL does not support sequences", name);
+            return new MysqlSequence(sequence_table, name, start, increment, end);
         }
 
         private *AbstractSequence getSequenceImpl(string name) {
-            throw "MYSQL-SEQUENCE-ERROR", sprintf("cannot retrieve sequence %y because MySQL does not support sequences", name);
+            *AbstractTable t = getTable(sequence_table);
+            if (!t)
+                return;
+            *string str = ds.selectRow("select name from %s where name = %v", sequence_table, name).name;
+            if (!str)
+                return;
+            return new MysqlSequence(sequence_table, name);
         }
 
         private MysqlFunction makeFunctionImpl(string name, string src, *hash opts) {
@@ -525,7 +601,28 @@ my any $v = $c.name;
         }
 
         private list getAlignSqlImpl(hash schema_hash, *hash opt) {
-            return ();
+            list l = ();
+
+            if (opt.start) {
+                # if there are any sequences, then we need to make sure the sequence table and function exist
+                if (schema_hash.sequences) {
+                    # first create / align table
+                    Table st(ds, MysqlSequenceTable, sequence_table, opt{MysqlTable::MysqlTableCreationOptions.keys()});
+                    Table dbst(ds, sequence_table);
+                    list tl = dbst.getAlignSql(st, opt{MysqlTable::MysqlAlignTableOptions.keys()});
+                    if (tl)
+                        l += tl;
+
+                    # create / align function
+                    string fstr = sprintf(MysqlSequenceFunction, sequence_function, sequence_table);
+                    tl = getAlignFunctionSql(new MysqlFunction(sequence_function, fstr));
+                    if (tl)
+                        l += tl;
+                }
+                return l;
+            }
+
+            return l;
         }
 
         #! returns a list of string table names in the database
@@ -554,7 +651,10 @@ my any $v = $c.name;
         }
 
         private list listSequencesImpl() {
-            return ();
+            *AbstractTable t = getTable(sequence_table);
+            if (!t)
+                return ();
+            return ds.select("select name from %s", sequence_table).name;
         }
 
         private list listViewsImpl() {
@@ -574,7 +674,12 @@ my any $v = $c.name;
             return MysqlSchemaDescriptionOptions;
         }
 
-        #! returns @ref Qore::False "False" since MySQL does not support sequences
+        #! returns the next value in the given sequence
+        private softint getNextSequenceValueImpl(string name) {
+            return seqds.selectRow("select nextval(%s)", name).nextval;
+        }
+
+        #! returns @ref Qore::True "True" since we have a workaround implementation for sequences in MySQL
         private bool supportsSequencesImpl() {
             return False;
         }
@@ -617,14 +722,6 @@ my any $v = $c.name;
                 "longblob": ("qore": Type::Binary,),
 
                 "bit": ("qore": Type::Int,),
-                );
-
-            #! maps from verbose type names to simple type names
-            const MysqlNameMap = (
-                "character varying": "varchar",
-                "character": "char",
-                "timestamp without time zone": "timestamp",
-                "time without time zone": "time",
                 );
 
             #! maps qore type names to postgresql type names
@@ -739,10 +836,6 @@ my any $v = $c.name;
                 row.column_type =~ s/\(.*\)$//;
 
                 *hash th = MysqlTypeMap.(row.column_type);
-                # use short names in descriptions
-                *string an = MysqlNameMap{row.data_type};
-                if (an)
-                    row.column_type = an;
                 switch (row.column_type) {
                     case "tinyint":
                     case "smallint":

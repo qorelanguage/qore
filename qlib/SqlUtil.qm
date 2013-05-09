@@ -440,7 +440,7 @@ return $ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOM
 
     @note the above list also applies to the corresponding @ref SqlUtil::AbstractTable methods
 
-    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; combining expressions with \c "OR" is not yet supported.
+    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; to combine expressions with \c "OR", then use a list of @ref select_option_hash "select option hashes", which will combine each @ref select_option_hash "select option hash" with \c "OR" as in @ref where_list "this example.\n\n
 
     The where condition hash has the following format:
     - each key gives a column name or a table/alias with column name in dot notation
@@ -465,6 +465,27 @@ my *hash $qh = $t.select(("where": $w));
     the complete query would look instead as follows:
     @code
 $ds.vselect("select * from table where name = %v and account_type like %v and id >= %v", ("Smith", "%CUSTOMER%", 500));
+    @endcode
+
+    @anchor where_list
+    @par Where List Example:
+    @code
+my hash $w1 = (
+    "name": "Smith",
+    "account_type": op_like("%CUSTOMER%"),
+    "id": op_ge(500),
+);
+my hash $w2 = (
+    "name": "Jones",
+    "account_type": op_like("%VENDOR%"),
+    "id": op_ge(2500),
+);
+my Table $t($ds, "table");
+my *hash $qh = $t.select(("where": ($w1, $w2)));
+    @endcode \n
+    the complete query would look instead as follows:
+    @code
+$ds.vselect("select * from table where (name = %v and account_type like %v and id >= %v) or (name = %v and account_type like %v and id >= %v)", ("Smith", "%CUSTOMER%", 500, "Jones", "%VENDOR%", 2500));
     @endcode
 
     @par Code Examples:
@@ -732,6 +753,61 @@ else
     - @ref SqlUtil::Database::tableIterator() "Database::tableIterator()"
     - @ref SqlUtil::Database::viewIterator() "Database::viewIterator()"
 
+    @section groups_of_tables Working With Groups of Tables
+
+    The @ref SqlUtil::Tables class manages a group of tables and the foreign key dependencies between the tables.
+    This class is useful when managing an entire schema, particularly in the context of manual changes to
+    a schema, such as a schema upgrade or downgrade for complex scenarios that are beyond the capabilities of
+    the automatic schema and table alignment code.
+
+    Below you can find some examples of what the @ref SqlUtil::Tables "Tables" class can do.
+
+    @par Cache All Tables from a Schema
+    To load all tables in a particular schema into an object of class @ref SqlUtil::Tables "Tables":
+    @code
+my Tables $tables($ds);
+    @endcode
+
+    @par Drop All Foreign Constraints from a Table
+    The following is an example of how all foreign constraints to a particular table can be dropped:
+    @code
+my *list $l = $tables.getDropAllForeignConstraintsOnTableSql("table_name", ("sql_callback_executed": True));
+{
+    on_success $ds.commit();
+    on_error $ds.rollback();
+    map $ds.execRaw($1), $l;
+}
+    @endcode
+    This can be useful when performing a schema change and a table will be dropped, for example.
+
+    @note by setting \c "sql_callback_executed" = @ref Qore::True "True", the affected constraints and linked unique constraints are also updated in the cached table objects, see @ref sql_callback_executed for more information
+
+    @par Drop a Constraint If It Exists
+    The following code provides an example of how to unconditionally drop a constraint from a table and update the internal links between unique constraints and foreign constraints (if a foreign constraint is dropped):
+    @code
+my *string $sql = $tables.getDropConstraintIfExistsSql("table_name", "fk_table_name_other_table", ("sql_callback_executed": True));
+if ($sql) {
+    on_success $ds.commit();
+    on_error $ds.rollback();
+    $ds.execRaw($sql);
+}
+    @endcode
+
+    @note by setting \c "sql_callback_executed" = @ref Qore::True "True", the affected constraints and linked unique constraints are also updated in the cached table objects, see @ref sql_callback_executed for more information
+
+    @par Rename a Table
+    The following code gives an example of renaming a table and updating all foreign constraint and unique key links in impacted tables if the source table exists and the target name does not exist:
+    @code
+my *string $sql = $tables.getRenameTableIfExistsSql("old_table_name", "new_table_name", ("sql_callback_executed": True));
+if ($sql) {
+    on_success $ds.commit();
+    on_error $ds.rollback();
+    $ds.execRaw($sql);
+}
+    @endcode
+
+    @note by setting \c "sql_callback_executed" = @ref Qore::True "True", the affected constraints and linked unique constraints are also updated in the cached table objects, see @ref sql_callback_executed for more information
+
     @section aligning_schemas Aligning Schemas With a Template
 
     A schema template can be created any way required (ie by hand, or by retrieving the description from another database), but typically they will be created from a @ref schema_desc_hash "schema description hash".
@@ -758,7 +834,7 @@ my code $sql_callback = sub (string $str) {
 my hash $callback_opts = ("info_callback": $info_callback, "sql_callback": $sql_callback, "sql_callback_executed": True);
 
 my Database $db($ds);
-my Tables $table_cache;
+my Tables $table_cache();
 $db.getAlignSql($schema_template, $callback_opts, $table_cache);
     @endcode
 
@@ -773,6 +849,11 @@ $db.getAlignSql($schema_template, $callback_opts, $table_cache);
 
     Each database driver may provide additional objects (such as types or materialized views, packages, etc); see 
     driver-specific documentation for more information.
+
+    The following is an example of a schema description hash:
+    @code
+
+    @endcode
 
     @section table_management Table Management
 
@@ -1059,8 +1140,16 @@ my hash $ix_desc = (
 );
     @endcode
 
-*/
+    @section callbacks Callbacks
+    
+    @subsection info_callback SQL CallBack Closure or Call Ceference
 
+    @subsection sql_callback SQL CallBack Closure or Call Ceference
+
+    @subsection sql_callback_executed SQL CallBack Executed Flag
+
+*/
+    
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
     /* @defgroup SqlTypeConstants SQL Type Constants
@@ -2486,6 +2575,10 @@ my AbstractTable $t = $tables.table_name;
 my *string $sql = $tables.getRenameTableIfExistsSql($old_name, $new_name);
             @endcode
 
+            If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True", this
+            method also takes care of renaming internal foreign constraint references and source constraint references
+            from unique keys for the renamed table.
+
             @param old_name the current name of the table
             @param new_name the new name of the table
             @param opts optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
@@ -2525,6 +2618,22 @@ my *string $sql = $tables.getRenameTableIfExistsSql($old_name, $new_name);
             return sql;
         }
 
+        #! returns an SQL string that can be used to drop an existing constraint on a table, if the table is not already cached or the constraint does not exist, then @ref nothing is returned
+        /** @par Example:
+            @code
+my *string $sql = $tables.getDropConstraintIfExistsSql("table", "pk_table");
+            @endcode
+
+            If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True" and
+            if the constraint to be dropped is a foreign constraint, then if any unique constraint is linked
+            to this foreign constraint, the link is removed.
+
+            @param tname the name of the table
+            @param cname the name of the constraint to drop if it exists
+            @param opts optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @return an SQL string that can be used to drop an existing constraint on a table, if the table is not already cached or the constraint does not exist, then @ref nothing is returned
+        */
         *string getDropConstraintIfExistsSql(string tname, string cname, *hash opts) {
             if (!h{tname})
                 return;
@@ -2534,7 +2643,7 @@ my *string $sql = $tables.getRenameTableIfExistsSql($old_name, $new_name);
             *string sql = t.getDropConstraintIfExistsSql(cname, opts, \c);
             if (!sql)
                 return;
-            if (c instanceof AbstractForeignConstraint) {
+            if (opts.sql_callback_executed && c instanceof AbstractForeignConstraint) {
                 AbstractForeignConstraint fk = c;
                 if (h{fk.target.table}) {
                     AbstractTable tt = h{fk.target.table};
@@ -2581,6 +2690,15 @@ my *string $sql = $tables.getRenameTableIfExistsSql($old_name, $new_name);
             return getCreateList().iterator();
         }
 
+        #! returns a list of cached table names in the order that can be used to drop the tables, taking into account foreign constraint dependencies
+        /** @par Example:
+            @code
+my list $l = $tables.getDropList();
+map $1.drop(), $l;
+            @endcode
+
+            @return a list of cached table names in the order that can be used to drop the tables, taking into account foreign constraint dependencies
+        */
         list getDropList() {
             if (!h)
                 return ();
@@ -2616,6 +2734,14 @@ my *string $sql = $tables.getRenameTableIfExistsSql($old_name, $new_name);
             return l;
         }
 
+        #! returns an iterator for a list of cached table names in the order that can be used to drop the tables, taking into account foreign constraint dependencies
+        /** @par Example:
+            @code
+map $1.drop(), $tables.getDropIterator();
+            @endcode
+
+            @return an iterator for a list of cached table names in the order that can be used to drop the tables, taking into account foreign constraint dependencies
+        */
         AbstractIterator dropIterator() {
             return getDropList().iterator();
         }
@@ -2723,7 +2849,7 @@ my AbstractColumn $c = $cols.id;
             #! the size of the column
             int size;
 
-            #! Qore::True "True" if the column can hold a NULL value, @ref Qore::False "False" if not
+            #! @ref Qore::True "True" if the column can hold a NULL value, @ref Qore::False "False" if not
             bool nullable; 
 
             #! default value for column
@@ -3922,7 +4048,7 @@ $db.dropTableIfExists($name);
         #! returns a list of SQL strings that can be used to update a function in the database to the function definition passed as an argument
         /** @par Example:
             @code
-my list $l = $db.getAlignFunctionSql(f);
+my list $l = $db.getAlignFunctionSql($f);
             @endcode
 
             @param f the template or target version of the function to compare to the database version
@@ -3939,7 +4065,7 @@ my list $l = $db.getAlignFunctionSql(f);
         #! returns a list of SQL strings that can be used to update a stored procedure in the database to the stored procedure definition passed as an argument
         /** @par Example:
             @code
-my list $l = $db.getAlignProcedureSql(f);
+my list $l = $db.getAlignProcedureSql($f);
             @endcode
 
             @param f the template or target version of the stored procedure to compare to the database version
@@ -4011,6 +4137,20 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
          */
         *AbstractFunction getProcedure(string name) {
             return db.getProcedure(name);
+        }
+
+        #! returns the next value in the given sequence
+        /** @par Example:
+            @code
+my number $n = $db.getNextSequenceValue("seq_customers");
+            @endcode
+
+            @param name the name of the sequence
+
+            @return the next value in the given sequence
+        */
+        int getNextSequenceValue(string name) {
+            return db.getNextSequenceValue(name);
         }
 
         #! returns an SQL string corresponding to the list of commands in the argument
@@ -4885,7 +5025,7 @@ my string $sql = $db.getDropTableSqlIfExists($name);
         #! returns a list of SQL strings that can be used to update a function in the database to the function definition passed as an argument
         /** @par Example:
             @code
-my list $l = $db.getAlignFunctionSql(f);
+my list $l = $db.getAlignFunctionSql($f);
             @endcode
 
             @param f the template or target version of the function to compare to the database version
@@ -4916,7 +5056,7 @@ my list $l = $db.getAlignFunctionSql(f);
         #! returns a list of SQL strings that can be used to update a stored procedure in the database to the stored procedure definition passed as an argument
         /** @par Example:
             @code
-my list $l = $db.getAlignProcedureSql(f);
+my list $l = $db.getAlignProcedureSql($f);
             @endcode
 
             @param f the template or target version of the stored procedure to compare to the database version
@@ -5000,6 +5140,20 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
          */
         *AbstractFunction getProcedure(string name) {
             return getProcedureImpl(name);
+        }
+
+        #! returns the next value in the given sequence
+        /** @par Example:
+            @code
+my number $n = $db.getNextSequenceValue("seq_customers");
+            @endcode
+
+            @param name the name of the sequence
+
+            @return the next value in the given sequence
+        */
+        int getNextSequenceValue(string name) {
+            return getNextSequenceValueImpl(name);
         }
 
         #! returns an SQL string corresponding to the list of commands in the argument
@@ -5187,6 +5341,9 @@ my string $sql = $t.getSqlFromList($list);
         private abstract list listProceduresImpl();
         private abstract list listSequencesImpl();
         private abstract list listViewsImpl();
+
+        #! returns the next value in the given sequence
+        private abstract int getNextSequenceValueImpl(string name);
 
         #! returns @ref Qore::True "True" if the database supports sequences
         private abstract bool supportsSequencesImpl();
