@@ -3632,9 +3632,9 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             }
 
             string src1 = src;
-            src1 =~ s/\n/ /g;
+            #src1 =~ s/\n/ /g;
             string src2 = t.src;
-            src2 =~ s/\n/ /g;
+            #src2 =~ s/\n/ /g;
 
             if (src1 != src2) {
                 #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
