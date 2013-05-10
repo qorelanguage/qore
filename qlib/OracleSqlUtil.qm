@@ -579,6 +579,11 @@ my any $v = $c.name;
                 l += sprintf("create%s package body %s", opt.replace ? " or replace" : "", body_src);
             return l;
         }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        bool equalImpl(AbstractFunctionBase t) {
+            return body_src == cast<OraclePackage>(t).body_src;
+        }
     }
 
     #! represents an Oracle materialized view
