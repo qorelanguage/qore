@@ -2592,30 +2592,54 @@ my *string $sql = $tables.getRenameTableIfExistsSql($old_name, $new_name);
             AbstractTable t = h{old_name};
             string oldsn = t.getSqlName();
             *string sql = t.getRenameSql(new_name, opts);
-            if (opts.sql_callback_executed) {
-                renameKey(old_name, new_name);
+            if (opts.sql_callback_executed)
+                tableRenamedIntern(old_name, new_name, oldsn);
 
-                # search through all unique keys and rename foreign keys in source tables
-                foreach AbstractUniqueConstraint uk in (t.getUniqueConstraintIterator()) {
-                    foreach hash sch in (uk.getSourceConstraintIterator()) {
-                        sch.fk.target.table = t.getName();
-                    }
+            return sql;
+        }
+
+        #! updates table names and internal references for renamed tables
+        /** @par Example:
+            @code
+$tables.tableRenamed($old, $new);
+            @endcode
+
+            @param old_name the current name of the table
+            @param new_name the new name of the table
+            @param old_sql_name the old full SQL name of the table (ie the value returned by @ref SqlUtil::AbstractTable::getSqlName())
+
+            @return @ref Qore::True "True" if the table was renamed internally, @ref Qore::False "False" if not
+        */
+        bool tableRenamed(string old_name, string new_name, string old_sql_name) {
+            if (!h{old_name} || h{new_name})
+                return False;
+            tableRenamedIntern(old_name, new_name, old_sql_name);
+            return True;
+        }
+
+        private tableRenamedIntern(string old_name, string new_name, string oldsn) {
+            renameKey(old_name, new_name);
+            AbstractTable t = h{new_name};
+
+            # search through all unique keys and rename foreign keys in source tables
+            foreach AbstractUniqueConstraint uk in (t.getUniqueConstraintIterator()) {
+                foreach hash sch in (uk.getSourceConstraintIterator()) {
+                    sch.fk.target.table = t.getName();
                 }
+            }
 
-                if (!t.getForeignConstraints().empty()) {
-                    string newsn = t.getSqlName();
+            if (!t.getForeignConstraints().empty()) {
+                string newsn = t.getSqlName();
 
-                    # search through all foreign constraints and try to rename source constraints
-                    foreach AbstractForeignConstraint fk in (t.getForeignConstraints().iterator()) {
-                        if (h{fk.target.table}) {
-                            AbstractTable tt = h{fk.target.table};
-                            foreach AbstractUniqueConstraint uk in (tt.getUniqueConstraintIterator())
-                                uk.renameSourceConstraintTable(oldsn, newsn);
-                        }
+                # search through all foreign constraints and try to rename source constraints
+                foreach AbstractForeignConstraint fk in (t.getForeignConstraints().iterator()) {
+                    if (h{fk.target.table}) {
+                        AbstractTable tt = h{fk.target.table};
+                        foreach AbstractUniqueConstraint uk in (tt.getUniqueConstraintIterator())
+                            uk.renameSourceConstraintTable(oldsn, newsn);
                     }
                 }
             }
-            return sql;
         }
 
         #! returns an SQL string that can be used to drop an existing constraint on a table, if the table is not already cached or the constraint does not exist, then @ref nothing is returned
@@ -5663,11 +5687,12 @@ $table.rename("new_name");
 
             @param new_name the new name for the table
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @param table_cache an optional @ref SqlUtil::Tables "Tables" argument to update the table name in any table cache
 
             @see getRenameSql()
         */
-        rename(string new_name, *reference sql) {
-            return t.rename(new_name, \sql);
+        rename(string new_name, *reference sql, *Tables table_cache) {
+            return t.rename(new_name, \sql, table_cache);
         }
 
         #! returns @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
@@ -7088,7 +7113,7 @@ my int $ucnt = $table.update(("id": $id), ("name": $name));
             @throw UPDATE-ERROR the set hash is empty
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @see updateNoCommit(hash, *hash)
+            @see updateNoCommit()
          */
         int update(hash set, *hash cond, *reference sql) {
             return t.update(set, cond, \sql);
@@ -7109,7 +7134,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             @throw UPDATE-ERROR the set hash is empty
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @see update(hash, *hash)
+            @see update()
          */
         int updateNoCommit(hash set, *hash cond, *reference sql) {
             return t.updateNoCommit(set, cond, \sql);
@@ -7654,7 +7679,7 @@ my Triggers $trig = $table.getTriggers();
                 to specify the upsert strategy when synchronizing table data
              */
             #@{
-            #! Upsert option: insert first
+            #! Upsert option: insert first, if the insert fails, then update
             /** with this option an insert is attempted, and if it fails due to a duplicate row, then an update is made unconditionally; with
                 this upsert strategy, the following row result codes are possible:
                 - @ref UR_Inserted
@@ -7662,7 +7687,7 @@ my Triggers $trig = $table.getTriggers();
              */
             const UpsertInsertFirst = 1;
 
-            #! Upsert option: update first
+            #! Upsert option: update first, if the update fails, then insert
             /** with this option an update is attempted, and if it fails due to a missing row, then an insert is performed; with
                 this upsert strategy, the following row result codes are possible:
                 - @ref UR_Inserted
@@ -7670,7 +7695,7 @@ my Triggers $trig = $table.getTriggers();
              */
             const UpsertUpdateFirst = 2;
 
-            #! Upsert option: select first
+            #! Upsert option: select first, if the row is unchanged, do nothing, if it doesn't exist, insert, otherwise update
             /** with this option the row is selected, if it doesn't exist, an insert is made, and an update is made only if the
                 values are different; with this upsert strategy, the following row result codes are possible:
                 - @ref UR_Inserted
@@ -8024,18 +8049,21 @@ $table.rename("new_name");
 
             @param new_name the new name for the table
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
+            @param table_cache an optional @ref SqlUtil::Tables "Tables" argument to update the table name in any table cache
 
             @see getRenameSql()
         */
-        rename(string new_name, *reference sql) {
+        rename(string new_name, *reference sql, *Tables table_cache) {
             l.lock();
             on_exit l.unlock();
 
             execSql(sql = getRenameSqlImpl(name, new_name));
-            doRenameIntern(new_name);
+            doRenameIntern(new_name, table_cache);
         }
 
-        private doRenameIntern(string new_name) {
+        private doRenameIntern(string new_name, *Tables table_cache) {
+            if (table_cache)
+                table_cache.tableRenamed(name, new_name, getSqlName());
             name = new_name;
         }
 
@@ -11090,7 +11118,7 @@ my int $ucnt = $table.update(("id": $id), ("name": $name));
             @throw UPDATE-ERROR the set hash is empty
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @see updateNoCommit(hash, *hash)
+            @see updateNoCommit()
          */
         int update(hash set, *hash cond, *reference sql) {
             on_success ds.commit();
@@ -11114,7 +11142,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             @throw UPDATE-ERROR the set hash is empty
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @see update(hash, *hash)
+            @see update()
          */
         int updateNoCommit(hash set, *hash cond, *reference sql) {
             # make query
@@ -11586,7 +11614,7 @@ my string $sql = $table.getRenameSql("new_name");
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
-            @note does not rename the table; the new name is only used in the SQL string return value
+            @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True", this method also renames the object internally, additionally if the \c "db_table_cache" option key is assigned to a @ref SqlUtil::Tables "Tables" argument, then the table cache is also updated with the name change in this case
 
             @see 
             - rename()
@@ -11599,7 +11627,7 @@ my string $sql = $table.getRenameSql("new_name");
             on_exit l.unlock();
 
             on_success if (opt.sql_callback_executed)
-                doRenameIntern(new_name);
+                doRenameIntern(new_name, opt.db_table_cache);
 
             return AbstractDatabase::doCallback(opt, getRenameSqlImpl(new_name), "rename table %s to %s", name, new_name);
         }
