@@ -244,11 +244,14 @@ my string $str = $col.getRenameSql($t, "new_name");
         public {
             bool unsigned;
             bool auto_increment;
+            # auto-incrememnt columns must be either "unique" or "primary key" in mysql
+            bool pk = False;
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned = False, bool n_auto_increment = False) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned = False, bool n_auto_increment = False, bool n_pk = False) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
             unsigned = n_unsigned;
             auto_increment = n_auto_increment;
+            pk = n_pk;
         }
 
         string getNativeTypeString() {
@@ -256,7 +259,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             if (unsigned)
                 str += " unsigned";
             if (auto_increment)
-                str += " auto_increment";
+                str += " auto_increment " + (pk ? "primary key" : "unique");
             return str;
         }
     }
@@ -747,9 +750,15 @@ end";
                 "engine": Type::String,
                 );
 
+            #! extends @ref SqlUtil::AbstractTable::ColumnOptions with MySQL-specific values
+            /** the new keys are as follows:
+                - \c "unsigned": only valid with numeric/integer/floating-point types
+                - \c "auto_increment": only valid with integer/floating-point types
+            */
             const MysqlColumnOptions = AbstractTable::ColumnOptions + (
                 "unsigned": Type::Boolean,
                 "auto_increment": Type::Boolean,
+                "pk": Type::Boolean,
                 );
 
             const MysqlIndexOptions = AbstractTable::IndexOptions;
@@ -875,7 +884,7 @@ end";
                 }
                 bool ai = row.extra == "auto_increment";
                 if (row.numeric_precision || unsigned || ai) {
-                    c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, 0, row.numeric_scale, unsigned, ai);
+                    c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, 0, row.numeric_scale, unsigned, ai, row.column_key == "PRI");
                 }
                 else
                     c = new MysqlColumn(row.column_name, row.column_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, row.character_octet_length);
@@ -884,6 +893,22 @@ end";
             }
 
             return new Columns(rv);
+        }
+
+        private *string getCreatePrimaryKeySqlUnlocked(*hash opt, bool cache = True) {
+            if (cache)
+                getPrimaryKeyUnlocked();
+            if (primaryKey.empty())
+                return;
+            # if we are creating the entire table and there is a column marked "primary key", then skip this
+            if (opt.create_table_all) {
+                foreach MysqlColumn c in (columns.iterator()) {
+                    if (c instanceof MysqlNumericColumn && cast<MysqlNumericColumn>(c).pk)
+                        return;
+                }
+                return;
+            }
+            return AbstractDatabase::doCallback(opt, primaryKey.getCreateSql(name, opt), "create primary key %s on %s", primaryKey.getName(), name);
         }
 
         private *MysqlPrimaryKey getPrimaryKeyImpl() {
@@ -1020,7 +1045,7 @@ end";
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
             if (opt.precision || opt.auto_increment || opt.unsigned)
-                return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale, opt.unsigned, opt.auto_increment);
+                return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale, opt.unsigned, opt.auto_increment, opt.pk);
             return new MysqlColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, 0);
         }
 

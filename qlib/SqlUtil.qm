@@ -76,6 +76,23 @@ module SqlUtil {
     The underlying driver-specific module is automatically loaded and used when required; the classes provided in 
     the %SqlUtil module provide a generic API that uses the driver-specific implementations for the underlying driver-specific
     implementation.
+
+    @subsection sqlutil_overview Overview of Functionality
+
+    SqlUtil provides API support for the following:
+    - @ref sql_operations
+      - @ref retrieving_data
+      - @ref inserting_data
+      - @ref updating_data
+      - @ref deleting_data
+      - @ref sql_upsert
+    - @ref schema_management
+      - @ref creating_new_objects
+      - @ref retrieving_objects
+      - @ref listing_objects
+      - @ref interdependent_tables
+      - @ref aligning_schemas
+      - @ref table_management
 */
 
 /** @page sql_operations SQL Operations
@@ -403,6 +420,22 @@ return $ds.vexec("insert into schema.table (id,name,created) select cid,fullname
     @endcode
 
     The return value of these methods is the number of rows inserted.  See @ref select_option_hash "select option hash" for more information about how to form the select criteria in these methods.
+
+    @section updating_data Updating Data
+
+    @par Example:
+    @code
+my int $rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
+    @endcode
+
+    The example above generates a %Qore SQL command like the following on Oracle and PostgreSQL for example:
+    @code
+return $ds.vexec("update schema.table set permission_type = lower(permission_type) || '-migrated');
+    @endcode
+    And the following on MySQL:
+    @code
+return $ds.vexec("update schema.table set permission_type = concat(lower(permission_type), '-migrated'));
+    @endcode
 
     @section deleting_data Deleting Data
 
@@ -753,7 +786,7 @@ else
     - @ref SqlUtil::Database::tableIterator() "Database::tableIterator()"
     - @ref SqlUtil::Database::viewIterator() "Database::viewIterator()"
 
-    @section groups_of_tables Working With Groups of Tables
+    @section interdependent_tables Working With Interdependent Tables
 
     The @ref SqlUtil::Tables class manages a group of tables and the foreign key dependencies between the tables.
     This class is useful when managing an entire schema, particularly in the context of manual changes to
@@ -3632,9 +3665,9 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             }
 
             string src1 = src;
-            #src1 =~ s/\n/ /g;
+            src1 =~ s/\n/ /g;
             string src2 = t.src;
-            #src2 =~ s/\n/ /g;
+            src2 =~ s/\n/ /g;
 
             if (src1 != src2) {
                 #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
@@ -12405,6 +12438,8 @@ my *list $rows = $table.findAll($h);
                 delete opt.driver;
             }
 
+            # mark in options that the entire table is being created
+            opt.create_table_all = True;
             list l += getCreateTableSqlUnlocked(opt);
             *list tl = getCreateIndexesSqlUnlocked(opt, cache); if (tl) l += tl;
             *string sql = getCreatePrimaryKeySqlUnlocked(opt, cache); if (sql) l += sql;

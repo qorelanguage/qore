@@ -638,7 +638,10 @@ my any $v = $c.name;
                 );
 
             #! oracle-specific schema description / alignment options
-            const OracleAlignSchemaOptions = AbstractDatabase::CreationOptions + OracleCreationOptions;
+            const OracleAlignSchemaOptions = AbstractDatabase::CreationOptions
+                + OracleCreationOptions
+                + OracleTable::OracleAlignTableOptions
+                ;
 
             #! oracle-specific schema description keys
             const OracleSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + (
@@ -1045,7 +1048,10 @@ my any $v = $c.name;
                 );
 
             #! Oracle table creation options
-            const OracleTableCreationOptions = AbstractTable::TableCreationOptions + OracleConstraintOptions;
+            const OracleTableCreationOptions = AbstractTable::TableCreationOptions
+                + OracleConstraintOptions
+                + OraColumnOptions
+                ;
 
             const OracleAlignTableOptions = AbstractTable::AlignTableOptions + OracleTableCreationOptions;
         }
@@ -1248,6 +1254,7 @@ my any $v = $c.name;
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
+                #printf("DBG: %y\n", row);
                 *hash th = OraTypeMap.(row.data_type.lwr());
                 int size = row.data_type == "NUMBER" && row.data_precision ? row.data_precision : row.data_length;
                 switch (row.data_type) {
@@ -1269,10 +1276,18 @@ my any $v = $c.name;
                 }
                 trim row.data_default;
 
+                bool char_used;
+                if (row.char_used == "C") {
+                    char_used = True;
+                    size = row.char_length;
+                }
+                else
+                    char_used = False;
+
                 OracleColumn c;
                 *string defval = exists row.data_default && row.data_default !== NULL ? row.data_default : NOTHING;
                 if (row.data_precision) 
-                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable, defval, row.comments ? row.comments : NOTHING, row.char_used == "C", row.data_length, row.data_scale);
+                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable, defval, row.comments ? row.comments : NOTHING, char_used, row.data_length, row.data_scale);
                 else
                     c = new OracleColumn(row.column_name, row.data_type, th.qore, size, nullable, defval, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
 

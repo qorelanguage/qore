@@ -20,7 +20,10 @@ const opts = (
     );
 
 sub usage() {
-    printf("usage: %s [options] <datasource>
+    printf("usage: %s [options] <datasource-spec>
+    example datasource-specs:
+       oracle:user/pass@db%example.com:1521
+       pgsql:user/pass@db%localhost
  -D,--drop              drop the schema
  -d,--data-ts=<arg>     set the data tablespace name
  -i,--index-ts=<arg>    set the index tablespace name
@@ -169,6 +172,9 @@ sub main() {
         usage();
 
     *string dsstr = shift ARGV;
+    if (!dsstr)
+        usage();
+
     Datasource ds(dsstr);
 
     int change_count;
@@ -201,6 +207,8 @@ sub main() {
 
     if (o.drop) {
         db.getDropSchemaSql(Schema, callback_opts);
+        if (!o.verbose && change_count)
+            print("\n");
         return;
     }
 
