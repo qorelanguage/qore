@@ -2866,7 +2866,7 @@ my AbstractColumn $c = $cols.id;
         }
 
         #! returns a subset of the current columns according to the list argument
-        Columns subset(list l) {
+        Columns subset(softlist l) {
             hash nh = h{l};
             if (nh.size() != l.size())
                 throw "SUBSET-ERROR", sprintf("subset requested: %y is not possible, can only provide: %y", l, nh.keys());
@@ -8163,22 +8163,34 @@ $table.rename("new_name");
             # extract column options
             *hash oc = opt.(copt.keys());
 
-            # add columns to table
+            # process descriptions
             AbstractDatabase::checkDriverOptions(\desc.columns, drv);
+            AbstractDatabase::checkDriverOptions(\desc.indexes, drv);
+            AbstractDatabase::checkDriverOptions(\desc.primary_key, drv);
+            AbstractDatabase::checkDriverOptions(\desc.unique_constraints, drv);
+            AbstractDatabase::checkDriverOptions(\desc.foreign_constraints, drv);
+            AbstractDatabase::checkDriverOptions(\desc.triggers, drv);
+
+            # process column definitions
             foreach string cn in (desc.columns.keyIterator()) {
                 if (desc.columns{cn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", name, cn, desc.columns{cn}.type(), desc.columns{cn});
-                hash ch = desc.columns{cn};
-                if (ch.driver) {
-                    ch += ch.driver{drv};
-                    delete ch.driver;
+                if (desc.columns{cn}.driver) {
+                    desc.columns{cn} += desc.columns{cn}.driver{drv};
+                    delete desc.columns{cn}.driver;
                 }
+            }
+
+            preSetupTableImpl(\desc, opt);
+
+            # add columns to table
+            foreach string cn in (desc.columns.keyIterator()) {
+                hash ch = desc.columns{cn};
                 softbool nullable = !exists ch.notnull ? True : !(remove ch.notnull);
                 addColumnUnlocked(cn, ch + oc, nullable ? True : False, oc);
             }
 
             # add indexes to table
-            AbstractDatabase::checkDriverOptions(\desc.indexes, drv);
             foreach string ixn in (desc.indexes.keyIterator()) {
                 if (desc.indexes{ixn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", name, ixn, desc.indexes{ixn}.type(), desc.indexes{ixn});
@@ -8192,7 +8204,6 @@ $table.rename("new_name");
             }
 
             # add primary key to table
-            AbstractDatabase::checkDriverOptions(\desc.primary_key, drv);
             if (desc.primary_key) {
                 if (desc.primary_key.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to primary_key is not a hash, got type %y instead (%y)", name, desc.primary_key.type(), desc.primary_key);
@@ -8203,7 +8214,6 @@ $table.rename("new_name");
             }
 
             # add unique constraints to table
-            AbstractDatabase::checkDriverOptions(\desc.unique_constraints, drv);
             foreach string un in (desc.unique_constraints.keyIterator()) {
                 if (desc.unique_constraints{un}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", name, un, desc.unique_constraints{un}.type(), desc.unique_constraints{un});
@@ -8219,7 +8229,6 @@ $table.rename("new_name");
             }
 
             # add foreign constraints to table
-            AbstractDatabase::checkDriverOptions(\desc.foreign_constraints, drv);
             foreach string cn in (desc.foreign_constraints.keyIterator()) {
                 if (desc.foreign_constraints{cn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to foreign constraint key %y is not a hash, got type %y instead (%y)", name, cn, desc.foreign_constraints{cn}.type(), desc.foreign_constraints{cn});
@@ -8242,7 +8251,6 @@ $table.rename("new_name");
             }
 
             # add triggers to table
-            AbstractDatabase::checkDriverOptions(\desc.triggers, drv);
             foreach string tn in (desc.triggers.keyIterator()) {
                 if (desc.triggers{tn}.typeCode() != NT_STRING)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to trigger key %y is not a string giving the trigger source code, got type %y instead (%y)", name, tn, desc.triggers{tn}.type(), desc.triggers{tn});
@@ -8349,9 +8357,13 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
 
             # add the column to the internal column representation
             if (modify_table)
-                columns.add(cname, c);
+                addColumnToTableUnlocked(c);
 
             return c;
+        }
+
+        private addColumnToTableUnlocked(AbstractColumn c) {
+            columns.add(c.name, c);
         }
 
         #! modifies an existing column in the table; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally and the new column definition will be created when create() is called for example
@@ -8398,7 +8410,7 @@ $table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
             execSql(lsql = columns{cname}.getModifySql(self, c));
 
             # replaces the column in the internal column representation with the new definition
-	    columns.add(cname, c);
+            addColumnToTableUnlocked(c);
             return c;
         }
 
@@ -8445,10 +8457,9 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
             AbstractColumn c = addColumnImpl(cname, copt, nullable);
             # replaces the column in the internal column representation with the new definition
             on_success if (opt.sql_callback_executed)
-                columns.add(cname, c);
+                addColumnToTableUnlocked(c);
             
             return AbstractDatabase::doCallback(opt, columns{cname}.getModifySql(self, c), "update column %s.%s to %s", name, cname, c.getNativeTypeString());
-
         }
 
         #! renames an existing column; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
@@ -8634,16 +8645,21 @@ printf("%s;\n", $sql);
             string sql;
             AbstractPrimaryKey pk = addPrimaryKeyUnlockedIntern(pkname, cols, pkopt, \sql);
             on_success if (opt.sql_callback_executed) {
-                primaryKey = pk;
+                setPrimaryKeyUnlocked(pk);
                 manual = True;
             }
             return AbstractDatabase::doCallback(opt, sql, "adding primary key %s to %s", pkname, getSqlName());
         }
 
+        private setPrimaryKeyUnlocked(AbstractPrimaryKey pk) {
+            primaryKey = pk;
+        }
+
         private AbstractPrimaryKey addPrimaryKeyUnlocked(string pkname, softlist cols, *hash opt, *reference sql) {
             AbstractPrimaryKey pk = addPrimaryKeyUnlockedIntern(pkname, cols, opt, \sql);
             execSql(sql);
-            return primaryKey = pk;
+            setPrimaryKeyUnlocked(pk);
+            return pk;
         }
 
         private AbstractPrimaryKey addPrimaryKeyUnlockedIntern(string pkname, softlist cols, *hash opt, *reference sql) {
@@ -12702,6 +12718,9 @@ my *list $rows = $table.findAll($h);
 
         #! clears any driver-specific table information
         private clearImpl() {
+        }
+
+        private preSetupTableImpl(reference desc, *hash opt) {
         }
 
         private abstract bool emptyImpl();

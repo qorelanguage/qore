@@ -262,6 +262,12 @@ my string $str = $col.getRenameSql($t, "new_name");
                 str += " auto_increment " + (pk ? "primary key" : "unique");
             return str;
         }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        private bool equalImpl(AbstractColumn c) {
+            MysqlNumericColumn nc = c;
+            return unsigned = nc.unsigned && auto_increment == nc.auto_increment && pk == nc.pk;
+        }
     }
 
     public class MysqlUniqueConstraintCommon inherits SqlUtil::AbstractUniqueConstraint {
@@ -1049,6 +1055,73 @@ end";
             return new MysqlColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, 0);
         }
 
+        private setPrimaryKeyUnlocked(AbstractPrimaryKey pk) {
+            AbstractTable::setPrimaryKeyUnlocked(pk);
+            if (pk.size() == 1 && columns.hasKey(pk.getName()) && columns{pk.getName()} instanceof MysqlNumericColumn) {
+                MysqlNumericColumn c = columns{pk.getName()};
+                if (c.auto_increment && !c.pk)
+                    c.pk = True;
+            }
+        }
+
+        private addColumnToTableUnlocked(AbstractColumn c) {
+            AbstractTable::addColumnToTableUnlocked(c);
+            # see if column has "auto_increment" set and handle unique indexes and primary keys
+            if (c instanceof MysqlNumericColumn) {
+                MysqlNumericColumn nc = c;
+                if (nc.auto_increment) {
+                    MysqlIndex ix;
+                    # see if a unique index already exists with this name
+                    if (indexes.hasKey(c.name)) {
+                        ix = indexes{c.name};
+                        if (!ix.unique)
+                            throw "AUTO-INCREMENT-ERROR", sprintf("column %y.%y which has \"auto-increment\" set and is also flagged as a unique index for the table does not match with the existing index's definition which is not unique; columns: %y", name, c.name, ix.columns.keys());
+                        if (ix.columns.size() > 1 || ix.columns.firstKey() != c.name)
+                            throw "AUTO-INCREMENT-ERROR", sprintf("column %y.%y which has \"auto-increment\" set and is also flagged as a unique index for the table does not match with the existing index's column definition: %y", name, c.name, ix.columns.keys());
+                    }
+                    /*
+                    else {
+                        if (!indexes)
+                            indexes = new Indexes();
+                        ix = new MysqlIndex(c.name, True, columns.(list(c.name)));
+                        indexes.add(c.name, ix);
+                    }
+                    */
+
+                    AbstractUniqueConstraint uk;
+                    if (nc.pk) {
+                        # add primary key if not present
+                        if (!primaryKey.empty()) {
+                            if (primaryKey.size() > 1 || primaryKey.firstKey() != c.name)
+                                throw "AUTO-INCREMENT-ERROR", sprintf("column %y.%y which has \"auto-increment\" set and is also flagged as a primary key for the table does not match with the existing primary key column definition: %y", name, c.name, primaryKey.keys());
+                        }
+                        else
+                            primaryKey = new MysqlPrimaryKey(columns.(list(c.name)));
+                        uk = primaryKey;
+                    }
+                    else {
+                        # see if a unique constraint already exists with this name
+                        if (constraints.hasKey(c.name)) {
+                            if (!(constraints{c.name} instanceof AbstractUniqueConstraint))
+                                throw "AUTO-INCREMENT-ERROR", sprintf("column %y.%y which has \"auto-increment\" set and is also flagged as a unique constraint for the table does not match with the existing constraint type: %y", name, c.name, constraints{c.name}.className());
+                                
+                            uk = constraints{c.name};
+                            if (uk.size() > 1 || uk.firstKey() != c.name)
+                                throw "AUTO-INCREMENT-ERROR", sprintf("column %y.%y which has \"auto-increment\" set and is also flagged as a unique constraint for the table does not match with the existing unique constraint's column definition: %y", name, c.name, uk.keys());
+                        }
+                        else {
+                            if (!constraints)
+                                constraints = new Constraints();
+                            uk = new MysqlUniqueConstraint(c.name, columns.(list(c.name)));
+                            constraints.add(c.name, uk);
+                        }
+                    }
+                    if (ix)
+                        uk.setIndexBase(c.name);
+                }
+            }
+        }
+
         private AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt) {
             return new MysqlPrimaryKey(ch);
         }
@@ -1124,6 +1197,25 @@ end";
 
         private bool emptyImpl() {
             return True;
+        }
+
+        private preSetupTableImpl(reference desc, *hash opt) {
+            # see if there is an auto-increment column and set the primary key flag if it matches the primary key declaraion
+            foreach string k in (desc.columns.keyIterator()) {
+                if (desc.columns{k}.auto_increment) {
+                    if (!desc.columns{k}.pk) {
+                        if (desc.primary_key.columns.lsize() == 1) {
+                            softlist cl = desc.primary_key.columns;
+                            if (cl[0] == k) {
+                                desc.columns{k}.pk = True;
+                                # delete the primary key description; it will be added again when the column is added
+                                delete desc.primary_key;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
         }
 
         private setupTableImpl(hash desc, *hash opt) {
