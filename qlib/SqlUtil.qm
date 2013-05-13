@@ -123,8 +123,6 @@ module SqlUtil {
     - @ref SqlUtil::Table::findAll(): returns all rows that match the @ref where_clauses "where clause hash argument" or returns @ref nothing if no row matches
     - @ref SqlUtil::Table::getRowIterator(): returns an @ref Qore::SQL::SQLStatement "SQLStatement" object iterating rows that match the @ref select_option_hash "select option hash" argument
     - @ref SqlUtil::Table::getSelectSql(): returns an SQL string and bind arguments for the @ref select_option_hash "select option hash" argument
-    - @ref SqlUtil::Table::insertFromSelect(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and commits the transaction
-    - @ref SqlUtil::Table::insertFromSelectNoCommit(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and without committing the transaction
     - @ref SqlUtil::Table::select(): returns a hash keyed by column name of lists (row values) corresponding to the @ref select_option_hash "select option hash" argument
     - @ref SqlUtil::Table::selectRow(): return a hash repersenting a single row corresponding to the @ref select_option_hash "select option hash" argument; if the query returns more than one row an exception will be raised
     - @ref SqlUtil::Table::selectRows(): returns lists of row values corresponding to the @ref select_option_hash "select option hash" argument
@@ -407,10 +405,10 @@ if ($h)
     @section inserting_data Inserting Data into the Database
 
     The following methods can be used to insert data into the database:
-    - @ref SqlUtil::Table::insert()
-    - @ref SqlUtil::Table::insertNoCommit()
-    - @ref SqlUtil::Table::insertFromSelect()
-    - @ref SqlUtil::Table::insertFromSelectNoCommit()
+    - @ref SqlUtil::Table::insert(): inserts a single row into a table and commits the transaction
+    - @ref SqlUtil::Table::insertNoCommit(): inserts a single row into a table without committing the transaction
+    - @ref SqlUtil::Table::insertFromSelect(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and commits the transaction
+    - @ref SqlUtil::Table::insertFromSelectNoCommit(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and without committing the transaction
 
     @see sql_upsert for information about upserting or merging data
 
@@ -441,6 +439,10 @@ return $ds.vexec("insert into schema.table (id,name,created) select cid,fullname
 
     @section updating_data Updating Data
 
+    The following methods can be used to update data:
+    - @ref SqlUtil::Table::update(): updates a single row and commits the transaction
+    - @ref SqlUtil::Table::updateNoCommit(): updates a single row and does not commit the transaction
+
     @par Example:
     @code
 my int $rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
@@ -456,6 +458,12 @@ return $ds.vexec("update schema.table set permission_type = concat(lower(permiss
     @endcode
 
     @section deleting_data Deleting Data
+
+    The following methods can be used to dekete data:
+    - @ref SqlUtil::Table::del(): updates the table based on a @ref where_clauses "where clause" and commits the transaction
+    - @ref SqlUtil::Table::delNoCommit(): updates the table based on a @ref where_clauses "where clause" and does not commit the transaction
+    - @ref SqlUtil::Table::truncate(): truncates the table and commits the transaction releasing the transaction lock on the underlying datasource object
+    - @ref SqlUtil::Table::truncateNoCommit(): truncates the table and does not commit the transaction
 
     @par Example:
     @code
@@ -6776,7 +6784,7 @@ my int $rows = $table.insertFromIterator($i);
         #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
         /** @par Example:
             @code
-my int $rows = $table.insertFromIterator($i);
+my int $rows = $table.insertFromIteratorNoCommit($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
@@ -10414,7 +10422,7 @@ my int $rows = $table.insertFromIterator($i);
         #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
         /** @par Example:
             @code
-my int $rows = $table.insertFromIterator($i);
+my int $rows = $table.insertFromIteratorNoCommit($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
@@ -10431,7 +10439,7 @@ my int $rows = $table.insertFromIterator($i);
             - upsertFromIterator()
             - upsertFromIteratorNoCommit()
         */
-        int insertFromIteratorNocommit(Qore::AbstractIterator i, *code info_callback) {
+        int insertFromIteratorNoCommit(Qore::AbstractIterator i, *code info_callback) {
             if (!i.next())
                 return 0;
 
@@ -10446,7 +10454,7 @@ my int $rows = $table.insertFromIterator($i);
 
             int rc = 0;
             do {
-                stmt.vexec(sql, row.values());
+                stmt.execArgs(row.values());
                 if (info_callback)
                     info_callback(getSqlName(), row);
                 ++rc;
