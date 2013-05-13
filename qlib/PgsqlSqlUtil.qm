@@ -1171,7 +1171,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 }
 
                 PgsqlColumn c;
-                *string defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
+                *string defval = row.column_default;
                 # normalize default value expressions
                 if (defval =~ /::bpchar$/)
                     defval =~ s/::bpchar$//;

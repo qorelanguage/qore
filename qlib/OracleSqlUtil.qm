@@ -1284,11 +1284,10 @@ my any $v = $c.name;
                     char_used = False;
 
                 OracleColumn c;
-                *string defval = exists row.data_default && row.data_default !== NULL ? row.data_default : NOTHING;
                 if (row.data_precision) 
-                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable, defval, row.comments ? row.comments : NOTHING, char_used, row.data_length, row.data_scale);
+                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable, row.data_default, row.comments ? row.comments : NOTHING, char_used, row.data_length, row.data_scale);
                 else
-                    c = new OracleColumn(row.column_name, row.data_type, th.qore, size, nullable, defval, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
+                    c = new OracleColumn(row.column_name, row.data_type, th.qore, size, nullable, row.data_default, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
 
                 rv.(row.column_name) = c;
             }

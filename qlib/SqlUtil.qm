@@ -126,6 +126,7 @@ module SqlUtil {
     - @ref SqlUtil::Table::insertFromSelect(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and commits the transaction
     - @ref SqlUtil::Table::insertFromSelectNoCommit(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and without committing the transaction
     - @ref SqlUtil::Table::select(): returns a hash keyed by column name of lists (row values) corresponding to the @ref select_option_hash "select option hash" argument
+    - @ref SqlUtil::Table::selectRow(): return a hash repersenting a single row corresponding to the @ref select_option_hash "select option hash" argument; if the query returns more than one row an exception will be raised
     - @ref SqlUtil::Table::selectRows(): returns lists of row values corresponding to the @ref select_option_hash "select option hash" argument
 
     @subsection find_single_row Retrieving a Single Row
@@ -231,6 +232,7 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", "started", cop_as(
     - @ref SqlUtil::Table::insertFromSelect()
     - @ref SqlUtil::Table::insertFromSelectNoCommit()
     - @ref SqlUtil::Table::select()
+    - @ref SqlUtil::Table::selectRow()
     - @ref SqlUtil::Table::selectRows()
     - @ref SqlUtil::Table::upsertFromSelect()
     - @ref SqlUtil::Table::upsertFromSelectNoCommit()
@@ -386,6 +388,22 @@ $ds.vselectRows("select * from (select /*+ first_rows(100) *<!---->/ a.*, rownum
 $ds.vselectRows("select * from public.table where type = %v order by type limit %v offset %v", ("user", 100, 200));
     @endcode
 
+    @subsection check_matching_rows Check For At Least One Matching Row
+
+    Use the @ref SqlUtil::Table::findSingle() method to find at least one matching row: 
+    @code
+my *hash $h = $table.findSingle(("account_type": "CUSTOMER"));
+if ($h)
+    printf("found 1 customer row: %y\n", $l[0]);
+    @endcode
+
+    Also it's possible to use the \c "limit" option to make an efficient check for at least one matching row as in the following example (which is functionally equivalent to the previous example):
+    @code
+my *hash $h = $table.selectRow(("where": ("account_type": "CUSTOMER"), "limit 1"));
+if ($h)
+    printf("found 1 customer row: %y\n", $l[0]);
+    @endcode
+
     @section inserting_data Inserting Data into the Database
 
     The following methods can be used to insert data into the database:
@@ -465,6 +483,7 @@ return $ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOM
     - @ref SqlUtil::Table::insertFromSelect()
     - @ref SqlUtil::Table::insertFromSelectNoCommit()
     - @ref SqlUtil::Table::select()
+    - @ref SqlUtil::Table::selectRow()
     - @ref SqlUtil::Table::selectRows()
     - @ref SqlUtil::Table::update()
     - @ref SqlUtil::Table::updateNoCommit()
@@ -2294,7 +2313,7 @@ map printf("+ %y\n", $1.value), $h.iterator();
 
             @return a @ref Qore::HashIterator "HashIterator" object for the contained hash
         */
-        AbstractIterator iterator() {
+        Qore::AbstractIterator iterator() {
             return h.iterator();
         }
 
@@ -2306,7 +2325,7 @@ map printf("+ %s\n", $1), $h.keyIterator();
 
             @return a @ref Qore::HashKeyIterator "HashKeyIterator" object for the contained hash
         */
-        AbstractIterator keyIterator() {
+        Qore::AbstractIterator keyIterator() {
             return h.keyIterator();
         }
 
@@ -2318,7 +2337,7 @@ map printf("+ %s: %y\n", $1.key, $1.value), $h.pairIterator();
 
             @return a @ref Qore::HashPairIterator "HashPairIterator" object for the contained hash
         */
-        AbstractIterator pairIterator() {
+        Qore::AbstractIterator pairIterator() {
             return h.pairIterator();
         }
 
@@ -2464,7 +2483,7 @@ map printf("+ %s: %y\n", $1), $h.iterator();
 
             @return a @ref Qore::HashIterator "HashIterator" object for the contained hash
         */
-        ListIterator iterator() {
+        Qore::ListIterator iterator() {
             return l.iterator();
         }
 
@@ -2788,7 +2807,7 @@ my *string $sql = $tables.getDropConstraintIfExistsSql("table", "pk_table");
             return l;
         }
 
-        AbstractIterator createIterator() {
+        Qore::AbstractIterator createIterator() {
             return getCreateList().iterator();
         }
 
@@ -2844,7 +2863,7 @@ map $1.drop(), $tables.getDropIterator();
 
             @return an iterator for a list of cached table names in the order that can be used to drop the tables, taking into account foreign constraint dependencies
         */
-        AbstractIterator dropIterator() {
+        Qore::AbstractIterator dropIterator() {
             return getDropList().iterator();
         }
 
@@ -3406,7 +3425,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
             - \c fk: the AbstractForeignConstraint object
             - \c table: the table name
         */
-        AbstractIterator getSourceConstraintIterator() {
+        Qore::AbstractIterator getSourceConstraintIterator() {
             list l = ();
             foreach hash sch in (sourceConstraints.pairIterator()) {
                 map l += ("fk": $1, "table": sch.key), sch.value.iterator();
@@ -4001,7 +4020,7 @@ my list $l = $db.getDropSchemaSql($schema_hash);
         }
 
         #! gets the underlying AbstractDatasource
-        AbstractDatasource getDatasource() {
+        Qore::SQL::AbstractDatasource getDatasource() {
             return db.getDatasource();
         }
 
@@ -4280,7 +4299,7 @@ my string $sql = $t.getSqlFromList($list);
         }
         
         #! returns an iterator listing the string table names in the database
-        ListIterator tableIterator() {
+        Qore::ListIterator tableIterator() {
             return db.tableIterator();            
         }
  
@@ -4290,7 +4309,7 @@ my string $sql = $t.getSqlFromList($list);
         }
         
         #! returns an iterator listing the string function names in the database
-        ListIterator functionIterator() {
+        Qore::ListIterator functionIterator() {
             return db.functionIterator();            
         }
 
@@ -4300,7 +4319,7 @@ my string $sql = $t.getSqlFromList($list);
         }
         
         #! returns an iterator listing the string procedure names in the database
-        ListIterator procedureIterator() {
+        Qore::ListIterator procedureIterator() {
             return db.procedureIterator();            
         }
 
@@ -4310,7 +4329,7 @@ my string $sql = $t.getSqlFromList($list);
         }
         
         #! returns an iterator listing the string sequence names in the database
-        ListIterator sequenceIterator() {
+        Qore::ListIterator sequenceIterator() {
             return db.sequenceIterator();            
         }
 
@@ -4320,7 +4339,7 @@ my string $sql = $t.getSqlFromList($list);
         }
         
         #! returns an iterator listing the string view names in the database
-        ListIterator viewIterator() {
+        Qore::ListIterator viewIterator() {
             return db.viewIterator();
         }
     }
@@ -4453,7 +4472,7 @@ my string $sql = $t.getSqlFromList($list);
         }
 
         #! gets the underlying AbstractDatasource
-        AbstractDatasource getDatasource() {
+        Qore::SQL::AbstractDatasource getDatasource() {
             return ds;
         }
 
@@ -5283,7 +5302,7 @@ my string $sql = $t.getSqlFromList($list);
         }
         
         #! returns an iterator listing the string table names in the database
-        ListIterator tableIterator() {
+        Qore::ListIterator tableIterator() {
             return listTablesImpl().iterator();            
         }
  
@@ -5293,7 +5312,7 @@ my string $sql = $t.getSqlFromList($list);
         }
         
         #! returns an iterator listing the string function names in the database
-        ListIterator functionIterator() {
+        Qore::ListIterator functionIterator() {
             return listFunctionsImpl().iterator();            
         }
 
@@ -5303,7 +5322,7 @@ my string $sql = $t.getSqlFromList($list);
         }
         
         #! returns an iterator listing the string procedure names in the database
-        ListIterator procedureIterator() {
+        Qore::ListIterator procedureIterator() {
             return listProceduresImpl().iterator();            
         }
 
@@ -5313,7 +5332,7 @@ my string $sql = $t.getSqlFromList($list);
         }
         
         #! returns an iterator listing the string sequence names in the database
-        ListIterator sequenceIterator() {
+        Qore::ListIterator sequenceIterator() {
             return listSequencesImpl().iterator();            
         }
 
@@ -5323,7 +5342,7 @@ my string $sql = $t.getSqlFromList($list);
         }
         
         #! returns an iterator listing the string view names in the database
-        ListIterator viewIterator() {
+        Qore::ListIterator viewIterator() {
             return listViewsImpl().iterator();            
         }
 
@@ -5557,7 +5576,7 @@ my Table $table("pgsql:user/pass@db%host", "table");
         }
 
         #! gets the underlying AbstractDatasource
-        AbstractDatasource getDatasource() {
+        Qore::SQL::AbstractDatasource getDatasource() {
             return t.getDatasource();
         }
 
@@ -5602,7 +5621,7 @@ map printf("unique constraint %s\n", $1.getName()), $table.getUniqueConstraintIt
 
             @return an iterator for all unique constraints on the table (including the primary key if any)
         */
-        AbstractIterator getUniqueConstraintIterator() {
+        Qore::AbstractIterator getUniqueConstraintIterator() {
             return t.getUniqueConstraintIterator();
         }
 
@@ -6841,7 +6860,7 @@ my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromIterator(AbstractIterator i, int upsert_strategy = AbstractTable::UpsertInsertFirst, softbool delete_others = False, *code info_callback) {
+        *hash upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertInsertFirst, softbool delete_others = False, *code info_callback) {
             return t.upsertFromIterator(i, upsert_strategy, delete_others, info_callback);
         }
 
@@ -6880,7 +6899,7 @@ my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFi
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromIteratorNoCommit(AbstractIterator i, int upsert_strategy = AbstractTable::UpsertInsertFirst, softbool delete_others = False, *code info_callback) {
+        *hash upsertFromIteratorNoCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertInsertFirst, softbool delete_others = False, *code info_callback) {
             return t.upsertFromIteratorNoCommit(i, upsert_strategy, delete_others, info_callback);
         }
 
@@ -7076,7 +7095,7 @@ my int $cnt = $table.rowCount();
             return t.rowCount();
         }
 
-        #! returns an SQLStatement object that will iterate the results of a select statement matching the arguments
+        #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
         /** @par Example:
             @code
 my SQLStatement $i = $table.getRowIterator();
@@ -7085,7 +7104,7 @@ my SQLStatement $i = $table.getRowIterator();
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
-            @return an SQLStatement object that will iterate the results of a select statement matching the arguments
+            @return an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
 
             @throw OPTION-ERROR invalid or unsupportd select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
@@ -7094,8 +7113,29 @@ my SQLStatement $i = $table.getRowIterator();
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
          */
-        SQLStatement getRowIterator(*hash sh, *reference sql) {
+        Qore::SQL::SQLStatement getRowIterator(*hash sh, *reference sql) {
             return t.getRowIterator(sh, \sql);
+        }
+
+        #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
+        /** @par Example:
+            @code
+my *hash $h = $table.selectRow($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+
+            @return a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+            @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+         */
+        *hash selectRow(*hash sh, *reference sql) {
+            return t.selectRow(sh, \sql);
         }
 
         #! returns a list of hashes representing the rows in the table that match the argument hash
@@ -7555,6 +7595,8 @@ my *hash $row = $table.findSingle($h);
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
             @note this is equivalent to calling selectRows() with \c where = \c cond and \c limit = 1
+
+            @see selectRow()
          */
         *hash findSingle(*hash cond) {
             return t.findSingle(cond);
@@ -7939,7 +7981,7 @@ map printf("unique constraint %s\n", $1.getName()), $table.getUniqueConstraintIt
 
             @return an iterator for all unique constraints on the table (including the primary key if any)
         */
-        AbstractIterator getUniqueConstraintIterator() {
+        Qore::AbstractIterator getUniqueConstraintIterator() {
             l.lock();
             on_exit l.unlock();
 
@@ -10402,7 +10444,7 @@ my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromIterator(AbstractIterator i, int upsert_strategy = AbstractTable::UpsertInsertFirst, softbool delete_others = False, *code info_callback) {
+        *hash upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertInsertFirst, softbool delete_others = False, *code info_callback) {
             on_success ds.commit();
             on_error ds.rollback();
 
@@ -10444,7 +10486,7 @@ my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFi
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromIteratorNoCommit(AbstractIterator i, int upsert_strategy = AbstractTable::UpsertInsertFirst, softbool delete_others = False, *code info_callback) {
+        *hash upsertFromIteratorNoCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertInsertFirst, softbool delete_others = False, *code info_callback) {
             # try to get initial row
             if (!i.next())
                 return;
@@ -10693,7 +10735,7 @@ my int $cnt = $table.rowCount();
             return ds.selectRow("select count(1) cnt from %s", getSqlName()).cnt;
         }
 
-        #! returns an SQLStatement object that will iterate the results of a select statement matching the arguments
+        #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
         /** @par Example:
             @code
 my SQLStatement $i = $table.getRowIterator($sh);
@@ -10702,7 +10744,7 @@ my SQLStatement $i = $table.getRowIterator($sh);
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
 
-            @return an SQLStatement object that will iterate the results of a select statement matching the arguments
+            @return an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
 
             @throw OPTION-ERROR invalid or unsupportd select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
@@ -10711,7 +10753,7 @@ my SQLStatement $i = $table.getRowIterator($sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
          */
-        SQLStatement getRowIterator(*hash sh, *reference sql) {
+        Qore::SQL::SQLStatement getRowIterator(*hash sh, *reference sql) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
@@ -10722,6 +10764,32 @@ my SQLStatement $i = $table.getRowIterator($sh);
             stmt.execArgs(args);
 
             return stmt;
+        }
+
+        #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
+        /** @par Example:
+            @code
+my *hash $h = $table.selectRow($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+
+            @return a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
+
+            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+            @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+         */
+        *hash selectRow(*hash sh, *reference sql) {
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+
+            list args;
+            sql = getSelectSqlUnlocked(sh, \args);
+            
+            return ds.vselectRow(sql, args);
         }
 
         #! returns a list of hashes representing the rows in the table that match the argument hash
