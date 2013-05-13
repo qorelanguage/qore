@@ -399,7 +399,7 @@ if ($h)
 
     Also it's possible to use the \c "limit" option to make an efficient check for at least one matching row as in the following example (which is functionally equivalent to the previous example):
     @code
-my *hash $h = $table.selectRow(("where": ("account_type": "CUSTOMER"), "limit 1"));
+my *hash $h = $table.selectRow(("where": ("account_type": "CUSTOMER"), "limit": 1));
 if ($h)
     printf("found 1 customer row: %y\n", $l[0]);
     @endcode
@@ -592,7 +592,23 @@ $table.upsert(("id": $id, "name": $name, "account_type": $account_type));
 
     To upsert or merge many rows by using an upsert closure, call @ref SqlUtil::Table::getUpsertClosure() or @ref SqlUtil::Table::getUpsertClosureWithValidation() and provide an example row as an argument to acquire a closure that will be executed on the rest of the rows as in the following example.
 
-    @par Example:
+    @par Simple Example:
+    @code
+# get the rows to be inserted
+my list $l = get_table_rows();
+
+if ($l) {
+    my code $upsert = $table.getUpsertClosure($l[0]);
+
+    on_success $ds.commit();
+    on_error $ds.rollback();
+ 
+    # loop through the reference data rows
+    map $upsert($1), $l;
+}
+    @endcode
+
+    @par Complex Example With Callbacks:
     @code
 # set the upsert strategy depending on the use case
 my int $upsert_strategy;
@@ -609,41 +625,50 @@ my hash $sh;
 # get the rows to be inserted
 my list $l = get_table_rows();
 
-# get the upsert closure to use based on the first row to be inserted
-my code $upsert = $table.getUpsertClosure($l[0], $upsert_strategy);
+if ($l) {
+    # get the upsert closure to use based on the first row to be inserted
+    my code $upsert = $table.getUpsertClosure($l[0], $upsert_strategy);
 
-on_success $ds.commit();
-on_error $ds.rollback();
+    on_success $ds.commit();
+    on_error $ds.rollback();
 
-# loop through the reference data rows
-foreach my hash $h in ($l) {
-    my int $code = $upsert($h);
-    if ($code == AbstractTable::UR_Unchanged)
-        continue;
+    # loop through the reference data rows
+    foreach my hash $h in ($l) {
+        my int $code = $upsert($h);
+        if ($code == AbstractTable::UR_Unchanged)
+            continue;
 
-    my string $change = AbstractTable::UpsertResultMap{$code};
-    ++$sh{$change};
+        my string $change = AbstractTable::UpsertResultMap{$code};
+        ++$sh{$change};
 
-    if (!$verbose) {
-        printf(".");
-        flush();
+        if (!$verbose) {
+            printf(".");
+            flush();
+        }
+        else if ($verbose > 1)
+            printf("*** reference data %s: %y: %s\n", $table.getName(), $h, $change);
     }
-    else if ($verbose > 1)
-        printf("*** reference data %s: %y: %s\n", $table.getName(), $h, $change);
-}
 
-# show table summary
-if ($sh)
-    printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
-else
-    printf("*** reference data %s: OK\n", $table.getName());
+    # show table summary
+    if ($sh)
+        printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
+    else
+        printf("*** reference data %s: OK\n", $table.getName());
+}
     @endcode
 
     @subsection sql_upsert_from_iterator Upserting Many Rows from an Iterator Source
 
     To upsert or merge many rows from an iterator source (such as an @ref Qore::SQL::SQLStatement object), call @ref SqlUtil::Table::upsertFromIterator() or @ref SqlUtil::Table::upsertFromIteratorNoCommit() as in the following example:
 
-    @par Example:
+    @par Simple Example:
+    @code
+# get the rows to be inserted
+my list $l = get_table_rows();
+$table.upsertFromIterator($l.iterator());
+    @endcode
+
+    @par Complex Example With Callbacks:
     @code
 # set the upsert strategy depending on the use case
 my int $upsert_strategy;
@@ -678,7 +703,12 @@ else
 
     To upsert or merge many rows from a select statement, use @ref SqlUtil::Table::upsertFromSelect() or @ref SqlUtil::Table::upsertFromSelectNoCommit() as in the following example:
 
-    @par Example:
+    @par Simple Example:
+    @code
+$table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")));
+    @endcode
+
+    @par Complex Example With Callbacks:
     @code
 # set the upsert strategy depending on the use case
 my int $upsert_strategy;
@@ -688,9 +718,6 @@ else if ($new_install)
     $upsert_strategy = AbstractTable::UpsertInsertFirst;
 else
     $upsert_strategy = AbstractTable::UpsertUpdateFirst;
-
-# get the rows to be inserted
-my list $l = get_table_rows();
 
 my code $callback = sub (string $table_name, hash $row, int $result) { 
     if ($result == AbstractTable::UR_Unchanged)
@@ -713,9 +740,16 @@ else
 
     Call any of the batch upsert methods with the \a delete_others argument @ref Qore::True "True" to perform a batch upsert / merge operation on a table, and then scan the table and delete any unwanted rows.  If there are no rows to be deleted, these calls have very similar performance to the batch upsert method calls without any deletions, however, if there are rows to be deleted, then the entire source table must be iterated to compare each row to valid data to delete the rows that do not belong.  Therefore for large tables this can be an expensive operation.
 
-    The only difference in the following example and the preceding one is that the \a delete_others argument is @ref Qore::True "True" in this example.
+    The only difference in the following examples and the preceding ones is that the \a delete_others argument is @ref Qore::True "True" in these examples.
 
-    @par Example:
+    @par Simple Example:
+    @code
+# get the rows to be inserted
+my list $l = get_table_rows();
+$table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertInsertFirst, True);
+    @endcode
+
+    @par Complex Example With Callbacks:
     @code
 # set the upsert strategy depending on the use case
 my int $upsert_strategy;
@@ -6715,6 +6749,54 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
             return t.insertFromSelectNoCommit(cols, source, sh, \sql);
         }
 
+        #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromIterator($i);
+            @endcode
+
+            @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
+            @param info_callback an optional callback to be called whenever a row is inserted taking the following arguments:
+            - @ref string_type "string" table_name: the name of the table
+            - @ref hash_type "hash" row: the row affected
+
+            @return the number of rows inserted
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+
+            @see
+            - insertFromIteratorNoCommit()
+            - upsertFromIterator()
+            - upsertFromIteratorNoCommit()
+        */
+        int insertFromIterator(Qore::AbstractIterator i, *code info_callback) {
+            return t.insertFromIterator(i, info_callback);
+        }
+
+        #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromIterator($i);
+            @endcode
+
+            @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
+            @param info_callback an optional callback to be called whenever a row is inserted taking the following arguments:
+            - @ref string_type "string" table_name: the name of the table
+            - @ref hash_type "hash" row: the row affected
+
+            @return the number of rows inserted
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+
+            @see
+            - insertFromIteratorNoCommit()
+            - upsertFromIterator()
+            - upsertFromIteratorNoCommit()
+        */
+        int insertFromIteratorNocommit(Qore::AbstractIterator i, *code info_callback) {
+            return t.insertFromIteratorNoCommit(i, info_callback);
+        }
+
         #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
@@ -6740,7 +6822,7 @@ $table.upsert($row);
             return t.upsert(row, upsert_strategy);
         }
 
-        #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this
+        #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this; no transaction management is performed with this method
         /** @par Example:
             @code
 $table.upsertNoCommit($row);
@@ -10302,6 +10384,77 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
             return ds.vexec(sql, args);
         }
 
+        #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromIterator($i);
+            @endcode
+
+            @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in every element
+            @param info_callback an optional callback to be called whenever a row is inserted taking the following arguments:
+            - @ref string_type "string" table_name: the name of the table
+            - @ref hash_type "hash" row: the row affected
+
+            @return the number of rows inserted
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+
+            @see
+            - insertFromIteratorNoCommit()
+            - upsertFromIterator()
+            - upsertFromIteratorNoCommit()
+        */
+        int insertFromIterator(Qore::AbstractIterator i, *code info_callback) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return insertFromIteratorNoCommit(i, info_callback);
+        }
+
+        #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromIterator($i);
+            @endcode
+
+            @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
+            @param info_callback an optional callback to be called whenever a row is inserted taking the following arguments:
+            - @ref string_type "string" table_name: the name of the table
+            - @ref hash_type "hash" row: the row affected
+
+            @return the number of rows inserted
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+
+            @see
+            - insertFromIteratorNoCommit()
+            - upsertFromIterator()
+            - upsertFromIteratorNoCommit()
+        */
+        int insertFromIteratorNocommit(Qore::AbstractIterator i, *code info_callback) {
+            if (!i.next())
+                return 0;
+
+            # get initial row
+            hash row = i.getValue();
+
+            # make insert statement template
+            string sql = sprintf("insert into %s (%s) values (%s)", getSqlName(), (foldl $1 + "," + $2, row.keyIterator()),
+                                 (foldl $1 + "," + $2, (map "%v", row.keyIterator())));
+            SQLStatement stmt(ds);
+            stmt.prepare(sql);
+
+            int rc = 0;
+            do {
+                stmt.vexec(sql, row.values());
+                if (info_callback)
+                    info_callback(getSqlName(), row);
+                ++rc;
+            } while (i.next() && (row = i.getValue()));
+
+            return rc;
+        }
+
         #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
@@ -10443,6 +10596,8 @@ my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
             - upsert()
             - upsertNoCommit()
             - getUpsertClosure()
+            - insertFromIteratorNoCommit()
+            - insertFromIterator()
         */
         *hash upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertInsertFirst, softbool delete_others = False, *code info_callback) {
             on_success ds.commit();
@@ -10485,6 +10640,8 @@ my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFi
             - upsert()
             - upsertNoCommit()
             - getUpsertClosure()
+            - insertFromIteratorNoCommit()
+            - insertFromIterator()
         */
         *hash upsertFromIteratorNoCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertInsertFirst, softbool delete_others = False, *code info_callback) {
             # try to get initial row
