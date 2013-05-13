@@ -264,7 +264,7 @@ my hash $soh = (
 my list $columns = ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count"));
 my *list $rows = $table.selectRows(("columns": $columns, "where": ("type": "user")));
     @endcode
-    By default, all columns are returned from a query; to limit the columns returned, or to perform column operations on the columns returned, use the \c "columns" option of the @ref select_option_hash "select option hash".\n\n
+    By default, all columns are returned from a query; to limit the columns returned, or to perform column operations on the columns returned, use the \c "columns" option of the @ref select_option_hash "select option hash". \n\n
     This option takes a list, each element of the list can be one of the following.\n\n
     <b>A Simple String Giving a Column Name</b>\n
     ex: \c "name"
@@ -288,7 +288,7 @@ my *list $rows = $table.selectRows(("columns": ("id", cop_as("warnings", "warnin
     @code
 my *list $rows = $table.selectRows(("columns": "*"));
     @endcode
-    This is the default if no \c "columns" key is included in the @ref select_option_hash "select option hash"\n\n
+    This is the default if no \c "columns" key is included in the @ref select_option_hash "select option hash" \n\n
     <b>An \c "*" in Dot Notation</b>\n
     ex: \c "q.*"
     @code
@@ -473,7 +473,7 @@ return $ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOM
 
     @note the above list also applies to the corresponding @ref SqlUtil::AbstractTable methods
 
-    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; to combine expressions with \c "OR", then use a list of @ref select_option_hash "select option hashes", which will combine each @ref select_option_hash "select option hash" with \c "OR" as in @ref where_list "this example.\n\n
+    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; to combine expressions with \c "OR", then use a list of @ref select_option_hash "select option hashes", which will combine each @ref select_option_hash "select option hash" with \c "OR" as in @ref where_list "this example".\n\n
 
     The where condition hash has the following format:
     - each key gives a column name or a table/alias with column name in dot notation
@@ -874,7 +874,7 @@ $db.getAlignSql($schema_template, $callback_opts, $table_cache);
     @subsection schema_desc_hash Schema Description Hash
     
     The schema description hash has the following structure:
-    - \c tables: a hash of @ref table_desc_hashes keyed by table name; each entry describes a table
+    - \c tables: a hash of @ref table_desc_hash "table description hashes" keyed by table name; each entry describes a table
     - \c sequences: a hash of sequence description hashes keyed by sequence name; each entry describes a sequence
     - \c functions: a hash of function description hashes keyed by function name; each entry describes a function
     - \c procedure: a hash of procedure description hashes keyed by procedure name; each entry describes a procedure    
@@ -1175,12 +1175,57 @@ my hash $ix_desc = (
 
     @section callbacks Callbacks
     
+    Most of the SqlUtil methods that return SQL strings also accept an option hash where callbacks an be set.  Callbacks can be used
+    to display detailed information about long-running operations, such as schema or data alignment for complex schemas or large
+    data sets, or as a generic framework for executing and logging SQL operations.
+
     @subsection info_callback SQL CallBack Closure or Call Ceference
+
+    The \c "info_callback" @ref closure or @ref call_reference is called with a string providing information about the current SQL
+    operation and can be specified as in the following example:
+    @code
+my int $change_count;
+my code $info_callback = sub (string $str) {
+    ++$change_count;
+    if ($verbose)
+        printf("*** %s\n", $str);
+    else {
+        print(".");
+        flush();
+    }
+};
+
+my hash $callback_opts = ("info_callback": $info_callback);
+$db.getAlignSql($schema, $callback_opts);
+    @endcode
 
     @subsection sql_callback SQL CallBack Closure or Call Ceference
 
+    The \c "sql_callback" @ref closure or @ref call_reference is called with an SQL string for each SQL command that is returned
+    or generated for a particular operation and can be specified as in the following example:
+    @code
+my code $sql_callback = sub (string $str) {
+    if ($verbose > 1)
+        printf("%s\n", $str);
+};
+
+my hash $callback_opts = ("sql_callback": $sql_callback, "sql_callback_executed": True);
+$db.getAlignSql($schema, $callback_opts);
+    @endcode
+
     @subsection sql_callback_executed SQL CallBack Executed Flag
 
+    If the \c "sql_callback_executed" flag is set to @ref Qore::True "True" then the called method knows that the changes are made in the database and the internal representation of the affected object(s) is also updated accordingly.  Here is an example:
+    @code
+my code $sql_callback = sub (string $str) {
+    if ($verbose > 1)
+        printf("%s\n", $str);
+    $ds.execRaw($str);
+};
+
+my hash $callback_opts = ("sql_callback": $sql_callback, "sql_callback_executed": True);
+$db.getAlignSql($schema, $callback_opts);
+    @endcode
 */
     
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
@@ -2610,7 +2655,7 @@ my *string $sql = $tables.getRenameTableIfExistsSql($old_name, $new_name);
 
             If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True", this
             method also takes care of renaming internal foreign constraint references and source constraint references
-            from unique keys for the renamed table.
+            from unique keys for the renamed table (see @ref sql_callback_executed for more information).
 
             @param old_name the current name of the table
             @param new_name the new name of the table
@@ -2683,7 +2728,7 @@ my *string $sql = $tables.getDropConstraintIfExistsSql("table", "pk_table");
 
             If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True" and
             if the constraint to be dropped is a foreign constraint, then if any unique constraint is linked
-            to this foreign constraint, the link is removed.
+            to this foreign constraint, the link is removed (see @ref sql_callback_executed for more information).
 
             @param tname the name of the table
             @param cname the name of the constraint to drop if it exists
@@ -5731,12 +5776,31 @@ $table.rename("new_name");
         #! returns @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
         /** @par Example:
             @code
+my bool $b = $table.emptyData();
             @endcode
 
             @return @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
+
+            @see 
+            - empty()
+            - rowCount()
         */
         bool emptyData() {
             return t.emptyData();
+        }
+
+        #! returns @ref Qore::True "True" if the table has no definitions, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $table.empty();
+            @endcode
+
+            @return @ref Qore::True "True" if the table has no definitions, @ref Qore::False "False" if not
+
+            @see emptyData()
+        */
+        bool empty() {
+            return t.empty();
         }
 
         #! adds a column to the table; if the table already exists, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -5793,7 +5857,7 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
 
             @note
             - make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
-            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -5950,7 +6014,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
 
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getAddPrimaryKeySql(string pkname, softlist cols, *hash pkopt, *hash opt) {
             return t.getAddPrimaryKeySql(pkname, cols, pkopt, opt);
@@ -6049,7 +6113,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
 
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getAddUniqueConstraintSql(string cname, softlist cols, *hash ukopt, *hash opt) {
             return t.getAddUniqueConstraintSql(cname, cols, ukopt, opt);
@@ -6102,7 +6166,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
 
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getAddIndexSql(string iname, bool unique, softlist cols, *hash ixopt, *hash opt) {
             return t.getAddIndexSql(iname, unique, cols, ixopt, opt);
@@ -6263,7 +6327,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
 
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getAddForeignConstraintSql(string cname, softlist cols, string table, *softlist tcols, *hash fkopt, *hash opt) {
             return t.getAddForeignConstraintSql(cname, cols, table, tcols, fkopt, opt);
@@ -6358,7 +6422,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
 
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getAddCheckConstraintSql(string cname, string src, *hash copt, *hash opt) {
             return t.getAddCheckConstraintSql(cname, src, copt, opt);
@@ -6450,7 +6514,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
 
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         list getAddTriggerSql(string tname, string src, *hash topt, *hash opt) {
             return t.getAddTriggerSql(tname, src, topt, opt);
@@ -7003,6 +7067,10 @@ my int $cnt = $table.rowCount();
             @endcode
 
             @return the number of rows in the table
+
+            @note to see if the table is empty or not, use emptyData() as this is much faster than rowCount()
+
+            @see emptyData()
          */
         softint rowCount() {
             return t.rowCount();
@@ -8103,15 +8171,29 @@ $table.rename("new_name");
         #! returns @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
         /** @par Example:
             @code
+my bool $b = $table.emptyData();
             @endcode
 
             @return @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
+
+            @see 
+            - empty()
+            - rowCount()
         */
         bool emptyData() {
             return findSingle() ? False : True;
         }
 
         #! returns @ref Qore::True "True" if the table has no definitions, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+my bool $b = $table.empty();
+            @endcode
+
+            @return @ref Qore::True "True" if the table has no definitions, @ref Qore::False "False" if not
+
+            @see emptyData()
+        */
         bool empty() {
             l.lock();
             on_exit l.unlock();
@@ -8318,7 +8400,7 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
 
             @note
             - make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
-            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -8435,7 +8517,10 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column does not exist, invalid column data
 
-            @note make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
+            @note
+            - make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -8513,6 +8598,8 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
             @throw COLUMN-ERROR if the old column does not exist in the table or the new column already does
 
             @see getModifyColumnSql() for a method that allows the column definition to be updated
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
         */
         string getRenameColumnSql(string old_name, string new_name, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -8635,7 +8722,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
 
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getAddPrimaryKeySql(string pkname, softlist cols, *hash pkopt, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -8709,7 +8796,9 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
-            @note this method retrieves current primary key definition from the database if not already loaded or defined
+            @note
+            - this method retrieves current primary key definition from the database if not already loaded or defined
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
         */
@@ -8785,6 +8874,7 @@ my list $l = $table.getDropPrimaryKeySql();
             @note
             - this method retrieves current primary key definition from the database if not already loaded or defined
             - if there are known foreign contraints on the primary key, SQL for dropping those constraints is also returned
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -8890,7 +8980,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
 
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getAddUniqueConstraintSql(string cname, softlist cols, *hash ukopt, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -9004,7 +9094,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
 
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getAddIndexSql(string iname, bool unique, softlist cols, *hash ixopt, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -9171,7 +9261,9 @@ my string $sql = $table.getDropIndexSql("uk_mytable_name");
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw INDEX-ERROR the given index does not exist in the table
 
-            @note this method retrieves current index definitions from the database if not already loaded or defined
+            @note
+            - this method retrieves current index definitions from the database if not already loaded or defined
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -9242,7 +9334,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
 
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getAddForeignConstraintSql(string cname, softlist cols, string table, *softlist tcols, *hash fkopt, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -9445,8 +9537,8 @@ printf("%s;\n", $sql);
             @throw CHECK-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns or options were passed
 
             @see inDb() for a method that tells if the table is already in the database or not
-
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+ 
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getAddCheckConstraintSql(string cname, string src, *hash copt, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -9574,7 +9666,9 @@ my string $sql = $table.getDropConstraintSql("uk_mytable_name");
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw CONSTRAINT-ERROR the given constraint does not exist in the table
 
-            @note this method retrieves current constraint definitions from the database if not already loaded or defined
+            @note
+            - this method retrieves current constraint definitions from the database if not already loaded or defined
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -9607,7 +9701,9 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
-            @note this method retrieves current constraint definitions from the database if not already loaded or defined
+            @note
+            - this method retrieves current constraint definitions from the database if not already loaded or defined
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -9762,7 +9858,7 @@ printf("%s;\n", $sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
 
-            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         list getAddTriggerSql(string tname, string src, *hash topt, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -10031,7 +10127,9 @@ my string $sql = $table.getDropColumnSql("notes_2");
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw COLUMN-ERROR the named column is not present in the table
 
-            @note this method retrieves the table definition from the database if none has already been defined
+            @note
+            - this method retrieves the table definition from the database if none has already been defined
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -10586,6 +10684,10 @@ my int $cnt = $table.rowCount();
             @endcode
 
             @return the number of rows in the table
+
+            @note to see if the table is empty or not, use emptyData() as this is much faster than rowCount()
+
+            @see emptyData()
          */
         softint rowCount() {
             return ds.selectRow("select count(1) cnt from %s", getSqlName()).cnt;
@@ -11663,7 +11765,7 @@ my string $sql = $table.getRenameSql("new_name");
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
-            @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True", this method also renames the object internally, additionally if the \c "db_table_cache" option key is assigned to a @ref SqlUtil::Tables "Tables" argument, then the table cache is also updated with the name change in this case
+            @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True", this method also renames the object internally (see @ref sql_callback_executed for more information), additionally if the \c "db_table_cache" option key is assigned to a @ref SqlUtil::Tables "Tables" argument, then the table cache is also updated with the name change in this case
 
             @see 
             - rename()
@@ -11760,6 +11862,8 @@ my list $l = $table.getAlignSql($table2);
 
             @throw ALIGN-TABLE-ERROR the argument must be of the same class as the current object; template table has no columns
             @throw OPTION-ERROR invalid or unsupported option passed
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
         */
         list getAlignSql(AbstractTable t, *hash opt) {
             if (self.className() != t.className())

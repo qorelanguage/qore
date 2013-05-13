@@ -1059,6 +1059,11 @@ protected:
       if (t == NT_FLOAT || t == NT_NOTHING)
          return true;
 
+      if (t == NT_NULL) {
+         n = &Nothing;
+         return true;
+      }
+
       // only perform dynamic cast if type is external
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n)))
          return false;
@@ -1077,6 +1082,8 @@ public:
       at.push_back(floatTypeInfo);
       assert(nothingTypeInfo);
       at.push_back(nothingTypeInfo);
+      assert(nullTypeInfo);
+      at.push_back(nullTypeInfo);
 
       rt.push_back(floatTypeInfo);
       rt.push_back(nothingTypeInfo);
@@ -1120,6 +1127,11 @@ protected:
       if (t == NT_NUMBER || t == NT_NOTHING)
          return true;
 
+      if (t == NT_NULL) {
+         n = &Nothing;
+         return true;
+      }
+
       if (t == NT_FLOAT) {
          QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
          n->deref(xsink);
@@ -1147,6 +1159,8 @@ public:
       at.push_back(floatTypeInfo);
       assert(nothingTypeInfo);
       at.push_back(nothingTypeInfo);
+      assert(nullTypeInfo);
+      at.push_back(nullTypeInfo);
 
       rt.push_back(numberTypeInfo);
       rt.push_back(nothingTypeInfo);
@@ -1218,7 +1232,7 @@ public:
    }
 };
 
-class OrNothingTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
+class OrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
    QoreString tname;
 
@@ -1226,8 +1240,14 @@ protected:
       return tname.getBuffer();
    }
 
+   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      if (n && n->getType() == NT_NULL)
+         n = &Nothing;
+      return true;
+   }
+
 public:
-   DLLLOCAL OrNothingTypeInfo(const QoreTypeInfo &ti, const char *name) : AcceptsReturnsSameMultiTypeInfo(ti.qc, ti.qt, false, false, ti.qt == NT_INT) {
+   DLLLOCAL OrNothingTypeInfo(const QoreTypeInfo &ti, const char *name) : AcceptsReturnsMultiFilterTypeInfo(ti.qc, ti.qt, ti.has_subtype, true) {
       assert(ti.hasType());
 
       tname = "*";
@@ -1241,6 +1261,13 @@ public:
          at.push_back(&ti);
 
       at.push_back(nothingTypeInfo);
+      at.push_back(nullTypeInfo);
+
+      if (ti.returns_mult)
+         rt = ti.getReturnTypeList();
+      else
+         rt.push_back(&ti);
+      rt.push_back(nothingTypeInfo);
    }
 };
 
@@ -1258,15 +1285,26 @@ public:
    }
 };
 
-class CodeOrNothingTypeInfo : public CodeTypeInfo {
+class CodeOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
    DLLLOCAL virtual const char *getNameImpl() const {
       return "*code";
    }
 
+   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      if (n && n->getType() == NT_NULL)
+         n = &Nothing;
+      return true;
+   }
+
 public:
-      DLLLOCAL CodeOrNothingTypeInfo() {
+   DLLLOCAL CodeOrNothingTypeInfo() : AcceptsReturnsMultiFilterTypeInfo(0, NT_CODE, false, true, false, false) {
+      at.push_back(codeTypeInfo);
       at.push_back(nothingTypeInfo);
+      at.push_back(nullTypeInfo);
+
+      rt.push_back(codeTypeInfo);
+      rt.push_back(nothingTypeInfo);
    }
 };
 
@@ -1324,15 +1362,28 @@ public:
    }
 };
 
-class DataOrNothingTypeInfo : public DataTypeInfo {
+class DataOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
    DLLLOCAL virtual const char *getNameImpl() const {
       return "*data";
    }
 
+   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      if (n && n->getType() == NT_NULL)
+         n = &Nothing;
+      return true;
+   }
+
 public:
-   DLLLOCAL DataOrNothingTypeInfo() {
+   DLLLOCAL DataOrNothingTypeInfo() : AcceptsReturnsMultiFilterTypeInfo(0, NT_DATA, false, true, false, false) {
+      at.push_back(stringTypeInfo);
+      at.push_back(binaryTypeInfo);
       at.push_back(nothingTypeInfo);
+      at.push_back(nullTypeInfo);
+
+      rt.push_back(stringTypeInfo);
+      rt.push_back(binaryTypeInfo);
+      rt.push_back(nothingTypeInfo);
    }
 };
 
@@ -1383,20 +1434,19 @@ public:
    }
 };
 
-class SoftBigIntOrNothingTypeInfo : public SoftBigIntTypeInfo {
+class SoftBigIntOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   type_vec_t rt;
-
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
-      return rt;
-   }
-
    DLLLOCAL virtual const char *getNameImpl() const {
       return "*softint";
    }
 
    DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       qore_type_t t = get_node_type(n);
+
+      if (t == NT_NULL) {
+         n = &Nothing;
+         return true;
+      }
 
       if (t == NT_NOTHING || t == NT_INT || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode *>(n)))
          return true;
@@ -1416,8 +1466,15 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftBigIntOrNothingTypeInfo() : SoftBigIntTypeInfo(true) {
+   DLLLOCAL SoftBigIntOrNothingTypeInfo() : AcceptsReturnsMultiFilterTypeInfo(0, NT_INT, false, true, false, false) {
+      at.push_back(floatTypeInfo);
+      at.push_back(numberTypeInfo);
+      at.push_back(stringTypeInfo);
+      at.push_back(boolTypeInfo);
+      at.push_back(dateTypeInfo);
+      at.push_back(nullTypeInfo);
       at.push_back(nothingTypeInfo);
+
       rt.push_back(bigIntTypeInfo);
       rt.push_back(nothingTypeInfo);
    }
@@ -1466,14 +1523,8 @@ public:
    }
 };
 
-class SoftFloatOrNothingTypeInfo : public SoftFloatTypeInfo {
+class SoftFloatOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   type_vec_t rt;
-
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
-      return rt;
-   }
-
    DLLLOCAL virtual const char *getNameImpl() const {
       return "*softfloat";
    }
@@ -1483,6 +1534,11 @@ protected:
 
       if (t == NT_FLOAT || t == NT_NOTHING)
          return true;
+
+      if (t == NT_NULL) {
+         n = &Nothing;
+         return true;
+      }
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
             && t != NT_NUMBER
@@ -1499,8 +1555,15 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftFloatOrNothingTypeInfo() : SoftFloatTypeInfo(true) {
+   DLLLOCAL SoftFloatOrNothingTypeInfo() : AcceptsReturnsMultiFilterTypeInfo(0, NT_FLOAT, false, true, false, false) {
+      at.push_back(numberTypeInfo);
+      at.push_back(bigIntTypeInfo);
+      at.push_back(stringTypeInfo);
+      at.push_back(boolTypeInfo);
+      at.push_back(dateTypeInfo);
+      at.push_back(nullTypeInfo);
       at.push_back(nothingTypeInfo);
+
       rt.push_back(floatTypeInfo);
       rt.push_back(nothingTypeInfo);
    }
@@ -1568,14 +1631,8 @@ public:
    }
 };
 
-class SoftNumberOrNothingTypeInfo : public SoftNumberTypeInfo {
+class SoftNumberOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   type_vec_t rt;
-
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
-      return rt;
-   }
-
    DLLLOCAL virtual const char *getNameImpl() const {
       return "*softnumber";
    }
@@ -1585,6 +1642,11 @@ protected:
 
       if (t == NT_NUMBER || t == NT_NOTHING)
          return true;
+
+      if (t == NT_NULL) {
+         n = &Nothing;
+         return true;
+      }
 
       if (t == NT_FLOAT) {
          QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
@@ -1619,8 +1681,15 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftNumberOrNothingTypeInfo() : SoftNumberTypeInfo(true) {
+   DLLLOCAL SoftNumberOrNothingTypeInfo() : AcceptsReturnsMultiFilterTypeInfo(0, NT_NUMBER, false, true, false, false) {
+      at.push_back(floatTypeInfo);
+      at.push_back(bigIntTypeInfo);
+      at.push_back(stringTypeInfo);
+      at.push_back(boolTypeInfo);
+      at.push_back(dateTypeInfo);
+      at.push_back(nullTypeInfo);
       at.push_back(nothingTypeInfo);
+
       rt.push_back(numberTypeInfo);
       rt.push_back(nothingTypeInfo);
    }
@@ -1669,14 +1738,8 @@ public:
    }
 };
 
-class SoftBoolOrNothingTypeInfo : public SoftBoolTypeInfo {
+class SoftBoolOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   type_vec_t rt;
-
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
-      return rt;
-   }
-
    DLLLOCAL virtual const char *getNameImpl() const {
       return "*softbool";
    }
@@ -1686,6 +1749,11 @@ protected:
 
       if (t == NT_BOOLEAN || t == NT_NOTHING)
          return true;
+
+      if (t == NT_NULL) {
+         n = &Nothing;
+         return true;
+      }
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
             && t != NT_NUMBER
@@ -1702,8 +1770,15 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftBoolOrNothingTypeInfo() : SoftBoolTypeInfo(true) {
+   DLLLOCAL SoftBoolOrNothingTypeInfo() : AcceptsReturnsMultiFilterTypeInfo(0, NT_BOOLEAN, false, true, false, false) {
+      at.push_back(bigIntTypeInfo);
+      at.push_back(floatTypeInfo);
+      at.push_back(numberTypeInfo);
+      at.push_back(stringTypeInfo);
+      at.push_back(dateTypeInfo);
+      at.push_back(nullTypeInfo);
       at.push_back(nothingTypeInfo);
+
       rt.push_back(boolTypeInfo);
       rt.push_back(nothingTypeInfo);
    }
@@ -1753,14 +1828,8 @@ public:
    }
 };
 
-class SoftDateOrNothingTypeInfo : public SoftDateTypeInfo {
+class SoftDateOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   type_vec_t rt;
-
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
-      return rt;
-   }
-
    DLLLOCAL virtual const char *getNameImpl() const {
       return "*softdate";
    }
@@ -1770,6 +1839,11 @@ protected:
 
       if (t == NT_DATE || t == NT_NOTHING)
          return true;
+
+      if (t == NT_NULL) {
+         n = &Nothing;
+         return true;
+      }
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
           && t != NT_FLOAT
@@ -1787,8 +1861,15 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftDateOrNothingTypeInfo() : SoftDateTypeInfo(true) {
+   DLLLOCAL SoftDateOrNothingTypeInfo() : AcceptsReturnsMultiFilterTypeInfo(0, NT_DATE, false, true, false, false) {
+      at.push_back(bigIntTypeInfo);
+      at.push_back(floatTypeInfo);
+      at.push_back(numberTypeInfo);
+      at.push_back(stringTypeInfo);
+      at.push_back(boolTypeInfo);
+      at.push_back(nullTypeInfo);
       at.push_back(nothingTypeInfo);
+
       rt.push_back(dateTypeInfo);
       rt.push_back(nothingTypeInfo);
    }
@@ -1838,14 +1919,8 @@ public:
    }
 };
 
-class SoftStringOrNothingTypeInfo : public SoftStringTypeInfo {
+class SoftStringOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   type_vec_t rt;
-
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
-      return rt;
-   }
-
    DLLLOCAL virtual const char *getNameImpl() const {
       return "*softstring";
    }
@@ -1856,7 +1931,12 @@ protected:
       if (t == NT_STRING || t == NT_NOTHING)
          return true;
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
+      if (t == NT_NULL) {
+         n = &Nothing;
+         return true;
+      }
+
+      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
           && t != NT_FLOAT
           && t != NT_NUMBER
           && t != NT_BOOLEAN
@@ -1872,8 +1952,15 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftStringOrNothingTypeInfo() : SoftStringTypeInfo(true) {
+   DLLLOCAL SoftStringOrNothingTypeInfo() : AcceptsReturnsMultiFilterTypeInfo(0, NT_STRING, false, true, false, false) {
+      at.push_back(bigIntTypeInfo);
+      at.push_back(floatTypeInfo);
+      at.push_back(numberTypeInfo);
+      at.push_back(boolTypeInfo);
+      at.push_back(dateTypeInfo);
+      at.push_back(nullTypeInfo);
       at.push_back(nothingTypeInfo);
+
       rt.push_back(stringTypeInfo);
       rt.push_back(nothingTypeInfo);
    }
@@ -1912,14 +1999,8 @@ public:
    }
 };
 
-class TimeoutOrNothingTypeInfo : public TimeoutTypeInfo {
+class TimeoutOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   type_vec_t rt;
-
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
-      return rt;
-   }
-
    DLLLOCAL virtual const char *getNameImpl() const {
       return "*timeout";
    }
@@ -1929,6 +2010,11 @@ protected:
 
       if (t == NT_INT || t == NT_NOTHING || (t < QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode *>(n)))
          return true;
+
+      if (t == NT_NULL) {
+         n = &Nothing;
+         return true;
+      }
 
       if (t != NT_DATE)
          return false;
@@ -1940,8 +2026,12 @@ protected:
    }
 
 public:
-   DLLLOCAL TimeoutOrNothingTypeInfo() : TimeoutTypeInfo(true) {
+   DLLLOCAL TimeoutOrNothingTypeInfo() : AcceptsReturnsMultiFilterTypeInfo(0, NT_INT, false, true, false, false) {
+      at.push_back(bigIntTypeInfo);
+      at.push_back(dateTypeInfo);
       at.push_back(nothingTypeInfo);
+      at.push_back(nullTypeInfo);
+
       rt.push_back(bigIntTypeInfo);
       rt.push_back(nothingTypeInfo);
    }
@@ -1994,12 +2084,17 @@ class SoftListOrNothingTypeInfo : public SoftListTypeInfo {
 protected:
    type_vec_t rt;
 
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
+   DLLLOCAL virtual const type_vec_t& getReturnTypeList() const {
       return rt;
    }
 
    DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       qore_type_t t = get_node_type(n);
+
+      if (t == NT_NULL) {
+         n = &Nothing;
+         return true;
+      }
 
       if (t == NT_LIST || t == NT_NOTHING || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreListNode *>(n)))
          return true;

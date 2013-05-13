@@ -5,7 +5,7 @@
     @section qore_088 Qore 0.8.8
 
     @par Release Summary
-    Major new features and bug fixes --  in progress
+    Major new features and bug fixes -- in progress
 
     @subsection qore_088_compatibility Changes That Can Affect Backwards-Compatibility
     - Fixed method resolution order; it's now possible to call pseudo-methods directly on classes that implement @ref methodGate_methods "methodGate() methods"
@@ -39,6 +39,7 @@
       - <string>::toBase64()
       - <string>::toHex()
       - <value>::toNumber()
+    - all @ref data_type_declarations "data type declarations" that optionally accept @ref nothing also now accept @ref null and map @ref null to @ref nothing; this makes direct assignments from values derived from SQL queries much easier
     - added an optional reference to an integer to the @ref Qore::backquote() function to return the return code of the program executed
     - @ref implicit_index "implicit index" references now work in the @ref map "map" and @ref select "select" operators with lists and iterators
     - the @ref regex_extract_operator now accepts an optional \c g specifier to extract all occurrences of the pattern(s) in a string; also @ref Qore::regex_extract "regex_extract()" and <string>::regexExtract(string, int) now accept @ref Qore::RE_Global to extract all occurrences of the pattern(s) in a string

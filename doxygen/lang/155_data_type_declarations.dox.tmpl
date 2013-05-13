@@ -34,27 +34,27 @@
     |@ref data_type "data"|@ref string or @ref binary|same as received|Restricts input to @ref string and @ref binary and returns the same type
     |@ref code_type "code"|@ref closure, @ref call_reference|same as received|Restricts values to @ref closure "closures" and @ref call_reference "call references"
     |@ref reference_type "reference"|@ref lvalue_references|the type the reference points to|Restricts values to references to lvalues
-    |@ref int_or_nothing_type "*int"|@ref integer or @ref nothing|same as received|Restricts values to %Qore's @ref integer or @ref nothing types
-    |@ref float_or_nothing_type "*float"|@ref float or @ref nothing|same as received|Restricts values to %Qore's @ref float or @ref nothing types
-    |@ref bool_or_nothing_type "*bool"|@ref boolean or @ref nothing|same as received|Restricts values to %Qore's @ref boolean or @ref nothing types
-    |@ref string_or_nothing_type "*string"|@ref string or @ref nothing|same as received|Restricts values to %Qore's @ref string or @ref nothing types
-    |@ref date_or_nothing_type "*date"|@ref date or @ref nothing|same as received|Restricts values to %Qore's @ref date or @ref nothing type; values may be either absolute or relative date/time values
-    |@ref binary_or_nothing_type "*binary"|@ref binary or @ref nothing|same as received|Restricts values to %Qore's @ref binary or @ref nothing types
-    |@ref hash_or_nothing_type "*hash"|@ref hash or @ref nothing|same as received|Restricts values to %Qore's @ref hash or @ref nothing types
-    |@ref list_or_nothing_type "*list"|@ref list or @ref nothing|same as received|Accepts either a @ref list or @ref nothing
-    |@ref object_or_nothing_type "*object"|@ref object or @ref nothing|same as received|Accepts either an @ref object or @ref nothing
-    |@ref classname_type_or_nothing "*<classname>"|@ref object of the given class or @ref nothing|same as received|Restricts values to objects of the specific class given or @ref nothing; either the class name can be given (ex: @ref Qore::Thread::Mutex "*Mutex" or a qualified path to the class: @ref Qore::Thread::Mutex "*Qore::Thread::Mutex")
-    |@ref data_or_nothing_type "*data"|@ref string, @ref binary, or @ref nothing|same as received|Restricts input to @ref string, @ref binary, or @ref nothing and returns the same type
-    |@ref code_or_nothing_type "*code"|@ref closure, @ref call_reference, @ref nothing|same as received|Restricts values to @ref closure "closures", @ref call_reference "call references" and @ref nothing
-    |@ref timeout_or_nothing_type "*timeout"|@ref integer, @ref date or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds. If no value is passed, then @ref nothing is returned
-    |@ref reference_or_nothing_type "*reference"|@ref lvalue_references or @ref nothing|the type the reference points to|Restricts values to references to lvalues and @ref nothing
-    |@ref softint_or_nothing_type "*softint"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer. If no value is passed, then @ref nothing is returned
-    |@ref softfloat_or_nothing_type "*softfloat"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value. If no value is passed, then @ref nothing is returned
-    |@ref softnumber_or_nothing_type "*softnumber"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref number or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-number values to a number and returns the new value. If no value is passed, then @ref nothing is returned
-    |@ref softbool_or_nothing_type "*softbool"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref boolean or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-boolean values to a boolean and returns the new value. If no value is passed, then @ref nothing is returned
-    |@ref softstring_or_nothing_type "*softstring"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value. If no value is passed, then @ref nothing is returned
-    |@ref softdate_or_nothing_type "*softdate"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null or @ref nothing|@ref date or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value. If no value is passed, then @ref nothing is returned
-    |@ref softlist_or_nothing_type "*softlist"|all types|@ref list or @ref nothing|Accepts all types; @ref nothing and list values are returned as the same value; any other type is returned as the first element of a new list
+    |@ref int_or_nothing_type "*int"|@ref integer, @ref null, or @ref nothing|@ref integer or @ref nothing|Restricts values to %Qore's @ref integer or @ref nothing types; if @ref null is passed then @ref nothing is returned
+    |@ref float_or_nothing_type "*float"|@ref float, @ref null, or @ref nothing|@ref float or @ref nothing|Restricts values to %Qore's @ref float or @ref nothing types; if @ref null is passed then @ref nothing is returned
+    |@ref bool_or_nothing_type "*bool"|@ref boolean, @ref null, or @ref nothing|@ref boolean or @ref nothing|Restricts values to %Qore's @ref boolean or @ref nothing types; if @ref null is passed then @ref nothing is returned
+    |@ref string_or_nothing_type "*string"|@ref string, @ref null, or @ref nothing|@ref string or @ref nothing|Restricts values to %Qore's @ref string or @ref nothing types; if @ref null is passed then @ref nothing is returned
+    |@ref date_or_nothing_type "*date"|@ref date, @ref null, or @ref nothing|@ref date or @ref nothing|Restricts values to %Qore's @ref date or @ref nothing type; values may be either absolute or relative date/time values; if @ref null is passed then @ref nothing is returned
+    |@ref binary_or_nothing_type "*binary"|@ref binary, @ref null, or @ref nothing|@ref binary or @ref nothing|Restricts values to %Qore's @ref binary or @ref nothing types; if @ref null is passed then @ref nothing is returned
+    |@ref hash_or_nothing_type "*hash"|@ref hash, @ref null, or @ref nothing|@ref hash or @ref nothing|Restricts values to %Qore's @ref hash or @ref nothing types; if @ref null is passed then @ref nothing is returned
+    |@ref list_or_nothing_type "*list"|@ref list, @ref null, or @ref nothing|@ref list or @ref nothing|Accepts either a @ref list or @ref nothing; if @ref null is passed then @ref nothing is returned
+    |@ref object_or_nothing_type "*object"|@ref object, @ref null, or @ref nothing|@ref object or @ref nothing|Accepts either an @ref object or @ref nothing; if @ref null is passed then @ref nothing is returned
+    |@ref classname_type_or_nothing "*<classname>"|@ref object of the given class, @ref null, or @ref nothing|@ref object of the given class or @ref nothing|Restricts values to objects of the specific class given or @ref nothing; either the class name can be given (ex: @ref Qore::Thread::Mutex "*Mutex" or a qualified path to the class: @ref Qore::Thread::Mutex "*Qore::Thread::Mutex"); if @ref null is passed then @ref nothing is returned
+    |@ref data_or_nothing_type "*data"|@ref string, @ref binary, @ref null, or @ref nothing|@ref string, @ref binary, or @ref nothing|Restricts input to @ref string, @ref binary, or @ref nothing and returns the same type; if @ref null is passed then @ref nothing is returned
+    |@ref code_or_nothing_type "*code"|@ref closure, @ref call_reference, @ref null, or @ref nothing|@ref closure, @ref call_reference, or @ref nothing|Restricts values to @ref closure "closures", @ref call_reference "call references" and @ref nothing; if @ref null is passed then @ref nothing is returned
+    |@ref timeout_or_nothing_type "*timeout"|@ref integer, @ref date, @ref null, or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds. If no value or @ref null is passed, then @ref nothing is returned
+    |@ref reference_or_nothing_type "*reference"|@ref lvalue_references, @ref null, or @ref nothing|the type the reference points to|Restricts values to references to lvalues and @ref nothing; if @ref null is passed then @ref nothing is returned
+    |@ref softint_or_nothing_type "*softint"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer. If no value or @ref null is passed, then @ref nothing is returned
+    |@ref softfloat_or_nothing_type "*softfloat"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value. If no value or @ref null is passed, then @ref nothing is returned
+    |@ref softnumber_or_nothing_type "*softnumber"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref number or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-number values to a number and returns the new value. If no value or @ref null is passed, then @ref nothing is returned
+    |@ref softbool_or_nothing_type "*softbool"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref boolean or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-boolean values to a boolean and returns the new value. If no value or @ref null is passed, then @ref nothing is returned
+    |@ref softstring_or_nothing_type "*softstring"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value. If no value or @ref null is passed, then @ref nothing is returned
+    |@ref softdate_or_nothing_type "*softdate"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null or @ref nothing|@ref date or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value. If no value or @ref null is passed, then @ref nothing is returned
+    |@ref softlist_or_nothing_type "*softlist"|all types|@ref list or @ref nothing|Accepts all types; @ref nothing and list values are returned as the same value; @ref null is returned as @ref nothing, any other type is returned as the first element of a new list
     |@ref any_type "any"|any|same as received|Provides no restrictions on the type of value it receives and returns the same value
 
     <hr>
@@ -407,7 +407,7 @@ foo(\$i);
 
     <b>*int Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *int|@ref integer or @ref nothing|same as received|Restricts values to @ref integer and @ref nothing
+    |\c *int|@ref integer, @ref null, or @ref nothing|@ref integer or @ref nothing|Restricts values to @ref integer and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -421,7 +421,7 @@ foo(\$i);
 
     <b>*float Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *float|@ref float or @ref nothing|same as received|Restricts values to @ref float and @ref nothing
+    |\c *float|@ref float, @ref null, or @ref nothing|@ref float or @ref nothing|Restricts values to @ref float and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -435,7 +435,7 @@ foo(\$i);
 
     <b>*number Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *number|@ref number or @ref nothing|same as received|Restricts values to @ref number and @ref nothing
+    |\c *number|@ref number, @ref null, or @ref nothing|@ref number or @ref nothing|Restricts values to @ref number and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -451,7 +451,7 @@ foo(\$i);
 
     <b>*bool Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *bool|@ref boolean or @ref nothing|same as received|Restricts values to @ref boolean and @ref nothing
+    |\c *bool|@ref boolean, @ref null, or @ref nothing|@ref boolean or @ref nothing|Restricts values to @ref boolean and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -465,7 +465,7 @@ foo(\$i);
 
     <b>*string Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *string|@ref string or @ref nothing|same as received|Restricts values to @ref string and @ref nothing
+    |\c *string|@ref string, @ref null, or @ref nothing|@ref string or @ref nothing|Restricts values to @ref string and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -479,7 +479,7 @@ foo(\$i);
 
     <b>*date Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *date|@ref date or @ref nothing|same as received|Restricts values to @ref date and @ref nothing
+    |\c *date|@ref date, @ref null, or @ref nothing|@ref date or @ref nothing|Restricts values to @ref date and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -493,7 +493,7 @@ foo(\$i);
 
     <b>*binary Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *binary|@ref binary or @ref nothing|same as received|Restricts values to @ref binary and @ref nothing
+    |\c *binary|@ref binary, @ref null, or @ref nothing|@ref binary or @ref nothing|Restricts values to @ref binary and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -507,7 +507,7 @@ foo(\$i);
 
     <b>*hash Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *hash|@ref hash or @ref nothing|same as received|Restricts values to @ref hash and @ref nothing
+    |\c *hash|@ref hash, @ref null, or @ref nothing|@ref hash or @ref nothing|Restricts values to @ref hash and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -521,7 +521,7 @@ foo(\$i);
 
     <b>*list Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *list|@ref list or @ref nothing|same as received|Restricts values to @ref list and @ref nothing
+    |\c *list|@ref list or @ref nothing|@ref list or @ref nothing|Restricts values to @ref list and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -535,7 +535,7 @@ foo(\$i);
 
     <b>*list Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *list|@ref object or @ref nothing|same as received|Restricts values to @ref object and @ref nothing
+    |\c *list|@ref object, @ref null, or @ref nothing|@ref object or @ref nothing|Restricts values to @ref object and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -549,7 +549,7 @@ foo(\$i);
 
     <b>*\<classname\> Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |<tt>*</tt><em>any class name</em>|@ref object of the particular class given or @ref nothing|same as received|Restricts values to objects of the particular class given or @ref nothing; subclasses are also accepted
+    |<tt>*</tt><em>any class name</em>|@ref object of the particular class given, @ref null, or @ref nothing|@ref object of the particular class given or @ref nothing|Restricts values to objects of the particular class given or @ref nothing; subclasses are also accepted; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -562,7 +562,7 @@ sub foo(*Mutex $m) {
 
     <b>*data Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *data|@ref string, @ref binary, or @ref nothing|same as received|Restricts values to @ref string, @ref binary, and @ref nothing
+    |\c *data|@ref string, @ref binary, @ref null, or @ref nothing|@ref string, @ref binary, or @ref nothing|Restricts values to @ref string, @ref binary, and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -575,7 +575,7 @@ sub foo(*data $d) {
 
     <b>*code Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *code|@ref closure, @ref call_reference, or @ref nothing|same as received|Restricts values to @ref closure, @ref call_reference, and @ref nothing
+    |\c *code|@ref closure, @ref call_reference, @ref null, or @ref nothing|@ref closure, @ref call_reference, or @ref nothing|Restricts values to @ref closure, @ref call_reference, and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -588,7 +588,7 @@ sub foo(*code $c) {
 
     <b>*timeout Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *timeout|@ref integer, @ref date, or @ref nothing|@ref integer or @ref nothing|converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds; also accepts @ref nothing and returns @ref nothing
+    |\c *timeout|@ref integer, @ref date, @ref null, or @ref nothing|@ref integer or @ref nothing|converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds; also accepts @ref nothing and returns @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -601,7 +601,7 @@ sub foo(*timeout $c) {
 
     <b>reference Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c reference|@ref lvalue_references or @ref nothing|the type the reference points to|Requires a reference to an lvalue to be assigned or @ref nothing
+    |\c reference|@ref lvalue_references, @ref null, or @ref nothing|the type the reference points to|Requires a reference to an lvalue to be assigned or @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code
@@ -618,7 +618,7 @@ foo(\$i);
 
     <b>*softint Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *softint|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer; also accepts @ref nothing and returns @ref nothing
+    |\c *softint|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer; also accepts @ref nothing and @ref null and returns @ref nothing
 
     @par Example
     @code
@@ -631,7 +631,7 @@ sub foo(*softint $i) {
 
     <b>*softfloat Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *softfloat|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float; also accepts @ref nothing and returns @ref nothing
+    |\c *softfloat|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float; also accepts @ref nothing and @ref null and returns @ref nothing
 
     @par Example
     @code
@@ -644,7 +644,7 @@ sub foo(*softfloat $f) {
 
     <b>*softnumber Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *softnumber|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref number or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-number values to a number and returns the number; also accepts @ref nothing and returns @ref nothing
+    |\c *softnumber|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref number or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-number values to a number and returns the number; also accepts @ref nothing and @ref null and returns @ref nothing
 
     @par Example
     @code
@@ -659,7 +659,7 @@ sub foo(*softnumber $n) {
 
     <b>*softbool Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *softbool|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref boolean or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean; also accepts @ref nothing and returns @ref nothing
+    |\c *softbool|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref boolean or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean; also accepts @ref nothing and @ref null and returns @ref nothing
 
     @par Example
     @code
@@ -685,7 +685,7 @@ sub foo(*softstring $str) {
 
     <b>*softdate Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *softdate|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null, @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date; also accepts @ref nothing and returns @ref nothing
+    |\c *softdate|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null, @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date; also accepts @ref nothing and @ref null and returns @ref nothing
 
     @par Example
     @code
@@ -698,7 +698,7 @@ sub foo(*softdate $d) {
 
     <b>*softlist Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c *softlist|all data types|@ref list or @ref nothing|Accepts all data types; @ref nothing is returned as @ref nothing directly; a list is returned unchanged, and any other type is returned as the first element of a new list
+    |\c *softlist|all data types|@ref list or @ref nothing|Accepts all data types; @ref nothing and @ref null are returned as @ref nothing; a list is returned unchanged, and any other type is returned as the first element of a new list
 
     @par Example
     @code

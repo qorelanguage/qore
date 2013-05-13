@@ -178,8 +178,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     #! represents an Oracle number column
     public class OracleNumberColumn inherits OracleColumn, SqlUtil::NumericColumnInfo {
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, bool cu = False, int bs, int n_scale = 0) :
-            OracleColumn(n, nt, qt, sz, nul, dv, cm, False, cu, bs), NumericColumnInfo(n_scale) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, bool cu = False, int bs, int n_scale = 0) : OracleColumn(n, nt, qt, sz, nul, dv, cm, False, cu, bs), NumericColumnInfo(n_scale) {
         }
 
         string getNativeTypeString() {
@@ -1182,7 +1181,7 @@ my any $v = $c.name;
             return schema;
         }
 
-        #! returns the data tablespace name for the table if any or @nothing if none is known
+        #! returns the data tablespace name for the table if any or @ref nothing if none is known
         *string getTablespaceName() {
             return tablespace;
         }
