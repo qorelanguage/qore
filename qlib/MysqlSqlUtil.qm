@@ -133,34 +133,6 @@ public namespace MysqlSqlUtil {
         }
     }
 
-    #! represents a MySQL-specific check constraint
-    public class MysqlCheckConstraint inherits SqlUtil::AbstractCheckConstraint {
-        constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
-        }        
-
-        string getCreateSql(string table_name, *hash opt) {
-            return getCreateSql(name, table_name, opt);
-        }
-
-        #! returns a string that can be used to drop the check constraint from the table
-        string getDropSql(string table_name) {
-            return sprintf("alter table %s drop check %s", table_name, name);
-        }
-
-        #! returns a string that drops the constraint and re-adds it, since MySQL does not support renaming constraints
-        softlist getRenameSql(string table_name, string new_name) {
-            return getDropSql(table_name) + ", " + getAddSql(new_name, table_name);
-        }
-
-        string getCreateSql(string name, string table_name, *hash opt) {
-            return sprintf("alter table %s %s", table_name, getAddSql(name, table_name, opt));
-        }
-
-        string getAddSql(string name, string table_name, *hash opt) {
-            return sprintf("add constraint %s check (%s)", name, src);
-        }
-    }
-
     #! represents a MySQL-specific column
     public class MysqlColumn inherits SqlUtil::AbstractColumn {
         public {
@@ -988,11 +960,8 @@ end";
         }
 
         private Constraints getConstraintsImpl() {
-            # get check constraints
-            #*hash qh = ds.select("", name);
+            # mysql does not support check constraints
             hash rv;
-            #foreach hash row in (qh.contextIterator())
-            #    rv.(row.constraint_name) = new MysqlCheckConstraint(row.constraint_name, row.consrc);
 
             Constraints c = new Constraints(rv);
 
@@ -1136,7 +1105,7 @@ end";
         }
 
         private AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt) {
-            return new MysqlCheckConstraint(cname, src);
+            throw "MYSQL-CHECK-CONSTRAINT-ERROR", sprintf("MySQL does not support check constraints");
         }
 
         private AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash opt) {
