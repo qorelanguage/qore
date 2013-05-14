@@ -303,12 +303,10 @@ public namespace WebSocketHandler {
                         $b0 = $sock.recvu1(1ms);
                     }
                     catch (hash $ex) {
-                        if ($ex.err == "SOCKET-CLOSED") {
-                            return;
-                        }
-                        if ($ex.err != "SOCKET-TIMEOUT")
-                            printf("%s: %s\n", $ex.err, $ex.desc);
-                        continue;
+                        if ($ex.err == "SOCKET-TIMEOUT")
+                            continue;
+                        $.logError("%s: %s\n", $ex.err, $ex.desc);
+                        return;
                     }
 
                     # get opcode
