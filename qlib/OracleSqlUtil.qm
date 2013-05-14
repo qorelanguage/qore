@@ -1034,9 +1034,13 @@ my any $v = $c.name;
                 SqlUtil::BLOB: "blob",
                 );
 
-            const OraColumnOptions = AbstractTable::ColumnOptions + (
+            const OraColumnOpts = (
                 "character_semantics": Type::Boolean,
                 );
+
+            const OraColumnOptions = AbstractTable::ColumnOptions + OraColumnOpts;
+
+            const OraColumnDescOptions = AbstractTable::ColumnDescOptions + OraColumnOpts;
 
             const OracleIndexOptions = AbstractTable::IndexOptions + (
                 "compute_statistics": Type::Boolean,
@@ -1197,6 +1201,10 @@ my any $v = $c.name;
 
         private hash getColumnOptions() {
             return OraColumnOptions;
+        }
+
+        private hash getColumnDescOptions() {
+            return OraColumnDescOptions;
         }
 
         private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False) {

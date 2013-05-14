@@ -241,8 +241,8 @@ class qdx {
 		break;
 	    }
 
-            # remove <!-- ... --> comments to allow for invisible spacing, to allow for "*/" to be outout in particular places, for example
-            line =~ s/<!--.*-->//g;
+            # remove <!--% ... %--> comments to allow for invisible spacing, to allow for "*/" to be outout in particular places, for example
+            line =~ s/<!--%.*%-->//g;
 
             comment += line;
 	}

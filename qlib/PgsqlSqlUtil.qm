@@ -1032,7 +1032,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "functions": Type::Hash,
                 );
 
-            const PgsqlColumnOptions = AbstractTable::ColumnOptions;
+            const PgsqlColumnDescOptions = AbstractTable::ColumnDescOptions;
 
             const PgsqlIndexOptions = AbstractTable::IndexOptions;
 
@@ -1123,8 +1123,8 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return PgsqlTableDescriptionHashOptions;
         }
 
-        private hash getColumnOptions() {
-            return PgsqlColumnOptions;
+        private hash getColumnDescOptions() {
+            return PgsqlColumnDescOptions;
         }
 
         private hash getIndexOptions() {

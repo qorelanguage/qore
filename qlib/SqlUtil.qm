@@ -1325,7 +1325,7 @@ end;",
     - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
     - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
 
-    Note that the above structure is an extension of the fields in @ref SqlUtil::AbstractTable::ColumnOptions, adding \c notnull and \c driver keys for additional information to create the column in the table.
+    Note that the above structure is an extension of the fields in @ref SqlUtil::AbstractTable::ColumnDescOptions, adding \c notnull and \c driver keys for additional information to create the column in the table.
 
     Here is an example of a column description hash:
     @code
@@ -4757,6 +4757,8 @@ my string $sql = $t.getSqlFromList($list);
                 - \c function_map: a hash for automatically renaming functions; if the source name (key) exists and the target name (value) does not exist, then the source function is automatically renamed
                 - \c procedures: a hash keyed by procedure name set to procedure source string values
                 - \c procedure_map: a hash for automatically renaming procedures; if the source name (key) exists and the target name (value) does not exist, then the source procedure is automatically renamed
+
+                @see @ref schema_desc_hash for more information
             */
             const SchemaDescriptionOptions = (
                 "tables": Type::Hash,
@@ -8037,18 +8039,28 @@ my Triggers $trig = $table.getTriggers();
     public class AbstractTable inherits AbstractSqlUtilBase {
         public {
             #! table options
+            /** The following keys can be set for this option:
+                - \c native_case: (@ref bool_type) if @ref Qore::True "True" then objects will be returned in the case the database server returns them in even if the database server uses case-insensitive names; normally in this case %SqlUtil will convert the names to lower-case
+                - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables                
+            */
             const TableOptions = (
                 "native_case": Type::Boolean,
                 "table_cache": "Tables",
                 );
 
             #! default index options
+            /**
+                - \c index_tablespace: (@ref string_type) a string giving the index tablespace to use for indexes
+                - \c replace: (@ref bool_type) if @ref Qore::True "True" and supported by the underlying db driver "create or replace" text is used when creating objects
+            */
             const IndexOptions = (
                 "index_tablespace": Type::String,
                 "replace": Type::Boolean,
                 );
 
             #! default constraint options
+            /** currently this option is identical to @ref AbstractTable::IndexOptions
+            */
             const ConstraintOptions = IndexOptions;
 
             #! default cache options
@@ -8057,11 +8069,16 @@ my Triggers $trig = $table.getTriggers();
                 );
 
             #! default foreign constraint options
+            /** The following keys can be set for this option:
+                - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables                
+            */
             const ForeignConstraintOptions = ConstraintOptions + (
                 "table_cache": "Tables",
                 );
 
             #! default trigger options
+            /** currently this option is identical to @ref AbstractDatabase::CreationOptions
+            */
             const TriggerOptions = AbstractDatabase::CreationOptions;
 
             #! default select options
@@ -8085,9 +8102,18 @@ my Triggers $trig = $table.getTriggers();
                 );
 
             #! table creation options
+            /** currently this option is a combination of @ref AbstractTable::IndexOptions and @ref AbstractDatabase::CreationOptions
+            */
             const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions;
 
             #! table alignment options
+            /** currently this option is a combination of @ref AbstractTable::TableCreationOptions and the following options:
+                - \c column_map: a hash for automatically renaming columns; if the source name (key) exists and the target name (value) does not exist, then the source column is automatically renamed
+                - \c index_map: a hash for automatically renaming indexes; if the source name (key) exists and the target name (value) does not exist, then the source index is automatically renamed
+                - \c constraint_map: a hash for automatically renaming constraints; if the source name (key) exists and the target name (value) does not exist, then the source constraint is automatically renamed
+                - \c trigger_map: a hash for automatically renaming triggers; if the source name (key) exists and the target name (value) does not exist, then the source trigger is automatically renamed
+                - \c db_table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining tables in the database and foreign key relationships between tables
+            */
             const AlignTableOptions = TableCreationOptions + (
                 "column_map": Type::Hash,
                 "index_map": Type::Hash,
@@ -8097,6 +8123,17 @@ my Triggers $trig = $table.getTriggers();
                 );
 
             #! Table description options
+            /** this option is made up of the following keys:
+                - \c columns: (@ref column_desc_hash "column description hash") a hash describing the column
+                - \c primary_key : (@ref pk_desc_hash "primary key description hash") a hash describing the primary key for the table
+                - \c indexes: (@ref index_desc_hash "index description hashes") a hash describing the indexes on the table
+                - \c triggers: a hash of trigger information keyed by trigger name; the values are the trigger source code; since triggers are driver-dependent, a driver-independent table description would include trigger hashes under the \c drivers key and the driver key name under that
+                - \c foreign_constraints: (@ref fk_desc_hash "foreign constraint hashes") a hash describing the foreign constraints on the table 
+                - \c unique_constraints: (@ref uk_desc_hash "unique constraint hashes") a hash describing the unique constraints on the table 
+                - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables                
+
+                @see @ref table_desc_hash
+            */
             const TableDescriptionHashOptions = (
                 "columns": Type::Hash,
                 "primary_key": Type::Hash,
@@ -8108,8 +8145,19 @@ my Triggers $trig = $table.getTriggers();
                 "table_cache": "Tables",
                 );
 
-            #! Column options
-            const ColumnOptions = (
+            #! Column description options
+            /** this option is made up of the following keys:
+                - \c qore_type: (@ref string_type) a qore type string that will be converted to a native DB type with some default conversion
+                - \c native_type: (@ref string_type) the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+                - \c size: (@ref int_type) for data types requiring a size component, the size; for numeric columns this represents the precision for example
+                - \c scale: (@ref int_type) for numeric data types, this value gives the scale
+                - \c default_value: the default value for the column
+                - \c comment: (@ref string_type) an optional comment for the column
+                - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
+                - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
+                @see @ref column_desc_hash
+            */
+            const ColumnDescOptions = (
                 "qore_type": Type::String,
                 "native_type": Type::String,
                 "size": Type::Int,
@@ -8118,12 +8166,27 @@ my Triggers $trig = $table.getTriggers();
                 "comment": Type::String,
                 );
 
+            #! additional column description keys valid when describing columns in a @ref table_desc_hash "table description hash"
+            /** the following keys are valid in a @ref table_desc_hash "table description hash" in addition to any @ref AbstractTable::ColumnDescOptions:
+                - \c notnull: (@ref boolean_type) if @ref Qore::True "True" then the column will have a not null constraint
+            */
+            const AdditionalColumnDescOptions = (
+                "notnull": Type::Boolean,
+                );
+
+            #! Column options; this is currently empty and can be extended in database-specific modules
+            const ColumnOptions = hash();
+
             /** @defgroup upsert_options Upsert Strategy Codes
                 These options are used with:
                 - @ref AbstractTable::getUpsertClosure()
                 - @ref AbstractTable::getUpsertClosureWithValidation()
                 - @ref AbstractTable::upsert()
                 - @ref AbstractTable::upsertNoCommit()
+                - @ref AbstractTable::upsertFromIterator()
+                - @ref AbstractTable::upsertFromIteratorNoCommit()
+                - @ref AbstractTable::upsertFromSelect()
+                - @ref AbstractTable::upsertFromSelectNoCommit()
 
                 to specify the upsert strategy when synchronizing table data
              */
@@ -10363,7 +10426,7 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
 
         #! validates column options
         private validateColumnOptions(string cname, reference opt, bool nullable) {
-            hash copt = getColumnOptions();
+            hash copt = getColumnDescOptions();
 
             # check valid options and option value types
             validateOptionsIntern("COLUMN-ERROR", copt, \opt, sprintf("%s.%s", name, cname));
@@ -13232,6 +13295,16 @@ my *list $rows = $table.findAll($h);
         #! override in subclasses to return driver-specific options
         private hash getColumnOptions() {
             return ColumnOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getColumnDescOptions() {
+            return ColumnDescOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getTableColumnDescOptions() {
+            return getColumnDescOptions() + AdditionalColumnDescOptions;
         }
 
         #! override in subclasses to return driver-specific options

@@ -728,12 +728,13 @@ end";
                 "engine": Type::String,
                 );
 
-            #! extends @ref SqlUtil::AbstractTable::ColumnOptions with MySQL-specific values
+            #! extends @ref SqlUtil::AbstractTable::ColumnDescOptions with MySQL-specific values
             /** the new keys are as follows:
                 - \c "unsigned": only valid with numeric/integer/floating-point types
                 - \c "auto_increment": only valid with integer/floating-point types
+                - \c "pk": only valid with \c "auto_increment"
             */
-            const MysqlColumnOptions = AbstractTable::ColumnOptions + (
+            const MysqlColumnDescOptions = AbstractTable::ColumnOptions + (
                 "unsigned": Type::Boolean,
                 "auto_increment": Type::Boolean,
                 "pk": Type::Boolean,
@@ -783,8 +784,8 @@ end";
             return MysqlTableDescriptionHashOptions;
         }
 
-        private hash getColumnOptions() {
-            return MysqlColumnOptions;
+        private hash getColumnDescOptions() {
+            return MysqlColumnDescOptions;
         }
 
         private hash getIndexOptions() {
