@@ -862,7 +862,7 @@ else
 my Tables $tables($ds);
     @endcode
 
-    @par Drop All Foreign Constraints from a Table
+    @par Drop All Foreign Constraints to a Table
     The following is an example of how all foreign constraints to a particular table can be dropped:
     @code
 my *list $l = $tables.getDropAllForeignConstraintsOnTableSql("table_name", ("sql_callback_executed": True));
@@ -5783,6 +5783,8 @@ my string $sql = $table.getTruncateSql();
             @throw OPTION-ERROR invalid or unsupported option passed
 
             @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getTruncateSql(*hash opt) {
             return t.getTruncateSql(opt);
@@ -5980,7 +5982,9 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
 
             @note make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
 
-            @see inDb() for a method that tells if the table is already in the database or not
+            @note
+            - make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         list getModifyColumnSql(string cname, hash copt, bool nullable = True, *hash opt) {
             return t.getModifyColumnSql(cname, copt, nullable, opt);
@@ -6023,6 +6027,8 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
             @throw COLUMN-ERROR if the given column does not exist in the table
 
             @see getModifyColumnSql() for a method that allows the column definition to be updated
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
         */
         string getRenameColumnSql(string old_name, string new_name, *hash opt) {
             return t.getRenameColumnSql(old_name, new_name, opt);
@@ -6120,6 +6126,7 @@ my list $l = $table.getDropPrimaryKeySql();
             @note
             - this method retrieves current primary key definition from the database if not already loaded or defined
             - if there are known foreign contraints on the primary key, SQL for dropping those constraints is also returned
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -6264,7 +6271,9 @@ my string $sql = $table.getDropIndexSql("uk_mytable_name");
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw INDEX-ERROR the given index does not exist in the table
 
-            @note this method retrieves current index definitions from the database if not already loaded or defined
+            @note
+            - this method retrieves current index definitions from the database if not already loaded or defined
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -6286,7 +6295,9 @@ my string $sql = $table.getDropConstraintSql("uk_mytable_name");
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw CONSTRAINT-ERROR the given constraint does not exist in the table
 
-            @note this method retrieves current constraint definitions from the database if not already loaded or defined
+            @note
+            - this method retrieves current constraint definitions from the database if not already loaded or defined
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -6308,7 +6319,9 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
-            @note this method retrieves current constraint definitions from the database if not already loaded or defined
+            @note
+            - this method retrieves current constraint definitions from the database if not already loaded or defined
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -6618,7 +6631,9 @@ my list $l = $table.getDropTriggerSql("trig_mytable");
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw TRIGGER-ERROR the given trigger does not exist
 
-            @note this method retrieves all current trigger definitions from the database if none have already been defined
+            @note
+            - this method retrieves all current trigger definitions from the database if none have already been defined
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -6677,7 +6692,9 @@ my list $l = $table.getDropColumnSql("notes_2");
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw COLUMN-ERROR the named column is not present in the table
 
-            @note this method retrieves the table definition from the database if none has already been defined
+            @note
+            - this method retrieves the column definitions from the database if none have already been defined
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -6801,7 +6818,7 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             - upsertFromIterator()
             - upsertFromIteratorNoCommit()
         */
-        int insertFromIteratorNocommit(Qore::AbstractIterator i, *code info_callback) {
+        int insertFromIteratorNoCommit(Qore::AbstractIterator i, *code info_callback) {
             return t.insertFromIteratorNoCommit(i, info_callback);
         }
 
@@ -6819,7 +6836,7 @@ $table.upsert($row);
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if upserting multiple rows; it's better to use getUpsertClosure() or getUpsertClosureValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
+            @note if upserting multiple rows; it's better to use getUpsertClosure() or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
 
             @see
             - upsertNoCommit()
@@ -6844,7 +6861,7 @@ $table.upsertNoCommit($row);
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if upserting multiple rows; it's better to use getUpsertClosure() or getUpsertClosureValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
+            @note if upserting multiple rows; it's better to use getUpsertClosure() or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
 
             @see
             - upsert()
@@ -7398,7 +7415,7 @@ my string $sql = $table.getRenameSql("new_name");
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
-            @note does not rename the table; the new name is only used in the SQL string return value
+            @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True", this method also renames the object internally (see @ref sql_callback_executed for more information), additionally if the \c "db_table_cache" option key is assigned to a @ref SqlUtil::Tables "Tables" argument, then the table cache is also updated with the name change in this case
 
             @see 
             - rename()
@@ -8230,6 +8247,8 @@ my string $sql = $table.getTruncateSql();
             @throw OPTION-ERROR invalid or unsupported option passed
 
             @see inDb() for a method that tells if the table is already in the database or not
+
+            @note if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getTruncateSql(*hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);        
@@ -8652,7 +8671,6 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
             @note
             - make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
             - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
-
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -10093,7 +10111,9 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw TRIGGER-ERROR the given trigger does not exist
 
-            @note this method retrieves all current trigger definitions from the database if none have already been defined
+            @note
+            - this method retrieves all current trigger definitions from the database if none have already been defined
+            - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
@@ -10108,7 +10128,7 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
                 throw "TRIGGER-ERROR", sprintf("%s: has no trigger %y; valid triggers: %y", name, tname, triggers.keys());
 
             # remove from trigger structure if sql is executed
-            on_success if (opt.callback_executed)
+            on_success if (opt.sql_callback_executed)
                 triggers.take(tname);
 
             # drop trigger from table if the table already exists in the DB
@@ -10260,7 +10280,7 @@ my string $sql = $table.getDropColumnSql("notes_2");
             @throw COLUMN-ERROR the named column is not present in the table
 
             @note
-            - this method retrieves the table definition from the database if none has already been defined
+            - this method retrieves the column definitions from the database if none have already been defined
             - if the \c "sql_callback_executed" option is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
             @see inDb() for a method that tells if the table is already in the database or not
@@ -10435,7 +10455,7 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
 
             @see
-            - insertFromIteratorNoCommit()
+            - insertFromIterator()
             - upsertFromIterator()
             - upsertFromIteratorNoCommit()
         */
@@ -10477,7 +10497,7 @@ $table.upsert($row);
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if upserting multiple rows; it's better to use getUpsertClosure() or getUpsertClosureValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
+            @note if upserting multiple rows; it's better to use getUpsertClosure() or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
          */
         int upsert(hash row, int upsert_strategy = UpsertInsertFirst) {
             on_success ds.commit();
@@ -10500,7 +10520,7 @@ $table.upsertNoCommit($row);
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if upserting multiple rows; it's better to use getUpsertClosure() or getUpsertClosureValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
+            @note if upserting multiple rows; it's better to use getUpsertClosure() or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
          */
         int upsertNoCommit(hash row, int upsert_strategy = UpsertInsertFirst) {
             l.lock();
