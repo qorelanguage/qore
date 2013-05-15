@@ -815,8 +815,8 @@ else
     - if the object exists and matches, then nothing is done
 
     Unfortuntely, it's not currently possible to describe all database objects in a generic way (and it probably never will be); in particular,
-    functions, triggers, and other objects based on procedural code or database-specific functionality have to be defined in their database-
-    specific formats.
+    functions, triggers, and other objects based on procedural code or database-specific functionality have to be defined in their 
+    database-specific formats.
 
     The following is a table describing the alignment support for various objects supported by %SqlUtil; for database-specific objects, see the
     database-specific %SqlUtil module:
@@ -1403,7 +1403,7 @@ my hash $ix_desc = (
     to display detailed information about long-running operations, such as schema or data alignment for complex schemas or large
     data sets, or as a generic framework for executing and logging SQL operations.
 
-    @subsection info_callback SQL CallBack Closure or Call Ceference
+    @subsection info_callback SQL Info CallBack Closure or Call Ceference
 
     The \c "info_callback" @ref closure "closure" or @ref call_reference "call reference" is called with a string providing information about the current SQL
     operation and can be specified as in the following example:
@@ -1448,6 +1448,20 @@ my code $sql_callback = sub (string $str) {
 };
 
 my hash $callback_opts = ("sql_callback": $sql_callback, "sql_callback_executed": True);
+$db.getAlignSql($schema, $callback_opts);
+    @endcode
+
+    @subsection ok_callback SQL OK CallBack Closure or Call Ceference
+
+    The \c "ok_callback" @ref closure "closure" or @ref call_reference "call reference" is called with a string providing information about objects that are unchnaged during database object alignment and can be specified as in the following example:
+    @code
+my code $ok_callback = sub (string $str) {
+    # only print out something if the verbose option is set
+    if ($verbose)
+        printf("*** %s\n", $str);
+};
+
+my hash $callback_opts = ("ok_callback": $ok_callback);
 $db.getAlignSql($schema, $callback_opts);
     @endcode
 */
@@ -4716,11 +4730,13 @@ my string $sql = $t.getSqlFromList($list);
                 - \c info_callback: @see info_callback
                 - \c sql_callback: @see sql_callback
                 - \c sql_callback_executed: @see sql_callback_executed
+                - \c ok_callback: @see ok_callback
             */
             const CallbackOptions = (
                 "info_callback": "code",
                 "sql_callback": "code",
                 "sql_callback_executed": Type::Boolean,
+                "ok_callback": "code",
                 );
 
             #! default generic creation options
@@ -4805,6 +4821,11 @@ my string $sql = $t.getSqlFromList($list);
             validateOptionsIntern("OPTION-ERROR", getDatabaseOptions(), \nopts);
             if (nopts.native_case)
                 native_case = True;
+        }
+
+        static doOkCallback(*hash opt, string fmt) {
+            if (opt.ok_callback)
+                opt.ok_callback(vsprintf(fmt, argv));
         }
 
         static *string doCallback(*hash opt, *string sql, string fmt) {
@@ -5057,6 +5078,8 @@ my list $l = $db.getDropSchemaSql($schema_hash);
                 if (f) {
                     l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(), "drop %s %s", type, name);
                 }
+                else
+                    AbstractDatabase::doOkCallback(opt, "%s %s does not exist or has already been dropped", type, name);
             }
 
             return l;
@@ -5113,6 +5136,8 @@ my list $l = $db.getDropSchemaSql($schema_hash);
                     l += AbstractDatabase::doCallback(opt, f.getDropSql(), "drop %s %s", type, name);
                     l += AbstractDatabase::doCallback(opt, templateFunc.getCreateSql(opt), "create %s %s", type, name);
                 }
+                else
+                    AbstractDatabase::doOkCallback(opt, "%s %s does not need updating", type, name);
             }
 
             return l;
@@ -5413,7 +5438,9 @@ my list $l = $db.getAlignFunctionSql($f);
                 l += AbstractDatabase::doCallback(opt, of.getDropSql(), "drop function %s", f.name);
                 l += AbstractDatabase::doCallback(opt, of.getCreateSql(opt), "create function %s", f.name);
             }
-                
+            else
+                AbstractDatabase::doOkCallback(opt, "function %s does not need updating", f.name);
+
             return l;
         }
 
@@ -5801,6 +5828,22 @@ my Table $table("pgsql:user/pass@db%host", "table");
         constructor(AbstractDatasource ds, hash desc, string name, *hash opts) {
             t = AbstractTable::getTable(ds, name);
             t.setupTable(desc, opts);
+        }
+
+        #! changes the datasource for the table; if the \c inDb flag is @ref Qore::True "True", then it is set to @ref Qore::False "False" by calling this method
+        /** @par Example:
+            @code
+my Table $table($ds1, "table_name");
+$table.setDatasource($ds2);
+$table.create();
+            @endcode
+
+            @param nds the new datasource for the table
+
+            @note it's generally not safe to call this method while SQL operations are in progress in other threads on the same table
+        */
+        setDatasource(AbstractDatasource nds) {
+            t.setDatasource(nds);
         }
 
         #! commits the current transaction on the underlying @ref Qore::SQL::AbstractDatasource
@@ -8312,6 +8355,26 @@ my Triggers $trig = $table.getTriggers();
                 triggers = triggers.copy();
 
             copyImpl(old);
+        }
+
+        #! changes the datasource for the table; if the \c inDb flag is @ref Qore::True "True", then it is set to @ref Qore::False "False" by calling this method
+        /** @par Example:
+            @code
+my Table $table($ds1, "table_name");
+$table.setDatasource($ds2);
+$table.create();
+            @endcode
+
+            @param nds the new datasource for the table
+
+            @note it's generally not safe to call this method while SQL operations are in progress in other threads on the same table
+        */
+        setDatasource(AbstractDatasource nds) {
+            l.lock();
+            on_exit l.unlock();
+
+            ds = nds;
+            inDb = False;
         }
 
         private doTableOptions(*hash nopts) {
@@ -12487,6 +12550,9 @@ my list $l = $table.getAlignSql($table2);
                     if (cl) {
                         l += AbstractDatabase::doCallback(opt, cl, "updating column %s in %s", c.name, name);
                     }
+                    else
+                        AbstractDatabase::doOkCallback(opt, "column %s.%s does not need updating", name, c.name);
+
                 }
             }
 
@@ -12528,6 +12594,8 @@ my list $l = $table.getAlignSql($table2);
                 else if (!ix.equal(indexes{ix.name})) {
                     l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt), "recreating index %s on %s", ix.name, name);
                 }
+                else
+                    AbstractDatabase::doOkCallback(opt, "index %s on %s does not need updating", ix.name, name);
             }
 
             # check for indexes not in the template and drop them
@@ -12654,6 +12722,8 @@ my list $l = $table.getAlignSql($table2);
                     # add new constraint to table
                     l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), "updating foreign constraint %s on %s (adding updated constraint)", c.getName(), name);
                 }
+                else
+                    AbstractDatabase::doOkCallback(opt, "foreign constraint %s on %s does not need updating", c.getName(), name);
             }
 
             # check for foreign constraints not in the template and drop them
@@ -12678,6 +12748,8 @@ my list $l = $table.getAlignSql($table2);
                     # add new constraint to table
                     l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), "updating constraint %s on %s (adding updated constraint)", c.getName(), name);
                 }
+                else
+                    AbstractDatabase::doOkCallback(opt, "constraint %s on %s does not need updating", c.getName(), name);
             }
 
             # check for other constraints not in the template and drop them
@@ -12714,6 +12786,8 @@ my list $l = $table.getAlignSql($table2);
                     # add new trigger to table
                     l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), "updating trigger %s on %s (adding updated trigger)", trig.name, name);
                 }
+                else
+                    AbstractDatabase::doOkCallback(opt, "trigger %s on %s does not need updating", trig.name, name);
             }
 
             return l;
