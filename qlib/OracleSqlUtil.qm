@@ -178,7 +178,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     #! represents an Oracle number column
     public class OracleNumberColumn inherits OracleColumn, SqlUtil::NumericColumnInfo {
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, bool cu = False, int bs, int n_scale = 0) : OracleColumn(n, nt, qt, sz, nul, dv, cm, False, cu, bs), NumericColumnInfo(n_scale) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, int bs, int n_scale = 0) : OracleColumn(n, nt, qt, sz, nul, dv, cm, False, False, bs), NumericColumnInfo(n_scale) {
         }
 
         string getNativeTypeString() {
@@ -1261,7 +1261,8 @@ my any $v = $c.name;
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
-                #printf("DBG: %y\n", row);
+                #if (row.column_name == "TAX_AMOUNT") 
+                #    printf("DBG: %y\n", row);
                 *hash th = OraTypeMap.(row.data_type.lwr());
                 int size = row.data_type == "NUMBER" && row.data_precision ? row.data_precision : row.data_length;
                 switch (row.data_type) {
@@ -1276,6 +1277,13 @@ my any $v = $c.name;
                     case "BLOB":
                     case "CLOB": size = 0; break;
                 }
+                
+                # set default numeric precision to 0 if not given
+                if (row.data_precision === NULL && row.data_type == "NUMBER") {
+                    row.data_precision = 0;
+                    row.data_scale = 0;
+                }
+
                 bool nullable = row.nullable == "Y" && !cnh{row.column_name};
                 if (!native_case) {
                     row.column_name = row.column_name.lwr();
@@ -1292,8 +1300,8 @@ my any $v = $c.name;
                     char_used = False;
 
                 OracleColumn c;
-                if (row.data_precision) 
-                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable, row.data_default, row.comments ? row.comments : NOTHING, char_used, row.data_length, row.data_scale);
+                if (row.data_precision || row.data_type == "number") 
+                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable, row.data_default, row.comments ? row.comments : NOTHING, row.data_length, row.data_scale);
                 else
                     c = new OracleColumn(row.column_name, row.data_type, th.qore, size, nullable, row.data_default, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
 
@@ -1519,7 +1527,7 @@ my any $v = $c.name;
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
             if (opt.precision)
-                return new OracleNumberColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, opt.character_semantics, 0, opt.scale);
+                return new OracleNumberColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale);
             return new OracleColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, opt.local_def.is_char, opt.character_semantics, 0);
         }
 

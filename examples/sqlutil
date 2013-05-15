@@ -31,10 +31,21 @@
 %requires SqlUtil
 
 const opts = (
-    "dump-table": "t,dump-table=s",
+    "align_all": "A,align-all=s",
+    "align_data": "D,align-data=s",
+    "align_data_strict": "s,align-data-strict",
+    "align_table": "a,align-table=s",
+    "dump_table": "t,dump-table=s",
     "data_tablespace": "d,data-tablespace=s",
     "index_tablespace": "i,index-tablespace=s",
+    "target_ds": "T,target-ds=s",
+    "verbose": "v,verbose:i+",
     "help": "h,help",
+    );
+
+# list of options that require a target datasource
+const RequiresTarget = (
+    "align_table": True,
     );
 
 main();
@@ -42,10 +53,25 @@ main();
 sub usage() {
     printf("usage: %s [options] <datasource>
 <datasource> format: driver:user/pass@db[%host[:port]]
+  -A,--align-all=ARG          ARG=table to align structure and data in a
+                              target database; requires -T
+  -D,--align-data=ARG         ARG=table to align data in a target database;
+                              requires -T
+  -s,--align-data-strict      deletes extra rows in the target table;
+                              requires -D
+  -a,--align-table=ARG        ARG=table to align structure in a target
+                              database; requires -T
   -d,--data-tablespace=ARG    use the given data tablespace name for output
   -i,--index-tablespace=ARG   use the given index tablespace name for output
   -t,--dump-table=ARG         dump the SQL for the given DB table
+  -T,--target-ds=ARG          target datasource
+  -v,--verbose=ARG            increase verbosity level (more v's = more info)
 ", get_script_name());
+    exit(1);
+}
+
+sub error(string fmt) {
+    vprintf(fmt, argv);
     exit(1);
 }
 
@@ -56,15 +82,118 @@ sub main() {
     if (opt.help || !ARGV[0])
         usage();
 
-    Datasource ds(ARGV[0]);
+    if (opt.align_all) {
+        opt.align_data = opt.align_all;
+        opt.align_table = opt.align_all;
+    }
 
+    Datasource target;
+    if (opt.target_ds)
+        target = new Datasource(opt.target_ds);
+
+    # if we don't have a target datasource, check for an option that requires one
+    if (!target) {
+        foreach string os in (RequiresTarget.keyIterator()) {
+            if (opt{os})
+                error("option --%s requires a target datasource (-T)\n", os);
+        }
+    }
+
+    # source datasource
+    Datasource source(ARGV[0]);
+
+    # info callback closure and embedded variables
+    int change_count = 0;
+    int dot_count = 0;
+    code info_callback = sub (string str, int ac, string type, string name, *string table, *string new_name, *string info) {
+        if (ac != AbstractDatabase::AC_Unchanged)
+            ++change_count;
+        if (opt.verbose)
+            printf("*** %s\n", str);
+        else {
+            ++dot_count;
+            print(AbstractDatabase::ActionLetterMap{ac});
+            flush();
+        }
+    };
+
+    code upsert_callback = sub (string table_name, hash row, int result) {
+        if (result != AbstractTable::UR_Unchanged) {
+            ++change_count;
+            if (opt.verbose) {
+                if (dot_count) {
+                    printf("\n");
+                    dot_count = 0;
+                }
+                printf("*** reference data %s: %y: %s\n", table_name, row, AbstractTable::UpsertResultMap{result}); 
+            }
+            else {
+                ++dot_count;
+                print(AbstractTable::UpsertResultLetterMap{result});
+                flush();
+            }
+        }
+        else {
+            ++dot_count;
+            print(AbstractTable::UpsertResultLetterMap{result});
+            flush();
+        }
+    };
+
+    # sql callback closure
+    code sql_callback = sub (string str) {
+        if (opt.verbose > 1)
+            printf("%s\n", str);
+        target.execRaw(str);
+    };
+
+    # callback reset closure
+    code reset = sub () {
+        if (dot_count) {
+            print("\n");
+            dot_count = 0;
+        }
+        if (change_count) {
+            printf("%d change%s made\n", change_count, change_count == 1 ? "" : "s");
+            change_count = 0;
+        }
+        else
+            print("no changes made\n");
+    };
+
+    # creation options
     hash copt = opt.("index_tablespace", "data_tablespace");
 
+    # callback options
+    hash cbopt = ("sql_callback": sql_callback, "info_callback": info_callback, "sql_callback_executed": True);
+
     bool done = False;
-    if (opt."dump-table") {
+    if (opt.dump_table) {
         done = True;
-        Table table(ds, opt."dump-table");
+        Table table(source, opt.dump_table);
         printf("%s\n", table.getCreateSqlString(copt));
+    }
+
+    if (opt.align_table) {
+        on_success target.commit();
+        on_error target.rollback();
+
+        done = True;
+        Table table(source, opt.align_table);
+        Table target_table(target, opt.align_table);
+        target_table.getAlignSql(table, copt + cbopt);
+
+        reset();
+    }
+
+    if (opt.align_data) {
+        done = True;
+        Table table(source, opt.align_data);
+        Table target_table(target, opt.align_data);
+        int us = opt.verbose ? AbstractTable::UpsertSelectFirst : AbstractTable::UpsertAuto;
+        target_table.upsertFromSelect(table, NOTHING, us, opt.align_data_strict, upsert_callback);
+
+        reset();
     }
     
     if (!done)
