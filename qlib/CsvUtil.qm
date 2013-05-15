@@ -22,21 +22,27 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.6 or better
-%requires qore >= 0.8.6
+# this module requires Qore 0.8.8 or better
+%requires qore >= 0.8.8
 
 # turn on perl-style boolean evaluation
 %perl-bool-eval
 
 module CsvUtil {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@scribus.info>, David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
-    * 2012-10-13 v1.0: David Nichols <david@qore.org>: initial version of module
+    * 2013-05-15 v1.1: David Nichols <david@qore.org>: 
+      + bug fixes to header and fields option processing
+      + fixed CsvUtil::CsvFileIterator::index() to return the line index
+      + added CsvUtil::CsvFileIterator::lineNumber() to return the current line number in the file
+
+    * 2012-10-13 v1.0: David Nichols <david@qore.org>: 
+      + initial version of module
 */
 
 /** @mainpage CsvUtil Module
@@ -225,6 +231,12 @@ public namespace CsvUtil {
 
 	    # verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
 	    bool $.checkElementCounts = False;
+
+            # column count for verifying column counts
+            int $.cc;
+
+            # current record count for the index() method
+            int $.rc = 0;
 	}
 
 	#! creates the CsvFileIterator with the path of the file to read and optionally an option hash
@@ -296,7 +308,7 @@ public namespace CsvUtil {
 			if ($i.value.typeCode() != NT_HASH)
 			    throw "CSVFILEITERATOR-ERROR", sprintf("expecting a hash value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
 			# iterate hash to process field descriptions
-			foreach my hash $hi in ($i.value.iterator()) {
+			foreach my hash $hi in ($i.value.pairIterator()) {
 			    switch ($hi.value.typeCode()) {
 				case NT_STRING: {
 				    CsvFileIterator::checkType($hi.key, $hi.value);
@@ -307,7 +319,7 @@ public namespace CsvUtil {
 				    if ($hi.value.empty())
 					throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": empty hash passed as description for field %y", $hi.key);
 				    my hash $h;
-				    foreach my hash $fh in ($hi.value.iterator()) {
+				    foreach my hash $fh in ($hi.value.pairIterator()) {
 					switch ($fh.key) {
 					    case "type": {
 						CsvFileIterator::checkType($hi.key, $fh.value);
@@ -381,24 +393,26 @@ foreach my hash $r in (new CsvFileIterator("my_file.csv")) {
 	 */
 	bool next() {
 	    # try to parse any header and skip to data if we haven't started iterating yet
-	    if (!$.valid() && $.headerLines) {
-		if ($.headerNames) {
-		    # return False if there is no data to iterate
-		    if (!FileLineIterator::$.next())
-			return False;
-
-		    # get and parse header row
-		    $.headers = $.parseLine();
-
-		    # set field description list if necessary
-		    if ($.fields)
-			$.setFields();
-		}
-		# skip the rest of the header rows
-		while ($.index() < $.headerLines) {
-		    if (!FileLineIterator::$.next())
-			return False;
-		}
+	    if (!$.valid()) {
+                if ($.headerLines) {
+                    if ($.headerNames) {
+                        # return False if there is no data to iterate
+                        if (!FileLineIterator::$.next())
+                            return False;
+                        
+                        # get and parse header row
+                        $.headers = $.parseLine();
+                        
+                        # set field description list if necessary
+                        if ($.fields)
+                            $.setFields();
+                    }
+                    # skip the rest of the header rows
+                    while (FileLineIterator::$.index() < $.headerLines) {
+                        if (!FileLineIterator::$.next())
+                            return False;
+                    }
+                }
 	    }
 	    my bool $b = FileLineIterator::$.next();
 	    if ($b) {
@@ -419,6 +433,11 @@ foreach my hash $r in (new CsvFileIterator("my_file.csv")) {
 			$.setFields();
 		}
 	    }
+
+            if ($b)
+                ++$.rc;
+            else
+                $.rc = 0;
 
 	    return $b;
 	}
@@ -527,13 +546,53 @@ my string $quote = $i.getQuote();
 	    return $.headers;
 	}
 
+        #! returns the row index being iterated, which does not necessarily correspond to the line number when there are header rows and blank lines are skipped
+        /** @par Example:
+            @code
+my int $index = $i.index();
+            @endcode
+
+            @return the row index being iterated, which does not necessarily correspond to the line number when there are header rows and blank lines are skipped
+
+            @see lineNumber()
+
+            @since %CsvUtil 1.1
+        */
+        int index() {
+            return $.rc;
+        }
+
+        #! returns the current iterator line number in the file (the first line is line 1) or 0 if not pointing at a valid element
+        /** @par Example:
+            @code
+while ($i.next()) {
+    printf("+ line %d: %y\n", $i.lineNumber(), $i.getValue());
+}
+            @endcode
+
+            @return returns the current iterator line number in the file (the first line is line 1) or 0 if not pointing at a valid element
+
+            @note equivalent to @ref Qore::FileLineIterator::index()
+
+            @see index()
+
+            @since %CsvUtil 1.1
+        */
+        int lineNumber() {
+            return FileLineIterator::$.index();
+        }
+
 	#! parses a line in the file and returns a processed list of the fields
 	private list parseLine() {
 	    my list $l = FileLineIterator::$.getValue().split($.separator, $.quote, $.ignoreWhitespace);
 
 	    # verify column count if requested
-	    if ($.checkElementCounts && $l.size() != $.headers.size())
-		throw "CSVFILEITERATOR-DATA-ERROR", sprintf("%s:%d line contained %d field%s, however the header record has %d (and option \"verify-columns\" is set)", $.getFileName(), $.index(), $l.size(), $l.size() == 1 ? "" : "s", $.headers.size());
+	    if ($.checkElementCounts) {
+                if (!exists $.cc)
+                    $.cc = $l.size();
+                else if ($l.size() != $.cc)
+                    throw "CSVFILEITERATOR-DATA-ERROR", sprintf("%s:%d line contained %d field%s, however the template record has %d (and option \"verify-columns\" is set)", $.getFileName(), FileLineIterator::$.index(), $l.size(), $l.size() == 1 ? "" : "s", $.cc);
+            }
 
 	    # appy transformations to data read if there are any transformations to apply
 	    my ListValueIterator $i($.fdesc);

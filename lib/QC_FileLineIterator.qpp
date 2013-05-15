@@ -278,7 +278,7 @@ bool FileLineIterator::valid() [flags=CONSTANT] {
     @par Example:
     @code
 while ($i.next()) {
-    printf("+ %d/%d: %y\n", $i.index(), $i.max(), $i.getValue());
+    printf("+ %d: %y\n", $i.index(), $i.getValue());
 }
     @endcode
  */
