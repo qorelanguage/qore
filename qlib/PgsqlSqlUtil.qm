@@ -829,7 +829,7 @@ my any $v = $c.name;
 
                     *PgsqlType type = getType(th.key);
                     if (type) {
-                        l += AbstractDatabase::doCallback(opt, type.getRenameSql(th.value), "renaming type %s to %s", th.key, th.value);
+                        l += AbstractDatabase::doCallback(opt, type.getRenameSql(th.value), AbstractDatabase::AC_Rename, "type", th.key, NOTHING, th.value);
                         type.name = th.value;
                         type_cache{th.value} = type;
                     }
@@ -852,13 +852,13 @@ my any $v = $c.name;
                     else {
                         type = getType(name);
                         if (!type) {
-                            l += AbstractDatabase::doCallback(opt, templateType.getCreateSql(opt), "creating type %s", name);
+                            l += AbstractDatabase::doCallback(opt, templateType.getCreateSql(opt), AbstractDatabase::AC_Create, "type", name);
                             continue;
                         }
                     }
 
                     if (!templateType.equal(type)) {
-                        l += AbstractDatabase::doCallback(opt, templateType.getModifySql(type, opt + ("cascade": True)), "updating type %s", name);
+                        l += AbstractDatabase::doCallback(opt, templateType.getModifySql(type, opt + ("cascade": True)), AbstractDatabase::AC_Modify, "type", name);
                     }
                 }
                 return l;
@@ -1365,10 +1365,10 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 getTriggersUnlocked();
             }
 
-            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), "create comment on column %s.%s", name, $1.name), columns.iterator(), $1.comment;
+            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
 
             if (!opt.omit_trigger_functions && !triggerFunctions.empty()) {
-                map l += AbstractDatabase::doCallback(opt, $1.getCreateSql(opt), "create trigger function %s for table %s", $1.name, name), triggerFunctions.iterator();
+                map l += AbstractDatabase::doCallback(opt, $1.getCreateSql(opt), AbstractDatabase::AC_Create, "trigger function", $1.name, name), triggerFunctions.iterator();
             }
 
             #printf("gCMSI triggerFunctions: %N\n", triggerFunctions);
@@ -1383,11 +1383,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             foreach AbstractFunction f in (t.triggerFunctions.iterator()) {
                 if (!triggerFunctions.hasKey(f.name)) {
                     # create trigger function
-                    l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), "creating trigger function %s for %s", f.name, name);
+                    l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), AbstractDatabase::AC_Create, "trigger function", f.name, name);
                 }
                 else if (!f.equal(triggerFunctions{f.name})) {
                     # replace current trigger function
-                    l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt + ("replace": True)), "updating trigger function %s for %s", f.name, name);
+                    l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt + ("replace": True)), AbstractDatabase::AC_Recreate, "trigger function", f.name, name);
                 }
             }
 
@@ -1395,10 +1395,10 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             foreach PgsqlTriggerFunction f in (triggerFunctions.iterator()) {
                 if (!t.triggerFunctions.hasKey(f.name)) {
                     if (triggers{f.trigger}) {
-                        l += AbstractDatabase::doCallback(opt, triggers{f.trigger}.getDropSql(name), "dropping trigger %s on %s", f.trigger, name);
+                        l += AbstractDatabase::doCallback(opt, triggers{f.trigger}.getDropSql(name), AbstractDatabase::AC_Drop, "trigger", f.trigger, name);
                         triggers.take(f.trigger);
                     }
-                    l += AbstractDatabase::doCallback(opt, f.getDropSql(), "dropping trigger function %s on %s", f.name, name);
+                    l += AbstractDatabase::doCallback(opt, f.getDropSql(), AbstractDatabase::AC_Drop, "trigger function", f.name, name);
                 }
             }
 

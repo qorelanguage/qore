@@ -942,12 +942,12 @@ if ($sql) {
     The following code provides an example of creating a schema template and using it to align the schema in the database with the template using callbacks:
     @code
 my int $change_count;
-my code $info_callback = sub (string $str) {
+my code $info_callback = sub (string $str, int ac, string type, string name, *string table, *string new_name, *string info) {
     ++$change_count;
     if ($verbose)
         printf("*** %s\n", $str);
     else {
-        print(".");
+        print(AbstractDatabase::ActionLetterMap{ac});
         flush();
     }
 };
@@ -1183,12 +1183,12 @@ Database $db($ds);
     The following code provides an example of creating a template table and using it to align a table in the database with the template using callbacks:
     @code
 my int $change_count;
-my code $info_callback = sub (string $str) {
+my code $info_callback = sub (string $str, int ac, string type, string name, *string table, *string new_name, *string info) {
     ++$change_count;
     if ($verbose)
         printf("*** %s\n", $str);
     else {
-        print(".");
+        print(AbstractDatabase::ActionLetterMap{ac});
         flush();
     }
 };
@@ -1405,16 +1405,16 @@ my hash $ix_desc = (
 
     @subsection info_callback SQL Info CallBack Closure or Call Ceference
 
-    The \c "info_callback" @ref closure "closure" or @ref call_reference "call reference" is called with a string providing information about the current SQL
+    The \c "info_callback" @ref closure "closure" or @ref call_reference "call reference" is called with information about the current SQL
     operation and can be specified as in the following example:
     @code
 my int $change_count;
-my code $info_callback = sub (string $str) {
+my code $info_callback = sub (string $str, int ac, string type, string name, *string table, *string new_name, *string info) {
     ++$change_count;
     if ($verbose)
         printf("*** %s\n", $str);
     else {
-        print(".");
+        print(AbstractDatabase::ActionLetterMap{ac});
         flush();
     }
 };
@@ -1448,20 +1448,6 @@ my code $sql_callback = sub (string $str) {
 };
 
 my hash $callback_opts = ("sql_callback": $sql_callback, "sql_callback_executed": True);
-$db.getAlignSql($schema, $callback_opts);
-    @endcode
-
-    @subsection ok_callback SQL OK CallBack Closure or Call Ceference
-
-    The \c "ok_callback" @ref closure "closure" or @ref call_reference "call reference" is called with a string providing information about objects that are unchnaged during database object alignment and can be specified as in the following example:
-    @code
-my code $ok_callback = sub (string $str) {
-    # only print out something if the verbose option is set
-    if ($verbose)
-        printf("*** %s\n", $str);
-};
-
-my hash $callback_opts = ("ok_callback": $ok_callback);
 $db.getAlignSql($schema, $callback_opts);
     @endcode
 */
@@ -2827,7 +2813,7 @@ my *list $l = $tables.getDropAllForeignConstraintsOnTableSql($name);
             list l = ();
             foreach AbstractUniqueConstraint uk in (t.getUniqueConstraintIterator()) {
                 foreach hash sch in (uk.getSourceConstraintIterator()) {
-                    l += AbstractDatabase::doCallback(opt, sch.fk.getDropSql(sch.table), "dropping foreign constraint %s from table %s", sch.fk.getName(), sch.table);
+                    l += AbstractDatabase::doCallback(opt, sch.fk.getDropSql(sch.table), AbstractDatabase::AC_Drop, "foreign constraint", sch.fk.getName(), sch.table);
                     string tn = sch.table;
                     tn =~ s/.*\.//;
                     if (opt.sql_callback_executed && h{tn})
@@ -4730,14 +4716,105 @@ my string $sql = $t.getSqlFromList($list);
                 - \c info_callback: @see info_callback
                 - \c sql_callback: @see sql_callback
                 - \c sql_callback_executed: @see sql_callback_executed
-                - \c ok_callback: @see ok_callback
             */
             const CallbackOptions = (
                 "info_callback": "code",
                 "sql_callback": "code",
                 "sql_callback_executed": Type::Boolean,
-                "ok_callback": "code",
                 );
+
+            /** @defgroup info_actions Info Callback Action Codes
+                These are the action codes used with the @ref info_callback in schema and table alignment
+                @see
+                - @ref ActionMap
+                - @ref ActionDescMap
+                - @ref ActionLetterMap
+             */
+            #@{
+            #! used when an existing object matches the template and no changes are made
+            const AC_Unchanged = 0;
+
+            #! used when a new object is created
+            const AC_Create = 1;
+
+            #! used when an object is dropped
+            const AC_Drop = 2;
+
+            #! used when an object is renamed
+            const AC_Rename = 3;
+
+            #! used when an object is modified in place
+            const AC_Modify = 4;
+
+            #! used when a table is truncated
+            const AC_Truncate = 5;
+
+            #! used when an element is added to an existing object
+            const AC_Add = 6;
+
+            #! used when an object is recreated (usually dropped and recreated in place)
+            const AC_Recreate = 7;
+
+            #! used when data is inserted in a table
+            const AC_Insert = 8;
+
+            #! used when data is updated in a table
+            const AC_Update = 9;
+
+            #! used when data is deleted in a table
+            const AC_Delete = 10;
+
+            #! used when dropping object but the object is not present
+            const AC_NotFound = 11;
+            #@}
+
+            #! maps from action codes to action descriptions
+            const ActionMap = (
+                AC_Unchanged: "unchanged",
+                AC_Create: "create",
+                AC_Drop: "drop",
+                AC_Rename: "rename",
+                AC_Modify: "modify",
+                AC_Truncate: "truncate",
+                AC_Add: "add",
+                AC_Recreate: "recreate",
+                AC_Insert: "insert",
+                AC_Update: "update",
+                AC_Delete: "delete",
+                AC_NotFound: "not found",
+            );
+
+            #! maps from action descriptions to action codes
+            const ActionDescMap = (
+                "unchanged": AC_Unchanged,
+                "create": AC_Create,
+                "drop": AC_Drop,
+                "rename": AC_Rename,
+                "modify": AC_Modify,
+                "truncate": AC_Truncate,
+                "add": AC_Add,
+                "recreate": AC_Recreate,
+                "insert": AC_Insert,
+                "update": AC_Update,
+                "delete": AC_Delete,
+                "not found": AC_NotFound,
+            );
+
+            #! maps from action codes to action letter codes
+            const ActionLetterMap = (
+                AC_Unchanged: ".",
+                AC_Create: "C",
+                AC_Drop: "D",
+                AC_Rename: "N",
+                AC_Modify: "M",
+                AC_Truncate: "T",
+                AC_Add: "A",
+                AC_Recreate: "R",
+                AC_Insert: "I",
+                AC_Update: "U",
+                AC_Delete: "X",
+                AC_NotFound: ".",
+            );
 
             #! default generic creation options
             /** This option is comprised of @ref AbstractDatabase::CallbackOptions plus the following keys:
@@ -4823,11 +4900,71 @@ my string $sql = $t.getSqlFromList($list);
                 native_case = True;
         }
 
-        static doOkCallback(*hash opt, string fmt) {
-            if (opt.ok_callback)
-                opt.ok_callback(vsprintf(fmt, argv));
+        static doOkCallback(*hash opt, int ac, string type, string name, *string table, *string info) {
+            if (opt.info_callback) {
+                bool c = (type == "column");
+                if (c)
+                    name = sprintf("%s.%s", table, name);
+
+                string str = sprintf("%s %s", type, name);
+                if (table && !c)
+                    str += sprintf(" on %s", table);
+
+                if (ac == AC_Unchanged)
+                    str += " does not need updating";
+                else if (ac == AC_NotFound)
+                    str += " does not exist or has already been dropped";
+
+                if (info)
+                    str += sprintf(" (%s)", info);
+
+                opt.info_callback(str, ac, type, name, table, NOTHING, info);
+            }
         }
 
+        static *string doCallback(*hash opt, *string sql, int ac, string type, string name, *string table, *string new_name, *string info) {
+            if (!sql)
+                return;
+            if (opt.info_callback) {
+                bool c = (type == "column");
+                if (c)
+                    name = sprintf("%s.%s", table, name);
+                string str = sprintf("%s %s %s", ActionMap{ac}, type, name);
+                if (table && !c)
+                    str += sprintf(" %s %s", ac == AC_Drop ? "from" : "on", table);
+                if (new_name)
+                    str += sprintf(" to %s", new_name);
+                if (info)
+                    str += sprintf(" (%s)", info);
+                opt.info_callback(str, ac, type, name, table, new_name, info);
+            }
+            if (opt.sql_callback)
+                opt.sql_callback(sql);
+            return sql;
+        }
+
+        static list doCallback(*hash opt, list sql, int ac, string type, string name, *string table, *string new_name, *string info) {
+            if (!sql)
+                return sql;
+            if (opt.info_callback) {
+                bool c = (type == "column");
+                if (c)
+                    name = sprintf("%s.%s", table, name);
+                string str = sprintf("%s %s %s", ActionMap{ac}, type, name);
+                if (table && !c)
+                    str += sprintf(" %s %s", ac == AC_Drop ? "from" : "on", table);
+                if (new_name)
+                    str += sprintf(" to %s", new_name);
+                if (info)
+                    str += sprintf(" (%s)", info);
+                opt.info_callback(str, ac, type, name, table, new_name, info);
+            }
+            if (opt.sql_callback)
+                map opt.sql_callback($1), sql;
+            return sql;
+        }
+
+/*
         static *string doCallback(*hash opt, *string sql, string fmt) {
             if (!sql)
                 return;
@@ -4847,6 +4984,7 @@ my string $sql = $t.getSqlFromList($list);
             }
             return sql;
         }
+*/
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
         /** @par Example: 
@@ -4937,7 +5075,7 @@ my list $l = $db.getAlignSql($schema_hash);
 
                 *AbstractSequence seq = getSequence(sh.key);
                 if (seq) {
-                    l += AbstractDatabase::doCallback(opt, seq.getRenameSql(sh.value), "rename sequence %s to %s", sh.key, sh.value);
+                    l += AbstractDatabase::doCallback(opt, seq.getRenameSql(sh.value), AC_Rename, "sequence", sh.key, NOTHING, sh.value);
                     # remove sequence from list since we know it exists
                     remove schema_hash.sequences{sh.value};
                 }
@@ -4955,7 +5093,7 @@ my list $l = $db.getAlignSql($schema_hash);
                     continue;
 
                 AbstractSequence seq = makeSequence(name, sh.start, sh.increment, sh.end);
-                l += AbstractDatabase::doCallback(opt, seq.getCreateSql(), "create sequence %s", name);
+                l += AbstractDatabase::doCallback(opt, seq.getCreateSql(), AC_Create, "sequence", name);
             }
 
             # create template tables
@@ -4969,7 +5107,7 @@ my list $l = $db.getAlignSql($schema_hash);
 
                 Table t(ds, th.key);
                 if (t.checkExistence()) {
-                    l += AbstractDatabase::doCallback(opt, t.getRenameSql(th.value), "rename table %s to %s", th.key, th.value);
+                    l += AbstractDatabase::doCallback(opt, t.getRenameSql(th.value), AC_Rename, "table", th.key, NOTHING, th.value);
                     opt.db_table_cache.add(th.value, t);
                 }
             }
@@ -5045,7 +5183,7 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             Tables tables();
             map tables.getIfExists(ds, $1), schema_hash.tables.keyIterator();
             foreach AbstractTable t in (tables.dropIterator()) {
-                l += AbstractDatabase::doCallback(opt, t.getDropSql(), "drop table %s", t.getName());
+                l += AbstractDatabase::doCallback(opt, t.getDropSql(), AC_Drop, "table", t.getName());
             }
 
             # drop sequences
@@ -5076,10 +5214,10 @@ my list $l = $db.getDropSchemaSql($schema_hash);
                 # see if object exists
                 *object f = get(name);
                 if (f) {
-                    l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(), "drop %s %s", type, name);
+                    l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(), AC_Drop, type, name);
                 }
                 else
-                    AbstractDatabase::doOkCallback(opt, "%s %s does not exist or has already been dropped", type, name);
+                    AbstractDatabase::doOkCallback(opt, AC_NotFound, type, name);
             }
 
             return l;
@@ -5101,7 +5239,7 @@ my list $l = $db.getDropSchemaSql($schema_hash);
 
                 *AbstractFunction f = get(fh.key);
                 if (f) {
-                    list tl = AbstractDatabase::doCallback(opt, f.getRenameSql(fh.value), "rename %s %s to %s", type, fh.key, fh.value);
+                    list tl = AbstractDatabase::doCallback(opt, f.getRenameSql(fh.value), AC_Rename, type, fh.key, NOTHING, fh.value);
                     if (tl)
                         l += tl;
 
@@ -5127,17 +5265,17 @@ my list $l = $db.getDropSchemaSql($schema_hash);
                 else {
                     f = get(name);
                     if (!f) {
-                        l += AbstractDatabase::doCallback(opt, templateFunc.getCreateSql(opt), "create %s %s", type, name);
+                        l += AbstractDatabase::doCallback(opt, templateFunc.getCreateSql(opt), AC_Create, type, name);
                         continue;
                     }
                 }
 
                 if (!templateFunc.equal(f)) {
-                    l += AbstractDatabase::doCallback(opt, f.getDropSql(), "drop %s %s", type, name);
-                    l += AbstractDatabase::doCallback(opt, templateFunc.getCreateSql(opt), "create %s %s", type, name);
+                    l += AbstractDatabase::doCallback(opt, f.getDropSql(), AC_Drop, type, name);
+                    l += AbstractDatabase::doCallback(opt, templateFunc.getCreateSql(opt), AC_Create, type, name);
                 }
                 else
-                    AbstractDatabase::doOkCallback(opt, "%s %s does not need updating", type, name);
+                    AbstractDatabase::doOkCallback(opt, AC_Unchanged, type, name);
             }
 
             return l;
@@ -5397,12 +5535,12 @@ my string $sql = $db.getDropTableSqlIfExists($name);
 
         doDropSql(*softlist l, string type, string name, *hash opt) {
             if (l)
-                AbstractDatabase::doCallback(opt, l, "drop %s %s", type, name);
+                AbstractDatabase::doCallback(opt, l, AC_Drop, type, name);
         }
 
         bool doDrop(*softlist l, string type, string name, *hash opt) {
             if (l) {
-                AbstractDatabase::doCallback(opt, l, "drop %s %s", type, name);
+                AbstractDatabase::doCallback(opt, l, AC_Drop, type, name);
                 on_success ds.commit();
                 on_error ds.rollback();
                 map ds.execRaw($1), l;
@@ -5432,14 +5570,14 @@ my list $l = $db.getAlignFunctionSql($f);
             list l = ();
 
             if (!of) {
-                l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), "create function %s", f.name);
+                l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), AC_Create, "function", f.name);
             }
             else if (!of.equal(f)) {
-                l += AbstractDatabase::doCallback(opt, of.getDropSql(), "drop function %s", f.name);
-                l += AbstractDatabase::doCallback(opt, of.getCreateSql(opt), "create function %s", f.name);
+                l += AbstractDatabase::doCallback(opt, of.getDropSql(), AC_Drop, "function", f.name);
+                l += AbstractDatabase::doCallback(opt, of.getCreateSql(opt), AC_Create, "function", f.name);
             }
             else
-                AbstractDatabase::doOkCallback(opt, "function %s does not need updating", f.name);
+                AbstractDatabase::doOkCallback(opt, AC_Unchanged, "function", f.name);
 
             return l;
         }
@@ -8301,6 +8439,15 @@ my Triggers $trig = $table.getTriggers();
                 "unchanged": UR_Unchanged,
                 "deleted": UR_Deleted,
                 );
+
+            #! maps upsert result codes to single letter symbols
+            const UpsertResultLetterMap = (
+                UR_Inserted: "I",
+                UR_Verified: "V",
+                UR_Updated: "U",
+                UR_Unchanged: ".",
+                UR_Deleted: "X",
+                );
         }
 
         private {
@@ -8529,7 +8676,7 @@ $table.dropNoCommit();
         */
         softlist getDropSql(*hash opt) {
             cache();
-            return AbstractDatabase::doCallback(opt, getDropSqlImpl(), "dropping table %s", getSqlName());
+            return AbstractDatabase::doCallback(opt, getDropSqlImpl(), AbstractDatabase::AC_Drop, "table", getSqlName());
         }
 
         #! truncates all the table data; releases the transaction lock after executing
@@ -8577,7 +8724,7 @@ my string $sql = $table.getTruncateSql();
          */
         string getTruncateSql(*hash opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);        
-            return AbstractDatabase::doCallback(opt, getTruncateSqlImpl(), "truncating table %s", name);
+            return AbstractDatabase::doCallback(opt, getTruncateSqlImpl(), AbstractDatabase::AC_Truncate, "table", name);
         }
 
         #! creates the table in the database; releases the transaction lock after creating the table
@@ -8891,7 +9038,7 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
                 addColumnUnlocked(cname, copt, nullable, \lsql, False, opt.sql_callback_executed);
             }
             
-            return AbstractDatabase::doCallback(opt, lsql, "add column %s.%s", name, cname);
+            return AbstractDatabase::doCallback(opt, lsql, AbstractDatabase::AC_Add, "column", name, cname);
         }
 
         private AbstractColumn addColumnUnlocked(string cname, hash opt, bool nullable = True, *reference lsql, bool do_exec = True, bool modify_table = True) {
@@ -9019,7 +9166,7 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
             on_success if (opt.sql_callback_executed)
                 addColumnToTableUnlocked(c);
             
-            return AbstractDatabase::doCallback(opt, columns{cname}.getModifySql(self, c), "update column %s.%s to %s", name, cname, c.getNativeTypeString());
+            return AbstractDatabase::doCallback(opt, columns{cname}.getModifySql(self, c), AbstractDatabase::AC_Modify, "column", cname, name, NOTHING, c.getNativeTypeString());
         }
 
         #! renames an existing column; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
@@ -9092,7 +9239,7 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
             on_success if (opt.sql_callback_executed)
                 renameColumnIntern(columns{old_name}, new_name);
 
-            return AbstractDatabase::doCallback(opt, columns{old_name}.getRenameSql(self, new_name), "rename column %s.%s to %s", name, old_name, new_name);
+            return AbstractDatabase::doCallback(opt, columns{old_name}.getRenameSql(self, new_name), AbstractDatabase::AC_Rename, "column", old_name, name, new_name);
         }
 
         private AbstractColumn renameColumnIntern(AbstractColumn c, string new_name) {            
@@ -9210,7 +9357,7 @@ printf("%s;\n", $sql);
                 setPrimaryKeyUnlocked(pk);
                 manual = True;
             }
-            return AbstractDatabase::doCallback(opt, sql, "adding primary key %s to %s", pkname, getSqlName());
+            return AbstractDatabase::doCallback(opt, sql, AbstractDatabase::AC_Add, "primary key", pkname, getSqlName());
         }
 
         private setPrimaryKeyUnlocked(AbstractPrimaryKey pk) {
@@ -9296,7 +9443,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
                 on_success if (opt.sql_callback_executed)
                     remove primaryKey;
 
-                lst += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "dropping primary key %s from %s", primaryKey.getName(), getSqlName());
+                lst += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", primaryKey.getName(), getSqlName());
             }
 
             foreach AbstractConstraint c in (constraints.iterator()) {
@@ -9308,7 +9455,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
                             indexes.take(c.getName());
                     }
 
-                    lst += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s from %s", c.getName(), getSqlName());
+                    lst += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), getSqlName());
                 }
             }
             
@@ -9317,7 +9464,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
                     on_success if (opt.sql_callback_executed)
                         foreignConstraints.take(fk.getName()); 
 
-                    lst += AbstractDatabase::doCallback(opt, fk.getDropSql(getSqlName()), "dropping foreign constraint %s from %s", fk.getName(), getSqlName());
+                    lst += AbstractDatabase::doCallback(opt, fk.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", fk.getName(), getSqlName());
                 }
             }
             
@@ -9326,7 +9473,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
                     on_success if (opt.sql_callback_executed)
                         indexes.take(ix.name); 
 
-                    lst += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), "dropping index %s from %s", ix.name, getSqlName());
+                    lst += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "index", ix.name, getSqlName());
                 }
             }
             
@@ -9367,9 +9514,9 @@ my list $l = $table.getDropPrimaryKeySql();
                 remove primaryKey;
 
             list l = ();
-            map l += AbstractDatabase::doCallback(opt, $1.fk.getDropSql($1.table), "dropping foreign constraint %s from %s", $1.fk.getName(), $1.table), primaryKey.getSourceConstraintIterator();
+            map l += AbstractDatabase::doCallback(opt, $1.fk.getDropSql($1.table), AbstractDatabase::AC_Drop, "foreign constraint", $1.fk.getName(), $1.table), primaryKey.getSourceConstraintIterator();
 
-            l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "dropping primary key %s from %s", primaryKey.getName(), name);
+            l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", primaryKey.getName(), name);
             return l;
         }
 
@@ -9472,7 +9619,7 @@ printf("%s;\n", $sql);
                 constraints.add(cname, uk);
                 manual = True;
             }
-            return AbstractDatabase::doCallback(opt, sql, "adding unique constraint %s to %s", cname, getSqlName());
+            return AbstractDatabase::doCallback(opt, sql, AbstractDatabase::AC_Add, "unique constraint", cname, getSqlName());
         }
 
         private AbstractUniqueConstraint addUniqueConstraintUnlocked(string cname, softlist cols, *hash opt, *reference sql) {
@@ -9584,7 +9731,7 @@ printf("%s;\n", $sql);
                 indexes.add(iname, ix);
                 manual = True;
             }
-            return AbstractDatabase::doCallback(opt, sql, "adding index %s to %s", iname, getSqlName());
+            return AbstractDatabase::doCallback(opt, sql, AbstractDatabase::AC_Add, "index", iname, getSqlName());
         }
 
         private AbstractIndex addIndexUnlocked(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
@@ -9755,7 +9902,7 @@ my string $sql = $table.getDropIndexSql("uk_mytable_name");
             on_success if (opt.sql_callback_executed)
                 indexes.take(iname);
 
-            return AbstractDatabase::doCallback(opt, indexes{iname}.getDropSql(getSqlName()), "drop index %s on %s", iname, name);
+            return AbstractDatabase::doCallback(opt, indexes{iname}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "index", iname, name);
         }
 
         #! adds a foreign constraint to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -9830,7 +9977,7 @@ printf("%s;\n", $sql);
                 foreignConstraints.add(cname, fk);
                 manual = True;
             }
-            return AbstractDatabase::doCallback(opt, sql, "adding foreign constraint %s to %s", cname, getSqlName());
+            return AbstractDatabase::doCallback(opt, sql, AbstractDatabase::AC_Add, "foreign constraint", cname, getSqlName());
         }
 
         private Columns getReferencedTableColumnsUnlocked(string table, *Tables cache, string err = "FOREIGN-CONSTRAINT-ERROR") {
@@ -10030,7 +10177,7 @@ printf("%s;\n", $sql);
                 constraints.add(cname, cc);
                 manual = True;
             }
-            return AbstractDatabase::doCallback(opt, sql, "adding check constraint %s to %s", cname, getSqlName());
+            return AbstractDatabase::doCallback(opt, sql, AbstractDatabase::AC_Add, "check constraint", cname, getSqlName());
         }
 
         private AbstractCheckConstraint addCheckConstraintUnlocked(string cname, string src, *hash opt, *reference sql) {
@@ -10159,7 +10306,7 @@ my string $sql = $table.getDropConstraintSql("uk_mytable_name");
             on_success if (opt.sql_callback_executed)
                 rmv();
  
-            return AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s from %s", c.getName(), name);
+            return AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
         }
 
         #! gets the SQL that can be used to drop a constraint from the table if it exists, otherwise returns @ref nothing; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
@@ -10203,7 +10350,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
             on_success if (opt.sql_callback_executed)
                 rmv();
  
-            return AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s from %s", c.getName(), name);
+            return AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
         }
 
         private AbstractConstraint findDropConstraintUnlocked(string cname, reference rmv) {
@@ -10351,7 +10498,7 @@ printf("%s;\n", $sql);
                 triggers.add(tname, trig);
                 manual = True;
             }
-            return AbstractDatabase::doCallback(opt, lsql, "adding trigger %s to %s", tname, getSqlName());
+            return AbstractDatabase::doCallback(opt, lsql, AbstractDatabase::AC_Add, "trigger", tname, getSqlName());
         }
 
         private AbstractTrigger addTriggerUnlocked(string tname, string src, *hash opt, *reference lsql) {
@@ -10457,7 +10604,7 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
                 triggers.take(tname);
 
             # drop trigger from table if the table already exists in the DB
-            return AbstractDatabase::doCallback(opt, triggers{tname}.getDropSql(getSqlName()), "dropping trigger %s from %s", tname, getSqlName());
+            return AbstractDatabase::doCallback(opt, triggers{tname}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "trigger", tname, getSqlName());
         }
 
         private getAllConstraintsUnlocked(*hash opt) {
@@ -10624,7 +10771,7 @@ my string $sql = $table.getDropColumnSql("notes_2");
 
             list lst = ();
             lst += getDropAllConstraintsAndIndexesOnColumnSqlUnlocked(cname, opt);
-            lst += AbstractDatabase::doCallback(opt, columns{cname}.getDropSql(getSqlName()), "drop column %s.%s", name, cname);
+            lst += AbstractDatabase::doCallback(opt, columns{cname}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "column", cname, name);
             return lst;
         }
 
@@ -12358,7 +12505,7 @@ my string $sql = $table.getRenameSql("new_name");
             on_success if (opt.sql_callback_executed)
                 doRenameIntern(new_name, opt.db_table_cache);
 
-            return AbstractDatabase::doCallback(opt, getRenameSqlImpl(new_name), "rename table %s to %s", name, new_name);
+            return AbstractDatabase::doCallback(opt, getRenameSqlImpl(new_name), AbstractDatabase::AC_Rename, "table", name, NOTHING, new_name);
         }
 
         #! returns an SQL string that could be used to create the table and all known properties of the table
@@ -12487,7 +12634,7 @@ my list $l = $table.getAlignSql($table2);
 
             # check name
             if (name != t.name) {
-                l += AbstractDatabase::doCallback(opt, getRenameSql(t.name), "rename table %s to %s", name, t.name);
+                l += AbstractDatabase::doCallback(opt, getRenameSql(t.name), AbstractDatabase::AC_Rename, "table", name, NOTHING, t.name);
                 name = t.name;
             }
 
@@ -12496,7 +12643,7 @@ my list $l = $table.getAlignSql($table2);
                 if (columns.hasKey(rh.key)) {
                     #printf("%s rename %s -> %s cols: %y\n", name, rh.key, rh.value, columns.keys());
                     AbstractColumn c = columns{rh.key};
-                    l += AbstractDatabase::doCallback(opt, c.getRenameSql(self, rh.value), "renaming column %s.%s to %s", name, c.name, rh.value);
+                    l += AbstractDatabase::doCallback(opt, c.getRenameSql(self, rh.value), AbstractDatabase::AC_Rename, "column", c.name, name, rh.value);
                     columns.renameKey(rh.key, rh.value);
                     c.name = rh.value;
 
@@ -12541,18 +12688,17 @@ my list $l = $table.getAlignSql($table2);
             foreach AbstractColumn c in (t.columns.iterator()) {
                 if (!columns.hasKey(c.name)) {
                     # add column to table
-                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(self), "add column %s to %s", c.name, name);
+                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(self), AbstractDatabase::AC_Add, "column", c.name, name);
                 }
                 else {
                     # get any delta SQL
                     list cl = columns{c.name}.getModifySql(self, c);
                     # add delta SQL to list if there is any to add
                     if (cl) {
-                        l += AbstractDatabase::doCallback(opt, cl, "updating column %s in %s", c.name, name);
+                        l += AbstractDatabase::doCallback(opt, cl, AbstractDatabase::AC_Modify, "column", c.name, name, NOTHING, c.getNativeTypeString());
                     }
                     else
-                        AbstractDatabase::doOkCallback(opt, "column %s.%s does not need updating", name, c.name);
-
+                        AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "column", c.name, name);
                 }
             }
 
@@ -12560,7 +12706,7 @@ my list $l = $table.getAlignSql($table2);
             foreach AbstractColumn c in (columns.iterator()) {
                 if (!t.columns.hasKey(c.name)) {
                     l += getDropAllConstraintsAndIndexesOnColumnSqlUnlocked(c.name, opt);
-                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping column %s in %s", c.name, name);
+                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "column", c.name, name);
                 }
             }
 
@@ -12568,7 +12714,7 @@ my list $l = $table.getAlignSql($table2);
             foreach hash rh in (opt.index_map.pairIterator()) {
                 if (indexes.hasKey(rh.key)) {
                     AbstractIndex ix = indexes{rh.key};
-                    l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), rh.value), "renaming index %s on %s to %s", ix.name, name, rh.value);
+                    l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), rh.value), AbstractDatabase::AC_Rename, "index", ix.name, name, rh.value);
                     renameIndexUnlocked(ix, rh.value);
                 }
             }
@@ -12580,7 +12726,7 @@ my list $l = $table.getAlignSql($table2);
                     && (*AbstractIndex other = t.indexes.findEqual(ix))
                     && !indexes.hasKey(other.name)) {
                     # rename index
-                    l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), other.name), "renaming index %s on %s to %s", ix.name, name, other.name);
+                    l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), other.name), AbstractDatabase::AC_Rename, "index", ix.name, name, other.name);
                     renameIndexUnlocked(ix, other.name);
                 }
             }
@@ -12589,13 +12735,13 @@ my list $l = $table.getAlignSql($table2);
             foreach AbstractIndex ix in (t.indexes.iterator()) {
                 if (!indexes.hasKey(ix.name)) {
                     # add index to table
-                    l += AbstractDatabase::doCallback(opt, ix.getCreateSql(getSqlName(), opt), "adding index %s to %s", ix.name, name);
+                    l += AbstractDatabase::doCallback(opt, ix.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "index", ix.name, name);
                 }
                 else if (!ix.equal(indexes{ix.name})) {
-                    l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt), "recreating index %s on %s", ix.name, name);
+                    l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt), AbstractDatabase::AC_Recreate, "index", ix.name, name);
                 }
                 else
-                    AbstractDatabase::doOkCallback(opt, "index %s on %s does not need updating", ix.name, name);
+                    AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "index", ix.name, name);
             }
 
             # check for indexes not in the template and drop them
@@ -12627,10 +12773,10 @@ my list $l = $table.getAlignSql($table2);
                         code rmv;
                         AbstractConstraint c = findDropConstraintUnlocked(uk.getName(), \rmv);
 
-                        l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s on %s", c.getName(), name);
+                        l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
                         rmv();
                     }
-                    l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), "dropping index %s on %s", ix.name, name);
+                    l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "index", ix.name, name);
                     indexes.take(ix.name);
                 }
             }
@@ -12651,7 +12797,7 @@ my list $l = $table.getAlignSql($table2);
                     c = primaryKey;
 
                 if (c) {
-                    l += AbstractDatabase::doCallback(opt, c.getRenameSql(getSqlName(), rh.value), "renaming constraint %s on %s to %s", c.getName(), name, rh.value);
+                    l += AbstractDatabase::doCallback(opt, c.getRenameSql(getSqlName(), rh.value), AbstractDatabase::AC_Rename, "constraint", c.getName(), name, rh.value);
                     c.rename(rh.value);
                 }
             }
@@ -12663,7 +12809,7 @@ my list $l = $table.getAlignSql($table2);
                     && (*AbstractForeignConstraint other = t.foreignConstraints.findEqual(fk))
                     && !foreignConstraints.hasKey(other.getName())) {
                     # rename constraint
-                    l += AbstractDatabase::doCallback(opt, fk.getRenameSql(getSqlName(), other.getName()), "renaming constraint %s on %s to %s", fk.getName(), name, other.getName());
+                    l += AbstractDatabase::doCallback(opt, fk.getRenameSql(getSqlName(), other.getName()), AbstractDatabase::AC_Rename, "constraint", fk.getName(), name, other.getName());
                     foreignConstraints.renameKey(fk.getName(), other.getName());
                     fk.rename(other.getName());
                 }
@@ -12679,7 +12825,7 @@ my list $l = $table.getAlignSql($table2);
                     && (*AbstractUniqueConstraint other = t.constraints.findEqualUniqueConstraint(uk))
                     && !constraints.hasKey(other.getName())) {
                     # rename constraint
-                    l += AbstractDatabase::doCallback(opt, uk.getRenameSql(getSqlName(), other.getName()), "renaming constraint %s on %s to %s", uk.getName(), name, other.getName());
+                    l += AbstractDatabase::doCallback(opt, uk.getRenameSql(getSqlName(), other.getName()), AbstractDatabase::AC_Rename, "constraint", uk.getName(), name, other.getName());
                     constraints.renameKey(uk.getName(), other.getName());
                     uk.rename(other.getName());
                 }
@@ -12691,45 +12837,45 @@ my list $l = $table.getAlignSql($table2);
                     # see if pk has the same definition but a different name
                     if (primaryKey.getName() != t.primaryKey.getName()
                         && primaryKey.matchKeys(t.primaryKey)) {
-                        l += AbstractDatabase::doCallback(opt, primaryKey.getRenameSql(getSqlName(), t.primaryKey.getName()), "renaming constraint %s on %s to %s", primaryKey.getName(), name, t.primaryKey.getName());
+                        l += AbstractDatabase::doCallback(opt, primaryKey.getRenameSql(getSqlName(), t.primaryKey.getName()), AbstractDatabase::AC_Rename, "constraint", primaryKey.getName(), name, t.primaryKey.getName());
                         primaryKey.rename(t.primaryKey.getName());
                     }
                     else {
                         #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey, t.primaryKey);
-                        l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "updating primary key %s on %s (dropping old primary key)", t.primaryKey.getName(), name);
+                        l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", t.primaryKey.getName(), name);
                         if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
                             t.primaryKey.clearIndex();
-                        l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), "updating primary key %s on %s (readding new primary key)", t.primaryKey.getName(), name);
+                        l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "primary key", t.primaryKey.getName(), name);
                     }
                 }
                 else if (!primaryKey) {
-                    l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), "creating primary key %s on %s", t.primaryKey.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "primary key", t.primaryKey.getName(), name);
                 }
             }
             else if (primaryKey && !primaryKey.empty()) {
-                l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), "dropping primary key %s on %s", primaryKey.getName(), name);
+                l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", primaryKey.getName(), name);
             }
 
             # check for foreign constraints in the template that are not present or different in the current table
             foreach AbstractForeignConstraint c in (t.foreignConstraints.iterator()) {
                 if (!foreignConstraints.hasKey(c.getName())) {
                     # add constraint to table
-                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), "adding foreign constraint %s to %s", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
                 }
                 else if (!c.equal(foreignConstraints{c.getName()})) {
                     # drop current constraint
-                    l += AbstractDatabase::doCallback(opt, foreignConstraints{c.getName()}.getDropSql(getSqlName()), "updating foreign constraint %s on %s (dropping old constraint)", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, foreignConstraints{c.getName()}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
                     # add new constraint to table
-                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), "updating foreign constraint %s on %s (adding updated constraint)", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
                 }
                 else
-                    AbstractDatabase::doOkCallback(opt, "foreign constraint %s on %s does not need updating", c.getName(), name);
+                    AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "foreign constraint", c.getName(), name);
             }
 
             # check for foreign constraints not in the template and drop them
             foreach AbstractForeignConstraint c in (foreignConstraints.iterator()) {
                 if (!t.foreignConstraints.hasKey(c.getName())) {
-                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping foreign constraint %s on %s", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
                 }
             }
 
@@ -12737,25 +12883,25 @@ my list $l = $table.getAlignSql($table2);
             foreach AbstractConstraint c in (t.constraints.iterator()) {
                 if (!constraints.hasKey(c.getName())) {
                     # add constraint to table
-                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), "adding constraint %s to %s", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "constraint", c.getName(), name);
                 }
                 else if (!c.equal(constraints{c.getName()})) {
                      # drop current constraint
-                    l += AbstractDatabase::doCallback(opt, constraints{c.getName()}.getDropSql(getSqlName()), "updating constraint %s on %s (dropping old constraint)", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, constraints{c.getName()}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
                     if (constraints{c.getName()} instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl() && indexes.hasKey(c.getName()))
                         cast<AbstractUniqueConstraint>(c).clearIndex();
 
                     # add new constraint to table
-                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), "updating constraint %s on %s (adding updated constraint)", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "constraint", c.getName(), name);
                 }
                 else
-                    AbstractDatabase::doOkCallback(opt, "constraint %s on %s does not need updating", c.getName(), name);
+                    AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "constraint", c.getName(), name);
             }
 
             # check for other constraints not in the template and drop them
             foreach AbstractConstraint c in (constraints.iterator()) {
                 if (!t.constraints.hasKey(c.getName())) {
-                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), "dropping constraint %s on %s", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
                 }
             }
 
@@ -12770,7 +12916,7 @@ my list $l = $table.getAlignSql($table2);
             # do this before adding for dbs like mysql that cannot support multiple triggers with the same action on the same table
             foreach AbstractTrigger trig in (triggers.iterator()) {
                 if (!t.triggers.hasKey(trig.name)) {
-                    l += AbstractDatabase::doCallback(opt, trig.getDropSql(getSqlName()), "dropping trigger %s on %s", trig.name, name);
+                    l += AbstractDatabase::doCallback(opt, trig.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "trigger", trig.name, name);
                 }
             }
 
@@ -12778,16 +12924,16 @@ my list $l = $table.getAlignSql($table2);
             foreach AbstractTrigger trig in (t.triggers.iterator()) {
                 if (!triggers.hasKey(trig.name)) {
                     # add trigger to table
-                    l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), "adding trigger %s on %s", trig.name, name);
+                    l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "trigger", trig.name, name);
                 }
                 else if (!trig.equal(triggers{trig.name})) {
                     # drop current trigger
-                    l += AbstractDatabase::doCallback(opt, triggers{trig.name}.getDropSql(getSqlName()), "updating trigger %s on %s (dropping old trigger)", trig.name, name);
+                    l += AbstractDatabase::doCallback(opt, triggers{trig.name}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "trigger", trig.name, name);
                     # add new trigger to table
-                    l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), "updating trigger %s on %s (adding updated trigger)", trig.name, name);
+                    l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "trigger", trig.name, name);
                 }
                 else
-                    AbstractDatabase::doOkCallback(opt, "trigger %s on %s does not need updating", trig.name, name);
+                    AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "trigger", trig.name, name);
             }
 
             return l;
@@ -13087,7 +13233,7 @@ my *list $rows = $table.findAll($h);
 
         private string getCreateTableSqlUnlocked(*hash opt) {
             getColumnsUnlocked();
-            return AbstractDatabase::doCallback(opt, getCreateTableSqlImpl(opt), "create table %s", name);
+            return AbstractDatabase::doCallback(opt, getCreateTableSqlImpl(opt), AbstractDatabase::AC_Create, "table", name);
         }
 
         private *list getCreateIndexesSqlUnlocked(*hash opt, bool cache = True) {
@@ -13096,7 +13242,7 @@ my *list $rows = $table.findAll($h);
             if (!indexes)
                 return;
 
-            return map AbstractDatabase::doCallback(opt, $1.getCreateSql(name, opt), "create index %s on %s", $1.name, name), indexes.iterator();
+            return map AbstractDatabase::doCallback(opt, $1.getCreateSql(name, opt), AbstractDatabase::AC_Add, "index", $1.name, name), indexes.iterator();
         }
 
         private *string getCreatePrimaryKeySqlUnlocked(*hash opt, bool cache = True) {
@@ -13104,7 +13250,7 @@ my *list $rows = $table.findAll($h);
                 getPrimaryKeyUnlocked();
             if (primaryKey.empty())
                 return;
-            return AbstractDatabase::doCallback(opt, primaryKey.getCreateSql(name, opt), "create primary key %s on %s", primaryKey.getName(), name);
+            return AbstractDatabase::doCallback(opt, primaryKey.getCreateSql(name, opt), AbstractDatabase::AC_Add, "primary key", primaryKey.getName(), name);
         }
 
         private *list getCreateConstraintsSqlUnlocked(*hash opt, bool cache = True) {
@@ -13112,7 +13258,7 @@ my *list $rows = $table.findAll($h);
                 getConstraintsUnlocked();
             if (constraints.empty())
                 return;
-            return map AbstractDatabase::doCallback(opt, $1.getCreateSql(name, opt), "create constraint %s on %s", $1.getName(), name), constraints.iterator();
+            return map AbstractDatabase::doCallback(opt, $1.getCreateSql(name, opt), AbstractDatabase::AC_Add, "constraint", $1.getName(), name), constraints.iterator();
         }
 
         private *list getCreateForeignConstraintsSqlUnlocked(*hash opt, bool cache = True) {
@@ -13120,7 +13266,7 @@ my *list $rows = $table.findAll($h);
                 getForeignConstraintsUnlocked(opt);
             if (foreignConstraints.empty())
                 return;
-            return map AbstractDatabase::doCallback(opt, $1.getCreateSql(name, opt), "create foreign constraint %s on %s", $1.getName(), name), foreignConstraints.iterator();
+            return map AbstractDatabase::doCallback(opt, $1.getCreateSql(name, opt), AbstractDatabase::AC_Add, "foreign constraint", $1.getName(), name), foreignConstraints.iterator();
         }
 
         private *list getCreateMiscSqlUnlocked(*hash opt, bool cache = True) {
@@ -13134,7 +13280,7 @@ my *list $rows = $table.findAll($h);
                 return;
 
             list l = ();
-            map l += AbstractDatabase::doCallback(opt, $1.getCreateSql(name, opt), "create trigger %s on %s", $1.name, name), triggers.iterator();
+            map l += AbstractDatabase::doCallback(opt, $1.getCreateSql(name, opt), AbstractDatabase::AC_Add, "trigger", $1.name, name), triggers.iterator();
             return l;
         }
 

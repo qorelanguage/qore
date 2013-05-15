@@ -1506,7 +1506,7 @@ my any $v = $c.name;
         private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
 	    if (cache)
 		getColumnsUnlocked();
-            return map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), "adding comment to column %s.%s", name, $1.name), columns.iterator(), $1.comment;
+            return map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
         }
 
         private string getCreateSqlImpl(list l) {

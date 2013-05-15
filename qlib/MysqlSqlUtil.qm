@@ -887,7 +887,7 @@ end";
                 }
                 return;
             }
-            return AbstractDatabase::doCallback(opt, primaryKey.getCreateSql(name, opt), "create primary key %s on %s", primaryKey.getName(), name);
+            return AbstractDatabase::doCallback(opt, primaryKey.getCreateSql(name, opt), AbstractDatabase::AC_Add, "primary key", primaryKey.getName(), name);
         }
 
         private *MysqlPrimaryKey getPrimaryKeyImpl() {
