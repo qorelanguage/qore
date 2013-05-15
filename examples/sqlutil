@@ -106,10 +106,19 @@ sub main() {
     int change_count = 0;
     int dot_count = 0;
     code info_callback = sub (string str, int ac, string type, string name, *string table, *string new_name, *string info) {
+        # verbosity threshold
+        int t = 0;
         if (ac != AbstractDatabase::AC_Unchanged)
             ++change_count;
-        if (opt.verbose)
-            printf("*** %s\n", str);
+        else
+            t = 1;
+        if (opt.verbose > t) {
+            if (dot_count) {
+                print("\n");
+                dot_count = 0;
+            }
+            printf("%s %s\n", t ? "+++" : "***", str);
+        }
         else {
             ++dot_count;
             print(AbstractDatabase::ActionLetterMap{ac});
@@ -118,20 +127,19 @@ sub main() {
     };
 
     code upsert_callback = sub (string table_name, hash row, int result) {
-        if (result != AbstractTable::UR_Unchanged) {
+        # verbosity threshold
+        int t = 0;
+        if (result != AbstractTable::UR_Unchanged)
             ++change_count;
-            if (opt.verbose) {
-                if (dot_count) {
-                    printf("\n");
-                    dot_count = 0;
-                }
-                printf("*** reference data %s: %y: %s\n", table_name, row, AbstractTable::UpsertResultMap{result}); 
+        else
+            t = 1;
+
+        if (opt.verbose > t) {
+            if (dot_count) {
+                print("\n");
+                dot_count = 0;
             }
-            else {
-                ++dot_count;
-                print(AbstractTable::UpsertResultLetterMap{result});
-                flush();
-            }
+            printf("%s reference data %s: %y: %s\n", t ? "+++" : "***", table_name, row, AbstractTable::UpsertResultMap{result}); 
         }
         else {
             ++dot_count;
