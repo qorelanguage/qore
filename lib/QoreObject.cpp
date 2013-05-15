@@ -429,7 +429,6 @@ AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink
 
    //printd(5, "QoreObject::evalMember() find_key(%s)=%p theclass=%s\n", mem, find_key(mem), theclass ? theclass->getName() : "NONE");
 
-
    int rc = priv->checkMemberAccess(mem);
    if (rc) {
       // run memberGate if it exists

@@ -1417,14 +1417,14 @@ int BCList::initialize(QoreClass* cls, bool &has_delete_blocker, qcp_set_t& qcp_
    return valid ? 0 : -1;
 }
 
-bool BCList::isPublicOrPrivateMember(const char* mem, bool &priv) const {
+const qore_class_private* BCList::isPublicOrPrivateMember(const char* mem, bool &priv) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
       if ((*i)->sclass && (*i)->sclass->isPublicOrPrivateMember(mem, priv)) {
          if (!priv && (*i)->priv)
             priv = true;
-	 return true;
+	 return (*i)->sclass->priv;
       }
-   return false;
+   return 0;
 }
 
 bool BCList::parseHasPublicMembersInHierarchy() const {
@@ -3643,7 +3643,7 @@ bool qore_class_private::runtimeCheckPrivateClassAccess() const {
       //printd(5, "runtimeCheckPrivateClassAccess() this: %p '%s' no runtime class context: failed\n", this, name.c_str());
       return QTI_NOT_EQUAL;
    }
-   //bool np = false; printd(0, "runtimeCheckPrivateClassAccess() qc: %p '%s' test: %p '%s' okl: %d okr: %d\n", qc, qc->name.c_str(), this, name.c_str(), qc->getClassIntern(*this, np), (scl && scl->getClass(*qc, np)));
+   //bool np = false; printd(5, "runtimeCheckPrivateClassAccess() qc: %p '%s' test: %p '%s' okl: %d okr: %d\n", qc, qc->name.c_str(), this, name.c_str(), qc->getClassIntern(*this, np), (scl && scl->getClass(*qc, np)));
    bool priv = false;
    return qc->getClassIntern(*this, priv) || (scl && scl->getClass(*qc, priv)) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
@@ -3747,7 +3747,7 @@ void QoreClass::parseSetEmptyPublicMemberDeclaration() {
 }
 
 bool QoreClass::isPublicOrPrivateMember(const char* str, bool &priv_member) const {
-   return priv->isPublicOrPrivateMember(str, priv_member);
+   return (bool)priv->isPublicOrPrivateMember(str, priv_member);
 }
 
 int QoreClass::initMembers(QoreObject* o, ExceptionSink* xsink) const {

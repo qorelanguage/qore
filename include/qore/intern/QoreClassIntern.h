@@ -1563,7 +1563,7 @@ public:
    DLLLOCAL const QoreClass* parseFindPublicPrivateVar(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& varTypeInfo, bool &has_type_info, bool &priv) const;
    DLLLOCAL bool runtimeGetMemberInfo(const char* mem, const QoreTypeInfo*& memberTypeInfo, bool &priv) const;
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
-   DLLLOCAL bool isPublicOrPrivateMember(const char* mem, bool &priv) const;
+   DLLLOCAL const qore_class_private* isPublicOrPrivateMember(const char* mem, bool &priv) const;
    DLLLOCAL const QoreClass* getClass(qore_classid_t cid, bool &priv) const {
       for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
 	 const QoreClass* qc = (*i)->getClass(cid, priv);
@@ -2382,18 +2382,18 @@ public:
       scl->parseAddAncestors(m);
    }
 
-   DLLLOCAL bool isPublicOrPrivateMember(const char* mem, bool &priv) const {
+   DLLLOCAL const qore_class_private* isPublicOrPrivateMember(const char* mem, bool &priv) const {
       if (private_members.find(const_cast<char*>(mem)) != private_members.end()) {
 	 priv = true;
-	 return true;
+	 return this;
       }
 
       if (public_members.find(const_cast<char*>(mem)) != public_members.end()) {
 	 priv = false;
-	 return true;
+	 return this;
       }
-
-      return scl ? scl->isPublicOrPrivateMember(mem, priv) : false;
+      
+      return scl ? scl->isPublicOrPrivateMember(mem, priv) : 0;
    }
 
    DLLLOCAL int initMembers(QoreObject *o, member_map_t::const_iterator i, member_map_t::const_iterator e, ExceptionSink* xsink) const {
@@ -2696,9 +2696,6 @@ public:
 
    DLLLOCAL void setPublic();
 
-   // static methods
-   //DLLLOCAL static
-
    DLLLOCAL void parseSetBaseClassList(BCList *bcl) {
       assert(!scl);
       if (bcl) {
@@ -2706,6 +2703,13 @@ public:
          if (!has_new_user_changes)
             has_new_user_changes = true;
       }
+   }
+
+   // static methods
+   //DLLLOCAL static
+
+   DLLLOCAL static const qore_class_private* isPublicOrPrivateMember(const QoreClass& qc, const char* mem, bool &priv) {
+      return qc.priv->isPublicOrPrivateMember(mem, priv);
    }
 
    DLLLOCAL static void parseCheckAbstractNew(QoreClass& qc) {

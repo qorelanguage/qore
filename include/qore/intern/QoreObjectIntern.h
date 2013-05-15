@@ -449,10 +449,11 @@ public:
       // check public access
       if (theclass->runtimeHasPublicMembersInHierarchy()) {
 	 bool priv_member;
-	 if (!theclass->isPublicOrPrivateMember(mem, priv_member))
+         const qore_class_private* qc = qore_class_private::isPublicOrPrivateMember(*theclass, mem, priv_member);
+	 if (!qc)
 	    return QOA_PUB_ERROR;
 
-	 if (priv_member && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass))
+	 if (priv_member && !qc->runtimeCheckPrivateClassAccess())
 	    return QOA_PRIV_ERROR;
 
 	 return QOA_OK;
