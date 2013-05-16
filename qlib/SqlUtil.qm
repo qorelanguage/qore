@@ -8391,6 +8391,7 @@ my Triggers $trig = $table.getTriggers();
             /** The following keys can be set for this option:
                 - \c info_callback: see @ref upsert_info_callback
                 - \c commit_block: the number of changes made before an automatic commit is made for upsert methods that perform commits
+                - \c delete_others: if this option is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation allows tables to be completely synchronized by removing rows in the target table not present in the source table.  This operation is expensive for large data sets.
             */
             const UpsertOptions = (
                 "info_callback": "code",
