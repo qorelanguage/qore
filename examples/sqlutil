@@ -215,7 +215,7 @@ sub main() {
         done = True;
         Table target_table(target, source_table.getName());
         int us = opt.verbose ? AbstractTable::UpsertSelectFirst : AbstractTable::UpsertAuto;
-        target_table.upsertFromSelect(source_table, NOTHING, us, opt.align_data_strict, upsert_callback);
+        target_table.upsertFromSelect(source_table, NOTHING, us, ("delete_others": opt.align_data_strict, "info_callback": upsert_callback));
     };
 
     if (opt.align_table) {

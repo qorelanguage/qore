@@ -686,7 +686,7 @@ my code $callback = sub (string $table_name, hash $row, int $result) {
         printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
 };
 
-my hash $sh = $table.upsertFromIterator($l.iterator(), $upsert_strategy, False, $callback);
+my hash $sh = $table.upsertFromIterator($l.iterator(), $upsert_strategy, False, ("info_callback": $callback));
 if ($sh)
     printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
 else
@@ -717,7 +717,7 @@ my code $callback = sub (string $table_name, hash $row, int $result) {
         printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
 };
 
-my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, False, $callback);
+my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, False, ("info_callback": $callback));
 if ($sh)
     printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
 else
@@ -728,15 +728,15 @@ else
 
     @subsection sql_upsert_with_delete Upserting Many Rows and Deleting Unwanted Rows
 
-    Call any of the batch upsert methods with the \a delete_others argument @ref Qore::True "True" to perform a batch upsert / merge operation on a table, and then scan the table and delete any unwanted rows.  If there are no rows to be deleted, these calls have very similar performance to the batch upsert method calls without any deletions, however, if there are rows to be deleted, then the entire source table must be iterated to compare each row to valid data to delete the rows that do not belong.  Therefore for large tables this can be an expensive operation.
+    Call any of the batch upsert methods with @ref AbstractTable::UpsertOptions "upsert option" \c delete_others set to @ref Qore::True "True" to perform a batch upsert / merge operation on a table, and then scan the table and delete any unwanted rows.  If there are no rows to be deleted, these calls have very similar performance to the batch upsert method calls without any deletions, however, if there are rows to be deleted, then the entire source table must be iterated to compare each row to valid data to delete the rows that do not belong.  Therefore for large tables this can be an expensive operation.
 
-    The only difference in the following examples and the preceding ones is that the \a delete_others argument is @ref Qore::True "True" in these examples.
+    The only difference in the following examples and the preceding ones is that @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True" in these examples.
 
     @par Simple Example:
     @code
 # get the rows to be inserted
 my list $l = get_table_rows();
-$table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertAuto, True);
+$table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertAuto, ("delete_others": True));
     @endcode
 
     @par Complex Example With Callbacks:
@@ -755,7 +755,7 @@ my code $callback = sub (string $table_name, hash $row, int $result) {
         printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
 };
 
-my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, True, $callback);
+my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, ("delete_others": True, "info_callback": $callback));
 if ($sh)
     printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
 else
@@ -1430,6 +1430,45 @@ my code $sql_callback = sub (string $str) {
 my hash $callback_opts = ("sql_callback": $sql_callback, "sql_callback_executed": True);
 $db.getAlignSql($schema, $callback_opts);
     @endcode
+
+    @subsection upsert_info_callback Upsert Info Callback
+
+    The \c "info_callback" upsert option key can be assigned to a @ref closure "closure" or @ref call_reference "call reference" that
+    is called whenever an row result is available; this callback takes the following arguments:
+    - @ref string_type "string" table_name: the name of the table
+    - @ref hash_type "hash" row: the row affected
+    - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+
+    Here is an example of an upsert callback:
+    @code
+my code $upsert_callback = sub (string $table_name, hash $row, int $result) {
+    # verbosity threshold
+    my int $t = 0;
+    if ($result != AbstractTable::UR_Unchanged)
+        ++$change_count;
+    else
+        $t = 1;
+
+    if ($opt.verbose > t) {
+        if ($dot_count) {
+            print("\n");
+            $dot_count = 0;
+        }
+        printf("%s reference data %s: %y: %s\n", t ? "+++" : "***", $table_name, $row, AbstractTable::UpsertResultMap{$result}); 
+    }
+    else {
+        ++$dot_count;
+        print(AbstractTable::UpsertResultLetterMap{$result});
+        flush();
+    }
+};
+
+my hash $sh = $table.upsertFromIterator($i, $upsert_strategy, False, ("info_callback": $upsert_callback));
+    @endcode
+
+    @subsection insert_info_callback Insert Info Callback
+
+    This option is identical to @ref upsert_info_callback, except the \a result argument is always @ref SqlUtil::AbstractTable::UR_Inserted.
 */
     
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
@@ -7100,19 +7139,20 @@ $table.insert($row);
 my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
             @endcode
 
-            @param cols the list of column names to use to insert in the current able
+            @param cols the list of column names to use to insert in the current table
             @param source the source table for the select statement
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR unknown or invalid column in insert list
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
         */
-        int insertFromSelect(list cols, AbstractTable source, *hash sh, *reference sql) {
-            return t.insertFromSelect(cols, source, sh, \sql);
+        int insertFromSelect(list cols, AbstractTable source, *hash sh, *reference sql, *hash opt) {
+            return t.insertFromSelect(cols, source, sh, \sql, opt);
         }
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
@@ -7121,18 +7161,19 @@ my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table,
 my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
             @endcode
 
-            @param cols the list of column names to use to insert in the current able
+            @param cols the list of column names to use to insert in the current table
             @param source the source table for the select statement
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR unknown or invalid column in insert list
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
         */
-        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql) {
+        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql, *hash opt) {
             return t.insertFromSelectNoCommit(cols, source, sh, \sql);
         }
 
@@ -7143,12 +7184,11 @@ my int $rows = $table.insertFromIterator($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
-            @param info_callback an optional callback to be called whenever a row is inserted taking the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
+            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
 
             @see
@@ -7156,8 +7196,8 @@ my int $rows = $table.insertFromIterator($i);
             - upsertFromIterator()
             - upsertFromIteratorNoCommit()
         */
-        int insertFromIterator(Qore::AbstractIterator i, *code info_callback) {
-            return t.insertFromIterator(i, info_callback);
+        int insertFromIterator(Qore::AbstractIterator i, *hash opt) {
+            return t.insertFromIterator(i, opt);
         }
 
         #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
@@ -7167,21 +7207,20 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
-            @param info_callback an optional callback to be called whenever a row is inserted taking the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
+            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
 
             @see
-            - insertFromIteratorNoCommit()
+            - insertFromIterator()
             - upsertFromIterator()
             - upsertFromIteratorNoCommit()
         */
-        int insertFromIteratorNoCommit(Qore::AbstractIterator i, *code info_callback) {
-            return t.insertFromIteratorNoCommit(i, info_callback);
+        int insertFromIteratorNoCommit(Qore::AbstractIterator i, *hash opt) {
+            return t.insertFromIteratorNoCommit(i, opt);
         }
 
         #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -7302,24 +7341,19 @@ my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            @note if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
 
             @see
             - upsertFromIteratorNoCommit()
@@ -7329,8 +7363,8 @@ my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
-            return t.upsertFromIterator(i, upsert_strategy, delete_others, info_callback);
+        *hash upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return t.upsertFromIterator(i, upsert_strategy, opt);
         }
 
         #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
@@ -7341,24 +7375,19 @@ my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFi
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            @note if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
 
             @see
             - upsertFromIteratorNoCommit()
@@ -7368,8 +7397,8 @@ my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFi
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromIteratorNoCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
-            return t.upsertFromIteratorNoCommit(i, upsert_strategy, delete_others, info_callback);
+        *hash upsertFromIteratorNoCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return t.upsertFromIteratorNoCommit(i, upsert_strategy, opt);
         }
 
         #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -7385,25 +7414,20 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             @param src the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
             - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelectNoCommit() to do manual transaction management instead
 
             @see
@@ -7414,8 +7438,8 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromSelect(AbstractTable src, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
-            return t.upsertFromSelect(src, sh, upsert_strategy, delete_others, info_callback);
+        *hash upsertFromSelect(AbstractTable src, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return t.upsertFromSelect(src, sh, upsert_strategy, opt);
         }
 
         #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
@@ -7433,25 +7457,20 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             @param src the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
            - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
 
             @see
@@ -7462,8 +7481,8 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromSelectNoCommit(AbstractTable src, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
-            return t.upsertFromSelectNoCommit(src, sh, upsert_strategy, delete_others, info_callback);
+        *hash upsertFromSelectNoCommit(AbstractTable src, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return t.upsertFromSelectNoCommit(src, sh, upsert_strategy, opt);
         }
 
         #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -7479,25 +7498,20 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             @param src the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
             - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelectNoCommit() to do manual transaction management instead
 
             @see
@@ -7508,8 +7522,8 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromSelect(Table src, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
-            return t.upsertFromSelect(src.getTable(), sh, upsert_strategy, delete_others, info_callback);
+        *hash upsertFromSelect(Table src, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return t.upsertFromSelect(src.getTable(), sh, upsert_strategy, opt);
         }
 
         #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
@@ -7527,25 +7541,20 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             @param src the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
            - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
 
             @see
@@ -7556,8 +7565,8 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromSelectNoCommit(Table src, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
-            return t.upsertFromSelectNoCommit(src.getTable(), sh, upsert_strategy, delete_others, info_callback);
+        *hash upsertFromSelectNoCommit(Table src, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return t.upsertFromSelectNoCommit(src.getTable(), sh, upsert_strategy, opt);
         }
 
         #! returns the number of rows in the table
@@ -7587,7 +7596,7 @@ my SQLStatement $i = $table.getRowIterator();
 
             @return an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
             @note
@@ -7609,7 +7618,7 @@ my *hash $h = $table.selectRow($sh);
 
             @return a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
             @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
 
@@ -7630,7 +7639,7 @@ my *list $l = $table.selectRows($sh);
 
             @return a list of hashes representing the rows in the table that match the argument hash
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
             @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
@@ -7650,7 +7659,7 @@ my *hash $h = $table.select($sh);
 
             @return a hash of lists representing the columns and rows in the table that match the argument hash
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
             @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
@@ -7671,7 +7680,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
             @return the SQL that can be used to execute a select on the database corresponding to the arguments; the select bind arguments are returned in an output parameter
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
             @note
@@ -8350,6 +8359,27 @@ my Triggers $trig = $table.getTriggers();
             #! Column options; this is currently empty and can be extended in database-specific modules
             const ColumnOptions = hash();
 
+            #! default upsert option keys
+            /** The following keys can be set for this option:
+                - \c info_callback: @see upsert_info_callback
+                - \c commit_block: the number of changes made before an automatic commit is made for upsert methods that perform commits
+            */
+            const UpsertOptions = (
+                "info_callback": "code",
+                "commit_block": Type::Int,
+                "delete_others": Type::Boolean,
+                );
+
+            #! default insert option keys
+            /** The following keys can be set for this option:
+                - \c info_callback: @see insert_info_callback
+                - \c commit_block: the number of changes made before an automatic commit is made for insert methods that perform commits
+            */
+            const InsertOptions = (
+                "info_callback": "code",
+                "commit_block": Type::Int,
+                );
+
             /** @defgroup upsert_options Upsert Strategy Codes
                 These options are used with:
                 - @ref AbstractTable::getUpsertClosure()
@@ -8413,7 +8443,7 @@ my Triggers $trig = $table.getTriggers();
             #! row was unchanged (only possible with @ref UpsertSelectFirst)
             const UR_Unchanged = 4;
 
-            #! row was deleted (only possible with batch upsert methods such as @ref Table::upsertFromIterator() where \a delete_others is @ref Qore::True "True")
+            #! row was deleted (only possible with batch upsert methods such as @ref Table::upsertFromIterator() where @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True")
             const UR_Deleted = 5;
             #@}
 
@@ -10827,42 +10857,44 @@ $table.insert($row);
 my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
             @endcode
 
-            @param cols the list of column names to use to insert in the current able
+            @param cols the list of column names to use to insert in the current table
             @param source the source table for the select statement
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR unknown or invalid column in insert list
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
         */
-        int insertFromSelect(list cols, AbstractTable source, *hash sh, *reference sql) {
+        int insertFromSelect(list cols, AbstractTable source, *hash sh, *reference sql, *hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            return insertFromSelectNoCommit(cols, source, sh, \sql);
+            return insertFromSelectNoCommit(cols, source, sh, \sql, opt);
         }
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
-            @param cols the list of column names to use to insert in the current able
+            @param cols the list of column names to use to insert in the current table
             @param source the source table for the select statement
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR unknown or invalid column in insert list
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
         */
-        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql) {
+        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql, *hash opt) {
             list args;
             string ssql = source.getSelectSql(sh, \args);
 
@@ -10890,12 +10922,11 @@ my int $rows = $table.insertFromIterator($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in every element
-            @param info_callback an optional callback to be called whenever a row is inserted taking the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
+            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
 
             @see
@@ -10903,11 +10934,11 @@ my int $rows = $table.insertFromIterator($i);
             - upsertFromIterator()
             - upsertFromIteratorNoCommit()
         */
-        int insertFromIterator(Qore::AbstractIterator i, *code info_callback) {
+        int insertFromIterator(Qore::AbstractIterator i, *hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            return insertFromIteratorNoCommit(i, info_callback);
+            return insertFromIteratorNoCommitIntern(i, opt);
         }
 
         #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
@@ -10917,12 +10948,11 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
-            @param info_callback an optional callback to be called whenever a row is inserted taking the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
+            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
 
             @return the number of rows inserted
 
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
 
             @see
@@ -10930,7 +10960,14 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             - upsertFromIterator()
             - upsertFromIteratorNoCommit()
         */
-        int insertFromIteratorNoCommit(Qore::AbstractIterator i, *code info_callback) {
+        int insertFromIteratorNoCommit(Qore::AbstractIterator i, *hash opt) {
+            return insertFromIteratorNoCommitIntern(i, opt - "commit_block");
+        }
+
+        private int insertFromIteratorNoCommitIntern(Qore::AbstractIterator i, *hash opt) {
+            # check upsert options
+            validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
+
             if (!i.next())
                 return 0;
 
@@ -10943,12 +10980,20 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             SQLStatement stmt(ds);
             stmt.prepare(sql);
 
-            int rc = 0;
+            opt.change_count = 0;
+            int rc = 0;             
             do {
                 stmt.execArgs(row.values());
-                if (info_callback)
-                    info_callback(getSqlName(), row);
+                if (opt.info_callback)
+                    opt.info_callback(getSqlName(), row, UR_Inserted);
                 ++rc;
+
+                if (opt.commit_block) {
+                    if (++opt.change_count >= opt.commit_block) {
+                        ds.commit();
+                        opt.change_count = 0;
+                    }
+                }
             } while (i.next() && (row = i.getValue()));
 
             return rc;
@@ -11069,24 +11114,20 @@ my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            @note if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
 
             @see
             - upsertFromIteratorNoCommit()
@@ -11098,11 +11139,11 @@ my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
             - insertFromIteratorNoCommit()
             - insertFromIterator()
         */
-        *hash upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
+        *hash upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            return upsertFromIteratorNoCommit(i, upsert_strategy, delete_others, info_callback);
+            return upsertFromIteratorNoCommitIntern(i, upsert_strategy, opt);
         }
 
         #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
@@ -11113,24 +11154,20 @@ my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFi
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            @note if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
 
             @see
             - upsertFromIteratorNoCommit()
@@ -11142,7 +11179,14 @@ my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFi
             - insertFromIteratorNoCommit()
             - insertFromIterator()
         */
-        *hash upsertFromIteratorNoCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
+        *hash upsertFromIteratorNoCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return upsertFromIteratorNoCommitIntern(i, upsert_strategy, opt - "commit_block");
+         }
+
+        private *hash upsertFromIteratorNoCommitIntern(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            # check upsert options
+            validateOptionsIntern("OPTION-ERROR", getUpsertOptions(), \opt);
+
             # try to get initial row
             if (!i.next())
                 return;
@@ -11155,24 +11199,33 @@ my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFi
 
             hash row = i.getValue();
             code upsert = getUpsertClosure(row, upsert_strategy);
+
+            opt.change_count = 0;
             do {
                 int code = upsert(row);
                 ++rh{AbstractTable::UpsertResultMap{code}};
-                if (info_callback)
-                    info_callback(getSqlName(), row, code);
+                if (opt.info_callback)
+                    opt.info_callback(getSqlName(), row, code);
+
+                if (code != UR_Unchanged && opt.commit_block) {
+                    if (++opt.change_count >= opt.commit_block) {
+                        ds.commit();
+                        opt.change_count = 0;
+                    }
+                }
 
                 # save primary key value in primary key hash if "delete_others" is set
-                if (delete_others)
+                if (opt.delete_others)
                     pkh{foldl $1 + "-" + $2, (map row.$1.toString(), primaryKey.keyIterator())} = True;
             } while (i.next() && (row = i.getValue()));
 
-            if (delete_others)
-                rh += doDeleteOthersIntern(pkh, info_callback);
+            if (opt.delete_others)
+                rh += doDeleteOthersIntern(pkh, opt);
 
             return rh;
         }
 
-        private *hash doDeleteOthersIntern(hash pkh, *code info_callback) {
+        private *hash doDeleteOthersIntern(hash pkh, *hash opt) {
             hash rh;
 
             # iterate through the table to find rows that do not belong and delete them
@@ -11186,8 +11239,14 @@ my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFi
                 delNoCommit(h);
 
                 ++rh.deleted;
-                if (info_callback)
-                    info_callback(getSqlName(), row, UR_Deleted);
+                if (opt.info_callback)
+                    opt.info_callback(getSqlName(), row, UR_Deleted);
+                if (opt.commit_block) {
+                    if (++opt.change_count >= opt.commit_block) {
+                        ds.commit();
+                        opt.change_count = 0;
+                    }
+                }
             }
 
             return rh;
@@ -11206,25 +11265,21 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
             - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelectNoCommit() to do manual transaction management instead
 
             @see
@@ -11235,11 +11290,11 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromSelect(AbstractTable t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
+        *hash upsertFromSelect(AbstractTable t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
             on_success { ds.commit(); t.commit(); }
             on_error { ds.rollback(); t.rollback(); }
 
-            return upsertFromSelectNoCommit(t, sh, upsert_strategy, delete_others, info_callback);
+            return upsertFromSelectNoCommit(t, sh, upsert_strategy, opt);
         }
 
         #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
@@ -11257,25 +11312,21 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
            - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
 
             @see
@@ -11286,8 +11337,8 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromSelectNoCommit(AbstractTable t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
-            return upsertFromIteratorNoCommit(t.getRowIterator(sh), upsert_strategy, delete_others, info_callback);
+        *hash upsertFromSelectNoCommit(AbstractTable t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return upsertFromIteratorNoCommitIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
         }
 
         #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -11303,25 +11354,21 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
             - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelectNoCommit() to do manual transaction management instead
 
             @see
@@ -11332,11 +11379,11 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromSelect(Table t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
+        *hash upsertFromSelect(Table t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
             on_success { ds.commit(); t.commit(); }
             on_error { ds.rollback(); t.rollback(); }
 
-            return upsertFromSelectNoCommit(t, sh, upsert_strategy, delete_others, info_callback);
+            return upsertFromIteratorNoCommitIntern(t.getRowIterator(sh), upsert_strategy, opt);
         }
 
         #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
@@ -11354,25 +11401,21 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param delete_others if @ref Qore::True "True", then any rows not in the input data will be deleted from the table
-            @param info_callback an optional callback to be called whenever an row result is available; this callback should
-            take the following arguments:
-            - @ref string_type "string" table_name: the name of the table
-            - @ref hash_type "hash" row: the row affected
-            - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
+            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
 
             @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
             - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if \a delete_others is @ref Qore::True "True"
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
+            @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if \a delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \a delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
            - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
 
             @see
@@ -11383,8 +11426,8 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             - upsertNoCommit()
             - getUpsertClosure()
         */
-        *hash upsertFromSelectNoCommit(Table t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, softbool delete_others = False, *code info_callback) {
-            return upsertFromIteratorNoCommit(t.getRowIterator(sh), upsert_strategy, delete_others, info_callback);
+        *hash upsertFromSelectNoCommit(Table t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return upsertFromIteratorNoCommitIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
         }
 
         #! returns the number of rows in the table
@@ -11414,7 +11457,7 @@ my SQLStatement $i = $table.getRowIterator($sh);
 
             @return an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
             @note
@@ -11445,7 +11488,7 @@ my *hash $h = $table.selectRow($sh);
 
             @return a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
             @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
 
@@ -11471,7 +11514,7 @@ my *list $l = $table.selectRows($sh);
 
             @return a list of hashes representing the rows in the table that match the argument hash
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
             @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
@@ -11496,7 +11539,7 @@ my *hash $h = $table.select($sh);
 
             @return a hash of lists representing the columns and rows in the table that match the argument hash
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
             @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
@@ -11522,7 +11565,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
             @return the SQL that can be used to execute a select on the database corresponding to the arguments; the select bind arguments are returned in an output parameter
 
-            @throw OPTION-ERROR invalid or unsupportd select option
+            @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
             @note
@@ -13562,6 +13605,16 @@ my *list $rows = $table.findAll($h);
         #! override in subclasses to return driver-specific options
         private hash getSelectOptions() {
             return SelectOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getUpsertOptions() {
+            return UpsertOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getInsertOptions() {
+            return InsertOptions;
         }
 
         private softlist getDropSqlImpl() {
