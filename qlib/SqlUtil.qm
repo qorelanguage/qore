@@ -437,6 +437,22 @@ return $ds.vexec("insert into schema.table (id,name,created) select cid,fullname
 
     The return value of these methods is the number of rows inserted.  See @ref select_option_hash "select option hash" for more information about how to form the select criteria in these methods.
 
+    @subsection inserting_data_from_iterator Inserting Data from an Iterator Source
+
+    To insert data from an iterator source (such as an @ref Qore::SQL::SQLStatement object), call @ref SqlUtil::Table::insertFromIterator() or @ref SqlUtil::Table::insertFromIteratorNoCommit() as in the following example:
+
+    @par Example:
+    @code
+# get the rows to be inserted
+my list $l = get_table_rows();
+# insert the data and commit after every 5000 rows
+$table.insertFromIterator($l.iterator(), ("commit_block": 5000));
+    @endcode
+
+    The iterator given to the @ref SqlUtil::Table::insertFromIterator() or @ref SqlUtil::Table::insertFromIteratorNoCommit() methods can be any iterator whose @ref Qore::AbstractIterator::getValue() "getValue()" method returns a @ref hash_type "hash".
+
+    @note the @ref SqlUtil::AbstractTable::InsertOptions "insert option" \c "commit_block" can be used to insert a large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
+
     @section updating_data Updating Data
 
     The following methods can be used to update data:
@@ -686,7 +702,7 @@ my code $callback = sub (string $table_name, hash $row, int $result) {
         printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
 };
 
-my hash $sh = $table.upsertFromIterator($l.iterator(), $upsert_strategy, False, ("info_callback": $callback));
+my hash $sh = $table.upsertFromIterator($l.iterator(), $upsert_strategy, False, ("info_callback": $callback, "commit_block": 5000));
 if ($sh)
     printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
 else
@@ -694,6 +710,8 @@ else
     @endcode
 
     The iterator given to the @ref SqlUtil::Table::upsertFromIterator() or @ref SqlUtil::Table::upsertFromIteratorNoCommit() methods can be any iterator whose @ref Qore::AbstractIterator::getValue() "getValue()" method returns a @ref hash_type "hash".
+
+    @note the @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c "commit_block" can be used to insert a large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
 
     @subsection sql_upsert_from_select Upserting Many Rows from a Select Statement
 
@@ -717,7 +735,7 @@ my code $callback = sub (string $table_name, hash $row, int $result) {
         printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
 };
 
-my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, False, ("info_callback": $callback));
+my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, False, ("info_callback": $callback, "commit_block": 5000));
 if ($sh)
     printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
 else
@@ -726,17 +744,19 @@ else
 
     The source table does not have to be in the same database or even of the same database type (ie you can upsert to and from any database type supported by SqlUtil).
 
+    @note the @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c "commit_block" can be used to insert a large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
+
     @subsection sql_upsert_with_delete Upserting Many Rows and Deleting Unwanted Rows
 
-    Call any of the batch upsert methods with @ref AbstractTable::UpsertOptions "upsert option" \c delete_others set to @ref Qore::True "True" to perform a batch upsert / merge operation on a table, and then scan the table and delete any unwanted rows.  If there are no rows to be deleted, these calls have very similar performance to the batch upsert method calls without any deletions, however, if there are rows to be deleted, then the entire source table must be iterated to compare each row to valid data to delete the rows that do not belong.  Therefore for large tables this can be an expensive operation.
+    Call any of the batch upsert methods with @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others set to @ref Qore::True "True" to perform a batch upsert / merge operation on a table, and then scan the table and delete any unwanted rows.  If there are no rows to be deleted, these calls have very similar performance to the batch upsert method calls without any deletions, however, if there are rows to be deleted, then the entire source table must be iterated to compare each row to valid data to delete the rows that do not belong.  Therefore for large tables this can be an expensive operation.
 
-    The only difference in the following examples and the preceding ones is that @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True" in these examples.
+    The only difference in the following examples and the preceding ones is that @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True" in these examples.
 
     @par Simple Example:
     @code
 # get the rows to be inserted
 my list $l = get_table_rows();
-$table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertAuto, ("delete_others": True));
+$table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertAuto, ("delete_others": True, "commit_block": 5000));
     @endcode
 
     @par Complex Example With Callbacks:
@@ -755,16 +775,18 @@ my code $callback = sub (string $table_name, hash $row, int $result) {
         printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
 };
 
-my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, ("delete_others": True, "info_callback": $callback));
+my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, ("delete_others": True, "info_callback": $callback, "commit_block": 5000));
 if ($sh)
     printf("*** reference data %s: %s\n", $table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), $sh.pairIterator())));
 else
     printf("*** reference data %s: OK\n", $table.getName());
     @endcode
 
+    @note the @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c "commit_block" can be used to insert a large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
+
     @subsection sql_upsert_strategies Upsert Strategies
     The approach used is based on one of the following strategies (see @ref upsert_options):
-    - @ref SqlUtil::AbstractTable::UpsertAuto "AbstractTable::UpsertAuto": if the target table is empty, then @ref SqlUtil::AbstactTable::UpsertInsertFirst is used, otherwise @ref SqlUtil::AbstractTable::UpsertUpdateFirst is used
+    - @ref SqlUtil::AbstractTable::UpsertAuto "AbstractTable::UpsertAuto": if the target table is empty, then @ref SqlUtil::AbstractTable::UpsertInsertFirst is used, otherwise @ref SqlUtil::AbstractTable::UpsertUpdateFirst is used
     - @ref SqlUtil::AbstractTable::UpsertInsertFirst "AbstractTable::UpsertInsertFirst": first an insert will be attempted, if it fails due to a duplicate key, then an update will be made; this strategy should be used if more inserts will be made than updates
     - @ref SqlUtil::AbstractTable::UpsertUpdateFirst "AbstractTable::UpsertUpdateFirst": first an update will be attempted, if it fails due to missing data, then an insert is performed; this strategy should be used if more updates will be made then inserts
     - @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst": first a select is made on the unique key, if the data to be updated is equal, nothing is done and @ref upsert_results "upsert result" @ref SqlUtil::AbstractTable::UR_Unchanged is returned
@@ -4280,7 +4302,7 @@ my AbstractTable $table = $db.makeTable("table", $th);
 
             @param name the name of the table
             @param desc a @ref table_desc_hash "table description hash" describing the table
-            @param opts an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+            @param opts an optional hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
@@ -4583,7 +4605,7 @@ my string $sql = $t.getSqlFromList($list);
 
         #! creates the object; private constructor
         /** @param nds the AbstractDatasource for the connection to the database
-            @param nopts a hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+            @param nopts a hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
          */
@@ -4732,9 +4754,9 @@ my string $sql = $t.getSqlFromList($list);
 
             #! generic callback options
             /** The following keys can be set for this option:
-                - \c info_callback: @see info_callback
-                - \c sql_callback: @see sql_callback
-                - \c sql_callback_executed: @see sql_callback_executed
+                - \c info_callback: see @ref info_callback
+                - \c sql_callback: see @ref sql_callback
+                - \c sql_callback_executed: see @ref sql_callback_executed
             */
             const CallbackOptions = (
                 "info_callback": "code",
@@ -5335,7 +5357,7 @@ my AbstractTable $table = $db.makeTable("table", $th);
 
             @param name the name of the table
             @param desc a @ref table_desc_hash "table description hash" describing the table
-            @param opts an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+            @param opts an optional hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
@@ -5922,7 +5944,7 @@ my Table $table($ds, "table");
 
             @param ds the AbstractDatasource object used to provide the DB connection
             @param name the name of the table
-            @param opts a hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+            @param opts a hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw TABLE-DRIVER-ERROR no database-specific module can be loaded
             @throw OPTION-ERROR invalid or unsupported option passed
@@ -5939,7 +5961,7 @@ my Table $table("pgsql:user/pass@db%host", "table");
 
             @param ds a datasource description string in the format that can be parsed by parse_datasource()
             @param name the name of the table
-            @param opts a hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+            @param opts a hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw TABLE-DRIVER-ERROR no database-specific module can be loaded
             @throw OPTION-ERROR invalid or unsupported option passed
@@ -5964,7 +5986,7 @@ my Table $table("pgsql:user/pass@db%host", "table");
             - \c port: (@ref softint_type "softint") The port number for the new connection
             - \c options: (@ref hash_or_nothing_type "*hash") Any options for the new connection
             @param name the name of the table
-            @param opts a hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+            @param opts a hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw TABLE-DRIVER-ERROR no database-specific module can be loaded
             @throw OPTION-ERROR invalid or unsupported option passed
@@ -5977,7 +5999,7 @@ my Table $table("pgsql:user/pass@db%host", "table");
         /** @param ds the AbstractDatasource for the connection to the database
             @param desc a @ref table_desc_hash "table description hash" describing the table
             @param name the name of the table
-            @param opts an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+            @param opts an optional hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw DESCRIPTION-ERROR invalid or unsupported description hash value passed
@@ -6047,7 +6069,7 @@ my bool $b = $table.inDb();
 
         #! creates the object from a table description hash
         /** @param desc a @ref table_desc_hash "table description hash" describing the table
-            @param opt an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+            @param opt an optional hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw DESCRIPTION-ERROR invalid or unsupported description hash value passed
@@ -6177,7 +6199,7 @@ $table.truncateNoCommit();
 my string $sql = $table.getTruncateSql();
             @endcode
 
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to truncate the table
 
@@ -6197,7 +6219,7 @@ my string $sql = $table.getTruncateSql();
 $table.create();
             @endcode
 
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @note The transaction is committed if successful or rolled back if an exception occurs; use @ref createNoCommit() to execute without any transaction management
 
@@ -6213,7 +6235,7 @@ $table.create();
 $table.createNoCommit();
             @endcode
 
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @note Transaction management is normally not performed when creating tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
@@ -6312,7 +6334,7 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that can be use to add a column to the table
 
@@ -6374,7 +6396,7 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
                 
             @return a list of SQL strings that can be used to modify an existing column in the table
 
@@ -6420,7 +6442,7 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
 
             @param old_name the current name of the column
             @param new_name the new name of the column
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
                 
             @return an SQL string that can be used to rename an existing column in the table
 
@@ -6447,7 +6469,7 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new primary key constraint
             @param cols a single column name or a list of columns that make up the primary key
-            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractPrimaryKey object corresponding to the primary key created
@@ -6472,8 +6494,8 @@ printf("%s;\n", $sql);
 
             @param pkname the name of the new primary key constraint
             @param cols a single column name or a list of columns that make up the primary key
-            @param pkopt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param pkopt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to add a primary key to the table
 
@@ -6517,7 +6539,7 @@ $table.dropPrimaryKey();
 my list $l = $table.getDropPrimaryKeySql();
             @endcode
 
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that can be used to drop the primary key from the table
 
@@ -6547,7 +6569,7 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new unique constraint
             @param cols a single column name or a list of columns that make up the unique constraint
-            @param opt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractUniqueConstraint object corresponding to the unique constraint created
@@ -6572,8 +6594,8 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new unique constraint
             @param cols a single column name or a list of columns that make up the unique constraint
-            @param ukopt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param ukopt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that can be used to add a unique constraint to the table
 
@@ -6601,7 +6623,7 @@ printf("%s;\n", $sql);
             @param iname the name of the new index
             @param unique a flag to tell if the new index should be unique or not
             @param cols a single column name or a list of columns that make up the index
-            @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref AbstractTable::IndexOptions
+            @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::IndexOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractIndex object corresponding to the index created
@@ -6625,8 +6647,8 @@ printf("%s;\n", $sql);
             @param iname the name of the new index
             @param unique a flag to tell if the new index should be unique or not
             @param cols a single column name or a list of columns that make up the index
-            @param ixopt a hash of options for the new index; each driver may implement its own options; for common options, see @ref AbstractTable::IndexOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param ixopt a hash of options for the new index; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::IndexOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that can be used to add an index to the table
 
@@ -6665,7 +6687,7 @@ my string $sql = $table.getDropIndexSql("uk_mytable_name");
             @endcode
 
             @param iname the name of the index to drop
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to drop an index from the table
 
@@ -6689,7 +6711,7 @@ my string $sql = $table.getDropConstraintSql("uk_mytable_name");
             @endcode
 
             @param cname the name of the constraint to drop
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to drop a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
 
@@ -6713,7 +6735,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
             @endcode
 
             @param cname the name of the constraint to drop
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
             @param cref an optional reference to an AbstractConstraint object that will return the constraint dropped
 
             @return the SQL that can be used to drop a constraint from the table if it exists, otherwise returns @ref nothing; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
@@ -6767,7 +6789,7 @@ printf("%s;\n", $sql);
             @param cols a single column name or a list of columns in the local table that make up the foreign constraint
             @param table the name of the other table that the constraint targets
             @param tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
-            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
+            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ForeignConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractForeignConstraint object corresponding to the foreign constraint created
@@ -6792,8 +6814,8 @@ printf("%s;\n", $sql);
             @param cols a single column name or a list of columns in the local table that make up the foreign constraint
             @param table the name of the other table that the constraint targets
             @param tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
-            @param fkopt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param fkopt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ForeignConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that can be used to add a foreign constraint to the table
 
@@ -6863,7 +6885,7 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new constraint
             @param src the source of the constraint clause
-            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractCheckConstraint object corresponding to the check constraint created
@@ -6887,8 +6909,8 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new constraint
             @param src the source of the constraint clause
-            @param copt a hash of options for the new constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param copt a hash of options for the new constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that can be used to add a check constraint to the table
 
@@ -6955,7 +6977,7 @@ printf("%s;\n", $sql);
 
             @param tname the name of the new trigger
             @param src the database-specific source of the trigger
-            @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref AbstractTable::TriggerOptions
+            @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::TriggerOptions
             @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractTrigger object corresponding to the trigger created
@@ -6979,8 +7001,8 @@ printf("%s;\n", $sql);
 
             @param tname the name of the new trigger
             @param src the source of the trigger
-            @param topt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref AbstractTable::TriggerOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param topt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::TriggerOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that can be used to add a trigger to the table
 
@@ -7025,7 +7047,7 @@ my list $l = $table.getDropTriggerSql("trig_mytable");
             @endcode
 
             @param tname the name of the trigger to drop
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to drop the given trigger from the table
 
@@ -7086,7 +7108,7 @@ my list $l = $table.getDropColumnSql("notes_2");
             @endcode
 
             @param cname the name of the column to drop
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to drop a column from the table
 
@@ -7143,16 +7165,17 @@ my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table,
             @param source the source table for the select statement
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
-            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
             @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR unknown or invalid column in insert list
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
         */
-        int insertFromSelect(list cols, AbstractTable source, *hash sh, *reference sql, *hash opt) {
-            return t.insertFromSelect(cols, source, sh, \sql, opt);
+        int insertFromSelect(list cols, AbstractTable source, *hash sh, *reference sql) {
+            return t.insertFromSelect(cols, source, sh, \sql);
         }
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
@@ -7165,15 +7188,16 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
             @param source the source table for the select statement
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
-            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
             @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR unknown or invalid column in insert list
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
         */
-        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql, *hash opt) {
+        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql) {
             return t.insertFromSelectNoCommit(cols, source, sh, \sql);
         }
 
@@ -7184,7 +7208,7 @@ my int $rows = $table.insertFromIterator($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
-            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
@@ -7207,7 +7231,7 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
-            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
@@ -7292,7 +7316,7 @@ map $upsert($1), $row_list;
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note the row values passed to the closure for upserting are not checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data will cause errors; see @ref AbstractTable::getUpsertClosureWithValidation() for a similar method that returns a validating closure; the closure returned by this method is faster than the one returned by @ref AbstractTable::getUpsertClosure() since there is no validation
+            @note the row values passed to the closure for upserting are not checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data will cause errors; see @ref SqlUtil::AbstractTable::getUpsertClosureWithValidation() for a similar method that returns a validating closure; the closure returned by this method is faster than the one returned by @ref SqlUtil::AbstractTable::getUpsertClosure() since there is no validation
 
             @see
             - upsert()
@@ -7322,7 +7346,7 @@ map $upsert($1), $row_list;
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note the row values passed to the closure for upserting are checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data to the closure will cause the closure to throw an \c UPSERT-ERROR exception; see @ref AbstractTable::getUpsertClosure() for a similar method that returns a non-validating closure; the closure returned by this method is a little slower than the one returned by @ref AbstractTable::getUpsertClosure() since each row is validated
+            @note the row values passed to the closure for upserting are checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data to the closure will cause the closure to throw an \c UPSERT-ERROR exception; see @ref SqlUtil::AbstractTable::getUpsertClosure() for a similar method that returns a non-validating closure; the closure returned by this method is a little slower than the one returned by @ref SqlUtil::AbstractTable::getUpsertClosure() since each row is validated
 
             @see
             - upsert()
@@ -7341,19 +7365,19 @@ my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            @note if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
 
             @see
             - upsertFromIteratorNoCommit()
@@ -7375,19 +7399,19 @@ my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFi
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            @note if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
 
             @see
             - upsertFromIteratorNoCommit()
@@ -7414,21 +7438,22 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             @param src the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
             - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelectNoCommit() to do manual transaction management instead
+            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
             @see
             - upsertFromSelectNoCommit()
@@ -7457,21 +7482,22 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             @param src the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
            - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
+            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
             @see
             - upsertFromSelect()
@@ -7498,21 +7524,22 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             @param src the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
             - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelectNoCommit() to do manual transaction management instead
+            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
             @see
             - upsertFromSelectNoCommit()
@@ -7541,21 +7568,22 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             @param src the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
            - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
+            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
             @see
             - upsertFromSelect()
@@ -7792,7 +7820,7 @@ my string $sql = $table.getRenameSql("new_name");
             @endcode
 
             @param new_name the new name for the table
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be used to rename the table in the database
 
@@ -7814,7 +7842,7 @@ my string $sql = $table.getRenameSql("new_name");
 printf("%s\n", $table.getCreateSqlString());
             @endcode
 
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be used to create the table and all known properties of the table
 
@@ -7830,7 +7858,7 @@ printf("%s\n", $table.getCreateSqlString());
 map printf("$1;\n", $1), $table.getCreateSql();
             @endcode
 
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that could be used to create the table and all known properties of the table
         */
@@ -7844,7 +7872,7 @@ map printf("$1;\n", $1), $table.getCreateSql();
 my string $sql = $table.getCreateTableSql();
             @endcode
 
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be used to create the basic table structure without indexes and constraints 
 
@@ -7860,7 +7888,7 @@ my string $sql = $table.getCreateTableSql();
 my *list $l = $table.getCreateIndexesSql();
             @endcode
 
-            @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref AbstractTable::IndexOptions
+            @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::IndexOptions
 
             @return a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
 
@@ -7876,7 +7904,7 @@ my *list $l = $table.getCreateIndexesSql();
 my *string $sql = $table.getCreatePrimaryKeySql();
             @endcode
 
-            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
 
             @return an SQL string that could be used to create the primary key on the table or @ref nothing if there is no primary key on the table
 
@@ -7892,7 +7920,7 @@ my *string $sql = $table.getCreatePrimaryKeySql();
 my *list $l = $table.getCreateForeignConstraintsSql();
             @endcode
 
-            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
+            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ForeignConstraintOptions
 
             @return a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
 
@@ -7908,7 +7936,7 @@ my *list $l = $table.getCreateForeignConstraintsSql();
 my *list $l = $table.getCreateConstraintsSql();
             @endcode
 
-            @param opt a hash of options for the non-foreign constraint creation string; see @ref AbstractTable::ConstraintOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the non-foreign constraint creation string; see @ref SqlUtil::AbstractTable::ConstraintOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that could be used to create non-foreign constraints on the table or @ref nothing if there are no non-foreign constraints on the table
 
@@ -7926,7 +7954,7 @@ my *list $l = $table.getCreateConstraintsSql();
 my *list $l = $table.getCreateMiscSql();
             @endcode
 
-            @param opt a hash of options for the SQL creation string(s); see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string(s); see @ref SqlUtil::AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or @ref nothing if there are none
 
@@ -7942,7 +7970,7 @@ my *list $l = $table.getCreateMiscSql();
 my *list $l = $table.getCreateTriggersSql();
             @endcode
 
-            @param opt a hash of options for the trigger creation strings; see @ref AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the trigger creation strings; see @ref SqlUtil::AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that could be used to create triggers on the table or @ref nothing if there are no triggers on the table
 
@@ -7959,7 +7987,7 @@ my list $l = $table.getAlignSql($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
 
@@ -7977,7 +8005,7 @@ my list $l = $table.getAlignSql($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
 
@@ -7995,7 +8023,7 @@ my string $sql = $table.getAlignSqlString($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
 
@@ -8013,7 +8041,7 @@ my string $sql = $table.getAlignSqlString($table2);
             @endcode
 
             @param table the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
 
@@ -8116,7 +8144,7 @@ my *list $rows = $table.findAll($h);
 $table.cache();
             @endcode
 
-            @param opts cache options; see @ref AbstractTable::CacheOptions for common options; each driver can support additional driver-specific options
+            @param opts cache options; see @ref SqlUtil::AbstractTable::CacheOptions for common options; each driver can support additional driver-specific options
         */
         cache(*hash opts) {
             t.cache(opts);
@@ -8241,7 +8269,7 @@ my Triggers $trig = $table.getTriggers();
                 );
 
             #! default constraint options
-            /** currently this option is identical to @ref AbstractTable::IndexOptions
+            /** currently this option is identical to @ref SqlUtil::AbstractTable::IndexOptions
             */
             const ConstraintOptions = IndexOptions;
 
@@ -8284,12 +8312,12 @@ my Triggers $trig = $table.getTriggers();
                 );
 
             #! table creation options
-            /** currently this option is a combination of @ref AbstractTable::IndexOptions and @ref AbstractDatabase::CreationOptions
+            /** currently this option is a combination of @ref SqlUtil::AbstractTable::IndexOptions and @ref AbstractDatabase::CreationOptions
             */
             const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions;
 
             #! table alignment options
-            /** currently this option is a combination of @ref AbstractTable::TableCreationOptions and the following options:
+            /** currently this option is a combination of @ref SqlUtil::AbstractTable::TableCreationOptions and the following options:
                 - \c column_map: a hash for automatically renaming columns; if the source name (key) exists and the target name (value) does not exist, then the source column is automatically renamed
                 - \c index_map: a hash for automatically renaming indexes; if the source name (key) exists and the target name (value) does not exist, then the source index is automatically renamed
                 - \c constraint_map: a hash for automatically renaming constraints; if the source name (key) exists and the target name (value) does not exist, then the source constraint is automatically renamed
@@ -8349,8 +8377,8 @@ my Triggers $trig = $table.getTriggers();
                 );
 
             #! additional column description keys valid when describing columns in a @ref table_desc_hash "table description hash"
-            /** the following keys are valid in a @ref table_desc_hash "table description hash" in addition to any @ref AbstractTable::ColumnDescOptions:
-                - \c notnull: (@ref boolean_type) if @ref Qore::True "True" then the column will have a not null constraint
+            /** the following keys are valid in a @ref table_desc_hash "table description hash" in addition to any @ref SqlUtil::AbstractTable::ColumnDescOptions "AbstractTable::ColumnDescOptions":
+                - \c notnull: (@ref bool_type) if @ref Qore::True "True" then the column will have a not null constraint
             */
             const AdditionalColumnDescOptions = (
                 "notnull": Type::Boolean,
@@ -8361,7 +8389,7 @@ my Triggers $trig = $table.getTriggers();
 
             #! default upsert option keys
             /** The following keys can be set for this option:
-                - \c info_callback: @see upsert_info_callback
+                - \c info_callback: see @ref upsert_info_callback
                 - \c commit_block: the number of changes made before an automatic commit is made for upsert methods that perform commits
             */
             const UpsertOptions = (
@@ -8372,7 +8400,7 @@ my Triggers $trig = $table.getTriggers();
 
             #! default insert option keys
             /** The following keys can be set for this option:
-                - \c info_callback: @see insert_info_callback
+                - \c info_callback: see @ref insert_info_callback
                 - \c commit_block: the number of changes made before an automatic commit is made for insert methods that perform commits
             */
             const InsertOptions = (
@@ -8382,14 +8410,14 @@ my Triggers $trig = $table.getTriggers();
 
             /** @defgroup upsert_options Upsert Strategy Codes
                 These options are used with:
-                - @ref AbstractTable::getUpsertClosure()
-                - @ref AbstractTable::getUpsertClosureWithValidation()
-                - @ref AbstractTable::upsert()
-                - @ref AbstractTable::upsertNoCommit()
-                - @ref AbstractTable::upsertFromIterator()
-                - @ref AbstractTable::upsertFromIteratorNoCommit()
-                - @ref AbstractTable::upsertFromSelect()
-                - @ref AbstractTable::upsertFromSelectNoCommit()
+                - @ref SqlUtil::AbstractTable::getUpsertClosure()
+                - @ref SqlUtil::AbstractTable::getUpsertClosureWithValidation()
+                - @ref SqlUtil::AbstractTable::upsert()
+                - @ref SqlUtil::AbstractTable::upsertNoCommit()
+                - @ref SqlUtil::AbstractTable::upsertFromIterator()
+                - @ref SqlUtil::AbstractTable::upsertFromIteratorNoCommit()
+                - @ref SqlUtil::AbstractTable::upsertFromSelect()
+                - @ref SqlUtil::AbstractTable::upsertFromSelectNoCommit()
 
                 to specify the upsert strategy when synchronizing table data
              */
@@ -8505,7 +8533,7 @@ my Triggers $trig = $table.getTriggers();
         #! creates the object; private constructor
         /** @param nds the AbstractDatasource for the connection to the database
             @param nname the name of the table
-            @param nopts an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+            @param nopts an optional hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
          */
@@ -8741,7 +8769,7 @@ $table.truncateNoCommit();
 my string $sql = $table.getTruncateSql();
             @endcode
 
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to truncate the table
 
@@ -8866,7 +8894,7 @@ my bool $b = $table.empty();
 
         #! creates the object from a table description hash
         /** @param desc a @ref table_desc_hash "table description hash" describing the table
-            @param opt an optional hash of options for the table creation string; see @ref AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+            @param opt an optional hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw DESCRIPTION-ERROR invalid or unsupported description hash value passed
@@ -9043,7 +9071,7 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that can be use to add a column to the table
 
@@ -9162,7 +9190,7 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
                 
             @return a list of SQL strings that can be used to modify an existing column in the table
 
@@ -9241,7 +9269,7 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
 
             @param old_name the current name of the column
             @param new_name the new name of the column
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
                 
             @return an SQL string that can be used to rename an existing column in the table
 
@@ -9336,7 +9364,7 @@ printf("%s;\n", $sql);
 
             @param pkname the name of the new primary key constraint
             @param cols a single column name or a list of columns that make up the primary key
-            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractPrimaryKey object corresponding to the primary key created
@@ -9363,8 +9391,8 @@ printf("%s;\n", $sql);
 
             @param pkname the name of the new primary key constraint
             @param cols a single column name or a list of columns that make up the primary key
-            @param pkopt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param pkopt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to add a primary key to the table
 
@@ -9443,7 +9471,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
             @endcode
 
             @param cname the name of the column
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
@@ -9515,7 +9543,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
 my list $l = $table.getDropPrimaryKeySql();
             @endcode
 
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that can be used to drop the primary key from the table
 
@@ -9596,7 +9624,7 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new unique constraint
             @param cols a single column name or a list of columns that make up the unique constraint
-            @param opt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractUniqueConstraint object corresponding to the unique constraint created
@@ -9621,8 +9649,8 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new unique constraint
             @param cols a single column name or a list of columns that make up the unique constraint
-            @param ukopt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param ukopt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that can be used to add a unique constraint to the table
 
@@ -9709,7 +9737,7 @@ printf("%s;\n", $sql);
             @param iname the name of the new index
             @param unique a flag to tell if the new index should be unique or not
             @param cols a single column name or a list of columns that make up the index
-            @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref AbstractTable::IndexOptions
+            @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::IndexOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractIndex object corresponding to the index created
@@ -9735,8 +9763,8 @@ printf("%s;\n", $sql);
             @param iname the name of the new index
             @param unique a flag to tell if the new index should be unique or not
             @param cols a single column name or a list of columns that make up the index
-            @param ixopt a hash of options for the new index; each driver may implement its own options; for common options, see @ref AbstractTable::IndexOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param ixopt a hash of options for the new index; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::IndexOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that can be used to add an index to the table
 
@@ -9905,7 +9933,7 @@ my string $sql = $table.getDropIndexSql("uk_mytable_name");
             @endcode
 
             @param iname the name of the index to drop
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to drop an index from the table
 
@@ -9948,7 +9976,7 @@ printf("%s;\n", $sql);
             @param cols a single column name or a list of columns in the local table that make up the foreign constraint
             @param table the name of the other table that the constraint targets
             @param tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
-            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
+            @param opt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ForeignConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractForeignConstraint object corresponding to the foreign constraint created
@@ -9975,8 +10003,8 @@ printf("%s;\n", $sql);
             @param cols a single column name or a list of columns in the local table that make up the foreign constraint
             @param table the name of the other table that the constraint targets
             @param tcols a single column name or a list of columns in the foreign table or @ref nothing meaning that the column names are the same as in the local table; if column names are given the same number of columns must be given in the local and foreign tables
-            @param fkopt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ForeignConstraintOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param fkopt a hash of options for the new foreign constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ForeignConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that can be used to add a foreign constraint to the table
 
@@ -10153,7 +10181,7 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new constraint
             @param src the source of the constraint clause
-            @param opt a hash of options for the new constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+            @param opt a hash of options for the new constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractCheckConstraint object corresponding to the check constraint created
@@ -10179,8 +10207,8 @@ printf("%s;\n", $sql);
 
             @param cname the name of the new constraint
             @param src the source of the constraint clause
-            @param copt a hash of options for the new constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param copt a hash of options for the new constraint; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that can be used to add a check constraint to the table
 
@@ -10310,7 +10338,7 @@ my string $sql = $table.getDropConstraintSql("uk_mytable_name");
             @endcode
 
             @param cname the name of the constraint to drop
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to drop a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
 
@@ -10345,7 +10373,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
             @endcode
 
             @param cname the name of the constraint to drop
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
             @param cref an optional reference to an AbstractConstraint object that will return the constraint dropped
 
             @return the SQL that can be used to drop a constraint from the table if it exists, otherwise returns @ref nothing; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
@@ -10472,7 +10500,7 @@ printf("%s;\n", $sql);
 
             @param tname the name of the new trigger
             @param src the source of the trigger
-            @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref AbstractTable::TriggerOptions
+            @param opt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::TriggerOptions
             @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @return an AbstractTrigger object corresponding to the trigger created
@@ -10499,8 +10527,8 @@ printf("%s;\n", $sql);
 
             @param tname the name of the new trigger
             @param src the source of the trigger
-            @param topt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref AbstractTable::TriggerOptions
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param topt a hash of options for the new trigger; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::TriggerOptions
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that can be used to add a trigger to the table
 
@@ -10605,7 +10633,7 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
             @endcode
 
             @param tname the name of the trigger to drop
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to drop the given trigger from the table
 
@@ -10773,7 +10801,7 @@ my string $sql = $table.getDropColumnSql("notes_2");
             @endcode
 
             @param cname the name of the column to drop
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return the SQL that can be used to drop a column from the table
 
@@ -10861,19 +10889,20 @@ my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table,
             @param source the source table for the select statement
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
-            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
             @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR unknown or invalid column in insert list
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
         */
-        int insertFromSelect(list cols, AbstractTable source, *hash sh, *reference sql, *hash opt) {
+        int insertFromSelect(list cols, AbstractTable source, *hash sh, *reference sql) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            return insertFromSelectNoCommit(cols, source, sh, \sql, opt);
+            return insertFromSelectNoCommit(cols, source, sh, \sql);
         }
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
@@ -10886,15 +10915,16 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
             @param source the source table for the select statement
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
-            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
             @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR unknown or invalid column in insert list
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
         */
-        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql, *hash opt) {
+        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql) {
             list args;
             string ssql = source.getSelectSql(sh, \args);
 
@@ -10922,7 +10952,7 @@ my int $rows = $table.insertFromIterator($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in every element
-            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
@@ -10948,7 +10978,7 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
-            @param opt a hash of options for the insert operation; see @ref AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
+            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
 
             @return the number of rows inserted
 
@@ -11066,7 +11096,7 @@ map $upsert($1), $row_list;
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note the row values passed to the closure for upserting are not checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data will cause errors; see @ref AbstractTable::getUpsertClosureWithValidation() for a similar method that returns a validating closure; the closure returned by this method is faster than the one returned by @ref AbstractTable::getUpsertClosure() since there is no validation
+            @note the row values passed to the closure for upserting are not checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data will cause errors; see @ref SqlUtil::AbstractTable::getUpsertClosureWithValidation() for a similar method that returns a validating closure; the closure returned by this method is faster than the one returned by @ref SqlUtil::AbstractTable::getUpsertClosure() since there is no validation
          */
         code getUpsertClosure(hash example_row, int upsert_strategy = UpsertAuto) {
             l.lock();
@@ -11094,7 +11124,7 @@ map $upsert($1), $row_list;
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note the row values passed to the closure for upserting are checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data to the closure will cause the closure to throw an \c UPSERT-ERROR exception; see @ref AbstractTable::getUpsertClosure() for a similar method that returns a non-validating closure; the closure returned by this method is a little slower than the one returned by @ref AbstractTable::getUpsertClosure() since each row is validated
+            @note the row values passed to the closure for upserting are checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data to the closure will cause the closure to throw an \c UPSERT-ERROR exception; see @ref SqlUtil::AbstractTable::getUpsertClosure() for a similar method that returns a non-validating closure; the closure returned by this method is a little slower than the one returned by @ref SqlUtil::AbstractTable::getUpsertClosure() since each row is validated
          */
         code getUpsertClosureWithValidation(hash example_row, int upsert_strategy = UpsertAuto) {
             code upsert = getUpsertClosure(example_row, upsert_strategy);
@@ -11114,20 +11144,20 @@ my hash $h = $table.upsertFromIterator($i, AbstractTable::UpsertUpdateFirst);
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            @note if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
 
             @see
             - upsertFromIteratorNoCommit()
@@ -11154,20 +11184,20 @@ my hash $h = $table.upsertFromIteratorNoCommit($i, AbstractTable::UpsertUpdateFi
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-            @note if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            @note if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
 
             @see
             - upsertFromIteratorNoCommit()
@@ -11265,22 +11295,23 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
             - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelectNoCommit() to do manual transaction management instead
+            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
             @see
             - upsertFromSelectNoCommit()
@@ -11312,22 +11343,23 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
            - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
+            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
             @see
             - upsertFromSelect()
@@ -11354,22 +11386,23 @@ my hash $h = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOM
             @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
             - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelectNoCommit() to do manual transaction management instead
+            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
             @see
             - upsertFromSelectNoCommit()
@@ -11401,22 +11434,23 @@ my hash $h = $table.upsertFromSelectNoCommit($table2, ("where": ("account_type":
             @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
 
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref AbstractTable::UpsertResultDescriptionMap keys):
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
             - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, since this is the only upsert strategy that compares row data
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
             @note
-            - if @ref AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
            - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
+            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
             @see
             - upsertFromSelect()
@@ -12406,7 +12440,7 @@ my string $str = $table.getSqlValue($date);
 $table.cache();
             @endcode
 
-            @param opts cache options; see @ref AbstractTable::CacheOptions for common options; each driver can support additional driver-specific options
+            @param opts cache options; see @ref SqlUtil::AbstractTable::CacheOptions for common options; each driver can support additional driver-specific options
         */
         cache(*hash opts) {
             l.lock();
@@ -12548,7 +12582,7 @@ my string $sql = $table.getRenameSql("new_name");
             @endcode
 
             @param new_name the new name for the table
-            @param opt a hash of options for the SQL string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be used to rename the table in the database
 
@@ -12645,7 +12679,7 @@ my list $l = $table.getAlignSql($table2);
             @endcode
 
             @param t the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
 
@@ -13033,7 +13067,7 @@ my string $sql = $table.getAlignSqlString($table2);
             @endcode
 
             @param t the template table that the current table will be compared to
-            @param opt a hash of options for the SQL creation string; see @ref AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
 
@@ -13050,7 +13084,7 @@ my string $sql = $table.getAlignSqlString($table2);
 my *list $l = $table.getCreateIndexesSql();
             @endcode
 
-            @param opt a hash of options for the index creation string; see @ref AbstractTable::IndexOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the index creation string; see @ref SqlUtil::AbstractTable::IndexOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
@@ -13070,7 +13104,7 @@ my *list $l = $table.getCreateIndexesSql();
 my *string $sql = $table.getCreatePrimaryKeySql();
             @endcode
 
-            @param opt a hash of options for the primary key creation string; see @ref AbstractTable::ConstraintOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the primary key creation string; see @ref SqlUtil::AbstractTable::ConstraintOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return an SQL string that could be used to create the primary key on the table or @ref nothing if there is no primary key on the table
@@ -13090,7 +13124,7 @@ my *string $sql = $table.getCreatePrimaryKeySql();
 my *list $l = $table.getCreateForeignConstraintsSql();
             @endcode
 
-            @param opt a hash of options for the foreign constraint creation string; see @ref AbstractTable::ForeignConstraintOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the foreign constraint creation string; see @ref SqlUtil::AbstractTable::ForeignConstraintOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
@@ -13110,7 +13144,7 @@ my *list $l = $table.getCreateForeignConstraintsSql();
 my *list $l = $table.getCreateConstraintsSql();
             @endcode
 
-            @param opt a hash of options for the non-foreign constraint creation string; see @ref AbstractTable::ConstraintOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the non-foreign constraint creation string; see @ref SqlUtil::AbstractTable::ConstraintOptions for common options; each driver can support additional driver-specific options
             @param cache read in data from the database for uncached properties of the table
 
             @return a list of SQL strings that could be used to create non-foreign constraints on the table or @ref nothing if there are no non-foreign constraints on the table
