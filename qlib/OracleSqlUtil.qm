@@ -872,7 +872,14 @@ my any $v = $c.name;
         }
 
         private list listTablesImpl() {
-            return getListIntern(ds.select("select table_name from user_tables").table_name);
+            list l = getListIntern(ds.select("select table_name from user_tables").table_name);
+
+            # add all tables accessible with synonyms
+            *list tl = ds.select("select synonym_name from user_synonyms s, all_tables t where s.table_owner = t.owner and s.table_name = t.table_name").synonym_name;
+            if (tl)
+                l += native_case ? tl : (map $1.lwr(), tl);
+
+            return l;
         }
 
         private list listFunctionsImpl() {
