@@ -436,6 +436,13 @@ my any $v = $c.name;
             return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
         }
 
+        #! returns a string that can be used to drop the constraint from the database
+        /** we use "keep index" to ensure that indexes are not dropped automatically for consistency's sake
+        */
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop primary key keep index", table_name);
+        }
+
         #! returns a string that can be used to temporarily disable the constraint from the database
         string getDisableSql(string table_name) {
             return sprintf("alter table %s disable constraint %s", table_name, name);
