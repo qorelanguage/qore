@@ -47,6 +47,8 @@
 extern char **environ;
 #endif
 
+#include <vector>
+
 int qore_trace = 0;
 int debug = 0;
 int qore_library_options = QLO_NONE;
@@ -55,6 +57,25 @@ qore_license_t qore_license;
 
 const QoreStringMaker mpfrInfo("runtime: %s built with: %s (%d.%d.%d)", mpfr_get_version(), MPFR_VERSION_STRING, MPFR_VERSION_MAJOR,
       MPFR_VERSION_MINOR, MPFR_VERSION_PATCHLEVEL);
+
+// static locks for openssl
+typedef std::vector<QoreThreadLock*> mutex_vec_t;
+static mutex_vec_t q_openssl_mutex_list;
+
+static unsigned long q_openssl_id_function(void) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+   return GetCurrentThreadId();
+#else
+   return pthread_self();
+#endif
+}
+
+static void q_openssl_locking_function(int mode, int n, const char* file, int line) {
+   if (mode & CRYPTO_LOCK)
+      q_openssl_mutex_list[n]->lock();
+   else
+      q_openssl_mutex_list[n]->unlock();
+}
 
 void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
    qore_license = license;
@@ -67,6 +88,13 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
       OpenSSL_add_all_algorithms();
       SSL_library_init();
       ERR_load_crypto_strings();
+
+      // create locks
+      for (int i = 0; i < CRYPTO_num_locks(); ++i)
+	 q_openssl_mutex_list.push_back(new QoreThreadLock());
+
+      CRYPTO_set_id_callback(q_openssl_id_function);
+      CRYPTO_set_locking_callback(q_openssl_locking_function);
    }
 
    QoreHTTPClient::static_init();
@@ -170,5 +198,12 @@ void qore_cleanup() {
       CONF_modules_unload(1);
 
       CRYPTO_cleanup_all_ex_data();
+
+      CRYPTO_set_id_callback(0);
+      CRYPTO_set_locking_callback(0);
+
+      // delete openssl locks
+      for (mutex_vec_t::iterator i = q_openssl_mutex_list.begin(), e = q_openssl_mutex_list.end(); i != e; ++i)
+	 delete *i;
    }
 }
