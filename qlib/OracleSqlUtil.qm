@@ -1071,6 +1071,11 @@ my any $v = $c.name;
                 ;
 
             const OracleAlignTableOptions = AbstractTable::AlignTableOptions + OracleTableCreationOptions;
+
+            #! Oracle select options
+            const OracleSelectOptions = AbstractTable::SelectOptions + (
+                "partition": Type::String,
+                );
         }
 
         private {
@@ -1219,6 +1224,11 @@ my any $v = $c.name;
 
         private hash getColumnDescOptions() {
             return OraColumnDescOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getSelectOptions() {
+            return OracleSelectOptions;
         }
 
         private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False) {
@@ -1485,6 +1495,12 @@ my any $v = $c.name;
             map c.add($1.key, $1.value), rv.pairIterator();
 
             return c;
+        }
+
+        private string getSelectSqlName(*hash qh) {
+            if (!qh.partition)
+                return getSqlName();
+            return sprintf("%s partition (%s)", getSqlName(), qh.partition);
         }
 
         private Triggers getTriggersImpl() {

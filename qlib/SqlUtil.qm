@@ -1855,10 +1855,11 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @param table the table to join with
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(AbstractTable table, *string alias, *hash jcols) {
+    public hash sub join_inner(AbstractTable table, *string alias, *hash jcols, *hash cond) {
         return make_jop(JOP_INNER, table, alias, jcols);
     }
 
@@ -1877,11 +1878,12 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @param table the table to join with
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(Table table, *string alias, *hash jcols) {
-        return make_jop(JOP_INNER, table.getTable(), alias, jcols);
+    public hash sub join_inner(Table table, *string alias, *hash jcols, *hash cond) {
+        return make_jop(JOP_INNER, table.getTable(), alias, jcols, cond);
     }
 
     #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
@@ -1900,11 +1902,12 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @param table the table to join with
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(string ta, AbstractTable table, *string alias, *hash jcols) {
-        return make_jop(JOP_INNER, table, alias, jcols, NOTHING, ta);
+    public hash sub join_inner(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond) {
+        return make_jop(JOP_INNER, table, alias, jcols, cond, ta);
     }
 
     #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
@@ -1923,11 +1926,12 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @param table the table to join with
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(string ta, Table table, *string alias, *hash jcols) {
-        return make_jop(JOP_INNER, table.getTable(), alias, jcols, NOTHING, ta);
+    public hash sub join_inner(string ta, Table table, *string alias, *hash jcols, *hash cond) {
+        return make_jop(JOP_INNER, table.getTable(), alias, jcols, cond, ta);
     }
 
     #! returns a hash for left outer joins with the given arguments
@@ -11684,7 +11688,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             else
                 cstr = "*";
 
-            string sql = sprintf("select %s from %s", cstr, getSqlName());
+            string sql = sprintf("select %s from %s", cstr, getSelectSqlName(qh));
 
             # process join specifications
             foreach any js in (qh.join.iterator()) {
@@ -11776,7 +11780,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 if (jh.cond)
                     jel += jt.getWhereClauseIntern(jh.cond, \args, an);
 
-                sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSqlName(), jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
+                sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSelectSqlName(jh.cond), jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
             }
 
             getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join));
@@ -11795,6 +11799,10 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
             #printf("SQL: %s\nargs: %y\n", sql, args);
             return sql;
+        }
+
+        private string getSelectSqlName(*hash qh) {
+            return getSqlName();
         }
 
         private string getColumnExpressionIntern(any cvc, *hash jch, bool join) {
