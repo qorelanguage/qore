@@ -1078,7 +1078,7 @@ my any $v = $c.name;
             string schema;
 
 	    # tablespace name
-            string tablespace;
+            *string tablespace;
 
 	    # is the table read only?
             bool readonly;
@@ -1122,7 +1122,7 @@ my any $v = $c.name;
 
             tablespace = row.tablespace_name;
             readonly = row.read_only == "YES";
-            if (!native_case)
+            if (!native_case && tablespace)
                 tablespace = tablespace.lwr();
 
             # get any comment
