@@ -1835,8 +1835,8 @@ my int $rows_updated = t.update(("permission_type": uop_lower()));
     /**
         @note this function is normally not used directly, but rather is called by the other @ref sql_jop_funcs
     */
-    public hash sub make_jop(string jop, AbstractTable table, *string alias, *hash jcols, *hash cond, *string ta) {
-        hash h{table.getSqlName()} = ("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta);
+    public hash sub make_jop(string jop, AbstractTable table, *string alias, *hash jcols, *hash cond, *string ta, *hash opt) {
+        hash h{table.getSqlName()} = ("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt);
         return h;
     }
 
@@ -1859,8 +1859,8 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(AbstractTable table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_INNER, table, alias, jcols);
+    public hash sub join_inner(AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_INNER, table, alias, jcols, NOTHING, NOTHING, opt);
     }
 
     #! returns a hash for standard inner joins with the given arguments
@@ -1882,8 +1882,8 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(Table table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_INNER, table.getTable(), alias, jcols, cond);
+    public hash sub join_inner(Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_INNER, table.getTable(), alias, jcols, cond, NOTHING, opt);
     }
 
     #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
@@ -1906,8 +1906,8 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_INNER, table, alias, jcols, cond, ta);
+    public hash sub join_inner(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_INNER, table, alias, jcols, cond, ta, opt);
     }
 
     #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
@@ -1930,8 +1930,8 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(string ta, Table table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_INNER, table.getTable(), alias, jcols, cond, ta);
+    public hash sub join_inner(string ta, Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_INNER, table.getTable(), alias, jcols, cond, ta, opt);
     }
 
     #! returns a hash for left outer joins with the given arguments
@@ -1953,8 +1953,8 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_left(AbstractTable table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_LEFT, table, alias, jcols, cond);
+    public hash sub join_left(AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_LEFT, table, alias, jcols, cond, NOTHING, opt);
     }
 
     #! returns a hash for left outer joins with the given arguments
@@ -1976,8 +1976,8 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_left(Table table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond);
+    public hash sub join_left(Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond, NOTHING, opt);
     }
 
     #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
@@ -2000,8 +2000,8 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_left(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_LEFT, table, alias, jcols, cond, ta);
+    public hash sub join_left(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_LEFT, table, alias, jcols, cond, ta, opt);
     }
 
     #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
@@ -2024,8 +2024,8 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_left(string ta, Table table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond, ta);
+    public hash sub join_left(string ta, Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond, ta, opt);
     }
 
     #! returns a hash for right outer joins with the given arguments
@@ -2047,8 +2047,8 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_right(AbstractTable table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_RIGHT, table, alias, jcols, cond);
+    public hash sub join_right(AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_RIGHT, table, alias, jcols, cond, NOTHING, opt);
     }
 
     #! returns a hash for right outer joins with the given arguments
@@ -2070,8 +2070,8 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_right(Table table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond);
+    public hash sub join_right(Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond, NOTHING, opt);
     }
 
     #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
@@ -2094,8 +2094,8 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_right(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_RIGHT, table, alias, jcols, cond, ta);
+    public hash sub join_right(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_RIGHT, table, alias, jcols, cond, ta, opt);
     }
 
     #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
@@ -2118,8 +2118,8 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_right(string ta, Table table, *string alias, *hash jcols, *hash cond) {
-        return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond, ta);
+    public hash sub join_right(string ta, Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond, ta, opt);
     }
     #@}
 
@@ -11780,7 +11780,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 if (jh.cond)
                     jel += jt.getWhereClauseIntern(jh.cond, \args, an);
 
-                sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSelectSqlName(jh.cond), jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
+                sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSelectSqlName(jh.opt), jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
             }
 
             getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join));
