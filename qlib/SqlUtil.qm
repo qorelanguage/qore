@@ -12097,7 +12097,7 @@ my int $ucnt = $table.update(("id": $id), ("name": $name));
             on_success ds.commit();
             on_error ds.rollback();
 
-            return updateNoCommit(cond, \sql);
+            return updateNoCommit(set, cond, \sql);
         }
 
         #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
