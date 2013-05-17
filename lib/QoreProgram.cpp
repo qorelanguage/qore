@@ -197,10 +197,12 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
          AutoLocker al(plock);
          // wait for all threads to terminate
          waitForAllThreadsToTerminateIntern();
-         if (valid) {
+         if (!ptid) {
             l = new QoreListNode;
             qore_root_ns_private::clearConstants(*RootNS, **l);
-            clr = true;
+	    // mark the program so that only code from this thread can run during data destruction
+	    ptid = gettid();
+	    clr = true;
          }
       }
    }
@@ -218,7 +220,16 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
 
       {
          AutoLocker al(plock);
-         valid = false;
+         ptid = -1;
+      }
+
+      // now clear the original map
+      {
+         AutoLocker al(tlock);
+         pgm_data_map.clear();
+         tclear = false;
+         if (twaiting)
+            tcond.broadcast();
       }
 
    #ifdef HAVE_SIGNAL_HANDLING

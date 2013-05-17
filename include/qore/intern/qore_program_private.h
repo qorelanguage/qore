@@ -321,7 +321,6 @@ public:
       
    // bit field flags
    bool only_first_except : 1,
-      valid : 1,
       po_locked : 1,
       po_allow_restrict : 1,
       exec_class : 1,
@@ -329,7 +328,8 @@ public:
       requires_exception : 1,
       tclear : 1;              // clearing thread-local variables in progress?
 
-   int exceptions_raised;
+   int exceptions_raised,
+      ptid;
 
    ParseWarnOptions pwo;
 
@@ -365,9 +365,9 @@ public:
 
    DLLLOCAL qore_program_private_base(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm = 0) 
       : thread_count(0), thread_waiting(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
-        only_first_except(false), valid(true), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
+        only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
         requires_exception(false), tclear(false),
-        exceptions_raised(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
+        exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), pgm(n_pgm) {
       //printd(5, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p\n", this, pgm);
 
@@ -479,16 +479,6 @@ public:
          i->second->del(xsink);
          i->first->delProgram(pgm);
       }
-      
-      // now clear the original map
-      {
-         AutoLocker al(tlock);
-         assert(pgm_data_map.size() == pdm_copy.size());
-         pgm_data_map.clear();
-         tclear = false;
-         if (twaiting)
-            tcond.broadcast();
-      }
    }
 
    DLLLOCAL void waitForTerminationAndClear(ExceptionSink* xsink);
@@ -500,7 +490,7 @@ public:
    DLLLOCAL int incThreadCount(ExceptionSink* xsink) {
       // grab program-level lock
       AutoLocker al(plock);
-      if (!valid) {
+      if (ptid && ptid != gettid()) {
          xsink->raiseException("PROGRAM-ERROR", "the program accessed has already been deleted");
          return -1;
       }
@@ -978,6 +968,7 @@ public:
    }
 
    DLLLOCAL const AbstractQoreZoneInfo* currentTZ(ThreadProgramData* tpd = get_thread_program_data()) const {
+      AutoLocker al(tlock);
       pgm_data_map_t::const_iterator i = pgm_data_map.find(tpd);
       if (i != pgm_data_map.end() && i->second->tz_set)
          return i->second->tz;
@@ -1305,12 +1296,14 @@ public:
    }
 
    DLLLOCAL void setThreadTZ(ThreadProgramData* tpd, const AbstractQoreZoneInfo* tz) {
+      AutoLocker al(tlock);
       pgm_data_map_t::iterator i = pgm_data_map.find(tpd);
       assert(i != pgm_data_map.end());
       i->second->setTZ(tz);
    }
 
    DLLLOCAL const AbstractQoreZoneInfo* getThreadTZ(ThreadProgramData* tpd, bool& set) const {
+      AutoLocker al(tlock);
       pgm_data_map_t::const_iterator i = pgm_data_map.find(tpd);
       assert(i != pgm_data_map.end());
       set = i->second->tz_set;
@@ -1318,6 +1311,7 @@ public:
    }
 
    DLLLOCAL void clearThreadTZ(ThreadProgramData* tpd) {
+      AutoLocker al(tlock);
       pgm_data_map_t::iterator i = pgm_data_map.find(tpd);
       assert(i != pgm_data_map.end());
       i->second->clearTZ();

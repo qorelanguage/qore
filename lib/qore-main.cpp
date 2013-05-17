@@ -66,7 +66,7 @@ static unsigned long q_openssl_id_function(void) {
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
    return GetCurrentThreadId();
 #else
-   return pthread_self();
+   return (unsigned long)pthread_self();
 #endif
 }
 
