@@ -358,6 +358,8 @@ my *list $rows = $table.selectRows(("columns": ("name", "version", "id", cop_as(
     To join multiple tables in a single query, use the \c "join" option.  The \c "join" hash key should be assigned to a join description hash as returned by one of the @ref sql_jop_funcs or combined join description hash created by concatenating such values (see an example of this above).
     @note the join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
 
+    @see @ref joins for more examples
+
     @subsection sql_paging Select With Paging
 
     There is support for paging query results in the following methods:
@@ -494,6 +496,33 @@ return $ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOM
     The @ref SqlUtil::Table::del() and @ref SqlUtil::Table::delNoCommit() methods can be used to delete data from the database.
 
     See @ref where_clauses for information about specifying the criteria for the rows to be deleted.
+
+    @section joins Joining Tables
+
+    Joining tables is made by providing a join specification to the @ref select_option_join "join select option" in
+    a @ref select_option_hash "select option hash" as in the following example:
+    @code
+my *list $rows = $table.selectRows(("columns": ("table.id", "t2.customer_name"), "join": join_inner($table2, "t2", ("id": "altid"))));
+    @endcode
+    In the above example, \a table is joined with \a table2 on <tt>table.id = table2.altid</tt>.
+
+    Joins on multiple tables are performed by combining the results of @ref sql_op_funcs "join functions" with the @ref plus_operator "+ operator"
+    as follows:
+    @code
+my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid")) + join_inner($table3, "t3")));
+    @endcode
+    In the above example, \a table is joined with \a table2 on <tt>table.id = table2.altid</tt> and with \a table3 on an
+    automatically detected primary key to foreign key relationship between the two tables.
+
+    Joins are by default made with the primary table; to join with another join table, then give the alias for the table as the first
+    argument to the @ref sql_op_funcs "join function" as in the following example:
+    @code
+my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid")) + join_inner("t2", $table3, "t3")));
+    @endcode
+    In the above example, \a table is joined with \a table2 on <tt>table.id = table2.altid</tt> and \a table2 (aliased as \c t2) is joined
+    with \a table3 (aliased as \c t3) on an automatically detected primary key to foreign key relationship between the two tables.
+
+    @see @ref select_option_join "join select option"
 
     @section where_clauses Where Clauses
 
@@ -1855,6 +1884,7 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @param table the table to join with
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
         @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
@@ -1879,6 +1909,7 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
@@ -1903,6 +1934,7 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
@@ -1927,6 +1959,7 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
@@ -1950,6 +1983,7 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
@@ -1973,6 +2007,7 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
@@ -1997,6 +2032,7 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
@@ -2021,6 +2057,7 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
@@ -2044,6 +2081,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
@@ -2067,6 +2105,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
@@ -2091,6 +2130,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
@@ -2115,6 +2155,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
         @param alias the alias for \a table in the query
         @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
         @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */

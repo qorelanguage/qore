@@ -53,6 +53,8 @@ module OracleSqlUtil {
 */
 
 /** @mainpage OracleSqlUtil Module
+    
+    @tableofcontents
 
     The %OracleSqlUtil module provides a high level API for working with Oracle database objects.
 
@@ -60,6 +62,62 @@ module OracleSqlUtil {
     directly, use \c "%requires OracleSqlUtil" in your code.
     
     All the public symbols in the module are defined in the OracleSqlUtil namespace
+
+    @section ora_sql_operations SQL Operations on Oracle
+
+    @subsection ora_paging Select With Paging on Oracle
+
+    Select with paging on Oracle is more complicated than on some databases due to the lack of direct \c limit and \c offset
+    support.
+
+    For example, for the following select:
+    @code
+my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
+    @endcode
+    the following SQL is generated for Oracle:
+    @code
+$ds.vselectRows("select * from (select /*+ first_rows(100) *<!--%%-->/ a.*, rownum rnum from (select * from schema.table where type = %v order by type) a where rownum <= %v) where rnum > %v", ("user", 300, 200));
+    @endcode
+
+    @subsection ora_partitioning_select Partition Support in Selects
+    
+    It's possible to select from a particular partition of a table with OracleSqlUtil; 
+    @ref OracleSqlUtil::OracleTable::OracleSelectOptions defines the \c "partition" key which can be added to a
+    @ref select_option_hash "select option hash" to specify the partition to select from as in the following example:
+    @code
+my *list $rows = $table.selectRows(("created": op_gt(2012-05-01), "partition": "p1"));
+    @endcode
+    Which generates an SQL command like the following:
+    @code
+my *list $rows = $ds.vselectRows("select * from schema.table partition(p1) where created > %v", (2012-05-01));
+    @endcode
+
+    @subsection ora_partitioning_select Partition Support in Joins
+
+    It's possible to perform a join on a particular partition of a table with OracleSqlUtil; the join option \c "partition" is
+    supported to specify the partition to join on as in the following example:
+    @code
+my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid"), NOTHING, ("partition": "p2"))));
+    @endcode
+    Which generates an SQL command like the following:
+    @code
+my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.table2 partition(p2) t2 on (schema.table.id = t2.altid)");
+    @endcode
+
+    @section ora_schema_management Schema Management on Oracle
+
+    The following additional schema objects can be managed with OracleSqlUtil:
+    - materialized views
+    - packages
+    - synonyms
+    - types
+
+    @see OracleSqlUtil::OracleDatabase::OracleSchemaDescriptionOptions for a list of Oracle-specific schema description hash keys.
+
+    @section ora_relnotes Release Notes
+
+    @subsection v10 OraSqlUtil v1.0
+    - initial release
 */
 
 #! the OracleSqlUtil namespace contains all the objects in the OracleSqlUtil module
@@ -120,7 +178,7 @@ my list $l = $col.getModifySql($t, $newcol);
             The column names are assumed to be equal
 
             @param t the AbstractTable object to modify
-            @param c the new column definition
+            @param col the new column definition
          */
         list getModifySql(AbstractTable t, AbstractColumn col) {
             list l = ();
@@ -635,7 +693,7 @@ my any $v = $c.name;
         }
     }
 
-    #! the Oracle specialization for SqlUtil::AbstactDatabase
+    #! the Oracle specialization for SqlUtil::AbstractDatabase
     public class OracleDatabase inherits SqlUtil::AbstractDatabase {
         public {
             #! oracle-specific generic creation options
@@ -650,6 +708,14 @@ my any $v = $c.name;
                 ;
 
             #! oracle-specific schema description keys
+            /** This constant extends @ref SqlUtil::AbstractDatabase::SchemaDescriptionOptions as returned by @ref OracleSqlUtil::OracleTable::getSchemaDescriptionOptions with the following Oracle-specific keys:
+                - \c types: for Oracle type definitions
+                - \c type_map: to automatically renaming Oracle types during schema alignment
+                - \c packages: for Oracle package descriptions
+                - \c package_map: for automatically renaming Oracle types during schema alignment
+                - \c materialized_views: for Oracle materialized view descriptions
+                - \c materialized_view_map: for automatically renaming Oracle materialized views during schema alignment
+            */
             const OracleSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + (
                 "types": Type::Hash,
                 "type_map": Type::Hash,
@@ -1052,14 +1118,30 @@ my any $v = $c.name;
                 "character_semantics": Type::Boolean,
                 );
 
+            #! Oracle-specific column options
+            /** this constant extends @ref SqlUtil::AbstractTable::ColumnOptions as returned by @ref OracleSqlUtil::OracleTable::getColumnOptions() with the following keys:
+                - \c character_semantics: adds "char" to the column type name for applicable character columns to use character semantics for the column
+            */
             const OraColumnOptions = AbstractTable::ColumnOptions + OraColumnOpts;
 
+            #! Oracle-specific column options
+            /** this constant extends @ref SqlUtil::AbstractTable::ColumnDescOptions as returned by @ref OracleSqlUtil::OracleTable::getColumnDescOptions() with the following keys:
+                - \c character_semantics: to specify that applicable character columns use character semantics in the column definition
+            */
             const OraColumnDescOptions = AbstractTable::ColumnDescOptions + OraColumnOpts;
 
+            #! Oracle-specific index options
+            /** this constant extends @ref SqlUtil::AbstractTable::IndexOptions as returned by @ref OracleSqlUtil::OracleTable::getIndexOptions() with the following keys:
+                - \c compute_statistics: adds "compute statistics" to index creation strings
+            */
             const OracleIndexOptions = AbstractTable::IndexOptions + (
                 "compute_statistics": Type::Boolean,
                 );
 
+            #! Oracle-specific constraint options
+            /** this constant extends @ref OracleIndexOptions as returned by @ref OracleSqlUtil::OracleTable::getConstraintOptions() with the following keys:
+                - \c index: adds "using index <indexname>" to the constraint creation string
+            */
             const OracleConstraintOptions = OracleIndexOptions + (
                 "index": Type::String,
                 );
@@ -1073,6 +1155,10 @@ my any $v = $c.name;
             const OracleAlignTableOptions = AbstractTable::AlignTableOptions + OracleTableCreationOptions;
 
             #! Oracle select options
+            /** This constant extends @ref SqlUtil::AbstractTable::SelectOptions with the following options as returned by 
+                @ref OracleSqlUtil::OracleTable::getSelectOptions():
+                - \c partition: the partition name to use in a query (see @ref ora_partitioning_select)
+            */
             const OracleSelectOptions = AbstractTable::SelectOptions + (
                 "partition": Type::String,
                 );
