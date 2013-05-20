@@ -581,10 +581,10 @@ HTTPClient::setURL(string url) {
 
     @par Example:
     @code
-my string $url = $httpclient.getURL();
+my *string $url = $httpclient.getURL();
     @endcode
  */
-string HTTPClient::getURL() [flags=CONSTANT] {
+*string HTTPClient::getURL() [flags=CONSTANT] {
    return client->getURL();
 }
 
@@ -909,5 +909,43 @@ my hash $h = $httpclient.getSocketInfo();
  */
 hash HTTPClient::getSocketInfo() {
    return client->getSocketInfo(xsink);
+}
+
+//! Sets the default path used by the object if no path is set in the URL
+/** @param path the default path value to set or if @ref nothing then clears the path
+
+    @par Example:
+    @code
+$httpclient.setDefaultPath();
+    @endcode
+ */
+nothing HTTPClient::setDefaultPath(*string path) {
+   client->setDefaultPath(path ? path->getBuffer() : 0);
+}
+
+//! Returns the default path used by the object if no path is set in the URL
+/** @return the default path used by the object if no path is set in the URL
+
+    @par Example:
+    @code
+my *string $def_path = $httpclient.getDefaultPath();
+    @endcode
+ */
+string HTTPClient::getDefaultPath() [flags=CONSTANT] {
+   const char* dp = client->getDefaultPath();
+   return dp ? new QoreStringNode(dp) : 0;
+}
+
+//! Returns the current connection path set in the URL
+/** @return the current connection path set in the URL
+
+    @par Example:
+    @code
+my *string $path = $httpclient.getConnectionPath();
+    @endcode
+ */
+string HTTPClient::getConnectionPath() [flags=CONSTANT] {
+   const char* p = client->getConnectionPath();
+   return p ? new QoreStringNode(p) : 0;
 }
 

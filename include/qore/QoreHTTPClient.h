@@ -93,6 +93,16 @@ public:
     */
    DLLEXPORT void setDefaultPath(const char *pth);
 
+   //! returns the default path or 0 if none is set
+   /** @since Qore 0.8.8
+    */
+   DLLEXPORT const char* getDefaultPath() const;
+
+   //! returns the current connection path or 0 if none is set
+   /** @since Qore 0.8.8
+    */
+   DLLEXPORT const char* getConnectionPath() const;
+
    //! adds a protocol
    /** useful for c++ derived classes
     */

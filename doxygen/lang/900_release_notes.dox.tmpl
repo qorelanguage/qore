@@ -21,6 +21,10 @@
       - Qore::SQL::Datasource::getConfigString()
       - Qore::SQL::DatasourcePool::getConfigHash()
       - Qore::SQL::DatasourcePool::getConfigString()
+    - @ref Qore::HTTPClient "HTTPClient" method changes:
+      - Qore::HTTPClient::getDefaultPath(): added
+      - Qore::HTTPClient::setDefaultPath(): added
+      - Qore::HTTPClient::getURL(): changed: now returns @ref nothing if no URL is set instead of an invalid URL
     - new functions:
       - call_pseudo_args()
       - @ref Qore::substr(binary, softint) "substr(binary, softint)"
@@ -71,6 +75,7 @@
     - fixed a bug where private members of a common base class were not accessible by objects of subclasses sharing the common base class
     - fixed many bugs in <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> and updated the module version to 1.1
     - initialize static openssl crypto locks for multi-threaded openssl library access; without this crashes can result (for example in error queue management)
+    - fix a bug where Qore::HTTPClient::getURL() returned an invalid URL when no URL was set; now it returns @ref nothing in this case
 
     @section qore_087 Qore 0.8.7
 

@@ -479,6 +479,14 @@ void QoreHTTPClient::setDefaultPort(int def_port) {
    priv->default_port = def_port;
 }
 
+const char* QoreHTTPClient::getDefaultPath() const {
+   return priv->default_path.empty() ? 0 : priv->default_path.c_str();
+}
+
+const char* QoreHTTPClient::getConnectionPath() const {
+   return priv->connection.path.empty() ? getDefaultPath() : priv->connection.path.c_str();
+}
+
 void QoreHTTPClient::setDefaultPath(const char *def_path) {
    priv->default_path = def_path;
 }
@@ -612,6 +620,9 @@ int QoreHTTPClient::setURL(const char *str, ExceptionSink* xsink) {
 
 QoreStringNode *QoreHTTPClient::getURL() {
    SafeLocker sl(priv->m);
+
+   if (!priv->connection.port)
+      return 0;
 
    return priv->connection.get_url();
 }

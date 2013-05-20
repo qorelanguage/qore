@@ -190,14 +190,12 @@ public namespace RestClient {
             string $.ds;
             # serialization info hash
             hash $.sih;
-            # root REST path
-            string $.path;
         }
 
         #! calls the base class HTTPClient constructor and optionally connects to the REST server
         /** @par Example:
             @code
-my RestClient(("url": "http://localhost:8001/rest"));
+my RestClient $rest(("url": "http://localhost:8001/rest"));
             @endcode
 
             @param opts valid options are:
@@ -208,13 +206,13 @@ my RestClient(("url": "http://localhost:8001/rest"));
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
-            - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 5m)
-            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 30s)
+            - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
+            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
 
             @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
         */
-        constructor(hash $opts = hash(), bool $do_not_connect = False) : HTTPClient($opts) {
+        constructor(*hash $opts, *softbool $do_not_connect) : HTTPClient($opts) {
             $.setSerialization($opts.data);
             
             # unconditionally set the encoding to utf-8
@@ -224,10 +222,6 @@ my RestClient(("url": "http://localhost:8001/rest"));
                 $.connect();
             
             $.headers = DefaultHeaders + $opts.headers;
-            
-            # set path
-            my *string $path = parse_url($.getURL()).path;
-            $.path = $path ? $path : $opts.default_path ? $opts.default_path : "";
         }
 
         #! change the serialization option for the object; see @ref DataSerializationOptions for valid options
@@ -390,8 +384,9 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             on_exit if ($rb) $info."request-body" = $rb;
 
             # prepare path
-            if ($.path && $path)
-                $path = $.path + "/" + $path;
+            my *string $p = $.getConnectionPath();
+            if ($p && $path)
+                $path = $p + "/" + $path;
 
             my hash $h = $.send($body, $m, $path, $hdr, False, \$info);
 
