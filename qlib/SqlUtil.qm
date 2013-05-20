@@ -53,7 +53,7 @@ module SqlUtil {
 
     @tableofcontents
 
-    @section intro Introduction
+    @section sqlutil_intro Introduction
 
     The %SqlUtil module provides a high level database-independent API for working with database objects and SQL.
 
@@ -77,7 +77,7 @@ module SqlUtil {
     the %SqlUtil module provide a generic API that uses the driver-specific implementations for the underlying driver-specific
     implementation.
 
-    @subsection sqlutil_overview Overview of Functionality
+    @section sqlutil_overview Overview of Functionality
 
     SqlUtil provides API support for the following:
     - @ref sql_operations
@@ -93,6 +93,11 @@ module SqlUtil {
       - @ref interdependent_tables
       - @ref aligning_schemas
       - @ref table_management
+
+    @section relnotes Release Notes
+    
+    @subsection v10 SqlUtil v1.0
+    - initial release of the SqlUtil modules for schema management and SQL operations
 */
 
 /** @page sql_operations SQL Operations

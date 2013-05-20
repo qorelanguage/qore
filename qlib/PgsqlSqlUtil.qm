@@ -299,7 +299,7 @@ public namespace PgsqlSqlUtil {
 my list $l = $col.getCreateSql($t);
             @endcode
 
-            @param t the AbstractTable object to modify
+            @param t the SqlUtil::AbstractTable object to modify
          */
         list getCreateSql(AbstractTable t) {
 	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql());	    
@@ -316,7 +316,7 @@ my list $l = $col.getModifySql($t, $newcol);
 
             The column names are assumed to be equal.
 
-            @param t the AbstractTable object to modify
+            @param t the SqlUtil::AbstractTable object to modify
             @param col the new column definition
 
             @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
@@ -359,7 +359,7 @@ my list $l = $col.getModifySql($t, $newcol);
 my string $str = $col.getRenameSql($t, "new_name");
             @endcode
 
-            @param t the AbstractTable object to modify
+            @param t the SqlUtil::AbstractTable object to modify
             @param new_name the new name for the column
 
             @return a string that can be used to rename the column
@@ -964,7 +964,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
     }
 
-    #! provides the PostgreSQL-specific implementation of the AbstractTable interface
+    #! provides the PostgreSQL-specific implementation of the SqlUtil::AbstractTable interface
     public class PgsqlTable inherits SqlUtil::AbstractTable {
         public {
             #! maps postgresql type names to type configurations

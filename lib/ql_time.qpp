@@ -867,7 +867,7 @@ date microseconds(softint us) [flags=CONSTANT] {
 my int $n = get_years($dt);
     @endcode
 
-    @note equivalent to pseud-method <date>::years()
+    @note equivalent to pseudo-method <date>::years()
 */
 int get_years(date dt) [flags=CONSTANT] {
    return dt->getYear();
@@ -890,7 +890,7 @@ nothing get_years() [flags=RUNTIME_NOOP] {
 my int $n = get_months($dt);
     @endcode
 
-    @note equivalent to pseud-method <date>::months()
+    @note equivalent to pseudo-method <date>::months()
 */
 int get_months(date dt) [flags=CONSTANT] {
    return dt->getMonth();
@@ -913,7 +913,7 @@ nothing get_months() [flags=RUNTIME_NOOP] {
 my int $n = get_days($dt);
     @endcode
 
-    @note equivalent to pseud-method <date>::days()
+    @note equivalent to pseudo-method <date>::days()
 */
 int get_days(date dt) [flags=CONSTANT] {
    return dt->getDay();
@@ -936,7 +936,7 @@ nothing get_days() [flags=RUNTIME_NOOP] {
 my int $n = get_hours($dt);
     @endcode
 
-    @note equivalent to pseud-method <date>::hours()
+    @note equivalent to pseudo-method <date>::hours()
 */
 int get_hours(date dt) [flags=CONSTANT] {
    return dt->getHour();
@@ -959,7 +959,7 @@ nothing get_hours() [flags=RUNTIME_NOOP] {
 my int $n = get_minutes($dt);
     @endcode
 
-    @note equivalent to pseud-method <date>::minutes()
+    @note equivalent to pseudo-method <date>::minutes()
 */
 int get_minutes(date dt) [flags=CONSTANT] {
    return dt->getMinute();
@@ -983,7 +983,7 @@ my int $n = get_seconds($dt);
     @endcode
 
     @note
-    - equivalent to pseud-method <date>::seconds()
+    - equivalent to pseudo-method <date>::seconds()
     - to get the number of seconds of duration in a date/time value, use @ref get_duration_seconds() instead
 */
 int get_seconds(date dt) [flags=CONSTANT] {
@@ -1008,7 +1008,7 @@ my int $n = get_milliseconds($dt);
     @endcode
 
     @note
-    - equivalent to pseud-method <date>::milliseconds()
+    - equivalent to pseudo-method <date>::milliseconds()
     - to get the number of milliseconds of duration in a date/time value, use @ref get_duration_milliseconds() instead
 */
 int get_milliseconds(date dt) [flags=CONSTANT] {
@@ -1033,7 +1033,7 @@ my int $n = get_microseconds($dt);
     @endcode
 
     @note
-    - equivalent to pseud-method <date>::microseconds()
+    - equivalent to pseudo-method <date>::microseconds()
     - to get the number of microseconds of duration in a date/time value, use @ref get_duration_microseconds() instead
 */
 int get_microseconds(date dt) [flags=CONSTANT] {
