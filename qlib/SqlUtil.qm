@@ -12838,32 +12838,7 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
-            # check for columns in the template that are not present or different in the current table
-            foreach AbstractColumn c in (t.columns.iterator()) {
-                if (!columns.hasKey(c.name)) {
-                    # add column to table
-                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(self), AbstractDatabase::AC_Add, "column", c.name, name);
-                }
-                else {
-                    # get any delta SQL
-                    list cl = columns{c.name}.getModifySql(self, c);
-                    # add delta SQL to list if there is any to add
-                    if (cl) {
-                        l += AbstractDatabase::doCallback(opt, cl, AbstractDatabase::AC_Modify, "column", c.name, name, NOTHING, c.getNativeTypeString());
-                    }
-                    else
-                        AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "column", c.name, name);
-                }
-            }
-
-            # check for columns not in the template and drop them
-            foreach AbstractColumn c in (columns.iterator()) {
-                if (!t.columns.hasKey(c.name)) {
-                    l += getDropAllConstraintsAndIndexesOnColumnSqlUnlocked(c.name, opt);
-                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "column", c.name, name);
-                }
-            }
-
+            # before modifying columns, rename indexes constraints and drop any excess indexes and constraints
             # process index_map: rename indexes
             foreach hash rh in (opt.index_map.pairIterator()) {
                 if (indexes.hasKey(rh.key)) {
@@ -12883,19 +12858,6 @@ my list $l = $table.getAlignSql($table2);
                     l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), other.name), AbstractDatabase::AC_Rename, "index", ix.name, name, other.name);
                     renameIndexUnlocked(ix, other.name);
                 }
-            }
-
-            # check for indexes in the template that are not present or different in the current table
-            foreach AbstractIndex ix in (t.indexes.iterator()) {
-                if (!indexes.hasKey(ix.name)) {
-                    # add index to table
-                    l += AbstractDatabase::doCallback(opt, ix.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "index", ix.name, name);
-                }
-                else if (!ix.equal(indexes{ix.name})) {
-                    l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt), AbstractDatabase::AC_Recreate, "index", ix.name, name);
-                }
-                else
-                    AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "index", ix.name, name);
             }
 
             # check for indexes not in the template and drop them
@@ -12985,29 +12947,94 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
-            # check for primary key differences
-            if (t.primaryKey) {
-                if (primaryKey && !primaryKey.equal(t.primaryKey)) {
-                    # see if pk has the same definition but a different name
+            # check for foreign constraints not in the template and drop them
+            foreach AbstractForeignConstraint c in (foreignConstraints.iterator()) {
+                if (!t.foreignConstraints.hasKey(c.getName())) {
+                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
+                    foreignConstraints.take(c.getName());
+                }
+            }
+
+            # check for other constraints not in the template and drop them
+            foreach AbstractConstraint c in (constraints.iterator()) {
+                if (!t.constraints.hasKey(c.getName())) {
+                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
+                    constraints.take(c.getName());
+                }
+            }
+
+            # see if we need to drop the primary key
+            if (!t.primaryKey.empty()) {
+                if (!primaryKey.empty() && !primaryKey.equal(t.primaryKey)) {
+                    # see if pk has the same definition but a different name; if so, it will be renamed later
                     if (primaryKey.getName() != t.primaryKey.getName()
-                        && primaryKey.matchKeys(t.primaryKey)) {
+                        && primaryKey.matchKeys(t.primaryKey))
+                        continue;
+
+                    #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey, t.primaryKey);
+                    l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", t.primaryKey.getName(), name);
+                    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
+                        t.primaryKey.clearIndex();
+                    delete primaryKey;
+                }
+            }
+            else if (!primaryKey.empty()) {
+                l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", primaryKey.getName(), name);
+                delete primaryKey;
+            }
+
+            # check for columns in the template that are not present or different in the current table
+            foreach AbstractColumn c in (t.columns.iterator()) {
+                if (!columns.hasKey(c.name)) {
+                    # add column to table
+                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(self), AbstractDatabase::AC_Add, "column", c.name, name);
+                }
+                else {
+                    # get any delta SQL
+                    list cl = columns{c.name}.getModifySql(self, c);
+                    # add delta SQL to list if there is any to add
+                    if (cl) {
+                        l += AbstractDatabase::doCallback(opt, cl, AbstractDatabase::AC_Modify, "column", c.name, name, NOTHING, c.getNativeTypeString());
+                    }
+                    else
+                        AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "column", c.name, name);
+                }
+            }
+
+            # check for columns not in the template and drop them
+            foreach AbstractColumn c in (columns.iterator()) {
+                if (!t.columns.hasKey(c.name)) {
+                    l += getDropAllConstraintsAndIndexesOnColumnSqlUnlocked(c.name, opt);
+                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "column", c.name, name);
+                }
+            }
+
+            # check for indexes in the template that are not present or different in the current table
+            foreach AbstractIndex ix in (t.indexes.iterator()) {
+                if (!indexes.hasKey(ix.name)) {
+                    # add index to table
+                    l += AbstractDatabase::doCallback(opt, ix.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "index", ix.name, name);
+                }
+                else if (!ix.equal(indexes{ix.name})) {
+                    l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt), AbstractDatabase::AC_Recreate, "index", ix.name, name);
+                }
+                else
+                    AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "index", ix.name, name);
+            }
+
+            # check for primary key differences
+            if (!t.primaryKey.empty()) {
+                if (!primaryKey.empty()) {
+                    # we know the 2 primary key definitions have equal column definitions as it's checked above
+                    # see if pk has a different name
+                    if (primaryKey.getName() != t.primaryKey.getName()) {
                         l += AbstractDatabase::doCallback(opt, primaryKey.getRenameSql(getSqlName(), t.primaryKey.getName()), AbstractDatabase::AC_Rename, "constraint", primaryKey.getName(), name, t.primaryKey.getName());
                         primaryKey.rename(t.primaryKey.getName());
                     }
-                    else {
-                        #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey, t.primaryKey);
-                        l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", t.primaryKey.getName(), name);
-                        if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
-                            t.primaryKey.clearIndex();
-                        l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "primary key", t.primaryKey.getName(), name);
-                    }
                 }
-                else if (!primaryKey) {
+                else {
                     l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "primary key", t.primaryKey.getName(), name);
                 }
-            }
-            else if (primaryKey && !primaryKey.empty()) {
-                l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", primaryKey.getName(), name);
             }
 
             # check for foreign constraints in the template that are not present or different in the current table
@@ -13024,13 +13051,6 @@ my list $l = $table.getAlignSql($table2);
                 }
                 else
                     AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "foreign constraint", c.getName(), name);
-            }
-
-            # check for foreign constraints not in the template and drop them
-            foreach AbstractForeignConstraint c in (foreignConstraints.iterator()) {
-                if (!t.foreignConstraints.hasKey(c.getName())) {
-                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
-                }
             }
 
             # check for other constraints in the template that are not present or different in the current table
@@ -13050,13 +13070,6 @@ my list $l = $table.getAlignSql($table2);
                 }
                 else
                     AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "constraint", c.getName(), name);
-            }
-
-            # check for other constraints not in the template and drop them
-            foreach AbstractConstraint c in (constraints.iterator()) {
-                if (!t.constraints.hasKey(c.getName())) {
-                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
-                }
             }
 
             # check for table-specific alignment actions before triggers
