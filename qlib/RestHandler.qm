@@ -292,6 +292,10 @@ public namespace RestHandler {
             else
                 $body = $args;
 
+            # reflect body in arguments if body is a hash and there are no args
+            if (!$args && $body && $body.typeCode() == NT_HASH)
+                $args = $body;
+
             # make method name
             my string $mn;
             if ($args.action) {

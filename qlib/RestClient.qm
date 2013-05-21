@@ -391,7 +391,7 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             my hash $h = $.send($body, $m, $path, $hdr, False, \$info);
 
             # decode any response body
-            if ($h.body) {
+            if (exists $h.body) {
                 $info."response-body" = $h.body;
                 my bool $decoded = False;
 %ifndef NoYaml
