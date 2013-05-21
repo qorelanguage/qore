@@ -851,13 +851,13 @@ class HttpServer::HttpListener inherits Qore::Socket {
                 call_function($.stopc, $.name);
             }
             catch (hash $ex) {
-                $.serv.logError("listener %s (%s): error calling stop notification closure: %s: %s", $.name, $.socket_info.desc, $ex.err, $ex.desc);
+                $.serv.logError("listener %y (%s): error calling stop notification closure: %s: %s", $.name, $.socket_info.desc, $ex.err, $ex.desc);
             }
         }
     }
 
     log() {
-	$argv[0] = sprintf("listener %s (%s): %s", $.name, $.socket_info.desc, $argv[0]);
+	$argv[0] = sprintf("listener %y (%s): %s", $.name, $.socket_info.desc, $argv[0]);
 	if ($.logger) {
 	    $argv[0] = "HTTP " + $argv[0];
             try {
@@ -873,7 +873,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
     }
     
     logError() {
-	$argv[0] = sprintf("listener %s (%s): %s", $.name, $.socket_info.desc, $argv[0]);
+	$argv[0] = sprintf("listener %y (%s): %s", $.name, $.socket_info.desc, $argv[0]);
 	if ($.errorlogger) {
 	    $argv[0] = "HTTP " + $argv[0];
             try {
@@ -892,7 +892,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
         on_exit	$.cThreads.dec();
 
         # DEBUG
-        #printf("HTTP DEBUG: listener %s: mainThread() started TID %d\n", $.socket, gettid());
+        #printf("HTTP DEBUG: listener %y: mainThread() started TID %d\n", $.socket, gettid());
 
 	# start listening
 	while (!$.exit) {
@@ -920,7 +920,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		continue;
 
 	    # DEBUG
-	    #printf("HTTP DEBUG: listener %s: accepting HTTP connection from %s\n", $.socket_info.address_desc, $info.address_desc);
+	    #printf("HTTP DEBUG: listener %y: accepting HTTP connection from %s\n", $.socket_info.address_desc, $info.address_desc);
 	    #$.log("accepting HTTP connection from %s", $info.address_desc);
 	    
 	    $.cThreads.inc();
@@ -996,7 +996,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		}
 
 		# DEBUG:
-		#printf("HTTP DEBUG: id: %d, hdr=%n\n", $cx.id, $hdr);
+                #printf("HTTP DEBUG: id: %d, hdr=%n\n", $cx.id, $hdr);
 
 		# remove leading / if present in path
 		if ($hdr.path =~ /^\//)
@@ -1101,6 +1101,9 @@ class HttpServer::HttpListener inherits Qore::Socket {
                         break;
                     }
                 }
+
+                $.log("%s: %s %s HTTP/%s (body %d bytes)", $info.address_desc, $hdr.method, $hdr.path, $hdr.http_version, $body.size());
+                #xxxx
 
                 #printf("HTTP DEBUG: id: %d, body: %n\n", $cx.id, substr($body, 0, 120));
 

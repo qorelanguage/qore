@@ -258,7 +258,7 @@ public namespace RestHandler {
             #$.logDebug("cx: %N", $cx);
             $.logDebug("hdr: %N", $hdr);
             if ($b)
-                $.logDebug("body: %s", $b);
+                $.logDebug("body: %s", $b.typeCode() == NT_STRING ? trim($b) : sprintf("%y", $b));
 
             my any $body = $b;
             
@@ -341,7 +341,7 @@ public namespace RestHandler {
                 $aih."*/*" = True;
             }
 
-            $.logDebug("aih: %y", $aih);
+            #$.logDebug("aih: %y", $aih);
 
             # set up context hash
             $cx += ("hdr": $hdr, "body": $body, "aih": $aih);
@@ -352,9 +352,10 @@ public namespace RestHandler {
                 $rcls = $self;
             else {
                 if (!$.ch{$cls}) {
-                    $cls = $.subClass($cls, $cx, $args);
-                    if (!$cls)
+                    my *AbstractRestClass $c = $.subClass($cls, $cx, $args);
+                    if (!$c)
                         return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", $cls, $cx.url.path, $.ch.keys());
+                    $rcls = $c;
                 }
                 else
                     $rcls = $.ch{$cls};
