@@ -995,12 +995,13 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		# DEBUG:
                 #printf("HTTP DEBUG: id: %d, hdr=%n\n", $cx.id, $hdr);
 
-		# remove leading / if present in path
-		if ($hdr.path =~ /^\//)
-                    splice $hdr.path, 0, 1;
-
 		# process ascii encodings in url if present
 		$hdr.path = decode_url($hdr.path);
+
+		# remove leading / if present in path
+                my *string $orig_path = $hdr.path;
+		if ($hdr.path =~ /^\//)
+                    splice $hdr.path, 0, 1;
 
 		if ($hdr.authorization)
 		    $cx.auth = $hdr.authorization;
@@ -1008,7 +1009,8 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		$cx.encoding = $.getEncoding();
 
 		# save original content-type
-		$hdr."_qore_orig_content_type" = $hdr."content-type";
+                if ($hdr."content-type")
+                    $hdr."_qore_orig_content_type" = $hdr."content-type";
 
 		# split content-type fields
 		my list $ct = split(";", $hdr."content-type");
@@ -1100,17 +1102,14 @@ class HttpServer::HttpListener inherits Qore::Socket {
                 }
 
                 {
-                    my string $lstr = sprintf("%s: %s %s HTTP/%s", $info.address_desc, $hdr.method, $hdr.path ? $hdr.path : "/", $hdr.http_version);
+                    my string $lstr = sprintf("cid %d: %s %s HTTP/%s (agent: %y", $cx.id, $hdr.method, $orig_path, $hdr.http_version, $hdr."user-agent");
                     if ($body)
-                        $lstr += sprintf(" (body: %d bytes", $body.size());
-                    if ($.ssl) {
-                        $lstr += " ";
-                        if (!$body)
-                            $lstr += "(";
-                        $lstr += sprintf("%s %s", $s.getSSLCipherName(), $s.getSSLCipherVersion());
-                    }
-                    if ($body || $.ssl)
-                        $lstr += ")";
+                        $lstr += sprintf(" body: %d bytes", $body.size());
+                    if ($.ssl)
+                        $lstr += sprintf(" %s %s", $s.getSSLCipherName(), $s.getSSLCipherVersion());
+                    if ($hdr."_qore_orig_content_type")
+                        $lstr += sprintf(" Content-Type: %y", $hdr."_qore_orig_content_type");
+                    $lstr += ")";
                     $.log($lstr);
                 }
 
@@ -2087,6 +2086,7 @@ public class HttpServer::HttpServer {
 		    $rv.body = sprintf("unknown error in %s handler", $handlerName);
 		
 		$.sendHttpError($s, $rv.code, $rv.body, $close, NOTHING, $cx."response-encoding");
+		$listener.logError($rv.body);
 	    }
 	    else {
 		#printf("\n**** REQUEST: %N\n", $body);
@@ -2139,6 +2139,25 @@ public class HttpServer::HttpServer {
 		    #$.log("HTTP DEBUG hdr=%N\nbody=%s", $rv.hdr, $rv.body);
 		    #printf("HTTP DEBUG: response hdr=%n\n", $rv.hdr);
 		}
+                
+                # do log msg
+                my string $lstr = sprintf("cid %d: HTTP/1.1 %d %s", $cx.id, $rv.code, HttpServer::HttpCodes.($rv.code));
+                my bool $paren = False;
+                if ($rv.body) {
+                    $lstr += sprintf(" (body: %d bytes", $rv.body.size());
+                    $paren = True;
+                }
+                if ($rv.hdr."Content-Type") {
+                    $lstr += " ";
+                    if (!$paren) {
+                        $lstr += "(";
+                        $paren = True;
+                    }
+                    $lstr += sprintf("Content-Type: %y", $rv.hdr."Content-Type");
+                }
+                if ($paren)
+                    $lstr += ")";
+                $listener.log($lstr);
 	    }
 	    
 	    if ($rv.log)
