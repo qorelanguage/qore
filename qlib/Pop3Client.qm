@@ -32,13 +32,16 @@
 %requires MailMessage >= 1.0
 
 module Pop3Client {
-    version = "1.1";
+    version = "1.2";
     desc = "POP3 client support module";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2013-05-22 v1.2: David Nichols <david@qore.org>
+      + uncommented the "connected" debug message
+
     * 2012-11-03 v1.1: David Nichols <david@qore.org>
       + added the logPassword() methods and masked password by default in the debug log
 
@@ -800,7 +803,7 @@ $pop3.forceDisconnect();
         private connectIntern() {
             $.logDbg("connecting to %s (timeout %y)", $.connect, milliseconds($.connectTimeout));
             $.sock.connect($.connect, $.connectTimeout);
-            #$.logDbg("connected");
+            $.logDbg("connected to %s", $.connect);
             if ($.tls)
                 $.doSSLIntern();
             my string $r = $.getResponse();
