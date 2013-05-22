@@ -255,7 +255,7 @@ public namespace RestHandler {
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
          */
         hash handleRequest(hash $cx, hash $hdr, *data $b) {
-            $.logDebug("cx: %N", $cx);
+            #$.logDebug("cx: %N", $cx);
             $.logDebug("hdr: %N", $hdr);
             if ($b)
                 $.logDebug("body: %s", $b.typeCode() == NT_STRING ? trim($b) : sprintf("%y", $b));
