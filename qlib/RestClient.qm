@@ -103,26 +103,11 @@ public namespace RestClient {
     #! this class provides the REST client API
     public class RestClient inherits Qore::HTTPClient {
         public {
-            #! supported mime types for de/serializing requests and responses
-            const MimeDataTypes = (
-%ifndef NoYaml
-                MimeTypeYaml: True,
-                MimeTypeYamlRpc: True,
-%endif
-%ifndef NoXml
-                MimeTypeXml: True,
-%endif
-%ifndef NoJson
-                MimeTypeJsonRpc: True,
-%endif
-                MimeTypeHtml: True,
-                );
-
             #! Data serialization support mapping codes to MIME types and de/serialization functions
             const DataSerializationSupport = (
 %ifndef NoJson
                 "json": (
-                    "ct": MimeTypeJsonRpc,
+                    "ct": MimeTypeJson,
                     "out": \makeJSONString(),
                 ),
 %endif
@@ -136,6 +121,32 @@ public namespace RestClient {
                 "xml": (
                     "ct": MimeTypeXml,
                     "out": \makeXMLRPCValueString(),
+                ),
+%endif
+                );
+
+
+            const DeserializeYaml = (
+                    "code": "yaml",
+                    "in": \parseYAML(),
+                );
+
+            #! Data deserialization support MIME types to codes and de/serialization functions
+            const DataDeserializationSupport = (
+%ifndef NoJson
+                MimeTypeJson: (
+                    "code": "json",
+                    "in": \parseJSON(),
+                ),
+%endif
+%ifndef NoYaml
+                MimeTypeYamlRpc: DeserializeYaml,
+                MimeTypeYaml: DeserializeYaml,
+%endif
+%ifndef NoXml
+                MimeTypeXml: (
+                    "code": "xml",
+                    "in": \parseXMLRPCValue(),
                 ),
 %endif
                 );
@@ -381,7 +392,12 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
                 $hdr."Content-Type" = $.sih.ct;
             }
 
-            on_exit if ($rb) $info."request-body" = $rb;
+            on_exit if ($rb) {
+                $info += (
+                    "request-body": $rb,
+                    "request-serialization": $.ds,
+                    );
+            }
 
             # prepare path
             my *string $p = $.getConnectionPath();
@@ -393,33 +409,17 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             # decode any response body
             if (exists $h.body) {
                 $info."response-body" = $h.body;
-                my bool $decoded = False;
-%ifndef NoYaml
-                # check for yaml support
-                foreach my string $ct in (MimeTypeYaml, MimeTypeYamlRpc) {
-                    if ($h."content-type" == $ct) {
-                        $h.body = parseYAML($h.body);
-                        $decoded = True;
-                        break;
-                    }
-                }
-%endif
-%ifndef NoXml
-                # check for xml-rpc support
-                if (!$decoded && $h."content-type" == MimeTypeXml) {
-                    $h.body = parseXMLRPCValue($h.body);
-                    $decoded = True;
-                }
-%endif
-%ifndef NoJson
-                # check for json support
-                if (!$decoded && $h."content-type" == MimeTypeJsonRpc) {
-                    $h.body = parseJSON($h.body);
-                    $decoded = True;
-                }
-%endif
-                if (!$decoded)
-                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", $h."content-type", MimeDataTypes.keys(), $h.body);
+
+                my *hash $dh = DataDeserializationSupport.($h."content-type");
+                if (!$dh)
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", $h."content-type", DataDeserializationSupport.keys(), $h.body);
+
+                if ($h.body.typeCode() != NT_STRING)
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", $h."content-type", $h.body.typeCode());
+
+                $h.body = $dh.in($h.body);
+
+                $info."response-serialization" = $dh.code;
             }
 
             return $h;

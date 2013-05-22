@@ -132,8 +132,11 @@ public namespace Mime {
     #! Mime type for more complicated (not human-readable) xml files
     public const MimeTypeXmlApp = "application/xml";
 
+    #! Mime type for JSON
+    public const MimeTypeJson = "application/json";
+
     #! Mime type for JSON-RPC
-    public const MimeTypeJsonRpc = "application/json";
+    public const MimeTypeJsonRpc = MimeTypeJson;
 
     #! Mime type for XML-RPC
     public const MimeTypeXmlRpc = MimeTypeXml;

@@ -1102,7 +1102,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
                     }
                 }
 
-                $.log("%s: %s %s HTTP/%s (body %d bytes)", $info.address_desc, $hdr.method, $hdr.path, $hdr.http_version, $body.size());
+                $.log("%s: %s %s HTTP/%s (body %d bytes)", $info.address_desc, $hdr.method, $hdr.path ? $hdr.path : "/", $hdr.http_version, $body.size());
                 #xxxx
 
                 #printf("HTTP DEBUG: id: %d, body: %n\n", $cx.id, substr($body, 0, 120));
