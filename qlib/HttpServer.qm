@@ -851,13 +851,13 @@ class HttpServer::HttpListener inherits Qore::Socket {
                 call_function($.stopc, $.name);
             }
             catch (hash $ex) {
-                $.serv.logError("listener %y (%s): error calling stop notification closure: %s: %s", $.name, $.socket_info.desc, $ex.err, $ex.desc);
+                $.serv.logError("%y (%s): error calling stop notification closure: %s: %s", $.name, $.socket_info.desc, $ex.err, $ex.desc);
             }
         }
     }
 
     log() {
-	$argv[0] = sprintf("listener %y (%s): %s", $.name, $.socket_info.desc, $argv[0]);
+	$argv[0] = sprintf("%y (%s): %s", $.name, $.socket_info.desc, $argv[0]);
 	if ($.logger) {
 	    $argv[0] = "HTTP" + ($.ssl ? "S" : "") + " " + $argv[0];
             try {
@@ -873,7 +873,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
     }
     
     logError() {
-	$argv[0] = sprintf("listener %y (%s): %s", $.name, $.socket_info.desc, $argv[0]);
+	$argv[0] = sprintf("%y (%s): %s", $.name, $.socket_info.desc, $argv[0]);
 	if ($.errorlogger) {
 	    $argv[0] = "HTTP " + $argv[0];
             try {
@@ -892,7 +892,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
         on_exit	$.cThreads.dec();
 
         # DEBUG
-        #printf("HTTP DEBUG: listener %y: mainThread() started TID %d\n", $.socket, gettid());
+        #printf("HTTP DEBUG: %y: mainThread() started TID %d\n", $.socket, gettid());
 
 	# start listening
 	while (!$.exit) {
@@ -917,7 +917,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		continue;
 
 	    # DEBUG
-	    #printf("HTTP DEBUG: listener %y: accepting HTTP connection from %s\n", $.socket_info.address_desc, $info.address_desc);
+	    #printf("HTTP DEBUG: %y: accepting HTTP connection from %s\n", $.socket_info.address_desc, $info.address_desc);
 	    #$.log("accepting HTTP connection from %s", $info.address_desc);
 	    
 	    $.cThreads.inc();
@@ -1105,10 +1105,10 @@ class HttpServer::HttpListener inherits Qore::Socket {
                     my string $lstr = sprintf("cid %d: %s %s HTTP/%s (agent: %y", $cx.id, $hdr.method, $orig_path, $hdr.http_version, $hdr."user-agent");
                     if ($body)
                         $lstr += sprintf(" body: %d bytes", $body.size());
-                    if ($.ssl)
-                        $lstr += sprintf(" %s %s", $s.getSSLCipherName(), $s.getSSLCipherVersion());
                     if ($hdr."_qore_orig_content_type")
                         $lstr += sprintf(" Content-Type: %y", $hdr."_qore_orig_content_type");
+                    if ($.ssl)
+                        $lstr += sprintf(" %s %s", $s.getSSLCipherName(), $s.getSSLCipherVersion());
                     $lstr += ")";
                     $.log($lstr);
                 }
