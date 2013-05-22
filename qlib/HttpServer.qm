@@ -903,9 +903,6 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		if (!$r)
 		    continue;
                 $info = $r.getPeerInfo();
-
-                if ($.ssl)
-		    $.log("secure connection (%s %s) from %s", $r.getSSLCipherName(), $r.getSSLCipherVersion(), $info.address_desc);
 	    }
 	    catch ($ex) {
                 if ($ex.err != "SOCKET-CLOSED")
@@ -1102,10 +1099,8 @@ class HttpServer::HttpListener inherits Qore::Socket {
                     }
                 }
 
-                $.log("%s: %s %s HTTP/%s (body %d bytes)", $info.address_desc, $hdr.method, $hdr.path ? $hdr.path : "/", $hdr.http_version, $body.size());
-                #xxxx
-
-                #printf("HTTP DEBUG: id: %d, body: %n\n", $cx.id, substr($body, 0, 120));
+                $.log("%s: %s %s HTTP/%s (body %d bytes%s)", $info.address_desc, $hdr.method, $hdr.path ? $hdr.path : "/", 
+                      $hdr.http_version, $body.size(), $.ssl ? sprintf(" %s %s", $s.getSSLCipherName(), $s.getSSLCipherVersion()) : "");
 
 		switch ($hdr.method) {
                     case "HEAD": {
