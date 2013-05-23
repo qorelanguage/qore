@@ -33,6 +33,7 @@ module Mime {
 
 /*  Version History
     * 2013-04-05 v1.3.1: David Nichols <david@qore.org>
+      + added get_mime_type_from_ext()
       + minor corretions
 
     * 2012-11-02 v1.3: David Nichols <david@qore.org>
@@ -601,7 +602,17 @@ public namespace Mime {
         return $hdr;
     }
     #@}
-    
+
+    /** @defgroup MimeMiscFunctions Misc MIME Functions
+     */
+    #@{
+    #! returns the mime type for the given filename from the extension or @ref MimeTypeUnknown if the extension is not present or unknown
+    public string sub get_mime_type_from_ext(string $path) {
+        my *string $ext = ($path =~ x/\.([a-z0-9]+)$/i)[0];
+        return ($ext && ($ext = MimeTypes{$ext.lwr()})) ? $ext : MimeTypeUnknown;
+    }
+    #@}
+
     /** @defgroup MultiPartConstants MultiPartMessage Constants
      */
     #@{

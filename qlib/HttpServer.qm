@@ -553,7 +553,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     hash handleRequest(hash $cx, hash $hdr, *data $body) {
         return (
             "code": 501,
-            "body": "default handler has no implementation",
+            "body": sprintf("default handler (%s) has no implementation", $self.className()),
             "close": True,
             );
     }
@@ -854,6 +854,27 @@ class HttpServer::HttpListener inherits Qore::Socket {
                 $.serv.logError("%y (%s): error calling stop notification closure: %s: %s", $.name, $.socket_info.desc, $ex.err, $ex.desc);
             }
         }
+    }
+
+    logResponse(hash $cx, hash $rv) {
+        # do log msg
+        my string $lstr = sprintf("cid %d: HTTP/1.1 %d %s", $cx.id, $rv.code, HttpServer::HttpCodes.($rv.code));
+        my bool $paren = False;
+        if ($rv.body) {
+            $lstr += sprintf(" (body: %d bytes", $rv.body.size());
+            $paren = True;
+        }
+        if ($rv.hdr."Content-Type") {
+            $lstr += " ";
+            if (!$paren) {
+                $lstr += "(";
+                $paren = True;
+            }
+            $lstr += sprintf("Content-Type: %y", $rv.hdr."Content-Type");
+        }
+        if ($paren)
+            $lstr += ")";
+        $.log($lstr);
     }
 
     log() {
@@ -2057,6 +2078,11 @@ public class HttpServer::HttpServer {
                     "code": 200,
                     "body": $rv,
                 );
+            else if ($rv.typeCode() != NT_HASH)
+                $rv = (
+                    "code": 500,
+                    "body": sprintf("handler %y returned an invalid response: %y", $rv),
+                    );
 
             $rv.close = $close;
 
@@ -2064,7 +2090,7 @@ public class HttpServer::HttpServer {
 		my string $str = sprintf("%s handler returned an invalid response rv: %y", $handlerName, $rv);
                 
 		$.sendHttpError($s, 500, $str, $close, NOTHING, $cx."response-encoding");
-		$listener.logError($str);
+                $listener.logResponse($cx, $rv);
 		return;
 	    }
 
@@ -2080,13 +2106,14 @@ public class HttpServer::HttpServer {
             if ($rv.code >= 300 && $rv.code < 400) {
                 # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
                 $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
+                $listener.logResponse($cx, $rv);
             }
             else if ($rv.code >= 400) {
 		if (!$rv.body)
 		    $rv.body = sprintf("unknown error in %s handler", $handlerName);
 		
 		$.sendHttpError($s, $rv.code, $rv.body, $close, NOTHING, $cx."response-encoding");
-		$listener.logError($rv.body);
+                $listener.logResponse($cx, $rv);
 	    }
 	    else {
 		#printf("\n**** REQUEST: %N\n", $body);
@@ -2139,25 +2166,8 @@ public class HttpServer::HttpServer {
 		    #$.log("HTTP DEBUG hdr=%N\nbody=%s", $rv.hdr, $rv.body);
 		    #printf("HTTP DEBUG: response hdr=%n\n", $rv.hdr);
 		}
-                
-                # do log msg
-                my string $lstr = sprintf("cid %d: HTTP/1.1 %d %s", $cx.id, $rv.code, HttpServer::HttpCodes.($rv.code));
-                my bool $paren = False;
-                if ($rv.body) {
-                    $lstr += sprintf(" (body: %d bytes", $rv.body.size());
-                    $paren = True;
-                }
-                if ($rv.hdr."Content-Type") {
-                    $lstr += " ";
-                    if (!$paren) {
-                        $lstr += "(";
-                        $paren = True;
-                    }
-                    $lstr += sprintf("Content-Type: %y", $rv.hdr."Content-Type");
-                }
-                if ($paren)
-                    $lstr += ")";
-                $listener.log($lstr);
+
+                $listener.logResponse($cx, $rv);
 	    }
 	    
 	    if ($rv.log)
