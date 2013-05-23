@@ -672,9 +672,10 @@ public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
         - \c id: the unique HTTP connection ID
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
+        @param hdr a hash of headers in the request
         @param s the @ref Qore::Socket "Socket" object for the dedicated connection
      */
-    abstract start(hash $cx, Socket $s);
+    abstract start(hash $cx, hash $hdr, Socket $s);
 
     #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
     abstract stop();
@@ -2191,7 +2192,7 @@ public class HttpServer::HttpServer {
                 else {
                     if ($listener.registerDedicatedSocket($cx.id, $handler)) {
                         try {
-                            cast<AbstractHttpSocketHandler>($handler).start($cx, $s);
+                            cast<AbstractHttpSocketHandler>($handler).start($cx, $hdr, $s);
                         }
                         catch (hash $ex) {
                             $listener.logError("error in dedicated socket handler %y: %s: %s: %s", $handlerName, get_ex_pos($ex), $ex.err, $ex.desc);
