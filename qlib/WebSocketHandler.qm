@@ -305,7 +305,7 @@ public namespace WebSocketHandler {
                     catch (hash $ex) {
                         if ($ex.err == "SOCKET-TIMEOUT")
                             continue;
-                        $.logError("%s: %s\n", $ex.err, $ex.desc);
+                        $.logError("%s: %s", $ex.err, $ex.desc);
                         return;
                     }
 
