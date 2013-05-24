@@ -60,6 +60,7 @@ module Util {
     - @ref Util::absolute_path()
       - @ref Util::absolute_path_unix()
       - @ref Util::absolute_path_windows()
+    - @ref Util::parse_to_qore_value()
 */
 
 #! the Util namespace contains all the objects in the Util module
