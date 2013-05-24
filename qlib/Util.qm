@@ -391,7 +391,7 @@ my bool $abs = absolute_path_windows($path);
             my list $l = split(",", $arg);
 		
             # coalesce each element without a "=" into the previous element
-            for (my int $i = 1, my int $e = $l.size(); $i < $e; ++$i) {
+            for (my int $i = 1; $i < $l.size(); ++$i) {
                 if ($l[$i] !~ /=/) {
                     # copy element
                     my string $x = "," + $l[$i];
