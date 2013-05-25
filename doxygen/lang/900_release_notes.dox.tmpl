@@ -75,7 +75,8 @@
     - fixed a bug where private members of a common base class were not accessible by objects of subclasses sharing the common base class
     - fixed many bugs in <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> and updated the module version to 1.1
     - initialize static openssl crypto locks for multi-threaded openssl library access; without this crashes can result (for example in error queue management)
-    - fix a bug where Qore::HTTPClient::getURL() returned an invalid URL when no URL was set; now it returns @ref nothing in this case
+    - fixed a bug where Qore::HTTPClient::getURL() returned an invalid URL when no URL was set; now it returns @ref nothing in this case
+    - fixed a bug managing feature/module lists in inherited @ref Qore::Program "Program" objects; user modules were listed in the child @ref Qore::Program "Program" object even though user module code is not imported in child @ref Qore::Program "Program" objects
 
     @section qore_087 Qore 0.8.7
 

@@ -166,6 +166,25 @@ public:
    }
 };
 
+class QoreModuleContextHelper : public QoreModuleContext {
+public:
+   DLLLOCAL QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink);
+   DLLLOCAL ~QoreModuleContextHelper();
+};
+
+class QoreModuleDefContextHelper : public QoreModuleDefContext {
+protected:
+   QoreModuleDefContext* old;
+
+public:
+   DLLLOCAL QoreModuleDefContextHelper() : old(set_module_def_context(this)) {
+   }
+
+   DLLLOCAL ~QoreModuleDefContextHelper() {
+      set_module_def_context(old);
+   }
+};
+
 class QoreModuleManager {
 private:
    // not implemented
@@ -199,10 +218,12 @@ protected:
       loadModuleIntern(xsink, name, pgm);
    }
 
-   DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0);
+   DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0, const char* src = 0);
 
    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0);
+   DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src);
+   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, ReferenceHolder<QoreProgram>& pgm, QoreModuleDefContextHelper& qmd);
 
 public:
    DLLLOCAL QoreModuleManager() : mutex(0) {
@@ -243,6 +264,8 @@ public:
    }
 
    DLLLOCAL void addStandardModulePaths();
+
+   DLLLOCAL void registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink& xsink);
 };
 
 DLLLOCAL extern QoreModuleManager QMM;

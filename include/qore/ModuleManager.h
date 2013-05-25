@@ -122,11 +122,25 @@ public:
    //! loads the named module at run time, returns -1 if an exception was raised, 0 for OK
    /** If the feature is already loaded, then the function returns immediately without raising an error.
        The feature's namespace changes are added to the QoreProgram object if the feature is loaded.
+
        @param name can be either a feature name or the full path to the module file
        @param xsink if any errors are encountered loading the module, then a Qore-language "LOAD-MODULE-ERROR" exception is raised here
+
        @return -1 if an exception was raised, 0 for OK
    */
    DLLEXPORT static int runTimeLoadModule(const char *name, ExceptionSink *xsink);
+
+   //! loads the named module at run time, returns -1 if an exception was raised, 0 for OK
+   /** If the feature is already loaded, then the function returns immediately without raising an error.
+       The feature's namespace changes are added to the QoreProgram object if the feature is loaded.
+
+       @param name can be either a feature name or the full path to the module file
+       @param pgm the QoreProgram object in which to include all module additions (namespaces, classes, constants, etc) immediately
+       @param xsink if any errors are encountered loading the module, then a Qore-language "LOAD-MODULE-ERROR" exception is raised here
+
+       @return -1 if an exception was raised, 0 for OK
+   */
+   DLLEXPORT static int runTimeLoadModule(const char *name, QoreProgram* pgm, ExceptionSink *xsink);
 
    //! loads the named module at parse time (or before run time, even if parsing is not active), returns a non-0 QoreStringNode pointer if an error occured, caller owns the QoreStringNode pointer's reference count returned if non-0
    /** if the feature is already loaded, then the function returns immediately without raising an error
@@ -135,6 +149,9 @@ public:
        @param pgm the QoreProgram object in which to include all module additions (namespaces, classes, constants, etc) immediately
    */
    DLLEXPORT static QoreStringNode *parseLoadModule(const char *name, QoreProgram *pgm = 0);
+
+   //! registers the given user module from the module source given as an argument
+   DLLEXPORT void registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink* xsink);
 
    //! adds the standard module directories to the module path (only necessary if the module paths are set up manually, otherwise these paths are added automatically when qore_init() is called)
    DLLEXPORT static void addStandardModulePaths();

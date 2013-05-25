@@ -178,7 +178,7 @@ my hash $sh = (
     "where": ("type": "user"),
     "limit": 100,
     "offset": 200,
-    "join": join_inner("queues", "q"),
+    "join": join_inner($queues, "q"),
 );
 my *hash $h = $table.select($sh);
     @endcode
@@ -249,7 +249,7 @@ my hash $soh = (
     "where": ("type": "user"),
     "limit": 100,
     "offset": 200,
-    "join": join_inner("queues", "q"),
+    "join": join_inner($queues, "q"),
 );
     @endcode
 
@@ -357,8 +357,8 @@ my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "of
     <b>Join Example:</b>
     @code
 my *list $rows = $table.selectRows(("columns": ("name", "version", "id", cop_as("st.value", "source"), cop_as("st.value", "offset")),
-                                    "join": join_left("function_instance_tags", "st", NOTHING, ("st.tag": "_source"))
-                                            + join_left("function_instance_tags", "lt", NOTHING, ("st.tag": "_offset"))));
+                                    "join": join_left($function_instance_tags, "st", NOTHING, ("st.tag": "_source"))
+                                            + join_left($function_instance_tags, "lt", NOTHING, ("st.tag": "_offset"))));
     @endcode
     To join multiple tables in a single query, use the \c "join" option.  The \c "join" hash key should be assigned to a join description hash as returned by one of the @ref sql_jop_funcs or combined join description hash created by concatenating such values (see an example of this above).
     @note the join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
@@ -1850,9 +1850,9 @@ my int $rows_updated = t.update(("permission_type": uop_lower()));
 
     #! a hash of valid column operators
     public const JopMap = (
-      JOP_INNER: "inner",
-      JOP_LEFT: "left outer",
-      JOP_RIGHT: "right outer",
+        JOP_INNER: "inner",
+        JOP_LEFT: "left outer",
+        JOP_RIGHT: "right outer",
         );
     #@}
 
@@ -1870,7 +1870,8 @@ my int $rows_updated = t.update(("permission_type": uop_lower()));
         @note this function is normally not used directly, but rather is called by the other @ref sql_jop_funcs
     */
     public hash sub make_jop(string jop, AbstractTable table, *string alias, *hash jcols, *hash cond, *string ta, *hash opt) {
-        hash h{table.getSqlName()} = ("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt);
+        string hk = alias ? alias : table.getSqlName();
+        hash h{hk} = ("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt);
         return h;
     }
 
@@ -11934,7 +11935,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             *string tp = (cv =~ x/(\w+)\.\w+/)[0];
             if (tp) {
                 if (!jch{tp})
-                    throw "SELECT-ERROR", sprintf("query references unknown alias %y in %y; known aliases in this query: %y", tp, cv);
+                    throw "SELECT-ERROR", sprintf("query references unknown alias %y in %y; known aliases in this query: %y", tp, cv, jch.keys());
                 cols = jch{tp}.describe();
                 splice cv, 0, tp.size() + 1;
             }

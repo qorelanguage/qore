@@ -170,30 +170,14 @@ void QoreModuleDefContext::checkName() {
    }
 }
 
-class QoreModuleContextHelper : public QoreModuleContext {
-public:
-   DLLLOCAL QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink)
-     : QoreModuleContext(name, qore_root_ns_private::get(pgm ? *(pgm->getRootNS()) : *staticSystemNamespace), xsink) {
-      set_module_context(this);
-   }
-   
-   DLLLOCAL ~QoreModuleContextHelper() {
-      set_module_context(0);
-   }
-};
+QoreModuleContextHelper::QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink)
+   : QoreModuleContext(name, qore_root_ns_private::get(pgm ? *(pgm->getRootNS()) : *staticSystemNamespace), xsink) {
+   set_module_context(this);
+}
 
-class QoreModuleDefContextHelper : public QoreModuleDefContext {
-protected:
-   QoreModuleDefContext* old;
-
-public:
-   DLLLOCAL QoreModuleDefContextHelper() : old(set_module_def_context(this)) {
-   }
-
-   DLLLOCAL ~QoreModuleDefContextHelper() {
-      set_module_def_context(old);
-   }
-};
+QoreModuleContextHelper::~QoreModuleContextHelper() {
+   set_module_context(0);
+}
 
 void UniqueDirectoryList::addDirList(const char* str) {
    if (!str)
@@ -297,7 +281,8 @@ void QoreUserModule::addToProgram(QoreProgram* tpgm, ExceptionSink& xsink) const
 
    // commit all module changes
    qore_root_ns_private::copyMergeCommittedNamespace(*rns, *(pgm->getRootNS()));
-   tpgm->addFeature(name.getBuffer());
+   qore_program_private::addUserFeature(*tpgm, name.getBuffer());
+   //tpgm->addUserFeature(name.getBuffer());
 
    // add domain to current Program's domain
    qore_program_private::runtimeAddDomain(*tpgm, dom);
@@ -385,6 +370,12 @@ int ModuleManager::runTimeLoadModule(const char* name, ExceptionSink *xsink) {
    assert(name);
    assert(xsink);
    return QMM.runTimeLoadModule(name, getProgram(), *xsink);
+}
+
+int ModuleManager::runTimeLoadModule(const char* name, QoreProgram *pgm, ExceptionSink *xsink) {
+   assert(name);
+   assert(xsink);
+   return QMM.runTimeLoadModule(name, pgm, *xsink);
 }
 
 int QoreModuleManager::runTimeLoadModule(const char* name, QoreProgram *pgm, ExceptionSink& xsink) {
@@ -476,7 +467,7 @@ static void qore_check_load_module_intern(QoreAbstractModule *mi, mod_op_e op, v
       mi->addToProgram(pgm, xsink);
 }
 
-void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram *pgm, mod_op_e op, version_list_t *version) {
+void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram *pgm, mod_op_e op, version_list_t *version, const char* src) {
    assert(!version || (version && op != MOD_OP_NONE));
 
    // check for special "qore" feature
@@ -515,6 +506,18 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    }
 
    //printd(5, "QoreModuleManager::loadModuleIntern() this: %p name: %s not found\n", this, name);
+
+   // see if we are loading a user module from explicit source
+   if (src) {
+      mi = loadUserModuleFromSource(xsink, name, 0, pgm, src);
+      if (xsink) {
+	 assert(!mi);
+	 return;
+      }
+      assert(mi);
+      qore_check_load_module_intern(mi, op, version, pgm, xsink);
+      return;
+   }
 
    // see if this is actually a path
    if (strchr(name, QORE_DIR_SEP)) {
@@ -592,6 +595,10 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "feature '%s' is not builtin and no module with this name could be found in the module path", name);
 }
 
+void ModuleManager::registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink* xsink) {
+   QMM.registerUserModuleFromSource(name, src, pgm, *xsink);
+}
+
 QoreStringNode* ModuleManager::parseLoadModule(const char* name, QoreProgram *pgm) {
    ExceptionSink xsink;
 
@@ -657,20 +664,12 @@ void QoreModuleManager::parseLoadModule(const char* name, QoreProgram *pgm, Exce
    loadModuleIntern(xsink, name, pgm);
 }
 
-QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm) {
-   QoreAbstractModule *mi = 0;
+void QoreModuleManager::registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink& xsink) {
+   AutoLocker al(mutex); // make sure checking and loading are atomic
+   loadModuleIntern(xsink, name, pgm, MOD_OP_NONE, 0, src);
+}
 
-   // parse options for the module
-   int64 po = USER_MOD_PO;
-   // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
-   if (tpgm)
-      po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_REQUIRE_TYPES));
-
-   ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
-
-   QoreModuleDefContextHelper qmd;
-   pgm->parseFile(path, &xsink, &xsink, QP_WARN_MODULES);
-
+QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, ReferenceHolder<QoreProgram>& pgm, QoreModuleDefContextHelper& qmd) {
    if (xsink)
       return 0;
 
@@ -687,6 +686,8 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': provides feature '%s', expecting feature '%s', skipping, rename module to %s.qm to load", path, name, feature, name);
       return 0;
    }
+
+   QoreAbstractModule *mi = 0;
 
    // see if a module with this name is already registered
    if ((mi = findModuleUnlocked(name))) {
@@ -728,6 +729,36 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    QMM.addModule(mi);
 
    return mi;
+}
+
+QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm) {
+   // parse options for the module
+   int64 po = USER_MOD_PO;
+   // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
+   if (tpgm)
+      po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_REQUIRE_TYPES));
+
+   ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
+
+   QoreModuleDefContextHelper qmd;
+   pgm->parseFile(path, &xsink, &xsink, QP_WARN_MODULES);
+
+   return setupUserModule(xsink, path, feature, tpgm, pgm, qmd);
+}
+
+QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src) {
+   // parse options for the module
+   int64 po = USER_MOD_PO;
+   // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
+   if (tpgm)
+      po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_REQUIRE_TYPES));
+
+   ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
+
+   QoreModuleDefContextHelper qmd;
+   pgm->parse(src, path, &xsink, &xsink, QP_WARN_MODULES);
+
+   return setupUserModule(xsink, path, feature, tpgm, pgm, qmd);
 }
 
 struct DLHelper {

@@ -303,6 +303,8 @@ public:
    cstr_vector_t fileList;
    // features present in this Program object
    CharPtrList featureList;
+   // user modules present in this Program object
+   CharPtrList userFeatureList;
 
    // parse lock, making parsing actions atomic and thread-safe
    mutable QoreThreadLock plock;
@@ -589,6 +591,9 @@ public:
       QoreListNode* l = new QoreListNode();
 	 
       for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
+	 l->push(new QoreStringNode(*i));
+	 
+      for (CharPtrList::const_iterator i = userFeatureList.begin(), e = userFeatureList.end(); i != e; ++i)
 	 l->push(new QoreStringNode(*i));
 	 
       return l;
@@ -1329,6 +1334,14 @@ public:
 
    DLLLOCAL void addFile(char* f) {
       fileList.push_back(f);
+   }
+
+   DLLLOCAL void addUserFeature(const char* f) {
+      userFeatureList.push_back(f);
+   }
+
+   DLLLOCAL static void addUserFeature(QoreProgram& pgm, const char* f) {
+      pgm.priv->addUserFeature(f);
    }
 
    DLLLOCAL static void addFile(QoreProgram& pgm, char* f) {
