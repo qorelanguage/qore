@@ -53,7 +53,6 @@ class qore_class_private;
 // map from abstract signature to variant for fast tracking of abstract variants
 typedef std::map<const char*, MethodVariantBase*, ltstr> vmap_t;
 
-// we do not keep references in these lists; the variants are referenced in the lists that own them
 struct AbstractMethod {
    // committed abstract methods from this class and parent classes
    vmap_t vlist;
@@ -82,15 +81,7 @@ struct AbstractMethod {
    DLLLOCAL void parseInit(const char* cname, const char* mname);
 
    // delete/purge all saved variants in the pending_save list, returns 0 if the AbstractMethod still has abstract variants, -1 if not and therefore can be removed from the map
-   DLLLOCAL int parseCommit() {
-      pending_save.clear();
-      for (vmap_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-         assert(vlist.find(i->first) == vlist.end());
-         vlist.insert(vmap_t::value_type(i->first, i->second));
-      }
-      pending_vlist.clear();
-      return vlist.empty() ? -1 : 0;
-   }
+   DLLLOCAL int parseCommit();
 
    // move all saved variants back from the pending_save list to the committed list (vlist)
    DLLLOCAL void parseRollback() {

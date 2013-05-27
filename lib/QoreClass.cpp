@@ -83,6 +83,18 @@ AbstractMethod::~AbstractMethod() {
       i->second->deref();
 }
 
+int AbstractMethod::parseCommit() {
+   for (vmap_t::iterator i = pending_save.begin(), e = pending_save.end(); i != e; ++i)
+      i->second->deref();
+   pending_save.clear();
+   for (vmap_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+      assert(vlist.find(i->first) == vlist.end());
+      vlist.insert(vmap_t::value_type(i->first, i->second));
+   }
+   pending_vlist.clear();
+   return vlist.empty() ? -1 : 0;
+}
+
 // merge changes from parent class method of the same name during parse initialization
 void AbstractMethod::parseMergeBase(AbstractMethod& m, bool committed) {
    //printd(5, "AbstractMethod::parseMergeBase(m: %p) this: %p m.pending_save: %d m.pending_vlist: %d\n", &m, this, !m.pending_save.empty(), !m.pending_vlist.empty());
