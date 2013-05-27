@@ -77,6 +77,7 @@
     - initialize static openssl crypto locks for multi-threaded openssl library access; without this crashes can result (for example in error queue management)
     - fixed a bug where Qore::HTTPClient::getURL() returned an invalid URL when no URL was set; now it returns @ref nothing in this case
     - fixed a bug managing feature/module lists in inherited @ref Qore::Program "Program" objects; user modules were listed in the child @ref Qore::Program "Program" object even though user module code is not imported in child @ref Qore::Program "Program" objects
+    - fixed a bug where an invalid guard condition in critical lvalue storage code can cause unreferenced data to be returned while in a lock which can cause a crash in a multithreaded program
 
     @section qore_087 Qore 0.8.7
 

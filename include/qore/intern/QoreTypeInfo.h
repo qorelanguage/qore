@@ -1240,11 +1240,7 @@ protected:
       return tname.getBuffer();
    }
 
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      if (n && n->getType() == NT_NULL)
-         n = &Nothing;
-      return true;
-   }
+   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const;
 
 public:
    DLLLOCAL OrNothingTypeInfo(const QoreTypeInfo &ti, const char *name) : AcceptsReturnsMultiFilterTypeInfo(ti.qc, ti.qt, ti.has_subtype, true) {

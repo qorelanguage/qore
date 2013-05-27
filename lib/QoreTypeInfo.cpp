@@ -630,3 +630,23 @@ AbstractVirtualMethod::AbstractVirtualMethod(const char* n_name, bool n_requires
    va_end(args);
 }
 */
+
+bool OrNothingTypeInfo::acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+   qore_type_t t = get_node_type(n);
+   if (n && t == NT_NULL) {
+      n = &Nothing;
+      return true;
+   }
+   if (t == NT_NOTHING)
+      return true;
+   
+   if (qc) {
+      if (t != NT_OBJECT)
+	 return false;
+      const QoreClass* n_qc = reinterpret_cast<const QoreObject*>(n)->getClass();
+
+      return qore_class_private::runtimeCheckCompatibleClass(*qc, *n_qc);
+   }
+
+   return t == qt;
+}
