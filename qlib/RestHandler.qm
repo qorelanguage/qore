@@ -140,7 +140,7 @@ public namespace RestHandler {
 
         #! returns a hash response with a 400 error when a request tries to access an unknown subclass
         private hash unknownSubClassError(string $name) {
-            return RestHandler::make400("class %y has no subclass %y", $.name(), $name);
+            throw "REST-CLASS-ERROR", sprintf("class %y has no subclass %y", $.name(), $name);
         }
 
         #! this method is called when a \c POST request is made on the current object; this method must be subclassed to provide any functionality, the default behavior is to return a 501 Unimplemented error
