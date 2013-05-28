@@ -138,7 +138,7 @@ public namespace RestHandler {
             }
         }
 
-        #! returns a hash response with a 400 error when a request tries to access an unknown subclass
+        #! throws a \c "REST-CLASS-ERROR" exception when a request tries to access an unknown subclass
         private hash unknownSubClassError(string $name) {
             throw "REST-CLASS-ERROR", sprintf("class %y has no subclass %y", $.name(), $name);
         }
@@ -207,7 +207,7 @@ public namespace RestHandler {
                 ),
 %endif
                 MimeTypeHtml: (
-                    "serialize": \RestHandler::serializeHtml(),
+                    "serialize": sub (any $body) { return sprintf("<pre>%N</pre>", $body); },
                 ),
                 );
         }
@@ -420,16 +420,9 @@ public namespace RestHandler {
 
             $.logDebug("response serialization: %d %s (%d bytes)", $rv.code, $rv.hdr."Content-Type", $rv.body.size());
 
-            #$.logDebug("rv: %N", $rv);
+            $.logDebug("rv: %N", $rv);
 
             return $rv;
-        }
-
-        static hash serializeHtml(any $body) {
-            return (
-                "body": sprintf("<pre>%N</pre>", $body),
-                "hdr": ("Content-Type": MimeTypeHtml),
-                );
         }
 
         #! default implementation is empty
