@@ -418,7 +418,7 @@ public namespace RestHandler {
                 }
             }
 
-            $.logDebug("response serialization: %s (%d bytes)", $rv.hdr."Content-Type", $rv.body.size());
+            $.logDebug("response serialization: %d %s (%d bytes)", $rv.code, $rv.hdr."Content-Type", $rv.body.size());
 
             #$.logDebug("rv: %N", $rv);
 

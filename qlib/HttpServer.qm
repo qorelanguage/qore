@@ -42,6 +42,7 @@ module HttpServer {
       + fixed response handling to not overwrite the Connection header if present from the handler
       + fixed response handling to only return error reponses with codes >= 400
       + implemented the AbstractHttpSocketHandler handler class to support dedicated socket connections when switching protocols in handlers
+      + do not add HTML to the msg body from explicit error responses from handlers
       + improved HTTP server log messages
 
     * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
@@ -1714,8 +1715,10 @@ public class HttpServer::HttpServer {
     
     #! sends an HTTP error message on the socket
     sendHttpError(HttpListener $listener, hash $cx, Socket $s, int $code, string $msg, bool $close = False, *hash $extra_hdrs, *string $encoding) {
-	my string $str = sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1>%s<p><hr><address>%s on %s</address></body></html>",
-                                 $code, HttpServer::HttpCodes.$code, HttpServer::HttpCodes.$code, html_encode($msg), $.httpserverstring, gethostname());
+        my string $str = !$extra_hdrs."Content-Type"
+            ? sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1>%s<p><hr><address>%s on %s</address></body></html>",
+                      $code, HttpServer::HttpCodes.$code, HttpServer::HttpCodes.$code, html_encode($msg), $.httpserverstring, gethostname())
+            : $msg;
 
         # restore encoding on exit
         my string $old_encoding = $s.getEncoding();
@@ -1728,16 +1731,20 @@ public class HttpServer::HttpServer {
             $s.setEncoding($encoding);
 	
 	my hash $hdr = (
-            "Content-Type": MimeTypeHtml + ";charset=" + $encoding,
             "Server": $.httpserverstring,
             );
+
+        if (!$extra_hdrs."Content-Type")
+            $hdr."Content-Type" = MimeTypeHtml + ";charset=" + $encoding;
+        else if ($extra_hdrs."Content-Type" !~ /charset=/)
+            $extra_hdrs."Content-Type" += ";charset=" + $encoding;
 
 	if ($close)
 	    $hdr += ("Connection": "close");
 	else
 	    $hdr += ("Connection": "Keep-Alive");
 
-	if ($extra_hdrs.typeCode() == NT_HASH)
+	if ($extra_hdrs)
 	    $hdr += $extra_hdrs;
 
         # log exceptions if not "SOCKET-SEND-ERROR" (probably broken pipe)
@@ -2121,7 +2128,7 @@ public class HttpServer::HttpServer {
 		if (!$rv.body)
 		    $rv.body = sprintf("unknown error in %s handler", $handlerName);
 		
-		$.sendHttpError($listener, $cx, $s, $rv.code, $rv.body, $close, NOTHING, $cx."response-encoding");
+		$.sendHttpError($listener, $cx, $s, $rv.code, $rv.body, $close, $rv.hdr, $cx."response-encoding");
 	    }
 	    else {
 		#printf("\n**** REQUEST: %N\n", $body);

@@ -382,7 +382,7 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash doRequest(string $m, string $path, any $body, *reference $info) {
+        hash doRequest(string $m, string $path, any $body, *reference $info, *softbool $decode_errors = False) {
             my hash $hdr = $.headers;
 
             # serialize body if necessary
@@ -404,25 +404,48 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             if ($p && $path)
                 $path = $p + "/" + $path;
 
-            my hash $h = $.send($body, $m, $path, $hdr, False, \$info);
+            my hash $h;
+            try {
+                $h = $.send($body, $m, $path, $hdr, False, \$info);
+                $info."response-code" = $h.status_code;
+            }
+            catch (hash $ex) {
+                $info."response-code" = $ex.arg.status_code;
+                if ($decode_errors && $ex.arg.body) {
+                    try {
+                        $h = $ex.arg;
+                        $.decodeResponse(\$h, \$info);
+                    }
+                    catch () {
+                        # ignore decoding exceptions
+                    }
+                    if ($h.body.err)
+                        throw $h.body.err, $h.body.desc, $h.body.arg;
+                }
 
-            # decode any response body
-            if (exists $h.body) {
-                $info."response-body" = $h.body;
-
-                my *hash $dh = DataDeserializationSupport.($h."content-type");
-                if (!$dh)
-                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", $h."content-type", DataDeserializationSupport.keys(), $h.body);
-
-                if ($h.body.typeCode() != NT_STRING)
-                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", $h."content-type", $h.body.typeCode());
-
-                $h.body = $dh.in($h.body);
-
-                $info."response-serialization" = $dh.code;
+                rethrow;
             }
 
+            # decode any response body
+            if (exists $h.body)
+                $.decodeResponse(\$h, \$info);
+
             return $h;
+        }
+
+        decodeResponse(reference $h, *reference $info) {
+            $info."response-body" = $h.body;
+
+            my *hash $dh = DataDeserializationSupport.($h."content-type");
+            if (!$dh)
+                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", $h."content-type", DataDeserializationSupport.keys(), $h.body);
+
+            if ($h.body.typeCode() != NT_STRING)
+                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", $h."content-type", $h.body.typeCode());
+
+            $h.body = $dh.in($h.body);
+
+            $info."response-serialization" = $dh.code;
         }
     }
 }

@@ -1184,19 +1184,16 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
       body = str;
    }
 
+   if (body)
+      ans->setKeyValue("body", body, xsink);
+
    if (code < 200 || code >= 300) {
       v = ans->getKeyValue("status_message");
       const char *mess = v ? (reinterpret_cast<const QoreStringNode *>(v))->getBuffer() : "<no message>";
-      QoreHashNode *einfo = new QoreHashNode;
-      einfo->setKeyValue("code", new QoreBigIntNode(code), xsink);
-      einfo->setKeyValue("body", body, xsink);
-      xsink->raiseExceptionArg("HTTP-CLIENT-RECEIVE-ERROR", einfo, "HTTP status code %d received: message: %s", code, mess);
+      xsink->raiseExceptionArg("HTTP-CLIENT-RECEIVE-ERROR", ans.release(), "HTTP status code %d received: message: %s", code, mess);
 
       return 0;
    }
-      
-   if (body)
-      ans->setKeyValue("body", body, xsink);
 
    return ans.release();
 }
