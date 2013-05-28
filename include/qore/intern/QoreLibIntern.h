@@ -847,11 +847,16 @@ public:
       if (!ref)
          return;
 
-      QoreTypeSafeReferenceHelper rh(ref, xsink);
+      ExceptionSink xs;
+      QoreTypeSafeReferenceHelper rh(ref, &xs);
+      if (xs)
+         xsink->assimilate(xs);
       if (!rh)
          return;
 
-      rh.assign(info.release(), xsink);
+      rh.assign(info.release(), &xs);
+      if (xs)
+         xsink->assimilate(xs);
    }
    DLLLOCAL QoreHashNode* operator*() {
       return *info;

@@ -1191,6 +1191,7 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
       einfo->setKeyValue("code", new QoreBigIntNode(code), xsink);
       einfo->setKeyValue("body", body, xsink);
       xsink->raiseExceptionArg("HTTP-CLIENT-RECEIVE-ERROR", einfo, "HTTP status code %d received: message: %s", code, mess);
+
       return 0;
    }
       
