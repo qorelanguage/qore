@@ -162,7 +162,7 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
    while (true) {
       int ovector[SUBST_OVECSIZE];
       int offset = ptr - t->getBuffer();
-      if (offset >= t->size())
+      if ((unsigned)offset >= t->size())
          break;
       int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, SUBST_OVECSIZE);
 

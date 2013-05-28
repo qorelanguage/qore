@@ -207,7 +207,7 @@ public namespace RestHandler {
                 ),
 %endif
                 MimeTypeHtml: (
-                    "serialize": sub (any $body) { return sprintf("<pre>%N</pre>", $body); },
+                    "serialize": string sub (any $body) { return sprintf("<pre>%N</pre>", $body); },
                 ),
                 );
         }
