@@ -1413,12 +1413,12 @@ struct qore_socket_private {
       // iterate through addresses and bind to the first interface possible
       for (struct addrinfo *p = aip; p; p = p->ai_next) {
 	 if (!bindIntern(p->ai_addr, p->ai_addrlen, prt, reuseaddr)) {
-	    //printd(0, "qore_socket_private::bindINET() bound: service=%s f=%d st=%d p=%d(%s)\n", service, p->ai_family, p->ai_socktype, p->ai_protocol);
+	   //printd(0, "qore_socket_private::bindINET(family: %d) bound: name: %s service: %s f: %d st: %d p: %d\n", family, name ? name : "(null)", service ? service : "(null)", p->ai_family, p->ai_socktype, p->ai_protocol);
 	    return 0;
 	 }
 
 	 en = sock_get_raw_error();
-	 //printd(5, "qore_socket_private::bindINET() failed to bind: service=%s f=%d st=%d p=%d, errno=%d (%s)\n", service, p->ai_family, p->ai_socktype, p->ai_protocol, en, strerror(en));
+	 //printd(0, "qore_socket_private::bindINET() failed to bind: name: %s service: %s f: %d st: %d p: %d, errno: %d (%s)\n", name ? name : "(null)", service ? service : "(null)", p->ai_family, p->ai_socktype, p->ai_protocol, en, strerror(en));
       }
 
       // if no bind was possible, then raise an exception
