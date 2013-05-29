@@ -1535,7 +1535,13 @@ AC_MSG_CHECKING([c++ compiler supports local variadic arrays])
 # turn on optimizations if we know how
 if test "$enable_optimization" = "yes"; then
     if test "$GXX" = "yes"; then
-        CXXFLAGS="$CXXFLAGS -O3"  # gcc
+        # set optimization to -O1 on freebsd because otherwise it segfaults for some reason
+	# in the signal code setting up for a fork()
+        if test -n "`echo $host_os|grep freebsd`"; then
+	   CXXFLAGS="$CXXFLAGS -O1"
+        else
+           CXXFLAGS="$CXXFLAGS -O3"  # gcc
+        fi
     elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
         # remove -g with Solaris CC as it reduces optimization levels
 	CXXFLAGS="`echo $CXXFLAGS| sed s/-g//` -xO5" # Solaris CC
