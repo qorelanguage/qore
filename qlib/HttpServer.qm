@@ -487,7 +487,9 @@ public class HttpServer::AbstractAuthenticator {
     /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True"
         @param user the username to authenticate
         @param pass the password for the user
+
         @return a list of roles for the user if the user can be authenticated (this method returns an empty list by default)
+
         @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this method will never throw any exceptions)
       */
     list authenticate(string $user, string $pass = "") {
@@ -498,7 +500,9 @@ public class HttpServer::AbstractAuthenticator {
     /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True" and no authentication credentials are supplied with the request
         @param ip the IP address of the source connection
         @param user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
+
         @return a list of roles if the authentication request is successful (this method returns an empty list by default)
+
         @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this base class method as implemented here will never throw any exceptions but instead just returns an empty list by default)
       */
     list authenticateByIP(string $ip, reference $user) {
@@ -532,15 +536,15 @@ public class HttpServer::AbstractHttpRequestHandler {
     /**
         @param cx call context hash; this hash will have the following keys:
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-        - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-        - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-        - \c url: a hash of broken-down URL information (as returned from parseURL())
+        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
         - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
-        - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
+        - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_url()
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param body message body, if any
 
@@ -639,15 +643,15 @@ public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
 
         @param cx call context hash; this hash will have the following keys:
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-        - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-        - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-        - \c url: a hash of broken-down URL information (as returned from parseURL())
+        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
         - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
-        - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
+        - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_url()
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param b message body, if any
 
@@ -667,9 +671,9 @@ public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
 
         @param cx call context hash; this hash will have the following keys:
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-        - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-        - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-        - \c url: a hash of broken-down URL information (as returned from parseURL())
+        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
