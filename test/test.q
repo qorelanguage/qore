@@ -1265,10 +1265,9 @@ sub pwd_tests() {
         # try to get group entry for gid 0, ignore exceptions
         try $h = getgrgid2(0); catch () {}
         test_value($h.gr_gid, 0, "getgrgid2()");
-        my string $gn = Qore::PlatformOS == "Darwin" ? "wheel" : "root";
-        test_value(getgrnam($gn).gr_gid, 0, "getgrnam()");
+        test_value(getgrnam($h.gr_name).gr_gid, 0, "getgrnam()");
         # try to get group entry for root, ignore exceptions
-        try $h = getgrnam2($gn); catch () {}
+        try $h = getgrnam2($h.gr_name); catch () {}
         test_value($h.gr_gid, 0, "getgrnam2()");
     }
 }
