@@ -499,7 +499,7 @@ public class HttpServer::AbstractAuthenticator {
         @param ip the IP address of the source connection
         @param user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
 
-        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this base class method as implemented here will never throw any exceptions but instead just returns an empty list by default)
+        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this base class method as implemented here will never throw any exceptions
       */
     authenticateByIP(string $ip, reference $user) {
     }
@@ -557,22 +557,22 @@ public class HttpServer::AbstractAuthenticator {
             }
 
             $cx.user = $user;
+            return;
         }
-        else {
-            my string $user;
-            # only try ip-based authentication if the connection is not already authenticated
-            try {
-                $.authenticateByIP($cx."peer-info".address, \$user);
-                $cx.user = $user;
-                return;
-            }
-            catch (hash $ex) {
-                # log the error
-                my string $str = sprintf("%s: %s: %s: received from %s", get_ex_pos($ex), $ex.err, $ex.desc, $cx."peer-info".address_desc);
-                $listener.logError($str);
-            }
-            return $.do401();
+
+        my string $user;
+        # only try ip-based authentication if the connection is not already authenticated
+        try {
+            $.authenticateByIP($cx."peer-info".address, \$user);
+            $cx.user = $user;
+            return;
         }
+        catch (hash $ex) {
+            # log the error
+            my string $str = sprintf("%s: %s: %s: received from %s", get_ex_pos($ex), $ex.err, $ex.desc, $cx."peer-info".address_desc);
+            $listener.logError($str);
+        }
+        return $.do401();
     }
 }
 
@@ -2116,6 +2116,7 @@ public class HttpServer::HttpServer {
                         $.sendHttpError($listener, $cx, $s, 501, "Server Authentication Error", $close = True);
                         return;
                     }
+                    #$listener.log("authenticated with user %y", $cx.user);
                 }
 
                 # handle content-encoding according to handler settings
