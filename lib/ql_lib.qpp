@@ -159,6 +159,7 @@ static AbstractQoreNode *f_mknod(const QoreListNode *args, ExceptionSink *xsink)
     |\c family|@ref int_type|The network address family; see Network Address Family Constants.
     |\c familystr|@ref string_type|A descriptive string for the network address family, for example: \c "ipv6".
     |\c addrlen|@ref int_type|The length of the internal network address data structure (not normally needed in %Qore but provided anyway)
+    |[\c port]|@ref int_type|The port number corresponding to the service (if applicable)
  */
 //@{
 //! Exits the program with the return code passed (this function does not return)

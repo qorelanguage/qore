@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.7
+%requires qore >= 0.8.8
 # need mime definitions
 %requires Mime >= 1.0
 
@@ -44,6 +44,7 @@ module HttpServer {
       + implemented the AbstractHttpSocketHandler handler class to support dedicated socket connections when switching protocols in handlers
       + do not add HTML to the msg body from explicit error responses from handlers
       + improved HTTP server log messages
+      + added "family" argument to HttpServer::add*Listener*() methods
 
     * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
       + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
@@ -730,7 +731,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
     }
 
     # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
-    constructor(HttpServer $server, int $id, Sequence $ss, any $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, string $name) {
+    constructor(HttpServer $server, int $id, Sequence $ss, *string $node, softstring $service, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, string $name, int $family = AF_UNSPEC) {
         $.name = $name;
         # we originally set for utf-8 and then per-connection the encoding is set according to the client's content-type header (with iso-8859-1 as the default)
         # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)
@@ -758,20 +759,24 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	    $.ssl = True;
 	}
 
-        if ($sock =~ /^\//) {
-            # try to unlink the file first if it's a UNIX domain socket
-	    unlink($sock);
-            $.bindUNIX($sock, True);
+        if ($service) {
+            $.bindINET($node, $service, True, $family);
+            $.socket = sprintf("%s:%s", $node ? $node : "*", $service);
         }
         else {
-            if (int($sock) == $sock)
-                $sock = int($sock);
-            if ($.bind($sock, True))
-                throw "HTTPLISTENER-BIND-ERROR", strerror(errno());
+            $.socket = $node;
+            if ($node =~ /^\//) {
+                # try to unlink the file first if it's a UNIX domain socket
+                unlink($node);
+                $.bindUNIX($node, True);
+            }
+            else {
+                if ($.bind($node, True))
+                    throw "HTTPLISTENER-BIND-ERROR", strerror();
+            }
         }
 
 	# save socket port/path
-	$.socket = $sock;
         $.socket_info = $.getSocketInfo();
 
 	# make 'desc' key for logging
@@ -784,7 +789,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 
 	# set listening state on socket
 	if ($.listen())
-	    throw "HTTP-LISTEN-ERROR", sprintf("listen error on socket %s: %s", $sock, strerror(errno()));
+	    throw "HTTP-LISTEN-ERROR", sprintf("listen error on socket %s: %s", $.socket, strerror(errno()));
 
 	# start main listener thread
 	$.cThreads.inc();
@@ -1133,7 +1138,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
                 }
 
                 {
-                    my string $lstr = sprintf("cid %d: %s %s HTTP/%s (agent: %y", $cx.id, $hdr.method, $orig_path, $hdr.http_version, $hdr."user-agent");
+                    my string $lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", $cx.id, $cx."peer-info".address_desc, $hdr.method, $orig_path, $hdr.http_version, $hdr."user-agent");
                     if ($body)
                         $lstr += sprintf(" body: %d bytes", $body.size());
                     if ($hdr."_qore_orig_content_type")
@@ -1416,13 +1421,19 @@ public class HttpServer::HttpServer {
         @param logger an optional closure or call reference that will be called with logging information; if this is not set, then the logger set in the HttpServer::constructor() will be used instead
         @param errorlogger an optional closure or call reference that will be called with error information; if this is not set, then the error logger set in the HttpServer::constructor() will be used instead
         @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
+	@param family one of the following @ref network_address_family_constants "network family constants":
+	- @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
+	- @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
+	- @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
 
         @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
 
         @throw SETHANDLER-ERROR HTTP request handler already exists with the given name; non-string entry in special_header list
         @throw HTTPSERVER-ADDLISTENER-ERROR missing or invalid \c "bind" or \c "url" entry in the \c lp argument; duplicate bind address
+
+        @note if \c bind begins with a "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
      */
-    final list addListenersWithHandler(string $hname, AbstractHttpRequestHandler $handler, hash $lp, *code $logger, *code $errorlogger, *code $stopc, *string $name) {
+    final list addListenersWithHandler(string $hname, AbstractHttpRequestHandler $handler, hash $lp, *code $logger, *code $errorlogger, *code $stopc, *string $name, int $family = AF_UNSPEC) {
 %ifdef QoreDebug
         #ASSERT($lp.bind.typeCode() == NT_STRING);
 	#ASSERT($lp.url.typeCode() == NT_STRING);
@@ -1439,14 +1450,14 @@ public class HttpServer::HttpServer {
 
 	my hash $h.$hname = ("url": $lp.url, "content": $lp.content_type, "handler": $handler, "headers": $lp.special_headers);
 
-	if ($lp.bind !~ /:/) {
+	if ($lp.bind !~ /:\w+/) {
 	    if ($lp.bind =~ /^\//)
-		return list($.addListenerIntern($lp.bind, $lp.cert, $lp.key, $h, $logger, $errorlogger, $stopc, $name).getInfo());
-	    return $.addINETListenersIntern(NOTHING, $lp.bind, $lp, $h, $logger, $errorlogger, $stopc, $name);
+		return list($.addListenerIntern($lp.bind, NOTHING, $lp.cert, $lp.key, $h, $logger, $errorlogger, $stopc, $name).getInfo());
+	    return $.addINETListenersIntern(NOTHING, $lp.bind, $lp, $h, $logger, $errorlogger, $stopc, $name, $family);
 	}
 
-        my (string $node, string $service) = ($lp.bind =~ x/(.+):(\w+)/);
-        return $.addINETListenersIntern($node, $service, $lp, $h, $logger, $errorlogger, $stopc, $name);
+        my (*string $node, string $service) = ($lp.bind =~ x/(.+):(\w+)/);
+        return $.addINETListenersIntern($node, $service, $lp, $h, $logger, $errorlogger, $stopc, $name, $family);
     }
 
     #! adds a global listener to the server
@@ -1454,17 +1465,29 @@ public class HttpServer::HttpServer {
         @param cert_path an optional path to an X509 certificate for HTTPS listeners
         @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
         @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
+	@param family one of the following @ref network_address_family_constants "network family constants":
+	- @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
+	- @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
+	- @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
 
         @return a listener info hash; see the return value of HttpServer::getListenerInfo() for the description of the hash returned by this method
 
         @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
-     */
-    hash addListener(softstring $sock, *string $cert_path, *string $key_path, *string $name) {
-        if (!$cert_path)
-            return $.addListenerIntern($sock).getInfo();
 
-	my hash $sd = HttpServer::getSSLObjects($cert_path, $key_path);
-        return $.addListenerIntern($sock, $sd.cert, $sd.key, NOTHING, NOTHING, NOTHING, NOTHING, $name).getInfo();
+        @note if \a sock begins with a "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
+     */
+    hash addListener(softstring $sock, *string $cert_path, *string $key_path, *string $name, int $family = AF_UNSPEC) {
+	my hash $sd;
+        if ($cert_path)
+            $sd = HttpServer::getSSLObjects($cert_path, $key_path);
+
+        my (*string $node, *string $service);
+        if ($sock =~ /:\w+/)
+            ($node, $service) = ($sock =~ x/(.+):(\w+)/);
+        else
+            $node = $sock;
+        
+        return $.addListenerIntern($node, $service, $sd.cert, $sd.key, NOTHING, NOTHING, NOTHING, NOTHING, $name, $family).getInfo();
     }
 
     #! adds one or more global listeners according to the bind address
@@ -1472,21 +1495,31 @@ public class HttpServer::HttpServer {
         @param cert_path an optional path to an X509 certificate for HTTPS listeners
         @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
         @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
+	@param family one of the following @ref network_address_family_constants "network family constants":
+	- @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
+	- @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
+	- @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
 
         @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
 
         @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
-     */
-    softlist addListeners(softstring $sock, *string $cert_path, *string $key_path, *string $name) {
-        if ($sock !~ /:/) {
-            if ($sock =~ /^\//)
-                return $.addListener($sock, $cert_path, $key_path, $name);
 
-            return $.addINETListeners(NOTHING, $sock, $cert_path, $key_path, $name);
+        @note if \a sock begins with a \c "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
+     */
+    softlist addListeners(softstring $sock, *string $cert_path, *string $key_path, *string $name, int $family = AF_UNSPEC) {
+	my hash $sd;
+        if ($cert_path)
+            $sd = HttpServer::getSSLObjects($cert_path, $key_path);
+
+        if ($sock !~ /:\w+/) {
+            if ($sock =~ /^\//)
+                return $.addListenerIntern($sock, NOTHING, $sd.sert, $sd.key, NOTHING, NOTHING, NOTHING, NOTHING, $name);
+
+            return $.addINETListenersIntern(NOTHING, $sock, $sd, NOTHING, NOTHING, NOTHING, NOTHING, $name, $family);
         }
 
-        my (string $node, string $service) = ($sock =~ x/(.+):(\w+)/);
-        return $.addINETListeners($node, $service, $cert_path, $key_path);
+        my (string $node, string $service) = ($sock =~ x/(.*):(\w+)/);
+        return $.addINETListenersIntern($node, $service, $sd, NOTHING, NOTHING, NOTHING, NOTHING, $name, $family);
     }
 
     #! adds one or more global listeners according to the bind address
@@ -1803,11 +1836,13 @@ public class HttpServer::HttpServer {
 
     #! @cond nodoc
     # don't reimplement this method; fix/enhance it in the module
-    final private HttpListener addListenerIntern(string $sock, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, *string $name) {
+    final private HttpListener addListenerIntern(*string $node, *softstring $service, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, *string $name, int $family = AF_UNSPEC) {
         if (!$logger && $.logfunc)
             $logger = $.logfunc;
         if (!$errorlogger && $.errlogfunc)
             $errorlogger = $.errlogfunc;
+
+        my string $sock = ($service ? sprintf("%s:%s", $node ? $node : "*", $service) : $node);
 
 	$.lm.enter();
 	on_exit $.lm.exit();
@@ -1827,7 +1862,7 @@ public class HttpServer::HttpServer {
         #printf("HttpServer::addListenerIntern() %n c=%n\n", $sock, $.c.getCount());
         on_error $.c.dec();
 
-	my HttpListener $l($self, $id, $.seqSessions, $sock, $cert, $key, $hi, $logger, $errorlogger, $stopc, $name);
+	my HttpListener $l($self, $id, $.seqSessions, $node, $service, $cert, $key, $hi, $logger, $errorlogger, $stopc, $name, $family);
 	$.listeners.$id = $l;
         $.smap.$sock = $id;
         $.nmap.$name = $id;
@@ -1857,7 +1892,7 @@ public class HttpServer::HttpServer {
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private list addINETListenersIntern(*string $node, softstring $service, hash $sd, *hash $lp, *code $logger, *code $errorlogger, *code $stopc, *string $name, int $family = AF_UNSPEC) {
+    final private list addINETListenersIntern(*string $node, softstring $service, *hash $sd, *hash $lp, *code $logger, *code $errorlogger, *code $stopc, *string $name, int $family = AF_UNSPEC) {
 	if ($sd.cert_path && !$sd.cert)
 	    $sd += HttpServer::getSSLObjects($sd.cert_path, $sd.key_path);
 
@@ -1868,9 +1903,8 @@ public class HttpServer::HttpServer {
 
         my list $l = ();
         foreach my hash $h in ($al) {
-            my string $bind = $h.address + ":" + $h.port;
             try {
-                $l += $.addListenerIntern($bind, $sd.cert, $sd.key, $lp, $logger, $errorlogger, $stopc, $name).getInfo();
+                $l += $.addListenerIntern($h.address, $h.port, $sd.cert, $sd.key, $lp, $logger, $errorlogger, $stopc, $name, $h.family).getInfo();
 		# exit after the first listener is bound if the node address is missing (= bind on all addresses)
                 if (!$node)
 		    break;
