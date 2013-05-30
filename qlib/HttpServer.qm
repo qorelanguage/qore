@@ -489,12 +489,9 @@ public class HttpServer::AbstractAuthenticator {
         @param user the username to authenticate
         @param pass the password for the user
 
-        @return a list of roles for the user if the user can be authenticated (this method returns an empty list by default)
-
         @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this method will never throw any exceptions)
       */
-    list authenticate(string $user, string $pass = "") {
-        return ();
+    authenticate(string $user, string $pass = "") {
     }
 
     #! called when the connection requires authentication, but no authentication credentials were supplied, to try to authenticate the connection based on the source IP address
@@ -502,12 +499,80 @@ public class HttpServer::AbstractAuthenticator {
         @param ip the IP address of the source connection
         @param user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
 
-        @return a list of roles if the authentication request is successful (this method returns an empty list by default)
-
         @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this base class method as implemented here will never throw any exceptions but instead just returns an empty list by default)
       */
-    list authenticateByIP(string $ip, reference $user) {
-        return ();
+    authenticateByIP(string $ip, reference $user) {
+    }
+
+    private hash getAuthHeader() {
+        return ("WWW-Authenticate": sprintf("Basic realm=%y", $.getRealm()));
+    }
+
+    private hash do401(string $msg = "Authentication is required to access this server") {
+        return (
+            "code": 401,
+            "body": "Authentication is required to access this server",
+            "hdr": $.getAuthHeader(),
+            );
+    }
+
+    #! primary method called to authenticate each request
+    /** @param listener the HttpListener object for logging purposes
+        @param hdr a hash of request headers
+        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized
+
+        @return returns @ref nothing if there were no errors, otherwise returns a hash with the following keys to indicate an authentication or authorization error:
+        - \c "code": the HTTP response code
+        - \c "body": the error message body
+        - \c "hdr": an optional hash of headers for the error response
+    */
+    *hash authenticateRequest(HttpListener $listener, hash $hdr, reference $cx) {
+        #printf("HTTP DEBUG %s::authenticateRequest() called\n", $self.className());
+        if (!$.requiresAuthentication())
+            return;
+
+        if ($hdr.authorization) {
+            if ($hdr.authorization !~ /basic /i)
+                return $.do401("Only basic authentication is supported");
+
+            my *string $bstr = ($hdr.authorization =~ x/basic (.*)/i)[0];
+            if (!$bstr)
+                return $.do401();
+
+            my string $str = parseBase64StringToString($bstr);
+            my int $i = $str.find(":");
+            if ($i < 1 || $i == ($str.size() -1))
+                return $.do401();
+
+            my string $user = $str.substr(0, $i);
+            my *string $pass = $str.substr($i + 1);
+
+            try
+                $.authenticate($user, $pass);
+            catch (hash $ex) {
+                if ($ex.err == "AUTHENTICATION-ERROR")
+                    return $.do401();
+                else
+                    rethrow;
+            }
+
+            $cx.user = $user;
+        }
+        else {
+            my string $user;
+            # only try ip-based authentication if the connection is not already authenticated
+            try {
+                $.authenticateByIP($cx."peer-info".address, \$user);
+                $cx.user = $user;
+                return;
+            }
+            catch (hash $ex) {
+                # log the error
+                my string $str = sprintf("%s: %s: %s: received from %s", get_ex_pos($ex), $ex.err, $ex.desc, $cx."peer-info".address_desc);
+                $listener.logError($str);
+            }
+            return $.do401();
+        }
     }
 }
 
@@ -2025,61 +2090,33 @@ public class HttpServer::HttpServer {
 
             $cx.handlerName = $handlerName;
 
-	    #printf("HTTP DEBUG: A: handler: %y\n", $handlerName);
+	    #printf("HTTP DEBUG: A: cid: %d handler: %y auth: %y\n", $cx.id, $handlerName, boolean($handler.auth));
 
             if ($handler) {
 		# check for authentication info
                 #printf("HTTP DEBUG: handler: %y (auth: %y) hdr: %y\n", $handlerName, exists $handler.auth && $handler.auth.requiresAuthentication(), $hdr);
-		if ($handler.auth && $handler.auth.requiresAuthentication()) {
-		    if ($hdr.authorization) {
-			if ($hdr.authorization !~ /basic /i) {
-			    $.sendHttpError($listener, $cx, $s, 401, "Only basic authentication is supported", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())), $cx."response-encoding");
+                
+		if ($handler.auth) {
+                    try {
+                        my *hash $ah = $handler.auth.authenticateRequest($listener, $hdr, \$cx);
+                        # return an error if authentication failed
+                        if ($ah) {
+                            if (!$ah.code)
+                                $ah.code = 401;
+                            if (!$ah.body)
+                                $ah.body = "Authentication is required to access this server";
+                            $.sendHttpError($listener, $cx, $s, $ah.code, $ah.body, $close = True, $ah.hdr, $cx."response-encoding");
                             return;
-			}
-			my string $bstr = ($hdr.authorization =~ x/basic (.*)/i)[0];
-			if (!strlen($bstr)) {
-			    $.sendHttpError($listener, $cx, $s, 401, "Authentication is required to access this server", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())), $cx."response-encoding");
-                            return;
-			}
-			my string $str = parseBase64StringToString($bstr);
-			my int $i = index($str, ":");
-			if ($i == -1) {
-			    $.sendHttpError($listener, $cx, $s, 401, "Authentication is required to access this server", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())), $cx."response-encoding");
-                            return;
-			}
-			my string $user = substr($str, 0, $i);
-			my *string $pass = substr($str, $i + 1);
-			my list $roles;
-			try
-			    $roles = $handler.auth.authenticate($user, $pass);
-			catch (hash $ex) {
-			    if ($ex.err == "AUTHENTICATION-ERROR") {
-				$.sendHttpError($listener, $cx, $s, 401, "Authentication is required to access this server", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())), $cx."response-encoding");
-				return;
-			    }
-			    else
-				rethrow;
-			}
-			$cx.user = $user;
-		    }
-		    else {
-			my (list $roles, string $user);
-			# only try ip-based authentication if the connection is not already authenticated
-			try {
-			    $roles = $handler.auth.authenticateByIP($s.getPeerInfo().address, \$user);
-			}
-			catch (hash $ex) {
-			    # log the error
-			    my string $str = sprintf("%s: %s: %s: received from %s", get_ex_pos($ex), $ex.err, $ex.desc, $cx."peer-info".address_desc);
-			    $listener.logError($str);
-			}
-			if (!$roles) {
-			    $.sendHttpError($listener, $cx, $s, 401, "Authentication is required to access this server", $close = True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $handler.auth.getRealm())));
-			    return;
-			}
-                        $cx.user = $user;
-		    }
-		}
+                        }
+                    }
+                    catch (hash $ex) {
+                        # log the error
+                        my string $str = sprintf("%s: %s: %s: received from %s", get_ex_pos($ex), $ex.err, $ex.desc, $cx."peer-info".address_desc);
+                        $listener.logError($str);
+                        $.sendHttpError($listener, $cx, $s, 501, "Server Authentication Error", $close = True);
+                        return;
+                    }
+                }
 
                 # handle content-encoding according to handler settings
                 if ($hdr."content-encoding" && $handler.decompress) {
