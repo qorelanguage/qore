@@ -405,6 +405,7 @@ my bool $abs = absolute_path_windows($path);
             
             my hash $rh;
             foreach my string $a in ($l) {
+                trim $a;
                 my (string $key, any $val) = ($a =~ x/^([^ =]+)[ \t]*=(.*)/);
                 $rh.$key = parse_to_qore_value($val);
             }
