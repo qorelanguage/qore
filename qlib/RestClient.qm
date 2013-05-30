@@ -420,10 +420,15 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
                     catch () {
                         # ignore decoding exceptions
                     }
-                    if ($h.body.err)
+                    if ($h.body.err) {
+                        if ($h.body.desc.typeCode() == NT_STRING)
+                            trim $h.body.desc;
                         throw $h.body.err, $h.body.desc, $h.body.arg;
-                    if ($h.body && $h.body.typeCode() == NT_STRING)
+                    }
+                    if ($h.body && $h.body.typeCode() == NT_STRING) {
+                        trim $h.body;
                         throw "REST-RESPONSE-ERROR", $h.body;
+                    }
                 }
 
                 rethrow;
