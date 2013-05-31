@@ -77,17 +77,19 @@ OS-Specific Issues
 there are no particular issues on Linux, this is one of the main development platforms.
 Various distributions have been tested: FC3-8, Gentoo, Ubuntu, ARCH, etc
 
+*) FreeBSD:
+building from source - for FreeBSD up to 9.1: flex has to be installed from ports
+as long as all the prerequisite libraries are installed, the configure script should set up Qore for building and installing on FreeBSD without the need for any particular configure options or environment variables
+note that there is a freebsd port of Qore available (http://www.freebsd.org/cgi/cvsweb.cgi/ports/lang/qore) also
+
 *) Darwin - OS/X
-One of the main development platforms for Qore.  There are no particular issues on newer version of OS/X (10.5+), just make sure you have the prerequisite libraries and header files available - this applies to PCRE on newer versions of OS/X.  On older versions (10.4 and earlier), you'll also need to ensure that you have at least libtool 1.5.10 when building from svn, get it from fink or macports as you like.
+One of the main development platforms for Qore.  There are no particular issues on newer version of OS/X (10.5+), just make sure you have the prerequisite libraries and header files available - this applies to PCRE on newer versions of OS/X.  On older versions (10.4 and earlier), you'll also need to ensure that you have at least libtool 1.5.10 when building from svn, get it from fink/macports/brew as you like.
 NOTE that pthread_create() on Darwin 8.7.1 (OS X 10.4.7) < OS X 10.7 returns 0 (no error) on i386 at least, even when it appears that thread resources are exhausted and the new thread is never started.  This happens after 2560 threads are started, so normally this will not be an issue for most programs.  To make sure that this doesn't happen, when qore is compiled on Darwin MAX_QORE_THREADS is automatically set to 2560 (otherwise the default is normally 4096).  This issue was fixed in OS X 10.7 - MAX_QORE_THREADS is set automatically when building on the appropriate platform, this is just for your information.
 
 *) Solaris:
 One of the main development platforms for Qore.  g++ and CC static and shared builds work fine (tested with many versions of g++ and CC).
 Note that on Solaris x86 when making a 64-bit build I had to use libtool 1.5.22, libtool 1.5.11 did not recognize that -xarch=generic64 should be passed to the linker and the linker for some reason did not recognize that it should produce a 64-bit output file
 Also note that qore requires a relatively new version of the SunPro compiler (CC), Sun Studio 11 and 12 work fine, whereas SunPro 5.5 does not.
-
-*) FreeBSD
-Is working; freebsd port is available here: http://www.freebsd.org/cgi/cvsweb.cgi/ports/lang/qore/
 
 *) HP-UX
 HP-UX builds are finally working with g++ (tested 4.1.1 and 4.2.0), however the configure script include a hack to libtool to get the modules to link dynamic libraries with static libaries and to prohibit -ldl from being automatically included in the link lines.  I am using HP-UX 11.23 (v2) on PA-RISC.

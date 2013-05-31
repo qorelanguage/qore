@@ -57,12 +57,12 @@ guard implementations - also note that "stack guard" support does not depend
 on the operating system but rather on the CPU, compiler, and assembler used -
 for example on HP-UX pa-risc gcc and aCC can use different, incompatible
 assemblers):
-  + i386 (gcc, SunPro CC)
-  + x86_64 (gcc, SunPro CC)
-  + powerpc - 32-bit only (gcc)
-  + sparc - 32-bit only (gcc, SunPro CC)
-  + itanium - 64-bit only (gcc, aCC)
-  + pa-risc - 32-bit only (gcc, aCC)
+  + i386 (g++/clang++/llvm-g++, SunPro CC)
+  + x86_64 (g++/clang++, SunPro CC)
+  + powerpc - 32-bit only (g++)
+  + sparc - 32-bit only (g++, SunPro CC)
+  + itanium - 64-bit only (g++, aCC)
+  + pa-risc - 32-bit only (g++, aCC)
 
 Out of Memory Errors
 --------------------
