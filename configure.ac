@@ -11,34 +11,8 @@ AC_CONFIG_HEADER(include/qore/intern/unix-config.h)
 DEFAULT_INCLUDES="-I\${top_builddir}/include/qore"
 AC_SUBST([DEFAULT_INCLUDES])
 
-AC_PROG_LEX
 ##AC_PROG_MAKE_SET
 AC_C_BIGENDIAN
-
-# test for flex & flex version
-AC_MSG_CHECKING([for flex 2.5.31 or greater])
-if test -z "`echo $LEX | grep flex`"; then
-        AC_MSG_ERROR([no flex version found])
-elif test -z "`$LEX --version | grep -e ' 2\.5\.3[[1-9]]' -e ' 2\.5\.[[4-9]][[0-9]]' -e ' 2\.\[[6-9]]' -e ' [[3-9]]'`" ; then
-        flexver=`$LEX --version`
-	AC_MSG_ERROR([incompatible $flexver found - you can download flex 2.5.35 at http://sourceforge.net/projects/flex])
-else
-        flexver=`$LEX --version`
-	AC_MSG_RESULT([yes ($flexver)])
-fi
-
-AC_PROG_YACC
-
-# test for bison & bison version
-AC_MSG_CHECKING([for bison 1.85 or greater])
-if test -z "`echo $YACC | grep bison`"; then
-	AC_MSG_ERROR([bison not found])
-elif test -z "`$YACC --version | head -n 1 | grep -e ' 2\.' -e '1\.8[[5-9]]*' -e '1\.9'`"; then
-        bisonver=`$YACC --version | head -n 1`
-	AC_MSG_ERROR([incompatible $bisonver found])
-else
-	AC_MSG_RESULT([yes])
-fi
 
 AC_CANONICAL_HOST
 if test "${host_os}" = "mingw32"; then
@@ -205,6 +179,16 @@ case "${host_os}" in
 		AC_SUBST(NATIVE_CPPFLAGS)
 		AC_SUBST(NATIVE_LDDFLAGS)
 		;;
+     freebsd*)  # add /usr/local/lib to LDFLAGS if not already there
+     		if test -d /usr/local/lib -a -z "`echo $LDFLAGS|grep /usr/local/lib`"; then
+     		   LDFLAGS="$LDFLAGS -L/usr/local/lib"
+                fi
+		# set LEX=/usr/local/bin/flex if not already set and the target exists
+		if test -z "$LEX" -a -f /usr/bin/flex -a -z "`/usr/bin/flex --version | grep -e ' 2\.5\.3[[1-9]]' -e ' 2\.5\.[[4-9]][[0-9]]' -e ' 2\.\[[6-9]]' -e ' [[3-9]]'`" -a -f /usr/local/bin/flex; then
+		   LEX=/usr/local/bin/flex
+                fi
+		AC_WARN([LDFLAGS=$LDFLAGS LEX=$LEX])
+                ;;
      *)         AC_WARN(Unknown platform ${host_os})
      		;;
 esac
@@ -215,6 +199,33 @@ fi
 AC_SUBST(MODULE_SUFFIX)
 
 CPPFLAGS="$CPPFLAGS -DHAVE_UNIX_CONFIG_H"
+
+AC_PROG_LEX
+
+# test for flex & flex version
+AC_MSG_CHECKING([for flex 2.5.31 or greater])
+if test -z "`echo $LEX | grep flex`"; then
+        AC_MSG_ERROR([no flex version found])
+elif test -z "`$LEX --version | grep -e ' 2\.5\.3[[1-9]]' -e ' 2\.5\.[[4-9]][[0-9]]' -e ' 2\.\[[6-9]]' -e ' [[3-9]]'`" ; then
+        flexver=`$LEX --version`
+	AC_MSG_ERROR([incompatible $flexver found - you can download flex 2.5.35 at http://sourceforge.net/projects/flex])
+else
+        flexver=`$LEX --version`
+	AC_MSG_RESULT([yes ($flexver)])
+fi
+
+AC_PROG_YACC
+
+# test for bison & bison version
+AC_MSG_CHECKING([for bison 1.85 or greater])
+if test -z "`echo $YACC | grep bison`"; then
+	AC_MSG_ERROR([bison not found])
+elif test -z "`$YACC --version | head -n 1 | grep -e ' 2\.' -e '1\.8[[5-9]]*' -e '1\.9'`"; then
+        bisonver=`$YACC --version | head -n 1`
+	AC_MSG_ERROR([incompatible $bisonver found])
+else
+	AC_MSG_RESULT([yes])
+fi
 
 if test "$no_sig_handling" != "yes"; then
    AC_DEFINE(HAVE_SIGNAL_HANDLING, 1, [if signal handling is supported])
@@ -1535,13 +1546,7 @@ AC_MSG_CHECKING([c++ compiler supports local variadic arrays])
 # turn on optimizations if we know how
 if test "$enable_optimization" = "yes"; then
     if test "$GXX" = "yes"; then
-        # set optimization to -O1 on freebsd because otherwise it segfaults for some reason
-	# in the signal code setting up for a fork()
-        if test -n "`echo $host_os|grep freebsd`"; then
-	   CXXFLAGS="$CXXFLAGS -O1"
-        else
-           CXXFLAGS="$CXXFLAGS -O3"  # gcc
-        fi
+        CXXFLAGS="$CXXFLAGS -O3"  # gcc
     elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
         # remove -g with Solaris CC as it reduces optimization levels
 	CXXFLAGS="`echo $CXXFLAGS| sed s/-g//` -xO5" # Solaris CC
