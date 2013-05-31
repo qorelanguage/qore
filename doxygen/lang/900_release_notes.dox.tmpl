@@ -79,6 +79,7 @@
     - fixed a bug managing feature/module lists in inherited @ref Qore::Program "Program" objects; user modules were listed in the child @ref Qore::Program "Program" object even though user module code is not imported in child @ref Qore::Program "Program" objects
     - fixed a bug where an invalid guard condition in critical lvalue storage code can cause unreferenced data to be returned while in a lock which can cause a crash in a multithreaded program
     - fixed a bug where references were not being written to the output variable if an exception was active when the code block exited
+    - fixed a bug setting the precision for arbitrary-precision numbers with very large exponents (like "1e100n")
 
     @section qore_087 Qore 0.8.7
 

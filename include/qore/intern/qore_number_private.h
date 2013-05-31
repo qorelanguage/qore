@@ -79,6 +79,12 @@ struct qore_number_private_intern {
          mpfr_prec_round(num, p, QORE_MPFR_RND);
    }
 
+   DLLLOCAL void setPrec(mpfr_prec_t prec) {
+      if (prec > QORE_MAX_PREC)
+         prec = QORE_MAX_PREC;
+      mpfr_prec_round(num, prec, QORE_MPFR_RND);
+   }
+
    DLLLOCAL static void do_divide_by_zero(ExceptionSink* xsink) {
       xsink->raiseException("DIVISION-BY-ZERO", "division by zero error in numeric operatior");
    }
@@ -110,6 +116,14 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL qore_number_private(const char* str) : qore_number_private_intern(QORE_MAX(QORE_DEFAULT_PREC, strlen(str)*5)) {
+      // see if number has an exponent and increase the number's precision if necessary
+      const char* p = strchrs(str, "eE");
+      if (p) {
+         int exp = abs(atoi(p + 1));
+         mpfr_prec_t np = exp * 5;
+         if (np > getPrec())
+            setPrec(np);
+      }
       mpfr_set_str(num, str, 10, QORE_MPFR_RND);
    }
 
