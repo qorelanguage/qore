@@ -599,37 +599,47 @@ struct qore_socket_private {
    DLLLOCAL static void do_header(const char *key, QoreString &hdr, const AbstractQoreNode *v) {
       switch (v->getType()) {
 	 case NT_STRING:
-	    hdr.sprintf("%s: %s\r\n", key, reinterpret_cast<const QoreStringNode *>(v)->getBuffer());
+	    hdr.sprintf("%s: %s\r\n", key, reinterpret_cast<const QoreStringNode*>(v)->getBuffer());
 	    break;
 	 case NT_INT:
-	    hdr.sprintf("%s: "QLLD"\r\n", key, reinterpret_cast<const QoreBigIntNode *>(v)->val);
+	    hdr.sprintf("%s: "QLLD"\r\n", key, reinterpret_cast<const QoreBigIntNode*>(v)->val);
 	    break;
 	 case NT_FLOAT:
-	    hdr.sprintf("%s: %f\r\n", key, reinterpret_cast<const QoreFloatNode *>(v)->f);
+	    hdr.sprintf("%s: %f\r\n", key, reinterpret_cast<const QoreFloatNode*>(v)->f);
+	    break;
+	 case NT_NUMBER:
+	    hdr.sprintf("%s: ", key);
+	    reinterpret_cast<const QoreNumberNode*>(v)->toString(hdr);
+	    hdr.concat("\r\n"); 
 	    break;
 	 case NT_BOOLEAN:
-	    hdr.sprintf("%s: %d\r\n", key, reinterpret_cast<const QoreBoolNode *>(v)->getValue());
+	    hdr.sprintf("%s: %d\r\n", key, reinterpret_cast<const QoreBoolNode*>(v)->getValue());
 	    break;
       }
    }
 
-   DLLLOCAL static void do_headers(QoreString &hdr, const QoreHashNode *headers, qore_size_t size) {
+   DLLLOCAL static void do_headers(QoreString &hdr, const QoreHashNode *headers, qore_size_t size, bool addsize = false) {
+      // RFC-2616 4.4 (http://tools.ietf.org/html/rfc2616#section-4.4)
+      // add Content-Length: 0 to headers for responses without a body where there is no transfer-encoding
       if (headers) {
 	 ConstHashIterator hi(headers);
 
 	 while (hi.next()) {
 	    const AbstractQoreNode *v = hi.getValue();
+	    const char* key = hi.getKey();
+	    if (addsize && !strcasecmp(key, "transfer-encoding"))
+	       addsize = false;
 	    if (v && v->getType() == NT_LIST) {
 	       ConstListIterator li(reinterpret_cast<const QoreListNode *>(v));
 	       while (li.next())
-		  do_header(hi.getKey(), hdr, li.getValue());
+		  do_header(key, hdr, li.getValue());
 	    }
 	    else
-	       do_header(hi.getKey(), hdr, hi.getValue());
+	       do_header(key, hdr, hi.getValue());
 	 }
       }
       // add data and content-length header if necessary
-      if (size)
+      if (size || addsize)
 	 hdr.sprintf("Content-Length: "QSD"\r\n", size);
 
       hdr.concat("\r\n");
@@ -2036,7 +2046,8 @@ struct qore_socket_private {
       do_send_http_message(hdr, headers, source);
 
       hdr.concat("\r\n");
-      do_headers(hdr, headers, size && data ? size : 0);
+
+      do_headers(hdr, headers, size && data ? size : 0, true);
    
       //printd(5, "QoreSocket::sendHTTPResponse() data: %p size: %ld hdr: %s", data, size, hdr.getBuffer());
    

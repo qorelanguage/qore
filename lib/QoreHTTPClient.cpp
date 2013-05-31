@@ -51,11 +51,11 @@
 
 // protocol map class to recognize user-defined protocols (mostly useful for derived classes)
 typedef std::map<std::string, int> prot_map_t;
-typedef std::set<const char *, ltcstrcase> ccharcase_set_t;
+typedef std::map<std::string, bool, ltstrcase> method_map_t;
 typedef std::set<std::string, ltstrcase> strcase_set_t;
 typedef std::map<std::string, std::string> header_map_t;
 
-static ccharcase_set_t method_set;
+static method_map_t method_map;
 static strcase_set_t header_ignore;
 
 struct con_info {
@@ -448,14 +448,14 @@ struct qore_qtc_private {
 // static initialization
 void QoreHTTPClient::static_init() {
    // setup static members of QoreHTTPClient class
-   method_set.insert("OPTIONS");
-   method_set.insert("GET");
-   method_set.insert("HEAD");
-   method_set.insert("POST");
-   method_set.insert("PUT");
-   method_set.insert("DELETE");
-   method_set.insert("TRACE");
-   method_set.insert("CONNECT");
+   method_map.insert(method_map_t::value_type("OPTIONS", true));
+   method_map.insert(method_map_t::value_type("GET", true));
+   method_map.insert(method_map_t::value_type("HEAD", false));
+   method_map.insert(method_map_t::value_type("POST", true));
+   method_map.insert(method_map_t::value_type("PUT", true));
+   method_map.insert(method_map_t::value_type("DELETE", true));
+   method_map.insert(method_map_t::value_type("TRACE", true));
+   method_map.insert(method_map_t::value_type("CONNECT", true));
    
    header_ignore.insert("Content-Length");
 }
@@ -825,13 +825,14 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
    //printd(5, "QoreHTTPClient::send_internal(meth: %s mpath: %s data: %p size: %u info: %p)\n", meth, mpath, data, size, info);
 
    // check if method is valid
-   ccharcase_set_t::const_iterator i = method_set.find(meth);
-   if (i == method_set.end()) {
+   method_map_t::const_iterator i = method_map.find(meth);
+   if (i == method_map.end()) {
       xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%s) not recognized.", meth);
       return 0;
    }
    // make sure the capitalized version is used
-   meth = *i;
+   meth = i->first.c_str();
+   bool bodyp = i->second;
 
    SafeLocker sl(m);
    Queue *cb_queue = m_socket.getQueue();
@@ -1098,64 +1099,78 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
       }
    }
 
-   // see if we should do a binary or string read
-   const char *content_encoding = 0;
-   v = ans->getKeyValue("content-encoding");
-   if (v) {
-      content_encoding = (reinterpret_cast<const QoreStringNode *>(v))->getBuffer();
-      // check for misuse (? not sure: check RFCs again) of this field by including a character encoding value
-      if (!strncasecmp(content_encoding, "iso", 3) || !strncasecmp(content_encoding, "utf-", 4)) {
-	 m_socket.setEncoding(QEM.findCreate(content_encoding));
-	 content_encoding = 0;
-      }
-   }
+   AbstractQoreNode* body = 0;
+   const char* content_encoding = 0;
 
-   const AbstractQoreNode *te = ans->getKeyValue("transfer-encoding");
+   // do not read any message body for messages that cannot have one
+   // rfc 2616 4.4 p1 (http://tools.ietf.org/html/rfc2616#section-4.4)
+   /*
+     1.Any response message which "MUST NOT" include a message-body (such
+     as the 1xx, 204, and 304 responses and any response to a HEAD
+     request) is always terminated by the first empty line after the
+     header fields, regardless of the entity-header fields present in
+     the message.
+    */
+   //printd(5, "qore_qtc_private::send_internal() this: %p bodyp: %d code: %d\n", this, bodyp, code);
+   // code >= 300 && < 400 is already handled above
+   if (bodyp && (code < 100 || code >= 200) && code != 204) {
+      // see if we should do a binary or string read
+      v = ans->getKeyValue("content-encoding");
+      if (v) {
+	 content_encoding = (reinterpret_cast<const QoreStringNode *>(v))->getBuffer();
+	 // check for misuse (? not sure: check RFCs again) of this field by including a character encoding value
+	 if (!strncasecmp(content_encoding, "iso", 3) || !strncasecmp(content_encoding, "utf-", 4)) {
+	    m_socket.setEncoding(QEM.findCreate(content_encoding));
+	    content_encoding = 0;
+	 }
+      }
+
+      const AbstractQoreNode *te = ans->getKeyValue("transfer-encoding");
    
-   // get response body, if any
-   v = ans->getKeyValue("content-length");
-   int len = v ? v->getAsInt() : 0;
-
-   if (v && cb_queue)
-      do_content_length_event(cb_queue, m_socket.getObjectIDForEvents(), len);
-
-   AbstractQoreNode *body = 0;
-   if (te && !strcasecmp((reinterpret_cast<const QoreStringNode *>(te))->getBuffer(), "chunked")) { // check for chunked response body
-      if (cb_queue)
-	 do_event(cb_queue, m_socket.getObjectIDForEvents(), QORE_EVENT_HTTP_CHUNKED_START);
-      ReferenceHolder<QoreHashNode> nah(xsink);
-      if (content_encoding)
-	 nah = m_socket.readHTTPChunkedBodyBinary(timeout, xsink, QORE_SOURCE_HTTPCLIENT);
-      else
-	 nah = m_socket.readHTTPChunkedBody(timeout, xsink, QORE_SOURCE_HTTPCLIENT);
-      if (cb_queue)
-	 do_event(cb_queue, m_socket.getObjectIDForEvents(), QORE_EVENT_HTTP_CHUNKED_END);
-
-      if (!nah)
-	 return 0;
+      // get response body, if any
+      v = ans->getKeyValue("content-length");
+      int len = v ? v->getAsInt() : 0;
       
-      if (info) {
-	 info->setKeyValue("chunked", &True, xsink);
-	 if (*xsink)
+      if (v && cb_queue)
+	 do_content_length_event(cb_queue, m_socket.getObjectIDForEvents(), len);
+
+      if (te && !strcasecmp((reinterpret_cast<const QoreStringNode *>(te))->getBuffer(), "chunked")) { // check for chunked response body
+	 if (cb_queue)
+	    do_event(cb_queue, m_socket.getObjectIDForEvents(), QORE_EVENT_HTTP_CHUNKED_START);
+	 ReferenceHolder<QoreHashNode> nah(xsink);
+	 if (content_encoding)
+	    nah = m_socket.readHTTPChunkedBodyBinary(timeout, xsink, QORE_SOURCE_HTTPCLIENT);
+	 else
+	    nah = m_socket.readHTTPChunkedBody(timeout, xsink, QORE_SOURCE_HTTPCLIENT);
+	 if (cb_queue)
+	    do_event(cb_queue, m_socket.getObjectIDForEvents(), QORE_EVENT_HTTP_CHUNKED_END);
+	 
+	 if (!nah)
 	    return 0;
+	 
+	 if (info) {
+	    info->setKeyValue("chunked", &True, xsink);
+	    if (*xsink)
+	       return 0;
+	 }
+	 
+	 body = nah->takeKeyValue("body");
+	 ans->merge(*nah, xsink);
       }
-
-      body = nah->takeKeyValue("body");
-      ans->merge(*nah, xsink);
-   }
-   else if (getbody || (len && strcmp(meth, "HEAD"))) {
-      if (content_encoding) {
-	 SimpleRefHolder<BinaryNode> bobj(m_socket.recvBinary(len, timeout, xsink));
-	 if (!(*xsink) && bobj)
-	    body = bobj.release();
-      }
-      else {
-	 QoreStringNodeHolder bstr(m_socket.recv(len, timeout, xsink));
-	 if (!(*xsink) && bstr)
-	    body = bstr.release();
-      }
-
-      //printf("body=%p\n", body);
+      else if (getbody || len) {
+	 if (content_encoding) {
+	    SimpleRefHolder<BinaryNode> bobj(m_socket.recvBinary(len, timeout, xsink));
+	    if (!(*xsink) && bobj)
+	       body = bobj.release();
+	 }
+	 else {
+	    QoreStringNodeHolder bstr(m_socket.recv(len, timeout, xsink));
+	    if (!(*xsink) && bstr)
+	       body = bstr.release();
+	 }
+	 
+	 //printf("body=%p\n", body);
+      }  
    }
 
    // check for connection: close header
@@ -1167,25 +1182,27 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
    // for content-encoding processing we can run unlocked
 
    // add body to result hash and process content encoding if necessary
-   if (body && content_encoding) {
-      BinaryNode *bobj = reinterpret_cast<BinaryNode *>(body);
-      QoreStringNode *str = 0;
-      if (!strcasecmp(content_encoding, "deflate") || !strcasecmp(content_encoding, "x-deflate"))
-	 str = qore_inflate_to_string(bobj, m_socket.getEncoding(), xsink);
-      else if (!strcasecmp(content_encoding, "gzip") || !strcasecmp(content_encoding, "x-gzip"))
-	 str = qore_gunzip_to_string(bobj, m_socket.getEncoding(), xsink);
-      else if (!strcasecmp(content_encoding, "bzip2") || !strcasecmp(content_encoding, "x-bzip2"))
-	 str = qore_bunzip2_to_string(bobj, m_socket.getEncoding(), xsink);
-      else {
-	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "don't know how to handle content-encoding '%s'", content_encoding);
-	 ans = 0;
+   if (body) {
+      if (content_encoding) {
+	 BinaryNode *bobj = reinterpret_cast<BinaryNode *>(body);
+	 QoreStringNode *str = 0;
+	 if (!strcasecmp(content_encoding, "deflate") || !strcasecmp(content_encoding, "x-deflate"))
+	    str = qore_inflate_to_string(bobj, m_socket.getEncoding(), xsink);
+	 else if (!strcasecmp(content_encoding, "gzip") || !strcasecmp(content_encoding, "x-gzip"))
+	    str = qore_gunzip_to_string(bobj, m_socket.getEncoding(), xsink);
+	 else if (!strcasecmp(content_encoding, "bzip2") || !strcasecmp(content_encoding, "x-bzip2"))
+	    str = qore_bunzip2_to_string(bobj, m_socket.getEncoding(), xsink);
+	 else {
+	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "don't know how to handle content-encoding '%s'", content_encoding);
+	    ans = 0;
+	 }
+	 bobj->deref();
+	 body = str;
       }
-      bobj->deref();
-      body = str;
-   }
 
-   if (body)
-      ans->setKeyValue("body", body, xsink);
+      if (body)
+	 ans->setKeyValue("body", body, xsink);
+   }
 
    if (code < 200 || code >= 300) {
       v = ans->getKeyValue("status_message");
