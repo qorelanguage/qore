@@ -255,12 +255,16 @@ DatasourcePool::destructor() {
    ds->deref();
 }
 
-//! Thows an exception; DatasourcePool objects cannot be copied in this version of Qore
+//! Creates a new Datasource object with the same driver as the original and copies of all the connection parameters
 /** 
-    @throw DATASOURCEPOOL-COPY-ERROR DatasourcePool objects may not be copied
+    @par Example:
+    @code
+my DatasourcePool $new_dsp = $dsp.copy();
+    @endcode
  */
 DatasourcePool::copy() {
-   xsink->raiseException("DATASOURCEPOOL-COPY-ERROR", "DatasourcePool objects may not be copied");
+   ReferenceHolder<QoreHashNode> opt(ds->getConfigHash(), xsink);
+   dsp_constructor_hash(*opt, self, xsink);
 }
 
 //! Commits the current transaction and releases the connection to the pool
