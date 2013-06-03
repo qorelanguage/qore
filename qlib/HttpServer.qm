@@ -2282,7 +2282,10 @@ public class HttpServer::HttpServer {
                             cast<AbstractHttpSocketHandler>($handler).start($cx, $hdr, $s);
                         }
                         catch (hash $ex) {
-                            $listener.logError("error in dedicated socket handler %y: %s: %s: %s", $handlerName, get_ex_pos($ex), $ex.err, $ex.desc);
+                            my string $desc = !$.debug
+                                ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
+                                : get_exception_string($ex);
+                            $listener.logError("error in dedicated socket handler %y: %s", $handlerName, $desc);
                         }
                         $listener.removeDedicatedSocket($cx.id, $handler);
                     }
