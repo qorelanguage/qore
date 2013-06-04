@@ -658,18 +658,15 @@ public class HttpServer::AbstractHttpRequestHandler {
         if ($api.logopt & HttpServer::LP_LOGPARAMS) {
             $args += "(";
             my int $i = 0;
+            my hash $amh;
+            if ($api.maskargs)
+                map $amh.$1 = True, $api.maskargs;
             foreach my any $arg in ($params) {
-                if (inlist($i++, $api.maskargs))
+                if ($amh.($i++))
                     $args += "<masked>, ";
-                else if ($arg.typeCode() == NT_HASH && elements $arg) {
+                else if ($arg.typeCode() == NT_HASH && $arg) {
                     $args += "{";
-                    foreach my string $k in (keys $arg) {
-                        if ($k == $api.maskkey)
-                            $args += sprintf("%s: <masked>, ", $k);
-                        else
-                            $args += sprintf("%s: %y, ", $k, $arg.$k);
-                    }
-                    splice $args, -2, 2;
+                    foldl $1 + ", " + $2, (map $1 == $api.maskkey ? sprintf("%s: <masked>, ", $1) : sprintf("%s: %y, ", $1, $arg.$1), $arg.keyIterator());
                     $args += "}, ";
                 }
                 else
@@ -1004,6 +1001,10 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		if (!$r)
 		    continue;
                 $info = $r.getPeerInfo();
+                # make 'desc' key for logging
+                $info.desc = $info.address_desc;
+                if ($info.port)
+                    $info.desc += ":" + $info.port;
 	    }
 	    catch ($ex) {
                 if ($ex.err != "SOCKET-CLOSED")
@@ -1027,7 +1028,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
             }
             catch (hash $ex) {
                 my string $err = sprintf("failed to start connection thread: %s: %s", $ex.err, $ex.desc);
-                $.serv.sendHttpError($self, ("id": -1), $r, 500, $err, True);
+                $.serv.sendHttpError($self, ("id": -1, "close": True), $r, 500, $err);
             }
 	}
 	#printf("HTTP DEBUG: HttpListener::mainThread() closing socket %s\n", $.socket_info.address_desc);
@@ -1083,13 +1084,15 @@ class HttpServer::HttpListener inherits Qore::Socket {
                         my string $err = sprintf("timed out reading HTTP header after %d ms", HttpServer::ReadTimeout);
                         my string $str = sprintf("%s from %s via %s", $err, $info.address_desc, $.socket_info.address_desc);
                         $.logError($str);
-                        $.serv.sendHttpError($self, $cx, $s, 400, $err, True);
+                        $cx.close = True;
+                        $.serv.sendHttpError($self, $cx, $s, 400, $err);
                         break;
                     }
 		    my string $etxt = sprintf("ERROR reading HTTP header: %s: %s", $ex.err, $ex.desc);
 		    my string $str = sprintf("%s: received from %s via %s", $etxt, $info.address_desc, $.socket_info.address_desc);
 		    $.logError($str);
-		    $.serv.sendHttpError($self, $cx, $s, 400, $etxt, True);
+                    $cx.close = True;
+		    $.serv.sendHttpError($self, $cx, $s, 400, $etxt);
 		    break;
 		}
 
@@ -1158,12 +1161,15 @@ class HttpServer::HttpListener inherits Qore::Socket {
                     $cx."response-encoding" = "utf-8";
 
 		# check if we need to close the connection
-		my any $conn = split(",", tolower($hdr.connection));
-		# remove leading and trailing whitespace
-		trim $conn;
+		my hash $ch;
+                if ($hdr.connection)
+                    map $ch.(trim($1)) = True, split(",", $hdr.connection.lwr()).iterator();
 
-		$cx.close = (inlist("close", $conn) || ($hdr.http_version != "1.1" && !inlist("keep-alive", $conn)));
-		#printf("HTTP DEBUG: conn=%n, close=%n\n", $conn, $cx.close);
+                # RFC 2068 19.7.1: Persistent connections in HTTP/1.0 must be explicitly negotiated as they are not the default behavior
+                # RFC 1945 1.3: Except for experimental applications, current practice requires that the connection be established by the client prior to each request and closed by the server after sending the response.
+                # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open
+		$cx.close = $ch.close || ($hdr.http_version != "1.1" && !$ch."keep-alive");
+		#printf("HTTP DEBUG: ch: %y, close: %y\n", $ch, $cx.close);
 
 		# if we need to get a body
                 if ($hdr."transfer-encoding" == "chunked") {
@@ -1179,8 +1185,8 @@ class HttpServer::HttpListener inherits Qore::Socket {
                         my string $etxt = sprintf("error reading chunked body in %s: %s: %s", $hdr.method, $ex.err, $ex.desc);
                         my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
                         $.logError($str);
-                        $.serv.sendHttpError($self, $cx, $s, 400, $etxt, True, NOTHING, $cx."response-encoding");
                         $cx.close = True;
+                        $.serv.sendHttpError($self, $cx, $s, 400, $etxt, NOTHING, $cx."response-encoding");
                         break;
                     }
                 }
@@ -1196,8 +1202,8 @@ class HttpServer::HttpListener inherits Qore::Socket {
                         my string $etxt = sprintf("error reading body in %s (Content-Length: %d): %s: %s", $hdr.method, $hdr."content-length", $ex.err, $ex.desc);
                         my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
                         $.logError($str);
-                        $.serv.sendHttpError($self, $cx, $s, 400, $etxt, True, NOTHING, $cx."response-encoding");
                         $cx.close = True;
+                        $.serv.sendHttpError($self, $cx, $s, 400, $etxt, NOTHING, $cx."response-encoding");
                         break;
                     }
                 }
@@ -1216,7 +1222,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 
 		switch ($hdr.method) {
                     case "HEAD": {
-                        $.serv.handleRequest($self, $s, \$cx, $hdr, $body, \$cx.close, True);
+                        $.serv.handleRequest($self, $s, \$cx, $hdr, $body, True);
                         break;
                     }
 
@@ -1224,7 +1230,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
                     case "PUT":
                     case "DELETE":
                     case "GET": {
-                        $.serv.handleRequest($self, $s, \$cx, $hdr, $body, \$cx.close);
+                        $.serv.handleRequest($self, $s, \$cx, $hdr, $body);
                         break;
                     }
 
@@ -1232,8 +1238,8 @@ class HttpServer::HttpListener inherits Qore::Socket {
                         my string $err = sprintf("unknown / unsupported HTTP method %n", $hdr.method);
                         my string $str = sprintf("%s: received from %s via %s", $err, $info.address_desc, $.socket_info.address_desc);
                         $.logError($str);
-                        $.serv.sendHttpError($self, $cx, $s, 501, $err, True, NOTHING, $cx."response-encoding");
                         $cx.close = True;
+                        $.serv.sendHttpError($self, $cx, $s, 501, $err, NOTHING, $cx."response-encoding");
                         break;
                     }
                 }
@@ -1250,10 +1256,11 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	    $.logError($str);
 	    $.logError(sprintf("hdr=%n", $hdr));
 	    #$.logError(sprintf("msg=%n", $body));
-	    $.serv.sendHttpError($self, $cx, $s, 500, $etxt, True, NOTHING, $cx."response-encoding");
+            $cx.close = True;
+	    $.serv.sendHttpError($self, $cx, $s, 500, $etxt, NOTHING, $cx."response-encoding");
 	}
 
-	$s.close();
+        $s.close();
     }
 
     bool registerDedicatedSocket(softstring $id, AbstractHttpSocketHandler $h) {
@@ -1820,7 +1827,7 @@ public class HttpServer::HttpServer {
     }
     
     #! sends an HTTP error message on the socket
-    sendHttpError(HttpListener $listener, hash $cx, Socket $s, int $code, string $msg, bool $close = False, *hash $extra_hdrs, *string $encoding) {
+    sendHttpError(HttpListener $listener, hash $cx, Socket $s, int $code, string $msg, *hash $extra_hdrs, *string $encoding) {
         my string $str = !$extra_hdrs."Content-Type"
             ? sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1>%s<p><hr><address>%s on %s</address></body></html>",
                       $code, HttpServer::HttpCodes.$code, HttpServer::HttpCodes.$code, html_encode($msg), $.httpserverstring, gethostname())
@@ -1845,7 +1852,7 @@ public class HttpServer::HttpServer {
         else if ($extra_hdrs."Content-Type" !~ /charset=/)
             $extra_hdrs."Content-Type" += ";charset=" + $encoding;
 
-	if ($close)
+	if ($cx.close)
 	    $hdr += ("Connection": "close");
 	else
 	    $hdr += ("Connection": "Keep-Alive");
@@ -2003,7 +2010,7 @@ public class HttpServer::HttpServer {
     
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
     # don't reimplement this method; fix/enhance it in the module
-    final handleRequest(HttpListener $listener, Socket $s, reference $cx, hash $hdr, *data $body, reference $close, bool $head = False) {
+    final handleRequest(HttpListener $listener, Socket $s, reference $cx, hash $hdr, *data $body, bool $head = False) {
 	# handle accept-encoding to compress data if necessary        
 	if ($hdr."accept-encoding") {
 	    # remove all writespace
@@ -2055,7 +2062,7 @@ public class HttpServer::HttpServer {
 	if (!$listener.handlers.empty()) {
 	    $hi = $listener.handlers.findHandler($url, $hdr, \$score, True);
 	    if (!$hi) {
-		$.sendHttpError($listener, $cx, $s, 404, "Not found", $close, NOTHING, $cx."response-encoding");
+		$.sendHttpError($listener, $cx, $s, 404, "Not found", NOTHING, $cx."response-encoding");
 		return;
 	    }
 	}
@@ -2105,7 +2112,8 @@ public class HttpServer::HttpServer {
                                 $ah.code = 401;
                             if (!$ah.body)
                                 $ah.body = "Authentication is required to access this server";
-                            $.sendHttpError($listener, $cx, $s, $ah.code, $ah.body, $close = True, $ah.hdr, $cx."response-encoding");
+                            $cx.close = True;
+                            $.sendHttpError($listener, $cx, $s, $ah.code, $ah.body, $ah.hdr, $cx."response-encoding");
                             return;
                         }
                     }
@@ -2113,7 +2121,8 @@ public class HttpServer::HttpServer {
                         # log the error
                         my string $str = sprintf("%s: %s: %s: received from %s", get_ex_pos($ex), $ex.err, $ex.desc, $cx."peer-info".address_desc);
                         $listener.logError($str);
-                        $.sendHttpError($listener, $cx, $s, 501, "Server Authentication Error", $close = True);
+                        $cx.close = True;
+                        $.sendHttpError($listener, $cx, $s, 501, "Server Authentication Error");
                         return;
                     }
                     #$listener.log("authenticated with user %y", $cx.user);
@@ -2148,7 +2157,8 @@ public class HttpServer::HttpServer {
                         my string $etxt = sprintf("error processing content encoding %s: %s: %s", $hdr."content-encoding", $ex.err, $ex.desc);
                         my string $str = sprintf("%s: received from %s (header=%y)", $etxt, $cx."peer-info".address_desc, $hdr);
                         $listener.logError($str);
-                        $.sendHttpError($listener, $cx, $s, 501, $etxt, $close = True, NOTHING, $cx."response-encoding");
+                        $cx.close = True;
+                        $.sendHttpError($listener, $cx, $s, 501, $etxt, NOTHING, $cx."response-encoding");
                         break;
                     }
                 }
@@ -2162,13 +2172,8 @@ public class HttpServer::HttpServer {
                 $rv = $.noHandlerError($cx, $hdr, $body);
 	    }
 
-            # RFC 2068 19.7.1: Persistent connections in HTTP/1.0 must be explicitly negotiated as they are not the default behavior
-            # RFC 1945 1.3: Except for experimental applications, current practice requires that the connection be established by the client prior to each request and closed by the server after sending the response.
-            # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open
-            if ($hdr.http_version == "1.0" && $hdr.connection !~ /^keep-alive$/i)
-                $close = True;
-            else
-                $close = boolean($rv.close);
+            if (exists $rv.close)
+                $cx.close = boolean($rv.close);
 
             if ($rv.typeCode() == NT_STRING)
                 $rv = (
@@ -2181,12 +2186,12 @@ public class HttpServer::HttpServer {
                     "body": sprintf("handler %y returned an invalid response: %y", $rv),
                     );
 
-            $rv.close = $close;
+            $rv.close = $cx.close;
 
 	    if (!HttpCodes.($rv.code)) { # if the handler returns an invalid hash
 		my string $str = sprintf("%s handler returned an invalid response rv: %y", $handlerName, $rv);
                 
-		$.sendHttpError($listener, $cx, $s, 500, $str, $close, NOTHING, $cx."response-encoding");
+		$.sendHttpError($listener, $cx, $s, 500, $str, NOTHING, $cx."response-encoding");
 		return;
 	    }
 
@@ -2208,7 +2213,7 @@ public class HttpServer::HttpServer {
 		if (!$rv.body)
 		    $rv.body = sprintf("unknown error in %s handler", $handlerName);
 		
-		$.sendHttpError($listener, $cx, $s, $rv.code, $rv.body, $close, $rv.hdr, $cx."response-encoding");
+		$.sendHttpError($listener, $cx, $s, $rv.code, $rv.body, $rv.hdr, $cx."response-encoding");
 	    }
 	    else {
 		#printf("\n**** REQUEST: %N\n", $body);
@@ -2230,8 +2235,8 @@ public class HttpServer::HttpServer {
                 on_exit if ($s.getEncoding() != $old_encoding)
                     $s.setEncoding($old_encoding);
                 if (!$cx."response-encoding")
-                    $cx."response-encoding" = tolower($s.getEncoding());
-                else if ($cx."response-encoding" != tolower($s.getEncoding()))
+                    $cx."response-encoding" = $s.getEncoding().lwr();
+                else if ($cx."response-encoding" != $s.getEncoding().lwr())
                     $s.setEncoding($cx."response-encoding");
 
                 if ($rv.body) {
@@ -2245,15 +2250,15 @@ public class HttpServer::HttpServer {
 		    $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr);
 		else {
 		    if ($cx.encoding == "deflate") {
-			$rv.hdr += ( "Content-Encoding": "deflate" );
+			$rv.hdr."Content-Encoding" = "deflate";
 			$rv.body = compress($rv.body);
 		    }
 		    else if ($cx.encoding == "gzip") {
-			$rv.hdr += ( "Content-Encoding": "gzip" );
+			$rv.hdr."Content-Encoding" = "gzip";
 			$rv.body = gzip($rv.body);
 		    }
 		    else if ($cx.encoding == "bzip2") {
-			$rv.hdr += ( "Content-Encoding": "bzip2" );
+			$rv.hdr."Content-Encoding" = "bzip2";
 			$rv.body = bzip2($rv.body);
 		    }
 		    
@@ -2300,7 +2305,7 @@ public class HttpServer::HttpServer {
                 : get_exception_string($ex);
 
 	    my string $str = sprintf("handler: %s: %s", $handlerName, $desc);
-	    $.sendHttpError($listener, $cx, $s, 500, $str, $close, NOTHING, $cx."response-encoding");
+	    $.sendHttpError($listener, $cx, $s, 500, $str, NOTHING, $cx."response-encoding");
 	    $.logError($str);
 	}
     }
