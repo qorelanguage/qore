@@ -1587,12 +1587,16 @@ struct qore_socket_private {
 	       sock_get_error();
 	       if (errno == EINTR)
 		  continue;
+#ifdef ECONNRESET
+	       if (errno == ECONNRESET) {
+		  if (xsink)
+		     se_closed(meth, xsink);
+		  close();
+	       }
+	       else
+#endif
 	       if (xsink)
 		  qore_socket_error(xsink, "SOCKET-RECV-ERROR", "error in recv()", meth);
-#ifdef ECONNRESET
-	       if (errno == ECONNRESET)
-		  close();
-#endif
 	       break;
 	    }
 	    //printd(5, "qore_socket_private::recv(%d, %p, %ld, %d) rc=%ld errno=%d\n", sock, buf, bs, flags, rc, errno);
@@ -1987,6 +1991,10 @@ struct qore_socket_private {
                   if (xsink)
                      xsink->raiseErrnoException("SOCKET-SEND-ERROR", errno, "error while executing Socket::%s()", mname);
 
+#ifdef EPIPE
+		  if (errno == EPIPE)
+		     close();
+#endif
 #ifdef ECONNRESET
 		  if (errno == ECONNRESET)
 		     close();
