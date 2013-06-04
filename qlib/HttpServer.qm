@@ -1277,8 +1277,8 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		break;
 
 	    # DEBUG
-	    #printf("HTTP DEBUG: %y: accepting HTTP connection from %s\n", $.socket_info.address_desc, $info.address_desc);
-	    #$.log("accepting HTTP connection from %s", $info.address_desc);
+	    #printf("HTTP DEBUG: %y: accepting HTTP connection from %s\n", $.socket_info.address_desc, $r.getPeerInfo().address_desc);
+	    #$.log("accepting HTTP connection from %s", $r.getPeerInfo().address_desc);
 	    
 	    $.cThreads.inc();
             try {
