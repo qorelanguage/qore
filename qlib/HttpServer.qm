@@ -1372,7 +1372,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		}
 
 		# DEBUG:
-                printf("HTTP DEBUG: id: %d, hdr: %y\n", $cx.id, $hdr);
+                #printf("HTTP DEBUG: id: %d, hdr: %y\n", $cx.id, $hdr);
 
 		# process ascii encodings in url if present
 		$hdr.path = decode_url($hdr.path);
