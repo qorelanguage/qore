@@ -1,0 +1,236 @@
+class ThreadPoolThread {
+    public {
+        softstring $.id;
+    }
+
+    private {
+        ThreadPool $.tp;
+        Queue $.tq();
+    }
+
+    constructor(ThreadPool $tp) {
+        $.tp = $tp;
+        $.id = background $.worker();
+    }
+
+    stop() {
+        $.tq.push();
+    }
+
+    submit(ThreadTask $t) {
+        $.tq.push($t);
+    }
+
+    private worker() {
+        $.id = gettid();
+        while (True) {
+            my *ThreadTask $t = $.tq.get();
+            if (!$t)
+                return;
+            on_exit $.tp.done($.id);
+            $t.run();
+        }
+    }
+}
+
+class ThreadPool {
+    public {
+    }
+
+    private {
+        int $.minready;
+        int $.max;
+
+        Mutex $.m();
+        # worker condition variable
+        Condition $.cond();
+
+        # allocated hash
+        hash $.ah;
+        # free hash
+        hash $.fh;
+
+        # quit flag
+        bool $.quit = False;
+        # worker thread termination confirmation counter
+        Counter $.cnt();
+
+        # master task queue
+        Queue $.q();
+        # task waiting flag
+        bool $.waiting = False;
+    }
+
+    constructor(int $minready, int $max) {
+        if ($minready > $max && $max >= 0)
+            throw "THREAD-POOL-ERROR", sprintf("error in arguments to ThreadPool::constructor(): minready (%d) > max (%d)", $minready, $max);
+        $.minready = $minready;
+        $.max = $max;
+
+        $.cnt.inc();
+        on_error $.cnt.dec();
+        background $.worker();
+    }
+
+    stop() {
+        $.m.lock();
+        on_exit $.m.unlock();
+
+        $.quitIntern();
+
+        $.cnt.waitForZero();
+    }
+
+    private quitIntern() {
+        if (!$.quit) {
+            $.quitIntern();
+            $.quit = True;
+            $.cond.signal();
+
+            # abort all pending tasks
+            while (!$.q.empty()) {
+                my ThreadTask $t = $.q.get();
+                $t.abort();
+            }
+        }
+    }
+
+    ThreadTask submit(code $c) {
+        $.m.lock();
+        on_exit $.m.unlock();
+
+        $.checkQuitIntern();
+        my ThreadTask $t($c);
+        if ($.q.empty())
+            $.cond.signal();
+        $.q.push($t);
+        return $t;
+    }
+
+    private checkQuitIntern() {
+        if ($.quit)
+            throw "THREAD-POOL-ERROR", "thread pool is being destroyed";
+    }
+
+    int totalThreads() {
+        $.m.lock();
+        on_exit $.m.unlock();
+
+        return $.totalThreadsIntern();
+    }
+
+    private int totalThreadsIntern() {
+        return $.fh.size() + $.ah.size();
+    }
+
+    done(string $id) {
+        $.m.lock();
+        on_exit $.m.unlock();
+
+        $.releaseIntern($id);
+    }
+
+    private *ThreadPoolThread acquireIntern() {
+        while (!$.quit && $.fh.empty() && $.totalThreadsIntern() == $.max) {
+            printf("ThreadPool::acquireIntern() waiting for free connection ah: %y fh: %h\n", $.ah.keys(), $.fh.keys());
+            $.waiting = True;
+            $.cond.wait($.m);
+            $.waiting = False;
+        }
+        if ($.quit)
+            return;
+
+        my ThreadPoolThread $tpt;
+
+        if ($.fh) {
+            my string $id = $.fh.firstKey();
+            $tpt = remove $.fh.$id;
+        }
+        else {
+            try {
+                $tpt = new ThreadPoolThread($self);
+            }
+            catch (hash $ex) {
+                printf("%s: %s: %s\n", get_ex_pos($ex), $ex.err, $ex.desc);
+                $.quitIntern();
+                return;
+            }
+        }
+
+        $.ah.($tpt.id) = $tpt;
+
+        printf("ThreadPool::acquireIntern() got %d min: %d max: %d fh: %y ah: %y q: %d\n", $tpt.id, $.minready, $.max, $.fh.keys(), $.ah.keys(), $.q.size());
+        return $tpt;
+    }
+
+    private releaseIntern(string $id) {
+        my ThreadPoolThread $tpt = remove $.ah.$id;
+
+        # return the thread to the pool if possible
+        if (!$.quit) {
+            my int $fhs = $.fh.size();
+            my int $qs = $.q.size();
+            if ((($fhs < $.minready) || ($qs > $fhs)) && (($.max <= 0) || (($fhs + $.ah.size()) < $.max))) {
+                printf("ThreadPool::releaseIntern() releasing %d fh: %y ah: %y q: %d\n", $tpt.id, $.fh.keys(), $.ah.keys(), $.q.size());
+                $.fh.$id = $tpt;
+                if (!$.q.empty())
+                    $.cond.signal();
+            }
+            else # terminate excess thread
+                $tpt.stop();
+        }
+        else # terminate excess thread
+            $tpt.stop();
+    }
+
+    private startMinIntern() {
+        # start minimum workers if necessary
+        while ($.fh.size() < $.minready) {
+            if (!$.addWorkerIntern())
+                break;
+        }
+    }
+
+    private worker() {
+        $.m.lock();
+        on_exit {
+            $.m.unlock();
+            $.cnt.dec();
+        }
+
+        $.startMinIntern();
+
+        while (!$.quit) {
+            if ($.q.empty())
+                $.cond.wait($.m);
+
+            if ($.quit)
+                break;
+
+            while (!$.q.empty()) {
+                my *ThreadPoolThread $tpt = $.acquireIntern();
+                if (!$tpt)
+                    break;
+                $tpt.submit($.q.get());
+            }
+        }
+
+        # terminate all worker threads
+        map $1.stop(), $.ah.iterator();
+        map $1.stop(), $.fh.iterator();
+    }
+
+    private bool addWorkerIntern() {
+        try {
+            my ThreadPoolThread $tpt($self);
+            my softstring $id = $tpt.id;
+            $.fh.$id = $tpt;
+        }
+        catch (hash $ex) {
+            printf("%s: %s: %s\n", get_ex_pos($ex), $ex.err, $ex.desc);
+            $.quitIntern();
+            return False;
+        }
+        return True;
+    }
+}
