@@ -188,6 +188,10 @@ public:
    DLLLOCAL AbstractQoreNode* shift(ExceptionSink* xsink, int timeout_ms = 0, bool *to = 0);
    DLLLOCAL AbstractQoreNode* pop(ExceptionSink* xsink, int timeout_ms = 0, bool *to = 0);
 
+   DLLLOCAL bool empty() const {
+      return !len;
+   }
+
    DLLLOCAL int size() const {
       return len;
    }

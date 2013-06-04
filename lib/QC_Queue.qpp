@@ -184,6 +184,20 @@ int Queue::size() [flags=CONSTANT] {
    return q->size();
 }
 
+//! Returns @ref Qore::True "True" if the Queue is empty, @ref Qore::False "False" if not
+/** @par Example:
+    <code>my bool $b = $queue.empty();</code>
+
+    @return @ref Qore::True "True" if the Queue is empty, @ref Qore::False "False" if not
+
+    @see Queue::size()
+
+    @since %Qore 0.8.8
+ */
+bool Queue::empty() [flags=CONSTANT] {
+   return q->empty();
+}
+
 //! Returns the upper limit of the number of elements in the Queue
 /** @par Example:
     <code>my int $max = $queue.max();</code>
