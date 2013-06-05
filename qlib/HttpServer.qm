@@ -33,6 +33,8 @@ module HttpServer {
     url = "http://qore.org";
 }
 
+#%define ThreadPool True
+
 /*  Version History
     * 2013-03-05 v0.3.7: David Nichols <david@qore.org>
       + fixed a bug in parsing arguments in parse_uri_query()
@@ -45,6 +47,8 @@ module HttpServer {
       + do not add HTML to the msg body from explicit error responses from handlers
       + improved HTTP server log messages
       + added "family" argument to HttpServer::add*Listener*() methods
+      + turned of TCP_NODELAY by default and use socket shutdown when closing sockets instead
+      + set the listen backlog queue size to 100 by default (previously was hardcoded internally in Qore to 5)
 
     * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
       + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
@@ -1045,6 +1049,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
         string $.name;
 
 	const PollInterval = 1s;
+        const ListenQueue = 100;
     }
 
     public {
@@ -1113,7 +1118,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	#$.setNoDelay(True);
 
 	# set listening state on socket
-	if ($.listen())
+	if ($.listen(ListenQueue))
 	    throw "HTTP-LISTEN-ERROR", sprintf("listen error on socket %s: %s", $.socket, strerror(errno()));
 
 	# start main listener thread
@@ -1269,7 +1274,6 @@ class HttpServer::HttpListener inherits Qore::Socket {
                 #printf("HTTP DEBUG: %s: %s: %s\n", get_ex_pos($ex), $ex.err, $ex.desc);
                 if ($ex.err != "SOCKET-CLOSED")
                     $.log("error accepting %sconnection: %s: %s", $.ssl ? "secure " : "", $ex.err, $ex.desc);
-		delete $r;
                 continue;
             }
 

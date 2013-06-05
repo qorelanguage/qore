@@ -543,6 +543,15 @@ public:
    */
    DLLEXPORT int listen();
 
+   //! sets an open socket to the listening state
+   /** @param backlog the size of the queue for pending connections
+
+       @return 0 for OK, not 0 if an error occured
+
+       @since Qore 0.8.8
+   */
+   DLLEXPORT int listen(int backlog);
+
    //! sends binary data on a connected socket
    /** 
        @param buf the data to send

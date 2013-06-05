@@ -95,7 +95,7 @@ public:
    DLLLOCAL mySocket *accept(int timeout_ms, ExceptionSink *xsink);
    DLLLOCAL mySocket *acceptSSL(int timeout_ms, ExceptionSink *xsink);
 
-   DLLLOCAL int listen();
+   DLLLOCAL int listen(int backlog);
    // send a buffer of a particular size
    DLLLOCAL int send(const char *buf, int size);
    DLLLOCAL int send(const char *buf, int size, int timeout_ms, ExceptionSink* xsink);

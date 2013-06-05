@@ -769,12 +769,16 @@ Socket Socket::acceptSSL() {
     @par Example:
     @code $sock.listen(); @endcode
 
+    @param backlog the size of the queue for pending connections
+
     @return Returns 0 for success, -1 for error
 
     @throw SOCKET-NOT-OPEN The socket is not bound
+
+    @since %Qore 0.8.8 the \a backlog parameter was added
  */
-int Socket::listen() {
-   return checkOpenResult(s->listen(), "listen", xsink);
+int Socket::listen(int backlog = 20) {
+   return checkOpenResult(s->listen((int)backlog), "listen", xsink);
 }
 
 //! Sends binary data over the socket; if any errors occur, an exception is thrown

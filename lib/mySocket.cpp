@@ -94,9 +94,9 @@ int mySocket::getPort() {
    return socket->getPort();
 }
 
-int mySocket::listen() {
+int mySocket::listen(int backlog) {
    AutoLocker al(m);
-   return socket->listen();
+   return socket->listen(backlog);
 }
 
 // send a buffer of a particular size

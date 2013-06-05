@@ -657,18 +657,18 @@ struct qore_socket_private {
       return sizeof(struct sockaddr_in6);
    }
 
-   DLLLOCAL int listen() {
+   DLLLOCAL int listen(int backlog = 20) {
       if (sock == QORE_INVALID_SOCKET)
 	 return QSE_NOT_OPEN;
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
-      if (::listen(sock, 5)) {
+      if (::listen(sock, backlog)) {
 	 // set errno
 	 sock_get_error();
 	 return -1;
       }
       return 0;
 #else
-      return ::listen(sock, 5);
+      return ::listen(sock, backlog);
 #endif
    }
 
@@ -1637,8 +1637,10 @@ struct qore_socket_private {
 	 //printd(5, "read char: %c (%03d) (old state: %d)\n", c > 30 ? c : '?', c, state);
 	 if (rc <= 0) {
 	    if (xsink && !*xsink) {
-	       if (!count)
+	       if (!count) {
+		  printd(0, "qore_socket_private::readHTTPData() this: %p rc: %d count: %d (%d) timeout: %d\n", this, rc, count, hdr->size(), timeout);
 		  se_closed(meth, xsink);
+	       }
 	       else
 		  xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "socket closed on remote end while reading header data after reading "QSD" byte%s", count, count == 1 ? "" : "s");
 	    }
@@ -3665,6 +3667,10 @@ int QoreSocket::acceptAndReplace(int timeout_ms, ExceptionSink *xsink) {
    priv->close_internal();
    priv->sock = rc;
    return 0;
+}
+
+int QoreSocket::listen(int backlog) {
+   return priv->listen(backlog);
 }
 
 int QoreSocket::listen() {
