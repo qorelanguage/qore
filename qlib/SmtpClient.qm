@@ -192,9 +192,6 @@ public namespace SmtpClient {
         #! @endcond
 
 	public {
-	    #! create a different multipart boundary string every time based on the current time
-	    string $.mpboundary = replace(makeBase64String(string(now_us())), "=", "");
-
 	    #! default SMTP port
 	    const SmtpPort = 25;
 
@@ -428,47 +425,21 @@ my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), 
 	 */
 	hash sendMessage(MailMessage::Message $message) {
             # throws a MESSAGE-ERROR exception if the message cannot be sent
-	    $message.checkSendPossible();
+            my string $mstr = $message.serialize();
 
-	    if ($.log_debug.val())
+	    if ($.log_debug)
 		$.logDbg("message: %s", $message.toLine());
-	    
+
 	    # lock for sending
 	    my AutoLock $am($.mutex);
 
 	    my hash $reply;
 	    try {
-		$reply = $.sendMessageHeaderIntern($message);
+                # send SMTP info for message
+		$reply = $.sendMessageInfoIntern($message);
 
-		my list $atts = $message.getAttachments();
-
-                # get message body transfer encoding
-		my string $be = $message.getBodyTransferEncoding();
-
-                # is this a multipart msg?
-                my bool $multipart = !$atts.empty();
-
-		# see if we need to send a MIME msg: multipart message or need body encoding
-                my bool $mime = $multipart || $be != MailMessage::EncNone;
-
-                if ($mime) {
-                    my MultiPartMixedMessage $mpm($.mpboundary);
-
-                    if ($be == MailMessage::EncNone)
-                        $be = ContentTransEnc7Bit;
-
-                    # add the message body
-                    $mpm.addEncodePart($message.getBody(), $be, MimeTypeText, "inline");
-                   
-                    # add attachments
-                    foreach my MailMessage::Attachment $att in ($atts)
-                        $att.add($mpm);
-
-                    $.sendData($mpm.serialize());
-                    $.sendData("\r\n");
-                }
-		else 
-		    $.sendData($message.getBody() + "\r\n");
+                # send message
+                $.sendData($mstr);
 
 		# end of data
 		my hash $rh = $.sendCommand(".");
@@ -626,7 +597,7 @@ my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), 
 
         # sends the message header (without body & attachments) to the SMTP server
         # don't reimplement this method; fix/enhance it in the module
-        final private hash sendMessageHeaderIntern(MailMessage::Message $message) {
+        final private hash sendMessageInfoIntern(MailMessage::Message $message) {
 	    # open connection to server
 	    if (!$.isConnected()) {
 		$.connectIntern();
@@ -682,8 +653,6 @@ my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), 
 	    $rh = $.sendCommand("DATA");
 	    if ($rh.code != 354)
 		throw "SMTP-DATA-EXCEPTION", sprintf("error sending DATA command (expected code 354): %y", $rh);
-
-            $.sendData($message.getHeaderString());
 
 	    return $reply;
 	}

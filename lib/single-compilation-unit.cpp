@@ -203,6 +203,7 @@
 #include "QC_FileLineIterator.cpp"
 #include "QC_SingleValueIterator.cpp"
 #include "QC_RangeIterator.cpp"
+#include "QC_ThreadPool.cpp"
 #include "QC_AbstractDatasource.cpp"
 #include "QC_Datasource.cpp"
 #include "QC_DatasourcePool.cpp"

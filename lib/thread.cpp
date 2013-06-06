@@ -88,6 +88,8 @@ QorePThreadAttr ta_default;
 
 DLLLOCAL QoreThreadList thread_list;
 
+DLLLOCAL QoreClass* initThreadPoolClass(QoreNamespace& ns);
+
 const qore_class_private* ClassObj::getClass() const {
    if (!ptr)
       return 0;
@@ -1527,8 +1529,62 @@ QoreForeignThreadHelper::~QoreForeignThreadHelper() {
    }
 }
 
-// put "op_background_thread" in an unnamed namespace to make it 'static extern "C"'
+struct ThreadArg {
+   q_thread_t f;
+   void* arg;
+   int tid;
+
+   DLLLOCAL ThreadArg(q_thread_t n_f, void* a, int n_tid) : f(n_f), arg(a), tid(n_tid) {
+   }
+
+   DLLLOCAL void run(ExceptionSink* xsink) {
+      f(xsink, arg);
+   }
+};
+
+// put functions in an unnamed namespace to make them 'static extern "C"'
 namespace {
+   extern "C" void* q_run_thread(void* arg) {
+      ThreadArg* ta = (ThreadArg*)arg;
+
+      register_thread(ta->tid, pthread_self(), 0);
+      printd(5, "q_run_thread() ta: %p TID %d started\n", ta, ta->tid);
+
+      pthread_cleanup_push(qore_thread_cleanup, (void*)0);
+
+      {
+         ExceptionSink xsink;
+
+         {
+            ta->run(&xsink);
+            
+            // delete any thread data
+            thread_data.get()->del(&xsink);
+
+            // cleanup thread resources
+            purge_thread_resources(&xsink);
+
+            xsink.handleExceptions();
+
+            printd(4, "q_run_thread(): thread terminating");
+
+            // delete internal thread data structure and release TID entry
+            thread_list.deleteDataRelease(ta->tid);
+            
+            // run any cleanup functions
+            tclist.exec();
+
+            //printd(5, "q_run_thread(): deleting thread params %p\n", ta);
+            delete ta;
+         }
+      }
+
+      pthread_cleanup_pop(1);
+      thread_counter.dec();
+      pthread_exit(0);
+      return 0;
+   }
+
    extern "C" void* op_background_thread(void* x) {
       BGThreadParams* btp = (BGThreadParams*) x;
       // register thread
@@ -1645,6 +1701,36 @@ static AbstractQoreNode* op_background(const AbstractQoreNode* left, const Abstr
    }
    //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
    return ref_rv ? new QoreBigIntNode(tid) : 0;
+}
+
+int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
+   int tid = get_thread_entry();
+   //printd(2, "got %d()\n", tid);
+
+   // if can't start thread, then throw exception
+   if (tid == -1) {
+      xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
+      return -1;
+   }
+
+   ThreadArg* ta = new ThreadArg(f, arg, tid);
+
+   //printd(5, "tp = %p\n", tp);
+   // create thread
+   int rc;
+   pthread_t ptid;
+
+   //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
+   thread_counter.inc();
+   if ((rc = pthread_create(&ptid, ta_default.get_ptr(), q_run_thread, ta))) {
+      delete ta;
+      thread_counter.dec();
+      deregister_thread(tid);
+      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
+      return -1;
+   }
+
+   return tid;
 }
 
 static AbstractQoreNode* check_op_background(QoreTreeNode* tree, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* descr) {
@@ -1765,6 +1851,8 @@ QoreNamespace *get_thread_ns(QoreNamespace &qorens) {
    Thread->addSystemClass(initAutoGateClass(*Thread));
    Thread->addSystemClass(initAutoReadLockClass(*Thread));
    Thread->addSystemClass(initAutoWriteLockClass(*Thread));
+
+   Thread->addSystemClass(initThreadPoolClass(*Thread));
 
    return Thread;
 }

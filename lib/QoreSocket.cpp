@@ -1638,7 +1638,7 @@ struct qore_socket_private {
 	 if (rc <= 0) {
 	    if (xsink && !*xsink) {
 	       if (!count) {
-		  printd(0, "qore_socket_private::readHTTPData() this: %p rc: %d count: %d (%d) timeout: %d\n", this, rc, count, hdr->size(), timeout);
+		  //printd(5, "qore_socket_private::readHTTPData() this: %p rc: %d count: %d (%d) timeout: %d\n", this, rc, count, hdr->size(), timeout);
 		  se_closed(meth, xsink);
 	       }
 	       else

@@ -44,6 +44,9 @@ typedef void (*qtdest_t)(void *);
 //! pointer to a qore thread resource destructor function
 typedef void (*qtrdest_t)(void *, ExceptionSink *);
 
+//! pointer to a function that can be started with q_start_thread()
+typedef void (*q_thread_t)(ExceptionSink* xsink, void* arg);
+
 //! returns true if the current thread is a valid qore thread; it is not safe to call most Qore functions unless the thread is registered with Qore
 /**
     @see
@@ -204,6 +207,17 @@ DLLEXPORT int q_register_reserved_foreign_thread(int tid);
     @since %Qore 0.8.7
  */
 DLLEXPORT int q_deregister_reserved_foreign_thread();
+
+//! starts a new thread with the given arguments, when the thread terminates, it deregisters itself
+/** @param arg the argument to the function
+    @param f the function to start in the new thread
+    @param xsink any errors starting the new thread will be raised here and cause -1 to be returned
+
+    @return the new TID or -1 if an error occurred
+
+    @since %Qore 0.8.8
+ */
+int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg = 0);
 
 //! use this class to temporarily register and deregister a foreign thread to allow Qore code to be executed and the Qore library to be used from threads not created by the Qore library
 /** @since %Qore 0.8.7

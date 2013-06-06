@@ -25,19 +25,22 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.6
+%requires qore >= 0.8.8
 
 # need mime definitions
 %requires Mime >= 1.3
 
 module MailMessage {
-    version = "1.0.4";
+    version = "1.1";
     desc = "defines the MailMessage class and supporting definitions";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2013-06-05 v1.1: David Nichols <david@qore.org>
+      + added the Message::serialize() method
+
     * 2012-11-02 v1.0.4: David Nichols <david@qore.org>
       + minor doc corrections and non-functional code changes
 
@@ -191,7 +194,10 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	}
         #! @endcond
 
-	public {}
+	public {
+	    #! create a different multipart boundary string every time based on the current time
+	    string $.mpboundary = replace(makeBase64String(string(now_us())), "=", "");
+        }
 
 	#! creates a Message object from the arguments given; this variant of the constructor is designed to be used to create a Message object for sending with the SmtpClient class
 	/** Use the Message::addTo() method to add message recipients
@@ -319,6 +325,45 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
                     $.parts += new Part("", $ct.val() ? $ct : MimeTypeUnknown, $pb, $cte);
             }
 	}
+
+        #! serializes the message to a string that can be sent to an SMTP server, for example
+        /**
+            @throw MESSAGE-ERROR the message is incomplete and cannot be sent
+         */
+        string serialize() {
+            # throws a MESSAGE-ERROR exception if the message cannot be sent
+            $.checkSendPossible();
+
+            my string $str = $.getHeaderString();
+
+            # is this a multipart msg?
+            my bool $multipart = !$.attachments.empty();
+
+            # see if we need to send a MIME msg: multipart message or need body encoding
+            my bool $mime = $multipart || $.bodyEncoding != MailMessage::EncNone;
+
+            printf("mime: %y\n", $mime);
+            if ($mime) {
+                my MultiPartMixedMessage $mpm($.mpboundary);
+
+                if ($.bodyEncoding == MailMessage::EncNone)
+                    $.bodyEncoding = ContentTransEnc7Bit;
+
+                # add the message body
+                $mpm.addEncodePart($.body, $.bodyEncoding, MimeTypeText, "inline");
+                   
+                # add attachments
+                foreach my MailMessage::Attachment $att in ($.attachments)
+                    $att.add($mpm);
+
+                $str += $mpm.serialize();
+                $str += "\r\n";
+            }
+            else 
+                $str += $.body + "\r\n";
+
+            return $str;
+        }
 
         private processPart(hash $p) {
             # part content type (default = no encoding)
@@ -763,7 +808,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 		$hdr += Message::doHeaderValue("Disposition-Notification-To", $.from, $eol, $encode);
 
 	    # additional headers
-	    foreach my string $k in (keys $.headers)
+	    foreach my string $k in ($.headers.keyIterator())
 		$hdr += Message::doHeaderValue($k, $.headers.$k, $eol, $encode);
 
             return $hdr;

@@ -1,4 +1,5 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 # @file email.q example program using the SmtpClient module
 
 /*  email.q Copyright 2012 David Nichols
