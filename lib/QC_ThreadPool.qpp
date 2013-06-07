@@ -1,0 +1,289 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_ThreadPool.qpp ThreadPool class definition */
+/*
+  Qore Programming Language
+
+  Copyright 2003 - 2013 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/ThreadPool.h>
+
+static void tpt_start_thread(ExceptionSink* xsink, ThreadPoolThread* tpt) {
+   tpt->worker(xsink);
+}
+
+ThreadPoolThread::ThreadPoolThread(ThreadPool& n_tp, ExceptionSink* xsink) : tp(n_tp), task(0), stopCond(0), stopflag(false), stopped(false) {
+   id = q_start_thread(xsink, (q_thread_t)tpt_start_thread, this);
+   if (id > 0)
+      tp.ref();
+}
+
+void ThreadPoolThread::worker(ExceptionSink* xsink) {
+   SafeLocker sl(m);
+      
+   while (!stopflag) {
+      if (!task) {
+         //printd(5, "ThreadPoolThread::worker() id %d about to wait stopflag: %d task: %p\n", id, stopflag, task);
+         c.wait(m);
+         if (stopflag && !task)
+            break;
+      }
+      
+      assert(task);
+      
+      sl.unlock();
+      discard(task->run(xsink), xsink);
+      sl.lock();
+      task->del(xsink);
+      task = 0;
+      
+      if (stopflag || tp.done(this))
+         break;
+   }
+
+   //printd(5, "ThreadPoolThread::worker() stopping id %d: %s\n", id, stopCond ? "wait" : "after detach");
+
+   if (stopCond) {
+      stopped = true;
+      stopCond->signal();
+   }
+   else {
+      sl.unlock();
+      finalize(xsink);
+   }
+}
+
+void ThreadPoolThread::finalize(ExceptionSink* xsink) {
+   tp.deref(xsink);
+   delete this;
+}
+
+static void tp_start_thread(ExceptionSink* xsink, ThreadPool* tp) {
+   tp->worker(xsink);
+}
+
+ThreadPool::ThreadPool(ExceptionSink* xsink, int n_max, int n_minidle, int n_maxidle) : 
+   max(n_max), minidle(n_minidle), maxidle(n_maxidle), quit(false), waiting(false), stopflag(false), stopped(false), confirm(false) {
+   if (max < 0)
+      max = 0;
+   if (minidle < 0)
+      minidle = 0;
+   if (maxidle <= 0)
+      maxidle = minidle;
+   if (q_start_thread(xsink, (q_thread_t)tp_start_thread, this) == -1) {
+      assert(*xsink);
+      stopped = true;
+   }
+}
+
+void ThreadPool::worker(ExceptionSink* xsink) {
+   SafeLocker sl(m);
+
+   if (minidle)
+      for (int i = 0; i < minidle; ++i) {
+         if (addIdleWorker(xsink)) {
+            xsink->handleExceptions();
+            break;
+         }
+      }
+
+   while (!stopflag) {
+      if (q.empty())
+         cond.wait(m);
+
+      if (stopflag)
+         break;
+
+      while (!q.empty()) {
+         ThreadPoolThread* tpt = getThreadUnlocked(xsink);
+         if (!tpt) {
+            xsink->handleExceptions();
+            break;
+         }
+         tpt->submit(q.front());
+         q.pop_front();
+      }
+
+      if (minidle)
+         while (fh.size() < minidle && (!max || (fh.size() + ah.size() < max))) {
+            if (addIdleWorker(xsink)) {
+               xsink->handleExceptions();
+               break;
+            }
+         }
+   }
+
+   // idle threads can be terminated with stop() in all cases
+   for (tplist_t::iterator i = fh.begin(), e = fh.end(); i != e; ++i)
+      (*i)->stop();
+
+   // terminate all worker threads
+   if (confirm) {
+      for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
+         (*i)->stopWait();
+
+      sl.unlock();
+
+      for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
+         (*i)->stopConfirm(xsink);
+
+      sl.lock();
+   }
+   else {
+      for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
+         (*i)->stop();
+   }
+
+#ifdef DEBUG
+   ah.clear();
+   fh.clear();
+#endif
+
+   stopped = true;
+   stopCond.broadcast();
+
+   sl.unlock();
+
+   // cancel tasks if any
+   for (taskq_t::iterator i = q.begin(), e = q.end(); i != e; ++i) {
+      (*i)->cancel(xsink);
+      delete *i;
+   }
+
+#ifdef DEBUG
+   q.clear();;
+#endif
+}
+
+//! This class defines a thread pool for executing tasks in a pool of threads that can grow or shrink dynamically
+/** The thread pool can also allocate idle threads in advance for quickly executing tasks submitted through @ref Qore::Thread::ThreadPool::submit().
+
+    @par Example:
+    @code
+my ThreadPool $tp(10, 2, 4);
+    @endcode
+
+    @since %Qore 0.8.8
+ */
+qclass ThreadPool [dom=THREAD_CLASS; arg=ThreadPool* tp; ns=Qore::Thread];
+
+//! creates the pool with the given parameters; idle threads are started immediately if necessary
+/** @par Example:
+    @code
+my ThreadPool $tp(10, 2, 4);
+    @endcode
+
+    When task threads complete, the thread is returned to the pool if there are less than \a minidle threads in the idle list or there are more tasks in the queue than the number of idle threads.
+
+    @param max the maximum number of threads in the pool
+    @param minidle the minimum number of free idle threads to keep ready
+    @param maxidle the maximum number of idle threads to keep ready    
+
+    @throw THREADPOOL-ERROR minidle > max, maxidle > max or minidle > maxidle
+ */
+ThreadPool::constructor(int max = 0, int minidle = 0, int maxidle = 0) {
+   if (max > 0) {
+      if (minidle > max) {
+         xsink->raiseException("THREADPOOL-ERROR", "cannot create a ThreadPool object with minidle (%d) > max (%d)", minidle, max);
+         return;
+      }
+      if (maxidle > max) {
+         xsink->raiseException("THREADPOOL-ERROR", "cannot create a ThreadPool object with maxidle (%d) > max (%d)", maxidle, max);
+         return;
+      }
+   }
+   if (maxidle > 0) {
+      if (minidle > maxidle) {
+         xsink->raiseException("THREADPOOL-ERROR", "cannot create a ThreadPool object with minidle (%d) > maxidle (%d)", minidle, maxidle);
+         return;
+      }
+   }
+   ReferenceHolder<ThreadPool> tp(new ThreadPool(xsink, max, minidle, maxidle), xsink);
+   if (*xsink)
+      return;
+
+   self->setPrivate(CID_THREADPOOL, tp.release());
+}
+
+//! destroys the pool; any task threads are detached; to wait for all task threads to complete, call ThreadPool::stopWait() first
+/** @par Example:
+    @code
+delete $tp;
+    @endcode
+ */
+ThreadPool::destructor() {
+   tp->stop();
+   tp->deref();
+}
+
+//! stops the thread pool and returns immediately; after this method has been executed once no more tasks can be submitted to the ThreadPool
+/** @par Example:
+    @code
+$tp.stop();
+    @endcode
+
+    This method does not return until the ThreadPool has been stopped; child threads already running are detached
+
+    @note if any task threads are still running; they will be detached from the ThreadPool and will terminate when the tasks terminate
+
+    @see ThreadPool::stopWait()
+ */
+ThreadPool::stop() {
+   tp->stop();
+}
+
+//! stops the thread pool and does not return until all child threads have also been stopped; after this method has been executed once no more tasks can be submitted to the ThreadPool
+/** @par Example:
+    @code
+$tp.stopWait();
+    @endcode
+
+    This method does not return until the ThreadPool has been stopped and all child threads have also been stopped.
+
+    @see ThreadPool::stop()
+ */
+ThreadPool::stopWait() {
+   tp->stopWait(xsink);
+}
+
+//! submit a task to the pool
+/** @par Example:
+    @code
+$tp.subit(sub () { call_function($arg); });
+    @endcode
+
+    @param task the @ref closure "closure" or @ref call_reference "call reference" to execute
+    @param cancel an optional  @ref closure "closure" or @ref call_reference "call reference" to execute if the ThreadPool is stopped before the task can be executed
+ */
+ThreadPool::submit(code task, *code cancel) {
+   tp->submit(task->refRefSelf(), cancel ? cancel->refRefSelf() : 0, xsink);
+}
+
+//! returns a description of the ThreadPool
+/** @par Example:
+    @code
+my string $desc = $tp.toString();
+    @endcode
+
+    @return a description of the ThreadPool
+ */
+string ThreadPool::toString() [flags=CONSTANT] {
+   QoreStringNode* str = new QoreStringNode;
+   tp->toString(*str);
+   return str;
+}
