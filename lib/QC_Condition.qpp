@@ -114,7 +114,7 @@ printf("finally $some_value is 0\n");
 int Condition::wait(AbstractSmartLock[AbstractSmartLock] lock, timeout timeout_ms = 0) {
    ReferenceHolder<AbstractSmartLock> holder(lock, xsink);
    
-   int rc = timeout_ms ? c->wait(lock, timeout_ms, xsink) : c->wait(lock, xsink);
+   int rc = timeout_ms >= 0 ? c->wait(lock, timeout_ms, xsink) : c->wait(lock, xsink);
 
    //printd(5, "Condition::wait() m=%s (%p) timeout=%d rc=%d\n", lock->getName(), lock, timeout, rc);
       
