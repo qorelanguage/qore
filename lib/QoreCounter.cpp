@@ -31,44 +31,47 @@ struct qore_counter_private {
       int cnt;
       int waiting;
       
-      DLLLOCAL qore_counter_private(int nc) : cnt(nc), waiting(0)
-      {
+      DLLLOCAL qore_counter_private(int nc) : cnt(nc), waiting(0) {
+	 assert(nc >= 0);
       }
 
-      DLLLOCAL ~qore_counter_private()
-      {
+      DLLLOCAL ~qore_counter_private() {
       }
 
-      DLLLOCAL void destructor(ExceptionSink *xsink)
-      {
+      DLLLOCAL void destructor(ExceptionSink* xsink) {
 	 AutoLocker al(&l);
+	 //printd(5, "qore_counter_private::destructor() this: %p waiting: %d cnt: %d\n", this, waiting, cnt);
+	 assert(cnt != Cond_Deleted);
 	 cnt = Cond_Deleted;
-	 if (waiting)
-	 {
+	 if (waiting) {
 	    xsink->raiseException("COUNTER-ERROR", "Counter deleted while there %s %d waiting thread%s",
 				  waiting == 1 ? "is" : "are", waiting, waiting == 1 ? "" : "s");
 	    cond.broadcast();
 	 }
       }
 
-      DLLLOCAL void inc()
-      {
+      DLLLOCAL void inc() {
 	 AutoLocker al(&l);
 	 if (cnt >= 0)
 	    cnt++;
       }
 
-      DLLLOCAL void dec(ExceptionSink *xsink) {
+      DLLLOCAL void dec(ExceptionSink* xsink) {
 	 AutoLocker al(&l);
 	 if (cnt == Cond_Deleted) {
-	    xsink->raiseException("COUNTER-ERROR", "Counter has been deleted in another thread");
+	    xsink->raiseException("COUNTER-ERROR", "cannot execute Counter::dec(): Counter has been deleted in another thread");
 	    return;
 	 }
+	 if (!cnt) {
+	    xsink->raiseException("COUNTER-ERROR", "cannot execute Counter::dec(): Counter is already at 0; you must call Counter::inc() once before every call to Counter::dec()");
+	    return;
+	 }
+	    
 	 if (!--cnt && waiting)
 	    cond.broadcast();
       }
 
-      DLLLOCAL int waitForZero(ExceptionSink *xsink, int timeout_ms) {
+      DLLLOCAL int waitForZero(ExceptionSink* xsink, int timeout_ms) {
 	 // NOTE that we do not do a while(true) { cond.wait(); } because any broadcast means that the
 	 // counter hit zero, so even it it's bigger than zero by the time we are allowed to execute, it's ok
 	 // --- synchronization must be done externally
@@ -84,76 +87,64 @@ struct qore_counter_private {
 	 }
 	 --waiting;
 	 if (cnt == Cond_Deleted) {
-	    xsink->raiseException("COUNTER-ERROR", "Counter was deleted in another thread while waiting");
+	    xsink->raiseException("COUNTER-ERROR", "cannot execute Counter::waitForZero(); Counter was deleted in another thread while waiting %p", this);
 	    return -1;
 	 }
 	 return rc;
       }
 
-      DLLLOCAL void waitForZero()
-      {
-	 SafeLocker sl(&l);
+      DLLLOCAL void waitForZero() {
+	 AutoLocker al(&l);
 	 ++waiting;
 	 while (cnt)
 	    cond.wait(&l);
 	 --waiting;
       }
 
-      DLLLOCAL void dec()
-      {
+      DLLLOCAL void dec() {
 	 AutoLocker al(&l);
 	 if (!--cnt && waiting)
 	    cond.broadcast();
       }
 };
 
-QoreCounter::QoreCounter(int nc) : priv(new qore_counter_private(nc))
-{
+QoreCounter::QoreCounter(int nc) : priv(new qore_counter_private(nc)) {
 }
 
-QoreCounter::~QoreCounter()
-{
+QoreCounter::~QoreCounter() {
    delete priv;
 }
 
-void QoreCounter::destructor(ExceptionSink *xsink)
-{
+void QoreCounter::destructor(ExceptionSink* xsink) {
    priv->destructor(xsink);
 }
 
-void QoreCounter::inc()
-{
+void QoreCounter::inc() {
    priv->inc();
 }
 
-void QoreCounter::dec(ExceptionSink *xsink)
-{
+void QoreCounter::dec(ExceptionSink* xsink) {
    priv->dec(xsink);
 }
 
-int QoreCounter::waitForZero(ExceptionSink *xsink, int timeout_ms)
-{
+int QoreCounter::waitForZero(ExceptionSink* xsink, int timeout_ms) {
    return priv->waitForZero(xsink, timeout_ms);
 }
 
-int QoreCounter::getCount() const
-{
+int QoreCounter::getCount() const {
    return priv->cnt;
 }
 
-int QoreCounter::getWaiting() const
-{
+int QoreCounter::getWaiting() const {
    return priv->waiting;
 }
 
 // internal only
-void QoreCounter::waitForZero()
-{
+void QoreCounter::waitForZero() {
    priv->waitForZero();
 }
 
 // internal only
-void QoreCounter::dec()
-{
+void QoreCounter::dec() {
    priv->dec();
 }

@@ -171,7 +171,20 @@ void ThreadPool::worker(ExceptionSink* xsink) {
 }
 
 //! This class defines a thread pool for executing tasks in a pool of threads that can grow or shrink dynamically
-/** The thread pool can also allocate idle threads in advance for quickly executing tasks submitted through @ref Qore::Thread::ThreadPool::submit().
+/** The ThreadPool can also allocate idle threads in advance for quickly executing tasks submitted through @ref Qore::Thread::ThreadPool::submit().
+
+    A worker thread is started while the ThreadPool is running that waits for tasks in an internal task queue and allocates the tasks
+    to child threads.   If an idle thread is available, the task is submitted to that thread immediately, otherwise, if the ThreadPool
+    is not already at maximum capacity (the \a max argument to @ref Qore::Thread::ThreadPool::constructor()), a new thread is started
+    and the task is allocated to the new thread.  Otherwise, the task will block until a thread becomes free, at which time the task
+    is allocated to the newly-freed child thread.
+
+    When a child thread has no more tasks to execute, it will either be returned to the pool to wait in an idle state if possible, or it
+    will terminate.  Threads are returned to the idle pool if there are fewer than \a maxidle threads in the idle pool already or if
+    there are more tasks in the queue than idle threads.
+
+    If the ThreadPool is stopped when tasks are still in the queue, then any cancelation @ref closure "closure" or
+    @ref call_reference "call reference" for the task is executed; see @ref  @ref Qore::Thread::ThreadPool::submit() for more information.
 
     @par Example:
     @code
@@ -268,7 +281,7 @@ $tp.subit(sub () { call_function($arg); });
     @endcode
 
     @param task the @ref closure "closure" or @ref call_reference "call reference" to execute
-    @param cancel an optional  @ref closure "closure" or @ref call_reference "call reference" to execute if the ThreadPool is stopped before the task can be executed
+    @param cancel an optional  @ref closure "closure" or @ref call_reference "call reference" to execute if the ThreadPool is stopped before the task can be executed; note that cancelation code is run serially for each task in order of submission in the ThreadPool's worker thread after the ThreadPool has been shut down
  */
 ThreadPool::submit(code task, *code cancel) {
    tp->submit(task->refRefSelf(), cancel ? cancel->refRefSelf() : 0, xsink);

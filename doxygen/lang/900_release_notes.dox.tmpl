@@ -46,6 +46,8 @@
       - <string>::toHex()
       - <value>::toNumber()
     - other new methods and method changes:
+      - Qore::Thread::Counter::constructor() will throw an exception if called with an argument < 0
+      - Qore::Thread::Counter::dec() will now throw an exception if called when the Counter is already at 0
       - Qore::Thread::Queue::empty()
       - Qore::Socket::listen() now has a new \a backlog parameter; the default backlog queue size was changed from 5 to 20
     - all @ref data_type_declarations "data type declarations" that optionally accept @ref nothing also now accept @ref null and map @ref null to @ref nothing; this makes direct assignments from values derived from SQL queries much easier

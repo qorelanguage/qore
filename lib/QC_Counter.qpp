@@ -38,8 +38,14 @@ qclass Counter [dom=THREAD_CLASS; arg=Counter* c; ns=Qore::Thread];
     @code
 my Counter $counter();
     @endcode
+
+    @throw COUNTER-ERROR a negative number was passed to initialize the Counter
  */
 Counter::constructor(softint c = 0) {
+   if (c < 0) {
+      xsink->raiseException("COUNTER-ERROR", "Counter::constructor() called with initial value "QLLD", however value must be non-negative", c);
+      return;
+   }
    self->setPrivate(CID_COUNTER, new Counter(c));
 }
 
@@ -81,14 +87,14 @@ nothing Counter::inc() {
 }
 
 //! Atomically decrements the counter value
-/** A \c COUNTER-ERROR exception can only be thrown if the object is deleted in another thread while this call is in progress; this is a race condition caused by a user programming error and should not occur in practice with correct code.
+/** A \c COUNTER-ERROR exception can be thrown if the object is deleted in another thread while this call is in progress; this is a race condition caused by a user programming error and should not occur in practice with correct code.
 
     @par Example:
     @code
 $counter.dec();
     @endcode
 
-    @throw COUNTER-ERROR Counter has been deleted in another thread
+    @throw COUNTER-ERROR Counter has been deleted in another thread or Counter is already at 0
  */
 nothing Counter::dec() {
    c->dec(xsink);
