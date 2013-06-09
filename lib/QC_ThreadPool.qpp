@@ -194,9 +194,9 @@ void ThreadPool::worker(ExceptionSink* xsink) {
     will terminate.  Threads are returned to the idle pool if there are fewer than \a maxidle threads in the idle pool already or if
     there are more tasks in the queue than idle threads.
 
-    ThreadPools downscale over time when demand is lower according to the \a delay_ms argument to @ref Qore::Thread::ThreadPool::constructor() "ThreadPool::constructor()"; when there more than \a minidle threads in the idle pool, then for each time period defined by \a delay_ms, a single thread in the idle pool is released until the number of threads in the idle pool reaches \a minidle. 
+    ThreadPools downscale over time when demand is lower according to the \a release_ms argument to @ref Qore::Thread::ThreadPool::constructor() "ThreadPool::constructor()"; when there more than \a minidle threads in the idle pool, then for each time period defined by \a release_ms, a single thread in the idle pool is released until the number of threads in the idle pool reaches \a minidle. 
 
-    Therefore the \a minidle argument defines the "ground state" of the ThreadPool (how many idle threads are waiting for tasks), and the \a delay_ms argument defines the period in which the ThreadPool returns to its ground state after demand for threads results in a condition where there are temporarily more than \a minidle threads in the idle pool
+    Therefore the \a minidle argument defines the "ground state" of the ThreadPool (how many idle threads are waiting for tasks), and the \a release_ms argument defines the period in which the ThreadPool returns to its ground state after demand for threads results in a condition where there are temporarily more than \a minidle threads in the idle pool
 
     If the ThreadPool is stopped when tasks are still in the queue, then any cancelation @ref closure "closure" or
     @ref call_reference "call reference" for the task is executed; see @ref  @ref Qore::Thread::ThreadPool::submit() "ThreadPool::submit()" for more information.

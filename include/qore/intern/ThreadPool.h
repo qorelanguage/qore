@@ -404,7 +404,7 @@ public:
 	    
 	    if (!stopflag) {
 	       // requeue thread if possible
-	       if (fh.size() < maxidle || q.size() > fh.size()) {
+	       if ((!maxidle && release_ms) || (fh.size() < maxidle) || q.size() > fh.size()) {
 		  fh.push_back(tpt);
 		  if (waiting || (release_ms && fh.size() > minidle))
 		     cond.signal();

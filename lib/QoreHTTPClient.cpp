@@ -727,8 +727,12 @@ QoreHashNode *qore_qtc_private::getResponseHeader(const char *meth, const char *
    QoreString pathstr(m_socket.getEncoding());
    const char *msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr);
 
-   if (!connected && connect_unlocked(xsink))
+   if (!connected && connect_unlocked(xsink)) {
+      // if we have an info hash then write the request-uri key anyway even though the request was not made for reporting/logging purposes
+      if (info)
+	 info->setKeyValue("request-uri", new QoreStringNodeMaker("%s %s HTTP/%s", meth, msgpath && msgpath[0] ? msgpath : "/", http11 ? "1.1" : "1.0"), 0);
       return 0;
+   }
 
    // send the message
    int rc = m_socket.sendHTTPMessage(xsink, info, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, QORE_SOURCE_HTTPCLIENT, timeout);
