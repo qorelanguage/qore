@@ -22,6 +22,8 @@
 #ifndef _QORE_THREADPOOL_H
 #define _QORE_THREADPOOL_H
 
+#define QTP_DEFAULT_RELEASE_MS 5000
+
 #include <deque>
 #include <list>
 
@@ -224,9 +226,10 @@ public:
 
 class ThreadPool : public AbstractPrivateData {
 protected:
-   int max,    // maximum number of threads in pool (if <= 0 then unlimited)
-      minidle, // minimum number of idle threads
-      maxidle; // maximum number of idle threads
+   int max,        // maximum number of threads in pool (if <= 0 then unlimited)
+      minidle,     // minimum number of idle threads
+      maxidle,     // maximum number of idle threads
+      release_ms;  // number of milliseconds before idle threads are released when > minidle
 
    // mutex for atomicity
    QoreThreadLock m;
@@ -310,7 +313,7 @@ protected:
    }
 
 public:
-   DLLLOCAL ThreadPool(ExceptionSink* xsink, int n_max = 0, int n_minidle = 0, int m_maxidle = 0);
+   DLLLOCAL ThreadPool(ExceptionSink* xsink, int n_max = 0, int n_minidle = 0, int m_maxidle = 0, int n_release_ms = QTP_DEFAULT_RELEASE_MS);
 
    DLLLOCAL ~ThreadPool() {
       assert(q.empty());
@@ -403,7 +406,7 @@ public:
 	       // requeue thread if possible
 	       if (fh.size() < maxidle || q.size() > fh.size()) {
 		  fh.push_back(tpt);
-		  if (waiting)
+		  if (waiting || (release_ms && fh.size() > minidle))
 		     cond.signal();
 		  return 0;
 	       }
