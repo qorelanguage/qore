@@ -113,14 +113,8 @@ class mail {
 	    
 	    # add attachments
 	    foreach string fn in (opt.attach) {
-		File f();
-		f.open2(fn);
-
-		# try to determine mime type from file extension
-		*string ext = (fn =~ x/\.([a-z0-9]+)$/i)[0];
-		string mime = (!ext.empty() && exists (ext = MimeTypes{ext.lwr()})) ? ext : MimeTypeUnknown;
-		
-		msg.attach(basename(fn), mime, f.readBinary(-1));
+		ReadOnlyFile f(fn);
+		msg.attach(basename(fn), get_mime_type_from_ext(fn), f.readBinary(-1));
 	    }
 
 	    smtp.sendMessage(msg);

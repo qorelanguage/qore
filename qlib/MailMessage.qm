@@ -184,6 +184,9 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    # message body content transfer encoding
 	    string $.bodyEncoding = EncDefault;
 
+            # message body content type
+            *string $.bodyContentType;
+
             # list of Attachments
 	    list $.attachments = ();
 
@@ -229,8 +232,6 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	constructor(string $msg) {
 	    my int $pos = 0;
 
-            #printf("ZZZ: msg: %s", $msg);
-
 	    # is this a MIME message?
 	    my bool $mime = False;
 	    # content type
@@ -249,7 +250,6 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 		    $hdr += " " + trim(Message::getLine(\$msg, \$pos));
 
 		my hash $h = $.parseHeader($hdr);
-                #printf("XXX: h: %N\n", $h);
 		my string $lk = $h.firstKey().lwr();
 		if ($lk == "mime-version")
 		    $mime = True;
@@ -304,7 +304,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    if ($mime && $ct =~ /multipart\//i) {
 		# get message boundary
 		my *string $boundary = ($ct =~ x/boundary="?([^"]+)"?/)[0];
-		if (!exists $boundary)
+		if (!$boundary)
 		    throw "MESSAGE-PARSE-ERROR", sprintf("cannot parse MIME Content-Type: %y; could not find message boundary", $ct);
 
                 my hash $mpb = MultiPartMessage::parseBody($boundary, $msg, True);
@@ -315,6 +315,8 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
                 # process/decode parts
                 map $.processPart($1), $mpb.part;
 	    }
+            else if ($ct)
+                $.bodyContentType = $ct;
 
 	    # assign the message body to what's left of the message, if anything
 	    if ($msg.val()) {
@@ -340,27 +342,30 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             my bool $multipart = !$.attachments.empty();
 
             # see if we need to send a MIME msg: multipart message or need body encoding
-            my bool $mime = $multipart || $.bodyEncoding != MailMessage::EncNone;
+            #printf("mp: %y\n", $multipart);
 
-            printf("mime: %y\n", $mime);
-            if ($mime) {
+            if ($multipart) {
                 my MultiPartMixedMessage $mpm($.mpboundary);
 
-                if ($.bodyEncoding == MailMessage::EncNone)
+                if ($.bodyEncoding == EncNone)
                     $.bodyEncoding = ContentTransEnc7Bit;
 
-                # add the message body
-                $mpm.addEncodePart($.body, $.bodyEncoding, MimeTypeText, "inline");
+                # add the message body with content-disposition: "inline"
+                $mpm.addEncodePart($.body, $.bodyEncoding, $.bodyContentType ? $.bodyContentType : MimeTypeText, "inline");
                    
                 # add attachments
                 foreach my MailMessage::Attachment $att in ($.attachments)
                     $att.add($mpm);
 
-                $str += $mpm.serialize();
+                $str += $mpm.serialize().toString();
                 $str += "\r\n";
             }
-            else 
-                $str += $.body + "\r\n";
+            else {
+                if ($.bodyEncoding == EncNone)
+                    $str += "\r\n" + $.body + "\r\n";
+                else                
+                    $str += "\r\n" + mime_encode_transfer_data($.body, $.bodyEncoding) + "\r\n";
+            }
 
             return $str;
         }
@@ -540,11 +545,14 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	#! sets or replaces the Message body
 	/** @param body the Message body to set
 	    @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
+            @param content_type the Content-Type for the message body, if any
 
 	    @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
 	 */
-	setBody(data $body, string $enc = EncDefault) {
+	setBody(data $body, string $enc = EncDefault, *string $content_type) {
 	    $.bodyEncoding = Message::checkEncoding($body, $enc, True);
+            if ($content_type)
+                $.bodyContentType = $content_type;
 	    $.body = $body;
 	}
 
@@ -807,9 +815,21 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    if ($.readReceipt)
 		$hdr += Message::doHeaderValue("Disposition-Notification-To", $.from, $eol, $encode);
 
+            # make sure that any explicitly-set Content-Type header is overridden by the CT for the body
+            if ($.bodyContentType && $.headers."Content-Type")
+                delete $.headers."Content-Type";
+
 	    # additional headers
 	    foreach my string $k in ($.headers.keyIterator())
 		$hdr += Message::doHeaderValue($k, $.headers.$k, $eol, $encode);
+
+            # include MIME headers for msg body if necessary
+            if (!$.attachments && $.bodyEncoding != EncNone) {
+                $hdr += Message::doHeaderValue("MIME-Version", "1.0", $eol, $encode);
+                if ($.bodyContentType)
+                    $hdr += Message::doHeaderValue("Content-Type", $.bodyContentType, $eol, $encode);
+                $hdr += Message::doHeaderValue("Content-Transfer-Encoding", $.bodyEncoding, $eol, $encode);
+            }
 
             return $hdr;
         }
@@ -883,7 +903,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
 	    # add headers
 	    if ($.headers.val())
-		$str += sprintf(", %s", join(", ", (map sprintf("%s: %s", $1, $.headers.$1), keys $.headers)));
+		$str += sprintf(", %s", join(", ", (map sprintf("%s: %s", $1, $.headers.$1), $.headers.keyIterator())));
 
 	    # attachments
 	    foreach my Attachment $att in ($.attachments)

@@ -89,6 +89,7 @@
     - fixed a bug setting the precision for arbitrary-precision numbers with very large exponents (like "1e100n")
     - implemented more strict adherence to rfc 2616 (HTTP 1.1) regarding message-body handling in requests and response message generation and parsing
     - fixed a bug with Condition::wait() on Darwin with negative timeout values where a short timeout was used instead of an indefinite wait
+    - fixed bugs in the SmtpClient and MailMessage modules where mail messages were being serialized incorrectly if there were no attachments (there was no possibility to set the content transfer encoding) and also where it was not possible to set the content-type for the message body when it was sent as a part of a multipart message
 
     @section qore_087 Qore 0.8.7
 

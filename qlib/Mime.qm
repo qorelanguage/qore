@@ -893,7 +893,7 @@ hash: (2 members)
          */
         static binary serializeHeaders(hash $hdr) {
             my binary $b;
-            foreach my string $k in (keys $hdr)
+            foreach my string $k in ($hdr.keyIterator())
                 $b += sprintf("%s: %s\r\n", $k, $hdr.$k); 
             $b += "\r\n";
             return $b;
