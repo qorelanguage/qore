@@ -181,25 +181,33 @@ void ThreadPool::worker(ExceptionSink* xsink) {
 #endif
 }
 
-//! This class defines a thread pool for executing tasks in a pool of threads that can grow or shrink dynamically
-/** The ThreadPool can also allocate idle threads in advance for quickly executing tasks submitted through @ref Qore::Thread::ThreadPool::submit() "ThreadPool::submit()".
+//! This class defines a thread pool that grows and shrinks dynamically within user-defined limits according to the task load placed on it
+/** The ThreadPool can also pre-allocate idle threads for quickly allocating threads to tasks submitted through
+    @ref Qore::Thread::ThreadPool::submit() "ThreadPool::submit()" for cases when very low latency is required (for example, for
+    allocating already waiting threads to incoming @ref Qore::Socket "Socket" connections).
 
     A worker thread is started while the ThreadPool is running that waits for tasks in an internal task queue and allocates the tasks
     to child threads.   If an idle thread is available, the task is submitted to that thread immediately, otherwise, if the ThreadPool
-    is not already at maximum capacity (the \a max argument to @ref Qore::Thread::ThreadPool::constructor() "ThreadPool::constructor()"), a new thread is started
-    and the task is allocated to the new thread.  Otherwise, the task will block until a thread becomes free, at which time the task
-    is allocated to the newly-freed child thread.
+    is not already at maximum capacity (the \a max argument to @ref Qore::Thread::ThreadPool::constructor() "ThreadPool::constructor()"),
+    a new thread is started and the task is allocated to the new thread.  Otherwise, the task will block until a thread becomes free, at
+    which time the task is allocated to the newly-freed child thread.
 
     When a child thread has no more tasks to execute, it will either be returned to the pool to wait in an idle state if possible, or it
     will terminate.  Threads are returned to the idle pool if there are fewer than \a maxidle threads in the idle pool already or if
     there are more tasks in the queue than idle threads.
 
-    ThreadPools downscale over time when demand is lower according to the \a release_ms argument to @ref Qore::Thread::ThreadPool::constructor() "ThreadPool::constructor()"; when there more than \a minidle threads in the idle pool, then for each time period defined by \a release_ms, a single thread in the idle pool is released until the number of threads in the idle pool reaches \a minidle. 
+    ThreadPools downscale over time when demand is lower according to the \a release_ms argument to
+    @ref Qore::Thread::ThreadPool::constructor() "ThreadPool::constructor()"; when there more than \a minidle threads in the idle pool,
+    then for each time period defined by \a release_ms, a single thread in the idle pool is released until the number of threads in the
+    idle pool reaches \a minidle. 
 
-    Therefore the \a minidle argument defines the "ground state" of the ThreadPool (how many idle threads are waiting for tasks), and the \a release_ms argument defines the period in which the ThreadPool returns to its ground state after demand for threads results in a condition where there are temporarily more than \a minidle threads in the idle pool
+    Therefore the \a minidle argument defines the "ground state" of the ThreadPool (how many idle threads are waiting for tasks), and
+    the \a release_ms argument defines the period in which the ThreadPool returns to its ground state after demand for threads results
+    in a condition where there are temporarily more than \a minidle threads in the idle pool.
 
-    If the ThreadPool is stopped when tasks are still in the queue, then any cancelation @ref closure "closure" or
-    @ref call_reference "call reference" for the task is executed; see @ref  @ref Qore::Thread::ThreadPool::submit() "ThreadPool::submit()" for more information.
+    If the ThreadPool is stopped when tasks are still in the queue, then any cancellation @ref closure "closure" or
+    @ref call_reference "call reference" for the task is executed; see @ref Qore::Thread::ThreadPool::submit() "ThreadPool::submit()"
+    for more information.
 
     @par Example:
     @code
@@ -302,7 +310,7 @@ $tp.submit(sub () { call_function($arg); });
     @endcode
 
     @param task the @ref closure "closure" or @ref call_reference "call reference" to execute
-    @param cancel an optional  @ref closure "closure" or @ref call_reference "call reference" to execute if the ThreadPool is stopped before the task can be executed; note that cancelation code is run serially for each task in order of submission in the ThreadPool's worker thread after the ThreadPool has been shut down
+    @param cancel an optional  @ref closure "closure" or @ref call_reference "call reference" to execute if the ThreadPool is stopped before the task can be executed; note that cancellation code is run serially for each task in order of submission in the ThreadPool's worker thread after the ThreadPool has been shut down
  */
 ThreadPool::submit(code task, *code cancel) {
    tp->submit(task->refRefSelf(), cancel ? cancel->refRefSelf() : 0, xsink);
