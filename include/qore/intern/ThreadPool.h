@@ -325,7 +325,7 @@ public:
    DLLLOCAL void toString(QoreString& str) {
       AutoLocker al(m);
       
-      str.sprintf("ThreadPool %p total: %d max: %d minidle: %d maxidle: %d running: [", this, ah.size() + fh.size(), max, minidle, maxidle);
+      str.sprintf("ThreadPool %p total: %d max: %d minidle: %d maxidle: %d release_ms: %d running: [", this, ah.size() + fh.size(), max, minidle, maxidle, release_ms);
       for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i) {
 	 if (i != ah.begin())
 	    str.concat(", ");
