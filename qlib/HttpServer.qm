@@ -33,8 +33,6 @@ module HttpServer {
     url = "http://qore.org";
 }
 
-%define ThreadPool True
-
 /*  Version History
     * 2013-03-05 v0.3.7: David Nichols <david@qore.org>
       + fixed a bug in parsing arguments in parse_uri_query()
@@ -1023,11 +1021,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	    
 	    $.cThreads.inc();
             try {
-%ifdef ThreadPool
                 $.serv.startConnection(sub () { $.connectionThread($r); });
-%else
-                background $.connectionThread($r);
-%endif
             }
             catch (hash $ex) {
                 $.cThreads.dec();
@@ -1430,6 +1424,9 @@ public class HttpServer::HttpServer {
             "bzip2": True,
             "x-bzip2": True,
             );
+
+        #! default number of idle threads to have waiting for new connections (accross all listeners)
+        const DefaultIdleThreads = 10;
     }
 
     #! @cond nodoc
@@ -1474,10 +1471,8 @@ public class HttpServer::HttpServer {
         # dynamic handlers
         DynamicHttpHandlerList $.dhandlers();
 
-%ifdef ThreadPool
         # connection thread pool
-        ThreadPool $.threadPool(-1, 10);
-%endif
+        ThreadPool $.threadPool(-1, DefaultIdleThreads);
     }
     #! @endcond
 
@@ -1725,9 +1720,7 @@ public class HttpServer::HttpServer {
 
         map $1.stopNoWait(), $.listeners.iterator();
 
-%ifdef ThreadPool
         $.threadPool.stop();
-%endif
     }
 
     #! waits for all listeners to be stopped; call after calling HttpServer::stopNoWait()
@@ -1938,11 +1931,9 @@ public class HttpServer::HttpServer {
         return $.debug;
     }
 
-%ifdef ThreadPool
     startConnection(code $c) {
         $.threadPool.submit($c);
     }
-%endif
 
     #! @cond nodoc
     # don't reimplement this method; fix/enhance it in the module
