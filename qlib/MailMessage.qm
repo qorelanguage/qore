@@ -339,12 +339,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             my string $str = $.getHeaderString();
 
             # is this a multipart msg?
-            my bool $multipart = !$.attachments.empty();
-
-            # see if we need to send a MIME msg: multipart message or need body encoding
-            #printf("mp: %y\n", $multipart);
-
-            if ($multipart) {
+            if ($.attachments) {
                 my MultiPartMixedMessage $mpm($.mpboundary);
 
                 if ($.bodyEncoding == EncNone)
@@ -816,8 +811,12 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 		$hdr += Message::doHeaderValue("Disposition-Notification-To", $.from, $eol, $encode);
 
             # make sure that any explicitly-set Content-Type header is overridden by the CT for the body
-            if ($.bodyContentType && $.headers."Content-Type")
-                delete $.headers."Content-Type";
+            if ($.headers."Content-Type") {
+                if ($.bodyContentType)
+                    delete $.headers."Content-Type";
+                else if ($.attachments)
+                    $.bodyContentType = remove $.headers."Content-Type";
+            }
 
 	    # additional headers
 	    foreach my string $k in ($.headers.keyIterator())

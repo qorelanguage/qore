@@ -1276,6 +1276,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	    $.serv.sendHttpError($self, $cx, $s, 500, $etxt, NOTHING, $cx."response-encoding");
 	}
 
+        #$.log("cid %d: closing connection (status: %s)", $cx.id, $s.isOpen() ? "open" : "closed");
         $s.shutdown();
         $s.close();
     }
@@ -2308,18 +2309,19 @@ public class HttpServer::HttpServer {
 	    }
 	    
 	    if ($rv.log)
-		$listener.log("%s (from %s): %s", $handlerName, $cx."peer-info".address_desc, $rv.log);
+		$listener.log("cid %d: %s (from %s): %s", $cx.id, $handlerName, $cx."peer-info".address_desc, $rv.log);
 	    if ($rv.errlog)
-		$listener.logError("%s (from %s): %s", $handlerName, $cx."peer-info".address_desc, $rv.errlog);
+		$listener.logError("cid %d: %s (from %s): %s", $cx.id, $handlerName, $cx."peer-info".address_desc, $rv.errlog);
 
             if ($rv.code == 101) {
                 if ($rv.close)
-                    $listener.logError("101 Switching Protocols returned from handler %y, but the connection close flag set", $handlerName);
+                    $listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the connection close flag set", $cx.id, $handlerName);
                 else if (!($handler instanceof AbstractHttpSocketHandler)) {
-                    $listener.logError("101 Switching Protocols returned from handler %y, but the handler is not derived from AbstractHttpSocketHandler (class: %y)", $handlerName, $handler.className());
+                    $listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the handler is not derived from AbstractHttpSocketHandler (class: %y)", $cx.id, $handlerName, $handler.className());
                 }
                 else {
                     if ($listener.registerDedicatedSocket($cx.id, $handler)) {
+                        on_exit $cx.close = True;
                         try {
                             cast<AbstractHttpSocketHandler>($handler).start($cx, $hdr, $s);
                         }
@@ -2327,12 +2329,13 @@ public class HttpServer::HttpServer {
                             my string $desc = !$.debug
                                 ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
                                 : get_exception_string($ex);
-                            $listener.logError("error in dedicated socket handler %y: %s", $handlerName, $desc);
+                            $listener.logError("cid %d: error in dedicated socket handler %y: %s", $cx.id, $handlerName, $desc);
                         }
                         $listener.removeDedicatedSocket($cx.id, $handler);
+                        $listener.log("cid %d: stopped dedicated socket handler: %y", $cx.id, $handlerName);
                     }
                     else
-                        $listener.logError("cannot start dedicated socket handler %y because the listener is shutting down", $handlerName);
+                        $listener.logError("cid %d: cannot start dedicated socket handler %y because the listener is shutting down", $cx.id, $handlerName);
                 }
             }
 	}
