@@ -1046,7 +1046,21 @@ nothing regex() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code
-regex_subst("hello there", "^(.*) there$", "you $1"); @returns "you hello"
+regex_subst("hello there", "^(.*) there$", "you $1"); #returns "you hello"
+    @endcode
+
+    @par Example of global replacement:
+    @code
+my $content = "123
+123
+123";
+
+printf("%s\n", regex_subst($content, "123", "456", Qore::RE_Global));
+
+resulting in:
+456
+456
+456
     @endcode
 
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
