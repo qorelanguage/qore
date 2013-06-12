@@ -27,16 +27,14 @@
 
 #include <qore/QoreThreadLock.h>
 
-class Sequence : public QoreThreadLock
-{
-   private:
-      int val;
+class Sequence : public QoreThreadLock {
+private:
+   int val;
 
-   public:
-      DLLLOCAL Sequence(int start = 0);
-      DLLLOCAL int next();
-      DLLLOCAL int getCurrent() const;
+public:
+   DLLLOCAL Sequence(int start = 0);
+   DLLLOCAL int next();
+   DLLLOCAL int getCurrent() const;
 };
-
 
 #endif

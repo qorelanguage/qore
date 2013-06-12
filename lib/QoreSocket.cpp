@@ -998,7 +998,10 @@ struct qore_socket_private {
 
 	 // otherwise close the socket and return an exception with the error code
 	 // do not have to worry about windows API calls here; this is a UNIX-only function
-	 ::close(sock);
+	 while (true) {
+	    if (!::close(sock) || errno == EINTR)
+	       break;
+	 }
 
 	 sock = QORE_INVALID_SOCKET;
 	 qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, p);
@@ -1065,7 +1068,10 @@ struct qore_socket_private {
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
       closesocket(sock);
 #else
-      ::close(sock);
+      while (true) {
+	 if (!::close(sock) || errno == EINTR)
+	    break;
+      }
 #endif
       sock = QORE_INVALID_SOCKET;
       return -1;
