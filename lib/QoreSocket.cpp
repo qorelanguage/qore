@@ -1442,7 +1442,7 @@ struct qore_socket_private {
       return -1;
    }
 
-   DLLLOCAL QoreHashNode *getPeerInfo(ExceptionSink *xsink) const {
+   DLLLOCAL QoreHashNode *getPeerInfo(ExceptionSink *xsink, bool host_lookup = true) const {
       if (sock == QORE_INVALID_SOCKET) {
 	 xsink->raiseException("SOCKET-GETPEERINFO-ERROR", "socket is not open()");
 	 return 0;
@@ -1456,10 +1456,10 @@ struct qore_socket_private {
 	 return 0;
       }
 
-      return getAddrInfo(addr, len);
+      return getAddrInfo(addr, len, host_lookup);
    }
 
-   DLLLOCAL QoreHashNode *getSocketInfo(ExceptionSink *xsink) const {
+   DLLLOCAL QoreHashNode *getSocketInfo(ExceptionSink *xsink, bool host_lookup = true) const {
       if (sock == QORE_INVALID_SOCKET) {
 	 xsink->raiseException("SOCKET-GETSOCKETINFO-ERROR", "socket is not open()");
 	 return 0;
@@ -1478,25 +1478,26 @@ struct qore_socket_private {
 	 return 0;
       }
 
-      return getAddrInfo(addr, len);
+      return getAddrInfo(addr, len, host_lookup);
    }
 
-   DLLLOCAL QoreHashNode *getAddrInfo(const struct sockaddr_storage &addr, socklen_t len) const {
+   DLLLOCAL QoreHashNode *getAddrInfo(const struct sockaddr_storage &addr, socklen_t len, bool host_lookup = true) const {
       QoreHashNode *h = new QoreHashNode;
 
       if (addr.ss_family == AF_INET || addr.ss_family == AF_INET6) {
-	 char host[NI_MAXHOST + 1];
+	 if (host_lookup) {
+	    char host[NI_MAXHOST + 1];
 
-	 if (!getnameinfo((struct sockaddr *)&addr, get_in_len((struct sockaddr *)&addr), host, sizeof(host), 0, 0, 0)) {
-	    QoreStringNode *hoststr = new QoreStringNode(host);
-	    h->setKeyValue("hostname", hoststr, 0);
-	    h->setKeyValue("hostname_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, hoststr->getBuffer()), 0);
+	    if (!getnameinfo((struct sockaddr *)&addr, get_in_len((struct sockaddr *)&addr), host, sizeof(host), 0, 0, 0)) {
+	       QoreStringNode *hoststr = new QoreStringNode(host);
+	       h->setKeyValue("hostname", hoststr, 0);
+	       h->setKeyValue("hostname_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, hoststr->getBuffer()), 0);
+	    }
 	 }
 
 	 // get ipv4 or ipv6 address
 	 char ifname[INET6_ADDRSTRLEN];
 	 if (inet_ntop(addr.ss_family, get_in_addr((struct sockaddr *)&addr), ifname, sizeof(ifname))) {
-	    //printd(5, "inet_ntop() '%s' host: '%s'\n", ifname, host);
 	    QoreStringNode *addrstr = new QoreStringNode(ifname);
 	    h->setKeyValue("address", addrstr, 0);
 	    h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, addrstr->getBuffer()), 0);
@@ -1865,6 +1866,17 @@ struct qore_socket_private {
 
       rc = rd;
       return new BinaryNode(buf, rd);
+   }
+
+   DLLLOCAL QoreStringNode* readHTTPHeaderString(ExceptionSink* xsink, int timeout, int source) {
+      qore_offset_t rc;
+      QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPHeaderString", timeout, rc));
+      if (!hdr) {
+	 assert(*xsink);
+	 return 0;
+      }
+      assert(rc > 0);
+      return hdr.release();
    }
 
    DLLLOCAL AbstractQoreNode* readHTTPHeader(ExceptionSink* xsink, QoreHashNode *info, int timeout, qore_offset_t& rc, int source) {
@@ -3223,6 +3235,11 @@ QoreHashNode* QoreSocket::readHTTPHeader(ExceptionSink* xsink, QoreHashNode *inf
    return static_cast<QoreHashNode*>(priv->readHTTPHeader(xsink, info, timeout, rc, source));
 }
 
+QoreStringNode* QoreSocket::readHTTPHeaderString(ExceptionSink* xsink, int timeout, int source) {
+   assert(xsink);
+   return priv->readHTTPHeaderString(xsink, timeout, source);
+}
+
 // receive a binary message in HTTP chunked format
 QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *xsink, int source) {
    SimpleRefHolder<BinaryNode> b(new BinaryNode);
@@ -3765,12 +3782,20 @@ int64 QoreSocket::getObjectIDForEvents() const {
    return priv->getObjectIDForEvents();
 }
 
-QoreHashNode *QoreSocket::getPeerInfo(ExceptionSink *xsink) const {
+QoreHashNode *QoreSocket::getPeerInfo(ExceptionSink* xsink) const {
    return priv->getPeerInfo(xsink);
 }
 
-QoreHashNode *QoreSocket::getSocketInfo(ExceptionSink *xsink) const {
+QoreHashNode *QoreSocket::getSocketInfo(ExceptionSink* xsink) const {
    return priv->getSocketInfo(xsink);
+}
+
+QoreHashNode *QoreSocket::getPeerInfo(ExceptionSink* xsink, bool host_lookup) const {
+   return priv->getPeerInfo(xsink, host_lookup);
+}
+
+QoreHashNode *QoreSocket::getSocketInfo(ExceptionSink* xsink, bool host_lookup) const {
+   return priv->getSocketInfo(xsink, host_lookup);
 }
 
 void QoreSocket::setAccept(QoreObject *o) {

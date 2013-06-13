@@ -50,6 +50,8 @@
       - Qore::Thread::Counter::dec() will now throw an exception if called when the Counter is already at 0
       - Qore::Thread::Queue::empty()
       - Qore::Socket::listen() now has a new \a backlog parameter; the default backlog queue size was changed from 5 to 20
+      - Qore::Socket::getPeerInfo() and Qore::Socket::getSocketInfo() methods now take an optional argument to avoid name lookups
+      - Qore::Socket::readHTTPHeaderString(): new method
     - all @ref data_type_declarations "data type declarations" that optionally accept @ref nothing also now accept @ref null and map @ref null to @ref nothing; this makes direct assignments from values derived from SQL queries much easier
     - added an optional reference to an integer to the @ref Qore::backquote() function to return the return code of the program executed
     - @ref implicit_index "implicit index" references now work in the @ref map "map" and @ref select "select" operators with lists and iterators

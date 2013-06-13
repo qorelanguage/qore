@@ -1331,6 +1331,18 @@ public:
    */
    DLLEXPORT QoreHashNode *readHTTPHeader(ExceptionSink* xsink, QoreHashNode *info, int timeout_ms, int source = QORE_SOURCE_SOCKET);
 
+   //! read a HTTP header, caller owns QoreStringNode reference count returned
+   /** The socket must be connected before this call is made.
+
+       @note does not read the message body; message body must be read manually
+
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @param timeout_ms in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
+       @return if 0, an exception was raised, if not 0, caller owns the reference count returned
+   */
+   DLLEXPORT QoreStringNode* readHTTPHeaderString(ExceptionSink* xsink, int timeout_ms, int source = QORE_SOURCE_SOCKET);
+
    //! receive a binary message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
    /** The socket must be connected before this call is made.
        The message body is returned as a BinaryNode in the "body" key, any footers read after the body
@@ -1506,9 +1518,42 @@ public:
    */
    DLLEXPORT QoreHashNode* getPeerInfo(ExceptionSink* xsink) const;
 
+   //! returns peer information for a connected socket
+   /** if the socket is not connected, a Qore-language exception is thrown
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
+
+       @return a hash with the following keys:
+       - \c hostname: the hostname of the remote end (if known or appropriate for the socket type, only performed if \a host_lookup is true)
+       - \c hostname_desc: a descriptive string for the remote hostname (including the socket type - ie "ipv6[host]", only performed if \a host_lookup is true)
+       - \c address: the address of the remote end - for UNIX sockets this is the file path
+       - \c address_desc: a descriptive string for the remote address
+       - \c port: the port number if known
+       - \c family: the address family (ie AF_INET, AF_INET6, AF_UNIX, ...)
+       - \c familystr: a string description of the address family ("ipv4", "ipv6", etc)
+   */
+   DLLEXPORT QoreHashNode* getPeerInfo(ExceptionSink* xsink, bool host_lookup) const;
+
    //! returns information for the current socket; the socket must be open
    /** if the socket is not open, a Qore-language exception is thrown
        @param xsink if an error occurs, the Qore-language exception information will be added here
+       @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
+
+       @return a hash with the following keys:
+       - \c hostname: the hostname of the remote end (if known or appropriate for the socket type, only performed if \a host_lookup is true)
+       - \c hostname_desc: a descriptive string for the remote hostname (including the socket type - ie "ipv6[host]", only performed if \a host_lookup is true)
+       - \c address: the address of the local interface - for UNIX sockets this is the file path
+       - \c address_desc: a descriptive string for the local interface
+       - \c port: the port number if known
+       - \c family: the address family (ie AF_INET, AF_INET6, AF_UNIX, ...)
+       - \c familystr: a string description of the address family ("ipv4", "ipv6", etc)
+   */
+   DLLEXPORT QoreHashNode* getSocketInfo(ExceptionSink* xsink) const;
+
+   //! returns information for the current socket; the socket must be open
+   /** if the socket is not open, a Qore-language exception is thrown
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+
        @return a hash with the following keys:
        - \c hostname: the hostname for the local interface (if known or appropriate for the socket type)
        - \c hostname_desc: a descriptive string for the local hostname (including the socket type - ie "ipv6[host]")
@@ -1518,7 +1563,7 @@ public:
        - \c family: the address family (ie AF_INET, AF_INET6, AF_UNIX, ...)
        - \c familystr: a string description of the address family ("ipv4", "ipv6", etc)
    */
-   DLLEXPORT QoreHashNode* getSocketInfo(ExceptionSink* xsink) const;
+   DLLEXPORT QoreHashNode* getSocketInfo(ExceptionSink* xsink, bool host_lookup) const;
 
    DLLLOCAL static void doException(int rc, const char *meth, int timeout_ms, ExceptionSink *xsink);
 

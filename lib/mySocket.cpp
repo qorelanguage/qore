@@ -117,12 +117,12 @@ int mySocket::send(const QoreString *msg, int timeout_ms, ExceptionSink *xsink) 
 }
 
 // send a binary object
-int mySocket::send(const BinaryNode *b, int timeout_ms, ExceptionSink* xsink) {
+int mySocket::send(const BinaryNode* b, int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(m);
    return socket->send(b, timeout_ms, xsink);
 }
 
-int mySocket::send(const BinaryNode *b) {
+int mySocket::send(const BinaryNode* b) {
    AutoLocker al(m);
    return socket->send(b);
 }
@@ -262,33 +262,38 @@ int64 mySocket::recvu4LSB(int timeout_ms, unsigned int *b, ExceptionSink* xsink)
 }
 
 // send HTTP message
-int mySocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int source, int timeout_ms) {
+int mySocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char *method, const char *path, const char *http_version, const QoreHashNode* headers, const void *ptr, int size, int source, int timeout_ms) {
    AutoLocker al(m);
    return socket->sendHTTPMessage(xsink, info, method, path, http_version, headers, ptr, size, source, timeout_ms);
 }
 
 // send HTTP response
-int mySocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *ptr, int size, int source, int timeout_ms) {
+int mySocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode* headers, const void *ptr, int size, int source, int timeout_ms) {
    AutoLocker al(m);
    return socket->sendHTTPResponse(xsink, code, desc, http_version, headers, ptr, size, source, timeout_ms);
 }
 
 // receive a binary message in HTTP chunked format
-QoreHashNode *mySocket::readHTTPChunkedBodyBinary(int timeout_ms, ExceptionSink *xsink) {
+QoreHashNode* mySocket::readHTTPChunkedBodyBinary(int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(m);
    return socket->readHTTPChunkedBodyBinary(timeout_ms, xsink);
 }
 
 // receive a string message in HTTP chunked format
-QoreHashNode *mySocket::readHTTPChunkedBody(int timeout_ms, ExceptionSink *xsink) {
+QoreHashNode* mySocket::readHTTPChunkedBody(int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(m);
    return socket->readHTTPChunkedBody(timeout_ms, xsink);
 }
 
 // read and parse HTTP header
-AbstractQoreNode *mySocket::readHTTPHeader(ExceptionSink* xsink, QoreHashNode* info, int timeout_ms) {
+AbstractQoreNode* mySocket::readHTTPHeader(ExceptionSink* xsink, QoreHashNode* info, int timeout_ms) {
    AutoLocker al(m);
    return socket->readHTTPHeader(xsink, info, timeout_ms);
+}
+
+QoreStringNode* mySocket::readHTTPHeaderString(ExceptionSink* xsink, int timeout_ms) {
+   AutoLocker al(m);
+   return socket->readHTTPHeaderString(xsink, timeout_ms);
 }
 
 int mySocket::setSendTimeout(int ms) {
@@ -481,12 +486,12 @@ int mySocket::getNoDelay() {
    return socket->getNoDelay();
 }
 
-QoreHashNode *mySocket::getPeerInfo(ExceptionSink *xsink) const {
+QoreHashNode* mySocket::getPeerInfo(ExceptionSink *xsink, bool host_lookup) const {
    AutoLocker al(m);
-   return socket->getPeerInfo(xsink);
+   return socket->getPeerInfo(xsink, host_lookup);
 }
 
-QoreHashNode *mySocket::getSocketInfo(ExceptionSink *xsink) const {
+QoreHashNode* mySocket::getSocketInfo(ExceptionSink *xsink, bool host_lookup) const {
    AutoLocker al(m);
-   return socket->getSocketInfo(xsink);
+   return socket->getSocketInfo(xsink, host_lookup);
 }

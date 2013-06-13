@@ -10,7 +10,15 @@
 
 #define DEF_PORT 8021
 
+#undef HTTP_HASH
+//#define HTTP_HASH 1
+
+#ifdef HTTP_HASH
 static QoreHashNode* hdr;
+#else
+static QoreString hdr;
+#endif
+
 static const char* msg = "test server";
 static int msg_size;
 
@@ -595,8 +603,8 @@ void error(int en, const char* fmt, ...) {
 }
 
 void show_socket_info(const QoreHashNode* sih) {
-   //const QoreStringNode* ad = reinterpret_cast<const QoreStringNode*>(sih->getKeyValue("address_desc"));
-   //log("accepted connection from %s", ad ? ad->getBuffer() : "unknown");
+   const QoreStringNode* ad = reinterpret_cast<const QoreStringNode*>(sih->getKeyValue("address_desc"));
+   log("accepted connection from %s", ad ? ad->getBuffer() : "unknown");
 }
 
 struct HttpTestThreadData {
@@ -652,10 +660,12 @@ void* op_conn_thread(void* x) {
    QoreForeignThreadHelper tfth;
    ExceptionSink xsink;
 
-   ReferenceHolder<QoreHashNode> ph(td->ns->getPeerInfo(&xsink), &xsink);
-   show_socket_info(*ph);  
+   //ReferenceHolder<QoreHashNode> ph(td->ns->getPeerInfo(&xsink, false), &xsink);
+   //show_socket_info(*ph);  
 
-   int prc;
+   ReferenceHolder<QoreHashNode> ph(0, &xsink);
+
+#if 1
    ph = td->takeRequest();
    if (!ph) {
       ph = td->ns->readHTTPHeader(&xsink, 0, 10000);
@@ -665,10 +675,13 @@ void* op_conn_thread(void* x) {
 	 return 0;
       }
    }
+#else
+#endif
 
    bool close = show_request(*ph);
 
    while (true) {
+#ifdef HTTP_HASH
       // setup header for response
       ReferenceHolder<QoreHashNode> mh(hdr->copy(), &xsink);
       // add Date header
@@ -679,8 +692,22 @@ void* op_conn_thread(void* x) {
       dstr->concat(" GMT");
       mh->setKeyValue("Date", dstr, 0);
       mh->setKeyValue("Connection", new QoreStringNode(close ? "close" : "Keep-Alive"), 0);
-
+      
       td->ns->sendHTTPResponse(&xsink, 200, "OK", "1.1", *mh, msg, msg_size);
+#else
+      DateTime dt;
+      dt.setNow(0);
+      QoreString dstr;
+      dt.format(dstr, "Dy, DD Mon YYYY HH:mm:SS");
+      
+      QoreString hstr("HTTP/1.1 200 OK\r\n");
+      hstr.concat(&hdr, &xsink);
+      hstr.sprintf("Date: %s GMT\r\n", dstr.getBuffer());
+      hstr.sprintf("Connection: %s\r\n", close ? "close" : "Keep-Alive");
+      hstr.sprintf("Content-Length: %d\r\n\r\n%s", msg_size, msg);
+
+      td->ns->send(&hstr, &xsink);
+#endif
       if (close || xsink) {
 	 //log("Connection: close (%d)", close);
 	 break;
@@ -721,11 +748,15 @@ int main(int argc, char *argv[]) {
    ExceptionSink xsink;
 
    // setup global header for response
+#ifdef HTTP_HASH
    ReferenceHolder<QoreHashNode> hh(new QoreHashNode, &xsink);
-   hh->setKeyValue("Connection", new QoreStringNode("close"), 0);
    hh->setKeyValue("Server", new QoreStringNode("Qorus-DBG-HTTP-Server/0.1"), 0);
    hh->setKeyValue("Content-Type", new QoreStringNode("text/plain"), 0);
    hdr = *hh;
+#else
+   hdr.concat("Server: Qorus-DBG-HTTP-Server/0.1\r\n");
+   hdr.concat("Content-Type: text/plain\r\n");
+#endif
 
    QoreSocket ss;
 
@@ -748,7 +779,7 @@ int main(int argc, char *argv[]) {
 
       HttpTestThreadData* td = new HttpTestThreadData(ns);
 
-#if 0
+#if 1
       // see if data is available immediately and get request if so
       if (ns->isDataAvailable(0)) {
 	 log("reading request inline");

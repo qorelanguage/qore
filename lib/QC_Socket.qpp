@@ -1802,6 +1802,34 @@ hash Socket::readHTTPHeader(timeout timeout_ms = -1, *reference info) {
    return s->readHTTPHeader(xsink, *ohrh, timeout_ms);
 }
 
+//! Retuns a string representing the data in the HTTP header read (reads until \c "\r\n\r\n")
+/** If any errors occur reading from the socket, an exception is raised. Accepts an optional timeout value in milliseconds.
+
+    @par Example:
+    @code
+my string $str = $sock.readHTTPHeaderString(10s);
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @return a string representing the header data read
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-CLOSED The remote end closed the connection without sending any data
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR maximum header size was exceeded
+
+    @since %Qore 0.8.8
+ */
+string Socket::readHTTPHeaderString(timeout timeout_ms = -1) {
+   return s->readHTTPHeaderString(xsink, timeout_ms);
+}
+
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
 /** If any errors are encountered, an exception is raised
 
@@ -2287,12 +2315,16 @@ bool Socket::getNoDelay() [flags=CONSTANT] {
 my hash $h = $sock.getPeerInfo();
     @endcode
 
+    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
     @throw SOCKET-GETPEERINFO-ERROR Socket is not open or error in getpeername()
+
+    @since %Qore 0.8.8 added the \a host_lookup parameter
  */
-hash Socket::getPeerInfo() {
-   return s->getPeerInfo(xsink);
+hash Socket::getPeerInfo(bool host_lookup = True) {
+   return s->getPeerInfo(xsink, host_lookup);
 }
 
 //! Returns information about the local socket as a hash
@@ -2303,12 +2335,16 @@ hash Socket::getPeerInfo() {
 my hash $h = $sock.getSocketInfo();
     @endcode
 
+    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
     @throw SOCKET-GETSOCKETINFO-ERROR Socket is not open or error in getsockname()
+
+    @since %Qore 0.8.8 added the \a host_lookup parameter
  */
-hash Socket::getSocketInfo() {
-   return s->getSocketInfo(xsink);
+hash Socket::getSocketInfo(bool host_lookup = True) {
+   return s->getSocketInfo(xsink, host_lookup);
 }
 
 //! Upgrades a client socket connection to a TLS/SSL connection
