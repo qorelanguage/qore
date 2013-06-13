@@ -60,20 +60,20 @@ public namespace WebSocketHandler {
     #! the class handling a dedicated connection
     public class WebSocketConnection {
         public {
-            Queue $.queue();
-            Socket $.sock;
-
             WebSocketHandler $.handler;
 
             const DefaultQueuePollingInterval = 50ms;
         }
 
-        constructor(WebSocketHandler $handler, Socket $s) {
-            $.sock = $s;
+        private {
+            Queue $.queue();
+        }
+
+        constructor(WebSocketHandler $handler) {
             $.handler = $handler;
         }
 
-        *data pollData() {
+        *binary pollData() {
             try {
                 return $.queue.get(DefaultQueuePollingInterval);
             }
@@ -81,6 +81,14 @@ public namespace WebSocketHandler {
                 if ($ex.err != "QUEUE-TIMEOUT")
                     rethrow;
             }
+        }
+
+        sendEncoded(binary $msg) {
+            $.queue.push($msg);
+        }
+
+        send(data $msg) {
+            $.queue.push(WebSocketHandler::encodeMessage($msg));
         }
 
         gotMessage(string $msg) {
@@ -272,7 +280,7 @@ public namespace WebSocketHandler {
             my softstring $cid = $cx.id;
 
             # get new connection object
-            my WebSocketConnection $wsc = $.getConnectionImpl($cx, $hdr, $cid, $sock);
+            my WebSocketConnection $wsc = $.getConnectionImpl($cx, $hdr, $cid);
 
             # add connection object to hash
             {
@@ -296,20 +304,16 @@ public namespace WebSocketHandler {
 
                 try {
                     # send any messages on the queue
-                    my *data $d = $wsc.pollData();
-                    if ($d)
-                        $sock.send(WebSocketHandler::encodeMessage($d));
+                    my *binary $d = $wsc.pollData();
+                    if ($d) {
+                        #printf("WebSocketHandler::start() cid: %y sending msg %d bytes\n", $cx.id, $d.size());
+                        $sock.send($d);
+                    }
+                    
+                    if (!$sock.isDataAvailable(0))
+                        continue;
 
-                    my int $b0;
-                    try {
-                        $b0 = $sock.recvu1(1ms);
-                    }
-                    catch (hash $ex) {
-                        if ($ex.err == "SOCKET-TIMEOUT")
-                            continue;
-                        $.logError("%s: %s", $ex.err, $ex.desc);
-                        return;
-                    }
+                    my int $b0 = $sock.recvu1();
 
                     # get opcode
                     my int $op = $b0 & 0xf;
@@ -330,7 +334,7 @@ public namespace WebSocketHandler {
                     my *binary $mask;
                     if ($masked) {
                         $mask = $sock.recvBinary(4);
-                        $.logDebug("mask: %s", $mask.toHex());
+                        #$.logDebug("mask: %s", $mask.toHex());
                     }
                     
                     my *data $data;
@@ -397,8 +401,8 @@ public namespace WebSocketHandler {
         }
 
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
-        WebSocketConnection getConnectionImpl(hash $cx, hash $hdr, string $cid, Socket $sock) {
-            return new WebSocketConnection($self, $sock);
+        WebSocketConnection getConnectionImpl(hash $cx, hash $hdr, string $cid) {
+            return new WebSocketConnection($self);
         }
 
         #! called when the connection terminates; the default implementation does nothing
@@ -406,11 +410,13 @@ public namespace WebSocketHandler {
         }
 
         sendAll(data $d) {
+            my binary $msg = WebSocketHandler::encodeMessage($d);
+
             $.rwl.readLock();
             on_exit $.rwl.readUnlock();
 
             # push the data on all connection queues
-            map $1.queue.push($d), $.ch.iterator();
+            map $1.sendEncoded($msg), $.ch.iterator();
 
             #if ($.ch) $.logDebug("sending data to connections: %y", $.ch.keys());
         }
@@ -422,7 +428,7 @@ public namespace WebSocketHandler {
             if (!$.ch.$id)
                 throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", $id, $.ch.keys());
 
-            $.ch.$id.queue.push($d);
+            $.ch.$id.send($d);
         }
 
         private sendClose(Socket $sock, int $code, *string $txtmsg) {
@@ -452,7 +458,7 @@ public namespace WebSocketHandler {
             */
         }
 
-        private static binary encodeMessage(data $msg, int $op = -1) {
+        static binary encodeMessage(data $msg, int $op = -1) {
             if ($op == -1)
                 $op = $msg.typeCode() == NT_STRING ? Op_Text : Op_Binary;
             my binary $frame += chr(FIN | $op);
