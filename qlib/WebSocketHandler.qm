@@ -275,7 +275,7 @@ public namespace WebSocketHandler {
             @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
          */
         start(hash $cx, hash $hdr, Socket $sock) {
-            $.logDebug("WebSocketHandler::start() cid: %y from %s:%d", $cx.id, $cx."peer-info".hostname_desc, $cx."peer-info".port);
+            #$.logDebug("WebSocketHandler::start() cid: %y from %s:%d", $cx.id, $cx."peer-info".hostname_desc, $cx."peer-info".port);
 
             my softstring $cid = $cx.id;
 
@@ -397,7 +397,7 @@ public namespace WebSocketHandler {
                 }
             }
 
-            $.logDebug("WebSocketHandler::start() exiting");
+            #$.logDebug("WebSocketHandler::start() exiting");
         }
 
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
