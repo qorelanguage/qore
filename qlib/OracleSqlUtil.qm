@@ -1713,7 +1713,9 @@ my any $v = $c.name;
 
         #! returns a string to be used with the \c "in" argument, we use bind by value to keep the statement cache small; in this case we use two %v placeholders for the calculated string argument
         private string getInArgImpl(softlist sqlargs, reference args) {
-            string arg = (foldl $1 + "," + $2, (map $1.toString(), sqlargs));
+            *string arg = (foldl $1 + "," + $2, (map $1.toString(), sqlargs));
+            if (!arg)
+                return "null";
 
             args += arg;
             args += arg;

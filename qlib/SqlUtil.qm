@@ -13730,7 +13730,8 @@ my *list $rows = $table.findAll($h);
 
         #! returns a string to be used with the \c "in" argument, can be the literal arguments to the operator, or can be a single %v if supported by the db driver (see OracleSqlUtil::getInArgImpl() for an example)
         private string getInArgImpl(softlist sqlargs, reference args) {
-            return (foldl $1 + "," + $2, (map getSqlValue($1), sqlargs));
+            *string rv = (foldl $1 + "," + $2, (map getSqlValue($1), sqlargs));
+            return rv ? rv : "null";
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
