@@ -246,6 +246,14 @@ static void qore_socket_error(ExceptionSink *xsink, const char *err, const char 
 }
 #endif
 
+static int do_read_error(qore_offset_t rc, const char *method_name, int timeout_ms, ExceptionSink *xsink) {
+   if (rc > 0)
+      return 0;
+   if (!*xsink)
+      QoreSocket::doException(rc, method_name, timeout_ms, xsink);
+   return -1;
+}
+
 int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink) {
    assert(!ssl);
    assert(!ctx);
@@ -483,8 +491,12 @@ struct qore_socket_private {
    std::string socketname;
    SSLSocketHelper* ssl;
    Queue* cb_queue;
+   // socket buffer for buffered reads
+   char rbuf[DEFAULT_SOCKET_BUFSIZE];
+   // current buffer size
+   size_t buflen, bufoffset;
 
-   DLLLOCAL qore_socket_private(int n_sock = QORE_INVALID_SOCKET, int n_sfamily = AF_UNSPEC, int n_stype = SOCK_STREAM, int n_prot = 0, const QoreEncoding *n_enc = QCS_DEFAULT) : sock(n_sock), sfamily(n_sfamily), port(-1), stype(n_stype), sprot(n_prot), enc(n_enc), del(false), ssl(0), cb_queue(0) {
+   DLLLOCAL qore_socket_private(int n_sock = QORE_INVALID_SOCKET, int n_sfamily = AF_UNSPEC, int n_stype = SOCK_STREAM, int n_prot = 0, const QoreEncoding *n_enc = QCS_DEFAULT) : sock(n_sock), sfamily(n_sfamily), port(-1), stype(n_stype), sprot(n_prot), enc(n_enc), del(false), ssl(0), cb_queue(0), buflen(0), bufoffset(0) {
       //sendTimeout = recvTimeout = -1
    }
 
@@ -504,6 +516,32 @@ struct qore_socket_private {
       return rc;
    }
 
+   DLLLOCAL int close_and_reset() {
+      assert(sock != QORE_INVALID_SOCKET);
+      int rc;
+      while (true) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+	 rc = ::closesocket(sock);
+#else
+	 rc = ::close(sock);
+#endif
+	 // try again if close was interrupted by a signal
+	 if (!rc || sock_get_error() != EINTR)
+	    break;
+      }
+      //printd(5, "qore_socket_private::close_and_reset(this: %p) close(%d) returned %d\n", this, sock, rc);
+      sock = QORE_INVALID_SOCKET;
+      if (buflen)
+	 buflen = 0;
+      if (bufoffset)
+	 bufoffset = 0;
+      if (del)
+	 del = false;
+      if (port != -1)
+	 port = -1;
+      return rc;
+   }
+
    DLLLOCAL int close_internal() {
       //printd(5, "qore_socket_private::close_internal(this=%08p) sock=%d\n", this, sock);
       if (sock >= 0) {
@@ -519,23 +557,8 @@ struct qore_socket_private {
 	       unlink(socketname.c_str());
 	    socketname.clear();
 	 }
-	 del = false;
-	 port = -1;
-	 int rc;
-	 while (true) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
-	    rc = ::closesocket(sock);
-#else
-	    rc = ::close(sock);
-#endif
-	    // try again if close was interrupted by a signal
-	    if (!rc || sock_get_error() != EINTR)
-	       break;
-	 }
-	 //printd(5, "qore_socket_private::close_internal(this=%08p) close(%d) returned %d\n", this, sock, rc);
 	 do_close_event();
-	 sock = QORE_INVALID_SOCKET;
-	 return rc;
+	 return close_and_reset();
       }
       else
 	 return 0; 
@@ -998,12 +1021,7 @@ struct qore_socket_private {
 
 	 // otherwise close the socket and return an exception with the error code
 	 // do not have to worry about windows API calls here; this is a UNIX-only function
-	 while (true) {
-	    if (!::close(sock) || errno == EINTR)
-	       break;
-	 }
-
-	 sock = QORE_INVALID_SOCKET;
+	 close_and_reset();
 	 qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, p);
 	    
 	 return -1;	    
@@ -1057,6 +1075,8 @@ struct qore_socket_private {
    }
 
    DLLLOCAL bool isDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
+      if (buflen)
+	 return true;
       return select(timeout_ms, true, mname, xsink);
    }
 
@@ -1065,15 +1085,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int close_and_exit() {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
-      closesocket(sock);
-#else
-      while (true) {
-	 if (!::close(sock) || errno == EINTR)
-	    break;
-      }
-#endif
-      sock = QORE_INVALID_SOCKET;
+      close_and_reset();
       return -1;
    }
 
@@ -1561,14 +1573,104 @@ struct qore_socket_private {
       }
 #endif
    }
-   
-   DLLLOCAL qore_offset_t recv(ExceptionSink* xsink, const char* meth, char *buf, qore_size_t bs, int flags, int timeout, bool do_event = true) {
-      if (sock == QORE_INVALID_SOCKET) {
-	 if (xsink)
-	    se_not_open(meth, xsink);
-	 return QSE_NOT_OPEN;
+
+   // buffered reads for high performance
+   DLLLOCAL qore_offset_t brecv(ExceptionSink* xsink, const char* meth, char*& buf, qore_size_t bs, int flags, int timeout, bool do_event = true) {
+      // must be checked if open/connected before this function is called
+      assert(sock != QORE_INVALID_SOCKET);
+      assert(meth);
+
+      // always returned buffered data first
+      if (buflen) {
+	 buf = rbuf + bufoffset;
+	 if (buflen <= bs) {
+	    bs = buflen;
+	    buflen = 0;
+	    bufoffset = 0;
+	 }
+	 else {
+	    buflen -= bs;
+	    bufoffset += bs;
+	 }
+	 return (qore_offset_t)bs;
       }
 
+      // real socket reads are only done when the buffer is empty
+
+      //printd(5, "qore_socket_private::recv(buf=%p, bs=%d, flags=%d, timeout=%d, do_event=%d) this=%p ssl=%d\n", buf, (int)bs, flags, timeout, (int)do_event, this, ssl);
+
+      qore_offset_t rc;
+      if (!ssl) {
+	 if (timeout != -1 && !isDataAvailable(timeout, meth, xsink)) {
+	    if (xsink) {
+	       if (*xsink)
+		  return -1;
+	       se_timeout(meth, timeout, xsink);
+	    }
+
+	    return QSE_TIMEOUT;
+	 }
+
+	 while (true) {
+#ifdef DEBUG
+	    errno = 0;
+#endif
+	    rc = ::recv(sock, rbuf, DEFAULT_SOCKET_BUFSIZE, flags);
+	    if (rc == QORE_SOCKET_ERROR) {
+	       sock_get_error();
+	       if (errno == EINTR)
+		  continue;
+#ifdef ECONNRESET
+	       if (errno == ECONNRESET) {
+		  if (xsink)
+		     se_closed(meth, xsink);
+		  close();
+	       }
+	       else
+#endif
+	       if (xsink)
+		  qore_socket_error(xsink, "SOCKET-RECV-ERROR", "error in recv()", meth);
+	       break;
+	    }
+	    //printd(5, "qore_socket_private::recv(%d, %p, %ld, %d) rc=%ld errno=%d\n", sock, buf, bs, flags, rc, errno);
+	    // try again if we were interrupted by a signal
+	    if (rc >= 0)
+	       break;
+	 }
+      }
+      else
+	 rc = ssl->read(meth, rbuf, DEFAULT_SOCKET_BUFSIZE, timeout, xsink);
+
+      if (rc > 0) {
+	 buf = rbuf;
+	 assert(!buflen);
+	 assert(!bufoffset);
+	 if (rc > bs) {
+	    buflen = rc - bs;
+	    bufoffset = bs;
+	    rc = bs;
+	 }
+	 else
+	    buflen = rc;
+	 
+	 // register event
+	 if (do_event)
+	    do_read_event(rc, rc);
+      }
+      else {
+#ifdef DEBUG
+	 buf = 0;
+#endif
+	 if (!rc)
+	    close();
+      }
+      return rc;
+   }
+   
+/*
+   DLLLOCAL qore_offset_t recv(ExceptionSink* xsink, const char* meth, char *buf, qore_size_t bs, int flags, int timeout, bool do_event = true) {
+      // must be checked if open/connected before this function is called
+      assert(sock != QORE_INVALID_SOCKET);
       assert(meth);
 
       //printd(5, "qore_socket_private::recv(buf=%p, bs=%d, flags=%d, timeout=%d, do_event=%d) this=%p ssl=%d\n", buf, (int)bs, flags, timeout, (int)do_event, this, ssl);
@@ -1615,17 +1717,24 @@ struct qore_socket_private {
       else
 	 rc = ssl->read(meth, buf, bs, timeout, xsink);
 
-      if (rc > 0 && do_event) {
+      if (do_event && rc > 0) {
 	 // register event
 	 do_read_event(rc, rc);
       }
 
       return rc;
    }
+*/
 
    //! read until \\r\\n\\r\\n and return the string
    DLLLOCAL QoreStringNode* readHTTPData(ExceptionSink* xsink, const char* meth, int timeout, qore_offset_t& rc, int state = -1) {
       assert(meth);
+      if (sock == QORE_INVALID_SOCKET) {
+	 if (xsink)
+	    se_not_open(meth, xsink);
+	 rc = QSE_NOT_OPEN;
+	 return 0;
+      }
 
       // state:
       //   0 = '\r' received
@@ -1638,11 +1747,12 @@ struct qore_socket_private {
       qore_size_t count = 0;
 
       while (true) {
-	 char c;
-
-	 rc = recv(xsink, meth, &c, 1, 0, timeout, false);
-	 //printd(5, "read char: %c (%03d) (old state: %d)\n", c > 30 ? c : '?', c, state);
+	 char* buf;
+	 rc = brecv(xsink, meth, buf, 1, 0, timeout, false);
+	 //printd(5, "qore_socket_private::readHTTPData('%s') rc: "QLLD" read char: %c (%03d) (old state: %d)\n", meth, rc, rc > 0 && buf[0] > 31 ? buf[0] : '?', rc > 0 ? buf[0] : 0, state);
 	 if (rc <= 0) {
+	    //printd(5, "qore_socket_private::readHTTPData(timeout=%d) hdr='%s' (len: %d), rc="QSD", errno=%d: '%s'\n", timeout, hdr->getBuffer(), hdr->strlen(), rc, errno, strerror(errno));
+
 	    if (xsink && !*xsink) {
 	       if (!count) {
 		  //printd(5, "qore_socket_private::readHTTPData() this: %p rc: %d count: %d (%d) timeout: %d\n", this, rc, count, hdr->size(), timeout);
@@ -1651,9 +1761,9 @@ struct qore_socket_private {
 	       else
 		  xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "socket closed on remote end while reading header data after reading "QSD" byte%s", count, count == 1 ? "" : "s");
 	    }
-	    //printd(5, "qore_socket_private::readHTTPData(timeout=%d) hdr='%s' (len: %d), rc="QSD", errno=%d: '%s'\n", timeout, hdr->getBuffer(), hdr->strlen(), rc, errno, strerror(errno));
 	    return 0;
 	 }
+	 char c = buf[0];
 	 if (++count == QORE_MAX_HEADER_SIZE) {
 	    if (xsink)
 	       xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed "QSD" bytes", count);
@@ -1661,211 +1771,217 @@ struct qore_socket_private {
 	 }
 	 
 	 // check if we can progress to the next state
-	 if (state == -1 && c == '\n') {
-	    state = 3;
-	    continue;
-	 }
-	 else if (state == -1 && c == '\r') {
-	    state = 0;
-	    continue;
-	 }
-	 else if (state > 0 && c == '\n')
+	 if (c == '\n') {
+	    if (state == -1) {
+	       state = 3;
+	       continue;
+	    }
+	    if (!state) {
+	       state = 1;
+	       continue;
+	    }
+	    assert(state > 0);
 	    break;
-	 if (!state && c == '\n') {
-	    state = 1;
-	    continue;
 	 }
-	 else if (state == 1 && c == '\r') {
-	    state = 2;
-	    continue;
-	 }
-	 else {
+	 else if (c == '\r') {
+	    if (state == -1) {
+	       state = 0;
+	       continue;
+	    }
 	    if (!state)
-	       hdr->concat('\r');
-	    else if (state == 1)
-	       hdr->concat("\r\n");
-	    else if (state == 2)
-	       hdr->concat("\r\n\r");
-	    else if (state == 3)
-	       hdr->concat('\n');
-	    state = -1;
-	    hdr->concat(c);
+	       break;
+	    if (state == 1) {
+	       state = 2;
+	       continue;
+	    }
 	 }
+
+	 if (state != -1) {
+	    switch (state) {
+	       case 0: hdr->concat('\r'); break;
+	       case 1: hdr->concat("\r\n"); break;
+	       case 2: hdr->concat("\r\n\r"); break;
+	       case 3: hdr->concat('\n'); break;
+	    }
+	    state = -1;
+	 }
+	 hdr->concat(c);
       }
       hdr->concat('\n');
       
-      //printd(5, "qore_socket_private::readHTTPData(timeout=%d) hdr='%s' (%d)\n", timeout, hdr->getBuffer(), hdr->strlen());
+      //printd(5, "qore_socket_private::readHTTPData(timeout: %d) hdr='%s' (%d)\n", timeout, hdr->getBuffer(), hdr->size());
       
       return hdr.release();
    }
 
    DLLLOCAL QoreStringNode* recv(qore_offset_t bufsize, int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
+      if (sock == QORE_INVALID_SOCKET) {
+	 if (xsink)
+	    se_not_open("recv", xsink);
+	 rc = QSE_NOT_OPEN;
+	 return 0;
+      }
+
       qore_size_t bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
-      QoreStringNode *str = new QoreStringNode(enc);
+      QoreStringNodeHolder str(new QoreStringNode(enc));
 
-      char *buf = (char *)malloc(sizeof(char) * bs);
-      ON_BLOCK_EXIT(free, buf);
+      char* buf;
 
-      qore_size_t br = 0; // bytes received
       while (true) {
-	 rc = recv(xsink, "recv", buf, bs, 0, timeout, false);
+	 rc = brecv(xsink, "recv", buf, bs, 0, timeout, false);
 
 	 if (rc <= 0) {
-	    printd(5, "qore_socket_private::recv(%d, %d) bs="QSD", br="QSD", rc="QSD", errno=%d (%s)\n", bufsize, timeout, bs, br, rc, errno, strerror(errno));
-
-	    if (rc || !br || (!rc && bufsize > 0)) {
-	       str->deref();
-	       str = 0;
-	    }
+	    printd(5, "qore_socket_private::recv(%d, %d) bs="QSD", br="QSD", rc="QSD", errno=%d (%s)\n", bufsize, timeout, bs, str->size(), rc, errno, strerror(errno));
 	    break;
 	 }
 
 	 str->concat(buf, rc);
-	 br += rc;
 
 	 // register event
-	 do_read_event(rc, br, bufsize);
+	 do_read_event(rc, str->size(), bufsize);
 
 	 if (bufsize > 0) {
-	    if (br >= (qore_size_t)bufsize)
+	    if (str->size() >= (qore_size_t)bufsize)
 	       break;
-	    if (bufsize - br < bs)
-	       bs = bufsize - br;
+	    if ((bufsize - str->size()) < bs)
+	       bs = bufsize - str->size();
 	 }
       }
 
-      printd(5, "qore_socket_private::recv() received "QSD" byte(s), bufsize="QSD", strlen="QSD" str='%s'\n", br, bufsize, (size_t)(str ? str->strlen() : 0), str ? str->getBuffer() : "n/a");
-      // "fix" return code value if no buffer size was set
-      if (bufsize <= 0 && !rc)
-	 rc = 1;
-      return str;
+      printd(5, "qore_socket_private::recv() received "QSD" byte(s), bufsize="QSD", strlen="QSD" str='%s'\n", str->size(), bufsize, (size_t)(str ? str->strlen() : 0), str ? str->getBuffer() : "n/a");
+
+      // "fix" return code value if no error occurred
+      if (rc >= 0)
+	 rc = str->size();
+
+      return *xsink ? 0 : str.release();
    }
 
    DLLLOCAL QoreStringNode* recv(int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
-      // perform first read with timeout
-      char *buf = (char *)malloc(sizeof(char) * (DEFAULT_SOCKET_BUFSIZE + 1));
-      rc = recv(xsink, "recv", buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
-      if (rc <= 0) {
-	 free(buf);
+      if (sock == QORE_INVALID_SOCKET) {
+	 if (xsink)
+	    se_not_open("recv", xsink);
+	 rc = QSE_NOT_OPEN;
 	 return 0;
       }
-      qore_size_t rd = rc;
+
+      QoreStringNodeHolder str(new QoreStringNode(enc));
+      
+      // perform first read with timeout
+      char* buf;
+      rc = brecv(xsink, "recv", buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
+      if (rc <= 0)
+	 return 0;
+
+      str->concat(buf, rc);
 
       // register event
-      do_read_event(rc, rd);
+      do_read_event(rc, rc);
 
       // keep reading data until no more data is available without a timeout
       if (isDataAvailable(0, "recv", xsink)) {
-	 int tot = DEFAULT_SOCKET_BUFSIZE + 1;
 	 do {
-	    if ((tot - rd) < DEFAULT_SOCKET_BUFSIZE) {
-	       tot += (DEFAULT_SOCKET_BUFSIZE + (tot >> 1));
-	       buf = (char *)realloc(buf, tot);
-	    }
-	    rc = recv(xsink, "recv", buf + rd, tot - rd - 1, 0, 0, false);
-	    //printd(0, "qore_socket_private::recv(to=%d) rc="QSD" rd="QSD"\n", timeout, rc, rd);
+	    rc = brecv(xsink, "recv", buf, DEFAULT_SOCKET_BUFSIZE, 0, 0, false);
+	    //printd(5, "qore_socket_private::recv(to=%d) rc="QSD" rd="QSD"\n", timeout, rc, str->size());
 	    // if the remote end has closed the connection, return what we have
 	    if (!rc)
 	       break;
-	    if (rc < 0) {
-	       free(buf);
+	    if (rc < 0)
 	       return 0;
-	    }
-	    rd += rc;
+	    str->concat(buf, rc);
 
 	    // register event
-	    do_read_event(rc, rd);
+	    do_read_event(rc, str->size());
 	 } while (isDataAvailable(0, "recv", xsink));
       }
 
-      if (*xsink) {
-	 free(buf);
+      if (*xsink)
 	 return 0;
-      }
 
-      buf[rd] = '\0';
-      rc = rd;
-      return new QoreStringNode(buf, rd, rd + 1, enc);
+      rc = str->size();
+      return str.release();
    }
 
    DLLLOCAL BinaryNode *recvBinary(qore_offset_t bufsize, int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
+      if (sock == QORE_INVALID_SOCKET) {
+	 if (xsink)
+	    se_not_open("recvBinary", xsink);
+	 rc = QSE_NOT_OPEN;
+	 return 0;
+      }
+
       qore_size_t bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
       SimpleRefHolder<BinaryNode> b(new BinaryNode);
 
-      char *buf = (char *)malloc(sizeof(char) * bs);
-      qore_size_t br = 0; // bytes received
+      char *buf;
       while (true) {
-	 rc = recv(xsink, "recvBinary", buf, bs, 0, timeout);
-	 if (rc <= 0) {
-	    if (rc || !br || (!rc && bufsize > 0))
-	       b = 0; // free binary object
-
+	 rc = brecv(xsink, "recvBinary", buf, bs, 0, timeout);
+	 if (rc <= 0)
 	    break;
-	 }
+
 	 b->append(buf, rc);
-	 br += rc;
 
 	 if (bufsize > 0) {
-	    if (bufsize - br < bs)
-	       bs = bufsize - br;
-	    if (br >= (qore_size_t)bufsize)
+	    if (b->size() >= (qore_size_t)bufsize)
 	       break;
+	    if ((bufsize - b->size()) < bs)
+	       bs = bufsize - b->size();
 	 }
       }
-      free(buf);
-      // "fix" return code value if no buffer size was set
-      if (bufsize <= 0 && !rc)
-	 rc = 1;
-      printd(5, "qore_socket_private::recvBinary() received "QSD" byte(s), bufsize="QSD", strlen="QSD"\n", br, bufsize, b->size());
+
+      if (*xsink)
+	 return 0;
+
+      // "fix" return code value if no error occurred
+      if (rc >= 0)
+	 rc = b->size();
+
+      printd(5, "qore_socket_private::recvBinary() received "QSD" byte(s), bufsize="QSD", blen="QSD"\n", b->size(), bufsize, b->size());
       return b.release();
    }
 
    DLLLOCAL BinaryNode *recvBinary(int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
-      //printd(5, "QoreSocket::recvBinary(%d, "QSD") this=%p\n", timeout, rc, this);
-      // perform first read with timeout
-      char *buf = (char *)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
-      rc = recv(xsink, "recvBinary", buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
-      if (rc <= 0) {
-	 free(buf);
+      if (sock == QORE_INVALID_SOCKET) {
+	 if (xsink)
+	    se_not_open("recvBinary", xsink);
+	 rc = QSE_NOT_OPEN;
 	 return 0;
       }
-      qore_size_t rd = rc;
+
+      SimpleRefHolder<BinaryNode> b(new BinaryNode);
+
+      //printd(5, "QoreSocket::recvBinary(%d, "QSD") this=%p\n", timeout, rc, this);
+      // perform first read with timeout
+      char* buf;
+      rc = brecv(xsink, "recvBinary", buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
+      if (rc <= 0)
+	 return 0;
 
       // register event
-      do_read_event(rc, rd);
+      do_read_event(rc, rc);
 
       // keep reading data until no more data is available without a timeout
       if (isDataAvailable(0, "recvBinary", xsink)) {
-	 int tot = DEFAULT_SOCKET_BUFSIZE;
 	 do {
-	    if ((tot - rd) < DEFAULT_SOCKET_BUFSIZE) {
-	       tot += (DEFAULT_SOCKET_BUFSIZE + (tot >> 1));
-	       buf = (char *)realloc(buf, tot);
-	    }
-	    rc = recv(xsink, "recvBinary", buf + rd, tot - rd, 0, 0, false);
+	    rc = brecv(xsink, "recvBinary", buf, DEFAULT_SOCKET_BUFSIZE, 0, 0, false);
 	    // if the remote end has closed the connection, return what we have
-	    if (!rc)
+	    if (rc <= 0)
 	       break;
-	    if (rc < 0) {
-	       free(buf);
-	       return 0;
-	    }
-	    rd += rc;
+
+	    b->append(buf, rc);
 
 	    // register event
-	    do_read_event(rc, rd);
+	    do_read_event(rc, b->size());
 	 } while (isDataAvailable(0, "recvBinary", xsink));
       }
 
-      if (*xsink) {
-	 free(buf);
+      if (*xsink)
 	 return 0;
-      }
 
-      rc = rd;
-      return new BinaryNode(buf, rd);
+      rc = b->size();
+      return b.release();
    }
 
    DLLLOCAL QoreStringNode* readHTTPHeaderString(ExceptionSink* xsink, int timeout, int source) {
@@ -1888,7 +2004,6 @@ struct qore_socket_private {
       assert(rc > 0);
 
       const char *buf = hdr->getBuffer();
-      //printd(5, "HTTP header=%s", buf);
 
       char *p;
       if ((p = (char *)strstr(buf, "\r\n"))) {
@@ -1899,9 +2014,17 @@ struct qore_socket_private {
 	 *p = '\0';
 	 ++p;
       }
+      else if ((p = (char *)strchr(buf, '\r'))) {
+	 *p = '\0';
+	 ++p;
+      }
       // readHTTPData will only return a string that satisifies one of the above conditions
-      else 
+#ifdef DEBUG
+      else {
+	 printd(0, "qore_socket_private::readHTTPHeader() about to assert() buf: %p\n", buf);
 	 assert(false);
+      }
+#endif
 
       char *t1;
       if (!(t1 = (char *)strstr(buf, "HTTP/"))) {
@@ -2132,6 +2255,32 @@ struct qore_socket_private {
 	    ha.assign(val, 0);
       }
    }
+
+   DLLLOCAL int recvix(const char* meth, int len, void* targ, int timeout_ms, ExceptionSink* xsink) {
+      if (sock == QORE_INVALID_SOCKET) {
+	 if (xsink)
+	    se_not_open(meth, xsink);
+	 return QSE_NOT_OPEN;
+      }
+
+      char* buf;
+      qore_offset_t br = 0;
+      while (true) {
+	 qore_offset_t rc = brecv(xsink, meth, buf, len - br, 0, timeout_ms);
+	 if (rc <= 0) {
+	    do_read_error(rc, meth, timeout_ms, xsink);
+	    return (int)rc;
+	 }
+
+	 memcpy(targ, buf, rc);
+
+	 br += rc;
+	 if (br >= len)
+	    break;
+      }
+
+      return (int)br;
+   }
 };
 
 int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout_ms, bool read, ExceptionSink* xsink) {
@@ -2220,7 +2369,7 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
             break;
          }
          else {
-            //printd(0, "SSLSocketHelper::doSSLRW(buf=%p, size=%d, to=%d) rc=%d err=%d\n", buf, size, timeout_ms, rc, err);
+            //printd(5, "SSLSocketHelper::doSSLRW(buf=%p, size=%d, to=%d) rc=%d err=%d\n", buf, size, timeout_ms, rc, err);
             if (xsink && !sslError(xsink, mname, read ? "SSL_read" : "SSL_write", false))
                rc = 0;
             else
@@ -2592,446 +2741,141 @@ int QoreSocket::sendi8LSB(int64 i, int timeout_ms, ExceptionSink* xsink) {
 
 // receive integer values and convert from network byte order
 int QoreSocket::recvi1(int timeout, char *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-
-   return (int)priv->recv(0, "recvi1", val, 1, 0, timeout);
+   return priv->recvix("recvi1", 1, val, timeout, 0);
 }
 
+// DLLLOCAL int recvix(const char* meth, int len, void* targ, int timeout_ms, ExceptionSink* xsink) {
+
 int QoreSocket::recvi2(int timeout, short *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(0, "recvi2", buf + br, 2 - br, 0, timeout);
-      if (rc <= 0)
-	 return rc;
-
-      br += rc;
-
-      if (br >= 2)
-	 break;
-   }
-
+   int rc = priv->recvix("recvi2", 2, val, timeout, 0);
    *val = ntohs(*val);
-   return 2;
+   return rc;
 }
 
 int QoreSocket::recvi4(int timeout, int *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(0, "recvi4", buf + br, 4 - br, 0, timeout);
-      if (rc <= 0)
-	 return rc;
-
-      br += rc;
-
-      if (br >= 4)
-	 break;
-   }
-
+   int rc = priv->recvix("recvi4", 4, val, timeout, 0);
    *val = ntohl(*val);
-   return 4;
+   return rc;
 }
 
 int QoreSocket::recvi8(int timeout, int64 *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(0, "recvi8", buf + br, 8 - br, 0, timeout);
-      if (rc <= 0)
-	 return rc;
-
-      br += rc;
-
-      if (br >= 8)
-	 break;
-   }
-
+   int rc = priv->recvix("recvi8", 8, val, timeout, 0);
    *val = MSBi8(*val);
-   return 8;
+   return rc;
 }
 
 int QoreSocket::recvi2LSB(int timeout, short *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(0, "recvi2LSB", buf + br, 2 - br, 0, timeout);
-      if (rc <= 0)
-	 return rc;
-
-      br += rc;
-
-      if (br >= 2)
-	 break;
-   }
-
+   int rc = priv->recvix("recvi2LSB", 2, val, timeout, 0);
    *val = LSBi2(*val);
-   return 2;
+   return rc;
 }
 
 int QoreSocket::recvi4LSB(int timeout, int *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(0, "recvi4LSB", buf + br, 4 - br, 0, timeout);
-      if (rc <= 0)
-	 return rc;
-
-      br += rc;
-
-      if (br >= 4)
-	 break;
-   }
-
+   int rc = priv->recvix("recvi4LSB", 4, val, timeout, 0);
    *val = LSBi4(*val);
-   return 4;
+   return rc;
 }
 
 int QoreSocket::recvi8LSB(int timeout, int64 *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(0, "recvi8LSB", buf + br, 8 - br, 0, timeout);
-      if (rc <= 0)
-	 return rc;
-
-      br += rc;
-
-      if (br >= 8)
-	 break;
-   }
-
+   int rc = priv->recvix("recvi8LSB", 8, val, timeout, 0);
    *val = LSBi8(*val);
-   return 4;
+   return rc;
 }
 
 int QoreSocket::recvu1(int timeout, unsigned char *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-   
-   return priv->recv(0, "recvu1", (char *)val, 1, 0, timeout);
+   return priv->recvix("recvu1", 1, val, timeout, 0);
 }
 
 int QoreSocket::recvu2(int timeout, unsigned short *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-   
-   char *buf = (char *)val;
-   
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(0, "recvu2", buf + br, 2 - br, 0, timeout);
-      if (rc <= 0)
-	 return rc;
-      
-      br += rc;
-      
-      if (br >= 2)
-	 break;
-   }
-   
+   int rc = priv->recvix("recvu2", 2, val, timeout, 0);
    *val = ntohs(*val);
-   return 2;
+   return rc;
 }
 
 int QoreSocket::recvu4(int timeout, unsigned int *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-   
-   char *buf = (char *)val;
-   
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(0, "recvu4", buf + br, 4 - br, 0, timeout);
-      if (rc <= 0)
-	 return rc;
-      
-      br += rc;
-      
-      if (br >= 4)
-	 break;
-   }
-   
+   int rc = priv->recvix("recvu4", 4, val, timeout, 0);
    *val = ntohl(*val);
-   return 4;
+   return rc;
 }
 
 int QoreSocket::recvu2LSB(int timeout, unsigned short *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-   
-   char *buf = (char *)val;
-   
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(0, "recvu2LSB", buf + br, 2 - br, 0, timeout);
-      if (rc <= 0)
-	 return rc;
-      
-      br += rc;
-      
-      if (br >= 2)
-	 break;
-   }
-   
+   int rc = priv->recvix("recvu2LSB", 2, val, timeout, 0);
    *val = LSBi2(*val);
-   return 2;
+   return rc;
 }
 
 int QoreSocket::recvu4LSB(int timeout, unsigned int *val) {
-   if (priv->sock == QORE_INVALID_SOCKET)
-      return -1;
-   
-   char *buf = (char *)val;
-   
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(0, "recvu4LSB", buf + br, 4 - br, 0, timeout);
-      if (rc <= 0)
-	 return rc;
-      
-      br += rc;
-      
-      if (br >= 4)
-	 break;
-   }
-   
+   int rc = priv->recvix("recvu4LSB", 4, val, timeout, 0);
    *val = LSBi4(*val);
-   return 4;
-}
-
-static int do_read_error(qore_offset_t rc, const char *method_name, int timeout_ms, ExceptionSink *xsink) {
-   if (rc > 0)
-      return 0;
-   if (!*xsink)
-      QoreSocket::doException(rc, method_name, timeout_ms, xsink);
-   return -1;
+   return rc;
 }
 
 int64 QoreSocket::recvi1(int timeout, char *val, ExceptionSink* xsink) {
-   qore_offset_t rc = priv->recv(xsink, "recvi1", val, 1, 0, timeout);
-   return rc <= 0 ? do_read_error(rc, "recvi1", timeout, xsink) : rc;
+   return priv->recvix("recvi1", 1, val, timeout, xsink);
 }
 
 int64 QoreSocket::recvi2(int timeout, short *val, ExceptionSink* xsink) {
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(xsink, "recvi2", buf + br, 2 - br, 0, timeout);
-      if (rc <= 0)
-         return do_read_error(rc, "recvi2", timeout, xsink);
-
-      br += rc;
-
-      if (br >= 2)
-         break;
-   }
-
+   int rc = priv->recvix("recvi2", 2, val, timeout, xsink);
    *val = ntohs(*val);
-   return 2;
+   return rc;
 }
 
 int64 QoreSocket::recvi4(int timeout, int *val, ExceptionSink* xsink) {
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(xsink, "recvi4", buf + br, 4 - br, 0, timeout);
-      if (rc <= 0)
-         return do_read_error(rc, "recvi4", timeout, xsink);
-
-      br += rc;
-
-      if (br >= 4)
-         break;
-   }
-
+   int rc = priv->recvix("recvi4", 4, val, timeout, xsink);
    *val = ntohl(*val);
-   return 4;
+   return rc;
 }
 
 int64 QoreSocket::recvi8(int timeout, int64 *val, ExceptionSink* xsink) {
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(xsink, "recvi8", buf + br, 8 - br, 0, timeout);
-      if (rc <= 0)
-         return do_read_error(rc, "recvi8", timeout, xsink);
-
-      br += rc;
-
-      if (br >= 8)
-         break;
-   }
-
+   int rc = priv->recvix("recvi8", 8, val, timeout, xsink);
    *val = MSBi8(*val);
-   return 8;
+   return rc;
 }
 
 int64 QoreSocket::recvi2LSB(int timeout, short *val, ExceptionSink* xsink) {
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(xsink, "recvi2LSB", buf + br, 2 - br, 0, timeout);
-      if (rc <= 0)
-         return do_read_error(rc, "recvi2LSB", timeout, xsink);
-
-      br += rc;
-
-      if (br >= 2)
-         break;
-   }
-
+   int rc = priv->recvix("recvi2LSB", 2, val, timeout, xsink);
    *val = LSBi2(*val);
-   return 2;
+   return rc;
 }
 
 int64 QoreSocket::recvi4LSB(int timeout, int *val, ExceptionSink* xsink) {
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(xsink, "recvi4LSB", buf + br, 4 - br, 0, timeout);
-      if (rc <= 0)
-         return do_read_error(rc, "recvi4LSB", timeout, xsink);
-
-      br += rc;
-
-      if (br >= 4)
-         break;
-   }
-
+   int rc = priv->recvix("recvi4LSB", 4, val, timeout, xsink);
    *val = LSBi4(*val);
-   return 4;
+   return rc;
 }
 
 int64 QoreSocket::recvi8LSB(int timeout, int64 *val, ExceptionSink* xsink) {
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(xsink, "recvi8LSB", buf + br, 8 - br, 0, timeout);
-      if (rc <= 0)
-         return do_read_error(rc, "recvi8LSB", timeout, xsink);
-
-      br += rc;
-
-      if (br >= 8)
-         break;
-   }
-
+   int rc = priv->recvix("recvi8LSB", 8, val, timeout, xsink);
    *val = LSBi8(*val);
-   return 4;
+   return rc;
 }
 
 int64 QoreSocket::recvu1(int timeout, unsigned char *val, ExceptionSink* xsink) {
-   qore_offset_t rc = priv->recv(xsink, "recvu1", (char *)val, 1, 0, timeout);
-   //printd(5, "QoreSocket::recvu1() val: %d rc: %lld *xsink: %d\n", (int)*val, rc, (int)(bool)*xsink);
-   return rc <= 0 ? do_read_error(rc, "recvu1", timeout, xsink) : rc;
+   return priv->recvix("recvu1", 1, val, timeout, xsink);
 }
 
 int64 QoreSocket::recvu2(int timeout, unsigned short *val, ExceptionSink* xsink) {
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(xsink, "recvu2", buf + br, 2 - br, 0, timeout);
-      if (rc <= 0)
-         return do_read_error(rc, "recvu2", timeout, xsink);
-
-      br += rc;
-
-      if (br >= 2)
-         break;
-   }
-
+   int rc = priv->recvix("recvu2", 2, val, timeout, xsink);
    *val = ntohs(*val);
-   return 2;
+   return rc;
 }
 
 int64 QoreSocket::recvu4(int timeout, unsigned int *val, ExceptionSink* xsink) {
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(xsink, "recvu4", buf + br, 4 - br, 0, timeout);
-      if (rc <= 0)
-         return do_read_error(rc, "recvu4", timeout, xsink);
-
-      br += rc;
-
-      if (br >= 4)
-         break;
-   }
-
+   int rc = priv->recvix("recvu4", 4, val, timeout, xsink);
    *val = ntohl(*val);
-   return 4;
+   return rc;
 }
 
 int64 QoreSocket::recvu2LSB(int timeout, unsigned short *val, ExceptionSink* xsink) {
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(xsink, "recvu2LSB", buf + br, 2 - br, 0, timeout);
-      if (rc <= 0)
-         return do_read_error(rc, "recvu2LSB", timeout, xsink);;
-
-      br += rc;
-
-      if (br >= 2)
-         break;
-   }
-
+   int rc = priv->recvix("recvu2LSB", 2, val, timeout, xsink);
    *val = LSBi2(*val);
-   return 2;
+   return rc;
 }
 
 int64 QoreSocket::recvu4LSB(int timeout, unsigned int *val, ExceptionSink* xsink) {
-   char *buf = (char *)val;
-
-   qore_offset_t br = 0;
-   while (true) {
-      qore_offset_t rc = priv->recv(xsink, "recvu4LSB", buf + br, 4 - br, 0, timeout);
-      if (rc <= 0)
-         return do_read_error(rc, "recvu4LSB", timeout, xsink);
-
-      br += rc;
-
-      if (br >= 4)
-         break;
-   }
-
+   int rc = priv->recvix("recvu4LSB", 4, val, timeout, xsink);
    *val = LSBi4(*val);
-   return 4;
+   return rc;
 }
 
 int QoreSocket::send(int fd, qore_offset_t size) {
@@ -3143,7 +2987,7 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
    if (priv->sock == QORE_INVALID_SOCKET || !size)
       return -1;
 
-   char *buf = (char *)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
+   char *buf;
    qore_offset_t br = 0;
    qore_offset_t rc;
    while (true) {
@@ -3157,7 +3001,7 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
 	    bn = DEFAULT_SOCKET_BUFSIZE;
       }
 
-      rc = priv->recv(0, "recv", buf, bn, 0, timeout);
+      rc = priv->brecv(0, "recv", buf, bn, 0, timeout);
       if (rc <= 0)
 	 break;
       br += rc;
@@ -3242,6 +3086,12 @@ QoreStringNode* QoreSocket::readHTTPHeaderString(ExceptionSink* xsink, int timeo
 
 // receive a binary message in HTTP chunked format
 QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *xsink, int source) {
+   if (priv->sock == QORE_INVALID_SOCKET) {
+      if (xsink)
+	 se_not_open("readHTTPChunkedBodyBinary", xsink);
+      return 0;
+   }
+
    SimpleRefHolder<BinaryNode> b(new BinaryNode);
    QoreString str; // for reading the size of each chunk
    
@@ -3252,8 +3102,8 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
       // state = 1, \r received
       int state = 0;
       while (true) {
-	 char c;
-	 rc = priv->recv(xsink, "readHTTPChunkedBodyBinary", &c, 1, 0, timeout, false);
+	 char* buf;
+	 rc = priv->brecv(xsink, "readHTTPChunkedBodyBinary", buf, 1, 0, timeout, false);
 	 if (rc <= 0) {
 	    if (!*xsink) {
 	       assert(!rc);
@@ -3261,6 +3111,8 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 	    }
 	    return 0;
 	 }
+
+	 char c = buf[0];
 	 
 	 if (!state && c == '\r')
 	    state = 1;
@@ -3275,10 +3127,10 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 	 }
       }
       // DEBUG
-      //printd(0, "QoreSocket::readHTTPChunkedBodyBinary(): got chunk size ("QSD" bytes) string: %s\n", str.strlen(), str.getBuffer());
+      //printd(5, "QoreSocket::readHTTPChunkedBodyBinary(): got chunk size ("QSD" bytes) string: %s\n", str.strlen(), str.getBuffer());
 
       // terminate string at ';' char if present
-      char *p = (char *)strchr(str.getBuffer(), ';');
+      char *p = (char*)strchr(str.getBuffer(), ';');
       if (p)
 	 *p = '\0';
       long size = strtol(str.getBuffer(), 0, 16);
@@ -3291,13 +3143,13 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
       }
 
       // prepare string for chunk
-      str.allocate(size + 1);
+      //str.allocate(size + 1);
 
-      // read chunk directly into string buffer    
       qore_offset_t bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
       qore_offset_t br = 0; // bytes received
       while (true) {
-	 rc = priv->recv(xsink, "readHTTPChunkedBodyBinary", (char *)str.getBuffer() + br, bs, 0, timeout, false);
+	 char* buf;
+	 rc = priv->brecv(xsink, "readHTTPChunkedBodyBinary", buf, bs, 0, timeout, false);
 	 if (rc <= 0) {
 	    if (!*xsink) {
 	       assert(!rc);
@@ -3305,6 +3157,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 	    }
 	    return 0;
 	 }
+	 b->append(buf, rc);
 	 br += rc;
 	 
 	 if (br >= size)
@@ -3313,16 +3166,15 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 	    bs = size - br;
       }
 
-      // copy string buffer to binary object
-      b->append(str.getBuffer(), size);
       // DEBUG
-      //printd(0, "QoreSocket::readHTTPChunkedBodyBinary(): received binary chunk: size=%d br="QSD" total="QSD"\n", size, br, b->size());
+      //printd(5, "QoreSocket::readHTTPChunkedBodyBinary(): received binary chunk: size=%d br="QSD" total="QSD"\n", size, br, b->size());
       
       // read crlf after chunk
-      char crlf[2];
+      // FIXME: bytes read are not checked if they equal CRLF
       br = 0;
       while (br < 2) {
-	 rc = priv->recv(xsink, "readHTTPChunkedBodyBinary", crlf, 2 - br, 0, timeout, false);
+	 char* buf;
+	 rc = priv->brecv(xsink, "readHTTPChunkedBodyBinary", buf, 2 - br, 0, timeout, false);
 	 if (rc <= 0) {
 	    if (!*xsink) {
 	       assert(!rc);
@@ -3346,7 +3198,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
    }
    QoreHashNode *h = new QoreHashNode;
 
-   //printd(0, "QoreSocket::readHTTPChunkedBodyBinary(): saving binary body: %p size=%ld\n", b->getPtr(), b->size());
+   //printd(5, "QoreSocket::readHTTPChunkedBodyBinary(): saving binary body: %p size=%ld\n", b->getPtr(), b->size());
    h->setKeyValue("body", b.release(), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
@@ -3360,6 +3212,12 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 
 // receive a message in HTTP chunked format
 QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink, int source) {
+   if (priv->sock == QORE_INVALID_SOCKET) {
+      if (xsink)
+	 se_not_open("readHTTPChunkedBody", xsink);
+      return 0;
+   }
+
    QoreStringNodeHolder buf(new QoreStringNode(priv->enc));
    QoreString str; // for reading the size of each chunk
    
@@ -3370,8 +3228,8 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
       // state = 1, \r received
       int state = 0;
       while (true) {
-	 char c;
-	 rc = priv->recv(xsink, "readHTTPChunkedBody", &c, 1, 0, timeout, false);
+	 char* tbuf;
+	 rc = priv->brecv(xsink, "readHTTPChunkedBody", tbuf, 1, 0, timeout, false);
 	 if (rc <= 0) {
 	    if (!*xsink) {
 	       assert(!rc);
@@ -3379,6 +3237,8 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 	    }
 	    return 0;
 	 }
+
+	 char c = tbuf[0];
       
 	 if (!state && c == '\r')
 	    state = 1;
@@ -3393,7 +3253,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 	 }
       }
       // DEBUG
-      //printd(0, "got chunk size ("QSD" bytes) string: %s\n", str.strlen(), str.getBuffer());
+      //printd(5, "got chunk size ("QSD" bytes) string: %s\n", str.strlen(), str.getBuffer());
 
       // terminate string at ';' char if present
       char *p = (char *)strchr(str.getBuffer(), ';');
@@ -3411,13 +3271,15 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
       str.clear();
 
       // prepare string for chunk
-      buf->allocate((unsigned)(buf->strlen() + size + 1));
+      //buf->allocate((unsigned)(buf->strlen() + size + 1));
       
       // read chunk directly into string buffer    
       qore_offset_t bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
       qore_offset_t br = 0; // bytes received
+      str.clear();
       while (true) {
-	 rc = priv->recv(xsink, "readHTTPChunkedBody", (char *)buf->getBuffer() + buf->strlen() + br, bs, 0, timeout, false);
+	 char* tbuf;
+	 rc = priv->brecv(xsink, "readHTTPChunkedBody", tbuf, bs, 0, timeout, false);
 	 if (rc <= 0) {
 	    if (!*xsink) {
 	       assert(!rc);
@@ -3426,6 +3288,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 	    return 0;
 	 }
 	 br += rc;
+	 buf->concat(tbuf, rc);
 	 
 	 if (br >= size)
 	    break;
@@ -3433,16 +3296,15 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 	    bs = size - br;
       }
 
-      // ensure new data read is included in string size
-      buf->terminate(buf->strlen() + size);
       // DEBUG
-      //printd(0, "got chunk ("QSD" bytes): %s\n", br, buf->getBuffer() + buf->strlen() -  size);
+      //printd(5, "got chunk ("QSD" bytes): %s\n", br, buf->getBuffer() + buf->strlen() -  size);
 
       // read crlf after chunk
-      char crlf[2];
+      // FIXME: bytes read are not checked if they equal CRLF
       br = 0;
       while (br < 2) {
-	 rc = priv->recv(xsink, "readHTTPChunkedBody", crlf, 2 - br, 0, timeout, false);
+	 char* tbuf;
+	 rc = priv->brecv(xsink, "readHTTPChunkedBody", tbuf, 2 - br, 0, timeout, false);
 	 if (rc <= 0) {
 	    if (!*xsink) {
 	       assert(!rc);
@@ -3451,7 +3313,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 	    return 0;
 	 }
 	 br += rc;
-      }
+      }      
       priv->do_chunked_read(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED, size, size + 2, source);
    }
 

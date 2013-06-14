@@ -7,11 +7,16 @@
 #include <assert.h>
 
 #include <memory>
+#include <deque>
+#include <list>
 
 #define DEF_PORT 8021
 
-#undef HTTP_HASH
-//#define HTTP_HASH 1
+//#undef HTTP_HASH
+#define HTTP_HASH 1
+
+//#undef HTTP_RECV_HASH
+#define HTTP_RECV_HASH 1
 
 #ifdef HTTP_HASH
 static QoreHashNode* hdr;
@@ -21,9 +26,6 @@ static QoreString hdr;
 
 static const char* msg = "test server";
 static int msg_size;
-
-#include <deque>
-#include <list>
 
 class ThreadTask;
 class ThreadPoolThread;
@@ -609,49 +611,95 @@ void show_socket_info(const QoreHashNode* sih) {
 
 struct HttpTestThreadData {
    QoreSocket* ns;
-   QoreHashNode* req;
+#ifdef HTTP_RECV_HASH
+   typedef QoreHashNode req_type_t;
+#else
+   typedef QoreStringNode req_type_t;
+#endif
 
-   DLLLOCAL HttpTestThreadData(QoreSocket* n_ns, QoreHashNode* n_req = 0) : ns(n_ns), req(n_req) {
+   req_type_t* req;
+
+   DLLLOCAL HttpTestThreadData(QoreSocket* n_ns, req_type_t* n_req = 0) : ns(n_ns), req(n_req) {
    }   
 
    DLLLOCAL ~HttpTestThreadData() {
-      delete ns;
       if (req)
 	 req->deref(0);
+
+      if (ns) {
+	 ns->shutdown();
+	 ns->close();
+	 delete ns;
+      }
    }
 
-   DLLLOCAL QoreHashNode* takeRequest() {
+   DLLLOCAL req_type_t* takeRequest() {
       if (!req)
 	 return 0;
-      QoreHashNode* rv = req;
+      req_type_t* rv = req;
       req = 0;
       return rv;
    }
+
+   DLLLOCAL int getReq(ExceptionSink& xsink, int timeout_ms = 0) {
+      if (req)
+	 req->deref(0);
+
+#ifdef HTTP_RECV_HASH
+      req = ns->readHTTPHeader(&xsink, 0, timeout_ms);
+#else
+      req = ns->readHTTPHeaderString(&xsink, timeout_ms);
+#endif
+      return (bool)req;
+   }
+
+   DLLLOCAL int showReq() {
+#ifdef HTTP_RECV_HASH
+      // show request
+      const QoreStringNode* version = (const QoreStringNode*)req->getKeyValue("http_version");
+      const QoreStringNode* method = (const QoreStringNode*)req->getKeyValue("method");
+      const QoreStringNode* path = (const QoreStringNode*)req->getKeyValue("path");
+      const QoreStringNode* conn = 0;
+      
+      bool close = false;
+      if (version && *version == "1.1") {
+	 conn = (const QoreStringNode*)req->getKeyValue("connection");
+	 if (conn && conn->bindex("close", 0) != -1)
+	    close = true;
+      }
+      else {
+	 conn = (const QoreStringNode*)req->getKeyValue("connection");
+	 if (!conn || conn->bindex("Keep-Alive", 0) == -1)
+	    close = true;
+      }
+      
+      log("%s %s HTTP/%s (conn: %s close: %d)", method ? method->getBuffer() : "n/a", path ? path->getBuffer() : "n/a", version ? version->getBuffer() : "n/a", conn ? conn->getBuffer() : "n/a", close);
+
+      return close;
+#else
+      qore_offset_t i = req->bindex("HTTP/", 0);
+      if (i == -1) {
+	 log("error: no HTTP version found in request header: %s", req->getBuffer());
+	 return 1;
+      }
+      
+      bool http11 = !strncmp(req->getBuffer() + i + 5, "1.1", 3);
+      i = req->bindex("Connection: ", i + 10);
+      bool close = false;
+      if (i == -1) {
+	 if (!http11)
+	    close = true;
+      }
+      else
+	 close = strncmp(req->getBuffer() + i + 12, "Keep-Alive", 10);
+
+      log("??? ??? HTTP/%s (conn: ??? close: %d)", http11 ? "1.1" : "1.0", close);
+
+      //printf("hdr: %s", req->getBuffer());
+      return 1;
+#endif
+   }
 };
-
-bool show_request(const QoreHashNode* ph) {
-   // show request
-   const QoreStringNode* version = (const QoreStringNode*)ph->getKeyValue("http_version");
-   const QoreStringNode* method = (const QoreStringNode*)ph->getKeyValue("method");
-   const QoreStringNode* path = (const QoreStringNode*)ph->getKeyValue("path");
-   const QoreStringNode* conn = 0;
-
-   bool close = false;
-   if (version && *version == "1.1") {
-      conn = (const QoreStringNode*)ph->getKeyValue("connection");
-      if (conn && conn->bindex("close", 0) != -1)
-	 close = true;
-   }
-   else {
-      conn = (const QoreStringNode*)ph->getKeyValue("connection");
-      if (!conn || conn->bindex("Keep-Alive", 0) == -1)
-	 close = true;
-   }
-
-   log("%s %s HTTP/%s (conn: %s close: %d)", method ? method->getBuffer() : "n/a", path ? path->getBuffer() : "n/a", version ? version->getBuffer() : "n/a", conn ? conn->getBuffer() : "n/a", close);
-
-   return close;
-}
 
 void* op_conn_thread(void* x) {
    HttpTestThreadData* td = (HttpTestThreadData*)x;
@@ -663,22 +711,10 @@ void* op_conn_thread(void* x) {
    //ReferenceHolder<QoreHashNode> ph(td->ns->getPeerInfo(&xsink, false), &xsink);
    //show_socket_info(*ph);  
 
-   ReferenceHolder<QoreHashNode> ph(0, &xsink);
+   if (!td->req && !td->getReq(xsink, 10))
+      return 0;
 
-#if 1
-   ph = td->takeRequest();
-   if (!ph) {
-      ph = td->ns->readHTTPHeader(&xsink, 0, 10000);
-      if (!ph) {
-	 td->ns->shutdown();
-	 td->ns->close();
-	 return 0;
-      }
-   }
-#else
-#endif
-
-   bool close = show_request(*ph);
+   bool close = td->showReq();
 
    while (true) {
 #ifdef HTTP_HASH
@@ -714,16 +750,13 @@ void* op_conn_thread(void* x) {
       }
       //log("Connection: Keep-Alive");
       
-      ph = td->ns->readHTTPHeader(&xsink, 0, 10000);
-      if (!ph)
+      if (!td->getReq(xsink, 10))
 	 break;
 
-      close = show_request(*ph);
+      close = td->showReq();
    }
 
-   td->ns->shutdown();
-   td->ns->close();
-
+   log("terminating socket connection");
    return 0;
 }
 
@@ -777,22 +810,8 @@ int main(int argc, char *argv[]) {
 	 continue;
       }
 
-      HttpTestThreadData* td = new HttpTestThreadData(ns);
-
-#if 1
-      // see if data is available immediately and get request if so
-      if (ns->isDataAvailable(0)) {
-	 log("reading request inline");
-	 td->req = td->ns->readHTTPHeader(&xsink, 0, 0);
-	 if (!td->req) {
-	    delete td;
-	    xsink.handleExceptions();
-	    continue;
-	 }
-      }
-#endif
-
-      tp.submit(tp_conn_thread, td, &xsink);
+      std::auto_ptr<HttpTestThreadData> td(new HttpTestThreadData(ns));
+      tp.submit(tp_conn_thread, td.release(), &xsink);
    }
 
    qore_cleanup();
@@ -800,4 +819,3 @@ int main(int argc, char *argv[]) {
    pthread_attr_destroy(&attr);
    return 0;
 }
-

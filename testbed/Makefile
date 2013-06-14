@@ -1,3 +1,3 @@
 
 httpd: httpd.cc
-	$(CXX) $< -o $@ -lqore
+	$(CXX) $< -o $@ -lqore -O4
