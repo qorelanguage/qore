@@ -12,11 +12,11 @@
 
 #define DEF_PORT 8021
 
-//#undef HTTP_HASH
-#define HTTP_HASH 1
+#undef HTTP_HASH
+//#define HTTP_HASH 1
 
-//#undef HTTP_RECV_HASH
-#define HTTP_RECV_HASH 1
+#undef HTTP_RECV_HASH
+//#define HTTP_RECV_HASH 1
 
 #ifdef HTTP_HASH
 static QoreHashNode* hdr;
@@ -339,7 +339,7 @@ public:
    DLLLOCAL int stopWait(ExceptionSink* xsink) {
       AutoLocker al(m);
       if (stopflag && !confirm) {
-	 xsink->raiseException("THREADPOOL-ERROR", "cannot call ThreadPool::stopWait() after ()ThreadPool::stop() has been called since child threads have been detached and can no longer be traced");
+	 xsink->raiseException("THREADPOOL-ERROR", "cannot call ThreadPool::stopWait() after ThreadPool::stop() has been called since child threads have been detached and can no longer be traced");
 	 return -1;
       }
 
@@ -616,10 +616,10 @@ struct HttpTestThreadData {
 #else
    typedef QoreStringNode req_type_t;
 #endif
-
    req_type_t* req;
+   bool close;
 
-   DLLLOCAL HttpTestThreadData(QoreSocket* n_ns, req_type_t* n_req = 0) : ns(n_ns), req(n_req) {
+   DLLLOCAL HttpTestThreadData(QoreSocket* n_ns, req_type_t* n_req = 0) : ns(n_ns), req(n_req), close(false) {
    }   
 
    DLLLOCAL ~HttpTestThreadData() {
@@ -661,7 +661,6 @@ struct HttpTestThreadData {
       const QoreStringNode* path = (const QoreStringNode*)req->getKeyValue("path");
       const QoreStringNode* conn = 0;
       
-      bool close = false;
       if (version && *version == "1.1") {
 	 conn = (const QoreStringNode*)req->getKeyValue("connection");
 	 if (conn && conn->bindex("close", 0) != -1)
@@ -696,7 +695,42 @@ struct HttpTestThreadData {
       log("??? ??? HTTP/%s (conn: ??? close: %d)", http11 ? "1.1" : "1.0", close);
 
       //printf("hdr: %s", req->getBuffer());
-      return 1;
+      return close;
+#endif
+   }
+
+   DLLLOCAL void sendResponse(const char* msg, size_t msg_size, ExceptionSink& xsink) {
+#ifdef HTTP_HASH
+      // setup header for response
+      ReferenceHolder<QoreHashNode> mh(new QoreHashNode, &xsink);
+      mh->setKeyValue("Server", new QoreStringNode("Qorus-DBG-HTTP-Server/0.1"), 0);
+      mh->setKeyValue("Content-Type", new QoreStringNode("text/plain"), 0);
+
+      //ReferenceHolder<QoreHashNode> mh(hdr->copy(), &xsink);
+
+      // add Date header
+      DateTime dt;
+      dt.setNow(0);
+      QoreStringNode* dstr = new QoreStringNode;
+      dt.format(*dstr, "Dy, DD Mon YYYY HH:mm:SS");
+      dstr->concat(" GMT");
+      mh->setKeyValue("Date", dstr, 0);
+      mh->setKeyValue("Connection", new QoreStringNode(close ? "close" : "Keep-Alive"), 0);
+      
+      ns->sendHTTPResponse(&xsink, 200, "OK", "1.1", *mh, msg, msg_size);
+#else
+      DateTime dt;
+      dt.setNow(0);
+      QoreString dstr;
+      dt.format(dstr, "Dy, DD Mon YYYY HH:mm:SS");
+      
+      QoreString hstr("HTTP/1.1 200 OK\r\n");
+      hstr.concat(&hdr, &xsink);
+      hstr.sprintf("Date: %s GMT\r\n", dstr.getBuffer());
+      hstr.sprintf("Connection: %s\r\n", close ? "close" : "Keep-Alive");
+      hstr.sprintf("Content-Length: %d\r\n\r\n%s", msg_size, msg);
+
+      ns->send(&hstr, &xsink);
 #endif
    }
 };
@@ -714,37 +748,12 @@ void* op_conn_thread(void* x) {
    if (!td->req && !td->getReq(xsink, 10))
       return 0;
 
-   bool close = td->showReq();
+   td->showReq();
 
    while (true) {
-#ifdef HTTP_HASH
-      // setup header for response
-      ReferenceHolder<QoreHashNode> mh(hdr->copy(), &xsink);
-      // add Date header
-      DateTime dt;
-      dt.setNow(0);
-      QoreStringNode* dstr = new QoreStringNode;
-      dt.format(*dstr, "Dy, DD Mon YYYY HH:mm:SS");
-      dstr->concat(" GMT");
-      mh->setKeyValue("Date", dstr, 0);
-      mh->setKeyValue("Connection", new QoreStringNode(close ? "close" : "Keep-Alive"), 0);
-      
-      td->ns->sendHTTPResponse(&xsink, 200, "OK", "1.1", *mh, msg, msg_size);
-#else
-      DateTime dt;
-      dt.setNow(0);
-      QoreString dstr;
-      dt.format(dstr, "Dy, DD Mon YYYY HH:mm:SS");
-      
-      QoreString hstr("HTTP/1.1 200 OK\r\n");
-      hstr.concat(&hdr, &xsink);
-      hstr.sprintf("Date: %s GMT\r\n", dstr.getBuffer());
-      hstr.sprintf("Connection: %s\r\n", close ? "close" : "Keep-Alive");
-      hstr.sprintf("Content-Length: %d\r\n\r\n%s", msg_size, msg);
+      td->sendResponse(msg, msg_size, xsink);
 
-      td->ns->send(&hstr, &xsink);
-#endif
-      if (close || xsink) {
+      if (td->close || xsink) {
 	 //log("Connection: close (%d)", close);
 	 break;
       }
@@ -753,7 +762,7 @@ void* op_conn_thread(void* x) {
       if (!td->getReq(xsink, 10))
 	 break;
 
-      close = td->showReq();
+      td->showReq();
    }
 
    log("terminating socket connection");

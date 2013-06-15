@@ -1597,7 +1597,7 @@ struct qore_socket_private {
 
       // real socket reads are only done when the buffer is empty
 
-      //printd(5, "qore_socket_private::recv(buf=%p, bs=%d, flags=%d, timeout=%d, do_event=%d) this=%p ssl=%d\n", buf, (int)bs, flags, timeout, (int)do_event, this, ssl);
+      //printd(5, "qore_socket_private::brecv(buf=%p, bs=%d, flags=%d, timeout=%d, do_event=%d) this=%p ssl=%d\n", buf, (int)bs, flags, timeout, (int)do_event, this, ssl);
 
       qore_offset_t rc;
       if (!ssl) {
@@ -1632,7 +1632,7 @@ struct qore_socket_private {
 		  qore_socket_error(xsink, "SOCKET-RECV-ERROR", "error in recv()", meth);
 	       break;
 	    }
-	    //printd(5, "qore_socket_private::recv(%d, %p, %ld, %d) rc=%ld errno=%d\n", sock, buf, bs, flags, rc, errno);
+	    //printd(5, "qore_socket_private::brecv(%d, %p, %ld, %d) rc=%ld errno=%d\n", sock, buf, bs, flags, rc, errno);
 	    // try again if we were interrupted by a signal
 	    if (rc >= 0)
 	       break;
@@ -1641,6 +1641,7 @@ struct qore_socket_private {
       else
 	 rc = ssl->read(meth, rbuf, DEFAULT_SOCKET_BUFSIZE, timeout, xsink);
 
+      //printd(5, "qore_socket_private::brecv(%d, %p, %ld, %d) rc: %ld errno: %d\n", sock, buf, bs, flags, rc, errno);
       if (rc > 0) {
 	 buf = rbuf;
 	 assert(!buflen);
@@ -1650,8 +1651,6 @@ struct qore_socket_private {
 	    bufoffset = bs;
 	    rc = bs;
 	 }
-	 else
-	    buflen = rc;
 	 
 	 // register event
 	 if (do_event)
@@ -2018,13 +2017,13 @@ struct qore_socket_private {
 	 *p = '\0';
 	 ++p;
       }
-      // readHTTPData will only return a string that satisifies one of the above conditions
-#ifdef DEBUG
+      // readHTTPData will only return a string that satisifies one of the above conditions,
+      // however an embedded 0 could have been sent which would make the above searches invalid
       else {
-	 printd(0, "qore_socket_private::readHTTPHeader() about to assert() buf: %p\n", buf);
-	 assert(false);
+	 if (xsink)
+	    xsink->raiseException("SOCKET-HTTP-ERROR", "invalid header received with embedded nulls in Socket::readHTTPHeader()");
+	 return 0;
       }
-#endif
 
       char *t1;
       if (!(t1 = (char *)strstr(buf, "HTTP/"))) {

@@ -32,7 +32,7 @@ protected:
    }
 
    DLLLOCAL int checkPtr(ExceptionSink* xsink) const {
-      if (!ptr) {
+      if (!valid()) {
          xsink->raiseException("ITERATOR-ERROR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
          return -1;
       }
@@ -49,7 +49,7 @@ public:
    DLLLOCAL QoreHashIterator() : ConstHashIterator(0) {
    }
 
-   DLLLOCAL QoreHashIterator(const QoreHashIterator& old) : ConstHashIterator(old.h ? old.h->hashRefSelf() : 0, old.ptr) {
+   DLLLOCAL QoreHashIterator(const QoreHashIterator& old) : ConstHashIterator(*this) {
    }
 
    using QoreIteratorBase::deref;

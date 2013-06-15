@@ -1,0 +1,113 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  qlist
+
+  Qore Programming Language
+
+  Copyright 2003 - 2013 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#ifndef _QORE_QLIST
+
+#define _QORE_QLIST
+
+#include <list>
+
+// this is a templated class wrapper for std::list that also maintains the list size (ie size() is O(1)
+
+template<typename T>
+class qlist {
+protected:
+   typedef std::list<T> list_t;
+   list_t l;
+   size_t len;
+
+public:
+   typedef typename list_t::iterator iterator;
+   typedef typename list_t::const_iterator const_iterator;
+
+   DLLLOCAL qlist() : len(0) {
+   }
+
+   DLLLOCAL iterator begin() {
+      return l.begin();
+   }
+
+   DLLLOCAL iterator end() {
+      return l.end();
+   }
+
+   DLLLOCAL const_iterator begin() const {
+      return l.begin();
+   }
+
+   DLLLOCAL const_iterator end() const {
+      return l.end();
+   }
+
+   DLLLOCAL T& front() {
+      return l.front();
+   }
+
+   DLLLOCAL T& back() {
+      return l.back();
+   }
+
+   DLLLOCAL const T& front() const {
+      return l.front();
+   }
+
+   DLLLOCAL const T& back() const {
+      return l.back();
+
+   }
+
+   DLLLOCAL void pop_front() {
+      l.pop_front();
+      --len;
+   }
+
+   DLLLOCAL void push_back(const T& t) {
+      l.push_back(t);
+      ++len;
+   }
+   
+   DLLLOCAL iterator insert(iterator i, const T& val) {
+      ++len;
+      return l.insert(i, val);
+   }
+
+   DLLLOCAL size_t size() const {
+      return len;
+   }
+
+   DLLLOCAL bool empty() const {
+      return l.empty();
+   }
+
+   DLLLOCAL void erase(iterator i) {
+      l.erase(i);
+      --len;
+   }
+
+   DLLLOCAL void clear() {
+      l.clear();
+      len = 0;
+   }
+};
+
+#endif

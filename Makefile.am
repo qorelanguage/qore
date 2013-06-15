@@ -189,6 +189,7 @@ include_HEADERS = \
 	include/qore/CallReferenceNode.h \
 	include/qore/QoreFtpClient.h \
 	include/qore/safe_dslist \
+	include/qore/qlist \
 	include/qore/qore_bitopts.h \
 	include/qore/QoreSSLBase.h \
 	include/qore/Datasource.h \

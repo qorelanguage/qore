@@ -483,13 +483,15 @@ public:
 */
 typedef ReferenceHolder<QoreHashNode> QoreHashNodeHolder;
 
+class qhi_priv;
+
 //! iterator class for QoreHashNode, to be only created on the stack
 /**
    @code
    HashIterator hi(h);
    while (hi.next()) {
-   QoreStringValueHelper str(hi.getValue());
-   printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
+      QoreStringValueHelper str(hi.getValue());
+      printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
    }
    @endcode
 */
@@ -498,7 +500,7 @@ class HashIterator {
 
 protected:
    QoreHashNode* h;
-   HashMember *ptr;
+   qhi_priv* priv;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL HashIterator(const HashIterator&);
@@ -515,6 +517,9 @@ public:
 
    //! initializes the iterator with the passed hash
    DLLEXPORT HashIterator(QoreHashNode& h);
+   
+   //! Destroys the iterator
+   DLLEXPORT ~HashIterator();
 
    //! moves to the next element, returns false when there are no more elements to iterate
    /** also moves to the first element if the object has just been initialized after a complete iteration
@@ -587,6 +592,9 @@ public:
    //! initializes the iterator with the passed hash
    DLLEXPORT ReverseHashIterator(QoreHashNode& h);
 
+   //! Destroys the iterator
+   DLLEXPORT ~ReverseHashIterator();
+
    //! moves to the next element in reverse order, returns false when there are no more elements to iterate
    /** also moves to the last element if the object has just been initialized after a complete iteration
        (assuming there is at least one element in the hash)
@@ -619,16 +627,10 @@ public:
 class ConstHashIterator {
 protected:
    const QoreHashNode* h;
-   HashMember *ptr;
-
-   //! this function is not implemented; it is here as a protected function in order to prohibit it from being used
-   DLLLOCAL ConstHashIterator(const HashIterator&);
+   qhi_priv* priv;
 
    //! this function is not implemented; it is here as a protected function in order to prohibit it from being used
    DLLLOCAL ConstHashIterator& operator=(const HashIterator&);
-
-   //! protected internal constructor
-   DLLLOCAL ConstHashIterator(const QoreHashNode* n_h, HashMember* n_ptr);
 
 public:
    //! initializes the iterator with the passed hash
@@ -636,6 +638,12 @@ public:
 
    //! initializes the iterator with the passed hash
    DLLEXPORT ConstHashIterator(const QoreHashNode& h);
+
+   //! copy constructor
+   DLLLOCAL ConstHashIterator(const ConstHashIterator&);
+
+   //! Destroys the iterator
+   DLLEXPORT ~ConstHashIterator();
 
    //! moves to the next element, returns false when there are no more elements to iterate
    /** also moves to the first element if the object has just been initialized after a complete iteration
@@ -694,6 +702,9 @@ public:
 
    //! initializes the iterator with the passed hash
    DLLEXPORT ReverseConstHashIterator(const QoreHashNode& h);
+
+   //! Destroys the iterator
+   DLLEXPORT ~ReverseConstHashIterator();
 
    //! moves to the next element in reverse order, returns false when there are no more elements to iterate
    /** also moves to the last element if the object has just been initialized after a complete iteration

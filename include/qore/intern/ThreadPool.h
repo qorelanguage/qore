@@ -25,65 +25,13 @@
 #define QTP_DEFAULT_RELEASE_MS 5000
 
 #include <deque>
-#include <list>
+#include <qore/qlist>
 
 class ThreadTask;
 class ThreadPoolThread;
 
 typedef std::deque<ThreadTask*> taskq_t;
-typedef std::list<ThreadPoolThread*> tplist_base_t;
-
-class tplist_t {
-protected:
-   tplist_base_t l;
-   size_t len;
-
-public:
-   typedef tplist_base_t::iterator iterator;
-
-   DLLLOCAL tplist_t() : len(0) {
-   }
-
-   DLLLOCAL tplist_t::iterator begin() {
-      return l.begin();
-   }
-
-   DLLLOCAL tplist_t::iterator end() {
-      return l.end();
-   }
-
-   DLLLOCAL ThreadPoolThread* front() {
-      return l.front();
-   }
-
-   DLLLOCAL void pop_front() {
-      l.pop_front();
-      --len;
-   }
-
-   DLLLOCAL void push_back(ThreadPoolThread* tpt) {
-      l.push_back(tpt);
-      ++len;
-   }
-
-   DLLLOCAL size_t size() const {
-      return len;
-   }
-
-   DLLLOCAL bool empty() const {
-      return l.empty();
-   }
-
-   DLLLOCAL void erase(tplist_t::iterator i) {
-      l.erase(i);
-      --len;
-   }
-
-   DLLLOCAL void clear() {
-      l.clear();
-      len = 0;
-   }
-};
+typedef qlist<ThreadPoolThread*> tplist_t;
 
 class ThreadTask {
 protected:
