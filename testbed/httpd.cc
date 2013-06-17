@@ -12,11 +12,11 @@
 
 #define DEF_PORT 8021
 
-#undef HTTP_HASH
-//#define HTTP_HASH 1
+//#undef HTTP_HASH
+#define HTTP_HASH 1
 
-#undef HTTP_RECV_HASH
-//#define HTTP_RECV_HASH 1
+//#undef HTTP_RECV_HASH
+#define HTTP_RECV_HASH 1
 
 #ifdef HTTP_HASH
 static QoreHashNode* hdr;
@@ -702,11 +702,7 @@ struct HttpTestThreadData {
    DLLLOCAL void sendResponse(const char* msg, size_t msg_size, ExceptionSink& xsink) {
 #ifdef HTTP_HASH
       // setup header for response
-      ReferenceHolder<QoreHashNode> mh(new QoreHashNode, &xsink);
-      mh->setKeyValue("Server", new QoreStringNode("Qorus-DBG-HTTP-Server/0.1"), 0);
-      mh->setKeyValue("Content-Type", new QoreStringNode("text/plain"), 0);
-
-      //ReferenceHolder<QoreHashNode> mh(hdr->copy(), &xsink);
+      ReferenceHolder<QoreHashNode> mh(hdr->copy(), &xsink);
 
       // add Date header
       DateTime dt;

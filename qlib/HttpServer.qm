@@ -204,7 +204,7 @@ public namespace HttpServer {
         while (True) {
             $str += sprintf("%s exception: %s: %s: %s%s\ncall stack:",
                             $ex.type, get_ex_pos($ex), $ex.err, $ex.desc,
-                            $ex.arg ? sprintf(" (arg=%n)", $ex.arg) : "");
+                            $ex.arg ? sprintf(" (arg: %y)", $ex.arg) : "");
             
             if ($ex.callstack) {
                 foreach my hash $l in ($ex.callstack) {
@@ -347,7 +347,7 @@ class HttpServer::HttpHandlerList {
 
             # try to match special headers
 	    if ($score < 2 && $hi.shdr) {
-		#printf("HTTP DEBUG: checking special headers %n: %n\n", $.handlers.$h.shdr, $hdr);
+		#printf("HTTP DEBUG: checking special headers %y: %y\n", $.handlers.$h.shdr, $hdr);
                 my bool $found = False;
 		foreach my string $shdr in ($hi.shdr) {
 		    if ($hdr.$shdr) {
@@ -1025,6 +1025,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	    
 	    $.cThreads.inc();
             try {
+                # use the thread pool to start the connection
                 $.serv.startConnection(sub () { $.connectionThread($r); });
             }
             catch (hash $ex) {
@@ -1081,8 +1082,9 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		    continue;
                 }
 		
+                my hash $hi;
 		try {
-		    $hdr = $s.readHTTPHeader(HttpServer::ReadTimeout);
+		    $hdr = $s.readHTTPHeader(HttpServer::ReadTimeout, \$hi);
 		}
 		catch (hash $ex) {
 		    # according to RFC 2616 sec 8.1.2.1 (http://tools.ietf.org/html/rfc2616#section-8.1.2), clients claiming http 1.1 
@@ -1111,7 +1113,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		}
 
 		# DEBUG:
-                #printf("HTTP DEBUG: id: %d, hdr: %y\n", $cx.id, $hdr);
+                #printf("HTTP DEBUG: id: %d, hdr: %y, hi: %y\n", $cx.id, $hdr, $hi);
 
 		# process ascii encodings in url if present
 		$hdr.path = decode_url($hdr.path);
@@ -1124,66 +1126,20 @@ class HttpServer::HttpListener inherits Qore::Socket {
 		if ($hdr.authorization)
 		    $cx.auth = $hdr.authorization;
 
-		$cx.encoding = $.getEncoding();
-
 		# save original content-type
                 if ($hdr."content-type")
                     $hdr."_qore_orig_content_type" = $hdr."content-type";
+                $hdr."content-type" = $hi."body-content-type";
 
-		# split content-type fields
-		my list $ct = split(";", $hdr."content-type");
-		trim $ct;
-
-		# check for character encoding specification in content-type
-		foreach my string $c in ($ct)	{
-		    if ($c =~ /charset=/) {
-			$c =~ s/charset=//;
-			$s.setEncoding($c);
-			$cx.encoding = tolower($c);
-		    }
-		    else if ($c !~ /=/)
-			$hdr."content-type" = $c;
-		}
-
-                # if no encoding is specified, then set iso-8859-1 according to RFC 2616 section 3.7.1
-                if (!$cx.encoding)
-                    $.setEncoding($cx.encoding = "iso-8859-1"); 
-
-		# some simple logic to check if the content-encoding header is misused to specify the character encoding
-		if ($hdr."content-encoding" =~ /^iso[-0-9p]+$/i || $hdr."content-encoding" =~ /^utf-[0-9]+$/i) {
-		    $.setEncoding($cx.encoding = tolower($hdr."content-encoding"));
-		    delete $hdr."content-encoding";
-		}
-
-                if ($hdr."accept-charset") {
-                    $ct = split(",", $hdr."accept-charset");
-                    trim $ct;
-                    foreach my string $c in (\$ct) {
-                        $c = tolower($c);
-                        # FIXME: ignore q values
-                        $c =~ s/;.*$//;
-                        if ($c == "*" || $c == "utf-8" || $c == "utf8") {
-                            $cx."response-encoding" = "utf-8";
-                            break;
-                        }
-                    }
-                    if (!$cx."response-encoding")
-                        $cx."response-encoding" = $ct[0];
-                }
-                else 
-                    # according to RFC-2616 section 14.2, "If no Accept-Charset header is present, the default is that any character set is acceptable" so we will use utf-8
-                    $cx."response-encoding" = "utf-8";
+                # the Socket's encoding is set in Socket::readHTTPHeader() according to any charset declaration in the Content-Type
+                $cx.encoding = $s.getEncoding();
+                $cx."response-encoding" = $hi."accept-charset";
 
 		# check if we need to close the connection
-		my hash $ch;
-                if ($hdr.connection)
-                    map $ch.(trim($1)) = True, split(",", $hdr.connection.lwr()).iterator();
-
                 # RFC 2068 19.7.1: Persistent connections in HTTP/1.0 must be explicitly negotiated as they are not the default behavior
                 # RFC 1945 1.3: Except for experimental applications, current practice requires that the connection be established by the client prior to each request and closed by the server after sending the response.
-                # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open
-		$cx.close = $ch.close || ($hdr.http_version != "1.1" && !$ch."keep-alive");
-		#printf("HTTP DEBUG: ch: %y, close: %y\n", $ch, $cx.close);
+                # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open: the above rules are followed by Socket::readHTTPHeader()
+                $cx.close = $hi.close;
 
 		# if we need to get a body
                 if ($hdr."transfer-encoding" == "chunked") {
@@ -1233,30 +1189,16 @@ class HttpServer::HttpListener inherits Qore::Socket {
                     $lstr += ")";
                     $.log($lstr);
                 }
-
-		switch ($hdr.method) {
-                    case "HEAD": {
-                        $.serv.handleRequest($self, $s, \$cx, $hdr, $body, True);
-                        break;
-                    }
-
-                    case "POST":
-                    case "PUT":
-                    case "DELETE":
-                    case "GET": {
-                        $.serv.handleRequest($self, $s, \$cx, $hdr, $body);
-                        break;
-                    }
-
-                    default: {
-                        my string $err = sprintf("unknown / unsupported HTTP method %n", $hdr.method);
-                        my string $str = sprintf("%s: received from %s via %s", $err, $info.address_desc, $.socket_info.address_desc);
-                        $.logError($str);
-                        $cx.close = True;
-                        $.serv.sendHttpError($self, $cx, $s, 501, $err, NOTHING, $cx."response-encoding");
-                        break;
-                    }
+                
+                if (!HttpServer::HttpMethods.($hdr.method)) {
+                    my string $err = sprintf("unknown / unsupported HTTP method %n", $hdr.method);
+                    my string $str = sprintf("%s: received from %s via %s", $err, $info.address_desc, $.socket_info.address_desc);
+                    $.logError($str);
+                    $cx.close = True;
+                    $.serv.sendHttpError($self, $cx, $s, 501, $err, NOTHING, $cx."response-encoding");
                 }
+                else
+                    $.serv.handleRequest($self, $s, \$cx, $hdr, $hi, $body, $hdr.method == "HEAD");
 
                 if ($cx.close)
                     break;
@@ -1268,8 +1210,8 @@ class HttpServer::HttpListener inherits Qore::Socket {
                 : get_exception_string($ex);
 	    my string $str = sprintf("%s: received from %s via %s", $etxt, $info.address_desc, $.socket_info.address_desc);
 	    $.logError($str);
-	    $.logError(sprintf("hdr=%n", $hdr));
-	    #$.logError(sprintf("msg=%n", $body));
+	    $.logError(sprintf("hdr=%y", $hdr));
+	    #$.logError(sprintf("msg=%y", $body));
             $cx.close = True;
 	    $.serv.sendHttpError($self, $cx, $s, 500, $etxt, NOTHING, $cx."response-encoding");
 	}
@@ -1315,6 +1257,17 @@ public class HttpServer::HttpServer {
 
         #! address info flags
         const AIFlags = AI_PASSIVE | AI_ADDRCONFIG;
+
+        #! supported HTTP methods
+        const HttpMethods = (
+            "HEAD": True,
+            "POST": True,
+            "PUT": True,
+            "DELETE": True,
+            "GET": True,
+            #"TRACE": True,
+            #"CONNECT": True,
+            );
 
         #! map of HTTP result codes and text messages
         const HttpCodes = ( 
@@ -1421,12 +1374,12 @@ public class HttpServer::HttpServer {
 
         #! content-encodings supported; this is a hash to simulate a set with O(ln(n)) access times
         const ContentEncodings = (
-            "gzip": True,
-            "deflate": True,
-            "x-deflate": True,
-            "x-gzip": True,
-            "bzip2": True,
-            "x-bzip2": True,
+            "gzip": "gzip",
+            "deflate": "deflate",
+            "bzip2": "bzip2",
+            "x-gzip": "gzip",
+            "x-deflate": "deflate",
+            "x-bzip2": "bzip2",
             );
 
         #! default number of idle threads to have waiting for new connections (accross all listeners)
@@ -1743,7 +1696,7 @@ public class HttpServer::HttpServer {
         delete $.smap.($l.getAddress());
         remove $.listeners.($l.getID());
         remove $.nmap.($l.getName());
-        #printf("stopped %s c=%n\n", $l.getAddress(), $.c.getCount());
+        #printf("stopped %s c=%y\n", $l.getAddress(), $.c.getCount());
     }
 
     #! stops all listeners; only returns when all connections are closed on all listeners
@@ -1953,7 +1906,7 @@ public class HttpServer::HttpServer {
 	on_exit $.lm.exit();
 
         if ($.smap.$sock)
-            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("cannot add listener on %n; there is already an existing listener with this bind address", $sock);
+            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("cannot add listener on %y; there is already an existing listener with this bind address", $sock);
 
 	my int $id = $.seqListeners.next();
         if (!$name)
@@ -1964,7 +1917,7 @@ public class HttpServer::HttpServer {
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("there is already an active listener with name %y", $name);
 
         $.c.inc();
-        #printf("HttpServer::addListenerIntern() %n c=%n\n", $sock, $.c.getCount());
+        #printf("HttpServer::addListenerIntern() %y c=%y\n", $sock, $.c.getCount());
         on_error $.c.dec();
 
 	my HttpListener $l($self, $id, $.seqSessions, $node, $service, $cert, $key, $hi, $logger, $errorlogger, $stopc, $name, $family);
@@ -2034,7 +1987,7 @@ public class HttpServer::HttpServer {
 	else
 	    $str += ", <no content-type>";
 
-	$.log("no handler for %s (from %s) hdr=%n", $str, $cx."peer-info".address_desc, $hdr);
+	$.log("no handler for %s (from %s) hdr: %y", $str, $cx."peer-info".address_desc, $hdr);
         return (
             "code" : 501,
             "body" : sprintf("no handler has been registered for %s", $str),
@@ -2043,47 +1996,31 @@ public class HttpServer::HttpServer {
     
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
     # don't reimplement this method; fix/enhance it in the module
-    final handleRequest(HttpListener $listener, Socket $s, reference $cx, hash $hdr, *data $body, bool $head = False) {
-	# handle accept-encoding to compress data if necessary        
-	if ($hdr."accept-encoding") {
-	    # remove all writespace
-	    $hdr."accept-encoding" =~ s/\s//g;
-	    my any $mq = 0;
-	    my any $me;
+    final handleRequest(HttpListener $listener, Socket $s, reference $cx, hash $hdr, hash $hh, *data $body, bool $head = False) {
+        foreach my string $enc in ($hh."accept-encoding") {
+            my *string $e = ContentEncodings.$enc;
+            if (!$e)
+                continue;
+            $cx.encoding = $e;
+            break;
+        }
 
-	    foreach my string $acc in (split(",", $hdr."accept-encoding")) {
-		my any $q;
-		# get encoding
-		my any $enc = $acc =~ x/^(\w+|\*)/[0];
-		# ignore encodings we don't recognize
-		if (!ContentEncodings.$enc)
-		    continue;
-		# get q value
-		$q = $acc =~ x/;q=(.*)$/[0];
-		$q = $q ? float($q) : 1.0;
-		if ($q > $mq) {
-		    if ($enc =~ /x-/)
-			$enc =~ s/x-//;
-		    $me = $enc;
-		    $mq = $q;
-		}
-	    }
-	    if ($me)
-		$cx.encoding = $me;
-	}
         # erase the encoding string on exit
         on_exit remove $cx.encoding;
         
         # parse the path in the request
+        /*
         my *hash $url = parseURL($hdr.path);
 	if ($url.size() == 1 && $url.host)
 	    $url = ( "path" : $url.host );
+        */
+        my hash $url = ("path": $hdr.path);
 
 	# add logging functions and url
 	$cx += (
             "logfunc"     : $.logfunc,
             "errlogfunc"  : $.errlogfunc,
-            "url"         : $url 
+            "url"         : $url,
 	    );
 
 	# find a handler for the request
@@ -2259,7 +2196,7 @@ public class HttpServer::HttpServer {
                 }
 
 		if (!$rv.hdr.Date) # RFC 2616 sec 14.18 date format
-		    $rv.hdr.Date = format_date("Dy, DD Mon YYYY HH:mm:SS", gmtime()) + " GMT";
+		    $rv.hdr.Date = gmtime().format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
 
 		if (!$rv.hdr.Server)
 		    $rv.hdr.Server = $.httpserverstring;
@@ -2268,8 +2205,8 @@ public class HttpServer::HttpServer {
                 on_exit if ($s.getEncoding() != $old_encoding)
                     $s.setEncoding($old_encoding);
                 if (!$cx."response-encoding")
-                    $cx."response-encoding" = $s.getEncoding().lwr();
-                else if ($cx."response-encoding" != $s.getEncoding().lwr())
+                    $cx."response-encoding" = $old_encoding.lwr();
+                else if ($cx."response-encoding" != $old_encoding.lwr())
                     $s.setEncoding($cx."response-encoding");
 
                 if ($rv.body) {
@@ -2340,6 +2277,12 @@ public class HttpServer::HttpServer {
                 : get_exception_string($ex);
 
 	    my string $str = sprintf("handler: %s: %s", $handlerName, $desc);
+
+            if ($ex.err == "ENCODING-CONVERSION-ERROR") {
+                $s.setEncoding("utf8");
+                $cx."response-encoding" = "utf8";
+            }
+
 	    $.sendHttpError($listener, $cx, $s, 500, $str, NOTHING, $cx."response-encoding");
 	    $.logError($str);
 	}

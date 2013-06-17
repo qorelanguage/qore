@@ -1779,7 +1779,11 @@ my hash $ans = $sock.readHTTPHeader(10s);
     @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
     @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with one of the following two keys:
     - \c request-uri: (only set when parsing a request header) gives the request URI in an HTTP request
-    - \c response-uri: (only set when parsing a response header) gives the response URI in an HTTP response
+    - \c response-uri: (only set when parsing a response header) gives the response URI in an HTTP response    
+    - \c body-content-type: this is the  \c "Content-Type" header without any charset declaration
+    - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c close: (only set when parsing a request header) set to @ref Qore::True "True" if the connection should be closed after responding, @ref Qore::False "False" if not; see notes below about how this value is calculated
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
 
     @return a hash of headers (where each header key is converted to lower-case) also including the following keys giving additional information about the HTTP header received:
     - \c http_version: a string giving the HTTP version set in the header
@@ -1795,7 +1799,16 @@ my hash $ans = $sock.readHTTPHeader(10s);
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received, in the case of invalid header info received, the \c arg key of the exception hash will have the invalid data received
 
-    @since %Qore 0.8.4 this method always returns a hash and raises a \c SOCKET-HTTP-ERROR if invalid HTTP data is received
+    @note
+    - if the header claims a certain character encoding via a \c charset declaration in the \c "Content-Type" header, the Socket's @ref character_encoding "character encoding" is automatically set accordingly
+    - <a href="http://tools.ietf.org/html/rfc2616#section-3.7.1">RFC 2616 3.7.1</a>: if no encoding is specified, then set \c "iso-8859-1"
+    - <a href="http://tools.ietf.org/html/rfc2068#section-19.7.1">RFC 2068 19.7.1</a>: Persistent connections in HTTP/1.0 must be explicitly negotiated as they are not the default behavior
+    - <a href="http://tools.ietf.org/html/rfc1945#section-1.3">RFC 1945 1.3</a>: Except for experimental applications, current practice requires that the connection be established by the client prior to each request and closed by the server after sending the response.
+    - the conclusion is that server applications MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open
+
+    @since 
+    - %Qore 0.8.4 this method always returns a hash and raises a \c SOCKET-HTTP-ERROR if invalid HTTP data is received
+    - %Qore 0.8.8 added the \c close, \c charset, \c body-content-type, and \c accept-charset info keys as well as the encoding handling based on the detected charset
  */
 hash Socket::readHTTPHeader(timeout timeout_ms = -1, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
