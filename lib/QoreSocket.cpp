@@ -2351,6 +2351,10 @@ struct qore_socket_private {
 			info->setKeyValue("body-content-type", ct, 0);
 		  }
 	       }
+	       else if (info) {
+		  info->setKeyValue("charset", new QoreStringNode("iso-8859-1"), 0);
+		  info->setKeyValue("body-content-type", val->refSelf(), 0);
+	       }
 	    }
 	    else if (info) {
 	       if (!strcmp(buf, "accept-charset"))
