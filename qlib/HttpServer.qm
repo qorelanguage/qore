@@ -794,6 +794,9 @@ class HttpServer::HttpListener inherits Qore::Socket {
 
         # listener-specific handlers
         HttpHandlerList $.handlers();
+
+        # default handler info
+        *HandlerInfo $.defaultHandler;
     }
 
     # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
@@ -813,8 +816,8 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	$.errorlogger = $errorlogger;
         $.stopc = $stopc;
 
-	#printf("HttpListener::constructor() hi=%y\n", $hi);
-        map $.handlers.setHandler($1.key, $1.value.url, $1.value.content, $1.value.handler, $1.value.headers), $hi.pairIterator();
+        if ($hi)
+            $.addHandlers($hi);
 
 	# create SSL certificate and private key objects from PEM files if passed
         if ($cert) {
@@ -861,6 +864,21 @@ class HttpServer::HttpListener inherits Qore::Socket {
 	$.cThreads.inc();
 
 	$.tid = background $.mainThread();
+    }
+
+    addHandlers(hash $hi) {
+	#printf("HttpListener::addHandlers() hi: %y\n", $hi);
+        my bool $def = $.handlers.empty();
+        map $.handlers.setHandler($1.key, $1.value.url, $1.value.content, $1.value.handler, $1.value.headers), $hi.pairIterator();
+        if ($def)
+            $.setDefaultHandler($hi.firstKey());
+    }
+
+    setDefaultHandler(string $name) {
+        if (!$.handlers.handlers.$name)
+            throw "HTTPLISTENER-SETDEFAULTHANDLER-ERROR", sprintf("handler %y is unknown (known handlers: %y)", $name, $.handlers.handlers.keys());
+
+        $.defaultHandler = $.handlers.handlers.$name;
     }
 
     copy() {
@@ -1766,6 +1784,32 @@ public class HttpServer::HttpServer {
 	$.dhandlers.setHandler($name, $url, $content_type, $obj, $special_headers);
     }
 
+    addHandlerToListener(softstring $bind, string $name, string $url, *softlist $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+	$.lm.enter();
+	on_exit $.lm.exit();
+
+        my *int $id = $.smap.$bind;
+        if (!$id)
+            $id = $.nmap.$bind;
+
+	if (!$id)
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with name or bind address %y", $bind);
+
+	my hash $h.$name = ("url": $url, "content": $content_type, "handler": $obj, "headers": $special_headers);
+        $.listeners.$id.addHandlers($h);
+    }
+
+    addHandlerToListenerID(softint $id, string $name, string $url, *softlist $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+	$.lm.enter();
+	on_exit $.lm.exit();
+
+	if (!$.listeners.$id)
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", $id);
+
+	my hash $h.$name = ("url": $url, "content": $content_type, "handler": $obj, "headers": $special_headers);
+        $.listeners.$id.addHandlers($h);
+    }
+
     #! remove dynamic handler
     removeDynamicHandler(string $name) {
         $.dhandlers.removeHandler($name);
@@ -2026,18 +2070,21 @@ public class HttpServer::HttpServer {
 	# find a handler for the request
         # the dynamic handler helper maintains the request count for dynamic handlers so any call to remove the handler will only return after all in-progress requests are completed; the object is only allocated if needed
         my DynamicHandlerHelper $dhh;
-
-	my *HandlerInfo $hi;
+        my *HandlerInfo $hi;
         my int $score;
 	if (!$listener.handlers.empty()) {
-	    $hi = $listener.handlers.findHandler($url, $hdr, \$score, True);
-	    if (!$hi) {
-		$.sendHttpError($listener, $cx, $s, 404, "Not found", NOTHING, $cx."response-encoding");
-		return;
-	    }
+            $hi = $listener.handlers.findHandler($url, $hdr, \$score, True);
+            if (!$hi) {
+                if ($listener.defaultHandler)
+                    $hi = $listener.defaultHandler;
+                else {
+                    $.sendHttpError($listener, $cx, $s, 404, "Not found", NOTHING, $cx."response-encoding");
+                    return;
+                }
+            }
 	}
 	else {
-	    $hi = $.handlers.findHandler($url, $hdr, \$score);
+            $hi = $.handlers.findHandler($url, $hdr, \$score);
             if ($score < 3) {
                 my *HandlerInfo $dhi = $.dhandlers.findHandler($url, $hdr, \$score, \$dhh);
                 if ($dhi)
