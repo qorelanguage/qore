@@ -333,25 +333,25 @@ class HttpServer::HttpHandlerList {
 	# find a handler for the request
         my HandlerInfo $rv;
 
-	#printf("HTTP DEBUG: HttpHandlerList::findHandler() hdr=%y, handlers=%y\n", $hdr, $.handlers);
+	#printf("HTTP DEBUG: HttpHandlerList::findHandler() hdr: %y, handlers: %y\n", $hdr, $.handlers);
 	foreach my string $h in ($.handlers.keyIterator()) {
             my HandlerInfo $hi = $.handlers.$h;
-            #printf("HTTP DEBUG: checking handler %y: ct: %y, path: %y, url: %y, hcon: %y (url: %y) shdr: %y\n", $h, $hdr."content-type", $hdr.path, $.handlers.$h.url, $.handlers.$h.content, $url, $.handlers.$h.shdr);
+            #printf("HTTP DEBUG: %y: checking ct: %y, path: %y, url: %y, hcon: %y (url: %y) shdr: %y\n", $h, $hdr."content-type", $hdr.path, $.handlers.$h.url, $.handlers.$h.ch, $url, $.handlers.$h.shdr);
 
             # try to match content-type
 	    if (!$score && $hdr."content-type" && $hi.matchContentType($hdr."content-type")) {
-                #printf("HTTP DEBUG: Content-Type match for handler %y (h url: %y ct: %y, url: %y ct: %y)\n", $h, $.handlers.$h.url, $.handlers.$h.ch, $url, $hdr."content-type");
+                #printf("HTTP DEBUG: %y: Content-Type match (h url: %y ct: %y, url: %y ct: %y)\n", $h, $.handlers.$h.url, $.handlers.$h.ch, $url, $hdr."content-type");
                 $score = 1;
                 $rv = $hi;
 	    }
 
             # try to match special headers
 	    if ($score < 2 && $hi.shdr) {
-		#printf("HTTP DEBUG: checking special headers %y: %y\n", $.handlers.$h.shdr, $hdr);
+		#printf("HTTP DEBUG: %y: checking special headers %y: %y\n", $h, $.handlers.$h.shdr, $hdr);
                 my bool $found = False;
 		foreach my string $shdr in ($hi.shdr) {
 		    if ($hdr.$shdr) {
-			#printf("HTTP DEBUG: special header match for handler %y: %s: %s\n", $h, $shdr, $hdr.$shdr);
+			#printf("HTTP DEBUG: %y: special header match: %s: %s\n", $h, $shdr, $hdr.$shdr);
                         $score = 2;
                         $rv = $hi;
                         $found = True;
@@ -361,9 +361,9 @@ class HttpServer::HttpHandlerList {
 	    }
             
 	    # try to match URI path
-	    #printf("regex(%n, %s, %n, %s) %n && %n && %n\n", $hdr.path, type($hdr.path), $.handlers.$h.url, type($.handlers.$h.url), strlen($.handlers.$h.url), strlen($hdr.path), regex($url.path, $.handlers.$h.url));
+	    #printf("HTTP DEBUG %y: regex(%n, %s, %n, %s) %n && %n && %n\n", $h, $hdr.path, type($hdr.path), $.handlers.$h.url, type($.handlers.$h.url), strlen($.handlers.$h.url), strlen($hdr.path), regex($url.path, $.handlers.$h.url));
 	    if ($score < 3 && $hi.url && $hdr.path && regex($url.path, $hi.url)) {
-                #printf("HTTP DEBUG: URI match for handler %y (h url: %y, url: %y)\n", $h, $.handlers.$h.url, $url);
+                #printf("HTTP DEBUG: %y: URI match (h url: %y, url: %y)\n", $h, $.handlers.$h.url, $url);
                 $score = 3;
                 $rv = $hi;
             }
