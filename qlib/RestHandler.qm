@@ -145,7 +145,7 @@ public namespace RestHandler {
                     if ($cx.orig_method)
                         $desc += sprintf(" REST method %y", $cx.orig_method);
                     $desc += sprintf(", available methods: %s", $ml);
-                    return RestHandler::makeResponse(("Allow": $ml), 405, $desc);
+                    return AbstractHttpRequestHandler::makeResponse(("Allow": $ml), 405, $desc);
                 }
                 $rh.logDebug("class %y: method %y: %s: %s: %s", $.name(), $mn, get_ex_pos($ex), $ex.err, $ex.desc);
                 rethrow;
