@@ -373,6 +373,7 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
             @param decode_errors decode the message body with HTTP error responses and throw an exception based on the message body
+            @param hdr any headers to be sent with the request
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
 
@@ -383,8 +384,8 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash doRequest(string $m, string $path, any $body, *reference $info, *softbool $decode_errors) {
-            my hash $hdr = $.headers;
+        hash doRequest(string $m, string $path, any $body, *reference $info, *softbool $decode_errors, *hash $hdr) {
+            $hdr = $.headers + $hdr;
 
             # serialize body if necessary
             my *string $rb;
