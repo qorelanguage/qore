@@ -104,7 +104,7 @@ void ThreadPool::worker(ExceptionSink* xsink) {
 
    while (!stopflag) {
       if (q.empty()) {
-         if (release_ms && fh.size() > minidle) {
+         if (release_ms && (int)fh.size() > minidle) {
             if (cond.wait(m, release_ms) && q.empty()) {
                // timeout occurred: terminate an idle thread
                ThreadPoolThread* tpt = fh.front();
@@ -131,7 +131,7 @@ void ThreadPool::worker(ExceptionSink* xsink) {
          q.pop_front();
       }
 
-      while (fh.size() < minidle && (!max || (fh.size() + ah.size() < max))) {
+      while ((int)fh.size() < minidle && (!max || ((int)fh.size() + (int)ah.size() < max))) {
          if (addIdleWorker(xsink)) {
             xsink->handleExceptions();
             break;

@@ -424,7 +424,7 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
         on_exit $.dhl.writeUnlock();
 
         if ($.handlers.$name)
-            throw "SETHANDLER-ERROR", sprintf("dynamic HTTP request handler %y already exists", $name);
+            throw "SETHANDLER-ERROR", sprintf("dynamic HTTP request handler %y already exists (dynamic handlers: %y)", $name, $.handlers.keys());
 
 	$.handlers.$name = $dhi;
     }

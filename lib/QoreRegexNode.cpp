@@ -139,7 +139,7 @@ QoreListNode *QoreRegexNode::extractSubstrings(const QoreString* target, Excepti
    int offset = 0;
    while (true) {
       int ovector[OVECCOUNT];
-      if (offset >= t->strlen())
+      if (offset >= (int)t->strlen())
          break;
       int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, OVECCOUNT);
       //printd(5, "QoreRegexNode::exec(%s) =~ /xxx/ = %d (global: %d)\n", t->getBuffer() + offset, rc, global);

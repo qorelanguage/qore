@@ -1650,7 +1650,7 @@ struct qore_socket_private {
 	 buf = rbuf;
 	 assert(!buflen);
 	 assert(!bufoffset);
-	 if (rc > bs) {
+	 if (rc > (qore_offset_t)bs) {
 	    buflen = rc - bs;
 	    bufoffset = bs;
 	    rc = bs;
@@ -3151,7 +3151,6 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
 	 break;
       }
    }
-   free(buf);
    return (int)rc;
 }
 

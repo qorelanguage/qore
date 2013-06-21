@@ -209,11 +209,11 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, BinaryNode* 
    checkOffset(offset, length);
   //printd(5, "BinaryNode::splice(offset="QSD", length="QSD", priv->len="QSD")\n", offset, length, len);
 
-   if (offset == len || !length)
+   if (offset == (qore_offset_t)len || !length)
       return;
 
    qore_size_t end;
-   if (length > (len - offset)) {
+   if (length > (qore_offset_t)(len - offset)) {
       end = len;
       length = len - offset;
    }
@@ -236,7 +236,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* 
    //printd(5, "BinaryNode::splice() before offset: %lld length: %lld (len: %lld data_len: %lld)\n", offset, length, len, data_len);
    checkOffset(offset, length);
 
-   if (offset == len) {
+   if (offset == (qore_offset_t)len) {
       if (!data_len)
          return;
       length = 0;
@@ -245,7 +245,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* 
    //printd(5, "BinaryNode::splice(offset="QSD", length="QSD", priv->len="QSD")\n", offset, length, len);
 
    qore_size_t end;
-   if (length > (len - offset)) {
+   if (length > (qore_offset_t)(len - offset)) {
       end = len;
       length = len - offset;
    }
@@ -257,7 +257,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* 
       extract->append((char*)ptr + offset, length);
 
    // get number of entries to insert
-   if (data_len > length) { // make bigger
+   if ((qore_offset_t)data_len > length) { // make bigger
       qore_size_t ol = len;
 
       // resize buffer
@@ -267,7 +267,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* 
       if (end != ol)
          memmove((char*)ptr + (end - length + data_len), (char*)ptr + end, ol - end);
    }
-   else if (length > data_len) // make smaller
+   else if (length > (qore_offset_t)data_len) // make smaller
       memmove((char*)ptr + offset + data_len, (char*)ptr + offset + length, len - offset - data_len);
 
    memcpy((char*)ptr + offset, data, data_len);
@@ -280,7 +280,7 @@ int BinaryNode::substr(BinaryNode& b, qore_offset_t offset) const {
    printd(5, "BinaryNode::substr(offset: "QSD") this: %p len: "QSD")\n", offset, this, len);
 
    checkOffset(offset);
-   if (offset == len)
+   if (offset == (qore_offset_t)len)
       return -1;
 
    b.append((char*)ptr + offset, len - offset);
@@ -292,10 +292,10 @@ int BinaryNode::substr(BinaryNode& b, qore_offset_t offset, qore_offset_t length
 
    checkOffset(offset, length);
 
-   if (offset == len)
+   if (offset == (qore_offset_t)len)
       return -1;
 
-   if ((qore_size_t)length > (len - offset))
+   if (length > (qore_offset_t)(len - offset))
       length = len - offset;
 
    b.append((char*)ptr + offset, length);

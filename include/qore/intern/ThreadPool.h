@@ -229,7 +229,7 @@ protected:
    }
 
    DLLLOCAL ThreadPoolThread* getThreadUnlocked(ExceptionSink* xsink) {
-      while (!stopflag && fh.empty() && max && ah.size() == max) {
+      while (!stopflag && fh.empty() && max && (int)ah.size() == max) {
 	 waiting = true;
 	 cond.wait(m);
 	 waiting = false;
@@ -352,9 +352,9 @@ public:
 	    
 	    if (!stopflag) {
 	       // requeue thread if possible
-	       if ((!maxidle && release_ms) || (fh.size() < maxidle) || q.size() > fh.size()) {
+	       if ((!maxidle && release_ms) || ((int)fh.size() < maxidle) || q.size() > fh.size()) {
 		  fh.push_back(tpt);
-		  if (waiting || (release_ms && fh.size() > minidle))
+		  if (waiting || (release_ms && (int)fh.size() > minidle))
 		     cond.signal();
 		  return 0;
 	       }
