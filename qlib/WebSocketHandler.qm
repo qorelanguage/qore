@@ -197,9 +197,6 @@ public namespace WebSocketHandler {
         }
 
         private {
-            #! stop listener flag
-            bool $.stop = False;
-
             #! connection read-write lock
             RWLock $.rwl();
 
@@ -274,8 +271,8 @@ public namespace WebSocketHandler {
             @param hdr a hash of headers in the request
             @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
          */
-        start(hash $cx, hash $hdr, Socket $sock) {
-            #$.logDebug("WebSocketHandler::start() cid: %y from %s:%d", $cx.id, $cx."peer-info".hostname_desc, $cx."peer-info".port);
+        startImpl(softstring $lid, hash $cx, hash $hdr, Socket $sock) {
+            $.logDebug("WebSocketHandler::startImpl() cid: %y from %s:%d", $cx.id, $cx."peer-info".hostname_desc, $cx."peer-info".port);
 
             my softstring $cid = $cx.id;
 
@@ -297,7 +294,8 @@ public namespace WebSocketHandler {
             }
 
             while (True) {
-                if ($.stop) {
+                if ($.stop || $.lsh.$lid) {
+                    #$.logDebug("WebSocketHandler::startImpl() cid: %y stopping stop: %y", $cx.id, $.stop);
                     $.sendClose($sock, CC_GoingAway);
                     break;
                 }
@@ -306,7 +304,7 @@ public namespace WebSocketHandler {
                     # send any messages on the queue
                     my *binary $d = $wsc.pollData();
                     if ($d) {
-                        #printf("WebSocketHandler::start() cid: %y sending msg %d bytes\n", $cx.id, $d.size());
+                        #printf("WebSocketHandler::startImpl() cid: %y sending msg %d bytes\n", $cx.id, $d.size());
                         $sock.send($d);
                     }
                     
@@ -397,7 +395,7 @@ public namespace WebSocketHandler {
                 }
             }
 
-            #$.logDebug("WebSocketHandler::start() exiting");
+            #$.logDebug("WebSocketHandler::startImpl() exiting");
         }
 
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
@@ -482,12 +480,6 @@ public namespace WebSocketHandler {
             $frame += $msg;
             
             return $frame;
-        }
-
-        #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
-        stop() {
-            $.logDebug("external stop called");
-            $.stop = True;
         }
 
         #! default implementation is empty

@@ -744,10 +744,78 @@ public class HttpServer::AbstractHttpRequestHandler {
 }
 
 public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
+    private {
+        #! stop listener flag
+        bool $.stop = False;
+
+        #! hash of listener references; this is to stop all connections associated with a particular listener
+        hash $.lh;
+        
+        #! hash of listener stop flags
+        hash $.lsh;
+
+        #! listener reference hash mutex
+        Mutex $.m();
+    }
+
     #! create the object optionally with the given AbstractAuthenticator
     /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
       */
     constructor(*AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth) {
+    }
+
+    #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
+    /** This method should not return until the connection is closed or the stop() method is called
+
+        @param lid the listener ID
+        @param cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
+        - \c id: the unique HTTP connection ID
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        @param hdr a hash of headers in the request
+        @param s the @ref Qore::Socket "Socket" object for the dedicated connection
+     */
+    start(softstring $lid, hash $cx, hash $hdr, Socket $s) {
+        {
+            $.m.lock();
+            on_exit $.m.unlock();
+            ++$.lh.$lid;
+        }
+        on_exit {
+            $.m.lock();
+            on_exit $.m.unlock();
+            if (!--$.lh.$lid) {
+                delete $.lh.$lid;
+                delete $.lsh.$lid;
+            }
+        }
+        $.startImpl($lid, $cx, $hdr, $s);
+    }
+
+    #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
+    /** @param lid the listener ID
+    */
+    stop(softstring $lid) {
+        {
+            $.m.lock();
+            on_exit $.m.unlock();
+            if (!$.lh.$lid)
+                return;
+
+            $.lsh.$lid = True;
+        }
+        
+        $.stopImpl($lid);
+    }
+
+    #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
+    stop() {
+        $.stop = True;
+        $.stopImpl();
     }
 
     #! called by the HTTP server to handle incoming HTTP requests
@@ -781,6 +849,7 @@ public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
     #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
     /** This method should not return until the connection is closed or the stop() method is called
 
+        @param lid the listener ID
         @param cx call context hash; this hash will have the following keys:
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
@@ -792,10 +861,17 @@ public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
         @param hdr a hash of headers in the request
         @param s the @ref Qore::Socket "Socket" object for the dedicated connection
      */
-    abstract start(hash $cx, hash $hdr, Socket $s);
+    private abstract startImpl(softstring $lid, hash $cx, hash $hdr, Socket $s);
+
+    #! called from the HTTP server when the socket should be closed because the listener is stopping; the start() method for all connections handled by the given listener should return as soon as possible after this method is called
+    /** @param lid the listener ID
+    */
+    private stopImpl(string $lid) {
+    }
 
     #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
-    abstract stop();
+    private stopImpl() {
+    }
 }
 
 # Listener will be assigned to private members of the HttpServer; is not directly accessible from code outside the HttpServer (private)
@@ -980,7 +1056,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
         }
 
         # stop all dedicated socket connections
-        map $1.stop(), $.shh.iterator();
+        map $1.stop($.id), $.shh.iterator();
 
         # wait for all connection threads to terminate
         $.cThreads.waitForZero();
@@ -2353,7 +2429,7 @@ public class HttpServer::HttpServer {
                     if ($listener.registerDedicatedSocket($cx.id, $handler)) {
                         on_exit $cx.close = True;
                         try {
-                            cast<AbstractHttpSocketHandler>($handler).start($cx, $hdr, $s);
+                            cast<AbstractHttpSocketHandler>($handler).start($listener.getID(), $cx, $hdr, $s);
                         }
                         catch (hash $ex) {
                             my string $desc = !$.debug
