@@ -1507,6 +1507,7 @@ public class HttpServer::HttpServer {
         @param errlogfunc an optional closure or call reference that will be called with error information
         @param dbg if this parameter is set to @ref Qore::True "True", then additional information will be logged when errors occur
         @param name the name of the HTTP server as returned in the Server header (should be formatted according to RFC 2616 section 3.8 http://tools.ietf.org/html/rfc2616#section-3.8)
+        @param hdr a hash of headers to return in every response by default; to clear the default send an empty hash as the argument here
      */
     constructor(*code $logfunc, *code $errlogfunc, bool $dbg = False, string $name = sprintf("Qore-HTTP-Server/%s", HttpServer::Version), hash $hdr = ("X-Powered-By": "Qore/" + Qore::VersionString)) {
 	$.logfunc = $logfunc;
