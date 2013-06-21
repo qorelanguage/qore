@@ -245,7 +245,7 @@ my bool $b = $obj.hasCallableNormalMethod("getStatus");
     - if a @ref methodGate_methods "methodGate() method" exists but no explicit definition of the given method exists, then this pseudo-method will return @ref Qore::False "False", but any method name can be called on the object due to the existence of the @ref methodGate_methods "methodGate() method"
     - this pseudo-method will also return @ref Qore::True "True" if the given method exists and is accessible in an inherited class
  */
-bool <object>::hasCallableNormalNormalMethod(string name) [flags=CONSTANT] {
+bool <object>::hasCallableNormalMethod(string name) [flags=CONSTANT] {
    return qore_class_private::hasCallableNormalMethod(*(obj->getClass()), name->getBuffer());
 }
 

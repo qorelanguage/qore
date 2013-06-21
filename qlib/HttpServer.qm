@@ -695,6 +695,52 @@ public class HttpServer::AbstractHttpRequestHandler {
       */
     restoreThreadLocalData(*hash $data) {
     }
+
+    #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
+    static hash makeResponse(int $code, string $fmt) {
+        return (
+            "code": $code,
+            "body": vsprintf($fmt, $argv),
+            );
+    }
+
+    #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
+    static hash makeResponse(hash $hdr, int $code, string $fmt) {
+        return (
+            "code": $code,
+            "body": vsprintf($fmt, $argv),
+            "hdr": $hdr,
+            );
+    }
+
+    #! creates a hash for an HTTP response with the response code and a literal response message body
+    static hash makeResponse(int $code, *data $body, *hash $hdr) {
+        return (
+            "code": $code,
+            "body": $body,
+            "hdr": $hdr,
+            );
+    }
+
+    #! creates a hash for an HTTP 400 error response with the response message body as a string
+    static hash make400(string $fmt) {
+        return AbstractHttpRequestHandler::makeResponse(400, vsprintf($fmt, $argv));
+    }
+    
+    #! creates a hash for an HTTP 400 error response with the response message body as a string
+    static hash make400(hash $hdr, string $fmt) {
+        return AbstractHttpRequestHandler::makeResponse(400, vsprintf($fmt, $argv), $hdr);
+    }
+    
+    #! creates a hash for an HTTP 501 error response with the response message body as a string
+    static hash make501(string $fmt) {
+        return AbstractHttpRequestHandler::makeResponse(501, vsprintf($fmt, $argv));
+    }
+    
+    #! creates a hash for an HTTP 501 error response with the response message body as a string
+    static hash make501(hash $hdr, string $fmt) {
+        return AbstractHttpRequestHandler::makeResponse(501, vsprintf($fmt, $argv), $hdr);
+    }
 }
 
 public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
@@ -1448,6 +1494,9 @@ public class HttpServer::HttpServer {
 
         # connection thread pool
         ThreadPool $.threadPool(-1, DefaultIdleThreads);
+
+        # other misc response headers
+        hash $.hdr;
     }
     #! @endcond
 
@@ -1459,11 +1508,14 @@ public class HttpServer::HttpServer {
         @param dbg if this parameter is set to @ref Qore::True "True", then additional information will be logged when errors occur
         @param name the name of the HTTP server as returned in the Server header (should be formatted according to RFC 2616 section 3.8 http://tools.ietf.org/html/rfc2616#section-3.8)
      */
-    constructor(*code $logfunc, *code $errlogfunc, bool $dbg = False, string $name = sprintf("Qore-HTTP-Server/%s", HttpServer::Version)) {
+    constructor(*code $logfunc, *code $errlogfunc, bool $dbg = False, string $name = sprintf("Qore-HTTP-Server/%s", HttpServer::Version), hash $hdr = ("X-Powered-By": "Qore/" + Qore::VersionString)) {
 	$.logfunc = $logfunc;
 	$.errlogfunc = $errlogfunc;
         $.debug = $dbg;
         $.httpserverstring = $name;
+        $.hdr = (
+            "Server": $name,
+            ) + $hdr;
     }
 
     #! calls stop() and destroys the object
@@ -1869,9 +1921,7 @@ public class HttpServer::HttpServer {
         else if ($encoding != $s.getEncoding().lwr())
             $s.setEncoding($encoding);
 	
-	my hash $hdr = (
-            "Server": $.httpserverstring,
-            );
+	my hash $hdr = $.hdr;
 
         if (!$extra_hdrs."Content-Type")
             $hdr."Content-Type" = MimeTypeHtml + ";charset=" + $encoding;
@@ -2220,7 +2270,7 @@ public class HttpServer::HttpServer {
             # MUST NOT include a message-body. All other responses do include a
             # message-body, although it MAY be of zero length.
 
-	    $rv.hdr.Server = $.httpserverstring;
+	    $rv.hdr = $.hdr + $rv.hdr;
             if ($rv.code >= 300 && $rv.code < 400) {
                 # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
                 $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);

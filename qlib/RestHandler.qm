@@ -75,7 +75,6 @@ module RestHandler {
 
 #! the RestHandler namespace contains all the objects in the RestHandler module
 public namespace RestHandler {
-
     #! the base abstract class for REST handler classes
     public class AbstractRestClass {
         public {}
@@ -130,10 +129,23 @@ public namespace RestHandler {
             }
             catch (hash $ex) {
                 if ($ex.err == "METHOD-DOES-NOT-EXIST") {
-                    $rh.logDebug("%s: class %y: method %y args: %y", $ex.desc, $.name(), $mn, $ah);
-                    
-                    
-                    return RestHandler::make501("REST class %y does not implement method %y", $.name(), $mn);
+                    $rh.logDebug("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %y", $mn, $.name(), $ah);
+                    # see if alternate methods would work
+                    my list $hl = ();
+                    foreach my hash $mh in (RestHandler::Methods.pairIterator()) {
+                        my string $nmn = $mh.value + $cx.rest_method;
+                        if ($self.hasCallableMethod($nmn))
+                            $hl += $mh.key;
+                    }
+                    if (!$hl)
+                        return RestHandler::make501("REST class %y (%s) does not implement method %y", $.name(), $self.className(), $cx.orig_method);
+ 
+                    my string $ml = foldl $1 + "," + $2, $hl;
+                    my string $desc = sprintf("HTTP method %s is unimplemented in REST class %y (%s)", $cx.hdr.method, $.name(), $self.className());
+                    if ($cx.orig_method)
+                        $desc += sprintf(" REST method %y", $cx.orig_method);
+                    $desc += sprintf(", available methods: %s", $ml);
+                    return RestHandler::makeResponse(("Allow": $ml), 405, $desc);
                 }
                 $rh.logDebug("class %y: method %y: %s: %s: %s", $.name(), $mn, get_ex_pos($ex), $ex.err, $ex.desc);
                 rethrow;
@@ -143,26 +155,6 @@ public namespace RestHandler {
         #! throws a \c "REST-CLASS-ERROR" exception when a request tries to access an unknown subclass
         private hash unknownSubClassError(string $name) {
             throw "REST-CLASS-ERROR", sprintf("class %y has no subclass %y", $.name(), $name);
-        }
-
-        #! this method is called when a \c POST request is made on the current object; this method must be subclassed to provide any functionality, the default behavior is to return a 501 Unimplemented error
-        hash post(hash $cx, *hash $ah) {
-            return RestHandler::Err501;
-        }
-        
-        #! this method is called when a \c GET request is made on the current object; this method must be subclassed to provide any functionality, the default behavior is to return a 501 Unimplemented error
-        hash get(hash $cx, *hash $ah) {
-            return RestHandler::Err501;
-        }
-        
-        #! this method is called when a \c DELETE request is made on the current object; this method must be subclassed to provide any functionality, the default behavior is to return a 501 Unimplemented error
-        hash del(hash $cx, *hash $ah) {
-            return RestHandler::Err501;
-        }
-
-        #! this method is called when a \c PUT request is made on the current object; this method must be subclassed to provide any functionality, the default behavior is to return a 501 Unimplemented error
-        hash put(hash $cx, *hash $ah) {
-            return RestHandler::Err501;
         }
     }
 
@@ -177,10 +169,10 @@ public namespace RestHandler {
 
             #! supported HTTP methods
             const Methods = (
-                "GET": True,
-                "POST": True,
-                "PUT": True,
-                "DELETE": True,
+                "GET": "get",
+                "POST": "post",
+                "PUT": "put",
+                "DELETE": "del",
                 );
 
             #! supported mime types for de/serializing responses
@@ -306,19 +298,23 @@ public namespace RestHandler {
                 $mn = $args.action;
                 $args -= "action";
                 # ensure first letter of the action is in upper case
+                $cx.orig_method = $mn;
                 splice $mn, 0, 1, $mn[0].upr();
-                $mn = ($hdr.method == "DELETE" ? "del" : $hdr.method.lwr()) + $mn;
+                $cx.rest_method = $mn;
+                $mn = Methods.($hdr.method) + $mn;
             }
             else if ($body.action) {
                 if ($body.action.typeCode() != NT_STRING)
                     return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", $path, $args.action.type());
                 $mn = $body.action;
+                $cx.orig_method = $mn;
                 # ensure first letter of the action is in upper case
                 splice $mn, 0, 1, $mn[0].upr();
-                $mn = ($hdr.method == "DELETE" ? "del" : $hdr.method.lwr()) + $mn;
+                $cx.rest_method = $mn;
+                $mn = Methods.($hdr.method) + $mn;
             }
             else
-                $mn = $hdr.method == "DELETE" ? "del" : $hdr.method.lwr();
+                $mn = Methods.($hdr.method);
 
             # remove leading slash from method name
             if ($ah.method =~ /^\//)
@@ -397,7 +393,7 @@ public namespace RestHandler {
                     $ds = MimeDataTypes.$a.serialize;
                     if ($ds) {
                         $rv.body = $ds($rv.body);
-                        $rv.hdr = ("Content-Type": $a);
+                        $rv.hdr += ("Content-Type": $a);
                         break;
                     }
                 }
@@ -408,7 +404,7 @@ public namespace RestHandler {
                         $ds = MimeDataTypes.$k.serialize;
                         if ($ds) {
                             $rv.body = $ds($rv.body);
-                            $rv.hdr = ("Content-Type": $k);
+                            $rv.hdr += ("Content-Type": $k);
                             break;
                         }
                     }
@@ -465,30 +461,13 @@ public namespace RestHandler {
             $.ch{$name} = $cls;
         }
 
-        #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
-        static hash makeResponse(int $code, string $fmt) {
-            return (
-                "code": $code,
-                "body": vsprintf($fmt, $argv),
-                );
-        }
-
         #! creates a hash for an HTTP response with the response code and a literal response message body
-        static hash makeResponse(int $code, any $body) {
+        static hash makeResponse(int $code, any $body, *hash $hdr) {
             return (
                 "code": $code,
                 "body": $body,
+                "hdr": $hdr,
                 );
-        }
-
-        #! creates a hash for an HTTP 400 error response with the response message body as a string
-        static hash make400(string $fmt) {
-            return RestHandler::makeResponse(400, vsprintf($fmt, $argv));
-        }
-
-        #! creates a hash for an HTTP 501 error response with the response message body as a string
-        static hash make501(string $fmt) {
-            return RestHandler::makeResponse(501, vsprintf($fmt, $argv));
         }
     }
 }
