@@ -24,6 +24,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/QoreObjectIterator.h>
+#include <qore/intern/QoreClassIntern.h>
 
 //! Methods in this pseudo-class can be executed on @ref object "objects"
 /** 
@@ -204,4 +205,66 @@ map printf("+ %s\n", $1), $obj.pairIterator();
  */
 ObjectPairIterator <object>::pairIterator() [flags=CONSTANT] {
    return new QoreObject(QC_OBJECTPAIRITERATOR, 0, new QoreObjectIterator(obj));
+}
+
+//! Returns @ref Qore::True "True" if the given method exists (can be non-static or static) and is callable from the current context
+/** @par Example:
+    @code
+my bool $b = $obj.hasCallableMethod("getStatus");
+    @endcode
+
+    @return @ref Qore::True "True" if the given method exists (can be non-static or static) and is callable from the current context
+
+    @see
+    - hasCallableNormalMethod()
+    - hasCallableStaticMethod
+
+    @note
+    - returns @ref Qore::False "False" if the method doesn't exist or is not callable due to being private, for example
+    - if a @ref methodGate_methods "methodGate() method" exists but no explicit definition of the given method exists, then this pseudo-method will return @ref Qore::False "False", but any method name can be called on the object due to the existence of the @ref methodGate_methods "methodGate() method"
+    - this pseudo-method will also return @ref Qore::True "True" if the given method exists and is accessible in an inherited class
+ */
+bool <object>::hasCallableMethod(string name) [flags=CONSTANT] {
+   return qore_class_private::hasCallableMethod(*(obj->getClass()), name->getBuffer());
+}
+
+//! Returns @ref Qore::True "True" if the given non-static method exists and is callable from the current context
+/** @par Example:
+    @code
+my bool $b = $obj.hasCallableNormalMethod("getStatus");
+    @endcode
+
+    @return @ref Qore::True "True" if the given non-static method exists and is callable from the current context
+
+    @see
+    - hasCallableMethod()
+    - hasCallableStaticMethod
+
+    @note
+    - returns @ref Qore::False "False" if the method doesn't exist or is not callable due to being private, for example
+    - if a @ref methodGate_methods "methodGate() method" exists but no explicit definition of the given method exists, then this pseudo-method will return @ref Qore::False "False", but any method name can be called on the object due to the existence of the @ref methodGate_methods "methodGate() method"
+    - this pseudo-method will also return @ref Qore::True "True" if the given method exists and is accessible in an inherited class
+ */
+bool <object>::hasCallableNormalNormalMethod(string name) [flags=CONSTANT] {
+   return qore_class_private::hasCallableNormalMethod(*(obj->getClass()), name->getBuffer());
+}
+
+//! Returns @ref Qore::True "True" if the given static method exists and is callable from the current context
+/** @par Example:
+    @code
+my bool $b = $obj.hasCallableStaticMethod("getStatus");
+    @endcode
+
+    @return @ref Qore::True "True" if the given static method exists and is callable from the current context
+
+    @see
+    - hasCallableMethod()
+    - hasCallableStaticMethod
+
+    @note
+    - returns @ref Qore::False "False" if the static method doesn't exist or is not callable due to being private, for example
+    - this pseudo-method will also return @ref Qore::True "True" if the given static method exists and is accessible in an inherited class
+ */
+bool <object>::hasCallableStaticMethod(string name) [flags=CONSTANT] {
+   return qore_class_private::hasCallableStaticMethod(*(obj->getClass()), name->getBuffer());
 }

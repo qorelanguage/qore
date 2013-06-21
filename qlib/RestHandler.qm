@@ -131,6 +131,8 @@ public namespace RestHandler {
             catch (hash $ex) {
                 if ($ex.err == "METHOD-DOES-NOT-EXIST") {
                     $rh.logDebug("%s: class %y: method %y args: %y", $ex.desc, $.name(), $mn, $ah);
+                    
+                    
                     return RestHandler::make501("REST class %y does not implement method %y", $.name(), $mn);
                 }
                 $rh.logDebug("class %y: method %y: %s: %s: %s", $.name(), $mn, get_ex_pos($ex), $ex.err, $ex.desc);

@@ -1673,6 +1673,9 @@ public:
    }
 };
 
+#define QCCM_NORMAL (1 << 0)
+#define QCCM_STATIC (1 << 1)
+
 // private QoreClass implementation
 class qore_class_private {
 public:
@@ -2604,6 +2607,8 @@ public:
       return w;
    }
 
+   DLLLOCAL bool hasCallableMethod(const char* m, int mask) const;
+
    DLLLOCAL void execDestructor(QoreObject *self, ExceptionSink* xsink) const;
 
    DLLLOCAL void execBaseClassDestructor(QoreObject *self, ExceptionSink* xsink) const;
@@ -2698,6 +2703,18 @@ public:
 
    // static methods
    //DLLLOCAL static
+
+   DLLLOCAL static bool hasCallableMethod(const QoreClass& qc, const char* m) {
+      return qc.priv->hasCallableMethod(m, QCCM_NORMAL | QCCM_STATIC);
+   }
+
+   DLLLOCAL static bool hasCallableNormalMethod(const QoreClass& qc, const char* m) {
+      return qc.priv->hasCallableMethod(m, QCCM_NORMAL);
+   }
+
+   DLLLOCAL static bool hasCallableStaticMethod(const QoreClass& qc, const char* m) {
+      return qc.priv->hasCallableMethod(m, QCCM_STATIC);
+   }
 
    DLLLOCAL static const qore_class_private* isPublicOrPrivateMember(const QoreClass& qc, const char* mem, bool &priv) {
       return qc.priv->isPublicOrPrivateMember(mem, priv);

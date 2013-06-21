@@ -2442,6 +2442,20 @@ const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc,
    return scl ? scl->getClass(qc, cpriv) : 0;
 }
 
+bool qore_class_private::hasCallableMethod(const char* m, int mask) const {
+   bool external = (cls != getStackClass());
+   const QoreMethod* w = 0;
+   bool priv_flag = false;
+
+   if (mask & QCCM_NORMAL)
+      w = findMethod(m, priv_flag);
+
+   if (!w && (mask & QCCM_STATIC))
+      w = findStaticMethod(m, priv_flag);
+
+   return !w || (external && priv_flag) ? false : true;   
+}
+
 const QoreMethod* qore_class_private::getMethodForEval(const char* nme, ExceptionSink* xsink) const {
    bool external = (cls != getStackClass());
    printd(5, "qore_class_private::getMethodForEval() %s::%s() %s call attempted\n", name.c_str(), nme, external ? "external" : "internal" );
