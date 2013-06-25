@@ -329,18 +329,22 @@ my list $l = $col.getModifySql($t, $newcol);
             string nts = c.getNativeTypeString();
             if (getNativeTypeString() != nts) {
                 # first drop any default value if it's changing 
-                if (def_val != c.def_val)
+                if (def_val !== c.def_val)
                     l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
 
                 l += sprintf("alter table %s alter %s type %s", t.getSqlName(), name, nts);
 
-                if (def_val != c.def_val && exists c.def_val)
+                if (def_val !== c.def_val && exists c.def_val && c.def_val !== NULL) {
                     l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
+                    l += sprintf("update %s set %s = %s where %s is null", t.getSqlName(), name, t.getSqlValue(c.def_val), name);
+                }
             }
-            else if (def_val != c.def_val) {
+            else if (def_val !== c.def_val) {
                 #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
-                if (exists c.def_val)
+                if (exists c.def_val && c.def_val !== NULL) {
                     l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
+                    l += sprintf("update %s set %s = %s where %s is null", t.getSqlName(), name, t.getSqlValue(c.def_val), name);
+                }
                 else
                     l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);                    
             }

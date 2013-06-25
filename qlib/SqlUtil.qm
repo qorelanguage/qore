@@ -1597,6 +1597,11 @@ public namespace SqlUtil {
     */
     public const COP_LOWER = "lower";
 
+    #! to return distinct values
+    /** @see cop_distinct
+    */
+    public const COP_DISTINCT = "distinct";
+
     #! a hash of valid column operators
     public const CopMap = (
       COP_AS: True,
@@ -1605,6 +1610,7 @@ public namespace SqlUtil {
       COP_VALUE: True,
       COP_UPPER: True,
       COP_LOWER: True,
+      COP_DISTINCT: True,
         );
     #@}
 
@@ -1726,6 +1732,20 @@ my *list $rows = $table.selectRows(("columns": ("id", cop_lower("name")), "where
     */
     public hash sub cop_lower(any column) {
         return make_cop(COP_LOWER, column);
+    }
+
+    #! returns a hash for the \c "distinct" operator with the given argument; returns distinct column values
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", cop_distinct("name")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_distinct(any column) {
+        return make_cop(COP_DISTINCT, column);
     }
     #@}
 
@@ -11910,6 +11930,13 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     # get column value expression (column name or subexpression)
                     string cve = getColumnExpressionIntern(cv.column, jch, join);
                     rv = sprintf("lower(%s)", cve);
+                    break;
+                }
+
+                case COP_DISTINCT: {
+                    # get column value expression (column name or subexpression)
+                    string cve = getColumnExpressionIntern(cv.column, jch, join);
+                    rv = sprintf("distinct %s", cve);
                     break;
                 }
 
