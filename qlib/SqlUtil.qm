@@ -1676,7 +1676,7 @@ public namespace SqlUtil {
         COP_COUNT: (
             "nocolumn": True,
             "code": string sub (*string cve, any arg) {
-                return sprintf("count(%s)", arg);
+                return "count(1)";
             },
         ),
         );
@@ -1850,12 +1850,10 @@ my *list $rows = $table.selectRows(("columns": (cop_max("id")), "where": ("type"
 my *list $rows = $table.selectRows(("columns": ("account_type", cop_count()), "where": ("type": "user"), "groupby": "account_type"));
         @endcode
 
-        @param column the value for the count operator
-
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_count(any val = 1) {
-        return make_cop(COP_COUNT, "", val);
+    public hash sub cop_count() {
+        return make_cop(COP_COUNT, "");
     }
     #@}
 
