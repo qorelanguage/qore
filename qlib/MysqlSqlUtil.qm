@@ -749,6 +749,21 @@ end";
             const MysqlTableCreationOptions = AbstractTable::TableCreationOptions + MysqlConstraintOptions;
 
             const MysqlAlignTableOptions = AbstractTable::AlignTableOptions + MysqlTableCreationOptions;
+
+            const MysqlCopMap = AbstractTable::DefaultCopMap + (
+                COP_PREPEND: (
+                    "arg": Type::String,
+                    "code": string sub (AbstractTable t, string cve, string arg) {
+                        return sprintf("concat(%s,%s)", t.getSqlValueImpl(arg), cve);
+                    },
+                ),
+                COP_APPEND: (
+                    "arg": Type::String,
+                    "code": string sub (AbstractTable t, string cve, string arg) {
+                        return sprintf("concat(%s,%s)", cve, t.getSqlValueImpl(arg));
+                    },
+                ),
+                );
         }
 
         private {
@@ -798,6 +813,11 @@ end";
 
         private hash getAlignTableOptions() {
             return MysqlAlignTableOptions;
+        }
+
+        #! returns the column operator map for this object
+        private hash getColumnOperatorMap() {
+            return MysqlCopMap;
         }
 
         private bool checkExistenceImpl() {
@@ -1135,14 +1155,6 @@ end";
 
         private hash getTypeMapImpl() {
             return MysqlTypeMap;
-        }
-
-        private string getColumnOperatorPrepend(string cv, string arg) {
-            return sprintf("concat(%s,%s)", getSqlValueImpl(arg), cv);
-        }
-
-        private string getColumnOperatorAppend(string cv, string arg) {
-            return sprintf("concat(%s,%s)", cv, getSqlValueImpl(arg));
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string

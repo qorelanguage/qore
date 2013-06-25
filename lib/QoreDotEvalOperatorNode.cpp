@@ -209,10 +209,10 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    const QoreListNode *args = m->getArgs();
    if (!strcmp(mname, "copy")) {
       if (args && args->size())
-	 parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
+	 parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
 
       if (meth && meth->parseIsPrivate() && (!oflag || !qore_class_private::parseCheckCompatibleClass(*qc, *(getParseClass()))))
-	 parse_error("illegal call to private %s::copy() method", qc->getName());
+	 parse_error(loc, "illegal call to private %s::copy() method", qc->getName());
 
       // do not save method pointer for copy methods
       returnTypeInfo = qc->getTypeInfo();
@@ -253,7 +253,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    }
 
    if (meth->parseIsPrivate() && !qore_class_private::parseCheckCompatibleClass(*qc, *(getParseClass())))
-      parse_error("illegal call to private method %s::%s()", qc->getName(), mname);
+      parse_error(loc, "illegal call to private method %s::%s()", qc->getName(), mname);
 
    // save method for optimizing calls later
    m->parseSetClassAndMethod(qc, meth);

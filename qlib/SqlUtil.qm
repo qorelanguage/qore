@@ -1602,15 +1602,46 @@ public namespace SqlUtil {
     */
     public const COP_DISTINCT = "distinct";
 
-    #! a hash of valid column operators
-    public const CopMap = (
-      COP_AS: True,
-      COP_PREPEND: True,
-      COP_APPEND: True,
-      COP_VALUE: True,
-      COP_UPPER: True,
-      COP_LOWER: True,
-      COP_DISTINCT: True,
+    #! a hash of default column operator descriptions
+    public const DefaultCopMap = (
+        COP_AS: (
+            "arg": Type::String,
+            "code": string sub (AbstractTable t, string cve, string arg) {
+                return sprintf("%s as %y", cve, arg);
+            },
+        ),
+        COP_PREPEND: (
+            "arg": Type::String,
+            "code": string sub (AbstractTable t, string cve, string arg) {
+                return sprintf("%s||%s", t.getSqlValueImpl(arg), cve);
+            },
+        ),
+        COP_APPEND: (
+            "arg": Type::String,
+            "code": string sub (AbstractTable t, string cve, string arg) {
+                return sprintf("%s||%s", cve, t.getSqlValueImpl(arg));
+            },
+        ),
+        COP_VALUE: (
+            "code": string sub (AbstractTable t, string cve, any arg) {
+                return t.getSqlValueImpl(arg);
+            },
+        ),
+        COP_UPPER: (
+            "code": string sub (AbstractTable t, string cve, any arg) {
+                return sprintf("upper(%s)", cve);
+            },
+        ),
+        COP_LOWER: (
+            "code": string sub (AbstractTable t, string cve, any arg) {
+                return sprintf("lower(%s)", cve);
+            },
+        ),
+        COP_DISTINCT: (
+            "code": string sub (AbstractTable t, string cve, any arg) {
+                return sprintf("distint %s", cve);
+            },
+        ),
         );
     #@}
 
@@ -1753,11 +1784,11 @@ my *list $rows = $table.selectRows(("columns": ("id", cop_distinct("name")), "wh
         These are the operators that can be used in update statements to process column values automatically
      */
     #! a hash of valid update operators
-    public const UopMap = (
-      COP_PREPEND: True,
-      COP_APPEND: True,
-      COP_UPPER: True,
-      COP_LOWER: True,
+    public const DefaultUopMap = (
+        COP_PREPEND: True,
+        COP_APPEND: True,
+        COP_UPPER: True,
+        COP_LOWER: True,
         );
     #@}
 
@@ -4782,9 +4813,9 @@ my string $sql = $t.getSqlFromList($list);
                     break;
                 
                 # throw an exception if the type is not supported
-              default: 
-                if (opt.type() != type)
-                    throw err, sprintf("key %y requires type %y but type %y was passed (%y)", k, type, opt.type(), opt);
+                default: 
+                    if (opt.type() != type)
+                        throw err, sprintf("key %y requires type %y but type %y was passed (%y)", k, type, opt.type(), opt);
             }
         }
 
@@ -11883,77 +11914,24 @@ my string $sql = $table.getSelectSql($sh, \$args);
         private string doColumnOperatorIntern(hash cv, *hash jch, bool join) {
             if (cv.cop.typeCode() != NT_STRING)
                 throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"cop\" key giving the column operator name", cv);
-                            
-            string rv;
-            # process column operators
-            switch (cv.cop) {
-                case COP_AS: {
-                    # get column value expression (column name or subexpression)
-                    string cve = getColumnExpressionIntern(cv.column, jch, join);
-                    if (cv.arg.typeCode() != NT_STRING)
-                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the output column name", cv);
-                    rv = sprintf("%s as %y", cve, cv.arg);
-                    break;
-                }
-                       
-                case COP_PREPEND: {
-                    # get column value expression (column name or subexpression)
-                    string cve = getColumnExpressionIntern(cv.column, jch, join);
-                    if (cv.arg.typeCode() != NT_STRING)
-                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the string argument", cv);
-                    rv = getColumnOperatorPrepend(cve, cv.arg);
-                    break;
-                }
 
-                case COP_APPEND: {
-                    # get column value expression (column name or subexpression)
-                    string cve = getColumnExpressionIntern(cv.column, jch, join);
-                    if (cv.arg.typeCode() != NT_STRING)
-                        throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"arg\" key giving the string argument", cv);
-                    rv = getColumnOperatorAppend(cve, cv.arg);
-                    break;
+            hash cm = getColumnOperatorMap();
+
+            *hash cmd = cm{cv.cop};
+            if (!cmd)
+                throw "SELECT-ERROR", sprintf("unknown column operator %y in %y: expecting one of: %y", cv.cop, cv, cm.keys());
+
+            if (cmd.arg) {
+                string at = cv.arg.type();
+                switch (cmd.arg) {
+                    default: {
+                        if (at != cmd.arg)
+                            throw "SELECT-ERROR", sprintf("invalid argument to column operator %y; got type %y, expecting %y", cv.cop, at, cmd.arg);
+                    }
                 }
-
-                case COP_VALUE: {
-                    rv = getSqlValue(cv.arg);
-                    break;
-                }
-
-                case COP_UPPER: {
-                    # get column value expression (column name or subexpression)
-                    string cve = getColumnExpressionIntern(cv.column, jch, join);
-                    rv = sprintf("upper(%s)", cve);
-                    break;
-                }
-
-                case COP_LOWER: {
-                    # get column value expression (column name or subexpression)
-                    string cve = getColumnExpressionIntern(cv.column, jch, join);
-                    rv = sprintf("lower(%s)", cve);
-                    break;
-                }
-
-                case COP_DISTINCT: {
-                    # get column value expression (column name or subexpression)
-                    string cve = getColumnExpressionIntern(cv.column, jch, join);
-                    rv = sprintf("distinct %s", cve);
-                    break;
-                }
-
-                case NOTHING: throw "SELECT-ERROR", sprintf("column argument is a hash without an \"cop\" key giving the column operator: %y", cv);
-
-                default: throw "SELECT-ERROR", sprintf("unknown column operator %y in %y: expecting one of: %y", cv.cop, cv, CopMap.keys());
             }
 
-            return rv;
-        }
-
-        private string getColumnOperatorPrepend(string cv, string arg) {
-            return sprintf("%s||%s", getSqlValueImpl(arg), cv);
-        }
-
-        private string getColumnOperatorAppend(string cv, string arg) {
-            return sprintf("%s||%s", cv, getSqlValueImpl(arg));
+            return cmd.code(self, getColumnExpressionIntern(cv.column, jch, join), cv.arg);
         }
 
         private string getColumnNameIntern(string cv, *hash jch, bool join) {
@@ -12222,28 +12200,25 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
         }
         
         private string getUpdateExpression(string col, hash uh) {
-            string arg = (uh.nest ? getUpdateExpression(col, uh.nest) : col);
-            switch (uh.uop) {
-                case COP_PREPEND: {
-                    if (uh.arg.typeCode() != NT_STRING)
-                        throw "SELECT-ERROR", sprintf("invalid update operator hash %y; missing \"arg\" key giving the string argument", uh);
-                    return getColumnOperatorPrepend(arg, uh.arg);
+            hash um = getUpdateOperatorMap();
+
+            *hash cmd = um{uh.uop};
+            if (!cmd)
+                throw "UPDATE-ERROR", sprintf("unknown update operator %y in %y: expecting one of: %y", uh.uop, uh, um.keys());
+
+            if (cmd.arg) {
+                string at = uh.arg.type();
+                switch (cmd.arg) {
+                    default: {
+                        if (at != cmd.arg)
+                            throw "UPDATE-ERROR", sprintf("invalid argument to update operator %y; got type %y, expecting %y", uh.uop, at, cmd.arg);
+                    }
                 }
-
-                case COP_APPEND: {
-                    if (uh.arg.typeCode() != NT_STRING)
-                        throw "SELECT-ERROR", sprintf("invalid update operator hash %y; missing \"arg\" key giving the string argument", uh);
-                    return getColumnOperatorAppend(arg, uh.arg);
-                }
-
-                case COP_UPPER: return sprintf("upper(%s)", arg);
-
-                case COP_LOWER: return sprintf("lower(%s)", arg);
-
-                case NOTHING: throw "UPDATE-ERROR", sprintf("update argument is a hash without an \"uop\" key giving the update operator: %y", uh);
-
-                default: throw "UPDATE-ERROR", sprintf("unknown update operator %y in %y: expecting one of: %y", uh.uop, uh, UopMap.keys());
             }
+
+            string arg = (uh.nest ? getUpdateExpression(col, uh.nest) : col);
+
+            return cmd.code(self, arg, uh.arg);
         }
 
         private bool emptyDataUnlocked() {
@@ -13426,6 +13401,125 @@ my *list $rows = $table.findAll($h);
             return name;
         }
 
+        #! returns the table options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getTableOptions() {
+            return TableOptions;
+        }
+
+        #! return the foreign constraint options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getForeignConstraintOptions() {
+            return ForeignConstraintOptions;
+        }
+
+        #! returns the constraint options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getConstraintOptions() {
+            return ConstraintOptions;
+        }
+
+        #! returns the cache options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getCacheOptions() {
+            return CacheOptions;
+        }
+
+        #! returns the table creation options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getTableCreationOptions() {
+            return TableCreationOptions;
+        }
+
+        #! returns the align table options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getAlignTableOptions() {
+            return AlignTableOptions;
+        }
+
+        #! returns the table description hash options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getTableDescriptionHashOptions() {
+            return TableDescriptionHashOptions;
+        }
+
+        #! returns the column options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getColumnOptions() {
+            return ColumnOptions;
+        }
+
+        #! returns the column description options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getColumnDescOptions() {
+            return ColumnDescOptions;
+        }
+
+        #! returns the table column description options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getTableColumnDescOptions() {
+            return getColumnDescOptions() + AdditionalColumnDescOptions;
+        }
+
+        #! returns the index options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getIndexOptions() {
+            return IndexOptions;
+        }
+
+        #! returns the trigger options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getTriggerOptions() {
+            return TriggerOptions;
+        }
+
+        #! returns the select options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getSelectOptions() {
+            return SelectOptions;
+        }
+
+        #! returns the upsert options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getUpsertOptions() {
+            return UpsertOptions;
+        }
+
+        #! returns the insert options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getInsertOptions() {
+            return InsertOptions;
+        }
+
+        #! returns the column operator map for this object
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getColumnOperatorMap() {
+            return DefaultCopMap;
+        }
+
+        #! returns the update operator map for this object
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getUpdateOperatorMap() {
+            return getColumnOperatorMap().(DefaultUopMap.keys());
+        }
+
         private string getCreateTableSqlUnlocked(*hash opt) {
             getColumnsUnlocked();
             return AbstractDatabase::doCallback(opt, getCreateTableSqlImpl(opt), AbstractDatabase::AC_Create, "table", name);
@@ -13670,81 +13764,6 @@ my *list $rows = $table.findAll($h);
             }
             triggers = getTriggersImpl();
             inDb = True;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getTableOptions() {
-            return TableOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getForeignConstraintOptions() {
-            return ForeignConstraintOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getConstraintOptions() {
-            return ConstraintOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getCacheOptions() {
-            return CacheOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getTableCreationOptions() {
-            return TableCreationOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getAlignTableOptions() {
-            return AlignTableOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getTableDescriptionHashOptions() {
-            return TableDescriptionHashOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getColumnOptions() {
-            return ColumnOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getColumnDescOptions() {
-            return ColumnDescOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getTableColumnDescOptions() {
-            return getColumnDescOptions() + AdditionalColumnDescOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getIndexOptions() {
-            return IndexOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getTriggerOptions() {
-            return TriggerOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getSelectOptions() {
-            return SelectOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getUpsertOptions() {
-            return UpsertOptions;
-        }
-
-        #! override in subclasses to return driver-specific options
-        private hash getInsertOptions() {
-            return InsertOptions;
         }
 
         private softlist getDropSqlImpl() {
