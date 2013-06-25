@@ -5174,13 +5174,14 @@ my list $l = $db.getAlignSql($schema_hash);
 
             string drv = getDriverName();
             AbstractDatabase::checkDriverOptions(\schema_hash, drv);
+            AbstractDatabase::checkDriverOptions(\schema_hash.sequence_map, drv);
+            AbstractDatabase::checkDriverOptions(\schema_hash.sequences, drv);
 
             # call driver-specific align schema sql function (start)
             list tl = getAlignSqlImpl(schema_hash, opt + ("start": True));
             if (tl) l += tl;
 
             # rename any sequences
-            AbstractDatabase::checkDriverOptions(\schema_hash.sequence_map, drv);
             foreach hash sh in (schema_hash.sequence_map.pairIterator()) {
                 if (sh.value.typeCode() != NT_STRING)
                     throw "SCHEMA-DESCRIPTION-ERROR", sprintf("sequence_map %y value is not a string in the schema description hash; got type %y instead (%y)", sh.key, sh.value.type(), sh.value);
@@ -5194,7 +5195,6 @@ my list $l = $db.getAlignSql($schema_hash);
             }
 
             # create any missing sequences
-            AbstractDatabase::checkDriverOptions(\schema_hash.sequences, drv);
             foreach string name in (schema_hash.sequences.keyIterator()) {
                 hash sh = schema_hash.sequences{name};
 

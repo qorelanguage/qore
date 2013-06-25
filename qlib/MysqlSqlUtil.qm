@@ -734,7 +734,7 @@ end";
                 - \c "auto_increment": only valid with integer/floating-point types
                 - \c "pk": only valid with \c "auto_increment"
             */
-            const MysqlColumnDescOptions = AbstractTable::ColumnOptions + (
+            const MysqlColumnDescOptions = AbstractTable::ColumnDescOptions + (
                 "unsigned": Type::Boolean,
                 "auto_increment": Type::Boolean,
                 "pk": Type::Boolean,
