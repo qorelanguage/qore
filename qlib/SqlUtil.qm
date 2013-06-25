@@ -1602,45 +1602,70 @@ public namespace SqlUtil {
     */
     public const COP_DISTINCT = "distinct";
 
+    #! to return the minimum value
+    /** @see cop_min
+    */
+    public const COP_MIN = "min";
+
+    #! to return the maximum value
+    /** @see cop_max
+    */
+    public const COP_MAX = "max";
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
             "arg": Type::String,
-            "code": string sub (AbstractTable t, string cve, string arg) {
+            "code": string sub (string cve, string arg) {
                 return sprintf("%s as %y", cve, arg);
             },
         ),
         COP_PREPEND: (
             "arg": Type::String,
-            "code": string sub (AbstractTable t, string cve, string arg) {
-                return sprintf("%s||%s", t.getSqlValueImpl(arg), cve);
+            "sqlvalue": True,
+            "code": string sub (string cve, string arg) {
+                return sprintf("%s||%s", arg, cve);
             },
         ),
         COP_APPEND: (
             "arg": Type::String,
-            "code": string sub (AbstractTable t, string cve, string arg) {
-                return sprintf("%s||%s", cve, t.getSqlValueImpl(arg));
+            "sqlvalue": True,
+            "code": string sub (string cve, string arg) {
+                return sprintf("%s||%s", cve, arg);
             },
         ),
         COP_VALUE: (
-            "code": string sub (AbstractTable t, string cve, any arg) {
-                return t.getSqlValueImpl(arg);
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return arg;
             },
         ),
         COP_UPPER: (
-            "code": string sub (AbstractTable t, string cve, any arg) {
+            "code": string sub (string cve, any arg) {
                 return sprintf("upper(%s)", cve);
             },
         ),
         COP_LOWER: (
-            "code": string sub (AbstractTable t, string cve, any arg) {
+            "code": string sub (string cve, any arg) {
                 return sprintf("lower(%s)", cve);
             },
         ),
         COP_DISTINCT: (
-            "code": string sub (AbstractTable t, string cve, any arg) {
-                return sprintf("distint %s", cve);
+            "code": string sub (string cve, any arg) {
+                return sprintf("distinct %s", cve);
             },
+        ),
+        COP_MIN: (
+            "code": string sub (string cve, any arg) {
+                return sprintf("min(%s)", cve);
+            },
+            "group": True,
+        ),
+        COP_MAX: (
+            "code": string sub (string cve, any arg) {
+                return sprintf("max(%s)", cve);
+            },
+            "group": True,
         ),
         );
     #@}
@@ -1777,6 +1802,34 @@ my *list $rows = $table.selectRows(("columns": ("id", cop_distinct("name")), "wh
     */
     public hash sub cop_distinct(any column) {
         return make_cop(COP_DISTINCT, column);
+    }
+
+    #! returns a hash for the \c "min" operator; returns minimum column values
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": (cop_min("id")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_min(any column) {
+        return make_cop(COP_MIN, column);
+    }
+
+    #! returns a hash for the \c "max" operator; returns maximum column values
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": (cop_max("id")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_max(any column) {
+        return make_cop(COP_MAX, column);
     }
     #@}
 
@@ -11931,7 +11984,10 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 }
             }
 
-            return cmd.code(self, getColumnExpressionIntern(cv.column, jch, join), cv.arg);
+            if (cmd.sqlvalue)
+                cv.arg = getSqlValue(cv.arg);
+
+            return cmd.code(getColumnExpressionIntern(cv.column, jch, join), cv.arg);
         }
 
         private string getColumnNameIntern(string cv, *hash jch, bool join) {
@@ -12216,9 +12272,12 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
                 }
             }
 
+            if (cmd.sqlvalue)
+                uh.arg = getSqlValue(uh.arg);
+
             string arg = (uh.nest ? getUpdateExpression(col, uh.nest) : col);
 
-            return cmd.code(self, arg, uh.arg);
+            return cmd.code(arg, uh.arg);
         }
 
         private bool emptyDataUnlocked() {

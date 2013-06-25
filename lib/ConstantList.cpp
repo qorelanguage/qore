@@ -377,15 +377,14 @@ void ConstantList::assimilate(ConstantList &n, ConstantList &committed, Constant
 }
 
 void ConstantList::parseInit() {
-   //RootQoreNamespace *rns = getRootNS();
    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
       //printd(5, "ConstantList::parseInit() this: %p '%s' %p (class: %p '%s' ns: %p '%s')\n", this, i->first, i->second->node, ptr.getClass(), ptr.getClass() ? ptr.getClass()->name.c_str() : "n/a", ptr.getNs(), ptr.getNs() ? ptr.getNs()->name.c_str() : "n/a");
       i->second->parseInit(ptr);
    }
 }
 
-QoreHashNode *ConstantList::getInfo() {
-   QoreHashNode *h = new QoreHashNode;
+QoreHashNode* ConstantList::getInfo() {
+   QoreHashNode* h = new QoreHashNode;
 
    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i)
       h->setKeyValue(i->first, i->second->node->refSelf(), 0);

@@ -3324,8 +3324,12 @@ void qore_class_private::parseInitPartial() {
 
    initialize();
 
-   NamespaceParseContextHelper nspch(ns);
+   // the class could be initialized out of line during initialize9)
+   if (parse_init_partial_called)
+      return;
 
+   NamespaceParseContextHelper nspch(ns);   
+   QoreParseClassHelper qpch(cls);
    parseInitPartialIntern();
 }
 
@@ -3334,8 +3338,6 @@ void qore_class_private::parseInitPartialIntern() {
    parse_init_partial_called = true;
 
    //printd(5, "class_private::parseInitPartialIntern() this: %p '%s' scl: %p user_changes: %d\n", this, name.c_str(), scl, has_new_user_changes);
-
-   QoreParseClassHelper qpch(cls);
 
    // initialize parents first for abstract method handling
    if (scl) {
@@ -3445,11 +3447,10 @@ void qore_class_private::parseInit() {
 
    if (has_new_user_changes) {
       NamespaceParseContextHelper nspch(ns);
+      QoreParseClassHelper qpch(cls);
 
       if (!parse_init_partial_called)
 	 parseInitPartialIntern();
-
-      QoreParseClassHelper qpch(cls);
 
       // initialize constants
       pend_priv_const.parseInit();

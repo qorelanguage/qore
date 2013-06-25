@@ -38,6 +38,8 @@
 class qore_ns_private;
 class qore_class_private;
 
+// tricky structure that holds 2 types of pointers and a flag in the space of 1 pointer
+// the flag is in the low bit since memory has to be aligned anyway we have at a few bits of space for flags
 struct ClassNs {
    // if the low bit is set, then ptr is a qore_ns_priv*, otherwise it's a qore_class_private
    size_t ptr;
