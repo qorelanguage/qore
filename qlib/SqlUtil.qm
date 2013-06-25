@@ -1612,6 +1612,11 @@ public namespace SqlUtil {
     */
     public const COP_MAX = "max";
 
+    #! to return the row count
+    /** @see cop_count
+    */
+    public const COP_COUNT = "count";
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -1636,7 +1641,8 @@ public namespace SqlUtil {
         ),
         COP_VALUE: (
             "sqlvalue": True,
-            "code": string sub (string cve, any arg) {
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
                 return arg;
             },
         ),
@@ -1666,6 +1672,12 @@ public namespace SqlUtil {
                 return sprintf("max(%s)", cve);
             },
             "group": True,
+        ),
+        COP_COUNT: (
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return sprintf("count(%s)", arg);
+            },
         ),
         );
     #@}
@@ -1830,6 +1842,20 @@ my *list $rows = $table.selectRows(("columns": (cop_max("id")), "where": ("type"
     */
     public hash sub cop_max(any column) {
         return make_cop(COP_MAX, column);
+    }
+
+    #! returns a hash for the \c "count" operator; returns row counts
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("account_type", cop_count()), "where": ("type": "user"), "groupby": "account_type"));
+        @endcode
+
+        @param column the value for the count operator
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_count(any val = 1) {
+        return make_cop(COP_COUNT, "", val);
     }
     #@}
 
@@ -8464,6 +8490,8 @@ my Triggers $trig = $table.getTriggers();
                 "limit": Type::Int,
                 "offset": Type::Int,
                 "join": Type::Hash,
+                "groupby": "softstringlist",
+                #"having": Type::Hash,
                 );
 
             #! table creation options
@@ -11948,6 +11976,20 @@ my string $sql = $table.getSelectSql($sh, \$args);
             else if (qh.limit)
                 doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
 
+            if (qh.groupby) {
+                list gbe = map getColumnNameIntern($1, jch, boolean(qh.join)), qh.groupby;
+                sql += " group by " + (foldl $1 + "," + $2, gbe.iterator());
+            }
+
+            /*
+            if (qh.having) {
+                getColumnsUnlocked();
+                *list wl = getWhereClauseIntern(qh.having, \args, NOTHING, jch, boolean(qh.join));
+                if (wl)
+                    sql += " having " + (foldl $1 + " and " + $2, wl);
+            }
+            */
+
             #printf("SQL: %s\nargs: %y\n", sql, args);
             return sql;
         }
@@ -11987,7 +12029,11 @@ my string $sql = $table.getSelectSql($sh, \$args);
             if (cmd.sqlvalue)
                 cv.arg = getSqlValue(cv.arg);
 
-            return cmd.code(getColumnExpressionIntern(cv.column, jch, join), cv.arg);
+            *string cve;
+            if (!cmd.nocolumn)
+               cve = getColumnExpressionIntern(cv.column, jch, join);
+
+            return cmd.code(cve, cv.arg);
         }
 
         private string getColumnNameIntern(string cv, *hash jch, bool join) {
