@@ -1162,6 +1162,22 @@ my any $v = $c.name;
             const OracleSelectOptions = AbstractTable::SelectOptions + (
                 "partition": Type::String,
                 );
+
+            #! where operator specializations for Oracle
+            const OracleOpMap = DefaultOpMap + (
+                OP_IN: (
+                    "code": string sub (object t, string cn, any arg, reference args) {
+                        *string argstr = (foldl $1 + "," + $2, (map $1.toString(), arg));
+                        if (!argstr)
+                            return "null";
+
+                        args += arg;
+                        args += arg;
+
+                        return "select regexp_substr(%v,'[^,]+', 1, level) from dual connect by regexp_substr(%v, '[^,]+', 1, level) is not null";
+                    },
+                ),
+                );
         }
 
         private {
@@ -1711,16 +1727,9 @@ my any $v = $c.name;
             return OracleAlignTableOptions;
         }
 
-        #! returns a string to be used with the \c "in" argument, we use bind by value to keep the statement cache small; in this case we use two %v placeholders for the calculated string argument
-        private string getInArgImpl(softlist sqlargs, reference args) {
-            *string arg = (foldl $1 + "," + $2, (map $1.toString(), sqlargs));
-            if (!arg)
-                return "null";
-
-            args += arg;
-            args += arg;
-
-            return "select regexp_substr(%v,'[^,]+', 1, level) from dual connect by regexp_substr(%v, '[^,]+', 1, level) is not null";
+        #! returns the "where" operator map for this object
+        private hash getWhereOperatorMap() {
+            return OracleOpMap;
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string

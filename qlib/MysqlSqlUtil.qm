@@ -750,17 +750,20 @@ end";
 
             const MysqlAlignTableOptions = AbstractTable::AlignTableOptions + MysqlTableCreationOptions;
 
-            const MysqlCopMap = AbstractTable::DefaultCopMap + (
+            #! column operator specializations for MySQL
+            const MysqlCopMap = DefaultCopMap + (
                 COP_PREPEND: (
                     "arg": Type::String,
-                    "code": string sub (AbstractTable t, string cve, string arg) {
-                        return sprintf("concat(%s,%s)", t.getSqlValueImpl(arg), cve);
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("concat(%s,%s)", arg, cve);
                     },
                 ),
                 COP_APPEND: (
                     "arg": Type::String,
-                    "code": string sub (AbstractTable t, string cve, string arg) {
-                        return sprintf("concat(%s,%s)", cve, t.getSqlValueImpl(arg));
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("concat(%s,%s)", cve, arg);
                     },
                 ),
                 );
@@ -1159,6 +1162,11 @@ end";
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
         private *string getSqlValueImpl(any v) {
+            return MysqlTable::getSqlValueIntern(v);
+        }
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
+        private static *string getSqlValueIntern(any v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
                 case NT_INT: return v.toString();
@@ -1175,6 +1183,25 @@ end";
 
                 case NT_DATE: return v.format("'YYYY-MM-DD HH:mm:SS.us'");
             }
+        }
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument
+        /** @par Example:
+            @code
+my string $str = $table.getSqlValue($date);
+            @endcode
+
+            @param v the value to convert to an SQL value
+
+            @return a string representing the value usable in SQL strings for the given database driver
+
+            @throw VALUE-ERROR the given value cannot be converted to an SQL string (missing rules for value)
+         */
+        static *string getSqlValue(any v) {
+           *string str = MysqlTable::getSqlValueIntern(v);
+            if (!exists str)
+                throw "VALUE-ERROR", sprintf("class MysqlTable cannot convert type %y to an SQL string (value: %y)", v.type(), v);
+            return str;
         }
 
         private bool emptyImpl() {

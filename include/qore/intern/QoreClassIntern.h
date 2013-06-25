@@ -2206,13 +2206,12 @@ public:
       if (!rv) {
 	 rv = pend_pub_const.find(cname, cTypeInfo);
 	 if (!rv) {
-            priv = true;
-
 	    // now check private constants
 	    rv = priv_const.find(cname, cTypeInfo);
-	    if (!rv) {
+	    if (!rv)
 	       rv = pend_priv_const.find(cname, cTypeInfo);
-            }
+            if (rv)
+               priv = true;
 	 }
       }
 

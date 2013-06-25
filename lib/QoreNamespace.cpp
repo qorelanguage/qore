@@ -862,7 +862,6 @@ AbstractQoreNode *qore_root_ns_private::parseResolveScopedReferenceIntern(const 
       QoreClass* qc = parseFindClassIntern(nscope[0]);
       if (qc) {
          rv = parseResolveClassConstant(qc, nscope.getIdentifier(), typeInfo);
-
          if (rv)
             return rv;
       }

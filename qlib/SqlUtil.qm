@@ -2343,15 +2343,58 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
     public const OP_IN = "in";
 
     #! a hash of valid operators for use in @ref where_clauses
-    public const OpMap = (
-      OP_LIKE: True,
-      OP_LT: True,
-      OP_LE: True,
-      OP_GT: True,
-      OP_GE: True,
-      OP_NE: True,
-      OP_BETWEEN: True,
-      OP_IN: True,
+    public const DefaultOpMap = (
+        OP_LIKE: (
+            "code": string sub (object t, string cn, any arg, reference args) {
+                args += arg;
+                return sprintf("%s like %v", cn);
+            },
+        ),
+        OP_LT: (
+            "code": string sub (object t, string cn, any arg, reference args) {
+                args += arg;
+                return sprintf("%s < %v", cn);
+            },
+        ),
+        OP_LE: (
+            "code": string sub (object t, string cn, any arg, reference args) {
+                args += arg;
+                return sprintf("%s <= %v", cn);
+            },
+        ),
+        OP_GT: (
+            "code": string sub (object t, string cn, any arg, reference args) {
+                args += arg;
+                return sprintf("%s > %v", cn);
+            },
+        ),
+        OP_GE: (
+            "code": string sub (object t, string cn, any arg, reference args) {
+                args += arg;
+                return printf("%s >= %v", cn);                
+            },
+        ),
+        OP_NE: (
+            "code": string sub (object t, string cn, any arg, reference args) {
+                if (arg === NULL || !exists arg)
+                    return sprintf("%s is not null", cn);
+                args += arg;
+                return sprintf("%s != %v", cn);
+            },
+        ),
+        OP_BETWEEN: (
+            "code": string sub (object t, string cn, any arg, reference args) {
+                args += arg[0];
+                args += arg[1];
+                return sprintf("%s between %v and %v", cn);
+            },
+        ),
+        OP_IN: (
+            "code": string sub (object t, string cn, any arg, reference args) {
+                *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
+                return sprintf("%s in (%s)", cn, ins ? ins : "null");
+            },
+        ),
         );
     #@}
 
@@ -8489,7 +8532,7 @@ my Triggers $trig = $table.getTriggers();
                 "offset": Type::Int,
                 "join": Type::Hash,
                 "groupby": "softstringlist",
-                #"having": Type::Hash,
+                "having": Type::Hash,
                 );
 
             #! table creation options
@@ -11982,6 +12025,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             /*
             if (qh.having) {
                 getColumnsUnlocked();
+                hash hh;
                 *list wl = getWhereClauseIntern(qh.having, \args, NOTHING, jch, boolean(qh.join));
                 if (wl)
                     sql += " having " + (foldl $1 + " and " + $2, wl);
@@ -12094,6 +12138,8 @@ my string $sql = $table.getSelectSql($sh, \$args);
             if (!cond)
                 return;
 
+            hash wm = getWhereOperatorMap();
+
             list wl = ();
             foreach hash h in (cond.pairIterator()) {
                 string cn;
@@ -12101,68 +12147,19 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     cn = sprintf("%s.%s", cprefix, h.key);
                 else 
                     cn = getColumnNameIntern(h.key, jch, join);
-
+                
                 # process SQL operators
                 if (h.value.typeCode() == NT_HASH) {
                     hash oh = h.value;
-                    switch (oh.op) {
-                        case OP_LIKE: {
-                            wl += sprintf("%s like %v", cn);
-                            args += oh.arg;
-                            break;
-                        }
 
-                        case OP_LT: {
-                            wl += sprintf("%s < %v", cn);
-                            args += oh.arg;
-                            break;
-                        }
-                        
-                        case OP_LE: {
-                            wl += sprintf("%s <= %v", cn);
-                            args += oh.arg;
-                            break;
-                        }
-                        
-                        case OP_GT: {
-                            wl += sprintf("%s > %v", cn);
-                            args += oh.arg;
-                            break;
-                        }
-                        
-                        case OP_GE: {
-                            wl += sprintf("%s >= %v", cn);
-                            args += oh.arg;
-                            break;
-                        }
-                        
-                        case OP_NE: {
-                            if (oh.arg === NULL || !exists oh.arg)
-                                wl += sprintf("%s is not null", cn);
-                            else {
-                                wl += sprintf("%s != %v", cn);
-                                args += oh.arg;
-                            }
-                            break;
-                        }
+                    if (!oh.op)
+                        throw "WHERE-ERROR", sprintf("argument to key %y is a hash without an \"op\" key: %y", cn, oh);
 
-                        case OP_BETWEEN: {
-                            wl += sprintf("%s between %v and %v", cn);
-                            args += oh.arg[0];
-                            args += oh.arg[1];
-                            break;
-                        }
+                    *hash cmd = wm{oh.op};
+                    if (!cmd)
+                        throw "WHERE-ERROR", sprintf("operator hash for key %y hash unknown operator %y: expecting one of: %y (operator hash: %y)", cn, oh.op, wm.keys(), oh);
 
-                        case OP_IN: {
-                            wl += sprintf("%s in (%s)", cn, getInArgImpl(oh.arg, \args));
-                            break;
-                        }
-                       
-                        case NOTHING:
-                            throw "WHERE-ERROR", sprintf("argument to key %y is a hash without an \"op\" key: %y", cn, oh);
-                        default:
-                            throw "WHERE-ERROR", sprintf("operator hash for key %y hash unknown operator %y: expecting one of: %y (operator hash: %y)", cn, oh.op, OpMap.keys(), oh);
-                    }
+                    wl += cmd.code(self, cn, oh.arg, \args);
                     continue;
                 }
                 if (h.value === NULL || !exists h.value)
@@ -13609,6 +13606,13 @@ my *list $rows = $table.findAll($h);
             return InsertOptions;
         }
 
+        #! returns the "where" operator map for this object
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getWhereOperatorMap() {
+            return DefaultOpMap;
+        }
+
         #! returns the column operator map for this object
         /** override in subclasses to return driver-specific options    
         */
@@ -13875,12 +13879,6 @@ my *list $rows = $table.findAll($h);
         
         private string getTruncateSqlImpl() {
             return sprintf("truncate table %s", getSqlName());
-        }
-
-        #! returns a string to be used with the \c "in" argument, can be the literal arguments to the operator, or can be a single %v if supported by the db driver (see OracleSqlUtil::getInArgImpl() for an example)
-        private string getInArgImpl(softlist sqlargs, reference args) {
-            *string rv = (foldl $1 + "," + $2, (map getSqlValue($1), sqlargs));
-            return rv ? rv : "null";
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
