@@ -2371,7 +2371,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
         OP_GE: (
             "code": string sub (object t, string cn, any arg, reference args) {
                 args += arg;
-                return printf("%s >= %v", cn);                
+                return sprintf("%s >= %v", cn);                
             },
         ),
         OP_NE: (
@@ -11783,7 +11783,6 @@ my *list $l = $table.selectRows($sh);
 
             list args;
             sql = getSelectSqlUnlocked(sh, \args);
-            
             return ds.vselectRows(sql, args);
         }
 
@@ -12118,6 +12117,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
         private *string getWhereClauseUnlocked(list cond, reference args, *string cprefix, *hash jch, bool join = False) {
             getColumnsUnlocked();
             list al = ();
+            args = ();
             foreach hash ch in (cond) {
                 *list wl = getWhereClauseIntern(ch, \args, cprefix, jch, join);
                 if (wl)
@@ -12129,6 +12129,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
         private *string getWhereClauseUnlocked(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
             getColumnsUnlocked();
+            args = ();
             *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join);
             if (wl)
                 return " where " + (foldl $1 + " and " + $2, wl);
