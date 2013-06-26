@@ -29,6 +29,8 @@
 
 #include <openssl/evp.h>
 #include <openssl/des.h>
+#include <openssl/hmac.h>
+
 
 DLLLOCAL void init_crypto_functions(QoreNamespace& ns);
 
@@ -36,6 +38,9 @@ class BaseHelper {
 protected:
    unsigned char *input;
    size_t input_len;
+
+   unsigned char md_value[EVP_MAX_MD_SIZE > HMAC_MAX_MD_CBLOCK ? EVP_MAX_MD_SIZE : HMAC_MAX_MD_CBLOCK];
+   unsigned int md_len;
 
    DLLLOCAL void setInput(const QoreStringNode& str) {
       input = (unsigned char *)str.getBuffer();
@@ -55,12 +60,33 @@ protected:
          setInput(*reinterpret_cast<const BinaryNode *>(pt));
       }
    }
+   
+public:
+    
+   DLLLOCAL unsigned int size() const {
+      return md_len;
+   }
+
+   DLLLOCAL const void* getBuffer() const {
+      return (const void*)md_value;
+   }
+
+   DLLLOCAL QoreStringNode *getString() const {
+      QoreStringNode *str = new QoreStringNode();
+      for (unsigned i = 0; i < md_len; i++)
+	 str->sprintf("%02x", md_value[i]);
+
+      return str;
+   }
+
+   DLLLOCAL BinaryNode *getBinary() const {
+      BinaryNode *b = new BinaryNode();
+      b->append(md_value, md_len);
+      return b;
+   }  
 };
 
 class DigestHelper : public BaseHelper {
-private:
-   unsigned char md_value[EVP_MAX_MD_SIZE];
-   unsigned int md_len;
 
 public:
    DLLLOCAL DigestHelper(const QoreListNode *params) {
@@ -96,28 +122,45 @@ public:
       EVP_MD_CTX_cleanup(&mdctx);
       return 0;
    }
+   
+};
 
-   DLLLOCAL unsigned int size() const {
-      return md_len;
-   }
+class HMACHelper : public BaseHelper {
 
-   DLLLOCAL const void* getBuffer() const {
-      return (const void*)md_value;
-   }
+public:
+    DLLLOCAL HMACHelper(const QoreListNode *params) {
+        setInput(get_param(params, 0));
+    }
 
-   DLLLOCAL QoreStringNode *getString() const {
-      QoreStringNode *str = new QoreStringNode();
-      for (unsigned i = 0; i < md_len; i++)
-	 str->sprintf("%02x", md_value[i]);
+    DLLLOCAL HMACHelper(const QoreStringNode& str) {
+        setInput(str);
+    }
 
-      return str;
-   }
+    DLLLOCAL HMACHelper(const BinaryNode& b) {
+        setInput(b);
+    }
 
-   DLLLOCAL BinaryNode *getBinary() const {
-      BinaryNode *b = new BinaryNode();
-      b->append(md_value, md_len);
-      return b;
-   }      
+    DLLLOCAL HMACHelper(const void* buf, size_t len) {
+        input = (unsigned char*)buf;
+        input_len = len;
+    }
+
+    DLLLOCAL int doHMAC(const char *err, const EVP_MD *md, const QoreStringNode *key, ExceptionSink *xsink) {
+        HMAC_CTX ctx;
+        HMAC_CTX_init(&ctx);
+ 
+        HMAC_Init_ex(&ctx, key->getBuffer(), key->strlen(), md, 0);
+
+        if (!HMAC_Update(&ctx, input, input_len)
+            || !HMAC_Final(&ctx, md_value, &md_len))
+        {
+            xsink->raiseException(err, "error calculating HMAC");
+            return -1;
+        }
+    
+        HMAC_CTX_cleanup(&ctx);
+        return 0;
+    }
 };
 
 #endif // _QORE_QL_CRYPTO_H

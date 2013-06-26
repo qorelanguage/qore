@@ -221,6 +221,11 @@ const DefaultIV = <0000000000000000>;
 /** @defgroup cryptographic_functions Crytographic Functions
     %Qore's cryptography support is provided by the OpenSSL library. Each of the encryption and decryption functions in this section accept an optional initialization vector, which is data used as initial input for the first block in chained encryption algorithms. Subsequent blocks take input from the last block encrypted/decrypted. If an initialization vector is not supplied, a default value of 8 zero bytes will be used (see @ref Qore::DefaultIV).
 
+    See also:
+        - @ref digest_functions
+        - @ref hmac_functions
+        - @ref cryptographic_constants
+
     Some functions require fixed-length keys, and some allow the use of variable-length keys. For functions requiring fixed-length keys any excess bytes are ignored. The same applies to initialization vector arguments.
 
     The following is an example of a function that uses \c /dev/random on UNIX to read in a random key for use with encryption functions:
@@ -239,6 +244,21 @@ binary sub get_key(int $size) {
     @endcode
  */
 //@{
+
+//! Returns a binary object of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
+/** @return a binary object of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
+
+    @par Example:
+    @code
+my binary $bin = des_random_key();
+    @endcode
+ */
+binary des_random_key() [flags=CONSTANT] [flags=CONSTANT] {
+   DES_cblock *db = (DES_cblock *)malloc(sizeof(DES_cblock));
+   DES_random_key(db);
+   return new BinaryNode(db, sizeof(DES_cblock));
+}
+ 
 //! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.counterpane.com/blowfish.html">blowfish algorithm</a>
 /** @param data the data to be encrypted
     @param key a variable-length key (recommended 16 bytes or more)
@@ -989,6 +1009,29 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 #endif
 }
 
+//@}
+
+
+/** @defgroup digest_functions Digest (Hash) Functions
+    %Qore's cryptography support is provided by the OpenSSL library.
+
+    A cryptographic hash function is a hash function; that is, an algorithm
+    that takes an arbitrary block of data and returns a fixed-size bit string,
+    the (cryptographic) hash value, such that any (accidental or intentional)
+    change to the data will (with very high probability) change the hash
+    value. The data to be encoded are often called the "message," and the
+    hash value is sometimes called the message digest or simply digest.
+
+    For more inof: <a href="http://en.wikipedia.org/wiki/Cryptographic_hash_function">Wikipedia's Cryptographic hash function article</a>.
+
+    See also:
+        - @ref cryptographic_functions
+        - @ref hmac_functions
+        - @ref cryptographic_constants
+
+ */
+//@{
+
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as a hex string
 /** 
     @par Platform Availability:
@@ -1327,7 +1370,7 @@ string MDC2(data[doc] data) [flags=RET_VALUE_ONLY] {
 
    return dh.getString();
 #else
-   xsink->raiseException("MDC2-ERROR", "the openssl library version that qore was compiled with did not support the MDC2 algorithm; for maximum portability, check Option::HAVE_MDC2 before calling this function");
+   missing_openssl_feature("MDC2", xsink);
    return 0;
 #endif
 }
@@ -1707,17 +1750,391 @@ binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
    return dh.getBinary();
 }
 
-//! Returns a binary object of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
-/** @return a binary object of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
+//@}
+
+/** @defgroup hmac_functions HMAC Functions
+    %Qore's cryptography support is provided by the OpenSSL library.
+
+    In cryptography, a keyed-hash message authentication code (HMAC) is
+    a specific construction for calculating a message authentication code
+    (MAC) involving a cryptographic hash function in combination with
+    a secret cryptographic key. As with any MAC, it may be used
+    to simultaneously verify both the data integrity and the authentication
+    of a message. Any cryptographic hash function, such as MD5 or SHA-1,
+    may be used in the calculation of an HMAC; the resulting MAC algorithm is
+    termed HMAC-MD5 or HMAC-SHA1 accordingly. The cryptographic strength
+    of the HMAC depends upon the cryptographic strength of the underlying
+    hash function, the size of its hash output, and on the size and quality of the key.
+
+    For more inof: <a href="http://en.wikipedia.org/wiki/Hmac">Wikipedia's Hash-based message authentication code article</a>.
+
+    See also:
+        - @ref cryptographic_functions
+        - @ref digest_functions
+        - @ref cryptographic_constants
+ */
+//@{
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2</a> based HMAC of the supplied argument as a hex string
+/** 
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_MD2
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "27f5f17500b408e97643403ea8ef1413")
 
     @par Example:
     @code
-my binary $bin = des_random_key();
+my string $str = MD2_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "27f5f17500b408e97643403ea8ef1413"
     @endcode
+
+    @throw MD2-HMAC-ERROR error calculating digest (should not normally happen)
+
+    @see MD2_bin()
  */
-binary des_random_key() [flags=CONSTANT] [flags=CONSTANT] {
-   DES_cblock *db = (DES_cblock *)malloc(sizeof(DES_cblock));
-   DES_random_key(db);
-   return new BinaryNode(db, sizeof(DES_cblock));
+string MD2_hmac(data[doc] data, string key) {
+#if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
+   HMACHelper dh(args);
+   if (dh.doHMAC("MD2-HMAC-ERROR", EVP_md2(), key, xsink))
+      return 0;
+
+   return dh.getString();
+#else
+   (void)key;
+   missing_openssl_feature("MD2", xsink);
+   return 0;
+#endif
 }
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD4">MD4</a> based HMAC of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "053d084f321a3886e60166ebd9609ce1")
+
+    @par Example:
+    @code
+my string $str = MD4_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "053d084f321a3886e60166ebd9609ce1"
+    @endcode
+
+    @throw MD4-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string MD4_hmac(data[doc] data, string key) {
+   HMACHelper dh(args);
+   if (dh.doHMAC("MD4-HMAC-ERROR", EVP_md4(), key, xsink))
+      return 0;
+
+   return dh.getString();
+}
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5</a> based HMAC of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "87505c6164aaf6ca6315233902a01ef4")
+
+    @par Example:
+    @code
+my string $str = MD5_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "87505c6164aaf6ca6315233902a01ef4"
+    @endcode
+
+    @note the MD5 algorithm is not collision-resistant; it's recommended to use another hash algorithm (like SHA-256) if cryptographic security is important
+
+    @throw MD5-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string MD5_hmac(data[doc] data, string key) {
+   HMACHelper dh(args);
+   if (dh.doHMAC("MD5-HMAC-ERROR", EVP_md5(), key, xsink))
+      return 0;
+
+   return dh.getString();
+}
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA</a> based HMAC of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "0ad47c8d36dc4606d52f7e4cbd144ef2fda492a0")
+
+    @par Example:
+    @code
+my string $str = SHA_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "0ad47c8d36dc4606d52f7e4cbd144ef2fda492a0"
+    @endcode
+
+    @note  SHA/SHA0 was withdrawn shortly after publication due to an undisclosed "significant flaw" and replaced by the slightly revised version SHA-1.
+
+    @throw SHA-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string SHA_hmac(data[doc] data, string key) {
+   HMACHelper dh(args);
+   if (dh.doHMAC("SHA-HMAC-ERROR", EVP_sha(), key, xsink))
+      return 0;
+
+   return dh.getString();
+}
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA1</a> based HMAC of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "37a3cc73159aa129b0eb22bbdf4b9309d389f629")
+
+    @par Example:
+    @code
+my string $str = SHA1_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
+    @endcode
+
+    @note Cryptographic weaknesses were discovered in SHA-1, and the standard was no longer approved for most cryptographic uses after 2010.
+
+    @throw SHA1-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string SHA1_hmac(data[doc] data, string key) {
+   HMACHelper dh(args);
+   if (dh.doHMAC("SHA1-HMAC-ERROR", EVP_sha1(), key, xsink))
+      return 0;
+
+   return dh.getString();
+}
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA224</a> based HMAC of the supplied argument as a hex string
+/** 
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_SHA224
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c")
+
+    @par Example:
+    @code
+my string $str = SHA224_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c"
+    @endcode
+
+
+    @throw SHA224-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string SHA224_hmac(data[doc] data, string key) {
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+   HMACHelper dh(args);
+   if (dh.doHMAC("SHA224-HMAC-ERROR", EVP_sha224(), key, xsink))
+      return 0;
+
+   return dh.getString();
+#else
+   (void)key;
+   missing_openssl_feature("SHA224", xsink);
+   return 0;
+#endif
+}
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA256</a> based HMAC of the supplied argument as a hex string
+/** 
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_SHA256
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754")
+
+    @par Example:
+    @code
+my string $str = SHA256_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754"
+    @endcode
+
+    @throw SHA256-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string SHA256_hmac(data[doc] data, string key) {
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+   HMACHelper dh(args);
+   if (dh.doHMAC("SHA256-HMAC-ERROR", EVP_sha256(), key, xsink))
+      return 0;
+
+   return dh.getString();
+#else
+   (void)key;
+   missing_openssl_feature("SHA256", xsink);
+   return 0;
+#endif
+}
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA384</a> based HMAC of the supplied argument as a hex string
+/** 
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_SHA384
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865")
+
+    @par Example:
+    @code
+my string $str = SHA384_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865"
+    @endcode
+
+    @throw SHA384-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string SHA384_hmac(data[doc] data, string key) {
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+   HMACHelper dh(args);
+   if (dh.doHMAC("SHA384-HMAC-ERROR", EVP_sha384(), key, xsink))
+      return 0;
+
+   return dh.getString();
+#else
+   (void)key;
+   missing_openssl_feature("SHA384", xsink);
+   return 0;
+#endif
+}
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA512</a> based HMAC of the supplied argument as a hex string
+/** 
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_SHA512
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6")
+
+    @par Example:
+    @code
+my string $str = SHA512_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6"
+    @endcode
+
+    @throw SHA512-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string SHA512_hmac(data[doc] data, string key) {
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+   HMACHelper dh(args);
+   if (dh.doHMAC("SHA512-HMAC-ERROR", EVP_sha512(), key, xsink))
+      return 0;
+
+   return dh.getString();
+#else
+   (void)key;
+   missing_openssl_feature("SHA512", xsink);
+   return 0;
+#endif
+}
+
+//! Returns the DSS (SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) based HMAC of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "37a3cc73159aa129b0eb22bbdf4b9309d389f629")
+
+    @par Example:
+    @code
+my string $str = DSS_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
+    @endcode
+
+    @note this algorithm is considered outdated and is included for backwards-compatibility
+
+    @throw DSS-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string DSS_hmac(data[doc] data, string key) {
+   HMACHelper dh(args);
+   if (dh.doHMAC("DSS-HMAC-ERROR", EVP_dss(), key, xsink))
+      return 0;
+
+   return dh.getString();
+}
+
+//! Returns the DSS1 (SHA-1 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) based HMAC of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "37a3cc73159aa129b0eb22bbdf4b9309d389f629")
+
+    @par Example:
+    @code
+my string $str = DSS1_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
+    @endcode
+
+    @note this algorithm is considered outdated and is included for backwards-compatibility
+
+    @throw DSS1-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string DSS1_hmac(data[doc] data, string key) {
+   HMACHelper dh(args);
+   if (dh.doHMAC("DSS1-HMAC-ERROR", EVP_dss1(), key, xsink))
+      return 0;
+
+   return dh.getString();
+}
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2</a> based HMAC of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "e0ef6a6803e58807c5db395e180a999c")
+
+    @par Example:
+    @code
+my string $str = MDC2_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "e0ef6a6803e58807c5db395e180a999c"
+    @endcode
+
+    @throw MDC2-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string MDC2_hmac(data[doc] data, string key) {
+#ifndef OPENSSL_NO_MDC2
+   HMACHelper dh(args);
+   if (dh.doHMAC("MDC2-HMAC-ERROR", EVP_mdc2(), key, xsink))
+      return 0;
+
+   return dh.getString();
+#else
+   (void)key;
+   missing_openssl_feature("MDC2", xsink);
+   return 0;
+#endif
+}
+
+//! Returns the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD</a> based HMAC of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return a hex string of the digest (ex: \c "4bca70bca1601aba57624eeb2606535cb12f2079")
+
+    @par Example:
+    @code
+my string $str = RIPEMD160_hmac("Hello There This is a Test - 1234567890", "a key");
+# returns "4bca70bca1601aba57624eeb2606535cb12f2079"
+    @endcode
+
+    @throw RIPEMD160-HMAC-ERROR error calculating digest (should not normally happen)
+ */
+string RIPEMD160_hmac(data[doc] data, string key) {
+   HMACHelper dh(args);
+   if (dh.doHMAC("RIPEMD160-HMAC-ERROR", EVP_ripemd160(), key, xsink))
+      return 0;
+
+   return dh.getString();
+}
+
 //@}
