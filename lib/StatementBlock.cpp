@@ -250,7 +250,7 @@ LocalVar *push_local_var(const char *name, const QoreProgramLocation& loc, const
 
    QoreString ls;
    loc.toString(ls);
-   //printd(5, "push_local_var() name: %s type: %s %s\n", name, typeInfo->getName(), ls.getBuffer());
+   //printd(5, "push_local_var() lv: %p name: %s type: %s %s\n", lv, name, typeInfo->getName(), ls.getBuffer());
 
    bool found_block = false;
    // check stack for duplicate entries

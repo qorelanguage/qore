@@ -332,19 +332,11 @@ bool builtinTypeHasDefaultValue(qore_type_t t) {
 }
 
 const QoreTypeInfo* getBuiltinUserTypeInfo(const char* str) {
-   // user exceptions here
-   //if (!strcmp(str, "reference"))
-   //   return anyTypeInfo;
-
    str_typeinfo_map_t::iterator i = str_typeinfo_map.find(str);
    return i != str_typeinfo_map.end() ? i->second : 0;
 }
 
 const QoreTypeInfo* getBuiltinUserOrNothingTypeInfo(const char* str) {
-   // user exceptions here
-   if (!strcmp(str, "reference"))
-      return anyTypeInfo;
-
    str_typeinfo_map_t::iterator i = str_ornothingtypeinfo_map.find(str);
    return i != str_ornothingtypeinfo_map.end() ? i->second : 0;
 }
@@ -401,7 +393,7 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode* n
 }
 
 int QoreTypeInfo::acceptInputDefault(bool& priv_error, AbstractQoreNode* n) const {
-   //printd(0, "QoreTypeInfo::acceptInputDefault() this=%p hasType=%d (%s) n=%p (%s)\n", this, hasType(), getName(), n, get_type_name(n));
+   //printd(5, "QoreTypeInfo::acceptInputDefault() this=%p hasType=%d (%s) n=%p (%s)\n", this, hasType(), getName(), n, get_type_name(n));
    if (!hasType())
       return 0;
 
@@ -478,7 +470,7 @@ bool QoreTypeInfo::isOutputCompatible(const QoreTypeInfo* typeInfo) const {
 
    // from this point on, we know that both have types and are not NULL
    if (!typeInfo->returns_mult) {
-      //printd(0, "QoreTypeInfo::isOutputCompatible(%p '%s') this: %p '%s' (qc: %p qt: %d) ti->qc: %p ti->qt: %d\n", typeInfo, typeInfo->getName(), this, getName(), qc, qt, typeInfo->qc, typeInfo->qt);
+      //printd(5, "QoreTypeInfo::isOutputCompatible(%p '%s') this: %p '%s' (qc: %p qt: %d) ti->qc: %p ti->qt: %d\n", typeInfo, typeInfo->getName(), this, getName(), qc, qt, typeInfo->qc, typeInfo->qt);
       return typeInfo->qc ? parseReturnsClass(typeInfo->qc) : parseReturnsType(typeInfo->qt);
    }
 

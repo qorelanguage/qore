@@ -58,7 +58,7 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *numberTypeInfo,
    *runTimeClosureTypeInfo,
    *callReferenceTypeInfo, 
-   *referenceTypeInfo, 
+   *referenceTypeInfo,
    *userReferenceTypeInfo,
    *codeTypeInfo,              // either closure or callref
    *softBigIntTypeInfo,        // converts to int from float, string, and bool
@@ -86,6 +86,7 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *nullOrNothingTypeInfo,
    *codeOrNothingTypeInfo,
    *dataOrNothingTypeInfo,
+   *referenceOrNothingTypeInfo,
 
    *softBigIntOrNothingTypeInfo,
    *softFloatOrNothingTypeInfo,

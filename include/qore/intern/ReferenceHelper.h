@@ -38,7 +38,7 @@
      @code
      const AbstractQoreNode *p = get_param(params, 0);   
      if (p && p->getType() == NT_REFERENCE) {
-        const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
+        const ReferenceNode *r = reinterpret_cast<const ReferenceNode*>(p);
 	AutoVLock vl;
 	ReferenceHelper ref(r, vl, xsink);
         // a deadlock exception occurred accessing the reference's value pointer

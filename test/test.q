@@ -1925,6 +1925,13 @@ sub closure_tests() {
     test_value($inc(5), "test-5-2", "first closure");
     test_value($inc(7), "test-7-3", "second closure");
     test_value($dec(3), "test-3-2", "third closure");
+
+    my code $c = sub (*reference $r) {
+        $r = "hi";
+    };
+    my string $str;
+    $c(\$str);
+    test_value($str, "hi", "closure with reference arg");
 }
 
 sub format_date_tests() {

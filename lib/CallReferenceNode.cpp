@@ -637,10 +637,7 @@ bool FunctionCallReferenceNode::derefImpl(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *FunctionCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink)
-      return 0;
-   return uf->evalFunction(0, args, 0, xsink);
+   return uf->evalFunction(0, args, pgm, xsink);
 }
 
 ResolvedCallReferenceNode::ResolvedCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractCallReferenceNode(n_needs_eval, n_type) {

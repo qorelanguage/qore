@@ -1478,12 +1478,13 @@ my hash $callback_opts = ("info_callback": $info_callback);
 $db.getAlignSql($schema, $callback_opts);
     @endcode
 
-    @subsection sql_callback SQL CallBack Closure or Call Ceference
+    @subsection sql_callback SQL Raw/DDL CallBack Closure or Call Ceference
 
-    The \c "sql_callback" @ref closure "closure" or @ref call_reference "call reference" is called with an SQL string for each SQL command that is returned
+    The \c "sql_callback" @ref closure "closure" or @ref call_reference "call reference" is called with an SQL string suitable for raw execution for each SQL command that is returned
     or generated for a particular operation and can be specified as in the following example:
     @code
 my code $sql_callback = sub (string $str) {
+    $ds.execRaw($str);
     if ($verbose > 1)
         printf("%s\n", $str);
 };
@@ -1491,6 +1492,8 @@ my code $sql_callback = sub (string $str) {
 my hash $callback_opts = ("sql_callback": $sql_callback, "sql_callback_executed": True);
 $db.getAlignSql($schema, $callback_opts);
     @endcode
+
+    @note this callback is used for DDL execution and does not use bound arguments; for SQL data operations, the @ref sqlarg_callback is used instead
 
     @subsection sql_callback_executed SQL CallBack Executed Flag
 
@@ -1505,6 +1508,21 @@ my code $sql_callback = sub (string $str) {
 my hash $callback_opts = ("sql_callback": $sql_callback, "sql_callback_executed": True);
 $db.getAlignSql($schema, $callback_opts);
     @endcode
+
+    @subsection sqlarg_callback SQL Operation Callback Closure or Call Reference
+
+    The \c "sqlarg_callback" @ref closure "closure" or @ref call_reference "call reference" is called with an SQL string and arguments for each SQL command that is executed
+    during SQL data operations and can be specified as in the following example:
+    @code
+my code $sqlarg_callback = sub (string $str, *list $args) {
+    if ($verbose > 1)
+        printf("SQL: %s\nargs: %y", $str, $args);
+};
+
+$table.insertFromIterator($i, $sqlarg_callback);
+    @endcode
+
+    @note this callback is used for data operations and is called with bound arguments; for DLL operations, see @ref sql_callback
 
     @subsection upsert_info_callback Upsert Info Callback
 
@@ -7396,6 +7414,36 @@ $table.insert($row);
             t.insertNoCommit(row, \sql);
         }
 
+        #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
+        /** @par Example:
+            @code
+$table.insert($row);
+            @endcode
+
+            @param row a hash representing the row to insert
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+         */
+        insert(hash row, *hash opt) {
+            t.insert(row, opt);
+        }
+
+        #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
+        /** @par Example:
+            @code
+$table.insert($row);
+            @endcode
+
+            @param row a hash representing the row to insert
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+         */
+        insertNoCommit(hash row, *hash opt) {
+            t.insertNoCommit(row, opt);
+        }
+
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
@@ -7440,6 +7488,52 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
         */
         int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql) {
             return t.insertFromSelectNoCommit(cols, source, sh, \sql);
+        }
+
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+            @endcode
+
+            @param cols the list of column names to use to insert in the current table
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupported option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
+        */
+        int insertFromSelect(list cols, AbstractTable source, *hash sh, *hash opt) {
+            return t.insertFromSelect(cols, source, sh, opt);
+        }
+
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+            @endcode
+
+            @param cols the list of column names to use to insert in the current table
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupported option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
+        */
+        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *hash opt) {
+            return t.insertFromSelectNoCommit(cols, source, sh, opt);
         }
 
         #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -7876,6 +7970,28 @@ my SQLStatement $i = $table.getRowIterator();
             return t.getRowIterator(sh, \sql);
         }
 
+        #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
+        /** @par Example:
+            @code
+my SQLStatement $i = $table.getRowIterator();
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+         */
+        Qore::SQL::SQLStatement getRowIterator(*hash sh, *hash opt) {
+            return t.getRowIterator(sh, opt);
+        }
+
         #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
         /** @par Example:
             @code
@@ -7935,6 +8051,67 @@ my *hash $h = $table.select($sh);
          */
         *hash select(*hash sh, *reference sql) {
             return t.select(sh, \sql);
+        }
+
+        #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
+        /** @par Example:
+            @code
+my *hash $h = $table.selectRow($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+            @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+         */
+        *hash selectRow(*hash sh, *hash opt) {
+            return t.selectRow(sh, opt);
+        }
+
+        #! returns a list of hashes representing the rows in the table that match the argument hash
+        /** @par Example:
+            @code
+my *list $l = $table.selectRows($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return a list of hashes representing the rows in the table that match the argument hash
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+         */
+        *list selectRows(*hash sh, *hash opt) {
+            return t.selectRows(sh, opt);
+        }
+
+        #! returns a hash of lists representing the columns and rows in the table that match the argument hahs
+        /** @par Example:
+            @code
+my *hash $h = $table.select($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return a hash of lists representing the columns and rows in the table that match the argument hash
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+         */
+        *hash select(*hash sh, *hash opt) {
+            return t.select(sh, opt);
         }
 
         #! returns the SQL string to be executed corresponding to the argument hash with an output parameter for the select bind arguments
@@ -8038,6 +8215,86 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
          */
         int updateNoCommit(hash set, *hash cond, *reference sql) {
             return t.updateNoCommit(set, cond, \sql);
+        }
+
+        #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
+        /** @par Example:
+            @code
+my int $dcnt = $table.del(("name": $name));
+            @endcode
+
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the count of rows deleted
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see delNoCommit(*hash)
+         */
+        int del(*hash cond, *hash opt) {
+            return del(cond, opt);
+        }
+
+        #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
+        /** @par Example:
+            @code
+my int $dcnt = $table.delNoCommit(("name": $name));
+            @endcode
+
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the count of rows deleted
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see del(*hash)
+         */
+        int delNoCommit(*hash cond, *hash opt) {
+            return t.delNoCommit(cond, opt);
+        }
+
+        #! updates rows in the table matching an optional condition and returns the count of rows updated; the transaction is committed if successful, if an error occurs then it is rolled back
+        /** @par Example:
+            @code
+my int $ucnt = $table.update(("id": $id), ("name": $name));
+            @endcode
+
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the count of rows updated
+
+            @throw UPDATE-ERROR the set hash is empty
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see updateNoCommit()
+         */
+        int update(hash set, *hash cond, *hash opt) {
+            return t.update(set, cond, opt);
+        }
+
+        #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
+        /** @par Example:
+            @code
+my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
+            @endcode
+
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the count of rows updated
+
+            @throw UPDATE-ERROR the set hash is empty
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see update()
+         */
+        int updateNoCommit(hash set, *hash cond, *hash opt) {
+            return t.updateNoCommit(set, cond, opt);
         }
 
         #! returns an SQL string corresponding to the list of commands in the argument
@@ -8632,6 +8889,14 @@ my Triggers $trig = $table.getTriggers();
             #! Column options; this is currently empty and can be extended in database-specific modules
             const ColumnOptions = hash();
 
+            #! generic SQL data operation callbacks
+            /** The following keys can be set for this option:
+                - \c sqlarg_callback: see @ref sqlarg_callback
+            */
+            const SqlDataCallbackOptions = (
+                "sqlarg_callback": "code",
+                );
+
             #! default upsert option keys
             /** The following keys can be set for this option:
                 - \c info_callback: see @ref upsert_info_callback
@@ -8645,11 +8910,11 @@ my Triggers $trig = $table.getTriggers();
                 );
 
             #! default insert option keys
-            /** The following keys can be set for this option:
+            /** In addition to any @ref SqlDataCallbackOptions, the following keys can be set for this option:
                 - \c info_callback: see @ref insert_info_callback
                 - \c commit_block: the number of changes made before an automatic commit is made for insert methods that perform commits
             */
-            const InsertOptions = (
+            const InsertOptions = SqlDataCallbackOptions + (
                 "info_callback": "code",
                 "commit_block": Type::Int,
                 );
@@ -11108,6 +11373,13 @@ $table.insert($row);
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
         insertNoCommit(hash row, *reference sql) {
+            return insertNoCommitIntern(row, \sql);
+        }
+
+        private insertNoCommitIntern(hash row, *reference sql, *hash opt) { 
+            # check data callback options if any
+            validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
+
             l.lock();
             on_exit l.unlock();
 
@@ -11122,7 +11394,40 @@ $table.insert($row);
             sql += (foldl $1 + "," + $2, (map "%v", row.keyIterator()));
             sql += ")";
 
-            ds.vexec(sql, row.values());
+            execData(opt, sql, row.values());
+        }
+
+        #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
+        /** @par Example:
+            @code
+$table.insert($row);
+            @endcode
+
+            @param row a hash representing the row to insert
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+         */
+        insert(hash row, *hash opt) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            insertNoCommitIntern(row, NOTHING, opt);
+        }
+
+        #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
+        /** @par Example:
+            @code
+$table.insert($row);
+            @endcode
+
+            @param row a hash representing the row to insert
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+         */
+        insertNoCommit(hash row, *hash opt) {
+            insertNoCommitIntern(row, NOTHING, opt);
         }
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
@@ -11148,7 +11453,7 @@ my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table,
             on_success ds.commit();
             on_error ds.rollback();
 
-            return insertFromSelectNoCommit(cols, source, sh, \sql);
+            return insertFromSelectNoCommitIntern(cols, source, sh, \sql);
         }
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
@@ -11171,6 +11476,10 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
             @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
         */
         int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql) {
+            return insertFromSelectNoCommitIntern(cols, source, sh, \sql);
+        }
+
+        private int insertFromSelectNoCommitIntern(list cols, AbstractTable source, *hash sh, *reference sql, *hash opt) {
             list args;
             string ssql = source.getSelectSql(sh, \args);
 
@@ -11188,7 +11497,56 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
             sql += (foldl $1 + "," + $2, cols);
             sql += ") " + ssql;
 
-            return ds.vexec(sql, args);
+            return execData(opt, sql, args);
+        }
+
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+            @endcode
+
+            @param cols the list of column names to use to insert in the current table
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupported option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
+        */
+        int insertFromSelect(list cols, AbstractTable source, *hash sh, *hash opt) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return insertFromSelectNoCommitIntern(cols, source, sh, NOTHING, opt);
+        }
+
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+            @endcode
+
+            @param cols the list of column names to use to insert in the current table
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupported option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
+        */
+        int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *hash opt) {
+            return insertFromSelectNoCommitIntern(cols, source, sh, NOTHING, opt);
         }
 
         #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -11259,7 +11617,7 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             opt.change_count = 0;
             int rc = 0;             
             do {
-                stmt.execArgs(row.values());
+                execData(stmt, opt, row.values());
                 if (opt.info_callback)
                     opt.info_callback(getSqlName(), row, UR_Inserted);
                 ++rc;
@@ -11745,6 +12103,10 @@ my SQLStatement $i = $table.getRowIterator($sh);
             - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
          */
         Qore::SQL::SQLStatement getRowIterator(*hash sh, *reference sql) {
+            return getRowIteratorIntern(sh, \sql);
+        }
+
+        private Qore::SQL::SQLStatement getRowIteratorIntern(*hash sh, *reference sql, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
@@ -11752,9 +12114,31 @@ my SQLStatement $i = $table.getRowIterator($sh);
 
             SQLStatement stmt(ds);
             stmt.prepare(sql);
-            stmt.execArgs(args);
+            execData(stmt, opt, args);
 
             return stmt;
+        }
+
+        #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
+        /** @par Example:
+            @code
+my SQLStatement $i = $table.getRowIterator();
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+         */
+        Qore::SQL::SQLStatement getRowIterator(*hash sh, *hash opt) {
+            return getRowIteratorIntern(sh, NOTHING, opt);
         }
 
         #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
@@ -11802,6 +12186,8 @@ my *list $l = $table.selectRows($sh);
         *list selectRows(*hash sh, *reference sql) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
+printf("AbstractTable::selectRows() SQL: %y\n", sql);
+
             list args;
             sql = getSelectSqlUnlocked(sh, \args);
             return ds.vselectRows(sql, args);
@@ -11828,6 +12214,97 @@ my *hash $h = $table.select($sh);
 
             list args;
             sql = getSelectSqlUnlocked(sh, \args);
+
+            return ds.vselect(sql, args);
+        }
+
+        #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
+        /** @par Example:
+            @code
+my *hash $h = $table.selectRow($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+            @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+         */
+        *hash selectRow(*hash sh, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+            # check data callback options if any
+            validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
+
+            list args;
+            string sql = getSelectSqlUnlocked(sh, \args);
+            
+            if (opt.sqlarg_callback)
+                opt.sqlarg_callback(sql, args);
+
+            return ds.vselectRow(sql, args);
+        }
+
+        #! returns a list of hashes representing the rows in the table that match the argument hash
+        /** @par Example:
+            @code
+my *list $l = $table.selectRows($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return a list of hashes representing the rows in the table that match the argument hash
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+         */
+        *list selectRows(*hash sh, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+            # check data callback options if any
+            validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
+
+            list args;
+            string sql = getSelectSqlUnlocked(sh, \args);
+
+            if (opt.sqlarg_callback)
+                opt.sqlarg_callback(sql, args);
+
+            return ds.vselectRows(sql, args);
+        }
+
+        #! returns a hash of lists representing the columns and rows in the table that match the argument hahs
+        /** @par Example:
+            @code
+my *hash $h = $table.select($sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return a hash of lists representing the columns and rows in the table that match the argument hash
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+         */
+        *hash select(*hash sh, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+            # check data callback options if any
+            validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
+
+            list args;
+            string sql = getSelectSqlUnlocked(sh, \args);
+
+            if (opt.sqlarg_callback)
+                opt.sqlarg_callback(sql, args);
 
             return ds.vselect(sql, args);
         }
@@ -12246,12 +12723,17 @@ my int $dcnt = $table.delNoCommit(("name": $name));
             @see del(*hash)
          */
         int delNoCommit(*hash cond, *reference sql) {
+            return delNoCommitIntern(cond, \sql);
+        }
+
+        private int delNoCommitIntern(*hash cond, *reference sql, *hash opt) {
             # make query
             sql = sprintf("delete from %s", getSqlName());
             list args;
             if (cond)
                 sql += getWhereClause(cond, \args);
-            return ds.vexec(sql, args);
+
+            return execData(opt, sql, args);
         }
 
         #! updates rows in the table matching an optional condition and returns the count of rows updated; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -12275,7 +12757,7 @@ my int $ucnt = $table.update(("id": $id), ("name": $name));
             on_success ds.commit();
             on_error ds.rollback();
 
-            return updateNoCommit(set, cond, \sql);
+            return updateNoCommitIntern(set, cond, \sql);
         }
 
         #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
@@ -12296,6 +12778,10 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             @see update()
          */
         int updateNoCommit(hash set, *hash cond, *reference sql) {
+            return updateNoCommitIntern(set, cond, \sql);
+        }
+
+        private int updateNoCommitIntern(hash set, *hash cond, *reference sql, *hash opt) {
             # make query
             sql = sprintf("update %s set ", getSqlName());
 
@@ -12322,7 +12808,93 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
                 sql += getWhereClause(cond, \args);
 
             #printf("sql: %y\nargs: %y\n", sql, args);
-            return ds.vexec(sql, args);
+            return execData(opt, sql, args);
+        }
+
+        #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
+        /** @par Example:
+            @code
+my int $dcnt = $table.del(("name": $name));
+            @endcode
+
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the count of rows deleted
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see delNoCommit(*hash)
+         */
+        int del(*hash cond, *hash opt) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return delNoCommitIntern(cond, NOTHING, opt);
+        }
+
+        #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
+        /** @par Example:
+            @code
+my int $dcnt = $table.delNoCommit(("name": $name));
+            @endcode
+
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the count of rows deleted
+
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see del(*hash)
+         */
+        int delNoCommit(*hash cond, *hash opt) {
+            return delNoCommitIntern(cond, NOTHING, opt);
+        }
+
+        #! updates rows in the table matching an optional condition and returns the count of rows updated; the transaction is committed if successful, if an error occurs then it is rolled back
+        /** @par Example:
+            @code
+my int $ucnt = $table.update(("id": $id), ("name": $name));
+            @endcode
+
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the count of rows updated
+
+            @throw UPDATE-ERROR the set hash is empty
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see updateNoCommit()
+         */
+        int update(hash set, *hash cond, *hash opt) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return updateNoCommitIntern(set, cond, NOTHING, opt);
+        }
+
+        #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
+        /** @par Example:
+            @code
+my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
+            @endcode
+
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the count of rows updated
+
+            @throw UPDATE-ERROR the set hash is empty
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see update()
+         */
+        int updateNoCommit(hash set, *hash cond, *hash opt) {
+            return updateNoCommitIntern(set, cond, NOTHING, opt);
         }
         
         private string getUpdateExpression(string col, hash uh) {
@@ -12405,7 +12977,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             return int sub (hash row) {
                 if (tryInsertImpl(insert_sql, row))
                     return UR_Inserted;
-            
+
                 tryUpdate(update_sql, row, cols, updc);
                 return UR_Verified;            
             };
@@ -13635,6 +14207,13 @@ my *list $rows = $table.findAll($h);
             return InsertOptions;
         }
 
+        #! returns the sql data operation callback options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getSqlDataCallbackOptions() {
+            return SqlDataCallbackOptions;
+        }
+
         #! returns the "where" operator map for this object
         /** override in subclasses to return driver-specific options    
         */
@@ -13738,6 +14317,18 @@ my *list $rows = $table.findAll($h);
             getForeignConstraintsUnlocked(opt);
             getConstraintsUnlocked();
             getTriggersUnlocked();
+        }
+
+        private any execData(*hash opt, string sql, *list args) {
+            if (opt.sqlarg_callback)
+                opt.sqlarg_callback(sql, args);
+            return ds.vexec(sql, args);
+        }
+
+        private execData(SQLStatement stmt, *hash opt, *list args) {
+            if (opt.sqlarg_callback)
+                opt.sqlarg_callback(stmt.getSQL(), args);
+            stmt.execArgs(args);
         }
 
         static AbstractTable getTable(AbstractDatasource nds, string nname, *hash opts) {

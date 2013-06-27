@@ -557,7 +557,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
       aqf = *aqfi;
 
       //if (!strcmp(getName(), "getCreateSql") && aqf && !strcmp(aqf->className(), "OracleColumn"))
-      //printd(0, "QoreFunction::findVariant() this: %p %s::%s(...) size: %d\n", this, aqf->className(), getName(), ilist.size());
+      //printd(5, "QoreFunction::findVariant() this: %p %s::%s(...) size: %d\n", this, aqf->className(), getName(), ilist.size());
 
       for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
 	 // skip checking variant if we are only looking for user variants and this variant is builtin
@@ -566,9 +566,8 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
 
 	 sig = (*i)->getSignature();
 	 assert(sig);
-
-	 if (!strcmp(getName(), "getCreateSql") && aqf && !strcmp(aqf->className(), "OracleColumn") && !sig->numParams())
-	 printd(0, "QoreFunction::findVariant() this: %p %s(%s) args: %p (%d) class: %s\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0, aqf->className() ? aqf->className() : "n/a");
+	 
+	 //printd(5, "QoreFunction::findVariant() this: %p %s(%s) args: %p (%d) class: %s\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0, aqf->className() ? aqf->className() : "n/a");
 
 	 if (!variant && !sig->getParamTypes()) {
 	    match = 0;
@@ -669,7 +668,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
       }
    }
 
-   printd(5, "QoreFunction::findVariant() this=%p %s() returning %p %s(%s) class=%s\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant && aqf && aqf->className() ? aqf->className() : "n/a");
+   //printd(5, "QoreFunction::findVariant() this: %p %s() returning %p %s(%s) class: %s\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant && aqf && aqf->className() ? aqf->className() : "n/a");
 
    return variant;
 }

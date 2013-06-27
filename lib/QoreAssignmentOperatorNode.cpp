@@ -31,6 +31,7 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
   
    left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
+   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %p '%s' nt: %d ti: %p '%s'\n", this, left, get_type_name(left), get_node_type(left), ti, ti->getName());
    checkLValue(left, pflag);
 
    // return type info is the same as the lvalue's typeinfo
@@ -43,7 +44,7 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
    if (oflag)
       check_self_assignment(left, oflag);
 
-   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() left: %s ti: %s, right: %s ti: %s\n", get_type_name(left), ti->getName(), get_type_name(right), r->getName());
+   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %s ti: %p '%s', right: %s ti: %s\n", this, get_type_name(left), ti, ti->getName(), get_type_name(right), r->getName());
 
    if (ti->hasType() && r->hasType() && !ti->parseAccepts(r)) {
       if (getProgram()->getParseExceptionSink()) {

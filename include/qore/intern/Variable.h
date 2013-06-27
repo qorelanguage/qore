@@ -246,7 +246,7 @@ public:
 
       parseInit();
       // we cannot enforce the first reference assignment of global variables, so we return type any
-      return typeInfo == referenceTypeInfo ? anyTypeInfo : typeInfo;
+      return typeInfo == referenceTypeInfo || typeInfo == referenceOrNothingTypeInfo ? anyTypeInfo : typeInfo;
    }
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
@@ -389,7 +389,7 @@ public:
    }
 
    DLLLOCAL void setTypeInfo(const QoreTypeInfo* ti) {
-      typeInfo = ti;
+      typeInfo = ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo ? 0 : ti;
    }
 
    DLLLOCAL void setPtr(AbstractQoreNode*& ptr) {

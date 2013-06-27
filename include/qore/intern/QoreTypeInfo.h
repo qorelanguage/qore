@@ -262,7 +262,7 @@ protected:
       qore_type_result_e rc = QTI_NOT_EQUAL;
       for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
 	 for (type_vec_t::const_iterator j = rt.begin(), je = rt.end(); j != je; ++j) {
-            //printd(0, "QoreTypeInfo::parseAcceptsMult() this=%p (%s) accepts %p (%s) testing if %p (%s) may_not_match=%d rc=%d accepts %p (%s) = %d\n", this, getName(), typeInfo, typeInfo->getName(), *i, (*i)->getName(), may_not_match, rc, *j, (*j)->getName(), (*i)->parseAccepts(*j));
+            //printd(5, "QoreTypeInfo::parseAcceptsMult() this=%p (%s) accepts %p (%s) testing if %p (%s) may_not_match=%d rc=%d accepts %p (%s) = %d\n", this, getName(), typeInfo, typeInfo->getName(), *i, (*i)->getName(), may_not_match, rc, *j, (*j)->getName(), (*i)->parseAccepts(*j));
 
             if (parseAcceptsMultHelper((*i)->parseAccepts(*j), rc, may_not_match))
                return rc;
@@ -277,7 +277,7 @@ protected:
          if (parseAcceptsMultHelper(parseAcceptsBasic(*j, may_not_match), rc, may_not_match))
             return rc;
 
-         //printd(0, "QoreTypeInfo::parseAcceptsMult() this=%p (%s) accepts %p (%s) testing may_not_match=%d rc=%d accepts %p (%s) = %d\n", this, getName(), typeInfo, typeInfo->getName(), may_not_match, rc, *j, (*j)->getName(), parseAcceptsBasic(*j));
+         //printd(5, "QoreTypeInfo::parseAcceptsMult() this=%p (%s) accepts %p (%s) testing may_not_match=%d rc=%d accepts %p (%s) = %d\n", this, getName(), typeInfo, typeInfo->getName(), may_not_match, rc, *j, (*j)->getName(), parseAcceptsBasic(*j));
       }
 
       // now check basic accept type against basic return types
@@ -592,7 +592,7 @@ public:
    }
 
    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo *typeInfo, bool &may_not_match) const {
-      //printd(5, "QoreTypeInfo::parseAccepts() this=%p (%s) ti=%p (%s) ti->returnsSingleIntern()=%d\n", this, getName(), typeInfo, typeInfo->getName(), typeInfo->returnsSingleIntern());
+      //printd(5, "QoreTypeInfo::parseAccepts() this: %p (%s) ti: %p (%s) ti->returnsSingleIntern(): %d\n", this, getName(), typeInfo, typeInfo->getName(), typeInfo->returnsSingleIntern());
       if (!hasType() || !typeInfo->hasType() || accepts_all)
          return QTI_AMBIGUOUS;
 
@@ -2170,12 +2170,12 @@ public:
       
       assert(has_name);
 
-      //printd(0, "ExternalTypeInfo::ExternalTypeInfo() this=%p qt=%n qc=%p name=%s\n", this, qt, qc, tname);
+      //printd(5, "ExternalTypeInfo::ExternalTypeInfo() this=%p qt=%n qc=%p name=%s\n", this, qt, qc, tname);
    }
 
    // used for classes
    DLLLOCAL ExternalTypeInfo(const QoreClass *n_qc, const QoreTypeInfoHelper &n_helper) : QoreTypeInfo(n_qc), tname(0), helper(n_helper) {
-      //printd(0, "ExternalTypeInfo::ExternalTypeInfo() this=%p qt=%n qc=%p name=%s\n", this, qt, qc, qc->getName());
+      //printd(5, "ExternalTypeInfo::ExternalTypeInfo() this=%p qt=%n qc=%p name=%s\n", this, qt, qc, qc->getName());
    }
 
    // used when assigning a base type after the fact

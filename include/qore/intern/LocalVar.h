@@ -242,7 +242,7 @@ public:
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
 
    DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), typeInfo(varTypeInfo) {
-      //printd(0, "ClosureVarValue::ClosureVarValue() this: %p pgm: %p\n", this, getProgram());
+      //printd(5, "ClosureVarValue::ClosureVarValue() this: %p pgm: %p\n", this, getProgram());
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
       discard(val.assignInitial(nval), 0);
    }
@@ -519,7 +519,7 @@ public:
    }
 
    DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() const {
-      return parse_assigned && (typeInfo == referenceTypeInfo) ? anyTypeInfo : typeInfo;
+      return parse_assigned && (typeInfo == referenceTypeInfo || typeInfo == referenceOrNothingTypeInfo) ? anyTypeInfo : typeInfo;
    }
 
    DLLLOCAL qore_type_t getValueType() const {
