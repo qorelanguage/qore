@@ -365,6 +365,25 @@ my *list $rows = $table.selectRows(("columns": ("name", "version", "id", cop_as(
 
     @see @ref joins for more examples
 
+    @anchor select_option_groupby
+    @par Select Option "groupby"
+    <b>Groupby Example:</b>
+    @code
+my *list $rows = $table.selectRows(("columns": (cop_as(cop_max("service_type"), "type"), cop_count()), "groupby": "service_type"));
+    @endcode
+    The \c "groupby" option allows for aggregate SQL column operator functions to be used (ex: @ref cop_max(), cop_min()) in select statements.
+    The \c "groupby" hash key should be assigned to a list of column specifiers or a single column specifier.  Column specifies for the \c "groupby"
+    key are strings giving column names, optionally in dot notation.    
+
+    @anchor select_option_having
+    @par Select Option "having"
+    <b>Having Example:</b>
+    @code
+my *list $rows = $table.selectRows(("columns": (cop_as(cop_max("service_type"), "type"), cop_count()), "groupby": "service_type", "having": ("service_type": (COP_COUNT, op_ge(100)))));
+    @endcode
+    The \c "having" option allows for query results with aggregate SQL column operator functions to be filtered by user-defined criteria.
+    The \c "having" hash key should be assigned to a hash where each key is a column specifier (optionally in dot notation) and the values are lists with two elements; the first element must be a @ref sql_cops "column operator code", and the second element is a column operator description normally provided by using a @ref sql_cop_funcs "column operator function" as in the above example.
+
     @subsection sql_paging Select With Paging
 
     There is support for paging query results in the following methods:
@@ -8522,6 +8541,8 @@ my Triggers $trig = $table.getTriggers();
                 - @ref select_option_limit "limit": specifies the maximum number of results to be returned
                 - @ref select_option_offset "offset": specifies the starting offset of the first record to be returned (starting with 0)
                 - @ref select_option_join "join": specifies any SQL join operations to return results from multiple tables
+                - @ref select_option_groupby "groupby": specifies grouping for aggregate column functions
+                - @ref select_option_having "having": specifies filtering for results with aggregate column functions
              */
             const SelectOptions = (
                 "columns": Type::NothingType,
@@ -11807,7 +11828,7 @@ my *hash $h = $table.select($sh);
 
             list args;
             sql = getSelectSqlUnlocked(sh, \args);
-            
+
             return ds.vselect(sql, args);
         }
 
@@ -12021,7 +12042,6 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 sql += " group by " + (foldl $1 + "," + $2, gbe.iterator());
             }
 
-/*
             if (qh.having) {
                 getColumnsUnlocked();
                 hash cm = getColumnOperatorMap();
@@ -12034,12 +12054,12 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     if (hh.value[0].typeCode() != NT_STRING)
                         throw "SELECT-ERROR", sprintf("expecting a string argument to the \"having\" condition in the first position giving the column operator code for column %y; got type %y instead (value: %y)", hh.key, hh.value[0].type(), hh.value[0]);
 
-                    *hash ccmd = cm{hh.value[0]};
+                    string hstr = doColumnOperatorIntern(hh.value[0], NOTHING, getColumnExpressionIntern(hh.key, jch, boolean(qh.join)), cm);
+                    hl += doWhereExpressionIntern(hstr, hh.value[1], \args);
                 }
                 if (hl)
                     sql += " having " + (foldl $1 + " and " + $2, hl);
             }
-*/
             #printf("SQL: %s\nargs: %y\n", sql, args);
             return sql;
         }
@@ -12049,41 +12069,44 @@ my string $sql = $table.getSelectSql($sh, \$args);
         }
 
         private string getColumnExpressionIntern(any cvc, *hash jch, bool join) {
-            if (cvc.typeCode() == NT_HASH)
-                return doColumnOperatorIntern(cvc, jch, join);
-            if (cvc.typeCode() == NT_STRING)
-                return getColumnNameIntern(cvc, jch, join);
+            switch (cvc.typeCode()) {
+                case NT_HASH:
+                    return doColumnOperatorIntern(cvc, jch, join);
+                case NT_STRING:
+                    return getColumnNameIntern(cvc, jch, join);
+            }
             throw "SELECT-ERROR", sprintf("column operator hash %y has an invalid \"column\" key; expecting a string column specification or a column operator description hash", cvc);
         }
 
-        private string doColumnOperatorIntern(hash cv, *hash jch, bool join) {
-            if (cv.cop.typeCode() != NT_STRING)
-                throw "SELECT-ERROR", sprintf("invalid column operator hash %y; missing \"cop\" key giving the column operator name", cv);
+        private string doColumnOperatorIntern(hash cvc, *hash jch, bool join) {
+            return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch, join) : NOTHING), getColumnOperatorMap());
+        }
 
-            hash cm = getColumnOperatorMap();
+        private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm) {
+            if (cop.typeCode() != NT_STRING)
+                throw "SELECT-ERROR", sprintf("invalid column operator code %y", cop);
 
-            *hash cmd = cm{cv.cop};
+            *hash cmd = cm{cop};
             if (!cmd)
-                throw "SELECT-ERROR", sprintf("unknown column operator %y in %y: expecting one of: %y", cv.cop, cv, cm.keys());
+                throw "SELECT-ERROR", sprintf("unknown column operator %y: expecting one of: %y", cop, cm.keys());
 
             if (cmd.arg) {
-                string at = cv.arg.type();
+                string at = arg.type();
                 switch (cmd.arg) {
                     default: {
                         if (at != cmd.arg)
-                            throw "SELECT-ERROR", sprintf("invalid argument to column operator %y; got type %y, expecting %y", cv.cop, at, cmd.arg);
+                            throw "SELECT-ERROR", sprintf("invalid argument to column operator %y; got type %y, expecting %y", cop, at, cmd.arg);
                     }
                 }
             }
 
             if (cmd.sqlvalue)
-                cv.arg = getSqlValue(cv.arg);
+                arg = getSqlValue(arg);
 
-            *string cve;
-            if (!cmd.nocolumn)
-               cve = getColumnExpressionIntern(cv.column, jch, join);
+            if (!cve && !cmd.nocolumn)
+                throw "SELECT-ERROR", sprintf("column operator %y requires a column argument name but none was provided", cop);
 
-            return cmd.code(cve, cv.arg);
+            return cmd.code(cve, arg);
         }
 
         private string getColumnNameIntern(string cv, *hash jch, bool join) {
@@ -12150,40 +12173,33 @@ my string $sql = $table.getSelectSql($sh, \$args);
             if (!cond)
                 return;
 
-            hash wm = getWhereOperatorMap();
-
             list wl = ();
             foreach hash h in (cond.pairIterator()) {
-                string cn;
-                if (cprefix)
-                    cn = sprintf("%s.%s", cprefix, h.key);
-                else 
-                    cn = getColumnNameIntern(h.key, jch, join);
-                
-                # process SQL operators
-                int wt = h.value.typeCode();
-                if (wt == NT_HASH) {
-                    hash oh = h.value;
-
-                    if (!oh.op)
-                        throw "WHERE-ERROR", sprintf("argument to key %y is a hash without an \"op\" key: %y", cn, oh);
-
-                    *hash cmd = wm{oh.op};
-                    if (!cmd)
-                        throw "WHERE-ERROR", sprintf("operator hash for key %y hash unknown operator %y: expecting one of: %y (operator hash: %y)", cn, oh.op, wm.keys(), oh);
-
-                    wl += cmd.code(self, cn, oh.arg, \args);
-                    continue;
-                }
-                if (h.value === NULL || !exists h.value)
-                    wl += sprintf("%s is null", cn);
-                else {
-                    wl += sprintf("%s = %v", cn);
-                    args += h.value;
-                }
+                string cn = cprefix ? sprintf("%s.%s", cprefix, h.key) : getColumnNameIntern(h.key, jch, join);
+                wl += doWhereExpressionIntern(cn, h.value, \args);
             }
 
             return wl;
+        }
+
+        private string doWhereExpressionIntern(string cn, any we, reference args) {
+            int wt = we.typeCode();
+            if (wt == NT_HASH) {
+                if (!we.op)
+                    throw "WHERE-ERROR", sprintf("argument to key %y is a hash without an \"op\" key: %y", cn, we);
+
+                hash wm = getWhereOperatorMap();
+
+                *hash cmd = wm{we.op};
+                if (!cmd)
+                    throw "WHERE-ERROR", sprintf("operator hash for key %y hash unknown operator %y: expecting one of: %y (operator hash: %y)", cn, we.op, wm.keys(), we);
+
+                return cmd.code(self, cn, we.arg, \args);
+            }
+            if (we === NULL || !exists we)
+                return sprintf("%s is null", cn);
+            args += we;
+            return sprintf("%s = %v", cn);
         }
 
         private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh) {
