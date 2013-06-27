@@ -12186,8 +12186,6 @@ my *list $l = $table.selectRows($sh);
         *list selectRows(*hash sh, *reference sql) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
-printf("AbstractTable::selectRows() SQL: %y\n", sql);
-
             list args;
             sql = getSelectSqlUnlocked(sh, \args);
             return ds.vselectRows(sql, args);
