@@ -12305,7 +12305,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             if (cond)
                 sql += getWhereClause(cond, \args);
 
-            printf("sql: %y\nargs: %y\n", sql, args);
+            #printf("sql: %y\nargs: %y\n", sql, args);
             return ds.vexec(sql, args);
         }
         
