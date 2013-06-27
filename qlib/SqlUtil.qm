@@ -12021,16 +12021,25 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 sql += " group by " + (foldl $1 + "," + $2, gbe.iterator());
             }
 
-            /*
+/*
             if (qh.having) {
                 getColumnsUnlocked();
-                hash hh;
-                *list wl = getWhereClauseIntern(qh.having, \args, NOTHING, jch, boolean(qh.join));
-                if (wl)
-                    sql += " having " + (foldl $1 + " and " + $2, wl);
-            }
-            */
+                hash cm = getColumnOperatorMap();
 
+                list hl = ();
+
+                foreach hash hh in (qh.having.pairIterator()) {
+                    if (hh.value.typeCode() != NT_LIST)
+                        throw "SELECT-ERROR", sprintf("expecting a list argument to the \"having\" condition for column %y; got type %y instead (value: %y)", hh.key, hh.value.type(), hh.value);
+                    if (hh.value[0].typeCode() != NT_STRING)
+                        throw "SELECT-ERROR", sprintf("expecting a string argument to the \"having\" condition in the first position giving the column operator code for column %y; got type %y instead (value: %y)", hh.key, hh.value[0].type(), hh.value[0]);
+
+                    *hash ccmd = cm{hh.value[0]};
+                }
+                if (hl)
+                    sql += " having " + (foldl $1 + " and " + $2, hl);
+            }
+*/
             #printf("SQL: %s\nargs: %y\n", sql, args);
             return sql;
         }
@@ -12117,7 +12126,8 @@ my string $sql = $table.getSelectSql($sh, \$args);
         private *string getWhereClauseUnlocked(list cond, reference args, *string cprefix, *hash jch, bool join = False) {
             getColumnsUnlocked();
             list al = ();
-            args = ();
+            if (!exists args)
+                args = ();
             foreach hash ch in (cond) {
                 *list wl = getWhereClauseIntern(ch, \args, cprefix, jch, join);
                 if (wl)
@@ -12129,7 +12139,8 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
         private *string getWhereClauseUnlocked(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
             getColumnsUnlocked();
-            args = ();
+            if (!exists args)
+                args = ();
             *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join);
             if (wl)
                 return " where " + (foldl $1 + " and " + $2, wl);
@@ -12150,7 +12161,8 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     cn = getColumnNameIntern(h.key, jch, join);
                 
                 # process SQL operators
-                if (h.value.typeCode() == NT_HASH) {
+                int wt = h.value.typeCode();
+                if (wt == NT_HASH) {
                     hash oh = h.value;
 
                     if (!oh.op)
@@ -12293,7 +12305,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             if (cond)
                 sql += getWhereClause(cond, \args);
 
-            #printf("sql: %y\nargs: %y\n", sql, args);
+            printf("sql: %y\nargs: %y\n", sql, args);
             return ds.vexec(sql, args);
         }
         
