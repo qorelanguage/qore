@@ -32,7 +32,7 @@
 #  include "tests/SwitchStatementWithOperators_tests.cpp"
 #endif
 
-CaseNode::CaseNode(AbstractQoreNode *v, class StatementBlock *c) {
+CaseNode::CaseNode(AbstractQoreNode* v, StatementBlock* c) {
    val = v;
    code = c;
    next = 0;
@@ -50,6 +50,9 @@ bool CaseNode::isCaseNodeImpl() const {
 }
 
 bool CaseNode::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {
+   // do a soft compare if both sides are strings so that character encoding differences won't cause the strings to mismatch
+   if (get_node_type(val) == NT_STRING && get_node_type(lhs_value) == NT_STRING)
+      return !compareSoft(lhs_value, val, xsink);
    return !compareHard(lhs_value, val, xsink); // the ! is because of compareHard() semantics
 }
 

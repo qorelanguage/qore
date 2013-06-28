@@ -99,6 +99,7 @@
     - fixed bugs in the SmtpClient and MailMessage modules where mail messages were being serialized incorrectly if there were no attachments (there was no possibility to set the content transfer encoding) and also where it was not possible to set the content-type for the message body when it was sent as a part of a multipart message
     - fixed bugs handling arguments declared as type @ref reference_or_nothing_type "*reference" (reference or nothing)
     - fixed bugs in executing code accross @ref Qore::Program "Program" object barriers with reference arguments
+    - fixed a bug with the switch statement where character encoding differences would cause strings to mismatch even if they were otherwise identical; now hard comparisons are used for all types except in the case where both arguments are strings in which case a soft comparison is used in order to avoid the case when a different string encoding would cause the comparison to fail
 
     @section qore_087 Qore 0.8.7
 
