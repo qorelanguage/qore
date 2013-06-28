@@ -2027,6 +2027,8 @@ public class HttpServer::HttpServer {
     }
 
     #! returns a complete URL from a bind address
+    /** if for any reason there is a path in the bind address, it will be ignored
+     */
     static string getURLFromBind(softstring $bind, *string $host) {
 	my hash $h = parse_url($bind);
 	# if there is only a port number, it will appear in the "host" key
@@ -2045,8 +2047,7 @@ public class HttpServer::HttpServer {
 	return sprintf("%s://%s%s%s%s", $h.protocol ? $h.protocol : "http", 
 		       $login, 
 		       $h.host, 
-		       $h.port ? sprintf(":%d", $h.port) : "", 
-		       $h.path);
+		       $h.port ? sprintf(":%d", $h.port) : "");
     }
 
     #! turns on or off debugging; when debugging is enabled more verbose error messages are reported
