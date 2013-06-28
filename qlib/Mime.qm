@@ -34,7 +34,8 @@ module Mime {
 /*  Version History
     * 2013-04-05 v1.3.1: David Nichols <david@qore.org>
       + added get_mime_type_from_ext()
-      + minor corretions
+      + minor corrections
+      + added constants for css and js files + more extension -> mime type mappings
 
     * 2012-11-02 v1.3: David Nichols <david@qore.org>
       + made get MultiPartMessage::getMsgAndHeaders() abstract as originally intended
@@ -145,6 +146,12 @@ public namespace Mime {
     #! Mime type for YAML-RPC
     public const MimeTypeYamlRpc = "application/x-yaml";
 
+    #! Mime type for Javascript
+    public const MimeTypeJavascript = "application/javascript";
+
+    #! Mime type for css
+    public const MimeTypeCss = "text/css";
+
     #! A map of default mime types per file extension; the hash keys are file extensions in lower-case without the dot (ex: \c "txt")
     /** @showinitializer
      */
@@ -170,7 +177,7 @@ public namespace Mime {
 	"cpp": MimeTypeText,
 	"cpt": "application/mac-compactpro",
 	"csh": "application/x-csh",
-	"css": "text/css",
+	"css": MimeTypeCss,
 	"csv": MimeTypeCsv,
 	"dcr": "application/x-director",
 	"dif": "video/x-dv",
@@ -215,7 +222,7 @@ public namespace Mime {
 	"jpe": MimeTypeJpeg,
 	"jpeg": MimeTypeJpeg,
 	"jpg": MimeTypeJpeg,
-	"js": "application/javascript",
+	"js": MimeTypeJavascript,
 	"kar": "audio/midi",
 	"latex": "application/x-latex",
 	"lha": MimeTypeUnknown,
@@ -271,11 +278,29 @@ public namespace Mime {
 	# Qore class include file
 	"qc": MimeTypeText,
 
+        # Qorus function definition file
+        "qfd": MimeTypeText,
+
+        # Qorus class definition file
+        "qclass": MimeTypeText,
+
+        # Qorus constant definition file
+        "qconst": MimeTypeText,
+
+        # Qorus job definition
+        "qjob": MimeTypeText,
+
 	# Qore include file
 	"ql": MimeTypeText,
 
 	# Qore user module source
 	"qm": MimeTypeText,
+
+        # Qorus service definition
+        "qsd": MimeTypeText,
+
+        # Qorus workflow definition
+        "qwf": MimeTypeText,
 
 	"qt": "video/quicktime",
 	"qti": "image/x-quicktime",
