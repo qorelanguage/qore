@@ -106,6 +106,8 @@ public namespace RestHandler {
 
         #! this method is called by the RestHandler class to match the right object with incoming requests
         hash handleRequest(RestHandler $rh, *list $cl, string $mn, hash $cx, *hash $args) {            
+            if (!$args && $cx.body.typeCode() == NT_HASH)
+                $args = $cx.body;
             if ($cl) {
                 my string $cname = shift $cl;
                 my *AbstractRestClass $cls = $.subClass($cname, $cx, $args);
