@@ -379,9 +379,6 @@ public namespace RestHandler {
             }
 
             # serialize response according to client's capabilities if necessary
-            if (!exists $rv.body)
-                $rv.body = "OK";
-
             my bool $encoded;
             if ($rv.already_encoded)
                 $encoded = True;
