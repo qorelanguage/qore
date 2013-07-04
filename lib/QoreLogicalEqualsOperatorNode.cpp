@@ -70,20 +70,30 @@ AbstractQoreNode *QoreLogicalEqualsOperatorNode::parseInitImpl(LocalVar *oflag, 
 }
 
 bool QoreLogicalEqualsOperatorNode::softEqual(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
-   qore_type_t lt = get_node_type(left);
-   qore_type_t rt = get_node_type(right);
-
    if (!left)
       left = &Nothing;
    if (!right)
       right = &Nothing;
 
-   if (lt == NT_STRING || rt == NT_STRING) {
-      QoreStringValueHelper l(left);
+   qore_type_t lt = left->getType();
+   qore_type_t rt = right->getType();
+
+   if (lt == NT_STRING) {
+      const QoreStringNode* l = reinterpret_cast<const QoreStringNode*>(left);
+      if (rt == NT_STRING)
+	 return l->equalSoft(*reinterpret_cast<const QoreStringNode*>(right), xsink);
       QoreStringValueHelper r(right, l->getEncoding(), xsink);
       if (*xsink)
 	 return false;
-      return !l->compareSoft(*r, xsink);
+      return l->equal(*r);
+   }
+
+   if (rt == NT_STRING) {
+      const QoreStringNode* r = reinterpret_cast<const QoreStringNode*>(right);
+      QoreStringValueHelper l(left, r->getEncoding(), xsink);
+      if (*xsink)
+	 return false;
+      return l->equal(*r);
    }
  
    if (lt == NT_FLOAT || rt == NT_FLOAT)

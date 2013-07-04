@@ -239,13 +239,26 @@ void QoreStringNode::getDateTimeRepresentation(DateTime &dt) const {
 }
 
 bool QoreStringNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+   if (get_node_type(v) == NT_STRING)
+      return equalSoft(*reinterpret_cast<const QoreStringNode*>(v), xsink);
    QoreStringValueHelper str(v, getEncoding(), xsink);
    if (*xsink)
       return false;
-   return !compare(*str);
+   return equal(*str);
 }
 
 bool QoreStringNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+   if (get_node_type(v) == NT_STRING)
+      return equalSoft(*reinterpret_cast<const QoreStringNode*>(v), xsink);
+   return false;
+
+   /*
+   if (get_node_type(v) == NT_STRING)
+      return equal(*reinterpret_cast<const QoreStringNode*>(v));
+   return false;
+   */
+
+   /*
    const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(v);
    if (!str)
       return false;
@@ -254,6 +267,7 @@ bool QoreStringNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsi
       return false;
 
    return !compare(str);
+   */
 }
 
 QoreStringNode *QoreStringNode::stringRefSelf() const {

@@ -1171,8 +1171,8 @@ my any $v = $c.name;
                         if (!argstr)
                             return "null";
 
-                        args += arg;
-                        args += arg;
+                        args += argstr;
+                        args += argstr;
 
                         return cn + " in (select regexp_substr(%v,'[^,]+', 1, level) from dual connect by regexp_substr(%v, '[^,]+', 1, level) is not null)";
                     },

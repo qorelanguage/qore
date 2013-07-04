@@ -2379,6 +2379,11 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
     */
     public const OP_IN = "in";
 
+    #! the SQL \c "not" operator for use in @ref where_clauses
+    /** @see op_not()
+    */
+    public const OP_NOT = "not";
+
     #! a hash of valid operators for use in @ref where_clauses
     public const DefaultOpMap = (
         OP_LIKE: (
@@ -2432,6 +2437,12 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
                 return sprintf("%s in (%s)", cn, ins ? ins : "null");
             },
         ),
+        OP_NOT: (
+            "recursive": True,
+            "code": string sub (object t, string cn, any arg, reference args) {
+                return sprintf("not (%s)", cn); 
+            },
+        ),
         );
     #@}
 
@@ -2445,6 +2456,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
         - op_le(): for the \c "<=" operator
         - op_lt(): for the \c "<" operator
         - op_ne(): for the \c "!=" or \c "<>" operator
+        - op_not(): for negating other operators
      */
     #@{
     #! returns a hash with \c op and \c arg keys
@@ -2581,7 +2593,19 @@ my *list $rows = $table.selectRows(("where": ("name": op_in($idlist))));
     */
     public hash sub op_in(list args) {
         return make_op(OP_IN, args);
-    }    
+    }
+
+    #! returns a hash for the \c "not" operator; for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": opt_not(op_in(200, 300, 500, 9))))_;
+        @endcode
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+    */
+    public hash sub op_not(hash arg) {
+        return make_op(OP_NOT, arg);
+    } 
     #@}
 
     #! abstract container class that throws an exception if an unknown key is accessed
@@ -12668,6 +12692,11 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 *hash cmd = wm{we.op};
                 if (!cmd)
                     throw "WHERE-ERROR", sprintf("operator hash for key %y hash unknown operator %y: expecting one of: %y (operator hash: %y)", cn, we.op, wm.keys(), we);
+
+                if (cmd.recursive) {
+                    cn = doWhereExpressionIntern(cn, we.arg, \args);
+                    delete we.arg;
+                }
 
                 return cmd.code(self, cn, we.arg, \args);
             }

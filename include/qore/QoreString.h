@@ -278,6 +278,25 @@ public:
    */
    DLLEXPORT int compare(const char* str) const;
 
+   //! returns true if the strings are equal, false if not, if the character encodings are different, then the strings are not equal
+   /** @since Qore 0.8.8
+    */
+   DLLEXPORT bool equal(const QoreString& str) const;
+
+   //! returns true if the strings are equal, false if not (encodings are assumed to be equal)
+   /** @since Qore 0.8.8
+    */
+   DLLEXPORT bool equal(const char* str) const;
+
+   //! returns true if the strings are equal, false if not, if the character encodings are different, then the strings are not equal
+   /** @param str the string to compare
+       @param xsink if an error occurs, the Qore-language exception information will be added here	 
+       @return true if the strings are equal, false if not
+
+       @since Qore 0.8.8
+    */
+   DLLEXPORT bool equalSoft(const QoreString& str, ExceptionSink* xsink) const;
+
    //! terminates the string at byte position "size", the string is reallocated if necessary
    DLLEXPORT void terminate(qore_size_t size);
 

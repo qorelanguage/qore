@@ -256,8 +256,7 @@ int QoreString::compare(const QoreString *str) const {
    if (!priv->len) {
       if (!str->priv->len)
 	 return 0;
-      else
-	 return 1;
+      return 1;
    }
 
    if (str->priv->charset != priv->charset)
@@ -267,7 +266,8 @@ int QoreString::compare(const QoreString *str) const {
 }
 
 int QoreString::compare(const char *str) const {
-   if (!priv->buf) {
+   // empty strings are always equal even if the character encoding is different
+   if (!priv->len) {
       if (!str)
 	 return 0;
       else
@@ -275,6 +275,59 @@ int QoreString::compare(const char *str) const {
    }
 
    return strcmp(priv->buf, str);
+}
+
+bool QoreString::equal(const QoreString& str) const {
+   // empty strings are always equal even if the character encoding is different
+   if (!priv->len) {
+      if (!str.priv->len)
+	 return true;
+      return false;
+   }
+   if (!str.priv->len)
+      return false;
+
+   if (priv->charset != str.priv->charset)
+      return false;
+
+   if (priv->len != str.priv->len)
+      return false;
+
+   return !strcmp(priv->buf, str.priv->buf);
+}
+
+bool QoreString::equal(const char* str) const {
+   // empty strings are always equal even if the character encoding is different
+   if (!str || !str[0]) {
+      if (!priv->len)
+	 return true;
+      return false;
+   }
+   if (!priv->len)
+      return false;
+
+   return !strcmp(priv->buf, str);
+}
+
+bool QoreString::equalSoft(const QoreString& str, ExceptionSink* xsink) const {
+   // empty strings are always equal even if the character encoding is different
+   if (!priv->len) {
+      if (!str.priv->len)
+	 return true;
+      return false;
+   }
+   if (!str.priv->len)
+      return false;
+
+   // if the encodings are equal or equivalent and the lenghts are different then the strings are not equal
+   if ((priv->charset == str.priv->charset || (!priv->charset->isMultiByte() && !str.priv->charset->isMultiByte())) && priv->len != str.priv->len)
+      return false;
+
+   TempEncodingHelper t(str, priv->charset, xsink);
+   if (*xsink)
+      return false;
+
+   return !strcmp(priv->buf, t->getBuffer());
 }
 
 void QoreString::terminate(qore_size_t size) {
@@ -1446,8 +1499,9 @@ void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, const Q
 
 // NULL values sorted at end
 int QoreString::compareSoft(const QoreString *str, ExceptionSink *xsink) const {
-   if (!priv->buf) {
-      if (!str->priv->buf)
+   // empty strings are always equal even if the character encoding is different
+   if (!priv->len) {
+      if (!str->priv->len)
 	 return 0;
       else
 	 return 1;
