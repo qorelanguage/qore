@@ -1051,10 +1051,6 @@ else
     CPPFLAGS="$CPPFLAGS $QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
     LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
 
-if test "$mingw" = yes; then
-    LIBS="$LIBS -lgdi32 -lz"
-fi
-
     # check for SHA512 algorithm
     AC_MSG_CHECKING([for SHA224, SHA256, SHA384, SHA512 in openssl])
     AC_LINK_IFELSE([AC_LANG_PROGRAM(
@@ -1082,8 +1078,21 @@ fi
         AC_DEFINE([NEED_SSL_CTX_NEW_CONST], 1, [Define if SSL_CTX_new() requires a const argument])],
        [AC_MSG_RESULT([no const required])])
 
+    # check for return value with HMAC_Update and friends
+    AC_MSG_CHECKING([return value supported for HMAC_Update() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/hmac.h>]],
+    [[int rc = HMAC_Update(0, 0, 0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_OPENSSL_HMAC_RV], 1, [Define if HMAC_Update() and friends support a return value])],
+       [AC_MSG_RESULT([no return values are supported])])
+
     CPPFLAGS="$SAVE_CPPFLAGS"
     LIBS="$SAVE_LIBS"
+fi
+
+if test "$mingw" = yes; then
+    LIBS="$LIBS -lgdi32 -lz"
 fi
 
 set_dl_cppflags() {

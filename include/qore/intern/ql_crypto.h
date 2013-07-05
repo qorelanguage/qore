@@ -148,15 +148,27 @@ public:
     DLLLOCAL int doHMAC(const char *err, const EVP_MD *md, const QoreStringNode *key, ExceptionSink *xsink) {
         HMAC_CTX ctx;
         HMAC_CTX_init(&ctx);
- 
-        HMAC_Init_ex(&ctx, key->getBuffer(), key->strlen(), md, 0);
 
+#ifdef HAVE_OPENSSL_HMAC_RV
+        int rc = HMAC_Init_ex(&ctx, key->getBuffer(), key->strlen(), md, 0);
+        if (!rc) {
+            xsink->raiseException(err, "error initalizing HMAC");
+            return -1;
+        }
+#else
+        HMAC_Init_ex(&ctx, key->getBuffer(), key->strlen(), md, 0);
+#endif
+
+#ifdef HAVE_OPENSSL_HMAC_RV
         if (!HMAC_Update(&ctx, input, input_len)
-            || !HMAC_Final(&ctx, md_value, &md_len))
-        {
+            || !HMAC_Final(&ctx, md_value, &md_len)) {
             xsink->raiseException(err, "error calculating HMAC");
             return -1;
         }
+#else
+        HMAC_Update(&ctx, input, input_len);
+        HMAC_Final(&ctx, md_value, &md_len);
+#endif
     
         HMAC_CTX_cleanup(&ctx);
         return 0;
