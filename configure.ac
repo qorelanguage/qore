@@ -664,6 +664,7 @@ find_mpfr() {
     mpfr_regular=`grep mpfr_regular_p "$with_mpfr_includes/mpfr.h" 2>/dev/null`
     mpfr_rndn=`grep MPFR_RNDN "$with_mpfr_includes/mpfr.h" 2>/dev/null`
     mpfr_sprintf=`grep mpfr_sprintf "$with_mpfr_includes/mpfr.h" 2>/dev/null`
+    mpfr_buildopt_tls_p=`grep mpfr_buildopt_tls_p "$with_mpfr_includes/mpfr.h" 2>/dev/null`
 
     QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $MPFR_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $MPFR_CPPFLAGS"
@@ -757,6 +758,14 @@ fi
 AC_MSG_CHECKING([for mpfr_sprintf])
 if test -n "$mpfr_sprintf"; then
    AC_DEFINE([HAVE_MPFR_SPRINTF], 1, [define if the mpfr library supports mpfr_sprintf])
+   AC_MSG_RESULT([yes])
+else
+   AC_MSG_RESULT([not found])
+fi
+
+AC_MSG_CHECKING([for mpfr_buildopt_tls_p])
+if test -n "$mpfr_buildopt_tls_p"; then
+   AC_DEFINE([HAVE_MPFR_BUILDOPT_TLS_P], 1, [define if the mpfr library supports mpfr_buildopt_tls_p])
    AC_MSG_RESULT([yes])
 else
    AC_MSG_RESULT([not found])

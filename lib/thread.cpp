@@ -1407,9 +1407,11 @@ void register_thread(int tid, pthread_t ptid, QoreProgram* p, bool foreign) {
 }
 
 static void qore_thread_cleanup(void* n = 0) {
+#ifdef HAVE_MPFR_BUILDOPT_TLS_T
    // only call mpfr_free_cache if MPFR uses TLS
    if (mpfr_buildopt_tls_p())
       mpfr_free_cache();
+#endif
    ERR_remove_state(0);
 }
 
