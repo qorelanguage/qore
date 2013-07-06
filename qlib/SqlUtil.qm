@@ -9484,7 +9484,7 @@ my bool $b = $table.empty();
             foreach string cn in (desc.columns.keyIterator()) {
                 hash ch = desc.columns{cn};
                 softbool nullable = !exists ch.notnull ? True : !(remove ch.notnull);
-                addColumnUnlocked(cn, ch + oc, nullable ? True : False, oc);
+                addColumnUnlocked(cn, ch + oc, nullable ? True : False);
             }
 
             # add indexes to table
