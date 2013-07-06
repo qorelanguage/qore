@@ -32,6 +32,7 @@
 %enable-all-warnings
 
 %requires HttpServer >= 0.3.7
+%requires WebSocketUtil >= 1.0
 
 module WebSocketHandler {
     version = "1.0";
@@ -88,7 +89,7 @@ public namespace WebSocketHandler {
         }
 
         send(data $msg) {
-            $.queue.push(WebSocketHandler::encodeMessage($msg));
+            $.queue.push(ws_encode_message($msg));
         }
 
         gotMessage(string $msg) {
@@ -101,99 +102,6 @@ public namespace WebSocketHandler {
     #! the main web socket handler class
     public class WebSocketHandler inherits AbstractHttpSocketHandler {
         public {
-            #! WebSocket GUID
-            const GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-
-            #! the final fragment in a message
-            const FIN = (1 << 7); 
-
-            /** @defgroup opcodes WebSocket OpCodes
-             */
-            #@{
-            #! continuation frame opcode
-            const Op_Continuation = 0x0;
-
-            #! text frame opcode
-            const Op_Text = 0x1;
-
-            #! binary frame opcode
-            const Op_Binary = 0x2;
-
-            #! connection code opcode
-            const Op_Close = 0x8;
-
-            #! ping opcode
-            const Op_Ping = 0x9;
-
-            #! pong opcode
-            const Op_Pong = 0xa;
-
-            #! maps from opcodes to text descriptions
-            const OpMap = (
-                Op_Continuation: "CONTINUATION",
-                Op_Text: "TEXT",
-                Op_Binary: "BINARY",
-                Op_Close: "CLOSE",
-                Op_Ping: "PING",
-                Op_Pong: "PONG",
-                );
-            #@}
-
-            /** @defgroup closecodes WebSocket Close Codes
-             */
-            #@{
-            #! "Normal Closure" code
-            const CC_NormalClosure = 1000;
-
-            #! "Going Away" code
-            const CC_GoingAway = 1001;
-
-            #! "Protocol Error" code
-            const CC_ProtocolError = 1002;
-
-            #! "Unsupported Data" code
-            const CC_UnsupportedData = 1003;
-
-            #! "No Status Rcvd" code
-            const CC_NoStatusRcvd = 1005;
-
-            #! "Abnormal Closure" code
-            const CC_AbnormalClosure = 1006;
-
-            #! "Invalid Frame Payload Data" code
-            const CC_InvalidData = 1007;
-
-            #! "Policy Violation" code
-            const CC_PolicyViolation = 1008;
-
-            #! "Message Too Big" code
-            const CC_MessageTooBig = 1009;
-
-            #! "Mandatory Ext." code
-            const CC_MandatoryExt = 1010;
-
-            #! "Internal Server Error" code
-            const CC_InternalServerError = 1011;
-
-            #! "TLS Handshake" code
-            const CC_TlsHandshake = 1015;
-
-            #! maps from close codes to text descriptions
-            const CcMap = (
-                CC_NormalClosure: "Normal Closure",
-                CC_GoingAway: "Going Away",
-                CC_ProtocolError: "Protocol Error",
-                CC_UnsupportedData: "Unsupported Data",
-                CC_NoStatusRcvd: "No Status Rcvd",
-                CC_AbnormalClosure: "Abnormal Closure",
-                CC_InvalidData: "Invalid Frame Payload Data",
-                CC_PolicyViolation: "Policy Violation",
-                CC_MessageTooBig: "Message Too Big",
-                CC_MandatoryExt: "Mandatory Ext.",
-                CC_InternalServerError: "Internal Server Error",
-                CC_TlsHandshake: "TLS Handshake",
-                );
-            #@}
         }
 
         private {
@@ -243,7 +151,7 @@ public namespace WebSocketHandler {
                 );
 
             my string $key = $hdr."sec-websocket-key";
-            my string $response_key = makeBase64String(SHA1_bin($key + GUID));
+            my string $response_key = makeBase64String(SHA1_bin($key + WS_GUID));
 
             my hash $rhdr = (
                 "Upgrade": "websocket",
@@ -296,7 +204,7 @@ public namespace WebSocketHandler {
             while (True) {
                 if ($.stop || $.lsh.$lid) {
                     #$.logDebug("WebSocketHandler::startImpl() cid: %y stopping stop: %y", $cx.id, $.stop);
-                    $.sendClose($sock, CC_GoingAway);
+                    $.sendClose($sock, WSCC_GoingAway);
                     break;
                 }
 
@@ -311,86 +219,44 @@ public namespace WebSocketHandler {
                     if (!$sock.isDataAvailable(0))
                         continue;
 
-                    my int $b0 = $sock.recvu1();
+                    my hash $h = ws_read_message($sock);
 
-                    # get opcode
-                    my int $op = $b0 & 0xf;
-                    
-                    # get next byte
-                    my int $b1 = $sock.recvu1();
-                    my softbool $masked = $b1 & 0x80;
-                    $b1 &= 0x7f;
-                    
-                    my int $data_len;
-                    if ($b1 < 126)
-                        $data_len = $b1;
-                    else if ($b1 < 65535)
-                        $data_len = $sock.recvu2();
-                    else
-                        $data_len = $sock.recvi8();
-                    
-                    my *binary $mask;
-                    if ($masked) {
-                        $mask = $sock.recvBinary(4);
-                        #$.logDebug("mask: %s", $mask.toHex());
-                    }
-                    
-                    my *data $data;
-                    if ($data_len)
-                        $data = $sock.recvBinary($data_len);
-                    
-                    # unmask data if necessary
-                    if ($mask) {
-                        # unmasked data
-                        my binary $udata;
-                        for (my int $i = 0; $i < $data.size(); ++$i)
-                            $udata += chr(($data[$i] ^ $mask[$i % 4]));
-                        $data = $udata;
-                    }
-
-                    if ($op == Op_Close) {
-                        if (!$data) {
+                    if ($h.op == WSOP_Close) {
+                        if (!$h.close) {
                             $.logDebug("client sent OpClose without code; closing immediately");
                             break;
                         }
-                        my int $code = get_word_32($data, 0);
-                        # remove the first 4 bytes extracted above
-                        splice $data, 0, 4;
-                        my *string $txtmsg = $data ? $data.toString("utf8") : NOTHING;
-                        $.logDebug("client sent Op_Close code %d (%s): %s", $code, CcMap.$code, $txtmsg);
-                        $.sendClose($sock, $code, $txtmsg);
+                        $.logDebug("client sent WSOP_Close code %d (%s): %s", $h.close, WSCCMap.($h.close), $h.msg);
+                        $.sendClose($sock, $h.close, $h.msg);
                         break;
                     }
 
-                    if ($op == Op_Text)
-                        $data = $data.toString($sock.getEncoding());
+                    $.logDebug("received msg (%s: %d bytes%s): %s", WSOPMap.($h.op), $h.msg.size(), $h.masked ? " masked" : "", WebSocketHandler::getDataString($h.msg));
 
-                    $.logDebug("received msg (%s: %d bytes%s): %s", OpMap.$op, $data.size(), $masked ? " masked" : "", WebSocketHandler::getDataString($data));
-
-                    if (!$masked) {
+                    if (!$h.masked) {
                         $.logError("unmasked client frame received");
-                        $.sendClose($sock, CC_ProtocolError);
+                        $.sendClose($sock, WSCC_ProtocolError);
                         break;
                     }
                     
-                    if ($op == Op_Ping) {
-                        $sock.send(WebSocketHandler::encodeMessage($data, Op_Pong));
+                    if ($h.op == WSOP_Ping) {
+                        $sock.send(ws_encode_message($h.msg, WSOP_Pong));
                         continue;
                     }
                     
-                    if ($op == Op_Text || $op == Op_Binary) {
-                        $wsc.gotMessage($data);
+                    if ($h.op == WSOP_Text || $h.op == WSOP_Binary) {
+                        $wsc.gotMessage($h.msg);
                         continue;
                     }
                     # unrecognized opcode - close the connection
-                    $.sendClose($sock, CC_UnsupportedData);
+                    $.sendClose($sock, WSCC_UnsupportedData);
                     break;
                 }
                 catch (hash $ex) {
                     # error in websocket handler server, log and close the connection
                     my string $err = sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
                     $.logError($err);
-                    $.sendClose($sock, CC_InternalServerError, $err);
+                    $.sendClose($sock, WSCC_InternalServerError, $err);
                     break;
                 }
             }
@@ -408,7 +274,7 @@ public namespace WebSocketHandler {
         }
 
         sendAll(data $d) {
-            my binary $msg = WebSocketHandler::encodeMessage($d);
+            my binary $msg = ws_encode_message($d);
 
             $.rwl.readLock();
             on_exit $.rwl.readUnlock();
@@ -432,17 +298,17 @@ public namespace WebSocketHandler {
         private sendClose(Socket $sock, int $code, *string $txtmsg) {
             my binary $msg = $code.encodeMsb(4);
 
-            if (!CcMap.$code) {
-                $.logError("WebSocketHandler::sendClose(): invalid close code %d received; expecting one of: %y", $code, (map $1.toInt(), CcMap.keyIterator()));
-                $code = CC_InternalServerError;
+            if (!WSCCMap.$code) {
+                $.logError("WebSocketHandler::sendClose(): invalid close code %d received; expecting one of: %y", $code, (map $1.toInt(), WSCCMap.keyIterator()));
+                $code = WSCC_InternalServerError;
             }
 
             if ($txtmsg)
                 $txtmsg = convert_encoding($txtmsg, "utf8");
             else
-                $txtmsg = CcMap.$code;
+                $txtmsg = WSCCMap.$code;
             $msg += $txtmsg;
-            $sock.send(WebSocketHandler::encodeMessage($msg, Op_Close));
+            $sock.send(ws_encode_message($msg, WSOP_Close));
         }
 
         static string getDataString(*data $data) {
@@ -454,32 +320,6 @@ public namespace WebSocketHandler {
                 return $data;
             return $data.toHex();
             */
-        }
-
-        static binary encodeMessage(data $msg, int $op = -1) {
-            if ($op == -1)
-                $op = $msg.typeCode() == NT_STRING ? Op_Text : Op_Binary;
-            my binary $frame += chr(FIN | $op);
-            
-            # encode frames with a message size < 126 directly in the second byte
-            switch ($msg.size()) {
-                case < 126: {
-                    $frame += chr($msg.size());
-                    break;
-                }
-                case < 65536: {
-                    $frame += chr(126);
-                    $frame += $msg.size().encodeMsb(2);
-                    break;
-                }
-              default: {
-                  $frame += chr(127);
-                  $frame += $msg.size().encodeMsb(8);
-                }
-            }
-            $frame += $msg;
-            
-            return $frame;
         }
 
         #! default implementation is empty

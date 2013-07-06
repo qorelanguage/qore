@@ -1,0 +1,266 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file WebSocketUtil.qm WebSocket common client/server code
+
+/*  WebSocketHandler.qm Copyright 2013 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.8 or better
+%requires qore >= 0.8.8
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+module WebSocketUtil {
+    version = "1.0";
+    desc = "user module for providing common client and server support for the WebSocket protocol";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+}
+
+/*  Version History
+    * 2013-xx-xx v1.0: David Nichols <david@qore.org>
+      + the initial version of the WebSocketUtil module
+*/
+
+/** @mainpage WebSocketUtil Module
+
+    The %WebSocketUtil module provides common client and server support for <a href="http://tools.ietf.org/html/rfc6455">RFC-6455 based WebSocket protocol</a> implementations in %Qore.
+*/
+
+#! the WebSocketUtil namespace contains all the definitions in the WebSocketUtil module
+public namespace WebSocketUtil {
+    #! WebSocket GUID
+    public const WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+    #! the final fragment in a message
+    public const WS_FIN = (1 << 7); 
+
+    /** @defgroup opcodes WebSocket OpCodes
+     */
+    #@{
+    #! continuation frame opcode
+    public const WSOP_Continuation = 0x0;
+
+    #! text frame opcode
+    public const WSOP_Text = 0x1;
+
+    #! binary frame opcode
+    public const WSOP_Binary = 0x2;
+
+    #! connection code opcode
+    public const WSOP_Close = 0x8;
+
+    #! ping opcode
+    public const WSOP_Ping = 0x9;
+
+    #! pong opcode
+    public const WSOP_Pong = 0xa;
+
+    #! maps from opcodes to text descriptions
+    public const WSOPMap = (
+        WSOP_Continuation: "CONTINUATION",
+        WSOP_Text: "TEXT",
+        WSOP_Binary: "BINARY",
+        WSOP_Close: "CLOSE",
+        WSOP_Ping: "PING",
+        WSOP_Pong: "PONG",
+	);
+    #@}
+
+    /** @defgroup closecodes WebSocket Close Codes
+     */
+    #@{
+    #! "Normal Closure" code
+    public const WSCC_NormalClosure = 1000;
+
+    #! "Going Away" code
+    public const WSCC_GoingAway = 1001;
+
+    #! "Protocol Error" code
+    public const WSCC_ProtocolError = 1002;
+
+    #! "Unsupported Data" code
+    public const WSCC_UnsupportedData = 1003;
+
+    #! "No Status Rcvd" code
+    public const WSCC_NoStatusRcvd = 1005;
+
+    #! "Abnormal Closure" code
+    public const WSCC_AbnormalClosure = 1006;
+
+    #! "Invalid Frame Payload Data" code
+    public const WSCC_InvalidData = 1007;
+
+    #! "Policy Violation" code
+    public const WSCC_PolicyViolation = 1008;
+
+    #! "Message Too Big" code
+    public const WSCC_MessageTooBig = 1009;
+
+    #! "Mandatory Ext." code
+    public const WSCC_MandatoryExt = 1010;
+
+    #! "Internal Server Error" code
+    public const WSCC_InternalServerError = 1011;
+
+    #! "TLS Handshake" code
+    public const WSCC_TlsHandshake = 1015;
+
+    #! maps from close codes to text descriptions
+    public const WSCCMap = (
+        WSCC_NormalClosure: "Normal Closure",
+        WSCC_GoingAway: "Going Away",
+        WSCC_ProtocolError: "Protocol Error",
+        WSCC_UnsupportedData: "Unsupported Data",
+        WSCC_NoStatusRcvd: "No Status Rcvd",
+        WSCC_AbnormalClosure: "Abnormal Closure",
+        WSCC_InvalidData: "Invalid Frame Payload Data",
+        WSCC_PolicyViolation: "Policy Violation",
+        WSCC_MessageTooBig: "Message Too Big",
+        WSCC_MandatoryExt: "Mandatory Ext.",
+        WSCC_InternalServerError: "Internal Server Error",
+        WSCC_TlsHandshake: "TLS Handshake",
+	);
+    #@}
+
+    #! encodes a message for sending over a websocket socket
+    public binary sub ws_encode_message(data $msg, int $op = -1, *binary $mask) {
+	if ($op == -1)
+	    $op = $msg.typeCode() == NT_STRING ? WSOP_Text : WSOP_Binary;
+
+	my bool $masked;
+	if ($mask && $mask.size() > 3) {
+	    if ($mask.size() > 4)
+		splice $mask, 4;
+	    if ($mask != <00000000>)
+		$masked = True;
+	}
+
+	my binary $frame += chr(WS_FIN | $op);
+	
+	# encode frames with a message size < 126 directly in the second byte
+	switch ($msg.size()) {
+	    case < 126: {
+		$frame += chr($msg.size() + ($masked ? 0x80 : 0));
+		break;
+	    }
+	    case < 65536: {
+		$frame += chr(126 + ($masked ? 0x80 : 0));
+		$frame += $msg.size().encodeMsb(2);
+		break;
+	    }
+  	    default: {
+	        $frame += chr(127 + ($masked ? 0x80 : 0));
+		$frame += $msg.size().encodeMsb(8);
+	    }
+	}
+
+	if ($masked) {
+	    $frame += $mask;
+	    my binary $udata;
+	    if ($msg.typeCode() == NT_STRING)
+		$msg = binary($msg);
+	    for (my int $i = 0; $i < $msg.size(); ++$i)
+		$udata += chr(($msg[$i] ^ $msg[$i % 4]));
+	    $msg = $udata;
+	}
+
+	$frame += $msg;
+	
+	return $frame;
+    }
+
+    #! read and decode a message from a socket
+    /** @par Example:
+        @code
+	@endcode
+
+	@param sock the @ref Qore::Socket "Socket" object to receive the message
+	@param to an optional read timeout
+	
+	@return a hash with the following keys:
+	- \c op: the operation code (one of @ref opcodes)
+	- \c masked a boolean flag indicating if the message was masked or not
+	- \c msg: the message received; if a CLOSE opcode is received (see @ref WSOP_Close) then any close message is decoded and included here in text form
+	- \c close: the close code (one of @ref closecodes); only included if \a op is @ref WSOP_Close
+    */
+    public hash sub ws_read_message(Socket $sock, *timeout $to) {
+	my int $b0 = $sock.recvu1($to);
+
+	# get opcode
+	my int $op = $b0 & 0xf;
+                    
+	# get next byte
+	my int $b1 = $sock.recvu1();
+	my softbool $masked = $b1 & 0x80;
+	$b1 &= 0x7f;
+                    
+	my int $data_len;
+	if ($b1 < 126)
+	    $data_len = $b1;
+	else if ($b1 == 126)
+	    $data_len = $sock.recvu2();
+	else
+	    $data_len = $sock.recvi8();
+                    
+	my *binary $mask;
+	if ($masked) {
+	    $mask = $sock.recvBinary(4);
+	    #$.logDebug("mask: %s", $mask.toHex());
+	}
+
+	my *data $data;
+	if ($data_len)
+	    $data = $sock.recvBinary($data_len);
+                    
+	# unmask data if necessary
+	if ($mask) {
+	    # unmasked data
+	    my binary $udata;
+	    for (my int $i = 0; $i < $data.size(); ++$i)
+		$udata += chr(($data[$i] ^ $mask[$i % 4]));
+	    $data = $udata;
+	}
+
+	my hash $h = (
+	    "op": $op,
+	    "masked": $masked,
+	    );
+	if ($h.op == WSOP_Close) {
+	    if ($data) {
+		$h.close = get_word_32($data, 0);
+		# remove the first 4 bytes extracted above
+		splice $data, 0, 4;
+		my *string $txtmsg = $data ? $data.toString("utf8") : NOTHING;
+		$data = $txtmsg;
+	    }
+	}
+	else if ($op == WSOP_Text)
+	    $data = $data.toString($sock.getEncoding());
+
+	return $h + (
+	    "msg": $data,
+	    );
+    }
+}
