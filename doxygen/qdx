@@ -346,7 +346,8 @@ class qdx {
             }
 
             # see if the line is the start of a method or function declaration
-            if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/) {
+            if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/
+                && line !~ /^[[:blank:]]*\"/) {
                 #printf("method or func: %s", line);
                 
                 # remove "$" signs
