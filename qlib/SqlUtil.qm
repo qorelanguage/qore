@@ -256,12 +256,14 @@ my hash $soh = (
     The select option hash argument has the following keys; all of which are optional:
     - @ref select_option_columns "columns": describes the output columns and any output column operations; if not present, then all columns are returned directly in the output
     - @ref select_option_where "where": (@ref hash_type "hash") describes how any \c "where" clause will be built; if not present, then there is no \c where clause
-    - @ref select_option_orderby "orderby": (@ref list_type "list or strings") describes the ordering of the results; if not present (and no other output ordering is required, such as implied by the @ref select_option_offset "offset" option), then results are returned in the order returned by the database server
+    - @ref select_option_orderby "orderby": (@ref list_type "list of strings") describes the ordering of the results; if not present (and no other output ordering is required, such as implied by the @ref select_option_offset "offset" option), then results are returned in the order returned by the database server
     - @ref select_option_desc "desc": (@ref bool_type "bool") specifies descending order for results; if not present or not @ref Qore::True "True" and results are ordered, then the results are returned in ascending order
     - @ref select_option_limit "limit": (@ref int_type "int") specifies the maximum number of results to be returned; if not present, then all results are returned
     - @ref select_option_offset "offset": (@ref int_type "int") specifies the starting offset of the first record to be returned (starting with 0)
     - @ref select_option_join "join": (@ref hash_type "hash") specifies any SQL join operations to return results from multiple tables
-
+    - @ref select_option_groupby "groupby": (@ref list_type "list of strings") specifies grouping for aggregate column functions
+    - @ref select_option_having "having": (@ref hash_type "hash") specifies filtering for results with aggregate column functions
+ 
     @anchor select_option_columns
     @par Select Option "columns"
     <b>Columns Example:</b>
@@ -436,7 +438,7 @@ if ($h)
     - @ref SqlUtil::Table::insertFromSelect(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and commits the transaction
     - @ref SqlUtil::Table::insertFromSelectNoCommit(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and without committing the transaction
 
-    @see sql_upsert for information about upserting or merging data
+    @see @ref sql_upsert for information about upserting or merging data
 
     @subsection inserting_data_explicitly Inserting Data Explicitly
 
@@ -1563,7 +1565,7 @@ my hash $sh = $table.upsertFromIterator($i, $upsert_strategy, False, ("info_call
 
     This option is identical to @ref upsert_info_callback, except the \a result argument is always @ref SqlUtil::AbstractTable::UR_Inserted.
 */
-    
+
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
     /* @defgroup SqlTypeConstants SQL Type Constants
