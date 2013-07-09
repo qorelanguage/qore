@@ -1246,6 +1246,8 @@ public:
    }
 
    DLLLOCAL void assignInit(AbstractQoreNode* v) {
+      // try to set an optimized value type for the value holder if possible
+      val.set(getTypeInfo());
       val.assignInitial(v);
    }
 
@@ -1259,13 +1261,15 @@ public:
 
    DLLLOCAL void init() {
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
+      // try to set an optimized value type for the value holder if possible
+      val.set(getTypeInfo());
       val.assignInitial(typeInfo->getDefaultQoreValue());
 #endif
    }
 
    DLLLOCAL AbstractQoreNode* getReferencedValue() const {
       AutoLocker al(l);
-      return val.eval();;
+      return val.getReferencedValue();
    }
 
    DLLLOCAL int64 getAsBigInt() const {

@@ -59,6 +59,35 @@ module MysqlSqlUtil {
     directly, use \c "%requires MysqlSqlUtil" in your code.
     
     All the public symbols in the module are defined in the MysqlSqlUtil namespace
+
+    @section mysql_schema_management Schema Management on MySQL
+
+    @subsection mysql_type_mapping Type Mapping
+
+    Column types are mapped from %Qore types as follows:
+
+    <b>MySQL Column Type Mappings</b>
+    |!Generic Type Name|!Oracle Type Used
+    |\c float|\c double
+    |\c number|\c decimal
+    |\c string|\c varchar
+    |\c date|\c datetime
+    |\c binary|\c varbinary
+    |\c bool|\c tinyint
+    |@ref SqlUtil::BLOB|\c mediumblob
+    |@ref SqlUtil::CHAR|\c char
+    |@ref SqlUtil::CLOB|\c mediumtext
+    |@ref SqlUtil::NUMERIC|\c decimal
+    |@ref SqlUtil::VARCHAR|\c varchar
+
+    To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the 
+    native MySQL type name instead (under the \c "driver" and \c "mysql" keys for schemas supporting multiple databases).
+
+    @subsection mysql_column_notnull NOT NULL Constraints on MySQL
+
+    MySQL currently does not support firing "before insert" or "before update" triggers before constraints are checked, so in other databases
+    where a trigger will set a default value for a column when a NULL is inserted, MySQL will raise an error if there is a NOT NULL
+    constraint on the column.
 */
 
 #! the MysqlSqlUtil namespace contains all the objects in the MysqlSqlUtil module

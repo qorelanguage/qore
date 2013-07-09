@@ -148,6 +148,8 @@ public:
 
    DLLLOCAL void setInitial(AbstractQoreNode* v) {
       assert(val.type == QV_Node);
+      // try to set an optimized value type for the value holder if possible
+      val.set(typeInfo);
       val.assignInitial(v);
    }
 

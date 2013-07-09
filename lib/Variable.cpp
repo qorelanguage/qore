@@ -95,14 +95,14 @@ AbstractQoreNode* Var::eval() const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->eval();
    AutoLocker al(m);
-   return val.eval();
+   return val.getReferencedValue();
 }
 
 AbstractQoreNode* Var::eval(bool &needs_deref) const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->eval(needs_deref);
    AutoLocker al(m);
-   return val.eval(needs_deref, true);
+   return val.getReferencedValue(needs_deref, true);
 }
 
 bool Var::boolEval() const {
@@ -151,11 +151,8 @@ LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bo
 void LValueHelper::setValue(QoreLValueGeneric& nv) {
    assert(!v);
    assert(!val);
-   if (nv.type == QV_Node) {
-      if (!nv.assigned)
-         nv.assigned = true;
-      v = &(nv.v.n);
-   }
+   if (!nv.optimized())
+      v = nv.getContainerValuePtr();
    else
       val = &nv;
 }
@@ -336,7 +333,7 @@ void LValueHelper::set(QoreThreadLock& m) {
 
 AbstractQoreNode* LValueHelper::getReferencedValue() const {
    if (val)
-      return val->eval();
+      return val->getReferencedValue();
 
    return *v ? (*v)->refSelf() : 0;
 }

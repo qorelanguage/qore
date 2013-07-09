@@ -1575,6 +1575,9 @@ public namespace SqlUtil {
     #! specifies a \c VARCHAR column (equivalent to @ref Qore::Type::String)
     public const VARCHAR = "string";
 
+    #! specifies a numeric column (equivalent to @ref Qore::Type::Number)
+    public const NUMERIC = "number";
+
     #! specifies a \c CHAR column
     public const CHAR = "char";
 

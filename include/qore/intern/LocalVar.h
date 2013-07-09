@@ -130,14 +130,8 @@ public:
       skip = false;
       id = n_id;
 
-      if (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)
-         val.set(QV_Int);
-      else if (typeInfo == floatTypeInfo || typeInfo == softFloatTypeInfo)
-         val.set(QV_Float);
-      else if (typeInfo == boolTypeInfo || typeInfo == softBoolTypeInfo)
-         val.set(QV_Bool);
-      else
-         val.set(QV_Node);
+      // try to set an optimized value type for the value holder if possible
+      val.set(typeInfo);
 
       // no exception is possible here as there was no previous value
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
@@ -148,24 +142,24 @@ public:
       del(xsink);
    }
 
+   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
+   DLLLOCAL void remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo);
+
+#if 0
    DLLLOCAL bool optimizedLocal() const {
       return val.optimized();
    }
 
-   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
-   DLLLOCAL void remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo);
-
    DLLLOCAL qore_type_t getValueType() const {
       assert(optimizedLocal());
-
       return val.getType();
    }
 
    DLLLOCAL const char* getValueTypeName() const {
       assert(optimizedLocal());
-
       return val.getTypeName();
    }
+#endif
 
    DLLLOCAL void finalize(ExceptionSink* xsink) {
       //assert(!finalized);
@@ -182,7 +176,7 @@ public:
          return helper ? lvalue_ref::get(ref)->vexp->eval(xsink) : 0;
       }
 
-      return val.eval();
+      return val.getReferencedValue();
    }
 
    DLLLOCAL AbstractQoreNode* eval(bool& needs_deref, ExceptionSink* xsink) {
@@ -193,7 +187,7 @@ public:
          return helper ? lvalue_ref::get(ref)->vexp->eval(xsink) : 0;
       }
  
-      return val.eval(needs_deref);
+      return val.getReferencedValue(needs_deref);
    }
 
    DLLLOCAL int64 bigIntEval(ExceptionSink* xsink) {
@@ -242,6 +236,9 @@ public:
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
 
    DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), typeInfo(varTypeInfo) {
+      // try to set an optimized value type for the value holder if possible
+      val.set(varTypeInfo);
+
       //printd(5, "ClosureVarValue::ClosureVarValue() this: %p pgm: %p\n", this, getProgram());
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
       discard(val.assignInitial(nval), 0);
@@ -288,7 +285,7 @@ public:
          return helper ? lvalue_ref::get(*ref)->vexp->eval(xsink) : 0;
       }
 
-      return val.eval();
+      return val.getReferencedValue();
    }
 
    DLLLOCAL AbstractQoreNode* eval(bool& needs_deref, ExceptionSink* xsink) {
@@ -300,7 +297,7 @@ public:
          return helper ? lvalue_ref::get(*ref)->vexp->eval(needs_deref, xsink) : 0;
       }
 
-      return val.eval(needs_deref, true);
+      return val.getReferencedValue(needs_deref, true);
    }
 
    DLLLOCAL int64 bigIntEval(ExceptionSink* xsink) {
