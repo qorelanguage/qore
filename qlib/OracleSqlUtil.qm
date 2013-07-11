@@ -1286,8 +1286,10 @@ my any $v = $c.name;
                 OP_IN: (
                     "code": string sub (object t, string cn, any arg, reference args) {
                         *string argstr = (foldl $1 + "," + $2, (map $1.toString(), arg));
+
+                        # in this case this part of the expression will fail
                         if (!argstr)
-                            return "null";
+                            return cn + "!=" + cn;
 
                         args += argstr;
                         args += argstr;
