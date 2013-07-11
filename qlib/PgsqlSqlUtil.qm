@@ -60,6 +60,56 @@ module PgsqlSqlUtil {
     
     All the public symbols in the module are defined in the PgsqlSqlUtil namespace
 
+    @section pgsql_schema_management Schema Management on PostgreSQL
+
+    @subsection pgsql_type_mapping Type Mapping
+
+    Column types are mapped from %Qore types as follows:
+
+    <b>PostgreSQL Column Type Mappings</b>
+    |!Generic Type Name|!Oracle Type Used
+    |\c float|\c double
+    |\c integer|\c bigint
+    |\c number|\c numeric
+    |\c string|\c varchar
+    |\c date|\c timestamp
+    |\c binary|\c bytea
+    |\c bool|\c boolean
+    |@ref SqlUtil::BLOB|\c bytea
+    |@ref SqlUtil::CHAR|\c char
+    |@ref SqlUtil::CLOB|\c text
+    |@ref SqlUtil::NUMERIC|\c numeric
+    |@ref SqlUtil::VARCHAR|\c varchar
+
+
+    To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the 
+    native PostgreSQL type name instead (under the \c "driver" and \c "pgsql" keys for schemas supporting multiple databases).
+
+    @subsection pgsql_other_objects Additional Object Types Supported
+
+    The following additional schema objects can be managed with %PgsqlSqlUtil:
+    - @ref pgsql_types "types"
+
+    @subsection pgsql_types Types
+
+    The @ref schema_desc_hash takes an optional key, \c "types" that allows types in PostgreSQL schemas to be managed along with other objects.
+
+    The \c "types" should be assigned to a hash, each key name is the name of the type, and the values are strings giving the type definition.
+
+    The \c "types" key can go in the top level of the @ref schema_desc_hash for PostgreSQL-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "pgsql" keys as in the following example:
+
+    @code
+my hash $schema = (
+    "driver": (
+        "pgsql": (
+            "types": (
+                "info_record": "id numeric, ind numeric, status char",
+            ),
+        ),
+    ),
+);
+    @endcode
+
     @section functions Functions
     
     @subsection function_names Function Names and Matching
@@ -80,12 +130,16 @@ module PgsqlSqlUtil {
 
     @subsection function_management Schema Management with Functions
 
-    In order to use schema management with functions properly, the function source has to be in the format returned by 
+    There is some simple logic in the driver that attempts to reorder function definitions so that they match the format returned by 
     <a href="http://www.postgresql.org/docs/9.2/static/functions-info.html">pg_catalog.pg_get_functiondef()</a>
     which requires the following string to follow the function name and arguments:
     - <tt><b>returns</b></tt> <i>type</i> <tt><b>language</b></tt> <i>lang</i> <tt><b>as $function$ </b></tt> 
 
-    For example:
+    The logic in the module attempts to move any language and volatility declarations from the end of the declaration to the beginning.  Additionally, dollar-quoting is detected automatically and substituted with \c "$function$" automatically.
+
+    If your function is reported as needing updating even though it's already in the database correctly, then the logic in this module
+    needs to be update to provide more flexibility (please report to david@qore.org).  Until the module can be enhanced, try the format as
+    in the following example:
     @code
 update_queue_data(qkey varchar, qdata text) returns integer language plpgsql as $function$
 declare
@@ -98,11 +152,14 @@ end;
 $function$
     @endcode
 
-    There is some simple logic that attempts to move any language and volatility declarations from the end of the declaration to the beginning.  Additionally, dollar-quoting is detected automatically and substituted with \c "$function$" automatically.
-
     @note Future versions of the module may provide more intelligence to reformat user-supplied functions to match the
     format retrieved from the database, however currently functions should be provided in the format above in order
     to use functionality like @ref SqlUtil::Database::getAlignFunctionSql() for example.
+
+    @section pgsql_relnotes Release Notes
+
+    @subsection v10 OgsqlSqlUtil v1.0
+    - initial release
 */
 
 #! the PgsqlSqlUtil namespace contains all the objects in the PgsqlSqlUtil module

@@ -139,12 +139,19 @@ module SqlUtil {
     @code
 my *hash $row = $table.find($id);
     @endcode 
-    If no primary key value matches the given argument, then @ref nothing is returned.\n\n
+    If no primary key value matches the given argument, then @ref nothing is returned. A %Qore SQL statement like the following is generated from the above:
+    @code
+my *hash $row = $ds.selectRow("select * from schema.table where id = %v", $id);
+    @endcode
+    \n
     To retrieve a single row based on a complex primary key value, or a single primary key value and extra criteria, use @ref SqlUtil::Table::find(hash):
     @code
 my *hash $row = $table.find(("account_type": $type, "name": $name));
     @endcode
-    If no primary key value matches the given argument hash, then @ref nothing is returned.
+    If no row value matches the given argument hash, then @ref nothing is returned. A %Qore SQL statement like the following is generated from the above:
+    @code
+my *hash $row = $ds.selectRow("select * from schema.table where account_type = %v and name = %v", $type, $name);
+    @endcode
 
     @par At Most One Matching Row From the Table
     To retrieve at most one matching row from the table, use @ref SqlUtil::Table::findSingle():
@@ -152,7 +159,12 @@ my *hash $row = $table.find(("account_type": $type, "name": $name));
 my *hash $row = $table.findSingle(("permission_type": op_between("US", "UX")));
     @endcode
     This method can be used to efficiently check the table if at least one record matches the given \c where criteria; even if more rows match,
-    only a single row is returned.  If no rows match, then @ref nothing is returned.
+    only a single row is returned.  If no rows match, then @ref nothing is returned. A %Qore SQL statement like the following is generated from the above:
+    @code
+my *hash $row = $ds.selectRow("select * from schema.table where permission_type between %v and %v limit %v", "US", "UX", 1);
+    @endcode
+
+    @note handling the \c "limit" option depends on the underlying database; see @ref sql_paging for more information
 
     @subsection find_multiple_rows Retrieving Multiple Rows
 
@@ -626,7 +638,7 @@ my *hash $row = $table.findSingle(("permission_type": op_between("US", "UX")));
     @endcode
     resulting in an internal SQL command that looks as follows (depending on the database):
     @code
-$ds.vselect("select * from table where permission_type between %v and %v limit %v", ("US", "UX", 1));
+my *hash $row = $ds.vselectRow("select * from table where permission_type between %v and %v limit %v", ("US", "UX", 1));
     @endcode \n
     Delete all rows in the table where the \c "name" column is like \c "%Smith%":\n
     @code
@@ -1574,6 +1586,9 @@ public namespace SqlUtil {
     #@{
     #! specifies a \c VARCHAR column (equivalent to @ref Qore::Type::String)
     public const VARCHAR = "string";
+
+    #! specifies a numeric column (equivalent to @ref Qore::Type::Number)
+    public const NUMERIC = "number";
 
     #! specifies a \c CHAR column
     public const CHAR = "char";
@@ -8636,7 +8651,7 @@ my *hash $row = $table.findSingle($h);
 
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @note this is equivalent to calling selectRows() with \c where = \c cond and \c limit = 1
+            @note this is equivalent to calling selectRow() with \c where = \c cond and \c limit = 1
 
             @see selectRow()
          */
@@ -14102,7 +14117,7 @@ my *hash $row = $table.findSingle($h);
 
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @note this is equivalent to calling selectRows() with \c where = \c cond and \c limit = 1
+            @note this is equivalent to calling selectRow() with \c where = \c cond and \c limit = 1
          */
         *hash findSingle(*hash cond) {
             return selectRows(("where": cond, "limit": 1))[0];
