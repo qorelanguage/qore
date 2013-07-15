@@ -849,7 +849,7 @@ void QoreTimeZoneManager::init_intern(QoreString &TZ) {
 
    if (setLocalTZ(TZ.getBuffer())) {
       // try to interpret as time zone rule specification
-      printd(0, "QoreTimeZoneManager::init_intern(): cannot find zone: %s\n", TZ.getBuffer());
+      printd(1, "QoreTimeZoneManager::init_intern(): cannot find zone: %s\n", TZ.getBuffer());
    }
 }
 
@@ -920,24 +920,33 @@ void QoreTimeZoneManager::setFromLocalTimeFile() {
 #else
    if (!stat(LOCALTIME_LOCATION, &sbuf)) {
 #endif
-      // normally this file is a symlink
-      //printd(5, "QoreTimeZoneManager::QoreTimeZoneManager() %s: %d (%d)\n", LOCALTIME_LOCATION, sbuf.st_mode & S_IFMT, S_IFLNK);
+      // normally this file is a symlink - we need the target file name for the name of the time zone region
+      printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() %s: %d (%d)\n", LOCALTIME_LOCATION, sbuf.st_mode & S_IFMT, S_IFLNK);
 #ifdef S_IFLNK
       if ((sbuf.st_mode & S_IFMT) == S_IFLNK) {
-	 char buf[QORE_PATH_MAX + 1];
-	 qore_offset_t len = readlink(LOCALTIME_LOCATION, buf, QORE_PATH_MAX);
-	 if (len > 0) {
-	    buf[len] = '\0';
-	    setLocalTZ(buf);
-	 }
+        char buf[QORE_PATH_MAX + 1];
+        qore_offset_t len = readlink(LOCALTIME_LOCATION, buf, QORE_PATH_MAX);
+        if (len > 0) {
+           buf[len] = '\0';
+           if (buf[0] == '.' && buf[1] == '.') {
+              std::auto_ptr<char> dn(q_dirname(LOCALTIME_LOCATION));
+              QoreString path(dn.get());
+              path.concat('/');
+              path.concat(buf);
+              //printd(5, "QoreTimeZoneManager::QoreTimeZoneManager() path: '%s'\n", path.getBuffer());
+              setLocalTZ(path.getBuffer());              
+           }
+           else
+              setLocalTZ(buf);
+        }
 #ifdef DEBUG
-	 else
-	    printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() failed to read %s link: %s\n", LOCALTIME_LOCATION, strerror(errno));
+        else
+           printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() failed to read %s link: %s\n", LOCALTIME_LOCATION, strerror(errno));
 #endif // DEBUG
       }
       else
 #endif // S_IFLNK
-	 setLocalTZ(LOCALTIME_LOCATION);
+        setLocalTZ(LOCALTIME_LOCATION);
    }
 #ifdef DEBUG
    else {
