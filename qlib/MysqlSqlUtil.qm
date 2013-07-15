@@ -51,6 +51,8 @@ module MysqlSqlUtil {
 
 /** @mainpage MysqlSqlUtil Module
 
+    @tableofcontents
+
     @section intro Introduction
 
     The %MysqlSqlUtil module provides a high level API for working with MySQL database objects.

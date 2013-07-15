@@ -1298,6 +1298,21 @@ my any $v = $c.name;
                     },
                 ),
                 );
+
+            #! column operator specializations for Oracle
+            const OracleCopMap = DefaultCopMap + (
+                COP_OVER: (
+                    "argcolumn": True,
+                    "argoptional": True,
+                    "code": string sub (*string cve, *string arg) {
+                        string sql = cve + " over (";
+                        if (arg)
+                            sql += sprintf("partition by %s", arg);
+                        sql += ")";
+                        return sql;
+                    },
+                ),
+                );
         }
 
         private {
@@ -1453,8 +1468,8 @@ my any $v = $c.name;
             return OracleSelectOptions;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False) {
-            AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join);
+        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch) {
+            AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join, ch);
             if (qh.limit && !qh.orderby) {
                 if (!qh."where")
                     sql += " where ";
@@ -1850,6 +1865,11 @@ my any $v = $c.name;
         #! returns the "where" operator map for this object
         private hash getWhereOperatorMap() {
             return OracleOpMap;
+        }
+
+        #! returns the column operator map for this object
+        private hash getColumnOperatorMap() {
+            return OracleCopMap;
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
