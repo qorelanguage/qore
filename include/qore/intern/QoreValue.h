@@ -577,6 +577,8 @@ public:
    DLLLOCAL void assignSetTakeInitial(QoreLValue<U>& n) {
       assert(!assigned || type != QV_Node || !v.n);
       assert(!assigned);
+      if (!n.assigned)
+         return;
       assigned = true;
       type = n.type;
       switch (n.type) {
@@ -810,8 +812,10 @@ public:
       if (!fixed_type) {
          if (type != QV_Node)
             type = QV_Node;
-         if (!assigned)
+         if (!assigned) {
             assigned = true;
+            v.n = 0;
+         }
          return (AbstractQoreNode**)&v.n;
       }
 
@@ -824,8 +828,10 @@ public:
       if (!fixed_type) {
          if (type != QV_Node)
             type = QV_Node;
-         if (!assigned)
+         if (!assigned) {
             assigned = true;
+            v.n = 0;
+         }
          return (AbstractQoreNode**)&v.n;
       }
       return 0;
