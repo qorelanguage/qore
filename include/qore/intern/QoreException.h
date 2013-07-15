@@ -191,8 +191,12 @@ struct qore_es_private {
 	 str.concat(" * ");
 	 if (!w->file.empty())
 	    str.sprintf("%s:", w->file.c_str());
-	 if (w->start_line)
-	    str.sprintf("%d-%d: ", w->start_line, w->end_line);
+	 if (w->start_line) {
+	    str.sprintf("%d", w->start_line);
+            if (w->end_line && w->end_line != w->start_line)
+               str.sprintf("-%d", w->end_line);
+            str.concat(": ");
+         }
 	 str.sprintf("%s: %s", err->getBuffer(), desc->getBuffer());
          if (w != tail)
             str.concat('\n');
