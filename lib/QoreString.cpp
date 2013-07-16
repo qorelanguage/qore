@@ -296,6 +296,25 @@ bool QoreString::equal(const QoreString& str) const {
    return !strcmp(priv->buf, str.priv->buf);
 }
 
+bool QoreString::equalPartial(const QoreString& str) const {
+   // empty strings are always equal even if the character encoding is different
+   if (!priv->len) {
+      if (!str.priv->len)
+	 return true;
+      return false;
+   }
+   if (!str.priv->len)
+      return false;
+
+   if (priv->charset != str.priv->charset)
+      return false;
+
+   if (priv->len < str.priv->len)
+      return false;
+
+   return !strncmp(priv->buf, str.priv->buf, str.priv->len);
+}
+
 bool QoreString::equal(const char* str) const {
    // empty strings are always equal even if the character encoding is different
    if (!str || !str[0]) {
@@ -307,6 +326,19 @@ bool QoreString::equal(const char* str) const {
       return false;
 
    return !strcmp(priv->buf, str);
+}
+
+bool QoreString::equalPartial(const char* str) const {
+   // empty strings are always equal even if the character encoding is different
+   if (!str || !str[0]) {
+      if (!priv->len)
+	 return true;
+      return false;
+   }
+   if (!priv->len)
+      return false;
+
+   return !strncmp(priv->buf, str, ::strlen(str));
 }
 
 bool QoreString::equalSoft(const QoreString& str, ExceptionSink* xsink) const {
@@ -328,6 +360,27 @@ bool QoreString::equalSoft(const QoreString& str, ExceptionSink* xsink) const {
       return false;
 
    return !strcmp(priv->buf, t->getBuffer());
+}
+
+bool QoreString::equalPartialSoft(const QoreString& str, ExceptionSink* xsink) const {
+   // empty strings are always equal even if the character encoding is different
+   if (!priv->len) {
+      if (!str.priv->len)
+	 return true;
+      return false;
+   }
+   if (!str.priv->len)
+      return false;
+
+   // if the encodings are equal or equivalent and the lenghts are different then the strings are not equal
+   if ((priv->charset == str.priv->charset || (!priv->charset->isMultiByte() && !str.priv->charset->isMultiByte())) && priv->len < str.priv->len)
+      return false;
+
+   TempEncodingHelper t(str, priv->charset, xsink);
+   if (*xsink)
+      return false;
+
+   return !strncmp(priv->buf, t->getBuffer(), t->size());
 }
 
 void QoreString::terminate(qore_size_t size) {

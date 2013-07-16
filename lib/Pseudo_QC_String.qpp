@@ -734,3 +734,42 @@ string <string>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
    return rv;
 }
 
+//! Compares the beginning of the current string with a shorter string passed as an argument, returns -1, 0, or 1 if the argument string is less than, equal, or greater than the beginning of the current string; returns also -1 if the argument string is equal to the beginning of the current string but the argument string is longer than the current string
+/** @par Example:
+    @code
+my int $i = $str.comparePartial($ostr);
+    @endcode
+
+    @param ostr the partial string to compare the current string to
+
+    @return -1, 0, or 1 if the argument string is less than, equal, or greater than the beginning of the current string; returns also -1 if the argument string is equal to the beginning of the current string but the argument string is longer than the current string
+
+    @since %Qore 0.8.8
+*/
+int <string>::comparePartial(string ostr) [flags=RET_VALUE_ONLY] {
+   // convert pattern encoding to string if necessary
+   TempEncodingHelper temp(ostr, str->getEncoding(), xsink);
+   if (*xsink)
+      return 0;
+
+   int rc = strncmp(str->getBuffer(), temp->getBuffer(), temp->size());
+   return !rc ? 0 : (rc < 0 ? -1 : 1);
+}
+ 
+//! Compares the beginning of the current string with a shorter string passed as an argument for equality only, returns @ref Qore::True "True" if the string argument matches the beginning of the string, @ref Qore::False "False" if not
+/** @par Example:
+    @code
+my bool $b = $str.equalPartial($ostr);
+    @endcode
+
+    This pseudo-method is slightly faster than comparePartial() since the length of the substring can be used to determine if the strings can match or not.
+
+    @param ostr the partial string to compare the current string to
+
+    @return @ref Qore::True "True" if the string argument matches the beginning of the string, @ref Qore::False "False" if not
+
+    @since %Qore 0.8.8
+*/
+bool <string>::equalPartial(string ostr) [flags=RET_VALUE_ONLY] {
+   return str->equalPartialSoft(ostr, xsink);
+}
