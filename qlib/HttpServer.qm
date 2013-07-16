@@ -48,6 +48,9 @@ module HttpServer {
       + turned of TCP_NODELAY by default and use socket shutdown when closing sockets instead
       + set the listen backlog queue size to 100 by default (previously was hardcoded internally in Qore to 5)
       + use the new ThreadPool class introduced in Qore 0.8.8 to pre-allocate threads to reduce latency for new socket connections
+      + improved handler matching algorithm
+      + implemented many performance improvements
+      + implemented support for simple string path matching when finding a handler for a request
 
     * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
       + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
@@ -305,7 +308,7 @@ class HttpServer::HandlerInfo {
     int matchRequest(hash $hdr, int $score) {
         if ($.path && $hdr.path) {
             if (!$.isregex) {
-                if ($hdr.path.equalPartial($.path))
+                if ($hdr.path.equalPartialPath($.path))
                     return 3;
             }
             else {
@@ -366,6 +369,7 @@ class HttpServer::HttpHandlerList {
 
         foreach my HandlerInfo $hi in ($.handlers.iterator()) {
             my int $scr = $hi.matchRequest($hdr, $score);
+            #printf("findHandler() path: %s %y score: %d\n", $hdr.path, $hi.name, $scr);
             if ($scr > $score) {
                 $rv = $hi;
                 $score = $scr;
@@ -994,7 +998,7 @@ class HttpServer::HttpListener inherits Qore::Socket {
     addHandlers(hash $hi) {
 	#printf("HttpListener::addHandlers() hi: %y\n", $hi);
         my bool $def = $.handlers.empty();
-        map $.handlers.setHandler($1.key, $1.value.url, $1.value.isregex, $1.value.content, $1.value.handler, $1.value.headers), $hi.pairIterator();
+        map $.handlers.setHandler($1.key, $1.value.path, $1.value.isregex, $1.value.content, $1.value.handler, $1.value.headers), $hi.pairIterator();
         if ($def)
             $.setDefaultHandler($hi.firstKey());
     }
@@ -1602,10 +1606,11 @@ public class HttpServer::HttpServer {
         - \c key_path: (optional) a path to a private key file for an X509 certificate for HTTPS listeners
         - \c cert: (optional) an SSLCertificate object for HTTPS listeners
         - \c key: (optional) an SSLPrivateKey object for HTTPS listeners
-        - \c url: (required) the path for matching incoming requests (use "/" for dedicated listeners); this is more important for handlers on the global listeners
-        - \c bind: (required) the bind address for the dedicated listener
-        - \c content_type: (optional) an optional content type to match; this is more important for handlers on the global listeners
-        - \c special_headers: (optional) a string or a list of strings giving special headers that when matched will direct requests to the given handler; this is more important for handlers on the global listeners
+        - \c url: (required) the path for matching incoming requests (use "/" for dedicated listeners); this is more important for handlers on the global listeners; this is a regular expression unless \a isregex is @ref Qore::False "False"
+        - \c isregex: (optional) a boolean value determining if the \a url (= path value) is a regular expression or a simple string; if this key is not present, then \a url is assumed to the a regular expression
+        - \c bind: (required) the bind address for the dedicated listener; this can be a port number or an address (or hostname) and a port number separated by a colon (ex: \c "192.168.20.4:8021")
+        - \c content_type: (optional) an optional string or list of string content types to match
+        - \c special_headers: (optional) a string or a list of strings giving special headers that when matched will direct requests to the given handler
         @param logger an optional closure or call reference that will be called with logging information; if this is not set, then the logger set in the HttpServer::constructor() will be used instead
         @param errorlogger an optional closure or call reference that will be called with error information; if this is not set, then the error logger set in the HttpServer::constructor() will be used instead
         @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
@@ -1636,7 +1641,7 @@ public class HttpServer::HttpServer {
 	if ($lp.cert_path && !$lp.cert)
 	    $lp += HttpServer::getSSLObjects($lp.cert_path, $lp.key_path);
 
-	my hash $h.$hname = ("url": $lp.url, "content": $lp.content_type, "handler": $handler, "headers": $lp.special_headers);
+	my hash $h.$hname = ("path": $lp.url, "content": $lp.content_type, "handler": $handler, "headers": $lp.special_headers);
 
 	if ($lp.bind !~ /:\w+/) {
 	    if ($lp.bind =~ /^\//)
@@ -1907,7 +1912,7 @@ public class HttpServer::HttpServer {
 	$.dhandlers.setHandler($name, $path, $isregex, $content_type, $obj, $special_headers);
     }
 
-    addHandlerToListener(softstring $bind, string $name, string $url, *softlist $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+    addHandlerToListener(softstring $bind, string $name, string $path, *softlist $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
 	$.lm.enter();
 	on_exit $.lm.exit();
 
@@ -1918,18 +1923,18 @@ public class HttpServer::HttpServer {
 	if (!$id)
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with name or bind address %y", $bind);
 
-	my hash $h.$name = ("url": $url, "content": $content_type, "handler": $obj, "headers": $special_headers);
+	my hash $h.$name = ("path": $path, "isregex": $isregex, "content": $content_type, "handler": $obj, "headers": $special_headers);
         $.listeners.$id.addHandlers($h);
     }
 
-    addHandlerToListenerID(softint $id, string $name, string $url, *softlist $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+    addHandlerToListenerID(softint $id, string $name, string $path, *softlist $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
 	$.lm.enter();
 	on_exit $.lm.exit();
 
 	if (!$.listeners.$id)
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", $id);
 
-	my hash $h.$name = ("url": $url, "content": $content_type, "handler": $obj, "headers": $special_headers);
+	my hash $h.$name = ("path": $path, "isregex": $isregex, "content": $content_type, "handler": $obj, "headers": $special_headers);
         $.listeners.$id.addHandlers($h);
     }
 

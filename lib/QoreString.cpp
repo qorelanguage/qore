@@ -383,6 +383,35 @@ bool QoreString::equalPartialSoft(const QoreString& str, ExceptionSink* xsink) c
    return !strncmp(priv->buf, t->getBuffer(), t->size());
 }
 
+bool QoreString::equalPartialPath(const QoreString& str, ExceptionSink* xsink) const {
+   // empty strings are always equal even if the character encoding is different
+   if (!priv->len) {
+      if (!str.priv->len)
+	 return true;
+      return false;
+   }
+   if (!str.priv->len)
+      return false;
+
+   // if the encodings are equal or equivalent and the lenghts are different then the strings are not equal
+   if ((priv->charset == str.priv->charset || (!priv->charset->isMultiByte() && !str.priv->charset->isMultiByte())) && priv->len < str.priv->len)
+      return false;
+
+   TempEncodingHelper t(str, priv->charset, xsink);
+   if (*xsink)
+      return false;
+
+   int rc = !strncmp(priv->buf, t->getBuffer(), t->size());
+   if (!rc)
+      return false;
+
+   if (priv->len == t->priv->len)
+      return true;
+   if (priv->buf[t->priv->len] == '/' || priv->buf[t->priv->len] == '?')
+      return true;
+   return false;
+}
+
 void QoreString::terminate(qore_size_t size) {
    if (size > priv->len)
       priv->check_char(size);

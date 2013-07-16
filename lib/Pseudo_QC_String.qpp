@@ -755,7 +755,7 @@ int <string>::comparePartial(string ostr) [flags=RET_VALUE_ONLY] {
    int rc = strncmp(str->getBuffer(), temp->getBuffer(), temp->size());
    return !rc ? 0 : (rc < 0 ? -1 : 1);
 }
- 
+
 //! Compares the beginning of the current string with a shorter string passed as an argument for equality only, returns @ref Qore::True "True" if the string argument matches the beginning of the string, @ref Qore::False "False" if not
 /** @par Example:
     @code
@@ -772,4 +772,20 @@ my bool $b = $str.equalPartial($ostr);
 */
 bool <string>::equalPartial(string ostr) [flags=RET_VALUE_ONLY] {
    return str->equalPartialSoft(ostr, xsink);
+}
+
+//! Compares the beginning of the current string assumed to be a path with a shorter string passed as an argument for equality only, returns @ref Qore::True "True" if the string argument matches the beginning of the string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, @ref Qore::False "False" if not
+/** @par Example:
+    @code
+my bool $b = $str.equalPartialPath($ostr);
+    @endcode
+
+    @param ostr the partial string to compare the current string to
+
+    @return @ref Qore::True "True" if the string argument matches the beginning of the string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, @ref Qore::False "False" if not
+
+    @since %Qore 0.8.8
+*/
+bool <string>::equalPartialPath(string ostr) [flags=RET_VALUE_ONLY] {
+   return str->equalPartialPath(ostr, xsink);
 }

@@ -297,24 +297,33 @@ public:
     */
    DLLEXPORT bool equalSoft(const QoreString& str, ExceptionSink* xsink) const;
 
-   //! returns true if the beggining of the current string matches the argument string, false if not, if the character encodings are different, then the strings are not equal
+   //! returns true if the beginning of the current string matches the argument string, false if not, if the character encodings are different, then the strings are not equal
    /** @since Qore 0.8.8
     */
    DLLEXPORT bool equalPartial(const QoreString& str) const;
 
-   //! returns true if the beggining of the current string matches the argument string, false if not (encodings are assumed to be equal)
+   //! returns true if the beginning of the current string matches the argument string, false if not (encodings are assumed to be equal)
    /** @since Qore 0.8.8
     */
    DLLEXPORT bool equalPartial(const char* str) const;
 
-   //! returns true if the beggining of the current string matches the argument string, false if not, if the character encodings are different, then the encoding of the argument string is temporarily converted to the encoding of the current string to do the comparison
+   //! returns true if the beginning of the current string matches the argument string, false if not, if the character encodings are different, then the encoding of the argument string is temporarily converted to the encoding of the current string to do the comparison
    /** @param str the string to compare
        @param xsink if an error occurs, the Qore-language exception information will be added here	 
-       @return true if the beggining of the current string matches the argument string, false if not
+       @return true if the beginning of the current string matches the argument string, false if not
 
        @since Qore 0.8.8
     */
    DLLEXPORT bool equalPartialSoft(const QoreString& str, ExceptionSink* xsink) const;
+
+   //! returns true if the begining of the current string matches the argument string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, false if not, if the character encodings are different, then the encoding of the argument string is temporarily converted to the encoding of the current string to do the comparison
+   /** @param str the string to compare
+       @param xsink if an error occurs, the Qore-language exception information will be added here	 
+       @return true if the beginning of the current string matches the argument string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, false if not
+
+       @since Qore 0.8.8
+    */
+   DLLEXPORT bool equalPartialPath(const QoreString& str, ExceptionSink* xsink) const;
 
    //! terminates the string at byte position "size", the string is reallocated if necessary
    DLLEXPORT void terminate(qore_size_t size);
