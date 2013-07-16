@@ -179,7 +179,7 @@ foreach my int $i in(xrange(5))
 	@endcode
  */
 //@{
-//! Returns an RangeIterator containing an arithmetic progression of integers.
+//! Returns a RangeIterator containing an arithmetic progression of integers.
 /**
     @par Example:
     @code
@@ -195,13 +195,13 @@ xrange(10, -10, 5); # 10, 5, 0, -5, -10
     @param stop the final value
     @param step the step; the default is 1; must be greater than 0; the function throws a \c RANGE-ERROR exception when this argument is < 1
 
-    @retval Returns an RangeIterator containing an arithmetic progression of integers.
+    @retval Returns a RangeIterator containing an arithmetic progression of integers.
 
     @throw RANGEITERATOR-ERROR this exception is thrown if \c step < 1
 
     @see range
 
-    @note the main difference between range() and xrange() is that range returns a real list and xrange() returns an RangeIterator
+    @note the main difference between range() and xrange() is that range returns a real list and xrange() returns a RangeIterator
 
     @since %Qore 0.8.6
 */
@@ -209,7 +209,7 @@ RangeIterator xrange(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
    return new QoreObject(QC_RANGEITERATOR, 0, new RangeIterator(start, stop, step, xsink));
 }
 
-//! Returns an RangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
+//! Returns a RangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
 /**
     This is an overloaded version of xrange(int, int, int) meaning \c xrange(0, \c stop, 1)
 
@@ -221,11 +221,11 @@ xrange(-3); # 0, -1, -2, -3
 
     @param stop the final value
 
-    @retval Returns an RangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
+    @retval Returns a RangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
 
     @see range
 
-    @note the main difference between range() and xrange() is that range() returns a real list and xrange() returns an RangeIterator
+    @note the main difference between range() and xrange() is that range() returns a real list and xrange() returns a RangeIterator
 
     @since %Qore 0.8.6
  */
