@@ -1633,7 +1633,7 @@ void QoreString::concatEscape(const QoreString *str, char c, char esc_char, Exce
    }
 }
 
-QoreString *QoreString::substr(qore_offset_t offset, ExceptionSink *xsink) const {
+QoreString* QoreString::substr(qore_offset_t offset, ExceptionSink *xsink) const {
    TempString str(new QoreString(priv->charset));
 
    int rc;
@@ -1642,10 +1642,10 @@ QoreString *QoreString::substr(qore_offset_t offset, ExceptionSink *xsink) const
    else
       rc = substr_complex(*str, offset, xsink);
 
-   return !rc ? str.release() : 0;
+   return *xsink ? 0 : str.release();
 }
 
-QoreString *QoreString::substr(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const {
+QoreString* QoreString::substr(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const {
    TempString str(new QoreString(priv->charset));
 
    int rc;
@@ -1654,7 +1654,7 @@ QoreString *QoreString::substr(qore_offset_t offset, qore_offset_t length, Excep
    else
       rc = substr_complex(*str, offset, length, xsink);
 
-   return !rc ? str.release() : 0;
+   return *xsink ? 0 : str.release();
 }
 
 qore_size_t QoreString::length() const {

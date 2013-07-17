@@ -298,7 +298,7 @@ bool <string>::strp() [flags=CONSTANT] {
 
     @param start The starting character for the substring where the first character is at offset 0; if the offset is negative, it designates the number of characters from the end of the string.  If the offset is 0, then the entire string is returned.
 
-    @return the substring of the string starting from an integer character offset; the rest of the string is returned after this offset
+    @return the substring of the string starting from an integer character offset; the rest of the string is returned after this offset; an emtpy string is returned if the argument cannot be satisfied
 
     @par Example:
     @code
@@ -320,7 +320,7 @@ string <string>::substr(softint start) [flags=RET_VALUE_ONLY] {
     @param start The starting character for the substring where the first character is at offset 0; if the offset is negative, it designates the number of characters from the end of the string
     @param len The maximum number of characters to copy; if this value is negative, the rest of the string from \a start will be copied to the substring, except without - \a len characters from the end of the string
 
-    @return the substring of the string according to the arguments passed
+    @return the substring of the string according to the arguments passed; an emtpy string is returned if the argument cannot be satisfied
 
     @par Example:
     @code

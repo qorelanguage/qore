@@ -477,7 +477,7 @@ public:
    /** offset is a character offset (not a byte offset)
        @param offset the offset in characters from the beginning of the string (starting with 0)
        @param xsink invalid multi-byte encodings can cause an exception to be thrown
-       @return the new string
+       @return the new string; an empty string is returned if the arguments cannot be satisfied; 0 is returned only if a Qore-language exception is thrown due to character encoding conversion errors
    */
    DLLEXPORT QoreString* substr(qore_offset_t offset, ExceptionSink* xsink) const;
 
@@ -486,7 +486,7 @@ public:
        @param offset the offset in characters from the beginning of the string (starting with 0)
        @param length the number of characters for the substring
        @param xsink invalid multi-byte encodings can cause an exception to be thrown
-       @return the new string
+       @return the new string; an empty string is returned if the arguments cannot be satisfied; 0 is returned only if a Qore-language exception is thrown due to character encoding conversion errors
    */
    DLLEXPORT QoreString* substr(qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink) const;
 

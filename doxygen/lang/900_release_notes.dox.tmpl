@@ -105,6 +105,7 @@
     - fixed bugs in executing code accross @ref Qore::Program "Program" object barriers with reference arguments
     - fixed a bug with the switch statement where character encoding differences would cause strings to mismatch even if they were otherwise identical; now hard comparisons are used for all types except in the case where both arguments are strings in which case a soft comparison is used in order to avoid the case when a different string encoding would cause the comparison to fail
     - fixed a bug where qore failed to set the time zone region correctly when set from /etc/localtime and this file is a relative symlink rather than absolute
+    - fixed a bug where substr() and <string>::substr() were returning @ref nothing if the arguments could not be satisifed contrary to the documentation and the declared return type, now an empty string is returned in those cases
 
     @section qore_087 Qore 0.8.7
 
