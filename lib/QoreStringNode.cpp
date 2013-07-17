@@ -174,7 +174,7 @@ QoreStringNode *QoreStringNode::substr(qore_offset_t offset, ExceptionSink *xsin
    else
       rc = substr_complex(*str, offset, xsink);
 
-   return !rc ? str.release() : 0;
+   return *xsink ? 0 : str.release();
 }
 
 QoreStringNode *QoreStringNode::substr(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const {
@@ -186,7 +186,7 @@ QoreStringNode *QoreStringNode::substr(qore_offset_t offset, qore_offset_t lengt
    else
       rc = substr_complex(*str, offset, length, xsink);
 
-   return !rc ? str.release() : 0;
+   return *xsink ? 0 : str.release();
 }
 
 QoreStringNode *QoreStringNode::reverse() const {
