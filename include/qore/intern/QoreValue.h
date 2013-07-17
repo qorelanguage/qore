@@ -1574,7 +1574,6 @@ public:
    }
 
    DLLLOCAL int64 removeBigInt(AbstractQoreNode*& old) {
-      assert(fixed_type);
       assert(!old);
       if (!assigned)
          return 0;
@@ -1590,7 +1589,6 @@ public:
          case QV_Float: {
             return (int64)v.f;
          }
-#if 0
          case QV_Node: {
             int64 rv;
             if (v.n) {
@@ -1602,16 +1600,14 @@ public:
                rv = 0;
             return rv;
          }
-#endif
          default:
             assert(false);
             // no break
-     }
+      }
       return 0;
    }
 
    DLLLOCAL double removeFloat(AbstractQoreNode*& old) {
-      assert(fixed_type);
       assert(!old);
       if (!assigned)
          return 0.0;
@@ -1627,7 +1623,6 @@ public:
          case QV_Float: {
             return v.f;
          }
-#if 0
          case QV_Node: {
             double rv;
             if (v.n) {
@@ -1639,7 +1634,6 @@ public:
                rv = 0.0;
             return rv;
          }
-#endif
          default:
             assert(false);
             // no break
