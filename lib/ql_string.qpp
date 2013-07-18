@@ -1138,6 +1138,8 @@ nothing regex_extract() [flags=RUNTIME_NOOP] {
     @param str the string to process
     @param source the substring to replace; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
     @param target the replacement value for \a source; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
+    @param start the starting character position in the source for the replacement where the first character is at position 0 (may not be the same as the byte position for multibyte @ref character_encoding "character encodings")
+    @param end the ending character position in the source for the replacement where the first character is at position 0 (may not be the same as the byte position for multibyte @ref character_encoding "character encodings"; that negative numbers mean to use the entire string)
 
     @return a string with all occurrences of \a source replaced with \a target
 
@@ -1152,19 +1154,19 @@ my string $str = replace("hello there", "there", "you"); # returns "hello you"
 
     @see regex_subst()
  */
-string replace(string str, string source, string target) [flags=RET_VALUE_ONLY] {
+string replace(string str, string source, string target, int start = 0, int end = -1) [flags=RET_VALUE_ONLY] {
    const QoreEncoding *ccs = str->getEncoding();
 
    TempEncodingHelper t1(source, ccs, xsink);
    if (*xsink)
       return 0;
 
+   if (t1->empty() || !end || (end > 0 && end < start))
+      return str->refSelf();
+
    TempEncodingHelper t2(target, ccs, xsink);
    if (*xsink)
       return 0;
-
-   if (!t1->strlen())
-      return str->refSelf();
 
    QoreStringNode *nstr = new QoreStringNode(ccs);   
 
@@ -1173,8 +1175,27 @@ string replace(string str, string source, string target) [flags=RET_VALUE_ONLY] 
    pattern = t1->getBuffer();
    int plen = strlen(pattern);
 
-   while (const char *p = strstr(cstr, pattern)) {
+   if (start) {
+      qore_size_t i = ccs->getByteLen(cstr, cstr += str->size(), start, xsink);
+      if (*xsink || (i == str->size()))
+         return 0;
+
+      cstr += i;
+   }
+
+   if (end > 0) {
+      qore_size_t i = ccs->getByteLen(cstr, cstr += str->size(), end, xsink);
+      if (*xsink || i == str->size())
+         return 0;
+
+      cstr += i;
+   }
+
+   while (const char* p = strstr(cstr, pattern)) {
       //printd(5, "str=%08p p=%08p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->getBuffer());
+      if ((end > 0) && (p - str->getBuffer() + plen) > end)
+         break;
+
       if (p != cstr)
 	 nstr->concat(cstr, p - cstr);
       nstr->concat(*t2);

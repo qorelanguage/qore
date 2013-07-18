@@ -1,0 +1,207 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file WebSocketClient.qm WebSocket client implementation
+
+/*  WebSocketClient.qm Copyright 2013 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.8 or better
+%requires qore >= 0.8.8
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+%requires WebSocketUtil >= 1.0
+%requires Util >= 1.0
+
+module WebSocketClient {
+    version = "1.0";
+    desc = "user module for providing client support for the WebSocket protocol";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+}
+
+/*  Version History
+    * 2013-xx-xx v1.0: David Nichols <david@qore.org>
+      + the initial version of the WebSocketClient module
+*/
+
+/** @mainpage WebSocketClient Module
+
+    The %WebSocketClient module provides client support for <a href="http://tools.ietf.org/html/rfc6455">RFC-6455 based WebSocket protocol</a> implementations in %Qore.
+*/
+
+#! the WebSocketClient namespace contains all the definitions in the WebSocketClient module
+public namespace WebSocketClient {
+    #! known websocket schemes
+    public const WsSchemes = (
+        "ws": (
+            "ssl": False,
+        ),
+        "wss": (
+            "ssl": True,
+        ),
+        );
+
+    #! default port for connections
+    public const WsDefaultPort = 80;
+
+    #! the main websocket client class
+    public class WebSocketClient {
+        private {
+            Socket $.sock();
+            bool $.stop = False;
+        }
+
+        public {
+        }
+        
+        constructor() {
+        }
+
+        #! connects to the websocket server
+        hash connect(code $callback, string $url, *hash $hdr, timeout $timeout_ms = -1, *reference $info) {
+            my hash $h = $.connectIntern($url, $hdr, $timeout_ms, $info);
+            background $.eventLoop($callback);
+            return $h;
+        }
+
+        private eventLoop(code $callback) {
+            while (True) {
+                if ($.stop) {
+                    $.sendClose(WSCC_GoingAway);
+                    break;
+                }
+                
+                try {
+                    if (!$.sock.isDataAvailable(50ms))
+                        continue;
+
+                    my hash $h = ws_read_message($.sock);
+
+                    if ($h.op == WSOP_Close) {
+                        if (!$h.close) {
+                            #$.logDebug("server sent OpClose without code; closing immediately");
+                            break;
+                        }
+                        #$.logDebug("client sent WSOP_Close code %d (%s): %s", $h.close, WSCCMap.($h.close), $h.msg);
+                        $.sendClose($h.close, $h.msg);
+                        break;
+                    }
+
+                    #$.logDebug("received msg (%s: %d bytes%s): %s", WSOPMap.($h.op), $h.msg.size(), $h.masked ? " masked" : "", WebSocketHandler::getDataString($h.msg));
+
+                    if ($h.masked) {
+                        #$.logError("unmasked client frame received");
+                        $.sendClose(WSCC_ProtocolError);
+                        break;
+                    }
+
+                    if ($h.op == WSOP_Ping) {
+                        $.sock.send(ws_encode_message($h.msg, WSOP_Pong));
+                        continue;
+                    }
+                    
+                    if ($h.op == WSOP_Text || $h.op == WSOP_Binary) {
+                        $callback($h.msg);
+                        continue;
+                    }
+                    # unrecognized opcode - close the connection
+                    $.sendClose(WSCC_UnsupportedData);
+                    break;
+                }
+                catch (hash $ex) {
+                    my string $err = sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
+                    #$.logError($err);
+                    $.sendClose(WSCC_InternalServerError, $err);
+                    break;
+                }
+            }
+            $callback();
+        }
+
+        private sendClose(int $code, *string $txtmsg) {
+            my binary $msg = $code.encodeMsb(4);
+
+            if (!WSCCMap.$code) {
+                #$.logError("WebSocketHandler::sendClose(): invalid close code %d received; expecting one of: %y", $code, (map $1.toInt(), WSCCMap.keyIterator()));
+                $code = WSCC_InternalServerError;
+            }
+
+            if ($txtmsg)
+                $txtmsg = convert_encoding($txtmsg, "utf8");
+            else
+                $txtmsg = WSCCMap.$code;
+            $msg += $txtmsg;
+            $.sock.send(ws_encode_message($msg, WSOP_Close));
+        }
+
+        private hash connectIntern(string $url, *hash $hdr, timeout $timeout_ms = -1, *reference $info) {
+            my hash $uh = parse_url($url);
+            my bool $ssl;
+            if ($uh.protocol) {
+                my *hash $ph = WsSchemes.($uh.protocol);
+                if (!$ph)
+                    throw "WEBSOCKET-ERROR", sprintf("schema %y is unknown in %y; known schemes: %y", $uh.protocol, $url, WsSchemes.keys());
+                $ssl = $ph.ssl;
+            }
+
+            if (!$uh.port)
+                $uh.port = WsDefaultPort;
+
+            my string $target = sprintf("%s:%d", $uh.host, $uh.port);
+
+            if ($ssl)
+                $.sock.connectSSL($target, $timeout_ms);
+            else
+                $.sock.connect($target, $timeout_ms);
+
+            if (!$uh.path)
+                $uh.path = "/";
+
+            $hdr += (
+                "Upgrade": "websocket",
+                "Connection": "Upgrade",
+                "Sec-WebSocket-Key": get_random_string().toBase64(),
+                );
+
+            # now send an HTTP request with the Sec-WebSocket-Key header
+            $.sock.sendHTTPMessage("GET", $uh.path, "1.1", $hdr, NOTHING, \$info, $timeout_ms);
+
+            my hash $h = $.sock.readHTTPHeader($timeout_ms, \$info);
+            if ($h.status_code != 101)
+                throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned status code %d: %s to our request", $url, $h.status_code, $h.status_message);
+
+            return $h;
+        }
+
+        disconnect() {
+        }
+
+        send(string $str) {
+        }
+
+        send(binary $bin) {
+        }
+    }
+}

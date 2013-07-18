@@ -61,6 +61,7 @@ module Util {
       - @ref Util::absolute_path_unix()
       - @ref Util::absolute_path_windows()
     - @ref Util::parse_to_qore_value()
+    - @ref Util::get_random_string()
 */
 
 #! the Util namespace contains all the objects in the Util module
@@ -418,5 +419,42 @@ my bool $abs = absolute_path_windows($path);
             return try_split($arg);
         
         return $arg;
+    }
+
+    #! function that returns a random string
+    /** @par Example:
+        @code
+my string $pass = get_random_string();
+        @endcode
+
+        @param len the length fo the string returned
+        @param level a value from 1 - 4 inclusive giving the range of printable ASCII characters included in the output (values out of the range result in the nearest value in the range being used):
+        - 1: only upper case
+        - 2: +upper case
+        - 3: +numbers
+        - 4: +symbols but not including any quote characters
+
+        @return a random string of the given length containing only printable ASCII characters according to the \a level argument
+    */
+    public string sub get_random_string(softint $len = 15, int $level = 3) {
+        # seed the random number generator with the current timestamp
+        srand(clock_getnanos());
+        my string $str;
+        if ($level < 1)
+            $level = 1;
+        else if ($level > 4)
+            $level = 4;
+        --$level;
+        $level = (26, 52, 62, 88)[$level];  # 15(77), 7(84), 4
+        for (my int $i = 0; $i < $len; ++$i) {
+            my int $v = rand() % $level;
+            $str += ($v < 26 ? chr($v + ord("A")) : 
+                     ($v < 52 ? chr($v - 26 + ord("a")) : 
+                      ($v < 62 ? chr($v - 4) :
+                       ($v < 77 ? chr($v - 29) :
+                        ($v < 84 ? chr($v - 19) :
+                         chr($v + 39))))));
+        }
+        return $str;
     }
 }
