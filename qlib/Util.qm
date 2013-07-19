@@ -437,8 +437,6 @@ my string $pass = get_random_string();
         @return a random string of the given length containing only printable ASCII characters according to the \a level argument
     */
     public string sub get_random_string(softint $len = 15, int $level = 3) {
-        # seed the random number generator with the current timestamp
-        srand(clock_getnanos());
         my string $str;
         if ($level < 1)
             $level = 1;
@@ -446,14 +444,30 @@ my string $pass = get_random_string();
             $level = 4;
         --$level;
         $level = (26, 52, 62, 88)[$level];  # 15(77), 7(84), 4
-        for (my int $i = 0; $i < $len; ++$i) {
-            my int $v = rand() % $level;
-            $str += ($v < 26 ? chr($v + ord("A")) : 
-                     ($v < 52 ? chr($v - 26 + ord("a")) : 
-                      ($v < 62 ? chr($v - 4) :
-                       ($v < 77 ? chr($v - 29) :
-                        ($v < 84 ? chr($v - 19) :
-                         chr($v + 39))))));
+        # do not seed the random number generator and use rand() as this requires PO_PROCESS_CONTROL permissions
+        if (PlatformOS == "Windows") {
+            # on windows, just use clock_getmicros()
+            for (my int $i = 0; $i < $len; ++$i) {
+                my int $v = clock_getmicros() % $level;
+                $str += ($v < 26 ? chr($v + ord("A")) : 
+                         ($v < 52 ? chr($v - 26 + ord("a")) : 
+                          ($v < 62 ? chr($v - 4) :
+                           ($v < 77 ? chr($v - 29) :
+                            ($v < 84 ? chr($v - 19) :
+                             chr($v + 39))))));
+            }
+        }
+        else {
+            my ReadOnlyFile $f("/dev/random");
+            for (my int $i = 0; $i < $len; ++$i) {
+                my int $v = abs($f.readi2()) % $level;
+                $str += ($v < 26 ? chr($v + ord("A")) : 
+                         ($v < 52 ? chr($v - 26 + ord("a")) : 
+                          ($v < 62 ? chr($v - 4) :
+                           ($v < 77 ? chr($v - 29) :
+                            ($v < 84 ? chr($v - 19) :
+                             chr($v + 39))))));
+            }            
         }
         return $str;
     }
