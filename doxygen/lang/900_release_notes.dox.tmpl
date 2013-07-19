@@ -13,6 +13,7 @@
       - @ref Qore::SQL::AbstractDatasource::getConfigHash() "AbstractDatasource::getConfigHash()"
       - @ref Qore::SQL::AbstractDatasource::getConfigString() "AbstractDatasource::getConfigString()"
     - "hard" string comparisons now perform encoding conversions if necessary (however as usual different data types cause the comparison to fail)
+    - printing out binary values with the \c "%y" format specifier now produces YAML-like output for the binary value
 
     @subsection qore_088_new_features New Features in Qore
     - there is a new @ref Qore::Thread::ThreadPool "ThreadPool" class for implementing thread pools    

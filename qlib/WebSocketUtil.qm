@@ -145,17 +145,16 @@ public namespace WebSocketUtil {
     #@}
 
     #! encodes a message for sending over a websocket socket
-    public binary sub ws_encode_message(data $msg, int $op = -1, *binary $mask) {
+    public binary sub ws_encode_message(data $msg, int $op = -1, *bool $masked) {
 	if ($op == -1)
 	    $op = $msg.typeCode() == NT_STRING ? WSOP_Text : WSOP_Binary;
 
-	my bool $masked;
-	if ($mask && $mask.size() > 3) {
-	    if ($mask.size() > 4)
-		splice $mask, 4;
-	    if ($mask != <00000000>)
-		$masked = True;
-	}
+        my *binary $mask;
+        if ($masked) {
+            do {
+                $mask = (rand() % 2147483647).encodeMsb();
+            } while ($mask == <00000000>);
+        }
 
 	my binary $frame += chr(WS_FIN | $op);
 	

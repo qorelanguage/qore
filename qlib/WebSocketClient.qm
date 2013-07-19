@@ -69,24 +69,109 @@ public namespace WebSocketClient {
     #! the main websocket client class
     public class WebSocketClient {
         private {
+            Mutex $.m();
             Socket $.sock();
-            bool $.stop = False;
+            int $.stop = 0;
+            Counter $.c();
+            *code $.log;
+            *code $.errlog;
+            *code $.debuglog;
+            timeout $.timeout_ms = DefaultTimeout;
         }
 
         public {
+            const DefaultTimeout = 15s;
         }
-        
-        constructor() {
+
+        #! creates the object and optionally sets logging targets
+        /** @par Example:
+            @code
+my WebSocketClient $ws(\log(), \errlog(), \debuglog());
+            @endcode
+
+            @param log an optional @ref closure "closure" or @ref call_reference "call reference" for informational logging
+            @param errlog an optional @ref closure "closure" or @ref call_reference "call reference" for error logging
+            @param debuglog an optional @ref closure "closure" or @ref call_reference "call reference" for logging debugging/technical messages about the web socket connection
+        */
+        constructor(*code $log, *code $errlog, *code $debuglog) {
+            $.log = $log;
+            $.errlog = $errlog;
+            $.debuglog = $debuglog;
         }
 
         #! connects to the websocket server
-        hash connect(code $callback, string $url, *hash $hdr, timeout $timeout_ms = -1, *reference $info) {
-            my hash $h = $.connectIntern($url, $hdr, $timeout_ms, $info);
-            background $.eventLoop($callback);
+        /** @par Example:
+            @code
+sub event(*data $msg) {
+    if (!$msg)
+        printf("connection closed\n");
+    else
+        printf("%s msg: %y\n", now_us().format("YYYY-MM-DD HH:mm:SS.xx"), $msg);
+}
+$ws.connect(("url": "ws://example.com:8080/event-path/", "callback": \event()));
+            @endcode
+
+            @param opts a hash with the following keys:
+            - \c url: (required) a @ref string_type "string" giving the connection URL; schema \c "ws" is a non-encrypted web socket connections, \c "wss" means to use SSL
+            - \c callback: (required) a @ref closure "closure" or @ref call_reference "call reference" for the callback when messages arrive from the server
+            - \c hdr: (optional) a @ref hash_type "hash" giving header values for the connection request to the web socket server
+            - \c timeout_ms: (optional) a @ref int_type "int" or @ref date_type "relative date" giving a timeout in milliseconds for the connection and web socket communication calls
+            @param info a @ref reference_type "reference" to a hash which will be set to information about the call setup
+
+            @return a hash with information about the HTTP response from the webn socket server corresponding to the return value of @ref Qore::Socket::readHTTPHeader()
+
+            @throw WEBSOCKET-ERROR the option hash is missing either the 'url' or 'callback' keys or type error in the option hash
+         */
+         hash connect(hash $opts, *reference $info) {
+            if ($opts.url.typeCode() != NT_STRING)
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() missing 'url' key giving the connection target");
+            if (!$opts.callback.callp())
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() missing 'callback' key giving the message callback");
+            if ($opts.hdr && $opts.hdr.typeCode() != NT_HASH)
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() 'hdr' key not assigned to a hash; type received: %y", $opts.hdr.type());
+            if (exists $opts.timeout_ms && $opts.timeout_ms.typeCode() != NT_INT)
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() 'timeout_ms' key not assigned to an integer or date value; type received: %y", $opts.timeout_ms.type());
+
+            $.m.lock();
+            on_exit $.m.unlock();
+
+            if ($.sock.isOpen())
+                $.disconnectUnlocked();
+
+            # set timeout
+            $.timeout_ms = $opts.timeout_ms ? $opts.timeout_ms : DefaultTimeout;
+
+            my hash $h = $.connectUnlocked($opts.url, $opts.hdr, \$info);
+            $.c.inc();
+            on_error $.c.dec();
+            background $.eventLoop($opts.callback);
             return $h;
         }
 
+        #! returns @ref Qore::True "True" if the connection is currently open and active, @ref Qore::False "False" if not
+        bool isOpen() {
+            $.m.lock();
+            on_exit $.m.unlock();
+
+            return $.sock.isOpen();
+        }
+
+        #! disconnect with the given @ref closecodes "close code"
+        disconnect(int $cmd = WSCC_GoingAway) {
+            $.m.lock();
+            on_exit $.m.unlock();
+
+            if ($.sock.isOpen())
+                $.disconnectUnlocked($cmd);
+        }
+
+        private disconnectUnlocked(int $cmd = WSCC_GoingAway) {
+            $.stop = $cmd;
+            $.c.waitForZero();
+        }
+
         private eventLoop(code $callback) {
+            on_exit $.c.dec();
             while (True) {
                 if ($.stop) {
                     $.sendClose(WSCC_GoingAway);
@@ -97,28 +182,28 @@ public namespace WebSocketClient {
                     if (!$.sock.isDataAvailable(50ms))
                         continue;
 
-                    my hash $h = ws_read_message($.sock);
+                    my hash $h = ws_read_message($.sock, $.timeout_ms);
 
                     if ($h.op == WSOP_Close) {
                         if (!$h.close) {
-                            #$.logDebug("server sent OpClose without code; closing immediately");
+                            $.logDebug("server sent OpClose without code; closing immediately");
                             break;
                         }
-                        #$.logDebug("client sent WSOP_Close code %d (%s): %s", $h.close, WSCCMap.($h.close), $h.msg);
+                        $.logDebug("client sent WSOP_Close code %d (%s): %s", $h.close, WSCCMap.($h.close), $h.msg);
                         $.sendClose($h.close, $h.msg);
                         break;
                     }
 
-                    #$.logDebug("received msg (%s: %d bytes%s): %s", WSOPMap.($h.op), $h.msg.size(), $h.masked ? " masked" : "", WebSocketHandler::getDataString($h.msg));
+                    $.logDebug("received msg (%s: %d bytes): %s", WSOPMap.($h.op), $h.msg.size(), $h.msg ? sprintf("type: %s: %y", $h.msg.type(), $h.msg) : "n/a");
 
                     if ($h.masked) {
-                        #$.logError("unmasked client frame received");
+                        $.logError("unmasked client frame received");
                         $.sendClose(WSCC_ProtocolError);
                         break;
                     }
 
                     if ($h.op == WSOP_Ping) {
-                        $.sock.send(ws_encode_message($h.msg, WSOP_Pong));
+                        $.sock.send(ws_encode_message($h.msg, WSOP_Pong, True));
                         continue;
                     }
                     
@@ -132,19 +217,40 @@ public namespace WebSocketClient {
                 }
                 catch (hash $ex) {
                     my string $err = sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
-                    #$.logError($err);
+                    $.logError($err);
                     $.sendClose(WSCC_InternalServerError, $err);
                     break;
                 }
             }
+            
+            # call the callback with NOTHING to signal that the connection has been closed
             $callback();
+            if ($.sock.isOpen()) {
+                $.sock.shutdown();
+                $.sock.close();
+            }
+        }
+
+        private logInfo(string $fmt) {
+            if ($.log)
+                call_function($.log, vsprintf($fmt, $argv));
+        }
+
+        private logError(string $fmt) {
+            if ($.errlog)
+                call_function($.errlog, vsprintf($fmt, $argv));
+        }
+
+        private logDebug(string $fmt) {
+            if ($.debuglog)
+                call_function($.debuglog, vsprintf($fmt, $argv));
         }
 
         private sendClose(int $code, *string $txtmsg) {
             my binary $msg = $code.encodeMsb(4);
 
             if (!WSCCMap.$code) {
-                #$.logError("WebSocketHandler::sendClose(): invalid close code %d received; expecting one of: %y", $code, (map $1.toInt(), WSCCMap.keyIterator()));
+                $.logError("WebSocketHandler::sendClose(): invalid close code %d received; expecting one of: %y", $code, (map $1.toInt(), WSCCMap.keyIterator()));
                 $code = WSCC_InternalServerError;
             }
 
@@ -153,10 +259,10 @@ public namespace WebSocketClient {
             else
                 $txtmsg = WSCCMap.$code;
             $msg += $txtmsg;
-            $.sock.send(ws_encode_message($msg, WSOP_Close));
+            $.sock.send2(ws_encode_message($msg, WSOP_Close, True), $.timeout_ms);
         }
 
-        private hash connectIntern(string $url, *hash $hdr, timeout $timeout_ms = -1, *reference $info) {
+        private hash connectUnlocked(string $url, *hash $hdr, *reference $info) {
             my hash $uh = parse_url($url);
             my bool $ssl;
             if ($uh.protocol) {
@@ -172,9 +278,9 @@ public namespace WebSocketClient {
             my string $target = sprintf("%s:%d", $uh.host, $uh.port);
 
             if ($ssl)
-                $.sock.connectSSL($target, $timeout_ms);
+                $.sock.connectSSL($target, $.timeout_ms);
             else
-                $.sock.connect($target, $timeout_ms);
+                $.sock.connect($target, $.timeout_ms);
 
             if (!$uh.path)
                 $uh.path = "/";
@@ -186,22 +292,21 @@ public namespace WebSocketClient {
                 );
 
             # now send an HTTP request with the Sec-WebSocket-Key header
-            $.sock.sendHTTPMessage("GET", $uh.path, "1.1", $hdr, NOTHING, \$info, $timeout_ms);
+            $.sock.sendHTTPMessage("GET", $uh.path, "1.1", $hdr, NOTHING, \$info, $.timeout_ms);
 
-            my hash $h = $.sock.readHTTPHeader($timeout_ms, \$info);
+            my hash $h = $.sock.readHTTPHeader($.timeout_ms, \$info);
             if ($h.status_code != 101)
                 throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned status code %d: %s to our request", $url, $h.status_code, $h.status_message);
 
             return $h;
         }
 
-        disconnect() {
-        }
-
         send(string $str) {
+            $.sock.send2(ws_encode_message($str, WSOP_Text, True), $.timeout_ms);
         }
 
         send(binary $bin) {
+            $.sock.send2(ws_encode_message($bin, WSOP_Binary, True), $.timeout_ms);
         }
     }
 }
