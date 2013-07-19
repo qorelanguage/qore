@@ -243,6 +243,8 @@ float pow(softfloat x = 0.0, softfloat y = 0.0) [flags=RET_VALUE_ONLY] {
     @code
 my int $i = abs(-20); # returns 20
     @endcode
+
+    @note equivalent to <int>::abs()
  */
 int abs(int i) [flags=CONSTANT] {
    return i < 0 ? -i : i;
@@ -258,6 +260,8 @@ int abs(int i) [flags=CONSTANT] {
     @code
 my number $n = abs(-20n); # returns 20n
     @endcode
+
+    @note equivalent to <number>::abs()
  */
 number abs(number n) [flags=CONSTANT] {
    return qore_number_private::doUnary(*n, mpfr_abs);
@@ -273,6 +277,8 @@ number abs(number n) [flags=CONSTANT] {
     @code
 my float $f = abs(-20.2); # returns 20.2
     @endcode
+
+    @note equivalent to <float>::abs()
  */
 float abs(softfloat f) [flags=CONSTANT] {
    return fabs(f);

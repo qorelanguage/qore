@@ -128,3 +128,19 @@ int <float>::sign() [flags=CONSTANT] {
       return 0;
    return f->f > 0.0 ? 1 : -1;
 }
+
+//! Returns the absolute value of the number
+/** @par Example:
+    @code
+$f = $f.abs();
+    @endcode
+
+    @return the absolute value of the number
+
+    @note equivalent to abs(float)
+
+    @since %Qore 0.8.8
+*/
+float <float>::abs() [flags=CONSTANT] {
+   return fabs(f->f);
+}

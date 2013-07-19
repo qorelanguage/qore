@@ -258,7 +258,7 @@ void QoreUserModule::addToProgram(QoreProgram* tpgm, ExceptionSink& xsink) const
    // first check the module's functional domain
    int64 dom = qore_program_private::getDomain(*pgm);
    if (tpgm->getParseOptions64() & dom) {
-      xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s' implements functionality restricted in the Program object trying to import the module", name.getBuffer());
+      xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s' implements functionality restricted in the Program object trying to import the module (%xd)", name.getBuffer(), tpgm->getParseOptions64() & dom);
       return;
    }
 

@@ -216,3 +216,19 @@ string <number>::format(string fmt) [flags=CONSTANT] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(fmt->getEncoding()));
    return qore_number_private::get(*n)->format(**rv, *fmt, xsink) ? 0 : rv.release();
 }
+
+//! Returns the absolute value of the number
+/** @par Example:
+    @code
+$n = $n.abs();
+    @endcode
+
+    @return the absolute value of the number
+
+    @note equivalent to abs(number)
+
+    @since %Qore 0.8.8
+*/
+number <number>::abs() [flags=CONSTANT] {
+   return qore_number_private::doUnary(*n, mpfr_abs);
+}

@@ -257,3 +257,20 @@ binary <int>::encodeLsb(int size = 4) [flags=RET_VALUE_ONLY] {
    }
    return b.release();
 }
+
+//! Returns the absolute value of the number
+/** @par Example:
+    @code
+$i = $i.abs();
+    @endcode
+
+    @return the absolute value of the number
+
+    @note equivalent to abs(int)
+
+    @since %Qore 0.8.8
+*/
+int <int>::abs() [flags=CONSTANT] {
+   return i->val < 0 ? -i->val : i->val;
+}
+
