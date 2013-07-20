@@ -141,6 +141,7 @@ module HttpServer {
     The main classes are:
     - @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator": can be implemented to provide authentication and authorization info to the server
     - @ref HttpServer::AbstractHttpRequestHandler "AbstractHttpRequestHandler": this class must be subclassed to provide the real work of the HttpServer handling connections
+    - @ref HttpServer::AbstractHttpSocketHandler "AbstractHttpSocketHandler": this class must be subclassed to implement a dedicated socket handler for protcol changes (for an example, see the <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a> module)
     - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
 
     @par Example:
@@ -494,12 +495,12 @@ public class HttpServer::AbstractAuthenticator {
         return "Default Authentication Realm";
     }
 
-    #! called to authenticate a user for a connection; should return a list of roles for the user if the user is authenticated
+    #! called to authenticate a user for a connection
     /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True"
         @param user the username to authenticate
         @param pass the password for the user
 
-        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this method will never throw any exceptions)
+        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (must be overridden in child classes; this parent method will never throw any exceptions; all connections are accepted by default)
       */
     authenticate(string $user, string $pass = "") {
     }
@@ -750,7 +751,10 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 }
 
-public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
+#! abstract class that all HTTP dedicated socket handler objects must inherit from
+/** reimplement at least handleRequest() and startImpl() in subclasses
+  */
+public class HttpServer::AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
     private {
         #! stop listener flag
         bool $.stop = False;
@@ -803,8 +807,10 @@ public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
         $.startImpl($lid, $cx, $hdr, $s);
     }
 
-    #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
-    /** @param lid the listener ID
+    #! called from the HTTP server when the socket should be closed due to an HTTP listener being stopped; the start() method for all connections on the particular listener should return as soon as possible after this method is called
+    /** child classes should implement the stopImpl(string) method which is called from this method to implement custom stop actions for particular listeners
+
+        @param lid the listener ID
     */
     stop(softstring $lid) {
         {
@@ -820,13 +826,15 @@ public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
     }
 
     #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
+    /** child classes should implement the stopImpl() method which is called from this method to implement custom stop actions
+     */
     stop() {
         $.stop = True;
         $.stopImpl();
     }
 
     #! called by the HTTP server to handle incoming HTTP requests
-    /** Requests will be dispatched to REST classes registered with this object
+    /** To accept a new dedicated socket connection, make sure the return value returns code 101 (ie \c "Switching Protocols"); after which this class's start() (and then startImpl()) methods are called
 
         @param cx call context hash; this hash will have the following keys:
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
@@ -843,7 +851,8 @@ public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
         @param b message body, if any
 
         @return to accept a dedicated connection, return a hash with the following key:
-        - \c "accepted": assign to a boolean value of @ref Qore::True "True"; if this is returned, then the start() method will be called with the @ref Qore::Socket "Socket object" for the new connection
+        - \c "code": assign to 101 (ie \c "Switching Protocols"); if this is returned, then the start() method will be called with the @ref Qore::Socket "Socket object" for the new connection
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
         .
         or, to handle the request without a dedicated connection, return a hash with the following keys
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
@@ -854,7 +863,7 @@ public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
     abstract hash handleRequest(hash $cx, hash $hdr, *data $b);
 
     #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
-    /** This method should not return until the connection is closed or the stop() method is called
+    /** This method should not return until the connection is closed or the stop() (and therefore stopImpl()) method is called
 
         @param lid the listener ID
         @param cx call context hash; this hash will have the following keys:
@@ -878,504 +887,6 @@ public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
 
     #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
     private stopImpl() {
-    }
-}
-
-# Listener will be assigned to private members of the HttpServer; is not directly accessible from code outside the HttpServer (private)
-class HttpServer::HttpListener inherits Qore::Socket {
-    private {
-        HttpServer $.serv;
-        Sequence $.ss;
-        *SSLCertificate $.cert;
-        *SSLPrivateKey $.key;
-        bool $.ssl = False;
-        any $.socket;
-        hash $.socket_info;
-
-	# connection counter
-	Counter $.cThreads();
-        bool $.exit = False;
-        bool $.stopped = False;
-        int $.id;
-
-        # socket handler hash
-        hash $.shh;
-
-        # mutex
-        Mutex $.m();
-
-	# code references to external logging functions
-	*code $.logger;
-	*code $.errorlogger;
-
-        # stop notification closure
-        *code $.stopc;
-        
-        string $.name;
-
-	const PollInterval = 1s;
-        const ListenQueue = 100;
-    }
-
-    public {
-        # TID of the background listener thread
-        int $.tid;
-
-        # listener-specific handlers
-        HttpHandlerList $.handlers();
-
-        # default handler info
-        *HandlerInfo $.defaultHandler;
-    }
-
-    # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
-    constructor(HttpServer $server, int $id, Sequence $ss, *string $node, softstring $service, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, string $name, int $family = AF_UNSPEC) {
-        $.name = $name;
-        # we originally set for utf-8 and then per-connection the encoding is set according to the client's content-type header (with iso-8859-1 as the default)
-        # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)
-        $.setEncoding("utf-8");
-        
-	# save a reference to the server object
-	$.serv = $server;
-
-	# set other params
-        $.id = $id;
-	$.ss = $ss;
-	$.logger = $logger;
-	$.errorlogger = $errorlogger;
-        $.stopc = $stopc;
-
-        if ($hi)
-            $.addHandlers($hi);
-
-	# create SSL certificate and private key objects from PEM files if passed
-        if ($cert) {
-	    $.cert = $cert;
-	    $.setCertificate($.cert);
-            $.key = $key;
-	    $.setPrivateKey($.key);
-	    $.ssl = True;
-	}
-
-        if ($service) {
-            $.bindINET($node, $service, True, $family);
-            $.socket = sprintf("%s:%s", $node ? $node : "*", $service);
-        }
-        else {
-            $.socket = $node;
-            if ($node =~ /^\//) {
-                # try to unlink the file first if it's a UNIX domain socket
-                unlink($node);
-                $.bindUNIX($node, True);
-            }
-            else {
-                if ($.bind($node, True))
-                    throw "HTTPLISTENER-BIND-ERROR", strerror();
-            }
-        }
-
-	# save socket port/path
-        $.socket_info = $.getSocketInfo();
-
-	# make 'desc' key for logging
-	$.socket_info.desc = $.socket_info.address_desc;
-	if ($.socket_info.port)
-	    $.socket_info.desc += ":" + $.socket_info.port;
-
-	# set TCP_NODELAY
-	#$.setNoDelay(True);
-
-	# set listening state on socket
-	if ($.listen(ListenQueue))
-	    throw "HTTP-LISTEN-ERROR", sprintf("listen error on socket %s: %s", $.socket, strerror(errno()));
-
-	# start main listener thread
-	$.cThreads.inc();
-
-	$.tid = background $.mainThread();
-    }
-
-    addHandlers(hash $hi) {
-	#printf("HttpListener::addHandlers() hi: %y\n", $hi);
-        my bool $def = $.handlers.empty();
-        map $.handlers.setHandler($1.key, $1.value.path, $1.value.isregex, $1.value.content, $1.value.handler, $1.value.headers), $hi.pairIterator();
-        if ($def)
-            $.setDefaultHandler($hi.firstKey());
-    }
-
-    setDefaultHandler(string $name) {
-        if (!$.handlers.handlers.$name)
-            throw "HTTPLISTENER-SETDEFAULTHANDLER-ERROR", sprintf("handler %y is unknown (known handlers: %y)", $name, $.handlers.handlers.keys());
-
-        $.defaultHandler = $.handlers.handlers.$name;
-    }
-
-    copy() {
-	throw "COPY-ERROR", "this object cannot be copied";
-    }
-
-    destructor() {
-	$.stop();
-    }
-    
-    string getName() {
-        return $.name;
-    }
-
-    any getAddress() {
-        return $.socket;
-    }
-
-    int getID() {
-        return $.id;
-    }
-
-    bool isSecure() {
-        return $.ssl;
-    }
-
-    hash getInfo() {
-        return (
-            "name": $.name,
-            ) + $.socket_info + (
-            "proto": $.ssl ? "https" : "http",
-            "id": $.id,
-            "bind": $.socket,
-            );
-    }
-
-    stopNoWait() {
-        background $.stop();
-    }
-
-    stop() {
-        {
-            $.m.lock();
-            on_exit $.m.unlock();
-
-            if ($.stopped)
-                return;
-
-            if ($.exit)
-                return;
-
-            $.exit = True;
-        }
-
-        # stop all dedicated socket connections
-        map $1.stop($.id), $.shh.iterator();
-
-        # wait for all connection threads to terminate
-        $.cThreads.waitForZero();
-
-        $.stopped = True;
-        $.log("stopped listener");
-
-        $.serv.listenerStopped($self);
-        if ($.stopc) {
-            try {
-                call_function($.stopc, $.name);
-            }
-            catch (hash $ex) {
-                $.serv.logError("%y (%s): error calling stop notification closure: %s: %s", $.name, $.socket_info.desc, $ex.err, $ex.desc);
-            }
-        }
-    }
-
-    logResponse(hash $cx, int $code, *data $body, *hash $hdr) {
-        # do log msg
-        my string $lstr = sprintf("cid %d: HTTP/1.1 %d %s", $cx.id, $code, HttpServer::HttpCodes.$code);
-        if ($cx.handlerName)
-            $lstr += sprintf(" handler: %y", $cx.handlerName);
-        if ($cx.user)
-            $lstr += sprintf(" user: %y", $cx.user);
-        if ($body)
-            $lstr += sprintf(" size: %d", $body.size());
-        if ($hdr."Content-Type")
-            $lstr += sprintf(" CT: %y", $hdr."Content-Type");
-        $.log($lstr);
-    }
-
-    logResponse(hash $cx, hash $rv) {
-        $.logResponse($cx, $rv.code, $rv.body, $rv.hdr);
-    }
-
-    log() {
-	$argv[0] = sprintf("%y (%s): %s", $.name, $.socket_info.desc, $argv[0]);
-	if ($.logger) {
-	    $argv[0] = "HTTP" + ($.ssl ? "S" : "") + " " + $argv[0];
-            try {
-                call_function_args($.logger, $argv);
-            }
-            catch (hash $ex) {
-                $argv[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", $ex.err, $ex.desc, $argv[0]);
-                $.serv.logErrorArgs($argv);
-            }
-	}
-	else
-	    $.serv.logArgs($argv);
-    }
-    
-    logError() {
-	$argv[0] = sprintf("%y (%s): %s", $.name, $.socket_info.desc, $argv[0]);
-	if ($.errorlogger) {
-	    $argv[0] = "HTTP " + $argv[0];
-            try {
-                call_function_args($.errorlogger, $argv);
-            }
-            catch (hash $ex) {
-                $argv[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", $ex.err, $ex.desc, $argv[0]);
-                $.serv.logErrorArgs($argv);
-            }
-	}
-	else
-	    $.serv.logErrorArgs($argv);
-    }
-
-    private mainThread() {
-        on_exit	$.cThreads.dec();
-
-        # DEBUG
-        #printf("HTTP DEBUG: %y: mainThread() started TID %d\n", $.socket, gettid());
-
-	# start listening
-	while (!$.exit) {
-	    my *Socket $r;
-            my hash $info;
-	    try {
-                $r = $.ssl ? $.acceptSSL(PollInterval) : $.accept(PollInterval);
-		if (!$r)
-		    continue;
-	    }
-	    catch ($ex) {
-                #printf("HTTP DEBUG: %s: %s: %s\n", get_ex_pos($ex), $ex.err, $ex.desc);
-                if ($ex.err != "SOCKET-CLOSED")
-                    $.log("error accepting %sconnection: %s: %s", $.ssl ? "secure " : "", $ex.err, $ex.desc);
-                continue;
-            }
-
-	    if ($.exit)
-		break;
-
-	    # DEBUG
-	    #printf("HTTP DEBUG: %y: accepting HTTP connection from %s\n", $.socket_info.address_desc, $r.getPeerInfo().address_desc);
-	    #$.log("accepting HTTP connection from %s", $r.getPeerInfo().address_desc);
-	    
-	    $.cThreads.inc();
-            try {
-                # use the thread pool to start the connection
-                $.serv.startConnection(sub () { $.connectionThread($r); });
-            }
-            catch (hash $ex) {
-                $.cThreads.dec();
-                my string $err = sprintf("failed to start connection thread: %s: %s", $ex.err, $ex.desc);
-                $.serv.sendHttpError($self, ("id": -1, "close": True), $r, 500, $err);
-            }
-	}
-
-	#printf("HTTP DEBUG: HttpListener::mainThread() closing socket %s\n", $.socket_info.address_desc);
-	$.shutdown();
-	$.close();
-	#printf("HTTP DEBUG: HttpListener::mainThread() TID %d terminating\n", gettid());
-    }
-
-    # thread for handling communication per connection
-    private connectionThread(Socket $s) {
-        on_exit	$.cThreads.dec();
-
-        my hash $info = $s.getPeerInfo();
-        # make 'desc' key for logging
-        $info.desc = $info.address_desc;
-        if ($info.port)
-            $info.desc += ":" + $info.port;
-
-	my hash $cx = (
-            "socket": $.socket,
-            "socket-info": $.socket_info,
-            "peer-info": $info,
-            "id": $.ss.next(),            
-            "ssl": $.ssl,
-            "listener-id": $.id,
-            );
-	
-	my (hash $hdr, any $body);
-
-	# set TCP_NODELAY on incoming socket
-	#$s.setNoDelay(True);
-	
-	try {
-	    while (True) {
-		if ($.exit)
-		    break;
-		
-		delete $body;
-		delete $hdr;
-
-                if (!$s.isOpen()) {
-                    #printf("HTTP DEBUG: T%d cid %d peer closed connection\n", gettid(), $cx.id);
-                    break;
-                }
-
-		if (!$s.isDataAvailable(HttpServer::PollTimeout)) {
-		    continue;
-                }
-		
-                my hash $hi;
-		try {
-		    $hdr = $s.readHTTPHeader(HttpServer::ReadTimeout, \$hi);
-		}
-		catch (hash $ex) {
-		    # according to RFC 2616 sec 8.1.2.1 (http://tools.ietf.org/html/rfc2616#section-8.1.2), clients claiming http 1.1 
-		    # protocol compatibility SHOULD only close the connection after
-		    # sending a "connection: close" header, but in 
-		    # case they don't, we simply close the connection silently
-		    if ($ex.err == "SOCKET-CLOSED") {
-			#printf("HTTP DEBUG: socket closed id=%d source=%n\n", $cx.id, $info.address_desc);
-			break;
-		    }
-                    else if ($ex.err == "SOCKET-TIMEOUT") {
-                        # log error and close connection on timeout
-                        my string $err = sprintf("timed out reading HTTP header after %d ms", HttpServer::ReadTimeout);
-                        my string $str = sprintf("%s from %s via %s", $err, $info.address_desc, $.socket_info.address_desc);
-                        $.logError($str);
-                        $cx.close = True;
-                        $.serv.sendHttpError($self, $cx, $s, 400, $err);
-                        break;
-                    }
-		    my string $etxt = sprintf("ERROR reading HTTP header: %s: %s", $ex.err, $ex.desc);
-		    my string $str = sprintf("%s: received from %s via %s", $etxt, $info.address_desc, $.socket_info.address_desc);
-		    $.logError($str);
-                    $cx.close = True;
-		    $.serv.sendHttpError($self, $cx, $s, 400, $etxt);
-		    break;
-		}
-
-		# DEBUG:
-                #printf("HTTP DEBUG: id: %d, hdr: %y, hi: %y\n", $cx.id, $hdr, $hi);
-
-		# process ascii encodings in url if present
-		$hdr.path = decode_url($hdr.path);
-
-		# remove leading / if present in path
-                my *string $orig_path = $hdr.path;
-		if ($hdr.path =~ /^\//)
-                    splice $hdr.path, 0, 1;
-
-		if ($hdr.authorization)
-		    $cx.auth = $hdr.authorization;
-
-		# save original content-type
-                if ($hdr."content-type")
-                    $hdr."_qore_orig_content_type" = $hdr."content-type";
-                $hdr."content-type" = $hi."body-content-type";
-
-                # the Socket's encoding is set in Socket::readHTTPHeader() according to any charset declaration in the Content-Type
-                $cx.encoding = $s.getEncoding();
-                $cx."response-encoding" = $hi."accept-charset";
-
-		# check if we need to close the connection
-                # RFC 2068 19.7.1: Persistent connections in HTTP/1.0 must be explicitly negotiated as they are not the default behavior
-                # RFC 1945 1.3: Except for experimental applications, current practice requires that the connection be established by the client prior to each request and closed by the server after sending the response.
-                # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open: the above rules are followed by Socket::readHTTPHeader()
-                $cx.close = $hi.close;
-
-		# if we need to get a body
-                if ($hdr."transfer-encoding" == "chunked") {
-                    try {
-                        if ($hdr."content-encoding")
-                            $hdr += $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
-                        else
-                            $hdr += $s.readHTTPChunkedBody(HttpServer::ReadTimeout);
-                        $body = $hdr.body;
-                        $hdr -= "body";
-                    }
-                    catch (hash $ex) {
-                        my string $etxt = sprintf("error reading chunked body in %s: %s: %s", $hdr.method, $ex.err, $ex.desc);
-                        my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
-                        $.logError($str);
-                        $cx.close = True;
-                        $.serv.sendHttpError($self, $cx, $s, 400, $etxt, NOTHING, $cx."response-encoding");
-                        break;
-                    }
-                }
-                else if ($hdr."content-length") {
-                    try {
-                        if ($hdr."content-encoding")
-                            $body = $s.recvBinary($hdr."content-length", HttpServer::ReadTimeout);
-                        else
-                            $body = $s.recv($hdr."content-length", HttpServer::ReadTimeout);
-                        #printf("HTTP DEBUG: %s\n", $body);
-                    }
-                    catch (hash $ex) {
-                        my string $etxt = sprintf("error reading body in %s (Content-Length: %d): %s: %s", $hdr.method, $hdr."content-length", $ex.err, $ex.desc);
-                        my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
-                        $.logError($str);
-                        $cx.close = True;
-                        $.serv.sendHttpError($self, $cx, $s, 400, $etxt, NOTHING, $cx."response-encoding");
-                        break;
-                    }
-                }
-
-                {
-                    my string $lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", $cx.id, $cx."peer-info".address_desc, $hdr.method, $orig_path, $hdr.http_version, $hdr."user-agent");
-                    if ($body)
-                        $lstr += sprintf(" body: %db", $body.size());
-                    if ($hdr."_qore_orig_content_type")
-                        $lstr += sprintf(" Content-Type: %y", $hdr."_qore_orig_content_type");
-                    if ($.ssl)
-                        $lstr += sprintf(" %s %s", $s.getSSLCipherName(), $s.getSSLCipherVersion());
-                    $lstr += ")";
-                    $.log($lstr);
-                }
-
-                if (!HttpServer::HttpMethods.($hdr.method)) {
-                    my string $err = sprintf("unknown / unsupported HTTP method %n", $hdr.method);
-                    my string $str = sprintf("%s: received from %s via %s", $err, $info.address_desc, $.socket_info.address_desc);
-                    $.logError($str);
-                    $cx.close = True;
-                    $.serv.sendHttpError($self, $cx, $s, 501, $err, NOTHING, $cx."response-encoding");
-                }
-                else
-                    $.serv.handleRequest($self, $s, \$cx, $hdr, $hi, $body, $hdr.method == "HEAD");
-
-                if ($cx.close)
-                    break;
-	    }
-	}
-	catch (hash $ex) {
-            my string $etxt = $.serv.getDebug()
-                ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
-                : get_exception_string($ex);
-	    my string $str = sprintf("%s: received from %s via %s", $etxt, $info.address_desc, $.socket_info.address_desc);
-	    $.logError($str);
-	    $.logError(sprintf("hdr=%y", $hdr));
-	    #$.logError(sprintf("msg=%y", $body));
-            $cx.close = True;
-	    $.serv.sendHttpError($self, $cx, $s, 500, $etxt, NOTHING, $cx."response-encoding");
-	}
-
-        #$.log("cid %d: closing connection (status: %s)", $cx.id, $s.isOpen() ? "open" : "closed");
-        $s.shutdown();
-        $s.close();
-    }
-
-    bool registerDedicatedSocket(softstring $id, AbstractHttpSocketHandler $h) {
-        $.m.lock();
-        on_exit $.m.unlock();
-
-        if ($.exit)
-            return False;
-
-        $.shh.$id = $h;
-
-        return True;        
-    }
-
-    removeDedicatedSocket(softstring $id, AbstractHttpSocketHandler $h) {
-        $.m.lock();
-        on_exit $.m.unlock();
-
-        remove $.shh.$id;
     }
 }
 
@@ -2456,4 +1967,502 @@ public class HttpServer::HttpServer {
 	}
     }
     #! @endcond
+}
+
+# Listener will be assigned to private members of the HttpServer; is not directly accessible from code outside the HttpServer (private)
+class HttpServer::HttpListener inherits Qore::Socket {
+    private {
+        HttpServer $.serv;
+        Sequence $.ss;
+        *SSLCertificate $.cert;
+        *SSLPrivateKey $.key;
+        bool $.ssl = False;
+        any $.socket;
+        hash $.socket_info;
+
+	# connection counter
+	Counter $.cThreads();
+        bool $.exit = False;
+        bool $.stopped = False;
+        int $.id;
+
+        # socket handler hash
+        hash $.shh;
+
+        # mutex
+        Mutex $.m();
+
+	# code references to external logging functions
+	*code $.logger;
+	*code $.errorlogger;
+
+        # stop notification closure
+        *code $.stopc;
+        
+        string $.name;
+
+	const PollInterval = 1s;
+        const ListenQueue = 100;
+    }
+
+    public {
+        # TID of the background listener thread
+        int $.tid;
+
+        # listener-specific handlers
+        HttpHandlerList $.handlers();
+
+        # default handler info
+        *HandlerInfo $.defaultHandler;
+    }
+
+    # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
+    constructor(HttpServer $server, int $id, Sequence $ss, *string $node, softstring $service, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, string $name, int $family = AF_UNSPEC) {
+        $.name = $name;
+        # we originally set for utf-8 and then per-connection the encoding is set according to the client's content-type header (with iso-8859-1 as the default)
+        # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)
+        $.setEncoding("utf-8");
+        
+	# save a reference to the server object
+	$.serv = $server;
+
+	# set other params
+        $.id = $id;
+	$.ss = $ss;
+	$.logger = $logger;
+	$.errorlogger = $errorlogger;
+        $.stopc = $stopc;
+
+        if ($hi)
+            $.addHandlers($hi);
+
+	# create SSL certificate and private key objects from PEM files if passed
+        if ($cert) {
+	    $.cert = $cert;
+	    $.setCertificate($.cert);
+            $.key = $key;
+	    $.setPrivateKey($.key);
+	    $.ssl = True;
+	}
+
+        if ($service) {
+            $.bindINET($node, $service, True, $family);
+            $.socket = sprintf("%s:%s", $node ? $node : "*", $service);
+        }
+        else {
+            $.socket = $node;
+            if ($node =~ /^\//) {
+                # try to unlink the file first if it's a UNIX domain socket
+                unlink($node);
+                $.bindUNIX($node, True);
+            }
+            else {
+                if ($.bind($node, True))
+                    throw "HTTPLISTENER-BIND-ERROR", strerror();
+            }
+        }
+
+	# save socket port/path
+        $.socket_info = $.getSocketInfo();
+
+	# make 'desc' key for logging
+	$.socket_info.desc = $.socket_info.address_desc;
+	if ($.socket_info.port)
+	    $.socket_info.desc += ":" + $.socket_info.port;
+
+	# set TCP_NODELAY
+	#$.setNoDelay(True);
+
+	# set listening state on socket
+	if ($.listen(ListenQueue))
+	    throw "HTTP-LISTEN-ERROR", sprintf("listen error on socket %s: %s", $.socket, strerror(errno()));
+
+	# start main listener thread
+	$.cThreads.inc();
+
+	$.tid = background $.mainThread();
+    }
+
+    addHandlers(hash $hi) {
+	#printf("HttpListener::addHandlers() hi: %y\n", $hi);
+        my bool $def = $.handlers.empty();
+        map $.handlers.setHandler($1.key, $1.value.path, $1.value.isregex, $1.value.content, $1.value.handler, $1.value.headers), $hi.pairIterator();
+        if ($def)
+            $.setDefaultHandler($hi.firstKey());
+    }
+
+    setDefaultHandler(string $name) {
+        if (!$.handlers.handlers.$name)
+            throw "HTTPLISTENER-SETDEFAULTHANDLER-ERROR", sprintf("handler %y is unknown (known handlers: %y)", $name, $.handlers.handlers.keys());
+
+        $.defaultHandler = $.handlers.handlers.$name;
+    }
+
+    copy() {
+	throw "COPY-ERROR", "this object cannot be copied";
+    }
+
+    destructor() {
+	$.stop();
+    }
+    
+    string getName() {
+        return $.name;
+    }
+
+    any getAddress() {
+        return $.socket;
+    }
+
+    int getID() {
+        return $.id;
+    }
+
+    bool isSecure() {
+        return $.ssl;
+    }
+
+    hash getInfo() {
+        return (
+            "name": $.name,
+            ) + $.socket_info + (
+            "proto": $.ssl ? "https" : "http",
+            "id": $.id,
+            "bind": $.socket,
+            );
+    }
+
+    stopNoWait() {
+        background $.stop();
+    }
+
+    stop() {
+        {
+            $.m.lock();
+            on_exit $.m.unlock();
+
+            if ($.stopped)
+                return;
+
+            if ($.exit)
+                return;
+
+            $.exit = True;
+        }
+
+        # stop all dedicated socket connections
+        map $1.stop($.id), $.shh.iterator();
+
+        # wait for all connection threads to terminate
+        $.cThreads.waitForZero();
+
+        $.stopped = True;
+        $.log("stopped listener");
+
+        $.serv.listenerStopped($self);
+        if ($.stopc) {
+            try {
+                call_function($.stopc, $.name);
+            }
+            catch (hash $ex) {
+                $.serv.logError("%y (%s): error calling stop notification closure: %s: %s", $.name, $.socket_info.desc, $ex.err, $ex.desc);
+            }
+        }
+    }
+
+    logResponse(hash $cx, int $code, *data $body, *hash $hdr) {
+        # do log msg
+        my string $lstr = sprintf("cid %d: HTTP/1.1 %d %s", $cx.id, $code, HttpServer::HttpCodes.$code);
+        if ($cx.handlerName)
+            $lstr += sprintf(" handler: %y", $cx.handlerName);
+        if ($cx.user)
+            $lstr += sprintf(" user: %y", $cx.user);
+        if ($body)
+            $lstr += sprintf(" size: %d", $body.size());
+        if ($hdr."Content-Type")
+            $lstr += sprintf(" CT: %y", $hdr."Content-Type");
+        $.log($lstr);
+    }
+
+    logResponse(hash $cx, hash $rv) {
+        $.logResponse($cx, $rv.code, $rv.body, $rv.hdr);
+    }
+
+    log() {
+	$argv[0] = sprintf("%y (%s): %s", $.name, $.socket_info.desc, $argv[0]);
+	if ($.logger) {
+	    $argv[0] = "HTTP" + ($.ssl ? "S" : "") + " " + $argv[0];
+            try {
+                call_function_args($.logger, $argv);
+            }
+            catch (hash $ex) {
+                $argv[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", $ex.err, $ex.desc, $argv[0]);
+                $.serv.logErrorArgs($argv);
+            }
+	}
+	else
+	    $.serv.logArgs($argv);
+    }
+    
+    logError() {
+	$argv[0] = sprintf("%y (%s): %s", $.name, $.socket_info.desc, $argv[0]);
+	if ($.errorlogger) {
+	    $argv[0] = "HTTP " + $argv[0];
+            try {
+                call_function_args($.errorlogger, $argv);
+            }
+            catch (hash $ex) {
+                $argv[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", $ex.err, $ex.desc, $argv[0]);
+                $.serv.logErrorArgs($argv);
+            }
+	}
+	else
+	    $.serv.logErrorArgs($argv);
+    }
+
+    private mainThread() {
+        on_exit	$.cThreads.dec();
+
+        # DEBUG
+        #printf("HTTP DEBUG: %y: mainThread() started TID %d\n", $.socket, gettid());
+
+	# start listening
+	while (!$.exit) {
+	    my *Socket $r;
+            my hash $info;
+	    try {
+                $r = $.ssl ? $.acceptSSL(PollInterval) : $.accept(PollInterval);
+		if (!$r)
+		    continue;
+	    }
+	    catch ($ex) {
+                #printf("HTTP DEBUG: %s: %s: %s\n", get_ex_pos($ex), $ex.err, $ex.desc);
+                if ($ex.err != "SOCKET-CLOSED")
+                    $.log("error accepting %sconnection: %s: %s", $.ssl ? "secure " : "", $ex.err, $ex.desc);
+                continue;
+            }
+
+	    if ($.exit)
+		break;
+
+	    # DEBUG
+	    #printf("HTTP DEBUG: %y: accepting HTTP connection from %s\n", $.socket_info.address_desc, $r.getPeerInfo().address_desc);
+	    #$.log("accepting HTTP connection from %s", $r.getPeerInfo().address_desc);
+	    
+	    $.cThreads.inc();
+            try {
+                # use the thread pool to start the connection
+                $.serv.startConnection(sub () { $.connectionThread($r); });
+            }
+            catch (hash $ex) {
+                $.cThreads.dec();
+                my string $err = sprintf("failed to start connection thread: %s: %s", $ex.err, $ex.desc);
+                $.serv.sendHttpError($self, ("id": -1, "close": True), $r, 500, $err);
+            }
+	}
+
+	#printf("HTTP DEBUG: HttpListener::mainThread() closing socket %s\n", $.socket_info.address_desc);
+	$.shutdown();
+	$.close();
+	#printf("HTTP DEBUG: HttpListener::mainThread() TID %d terminating\n", gettid());
+    }
+
+    # thread for handling communication per connection
+    private connectionThread(Socket $s) {
+        on_exit	$.cThreads.dec();
+
+        my hash $info = $s.getPeerInfo();
+        # make 'desc' key for logging
+        $info.desc = $info.address_desc;
+        if ($info.port)
+            $info.desc += ":" + $info.port;
+
+	my hash $cx = (
+            "socket": $.socket,
+            "socket-info": $.socket_info,
+            "peer-info": $info,
+            "id": $.ss.next(),            
+            "ssl": $.ssl,
+            "listener-id": $.id,
+            );
+	
+	my (hash $hdr, any $body);
+
+	# set TCP_NODELAY on incoming socket
+	#$s.setNoDelay(True);
+	
+	try {
+	    while (True) {
+		if ($.exit)
+		    break;
+		
+		delete $body;
+		delete $hdr;
+
+                if (!$s.isOpen()) {
+                    #printf("HTTP DEBUG: T%d cid %d peer closed connection\n", gettid(), $cx.id);
+                    break;
+                }
+
+		if (!$s.isDataAvailable(HttpServer::PollTimeout)) {
+		    continue;
+                }
+		
+                my hash $hi;
+		try {
+		    $hdr = $s.readHTTPHeader(HttpServer::ReadTimeout, \$hi);
+		}
+		catch (hash $ex) {
+		    # according to RFC 2616 sec 8.1.2.1 (http://tools.ietf.org/html/rfc2616#section-8.1.2), clients claiming http 1.1 
+		    # protocol compatibility SHOULD only close the connection after
+		    # sending a "connection: close" header, but in 
+		    # case they don't, we simply close the connection silently
+		    if ($ex.err == "SOCKET-CLOSED") {
+			#printf("HTTP DEBUG: socket closed id=%d source=%n\n", $cx.id, $info.address_desc);
+			break;
+		    }
+                    else if ($ex.err == "SOCKET-TIMEOUT") {
+                        # log error and close connection on timeout
+                        my string $err = sprintf("timed out reading HTTP header after %d ms", HttpServer::ReadTimeout);
+                        my string $str = sprintf("%s from %s via %s", $err, $info.address_desc, $.socket_info.address_desc);
+                        $.logError($str);
+                        $cx.close = True;
+                        $.serv.sendHttpError($self, $cx, $s, 400, $err);
+                        break;
+                    }
+		    my string $etxt = sprintf("ERROR reading HTTP header: %s: %s", $ex.err, $ex.desc);
+		    my string $str = sprintf("%s: received from %s via %s", $etxt, $info.address_desc, $.socket_info.address_desc);
+		    $.logError($str);
+                    $cx.close = True;
+		    $.serv.sendHttpError($self, $cx, $s, 400, $etxt);
+		    break;
+		}
+
+		# DEBUG:
+                #printf("HTTP DEBUG: id: %d, hdr: %y, hi: %y\n", $cx.id, $hdr, $hi);
+
+		# process ascii encodings in url if present
+		$hdr.path = decode_url($hdr.path);
+
+		# remove leading / if present in path
+                my *string $orig_path = $hdr.path;
+		if ($hdr.path =~ /^\//)
+                    splice $hdr.path, 0, 1;
+
+		if ($hdr.authorization)
+		    $cx.auth = $hdr.authorization;
+
+		# save original content-type
+                if ($hdr."content-type")
+                    $hdr."_qore_orig_content_type" = $hdr."content-type";
+                $hdr."content-type" = $hi."body-content-type";
+
+                # the Socket's encoding is set in Socket::readHTTPHeader() according to any charset declaration in the Content-Type
+                $cx.encoding = $s.getEncoding();
+                $cx."response-encoding" = $hi."accept-charset";
+
+		# check if we need to close the connection
+                # RFC 2068 19.7.1: Persistent connections in HTTP/1.0 must be explicitly negotiated as they are not the default behavior
+                # RFC 1945 1.3: Except for experimental applications, current practice requires that the connection be established by the client prior to each request and closed by the server after sending the response.
+                # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open: the above rules are followed by Socket::readHTTPHeader()
+                $cx.close = $hi.close;
+
+		# if we need to get a body
+                if ($hdr."transfer-encoding" == "chunked") {
+                    try {
+                        if ($hdr."content-encoding")
+                            $hdr += $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
+                        else
+                            $hdr += $s.readHTTPChunkedBody(HttpServer::ReadTimeout);
+                        $body = $hdr.body;
+                        $hdr -= "body";
+                    }
+                    catch (hash $ex) {
+                        my string $etxt = sprintf("error reading chunked body in %s: %s: %s", $hdr.method, $ex.err, $ex.desc);
+                        my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
+                        $.logError($str);
+                        $cx.close = True;
+                        $.serv.sendHttpError($self, $cx, $s, 400, $etxt, NOTHING, $cx."response-encoding");
+                        break;
+                    }
+                }
+                else if ($hdr."content-length") {
+                    try {
+                        if ($hdr."content-encoding")
+                            $body = $s.recvBinary($hdr."content-length", HttpServer::ReadTimeout);
+                        else
+                            $body = $s.recv($hdr."content-length", HttpServer::ReadTimeout);
+                        #printf("HTTP DEBUG: %s\n", $body);
+                    }
+                    catch (hash $ex) {
+                        my string $etxt = sprintf("error reading body in %s (Content-Length: %d): %s: %s", $hdr.method, $hdr."content-length", $ex.err, $ex.desc);
+                        my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
+                        $.logError($str);
+                        $cx.close = True;
+                        $.serv.sendHttpError($self, $cx, $s, 400, $etxt, NOTHING, $cx."response-encoding");
+                        break;
+                    }
+                }
+
+                {
+                    my string $lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", $cx.id, $cx."peer-info".address_desc, $hdr.method, $orig_path, $hdr.http_version, $hdr."user-agent");
+                    if ($body)
+                        $lstr += sprintf(" body: %db", $body.size());
+                    if ($hdr."_qore_orig_content_type")
+                        $lstr += sprintf(" Content-Type: %y", $hdr."_qore_orig_content_type");
+                    if ($.ssl)
+                        $lstr += sprintf(" %s %s", $s.getSSLCipherName(), $s.getSSLCipherVersion());
+                    $lstr += ")";
+                    $.log($lstr);
+                }
+
+                if (!HttpServer::HttpMethods.($hdr.method)) {
+                    my string $err = sprintf("unknown / unsupported HTTP method %n", $hdr.method);
+                    my string $str = sprintf("%s: received from %s via %s", $err, $info.address_desc, $.socket_info.address_desc);
+                    $.logError($str);
+                    $cx.close = True;
+                    $.serv.sendHttpError($self, $cx, $s, 501, $err, NOTHING, $cx."response-encoding");
+                }
+                else
+                    $.serv.handleRequest($self, $s, \$cx, $hdr, $hi, $body, $hdr.method == "HEAD");
+
+                if ($cx.close)
+                    break;
+	    }
+	}
+	catch (hash $ex) {
+            my string $etxt = $.serv.getDebug()
+                ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
+                : get_exception_string($ex);
+	    my string $str = sprintf("%s: received from %s via %s", $etxt, $info.address_desc, $.socket_info.address_desc);
+	    $.logError($str);
+	    $.logError(sprintf("hdr=%y", $hdr));
+	    #$.logError(sprintf("msg=%y", $body));
+            $cx.close = True;
+	    $.serv.sendHttpError($self, $cx, $s, 500, $etxt, NOTHING, $cx."response-encoding");
+	}
+
+        #$.log("cid %d: closing connection (status: %s)", $cx.id, $s.isOpen() ? "open" : "closed");
+        $s.shutdown();
+        $s.close();
+    }
+
+    bool registerDedicatedSocket(softstring $id, AbstractHttpSocketHandler $h) {
+        $.m.lock();
+        on_exit $.m.unlock();
+
+        if ($.exit)
+            return False;
+
+        $.shh.$id = $h;
+
+        return True;        
+    }
+
+    removeDedicatedSocket(softstring $id, AbstractHttpSocketHandler $h) {
+        $.m.lock();
+        on_exit $.m.unlock();
+
+        remove $.shh.$id;
+    }
 }

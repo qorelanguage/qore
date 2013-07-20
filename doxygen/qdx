@@ -354,10 +354,18 @@ class qdx {
                 line =~ s/\$//g;
 
                 # make into a declaration (also remove any parent class constructor calls)
-                line =~ s/[[:blank:]]*([^:]:[^:].*)?{[[:blank:]]*$/;/;
+                line =~ s/[[:blank:]]*([^:]:[^:].*\(.*)?{[[:blank:]]*$/;/;
 
                 # read until closing curly bracket '}'
                 readUntilCloseBracket(inf);
+            }
+
+            if (line =~ /[[:blank:]]*abstract .*;[[:blank:]]*$/) {
+                #printf("method or func: %s", line);
+                
+                # remove "$" signs
+                line =~ s/\$//g;
+
             }
 
             # convert Qore line comments to C++ line comments

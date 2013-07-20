@@ -779,7 +779,7 @@ doxygen/qlib/CsvUtil.qm.dox.h: qlib/CsvUtil.qm $(QDX)
 	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.RestHandler: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/RestHandler.qm:doxygen/qlib/RestHandler.qm.dox.h $< $@
+	$(QDX) -M=qlib/RestHandler.qm:doxygen/qlib/RestHandler.qm.dox.h -tHttpServer.tag=../../HttpServer/html $< $@
 
 doxygen/qlib/RestHandler.qm.dox.h: qlib/RestHandler.qm $(QDX)
 	$(QDX) $< $@
@@ -821,7 +821,7 @@ doxygen/qlib/Util.qm.dox.h: qlib/Util.qm $(QDX)
 	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.WebSocketHandler: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/WebSocketHandler.qm:doxygen/qlib/WebSocketHandler.qm.dox.h $< $@
+	$(QDX) -M=qlib/WebSocketHandler.qm:doxygen/qlib/WebSocketHandler.qm.dox.h -tWebSocketUtil.tag=../../WebSocketUtil/html -tHttpServer.tag=../../HttpServer/html $< $@
 
 doxygen/qlib/WebSocketHandler.qm.dox.h: qlib/WebSocketHandler.qm $(QDX)
 	$(QDX) $< $@
@@ -833,7 +833,7 @@ doxygen/qlib/WebSocketUtil.qm.dox.h: qlib/WebSocketUtil.qm $(QDX)
 	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm.dox.h $< $@
+	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm.dox.h -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
 
 doxygen/qlib/WebSocketClient.qm.dox.h: qlib/WebSocketClient.qm $(QDX)
 	$(QDX) $< $@

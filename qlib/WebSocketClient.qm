@@ -49,6 +49,37 @@ module WebSocketClient {
 /** @mainpage WebSocketClient Module
 
     The %WebSocketClient module provides client support for <a href="http://tools.ietf.org/html/rfc6455">RFC-6455 based WebSocket protocol</a> implementations in %Qore.
+
+    To use this module, use \c "%requires WebSocketClient" in your code.
+    
+    This module automatically uses the <a href="../../WebSocketUtil/html/index.html">WebSocketUtil</a> module for encoding and decoding web socket messages.
+
+    All the public symbols in the module are defined in the WebSocketClient namespace.
+
+    Currently the module provides the following class:
+    - @ref WebSocketClient::WebSocketClient "WebSocketClient": the web socket client class
+
+    <b>Example</b>
+    @code
+#!/usr/bin/env qore
+
+%require-our
+%enable-all-warnings
+
+%requires WebSocketClient
+
+my *string $url = shift $ARGV;
+if (!$url) {
+    stderr.printf("usage: %s <URL>\n", get_script_name());
+    exit(1);
+}
+
+my WebSocketClient $ws();
+$ws.connect(("url": $url, "callback": sub (*data $d) { if ($d.typeCode() == NT_BINARY) printf("binary msg received: %y\n", $d); else if ($d) printf("%s\n", $d);}));
+# wait forever (or until ctrl-c)
+my Counter $c(1);
+$c.waitForZero();
+    @endcode
 */
 
 #! the WebSocketClient namespace contains all the definitions in the WebSocketClient module
@@ -67,6 +98,12 @@ public namespace WebSocketClient {
     public const WsDefaultPort = 80;
 
     #! the main websocket client class
+    /** To use this class, create a @ref WebSocketClient::WebSocketClient "WebSocketClient" object and the call @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()".
+
+        The @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method starts a background thread to receive messages, which are then posted to the callback provided in the @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method call.
+
+        To stop listening for web socket events, call @ref WebSocketClient::WebSocketClient::disconnect() "WebSocketClient::disconnect()".
+     */
     public class WebSocketClient {
         private {
             Mutex $.m();
@@ -115,6 +152,12 @@ sub event(*data $msg) {
 $ws.connect(("url": "ws://example.com:8080/event-path/", "callback": \event()));
             @endcode
 
+            This method starts a background thread to receive messages, which are then posted to the callback @ref closure "closure" or @ref call_reference "call reference" given as an argument.  If the server disconnects the web socket connection, the callback will be called with no argument (ie @ref nothing).  In this case the event thread also terminates and the WebSocketClient object will be in a disconnected state.
+
+            To stop listening for web socket events, call @ref WebSocketClient::WebSocketClient::disconnect() "WebSocketClient::disconnect()".
+
+            If this method is called while a connection is already in progress, then the existing connection is first implicitly disconnected with close code @ref WebSocketUtil::WSCC_GoingAway "WSCC_GoingAway".
+    
             @param opts a hash with the following keys:
             - \c url: (required) a @ref string_type "string" giving the connection URL; schema \c "ws" is a non-encrypted web socket connections, \c "wss" means to use SSL
             - \c callback: (required) a @ref closure "closure" or @ref call_reference "call reference" for the callback when messages arrive from the server

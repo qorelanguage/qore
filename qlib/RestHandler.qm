@@ -161,7 +161,7 @@ public namespace RestHandler {
     }
 
     #! this is the main handler class to be registered with the HttpServer
-    public class RestHandler inherits AbstractHttpRequestHandler, AbstractRestClass {
+    public class RestHandler inherits HttpServer::AbstractHttpRequestHandler, AbstractRestClass {
         public {
             #! a hash for a 501 Unimplemented error message
             const Err501 = (

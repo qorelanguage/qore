@@ -100,7 +100,7 @@ public namespace WebSocketHandler {
     }
 
     #! the main web socket handler class
-    public class WebSocketHandler inherits AbstractHttpSocketHandler {
+    public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler {
         public {
         }
 
@@ -112,8 +112,8 @@ public namespace WebSocketHandler {
             hash $.ch;            
         }
 
-        #! create the object optionally with the given AbstractAuthenticator
-        /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+        #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
+        /** @param auth the authentication object to use to authenticate connections (see @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"); if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
          */
         constructor(*AbstractAuthenticator $auth) : AbstractHttpSocketHandler($auth) {
         }
@@ -127,7 +127,7 @@ public namespace WebSocketHandler {
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parseURL())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see @ref HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
@@ -136,7 +136,7 @@ public namespace WebSocketHandler {
             @param b message body, if any
 
             @return a hash representing the response to the client as follows; to accept a dedicated connection; make sure the \c "code" is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref Qore::False "False":
-            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpServer::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
             - \c "body": the message body to return in the response
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
@@ -168,13 +168,14 @@ public namespace WebSocketHandler {
         #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
         /** This method should not return until the connection is closed or the stop() method is called
 
+            @param lid the unique HTTP listener ID
             @param cx call context hash; this hash will have the following keys:
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parseURL())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see @ref HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param hdr a hash of headers in the request
             @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
