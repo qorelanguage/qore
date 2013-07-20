@@ -60,9 +60,11 @@ module RestHandler {
 
 /** @mainpage RestHandler Module
 
+    @tableofcontents
+
     The %RestHandler module provides functionality for implementing REST services with the Qore HTTP server.
 
-    To use this module, use \c "%requires RestHandler" in your code.
+    To use this module, use \c "%requires RestHandler" and \c "%requires HttpServer" in your code.
     
     All the public symbols in the module are defined in the RestHandler namespace.
 
@@ -71,6 +73,105 @@ module RestHandler {
     - @ref RestHandler::RestHandler "RestHandler": this class can be used to plug in to the Qore <a href="../../HttpServer/html/index.html">HttpServer</a> to expose REST services
 
     see example file \c "restserver.q" in the examples directory for an example of using this module to implement REST services.
+
+    @section restserialization Data Serialization Support
+
+    The @ref RestHandler::RestHandler "RestHandler" class uses any of the following modules if they are available:
+    - <a href="http://qore.org/qore-modules/41-json-module">json</a>: provides automatic support for JSON payload de/serialization
+    - <a href="http://qore.org/qore-modules/40-xml-module">xml</a>: provides automatic support for XML-RPC payload de/serialization
+    - <a href="http://qore.org/qore-modules/38-yaml-module">yaml</a>: provides automatic support for YAML payload de/serialization
+
+    For standard REST web service development, the <a href="http://qore.org/qore-modules/41-json-module">json</a> module will be required to support JSON serialization.
+
+    The @ref RestHandler::RestHandler "RestHandler" class will automatically deserialize request bodies if the incoming MIME type is supported and additionally will serialize outgoing messages automatically with the same serialization as the incoming message.
+
+    @section restimplementation Implementing REST Services
+
+    The class that models a REST entity or object in this module is @ref RestHandler::AbstractRestClass "AbstractRestClass".
+
+    This class should be subclassed for each object type, and methods implemented for each REST method that the object will support.
+
+    Incoming requests matched by your @ref RestHandler::RestHandler "RestHandler" subclass (when called by the @ref HttpServer::HttpServer "HttpServer" when requests are appropriately matched) will be dispatched to methods in your @ref RestHandler::AbstractRestClass "AbstractRestClass" specialization (ie your user-defined subclass of this class) according to the following naming convention:
+    - <tt>httpmethod</tt>[<i>RequestRestAction</i>]
+
+    For example:
+    - \c "GET /obj HTTP/1.1": matches method \c "get()"
+    - \c "POST /obj HTTP/1.1": matches method \c "post()"
+    - \c "GET /obj?action=status HTTP/1.1": matches method \c "getStatus()"
+    - \c "PUT /obj?action=status HTTP/1.1": matches method \c "putStatus()"
+
+    In other words, if a REST action is given in the request (either as a URI parameter or in the message body), the first letter of the action name is capitalized and appended to a lower case version of the HTTP method name; if such a method exists in your @ref RestHandler::AbstractRestClass "AbstractRestClass" specialization, then it is called.  If not, then, if the REST action exists under a different HTTP method (ie a request comes with \c "HTTP GET /something?action=setData", and  \c "putSetData" exists, but \c "getSetData" was used for the search), then a 405 \c "Method Not Allowed" response is returned.  If no variation of the requested REST method exists, then a 501 \c "Not Implemented" response is returned.
+
+    If a REST request is made with no action name, then a method in your class is attempted to be called with just the HTTP method name in lower case.
+
+    In all cases, the signature for these methods looks like:
+    @code
+    hash method(hash $cx, *hash $ah) {}
+    @endcode
+
+    The arguments passed to the REST action methods are as follows:
+    - \a cx: a call context hash; the same value as documented in the \a cx parameter of @ref HttpServer::AbstractHttpRequestHandler::handleRequest().
+    - \c ah: these are the parsed URI query arguments to the REST call; see @ref restargs for more information
+
+    The return value for these methods is the same as the return value for @ref HttpServer::AbstractHttpRequestHandler::handleRequest().
+
+    consider the following example class:
+    @code
+class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
+    private {
+        hash $.h;
+    }
+
+    constructor(hash $n_h) {
+        $.h = $n_h;
+    }
+
+    hash get(hash $cx, *hash $ah) {
+        return RestHandler::makeResponse(200, $.h);
+    }
+
+    hash putChown(hash $cx, *hash $ah) {
+        if (!exists $cx.body.user && !exists $cx.body.group)
+            return RestHandler::make400("missing 'user' and/or 'group' parameters for chown(%y)", $.h.path);
+        my int $rc = chown($.h.path, $cx.body.user, $cx.body.group);
+        return $rc ? RestHandler::make400("ERROR chown(%y): %s", $.h.path, strerror()) : RestHandler::makeResponse(200, "OK");
+    }
+
+    hash putChmod(hash $cx, *hash $ah) {
+        if (!exists $cx.body.mode)
+            return RestHandler::make400("missing 'mode' parameter for chmod(%y)", $.h.path);        
+        my int $rc = chmod($.h.path, $cx.body.mode);
+        return $rc ? RestHandler::make400("ERROR chmod(%y): %s", $.h.path, strerror()) : RestHandler::makeResponse(200, "OK");
+    }
+
+    hash putRename(hash $cx, *hash $ah) {
+        if (!exists $cx.body.newPath)
+            return RestHandler::make400("missing 'newPath' parameter for rename(%y)", $.h.path);        
+        try {
+            rename($.h.path, $cx.body.newPath);
+        }
+        catch (hash $ex) {
+            return RestHandler::make400("rename (%y): %s: %s", $.h.path, $ex.err, $ex.desc);
+        }
+        return RestHandler::makeResponse(200, "OK");
+    }
+}
+    @endcode
+
+    Assuming this object corresponds to URL path /files/info.txt, the following requests are supported:
+    - \c "GET /files/info.txt HTTP/1.1": calls the get() method above (no action)
+    - \c "PUT /files/info.txt?action=chown;user=username HTTP/1.1": calls the putChown() method above (such arguments could also be passed in the message body; see @ref restargs for more information)
+    - \c "PUT /files/info.txt?action=chmod;mode=420 HTTP/1.1": calls the putChmod() method above (note that 420 = 0644)
+    - \c "PUT /files/info.txt?action=rename;newPath=/tmp/old.txt HTTP/1.1": calls the putRename() method above
+
+    @section resthierarchy Implementing Object Hierarchies
+
+    To implement a hisearchy of REST objects in the URL, each @ref RestHandler::AbstractRestClass "AbstractRestClass" subclass reimplemnts the @ref RestHandler::AbstractRestClass::subClass() "subClass()" method that returns a child @ref RestHandler::AbstractRestClass "AbstractRestClass" object representing the child object.  If no such sub object exists, then the method should return @ref nothing, which will cause a \c "REST-CLASS-ERROR" exception to be thrown by default (to change this behavior, reimplement @ref RestHandler::RestHandler::unknownSubClassError() "unknownSubClassError()" in your specialization of  @ref RestHandler::RestHandler "RestHandler".  See @ref restexceptions for more information
+
+    @section restargs Argument and Message Body Handling
+
+    @section restexceptions Exception Handling in REST Calls
+    
 */
 
 #! the RestHandler namespace contains all the objects in the RestHandler module
@@ -161,6 +262,16 @@ public namespace RestHandler {
     }
 
     #! this is the main handler class to be registered with the HttpServer
+    /** The @ref RestHandler::RestHandler "RestHandler" class should be subclassed to customize its behavior.
+
+        To provide for logging; the following methods can be reimplemented in subclasses:
+        - @ref RestHandler::RestHandler::logInfo()
+        - @ref RestHandler::RestHandler::logError()
+        - @ref RestHandler::RestHandler::logDebug()
+
+        In order to match REST requests under a root path, reimplement the following method in a subclass:
+        - @ref RestHandler::RestHandler::removeRootPath()        
+    */
     public class RestHandler inherits HttpServer::AbstractHttpRequestHandler, AbstractRestClass {
         public {
             #! a hash for a 501 Unimplemented error message
@@ -434,17 +545,17 @@ public namespace RestHandler {
         responseSerializationError(hash $cx, *hash $aih, hash $rv) {
         }
 
-        #! default implementation is empty
+        #! default implementation is empty; this method is called with informational log messages; reimplement in subclasses to provide for logging
         logInfo(string $fmt) {
             delete $argv;
         }
 
-        #! default implementation is empty
+        #! default implementation is empty; this method is called with error log messages; reimplement in subclasses to provide for logging
         logError(string $fmt) {
             delete $argv;
         }
 
-        #! default implementation is empty
+        #! default implementation is empty; this method is called with debug log messages; reimplement in subclasses to provide for logging
         logDebug(string $fmt) {
             delete $argv;
         }
