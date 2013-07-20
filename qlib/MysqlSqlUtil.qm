@@ -62,6 +62,8 @@ module MysqlSqlUtil {
     
     All the public symbols in the module are defined in the MysqlSqlUtil namespace
 
+    @note This module requires the <a href="http://qore.org/qore-modules/16-mysql-module">mysql</a> binary module for communication with MySQL databases
+
     @section mysql_schema_management Schema Management on MySQL
 
     @subsection mysql_type_mapping Type Mapping

@@ -136,6 +136,8 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Exc
     Note that the SQLStatement class also grabs allocates a persistent connection to the calling thread when executing if it is created using a %DatasourcePool object in the constructor; for more information see the SQLStatement class.
 
     @note This class is not available with the @ref PO_NO_DATABASE parse option
+
+    @see <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> for a high level database-independent API
  */
 qclass DatasourcePool [dom=DATABASE; arg=DatasourcePool* ds; ns=Qore::SQL; vparent=AbstractDatasource];
 

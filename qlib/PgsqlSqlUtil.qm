@@ -62,6 +62,8 @@ module PgsqlSqlUtil {
     
     All the public symbols in the module are defined in the PgsqlSqlUtil namespace
 
+    @note This module requires the <a href="http://qore.org/qore-modules/15-pgsql-module">pgsql</a> binary module for communication with PostgreSQL databases
+
     @section pgsql_schema_management Schema Management on PostgreSQL
 
     @subsection pgsql_type_mapping Type Mapping

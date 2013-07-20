@@ -232,6 +232,8 @@ my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col
     Note that the SQLStatement class also grabs the transaction lock when executing if it is created using a %Datasource object in the constructor; for more information see the SQLStatement class.
 
     @note This class is not available with the @ref PO_NO_DATABASE parse option
+
+    @see <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> for a high level database-independent API
  */
 qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=Qore::SQL; vparent=AbstractDatasource];
 
