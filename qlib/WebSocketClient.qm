@@ -81,6 +81,10 @@ public namespace WebSocketClient {
 
         public {
             const DefaultTimeout = 15s;
+
+            const Version = "1.0";
+
+            const DefaultUserAgent = sprintf("Qore-WebSocketClient/%s", WebSocketClient::Version);
         }
 
         #! creates the object and optionally sets logging targets
@@ -284,6 +288,9 @@ $ws.connect(("url": "ws://example.com:8080/event-path/", "callback": \event()));
 
             if (!$uh.path)
                 $uh.path = "/";
+
+            if (!$hdr."User-Agent")
+                $hdr."User-Agent" = DefaultUserAgent;
 
             $hdr += (
                 "Upgrade": "websocket",
