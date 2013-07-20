@@ -116,7 +116,7 @@ public namespace RestHandler {
                     return $.unknownSubClassError($cname);
                 }
 
-                $rh.logDebug("class %y: dispatching to subclass class %y: method %y args: %y", $.name(), $cname, $mn, $args);
+                $rh.logDebug("class %y: dispatching to subclass %y: method %y args: %y", $.name(), $cname, $mn, $args);
                 return $cls.handleRequest($rh, $cl, $mn, $cx, $args);
             }
             

@@ -161,16 +161,16 @@ public namespace WebSocketUtil {
 	# encode frames with a message size < 126 directly in the second byte
 	switch ($msg.size()) {
 	    case < 126: {
-		$frame += chr($msg.size() + ($masked ? 0x80 : 0));
+		$frame += chr($msg.size() | ($masked ? 0x80 : 0));
 		break;
 	    }
 	    case < 65536: {
-		$frame += chr(126 + ($masked ? 0x80 : 0));
+		$frame += chr(126 | ($masked ? 0x80 : 0));
 		$frame += $msg.size().encodeMsb(2);
 		break;
 	    }
   	    default: {
-	        $frame += chr(127 + ($masked ? 0x80 : 0));
+	        $frame += chr(127 | ($masked ? 0x80 : 0));
 		$frame += $msg.size().encodeMsb(8);
 	    }
 	}
@@ -181,7 +181,7 @@ public namespace WebSocketUtil {
 	    if ($msg.typeCode() == NT_STRING)
 		$msg = binary($msg);
 	    for (my int $i = 0; $i < $msg.size(); ++$i)
-		$udata += chr(($msg[$i] ^ $msg[$i % 4]));
+		$udata += chr(($msg[$i] ^ $mask[$i % 4]));
 	    $msg = $udata;
 	}
 

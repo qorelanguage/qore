@@ -29,7 +29,7 @@
     - improvements in existing @ref user_modules "user modules":
       - much improved <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module, better performance, much better RFC compliance, more flexibility
       - new CSV generation class in <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>
-      - much better message serialization and attachment handling in the <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> and <a href="../../modules/MailMessage/html/index.html">MailMessage</a> modules
+      - much better message serialization and email attachment handling in the <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> and <a href="../../modules/MailMessage/html/index.html">MailMessage</a> modules
     - there is a new @ref Qore::Thread::ThreadPool "ThreadPool" class for implementing thread pools that automatically upscale and downscale within user-defined limits depending on the load placed on them
     - it's possible to inherit concrete versions of abstract method variants from a parent class that does not define the abstract method, meaning that concrete variants of an abstract method do not have to be implemented in a direct subclass of the class declaring the abstract method\n
       this makes using abstract base classes much easier in complex hierarchies using multiple inheritance; now common code can be separated into a single class and inherited by child classes sharing the common implementation
@@ -72,7 +72,7 @@
       - <string>::toHex()
       - <value>::toNumber()
     - other new methods and method changes:
-      - changes to catch usage errors with @ref Qore::Thread::Counter:
+      - changes to catch usage errors with the @ref Qore::Thread::Counter "Counter" class:
         - Qore::Thread::Counter::constructor() will throw an exception if called with an argument < 0
         - Qore::Thread::Counter::dec() will now throw an exception if called when the Counter is already at 0
       - Qore::Thread::Queue::empty(): new method
@@ -110,7 +110,7 @@
     - fixed a bug related to out-of-order parse initialization for functions and methods which resulted in the wrong return type being returned for a method with more than 1 variant where the variant could not be matched at parse time
     - fixed a bug where a non-variable-reference member of an "our" variable declaration list would cause a crash due to passing the incorrect argument in sprintf()
     - fixed sandboxing / protection errors with inherited code; subclasses inheriting code from a parent class with different parse options would cause the child parse options to be used when running the parent class code which caused errors; now parse options are enforced properly on the block level
-    - fixed the RangeIterator class; it was still abstract due to a missing @ref Qore::RangeIterator::valid() method
+    - fixed the @ref Qore::RangeIterator "RangeIterator" class; it was still abstract due to a missing @ref Qore::RangeIterator::valid() method
     - fixed a bug where the wrong error was being returned after a connection reset (remote connection close) in sockets with integer recv*() methods which could in some cases lead to an infinite loop
     - fixed a bug where private members of a common base class were not accessible by objects of subclasses sharing the common base class
     - fixed many bugs in <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> and updated the module version to 1.1
@@ -119,9 +119,9 @@
     - fixed a bug managing feature/module lists in inherited @ref Qore::Program "Program" objects; user modules were listed in the child @ref Qore::Program "Program" object even though user module code is not imported in child @ref Qore::Program "Program" objects
     - fixed a bug where an invalid guard condition in critical lvalue storage code can cause unreferenced data to be returned while in a lock which can cause a crash in a multithreaded program
     - fixed a bug where references were not being written to the output variable if an exception was active when the code block exited
-    - fixed a bug setting the precision for arbitrary-precision numbers with very large exponents (like "1e100n")
+    - fixed a bug setting the precision for arbitrary-precision numbers with large exponents (like "1e100n")
     - implemented more strict adherence to rfc 2616 (HTTP 1.1) regarding message-body handling in requests and response message generation and parsing
-    - fixed a bug with Condition::wait() on Darwin with negative timeout values where a short timeout was used instead of an indefinite wait
+    - fixed a bug with @ref Qore::Thread::Condition::wait() "Condition::wait()" on Darwin with negative timeout values where a short timeout was used instead of an indefinite wait
     - fixed bugs in the <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> and <a href="../../modules/MailMessage/html/index.html">MailMessage</a> modules where mail messages were being serialized incorrectly if there were no attachments (there was no possibility to set the content transfer encoding) and also where it was not possible to set the content-type for the message body when it was sent as a part of a multipart message
     - fixed bugs handling arguments declared as type @ref reference_or_nothing_type "*reference" (reference or nothing)
     - fixed bugs in executing code accross @ref Qore::Program "Program" object barriers with reference arguments

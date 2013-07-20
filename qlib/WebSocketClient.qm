@@ -174,7 +174,7 @@ $ws.connect(("url": "ws://example.com:8080/event-path/", "callback": \event()));
             on_exit $.c.dec();
             while (True) {
                 if ($.stop) {
-                    $.sendClose(WSCC_GoingAway);
+                    $.sendClose($.stop);
                     break;
                 }
                 
