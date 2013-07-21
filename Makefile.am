@@ -11,7 +11,6 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-USER_MODS = HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil OracleSqlUtil PgsqlSqlUtil MysqlSqlUtil RestHandler RestClient WebSocketHandler WebSocketUtil
 USER_MODULES = qlib/HttpServer.qm \
 	qlib/SmtpClient.qm \
 	qlib/Mime.qm \
@@ -27,7 +26,12 @@ USER_MODULES = qlib/HttpServer.qm \
 	qlib/RestHandler.qm \
 	qlib/RestClient.qm \
 	qlib/WebSocketHandler.qm \
-	qlib/WebSocketUtil.qm
+	qlib/WebSocketUtil.qm \
+	qlib/WebSocketClient.qm \
+	qlib/WebUtil.qm
+
+USER_MODS = $(basename $(notdir $(USER_MODULES)))
+#HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil OracleSqlUtil PgsqlSqlUtil MysqlSqlUtil RestHandler RestClient WebSocketHandler WebSocketUtil
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC
@@ -37,14 +41,16 @@ QPP_PGM=qpp
 endif
 QPP = lib/$(QPP_PGM)
 
+QDX_SRC=doxygen/qdx
+
 # the QORE_MODULE_DIR=./qlib is there because of situation of fresh install
 # when the qore is not in system (modules are searched in  eg. /usr/local/lib/qore-modules/0.8.4
 # by default - and it does not exist in the fresh install)
 if COND_MINGWCC
 # when cross-compiling, we just hope that qore is installed also natively, otherwise the documentation can't be built
-QDX=QORE_MODULE_DIR=./qlib doxygen/qdx
+QDX=QORE_MODULE_DIR=./qlib $(QDX_SRC)
 else
-QDX=QORE_MODULE_DIR=./qlib ./qore doxygen/qdx
+QDX=QORE_MODULE_DIR=./qlib ./qore $(QDX_SRC)
 endif
 
 LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
@@ -517,7 +523,8 @@ dummy:
 	./next_build.sh
 
 if COND_DOXYGEN
-DOXYGEN_OUTPUT = docs/library/html docs/lang/html docs/modules/HttpServer/html docs/modules/Mime/html docs/modules/TelnetClient/html docs/modules/SmtpClient/html docs/modules/MailMessage/html docs/modules/Pop3Client/html docs/modules/CsvUtil/html docs/modules/RestHandler/html docs/modules/RestClient/html docs/modules/SqlUtil/html docs/modules/PgsqlSqlUtil/html docs/modules/MysqlSqlUtil/html docs/modules/OracleSqlUtil/html docs/modules/Util/html docs/modules/WebSocketHandler/html docs/modules/WebSocketUtil/html docs/modules/WebSocketClient/html
+MOD_OUTPUT = $(addprefix docs/modules/,$(addsuffix /html,$(USER_MODS)))
+DOXYGEN_OUTPUT = docs/library/html docs/lang/html $(MOD_OUTPUT)
 
 LIB_TMP_DOXYFILES_SRC = \
 	doxygen/lib/Doxyfile
@@ -693,41 +700,6 @@ doxygen/lang/255_keywords.dox: doxygen/lang/255_keywords.dox.tmpl lib $(QPP)
 doxygen/lang/900_release_notes.dox: doxygen/lang/900_release_notes.dox.tmpl lib $(QPP)
 	$(QPP) -t $< -o $@
 
-QLIB_TMP_DOXYFILES = doxygen/qlib/HttpServer.qm.dox.h \
-	doxygen/qlib/Mime.qm.dox.h \
-	doxygen/qlib/TelnetClient.qm.dox.h \
-	doxygen/qlib/SmtpClient.qm.dox.h \
-	doxygen/qlib/MailMessage.qm.dox.h \
-	doxygen/qlib/Pop3Client.qm.dox.h \
-	doxygen/qlib/CsvUtil.qm.dox.h \
-	doxygen/qlib/RestHandler.qm.dox.h \
-	doxygen/qlib/RestClient.qm.dox.h \
-	doxygen/qlib/SqlUtil.qm.dox.h \
-	doxygen/qlib/PgsqlSqlUtil.qm.dox.h \
-	doxygen/qlib/MysqlSqlUtil.qm.dox.h \
-	doxygen/qlib/OracleSqlUtil.qm.dox.h \
-	doxygen/qlib/Util.qm.dox.h \
-	doxygen/qlib/WebSocketHandler.qm.dox.h \
-	doxygen/qlib/WebSocketUtil.qm.dox.h \
-	doxygen/qlib/WebSocketClient.qm.dox.h \
-	HttpServer.tag \
-	Mime.tag \
-	TelnetClient.tag \
-	SmtpClient.tag \
-	MailMessage.tag \
-	Pop3Client.tag \
-	CsvUtil.tag \
-	RestHandler.tag \
-	RestClient.tag \
-	SqlUtil.tag \
-	PgsqlSqlUtil.tag \
-	MysqlSqlUtil.tag \
-	OracleSqlUtil.tag \
-	Util.tag \
-	WebSocketHandler.tag \
-	WebSocketUtil.tag \
-	WebSocketClient.tag
-
 lib/libqore.la: dummy
 	cd lib; make
 
@@ -736,107 +708,49 @@ else
 $(QDX): qore
 endif
 
-doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
+#DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(USER_MODS))
+#$(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl docs/modules/%/html $(QDX)
+#	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html -tMailMessage.tag=../../MailMessage/html -tHttpServer.tag=../../HttpServer/html $< $@
+
+DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(USER_MODS))
+$(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm.dox.h $< $@
+
+TMP_MOD_TARG = $(addprefix doxygen/qlib/,$(addsuffix .qm.dox.h,$(USER_MODS)))
+$(TMP_MOD_TARG): doxygen/qlib/%.qm.dox.h: qlib/%.qm $(QDX_SRC)
+	$(QDX) $< $@
+
+doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX_SRC)
 	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html $< $@
-
-doxygen/qlib/HttpServer.qm.dox.h: qlib/HttpServer.qm $(QDX)
-	$(QDX) $< $@
-
-doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/Mime.qm:doxygen/qlib/Mime.qm.dox.h $< $@
-
-doxygen/qlib/Mime.qm.dox.h: qlib/Mime.qm $(QDX)
-	$(QDX) $< $@
-
-doxygen/qlib/Doxyfile.TelnetClient: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/TelnetClient.qm:doxygen/qlib/TelnetClient.qm.dox.h $< $@
-
-doxygen/qlib/TelnetClient.qm.dox.h: qlib/TelnetClient.qm $(QDX)
-	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.SmtpClient: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
 	$(QDX) -M=qlib/SmtpClient.qm:doxygen/qlib/SmtpClient.qm.dox.h -tMime.tag=../../Mime/html -tMailMessage.tag=../../MailMessage/html $< $@
 
-doxygen/qlib/SmtpClient.qm.dox.h: qlib/SmtpClient.qm $(QDX)
-	$(QDX) $< $@
-
 doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
 	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm.dox.h -tMime.tag=../../Mime/html $< $@
-
-doxygen/qlib/MailMessage.qm.dox.h: qlib/MailMessage.qm $(QDX)
-	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.Pop3Client: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
 	$(QDX) -M=qlib/Pop3Client.qm:doxygen/qlib/Pop3Client.qm.dox.h -tMime.tag=../../Mime/html -tMailMessage.tag=../../MailMessage/html $< $@
 
-doxygen/qlib/Pop3Client.qm.dox.h: qlib/Pop3Client.qm $(QDX)
-	$(QDX) $< $@
-
-doxygen/qlib/Doxyfile.CsvUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/CsvUtil.qm:doxygen/qlib/CsvUtil.qm.dox.h $< $@
-
-doxygen/qlib/CsvUtil.qm.dox.h: qlib/CsvUtil.qm $(QDX)
-	$(QDX) $< $@
-
 doxygen/qlib/Doxyfile.RestHandler: doxygen/qlib/Doxyfile.tmpl $(QDX)
 	$(QDX) -M=qlib/RestHandler.qm:doxygen/qlib/RestHandler.qm.dox.h -tHttpServer.tag=../../HttpServer/html $< $@
-
-doxygen/qlib/RestHandler.qm.dox.h: qlib/RestHandler.qm $(QDX)
-	$(QDX) $< $@
-
-doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h $< $@
-
-doxygen/qlib/RestClient.qm.dox.h: qlib/RestClient.qm $(QDX)
-	$(QDX) $< $@
-
-doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm.dox.h $< $@
-
-doxygen/qlib/SqlUtil.qm.dox.h: qlib/SqlUtil.qm $(QDX)
-	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.PgsqlSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
 	$(QDX) -M=qlib/PgsqlSqlUtil.qm:doxygen/qlib/PgsqlSqlUtil.qm.dox.h -tSqlUtil.tag=../../SqlUtil/html $< $@
 
-doxygen/qlib/PgsqlSqlUtil.qm.dox.h: qlib/PgsqlSqlUtil.qm $(QDX)
-	$(QDX) $< $@
-
 doxygen/qlib/Doxyfile.MysqlSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
 	$(QDX) -M=qlib/MysqlSqlUtil.qm:doxygen/qlib/MysqlSqlUtil.qm.dox.h -tSqlUtil.tag=../../SqlUtil/html $< $@
-
-doxygen/qlib/MysqlSqlUtil.qm.dox.h: qlib/MysqlSqlUtil.qm $(QDX)
-	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.OracleSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
 	$(QDX) -M=qlib/OracleSqlUtil.qm:doxygen/qlib/OracleSqlUtil.qm.dox.h -tSqlUtil.tag=../../SqlUtil/html $< $@
 
-doxygen/qlib/OracleSqlUtil.qm.dox.h: qlib/OracleSqlUtil.qm $(QDX)
-	$(QDX) $< $@
-
-doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm.dox.h $< $@
-
-doxygen/qlib/Util.qm.dox.h: qlib/Util.qm $(QDX)
-	$(QDX) $< $@
-
 doxygen/qlib/Doxyfile.WebSocketHandler: doxygen/qlib/Doxyfile.tmpl $(QDX)
 	$(QDX) -M=qlib/WebSocketHandler.qm:doxygen/qlib/WebSocketHandler.qm.dox.h -tWebSocketUtil.tag=../../WebSocketUtil/html -tHttpServer.tag=../../HttpServer/html $< $@
-
-doxygen/qlib/WebSocketHandler.qm.dox.h: qlib/WebSocketHandler.qm $(QDX)
-	$(QDX) $< $@
-
-doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm.dox.h $< $@
-
-doxygen/qlib/WebSocketUtil.qm.dox.h: qlib/WebSocketUtil.qm $(QDX)
-	$(QDX) $< $@
 
 doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX)
 	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm.dox.h -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
 
-doxygen/qlib/WebSocketClient.qm.dox.h: qlib/WebSocketClient.qm $(QDX)
-	$(QDX) $< $@
+QLIB_TMP_DOXYFILES = $(TMP_MOD_TARG) $(addsuffix .tag,$(USER_MODS))
 
 DX_CLEANFILES = $(LIB_TMP_DOXYFILES) $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
 
@@ -848,73 +762,10 @@ docs/lang/html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
 	$(top_srcdir)/doxygen/pdox docs/lang/html docs/lang/html/search
 	$(top_srcdir)/doxygen/pdox -t docs/lang/latex
 
-docs/modules/HttpServer/html: docs/lang/html doxygen/qlib/HttpServer.qm.dox.h doxygen/qlib/Doxyfile.HttpServer
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.HttpServer
-	$(top_srcdir)/doxygen/pdox docs/modules/HttpServer/html docs/modules/HttpServer/html/search
-
-docs/modules/Mime/html: docs/lang/html doxygen/qlib/Mime.qm.dox.h doxygen/qlib/Doxyfile.Mime
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.Mime
-	$(top_srcdir)/doxygen/pdox docs/modules/Mime/html docs/modules/Mime/html/search
-
-docs/modules/TelnetClient/html: docs/lang/html doxygen/qlib/TelnetClient.qm.dox.h doxygen/qlib/Doxyfile.TelnetClient
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.TelnetClient
-	$(top_srcdir)/doxygen/pdox docs/modules/TelnetClient/html docs/modules/TelnetClient/html/search
-
-docs/modules/SmtpClient/html: docs/lang/html doxygen/qlib/SmtpClient.qm.dox.h doxygen/qlib/Doxyfile.SmtpClient
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.SmtpClient
-	$(top_srcdir)/doxygen/pdox docs/modules/SmtpClient/html docs/modules/SmtpClient/html/search
-
-docs/modules/MailMessage/html: docs/lang/html doxygen/qlib/MailMessage.qm.dox.h doxygen/qlib/Doxyfile.MailMessage
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.MailMessage
-	$(top_srcdir)/doxygen/pdox docs/modules/MailMessage/html docs/modules/MailMessage/html/search
-
-docs/modules/Pop3Client/html: docs/lang/html doxygen/qlib/Pop3Client.qm.dox.h doxygen/qlib/Doxyfile.Pop3Client
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.Pop3Client
-	$(top_srcdir)/doxygen/pdox docs/modules/Pop3Client/html docs/modules/Pop3Client/html/search
-
-docs/modules/CsvUtil/html: docs/lang/html doxygen/qlib/CsvUtil.qm.dox.h doxygen/qlib/Doxyfile.CsvUtil
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.CsvUtil
-	$(top_srcdir)/doxygen/pdox docs/modules/CsvUtil/html docs/modules/CsvUtil/html/search
-
-docs/modules/RestHandler/html: docs/lang/html doxygen/qlib/RestHandler.qm.dox.h doxygen/qlib/Doxyfile.RestHandler
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.RestHandler
-	$(top_srcdir)/doxygen/pdox docs/modules/RestHandler/html docs/modules/RestHandler/html/search
-
-docs/modules/RestClient/html: docs/lang/html doxygen/qlib/RestClient.qm.dox.h doxygen/qlib/Doxyfile.RestClient
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.RestClient
-	$(top_srcdir)/doxygen/pdox docs/modules/RestClient/html docs/modules/RestClient/html/search
-
-docs/modules/SqlUtil/html: doxygen/qlib/SqlUtil.qm.dox.h doxygen/qlib/Doxyfile.SqlUtil
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.SqlUtil
-	$(top_srcdir)/doxygen/pdox docs/modules/SqlUtil/html docs/modules/SqlUtil/html/search
-
-docs/modules/PgsqlSqlUtil/html: doxygen/qlib/PgsqlSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.PgsqlSqlUtil
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.PgsqlSqlUtil
-	$(top_srcdir)/doxygen/pdox docs/modules/PgsqlSqlUtil/html docs/modules/PgsqlSqlUtil/html/search
-
-docs/modules/MysqlSqlUtil/html: doxygen/qlib/MysqlSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.MysqlSqlUtil
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.MysqlSqlUtil
-	$(top_srcdir)/doxygen/pdox docs/modules/MysqlSqlUtil/html docs/modules/MysqlSqlUtil/html/search
-
-docs/modules/OracleSqlUtil/html: doxygen/qlib/OracleSqlUtil.qm.dox.h doxygen/qlib/Doxyfile.OracleSqlUtil
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.OracleSqlUtil
-	$(top_srcdir)/doxygen/pdox docs/modules/OracleSqlUtil/html docs/modules/OracleSqlUtil/html/search
-
-docs/modules/Util/html: docs/lang/html doxygen/qlib/Util.qm.dox.h doxygen/qlib/Doxyfile.Util
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.Util
-	$(top_srcdir)/doxygen/pdox docs/modules/Util/html docs/modules/Util/html/search
-
-docs/modules/WebSocketHandler/html: docs/lang/html doxygen/qlib/WebSocketHandler.qm.dox.h doxygen/qlib/Doxyfile.WebSocketHandler
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.WebSocketHandler
-	$(top_srcdir)/doxygen/pdox docs/modules/WebSocketHandler/html docs/modules/WebSocketHandler/html/search
-
-docs/modules/WebSocketUtil/html: docs/lang/html doxygen/qlib/WebSocketUtil.qm.dox.h doxygen/qlib/Doxyfile.WebSocketUtil
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.WebSocketUtil
-	$(top_srcdir)/doxygen/pdox docs/modules/WebSocketUtil/html docs/modules/WebSocketUtil/html/search
-
-docs/modules/WebSocketClient/html: docs/lang/html doxygen/qlib/WebSocketClient.qm.dox.h doxygen/qlib/Doxyfile.WebSocketClient
-	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.WebSocketClient
-	$(top_srcdir)/doxygen/pdox docs/modules/WebSocketClient/html docs/modules/WebSocketClient/html/search
+TMP_MOD_HTML_TARG = $(addsuffix /html,$(addprefix docs/modules/,$(USER_MODS)))
+$(TMP_MOD_HTML_TARG): docs/modules/%/html: doxygen/qlib/%.qm.dox.h doxygen/qlib/Doxyfile.% #docs/lang/html
+	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.$*
+	$(top_srcdir)/doxygen/pdox $@ $@/search
 
 doxygen-doc: $(DOXYGEN_OUTPUT)
 
