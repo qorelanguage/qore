@@ -10,7 +10,7 @@
 const opts = (
     "moddx": "M,module-dx=s",
     "post": "p,post",
-    "tag": "t,tag=s",
+    "tag": "t,tag=s@",
     "tex": "x,posttex",          # use TeX syntax for "post" processing
     "dox": "d,dox",
     "nmp": "N,no-mainpage",
@@ -123,6 +123,9 @@ class qdx {
 
         File of();
         of.open2(ofn, O_CREAT | O_TRUNC | O_WRONLY);
+        
+        # get tags substitution string
+        string tags = o.tag ? o.tag.join(" ") : "";
 
         while ((*string line = inf.readLine()).val()) {            
             if (line =~ /{module}/)
@@ -132,7 +135,7 @@ class qdx {
             else if (line =~ /{version}/)
                 line = replace(line, "{version}", h.version);
             else if (line =~ /{tags}/)
-                line = replace(line, "{tags}", o.tag.val() ? o.tag : "");
+                line = replace(line, "{tags}", tags);
             else if (line =~ /{qore_version}/)
                 line = replace(line, "{qore_version}", QoreVer);
 

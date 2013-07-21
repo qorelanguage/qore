@@ -11,27 +11,29 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-USER_MODULES = qlib/HttpServer.qm \
-	qlib/SmtpClient.qm \
-	qlib/Mime.qm \
-	qlib/TelnetClient.qm \
+# user modules that have dox referenced from other user modules
+DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/MailMessage.qm \
+	qlib/HttpServer.qm \
+	qlib/WebSocketUtil.qm \
+	qlib/Util.qm \
+	qlib/SqlUtil.qm
+
+USER_MODULES = $(DOX_SRC_MODULES) \
+	qlib/SmtpClient.qm \
+	qlib/TelnetClient.qm \
 	qlib/Pop3Client.qm \
 	qlib/CsvUtil.qm \
-	qlib/SqlUtil.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
 	qlib/MysqlSqlUtil.qm \
-	qlib/Util.qm \
 	qlib/RestHandler.qm \
 	qlib/RestClient.qm \
 	qlib/WebSocketHandler.qm \
-	qlib/WebSocketUtil.qm \
 	qlib/WebSocketClient.qm \
 	qlib/WebUtil.qm
 
 USER_MODS = $(basename $(notdir $(USER_MODULES)))
-#HttpServer SmtpClient Mime TelnetClient MailMessage Pop3Client CsvUtil SqlUtil OracleSqlUtil PgsqlSqlUtil MysqlSqlUtil RestHandler RestClient WebSocketHandler WebSocketUtil
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC
@@ -431,6 +433,46 @@ LIB_DOXYFILES_SRC = \
 	$(LIB_DOXYFILES_FIXED) \
 	doxygen/lib/Doxyfile.tmpl
 
+LANG_TMP_DOXYFILES_SRC = doxygen/lang/mainpage.dox \
+	doxygen/lang/000_intro.dox \
+	doxygen/lang/105_desc_overview.dox \
+	doxygen/lang/110_environment_variables.dox \
+	doxygen/lang/115_conditional_parsing.dox \
+	doxygen/lang/120_modules.dox \
+	doxygen/lang/125_include_files.dox \
+	doxygen/lang/130_identifiers.dox \
+	doxygen/lang/135_comments.dox \
+	doxygen/lang/140_variables.dox \
+	doxygen/lang/145_basic_data_types.dox \
+	doxygen/lang/150_container_data_types.dox \
+	doxygen/lang/152_code_data_types.dox \
+	doxygen/lang/155_data_type_declarations.dox \
+	doxygen/lang/157_lvalue_references.dox \
+	doxygen/lang/160_overloading.dox \
+	doxygen/lang/165_time_zones.dox \
+	doxygen/lang/170_character_encoding.dox \
+	doxygen/lang/175_expressions.dox \
+	doxygen/lang/180_operators.dox \
+	doxygen/lang/185_qore_regex.dox \
+	doxygen/lang/190_date_time_arithmetic.dox \
+	doxygen/lang/195_statements.dox \
+	doxygen/lang/200_functions.dox \
+	doxygen/lang/202_code_flags.dox \
+	doxygen/lang/205_namespaces.dox \
+	doxygen/lang/210_constants.dox \
+	doxygen/lang/215_classes.dox \
+	doxygen/lang/220_threading.dox \
+	doxygen/lang/225_exception_handling.dox \
+	doxygen/lang/230_signal_handling.dox \
+	doxygen/lang/235_event_handling.dox \
+	doxygen/lang/240_command_line_processing.dox \
+	doxygen/lang/245_parse_directives.dox \
+	doxygen/lang/250_warnings.dox \
+	doxygen/lang/255_keywords.dox \
+	doxygen/lang/900_release_notes.dox
+
+LANG_TMP_DOXYFILES_TMPL = $(addsuffix .tmpl,$(LANG_TMP_DOXYFILES_SRC))
+
 LANG_DOXYFILES_SRC = \
 	doxygen/dot \
 	doxygen/dpp \
@@ -440,43 +482,7 @@ LANG_DOXYFILES_SRC = \
 	doxygen/qlib/Doxyfile.tmpl \
 	doxygen/lib/Doxyfile.tmpl \
 	doxygen/lang/Doxyfile.tmpl \
-	doxygen/lang/mainpage.dox.tmpl \
-	doxygen/lang/000_intro.dox.tmpl \
-	doxygen/lang/105_desc_overview.dox.tmpl \
-	doxygen/lang/110_environment_variables.dox.tmpl \
-	doxygen/lang/115_conditional_parsing.dox.tmpl \
-	doxygen/lang/120_modules.dox.tmpl \
-	doxygen/lang/125_include_files.dox.tmpl \
-	doxygen/lang/130_identifiers.dox.tmpl \
-	doxygen/lang/135_comments.dox.tmpl \
-	doxygen/lang/140_variables.dox.tmpl \
-	doxygen/lang/145_basic_data_types.dox.tmpl \
-	doxygen/lang/150_container_data_types.dox.tmpl \
-	doxygen/lang/152_code_data_types.dox.tmpl \
-	doxygen/lang/155_data_type_declarations.dox.tmpl \
-	doxygen/lang/157_lvalue_references.dox.tmpl \
-	doxygen/lang/160_overloading.dox.tmpl \
-	doxygen/lang/165_time_zones.dox.tmpl \
-	doxygen/lang/170_character_encoding.dox.tmpl \
-	doxygen/lang/175_expressions.dox.tmpl \
-	doxygen/lang/180_operators.dox.tmpl \
-	doxygen/lang/185_qore_regex.dox.tmpl \
-	doxygen/lang/190_date_time_arithmetic.dox.tmpl \
-	doxygen/lang/195_statements.dox.tmpl \
-	doxygen/lang/200_functions.dox.tmpl \
-	doxygen/lang/202_code_flags.dox.tmpl \
-	doxygen/lang/205_namespaces.dox.tmpl \
-	doxygen/lang/210_constants.dox.tmpl \
-	doxygen/lang/215_classes.dox.tmpl \
-	doxygen/lang/220_threading.dox.tmpl \
-	doxygen/lang/225_exception_handling.dox.tmpl \
-	doxygen/lang/230_signal_handling.dox.tmpl \
-	doxygen/lang/235_event_handling.dox.tmpl \
-	doxygen/lang/240_command_line_processing.dox.tmpl \
-	doxygen/lang/245_parse_directives.dox.tmpl \
-	doxygen/lang/250_warnings.dox.tmpl \
-	doxygen/lang/255_keywords.dox.tmpl \
-	doxygen/lang/900_release_notes.dox.tmpl
+	$(LANG_TMP_DOXYFILES_TMPL)
 
 EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	ChangeLog AUTHORS BUILD \
@@ -533,49 +539,12 @@ LIB_TMP_DOXYFILES = $(LIB_TMP_DOXYFILES_SRC)
 
 LIB_DOXYFILES = doxygen/lib/Doxyfile $(LIB_TMP_DOXYFILES_SRC) $(LIB_DOXYFILES_FIXED)
 
-LANG_TMP_DOXYFILES_SRC = doxygen/lang/Doxyfile \
-	doxygen/lang/mainpage.dox \
-	doxygen/lang/000_intro.dox \
-	doxygen/lang/105_desc_overview.dox \
-	doxygen/lang/110_environment_variables.dox \
-	doxygen/lang/115_conditional_parsing.dox \
-	doxygen/lang/120_modules.dox \
-	doxygen/lang/125_include_files.dox \
-	doxygen/lang/130_identifiers.dox \
-	doxygen/lang/135_comments.dox \
-	doxygen/lang/140_variables.dox \
-	doxygen/lang/145_basic_data_types.dox \
-	doxygen/lang/150_container_data_types.dox \
-	doxygen/lang/152_code_data_types.dox \
-	doxygen/lang/155_data_type_declarations.dox \
-	doxygen/lang/157_lvalue_references.dox \
-	doxygen/lang/160_overloading.dox \
-	doxygen/lang/165_time_zones.dox \
-	doxygen/lang/170_character_encoding.dox \
-	doxygen/lang/175_expressions.dox \
-	doxygen/lang/180_operators.dox \
-	doxygen/lang/185_qore_regex.dox \
-	doxygen/lang/190_date_time_arithmetic.dox \
-	doxygen/lang/195_statements.dox \
-	doxygen/lang/200_functions.dox \
-	doxygen/lang/202_code_flags.dox \
-	doxygen/lang/205_namespaces.dox \
-	doxygen/lang/210_constants.dox \
-	doxygen/lang/215_classes.dox \
-	doxygen/lang/220_threading.dox \
-	doxygen/lang/225_exception_handling.dox \
-	doxygen/lang/230_signal_handling.dox \
-	doxygen/lang/235_event_handling.dox \
-	doxygen/lang/240_command_line_processing.dox \
-	doxygen/lang/245_parse_directives.dox \
-	doxygen/lang/250_warnings.dox \
-	doxygen/lang/255_keywords.dox \
-	doxygen/lang/900_release_notes.dox
-
 LANG_TMP_DOXYFILES = $(LANG_TMP_DOXYFILES_SRC) \
+	doxygen/lang/Doxyfile \
 	qore.tag
 
-LANG_DOXYFILES = doxygen/lang/Doxyfile $(LANG_TMP_DOXYFILES_SRC)
+LANG_DOXYFILES = $(LANG_TMP_DOXYFILES_SRC) \
+	doxygen/lang/Doxyfile
 
 $(QPP): dummy
 	cd lib; make $(QPP_PGM)
@@ -589,115 +558,7 @@ lang-dox-src: dummy
 doxygen/lang/Doxyfile: doxygen/lang/Doxyfile.tmpl configure.ac
 	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen/" > $@
 
-doxygen/lang/mainpage.dox: doxygen/lang/mainpage.dox.tmpl lib $(QPP) lang-dox-src
-	$(QPP) -t $< -o $@
-
-doxygen/lang/000_intro.dox: doxygen/lang/000_intro.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/105_desc_overview.dox: doxygen/lang/105_desc_overview.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/110_environment_variables.dox: doxygen/lang/110_environment_variables.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/115_conditional_parsing.dox: doxygen/lang/115_conditional_parsing.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/120_modules.dox: doxygen/lang/120_modules.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/125_include_files.dox: doxygen/lang/125_include_files.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/130_identifiers.dox: doxygen/lang/130_identifiers.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/135_comments.dox: doxygen/lang/135_comments.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/140_variables.dox: doxygen/lang/140_variables.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/145_basic_data_types.dox: doxygen/lang/145_basic_data_types.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/150_container_data_types.dox: doxygen/lang/150_container_data_types.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/152_code_data_types.dox: doxygen/lang/152_code_data_types.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/155_data_type_declarations.dox: doxygen/lang/155_data_type_declarations.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/157_lvalue_references.dox: doxygen/lang/157_lvalue_references.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/160_overloading.dox: doxygen/lang/160_overloading.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/165_time_zones.dox: doxygen/lang/165_time_zones.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/170_character_encoding.dox: doxygen/lang/170_character_encoding.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/175_expressions.dox: doxygen/lang/175_expressions.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/180_operators.dox: doxygen/lang/180_operators.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/185_qore_regex.dox: doxygen/lang/185_qore_regex.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/190_date_time_arithmetic.dox: doxygen/lang/190_date_time_arithmetic.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/195_statements.dox: doxygen/lang/195_statements.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/200_functions.dox: doxygen/lang/200_functions.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/202_code_flags.dox: doxygen/lang/202_code_flags.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/205_namespaces.dox: doxygen/lang/205_namespaces.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/210_constants.dox: doxygen/lang/210_constants.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/215_classes.dox: doxygen/lang/215_classes.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/220_threading.dox: doxygen/lang/220_threading.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/225_exception_handling.dox: doxygen/lang/225_exception_handling.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/230_signal_handling.dox: doxygen/lang/230_signal_handling.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/235_event_handling.dox: doxygen/lang/235_event_handling.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/240_command_line_processing.dox: doxygen/lang/240_command_line_processing.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/245_parse_directives.dox: doxygen/lang/245_parse_directives.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/250_warnings.dox: doxygen/lang/250_warnings.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/255_keywords.dox: doxygen/lang/255_keywords.dox.tmpl lib $(QPP)
-	$(QPP) -t $< -o $@
-
-doxygen/lang/900_release_notes.dox: doxygen/lang/900_release_notes.dox.tmpl lib $(QPP)
+$(LANG_TMP_DOXYFILES_SRC): doxygen/lang/%.dox: doxygen/lang/%.dox.tmpl lib $(QPP) lang-dox-src
 	$(QPP) -t $< -o $@
 
 lib/libqore.la: dummy
@@ -708,47 +569,15 @@ else
 $(QDX): qore
 endif
 
-#DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(USER_MODS))
-#$(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl docs/modules/%/html $(QDX)
-#	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html -tMailMessage.tag=../../MailMessage/html -tHttpServer.tag=../../HttpServer/html $< $@
+QDX_MTAG_ARGS = $(foreach m,$(basename $(notdir $(DOX_SRC_MODULES))),-t$(m).tag=../../$(m)/html)
 
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(USER_MODS))
 $(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
-	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm.dox.h $< $@
+	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm.dox.h $(QDX_MTAG_ARGS) $< $@
 
 TMP_MOD_TARG = $(addprefix doxygen/qlib/,$(addsuffix .qm.dox.h,$(USER_MODS)))
 $(TMP_MOD_TARG): doxygen/qlib/%.qm.dox.h: qlib/%.qm $(QDX_SRC)
 	$(QDX) $< $@
-
-doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX_SRC)
-	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html $< $@
-
-doxygen/qlib/Doxyfile.SmtpClient: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
-	$(QDX) -M=qlib/SmtpClient.qm:doxygen/qlib/SmtpClient.qm.dox.h -tMime.tag=../../Mime/html -tMailMessage.tag=../../MailMessage/html $< $@
-
-doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
-	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm.dox.h -tMime.tag=../../Mime/html $< $@
-
-doxygen/qlib/Doxyfile.Pop3Client: doxygen/qlib/Doxyfile.tmpl docs/modules/Mime/html $(QDX)
-	$(QDX) -M=qlib/Pop3Client.qm:doxygen/qlib/Pop3Client.qm.dox.h -tMime.tag=../../Mime/html -tMailMessage.tag=../../MailMessage/html $< $@
-
-doxygen/qlib/Doxyfile.RestHandler: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/RestHandler.qm:doxygen/qlib/RestHandler.qm.dox.h -tHttpServer.tag=../../HttpServer/html $< $@
-
-doxygen/qlib/Doxyfile.PgsqlSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/PgsqlSqlUtil.qm:doxygen/qlib/PgsqlSqlUtil.qm.dox.h -tSqlUtil.tag=../../SqlUtil/html $< $@
-
-doxygen/qlib/Doxyfile.MysqlSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/MysqlSqlUtil.qm:doxygen/qlib/MysqlSqlUtil.qm.dox.h -tSqlUtil.tag=../../SqlUtil/html $< $@
-
-doxygen/qlib/Doxyfile.OracleSqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/OracleSqlUtil.qm:doxygen/qlib/OracleSqlUtil.qm.dox.h -tSqlUtil.tag=../../SqlUtil/html $< $@
-
-doxygen/qlib/Doxyfile.WebSocketHandler: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/WebSocketHandler.qm:doxygen/qlib/WebSocketHandler.qm.dox.h -tWebSocketUtil.tag=../../WebSocketUtil/html -tHttpServer.tag=../../HttpServer/html $< $@
-
-doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX)
-	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm.dox.h -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
 
 QLIB_TMP_DOXYFILES = $(TMP_MOD_TARG) $(addsuffix .tag,$(USER_MODS))
 
