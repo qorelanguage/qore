@@ -2451,7 +2451,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
         OP_IN: (
             "code": string sub (object t, string cn, any arg, reference args) {
                 *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
-                return sprintf("%s in (%s)", cn, ins ? ins : "null");
+                return sprintf("%s in (%s)", cn, ins ? ins : "1 != 1");
             },
         ),
         OP_NOT: (
