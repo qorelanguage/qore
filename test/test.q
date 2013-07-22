@@ -1951,7 +1951,7 @@ sub format_date_tests() {
     test_value(format_date("Day", $d), "Friday", "long day of week string (ex: \"Monday\")");
     test_value(format_date("DAY", $d), "FRIDAY", "long day of week string, capitalized (ex: \"MONDAY\")");
     test_value(format_date("Dy", $d), "Fri", "abbreviated day of week string (ex: \"Mon\")");
-    test_value(format_date("DY", $d), "FRI", "abbreviated day of week string capitalised (ex: \"MON\")");
+    test_value(format_date("DY", $d), "FRI", "abbreviated day of week string capitalized (ex: \"MON\")");
     test_value(format_date("H", $d), "8", "non zero-padded hour number (0 - 23)");
     test_value(format_date("HH", $d), "08", "zero-padded hour number (00 - 23)");
     test_value(format_date("h", $d), "8", "non zero-padded hour number, 12-hour clock (1 - 12)");
@@ -1977,12 +1977,25 @@ sub format_date_tests() {
 sub number_tests() {
     test_value(string(10.2n), "10.2", "first number"); 
     test_value(string(-10.2n), "-10.2", "second number"); 
+    test_value(string(1.000000000099999999n), "1.000000000099999999", "third number"); 
     test_value(10.245n.toString(NF_Scientific), "1.0245e+01", "fourth number"); 
     test_value((-10.245n).toString(NF_Scientific), "-1.0245e+01", "fifth number"); 
     test_value(0.10245n.toString(NF_Scientific), "1.0245e-01", "sixth number"); 
     test_value((-0.10245n).toString(NF_Scientific), "-1.0245e-01", "seventh number"); 
     test_value(1.0245n.toString(NF_Scientific), "1.0245e+00", "sixth number"); 
     test_value((-1.0245n).toString(NF_Scientific), "-1.0245e+00", "seventh number"); 
+    test_value(10.245n.toString(), "10.245", "eighth number"); 
+    test_value((-10.245n).toString(), "-10.245", "ninth number"); 
+    test_value(0.10245n.toString(), "0.10245", "tenth number"); 
+    test_value((-0.10245n).toString(), "-0.10245", "eleventh number"); 
+    test_value(1.0245n.toString(), "1.0245", "twelfth number"); 
+    test_value((-1.0245n).toString(), "-1.0245", "thirteenth number"); 
+    test_value(10.001999999999n.toString(), "10.001999999999", "fourteenth number"); 
+    test_value((-10.001999999999n).toString(), "-10.001999999999", "fifteenth number"); 
+    test_value(0.10001999999999n.toString(), "0.10001999999999", "sixteenth number"); 
+    test_value((-0.10001999999999n).toString(), "-0.10001999999999", "seventeenth number"); 
+    test_value(1.0001999999999n.toString(), "1.0001999999999", "eighteenth number"); 
+    test_value((-1.0001999999999n).toString(), "-1.0001999999999", "nineteenth number"); 
     test_value(0.8n.toString(), "0.8", "number rounding 1");
     test_value(0.8n.toString(NF_Scientific), "8e-01", "number rounding 2");
     test_value((-0.8n).toString(), "-0.8", "number rounding 3");
