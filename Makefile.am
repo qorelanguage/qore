@@ -11,7 +11,7 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-# user modules that have dox referenced from other user modules
+# user modules that have dox referenced from other user modules (docs for these must be built first)
 DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/MailMessage.qm \
 	qlib/HttpServer.qm \

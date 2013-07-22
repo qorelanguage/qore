@@ -120,9 +120,6 @@ my string $code = $tm.add("/html/index.qhtml", $qhtml);
             # break down source into components
             my list $l = ();
 
-            # referenced variable hash
-            my hash $vh;
-
             my int $i = 0;
             while ($src) {
                 $i = $src.find("{", $i);
@@ -131,12 +128,12 @@ my string $code = $tm.add("/html/index.qhtml", $qhtml);
                 ++$i;
                 my string $c = $src[$i];
                 if ($c == "{") {
-                    if ($.doBlock("}}", $src, "exp", \$i, \$l))
+                    if ($.doBlock("}}", \$src, "exp", \$i, \$l))
                         break;
                     continue;
                 }
                 if ($c == "%") {
-                    if ($.doBlock("%}", $src, "stmt", \$i, \$l))
+                    if ($.doBlock("%}", \$src, "stmt", \$i, \$l))
                         break;
                     continue;
                 }
@@ -156,17 +153,17 @@ my string $code = $tm.add("/html/index.qhtml", $qhtml);
             foreach my hash $h in (\$l) {
                 switch ($h.type) {
                     case "text": $h.text =~ s/"/\"/g; $src += $h.text; break;
-                    case "exp": $src += "\"+("+ $h.text + ")+\""; map $vh.$1 = True, $.getVars($h.text); break;
-                    case "stmt": $src += "\";" + $h.text + "$str+=\""; map $vh.$1 = True, $.getVars($h.text); break;
+                    case "exp": $src += "\"+("+ $h.text + ")+\""; break;
+                    case "stmt": $src += "\";" + $h.text + "$rv_TEMPLATE_str+=\""; break;
                 }
             }
 
+            #printf("template %y: found vars: %y\n", $name, $vh.keys());
+
             # build function source
             my string $tpl = sprintf("string sub %s(*hash $ctx) {\n", $fn);
-            # add and initialize local variables
-            map $tpl += sprintf("    my any $%s = $ctx.%s\n", $1), $vh.keyIterator();
-            $tpl += sprintf("    $str = \"%s\";\n    return $str;\n}\n", $src);
-            $.p.parse($tpl, "template");
+            $tpl += sprintf("    my string $rv_TEMPLATE_str = \"%s\";\n    return $rv_TEMPLATE_str;\n}\n", $src);
+            $.p.parse($tpl, $name);
 
             # add entry in template hash
             $.th.$name.func = $fn;
@@ -180,8 +177,13 @@ my string $code = $tm.add("/html/index.qhtml", $qhtml);
             return boolean($.th.$tname);
         }
 
+        #! returns @ref Qore::True "True" if the given template exists and has an auto-renderer, @ref Qore::False "False" if not
+        bool hasTemplateWithRenderer(string $tname) {
+            return $.th.$tname.code ? True : False;
+        }
+
         #! explicitly renders the given template with the given argument
-        string renderTemplate(string $tname, *hash $ctx) {
+        string render(string $tname, *hash $ctx) {
             my *string $fn = $.th.$tname.func;
             if (!$fn)
                 throw "TEMPLATE-ERROR", sprintf("no template %y exists; known templates: %y", $tname, $.th.keys());
@@ -190,7 +192,7 @@ my string $code = $tm.add("/html/index.qhtml", $qhtml);
         }
 
         #! explicitly renders the given template with the given argument context hash if the template exists
-        *string tryRenderTemplate(string $tname, *hash $ctx) {
+        *string tryRender(string $tname, *hash $ctx) {
             my *string $fn = $.th.$tname.func;
             if (!$fn)
                 return;
@@ -207,7 +209,7 @@ my string $code = $tm.add("/html/index.qhtml", $qhtml);
         }
 
         #! renders a template using an automatic renderer
-        string render(string $tname, hash $cx) {
+        string autoRender(string $tname, hash $cx) {
             my *hash $th = $.th.$tname;
             if (!$th)
                 throw "TEMPLATE-ERROR", sprintf("no template %y exists; known templates: %y", $tname, $.th.keys());
@@ -219,7 +221,7 @@ my string $code = $tm.add("/html/index.qhtml", $qhtml);
         }
 
         #! renders a template using an automatic renderer if the template and a renderer exist
-        *string tryRender(string $tname, hash $cx) {
+        *string tryAutoRender(string $tname, hash $cx) {
             my *hash $th = $.th.$tname;
             if (!$th || !$th.code)
                 return;
@@ -227,15 +229,35 @@ my string $code = $tm.add("/html/index.qhtml", $qhtml);
             return $.p.callFunction($th.func, $th.code($cx));
         }
 
+        #! returns a hash of template names, values are @ref Qore::True "True" or @ref nothing if no templates are currently cached
+        *hash getTemplateHash() {
+            my hash $h;
+            map $h.$1 = True, $.th.keyIterator();
+            return $h;
+        }
+
+        #! returns a list of template names, an empty list is returned if there are no templates
+        list getTemplateList() {
+            return $.th.keys();
+        }
+
+        #! returns a hash of template names with auto-renderers, values are @ref Qore::True "True" or @ref nothing if no templates with auto-renderers are currently cached
+        *hash getAutoTemplateHash() {
+            my hash $h;
+            map $h.$1 = True, $.th.keyIterator(), $.th.$1.code;
+            return $h;
+        }
+
+        #! returns a list of template names with auto-renderers, an empty list is returned if there are no templates with auto-renderers currently cached
+        list getAutoTemplateList() {
+            return map $1, $.th.keyIterator(), $.th.$1.code;
+        }
+
         #! called in the constructor after default initialization; by default does nothing, override in subclasses to customize the template Program initialization
         private initImpl() {
         }
 
-        private *list getVars(string $src) {
-            return $src =~ x/\$([a-z][a-z0-9_])*/g; #/;
-        }
-
-        private bool doBlock(string $end, string $src, string $type, reference $i, reference $l) {
+        private bool doBlock(string $end, reference $src, string $type, reference $i, reference $l) {
             my int $j = $src.find($end, $i + 1);
             if ($j == -1)
                 return True;

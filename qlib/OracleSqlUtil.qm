@@ -1291,7 +1291,7 @@ my any $v = $c.name;
 
                         # in this case this part of the expression will fail
                         if (!argstr)
-                            return cn + "!=" + cn;
+                            return "1 != 1";
 
                         args += argstr;
                         args += argstr;
