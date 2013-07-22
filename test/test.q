@@ -131,19 +131,19 @@ sub array_tests() {
 	print("%%%% array tests\n");
     $a = 1, 2, 3, 4, 5;
     test_value(elements $a, 5, "elements operator");
-    test_value($a[1], 2, "single-dimentional list dereference");
+    test_value($a[1], 2, "single-dimensional list dereference");
     $b = 1, 2, (3, 4, 5), 6, 7;
-    test_value($b[2][1], 4, "multi-dimentional list dereference");
+    test_value($b[2][1], 4, "multi-dimensional list dereference");
     delete $b;
-    test_value($b[2][1], NOTHING, "multi-dimentional list dereference after delete operator");
+    test_value($b[2][1], NOTHING, "multi-dimensional list dereference after delete operator");
     $b = $a;
     $a[1] = "hello";
     test_value($a[1], "hello", "list dereference after list assignment and element reassignment");
     test_value($b[1], 2, "list dereference of source list");
     $a[0][1] = "hello";
     $c[10]{"testing"} = "well then";
-    test_value($a[0][1], "hello", "second multi-dimentional list dereference");
-    test_value($a[1][500], NOTHING, "non-existant element deference");
+    test_value($a[0][1], "hello", "second multi-dimensional list dereference");
+    test_value($a[1][500], NOTHING, "non-existent element deference");
     test_value(int($c[10].testing), 0, "hash list element dereference");
     test_value($c[10]{"testing"}, "well then", "hash element in list dereference");
     $d = test1(), test2();
@@ -336,7 +336,7 @@ sub hash_tests() {
     my hash $d{"gee"}[25] = "I hope it works";
     test_value($b.test, "there", "hash dereference after assignment");
     test_value($b.test, "there", "object dereference after assignment");
-    test_value($b{"geez"}, NOTHING, "non-existant object dereference");
+    test_value($b{"geez"}, NOTHING, "non-existent object dereference");
     test_value(int($d.gee[25]), 0, "hash dereference of list element");
     test_value($d{"gee"}[25], "I hope it works", "dereference of list member of hash");
     my hash $c = ( "hi" : "there", "gee" : "whillakers" );
@@ -539,7 +539,7 @@ sub operator_test() {
 }
 
 sub no_parameter_test(any $p) {
-    test_value($p, NOTHING, "non-existant parameter");
+    test_value($p, NOTHING, "non-existent parameter");
 }
 
 sub parameter_and_shift_test(int $p) {
@@ -1976,6 +1976,19 @@ sub format_date_tests() {
 
 sub number_tests() {
     test_value(string(10.2n), "10.2", "first number"); 
+    test_value(string(-10.2n), "-10.2", "second number"); 
+    test_value(10.245n.toString(NF_Scientific), "1.0245e+01", "fourth number"); 
+    test_value((-10.245n).toString(NF_Scientific), "-1.0245e+01", "fifth number"); 
+    test_value(0.10245n.toString(NF_Scientific), "1.0245e-01", "sixth number"); 
+    test_value((-0.10245n).toString(NF_Scientific), "-1.0245e-01", "seventh number"); 
+    test_value(1.0245n.toString(NF_Scientific), "1.0245e+00", "sixth number"); 
+    test_value((-1.0245n).toString(NF_Scientific), "-1.0245e+00", "seventh number"); 
+    test_value(0.8n.toString(), "0.8", "number rounding 1");
+    test_value(0.8n.toString(NF_Scientific), "8e-01", "number rounding 2");
+    test_value((-0.8n).toString(), "-0.8", "number rounding 3");
+    test_value((-0.8n).toString(NF_Scientific), "-8e-01", "number rounding 4");
+    test_value(1e50n.toString(), "100000000000000000000000000000000000000000000000000", "number rounding 5");
+    test_value((-1e50n).toString(), "-100000000000000000000000000000000000000000000000000", "number rounding 6");
 }
 
 sub background_tests() {

@@ -311,7 +311,10 @@ my string $substr = $str.substr(-10);
     @note equivalent to @ref Qore::substr(softstring, softint)
  */
 string <string>::substr(softint start) [flags=RET_VALUE_ONLY] {
-   return str->substr(start, xsink);
+   QoreStringNode* rv = str->substr(start, xsink);
+   if (!rv)
+      rv = new QoreStringNode(str->getEncoding());
+   return rv;
 }
 
 //! Returns a portion of a string starting from an integer offset, with a length parameter
@@ -335,7 +338,10 @@ my string $substr = $str.substr(10, -2);
     @since %Qore 0.8.5
  */
 string <string>::substr(softint start, softint len) [flags=RET_VALUE_ONLY] {
-   return str->substr(start, len, xsink);
+   QoreStringNode* rv = str->substr(start, len, xsink);
+   if (!rv)
+      rv = new QoreStringNode(str->getEncoding());
+   return rv;
 }
 
 //! Splits a string into a list of components based on a separator string

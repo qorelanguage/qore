@@ -606,7 +606,7 @@ static AbstractQoreNode *op_list_ref(const AbstractQoreNode *left, const Abstrac
 	 return new QoreBigIntNode(((unsigned char *)b->getPtr())[ind]);
       }
       else if (ind >= 0) {
-	 const QoreStringNode *lpstr = reinterpret_cast<const QoreStringNode *>(*lp);
+	 const QoreStringNode *lpstr = reinterpret_cast<const QoreStringNode*>(*lp);
 	 rv = lpstr->substr(ind, 1, xsink);
       }
       //printd(5, "op_list_ref() index=%d, rv=%p\n", ind, rv);

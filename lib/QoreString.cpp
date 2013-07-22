@@ -1642,7 +1642,7 @@ QoreString* QoreString::substr(qore_offset_t offset, ExceptionSink *xsink) const
    else
       rc = substr_complex(*str, offset, xsink);
 
-   return *xsink ? 0 : str.release();
+   return rc ? 0 : str.release();
 }
 
 QoreString* QoreString::substr(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const {
@@ -1654,7 +1654,7 @@ QoreString* QoreString::substr(qore_offset_t offset, qore_offset_t length, Excep
    else
       rc = substr_complex(*str, offset, length, xsink);
 
-   return *xsink ? 0 : str.release();
+   return rc ? 0 : str.release();
 }
 
 qore_size_t QoreString::length() const {

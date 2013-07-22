@@ -548,7 +548,7 @@ nothing toupper() [flags=RUNTIME_NOOP] {
     @param str The string to process
     @param start The starting character for the substring where the first character is at offset 0; if the offset is negative, it designates the number of characters from the end of the string.  If the offset is 0, then the entire string is returned.
 
-    @return the substring of the string starting from an integer character offset; the rest of the string is returned after this offset; an emtpy string is returned if the argument cannot be satisfied
+    @return the substring of the string starting from an integer character offset; the rest of the string is returned after this offset; an empty string is returned if the argument cannot be satisfied
 
     @par Example:
     @code
@@ -561,7 +561,10 @@ my string $substr = substr($str, -10);
     @note equivalent to <string>::substr(softint)
  */
 string substr(softstring str, softint start) [flags=RET_VALUE_ONLY] {
-   return str->substr(start, xsink);
+   QoreStringNode* rv = str->substr(start, xsink);
+   if (!rv)
+      rv = new QoreStringNode(str->getEncoding());
+   return rv;
 }
 
 //! Returns a portion of a string starting from an integer offset, with a length parameter
@@ -571,7 +574,7 @@ string substr(softstring str, softint start) [flags=RET_VALUE_ONLY] {
     @param start The starting character for the substring where the first character is at offset 0; if the offset is negative, it designates the number of characters from the end of the string
     @param len The maximum number of characters to copy; if this value is negative, the rest of the string from \a start will be copied to the substring, except without - \a len characters from the end of the string
 
-    @return the substring of the string according to the arguments passed; an emtpy string is returned if the argument cannot be satisfied
+    @return the substring of the string according to the arguments passed; an empty string is returned if the argument cannot be satisfied
 
     @par Example:
     @code
@@ -584,7 +587,10 @@ my string $substr = substr($str, 10, -2);
     @note equivalent to <string>::substr(softint, softint)
  */
 string substr(softstring str, softint start, softint len) [flags=RET_VALUE_ONLY] {
-   return str->substr(start, len, xsink);
+   QoreStringNode* rv = str->substr(start, len, xsink);
+   if (!rv)
+      rv = new QoreStringNode(str->getEncoding());
+   return rv;
 }
 
 //! Returns a portion of a binary object starting from an integer offset
@@ -1176,7 +1182,9 @@ string replace(string str, string source, string target, int start = 0, int end 
    int plen = strlen(pattern);
 
    if (start) {
-      qore_size_t i = ccs->getByteLen(cstr, cstr += str->size(), start, xsink);
+      const char* cn = cstr + str->size();
+      qore_size_t i = ccs->getByteLen(cstr, cn, start, xsink);
+      cstr = cn;
       if (*xsink || (i == str->size()))
          return 0;
 
@@ -1184,7 +1192,9 @@ string replace(string str, string source, string target, int start = 0, int end 
    }
 
    if (end > 0) {
-      qore_size_t i = ccs->getByteLen(cstr, cstr += str->size(), end, xsink);
+      const char* cn = cstr + str->size();
+      qore_size_t i = ccs->getByteLen(cstr, cn, end, xsink);
+      cstr = cn;
       if (*xsink || i == str->size())
          return 0;
 

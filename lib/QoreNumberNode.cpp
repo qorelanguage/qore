@@ -55,7 +55,8 @@ void qore_number_private::getAsString(QoreString& str, bool round) const {
       if (exp <= 0) {
 	 exp = -exp;
 	 str.insert("0.", len);
-	 dp = len + 2;
+	 dp = len + 1;
+	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: "QLLD" dp: "QLLD" len: "QLLD"\n", this, str.getBuffer(), exp, dp, len);
 	 if (exp)
 	    str.insertch('0', len + 2, exp);
       }
@@ -63,7 +64,7 @@ void qore_number_private::getAsString(QoreString& str, bool round) const {
 	 // get remaining length of string (how many characters were added)
 	 qore_size_t rlen = str.size() - len;
 
-	 //printd(0, "qore_number_private::getAsString() this: %p str: '%s' rlen: "QLLD"\n", this, str.getBuffer(), rlen);
+	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: "QLLD" rlen: "QLLD"\n", this, str.getBuffer(), exp, rlen);
 
 	 // assert that we have added at least 1 character
 	 assert(rlen > 0);
@@ -94,21 +95,21 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
    char lc = 0;
    // 0 or 9 count
    unsigned cnt = 0;
+   bool has_e = str[last == 'e'];
    // don't check the last character
    --last;
    // check all except the last digit
    while (i < last) {
       char c = str[i++];
-
       if (c == '0' || c == '9') {
          // continue the sequence
          if (c == lc) {
             ++cnt;
             continue;
          }
-         // check for 2nd threshold
+
+	 // check for 2nd threshold
          if ((i == last) && cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
-            ++cnt;
             break;
          }
 
@@ -121,7 +122,6 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
       else {
          // check for 2nd threshold
          if ((i == last) && cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
-            ++cnt;
             break;
          }
          // no 0 or 9 digit found
@@ -141,10 +141,12 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
 
    // round the number for display
    if (signal && cnt > QORE_MPFR_ROUND_THRESHOLD) {
-      //printd(5, "ROUND BEFORE: (cnt: %d) %s\n", cnt, str.getBuffer());
+      //printd(5, "ROUND BEFORE: (cnt: %d has_e: %d e: %c) %s\n", cnt, has_e, str[pos + cnt + 4], str.getBuffer());
       // if rounding right after the decimal point, then remove the decimal point
       if (pos == (qore_offset_t)dp)
          --pos;
+      if (has_e && str[pos + cnt + 3] == 'e')
+	 --cnt;
       // remove the excess digits
       str.replace(pos + 1, cnt + 3, (const char*)0);
 
