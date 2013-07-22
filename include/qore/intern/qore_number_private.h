@@ -210,7 +210,7 @@ struct qore_number_private : public qore_number_private_intern {
          if (i != -1) {
             qore_offset_t e = str.rfind('e');
             if (e != -1)
-               applyRoundingHeuristic(str, i, e - 1);
+               applyRoundingHeuristic(str, i, e);
          }
       }
    }
