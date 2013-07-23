@@ -530,6 +530,8 @@ QoreHashNode* QoreHashNode::getSlice(const QoreListNode* value_list, ExceptionSi
 }
 
 AbstractQoreNode* QoreHashNode::parseInit(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   QoreProgramLocation loc = get_parse_location();
+
    assert(!typeInfo);
    //printd(5, "QoreHashNode::parseInit() this=%p\n", this);
    typeInfo = hashTypeInfo;
@@ -583,6 +585,8 @@ AbstractQoreNode* QoreHashNode::parseInit(LocalVar* oflag, int pflag, int &lvids
             //printd(5, "setting needs_eval on hash %p key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
             setNeedsEval();
          }
+	 // restore parse location
+	 update_parse_location(loc);
       }
    }
    return this;

@@ -55,7 +55,7 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
    bool in_closure;
    if (name.size() == 1 && (id = find_local_var(name.ostr, in_closure))) {
       if (typeInfo)
-	 parse_error("type definition given for existing local variable '%s'", id->getName());
+	 parse_error(loc, "type definition given for existing local variable '%s'", id->getName());
 
       ref.id = id;
       if (in_closure)
@@ -381,7 +381,7 @@ AbstractQoreNode *VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag,
 
    const QoreClass *qc = typeInfo->getUniqueReturnClass();
    if (!qc)
-      parse_error("cannot instantiate type '%s' as a class", typeInfo->getName());
+      parse_error(loc, "cannot instantiate type '%s' as a class", typeInfo->getName());
 
    parseInitConstructorCall(loc, oflag, pflag, lvids, qc);
    outTypeInfo = typeInfo;

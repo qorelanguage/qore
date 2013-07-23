@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/AbstractIteratorHelper.h>
 
 #include <stdio.h>
@@ -3454,6 +3455,8 @@ static AbstractQoreNode *check_op_list_ref(QoreTreeNode *tree, LocalVar *oflag, 
 }
 
 static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   QoreProgramLocation loc = get_parse_location();
+
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
 
@@ -3475,14 +3478,14 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
 	 qore_type_t rt = tree->right->getType();
 	 if (rt == NT_STRING) {
 	    const char *member = reinterpret_cast<const QoreStringNode *>(tree->right)->getBuffer();
-	    qc->parseCheckMemberAccess(member, returnTypeInfo, pflag);
+	    qore_class_private::parseCheckMemberAccess(*qc, loc, member, returnTypeInfo, pflag);
 	 }
 	 else if (rt == NT_LIST) { // check object slices as well if strings are available
 	    ConstListIterator li(reinterpret_cast<const QoreListNode *>(tree->right));
 	    while (li.next()) {
 	       if (li.getValue() && li.getValue()->getType() == NT_STRING) {
 		  const char *member = reinterpret_cast<const QoreStringNode *>(li.getValue())->getBuffer();
-		  qc->parseCheckMemberAccess(member, returnTypeInfo, pflag);
+		  qore_class_private::parseCheckMemberAccess(*qc, loc, member, returnTypeInfo, pflag);
 	       }
 	    }
 	 }
@@ -3501,14 +3504,14 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
 	    QoreStringNode *edesc = new QoreStringNode("cannot convert lvalue defined as ");
 	    leftTypeInfo->getThisType(*edesc);
 	    edesc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
-	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
+	    qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
 	 }
       }
       else if (!can_be_hash && !can_be_obj) {
 	 QoreStringNode *edesc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
 	 leftTypeInfo->getThisType(*edesc);
 	 edesc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+	 qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
 	 returnTypeInfo = nothingTypeInfo;
       }
    }

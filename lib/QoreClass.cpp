@@ -3756,10 +3756,6 @@ const QoreTypeInfo *QoreClass::getOrNothingTypeInfo() const {
    return priv->getOrNothingTypeInfo();
 }
 
-int QoreClass::parseCheckMemberAccess(const char* mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const {
-   return priv->parseCheckMemberAccess(mem, memberTypeInfo, pflag);
-}
-
 bool QoreClass::parseHasPublicMembersInHierarchy() const {
    return priv->parseHasPublicMembersInHierarchy();
 }
