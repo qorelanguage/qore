@@ -1617,7 +1617,7 @@ public class HttpServer::HttpServer {
 	if ($h.username)
 	    $login += sprintf("%s@", $h.password);
 
-	return sprintf("%s://%s%s%s%s", $h.protocol ? $h.protocol : "http", 
+	return sprintf("%s://%s%s%s", $h.protocol ? $h.protocol : "http", 
 		       $login, 
 		       $h.host, 
 		       $h.port ? sprintf(":%d", $h.port) : "");
