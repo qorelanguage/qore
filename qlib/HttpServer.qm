@@ -141,6 +141,7 @@ module HttpServer {
     The main classes are:
     - @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator": can be implemented to provide authentication and authorization info to the server
     - @ref HttpServer::AbstractHttpRequestHandler "AbstractHttpRequestHandler": this class must be subclassed to provide the real work of the HttpServer handling connections
+    - @ref HttpServer::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
     - @ref HttpServer::AbstractHttpSocketHandler "AbstractHttpSocketHandler": this class must be subclassed to implement a dedicated socket handler for protcol changes (for an example, see the <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a> module)
     - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
 
@@ -647,7 +648,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         @param params a reference to the call parameters; the call context hash will be added as the first argument
         @param args an optional reference to a string describing the arguments
 
-        @return a string if the message should be logged, otherwise NOTHING
+        @return a string if the message should be logged, otherwise @ref nothing
     */
     static *string getLogMessage(hash $cx, hash $api, reference $params, *reference $args) {
         on_exit {
@@ -748,6 +749,33 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! creates a hash for an HTTP 501 error response with the response message body as a string
     static hash make501(hash $hdr, string $fmt) {
         return AbstractHttpRequestHandler::makeResponse(501, vsprintf($fmt, $argv), $hdr);
+    }
+}
+
+#! abstract class for HTTP request handlers anchored at a specific URL
+public class HttpServer::AbstractUrlHandler inherits HttpServer::AbstractHttpRequestHandler {
+    public {
+        #! root part of URL for matching requests
+        string $.url_root;
+    }
+
+    #! creates the object based on the URL root and optional authenticator
+    /** @param url_root the root part of the URL path without the leading \c "/"
+        @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+     */
+    constructor(string $url_root, *AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth) {
+        if ($url_root =~ /\//)
+            $url_root = $url_root.substr(1);
+        $.url_root = $url_root;
+    }
+
+    #! returns the relative path anchored from the url_root if possible; URI query arguments are stripped off, if the url_root cannot be matched then the path is returned with URI query arguments removed
+    string getRelativePath(string $path) {
+        if ($.url_root && $path.equalPartialPath($.url_root))
+            $path = $path.substr($.url_root.size() + 1); 
+        # strip URI query args from path
+        $path =~ s/\?.*$//;
+        return $path;
     }
 }
 
@@ -1138,11 +1166,6 @@ public class HttpServer::HttpServer {
         @note if \c bind begins with a "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
      */
     final list addListenersWithHandler(string $hname, AbstractHttpRequestHandler $handler, hash $lp, *code $logger, *code $errorlogger, *code $stopc, *string $name, int $family = AF_UNSPEC) {
-%ifdef QoreDebug
-        #ASSERT($lp.bind.typeCode() == NT_STRING);
-	#ASSERT($lp.url.typeCode() == NT_STRING);
-%endif
-
         if ($lp.bind.typeCode() != NT_STRING)
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'bind' entry in listener description giving the bind address; expecting type 'string', got type '%s'", $lp.bind.type());
 
@@ -1423,6 +1446,17 @@ public class HttpServer::HttpServer {
 	$.dhandlers.setHandler($name, $path, $isregex, $content_type, $obj, $special_headers);
     }
 
+    #! sets a request handler according to the arguments given 
+    setHandler(string $name, AbstractUrlHandler $obj) {
+	$.handlers.setHandler($name, $obj.url_root, False, NOTHING, $obj);
+    }
+
+    #! sets a dynamic request handler according to the arguments given
+    setDynamicHandler(string $name, AbstractUrlHandler $obj) {
+	$.dhandlers.setHandler($name, $obj.url_root, False, NOTHING, $obj);
+    }
+
+    #! adds a request handler to a listener given the listener's name or bind address
     addHandlerToListener(softstring $bind, string $name, string $path, *softlist $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
 	$.lm.enter();
 	on_exit $.lm.exit();
@@ -1438,6 +1472,7 @@ public class HttpServer::HttpServer {
         $.listeners.$id.addHandlers($h);
     }
 
+    #! adds a request handler to a listener given the listener's id
     addHandlerToListenerID(softint $id, string $name, string $path, *softlist $content_type, AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
 	$.lm.enter();
 	on_exit $.lm.exit();
@@ -1446,6 +1481,34 @@ public class HttpServer::HttpServer {
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", $id);
 
 	my hash $h.$name = ("path": $path, "isregex": $isregex, "content": $content_type, "handler": $obj, "headers": $special_headers);
+        $.listeners.$id.addHandlers($h);
+    }
+
+    #! adds a request handler to a listener given the listener's name or bind address
+    addHandlerToListener(softstring $bind, string $name, AbstractUrlHandler $obj) {
+	$.lm.enter();
+	on_exit $.lm.exit();
+
+        my *int $id = $.smap.$bind;
+        if (!$id)
+            $id = $.nmap.$bind;
+
+	if (!$id)
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with name or bind address %y", $bind);
+
+	my hash $h.$name = ("path": $obj.url_root, "isregex": False, "handler": $obj);
+        $.listeners.$id.addHandlers($h);
+    }
+
+    #! adds a request handler to a listener given the listener's id
+    addHandlerToListenerID(softint $id, string $name, AbstractUrlHandler $obj) {
+	$.lm.enter();
+	on_exit $.lm.exit();
+
+	if (!$.listeners.$id)
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", $id);
+
+	my hash $h.$name = ("path": $obj.url_root, "isregex": False, "handler": $obj);
         $.listeners.$id.addHandlers($h);
     }
 

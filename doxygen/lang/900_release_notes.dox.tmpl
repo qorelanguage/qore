@@ -77,7 +77,7 @@
         - Qore::Thread::Counter::dec() will now throw an exception if called when the Counter is already at 0
       - Qore::Thread::Queue::empty(): new method
       - Qore::Socket::listen(): now has a new \a backlog parameter; the default backlog queue size was changed from 5 to 20
-      - Qore::Socket::getPeerInfo() and Qore::Socket::getSocketInfo(): now take an optional argument to avoid name lookups
+      - Qore::Socket::getPeerInfo() and Qore::Socket::getSocketInfo(): now takes an optional argument to avoid name lookups
       - Qore::Socket::readHTTPHeaderString(): new method
     - function changes
       - added optional \a start and \a end parameters to the @ref Qore::replace "replace()" function
@@ -93,12 +93,16 @@
     - fixed a bug where classes with unimplemented inherited abstract variants would sometimes cause runtime exceptions to be thrown when instantiated but should have instead been caught at parse time
     - fixed a parser bug where out-of-line class method definitions could not be defined in a namespace block
     - fixed a bug parsing arguments in parse_uri_query() in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
-    - fixed a bug where parse exceptions with type errors in function calls could be reported at the wrong source location
-    - fixed a bug where parse exceptions resolving global variables could be reported at the wrong source location
-    - fixed a bug where parse exceptions in base class constructor arguments could be reported at the wrong source location
-    - fixed a bug where parse exceptions for empty blocks with a missing return statement would be reported at the wrong source location
-    - fixed bugs where parse exceptions and warnings when validating types used with the return statement could be reported at the wrong source location
-    - fixed bugs where parse exceptions in methods calls could be reported at the wrong source location
+    - fixed several bugs where parse exceptions could show the wrong source location:
+      - with type errors in function calls
+      - resolving global variables
+      - in base class constructor arguments
+      - for empty blocks with a missing return statement
+      - fixed bugs where parse exceptions and warnings when validating types used with the return statement could be reported at the wrong source location
+      - in methods calls
+      - in hash value expressions
+      - with redeclaring local variable return types
+      - in local variable class declaration instantiations
     - really fixed the bug thought to be fixed in 0.8.7 "where SSL errors would cause the affected thread to go into a infinite loop using 100% CPU" - this turned out to be easily reproducible on all platforms; when the SSL connection was shut down cleanly by the remote end before a response message was returned, an infinite loop would result
     - fixed a bug where it was impossible to output a single '\' character in regex substitution expressions; '\' was taken as an escape character, and '\\\' was output literally, now '\\\' is output as '\'
     - fixed a bug where a parse-time crash would occur when calling the copy() method for a class that does not implement an explicit copy() method
@@ -120,7 +124,7 @@
     - fixed a bug where an invalid guard condition in critical lvalue storage code can cause unreferenced data to be returned while in a lock which can cause a crash in a multithreaded program
     - fixed a bug where references were not being written to the output variable if an exception was active when the code block exited
     - fixed a bug setting the precision for arbitrary-precision numbers with large exponents (like "1e100n")
-    - implemented more strict adherence to rfc 2616 (HTTP 1.1) regarding message-body handling in requests and response message generation and parsing
+    - implemented more strict adherence to <a href="http://tools.ietf.org/html/rfc2616">RFC 2616</a> (HTTP 1.1) regarding message-body handling in requests and response message generation and parsing
     - fixed a bug with @ref Qore::Thread::Condition::wait() "Condition::wait()" on Darwin with negative timeout values where a short timeout was used instead of an indefinite wait
     - fixed bugs in the <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> and <a href="../../modules/MailMessage/html/index.html">MailMessage</a> modules where mail messages were being serialized incorrectly if there were no attachments (there was no possibility to set the content transfer encoding) and also where it was not possible to set the content-type for the message body when it was sent as a part of a multipart message
     - fixed bugs handling arguments declared as type @ref reference_or_nothing_type "*reference" (reference or nothing)
@@ -128,6 +132,7 @@
     - fixed a bug with the switch statement where character encoding differences would cause strings to mismatch even if they were otherwise identical; now hard comparisons are used for all types except in the case where both arguments are strings in which case a soft comparison is used in order to avoid the case when a different string encoding would cause the comparison to fail
     - fixed a bug where qore failed to set the time zone region correctly when set from /etc/localtime and this file is a relative symlink rather than absolute
     - fixed a bug where substr() and <string>::substr() were returning @ref nothing if the arguments could not be satisifed contrary to the documentation and the declared return type, now an empty string is returned in those cases
+    - fixed bugs rounding number values between 10 and -10 (non-inclusive) for display, fixed bugs rounding number value regarding digits after the decimal point for display with @ref Qore::NF_Scientific
 
     @section qore_087 Qore 0.8.7
 

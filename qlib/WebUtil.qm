@@ -38,6 +38,10 @@ module WebUtil {
     url = "http://qore.org";
 }
 
+%requires HttpServer >= 0.3.7
+%requires Mime >= 1.0
+%requires Util >= 1.0
+
 /*  Version History
     * 2013-xx-xx v1.0: David Nichols <david@qore.org>
       + the initial version of the WebUtil module
@@ -52,8 +56,8 @@ module WebUtil {
     All the public symbols in the module are defined in the WebUtil namespace
 
     Classes:
-    - @ref WebUtil::TemplateManager "TemplateManager"
-
+    - @ref WebUtil::TemplateManager "TemplateManager": manages mixed Qore and text templates that are rendered to generate a final file; useful for HTML rendering for example
+    - @ref WebUtil::FileHandler "FileHandler": a class for serving files from the file system anchored at a particular URL; also inherits @ref WebUtil::TemplateManager "TemplateManager"
 */
 
 #! the WebUtil namespace contains all the objects in the WebUtil module
@@ -331,6 +335,169 @@ $tm.addRenderer("html/index.qhtml", $code);
             splice $src, 0, 2;
             $i = 0;
             return False;
+        }
+    }
+
+    #! this class serves files from the file system based on a root location
+    public class FileHandler inherits public HttpServer::AbstractUrlHandler, TemplateManager {
+        public {
+            #! root directory for serving files
+            string $.file_root;
+
+            #! index file for directories
+            string $.index_file = DefaultIndexFile;
+
+            #! the default target if a URL cannot be satisfied
+            *string $.default_target;
+
+            #! flag for UNIX operating systems
+            const Unix = (PlatformOS != "Windows");
+
+            #! directory separator character
+            const DirSep = (Unix ? "/" : "\\");
+
+            #! default index file
+            const DefaultIndexFile = "index.html";
+        }
+
+        #! create the object optionally with the given AbstractAuthenticator
+        /** @param file_root the filesystem root directory for serving files
+            @param url_root the root part of the URL path without the leading \c "/"
+            @param default_target the default relative path to use if a request cannot be satisfied
+            @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+        */
+        constructor(string $file_root, string $url_root, *string $default_target, *AbstractAuthenticator $auth) : AbstractUrlHandler($url_root, $auth) {
+            $.file_root = normalize_dir($file_root);
+            # make sure file_root ends in a directory separator character
+            if ($.file_root[$.file_root.size() - 1] != DirSep)
+                $.file_root += DirSep;
+            $.default_target = $default_target;
+        }
+
+        #! this method calls handleRequestImpl() to service the request, if handleRequestImpl() returns @ref nothing, then it tries to automatically serve a matching template or files from the filesystem or serve the default resource if no resource can be matched
+        /** @param cx call context hash; this hash will have the following keys:
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+            - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c user: the current RBAC username (if any)
+            @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+            - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+            - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_url()
+            - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+            @param body message body, if any
+
+            @return a hash with the following keys:
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+            - \c "body": the message body to return in the response
+            - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+            - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+            If handleRequestImpl() returns @ref nothing and the requested path cannot be matched and served, then unhandledRequest() is called to handle the error
+        */
+        hash handleRequest(hash $cx, hash $hdr, *data $body) {
+            # get local request path and "localize" it and strip off any query args
+            my string $path = $.getRelativePath($hdr.path);
+
+            $cx += ("resource_path": $path, "url_root": $.url_root, "isregex": False);
+
+            my *hash $h = $.handleRequestImpl(\$cx, $hdr, $body);
+            if (!$h) {
+                $h = $.tryServeRequest($cx);
+                # if the request could not be satisfied and there is a default target, then try to serve the default target
+                if (!$h && $.default_target) {
+                    $cx.resource_path = $.default_target;
+                    $h = $.tryServeRequest($cx);
+                }
+            }
+            if ($h)
+                return $h;
+
+            return $.unhandledRequest($cx, $hdr, $body);
+        }
+
+        #! this method returns a 404 \c "Not Found" error code to \c GET requests and a 501 \c "Not Implemented" error code to all other requests
+        /** this method is called when a request cannot be handled; reimplement this method in subclasses to customize unhandled request error handling
+        */
+        private hash unhandledRequest(hash $cx, hash $hdr, *data $body) {
+            return $hdr.method == "GET"
+                ? $.makeResponse(404, "The requested page cannot be found")
+                : $.make501("The requested operation is not supported");
+        }
+
+        private *hash tryServeRequest(hash $cx) {
+            my *string $path = $cx.resource_path;
+            my bool $wasdir = False;
+            if (!$path)
+                $path = $.index_file;
+            else if ($path =~ /\/$/) {
+                $path += $.index_file;
+                $wasdir = True;
+            }
+
+            # first see if we can auto-render a template
+            my *hash $h = $.tryAutoRender($path, $cx);
+            # try to render a template assuming the request was made to a directory
+            if (!$h && !$wasdir)
+                $h = $.tryAutoRender($path + "/" + $.index_file, $cx);
+            if ($h)
+                return ("code": 200, "body": $h.body, "hdr": ("Content-Type": $h.ct));
+
+            # now see if we can return a file
+            # use Windows directory separator chars on Windows
+            if (!Unix)
+                $path =~ s/\//\\/g;
+
+            $path = $.file_root + $path;
+            # add index if the request corresponds to a directory
+            if (!$wasdir && is_dir($path))
+                $path += DirSep + $.index_file;
+
+            my File $f();
+            if ($f.open($path))
+                return;
+
+            my *string $data = $f.read(-1);
+            return !$data
+                ? $.makeResponse(204, "")
+                : (
+                "code": 200,
+                "body": $data,
+                "hdr": ("Content-Type": get_mime_type_from_ext($path)),
+                );
+        }
+
+        #! this method is called by this class's handleRequest() before trying to service the request automatically based on file resources
+        /** @param cx call context hash; this hash will have the following keys:
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+            - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c user: the current RBAC username (if any)
+            - \c resource_path: the relative path without any query arguments and with the URL root stripped off (if the request was matched by the URL root, otherwise this will be the request path with any URI query arguments removed)
+            - \c url_root: the root URL
+            - \c isregex: if the \a url_root string is a regular expression or not (this is always @ref Qore::False "False" when this class is used)
+            @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+            - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+            - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_url()
+            - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+            @param body message body, if any
+            
+            @return a hash with the following keys:
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+            - \c "body": the message body to return in the response
+            - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+            - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+            @note
+            - this method has the following additional keys in the \a cx hash: \c resource_path, \c url_root, and \c isregex
+            - the default implementation simply returns @ref nothing all requests; reimplement this method in a subclass to provide the required functionality
+        */
+        *hash handleRequestImpl(reference $cx, hash $hdr, *data $body) {
         }
     }
 }
