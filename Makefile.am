@@ -19,8 +19,7 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/Util.qm \
 	qlib/SqlUtil.qm
 
-USER_MODULES = $(DOX_SRC_MODULES) \
-	qlib/SmtpClient.qm \
+DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/TelnetClient.qm \
 	qlib/Pop3Client.qm \
 	qlib/CsvUtil.qm \
@@ -33,7 +32,12 @@ USER_MODULES = $(DOX_SRC_MODULES) \
 	qlib/WebSocketClient.qm \
 	qlib/WebUtil.qm
 
+USER_MODULES = $(DOX_SRC_MODULES) \
+	$(DOX_MODULES)
+
 USER_MODS = $(basename $(notdir $(USER_MODULES)))
+
+DOX_USER_MODS = $(basename $(notdir $(DOX_MODULES)))
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC
@@ -571,7 +575,26 @@ endif
 
 QDX_MTAG_ARGS = $(foreach m,$(basename $(notdir $(DOX_SRC_MODULES))),-t$(m).tag=../../$(m)/html)
 
-DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(USER_MODS))
+# explicit Doxyfile rules for modules providing tags for other modules
+doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+	$(QDX) -M=qlib/Mime.qm:doxygen/qlib/Mime.qm.dox.h $< $@
+
+doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html $< $@
+
+doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm.dox.h -tMime.tag=../../Mime/html $< $@
+
+doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm.dox.h $< $@
+
+doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm.dox.h -tUtil.tag=../../Util/html $< $@
+
+doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm.dox.h $< $@
+
+DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
 $(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm.dox.h $(QDX_MTAG_ARGS) $< $@
 
