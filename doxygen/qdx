@@ -310,7 +310,7 @@ class qdx {
 		continue;
 
             # see if the line is the start of a doxygen block comment
-            if (line =~ /^[[:blank:]]*\/\*\*./) {
+            if (line =~ /^[[:blank:]]*\/\*\*/) {
                 line = getComment(line, inf);
                 of.print(line);
                 continue;
