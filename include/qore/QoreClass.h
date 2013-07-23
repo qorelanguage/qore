@@ -846,8 +846,6 @@ public:
    DLLLOCAL const QoreMethod *parseFindStaticMethodTree(const char *name);
    // returns true if the class passed is equal to or in the class' hierarchy - to be called only at parse time or under the program's parse lock
    DLLLOCAL bool parseCheckHierarchy(const QoreClass *cls) const;
-   // checks if the given member can be accessed at parse time
-   DLLLOCAL int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const;
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
    DLLLOCAL bool runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const;
    DLLLOCAL bool runtimeHasPublicMembersInHierarchy() const;

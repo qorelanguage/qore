@@ -1870,25 +1870,25 @@ public:
 
    DLLLOCAL const QoreExternalMethodVariant* findUserMethodVariant(const char* name, const QoreMethod*& method, const type_vec_t &argTypeList) const;
 
-   DLLLOCAL int parseCheckMemberAccess(const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const {
+   DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const {
       const_cast<qore_class_private*>(this)->parseInitPartial();
 
       bool priv;
       bool has_type_info;
-      const QoreProgramLocation* loc = 0;
-      const QoreClass* sclass = parseFindPublicPrivateMember(loc, mem, memberTypeInfo, has_type_info, priv);
+      const QoreProgramLocation* mloc = 0;
+      const QoreClass* sclass = parseFindPublicPrivateMember(mloc, mem, memberTypeInfo, has_type_info, priv);
       
       if (!sclass) {
 	 int rc = 0;
 	 if (!parseHasMemberGate() || (pflag & PF_FOR_ASSIGNMENT)) {
 	    if (parse_check_parse_option(PO_REQUIRE_TYPES)) {
-	       parse_error("member '%s' of class '%s' referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations",
+	       parse_error(loc, "member '%s' of class '%s' referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations",
 	             mem, name.c_str());
 	       rc = -1;
 	    }
 	    if (parseHasPublicMembersInHierarchy()) {
 	       //printd(5, "qore_class_private::parseCheckMemberAccess() %s %%.%s memberGate=%d pflag=%d\n", name.c_str(), mem, parseHasMemberGate(), pflag);
-	       parse_error("illegal access to unknown member '%s' in class '%s' which hash a public member list (or inherited public member list)", mem, name.c_str());
+	       parse_error(loc, "illegal access to unknown member '%s' in class '%s' which hash a public member list (or inherited public member list)", mem, name.c_str());
 	       rc = -1;
 	    }
 	 }
@@ -1898,7 +1898,7 @@ public:
       // only raise a parse error for illegal access to private members if there is not memberGate function
       if (priv && !parseHasMemberGate() && !parseCheckPrivateClassAccess()) {
 	 memberTypeInfo = 0;
-         parse_error("illegal access to private member '%s' of class '%s'", mem, name.c_str());
+         parse_error(loc, "illegal access to private member '%s' of class '%s'", mem, name.c_str());
 	 return -1;
       }
       return 0;
@@ -2706,6 +2706,10 @@ public:
 
    // static methods
    //DLLLOCAL static
+
+   DLLLOCAL static int parseCheckMemberAccess(const QoreClass& qc, const QoreProgramLocation& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) {
+      return qc.priv->parseCheckMemberAccess(loc, mem, memberTypeInfo, pflag);
+   }
 
    DLLLOCAL static bool hasCallableMethod(const QoreClass& qc, const char* m) {
       return qc.priv->hasCallableMethod(m, QCCM_NORMAL | QCCM_STATIC);

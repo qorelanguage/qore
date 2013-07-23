@@ -383,6 +383,8 @@ public:
        @param lvids the number of new local variables declared in this node
        @param typeInfo any available type constraints on the initialized value or expression
        @return new object
+
+       FIXME: add QoreProgramLocation& arg
    */
    DLLEXPORT virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
