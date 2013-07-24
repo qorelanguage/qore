@@ -61,6 +61,7 @@ module Util {
       - @ref Util::absolute_path_unix()
       - @ref Util::absolute_path_windows()
     - @ref Util::parse_to_qore_value()
+    - @ref Util::get_exception_string()
     - @ref Util::get_random_string()
 */
 
@@ -468,6 +469,38 @@ my string $pass = get_random_string();
                             ($v < 84 ? chr($v - 19) :
                              chr($v + 39))))));
             }            
+        }
+        return $str;
+    }
+
+    #! returns a multi-line string from the exception hash argument suitable for logging or output on the console
+    /** @param ex the exception hash to process
+        
+        @return a multi-line string from the exception hash argument suitable for logging or output on the console
+     */
+    public string sub get_exception_string(hash $ex) {
+        my string $str;
+        
+        while (True) {
+            $str += sprintf("%s exception: %s: %s: %s%s\ncall stack:",
+                            $ex.type, get_ex_pos($ex), $ex.err, $ex.desc,
+                            $ex.arg ? sprintf(" (arg: %y)", $ex.arg) : "");
+            
+            if ($ex.callstack) {
+                foreach my hash $l in ($ex.callstack) {
+                    if ($l.type == "new-thread")
+                        $str += sprintf("\n  *** thread started by background operator ***");
+                    else if ($l.type == "rethrow")
+                        $str += sprintf("\n  *** RETHROW at %s", get_ex_pos($l));
+                    else
+                        $str += sprintf("\n  %s() called at %s (%s function)", $l.function, get_ex_pos($l), $l.type);
+                }
+            }
+            
+            if (!$ex.next)
+                break;
+            $ex = $ex.next;
+            $str += "\nchained exception:\n";
         }
         return $str;
     }

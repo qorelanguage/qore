@@ -26,6 +26,7 @@
       - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a>: Provides a client API for connecting to WebSocket servers
       - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a>: Provides an interface to the Qore <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module for implementing server-side WebSocket services
       - <a href="../../modules/WebSocketUtil/html/index.html">WebSocketUtil</a>: Provides common client and server code for implementing WebSocket protocol services in %Qore
+      - <a href="../../modules/WebUtil/html/index.html">WebUtil</a>: Provides server support for implementing complex web services including serving resources with mixed text and %Qore code that are automatically rendered on demand
     - improvements in existing @ref user_modules "user modules":
       - much improved <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module, better performance, much better RFC compliance, more flexibility
       - new CSV generation class in <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>
@@ -95,14 +96,14 @@
     - fixed a bug parsing arguments in parse_uri_query() in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
     - fixed several bugs where parse exceptions could show the wrong source location:
       - with type errors in function calls
-      - resolving global variables
+      - when resolving global variables
       - in base class constructor arguments
       - for empty blocks with a missing return statement
-      - fixed bugs where parse exceptions and warnings when validating types used with the return statement could be reported at the wrong source location
+      - when validating types used with the return statement (also associated warnings)
       - in methods calls
       - in hash value expressions
       - with redeclaring local variable return types
-      - in local variable class declaration instantiations
+      - in local variable object instantiations
     - really fixed the bug thought to be fixed in 0.8.7 "where SSL errors would cause the affected thread to go into a infinite loop using 100% CPU" - this turned out to be easily reproducible on all platforms; when the SSL connection was shut down cleanly by the remote end before a response message was returned, an infinite loop would result
     - fixed a bug where it was impossible to output a single '\' character in regex substitution expressions; '\' was taken as an escape character, and '\\\' was output literally, now '\\\' is output as '\'
     - fixed a bug where a parse-time crash would occur when calling the copy() method for a class that does not implement an explicit copy() method
@@ -129,7 +130,7 @@
     - fixed bugs in the <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> and <a href="../../modules/MailMessage/html/index.html">MailMessage</a> modules where mail messages were being serialized incorrectly if there were no attachments (there was no possibility to set the content transfer encoding) and also where it was not possible to set the content-type for the message body when it was sent as a part of a multipart message
     - fixed bugs handling arguments declared as type @ref reference_or_nothing_type "*reference" (reference or nothing)
     - fixed bugs in executing code accross @ref Qore::Program "Program" object barriers with reference arguments
-    - fixed a bug with the switch statement where character encoding differences would cause strings to mismatch even if they were otherwise identical; now hard comparisons are used for all types except in the case where both arguments are strings in which case a soft comparison is used in order to avoid the case when a different string encoding would cause the comparison to fail
+    - fixed a bug with the switch statement where character encoding differences would cause strings to mismatch even if they were otherwise identical; now hard comparisons with strings allow for implicit automatic temporary character encoding conversions for the comparison
     - fixed a bug where qore failed to set the time zone region correctly when set from /etc/localtime and this file is a relative symlink rather than absolute
     - fixed a bug where substr() and <string>::substr() were returning @ref nothing if the arguments could not be satisifed contrary to the documentation and the declared return type, now an empty string is returned in those cases
     - fixed bugs rounding number values between 10 and -10 (non-inclusive) for display, fixed bugs rounding number value regarding digits after the decimal point for display with @ref Qore::NF_Scientific

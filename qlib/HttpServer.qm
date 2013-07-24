@@ -25,6 +25,7 @@
 %requires qore >= 0.8.8
 # need mime definitions
 %requires Mime >= 1.0
+%requires Util >= 1.0
 
 module HttpServer {
     version = "0.3.7";
@@ -198,38 +199,6 @@ log("started listener on %s", $lh.desc);
     All the public symbols in the module are defined in this namespace
  */
 public namespace HttpServer {
-    #! returns a multi-line string from the exception hash argument suitable for logging or output on the console
-    /** @param ex the exception hash to process
-        
-        @return a multi-line string from the exception hash argument suitable for logging or output on the console
-     */
-    public string sub get_exception_string(hash $ex) {
-        my string $str;
-        
-        while (True) {
-            $str += sprintf("%s exception: %s: %s: %s%s\ncall stack:",
-                            $ex.type, get_ex_pos($ex), $ex.err, $ex.desc,
-                            $ex.arg ? sprintf(" (arg: %y)", $ex.arg) : "");
-            
-            if ($ex.callstack) {
-                foreach my hash $l in ($ex.callstack) {
-                    if ($l.type == "new-thread")
-                        $str += sprintf("\n  *** thread started by background operator ***");
-                    else if ($l.type == "rethrow")
-                        $str += sprintf("\n  *** RETHROW at %s", get_ex_pos($l));
-                    else
-                        $str += sprintf("\n  %s() called at %s (%s function)", $l.function, get_ex_pos($l), $l.type);
-                }
-            }
-            
-            if (!$ex.next)
-                break;
-            $ex = $ex.next;
-            $str += "\nchained exception:\n";
-        }
-        return $str;
-    }
-
     #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
     /** @param path the URI path to parse
 
@@ -271,6 +240,17 @@ public namespace HttpServer {
         }
 
         return $h;
+    }
+
+    #! returns a multi-line string from the exception hash argument suitable for logging or output on the console
+    /** @param ex the exception hash to process
+        
+        @return a multi-line string from the exception hash argument suitable for logging or output on the console
+
+        @note reexported from the Util module
+     */
+    public string sub get_exception_string(hash $ex) {
+        return Util::get_exception_string($ex);
     }
 }
 

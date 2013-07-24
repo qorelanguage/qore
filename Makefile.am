@@ -14,9 +14,9 @@ INCLUDES = -I$(top_srcdir)/include
 # user modules that have dox referenced from other user modules (docs for these must be built first)
 DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/MailMessage.qm \
+	qlib/Util.qm \
 	qlib/HttpServer.qm \
 	qlib/WebSocketUtil.qm \
-	qlib/Util.qm \
 	qlib/SqlUtil.qm
 
 DOX_MODULES = qlib/SmtpClient.qm \
@@ -579,14 +579,14 @@ QDX_MTAG_ARGS = $(foreach m,$(basename $(notdir $(DOX_SRC_MODULES))),-t$(m).tag=
 doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 	$(QDX) -M=qlib/Mime.qm:doxygen/qlib/Mime.qm.dox.h $< $@
 
+doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm.dox.h $< $@
+
 doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
-	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html $< $@
+	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
 
 doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm.dox.h -tMime.tag=../../Mime/html $< $@
-
-doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
-	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm.dox.h $< $@
 
 doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm.dox.h -tUtil.tag=../../Util/html $< $@
