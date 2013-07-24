@@ -424,13 +424,16 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             - \c url_root: the root URL
             - \c file_root: the root directory for serving files
             - \c isregex: if the \a url_root string is a regular expression or not (this is always @ref Qore::False "False" when this class is used)
-            - \c hdr: this is added to the \a cx argument directly from the \a hdr argument
+            - \c hdr: this is added to the \a cx argument directly from the \a hdr argument, however it also includes the \c "params" key which holds the URI query parameters as returned in the \a params key from @ref HttpServer::parse_uri_query()
 
             If handleRequestImpl() returns @ref nothing and the requested path cannot be matched and served, then unhandledRequest() is called to handle the error
         */
         hash handleRequest(hash $cx, hash $hdr, *data $body) {
             # get local request path and "localize" it and strip off any query args
             my string $path = $.getRelativePath($hdr.path);
+
+            # add URI query parameters to hdr if possible
+            $hdr.params = parse_uri_query($hdr.path).params;
 
             $cx += ("resource_path": $path, "url_root": $.url_root, "file_root": $.file_root, "isregex": False, "hdr": $hdr);
 
@@ -578,11 +581,12 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             - \c url_root: the root URL
             - \c file_root: the root directory for serving files
             - \c isregex: if the \a url_root string is a regular expression or not (this is always @ref Qore::False "False" when this class is used)
-            - \c hdr: this is a copy of the \a hdr argument
+            - \c hdr: this is a copy of the \a hdr argument, however it also includes the \c "params" key which holds the URI query parameters as returned in the \a params key from @ref HttpServer::parse_uri_query()
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
             - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_url()
             - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+            - \c params: holds the URI query parameters as returned in the \a params key from @ref HttpServer::parse_uri_query()
             @param body message body, if any
             
             @return a hash with the following keys:
