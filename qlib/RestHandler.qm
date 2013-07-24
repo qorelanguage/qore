@@ -241,7 +241,7 @@ public namespace RestHandler {
                             $hl += $mh.key;
                     }
                     if (!$hl)
-                        return RestHandler::make501("REST class %y (%s) does not implement method %y", $.name(), $self.className(), $cx.orig_method);
+                        return RestHandler::make501("REST class %y (%s) does not implement method %y", $.name(), $self.className(), $cx.orig_method ? $cx.orig_method : $mn);
  
                     my string $ml = foldl $1 + "," + $2, $hl;
                     my string $desc = sprintf("HTTP method %s is unimplemented in REST class %y (%s)", $cx.hdr.method, $.name(), $self.className());

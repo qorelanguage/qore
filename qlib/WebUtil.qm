@@ -554,6 +554,9 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
         }
 
         #! this method is called when a directory should be rendered
+        /** if this method returns @ref nothing then any \a default_target will be used, so to turn off directory rendering, 
+            subclass this class and have the reimplemented method return @ref nothing
+        */
         *hash renderDirectory(hash $cx, string $path) {
             $cx += (
                 "path": $path,
