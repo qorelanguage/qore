@@ -1557,7 +1557,7 @@ public class HttpServer::HttpServer {
         }
         
         my string $str = !$extra_hdrs."Content-Type"
-            ? sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1>%s<p><hr><address>%s on %s</address></body></html>",
+            ? sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1><pre>%s</pre><p><hr><address>%s on %s</address></body></html>",
                       $code, HttpServer::HttpCodes.$code, HttpServer::HttpCodes.$code, html_encode($msg), $.httpserverstring, gethostname())
             : $msg;
 
