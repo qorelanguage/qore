@@ -317,6 +317,10 @@ public:
 	    lst->push(h);
 	    continue;
 	 }
+
+	 // not full, no filter
+	 lst->push(new QoreStringNode(de->d_name, enc));
+	 continue;
       }
 	    
       return lst.release();
