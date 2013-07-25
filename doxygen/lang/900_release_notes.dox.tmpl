@@ -83,6 +83,7 @@
       - Qore::Socket::listen(): now has a new \a backlog parameter; the default backlog queue size was changed from 5 to 20
       - Qore::Socket::getPeerInfo() and Qore::Socket::getSocketInfo(): now takes an optional argument to avoid name lookups
       - Qore::Socket::readHTTPHeaderString(): new method
+      - Qore::Dir: all list*() methods now take an optional parameter to return a list of @ref stat_hash "file status value hashes" instead of file names since in many cases the files need to be stat()ed anyway
     - function changes
       - added optional \a start and \a end parameters to the @ref Qore::replace "replace()" function
     - all @ref data_type_declarations "data type declarations" that optionally accept @ref nothing also now accept @ref null and map @ref null to @ref nothing; this makes direct assignments from values derived from SQL queries much easier

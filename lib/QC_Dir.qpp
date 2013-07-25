@@ -363,35 +363,38 @@ nothing Dir::rmdir(string subdir) {
 }
 
 //! Get all entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
-/** @returns a list of all entries in the directory (except \c "." and \c ".." directories)
+/** @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+
+    @returns a list of all entries in the directory (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
 
     @par Example:
     @code
 try {
-    foreach my string $e in ($d.list()) {
-        printf("entry: %s\n");
-    }
+    map printf("entry: %s\n", $1), $d.list();
 }
 catch (hash $ex) {
+    stderr.printf("%s: %s", $ex.err, $ex.desc);
     if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
-    else
-        printf("%s: %s", $ex.err, $ex.desc);
+        stderr.printf(": %s", strerror($ex.arg));
+    stderr.printf("\n");
 }
     @endcode
 
     @throw DIR-READ-ERROR no directory is set
     @throw DIR-READ-FAILURE error reading directory (\c arg will be assigned to the errno value)
+
+    @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::list() {
-   return d->list(xsink, -1);
+list Dir::list(bool full = False) {
+   return d->list(xsink, -1, 0, 0, full);
 }
 
 //! Gets all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
+    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
 
-    @return a list of all entries in the directory that match the given regular expression (except \c "." and \c ".." directories)
+    @return a list of all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
 
     @par Example:
     @code
@@ -401,10 +404,10 @@ try {
     }
 }
 catch (hash $ex) {
+    stderr.printf("%s: %s", $ex.err, $ex.desc);
     if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
-    else
-        printf("%s: %s", $ex.err, $ex.desc);
+        stderr.printf(": %s", strerror($ex.arg));
+    stderr.printf("\n");
 }
     @endcode
 
@@ -412,14 +415,18 @@ catch (hash $ex) {
     @throw DIR-READ-FAILURE error reading directory (\c arg will be assigned to the errno value)
     @throw REGEX-COMPILATION-ERROR error in regular expression
     @throw REGEX-OPTION-ERROR regex option argument contains invalid option bits
+
+    @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::list(string regex, softint regex_options = 0) {
-   return d->list(xsink, -1, regex, (int)regex_options);
+list Dir::list(string regex, softint regex_options = 0, softbool full = False) {
+   return d->list(xsink, -1, regex, (int)regex_options, full);
 }
 
 //! Retrieves all files in this directory; if any errors occur an exception is thrown
-/**
-    @return a list of all files in the current directory of the object
+/** @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+
+    @return a list of all files in the current directory of the object; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
 
     @par Example:
     @code
@@ -429,25 +436,28 @@ try {
     }
 }
 catch (hash $ex) {
+    stderr.printf("%s: %s", $ex.err, $ex.desc);
     if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
-    else
-        printf("%s: %s", $ex.err, $ex.desc);
+        stderr.printf(": %s", strerror($ex.arg));
+    stderr.printf("\n");
 }
     @endcode
 
     @throw DIR-READ-ERROR no directory is set
     @throw DIR-READ-FAILURE error reading directory (\c arg will be assigned to the errno value)
+
+    @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::listFiles() {
-   return d->list(xsink, S_IFMT^S_IFDIR);
+list Dir::listFiles(bool full = False) {
+   return d->list(xsink, S_IFMT^S_IFDIR, 0, 0, full);
 }
 
 //! Retrieves all files in the directory that match the given regular expression; if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
+    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
 
-    @return a list of all files in the directory that match the given regular expression
+    @return a list of all files in the directory that match the given regular expression; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
 
     @par Example:
     @code
@@ -468,13 +478,17 @@ catch (hash $ex) {
     @throw DIR-READ-FAILURE error reading directory (\c arg will be assigned to the errno value)
     @throw REGEX-COMPILATION-ERROR error in regular expression
     @throw REGEX-OPTION-ERROR regex option argument contains invalid option bits
+
+    @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::listFiles(string regex, softint regex_options = 0) {
+list Dir::listFiles(string regex, softint regex_options = 0, softbool full = False) {
    return d->list(xsink, S_IFMT^S_IFDIR, regex, (int)regex_options);
 }
 
 //! Retrieves all subdirectory entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
-/** @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories
+/** @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+
+    @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
 
     @par Example:
     @code
@@ -493,16 +507,19 @@ catch (hash $ex) {
 
     @throw DIR-READ-ERROR no directory is set
     @throw DIR-READ-FAILURE error reading directory (\c arg will be assigned to the errno value)
+
+    @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::listDirs() {
-   return d->list(xsink, S_IFDIR);
+list Dir::listDirs(bool full = False) {
+   return d->list(xsink, S_IFDIR, 0, 0, full);
 }
 
 //! Gets all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
+    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
 
-    @return a list of all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories)
+    @return a list of all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
 
     @par Example:
     @code
@@ -523,9 +540,11 @@ catch (hash $ex) {
     @throw DIR-READ-FAILURE error reading directory (\c arg will be assigned to the errno value)
     @throw REGEX-COMPILATION-ERROR error in regular expression
     @throw REGEX-OPTION-ERROR regex option argument contains invalid option bits
+
+    @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::listDirs(string regex, softint regex_options = 0) {
-   return d->list(xsink, S_IFDIR, regex, (int)regex_options);
+list Dir::listDirs(string regex, softint regex_options = 0, softbool full = False) {
+   return d->list(xsink, S_IFDIR, regex, (int)regex_options, full);
 }
 
 //! Create and open a File object in the current directory of the Dir object

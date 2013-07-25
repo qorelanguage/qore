@@ -156,9 +156,10 @@ public:
        @param stat_filter set to -1 to get everything, otherwise use S_* constants from stat() to filter for particular file types
        @param regex an optional regular expression to filter the resulting list
        @param regex_options optional regular expression options
+       @param full if false a list of file name is returned, if true then a list of hashes corresponding to the stat() information is returned
        @return a list of the results
    */
-   DLLEXPORT QoreListNode* list(ExceptionSink *xsink, int stat_filter, const QoreString *regex = 0, int regex_options = 0) const;
+   DLLEXPORT QoreListNode* list(ExceptionSink *xsink, int stat_filter, const QoreString *regex = 0, int regex_options = 0, bool full = false) const;
 
    //! returns a QoreListNode with directory status information
    /** @param xsink if an error occurs, the Qore-language exception info will be added here

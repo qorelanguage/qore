@@ -50,7 +50,7 @@ protected:
    mutable QoreThreadLock m;
 
    // tokenize the strings by the delimiter
-   DLLLOCAL static void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiter = "/") {
+   DLLLOCAL static void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiter = QORE_DIR_SEP_STR) {
       // Skip delimiters at beginning.
       std::string::size_type lastPos = str.find_first_not_of(delimiter, 0);
       // Find first "non-delimiter".
@@ -74,7 +74,7 @@ protected:
 
       // push them to the new path
       std::vector<std::string>::iterator it;
-      for (it = ptoken.begin(); it<ptoken.end(); it++) {
+      for (it = ptoken.begin(); it < ptoken.end(); it++) {
 	 std::string d = *it;
 	 if (d == "." || d == "") { // ignore
 	    continue;
@@ -90,8 +90,8 @@ protected:
 
       // create string out of rest..
       std::string ret;
-      for (it = dirs.begin(); it<dirs.end(); it++) {
-	 ret+= "/"+(*it);
+      for (it = dirs.begin(); it < dirs.end(); it++) {
+	 ret += QORE_DIR_SEP_STR + (*it);
       }
 
       return ret;
@@ -182,13 +182,15 @@ public:
 	    return -1;
 	 }
       
-	 ds = dirname + "/" + std::string(ndir);
+	 ds = dirname + QORE_DIR_SEP + std::string(ndir);
       }
       else
 	 ds = ndir;
 
       ds = stripPath(ds);
       dirname = ds;
+
+      //printf("chdir() ndir: '%s' ds: '%s'\n", ndir, ds.c_str());
  
       return checkPathIntern();
    }
@@ -218,7 +220,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL QoreListNode *list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options) const {
+   DLLLOCAL QoreListNode *list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options, bool full) const {
       AutoLocker al(m);
 
       if (dirname.empty()) {
@@ -245,39 +247,45 @@ public:
 	 
       struct dirent *de;
       while ((de = readdir(dptr))) {
-	 if (strcmp(de->d_name, ".") && strcmp(de->d_name, "..")) {
-	    bool ok = true;
-	    // if we are filtering out directories, then we have to stat the file
-	    if (stat_filter != -1) {
-	       QoreString fname(dirname);
-	       fname.concat(QORE_DIR_SEP);
-	       fname.concat(de->d_name);
-	       struct stat buf;
-	       int rc =
+	 if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
+	    continue;
+
+	 // if there is a regular expression, see if the name matches
+	 if (regex) {
+	    QoreString targ(de->d_name, enc);
+	    bool b = re->exec(&targ, xsink);
+	    if (*xsink)
+	       return 0;
+	    if (!b)
+	       continue;
+	 }
+
+	 // if we are filtering out directories, then we have to stat the file
+	 if (full || stat_filter != -1) {
+	    QoreString fname(dirname);
+	    fname.concat(QORE_DIR_SEP);
+	    fname.concat(de->d_name);
+	    struct stat buf;
+	    int rc =
 #ifdef HAVE_LSTAT
-		  lstat(fname.getBuffer(), &buf);
+	       lstat(fname.getBuffer(), &buf);
 #else
-	          ::stat(fname.getBuffer(), &buf);
+	       ::stat(fname.getBuffer(), &buf);
 #endif
-	       if (rc) {
-		  xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "stat() failed on '%s'", fname.getBuffer());
-		  return 0;
-	       }
-	       ok = (bool)(buf.st_mode & stat_filter);
+	    if (rc) {
+	       xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "stat() failed on '%s'", fname.getBuffer());
+	       return 0;
 	    }
-	    if (ok) {
-	       // if there is a regular expression, see if the name matches
-	       if (regex) {
-		  QoreString targ(de->d_name, enc);
-		  bool b = re->exec(&targ, xsink);
-		  if (*xsink)
-		     return 0;
-		  if (!b)
-		     continue;
-	       }
-	       lst->push(new QoreStringNode(de->d_name, enc));
+	    if (stat_filter != -1 && !(buf.st_mode & stat_filter))
+	       continue;
+	    if (full) {
+	       QoreHashNode* h = stat_to_hash(buf);
+	       h->setKeyValue("name", new QoreStringNode(de->d_name, enc), 0);
+	       lst->push(h);
+	       continue;
 	    }
 	 }
+	 lst->push(new QoreStringNode(de->d_name, enc));
       }
 	    
       return lst.release();
@@ -441,8 +449,8 @@ int QoreDir::create(int mode, ExceptionSink *xsink) const {
 // list entries of the directory where d points to
 // the filter will be applied to the file's mode for filtering.
 // directories '.' and '..' will be skipped
-QoreListNode* QoreDir::list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options) const {
-   return priv->list(xsink, stat_filter, regex, regex_options);
+QoreListNode* QoreDir::list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options, bool full) const {
+   return priv->list(xsink, stat_filter, regex, regex_options, full);
 }
 
 int QoreDir::mkdir(ExceptionSink *xsink, const char *subdir, int mode) const {

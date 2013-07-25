@@ -146,6 +146,11 @@ module HttpServer {
     - @ref HttpServer::AbstractHttpSocketHandler "AbstractHttpSocketHandler": this class must be subclassed to implement a dedicated socket handler for protcol changes (for an example, see the <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a> module)
     - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
 
+    See also:
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a>: a module providing a handler framework for this module for implementing server-side REST services
+    - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a>: a module providing a handler framework for this module for implementing server-side WebSocket services
+    - <a href="../../modules/WebUtil/html/index.html">WebUtil</a>: a module providing higher-level HTTP services using this module as a base as well as providing support for dynamic template-based HTML rendering (ie rendering qhtml files which are a mix of HTML and Qore code)
+
     @par Example:
     @code
 #!/usr/bin/env qore
@@ -1132,8 +1137,9 @@ public class HttpServer::HttpServer {
         - \c bind: (required) the bind address for the dedicated listener; this can be a port number or an address (or hostname) and a port number separated by a colon (ex: \c "192.168.20.4:8021")
         - \c content_type: (optional) an optional string or list of string content types to match
         - \c special_headers: (optional) a string or a list of strings giving special headers that when matched will direct requests to the given handler
-        @param logger an optional closure or call reference that will be called with logging information; if this is not set, then the logger set in the HttpServer::constructor() will be used instead
-        @param errorlogger an optional closure or call reference that will be called with error information; if this is not set, then the error logger set in the HttpServer::constructor() will be used instead
+        @param logger an optional @ref closure "closure" or @ref call_reference "call reference" that will be called with logging information; if this is not set, then the logger set in the HttpServer::constructor() will be used instead
+        @param errorlogger an optional @ref closure "closure" or @ref call_reference "call reference" that will be called with error information; if this is not set, then the error logger set in the HttpServer::constructor() will be used instead
+        @param stopc an optional @ref closure "closure" or @ref call_reference "call reference" that will be called immediately after the listener is stopped
         @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
 	@param family one of the following @ref network_address_family_constants "network family constants":
 	- @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
