@@ -13557,7 +13557,7 @@ $table.clear();
         #! returns an object of class Columns describing the table
         /** @par Example:
             @code
-my hash $h = $table.describe();
+my Columns $cols = $table.describe();
             @endcode
 
             @return an object of class Columns describing the table
