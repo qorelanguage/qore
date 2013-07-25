@@ -363,9 +363,9 @@ nothing Dir::rmdir(string subdir) {
 }
 
 //! Get all entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
-/** @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+/** @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
-    @returns a list of all entries in the directory (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+    @returns a list of all entries in the directory (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
     @code
@@ -392,9 +392,9 @@ list Dir::list(bool full = False) {
 //! Gets all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
-    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
-    @return a list of all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+    @return a list of all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
     @code
@@ -424,9 +424,9 @@ list Dir::list(string regex, softint regex_options = 0, softbool full = False) {
 
 //! Retrieves all files in this directory; if any errors occur an exception is thrown
 /** @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
-    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
-    @return a list of all files in the current directory of the object; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+    @return a list of all files in the current directory of the object; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
     @code
@@ -455,9 +455,9 @@ list Dir::listFiles(bool full = False) {
 //! Retrieves all files in the directory that match the given regular expression; if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
-    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
-    @return a list of all files in the directory that match the given regular expression; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+    @return a list of all files in the directory that match the given regular expression; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
     @code
@@ -482,13 +482,13 @@ catch (hash $ex) {
     @since %Qore 0.8.8 added the \a full parameter
  */
 list Dir::listFiles(string regex, softint regex_options = 0, softbool full = False) {
-   return d->list(xsink, S_IFMT^S_IFDIR, regex, (int)regex_options);
+   return d->list(xsink, S_IFMT^S_IFDIR, regex, (int)regex_options, full);
 }
 
 //! Retrieves all subdirectory entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
-/** @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+/** @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
-    @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+    @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
     @code
@@ -517,9 +517,9 @@ list Dir::listDirs(bool full = False) {
 //! Gets all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
-    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
-    @return a list of all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
+    @return a list of all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
     @code

@@ -51,6 +51,12 @@ protected:
 
    // tokenize the strings by the delimiter
    DLLLOCAL static void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiter = QORE_DIR_SEP_STR) {
+      // accommodate case when the string consists of only the delimiter (ex: "/")
+      if (str == delimiter) {
+	 tokens.push_back(str);
+	 return;
+      }
+
       // Skip delimiters at beginning.
       std::string::size_type lastPos = str.find_first_not_of(delimiter, 0);
       // Find first "non-delimiter".
@@ -266,26 +272,51 @@ public:
 	    fname.concat(QORE_DIR_SEP);
 	    fname.concat(de->d_name);
 	    struct stat buf;
-	    int rc =
-#ifdef HAVE_LSTAT
-	       lstat(fname.getBuffer(), &buf);
-#else
-	       ::stat(fname.getBuffer(), &buf);
-#endif
-	    if (rc) {
-	       xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "stat() failed on '%s'", fname.getBuffer());
-	       return 0;
+	    if (!full) {
+	       if (stat(fname.getBuffer(), buf, xsink))
+		  return 0;
+
+	       if (!(buf.st_mode & stat_filter))
+		  continue;
+
+	       lst->push(new QoreStringNode(de->d_name, enc));
+	       continue;
 	    }
+#ifdef HAVE_LSTAT
+	    if (lstat(fname.getBuffer(), buf, xsink))
+	       return 0;
+
+	    SimpleRefHolder<QoreStringNode> lpath;
+
+	    if (S_ISLNK(buf.st_mode)) {
+	       {
+		  char lbuf[QORE_PATH_MAX + 1];
+		  qore_offset_t len = readlink(fname.getBuffer(), lbuf, QORE_PATH_MAX);
+		  if (len < 0) {
+		     xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "readlink('%s') failed", fname.getBuffer());
+		     return 0;
+		  }
+		  assert(len <= QORE_PATH_MAX);
+		  lbuf[len] = '\0';
+		  lpath = new QoreStringNode(lbuf);
+	       }
+
+	       if (stat(fname.getBuffer(), buf, xsink))
+		  return 0;	       
+	    }
+#else
+	    if (stat(fname.getBuffer(), buf, xsink))
+	       return 0;
+#endif
 	    if (stat_filter != -1 && !(buf.st_mode & stat_filter))
 	       continue;
-	    if (full) {
-	       QoreHashNode* h = stat_to_hash(buf);
-	       h->setKeyValue("name", new QoreStringNode(de->d_name, enc), 0);
-	       lst->push(h);
-	       continue;
-	    }
+	    QoreHashNode* h = stat_to_hash(buf);
+	    h->setKeyValue("name", new QoreStringNode(de->d_name, enc), 0);
+	    if (*lpath)
+	       h->setKeyValue("link", lpath.release(), 0);
+	    lst->push(h);
+	    continue;
 	 }
-	 lst->push(new QoreStringNode(de->d_name, enc));
       }
 	    
       return lst.release();
@@ -413,6 +444,26 @@ public:
 
    const QoreEncoding *getEncoding() const {
       return enc;
+   }
+
+#ifdef HAVE_LSTAT
+   DLLLOCAL static int lstat(const char* str, struct stat& buf, ExceptionSink *xsink) {
+      int rc = ::lstat(str, &buf);
+      if (rc) {
+	 xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "lstat() failed on '%s'", str);
+	 return -1;
+      }
+      return 0;
+   }
+#endif
+
+   DLLLOCAL static int stat(const char* str, struct stat& buf, ExceptionSink *xsink) {
+      int rc = ::stat(str, &buf);
+      if (rc) {
+	 xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "stat() failed on '%s'", str);
+	 return -1;
+      }
+      return 0;
    }
 };
 
