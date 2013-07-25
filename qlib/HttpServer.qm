@@ -238,6 +238,8 @@ public namespace HttpServer {
             else
                 $h.params[$h.params.size() - 1] += $ah;
         }
+        if ($h.params.size() == 1 && $h.params[0].typeCode() == NT_HASH)
+            $h.params = $h.params[0];
 
         return $h;
     }
@@ -1155,7 +1157,7 @@ public class HttpServer::HttpServer {
 	if ($lp.cert_path && !$lp.cert)
 	    $lp += HttpServer::getSSLObjects($lp.cert_path, $lp.key_path);
 
-	my hash $h.$hname = ("path": $lp.url, "content": $lp.content_type, "handler": $handler, "headers": $lp.special_headers);
+	my hash $h.$hname = ("path": $lp.url, "isregex": $lp.isregex, "content": $lp.content_type, "handler": $handler, "headers": $lp.special_headers);
 
 	if ($lp.bind !~ /:\w+/) {
 	    if ($lp.bind =~ /^\//)

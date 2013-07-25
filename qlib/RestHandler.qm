@@ -378,12 +378,10 @@ public namespace RestHandler {
             my hash $ah = $path ? parse_uri_query($path) : hash();
 
             my *hash $args;
-            if (exists $ah.params[0]) {
-                if ($ah.params[0].typeCode() != NT_HASH)
-                    return RestHandler::make400("cannot parse arguments in REST call %y, the first argument must be a hash with an 'action' key; got type %y instead", $path, $ah.params[0].type());
-                if ($ah.params.size() > 1)
-                    return RestHandler::make400("invalid arguments in REST call %y, only a single hash argument is accepted; got %y instead", $path, $ah.params);
-                $args = $ah.params[0];
+            if ($ah.params) {
+                if ($ah.params.typeCode() != NT_HASH)
+                    return RestHandler::make400("cannot parse arguments in REST call %y, URI arguments must be key/value pairs with an 'action' key; got type %y instead (value: %y)", $path, $ah.params.type(), $ah.params);
+                $args = $ah.params;
             }
 
             # deserialize body according to Content-Type
