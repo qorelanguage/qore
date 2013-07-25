@@ -906,5 +906,6 @@ DLLLOCAL QoreListNode* split_with_quote(const QoreString* sep, const QoreString*
 DLLLOCAL bool inlist_intern(const AbstractQoreNode *arg, const QoreListNode *l, ExceptionSink* xsink);
 DLLLOCAL QoreStringNode* format_float_intern(const QoreString& fmt, double num);
 DLLLOCAL DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr, const QoreString& mask, ExceptionSink* xsink);
+DLLLOCAL QoreHashNode* date_info(const DateTime& d);
 
 #endif
