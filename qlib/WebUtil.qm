@@ -159,12 +159,13 @@ $tm.add("/html/index.qhtml", $qhtml);
             foreach my hash $h in (\$l) {
                 switch ($h.type) {
                     case "text": $h.text =~ s/"/\"/g; $src += $h.text; break;
-                    case "exp": $src += sprintf("\";my any $tmp_TEMPLATE_%d=(%s);$rv_TEMPLATE_str+=($tmp_TEMPLATE_%d.strp()?$tmp_TEMPLATE_%d.toString():sprintf(\"%%y\",$tmp_TEMPLATE_%d));$rv_TEMPLATE_str+=\"", $vc, $h.text, $vc, $vc, $vc); ++$vc; break;
+                    case "exp": $src += sprintf("\";my any $tmp_TEMPLATE_%d=(%s);$rv_TEMPLATE_str+=(($tmp_TEMPLATE_%d.strp()||!exists$tmp_TEMPLATE_%d||$tmp_TEMPLATE_%d===NULL)?$tmp_TEMPLATE_%d.toString():sprintf(\"%%y\",$tmp_TEMPLATE_%d));$rv_TEMPLATE_str+=\"", $vc, $h.text, $vc, $vc, $vc, $vc, $vc); ++$vc; break;
                     case "stmt": $src += "\";" + $h.text + "$rv_TEMPLATE_str+=\""; break;
                 }
             }
 
             #printf("template %y: found vars: %y\n", $name, $vh.keys());
+            #printf("src: %s\n", $src);
 
             # build function source: keep template start on same source line for better error reporting
             my string $tpl = sprintf("string sub %s(*hash $ctx){", $fn);
