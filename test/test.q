@@ -1246,6 +1246,12 @@ sub string_tests() {
     # make sure strings containing floating-point numbers between -1.0 and 1.0 exclusive return True when evaluated in a boolean context
     test_value(True, boolean("0.1"), "first string fp boolean");
     test_value(True, boolean("-0.1"), "second string fp boolean");
+
+    $str = "příliš žluťoučký kůň úpěl ďábelské ódy";
+    test_value($str.unaccent(), "prilis zlutoucky kun upel dabelske ody", "<string>::unaccent()");
+    my string $ustr = $str.upr();
+    test_value($ustr, "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", "<string>::upr()");
+    test_value($ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
 }
 
 sub pwd_tests() {
