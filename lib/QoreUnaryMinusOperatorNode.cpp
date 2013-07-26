@@ -21,6 +21,7 @@
  */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_number_private.h>
 
 QoreString QoreUnaryMinusOperatorNode::unaryminus_str("unary minus operator expression");
 
@@ -60,9 +61,13 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::evalImpl(bool &needs_deref, Except
       return 0;
 
    if (v) {
+      if (v->getType() == NT_NUMBER) {
+	 needs_deref = true;
+         return reinterpret_cast<const QoreNumberNode*>(*v)->negate();
+      }
       if (v->getType() == NT_FLOAT) {
 	 needs_deref = true;
-	 return new QoreFloatNode(-reinterpret_cast<const QoreFloatNode *>(*v)->f);
+	 return new QoreFloatNode(-reinterpret_cast<const QoreFloatNode*>(*v)->f);
       }
       if (v->getType() == NT_DATE) {
 	 needs_deref = true;
@@ -89,7 +94,7 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int
 	 qore_type_t t = exp->getType();
 	 if (t == NT_INT) {
 	    typeInfo = bigIntTypeInfo;
-	    return new QoreBigIntNode(-reinterpret_cast<const QoreBigIntNode *>(exp)->val);
+	    return new QoreBigIntNode(-reinterpret_cast<const QoreBigIntNode*>(exp)->val);
 	 }
          if (t == NT_NUMBER) {
             typeInfo = numberTypeInfo;
@@ -97,11 +102,11 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int
          }
 	 if (t == NT_FLOAT) {
 	    typeInfo = floatTypeInfo;
-	    return new QoreFloatNode(-reinterpret_cast<const QoreFloatNode *>(exp)->f);
+	    return new QoreFloatNode(-reinterpret_cast<const QoreFloatNode*>(exp)->f);
 	 }
 	 if (t == NT_DATE) {
 	    typeInfo = dateTypeInfo;
-	    return reinterpret_cast<const DateTimeNode *>(exp)->unaryMinus();
+	    return reinterpret_cast<const DateTimeNode*>(exp)->unaryMinus();
 	 }
 
 	 th.release();	 
@@ -136,22 +141,24 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int
 AbstractQoreNode* QoreUnaryMinusOperatorNode::makeNode(AbstractQoreNode *v) {
    if (v) {
       assert(v->is_unique());
-      if (v->getType() == NT_NUMBER)
-         return reinterpret_cast<QoreNumberNode*>(v)->negate();
+      if (v->getType() == NT_NUMBER) {
+         qore_number_private::negateInPlace(*reinterpret_cast<QoreNumberNode*>(v));
+	 return v;
+      }
 
       if (v->getType() == NT_FLOAT) {
-	 QoreFloatNode *f = reinterpret_cast<QoreFloatNode *>(v);
+	 QoreFloatNode* f = reinterpret_cast<QoreFloatNode*>(v);
 	 f->f = -f->f;
 	 return v;
       }
 
       if (v->getType() == NT_DATE) {
-	 reinterpret_cast<DateTimeNode *>(v)->unaryMinusInPlace();
+	 reinterpret_cast<DateTimeNode*>(v)->unaryMinusInPlace();
 	 return v;
       }
 
       if (v->getType() == NT_INT) {
-	 QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(v);
+	 QoreBigIntNode* i = reinterpret_cast<QoreBigIntNode*>(v);
 	 i->val = -i->val;
 	 return v;
       }

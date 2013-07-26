@@ -672,9 +672,13 @@ public:
       if (assigned) {
          if (type == QV_Node)
             rv = v.n;
+         else
+            rv = 0;
       }
-      else
+      else {
          assigned = true;
+         rv = 0;
+      }
 
       qore_type_t nt = get_node_type(n);
       switch (nt) {
