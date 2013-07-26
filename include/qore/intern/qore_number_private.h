@@ -266,7 +266,6 @@ struct qore_number_private : public qore_number_private_intern {
       return doBinary(mpfr_mul, r);
    }
 
-   //! add the argument to this value and return the result
    DLLLOCAL qore_number_private* doDivideBy(const qore_number_private& r, ExceptionSink* xsink) const {
 #ifndef HAVE_MPFR_DIVBY0
       if (r.zero()) {
@@ -284,6 +283,10 @@ struct qore_number_private : public qore_number_private_intern {
          checkFlags(xsink);
 
       return p;
+   }
+
+   DLLLOCAL void negateInPlace() {
+      mpfr_neg(num, num, QORE_MPFR_RND);
    }
 
    DLLLOCAL qore_number_private* negate() const {
@@ -367,6 +370,10 @@ struct qore_number_private : public qore_number_private_intern {
    DLLLOCAL void divideEquals(const qore_number_private& r) {
       assert(!r.zero());
       doBinaryInplace(mpfr_div, r);
+   }
+
+   DLLLOCAL static void negateInPlace(QoreNumberNode& n) {
+      n.priv->negateInPlace();
    }
 
    DLLLOCAL static int formatNumberString(QoreString& num, const QoreString& fmt, ExceptionSink* xsink);
