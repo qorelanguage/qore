@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObject*& self, ExceptionSink* xsink) const {
+AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObject*& self, const void*& lvalue_id, ExceptionSink* xsink) const {
    qore_type_t ntype = n->getType();
 
    //printd(5, "ParseReferenceNode::doPartialEval() this: %p type: '%s' %d\n", this, get_type_name(n), ntype);
@@ -33,45 +33,54 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
       if (*xsink)
          return 0;
 
-      SimpleRefHolder<QoreTreeNode> t(new QoreTreeNode(doPartialEval(tree->left, self, xsink), tree->getOp(), nn ? nn.release() : nothing()));
+      SimpleRefHolder<QoreTreeNode> t(new QoreTreeNode(doPartialEval(tree->left, self, lvalue_id, xsink), tree->getOp(), nn ? nn.release() : nothing()));
       return t->left ? t.release() : 0;
    }
 
    if (ntype == NT_SELF_VARREF) {
       assert(!self);
       self = runtime_get_stack_object();
+      lvalue_id = self;
+      return n->refSelf();
    }
-   else if (ntype == NT_VARREF) {
+
+   if (ntype == NT_VARREF) {
       VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
       //printd(5, "ParseReferenceNode::doPartialEval() this: %p v: '%s' type: %d\n", this, v->getName(), v->getType());
       if (v->getType() == VT_CLOSURE) {
          const char* name = v->ref.id->getName();
          ClosureVarValue* cvv = thread_get_runtime_closure_var(v->ref.id);
+	 lvalue_id = cvv;
          //printd(5, "ParseReferenceNode::doPartialEval() this: %p '%s' cvv: %p\n", this, name, cvv);
          return new VarRefImmediateNode(strdup(name), cvv, v->ref.id->getTypeInfo());
       }
-      else if (v->getType() == VT_LOCAL_TS) {
+
+      if (v->getType() == VT_LOCAL_TS) {
          const char* name = v->ref.id->getName();
          ClosureVarValue* cvv = thread_find_closure_var(name);
          //printd(5, "ParseReferenceNode::doPartialEval() this: %p '%s' cvv: %p\n", this, name, cvv);
+	 lvalue_id = cvv;
          return new VarRefImmediateNode(strdup(name), cvv, v->ref.id->getTypeInfo());
       }
    }
 
+   lvalue_id = n;
    return n->refSelf();
 }
 
 ReferenceNode* ParseReferenceNode::evalToRef(ExceptionSink* xsink) const {
    QoreObject* self = 0;
-   AbstractQoreNode* nv = doPartialEval(lvexp, self, xsink);
+   const void* lvalue_id = 0;
+   AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, xsink);
    //printd(5, "ParseReferenceNode::evalToRef() this: %p nv: %p lvexp: %p\n", this, nv, lvexp);
-   return nv ? new ReferenceNode(nv, self) : 0;
+   return nv ? new ReferenceNode(nv, self, lvalue_id) : 0;
 }
 
 IntermediateParseReferenceNode* ParseReferenceNode::evalToIntermediate(ExceptionSink* xsink) const {
    QoreObject* self = 0;
-   AbstractQoreNode* nv = doPartialEval(lvexp, self, xsink);
-   return nv ? new IntermediateParseReferenceNode(nv, self) : 0;
+   const void* lvalue_id = 0;
+   AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, xsink);
+   return nv ? new IntermediateParseReferenceNode(nv, self, lvalue_id) : 0;
 }
 
 AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
@@ -108,7 +117,7 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
    return this;
 }
 
-ReferenceNode::ReferenceNode(AbstractQoreNode* exp, QoreObject* self) : AbstractQoreNode(NT_REFERENCE, false, true), priv(new lvalue_ref(exp, self)) {
+ReferenceNode::ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id) : AbstractQoreNode(NT_REFERENCE, false, true), priv(new lvalue_ref(exp, self, lvalue_id)) {
 }
 
 ReferenceNode::ReferenceNode(lvalue_ref* p) : AbstractQoreNode(NT_REFERENCE, false, true), priv(p) {

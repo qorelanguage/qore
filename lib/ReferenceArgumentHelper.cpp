@@ -34,7 +34,7 @@ struct lvih_intern {
       lv.instantiate(val);
       VarRefNode *vr = new VarRefNode(strdup("ref_arg_helper"), VT_LOCAL);
       vr->ref.id = &lv;
-      ref = new ReferenceNode(vr, 0);
+      ref = new ReferenceNode(vr, 0, vr);
    }
 
    DLLLOCAL ~lvih_intern() {

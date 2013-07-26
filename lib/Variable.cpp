@@ -136,12 +136,12 @@ void Var::deref(ExceptionSink* xsink) {
    }
 }
 
-LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), val(0), typeInfo(0) {
+LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), lvid_set(0), val(0), typeInfo(0) {
    RuntimeReferenceHelper rh(ref, xsink);
    doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
 }
 
-LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), val(0), typeInfo(0) {
+LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), lvid_set(0), val(0), typeInfo(0) {
    // exp can be 0 when called from LValueRefHelper if the attach to the Program fails, for example
    //printd(5, "LValueHelper::LValueHelper() exp: %p (%s %d)\n", exp, get_type_name(exp), get_node_type(exp));
    if (exp)
@@ -262,6 +262,19 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
    return *vl.xsink ? -1 : 0;
 }
 
+int LValueHelper::doLValue(const ReferenceNode* ref, bool for_remove) {
+   //RuntimeReferenceHelper rh(*ref, vl.xsink);
+   const lvalue_ref* r = lvalue_ref::get(ref);
+   if (!lvid_set)
+      lvid_set = new lvid_set_t;
+#ifdef DEBUG
+   else
+      assert(lvid_set->find(r->lvalue_id) == lvid_set->end());
+#endif
+   lvid_set->insert(r->lvalue_id);
+   return doLValue(r->vexp, for_remove);
+}
+
 int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
    // if we are already locked, then save the value and unlock before processing
    if (vl) {
@@ -288,10 +301,8 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
    else if (ntype == NT_CLASS_VARREF)
       reinterpret_cast<const StaticClassVarRefNode*>(n)->getLValue(*this);
    else if (ntype == NT_REFERENCE) {
-      const ReferenceNode *ref = reinterpret_cast<const ReferenceNode*>(n);
-      RuntimeReferenceHelper rh(*ref, vl.xsink);
-      if (doLValue(lvalue_ref::get(ref)->vexp, for_remove))
-         return -1;
+      if (doLValue(reinterpret_cast<const ReferenceNode*>(n), for_remove))
+	 return -1;
    }
    else {
       assert(n->getType() == NT_TREE);
@@ -313,10 +324,9 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
 #endif
 
    if (v && *v && (*v)->getType() == NT_REFERENCE) {
-      const ReferenceNode *ref = reinterpret_cast<const ReferenceNode*>(*v);
-      RuntimeReferenceHelper rh(*ref, vl.xsink);
+      const ReferenceNode* ref = reinterpret_cast<const ReferenceNode*>(*v);
       v = 0;
-      return doLValue(lvalue_ref::get(ref)->vexp, for_remove);
+      return doLValue(ref, for_remove);
    }
 
    return 0;
@@ -366,7 +376,7 @@ double LValueHelper::getAsFloat() const {
 }
 
 int LValueHelper::assign(AbstractQoreNode* n, const char* desc) {
-   //printd(5, "LValueHelper::assign() this: %p (%s) n: %p '%s' typeInfo: %p '%s'\n", this, desc, n, get_type_name(n), typeInfo, typeInfo->getName());
+   //printd(5, "LValueHelper::assign() this: %p (%s) n: %p '%s' typeInfo: %p '%s' lvid_set: %p\n", this, desc, n, get_type_name(n), typeInfo, typeInfo->getName(), lvid_set);
 
    // before we can entirely get rid of QoreNothingNode, try to convert pointers to NOTHING to 0
    if (n == &Nothing)
@@ -376,6 +386,12 @@ int LValueHelper::assign(AbstractQoreNode* n, const char* desc) {
    n = typeInfo->acceptAssignment(desc, n, vl.xsink);
    if (*vl.xsink) {
       //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
+      saveTemp(n);
+      return -1;
+   }
+
+   if (lvid_set && n->getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n))->lvalue_id) != lvid_set->end())) {
+      vl.xsink->raiseException("REFERENCE-ERROR", "recursive reference detected in assignment");
       saveTemp(n);
       return -1;
    }
@@ -970,7 +986,7 @@ int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    if (val.getType() == NT_REFERENCE) {
       ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
       LocalRefHelper<LocalVarValue> helper(this, *ref, lvh.vl.xsink);
-      return helper ? lvh.doLValue(lvalue_ref::get(ref)->vexp, for_remove) : -1;
+      return helper ? lvh.doLValue(ref, for_remove) : -1;
    }
 
    lvh.setValue((QoreLValueGeneric&)val);
@@ -996,7 +1012,7 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
       ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), lvh.vl.xsink);
       sl.unlock();
       LocalRefHelper<ClosureVarValue> helper(this, **ref, lvh.vl.xsink);
-      return helper ? lvh.doLValue(lvalue_ref::get(*ref)->vexp, for_remove) : -1;
+      return helper ? lvh.doLValue(*ref, for_remove) : -1;
    }
 
    lvh.setTypeInfo(typeInfo);

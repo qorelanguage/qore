@@ -73,7 +73,7 @@ protected:
       return 0.0;
    }
 
-   DLLLOCAL AbstractQoreNode* doPartialEval(AbstractQoreNode* n, QoreObject*& self, ExceptionSink* xsink) const;
+   DLLLOCAL AbstractQoreNode* doPartialEval(AbstractQoreNode* n, QoreObject*& self, const void*& lvalue_id, ExceptionSink* xsink) const;
 
    //! initializes during parsing
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
@@ -129,7 +129,8 @@ public:
 
 class IntermediateParseReferenceNode : public ParseReferenceNode {
 protected:
-   QoreObject *self;
+   QoreObject* self;
+   const void* lvalue_id;
 
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink) {
       if (lvexp)
@@ -139,12 +140,12 @@ protected:
    }
 
 public:
-   DLLLOCAL IntermediateParseReferenceNode(AbstractQoreNode* exp, QoreObject* o) : ParseReferenceNode(exp), self(o) {
+   DLLLOCAL IntermediateParseReferenceNode(AbstractQoreNode* exp, QoreObject* o, const void* lvid) : ParseReferenceNode(exp), self(o), lvalue_id(lvid) {
    }
 
    // returns a runtime reference
    DLLLOCAL virtual ReferenceNode* evalToRef(ExceptionSink* xsink) const {
-      return new ReferenceNode(lvexp->refSelf(), self);
+      return new ReferenceNode(lvexp->refSelf(), self, lvalue_id);
    }
 };
 

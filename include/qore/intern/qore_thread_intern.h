@@ -519,14 +519,15 @@ public:
    AbstractQoreNode* vexp;
    QoreObject* self;
    QoreProgram* pgm;
+   const void* lvalue_id;
 
-   DLLLOCAL lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self) : vexp(n_lvexp), self(n_self), pgm(getProgram()) {
+   DLLLOCAL lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid) : vexp(n_lvexp), self(n_self), pgm(getProgram()), lvalue_id(lvid) {
       //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
       if (self)
          self->tRef();
    }
 
-   DLLLOCAL lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm) {
+   DLLLOCAL lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm), lvalue_id(old.lvalue_id) {
       //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
       if (self)
          self->tRef();

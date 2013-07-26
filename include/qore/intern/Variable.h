@@ -24,6 +24,8 @@
 #ifndef _QORE_VARIABLE_H
 #define _QORE_VARIABLE_H
 
+#include <set>
+
 enum qore_var_t { 
    VT_UNRESOLVED = 1, 
    VT_LOCAL      = 2, 
@@ -304,6 +306,8 @@ DLLLOCAL extern QoreHashNode *ENV;
 
 class QoreTreeNode;
 
+typedef std::set<const void*> lvid_set_t;
+
 // this class grabs global variable or object locks for the duration of the scope of the object
 // no evaluations can be done while this object is in scope or a deadlock may result
 class LValueHelper {
@@ -353,6 +357,8 @@ public:
 private:
    typedef std::vector<AbstractQoreNode*> nvec_t;
    nvec_t tvec;
+   // to find recursive references
+   lvid_set_t* lvid_set;
 public:
    QoreLValueGeneric* val;
    const QoreTypeInfo* typeInfo;
@@ -367,6 +373,8 @@ public:
       // now delete temporary values (if any)
       for (nvec_t::iterator i = tvec.begin(), e = tvec.end(); i != e; ++i)
          discard(*i, vl.xsink);
+
+      delete lvid_set;
    }
 
    DLLLOCAL void saveTemp(AbstractQoreNode* n) {
@@ -382,6 +390,8 @@ public:
    }
 
    DLLLOCAL int doLValue(const AbstractQoreNode* exp, bool for_remove);
+
+   DLLLOCAL int doLValue(const ReferenceNode* ref, bool for_remove);
 
    DLLLOCAL void setAndLock(QoreThreadLock& m);
    DLLLOCAL void set(QoreThreadLock& m);
