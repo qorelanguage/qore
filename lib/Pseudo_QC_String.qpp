@@ -139,7 +139,8 @@ string <string>::encoding() [flags=CONSTANT] {
 //! Returns the string in lower case
 /** @par Example:
     @code
-my string $lwr = $str.lwr();
+printf("%y", "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY".lwr());
+# outputs: "příliš žluťoučký kůň úpěl ďábelské ódy"
     @endcode
 
     This pseudo-method operates on a very wide range of non-ASCII characters using a Unicode lookup table for mapping Latin, Cyrillic, Greek, Armenian, Georgian, etc characters.
@@ -167,7 +168,8 @@ string <string>::lwr() [flags=CONSTANT] {
 //! Returns the string in upper case
 /** @par Example:
     @code
-my string $upr = $str.upr();
+printf("%y", "příliš žluťoučký kůň úpěl ďábelské ódy".upr());
+# outputs: "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY"
     @endcode
 
     This pseudo-method operates on a very wide range of non-ASCII characters using a Unicode lookup table for mapping Latin, Cyrillic, Greek, Armenian, Georgian, etc characters.
@@ -808,7 +810,7 @@ bool <string>::equalPartialPath(string ostr) [flags=RET_VALUE_ONLY] {
 /** @par Example:
     @code
 my string $s = "příliš žluťoučký kůň úpěl ďábelské ódy";
-printf("%N\n", unaccent($s)); # result: "prilis zlutoucky kun upel dabelske ody"
+printf("%y\n", $s.unaccent()); # result: "prilis zlutoucky kun upel dabelske ody"
     @endcode
 
     The returned string has the same encoding as the original input.
