@@ -105,6 +105,9 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // initialize charset encoding support
    QEM.init(def_charset);
 
+   // init character maps
+   init_charmaps();
+
    init_lib_intern(environ);
 
    // create default type values

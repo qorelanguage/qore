@@ -907,5 +907,9 @@ DLLLOCAL bool inlist_intern(const AbstractQoreNode *arg, const QoreListNode *l, 
 DLLLOCAL QoreStringNode* format_float_intern(const QoreString& fmt, double num);
 DLLLOCAL DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr, const QoreString& mask, ExceptionSink* xsink);
 DLLLOCAL QoreHashNode* date_info(const DateTime& d);
+DLLLOCAL void init_charmaps();
+DLLLOCAL int do_unaccent(QoreString& str, ExceptionSink* xsink);
+DLLLOCAL int do_tolower(QoreString& str, const QoreString& src, ExceptionSink* xsink);
+DLLLOCAL int do_toupper(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 
 #endif

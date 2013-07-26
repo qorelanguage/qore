@@ -274,3 +274,18 @@ int <int>::abs() [flags=CONSTANT] {
    return i->val < 0 ? -i->val : i->val;
 }
 
+//! Returns a single character string in UTF-8 encoding for the integer value treated as a unicode value
+/** @par Example:
+    @code
+my string $str = 0x00f8.toUnicode()
+    @endcode
+
+    @return a single character string in UTF-8 encoding for the integer value treated as a unicode value
+
+    @since %Qore 0.8.8
+*/
+string <int>::toUnicode() [flags=RET_VALUE_ONLY] {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(QCS_UTF8));
+   str->concatUnicode(i->val);
+   return *xsink ? 0 : str.release();
+}

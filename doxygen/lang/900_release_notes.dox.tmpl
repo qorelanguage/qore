@@ -35,6 +35,9 @@
     - it's possible to inherit concrete versions of abstract method variants from a parent class that does not define the abstract method, meaning that concrete variants of an abstract method do not have to be implemented in a direct subclass of the class declaring the abstract method\n
       this makes using abstract base classes much easier in complex hierarchies using multiple inheritance; now common code can be separated into a single class and inherited by child classes sharing the common implementation
     - major @ref Qore::Socket "Socket" read performance increase by implementing internal read buffering (up to 10x faster socket read performance for certain operations, particularly with HTTP methods)
+    - improved Unicode / UTF-8 support
+      - <string>::lwr(), <string>::upr(), @ref Qore::tolower(string), and @ref Qore::toupper(string) now operate on a very wide range of non-ASCII characters, including Latin, Cyrillic, Greek, Armenian, Georgian, etc characters whereas they were previously limited to working on ASCII characters
+      - <string>::unaccent() was added which removes accents from strings using a Unicode lookup map from a very wide range of accented Unicode characters to unaccented characters
     - new @ref Qore::SQL::Datasource "Datasource" and @ref Qore::SQL::DatasourcePool "DatasourcePool" methods:
       - Qore::SQL::Datasource::getConfigHash()
       - Qore::SQL::Datasource::getConfigString()
@@ -63,6 +66,7 @@
       - <int>::abs()
       - <int>::encodeLsb(int)
       - <int>::encodeMsb(int)
+      - <int>::toUnicode()
       - <number>::abs()
       - <object>::hasCallableMethod()
       - <object>::hasCallableNormalMethod()
@@ -74,6 +78,7 @@
       - <string>::equalPartialPath()
       - <string>::toBase64()
       - <string>::toHex()
+      - <string>::unaccent()
       - <value>::toNumber()
     - other new methods and method changes:
       - changes to catch usage errors with the @ref Qore::Thread::Counter "Counter" class:

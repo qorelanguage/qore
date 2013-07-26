@@ -137,51 +137,59 @@ string <string>::encoding() [flags=CONSTANT] {
 }
 
 //! Returns the string in lower case
-/**
-    @return the string in lower case
-
-    @par Example:
+/** @par Example:
     @code
 my string $lwr = $str.lwr();
     @endcode
 
+    This pseudo-method operates on a very wide range of non-ASCII characters using a Unicode lookup table for mapping Latin, Cyrillic, Greek, Armenian, Georgian, etc characters.
+
+    @return the string in lower case
+
     @note
-    - this function only processes ASCII characters
     - equivalent to @ref Qore::tolower(string)
 
     @see
     - <string>::upr()
     - tolower()
     - toupper()
+
+    @since %Qore 0.8.8 this pseudo-method operates on a wide range of characters and is no longer limited to ASCII characters
 */
 string <string>::lwr() [flags=CONSTANT] {
-   QoreStringNode* rv = str->copy();
-   rv->tolwr();
-   return rv;
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
+   if (do_tolower(*(*rv), *str, xsink))
+      return 0;
+
+   return rv.release();
 }
 
 //! Returns the string in upper case
-/**
-    @return the string in upper case
-
-    @par Example:
+/** @par Example:
     @code
 my string $upr = $str.upr();
     @endcode
 
+    This pseudo-method operates on a very wide range of non-ASCII characters using a Unicode lookup table for mapping Latin, Cyrillic, Greek, Armenian, Georgian, etc characters.
+
+    @return the string in upper case
+
     @note
-    - this function only processes ASCII characters
     - equivalent to @ref Qore::toupper(string)
 
     @see
     - <string>::lwr()
     - tolower()
     - toupper()
+
+    @since %Qore 0.8.8 this pseudo-method operates on a wide range of characters and is no longer limited to ASCII characters
 */
 string <string>::upr() [flags=CONSTANT] {
-   QoreStringNode* rv = str->copy();
-   rv->toupr();
-   return rv;
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
+   if (do_toupper(*(*rv), *str, xsink))
+      return 0;
+
+   return rv.release();
 }
 
 //! Retrieves the character position of a substring within a string
@@ -794,4 +802,35 @@ my bool $b = $str.equalPartialPath($ostr);
 */
 bool <string>::equalPartialPath(string ostr) [flags=RET_VALUE_ONLY] {
    return str->equalPartialPath(ostr, xsink);
+}
+
+//! Returns a string with all accented characters removed
+/** @par Example:
+    @code
+my string $s = "příliš žluťoučký kůň úpěl ďábelské ódy";
+printf("%N\n", unaccent($s)); # result: "prilis zlutoucky kun upel dabelske ody"
+    @endcode
+
+    The returned string has the same encoding as the original input.
+
+    @return the string with accents replaced
+*/
+string <string>::unaccent() [flags=RET_VALUE_ONLY] {
+   SimpleRefHolder<QoreStringNode> utf8;
+   // a flag if it should be recoded back
+   bool recode = false;
+
+   if (str->getEncoding() != QCS_UTF8) {
+      utf8 = str->convertEncoding(QCS_UTF8, xsink);
+      if (*xsink)
+         return 0;
+      recode = true;
+   }
+   else
+      utf8 = new QoreStringNode(str);
+
+   if (do_unaccent(*(*utf8), xsink))
+      return 0;
+
+   return !recode ? utf8.release() : utf8->convertEncoding(str->getEncoding(), xsink);
 }

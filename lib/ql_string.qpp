@@ -479,29 +479,33 @@ int strlen(any[doc] arg) [flags=NOOP] {
 }
 
 //! Returns a string in all lower-case characters based on the argument passed
-/** 
-    @param str a string to process
-
-    @return a string in all lower-case characters based on the argument passed
-
-    @par Example:
+/** @par Example:
     @code
 my string $lwr = tolower($str);
     @endcode
 
+    This function operates on a very wide range of non-ASCII characters using a Unicode lookup table for mapping Latin, Cyrillic, Greek, Armenian, Georgian, etc characters.
+
+    @param str a string to process
+
+    @return a string in all lower-case characters based on the argument passed
+
     @note
-    - this function only processes ASCII characters
     - equivalent to <string>::lwr(string)
 
     @see
     - <string>::lwr()
     - <string>::upr()
     - toupper()
+
+    @since %Qore 0.8.8 this function operates on a wide range of characters and is no longer limited to ASCII characters
  */
 string tolower(string str) [flags=CONSTANT] {
-   QoreStringNode *rv = str->copy();
-   rv->tolwr();
-   return rv;
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
+   if (do_tolower(*(*rv), *str, xsink))
+      return 0;
+
+   return rv.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -511,29 +515,33 @@ nothing tolower() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a string in all upper-case characters based on the argument passed
-/** 
-    @param str a string to process
-
-    @return a string in all upper-case characters based on the argument passed
-
-    @par Example:
+/** @par Example:
     @code
 my string $upr = toupper($str);
     @endcode
 
+    This function operates on a very wide range of non-ASCII characters using a Unicode lookup table for mapping Latin, Cyrillic, Greek, Armenian, Georgian, etc characters.
+
+    @param str a string to process
+
+    @return a string in all upper-case characters based on the argument passed
+
     @note
-    - this function only processes ASCII characters
     - equivalent to <string>::upr(string)
 
     @see
     - <string>::lwr()
     - <string>::upr()
     - tolower()
+
+    @since %Qore 0.8.8 this function operates on a wide range of characters and is no longer limited to ASCII characters
  */
 string toupper(string str) [flags=CONSTANT] {
-   QoreStringNode *rv = str->copy();
-   rv->toupr();
-   return rv;
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
+   if (do_toupper(*(*rv), *str, xsink))
+      return 0;
+
+   return rv.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

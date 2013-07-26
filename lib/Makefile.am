@@ -158,6 +158,7 @@ libqore_la_SOURCES = \
 	Context.cpp \
 	FindNode.cpp \
 	charset.cpp \
+	unicode-charmaps.cpp \
 	QoreProgram.cpp \
 	QoreNamespace.cpp \
 	QoreNet.cpp \

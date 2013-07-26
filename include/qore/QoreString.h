@@ -614,6 +614,16 @@ public:
    */
    DLLEXPORT unsigned int getUnicodePoint(qore_offset_t offset, ExceptionSink* xsink) const;
 
+   //! return Unicode code point for the given byte offset
+   /** if the string is not in UTF-8 encoding, only a single character is converted to make the unicode code point calculation
+       @param offset the offset in bytes in the string
+       @param len the length of the character in bytes in the source string in the original encoding
+       @return the unicode code for the character at the given byte offset
+
+       @since Qore 0.8.8
+   */
+   DLLEXPORT unsigned int getUnicodePointFromBytePos(qore_size_t offset, unsigned& len, ExceptionSink* xsink) const;
+
    //! prepends the string given to the string, assumes character encoding is the same as the string's
    DLLEXPORT void prepend(const char* str);
 

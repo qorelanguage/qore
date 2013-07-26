@@ -63,6 +63,7 @@
 #include "Context.cpp"
 #include "FindNode.cpp"
 #include "charset.cpp"
+#include "unicode-charmaps.cpp"
 #include "QoreProgram.cpp"
 #include "QoreNamespace.cpp"
 #include "QoreNet.cpp"

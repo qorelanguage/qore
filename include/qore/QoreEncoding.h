@@ -71,106 +71,106 @@ class ExceptionSink;
 */
 class QoreEncoding {
 private:
-      std::string code;
-      std::string desc;
-      mbcs_length_t flength;
-      mbcs_end_t fend;
-      mbcs_pos_t fpos;
-      mbcs_charlen_t fcharlen;
-      unsigned char maxwidth;
+   std::string code;
+   std::string desc;
+   mbcs_length_t flength;
+   mbcs_end_t fend;
+   mbcs_pos_t fpos;
+   mbcs_charlen_t fcharlen;
+   unsigned char maxwidth;
 
 public:
-      DLLLOCAL QoreEncoding(const char *n_code, const char *n_desc = 0, unsigned char n_maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t c = 0) : code(n_code), desc(n_desc ? n_desc : ""), flength(l), fend(e), fpos(p), fcharlen(c), maxwidth(n_maxwidth) {
-      }
+   DLLLOCAL QoreEncoding(const char *n_code, const char *n_desc = 0, unsigned char n_maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t c = 0) : code(n_code), desc(n_desc ? n_desc : ""), flength(l), fend(e), fpos(p), fcharlen(c), maxwidth(n_maxwidth) {
+   }
 
-      DLLLOCAL ~QoreEncoding() {
-      }
+   DLLLOCAL ~QoreEncoding() {
+   }
 
-      //! gives the length of the string in characters
-      /** @param p a pointer to the character data
-	  @param end a pointer to the next byte after the end of the character data
-	  @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
-	  @return the number of characters in the string
-       */
-      DLLLOCAL qore_size_t getLength(const char *p, const char *end, bool &invalid) const {
-	 return flength ? flength(p, end, invalid) : strlen(p);
-      }
+   //! gives the length of the string in characters
+   /** @param p a pointer to the character data
+       @param end a pointer to the next byte after the end of the character data
+       @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
+       @return the number of characters in the string
+   */
+   DLLLOCAL qore_size_t getLength(const char *p, const char *end, bool &invalid) const {
+      return flength ? flength(p, end, invalid) : strlen(p);
+   }
 
-      //! gives the length of the string in characters
-      /** @param p a pointer to the character data
-	  @param end a pointer to the next byte after the end of the character data
-	  @param xsink Qore-language exceptions will be raised using this argument
-	  @return the number of characters in the string
-       */
-      DLLLOCAL qore_size_t getLength(const char *p, const char *end, ExceptionSink *xsink) const;
+   //! gives the length of the string in characters
+   /** @param p a pointer to the character data
+       @param end a pointer to the next byte after the end of the character data
+       @param xsink Qore-language exceptions will be raised using this argument
+       @return the number of characters in the string
+   */
+   DLLLOCAL qore_size_t getLength(const char *p, const char *end, ExceptionSink *xsink) const;
 
-      //! gives the number of bytes for the number of chars in the string or up to the end of the string
-      /** @param p a pointer to the character data
-	  @param end a pointer to the next byte after the end of the character data
-	  @param c the number of characters to check
-	  @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
-	  @return the number of bytes for the given number of characters in the string or up to the end of the string
-       */
-      DLLLOCAL qore_size_t getByteLen(const char *p, const char *end, qore_size_t c, bool &invalid) const {
-	 return fend ? fend(p, end, c, invalid) : c;
-      }
+   //! gives the number of bytes for the number of chars in the string or up to the end of the string
+   /** @param p a pointer to the character data
+       @param end a pointer to the next byte after the end of the character data
+       @param c the number of characters to check
+       @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
+       @return the number of bytes for the given number of characters in the string or up to the end of the string
+   */
+   DLLLOCAL qore_size_t getByteLen(const char *p, const char *end, qore_size_t c, bool &invalid) const {
+      return fend ? fend(p, end, c, invalid) : c;
+   }
 
-      //! gives the number of bytes for the number of chars in the string or up to the end of the string
-      /** @param p a pointer to the character data
-	  @param end a pointer to the next byte after the end of the character data
-	  @param c the number of characters to check
-	  @param xsink Qore-language exceptions will be raised using this argument
-	  @return the number of bytes for the given number of characters in the string or up to the end of the string
-       */
-      DLLLOCAL qore_size_t getByteLen(const char *p, const char *end, qore_size_t c, ExceptionSink *xsink) const;
+   //! gives the number of bytes for the number of chars in the string or up to the end of the string
+   /** @param p a pointer to the character data
+       @param end a pointer to the next byte after the end of the character data
+       @param c the number of characters to check
+       @param xsink Qore-language exceptions will be raised using this argument
+       @return the number of bytes for the given number of characters in the string or up to the end of the string
+   */
+   DLLLOCAL qore_size_t getByteLen(const char *p, const char *end, qore_size_t c, ExceptionSink *xsink) const;
 
-      //! gives the character position (number of characters) starting from the first pointer to the second
-      /** @param p a pointer to the character data
-	  @param end a pointer to the next byte after the end of the character data
-	  @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
-	  @return the number of bytes for the given number of characters in the string
-       */
-      DLLLOCAL qore_size_t getCharPos(const char *p, const char *end, bool &invalid) const {
-	 return fpos ? fpos(p, end, invalid) : end - p;
-      }
+   //! gives the character position (number of characters) starting from the first pointer to the second
+   /** @param p a pointer to the character data
+       @param end a pointer to the next byte after the end of the character data
+       @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
+       @return the number of bytes for the given number of characters in the string
+   */
+   DLLLOCAL qore_size_t getCharPos(const char *p, const char *end, bool &invalid) const {
+      return fpos ? fpos(p, end, invalid) : end - p;
+   }
 
-      //! gives the character position (number of characters) starting from the first pointer to the second
-      /** @param p a pointer to the character data
-	  @param end a pointer to the next byte after the end of the character data
-	  @param xsink Qore-language exceptions will be raised using this argument
-	  @return the number of bytes for the given number of characters in the string
-       */
-      DLLLOCAL qore_size_t getCharPos(const char *p, const char *end, ExceptionSink *xsink) const;
+   //! gives the character position (number of characters) starting from the first pointer to the second
+   /** @param p a pointer to the character data
+       @param end a pointer to the next byte after the end of the character data
+       @param xsink Qore-language exceptions will be raised using this argument
+       @return the number of bytes for the given number of characters in the string
+   */
+   DLLLOCAL qore_size_t getCharPos(const char *p, const char *end, ExceptionSink *xsink) const;
 
-      //! gives the number of total bytes for the character given one or more characters
-      /** always returns 1 for single-byte encodings
-	  @param p a pointer to the character data to check
-	  @param valid_len the number of valid bytes at the start of the character pointer
-	  @return 0=invalid, positive = number of characters needed, negative numbers = number of additional bytes needed to perform the check
-      */
-      DLLLOCAL qore_size_t getCharLen(const char *p, qore_size_t valid_len) const {
-	 return fcharlen ? fcharlen(p, valid_len) : 1;
-      }
+   //! gives the number of total bytes for the character given one or more characters
+   /** always returns 1 for single-byte encodings
+       @param p a pointer to the character data to check
+       @param valid_len the number of valid bytes at the start of the character pointer
+       @return 0=invalid, positive = number of characters needed, negative numbers = number of additional bytes needed to perform the check
+   */
+   DLLLOCAL qore_size_t getCharLen(const char *p, qore_size_t valid_len) const {
+      return fcharlen ? fcharlen(p, valid_len) : 1;
+   }
       
-      //! returns true if the encoding is a multi-byte encoding
-      DLLLOCAL bool isMultiByte() const {
-	 return (bool)flength;
-      }
+   //! returns true if the encoding is a multi-byte encoding
+   DLLLOCAL bool isMultiByte() const {
+      return (bool)flength;
+   }
 
-      //! returns the string code (ex: "UTF-8") for the encoding
-      DLLLOCAL const char *getCode() const {
-	 return code.c_str();
-      }
+   //! returns the string code (ex: "UTF-8") for the encoding
+   DLLLOCAL const char *getCode() const {
+      return code.c_str();
+   }
 
-      //! returns the description for the encoding
-      DLLLOCAL const char *getDesc() const {
-	 return desc.empty() ? "<no description available>" : desc.c_str();
-      }
+   //! returns the description for the encoding
+   DLLLOCAL const char *getDesc() const {
+      return desc.empty() ? "<no description available>" : desc.c_str();
+   }
 
-      //! returns the maximum character width in bytes for the encoding
-      DLLLOCAL int getMaxCharWidth() const {
-	  return maxwidth;
-      }
+   //! returns the maximum character width in bytes for the encoding
+   DLLLOCAL int getMaxCharWidth() const {
+      return maxwidth;
+   }
 };
 
 // case-insensitive maps for encodings
@@ -182,39 +182,41 @@ class QoreString;
 //! manages encodings in Qore
 /** there will always only be one of these, therefore all members and methods are static
  */
-class QoreEncodingManager
-{
-   private:
-      DLLLOCAL static encoding_map_t emap;
-      DLLLOCAL static const_encoding_map_t amap;
-      DLLLOCAL static class QoreThreadLock mutex;
+class QoreEncodingManager {
+private:
+   DLLLOCAL static encoding_map_t emap;
+   DLLLOCAL static const_encoding_map_t amap;
+   DLLLOCAL static class QoreThreadLock mutex;
    
-      DLLLOCAL static const QoreEncoding *addUnlocked(const char *code, const char *desc, unsigned char maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t = 0);
-      DLLLOCAL static const QoreEncoding *findUnlocked(const char *name);
+   DLLLOCAL static const QoreEncoding *addUnlocked(const char *code, const char *desc, unsigned char maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t = 0);
+   DLLLOCAL static const QoreEncoding *findUnlocked(const char *name);
 
-   public:
-      //! adds an alias for an encoding
-      DLLEXPORT static void addAlias(const QoreEncoding *qcs, const char *alias);
+public:
+   //! adds an alias for an encoding
+   DLLEXPORT static void addAlias(const QoreEncoding *qcs, const char *alias);
 
-      //! finds an encoding if it exists (also looks up against alias names) and creates a new one if it doesn't
-      DLLEXPORT static const QoreEncoding *findCreate(const char *name);
+   //! finds an encoding if it exists (also looks up against alias names) and creates a new one if it doesn't
+   DLLEXPORT static const QoreEncoding *findCreate(const char *name);
 
-      //! finds an encoding if it exists (also looks up against alias names) and creates a new one if it doesn't
-      DLLEXPORT static const QoreEncoding *findCreate(const QoreString *str);
+   //! finds an encoding if it exists (also looks up against alias names) and creates a new one if it doesn't
+   DLLEXPORT static const QoreEncoding *findCreate(const QoreString *str);
 
-      //! prints out all valid encodings to stdout
-      DLLEXPORT static void showEncodings();
+   //! prints out all valid encodings to stdout
+   DLLEXPORT static void showEncodings();
 
-      //! prints out all aliases to stdout
-      DLLEXPORT static void showAliases();
+   //! prints out all aliases to stdout
+   DLLEXPORT static void showAliases();
 
-      //! adds a new encoding to the list
-      DLLEXPORT static const QoreEncoding *add(const char *code, const char *desc = 0, unsigned char maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t = 0);
+   //! adds a new encoding to the list
+   DLLEXPORT static const QoreEncoding *add(const char *code, const char *desc = 0, unsigned char maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t = 0);
 
-      DLLLOCAL static void init(const char *def);
-      DLLLOCAL QoreEncodingManager();
-      DLLLOCAL ~QoreEncodingManager();
+   DLLLOCAL static void init(const char *def);
+   DLLLOCAL QoreEncodingManager();
+   DLLLOCAL ~QoreEncodingManager();
 };
+
+DLLEXPORT qore_size_t q_get_byte_len(const QoreEncoding* enc, const char *p, const char *end, qore_size_t c, ExceptionSink *xsink);
+DLLEXPORT qore_size_t q_get_char_len(const QoreEncoding* enc, const char *p, qore_size_t valid_len, ExceptionSink* xsink);
 
 //! the QoreEncodingManager object
 DLLEXPORT extern QoreEncodingManager QEM;

@@ -1889,6 +1889,25 @@ void QoreString::concatUTF8FromUnicode(unsigned code) {
       concat((char)code);
 }
 
+static unsigned get_unicode_from_utf8(const char* buf, unsigned bl) {
+   if (bl == 1)
+      return buf[0];
+   
+   if (bl == 2)
+      return ((buf[0] & 0x1f) << 6)
+	 | (buf[1] & 0x3f);
+
+   if (bl == 3)
+      return ((buf[0] & 0x0f) << 12) 
+	 | ((buf[1] & 0x3f) << 6)
+	 | (buf[2] & 0x3f);
+
+   return (((unsigned)(buf[0] & 0x07)) << 18) 
+      | (((unsigned)(buf[1] & 0x3f)) << 12) 
+      | ((((unsigned)buf[2] & 0x3f)) << 6) 
+      | (((unsigned)buf[3] & 0x3f));
+}
+
 unsigned int QoreString::getUnicodePointFromUTF8(qore_offset_t offset) const {
    // get length in chars
    bool invalid;
@@ -1917,19 +1936,7 @@ unsigned int QoreString::getUnicodePointFromUTF8(qore_offset_t offset) const {
    if (invalid)
       return 0;
 
-   if (bl == 1)
-      return priv->buf[offset];
-
-   if (bl == 2)
-      return ((priv->buf[offset] & 0x1f) << 6) | (priv->buf[offset + 1] & 0x3f);
-
-   if (bl == 3)
-      return ((priv->buf[offset] & 0x0f) << 12) | ((priv->buf[offset + 1] & 0x3f) << 6) | (priv->buf[offset + 2] & 0x3f);
-
-   return (((unsigned)(priv->buf[offset] & 0x07)) << 18) 
-      | (((unsigned)(priv->buf[offset + 1] & 0x3f)) << 12) 
-      | ((((unsigned)priv->buf[offset + 2] & 0x3f)) << 6) 
-      | (((unsigned)priv->buf[offset + 3] & 0x3f));
+   return get_unicode_from_utf8(priv->buf + offset, bl);
 }
 
 unsigned int QoreString::getUnicodePoint(qore_offset_t offset, ExceptionSink *xsink) const {
@@ -1938,6 +1945,28 @@ unsigned int QoreString::getUnicodePoint(qore_offset_t offset, ExceptionSink *xs
       return 0;
 
    return tmp->getUnicodePointFromUTF8(offset);
+}
+
+unsigned int QoreString::getUnicodePointFromBytePos(qore_size_t offset, unsigned& len, ExceptionSink *xsink) const {
+   if (priv->charset == QCS_UTF8) {
+      len = QCS_UTF8->getByteLen(priv->buf + offset, priv->buf + priv->len, 1, xsink);
+      if (*xsink)
+	 return 0;
+
+      return get_unicode_from_utf8(priv->buf + offset, len);
+   }
+
+   assert(!priv->charset->isMultiByte());
+   len = 1;
+   QoreString tmp(QCS_UTF8);
+   if (convert_encoding_intern(priv->buf + offset, 1, priv->charset, tmp, QCS_UTF8, xsink))
+      return 0;
+
+   qore_size_t bl = QCS_UTF8->getByteLen(tmp.priv->buf, tmp.priv->buf + tmp.priv->len, 1, xsink);
+   if (*xsink)
+      return 0;
+
+   return get_unicode_from_utf8(tmp.priv->buf, bl);      
 }
 
 QoreString *QoreString::reverse() const {
