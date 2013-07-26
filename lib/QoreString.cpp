@@ -1939,12 +1939,23 @@ unsigned int QoreString::getUnicodePointFromUTF8(qore_offset_t offset) const {
    return get_unicode_from_utf8(priv->buf + offset, bl);
 }
 
-unsigned int QoreString::getUnicodePoint(qore_offset_t offset, ExceptionSink *xsink) const {
-   TempEncodingHelper tmp(this, QCS_UTF8, xsink);
-   if (*xsink)
-      return 0;
+unsigned int QoreString::getUnicodePoint(qore_offset_t offset, ExceptionSink *xsink) const {   
+   if (offset >= 0 || !priv->charset->isMultiByte()) {
+      if (offset < 0) {
+	 offset = priv->len + offset;
+	 if (offset < 0)
+	    offset = 0;
+      }
+      qore_size_t bl = priv->charset->getByteLen(priv->buf, priv->buf + priv->len, offset, xsink);
+      if (*xsink)
+	 return 0;
 
-   return tmp->getUnicodePointFromUTF8(offset);
+      unsigned len;
+      return getUnicodePointFromBytePos(bl, len, xsink);      
+   }
+
+   assert(priv->charset == QCS_UTF8);
+   return getUnicodePointFromUTF8(offset);
 }
 
 unsigned int QoreString::getUnicodePointFromBytePos(qore_size_t offset, unsigned& len, ExceptionSink *xsink) const {

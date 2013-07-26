@@ -816,6 +816,8 @@ printf("%y\n", $s.unaccent()); # result: "prilis zlutoucky kun upel dabelske ody
     The returned string has the same encoding as the original input.
 
     @return the string with accents replaced
+
+    @since %Qore 0.8.8
 */
 string <string>::unaccent() [flags=RET_VALUE_ONLY] {
    SimpleRefHolder<QoreStringNode> utf8;
@@ -835,4 +837,20 @@ string <string>::unaccent() [flags=RET_VALUE_ONLY] {
       return 0;
 
    return !recode ? utf8.release() : utf8->convertEncoding(str->getEncoding(), xsink);
+}
+
+//! returns the Unicode code for the given character offset in the string
+/** @par Example:
+    @code
+my int $uc = $str.getUnicode(0);
+    @endcode
+
+    @param the offset in characters in the string; negative numbers give offsets from the end of the string
+
+    @return the Unicode code for the given character offset in the string
+
+    @since %Qore 0.8.8
+*/
+int <string>::getUnicode(int offset = 0) [flags=RET_VALUE_ONLY] {
+   return str->getUnicodePoint(offset, xsink);
 }

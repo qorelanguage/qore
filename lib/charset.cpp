@@ -441,8 +441,12 @@ qore_size_t QoreEncoding::getLength(const char *p, const char *end, ExceptionSin
 }
 
 qore_size_t QoreEncoding::getByteLen(const char *p, const char *end, qore_size_t c, ExceptionSink *xsink) const {
-   if (!fend)
+   if (!fend) {
+      qore_size_t len = (end - p);
+      if (c > len)
+	 c = len;
       return c;
+   }
 
    bool invalid;
    qore_size_t rc = fend(p, end, c, invalid);

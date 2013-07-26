@@ -282,6 +282,8 @@ my string $str = 0x00f8.toUnicode()
 
     @return a single character string in UTF-8 encoding for the integer value treated as a unicode value
 
+    @note only the least-significant 4 bytes of the integer are used
+
     @since %Qore 0.8.8
 */
 string <int>::toUnicode() [flags=RET_VALUE_ONLY] {

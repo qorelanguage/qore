@@ -606,10 +606,12 @@ public:
    */
    DLLEXPORT unsigned int getUnicodePointFromUTF8(qore_offset_t offset = 0) const;
 
-   //! return Unicode code point for character offset
-   /** if the string is not in UTF-8 encoding (tagged with QCS_UTF8), a temporary string will be created in UTF-8 encoding
-       @param offset the offset in characters (not bytes) in the string
+   //! return Unicode code point for the single character at the given character (not byte) offset in the string
+   /** if the string is not in UTF-8 encoding, only a single character is converted to make the unicode code point calculation
+
+       @param offset the offset in characters (not bytes) in the string; may be negative giving an offset from the end of the string
        @param xsink if an error occurs, the Qore-language exception information will be added here
+
        @return the unicode code for the character
    */
    DLLEXPORT unsigned int getUnicodePoint(qore_offset_t offset, ExceptionSink* xsink) const;
