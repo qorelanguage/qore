@@ -146,6 +146,7 @@
     - fixed bugs rounding number values between 10 and -10 (non-inclusive) for display, fixed bugs rounding number value regarding digits after the decimal point for display with @ref Qore::NF_Scientific
     - fixed a bug in the @ref Qore::Dir class where it was not possible to chdir to the root directory \c "/"
     - fixed a bug where recursive references were allowed and memory leaks would occur due to recursive references; these are now caught at runtime and a \c REFERENCE-ERROR exception is thrown
+    - fixed a configure bug with bison >= 3
 
     @section qore_087 Qore 0.8.7
 
