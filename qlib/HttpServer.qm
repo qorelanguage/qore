@@ -1573,6 +1573,11 @@ public class HttpServer::HttpServer {
 
         # other misc response headers
         hash $.hdr;
+
+%ifdef QorusServer
+        # override message body encoding if none is received from the sender; http://tools.ietf.org/html/rfc2616#section-3.7.1 states that it must be iso-8850-1
+        *string $.override_encoding;
+%endif
     }
     #! @endcond
 
@@ -1599,7 +1604,17 @@ public class HttpServer::HttpServer {
     destructor() {
 	$.stop();
     }
-    
+
+%ifdef QorusServer
+    setDefaultTextEncoding(string $enc) {
+        $.override_encoding = $enc;
+    }
+
+    string getDefaultTextEncoding() {
+        return $.override_encoding ? $.override_encoding : "iso-8859-1";
+    }
+%endif
+        
     #! adds a dedicated listener to the server with an explicit/dedicated handler for incoming connections
     /** @param hname the name of the handler
         @param handler the AbstractHttpRequestHandler object that will handle incoming connections
@@ -2180,6 +2195,12 @@ public class HttpServer::HttpServer {
         # erase the encoding string on exit
         on_exit remove $cx.encoding;
         
+%ifdef QorusServer
+        # override assumed "iso-8859-1" character encoding if necessary
+        if ($body && $body.typeCode() == NT_STRING && $.override_encoding && $hdr."_qore_orig_content_type" !~ /charset=/)
+            $body = force_encoding($body, $.override_encoding);
+%endif
+
         # parse the path in the request
         /*
         my *hash $url = parseURL($hdr.path);
@@ -2280,17 +2301,17 @@ public class HttpServer::HttpServer {
                         switch ($hdr."content-encoding") {
                             case "deflate":
                             case "x-deflate":
-                                $body = $handler.decompress_to_string ? uncompress_to_string(binary($body)) : uncompress_to_binary($body);
+                                $body = $handler.decompress_to_string ? uncompress_to_string(binary($body), $body.encoding()) : uncompress_to_binary($body);
                                 #printf("AFTER body=%N\n", $body);
 				break;
                             case "gzip":
 			    case "x-gzip":
-                                $body = $handler.decompress_to_string ? gunzip_to_string(binary($body)) : gunzip_to_binary($body);
+                                $body = $handler.decompress_to_string ? gunzip_to_string(binary($body), $body.encoding()) : gunzip_to_binary($body);
                                 #printf("AFTER body=%N\n", $body);
 				break;
                             case "bzip2":
 			    case "x-bzip2":
-				$body = $handler.decompress_to_string ? bunzip2_to_string(binary($body)) : bunzip2_to_binary($body);
+				$body = $handler.decompress_to_string ? bunzip2_to_string(binary($body), $body.encoding()) : bunzip2_to_binary($body);
 				break;
                             case "identity":
                                 break;
