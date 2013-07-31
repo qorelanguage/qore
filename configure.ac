@@ -220,7 +220,7 @@ AC_PROG_YACC
 AC_MSG_CHECKING([for bison 1.85 or greater])
 if test -z "`echo $YACC | grep bison`"; then
 	AC_MSG_ERROR([bison not found])
-elif test -z "`$YACC --version | head -n 1 | grep -e ' 2\.' -e '1\.8[[5-9]]*' -e '1\.9'`"; then
+elif test -z "`$YACC --version | head -n 1 | grep -e ' [2-9]\.' -e '1\.8[[5-9]]*' -e '1\.9'`"; then
         bisonver=`$YACC --version | head -n 1`
 	AC_MSG_ERROR([incompatible $bisonver found])
 else
