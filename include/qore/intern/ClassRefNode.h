@@ -30,7 +30,7 @@ protected:
    // populated on creation
    QoreProgramLocation loc;
    NamedScope* cscope;
-   int cid;
+   const QoreClass* qc;
 
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -39,7 +39,7 @@ protected:
    }
       
 public:
-   DLLLOCAL ClassRefNode(char* str) : ParseNoEvalNode(NT_CLASSREF), loc(ParseLocation), cscope(new NamedScope(str)) {
+   DLLLOCAL ClassRefNode(char* str) : ParseNoEvalNode(NT_CLASSREF), loc(ParseLocation), cscope(new NamedScope(str)), qc(0) {
    }
 
    DLLLOCAL ~ClassRefNode() {
@@ -55,11 +55,18 @@ public:
    DLLLOCAL virtual QoreString *getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
    // returns the data type
-   DLLLOCAL virtual qore_type_t getType() const;
-   // returns the type name as a c string
-   DLLLOCAL virtual const char* getTypeName() const;
+   DLLLOCAL virtual qore_type_t getType() const {
+      return NT_CLASSREF;
+   }
 
-   DLLLOCAL int getID() const;
+   // returns the type name as a c string
+   DLLLOCAL virtual const char* getTypeName() const {
+      return "reference to Qore class";
+   }
+
+   DLLLOCAL const QoreClass* getClass() const {
+      return qc;
+   }
 };
 
 #endif

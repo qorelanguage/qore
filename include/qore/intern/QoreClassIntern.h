@@ -2681,8 +2681,15 @@ public:
       if (qc.classID == classID || (qc.name == name && qc.hash == hash))
          return cls;
 
-      //printd(5, "qore_class_private::getClassIntern() this: %p '%s' != '%s' scl: %p\n", this, name.c_str(), qc.name.c_str(), scl);
-
+#ifdef DEBUG
+      if (qc.name == name) {
+         QoreString lh, rh;
+         hash.toString(lh);
+         qc.hash.toString(rh);
+         printd(0, "qore_class_private::getClassIntern() this: %p '%s' != '%s' scl: %p (hash: %s qc.hash: %s)\n", this, name.c_str(), qc.name.c_str(), scl, lh.getBuffer(), rh.getBuffer());
+      }
+#endif
+      
       return scl ? scl->getClass(qc, priv) : 0;
    }
 

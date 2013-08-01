@@ -187,10 +187,16 @@ public:
    }
 
    //! returns true if this object is a valid instance of the classid passed
-   /**
-      @param cid the class ID to check
+   /** @param cid the class ID to check
+
+       @deprecated use validInstanceOf(const QoreClass&) instead
    */
    DLLEXPORT bool validInstanceOf(qore_classid_t cid) const;
+
+   //! returns true if this object is a valid instance of the classid passed
+   /** @param qc the class to check
+   */
+   DLLEXPORT bool validInstanceOf(const QoreClass& qc) const;
 
    //! sets the value of the given member to the given value
    /** the value must be already referenced for the assignment to the object

@@ -49,19 +49,23 @@ module WebUtil {
 
 /** @mainpage WebUtil Module
 
-    The %WebUtil module provides code that support web server operations.
+    The %WebUtil module provides code that support higher-level web server operations.
 
     To use this module, use \c "%requires WebUtil" in your code.
     
     All the public symbols in the module are defined in the WebUtil namespace
 
     Classes:
-    - @ref WebUtil::StaticTemplateManager "StaticTemplateManager": manages mixed Qore and text templates that are rendered to generate a final file; useful for HTML rendering for example
-    - @ref WebUtil::FileHandler "FileHandler": a class for serving files from the file system anchored at a particular URL; also uses @ref WebUtil::StaticTemplateManager "StaticTemplateManager"
+    - @ref WebUtil::TextTemplateBase "TextTemplateBase": the base class for all @ref Qore::Program "Program" containers for template programs where text is rendered from templates made up of mixed %Qore and text
+    - @ref WebUtil::FileTemplate "FileTemplate": models a single template based on a real file on the filesystem and provides compilation and rendering support for the template; supports recompiling on the fly if the file's modification time changes
+    - @ref WebUtil::TemplateFileManager "TemplateFileManager": manages templates based on real files on the filesystem, uses @ref WebUtil::FileTemplate "FileTemplate" to store the templates and render output
+    - @ref WebUtil::StaticTemplateManager "StaticTemplateManager": manages mixed %Qore and text templates that are rendered to generate a final file; useful for HTML rendering for example
+    - @ref WebUtil::FileHandler "FileHandler": a class for serving files from the file system anchored at a particular URL; also uses @ref WebUtil::TemplateFileManager "TemplateFileManager" to automatically manage any template files found; supports automatic compilation of and rendering from template files
 */
 
 #! the WebUtil namespace contains all the objects in the WebUtil module
 public namespace WebUtil {
+    #! this is the base class for all template @ref Qore::Program "Program" container classes
     public class TextTemplateBase {
         private {
             #! Holds the template generation function
@@ -162,6 +166,7 @@ TextTemplateBase::add($p, "/html/index.qhtml", $qhtml, "t0");
             return $src;
         }
         
+        #! a helper method used in parsing
         private static bool doBlock(string $end, reference $src, string $type, reference $i, reference $l) {
             my int $j = $src.find($end, $i + 1);
             if ($j == -1)
@@ -292,6 +297,10 @@ my hash $h = $qft.render($ctx);
         }
     }
 
+    #! this class manages templates based on files
+    /** Appropriate locking is used so that requests to existing templates based on files that have been updated on the filesystem are recompiled
+        on demand and any requests that come in contemporaneously will block until the template is recompiled from the updated source on the filesystem
+     */
     public class TemplateFileManager {
         private {
             #! read-write lock for managing template access
@@ -317,6 +326,24 @@ my hash $h = $qft.render($ctx);
             $.psetup = $psetup;
         }
 
+        #! explicitly renders the given template with the given path and context argument
+        /** @par Example:
+            @code
+my hash $h = $tm.render($resource_path, $path, $mtime, $ctx);
+            @endcode
+
+            @param tname the template name, normally a relative path for a template file, however this could also be the absolute path
+            @param path the path to the template file
+            @param mtime the last modified date/time for the file, if this date is after any stored last modified date/time for the template, then the template is recompiled from source
+            @param ctx the context argument for the template
+            @param code the HTTP response code for the response, if not present then 200 \c "OK" is assumed
+            @param hdr any optional headers for the response (the \c "Content-Type" header is set from the templates \c "Content-Type" value automatically)
+
+            @return a hash with the following keys:
+            - \c code: the HTTP response code corresponding to the \a code argument
+            - \c body: the rendered template
+            - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's "Content-Type" value)
+        */
         hash render(string $tname, string $path, date $mtime, hash $ctx, int $code = 200, *hash $hdr) {
             {
                 $.rwl.readLock();
@@ -335,6 +362,7 @@ my hash $h = $qft.render($ctx);
             return $.th.$tname.render($mtime, $ctx, $code, $hdr);
         }
 
+        #! this method can be called when a resource is requested that no longer exists in case a template is stored for a file that was deleted
         purge(string $tname) {
             {
                 $.rwl.readLock();
@@ -351,7 +379,7 @@ my hash $h = $qft.render($ctx);
         }
     }
 
-    #! A container for holding static text templates (ie that do not change once created in the template manager) with mixed text and Qore code
+    #! A container for holding static text templates (ie that do not change once created in the template manager) with mixed text and %Qore code
     /** To give the template programs a specific imported API, subclass this object and use the following methods to import an API into the template @ref Qore::Program "Program" object in your subclass's constructor:
         - @ref Qore::Program::importClass()
         - @ref Qore::Program::importFunction()
@@ -592,7 +620,7 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             - \c auth: the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
             - \c error_level: the level of error reporting (0, 1, or 2)
         */
-        constructor(string $file_root, string $url_root, *hash $opt) : AbstractUrlHandler($url_root, $opt.auth), TemplateFileManager($opt.po, $opt.psetup) {
+        constructor(string $file_root, string $url_root = "/", *hash $opt) : AbstractUrlHandler($url_root, $opt.auth), TemplateFileManager($opt.po, $opt.psetup) {
             $.file_root = normalize_dir($file_root);
             # make sure file_root ends in a directory separator character
             if ($.file_root[$.file_root.size() - 1] != DirSep)

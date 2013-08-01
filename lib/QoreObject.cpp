@@ -330,6 +330,14 @@ bool QoreObject::validInstanceOf(qore_classid_t cid) const {
    return priv->theclass->getClass(cid);
 }
 
+bool QoreObject::validInstanceOf(const QoreClass& qc) const {
+   if (priv->status == OS_DELETED)
+      return 0;
+
+   bool p = false;
+   return priv->theclass->getClass(qc, p);
+}
+
 AbstractQoreNode *QoreObject::evalMethod(const QoreString *name, const QoreListNode *args, ExceptionSink *xsink) {
    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
    if (!tmp)

@@ -52,6 +52,7 @@ module HttpServer {
       + improved handler matching algorithm
       + implemented many performance improvements
       + implemented support for simple string path matching when finding a handler for a request
+      + added static AbstractHttpRequestHandler::redirect() to help in generating 301 Moved Permanently messages
 
     * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
       + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
@@ -737,6 +738,18 @@ public class HttpServer::AbstractHttpRequestHandler {
     static hash make501(hash $hdr, string $fmt) {
         return AbstractHttpRequestHandler::makeResponse(501, vsprintf($fmt, $argv), $hdr);
     }
+
+    #! generates a redirect hash for the given path
+    static hash redirect(hash $cx, hash $hdr, string $path) {
+        # make sure no forward slashes are doubled in the path
+        $path =~ s/\/+/\//g;
+        my string $uri = sprintf("http%s://%s/%s", $cx.ssl ? "s" : "", $hdr.host, $path);
+        return (
+            "code": 301,
+            "hdr": ("Location": $uri),
+            "body": $hdr.method != "HEAD" ? sprintf("redirecting to %s", $uri) : NOTHING,
+            );
+    }
 }
 
 #! abstract class for HTTP request handlers anchored at a specific URL
@@ -769,7 +782,7 @@ public class HttpServer::AbstractUrlHandler inherits HttpServer::AbstractHttpReq
 #! abstract class that all HTTP dedicated socket handler objects must inherit from
 /** reimplement at least handleRequest() and startImpl() in subclasses
   */
-public class HttpServer::AbstractHttpSocketHandler inherits AbstractHttpRequestHandler {
+public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::AbstractHttpRequestHandler {
     private {
         #! stop listener flag
         bool $.stop = False;
@@ -2041,8 +2054,8 @@ public class HttpServer::HttpServer {
     #! @endcond
 }
 
-# Listener will be assigned to private members of the HttpServer; is not directly accessible from code outside the HttpServer (private)
-class HttpServer::HttpListener inherits Qore::Socket {
+#! this class implements the listeners for the @ref HttpServer::HttpServer "HttpServer" class
+public class HttpServer::HttpListener inherits Qore::Socket {
     private {
         HttpServer $.serv;
         Sequence $.ss;

@@ -44,58 +44,12 @@
 # use the Mime module
 %requires Mime >= 1.0
 
-class ExampleFileHandler inherits public AbstractHttpRequestHandler {
-   private {
-      string dir;
-   }
-   
-   constructor(AbstractAuthenticator auth, string dr) : AbstractHttpRequestHandler(auth) {
-      dir = dr;
-      if (dir !~ /\/$/)
-         dir += "/";
-   }
+# use the WebUtil module
+%requires WebUtil >= 1.0
 
-   private static hash redirect(hash cx, hash hdr, string path) {
-       # make sure no forward slashes are doubled in the path
-       path =~ s/\/+/\//g;
-       string uri = sprintf("http%s://%s/%s", cx.ssl ? "s" : "", hdr.host, path);
-       return (
-           "code": 301,
-           "hdr": ("Location": uri),
-           "body": hdr.method != "HEAD" ? sprintf("redirecting to %s", uri) : NOTHING,
-           );
-   }
-
-   hash handleRequest(hash cx, hash hdr, *data body) {
-       File f();
-       string path = dir + hdr.path;
-
-       if (!strlen(hdr.path) || path =~ /\/$/)
-           return redirect(cx, hdr, hdr.path + "index.html");
-       else if (is_dir(path))
-           return redirect(cx, hdr, hdr.path + "/index.html");
-
-       # strip off any parameters from the URL
-       path =~ s/\?.*$//;
-
-       # try to open the file
-       if (f.open(path))
-           return ("code": 400,
-                   "body": sprintf("cannot find file %n (%s)", path, strerror(errno())) );
-
-       # read in file and setup return value
-       hash rv = ("code": 200,
-		  "body": f.read(-1) );
-
-       # set mime type by file extension
-       *string ext = (path =~ x/\.([a-z0-9]+)$/i)[0];
-       if (!ext.empty() && exists (ext = MimeTypes{ext.lwr()}))
-           rv.hdr."Content-Type" = ext;
-       else
-           rv.hdr."Content-Type" = MimeTypeUnknown;
-
-       return rv;
-   }
+class ExampleFileHandler inherits public FileHandler {
+    constructor(string file_root) : FileHandler(file_root) {
+    }
 }
 
 class httpServer {
@@ -147,11 +101,8 @@ class httpServer {
 	    exit(2);
 	}
 
-	# use default authenticator (all connections are allowed)
-	AbstractAuthenticator auth();
-	
 	# create our example file handler object to serve files from the filesystem
-	ExampleFileHandler fh(auth, opt.dir);
+	ExampleFileHandler fh(opt.dir);
 
         try {
 	    # create the HttpServer object and add the example file handler
