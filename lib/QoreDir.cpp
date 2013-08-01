@@ -246,7 +246,7 @@ public:
 	 
       DIR *dptr = opendir(dirname.c_str());
       if (!dptr) {
-	 xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "error opening directory for reading");
+	 xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "error opening directory '%s' for reading", dirname.c_str());
 	 return 0;
       }
       ON_BLOCK_EXIT(closedir, dptr);
@@ -368,7 +368,7 @@ public:
       }
 
       if (::chmod(dirname.c_str(), mode)) {
-	 xsink->raiseErrnoException("DIR-CHMOD-FAILURE", errno, "error in Dir::chmod()");
+	 xsink->raiseErrnoException("DIR-CHMOD-FAILURE", errno, "error in Dir::chmod() on '%s'", dirname.c_str());
 	 return -1;
       }
 
@@ -385,7 +385,7 @@ public:
       }
 
       if (::chown(dirname.c_str(), uid, gid)) {
-	 xsink->raiseErrnoException("DIR-CHOWN-FAILURE", errno, "error in Dir::chown()");
+	 xsink->raiseErrnoException("DIR-CHOWN-FAILURE", errno, "error in Dir::chown() on '%s'", dirname.c_str());
 	 return 0;
       }
 
@@ -403,7 +403,7 @@ public:
 
       struct stat sbuf;
       if (::stat(dirname.c_str(), &sbuf)) {
-	 xsink->raiseErrnoException("DIR-STAT-FAILURE", errno, "stat() call failed");
+	 xsink->raiseErrnoException("DIR-STAT-FAILURE", errno, "stat() call failed on '%s'", dirname.c_str());
 	 return 0;
       }
 
@@ -420,7 +420,7 @@ public:
 
       struct stat sbuf;
       if (::stat(dirname.c_str(), &sbuf)) {
-	 xsink->raiseErrnoException("DIR-HSTAT-FAILURE", errno, "stat() call failed");
+	 xsink->raiseErrnoException("DIR-HSTAT-FAILURE", errno, "stat() call failed on '%s'", dirname.c_str());
 	 return 0;
       }
 
@@ -438,7 +438,7 @@ public:
   
       struct statvfs vfs;
       if (::statvfs(dirname.c_str(), &vfs)) {
-	 xsink->raiseErrnoException("DIR-STATVFS-FAILURE", errno, "statvfs() call failed");
+	 xsink->raiseErrnoException("DIR-STATVFS-FAILURE", errno, "statvfs() call failed on '%s'", dirname.c_str());
 	 return 0;
       }
 

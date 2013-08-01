@@ -151,6 +151,7 @@
     - fixed a bug where recursive references were allowed and memory leaks would occur due to recursive references; these are now caught at runtime and a \c REFERENCE-ERROR exception is thrown
     - fixed a configure bug with bison >= 3
     - fixed a bug in the HttpServer module when automatically uncompressing supported content-encodings to set the resulting string's character encoding correctly
+    - added path name to error messages in @ref Qore::Dir "Dir" class exception strings
 
     @section qore_087 Qore 0.8.7
 
