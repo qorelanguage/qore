@@ -959,3 +959,48 @@ my *string $fn = $f.getFileName();
 *string ReadOnlyFile::getFileName() [flags=CONSTANT] {
    return f->getFileName();
 }
+
+//! returns the contents of a text file as a string optionally tagged with the given @ref character_encoding "character encoding"
+/** @par Example:
+    @code
+my string $data = File::readTextFile($path);
+    @endcode
+    
+    @param path the path of the file to retrieve
+    @param encoding the name of the @ref character_encoding "character encoding" for the string returned; if this argument is not given, then the @ref default_encoding "default character encoding" is assumed
+
+    @return the contents of a text file as a string optionally tagged with the given @ref character_encoding "character encoding"
+
+    @since %Qore 0.8.8
+*/
+static string ReadOnlyFile::readTextFile(string path, *string encoding) [dom=FILESYSTEM] {
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+
+   QoreFile qf;
+
+   if (qf.open2(xsink, path->getBuffer(), O_RDONLY, 0777, qe))
+      return 0;
+
+   return qf.read(-1, xsink);
+}
+
+//! returns the contents of a binary file as a binary object
+/** @par Example:
+    @code
+my binary $data = File::readBinaryFile($path);
+    @endcode
+    
+    @param path the path of the file to retrieve
+
+    @return the contents of a binary file as a binary object
+
+    @since %Qore 0.8.8
+*/
+static binary ReadOnlyFile::readBinaryFile(string path) [dom=FILESYSTEM] {
+   QoreFile qf;
+
+   if (qf.open2(xsink, path->getBuffer()))
+      return 0;
+
+   return qf.readBinary(-1, xsink);
+}

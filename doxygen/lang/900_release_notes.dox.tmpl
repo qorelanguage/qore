@@ -82,6 +82,9 @@
       - <string>::unaccent()
       - <value>::toNumber()
     - other new methods and method changes:
+      - added new static methods in the @ref Qore::ReadOnlyFile "ReadOnlyFile" class making it easier to read entire files in one call:
+        - @ref Qore::ReadOnlyFile::readTextFile()
+	- @ref Qore::ReadOnlyFile::readBinaryFile()
       - changes to catch usage errors with the @ref Qore::Thread::Counter "Counter" class:
         - Qore::Thread::Counter::constructor() will throw an exception if called with an argument < 0
         - Qore::Thread::Counter::dec() will now throw an exception if called when the Counter is already at 0
