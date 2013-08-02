@@ -62,7 +62,15 @@ module WebSocketHandler {
 
 #! the WebSocketHandler namespace contains all the objects in the WebSocketHandler module
 public namespace WebSocketHandler {
-    #! the class handling a dedicated connection
+    #! this class represents a connection to a websocket client
+    /** @par Receiving WebSocket Messages from Clients
+        When the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class receives a message from the client, the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class calls the @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" on the object that represents that connection.
+
+        @par Sending WebSocket Message to Clients
+        To send a message to a websocket client, call one of the following methods:
+        - @ref WebSocketHandler::WebSocketConnection::send() "WebSocketConnection::send()": to send an unencoded message to the client
+        - @ref WebSocketHandler::WebSocketConnection::sendEncoded() "WebSocketConnection::sendEncoded()": to send an already-encoded message to the client 
+    */
     public class WebSocketConnection {
         public {
             WebSocketHandler $.handler;
@@ -71,13 +79,16 @@ public namespace WebSocketHandler {
         }
 
         private {
-            Queue $.queue();
+            #! the @ref Qore::Thread::Queue "Queue" object stored messages to be sent to the server 
+            Qore::Thread::Queue $.queue();
         }
 
+        #! the constructor is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when a new connection is made by a websocket client; it is called from @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() "WebSocketHandler::getConnectionImpl()", which can be overridden in subclasses to allow a subclass of this class to be used as the connection object
         constructor(WebSocketHandler $handler) {
             $.handler = $handler;
         }
 
+        #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
         *binary pollData() {
             try {
                 return $.queue.get(DefaultQueuePollingInterval);
@@ -86,24 +97,47 @@ public namespace WebSocketHandler {
                 if ($ex.err != "QUEUE-TIMEOUT")
                     rethrow;
             }
-        }
+        }        
 
+        #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
+        *binary pollDataImmediate() {
+            return $.queue.empty() : NOTHING : $.queue.get();
+        }        
+
+        #! pushes an already-encoded message on the connection's message queue
         sendEncoded(binary $msg) {
             $.queue.push($msg);
         }
 
+        #! pushes an unencoded message on the connection's message queue; the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
         send(data $msg) {
             $.queue.push(ws_encode_message($msg));
         }
 
+        #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
         gotMessage(string $msg) {
         }
 
+        #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
         gotMessage(binary $msg) {
         }
     }
 
     #! the main web socket handler class
+    /** connections are represented by object descended from @ref WebSocketHandler::WebSocketConnection "WebSocketConnection".
+        @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() returns a suitable object for each connection, this method
+        can be overridden in subclasses to return a custom object for each connection if required.
+
+        @par Receiving WebSocket Messages from Clients
+        When the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class receives a message from the client, the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class calls the @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" on the object that represents that connection.
+
+        @par Sending WebSocket Message to Clients
+        To send a message to a websocket client, call one of the following methods:
+        - @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()": send a message to single connection given its connection ID
+        - @ref WebSocketHandler::WebSocketHandler::sendAll() "WebSocketHandler::sendAll()": send a message to all connected clients
+
+        Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "$cx.id" argument when the connection is first established.
+    */
     public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler {
         public {
         }
@@ -119,18 +153,18 @@ public namespace WebSocketHandler {
         #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
         /** @param auth the authentication object to use to authenticate connections (see @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"); if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
          */
-        constructor(*AbstractAuthenticator $auth) : AbstractHttpSocketHandler($auth) {
+        constructor(*HttpServer::AbstractAuthenticator $auth) : HttpServer::AbstractHttpSocketHandler($auth) {
         }
 
         #! called by the HTTP server to handle incoming HTTP requests
-        /** Requests will be dispatched to REST classes registered with this object
+        /** To accept a dedicated connection; make sure the return value hash's \c "code" key is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref Qore::False "False"
 
             @param cx call context hash; this hash will have the following keys:
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parseURL())
-            - \c id: the unique HTTP connection ID
+            - \c id: the unique HTTP connection ID; this ID is also used to identify the websocket client connection in @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()"
             - \c listener-id: the HTTP server listener ID (see @ref HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
@@ -144,6 +178,8 @@ public namespace WebSocketHandler {
             - \c "body": the message body to return in the response
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+            Websocket connections are identified by their HTTP connection ID as passed in \c "$cx.id"
          */
         hash handleRequest(hash $cx, hash $hdr, *data $b) {
             #$.logDebug("websocket request: cx: %N", $cx);
@@ -184,7 +220,7 @@ public namespace WebSocketHandler {
             @param hdr a hash of headers in the request
             @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
          */
-        startImpl(softstring $lid, hash $cx, hash $hdr, Socket $sock) {
+        startImpl(softstring $lid, hash $cx, hash $hdr, Qore::Socket $sock) {
             $.logDebug("WebSocketHandler::startImpl() cid: %y from %s:%d", $cx.id, $cx."peer-info".hostname_desc, $cx."peer-info".port);
 
             my softstring $cid = $cx.id;
@@ -214,11 +250,12 @@ public namespace WebSocketHandler {
                 }
 
                 try {
-                    # send any messages on the queue
+                    # send any and all messages on the queue
                     my *binary $d = $wsc.pollData();
-                    if ($d) {
+                    while ($d) {
                         #printf("WebSocketHandler::startImpl() cid: %y sending msg %d bytes\n", $cx.id, $d.size());
                         $sock.send($d);
+                        $d = $wsc.pollDataImmediate();
                     }
                     
                     if (!$sock.isDataAvailable(0))
@@ -278,6 +315,9 @@ public namespace WebSocketHandler {
         deregisterConnectionImpl(WebSocketConnection $wsc) {
         }
 
+        #! sends a message to all connected clients
+        /** Messages are automatically encoded with @ref WebSocketUtil::ws_encode_message() before sending.
+        */
         sendAll(data $d) {
             my binary $msg = ws_encode_message($d);
 
@@ -290,6 +330,11 @@ public namespace WebSocketHandler {
             #if ($.ch) $.logDebug("sending data to connections: %y", $.ch.keys());
         }
 
+        #! sends a message to the given connection ID
+        /** Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "$cx.id" argument when the connection is first established.
+
+            Messages are automatically encoded with @ref WebSocketUtil::ws_encode_message() before sending.
+        */
         sendOne(string $id, data $d) {
             $.rwl.readLock();
             on_exit $.rwl.readUnlock();
@@ -300,7 +345,7 @@ public namespace WebSocketHandler {
             $.ch.$id.send($d);
         }
 
-        private sendClose(Socket $sock, int $code, *string $txtmsg) {
+        private sendClose(Qore::Socket $sock, int $code, *string $txtmsg) {
             my binary $msg = $code.encodeMsb(4);
 
             if (!WSCCMap.$code) {
@@ -320,11 +365,6 @@ public namespace WebSocketHandler {
             if (!$data)
                 return "n/a";
             return sprintf("type: %s: %y", $data.type(), $data);
-            /*
-            if ($data.typeCode() == NT_STRING)
-                return $data;
-            return $data.toHex();
-            */
         }
 
         #! default implementation is empty
