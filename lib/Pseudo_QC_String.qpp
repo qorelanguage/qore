@@ -820,23 +820,11 @@ printf("%y\n", $s.unaccent()); # result: "prilis zlutoucky kun upel dabelske ody
     @since %Qore 0.8.8
 */
 string <string>::unaccent() [flags=RET_VALUE_ONLY] {
-   SimpleRefHolder<QoreStringNode> utf8;
-   // a flag if it should be recoded back
-   bool recode = false;
-
-   if (str->getEncoding() != QCS_UTF8) {
-      utf8 = str->convertEncoding(QCS_UTF8, xsink);
-      if (*xsink)
-         return 0;
-      recode = true;
-   }
-   else
-      utf8 = new QoreStringNode(str);
-
-   if (do_unaccent(*(*utf8), xsink))
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
+   if (do_unaccent(*(*rv), *str, xsink))
       return 0;
 
-   return !recode ? utf8.release() : utf8->convertEncoding(str->getEncoding(), xsink);
+   return rv.release();
 }
 
 //! returns the Unicode code for the given character offset in the string
