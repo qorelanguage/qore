@@ -62,7 +62,7 @@ module RestHandler {
 
     @tableofcontents
 
-    The %RestHandler module provides functionality for implementing REST services with the Qore HTTP server.
+    The %RestHandler module provides functionality for implementing REST services with the %Qore HTTP server.
 
     To use this module, use \c "%requires RestHandler" and \c "%requires HttpServer" in your code.
     
@@ -70,20 +70,20 @@ module RestHandler {
 
     The main classes are:
     - @ref RestHandler::AbstractRestClass "AbstractRestClass": this class provides the functionality of the REST object currently being accessed (and access to subobjects or subclasses)
-    - @ref RestHandler::RestHandler "RestHandler": this class can be used to plug in to the Qore <a href="../../HttpServer/html/index.html">HttpServer</a> to expose REST services
+    - @ref RestHandler::RestHandler "RestHandler": this class can be used to plug in to the %Qore <a href="../../HttpServer/html/index.html">HttpServer</a> to expose REST services
 
     see example file \c "restserver.q" in the examples directory for an example of using this module to implement REST services.
 
     @section restserialization Data Serialization Support
 
-    The @ref RestHandler::RestHandler "RestHandler" class uses any of the following modules if they are available:
+    The @ref RestHandler::RestHandler "RestHandler" class uses any of the following modules if the modules are available when the RestHandler module is initialized:
     - <a href="http://qore.org/qore-modules/41-json-module">json</a>: provides automatic support for JSON payload de/serialization
     - <a href="http://qore.org/qore-modules/40-xml-module">xml</a>: provides automatic support for XML-RPC payload de/serialization
     - <a href="http://qore.org/qore-modules/38-yaml-module">yaml</a>: provides automatic support for YAML payload de/serialization
 
     For standard REST web service development, the <a href="http://qore.org/qore-modules/41-json-module">json</a> module will be required to support JSON serialization.
 
-    The @ref RestHandler::RestHandler "RestHandler" class will automatically deserialize request bodies if the incoming MIME type is supported and additionally will serialize outgoing messages automatically with the same serialization as the incoming message.
+    The @ref RestHandler::RestHandler "RestHandler" class will automatically deserialize request bodies if the incoming MIME type is supported and additionally will serialize outgoing messages automatically based on the client's declared capabilities (normally responses are serialized with the same serialization as the incoming message).
 
     @section restimplementation Implementing REST Services
 
@@ -110,7 +110,12 @@ module RestHandler {
     @endcode
 
     The arguments passed to the REST action methods are as follows:
-    - \a cx: a call context hash; the same value as documented in the \a cx parameter of @ref HttpServer::AbstractHttpRequestHandler::handleRequest().
+    - \a cx: a call context hash; the same value as documented in the \a cx parameter of @ref HttpServer::AbstractHttpRequestHandler::handleRequest(); with the following additions:
+      - \a body: the deserialized message body (if any); if no body was sent, then any parsed URI arguments are copied here
+      - \a hdr: a copy of the header hash as returned by @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader" as received by the @ref HttpServer::HttpServer "HttpServer" (for example cx.hdr.path gives the original URI request path)
+      - \a orig_method: the string if any \c "action" argumnt was sent either in the message body or as a URI argument
+      - \a rest_method: same as \a orig_method, only with the first letter capitalized (only present if an \c "action" argument was sent)
+      - \a rest_action_method: the method name that will be called on the actual %Qore REST class (a subclass of @ref RestHandler::AbstractRestClass "AbstractRestClass")
     - \c ah: these are the parsed URI query arguments to the REST call; see @ref restargs for more information
 
     The return value for these methods is the same as the return value for @ref HttpServer::AbstractHttpRequestHandler::handleRequest().
@@ -166,12 +171,122 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
 
     @section resthierarchy Implementing Object Hierarchies
 
-    To implement a hisearchy of REST objects in the URL, each @ref RestHandler::AbstractRestClass "AbstractRestClass" subclass reimplemnts the @ref RestHandler::AbstractRestClass::subClass() "subClass()" method that returns a child @ref RestHandler::AbstractRestClass "AbstractRestClass" object representing the child object.  If no such sub object exists, then the method should return @ref nothing, which will cause a \c "REST-CLASS-ERROR" exception to be thrown by default (to change this behavior, reimplement @ref RestHandler::RestHandler::unknownSubClassError() "unknownSubClassError()" in your specialization of  @ref RestHandler::RestHandler "RestHandler".  See @ref restexceptions for more information
+    To implement a hisearchy of REST objects in the URL, each @ref RestHandler::AbstractRestClass "AbstractRestClass" subclass reimplements the @ref RestHandler::AbstractRestClass::subClass() "subClass()" method that returns a child @ref RestHandler::AbstractRestClass "AbstractRestClass" object representing the child object.
+
+    If no such sub object exists, then the method should return @ref nothing, which will cause a \c "REST-CLASS-ERROR" exception to be thrown by default (to change this behavior, reimplement @ref RestHandler::RestHandler::unknownSubClassError() "unknownSubClassError()" in your specialization of @ref RestHandler::RestHandler "RestHandler".  See @ref restexceptions for more information
+
+    The following is an example of a class implementing a @ref RestHandler::AbstractRestClass::subClass() "subClass()" method:
+    @code
+class WorkflowOrderRestClass inherits AbstractRestClass {
+    private {
+        # this holds the information or state of the REST object
+        hash $.wf;
+    }
+
+    constructor(hash $wf) {
+        $.wf = $wf;        
+    }
+
+    # the name of the REST object
+    string name() {
+        return "orders";
+    }
+
+    # supports subclass requests by returning an object if the id is recognized
+    *AbstractRestClass subClass(softint $order_id, hash $cx, *hash $ah) {
+        my *hash $h = $sysinfo.getOrderInfo($wf.id, $order_id);
+        if ($h)
+            return new WorkflowOrderInstanceRestClass($h);
+    }
+
+    # supports \c GET requests on the object
+    hash get(hash $cx, *hash $ah) {
+        return RestHandler::makeResponse(200, $.wf);
+    }
+}
+
+class WorkflowOrderInstanceRestClass inherits AbstractRestClass {
+    private {
+        # this holds the information or state of the REST object
+        hash $.oh;
+    }
+
+    constructor(hash $oh) {
+        $.oh = $oh;
+    }
+
+    # the name of the REST object
+    string name() {
+        return $.oh.order_instanceid;
+    }
+
+    # supports \c PUT requests where action=retry on the object
+    hash putRetry(hash $cx, *hash $ah) {
+        return RestHandler::makeResponse(200, $api.retryOrder($.oh.order_instanceid));
+    }
+
+    # supports \c GET requests on the object
+    hash get(hash $cx, *hash $ah) {
+        return RestHandler::makeResponse(200, $.oh);
+    }
+}
+    @endcode
+
+    @note REST classes directly under the base handler object inheriting @ref RestHandler::RestHandler "RestHandler" can add subclasses by calling @ref RestHandler::RestHandler::addClass() "RestHandler::addClass()" as well; the value of the @ref RestHandler::AbstractRestClass::name() "AbstractRestClass::name()" method provides the name of the subclass.
 
     @section restargs Argument and Message Body Handling
 
+    There are two ways to pass arguments to REST action methods:
+    - 1: pass them as URI query arguments
+    - 2: pass them as a hash in the message body
+
+    REST action methods have the following signature:
+    @code
+    hash method(hash $cx, *hash $ah) {}
+    @endcode
+
+    In the usual case when only one of the above methods is used, then the argument information is copied to both places, making it easier for the %Qore REST implementation to handle arguments in a consistent way regardless of how they were passed.  This means arguments, including any \c action argument, can be passed in either the URI path as URI query arguments, or in the message body as a hash.
+
+    Therefore, the following cases are identical:
+
+    <b>Request With URI Argument</b>
+    @verbatim
+GET /files/info.txt?action=info;option=verbose HTTP/1.1
+Accept: application/x-yaml
+User-Agent: Qore-RestClient/1.0
+Accept-Encoding: deflate,gzip,bzip2
+Connection: Keep-Alive
+Host: localhost:8001
+    @endverbatim
+
+    <b>Request With Arguments in the Message Body</b>
+    @verbatim
+GET /files/info.txt HTTP/1.1
+Accept: application/x-yaml
+User-Agent: Qore-RestClient/1.0
+Accept-Encoding: deflate,gzip,bzip2
+Connection: Keep-Alive
+Host: localhost:8001
+Content-Type: application/json;charset=utf-8
+Content-Length: 36
+
+{ "action" : "info", "verbose" : 1 }
+    @endverbatim
+
+    @par REST URI Arguments
+    REST URI arguments are available in the \a "$ah" argument to the method.  REST URI arguments are provided internally with the @ref HttpServer::parse_uri_query() "parse_uri_query" function.\n\n
+    If no URI query argument were provided in the request, then the \a "$ah" parameter is populated by the deserialized message body, if it is deserialized to a hash.
+
+    @par REST Message Body
+    The REST request message body is automatically deserialized and made available as \a "$cx.body" in REST action methods.\n\n
+    If no message body was included in the client request, then any parsed URI parameters are copied to \a "$cx.body".\n\n
+    For requests with long or complex arguments should send arguments as message bodies and not as serialized URI query arguments.
+
     @section restexceptions Exception Handling in REST Calls
-    
+
+    %Qore exceptions are serialized in a consistent way by the @ref RestHandler::RestHandler "RestHandler" class so that they can be recognized and handled appropriately by clients.
+
+    %Qore exceptions are returned with a 409 Conflict HTTP return code with the message body as an @ref exception_hash "exception hash".
 */
 
 #! the RestHandler namespace contains all the objects in the RestHandler module
@@ -183,9 +298,10 @@ public namespace RestHandler {
         constructor() {
         }
 
+        #! this provides the name of the REST class
         abstract string name();
 
-        #! this method will be called to find a sub-class (ie with GET /invoices/1 - if this class represents "invoices", then subClass("1") will be called to return invoice 1; return NOTHING if the object doesn't exist
+        #! this method will be called to find a sub-class (ie with GET /invoices/1 - if this class represents "invoices", then subClass("1") will be called to return invoice 1; return @ref nothing if the object doesn't exist
         /** @param name the name of the subclass
             @param cx call context hash; this hash will have the following keys:
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
@@ -426,6 +542,8 @@ public namespace RestHandler {
             }
             else
                 $mn = Methods.($hdr.method);
+
+            $cx.rest_action_method = $mn;
 
             # remove leading slash from method name
             if ($ah.method =~ /^\//)
