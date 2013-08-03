@@ -101,7 +101,7 @@ public namespace WebSocketHandler {
 
         #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
         *binary pollDataImmediate() {
-            return $.queue.empty() : NOTHING : $.queue.get();
+            return $.queue.empty() ? NOTHING : $.queue.get();
         }        
 
         #! pushes an already-encoded message on the connection's message queue
