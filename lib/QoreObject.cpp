@@ -27,6 +27,47 @@
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/QoreHashNodeIntern.h>
 
+void qore_object_private::merge(const QoreHashNode *h, AutoVLock &vl, ExceptionSink *xsink) {
+   // list for saving all overwritten values to be dereferenced outside the object lock
+   ReferenceHolder<QoreListNode> holder(xsink);
+
+   bool inclass = qore_class_private::runtimeCheckPrivateClassAccess(*theclass);
+
+   {
+      AutoLocker al(mutex);
+
+      if (status == OS_DELETED) {
+	 makeAccessDeletedObjectException(xsink, theclass->getName());
+	 return;
+      }
+
+      //printd(5, "qore_object_private::merge() obj=%p\n", obj);
+
+      ConstHashIterator hi(h);
+      while (hi.next()) {
+	 const QoreTypeInfo *ti;
+
+	 // check member status
+	 if (checkMemberAccessGetTypeInfo(xsink, hi.getKey(), ti, !inclass))
+	    return;
+            
+	 // check type compatibility and perform type translations, if any
+	 ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
+	 if (*xsink)
+	    return;
+
+	 AbstractQoreNode *n = data->swapKeyValue(hi.getKey(), val.release());
+	 //printd(5, "QoreObject::merge() n=%p (rc=%d, type=%s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
+	 // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
+	 if (n && n->isReferenceCounted()) {
+	    if (!holder)
+	       holder = new QoreListNode;
+	    holder->push(n);
+	 }
+      }
+   }
+}
+
 AbstractQoreNode *qore_object_private::takeMember(ExceptionSink* xsink, const char *key, bool check_access) {
    const QoreTypeInfo* mti = 0;
    if (checkMemberAccessGetTypeInfo(xsink, key, mti, check_access))
@@ -451,6 +492,9 @@ bool QoreObject::derefImpl(ExceptionSink* xsink) {
    return false;
 }
 
+//#define DO_OBJ_RECURSIVE_CHECK 1
+#undef DO_OBJ_RECURSIVE_CHECK
+
 // manages the custom dereference and executes the destructor if necessary
 void QoreObject::customDeref(ExceptionSink* xsink) {
    {
@@ -459,6 +503,8 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref(this: %p) class: %s: references %d->%d\n", this, priv->status == OS_OK ? getClassName() : "<deleted>", references, references - 1);
 #endif
+
+#ifdef DO_OBJ_RECURSIVE_CHECK
       int ref_copy;
       {
 	 AutoLocker slr(priv->ref_mutex);
@@ -468,28 +514,40 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
       SafeLocker sl(priv->mutex);
 
       if (ref_copy) {
-#if 0
-	 if (priv->recursive_ref_found)
+	 if (priv->recursive_ref_found || !priv->data || priv->data->empty())
 	    return;
 
 	 ObjectSet oset(this);
-	 //printd(0, "QoreObject::customDeref() this: %p count: %d refs: %d\n", this, (int)oset.getCount(), (int)references);
-	 if (oset.getCount() != references)
+	 if (oset.getCount() != ref_copy)
 	    return;
 	 
+	 printd(0, "QoreObject::customDeref() this: %p count/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
 	 priv->recursive_ref_found = true;
-#else
-	 return;
-#endif
       }
 
       // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
       if (priv->in_destructor || priv->status != OS_OK) {
 	 sl.unlock();
 	 if (!ref_copy)
-	    tDeref();
+	    priv->tDeref();
 	 return;
       }
+#else
+      {
+	 AutoLocker slr(priv->ref_mutex);
+	 if (--references)
+	    return;
+      }
+
+      SafeLocker sl(priv->mutex);
+
+      // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
+      if (priv->in_destructor || priv->status != OS_OK) {
+	 sl.unlock();
+	 priv->tDeref();
+	 return;
+      }
+#endif
 
       // if the scope deletion is blocked, then do not run the destructor
       if (!priv->delete_blocker_run && priv->theclass->has_delete_blocker()) {
@@ -1001,9 +1059,9 @@ int ObjectSet::processValue(const AbstractQoreNode* p) {
 	 ++count;	 
       }
       else {
-	 obj_set_t::iterator i = oset.find(o);
-	 if (i == oset.end()) {
-	    oset.insert(o);
+	 obj_set_t::iterator i = oset.lower_bound(o);
+	 if (i == oset.end() || (*i) != o) {
+	    oset.insert(i, o);
 	    if (process(o))
 	       return -1;
 	 }

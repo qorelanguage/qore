@@ -895,6 +895,33 @@ const QoreMethod* qore_class_private::findLocalCommittedStaticMethod(const char*
    return m && !m->priv->func->committedEmpty() ? m : 0;
 }
 
+int qore_class_private::initMembers(QoreObject *o, member_map_t::const_iterator i, member_map_t::const_iterator e, ExceptionSink* xsink) const {
+   for (; i != e; ++i) {
+      if (i->second) {
+	 AbstractQoreNode** v = o->getMemberValuePtrForInitialization(i->first);
+	 if (i->second->exp) {
+	    ReferenceHolder<AbstractQoreNode> val(i->second->exp->eval(xsink), xsink);
+	    if (*xsink)
+	       return -1;
+	    // check types
+	    AbstractQoreNode* nv = i->second->getTypeInfo()->acceptInputMember(i->first, *val, xsink);
+	    if (*xsink)
+	       return -1;
+	    *v = nv;
+	    val.release();
+	 }
+	 else {
+#ifdef QORE_ENFORCE_DEFAULT_LVALUE
+	    *v = i->second->getTypeInfo()->getDefaultValue();
+#else
+	    *v = 0;
+#endif
+	 }
+      }
+   } 
+   return 0;
+}
+
 void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList *bceal, ExceptionSink* xsink) const {
    // if there is no constructor, execute the superclass constructors directly
    if (!constructor){

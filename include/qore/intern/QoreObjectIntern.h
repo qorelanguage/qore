@@ -150,17 +150,17 @@ public:
 
 class qore_object_private {
 public:
-   const QoreClass *theclass;
+   const QoreClass* theclass;
    int status;
    mutable QoreThreadLock mutex;
    // used for references, to ensure that assignments will not deadlock when the object is locked for update
    mutable QoreThreadLock ref_mutex;
-   KeyList *privateData;
+   KeyList* privateData;
    QoreReferenceCounter tRefs;  // reference-references
-   QoreHashNode *data;
-   QoreProgram *pgm;
+   QoreHashNode* data;
+   QoreProgram* pgm;
    bool system_object, delete_blocker_run, in_destructor, pgm_ref, recursive_ref_found;
-   QoreObject *obj;
+   QoreObject* obj;
 
    DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
       theclass(oc), status(OS_OK), 
@@ -203,46 +203,7 @@ public:
          merge(reinterpret_cast<const QoreHashNode *>(v), vl, xsink);
    }
 
-   DLLLOCAL void merge(const QoreHashNode *h, AutoVLock &vl, ExceptionSink *xsink) {
-      // list for saving all overwritten values to be dereferenced outside the object lock
-      ReferenceHolder<QoreListNode> holder(xsink);
-
-      bool inclass = qore_class_private::runtimeCheckPrivateClassAccess(*theclass);
-
-      {
-         AutoLocker al(mutex);
-
-         if (status == OS_DELETED) {
-            makeAccessDeletedObjectException(xsink, theclass->getName());
-            return;
-         }
-
-         //printd(5, "qore_object_private::merge() obj=%p\n", obj);
-
-         ConstHashIterator hi(h);
-         while (hi.next()) {
-            const QoreTypeInfo *ti;
-
-            // check member status
-            if (checkMemberAccessGetTypeInfo(xsink, hi.getKey(), ti, !inclass))
-               return;
-            
-            // check type compatibility and perform type translations, if any
-            ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
-            if (*xsink)
-               return;
-            
-            AbstractQoreNode *n = data->swapKeyValue(hi.getKey(), val.release());
-            //printd(5, "QoreObject::merge() n=%p (rc=%d, type=%s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
-            // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
-            if (n && n->isReferenceCounted()) {
-               if (!holder)
-                  holder = new QoreListNode;
-               holder->push(n);
-            }
-         }
-      }
-   }
+   DLLLOCAL void merge(const QoreHashNode *h, AutoVLock &vl, ExceptionSink *xsink);
 
    DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const;
 
@@ -430,7 +391,7 @@ public:
    DLLLOCAL void doDeleteIntern(ExceptionSink *xsink) {
       printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj=%p\n", obj);
 
-      // increment reference count for destructor
+      // increment reference count temporarily for destructor
       {
 	 AutoLocker slr(ref_mutex);
 	 ++obj->references;

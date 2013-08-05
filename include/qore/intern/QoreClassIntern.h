@@ -2393,32 +2393,7 @@ public:
       return scl ? scl->isPublicOrPrivateMember(mem, priv) : 0;
    }
 
-   DLLLOCAL int initMembers(QoreObject *o, member_map_t::const_iterator i, member_map_t::const_iterator e, ExceptionSink* xsink) const {
-      for (; i != e; ++i) {
-	 if (i->second) {
-	    AbstractQoreNode** v = o->getMemberValuePtrForInitialization(i->first);
-	    if (i->second->exp) {
-	       ReferenceHolder<AbstractQoreNode> val(i->second->exp->eval(xsink), xsink);
-	       if (*xsink)
-		  return -1;
-	       // check types
-	       AbstractQoreNode* nv = i->second->getTypeInfo()->acceptInputMember(i->first, *val, xsink);
-	       if (*xsink)
-		  return -1;
-	       *v = nv;
-	       val.release();
-	    }
-	    else {
-#ifdef QORE_ENFORCE_DEFAULT_LVALUE
-	       *v = i->second->getTypeInfo()->getDefaultValue();
-#else
-	       *v = 0;
-#endif
-	    }
-	 }
-      } 
-      return 0;
-   }
+   DLLLOCAL int initMembers(QoreObject *o, member_map_t::const_iterator i, member_map_t::const_iterator e, ExceptionSink* xsink) const;
 
    DLLLOCAL int initVar(const char* vname, QoreVarInfo& vi, ExceptionSink* xsink) const {
       if (vi.exp) {

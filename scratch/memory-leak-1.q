@@ -40,12 +40,12 @@ class T { private { int $.id; } constructor(int $id) { $.id = $id; } destructor(
     $obj7.b = $obj7;
 }
 
-printf("x\n");
+#printf("x\n");
 
 my T $obj8(8);
 my T $obj9(9);
 
-printf("8=%s\n9=%s\n", dbg_node_info($obj8), dbg_node_info($obj9));
+#printf("8: %s\n9: %s\n", dbg_node_info($obj8), dbg_node_info($obj9));
 
 $obj8.a = ("a": $obj9, "b": $obj9);
 $obj9.b = $obj8;

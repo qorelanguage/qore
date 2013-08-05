@@ -258,8 +258,10 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
       if (!intern)
          vl.addMemberNotification(o, mem->getBuffer()); // add member notification for external updates
    }
+   if (*vl.xsink)
+      return -1;
 
-   return *vl.xsink ? -1 : 0;
+   return 0;
 }
 
 int LValueHelper::doLValue(const ReferenceNode* ref, bool for_remove) {
@@ -297,6 +299,7 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       // true is for "internal"
       if (qore_object_private::getLValue(*obj, v->str, *this, true, for_remove, vl.xsink))
          return -1;
+
    }
    else if (ntype == NT_CLASS_VARREF)
       reinterpret_cast<const StaticClassVarRefNode*>(n)->getLValue(*this);
@@ -390,7 +393,7 @@ int LValueHelper::assign(AbstractQoreNode* n, const char* desc) {
       return -1;
    }
 
-   if (lvid_set && n->getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n))->lvalue_id) != lvid_set->end())) {
+   if (lvid_set && get_node_type(n) == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n))->lvalue_id) != lvid_set->end())) {
       vl.xsink->raiseException("REFERENCE-ERROR", "recursive reference detected in assignment");
       saveTemp(n);
       return -1;
@@ -400,7 +403,7 @@ int LValueHelper::assign(AbstractQoreNode* n, const char* desc) {
       saveTemp(val->assign(n));
       return 0;
    }
-
+   
    //printd(5, "LValueHelper::assign() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
    saveTemp(*v);
    *v = n;
