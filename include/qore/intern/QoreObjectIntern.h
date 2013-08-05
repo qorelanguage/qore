@@ -121,37 +121,30 @@ public:
    }
 };
 
-class RecursiveSet {
-protected:
+typedef std::set<const QoreObject*> obj_set_t;
+
+class ObjectSet {
+private:
+   const QoreObject* root;
    obj_set_t oset;
-   qore_size_t len;
+   qore_size_t count;
 
 public:
-   DLLLOCAL RecursiveSet(QoreObject *obj1, QoreObject *obj2) {
-      oset.insert(obj1);
-      if (obj1 == obj2)
-         len = 1;
-      else {
-         oset.insert(obj2);
-         len = 2;
+   DLLLOCAL ObjectSet(const QoreObject* r) : root(r), count(0) {
+      while (true) {
+         if (process(r) == -1) {
+            continue;
+         }
+         break;
       }
    }
-   DLLLOCAL void merge(RecursiveSet *rset);
-   DLLLOCAL void add(QoreObject *obj) {
-      assert(oset.find(obj) == oset.end());
-      oset.insert(obj);
-      ++len;      
-   }
-   DLLLOCAL void remove(QoreObject *obj) {
-      assert(oset.find(obj) != oset.end());
-      oset.erase(obj);
-      --len;
-   }
-   DLLLOCAL bool find(QoreObject *obj) {
-      return oset.find(obj) != oset.end() ? true : false;
-   }
-   DLLLOCAL qore_size_t size() {
-      return len;
+
+   DLLLOCAL int process(const QoreObject* r);
+
+   DLLLOCAL int processValue(const AbstractQoreNode* p);
+
+   DLLLOCAL qore_size_t getCount() const {
+      return count;
    }
 };
 
@@ -166,20 +159,14 @@ public:
    QoreReferenceCounter tRefs;  // reference-references
    QoreHashNode *data;
    QoreProgram *pgm;
-   bool system_object, delete_blocker_run, in_destructor, pgm_ref;
+   bool system_object, delete_blocker_run, in_destructor, pgm_ref, recursive_ref_found;
    QoreObject *obj;
-
-   // recursive reference count for entire object
-   unsigned rcount;
-
-   // set of objects reachable from this object that are part of circular references
-   RecursiveSet *rset;
 
    DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
       theclass(oc), status(OS_OK), 
       privateData(0), data(n_data), pgm(p), system_object(!p), 
-      delete_blocker_run(false), in_destructor(false), pgm_ref(true),
-      obj(n_obj), rcount(0), rset(0) {
+      delete_blocker_run(false), in_destructor(false), pgm_ref(true), recursive_ref_found(false),
+      obj(n_obj) {
 
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj=%p, pgm=%p, class=%s, references 0->1\n", obj, p, oc->getName());
@@ -200,63 +187,6 @@ public:
       assert(!pgm);
       assert(!data);
       assert(!privateData);
-   }
-
-   // adds a referece to an object as part of a circular reference set
-   // returns -1 if object already in circular reference set, 0 if not
-   DLLLOCAL int addRecursive(const char *key, QoreObject *next, bool is_new) {
-      printd(0, "  addRecursive() obj=%p (%s, rcount=%d, rset=%p) '%s' -> %p (%s rcount=%d, rset=%p) is_new=%d\n", obj, obj->getClassName(), rcount, rset, key, next, next->getClassName(), next->priv->rcount, next->priv->rset, is_new);
-
-      if (next->priv->rset) {
-         if (next->priv->rset == rset) {
-            // increment recursive reference count of "next"
-            if (is_new)
-               ++next->priv->rcount;
-            return -1;
-         }
-         ++next->priv->rcount;
-
-         if (!rset) {
-            rset = next->priv->rset;
-            rset->add(obj);
-         }
-         else {
-            if (rset->size() >= next->priv->rset->size()) {
-               rset->merge(next->priv->rset);
-               delete next->priv->rset;
-               next->priv->rset = rset;
-            }
-            else {
-               next->priv->rset->merge(rset);
-               delete rset;
-               rset = next->priv->rset;
-            }
-         }
-
-         return 0;
-      }
-      ++next->priv->rcount;
-
-      if (rset) {
-         next->priv->rset = rset;
-         rset->add(next);
-      }
-      else {
-         rset = new RecursiveSet(obj, next);
-         next->priv->rset = rset;
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int checkRecursive(ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink);
-
-   DLLLOCAL int verifyRecursive(QoreObject *nobj) {
-      if (rset && rset->find(nobj)) {
-         ++rcount;
-         return -1;
-      }
-      return 0;
    }
 
    DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock &vl, ExceptionSink* xsink) {
@@ -647,19 +577,6 @@ public:
       return obj.priv->getLValue(key, lvh, internal, for_remove, xsink);
    }
 
-   /*
-   DLLLOCAL static int checkRecursive(QoreObject *obj, AutoVLock &vl, ExceptionSink *xsink) {
-      return obj->priv->checkRecursive(vl, xsink);
-   }
-
-   DLLLOCAL static int verifyRecursive(QoreObject *obj, QoreObject *other) {
-      return obj->priv->verifyRecursive(other);
-   }
-
-   DLLLOCAL static int addRecursive(QoreObject *obj, const char *key, QoreObject *next, bool is_new) {
-      return obj->priv->addRecursive(key, next, is_new);
-   }
-    */
    DLLLOCAL static AbstractQoreNode **getMemberValuePtr(const QoreObject *obj, const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) {
       return obj->priv->getMemberValuePtr(key, vl, typeInfo, xsink);
    }

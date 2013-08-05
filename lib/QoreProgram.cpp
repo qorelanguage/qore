@@ -227,7 +227,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
       {
          AutoLocker al(tlock);
          pgm_data_map.clear();
-         tclear = false;
+         tclear = 0;
          if (twaiting)
             tcond.broadcast();
       }

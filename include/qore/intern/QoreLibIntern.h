@@ -282,10 +282,11 @@ enum qore_call_t {
 #define DAH_TEXT(d) (d == DAH_RELEASE ? "RELEASE" : (d == DAH_ACQUIRE ? "ACQUIRE" : "NOCHANGE"))
 
 // keep a map of objects to member names to find recursive data structures
-typedef std::map<QoreObject *, const char* > obj_map_t;
-typedef std::vector<obj_map_t::iterator> obj_vec_t;
-typedef std::set<QoreObject *> obj_set_t;
+//typedef std::map<QoreObject*, const char*> obj_map_t;
+//typedef std::vector<obj_map_t::iterator> obj_vec_t;
+//typedef std::set<QoreObject*> obj_set_t;
 
+/*
 class ObjMap {
 protected:
    // map of object ptrs to keys
@@ -364,12 +365,16 @@ protected:
 public:
    DLLLOCAL ObjectCycleHelper(ObjMap& n_omap, QoreObject* n_obj) : omap(n_omap), obj(n_obj) {
    }
+
    DLLLOCAL ~ObjectCycleHelper() {
       omap.erase(obj);
    }
 };
 
 DLLLOCAL int qoreCheckContainer(AbstractQoreNode* v, ObjMap &omap, AutoVLock &vl, ExceptionSink* xsink);
+*/
+
+
 DLLLOCAL int check_lvalue(AbstractQoreNode* n, bool assign = true);
 DLLLOCAL int check_lvalue_int(const QoreTypeInfo *&typeInfo, const char* name);
 DLLLOCAL int check_lvalue_float(const QoreTypeInfo *&typeInfo, const char* name);
