@@ -58,7 +58,15 @@ bool check_lstat(unsigned code, const QoreStringNode* path) {
 #endif
 
 bool is_writable_intern(const QoreStringNode* path) {
-#ifdef HAVE_PWD_H
+#ifdef HAVE_ACCESS
+   // solution for situation like:
+   // $ id
+   // uid=5920(user1) gid=6183(group1) groups=6003(group2),6183(group3)
+   // $ ls -la /foo/bar/
+   // drwxrwsr-x 2  5921 group2 4096 Aug  7 14:37 .
+   // where 6183(group1) is an effective group etc so geteuid() != dir group
+   return access(path->getBuffer(), W_OK) == 0;
+#elif defined HAVE_PWD_H
    struct stat sbuf;
    int rc;
    
