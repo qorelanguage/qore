@@ -1616,7 +1616,9 @@ int qore_usleep(int64 usecs) {
 }
 
 bool q_path_is_readable(const char* path) {
-#ifdef HAVE_PWD_H
+#ifdef HAVE_ACCESS
+   return !access(path, R_OK);
+#elif defined HAVE_PWD_H
    struct stat sbuf;
    int rc;
 
@@ -1632,7 +1634,6 @@ bool q_path_is_readable(const char* path) {
    return false;
 #else
    // FIXME: implement properly for windows
-
    // check if it's a directory
    struct stat sbuf;
    int rc;
