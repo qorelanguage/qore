@@ -445,7 +445,7 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
       decimals = get_number(&param);
    }
    if (decimals < 0)
-      decimals = 0;
+      decimals = -1;
 
    char p = *param;
    switch (*param) {
@@ -549,6 +549,7 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 	    *f = '\0';
 	    double val = !node ? 0.0 : node->getAsFloat();
 	    tbuf.sprintf(fmt, val);
+	    //printd(5, "fmt: '%s' val: %f\n", fmt, val);
 	 }
 	 if (type && (width != -1))
 	    tbuf.terminate(width);
