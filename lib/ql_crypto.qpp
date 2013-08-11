@@ -1022,7 +1022,7 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
     value. The data to be encoded are often called the "message," and the
     hash value is sometimes called the message digest or simply digest.
 
-    For more inof: <a href="http://en.wikipedia.org/wiki/Cryptographic_hash_function">Wikipedia's Cryptographic hash function article</a>.
+    For more info: <a href="http://en.wikipedia.org/wiki/Cryptographic_hash_function">Wikipedia's Cryptographic hash function article</a>.
 
     See also:
         - @ref cryptographic_functions
@@ -1766,7 +1766,7 @@ binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
     of the HMAC depends upon the cryptographic strength of the underlying
     hash function, the size of its hash output, and on the size and quality of the key.
 
-    For more inof: <a href="http://en.wikipedia.org/wiki/Hmac">Wikipedia's Hash-based message authentication code article</a>.
+    For more info: <a href="http://en.wikipedia.org/wiki/Hmac">Wikipedia's Hash-based message authentication code article</a>.
 
     See also:
         - @ref cryptographic_functions

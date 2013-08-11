@@ -21,8 +21,8 @@
 
     @par Description:
     The Boolean type can have two values, @ref Qore::True "True" and @ref Qore::False "False".\n\n
-    When converting other types to a Boolean, %Qore uses strict mathematical conversions by default; that is; any value that converts to a non-zero integer, floating-point, or arbitrary-precision numeric value (in the case of @ref string "strings", @ref float "floats", and @ref number "numbers") will be evaluated as @ref Qore::True "True". Otherwise the result of the conversion will be @ref Qore::False "False".\n\n
-    For programmers that find qore's default strict mathematic boolean conversion logic unintuitive, parse option @ref perl-bool-eval "%perl-bool-eval" can be set, in which case the conversion to boolean values is performed like perl does, based on an interpretation of the source value and taking into account its type (for example, when this option is set, an empty @ref string "string", @ref hash "hash", or @ref list "list" is always @ref Qore::False, whereas if these are not empty they are interpreted as @ref Qore::True "True"); this way is considered to be more intuitive by most prorammers, so much so that the original strict mathematical interpretation of boolean values is considered to be a design bug in qore; see @ref perl-bool-eval "%perl-bool-eval" for more information.
+
+    When converting other types to a Boolean, %Qore uses Perl-style boolean conversion, based on an interpretation of the source value and taking into account its type (for example, when this option is set, an empty @ref string "string", @ref hash "hash", or @ref list "list" is always @ref Qore::False, whereas if these are not empty they are interpreted as @ref Qore::True "True"); this way is considered to be more intuitive by most prorammers, so much so that the original strict mathematical interpretation of boolean values is considered to be a design bug in qore; see @ref perl-bool-eval "%perl-bool-eval" for more information.
 
     @par Immediate Value Example:
     @ref Qore::True
@@ -88,7 +88,9 @@ on more than 1 line";
     @par Type Name:
     \c "integer"
 
-    @see @ref int_type, @ref softint_type
+    @see 
+    - @ref int_type, @ref softint_type
+    - @ref Qore::MAXINT, @ref Qore::MININT
 
     <hr>
     @section float Float
@@ -286,7 +288,7 @@ prompt% qore -X 'P0000-00-03T21:00:00'
 
     @par Description:
     The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a pointer to a memory location for the data and a size indicator.\n\n
-    Binary data can be concatenated with the + and += operators.\n\n
+    Binary data can be concatenated with the + and += operators and manipulated with the @ref splice "splice" and @ref extract "extract" operators.\n\n
     This data can be manipulated by being written and read from @ref Qore::File, @ref Qore::Socket, @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, or @ref Qore::SQL::SQLStatement objects, or converted and parsed to/from base64 encoded strings using the makeBase64String() and parseBase64String() functions, or compressed and decompressed using the compress(), gzip(), bzip2(), etc. functions, and processed by most cryptographic funtions, among others.\n\n
     Binary objects can be read from a @ref Qore::File object using the Qore::File::readBinary() method and can be written using the Qore::File::write() method. Please see the @ref Qore::File class for more information.\n\n
     Binary objects can be read from a @ref Qore::Socket object using the Qore::Socket::recvBinary() method and can be written using the Qore::Socket::send() method. Please see the @ref Qore::Socket class for more information.\n\n
@@ -355,7 +357,7 @@ False@endverbatim
 
     Boolean, string, integer, date, floating point, and arbitrary-percision numeric data types can be freely converted from one type to the other, although data loss is possible depending on the conversion (particularly when converting to the boolan type as only two possible values are supported).
 
-    The special types @ref null and @ref nothing are not equivalent and cannot be converted to or from any other type.
+    The special types @ref null and @ref nothing are not equivalent and are generally not automatically converted to or from any other type.
 
     When date types are converted from strings, any of the following formats can be used: \c "YYYYMMDDHHmmSS[.us][Z|+-HH[:MM[:SS]]]", \c "YYYY-MM-DD HH:mm:SS.us", \c "YYYY-MM-DDTHH:mm:SS", \c "YYYY-MM-DDTHH:mm:SS[.us][Z|+-HH[:MM[:SS]]]", and most reasonable combinations thereof. If the time zone component is missing, then the local time zone will be assumed (see @ref time_zones).
 
