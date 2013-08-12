@@ -1641,9 +1641,10 @@ my any $v = $c.name;
                     rv.(row.index_name) = new OracleIndex(row.index_name, row.uniqueness == "UNIQUE", ih{row.index_name}, row.index_type, row.tablespace_name);
                     if (row.constraint_name) {
                         *AbstractUniqueConstraint uk = findUniqueConstraintUnlocked(row.constraint_name);
-                        if (uk)
+                        if (uk) {
                             rv.(row.index_name).setSupportingConstraint(uk);
-                        uk.setIndexBase(row.index_name);
+                            uk.setIndexBase(row.index_name);
+                        }
                     }
                 }
 
