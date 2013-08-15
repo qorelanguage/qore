@@ -2031,6 +2031,19 @@ sub background_tests() {
     }
 }
 
+sub type_code_test() {
+    test_value(True.typeCode(), NT_BOOLEAN, "typeCode() bool");
+    test_value("foo".typeCode(), NT_STRING, "typeCode() string");
+    test_value(1.typeCode(), NT_INT, "typeCode() int");
+    test_value(1n.typeCode(), NT_NUMBER, "typeCode() number");
+    test_value(now().typeCode(), NT_DATE, "typeCode() date");
+    test_value(1.2.typeCode(), NT_FLOAT, "typeCode() float");
+    test_value((1,2,).typeCode(), NT_LIST, "typeCode() list");
+    test_value(("foo":1).typeCode(), NT_HASH, "typeCode() bool");
+    test_value(NULL.typeCode(), NT_NULL, "typeCode() NULL");
+    test_value(NOTHING.typeCode(), NT_NOTHING, "typeCode() NOTHING");
+}
+
 sub mime_tests() {
     my string $str = "This is a test: æéìœü";
     test_value($str, mime_decode_quoted_printable(mime_encode_quoted_printable($str)), "MIME: quoted printable");
@@ -2067,6 +2080,7 @@ sub do_tests() {
 	    closure_tests();
 	    format_date_tests();
             module_tests();
+            type_code_test();
 	    if ($o.bq)
 		backquote_tests();
 	}
