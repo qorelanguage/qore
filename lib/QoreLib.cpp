@@ -445,7 +445,7 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
       decimals = get_number(&param);
    }
    if (decimals < 0)
-      decimals = 0;
+      decimals = -1;
 
    char p = *param;
    switch (*param) {
