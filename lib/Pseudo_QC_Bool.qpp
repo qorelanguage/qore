@@ -41,7 +41,7 @@ switch ($b.typeCode()) {
 }
     @endcode
 */
-bool <bool>::typeCode() [flags=CONSTANT] {
+int <bool>::typeCode() [flags=CONSTANT] {
    return NT_BOOLEAN;
 }
 
