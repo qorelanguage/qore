@@ -159,4 +159,130 @@ public:
    }
 };
 
+//! provides a safe and exception-safe way to hold read locks in Qore, only to be used on the stack, cannot be dynamically allocated
+/** Ensures that read locks are released by locking the read lock when the
+    object is created and releasing it when the object is destroyed.
+    @see QoreSafeRWWriteLocker
+*/
+class QoreSafeRWReadLocker {
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreSafeRWReadLocker(const QoreSafeRWReadLocker&);
+   
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreSafeRWReadLocker& operator=(const QoreSafeRWReadLocker&);
+   
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL void *operator new(size_t);
+
+protected:
+   //! the pointer to the lock that will be managed
+   QoreRWLock *l;
+
+   //! lock flag
+   bool locked;
+
+public:
+   //! creates the object and grabs the read lock
+   DLLLOCAL QoreSafeRWReadLocker(QoreRWLock &n_l) : l(&n_l) {
+      l->rdlock();
+      locked = true;
+   }
+
+   //! creates the object and grabs the read lock
+   DLLLOCAL QoreSafeRWReadLocker(QoreRWLock *n_l) : l(n_l) {
+      l->rdlock();
+      locked = true;
+   }
+
+   //! destroys the object and releases the lock
+   DLLLOCAL ~QoreSafeRWReadLocker() {
+      if (locked)
+         l->unlock();
+   }
+
+   //! locks the object and updates the locked flag, assumes that the lock is not already held
+   DLLLOCAL void lock() {
+      assert(!locked);
+      l->rdlock();
+      locked = true;
+   }
+
+   //! unlocks the object and updates the locked flag, assumes that the lock is held
+   DLLLOCAL void unlock() {
+      assert(locked);
+      locked = false;
+      l->unlock();
+   }
+
+   //! will not unlock the lock when the destructor is run; do not use any other functions of this class after calling this function
+   DLLLOCAL void stay_locked() {
+      assert(locked);
+      locked = false;
+   }
+};
+
+//! provides a safe and exception-safe way to hold write locks in Qore, only to be used on the stack, cannot be dynamically allocated
+/** Ensures that write locks are released by locking the write lock when the
+    object is created and releasing it when the object is destroyed.
+    @see QoreSafeRWReadLocker
+*/
+class QoreSafeRWWriteLocker {
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreSafeRWWriteLocker(const QoreSafeRWWriteLocker&);
+   
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreSafeRWWriteLocker& operator=(const QoreSafeRWWriteLocker&);
+   
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL void *operator new(size_t);
+
+protected:
+   //! the pointer to the lock that will be managed
+   QoreRWLock *l;
+
+   //! lock flag
+   bool locked;
+
+public:
+   //! creates the object and grabs the write lock
+   DLLLOCAL QoreSafeRWWriteLocker(QoreRWLock &n_l) : l(&n_l) {
+      l->wrlock();
+      locked = true;
+   }
+
+   //! creates the object and grabs the write lock
+   DLLLOCAL QoreSafeRWWriteLocker(QoreRWLock *n_l) : l(n_l) {
+      l->wrlock();
+      locked = true;
+   }
+
+   //! destroys the object and releases the lock
+   DLLLOCAL ~QoreSafeRWWriteLocker() {
+      if (locked)
+         l->unlock();
+   }
+
+   //! locks the object and updates the locked flag, assumes that the lock is not already held
+   DLLLOCAL void lock() {
+      assert(!locked);
+      l->wrlock();
+      locked = true;
+   }
+
+   //! unlocks the object and updates the locked flag, assumes that the lock is held
+   DLLLOCAL void unlock() {
+      assert(locked);
+      locked = false;
+      l->unlock();
+   }
+
+   //! will not unlock the lock when the destructor is run; do not use any other functions of this class after calling this function
+   DLLLOCAL void stay_locked() {
+      assert(locked);
+      locked = false;
+   }
+};
+
 #endif // #ifndef _QORE_QORERWLOCK_H

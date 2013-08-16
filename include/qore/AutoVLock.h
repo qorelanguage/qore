@@ -27,13 +27,73 @@
 
 class AbstractSmartLock;
 
+struct QLckPtr {
+private:
+   size_t ptr;
+
+protected:
+   DLLLOCAL void unlockIntern() {
+      assert(ptr);
+      if (ptr & 1)
+         ((QoreRWLock*)(ptr ^ 1))->unlock();
+      else
+         ((QoreThreadLock*)ptr)->unlock();
+   }
+
+public:
+   DLLLOCAL QLckPtr() : ptr(0) {
+   }
+
+   DLLLOCAL void set(QoreThreadLock* m) {
+      ptr = (size_t)m;
+   }
+
+   DLLLOCAL void set(QoreRWLock* rwl) {
+      ptr = (size_t)rwl | 1;
+   }
+
+   DLLLOCAL QoreThreadLock* getMutex() const {
+      assert(!(ptr & 1));
+      return (QoreThreadLock*)ptr;
+   }
+
+   DLLLOCAL QoreRWLock* getRWL() const {
+      assert(ptr & 1);
+      return (QoreRWLock*)(ptr ^ 1);
+   }
+
+   DLLLOCAL bool isSet() const {
+      return ptr;
+   }
+
+   /*
+   DLLLOCAL void unlock() {
+      if (ptr)
+         unlockIntern();
+   }
+   */
+
+   DLLLOCAL void unlockAndClear() {
+      if (ptr) {
+         unlockIntern();
+         ptr = 0;
+      }
+   }
+
+   DLLLOCAL void clear() {
+      assert(ptr);
+      ptr = 0;
+   }
+};
+
 //! AutoVLock is a container for safely managing global variable and object lock handovers, required for functions accessing global variables and object data where locking is necessary
 /** This object is used for lock handover management and automatically releasing the last lock.
  */
 class AutoVLock {
 private:
    // pointer to lock currently held
-   QoreThreadLock* m;
+   QLckPtr lock;
+   //QoreThreadLock* m;
 
    // pointer to object to dereference
    QoreObject* o;
@@ -72,10 +132,10 @@ public:
    DLLLOCAL void set(QoreThreadLock* n_m);
 
    //! sets the current object (for dereference) and lock
-   DLLLOCAL void set(QoreObject* n_o, QoreThreadLock* n_m);
+   DLLLOCAL void set(QoreObject* n_o, QoreRWLock* n_rwl);
 
-   //! gets the current lock
-   DLLLOCAL QoreThreadLock* get() const;
+   //! gets the current read-write lock
+   DLLLOCAL QoreRWLock* getRWL() const;
 
    //! gets the current object
    DLLLOCAL QoreObject* getObject() const;

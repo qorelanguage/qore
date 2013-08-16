@@ -60,7 +60,7 @@ struct qore_avl_private {
    }
 };
 
-AutoVLock::AutoVLock(ExceptionSink *n_xsink) : m(0), o(0), xsink(n_xsink), priv(0) {
+AutoVLock::AutoVLock(ExceptionSink *n_xsink) : o(0), xsink(n_xsink), priv(0) {
    //printd(5, "AutoVLock::AutoVLock() this=%p\n", this);
 }
 
@@ -82,13 +82,12 @@ AutoVLock::~AutoVLock() {
 }
 
 AutoVLock::operator bool() const {
-   return (bool)m;
+   return lock.isSet();
 }
 
 void AutoVLock::del() {
-   if (m) {
-      m->unlock();
-      m = 0;
+   if (lock.isSet()) {
+      lock.unlockAndClear();
       if (o) {
 	 o->tDeref();
 	 o = 0;
@@ -98,8 +97,8 @@ void AutoVLock::del() {
 }
 
 void AutoVLock::clear() {
-   if (m) {
-      m = 0;
+   if (lock.isSet()) {
+      lock.clear();
       if (o)
 	 o = 0;
    }
@@ -107,18 +106,23 @@ void AutoVLock::clear() {
 }
 
 void AutoVLock::set(QoreThreadLock *n_m) {
-   assert(!m);
-   m = n_m;
+   assert(!lock.isSet());
+   lock.set(n_m);
 }
 
-void AutoVLock::set(QoreObject *n_o, QoreThreadLock *n_m) {
-   assert(!m);
+void AutoVLock::set(QoreObject *n_o, QoreRWLock *n_m) {
+   assert(!lock.isSet());
    o = n_o;
-   m = n_m;
+   lock.set(n_m);
 }
 
+/*
 QoreThreadLock *AutoVLock::get() const {
-   return m;
+   return lock.getMutex();
+}
+*/
+QoreRWLock* AutoVLock::getRWL() const {
+   return lock.getRWL();
 }
 
 QoreObject *AutoVLock::getObject() const {

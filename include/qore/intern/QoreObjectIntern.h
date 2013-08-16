@@ -121,8 +121,6 @@ public:
    }
 };
 
-typedef std::set<const QoreObject*> obj_set_t;
-
 class ObjectSet {
 private:
    const QoreObject* root;
@@ -152,20 +150,20 @@ class qore_object_private {
 public:
    const QoreClass* theclass;
    int status;
-   mutable QoreThreadLock mutex;
+   mutable QoreRWLock rwl;
    // used for references, to ensure that assignments will not deadlock when the object is locked for update
    mutable QoreThreadLock ref_mutex;
    KeyList* privateData;
    QoreReferenceCounter tRefs;  // reference-references
    QoreHashNode* data;
    QoreProgram* pgm;
-   bool system_object, delete_blocker_run, in_destructor, pgm_ref, recursive_ref_found;
+   bool system_object, delete_blocker_run, in_destructor, pgm_ref, recursive_ref_found, is_recursive;
    QoreObject* obj;
 
    DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
       theclass(oc), status(OS_OK), 
       privateData(0), data(n_data), pgm(p), system_object(!p), 
-      delete_blocker_run(false), in_destructor(false), pgm_ref(true), recursive_ref_found(false),
+      delete_blocker_run(false), in_destructor(false), pgm_ref(true), recursive_ref_found(false), is_recursive(false),
       obj(n_obj) {
 
 #ifdef QORE_DEBUG_OBJ_REFS
@@ -210,7 +208,7 @@ public:
    DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
 
    DLLLOCAL QoreStringNode *firstKey(ExceptionSink *xsink) {
-      AutoLocker al(mutex);
+      QoreAutoRWReadLocker al(rwl);
 
       if (status == OS_DELETED) {
          makeAccessDeletedObjectException(xsink, theclass->getName());
@@ -236,7 +234,7 @@ public:
    }
 
    DLLLOCAL QoreStringNode *lastKey(ExceptionSink *xsink) {
-      AutoLocker al(mutex);
+      QoreAutoRWReadLocker al(rwl);
 
       if (status == OS_DELETED) {
          makeAccessDeletedObjectException(xsink, theclass->getName());
@@ -259,7 +257,7 @@ public:
    }
 
    DLLLOCAL QoreHashNode *getSlice(const QoreListNode *l, ExceptionSink *xsink) const {
-      SafeLocker sl(mutex);
+      QoreSafeRWReadLocker sl(rwl);
 
       if (status == OS_DELETED) {
 	 makeAccessDeletedObjectException(xsink, theclass->getName());
@@ -401,7 +399,7 @@ public:
 
       QoreHashNode *td;
       {
-	 AutoLocker al(mutex);
+         QoreAutoRWWriteLocker al(rwl);
 	 assert(status != OS_DELETED);
 	 assert(data);
 	 status = OS_DELETED;
@@ -422,7 +420,7 @@ public:
       }
 
       {
-         AutoLocker al(mutex);
+         QoreAutoRWWriteLocker al(rwl);
 
          if (pgm) {
             if (pgm_ref) {
@@ -438,7 +436,7 @@ public:
    }
 
    DLLLOCAL void derefProgramCycle(QoreProgram *p) {
-      AutoLocker al(mutex);
+      QoreAutoRWWriteLocker al(rwl);
 
       if (pgm && pgm_ref) {
          //pgm->depDeref(0);
@@ -462,23 +460,23 @@ public:
       }
 
       {
-	 SafeLocker sl(mutex);
+         QoreSafeRWWriteLocker sl(rwl);
 
 	 if (in_destructor || status != OS_OK) {
 	    printd(5, "qore_object_private::obliterate() obj=%p data=%p in_destructor=%d status=%d\n", obj, data, in_destructor, status);
-	    //printd(0, "Object lock %p unlocked (safe)\n", &mutex);
+	    //printd(0, "Object lock %p unlocked (safe)\n", &rwl);
 	    sl.unlock();
 	    tDeref();
 	    return;
 	 }
 
-	 //printd(5, "Object lock %p locked   (safe)\n", &mutex);
+	 //printd(5, "Object lock %p locked   (safe)\n", &rwl);
 	 printd(5, "qore_object_private::obliterate() obj=%p class=%s\n", obj, theclass->getName());
 
 	 status = OS_DELETED;
 	 QoreHashNode *td = data;
 	 data = 0;
-	 //printd(0, "Object lock %p unlocked (safe)\n", &mutex);
+	 //printd(0, "Object lock %p unlocked (safe)\n", &rwl);
 	 sl.unlock();
 
 	 if (privateData)
@@ -530,6 +528,31 @@ public:
       }
    }
 
+   DLLLOCAL int checkRecursive(obj_set_t& oset) {
+      QoreAutoRWReadLocker al(rwl);
+
+      HashIterator hi(data);
+      while (hi.next()) {
+         check_recursive(oset, hi.getValue());
+      }
+
+      return 0;
+   }
+
+   DLLLOCAL static int checkRecursive(QoreObject& obj, obj_set_t& oset) {
+      return obj.priv->checkRecursive(oset);
+   }
+
+   DLLLOCAL static bool isRecursive(QoreObject& obj) {
+      return obj.priv->is_recursive;
+   }
+
+   DLLLOCAL static void setRecursive(QoreObject& obj) {
+      assert(!obj.priv->is_recursive);
+      obj.priv->is_recursive = true;
+      printd(0, "qore_object_private::setRecursive() obj: %p '%s'\n", &obj, obj.priv->theclass->getName());
+   }
+
    DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
       return obj.priv->takeMember(xsink, mem, check_access);
    }
@@ -557,18 +580,17 @@ public:
    DLLLOCAL static QoreStringNode *lastKey(QoreObject *obj, ExceptionSink *xsink) {
       return obj->priv->lastKey(xsink);
    }
-
 };
 
 class qore_object_lock_handoff_helper {
 private:
-   qore_object_private *pobj;
-   AutoVLock &vl;
+   qore_object_private* pobj;
+   AutoVLock& vl;
 
 public:
    DLLLOCAL qore_object_lock_handoff_helper(qore_object_private *n_pobj, AutoVLock &n_vl) : pobj(n_pobj), vl(n_vl) {
       if (pobj->obj == vl.getObject()) {
-	 assert(vl.get() == &pobj->mutex);
+	 assert(vl.getRWL() == &pobj->rwl);
 	 vl.clear();
 	 return;
       }
@@ -580,20 +602,20 @@ public:
       vl.del();
 
       // lock current object
-      pobj->mutex.lock();
+      pobj->rwl.wrlock();
    }
 
    DLLLOCAL ~qore_object_lock_handoff_helper() {
       // unlock if lock not saved in AutoVLock structure
       if (pobj) {
-	 //printd(0, "Object lock %p unlocked (handoff)\n", &pobj->mutex);
-	 pobj->mutex.unlock();
+	 //printd(0, "Object lock %p unlocked (handoff)\n", &pobj->rwl);
+	 pobj->rwl.unlock();
 	 pobj->obj->tDeref();
       }
    }
 
    DLLLOCAL void stay_locked() {
-      vl.set(pobj->obj, &pobj->mutex);
+      vl.set(pobj->obj, &pobj->rwl);
       pobj = 0;
    }
 };
@@ -607,13 +629,13 @@ private:
 public:
    DLLLOCAL qore_object_recursive_lock_handoff_helper(qore_object_private *n_pobj, AutoVLock &n_vl) : pobj(n_pobj) /*, vl(n_vl)*/ {
       // try to lock current object
-      locked = !pobj->mutex.trylock();
+      locked = !pobj->rwl.trywrlock();
    }
 
    DLLLOCAL ~qore_object_recursive_lock_handoff_helper() {
       // unlock current object
       if (locked)
-         pobj->mutex.unlock();
+         pobj->rwl.unlock();
    }
 
    DLLLOCAL operator bool() const {

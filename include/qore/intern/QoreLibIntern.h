@@ -88,6 +88,9 @@
 // for arbitrary-precision numeric support
 #include <mpfr.h>
 
+//#define DO_OBJ_RECURSIVE_CHECK 1
+#undef DO_OBJ_RECURSIVE_CHECK
+
 // printf format for size_t or qore_size_t integers
 #if TARGET_BITS == 64
 #define QSD QLLD
@@ -118,6 +121,10 @@
 
 #define NT_SOMETHING    -101 // i.e. "not NOTHING"
 #define NT_DATA         -102 // either QoreStringNode or BinaryNode
+
+typedef std::set<const QoreObject*> obj_set_t;
+
+DLLLOCAL int check_recursive(obj_set_t& oset, AbstractQoreNode* n);
 
 struct ParseWarnOptions {
    int64 parse_options;
@@ -284,7 +291,7 @@ enum qore_call_t {
 // keep a map of objects to member names to find recursive data structures
 //typedef std::map<QoreObject*, const char*> obj_map_t;
 //typedef std::vector<obj_map_t::iterator> obj_vec_t;
-//typedef std::set<QoreObject*> obj_set_t;
+//typedef std::set<QoreObject*> obj_set_tt;
 
 /*
 class ObjMap {

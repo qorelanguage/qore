@@ -359,6 +359,16 @@ private:
    nvec_t tvec;
    // to find recursive references
    lvid_set_t* lvid_set;
+   obj_set_t* oset;
+
+   DLLLOCAL void addOSet(QoreObject* o) {
+#ifdef DO_OBJ_RECURSIVE_CHECK
+      if (!oset)
+         oset = new obj_set_t;
+      oset->insert(o);
+#endif
+   }
+
 public:
    QoreLValueGeneric* val;
    const QoreTypeInfo* typeInfo;
@@ -375,6 +385,7 @@ public:
          discard(*i, vl.xsink);
 
       delete lvid_set;
+      delete oset;
    }
 
    DLLLOCAL void saveTemp(AbstractQoreNode* n) {
