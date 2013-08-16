@@ -1726,6 +1726,7 @@ my string $str = makeHexString($str2);
     @see
     - <string>::toHex()
     - makeBase64String(string)
+    - parseHexString()
 */
 string makeHexString(string str) [flags=CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
@@ -1746,6 +1747,7 @@ my string $str = makeHexString($bin);
     @see
     - <binary>::toHex()
     - makeBase64String(binary)
+    - parseHexString()
 */
 string makeHexString(binary bin) {
    QoreStringNode *str = new QoreStringNode;
@@ -1772,6 +1774,7 @@ my binary $bin = parseHexString($hex_string);
     @throw PARSE-HEX-ERROR A syntax error occurred parsing the hex string (odd number of digits, invalid hex character, etc)
 
     @see parseBase64String()
+    @see makeHexString();
 */
 binary parseHexString(string hexstr) {
    return hexstr->parseHex(xsink);
