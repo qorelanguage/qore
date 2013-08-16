@@ -71,7 +71,7 @@ module PgsqlSqlUtil {
     Column types are mapped from %Qore types as follows:
 
     <b>PostgreSQL Column Type Mappings</b>
-    |!Generic Type Name|!Oracle Type Used
+    |!Generic Type Name|!PostgreSQL Type Used
     |\c float|\c double
     |\c integer|\c bigint
     |\c number|\c numeric
@@ -154,7 +154,7 @@ $function$
 
     @section pgsql_relnotes Release Notes
 
-    @subsection v10 OgsqlSqlUtil v1.0
+    @subsection v10 PgsqlSqlUtil v1.0
     - initial release
 */
 

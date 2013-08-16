@@ -46,6 +46,19 @@ module WebSocketUtil {
 /** @mainpage WebSocketUtil Module
 
     The %WebSocketUtil module provides common client and server support for <a href="http://tools.ietf.org/html/rfc6455">RFC-6455 based WebSocket protocol</a> implementations in %Qore.
+
+    This module is used by the following modules:
+    - <a href="../../WebSocketClient/html/index.html">WebSocketClient</a>: provides an event-driven client API for connecting to WebSocket servers
+    - <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a>: provides an interface to the %Qore <a href="../../HttpServer/html/index.html">HttpServer</a> module for implementing server-side WebSocket services
+
+    To use this module directly, use \c "%requires WebSocketClient" in your code, otherwise it's recommended to use one of the
+    higher-level module listed above.
+
+    The main functionality provided by this module:
+    - @ref WebSocketUtil::ws_encode_message(): encodes messages for sending over a websocket connection
+    - @ref WebSocketUtil::ws_read_message(): reads and decodes messages from a websocket connection
+    - @ref closecodes
+    - @ref opcodes
 */
 
 #! the WebSocketUtil namespace contains all the definitions in the WebSocketUtil module
@@ -193,6 +206,7 @@ public namespace WebSocketUtil {
     #! read and decode a message from a socket
     /** @par Example:
         @code
+my hash $h = ws_read_message($sock);
 	@endcode
 
 	@param sock the @ref Qore::Socket "Socket" object to receive the message
