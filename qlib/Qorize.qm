@@ -1,0 +1,634 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file Mime.qm Mime module definition
+
+/*  Mime.qm Copyright 2013 Qore Technologies s r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+%requires qore >= 0.8.8
+
+module Qorize {
+    version = "0.0.9";
+    desc = "Create Qore source code from data structures";
+    author = "Petr Vanek";
+    url = "http://qore.org";
+}
+
+/*  Version History
+
+    * 2013-08-15 v 0.0.9: Petr Vanek <petr@yarpen.cz>
+      + initial version
+
+*/
+
+
+/** @mainpage Qorize Module
+
+Qorize module provides functions to create Qore source code from Qore variables (structures).
+
+Usage of this module can be for example:
+
+  - generate code from XML(JSON, YAML, ...) files
+  - create unit tests from currently running script
+  - and more
+
+To use this module, use "%requires Qorize" in your code.
+
+All the public symbols in the module are defined in the @ref Qorize namespace.
+
+Currently it can handle only simple types:
+
+  - integer, numeric, float
+  - string
+  - binary
+  - date including relative arithmetics
+  - NULL, NOTHING
+  - list of simple types (recursive parsing supported)
+  - hash of simple types (recursive parsing supported)
+
+@note There is no support for objects
+
+*/
+
+
+#! public Qorize namespace contains all relevant stuff for this module
+public namespace Qorize {
+
+
+/** @defgroup QorizeFunctions Qorize Functions
+ */
+#@{
+
+#! create code from the boolean value
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code
+    my string $s = qorize(True);
+    # "my bool $var = True;"
+    my string $s = qorize(True, "foo", True);
+    # "bool foo = True;"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize(bool $val, string $name = "var", bool $newstyle=False) {
+    return sprintf("%s = %s;", QorizeHelper::checkVariableName($name, $val, $newstyle),
+                               QorizeHelper::escape($val));
+}
+
+#! create code from the string value
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code
+    my string $s = qorize("lorem ipsum");
+    # "my string $var = \"lorem ipsum\";"
+    my string $s = qorize("lorem ipsum", "foo", True);
+    # "string foo = \"lorem ipsum\";"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize(string $val, string $name = "var", bool $newstyle=False) {
+    return sprintf("%s = %s;", QorizeHelper::checkVariableName($name, $val, $newstyle),
+                                QorizeHelper::escape($val));
+}
+
+#! create code from the integer value
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code
+    my string $s = qorize(1);
+    # "my int $var = 1;"
+    my string $s = qorize(1, "foo", True);
+    # "int foo = 1;"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize(int $val, string $name = "var", bool $newstyle=False) {
+    return sprintf("%s = %s;", QorizeHelper::checkVariableName($name, $val, $newstyle),
+                                QorizeHelper::escape($val));
+}
+
+#! create code from the float value
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code
+    my string $s = qorize(1.2);
+    # "my float $var = 1;"
+    my string $s = qorize(1.2, "foo", True);
+    # "float foo = 1;"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize(float $val, string $name = "var", bool $newstyle=False) {
+    return sprintf("%s = %s;", QorizeHelper::checkVariableName($name, $val, $newstyle),
+                                QorizeHelper::escape($val));
+}
+
+#! create code from the number value
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code
+    my string $s = qorize(123n);
+    # "my number $var = 123n;"
+    my string $s = qorize(123n, "foo", True);
+    # "number foo = 123n;"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize(number $val, string $name = "var", bool $newstyle=False) {
+    return sprintf("%s = %s;", QorizeHelper::checkVariableName($name, $val, $newstyle),
+                               QorizeHelper::escape($val));
+}
+
+#! create code from the date value
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code
+    my string $s = qorize(now());
+    # "my date $var = 2013-08-16T14:37:05.000;"
+    my string $s = qorize(now(), "foo", True);
+    # "date foo = 2013-08-16T14:37:05.000;"
+@endcode
+
+    Relative date values (1D, etc.) are converted to @ref short_reldates
+
+@code
+    my string $s = qorize(3h);
+    # my date $d = PT3H;
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize(date $val, string $name = "var", bool $newstyle=False) {
+    return sprintf("%s = %s;", QorizeHelper::checkVariableName($name, $val, $newstyle),
+                               QorizeHelper::escape($val));
+}
+
+#! create code from the binary value
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+    Binary values are encoded in hexadecimal strings.
+
+@code
+    my binary $bin = ....; # binary value from file for example
+    my string $s = qorize($bin);
+    # "my binary $var = parseHexString(\"666f6f\");"
+    my string $s = qorize($bin, "foo", True);
+    # "binary foo = parseHexString(\"666f6f\");"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize(binary $val, string $name = "var", bool $newstyle=False) {
+    return sprintf("%s = %s;", QorizeHelper::checkVariableName($name, $val, $newstyle),
+                               QorizeHelper::escape($val));
+}
+
+#! create code from the list value
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code
+    my list $l =  (True, False, now(), 12, 12.1, ( 'a', 'b'), );
+    my string $s = qorize($l);
+    # "my list $var =
+    #    (True,False,2013-08-16T15:06:29.000,12,12.1,
+    #        ("a","b",),);"
+    my string $s = qorize($l, "foo", True);
+    # "list foo =  
+    #    (True,False,2013-08-16T15:06:29.000,12,12.1,
+    #        ("a","b",),);"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize(list $val, string $name = "var", bool $newstyle=False) {
+    my QorizeHelper $qh($val, $newstyle);
+    return sprintf("%s = %s;", QorizeHelper::checkVariableName($name, $val, $newstyle),
+                               $qh.list());
+}
+
+#! create code from the hash value
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code
+    my hash $h = (
+            "foo" : "bar",
+            "key1" : now(),
+            "key2" : 12,
+            "key3" : ( 1, 2, 3),
+            "key4" : ( "subkey1" : 1, "subkey2" : 2, ),
+        );
+    my string $s = qorize($h);
+    # "my hash $var = 
+    #        (
+    #        "foo" : "bar",
+    #        "key1" : 2013-08-16T15:10:30.000,
+    #        "key2" : 12,
+    #        "key3" : 
+    #            (1,2,3,),
+    #        "key4" : 
+    #            (
+    #            "subkey1" : 1,
+    #            "subkey2" : 2,
+    #            ),
+    #       );"
+    my string $s = qorize($h, "foo", True);
+    # "hash foo = 
+    #        (
+    #        "foo" : "bar",
+    #        "key1" : 2013-08-16T15:10:30.000,
+    #        "key2" : 12,
+    #        "key3" : 
+    #            (1,2,3,),
+    #        "key4" : 
+    #            (
+    #            "subkey1" : 1,
+    #            "subkey2" : 2,
+    #            ),
+    #        );"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize(hash $val, string $name = "var", bool $newstyle=False) {
+    my QorizeHelper $qh($val, $newstyle);
+    return sprintf("%s = %s;", QorizeHelper::checkVariableName($name, $val, $newstyle),
+                               $qh.hash());
+}
+
+#! create code from the hash value - with one value per one line
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code
+    my hash $h = (
+            "foo" : "bar",
+            "key1" : now(),
+            "key2" : 12,
+            "key3" : ( 1, 2, 3),
+            "key4" : ( "subkey1" : 1, "subkey2" : 2, ),
+        );
+    my string $s = qorizeNamed($h);
+    # "my hash $name;
+    # $var."foo" = "bar";
+    # $var."key1" = 2013-08-16T15:14:40.000;
+    # $var."key2" = 12;
+    # $var."key3" = (1,2,3,);
+    # $var."key4"."subkey1" = 1;
+    # $var."key4"."subkey2" = 2;
+    my string $s = qorizeNamed($h, "foo", True);
+    # "hash foo;
+    # foo."foo" = "bar";
+    # foo."key1" = 2013-08-16T15:14:40.000;
+    # foo."key2" = 12;
+    # foo."key3" = (1,2,3,);
+    # foo."key4"."subkey1" = 1;
+    # foo."key4"."subkey2" = 2;"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorizeNamed(hash $val, string $name = "var", bool $newstyle=False) {
+    my QorizeHelper $qh($val, $newstyle);
+    return sprintf("%s;\n%s", QorizeHelper::checkVariableName($name, $val, $newstyle),
+                              $qh.hashNamed($name));
+}
+
+#! create code from the any value - fallback for NULL and NOTHINGS
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code
+    my any $s = qorize(NULL);
+    # "my any $var = NULL;"
+    my string $s = qorize(NULL, "foo", True);
+    # "any foo = NULL;"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize(any $val, string $name = "var", bool $newstyle=False) {
+    return sprintf("%s = %s;", QorizeHelper::checkVariableName($name, $val, $newstyle),
+                                QorizeHelper::escape($val));
+}
+#@}
+
+
+# a helper class holding all logic
+class QorizeHelper {
+
+    private {
+        any $.container;
+        int $.type;
+        string $.code;
+        int $.level = 1;
+        list $.inlineLevel = ();
+        bool $.newstyle;
+    }
+
+    static string checkVariableName(string $name, any $val, bool $newstyle) {
+        my string $ret;
+        if (!$newstyle)
+            $ret += "my ";
+
+        switch ($val.typeCode()) {
+            case NT_BOOLEAN:   $ret += "bool"; break;
+            case NT_STRING:    $ret += "string"; break; 
+            case NT_INT:       $ret += "int"; break;
+            case NT_FLOAT:     $ret += "float"; break;
+            case NT_NUMBER:    $ret += "number"; break;
+            case NT_DATE:      $ret += "date"; break;
+            case NT_BINARY:    $ret += "binary"; break;
+            case NT_LIST:      $ret += "list"; break;
+            case NT_HASH:      $ret += "hash"; break;
+            case NT_NULL:
+            case NT_NOTHING:   $ret += "any"; break;
+            default:
+                throw "QORIZE-ERROR", sprintf("Unsupported type for checkVariableName %s", $val.type());
+        } # switch
+
+        $ret += " ";
+
+        if (!$newstyle)
+            $ret += "$";
+
+        $ret += $name;
+
+        return $ret;
+    }
+
+    static string escape(bool $val) {
+        return $val ? 'True' : 'False';
+    }
+
+    static string escape(string $val) {
+        my string $escaped = replace($val, '"', '\"');
+        return sprintf("\"%s\"", $escaped);
+    }
+
+    static string escape(int $val) {
+        return sprintf("%d", $val);
+    }
+
+    static string escape(float $val) {
+        return sprintf("%s", string($val));
+    }
+
+    static string escape(number $val) {
+        return sprintf("%sn", string($val));
+    }
+
+    static string escape(date $val) {
+        my hash $info = date_info($val);
+        if (!$info.relative) {
+            my string $escaped = format_date("YYYY-MM-DDTHH:mm:SS.ms", $val);
+            return sprintf("%s", $escaped);
+        }
+        else {
+            #PnYnMnDTnHnMnSnu
+            my string $ret = "P";
+            if ($info.year) $ret += sprintf("%dY", $info.year);
+            if ($info.month) $ret += sprintf("%dM", $info.month);
+            if ($info.day) $ret += sprintf("%dD", $info.day);
+            if ($info.hour || $info.minute || $info.second || $info.microsecond) $ret += "T";
+            if ($info.hour) $ret += sprintf("%dH", $info.hour);
+            if ($info.minute) $ret += sprintf("%dM", $info.minute);
+            if ($info.second) $ret += sprintf("%dS", $info.second);
+            if ($info.microsecond) $ret += sprintf("%du", $info.microsecond);
+            return $ret;
+        }
+    }
+
+    static string escape(binary $val) {
+        return sprintf("parseHexString(\"%s\")", makeHexString($val));
+    }
+
+    static string escape(any $val) {
+        switch ($val.typeCode()) {
+            case NT_NULL:
+                return "NULL";
+            case NT_NOTHING:
+                return "NOTHING";
+            default:
+                throw "QORIZE-ERROR", sprintf("No method to process type %s", $val.type());
+        }
+    }
+
+    constructor(any $container, bool $newstyle) {
+        $.container = $container;
+        $.type = $container.typeCode();
+        $.newstyle = $newstyle;
+        if (!inlist($.type, (NT_LIST, NT_HASH)))
+            throw "QORIZE-ERROR", sprintf("Unsupported type %s (list, hash)", $container.type());
+    }
+
+    string list() {
+        if ($.type != NT_LIST)
+            throw "QORIZE-ERROR", "Cannot call list() for different type";
+
+        $.process($.container);
+
+        return $.code;
+    }
+
+    string hash() {
+        if ($.type != NT_HASH)
+            throw "QORIZE-ERROR", "Cannot call hash() for different type";
+
+        $.process($.container);
+
+        return $.code;
+    }
+
+    string hashNamed(string $name) {
+        $.processNamed($.container, $name);
+        return $.code;
+    }
+
+    private processNamed(hash $node, string $name) {
+
+        my HashIterator $it($node);
+        while ($it.next()) {
+            my any $value = $it.getValue();
+            my string $key = $it.getKey();
+
+            switch($value.typeCode()) {
+                case NT_HASH:
+                    $.code += sprintf("# hash leveled %n\n", $key);
+                    push $.inlineLevel, sprintf("\"%s\"", $key);
+                    $.processNamed($value, $name);
+                    pop $.inlineLevel;
+                    break;
+                case NT_LIST:
+                    $.code += sprintf("# list %s\n", $key);
+                    #push $.inlineLevel, sprintf("\"%s\"", $key);
+                    
+                    my ListIterator $lit($value);
+                    my bool $isListOfHashes = True;
+
+                    while ($lit.next()) {
+                        if ($lit.getValue().typeCode() != NT_HASH) {
+                            $isListOfHashes = False;
+                            break;
+                        }
+                    }
+
+# TODO/FIXME
+                    my string $levelHolder = "";
+                    if ($.inlineLevel.size())
+                        $levelHolder = "." + sprintf("%s", join(".", $.inlineLevel));
+
+                    # regular list
+                    if (!$isListOfHashes) {
+                        my QorizeHelper $lh($value, $.newstyle);
+                        $.code += sprintf("%s%s%s.\"%s\" = %s;\n", $.newstyle ? "" : "$", $name, $levelHolder, $key, $lh.list());
+                    }
+                    else {
+                        # list of hashes (eg. XML)
+# TODO/FIXME: proper inline formatting...
+                        my QorizeHelper $lh($value, $.newstyle);
+                        $.code += sprintf("%s%s%s.\"%s\" = %s;\n", $.newstyle ? "" : "$", $name, $levelHolder, $key, $lh.list());
+                        #$lit.reset();
+                        #while ($lit.next()) {
+                        #    $.processNamed($lit.getValue(), $name);
+                        #}
+                        #$.code += "\n    );\n";
+                    }
+                    #pop $.inlineLevel;
+                    break;
+                default:
+                    my string $levelHolder = "";
+                    if ($.inlineLevel.size())
+                        $levelHolder = "." + sprintf("%s", join(".", $.inlineLevel));
+                    $.code += sprintf("%s%s%s.\"%s\" = %s;\n", $.newstyle ? "" : "$", $name, $levelHolder, $key, $.escape($value));
+            }
+        }
+    }
+
+    private process(list $val) {   
+        $.level++;
+
+        $.code += sprintf("\n%s(", strmul(" ", $.level*4));
+        my ListIterator $it($val);
+        while ($it.next()) {
+            my any $v = $it.getValue();
+            $.process($v);
+        }
+        $.code += ")";
+
+        $.level--;
+        if ($.level > 1)
+            $.code += ",";
+    }
+
+    private process(hash $val) {
+        $.level++;
+
+        $.code += sprintf("\n%s(", strmul(" ", $.level*4));
+        my HashIterator $it($val);
+        while ($it.next()) {
+             $.code += sprintf("\n%s\"%s\" : ", strmul(" ", $.level*4), $it.getKey());
+             $.process($it.getValue());
+        }
+        $.code += sprintf("\n%s)", strmul(" ", $.level*4));
+
+        $.level--;
+        if ($.level > 1)
+            $.code += ",";
+    }
+
+    private process(binary $val) {
+        $.code += sprintf("%s,", $.escape($val));
+    }
+
+    private process(string $val) {
+        $.code += sprintf("%s,", $.escape($val));
+    }
+
+    private process(bool $val) {
+        $.code += sprintf("%s,", $.escape($val));
+    }
+
+    private process(date $val) {
+        $.code += sprintf("%s,", $.escape($val));
+    }
+
+    private process(int $val) {
+        $.code += sprintf("%s,", $.escape($val));
+    }
+
+    private process(float $val) {
+        $.code += sprintf("%s,", $.escape($val));
+    }
+
+    private process(any $val) {
+        $.code += sprintf("%s,", $.escape($val));
+    }
+
+} # class QorizeHelper
+
+} # namespace Qorize
+

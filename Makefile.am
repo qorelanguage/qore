@@ -25,6 +25,7 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/CsvUtil.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
+        qlib/Qorize.qm \
 	qlib/MysqlSqlUtil.qm \
 	qlib/RestHandler.qm \
 	qlib/RestClient.qm \

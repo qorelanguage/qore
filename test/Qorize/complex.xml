@@ -1,0 +1,1606 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CREDITNOTES>
+  <CreditNote>
+    <CreditNoteDocumentDetails>
+      <CreditNoteDocumentDate format="DD-MM-YYYY hh:mi:ss">31-07-2007 00:00:00</CreditNoteDocumentDate>
+      <CreditNoteDocumentNumber scheme="OTHER">361521</CreditNoteDocumentNumber>
+      <DocumentStatus codeList="EANCOM">9</DocumentStatus>
+    </CreditNoteDocumentDetails>
+    <InvoiceReference>
+      <InvoiceDocumentDate/>
+      <InvoiceDocumentNumber/>
+    </InvoiceReference>
+    <TradeAgreementReference>
+      <ContractReferenceDate/>
+      <ContractReferenceNumber/>
+    </TradeAgreementReference>
+    <OrderReference>
+      <PurchaseOrderDate format="DD-MM-YYYY hh:mi:ss">26-07-2007 14:06:18</PurchaseOrderDate>
+      <PurchaseOrderNumber scheme="OTHER">cat5</PurchaseOrderNumber>
+    </OrderReference>
+    <OrderConfirmationReference>
+      <PurchaseOrderConfirmationDate/>
+      <PurchaseOrderConfirmationNumber scheme="OTHER">3515821</PurchaseOrderConfirmationNumber>
+    </OrderConfirmationReference>
+    <DespatchReference>
+      <DespatchDocumentDate/>
+      <DespatchDocumentNumber/>
+    </DespatchReference>
+    <ReceiptAdviceReference>
+      <ReceiptAdviceDocumentDate/>
+      <ReceiptAdviceDocumentNumber/>
+    </ReceiptAdviceReference>
+    <Buyer>
+      <BuyerGLN scheme="OTHER">Superdrug Stores Plc</BuyerGLN>
+      <BuyerAssigned/>
+      <SellerAssigned/>
+      <Address>
+        <BuildingIdentifier scheme="OTHER">Superdrug Stores plc</BuildingIdentifier>
+        <StreetName scheme="OTHER">Commercial Accounts Dept</StreetName>
+        <City scheme="OTHER">Croydon</City>
+        <PostCode scheme="OTHER">CR0 4TB</PostCode>
+        <Country codeList="ISO">GB</Country>
+      </Address>
+    </Buyer>
+    <Seller>
+      <SellerGLN scheme="OTHER">Hutchison Ltd - Star House</SellerGLN>
+      <SellerAssigned/>
+      <BuyerAssigned/>
+      <Address>
+        <BuildingIdentifier scheme="OTHER">43-44 New Bond Street</BuildingIdentifier>
+        <StreetName scheme="OTHER"/>
+        <City scheme="OTHER">London</City>
+        <PostCode scheme="OTHER">W1Y 9HB</PostCode>
+        <Country codeList="ISO">GB</Country>
+      </Address>
+      <VATRegisterationNumber/>
+    </Seller>
+    <ShipTo>
+      <ShipToGLN scheme="OTHER">Superdrug Stores Plc</ShipToGLN>
+      <BuyerAssigned/>
+      <SellerAssigned/>
+    </ShipTo>
+    <TaxPointDateTime format="DD-MM-YYYY hh:mi:ss">31-07-2007 00:00:00</TaxPointDateTime>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">1</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">2</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">3</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">4</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">5</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">6</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">7</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">8</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">9</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">10</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">11</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">12</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">13</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">14</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">15</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">16</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">17</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">18</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">19</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">20</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">21</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">22</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">23</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">24</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">25</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">26</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">27</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">28</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">29</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">30</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">31</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">32</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">33</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">34</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">35</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">36</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">
+0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">37</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">38</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">39</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">40</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">41</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">42</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">43</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">44</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">45</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">46</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">47</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">48</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">49</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">50</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">51</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">52</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">53</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">54</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">55</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">56</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">57</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">58</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">59</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">60</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">61</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">62</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">63</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">64</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">65</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">66</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">67</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">68</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">69</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">70</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">71</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">72</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">73</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">74</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">75</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditItem>
+      <LineItemNumber scheme="OTHER">76</LineItemNumber>
+      <ItemIdentifier>
+        <GTIN scheme="GTIN">5050553350041</GTIN>
+        <AlternateCode/>
+      </ItemIdentifier>
+      <InvoiceQuantity unitCode="Ea">1</InvoiceQuantity>
+      <CreditQuantity unitCode="Ea">1</CreditQuantity>
+      <UnitPrice Amount="GBP">10</UnitPrice>
+      <LineItemPrice Amount="GBP">10</LineItemPrice>
+      <LineItemDiscount>
+        <DiscountValue Amount="GBP">0</DiscountValue>
+        <DiscountRate Format="PERCENT">0</DiscountRate>
+      </LineItemDiscount>
+      <VATDetails>
+        <TaxCategory codeList="EANCOM">S</TaxCategory>
+        <TaxRate Format="PERCENT">17.5</TaxRate>
+      </VATDetails>
+      <CreditLineIndicator/>
+    </CreditItem>
+    <CreditTotals>
+      <DocumentDiscountRate Format="PERCENT">0</DocumentDiscountRate>
+      <SettlementDiscountRate Format="PERCENT">0</SettlementDiscountRate>
+      <VATRateTotals>
+        <VATDetails>
+          <TaxCategory codeList="EANCOM">S</TaxCategory>
+          <TaxRate Format="PERCENT">17.5</TaxRate>
+        </VATDetails>
+        <DiscountedLineTotals Amount="GBP">760</DiscountedLineTotals>
+        <DocumentDiscountValue Amount="GBP">0</DocumentDiscountValue>
+        <SettlementDiscountValue Amount="GBP">0</SettlementDiscountValue>
+        <TaxableAmount Amount="GBP">760</TaxableAmount>
+        <VATPayable Amount="GBP">133</VATPayable>
+      </VATRateTotals>
+      <SettlementSubTotal Amount="GBP">760</SettlementSubTotal>
+      <CreditNoteSubTotal Amount="GBP">760</CreditNoteSubTotal>
+      <VATTotal Amount="GBP">133</VATTotal>
+      <SettlementCreditTotal Amount="GBP">893</SettlementCreditTotal>
+      <TotalPayable Amount="GBP">893</TotalPayable>
+    </CreditTotals>
+  </CreditNote>
+</CREDITNOTES>
