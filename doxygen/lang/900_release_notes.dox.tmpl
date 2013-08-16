@@ -154,6 +154,7 @@
     - fixed a bug in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module when automatically uncompressing supported content-encodings to set the resulting string's character encoding correctly
     - fixed a bug in the @ref instanceof "instanceof" operator when working with objects and classes created from different source @ref Qore::Program "Program" objects
     - fixed a bug in *printf() formatting with floating-point and number values where no digits were displayed right of the decimal point unless a specific number of digits was specified in the format string
+    - fixed the return type of <bool>::typeCode(); was returning a boolean instead of @ref Qore::NT_BOOLEAN
 
     @section qore_087 Qore 0.8.7
 

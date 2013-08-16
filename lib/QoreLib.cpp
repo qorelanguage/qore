@@ -1470,92 +1470,10 @@ QoreHashNode* stat_to_hash(const struct stat &sbuf) {
 
    // process permissions
    QoreStringNode* perm = new QoreStringNode;
+   const char* type = q_mode_to_perm(sbuf.st_mode, *perm);
 
-   const char* type;
-   if (S_ISBLK(sbuf.st_mode)) {
-      type = "BLOCK-DEVICE";
-      perm->concat('b');
-   }
-   else if (S_ISDIR(sbuf.st_mode)) {
-      type = "DIRECTORY";
-      perm->concat('d');
-   }
-   else if (S_ISCHR(sbuf.st_mode)) {
-      type = "CHARACTER-DEVICE";
-      perm->concat('c');
-   }
-   else if (S_ISFIFO(sbuf.st_mode)) {
-      type = "FIFO";
-      perm->concat('p');
-   }
-#ifdef S_ISLNK
-   else if (S_ISLNK(sbuf.st_mode)) {
-      type = "SYMBOLIC-LINK";
-      perm->concat('l');
-   }
-#endif
-#ifdef S_ISSOCK
-   else if (S_ISSOCK(sbuf.st_mode)) {
-      type = "SOCKET";
-      perm->concat('s');
-   }
-#endif
-   else if (S_ISREG(sbuf.st_mode)) {
-      type = "REGULAR";
-      perm->concat('-');
-   }
-   else {
-      type = "UNKNOWN";
-      perm->concat('?');
-   }
-
-   h->setKeyValue("type",  new QoreStringNode(type), 0);
-
-   // add user permission flags
-   perm->concat(sbuf.st_mode & S_IRUSR ? 'r' : '-');
-   perm->concat(sbuf.st_mode & S_IWUSR ? 'w' : '-');
-#ifdef S_ISUID
-   if (sbuf.st_mode & S_ISUID)
-      perm->concat(sbuf.st_mode & S_IXUSR ? 's' : 'S');
-   else
-      perm->concat(sbuf.st_mode & S_IXUSR ? 'x' : '-');
-#else
-   // Windows
-   perm->concat('-');
-#endif
-
-   // add group permission flags
-#ifdef S_IRGRP
-   perm->concat(sbuf.st_mode & S_IRGRP ? 'r' : '-');
-   perm->concat(sbuf.st_mode & S_IWGRP ? 'w' : '-');
-#else
-   // Windows
-   perm->concat("--");
-#endif
-#ifdef S_ISGID
-   if (sbuf.st_mode & S_ISGID)
-      perm->concat(sbuf.st_mode & S_IXGRP ? 's' : 'S');
-   else
-      perm->concat(sbuf.st_mode & S_IXGRP ? 'x' : '-');
-#else
-   // Windows
-   perm->concat('-');
-#endif
-
-#ifdef S_IROTH
-   // add other permission flags
-   perm->concat(sbuf.st_mode & S_IROTH ? 'r' : '-');
-   perm->concat(sbuf.st_mode & S_IWOTH ? 'w' : '-');
-   if (sbuf.st_mode & S_ISVTX)
-      perm->concat(sbuf.st_mode & S_IXOTH ? 't' : 'T');
-   else
-      perm->concat(sbuf.st_mode & S_IXOTH ? 'x' : '-');
-#else
-   // Windows
-   perm->concat("---");
-#endif
-
-   h->setKeyValue("perm",  perm, 0);
+   h->setKeyValue("type", new QoreStringNode(type), 0);
+   h->setKeyValue("perm", perm, 0);
 
    return h;
 }
@@ -1705,4 +1623,90 @@ int qore_set_library_cleanup_options(int options) {
 
 bool qore_check_option(int opt) {
    return (qore_library_options & opt) == opt;
+}
+
+const char* q_mode_to_perm(mode_t mode, QoreString& perm) {
+   const char* type;
+   if (S_ISBLK(mode)) {
+      type = "BLOCK-DEVICE";
+      perm.concat('b');
+   }
+   else if (S_ISDIR(mode)) {
+      type = "DIRECTORY";
+      perm.concat('d');
+   }
+   else if (S_ISCHR(mode)) {
+      type = "CHARACTER-DEVICE";
+      perm.concat('c');
+   }
+   else if (S_ISFIFO(mode)) {
+      type = "FIFO";
+      perm.concat('p');
+   }
+#ifdef S_ISLNK
+   else if (S_ISLNK(mode)) {
+      type = "SYMBOLIC-LINK";
+      perm.concat('l');
+   }
+#endif
+#ifdef S_ISSOCK
+   else if (S_ISSOCK(mode)) {
+      type = "SOCKET";
+      perm.concat('s');
+   }
+#endif
+   else if (S_ISREG(mode)) {
+      type = "REGULAR";
+      perm.concat('-');
+   }
+   else {
+      type = "UNKNOWN";
+      perm.concat('?');
+   }
+
+   // add user permission flags
+   perm.concat(mode & S_IRUSR ? 'r' : '-');
+   perm.concat(mode & S_IWUSR ? 'w' : '-');
+#ifdef S_ISUID
+   if (mode & S_ISUID)
+      perm.concat(mode & S_IXUSR ? 's' : 'S');
+   else
+      perm.concat(mode & S_IXUSR ? 'x' : '-');
+#else
+   // Windows
+   perm.concat('-');
+#endif
+
+   // add group permission flags
+#ifdef S_IRGRP
+   perm.concat(mode & S_IRGRP ? 'r' : '-');
+   perm.concat(mode & S_IWGRP ? 'w' : '-');
+#else
+   // Windows
+   perm.concat("--");
+#endif
+#ifdef S_ISGID
+   if (mode & S_ISGID)
+      perm.concat(mode & S_IXGRP ? 's' : 'S');
+   else
+      perm.concat(mode & S_IXGRP ? 'x' : '-');
+#else
+   // Windows
+   perm.concat('-');
+#endif
+
+#ifdef S_IROTH
+   // add other permission flags
+   perm.concat(mode & S_IROTH ? 'r' : '-');
+   perm.concat(mode & S_IWOTH ? 'w' : '-');
+   if (mode & S_ISVTX)
+      perm.concat(mode & S_IXOTH ? 't' : 'T');
+   else
+      perm.concat(mode & S_IXOTH ? 'x' : '-');
+#else
+   // Windows
+   perm.concat("---");
+#endif
+
+   return type;
 }

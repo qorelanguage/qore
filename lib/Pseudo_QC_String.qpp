@@ -833,7 +833,7 @@ string <string>::unaccent() [flags=RET_VALUE_ONLY] {
 my int $uc = $str.getUnicode(0);
     @endcode
 
-    @param the offset in characters in the string; negative numbers give offsets from the end of the string
+    @param offset the offset in characters in the string; negative numbers give offsets from the end of the string
 
     @return the Unicode code for the given character offset in the string
 

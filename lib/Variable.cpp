@@ -381,7 +381,7 @@ double LValueHelper::getAsFloat() const {
 int LValueHelper::assign(AbstractQoreNode* n, const char* desc) {
    //printd(5, "LValueHelper::assign() this: %p (%s) n: %p '%s' typeInfo: %p '%s' lvid_set: %p\n", this, desc, n, get_type_name(n), typeInfo, typeInfo->getName(), lvid_set);
 
-   // before we can entirely get rid of QoreNothingNode, try to convert pointers to NOTHING to 0
+   // before we can entirely get rid of QoreNothingNode, try to convert Nothing -> 0
    if (n == &Nothing)
       n = 0;
 

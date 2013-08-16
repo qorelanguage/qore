@@ -467,4 +467,7 @@ DLLEXPORT bool q_get_option_value(const char* opt);
 //! returns the boolean value of qore library the given name of the constant for the option; false if the option constant name is unknown
 DLLEXPORT bool q_get_option_constant_value(const char* opt);
 
+//! concatenates UNIX-style permissions to perm and from mode and returns a string giving the file type
+DLLEXPORT const char* q_mode_to_perm(mode_t mode, QoreString& perm);
+
 #endif // _QORE_QORELIB_H
