@@ -533,7 +533,8 @@ public:
 
       HashIterator hi(data);
       while (hi.next()) {
-         check_recursive(oset, hi.getValue());
+         if (check_recursive(oset, hi.getValue()))
+            return -1;
       }
 
       return 0;
@@ -548,9 +549,10 @@ public:
    }
 
    DLLLOCAL static void setRecursive(QoreObject& obj) {
-      assert(!obj.priv->is_recursive);
-      obj.priv->is_recursive = true;
-      printd(0, "qore_object_private::setRecursive() obj: %p '%s'\n", &obj, obj.priv->theclass->getName());
+      if (!obj.priv->is_recursive) {
+         obj.priv->is_recursive = true;
+         printd(0, "qore_object_private::setRecursive() obj: %p '%s'\n", &obj, obj.priv->theclass->getName());
+      }
    }
 
    DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {

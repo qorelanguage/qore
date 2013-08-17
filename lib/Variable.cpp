@@ -303,6 +303,8 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       if (qore_object_private::getLValue(*obj, v->str, *this, true, for_remove, vl.xsink))
          return -1;
 
+      if (!qore_object_private::isRecursive(*obj))
+	 addOSet(obj);
    }
    else if (ntype == NT_CLASS_VARREF)
       reinterpret_cast<const StaticClassVarRefNode*>(n)->getLValue(*this);
@@ -385,14 +387,17 @@ int check_recursive(obj_set_t& oset, AbstractQoreNode* n) {
    qore_type_t t = get_node_type(n);
    if (t == NT_OBJECT) {
       QoreObject* o = reinterpret_cast<QoreObject*>(n);
-      obj_set_t::iterator i = oset.find(o);
-      if (i != oset.end()) {
-	 qore_object_private::setRecursive(*o);
-	 oset.erase(i);
-	 return 0;
-      }
-
-      return qore_object_private::checkRecursive(*o, oset);
+      //if (!qore_object_private::isRecursive(*o)) {
+	 obj_set_t::iterator i = oset.find(o);
+	 if (i != oset.end()) {
+	    qore_object_private::setRecursive(*o);
+	    //oset.erase(i);
+	    return 0;
+	 }
+      
+	 oset.insert(o);
+	 return qore_object_private::checkRecursive(*o, oset);
+	 //}
    }
 
    if (t == NT_LIST) {

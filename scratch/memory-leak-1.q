@@ -3,7 +3,12 @@
 %require-our
 %requires qore >= 0.8
 
-class T { private { int $.id; } constructor(int $id) { $.id = $id; } destructor() { printf("deleting %d\n", $.id); } }
+class T { 
+    private { int $.id; } 
+    constructor(int $id) { $.id = $id; } 
+    destructor() { printf("deleting %d\n", $.id); } 
+    set(T $m) { $.m = $m; }
+}
 
 # make circular references
 {
@@ -42,11 +47,20 @@ class T { private { int $.id; } constructor(int $id) { $.id = $id; } destructor(
 
 #printf("x\n");
 
-my T $obj8(8);
-my T $obj9(9);
+{
+    my T $obj8(8);
+    my T $obj9(9);
 
 #printf("8: %s\n9: %s\n", dbg_node_info($obj8), dbg_node_info($obj9));
+    
+    $obj8.a = ("a": $obj9, "b": $obj9);
+    $obj9.b = $obj8;
+    $obj9.c = $obj8;
+}
 
-$obj8.a = ("a": $obj9, "b": $obj9);
-$obj9.b = $obj8;
-$obj9.c = $obj8;
+{
+    my T $obj10(10);
+    my T $obj11(11);
+    $obj10.set($obj11);
+    $obj11.set($obj10);
+}

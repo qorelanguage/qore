@@ -27,7 +27,12 @@
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/QoreHashNodeIntern.h>
 
-void qore_object_private::merge(const QoreHashNode *h, AutoVLock &vl, ExceptionSink *xsink) {
+void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink) {
+#ifdef DO_OBJ_RECURSIVE_CHECK
+   obj_set_t omap;
+   omap.insert(obj);
+#endif
+
    // list for saving all overwritten values to be dereferenced outside the object lock
    ReferenceHolder<QoreListNode> holder(xsink);
 
@@ -56,6 +61,10 @@ void qore_object_private::merge(const QoreHashNode *h, AutoVLock &vl, ExceptionS
 	 if (*xsink)
 	    return;
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
+	 check_recursive(omap, *val);
+#endif
+
 	 AbstractQoreNode *n = data->swapKeyValue(hi.getKey(), val.release());
 	 //printd(5, "QoreObject::merge() n=%p (rc=%d, type=%s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
 	 // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
@@ -68,7 +77,7 @@ void qore_object_private::merge(const QoreHashNode *h, AutoVLock &vl, ExceptionS
    }
 }
 
-AbstractQoreNode *qore_object_private::takeMember(ExceptionSink* xsink, const char *key, bool check_access) {
+AbstractQoreNode *qore_object_private::takeMember(ExceptionSink* xsink, const char* key, bool check_access) {
    const QoreTypeInfo* mti = 0;
    if (checkMemberAccessGetTypeInfo(xsink, key, mti, check_access))
       return 0;
@@ -508,19 +517,23 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	 ref_copy = --references;
       }
 
-      QoreSafeRWWriteLocker sl(priv->rwl);
+      {
+	 QoreSafeRWReadLocker sl(priv->rwl);
 
-      if (ref_copy) {
-	 if (!priv->is_recursive || priv->recursive_ref_found || !priv->data || priv->data->empty())
-	    return;
-
-	 ObjectSet oset(this);
-	 if (oset.getCount() != ref_copy)
-	    return;
-	 
-	 printd(0, "QoreObject::customDeref() this: %p count/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
-	 priv->recursive_ref_found = true;
+	 if (ref_copy) {
+	    if (!priv->is_recursive || priv->recursive_ref_found || !priv->data || priv->data->empty())
+	       return;
+	    
+	    ObjectSet oset(this);
+	    if (oset.getCount() != ref_copy)
+	       return;
+	    
+	    printd(0, "QoreObject::customDeref() this: %p count/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
+	    priv->recursive_ref_found = true;
+	 }
       }
+
+      QoreSafeRWWriteLocker sl(priv->rwl);
 
       // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
       if (priv->in_destructor || priv->status != OS_OK) {
