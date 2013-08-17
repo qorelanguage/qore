@@ -1252,6 +1252,12 @@ sub string_tests() {
     my string $ustr = $str.upr();
     test_value($ustr, "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", "<string>::upr()");
     test_value($ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
+
+    # regression tests for floating-point formatting bugs
+    test_value(sprintf("%f", 1.5), "1.500000", "%f float");    
+    test_value(sprintf("%f", 1.5n), "1.500000", "%f number");
+    test_value(sprintf("%g", 1.5), "1.5", "%f float");    
+    test_value(sprintf("%g", 1.5n), "1.5", "%f number");
 }
 
 sub pwd_tests() {
