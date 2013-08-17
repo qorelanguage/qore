@@ -354,6 +354,16 @@ public:
       return 0;
    }
 
+   DLLLOCAL AbstractQoreNode* getReferencedContainerValue() const {
+      if (!assigned)
+         return 0;
+
+      if (type != QV_Node || !v.n)
+         return 0;
+
+      return v.n->refSelf();
+   }
+
    DLLLOCAL AbstractQoreNode* getReferencedValue(bool& needs_deref, bool in_lock = false) const {
       if (!assigned) {
          needs_deref = false;

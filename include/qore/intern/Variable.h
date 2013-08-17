@@ -376,17 +376,7 @@ public:
    DLLLOCAL LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove = false);
    DLLLOCAL LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove = false);
 
-   DLLLOCAL ~LValueHelper() {
-      // first free any locks
-      vl.del();
-
-      // now delete temporary values (if any)
-      for (nvec_t::iterator i = tvec.begin(), e = tvec.end(); i != e; ++i)
-         discard(*i, vl.xsink);
-
-      delete lvid_set;
-      delete oset;
-   }
+   DLLLOCAL ~LValueHelper();
 
    DLLLOCAL void saveTemp(AbstractQoreNode* n) {
       if (!n || !n->isReferenceCounted())
