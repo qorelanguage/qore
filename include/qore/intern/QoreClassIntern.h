@@ -1207,7 +1207,7 @@ protected:
       }
 
 public:
-   mutable QoreThreadLock l;
+   mutable QoreRWLock rwl;
    QoreLValueGeneric val;
    bool finalized;
 
@@ -1227,7 +1227,7 @@ public:
 
    DLLLOCAL void clear(ExceptionSink* xsink) {
       ReferenceHolder<> tmp(xsink);
-      AutoLocker al(l);
+      QoreAutoRWWriteLocker al(rwl);
       if (!finalized)
          finalized = true;
       tmp = val.remove(true);
@@ -1253,7 +1253,7 @@ public:
 
    DLLLOCAL void getLValue(LValueHelper& lvh) {
       lvh.setTypeInfo(getTypeInfo());
-      lvh.setAndLock(l);
+      lvh.setAndLock(rwl);
       if (checkFinalized(lvh.vl.xsink))
          return;
       lvh.setValue(val);
@@ -1268,22 +1268,22 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* getReferencedValue() const {
-      AutoLocker al(l);
+      QoreAutoRWReadLocker al(rwl);
       return val.getReferencedValue();
    }
 
    DLLLOCAL int64 getAsBigInt() const {
-      AutoLocker al(l);
+      QoreAutoRWReadLocker al(rwl);
       return val.getAsBigInt();
    }
 
    DLLLOCAL double getAsFloat() const {
-      AutoLocker al(l);
+      QoreAutoRWReadLocker al(rwl);
       return val.getAsFloat();
    }
 
    DLLLOCAL bool getAsBool() const {
-      AutoLocker al(l);
+      QoreAutoRWReadLocker al(rwl);
       return val.getAsBool();
    }
 

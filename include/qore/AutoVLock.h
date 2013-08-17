@@ -29,60 +29,40 @@ class AbstractSmartLock;
 
 struct QLckPtr {
 private:
-   size_t ptr;
+   QoreRWLock* rwl;
 
 protected:
    DLLLOCAL void unlockIntern() {
-      assert(ptr);
-      if (ptr & 1)
-         ((QoreRWLock*)(ptr ^ 1))->unlock();
-      else
-         ((QoreThreadLock*)ptr)->unlock();
+      assert(rwl);
+      rwl->unlock();
    }
 
 public:
-   DLLLOCAL QLckPtr() : ptr(0) {
+   DLLLOCAL QLckPtr() : rwl(0) {
    }
 
-   DLLLOCAL void set(QoreThreadLock* m) {
-      ptr = (size_t)m;
-   }
-
-   DLLLOCAL void set(QoreRWLock* rwl) {
-      ptr = (size_t)rwl | 1;
-   }
-
-   DLLLOCAL QoreThreadLock* getMutex() const {
-      assert(!(ptr & 1));
-      return (QoreThreadLock*)ptr;
+   DLLLOCAL void set(QoreRWLock* n_rwl) {
+      rwl = n_rwl;
    }
 
    DLLLOCAL QoreRWLock* getRWL() const {
-      assert(ptr & 1);
-      return (QoreRWLock*)(ptr ^ 1);
+      return rwl;
    }
 
    DLLLOCAL bool isSet() const {
-      return ptr;
+      return rwl;
    }
-
-   /*
-   DLLLOCAL void unlock() {
-      if (ptr)
-         unlockIntern();
-   }
-   */
 
    DLLLOCAL void unlockAndClear() {
-      if (ptr) {
+      if (rwl) {
          unlockIntern();
-         ptr = 0;
+         rwl = 0;
       }
    }
 
    DLLLOCAL void clear() {
-      assert(ptr);
-      ptr = 0;
+      assert(rwl);
+      rwl = 0;
    }
 };
 
@@ -93,7 +73,6 @@ class AutoVLock {
 private:
    // pointer to lock currently held
    QLckPtr lock;
-   //QoreThreadLock* m;
 
    // pointer to object to dereference
    QoreObject* o;
@@ -129,7 +108,7 @@ public:
    DLLEXPORT void del();
 
    //! sets the current lock
-   DLLLOCAL void set(QoreThreadLock* n_m);
+   DLLLOCAL void set(QoreRWLock* n_rwl);
 
    //! sets the current object (for dereference) and lock
    DLLLOCAL void set(QoreObject* n_o, QoreRWLock* n_rwl);

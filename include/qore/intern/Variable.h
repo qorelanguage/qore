@@ -87,7 +87,7 @@ private:
    unsigned char type;              
    QoreLValue<qore_gvar_ref_u> val;
    std::string name;
-   mutable QoreThreadLock m;
+   mutable QoreRWLock rwl;
    QoreParseTypeInfo *parseTypeInfo;
    const QoreTypeInfo *typeInfo;
    bool pub,                          // is this global var public (valid and set for modules only)
@@ -132,7 +132,7 @@ public:
    DLLLOCAL void clearLocal(ExceptionSink* xsink) {
       if (val.type != QV_Ref) {
          ReferenceHolder<> h(xsink);
-         AutoLocker al(m);
+         QoreAutoRWWriteLocker al(rwl);
          if (!finalized)
             finalized = true;
          printd(5, "Var::clearLocal() clearing '%s' %p\n", name.c_str(), this);
@@ -404,8 +404,8 @@ public:
 
    DLLLOCAL int doLValue(const ReferenceNode* ref, bool for_remove);
 
-   DLLLOCAL void setAndLock(QoreThreadLock& m);
-   DLLLOCAL void set(QoreThreadLock& m);
+   DLLLOCAL void setAndLock(QoreRWLock& rwl);
+   DLLLOCAL void set(QoreRWLock& rwl);
 
    DLLLOCAL AutoVLock& getAutoVLock() {
       return vl;

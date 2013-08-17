@@ -41,11 +41,13 @@ struct qore_avl_private {
    qore_notify_list_t *notify_list;
 
    DLLLOCAL qore_avl_private() : notify_list(0) {
-      }
+   }
+
    DLLLOCAL ~qore_avl_private() {
       if (notify_list)
 	 delete notify_list;
    }
+
    DLLLOCAL void add(QoreObject *obj, const char *mem) {
       //printd(5, "qore_avl_private::add(%p, '%s')\n", obj, mem);
       if (!notify_list)
@@ -105,7 +107,7 @@ void AutoVLock::clear() {
    assert(!o);
 }
 
-void AutoVLock::set(QoreThreadLock *n_m) {
+void AutoVLock::set(QoreRWLock *n_m) {
    assert(!lock.isSet());
    lock.set(n_m);
 }
@@ -116,11 +118,6 @@ void AutoVLock::set(QoreObject *n_o, QoreRWLock *n_m) {
    lock.set(n_m);
 }
 
-/*
-QoreThreadLock *AutoVLock::get() const {
-   return lock.getMutex();
-}
-*/
 QoreRWLock* AutoVLock::getRWL() const {
    return lock.getRWL();
 }

@@ -53,7 +53,7 @@ int Var::getLValue(LValueHelper& lvh, bool for_remove) const {
    }
 
    lvh.setTypeInfo(typeInfo);
-   lvh.setAndLock(m);
+   lvh.setAndLock(rwl);
    if (checkFinalized(lvh.vl.xsink))
       return -1;
 
@@ -69,7 +69,7 @@ void Var::remove(LValueRemoveHelper& lvrh) {
       return;
    }
 
-   AutoLocker al(m);
+   QoreAutoRWWriteLocker al(rwl);
    lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
 }
 
@@ -94,14 +94,14 @@ const char* Var::getName() const {
 AbstractQoreNode* Var::eval() const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->eval();
-   AutoLocker al(m);
+   QoreAutoRWReadLocker al(rwl);
    return val.getReferencedValue();
 }
 
 AbstractQoreNode* Var::eval(bool &needs_deref) const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->eval(needs_deref);
-   AutoLocker al(m);
+   QoreAutoRWReadLocker al(rwl);
    return val.getReferencedValue(needs_deref, true);
 }
 
@@ -109,7 +109,7 @@ bool Var::boolEval() const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->boolEval();
 
-   AutoLocker al(m);
+   QoreAutoRWReadLocker al(rwl);
    return val.getAsBool();
 }
 
@@ -117,7 +117,7 @@ int64 Var::bigIntEval() const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->bigIntEval();
 
-   AutoLocker al(m);
+   QoreAutoRWReadLocker al(rwl);
    return val.getAsBigInt();
 }
 
@@ -125,7 +125,7 @@ double Var::floatEval() const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->floatEval();
 
-   AutoLocker al(m);
+   QoreAutoRWReadLocker al(rwl);
    return val.getAsFloat();
 }
 
@@ -338,13 +338,13 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
    return 0;
 }
 
-void LValueHelper::setAndLock(QoreThreadLock& m) {
-   m.lock();
-   vl.set(&m);
+void LValueHelper::setAndLock(QoreRWLock& rwl) {
+   rwl.wrlock();
+   vl.set(&rwl);
 }
 
-void LValueHelper::set(QoreThreadLock& m) {
-   vl.set(&m);
+void LValueHelper::set(QoreRWLock& rwl) {
+   vl.set(&rwl);
 }
 
 AbstractQoreNode* LValueHelper::getReferencedValue() const {
@@ -1053,7 +1053,7 @@ void LocalVarValue::remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInf
 int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    //printd(5, "ClosureVarValue::getLValue() this: %p type: '%s' %d\n", this, val.getTypeName(), val.getType());
 
-   SafeLocker sl(const_cast<ClosureVarValue*>(this));
+   QoreSafeRWWriteLocker sl(const_cast<ClosureVarValue*>(this));
    if (val.getType() == NT_REFERENCE) {
       ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), lvh.vl.xsink);
       sl.unlock();
@@ -1069,7 +1069,7 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
 }
 
 void ClosureVarValue::remove(LValueRemoveHelper& lvrh) {
-   SafeLocker sl(this);
+   QoreSafeRWWriteLocker sl(this);
    if (val.getType() == NT_REFERENCE) {
       ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), lvrh.getExceptionSink());
       sl.unlock();
