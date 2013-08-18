@@ -1329,7 +1329,7 @@ my any $v = $c.name;
 		schema = ds.getUserName();
 
             # the oracle driver >= 3.0 supports selecting from LONG columns
-            has_long = compare_version("3.0", getModuleHash().oracle.version) >= 0;
+            has_long = compare_version("3.0", getModuleHash().oracle.version) <= 0;
         }
 
         private bool checkExistenceImpl() {
